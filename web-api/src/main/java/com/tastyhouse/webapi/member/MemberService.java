@@ -58,6 +58,47 @@ public class MemberService {
     private final PlaceRepository placeRepository;
     private final FollowRepository followRepository;
 
+    @Transactional
+    public void signUp(String username, String password, String passwordConfirm,
+                       String nickname, String fullName,
+                       com.tastyhouse.core.entity.user.Gender gender,
+                       Integer birthDate, String phoneNumber,
+                       Boolean marketingInfoEnabled, Boolean eventInfoEnabled,
+                       String phoneVerifyToken) {
+
+        if (!password.equals(passwordConfirm)) {
+            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
+        }
+
+        if (memberJpaRepository.existsByUsername(username)) {
+            throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
+        }
+
+        if (memberJpaRepository.existsByNickname(nickname)) {
+            throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
+        }
+
+        if (phoneNumber != null) {
+            if (!org.springframework.util.StringUtils.hasText(phoneVerifyToken)
+                    || !jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
+                throw new BusinessException(ErrorCode.MEMBER_SIGNUP_PHONE_REQUIRED);
+            }
+
+            String verifiedPhone = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
+            if (!verifiedPhone.equals(phoneNumber)) {
+                throw new BusinessException(ErrorCode.MEMBER_PHONE_MISMATCH);
+            }
+        }
+
+        Member member = new Member(username, passwordEncoder.encode(password), nickname, fullName, gender);
+        member.setBirthDate(birthDate);
+        member.setPhoneNumber(phoneNumber);
+        member.setMarketingInfoEnabled(marketingInfoEnabled != null ? marketingInfoEnabled : false);
+        member.setEventInfoEnabled(eventInfoEnabled != null ? eventInfoEnabled : false);
+
+        memberJpaRepository.save(member);
+    }
+
     public void verifyPersonalInfoToken(Long memberId, String verifyToken) {
         if (!jwtTokenProvider.validateVerifyToken(verifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_INFO_AUTH_EXPIRED);

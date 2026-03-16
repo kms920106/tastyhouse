@@ -46,6 +46,9 @@ public enum ErrorCode {
 
     // 회원
     MEMBER_NOT_FOUND(404, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
+    MEMBER_USERNAME_DUPLICATED(409, "MEMBER_USERNAME_DUPLICATED", "이미 사용 중인 아이디입니다."),
+    MEMBER_NICKNAME_DUPLICATED(409, "MEMBER_NICKNAME_DUPLICATED", "이미 사용 중인 닉네임입니다."),
+    MEMBER_SIGNUP_PHONE_REQUIRED(400, "MEMBER_SIGNUP_PHONE_REQUIRED", "회원가입 시 휴대폰 인증이 필요합니다."),
     MEMBER_INFO_AUTH_EXPIRED(400, "MEMBER_INFO_AUTH_EXPIRED", "개인정보 수정 인증이 만료되었습니다. 비밀번호를 다시 인증해주세요."),
     MEMBER_PHONE_SMS_REQUIRED(400, "MEMBER_PHONE_SMS_REQUIRED", "휴대폰번호 변경 시 SMS 인증이 필요합니다."),
     MEMBER_PHONE_AUTH_EXPIRED(400, "MEMBER_PHONE_AUTH_EXPIRED", "휴대폰 인증이 만료되었습니다. SMS 인증을 다시 진행해주세요."),

@@ -3,7 +3,9 @@ package com.tastyhouse.webapi.auth;
 import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.webapi.auth.request.LoginRequest;
 import com.tastyhouse.webapi.auth.request.RefreshTokenRequest;
+import com.tastyhouse.webapi.auth.request.SignUpRequest;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
+import com.tastyhouse.webapi.member.MemberService;
 import com.tastyhouse.webapi.config.jwt.JwtProperties;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.TokenBlacklist;
@@ -42,6 +44,32 @@ public class AuthController {
     private final JwtProperties jwtProperties;
     private final TokenBlacklist tokenBlacklist;
     private final TokenRedisRepository tokenRedisRepository;
+    private final MemberService memberService;
+
+    @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(phoneVerifyToken)이 필요합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "회원가입 성공", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "400", description = "유효성 검증 실패 또는 비밀번호 불일치 / 인증 토큰 오류", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "409", description = "아이디 또는 닉네임 중복", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:signup")
+    @PostMapping("/signup")
+    public ResponseEntity<CommonResponse<Void>> signUp(@Valid @RequestBody SignUpRequest request) {
+        memberService.signUp(
+            request.username(),
+            request.password(),
+            request.passwordConfirm(),
+            request.nickname(),
+            request.fullName(),
+            request.gender(),
+            request.birthDate(),
+            request.phoneNumber(),
+            request.marketingInfoEnabled(),
+            request.eventInfoEnabled(),
+            request.phoneVerifyToken()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(null));
+    }
 
     @Operation(summary = "로그인", description = "사용자 인증을 통해 JWT 토큰을 발급합니다.")
     @ApiResponses({
