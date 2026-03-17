@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -51,6 +54,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.TOO_MANY_REQUESTS)
             .body(CommonResponse.error(ErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<CommonResponse<Void>> handleBadCredentialsException(BadCredentialsException e) {
+        log.warn("BadCredentialsException: {}", e.getMessage());
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(CommonResponse.error("아이디 또는 비밀번호가 올바르지 않습니다."));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<CommonResponse<Void>> handleDisabledException(DisabledException e) {
+        log.warn("DisabledException: {}", e.getMessage());
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(CommonResponse.error("비활성화된 계정입니다."));
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<CommonResponse<Void>> handleLockedException(LockedException e) {
+        log.warn("LockedException: {}", e.getMessage());
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(CommonResponse.error("잠긴 계정입니다."));
     }
 
     @ExceptionHandler(UnauthorizedException.class)
