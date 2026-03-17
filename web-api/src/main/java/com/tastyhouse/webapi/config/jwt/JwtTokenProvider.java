@@ -54,6 +54,19 @@ public class JwtTokenProvider {
         return createToken(authentication, jwtProperties.getRefreshTokenExpiration());
     }
 
+    public String createRefreshToken(Authentication authentication, boolean rememberMe) {
+        long ttl = rememberMe
+                ? jwtProperties.getRememberMeRefreshTokenExpiration()
+                : jwtProperties.getRefreshTokenExpiration();
+        return createToken(authentication, ttl);
+    }
+
+    public long getRefreshTokenTtl(boolean rememberMe) {
+        return rememberMe
+                ? jwtProperties.getRememberMeRefreshTokenExpiration()
+                : jwtProperties.getRefreshTokenExpiration();
+    }
+
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
 

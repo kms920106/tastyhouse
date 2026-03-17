@@ -87,13 +87,13 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
-        String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
+        String refreshToken = jwtTokenProvider.createRefreshToken(authentication, loginRequest.rememberMe());
 
-        // Refresh Token을 Redis에 저장 (TTL = refreshTokenExpiration)
+        // Refresh Token을 Redis에 저장 (rememberMe 여부에 따라 TTL 차등 적용)
         tokenRedisRepository.saveRefreshToken(
                 authentication.getName(),
                 refreshToken,
-                jwtProperties.getRefreshTokenExpiration()
+                jwtTokenProvider.getRefreshTokenTtl(loginRequest.rememberMe())
         );
 
         return ResponseEntity.ok(CommonResponse.success(new JwtResponse(accessToken, refreshToken, "Bearer")));
