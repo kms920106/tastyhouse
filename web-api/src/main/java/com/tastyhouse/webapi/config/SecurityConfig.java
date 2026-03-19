@@ -66,8 +66,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // 인증 없이 접근 가능한 공개 API
-                .requestMatchers("/api/auth/**").permitAll()
+                // 인증 없이 접근 가능한 인증 API
+                .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/refresh").permitAll()
+                // 로그아웃은 인증 필요 (임의 토큰 블랙리스트 등록 방지)
+                .requestMatchers("/api/auth/logout").authenticated()
+                // 공개 API
                 .requestMatchers("/api/policies/**").permitAll()
                 .requestMatchers("/api/faqs/**").permitAll()
                 .requestMatchers("/api/notices/**").permitAll()
