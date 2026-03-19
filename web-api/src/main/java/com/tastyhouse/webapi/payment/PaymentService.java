@@ -340,29 +340,27 @@ public class PaymentService {
         payment.complete(null, LocalDateTime.now(), null);
         order.confirm();
 
-        if (isOnSitePayment(payment.getPaymentMethod())) {
-            int earnedPoint = (int) (payment.getAmount() * CASH_POINT_EARN_RATE / 100.0);
+        int earnedPoint = (int) (payment.getAmount() * CASH_POINT_EARN_RATE / 100.0);
 
-            MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
-                .orElseGet(() -> {
-                    MemberPoint newPoint = MemberPoint.builder()
-                        .memberId(memberId)
-                        .availablePoints(0)
-                        .build();
-                    return memberPointJpaRepository.save(newPoint);
-                });
+        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
+            .orElseGet(() -> {
+                MemberPoint newPoint = MemberPoint.builder()
+                    .memberId(memberId)
+                    .availablePoints(0)
+                    .build();
+                return memberPointJpaRepository.save(newPoint);
+            });
 
-            memberPoint.addPoints(earnedPoint);
-            order.updateEarnedPoint(earnedPoint);
+        memberPoint.addPoints(earnedPoint);
+        order.updateEarnedPoint(earnedPoint);
 
-            MemberPointHistory pointHistory = MemberPointHistory.builder()
-                .memberId(memberId)
-                .pointType(PointType.EARNED)
-                .pointAmount(earnedPoint)
-                .reason("현장 현금 결제 적립 (" + CASH_POINT_EARN_RATE + "%)")
-                .build();
-            memberPointHistoryJpaRepository.save(pointHistory);
-        }
+        MemberPointHistory pointHistory = MemberPointHistory.builder()
+            .memberId(memberId)
+            .pointType(PointType.EARNED)
+            .pointAmount(earnedPoint)
+            .reason("현장 현금 결제 적립 (" + CASH_POINT_EARN_RATE + "%)")
+            .build();
+        memberPointHistoryJpaRepository.save(pointHistory);
     }
 
     private boolean isOnSitePayment(PaymentMethod method) {
