@@ -31,6 +31,7 @@ application-*.yml
 # Claude
 .claude/settings.local.json
 RESULT.md
+md/REFACTORING.md
 
 # Cursor
 .vscode/
