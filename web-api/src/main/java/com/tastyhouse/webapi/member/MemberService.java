@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.member;
 import com.tastyhouse.core.entity.place.dto.MyBookmarkedPlaceItemDto;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.entity.user.Member;
-import com.tastyhouse.core.entity.user.MemberStatus;
 import com.tastyhouse.core.entity.user.MemberWithdrawal;
 import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.core.exception.BusinessException;
@@ -90,11 +89,8 @@ public class MemberService {
             }
         }
 
-        Member member = new Member(username, passwordEncoder.encode(password), nickname, fullName, gender);
-        member.setBirthDate(birthDate);
-        member.setPhoneNumber(phoneNumber);
-        member.setMarketingInfoEnabled(marketingInfoEnabled != null ? marketingInfoEnabled : false);
-        member.setEventInfoEnabled(eventInfoEnabled != null ? eventInfoEnabled : false);
+        Member member = new Member(username, passwordEncoder.encode(password), nickname, fullName, gender,
+                birthDate, phoneNumber, marketingInfoEnabled, eventInfoEnabled);
 
         memberJpaRepository.save(member);
     }
@@ -162,7 +158,7 @@ public class MemberService {
     public void withdrawMember(Long memberId, WithdrawalReason reason, String reasonDetail) {
         memberJpaRepository.findById(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "존재하지 않는 회원입니다."))
-            .setMemberStatus(MemberStatus.DELETED);
+            .deactivate();
 
         memberWithdrawalJpaRepository.save(
             MemberWithdrawal.builder()
@@ -240,22 +236,14 @@ public class MemberService {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
         }
 
-        member.setPassword(passwordEncoder.encode(newPassword));
+        member.changePassword(passwordEncoder.encode(newPassword));
     }
 
     @Transactional
     public void updateMemberProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
-        memberJpaRepository.findById(memberId).ifPresent(member -> {
-            if (nickname != null) {
-                member.setNickname(nickname);
-            }
-            if (statusMessage != null) {
-                member.setStatusMessage(statusMessage);
-            }
-            if (profileImageFileId != null) {
-                member.setProfileImageFileId(profileImageFileId);
-            }
-        });
+        memberJpaRepository.findById(memberId).ifPresent(member ->
+            member.changeProfile(nickname, statusMessage, profileImageFileId)
+        );
     }
 
     @Transactional
@@ -263,29 +251,10 @@ public class MemberService {
                                    com.tastyhouse.core.entity.user.Gender gender,
                                    Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
                                    Boolean eventInfoEnabled) {
-        memberJpaRepository.findById(memberId).ifPresent(member -> {
-            if (fullName != null) {
-                member.setFullName(fullName);
-            }
-            if (phoneNumber != null) {
-                member.setPhoneNumber(phoneNumber);
-            }
-            if (birthDate != null) {
-                member.setBirthDate(birthDate);
-            }
-            if (gender != null) {
-                member.setGender(gender);
-            }
-            if (pushNotificationEnabled != null) {
-                member.setPushNotificationEnabled(pushNotificationEnabled);
-            }
-            if (marketingInfoEnabled != null) {
-                member.setMarketingInfoEnabled(marketingInfoEnabled);
-            }
-            if (eventInfoEnabled != null) {
-                member.setEventInfoEnabled(eventInfoEnabled);
-            }
-        });
+        memberJpaRepository.findById(memberId).ifPresent(member ->
+            member.updatePersonalInfo(fullName, phoneNumber, birthDate, gender,
+                    pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled)
+        );
     }
 
     @Transactional(readOnly = true)

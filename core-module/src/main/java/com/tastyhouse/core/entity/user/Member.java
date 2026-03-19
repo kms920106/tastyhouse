@@ -3,10 +3,8 @@ package com.tastyhouse.core.entity.user;
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter; // Add Setter annotation
 
 @Getter
-@Setter // Add Setter annotation for all fields, or selectively if preferred
 @Entity
 @Table(name = "MEMBER")
 public class Member extends BaseEntity {
@@ -60,22 +58,50 @@ public class Member extends BaseEntity {
     @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private MemberStatus memberStatus = MemberStatus.ACTIVE;
 
-    // No-argument constructor required by JPA
-    public Member() {
+    protected Member() {
     }
 
-    // Convenient constructor for test user creation
-    public Member(String username, String password, String nickname, String fullName, Gender gender) {
+    public Member(String username, String password, String nickname, String fullName, Gender gender,
+                  Integer birthDate, String phoneNumber,
+                  Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
         this.username = username;
         this.password = password;
         this.nickname = nickname;
         this.fullName = fullName;
         this.gender = gender;
-        this.memberGrade = MemberGrade.NEWCOMER; // Default
-        this.memberStatus = MemberStatus.ACTIVE; // Default
-        this.pushNotificationEnabled = true; // Default
-        this.marketingInfoEnabled = false; // Default
-        this.eventInfoEnabled = false; // Default
+        this.birthDate = birthDate;
+        this.phoneNumber = phoneNumber;
+        this.memberGrade = MemberGrade.NEWCOMER;
+        this.memberStatus = MemberStatus.ACTIVE;
+        this.pushNotificationEnabled = true;
+        this.marketingInfoEnabled = marketingInfoEnabled != null ? marketingInfoEnabled : false;
+        this.eventInfoEnabled = eventInfoEnabled != null ? eventInfoEnabled : false;
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void changeProfile(String nickname, String statusMessage, Long profileImageFileId) {
+        if (nickname != null) this.nickname = nickname;
+        if (statusMessage != null) this.statusMessage = statusMessage;
+        if (profileImageFileId != null) this.profileImageFileId = profileImageFileId;
+    }
+
+    public void updatePersonalInfo(String fullName, String phoneNumber, Integer birthDate,
+                                   Gender gender, Boolean pushNotificationEnabled,
+                                   Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
+        if (fullName != null) this.fullName = fullName;
+        if (phoneNumber != null) this.phoneNumber = phoneNumber;
+        if (birthDate != null) this.birthDate = birthDate;
+        if (gender != null) this.gender = gender;
+        if (pushNotificationEnabled != null) this.pushNotificationEnabled = pushNotificationEnabled;
+        if (marketingInfoEnabled != null) this.marketingInfoEnabled = marketingInfoEnabled;
+        if (eventInfoEnabled != null) this.eventInfoEnabled = eventInfoEnabled;
+    }
+
+    public void deactivate() {
+        this.memberStatus = MemberStatus.DELETED;
     }
 }
 
