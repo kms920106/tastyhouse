@@ -24,6 +24,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.tastyhouse.webapi.config.PublicPaths.PATTERNS;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -66,21 +68,10 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // 인증 없이 접근 가능한 인증 API
-                .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/refresh").permitAll()
+                // 공개 경로 (PublicPaths.PATTERNS에서 중앙 관리)
+                .requestMatchers(PATTERNS).permitAll()
                 // 로그아웃은 인증 필요 (임의 토큰 블랙리스트 등록 방지)
                 .requestMatchers("/api/auth/logout").authenticated()
-                // 공개 API
-                .requestMatchers("/api/policies/**").permitAll()
-                .requestMatchers("/api/faqs/**").permitAll()
-                .requestMatchers("/api/notices/**").permitAll()
-                .requestMatchers("/api/banners/**").permitAll()
-                .requestMatchers("/api/places/**").permitAll()
-                .requestMatchers("/api/event/**").permitAll()
-                .requestMatchers("/api/ranks/**").permitAll()
-                .requestMatchers("/api/products/**").permitAll()
-                // Swagger UI
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
                 // 나머지 API는 인증 필요
                 .anyRequest().authenticated()
             )

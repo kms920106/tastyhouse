@@ -17,8 +17,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.tastyhouse.webapi.config.PublicPaths;
+
 import java.io.IOException;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -30,24 +31,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenBlacklist tokenBlacklist;
     private final ObjectMapper objectMapper;
 
-    private static final List<String> PUBLIC_PATHS = List.of(
-        "/api/auth/",
-        "/api/policies/",
-        "/api/faqs/",
-        "/api/notices/",
-        "/api/banners/",
-        "/api/places/",
-        "/api/event/",
-        "/api/ranks/",
-        "/api/products/",
-        "/swagger-ui/",
-        "/v3/api-docs"
-    );
-
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+        return PublicPaths.isPublic(request.getRequestURI());
     }
 
     @Override
