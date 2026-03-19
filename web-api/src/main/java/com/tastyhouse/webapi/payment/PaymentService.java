@@ -222,37 +222,38 @@ public class PaymentService {
         payment.cancel(request.cancelReason());
         order.cancel();
 
-        if (order.getUsedPoint() > 0) {
-            MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId).orElse(null);
-            if (memberPoint != null) {
-                memberPoint.addPoints(order.getUsedPoint());
+        restorePoints(memberId, order);
 
-                MemberPointHistory pointHistory = MemberPointHistory.builder()
-                    .memberId(memberId)
-                    .pointType(PointType.REFUND)
-                    .pointAmount(order.getUsedPoint())
-                    .reason("결제 취소 환불")
-                    .build();
-                memberPointHistoryJpaRepository.save(pointHistory);
-            }
+        return PaymentCancelResponse.of(PaymentCancelCode.SUCCESS);
+    }
+
+    private void restorePoints(Long memberId, Order order) {
+        if (order.getUsedPoint() <= 0 && order.getEarnedPoint() <= 0) return;
+
+        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
+                "포인트 정보를 찾을 수 없습니다. memberId=" + memberId));
+
+        if (order.getUsedPoint() > 0) {
+            memberPoint.addPoints(order.getUsedPoint());
+            memberPointHistoryJpaRepository.save(MemberPointHistory.builder()
+                .memberId(memberId)
+                .pointType(PointType.REFUND)
+                .pointAmount(order.getUsedPoint())
+                .reason("결제 취소 환불")
+                .build());
         }
 
         if (order.getEarnedPoint() > 0) {
-            MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId).orElse(null);
-            if (memberPoint != null && memberPoint.getAvailablePoints() >= order.getEarnedPoint()) {
-                memberPoint.deductPoints(order.getEarnedPoint());
-
-                MemberPointHistory pointHistory = MemberPointHistory.builder()
-                    .memberId(memberId)
-                    .pointType(PointType.USE)
-                    .pointAmount(-order.getEarnedPoint())
-                    .reason("결제 취소 적립금 회수")
-                    .build();
-                memberPointHistoryJpaRepository.save(pointHistory);
-            }
+            int deductAmount = Math.min(memberPoint.getAvailablePoints(), order.getEarnedPoint());
+            memberPoint.deductPoints(deductAmount);
+            memberPointHistoryJpaRepository.save(MemberPointHistory.builder()
+                .memberId(memberId)
+                .pointType(PointType.USE)
+                .pointAmount(-deductAmount)
+                .reason("결제 취소 적립금 회수")
+                .build());
         }
-
-        return PaymentCancelResponse.of(PaymentCancelCode.SUCCESS);
     }
 
     private PaymentCancelCode validateOrderStatusForCancel(OrderStatus orderStatus) {
