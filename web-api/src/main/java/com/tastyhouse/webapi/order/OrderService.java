@@ -267,8 +267,8 @@ public class OrderService {
 
     private String generateOrderNumber() {
         String dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String uuid = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        return "ORD" + dateTime + uuid;
+        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        return "ORD-" + dateTime + "-" + uuid;
     }
 
     private OrderResponse buildOrderResponse(Order order, Place place, Long memberId) {
