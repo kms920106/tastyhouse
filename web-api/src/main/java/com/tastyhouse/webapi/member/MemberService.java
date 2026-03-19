@@ -241,9 +241,9 @@ public class MemberService {
 
     @Transactional
     public void updateMemberProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
-        memberJpaRepository.findById(memberId).ifPresent(member ->
-            member.changeProfile(nickname, statusMessage, profileImageFileId)
-        );
+        Member member = memberJpaRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.changeProfile(nickname, statusMessage, profileImageFileId);
     }
 
     @Transactional
@@ -251,10 +251,10 @@ public class MemberService {
                                    com.tastyhouse.core.entity.user.Gender gender,
                                    Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
                                    Boolean eventInfoEnabled) {
-        memberJpaRepository.findById(memberId).ifPresent(member ->
-            member.updatePersonalInfo(fullName, phoneNumber, birthDate, gender,
-                    pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled)
-        );
+        Member member = memberJpaRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.updatePersonalInfo(fullName, phoneNumber, birthDate, gender,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
     }
 
     @Transactional(readOnly = true)
