@@ -1,22 +1,22 @@
 package com.tastyhouse.core.common;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommonResponse<T> {
     private boolean success;
     private String message;
     private T data;
     private PageInfo pagination;
 
-    @Data
-    @NoArgsConstructor
+    @Getter
     @AllArgsConstructor
     public static class PageInfo {
         private int page;

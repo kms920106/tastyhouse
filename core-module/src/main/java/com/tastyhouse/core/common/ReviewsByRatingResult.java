@@ -2,12 +2,12 @@ package com.tastyhouse.core.common;
 
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class ReviewsByRatingResult {
     private Map<Integer, List<LatestReviewListItemDto>> reviewsByRating;
