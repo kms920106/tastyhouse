@@ -37,28 +37,37 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String createToken(Authentication authentication, long expirationTime) {
-        String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
+    public String createToken(Authentication authentication, long expirationTime, String tokenType) {
+        String authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + expirationTime);
 
-        return Jwts.builder().subject(authentication.getName()).claim("auth", authorities).issuedAt(now).expiration(validity).signWith(key).compact();
+        return Jwts.builder()
+                .subject(authentication.getName())
+                .claim("auth", authorities)
+                .claim("type", tokenType)
+                .issuedAt(now)
+                .expiration(validity)
+                .signWith(key)
+                .compact();
     }
 
     public String createAccessToken(Authentication authentication) {
-        return createToken(authentication, jwtProperties.getAccessTokenExpiration());
+        return createToken(authentication, jwtProperties.getAccessTokenExpiration(), "ACCESS");
     }
 
     public String createRefreshToken(Authentication authentication) {
-        return createToken(authentication, jwtProperties.getRefreshTokenExpiration());
+        return createToken(authentication, jwtProperties.getRefreshTokenExpiration(), "REFRESH");
     }
 
     public String createRefreshToken(Authentication authentication, boolean rememberMe) {
         long ttl = rememberMe
                 ? jwtProperties.getRememberMeRefreshTokenExpiration()
                 : jwtProperties.getRefreshTokenExpiration();
-        return createToken(authentication, ttl);
+        return createToken(authentication, ttl, "REFRESH");
     }
 
     public long getRefreshTokenTtl(boolean rememberMe) {
@@ -68,9 +77,11 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        Claims claims = parseClaims(token);
 
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(",")).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
 
         User principal = new User(claims.getSubject(), "", authorities);
 
@@ -78,9 +89,7 @@ public class JwtTokenProvider {
     }
 
     public String getUsernameFromJWT(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-
-        return claims.getSubject();
+        return parseClaims(token).getSubject();
     }
 
     public boolean validateToken(String token) {
@@ -103,21 +112,32 @@ public class JwtTokenProvider {
         if (!validateToken(refreshToken)) {
             throw new JwtException("Invalid refresh token");
         }
-        Authentication authentication = getAuthentication(refreshToken);
-        return createAccessToken(authentication);
+        validateTokenType(refreshToken, "REFRESH");
+        return createAccessToken(getAuthentication(refreshToken));
     }
 
     public String createRefreshTokenFromRefreshToken(String refreshToken) {
         if (!validateToken(refreshToken)) {
             throw new JwtException("Invalid refresh token");
         }
-        Authentication authentication = getAuthentication(refreshToken);
-        return createRefreshToken(authentication);
+        validateTokenType(refreshToken, "REFRESH");
+        return createRefreshToken(getAuthentication(refreshToken));
+    }
+
+    private void validateTokenType(String token, String expectedType) {
+        Claims claims = parseClaims(token);
+        String actualType = claims.get("type", String.class);
+        if (!expectedType.equals(actualType)) {
+            throw new JwtException("잘못된 토큰 타입. expected=" + expectedType + ", actual=" + actualType);
+        }
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
 
     public long getExpirationMillis(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-        return claims.getExpiration().getTime();
+        return parseClaims(token).getExpiration().getTime();
     }
 
     public String createPersonalInfoVerifyToken(Long memberId) {
@@ -134,7 +154,7 @@ public class JwtTokenProvider {
     }
 
     public Long getMemberIdFromVerifyToken(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        Claims claims = parseClaims(token);
 
         String type = claims.get("type", String.class);
         if (!"PERSONAL_INFO_VERIFY".equals(type)) {
@@ -146,7 +166,7 @@ public class JwtTokenProvider {
 
     public boolean validateVerifyToken(String token) {
         try {
-            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            Claims claims = parseClaims(token);
             return "PERSONAL_INFO_VERIFY".equals(claims.get("type", String.class));
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Invalid verify token.", e);
@@ -170,7 +190,7 @@ public class JwtTokenProvider {
 
     public boolean validatePhoneVerifyToken(String token) {
         try {
-            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            Claims claims = parseClaims(token);
             return "PHONE_VERIFY".equals(claims.get("type", String.class));
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Invalid phone verify token.", e);
@@ -179,7 +199,7 @@ public class JwtTokenProvider {
     }
 
     public String getPhoneNumberFromPhoneVerifyToken(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        Claims claims = parseClaims(token);
 
         String type = claims.get("type", String.class);
         if (!"PHONE_VERIFY".equals(type)) {
@@ -190,7 +210,7 @@ public class JwtTokenProvider {
     }
 
     public Long getMemberIdFromPhoneVerifyToken(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        Claims claims = parseClaims(token);
 
         String type = claims.get("type", String.class);
         if (!"PHONE_VERIFY".equals(type)) {
