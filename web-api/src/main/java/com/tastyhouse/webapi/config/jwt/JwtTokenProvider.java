@@ -219,4 +219,38 @@ public class JwtTokenProvider {
 
         return Long.parseLong(claims.getSubject());
     }
+
+    public String createEmailVerifyToken(String email) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + 10 * 60 * 1000L); // 10분
+
+        return Jwts.builder()
+                .subject(email)
+                .claim("type", "EMAIL_VERIFY")
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(key)
+                .compact();
+    }
+
+    public boolean validateEmailVerifyToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return "EMAIL_VERIFY".equals(claims.get("type", String.class));
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("Invalid email verify token.", e);
+            return false;
+        }
+    }
+
+    public String getEmailFromEmailVerifyToken(String token) {
+        Claims claims = parseClaims(token);
+
+        String type = claims.get("type", String.class);
+        if (!"EMAIL_VERIFY".equals(type)) {
+            throw new JwtException("유효하지 않은 이메일 인증 토큰입니다.");
+        }
+
+        return claims.getSubject();
+    }
 }

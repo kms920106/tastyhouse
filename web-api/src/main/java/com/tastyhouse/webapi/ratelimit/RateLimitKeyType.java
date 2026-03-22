@@ -6,5 +6,8 @@ public enum RateLimitKeyType {
     IP,
 
     /** 요청 본문의 phoneNumber 필드 기반 */
-    PHONE
+    PHONE,
+
+    /** 요청 본문의 email 필드 기반 */
+    EMAIL
 }

@@ -58,5 +58,9 @@ public record SignUpRequest(
     Boolean eventInfoEnabled,
 
     @Schema(description = "SMS 휴대폰 인증 토큰 (휴대폰번호 입력 시 필수)")
-    String phoneVerifyToken
+    String phoneVerifyToken,
+
+    @Schema(description = "이메일 인증 토큰 (회원가입 시 필수)")
+    @NotBlank(message = "이메일 인증 토큰을 입력해주세요.")
+    String emailVerifyToken
 ) {}

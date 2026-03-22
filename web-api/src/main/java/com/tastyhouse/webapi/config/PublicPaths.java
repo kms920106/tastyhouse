@@ -10,6 +10,7 @@ public final class PublicPaths {
 
     public static final String[] PATTERNS = {
         "/api/auth/signup", "/api/auth/login", "/api/auth/refresh",
+        "/api/email-verifications/**",
         "/api/policies/**", "/api/faqs/**", "/api/notices/**",
         "/api/banners/**", "/api/places/**", "/api/event/**",
         "/api/ranks/**", "/api/products/**",

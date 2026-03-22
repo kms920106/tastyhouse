@@ -49,10 +49,13 @@ public enum ErrorCode {
     MEMBER_USERNAME_DUPLICATED(409, "MEMBER_USERNAME_DUPLICATED", "이미 사용 중인 아이디입니다."),
     MEMBER_NICKNAME_DUPLICATED(409, "MEMBER_NICKNAME_DUPLICATED", "이미 사용 중인 닉네임입니다."),
     MEMBER_SIGNUP_PHONE_REQUIRED(400, "MEMBER_SIGNUP_PHONE_REQUIRED", "회원가입 시 휴대폰 인증이 필요합니다."),
+    MEMBER_SIGNUP_EMAIL_REQUIRED(400, "MEMBER_SIGNUP_EMAIL_REQUIRED", "회원가입 시 이메일 인증이 필요합니다."),
     MEMBER_INFO_AUTH_EXPIRED(400, "MEMBER_INFO_AUTH_EXPIRED", "개인정보 수정 인증이 만료되었습니다. 비밀번호를 다시 인증해주세요."),
     MEMBER_PHONE_SMS_REQUIRED(400, "MEMBER_PHONE_SMS_REQUIRED", "휴대폰번호 변경 시 SMS 인증이 필요합니다."),
     MEMBER_PHONE_AUTH_EXPIRED(400, "MEMBER_PHONE_AUTH_EXPIRED", "휴대폰 인증이 만료되었습니다. SMS 인증을 다시 진행해주세요."),
     MEMBER_PHONE_MISMATCH(400, "MEMBER_PHONE_MISMATCH", "인증된 휴대폰번호와 입력한 휴대폰번호가 일치하지 않습니다."),
+    MEMBER_EMAIL_AUTH_EXPIRED(400, "MEMBER_EMAIL_AUTH_EXPIRED", "이메일 인증이 만료되었습니다. 이메일 인증을 다시 진행해주세요."),
+    MEMBER_EMAIL_MISMATCH(400, "MEMBER_EMAIL_MISMATCH", "인증된 이메일과 입력한 아이디(이메일)가 일치하지 않습니다."),
     MEMBER_PASSWORD_MISMATCH(400, "MEMBER_PASSWORD_MISMATCH", "비밀번호가 일치하지 않습니다."),
     MEMBER_PASSWORD_CONFIRM_MISMATCH(400, "MEMBER_PASSWORD_CONFIRM_MISMATCH", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."),
     MEMBER_PASSWORD_SAME_AS_OLD(400, "MEMBER_PASSWORD_SAME_AS_OLD", "현재 비밀번호와 동일한 비밀번호로 변경할 수 없습니다."),
@@ -61,6 +64,11 @@ public enum ErrorCode {
     VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
     VERIFICATION_CODE_EXPIRED(400, "VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
     VERIFICATION_CODE_MISMATCH(400, "VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
+
+    // 인증 (이메일)
+    EMAIL_VERIFICATION_CODE_NOT_FOUND(400, "EMAIL_VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
+    EMAIL_VERIFICATION_CODE_EXPIRED(400, "EMAIL_VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
+    EMAIL_VERIFICATION_CODE_MISMATCH(400, "EMAIL_VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
 
     // 포인트
     POINT_NOT_FOUND(404, "POINT_NOT_FOUND", "포인트 정보를 찾을 수 없습니다."),

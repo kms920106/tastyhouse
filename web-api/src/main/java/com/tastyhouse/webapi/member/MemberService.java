@@ -63,7 +63,7 @@ public class MemberService {
                        com.tastyhouse.core.entity.user.Gender gender,
                        Integer birthDate, String phoneNumber,
                        Boolean marketingInfoEnabled, Boolean eventInfoEnabled,
-                       String phoneVerifyToken) {
+                       String phoneVerifyToken, String emailVerifyToken) {
 
         if (!password.equals(passwordConfirm)) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
@@ -87,6 +87,19 @@ public class MemberService {
             if (!verifiedPhone.equals(phoneNumber)) {
                 throw new BusinessException(ErrorCode.MEMBER_PHONE_MISMATCH);
             }
+        }
+
+        if (!StringUtils.hasText(emailVerifyToken)) {
+            throw new BusinessException(ErrorCode.MEMBER_SIGNUP_EMAIL_REQUIRED);
+        }
+
+        if (!jwtTokenProvider.validateEmailVerifyToken(emailVerifyToken)) {
+            throw new BusinessException(ErrorCode.MEMBER_EMAIL_AUTH_EXPIRED);
+        }
+
+        String verifiedEmail = jwtTokenProvider.getEmailFromEmailVerifyToken(emailVerifyToken);
+        if (!verifiedEmail.equals(username)) {
+            throw new BusinessException(ErrorCode.MEMBER_EMAIL_MISMATCH);
         }
 
         Member member = new Member(username, passwordEncoder.encode(password), nickname, fullName, gender,

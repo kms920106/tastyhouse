@@ -40,6 +40,7 @@ public class RateLimitAspect {
         String identifier = switch (rateLimit.keyType()) {
             case IP -> resolveClientIp();
             case PHONE -> resolvePhoneNumber(joinPoint);
+            case EMAIL -> resolveEmail(joinPoint);
         };
         return rateLimit.keyPrefix() + ":" + identifier;
     }
@@ -72,6 +73,26 @@ public class RateLimitAspect {
                 // getPhoneNumber 메서드가 없는 인자는 건너뜀
             } catch (Exception e) {
                 log.warn("phoneNumber 추출 실패: {}", e.getMessage());
+            }
+        }
+        return "unknown";
+    }
+
+    private String resolveEmail(JoinPoint joinPoint) {
+        for (Object arg : joinPoint.getArgs()) {
+            if (arg == null) {
+                continue;
+            }
+            try {
+                Method getEmail = arg.getClass().getMethod("email");
+                Object email = getEmail.invoke(arg);
+                if (email instanceof String emailValue && StringUtils.hasText(emailValue)) {
+                    return emailValue;
+                }
+            } catch (NoSuchMethodException ignored) {
+                // email 메서드가 없는 인자는 건너뜀
+            } catch (Exception e) {
+                log.warn("email 추출 실패: {}", e.getMessage());
             }
         }
         return "unknown";
