@@ -4,6 +4,7 @@ import com.tastyhouse.core.entity.verification.EmailVerification;
 import com.tastyhouse.core.entity.verification.EmailVerificationStatus;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.repository.member.MemberJpaRepository;
 import com.tastyhouse.core.repository.verification.EmailVerificationJpaRepository;
 import com.tastyhouse.external.email.EmailClient;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
@@ -23,12 +24,17 @@ public class EmailVerificationService {
     private static final String EMAIL_SUBJECT = "[TastyHouse] 이메일 인증번호 안내";
     private static final String EMAIL_BODY_TEMPLATE = "[TastyHouse] 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
 
+    private final MemberJpaRepository memberJpaRepository;
     private final EmailVerificationJpaRepository emailVerificationJpaRepository;
     private final EmailClient emailClient;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public void sendVerificationCode(String email) {
+        if (memberJpaRepository.existsByUsername(email)) {
+            throw new BusinessException(ErrorCode.MEMBER_EMAIL_ALREADY_REGISTERED);
+        }
+
         emailVerificationJpaRepository.expireAllPendingByEmail(email);
 
         String verificationCode = generateVerificationCode();
