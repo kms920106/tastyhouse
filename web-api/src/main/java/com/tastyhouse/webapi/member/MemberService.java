@@ -150,6 +150,12 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
+    public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
+        boolean available = !memberJpaRepository.existsByNickname(nickname);
+        return new NicknameAvailabilityResponse(available);
+    }
+
+    @Transactional(readOnly = true)
     public void verifyPassword(Long memberId, String rawPassword) {
         Member member = memberJpaRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "존재하지 않는 회원입니다."));

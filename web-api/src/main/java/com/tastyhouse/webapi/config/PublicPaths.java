@@ -12,6 +12,7 @@ public final class PublicPaths {
         "/api/auth/signup", "/api/auth/login", "/api/auth/refresh",
         "/api/email-verifications/**",
         "/api/policies/**", "/api/faqs/**", "/api/notices/**",
+        "/api/members/v1/nickname/availability",
         "/api/banners/**", "/api/places/**", "/api/event/**",
         "/api/ranks/**", "/api/products/**",
         "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**"

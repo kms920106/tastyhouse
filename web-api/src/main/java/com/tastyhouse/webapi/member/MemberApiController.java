@@ -22,6 +22,7 @@ import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.PointHistoryResponse;
 import com.tastyhouse.webapi.member.response.PointResponse;
+import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.UsablePointResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.service.CustomUserDetails;
@@ -34,6 +35,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -360,5 +363,21 @@ public class MemberApiController {
         memberService.invalidateToken(bearerToken);
 
         return ResponseEntity.ok(CommonResponse.success(null));
+    }
+
+    @Operation(summary = "닉네임 중복확인", description = "사용하려는 닉네임의 사용 가능 여부를 확인합니다. 인증 없이 호출 가능합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "확인 성공", content = @Content(schema = @Schema(implementation = NicknameAvailabilityResponse.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (닉네임 미입력 또는 길이 초과)")
+    })
+    @GetMapping("/v1/nickname/availability")
+    public ResponseEntity<CommonResponse<NicknameAvailabilityResponse>> checkNicknameAvailability(
+        @Parameter(description = "확인할 닉네임 (1~20자)", example = "맛있는탐험가")
+        @NotBlank(message = "닉네임을 입력해주세요.")
+        @Size(min = 1, max = 20, message = "닉네임은 1자 이상 20자 이하여야 합니다.")
+        @RequestParam String nickname
+    ) {
+        NicknameAvailabilityResponse response = memberService.checkNicknameAvailability(nickname);
+        return ResponseEntity.ok(CommonResponse.success(response));
     }
 }
