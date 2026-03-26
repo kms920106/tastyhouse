@@ -63,7 +63,7 @@ public class Member extends BaseEntity {
 
     public Member(String username, String password, String nickname, String fullName, Gender gender,
                   Integer birthDate, String phoneNumber,
-                  Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
+                  Boolean pushNotificationEnabled, Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
         this.username = username;
         this.password = password;
         this.nickname = nickname;
@@ -73,7 +73,7 @@ public class Member extends BaseEntity {
         this.phoneNumber = phoneNumber;
         this.memberGrade = MemberGrade.NEWCOMER;
         this.memberStatus = MemberStatus.ACTIVE;
-        this.pushNotificationEnabled = true;
+        this.pushNotificationEnabled = pushNotificationEnabled != null ? pushNotificationEnabled : true;
         this.marketingInfoEnabled = marketingInfoEnabled != null ? marketingInfoEnabled : false;
         this.eventInfoEnabled = eventInfoEnabled != null ? eventInfoEnabled : false;
     }

@@ -62,6 +62,7 @@ public class MemberService {
                        String nickname, String fullName,
                        com.tastyhouse.core.entity.user.Gender gender,
                        Integer birthDate, String phoneNumber,
+                       Boolean pushNotificationEnabled,
                        Boolean marketingInfoEnabled, Boolean eventInfoEnabled,
                        String phoneVerifyToken, String emailVerifyToken) {
 
@@ -99,7 +100,7 @@ public class MemberService {
         }
 
         Member member = new Member(username, passwordEncoder.encode(password), nickname, fullName, gender,
-                birthDate, phoneNumber, marketingInfoEnabled, eventInfoEnabled);
+                birthDate, phoneNumber, pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
 
         memberJpaRepository.save(member);
     }

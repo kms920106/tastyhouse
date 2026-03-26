@@ -50,6 +50,7 @@ public class AuthController {
             request.gender(),
             request.birthDate(),
             request.phoneNumber(),
+            request.pushNotificationEnabled(),
             request.marketingInfoEnabled(),
             request.eventInfoEnabled(),
             request.phoneVerifyToken(),

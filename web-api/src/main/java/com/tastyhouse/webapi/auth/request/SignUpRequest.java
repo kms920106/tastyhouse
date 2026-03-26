@@ -47,6 +47,9 @@ public record SignUpRequest(
     @Pattern(regexp = "01[0-9]{8,9}", message = "올바른 휴대폰번호 형식으로 입력해주세요.")
     String phoneNumber,
 
+    @Schema(description = "푸시 알림 수신 동의", example = "true")
+    Boolean pushNotificationEnabled,
+
     @Schema(description = "마케팅 정보 수신 동의", example = "false")
     Boolean marketingInfoEnabled,
 
