@@ -63,16 +63,18 @@ public class RateLimitAspect {
             if (arg == null) {
                 continue;
             }
-            try {
-                Method getPhoneNumber = arg.getClass().getMethod("getPhoneNumber");
-                Object phoneNumber = getPhoneNumber.invoke(arg);
-                if (phoneNumber instanceof String phone && StringUtils.hasText(phone)) {
-                    return phone;
+            for (String methodName : new String[]{"phoneNumber", "getPhoneNumber"}) {
+                try {
+                    Method method = arg.getClass().getMethod(methodName);
+                    Object phoneNumber = method.invoke(arg);
+                    if (phoneNumber instanceof String phone && StringUtils.hasText(phone)) {
+                        return phone;
+                    }
+                } catch (NoSuchMethodException ignored) {
+                    // 해당 메서드가 없는 인자는 건너뜀
+                } catch (Exception e) {
+                    log.warn("phoneNumber 추출 실패: {}", e.getMessage());
                 }
-            } catch (NoSuchMethodException ignored) {
-                // getPhoneNumber 메서드가 없는 인자는 건너뜀
-            } catch (Exception e) {
-                log.warn("phoneNumber 추출 실패: {}", e.getMessage());
             }
         }
         return "unknown";

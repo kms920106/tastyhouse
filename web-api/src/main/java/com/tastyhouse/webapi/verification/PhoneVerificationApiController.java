@@ -40,7 +40,7 @@ public class PhoneVerificationApiController {
         @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
         @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (전화번호당 일 5회)")
     })
-    @RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.PHONE, keyPrefix = "rate_limit:sms")
+    @RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.PHONE, keyPrefix = "rate_limit:sms_verification")
     @PostMapping("/v1/send")
     public ResponseEntity<CommonResponse<Void>> sendVerificationCode(
         @AuthenticationPrincipal CustomUserDetails userDetails,
