@@ -174,12 +174,12 @@ public class JwtTokenProvider {
         }
     }
 
-    public String createPhoneVerifyToken(Long memberId, String phoneNumber) {
+    public String createPhoneVerifyToken(String phoneNumber) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + 10 * 60 * 1000L); // 10분
 
         return Jwts.builder()
-                .subject(String.valueOf(memberId))
+                .subject(phoneNumber)
                 .claim("type", "PHONE_VERIFY")
                 .claim("phoneNumber", phoneNumber)
                 .issuedAt(now)

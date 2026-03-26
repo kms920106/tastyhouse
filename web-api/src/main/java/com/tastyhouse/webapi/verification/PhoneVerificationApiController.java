@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.verification;
 import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapi.service.CustomUserDetails;
 import com.tastyhouse.webapi.verification.request.ConfirmVerificationCodeRequest;
 import com.tastyhouse.webapi.verification.request.SendVerificationCodeRequest;
 import com.tastyhouse.webapi.verification.response.PhoneVerifyTokenResponse;
@@ -16,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,11 +41,9 @@ public class PhoneVerificationApiController {
     @RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.PHONE, keyPrefix = "rate_limit:sms_verification")
     @PostMapping("/v1/send")
     public ResponseEntity<CommonResponse<Void>> sendVerificationCode(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @RequestBody SendVerificationCodeRequest request
     ) {
         phoneVerificationService.sendVerificationCode(
-            userDetails.getMemberId(),
             request.phoneNumber()
         );
 
@@ -67,11 +63,9 @@ public class PhoneVerificationApiController {
     })
     @PostMapping("/v1/confirm")
     public ResponseEntity<CommonResponse<PhoneVerifyTokenResponse>> confirmVerificationCode(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @RequestBody ConfirmVerificationCodeRequest request
     ) {
         String phoneVerifyToken = phoneVerificationService.confirmVerificationCode(
-            userDetails.getMemberId(),
             request.phoneNumber(),
             request.verificationCode()
         );

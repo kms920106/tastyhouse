@@ -27,7 +27,7 @@ public class PhoneVerificationService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
-    public void sendVerificationCode(Long memberId, String phoneNumber) {
+    public void sendVerificationCode(String phoneNumber) {
         // 기존 미완료 인증 건 만료 처리
         phoneVerificationJpaRepository.expireAllPendingByPhoneNumber(phoneNumber);
 
@@ -43,11 +43,11 @@ public class PhoneVerificationService {
         String smsText = SMS_TEXT_TEMPLATE.formatted(verificationCode);
         solapiSmsClient.sendSms(phoneNumber, smsText);
 
-        log.info("휴대폰 인증번호 발송 완료. memberId: {}, phoneNumber: {}", memberId, phoneNumber);
+        log.info("휴대폰 인증번호 발송 완료. phoneNumber: {}", phoneNumber);
     }
 
     @Transactional
-    public String confirmVerificationCode(Long memberId, String phoneNumber, String verificationCode) {
+    public String confirmVerificationCode(String phoneNumber, String verificationCode) {
         PhoneVerification verification = phoneVerificationJpaRepository
             .findTopByPhoneNumberAndStatusOrderByCreatedAtDesc(phoneNumber, PhoneVerificationStatus.PENDING)
             .orElseThrow(() -> new BusinessException(ErrorCode.VERIFICATION_CODE_NOT_FOUND));
@@ -63,9 +63,9 @@ public class PhoneVerificationService {
 
         verification.verify();
 
-        String phoneVerifyToken = jwtTokenProvider.createPhoneVerifyToken(memberId, phoneNumber);
+        String phoneVerifyToken = jwtTokenProvider.createPhoneVerifyToken(phoneNumber);
 
-        log.info("휴대폰 인증 완료. memberId: {}, phoneNumber: {}", memberId, phoneNumber);
+        log.info("휴대폰 인증 완료. phoneNumber: {}", phoneNumber);
 
         return phoneVerifyToken;
     }
