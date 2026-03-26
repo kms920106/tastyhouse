@@ -37,7 +37,7 @@ public class EmailVerificationApiController {
         @ApiResponse(responseCode = "400", description = "잘못된 이메일 형식"),
         @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (이메일당 일 5회)")
     })
-    @RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.EMAIL, keyPrefix = "rate_limit:email_verification")
+    @RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.FIELD, keyField = "email", keyPrefix = "rate_limit:email_verification")
     @PostMapping("/v1/send")
     public ResponseEntity<CommonResponse<Void>> sendVerificationCode(
         @Valid @RequestBody SendEmailVerificationCodeRequest request

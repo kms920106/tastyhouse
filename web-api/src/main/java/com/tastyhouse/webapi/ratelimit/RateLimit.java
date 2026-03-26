@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * <pre>
  * 예시:
  * {@literal @}RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP)
- * {@literal @}RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.PHONE)
+ * {@literal @}RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.FIELD, keyField = "phoneNumber")
  * </pre>
  */
 @Target(ElementType.METHOD)
@@ -29,6 +29,12 @@ public @interface RateLimit {
 
     /** Rate Limit 키 추출 방식 */
     RateLimitKeyType keyType();
+
+    /**
+     * keyType이 {@link RateLimitKeyType#FIELD}일 때 추출할 요청 객체의 필드명.
+     * 레코드 컴포넌트 접근자(e.g. phoneNumber()) 또는 getter(e.g. getPhoneNumber()) 순으로 시도합니다.
+     */
+    String keyField() default "";
 
     /** Redis 키 접두사 (중복 방지용 네임스페이스) */
     String keyPrefix() default "rate_limit";

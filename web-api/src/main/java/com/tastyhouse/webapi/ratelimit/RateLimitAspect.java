@@ -14,6 +14,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
+import java.util.List;
 
 @Slf4j
 @Aspect
@@ -39,8 +40,7 @@ public class RateLimitAspect {
     private String buildKey(JoinPoint joinPoint, RateLimit rateLimit) {
         String identifier = switch (rateLimit.keyType()) {
             case IP -> resolveClientIp();
-            case PHONE -> resolvePhoneNumber(joinPoint);
-            case EMAIL -> resolveEmail(joinPoint);
+            case FIELD -> resolveFieldValue(joinPoint.getArgs(), rateLimit.keyField());
         };
         return rateLimit.keyPrefix() + ":" + identifier;
     }
@@ -58,43 +58,33 @@ public class RateLimitAspect {
         return request.getRemoteAddr();
     }
 
-    private String resolvePhoneNumber(JoinPoint joinPoint) {
-        for (Object arg : joinPoint.getArgs()) {
-            if (arg == null) {
-                continue;
-            }
-            for (String methodName : new String[]{"phoneNumber", "getPhoneNumber"}) {
+    /**
+     * 요청 인자 중 {@code fieldName}에 해당하는 값을 리플렉션으로 추출합니다.
+     * 레코드 컴포넌트 접근자(fieldName()) → getter(getFieldName()) 순으로 시도합니다.
+     */
+    private String resolveFieldValue(Object[] args, String fieldName) {
+        if (!StringUtils.hasText(fieldName)) {
+            log.warn("keyType=FIELD 사용 시 keyField를 지정해야 합니다.");
+            return "unknown";
+        }
+
+        String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        List<String> candidates = List.of(fieldName, getterName);
+
+        for (Object arg : args) {
+            if (arg == null) continue;
+            for (String methodName : candidates) {
                 try {
                     Method method = arg.getClass().getMethod(methodName);
-                    Object phoneNumber = method.invoke(arg);
-                    if (phoneNumber instanceof String phone && StringUtils.hasText(phone)) {
-                        return phone;
+                    Object value = method.invoke(arg);
+                    if (value instanceof String str && StringUtils.hasText(str)) {
+                        return str;
                     }
                 } catch (NoSuchMethodException ignored) {
                     // 해당 메서드가 없는 인자는 건너뜀
                 } catch (Exception e) {
-                    log.warn("phoneNumber 추출 실패: {}", e.getMessage());
+                    log.warn("keyField '{}' 추출 실패: {}", fieldName, e.getMessage());
                 }
-            }
-        }
-        return "unknown";
-    }
-
-    private String resolveEmail(JoinPoint joinPoint) {
-        for (Object arg : joinPoint.getArgs()) {
-            if (arg == null) {
-                continue;
-            }
-            try {
-                Method getEmail = arg.getClass().getMethod("email");
-                Object email = getEmail.invoke(arg);
-                if (email instanceof String emailValue && StringUtils.hasText(emailValue)) {
-                    return emailValue;
-                }
-            } catch (NoSuchMethodException ignored) {
-                // email 메서드가 없는 인자는 건너뜀
-            } catch (Exception e) {
-                log.warn("email 추출 실패: {}", e.getMessage());
             }
         }
         return "unknown";
