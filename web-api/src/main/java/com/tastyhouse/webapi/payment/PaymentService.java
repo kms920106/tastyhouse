@@ -7,32 +7,27 @@ import com.tastyhouse.core.entity.payment.PaymentMethod;
 import com.tastyhouse.core.entity.payment.PaymentRefund;
 import com.tastyhouse.core.entity.payment.PaymentStatus;
 import com.tastyhouse.core.entity.payment.PgProvider;
-import com.tastyhouse.core.entity.point.MemberPoint;
-import com.tastyhouse.core.entity.point.MemberPointHistory;
-import com.tastyhouse.core.entity.point.PointType;
+import com.tastyhouse.core.entity.payment.TossPaymentRecord;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.order.OrderJpaRepository;
 import com.tastyhouse.core.repository.payment.PaymentJpaRepository;
 import com.tastyhouse.core.repository.payment.PaymentRefundJpaRepository;
 import com.tastyhouse.core.repository.payment.TossPaymentRecordJpaRepository;
-import com.tastyhouse.core.repository.point.MemberPointHistoryJpaRepository;
-import com.tastyhouse.core.repository.point.MemberPointJpaRepository;
+import com.tastyhouse.core.service.OrderCoreService;
+import com.tastyhouse.core.service.PointCoreService;
 import com.tastyhouse.external.payment.toss.TossPaymentClient;
 import com.tastyhouse.external.payment.toss.TossPaymentUtils;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
-import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResult;
-import com.tastyhouse.core.entity.payment.TossPaymentRecord;
 import com.tastyhouse.webapi.payment.request.PaymentCancelRequest;
 import com.tastyhouse.webapi.payment.request.PaymentConfirmRequest;
 import com.tastyhouse.webapi.payment.request.PaymentCreateRequest;
 import com.tastyhouse.webapi.payment.request.RefundRequest;
 import com.tastyhouse.webapi.payment.request.TossPaymentConfirmApiRequest;
-import com.tastyhouse.webapi.payment.response.PaymentRefundResponse;
 import com.tastyhouse.webapi.payment.response.PaymentCancelCode;
 import com.tastyhouse.webapi.payment.response.PaymentCancelResponse;
+import com.tastyhouse.webapi.payment.response.PaymentRefundResponse;
 import com.tastyhouse.webapi.payment.response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,16 +45,15 @@ public class PaymentService {
     private final PaymentJpaRepository paymentJpaRepository;
     private final PaymentRefundJpaRepository paymentRefundJpaRepository;
     private final TossPaymentRecordJpaRepository tossPaymentRecordJpaRepository;
-    private final OrderJpaRepository orderJpaRepository;
-    private final MemberPointJpaRepository memberPointJpaRepository;
-    private final MemberPointHistoryJpaRepository memberPointHistoryJpaRepository;
+    private final OrderCoreService orderCoreService;
+    private final PointCoreService pointCoreService;
     private final TossPaymentClient tossPaymentClient;
 
     private static final int CASH_POINT_EARN_RATE = 10;
 
     @Transactional
     public PaymentResponse createPayment(Long memberId, PaymentCreateRequest request) {
-        Order order = orderJpaRepository.findById(request.orderId())
+        Order order = orderCoreService.findOrderById(request.orderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -98,7 +92,7 @@ public class PaymentService {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
-        Order order = orderJpaRepository.findById(payment.getOrderId())
+        Order order = orderCoreService.findOrderById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         payment.updatePgInfo(request.pgProvider(), request.pgTid(), request.pgOrderId());
@@ -119,7 +113,7 @@ public class PaymentService {
         Payment payment = paymentJpaRepository.findByPgOrderId(request.pgOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderJpaRepository.findById(payment.getOrderId())
+        Order order = orderCoreService.findOrderById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -145,7 +139,6 @@ public class PaymentService {
                 request.pgOrderId(), response.getCode(), response.getMessage());
             payment.fail();
 
-            // 토스 결제 실패 정보 저장
             TossPaymentRecord tossPaymentRecord = buildTossPaymentRecord(payment.getId(), response);
             tossPaymentRecordJpaRepository.save(tossPaymentRecord);
 
@@ -169,7 +162,6 @@ public class PaymentService {
         payment.complete(response.getPaymentKey(), approvedAt, receiptUrl);
         order.confirm();
 
-        // 토스 결제 성공 정보 저장
         TossPaymentRecord tossPaymentRecord = buildTossPaymentRecord(payment.getId(), response);
         tossPaymentRecordJpaRepository.save(tossPaymentRecord);
 
@@ -184,7 +176,7 @@ public class PaymentService {
         Payment payment = paymentJpaRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderJpaRepository.findById(payment.getOrderId())
+        Order order = orderCoreService.findOrderById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -196,7 +188,6 @@ public class PaymentService {
             return PaymentCancelResponse.of(cancelCode);
         }
 
-        // 토스 PG 결제인 경우 토스 취소 API 호출
         if (payment.getPgProvider() == PgProvider.TOSS
                 && payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
             try {
@@ -210,7 +201,6 @@ public class PaymentService {
                     return PaymentCancelResponse.of(PaymentCancelCode.CANCEL_FAILED);
                 }
 
-                // 토스 취소 응답 기록 저장
                 TossPaymentRecord tossPaymentRecord = buildTossPaymentRecord(payment.getId(), tossResponse);
                 tossPaymentRecordJpaRepository.save(tossPaymentRecord);
             } catch (Exception e) {
@@ -230,29 +220,12 @@ public class PaymentService {
     private void restorePoints(Long memberId, Order order) {
         if (order.getUsedPoint() <= 0 && order.getEarnedPoint() <= 0) return;
 
-        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
-                "포인트 정보를 찾을 수 없습니다. memberId=" + memberId));
-
         if (order.getUsedPoint() > 0) {
-            memberPoint.addPoints(order.getUsedPoint());
-            memberPointHistoryJpaRepository.save(MemberPointHistory.builder()
-                .memberId(memberId)
-                .pointType(PointType.REFUND)
-                .pointAmount(order.getUsedPoint())
-                .reason("결제 취소 환불")
-                .build());
+            pointCoreService.refundPoints(memberId, order.getUsedPoint());
         }
 
         if (order.getEarnedPoint() > 0) {
-            int deductAmount = Math.min(memberPoint.getAvailablePoints(), order.getEarnedPoint());
-            memberPoint.deductPoints(deductAmount);
-            memberPointHistoryJpaRepository.save(MemberPointHistory.builder()
-                .memberId(memberId)
-                .pointType(PointType.USE)
-                .pointAmount(-deductAmount)
-                .reason("결제 취소 적립금 회수")
-                .build());
+            pointCoreService.reclaimEarnedPoints(memberId, order.getEarnedPoint());
         }
     }
 
@@ -270,7 +243,7 @@ public class PaymentService {
         Payment payment = paymentJpaRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderJpaRepository.findById(payment.getOrderId())
+        Order order = orderCoreService.findOrderById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -298,7 +271,7 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentByOrderId(Long memberId, Long orderId) {
-        Order order = orderJpaRepository.findById(orderId)
+        Order order = orderCoreService.findOrderById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -316,7 +289,7 @@ public class PaymentService {
         Payment payment = paymentJpaRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderJpaRepository.findById(payment.getOrderId())
+        Order order = orderCoreService.findOrderById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -342,25 +315,11 @@ public class PaymentService {
 
         int earnedPoint = (int) (payment.getAmount() * CASH_POINT_EARN_RATE / 100.0);
 
-        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
-            .orElseGet(() -> {
-                MemberPoint newPoint = MemberPoint.builder()
-                    .memberId(memberId)
-                    .availablePoints(0)
-                    .build();
-                return memberPointJpaRepository.save(newPoint);
-            });
-
-        memberPoint.addPoints(earnedPoint);
+        pointCoreService.getOrCreateMemberPoint(memberId);
         order.updateEarnedPoint(earnedPoint);
 
-        MemberPointHistory pointHistory = MemberPointHistory.builder()
-            .memberId(memberId)
-            .pointType(PointType.EARNED)
-            .pointAmount(earnedPoint)
-            .reason("현장 현금 결제 적립 (" + CASH_POINT_EARN_RATE + "%)")
-            .build();
-        memberPointHistoryJpaRepository.save(pointHistory);
+        pointCoreService.earnPoints(memberId, earnedPoint,
+            "현장 현금 결제 적립 (" + CASH_POINT_EARN_RATE + "%)");
     }
 
     private boolean isOnSitePayment(PaymentMethod method) {
@@ -433,7 +392,6 @@ public class PaymentService {
             .isPartialCancelable(response.getIsPartialCancelable())
             .country(response.getCountry());
 
-        // 카드 정보
         if (response.getCard() != null) {
             TossPaymentConfirmResponse.Card card = response.getCard();
             builder.cardAmount(card.getAmount())
@@ -450,7 +408,6 @@ public class PaymentService {
                 .cardInterestPayer(card.getInterestPayer());
         }
 
-        // 가상계좌 정보
         if (response.getVirtualAccount() != null) {
             TossPaymentConfirmResponse.VirtualAccount va = response.getVirtualAccount();
             builder.virtualAccountType(va.getAccountType())
@@ -463,7 +420,6 @@ public class PaymentService {
                 .virtualAccountSettlementStatus(va.getSettlementStatus());
         }
 
-        // 휴대폰 정보
         if (response.getMobilePhone() != null) {
             TossPaymentConfirmResponse.MobilePhone mp = response.getMobilePhone();
             builder.mobilePhoneCustomerMobilePhone(mp.getCustomerMobilePhone())
@@ -471,14 +427,12 @@ public class PaymentService {
                 .mobilePhoneReceiptUrl(mp.getReceiptUrl());
         }
 
-        // 계좌이체 정보
         if (response.getTransfer() != null) {
             TossPaymentConfirmResponse.Transfer transfer = response.getTransfer();
             builder.transferBankCode(transfer.getBankCode())
                 .transferSettlementStatus(transfer.getSettlementStatus());
         }
 
-        // 간편결제 정보
         if (response.getEasyPay() != null) {
             TossPaymentConfirmResponse.EasyPay easyPay = response.getEasyPay();
             builder.easyPayProvider(easyPay.getProvider())
@@ -486,23 +440,19 @@ public class PaymentService {
                 .easyPayDiscountAmount(easyPay.getDiscountAmount());
         }
 
-        // 영수증 정보
         if (response.getReceipt() != null) {
             builder.receiptUrl(response.getReceipt().getUrl());
         }
 
-        // 결제창 정보
         if (response.getCheckout() != null) {
             builder.checkoutUrl(response.getCheckout().getUrl());
         }
 
-        // 실패 정보
         if (response.getFailure() != null) {
             builder.failureCode(response.getFailure().getCode())
                 .failureMessage(response.getFailure().getMessage());
         }
 
-        // 에러 정보 (최상위)
         if (response.getCode() != null) {
             builder.failureCode(response.getCode())
                 .failureMessage(response.getMessage());

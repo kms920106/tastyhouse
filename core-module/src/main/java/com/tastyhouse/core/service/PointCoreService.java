@@ -65,4 +65,55 @@ public class PointCoreService {
                 .build()
         );
     }
+
+    @Transactional
+    public MemberPoint getOrCreateMemberPoint(Long memberId) {
+        MemberPoint existing = memberPointJpaRepository.findByMemberId(memberId).orElse(null);
+        if (existing != null) {
+            return existing;
+        }
+        return memberPointJpaRepository.save(
+            MemberPoint.builder()
+                .memberId(memberId)
+                .availablePoints(0)
+                .build()
+        );
+    }
+
+    @Transactional
+    public void refundPoints(Long memberId, int pointAmount) {
+        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
+                "포인트 정보를 찾을 수 없습니다. memberId=" + memberId));
+
+        memberPoint.addPoints(pointAmount);
+
+        memberPointHistoryJpaRepository.save(
+            MemberPointHistory.builder()
+                .memberId(memberId)
+                .pointType(PointType.REFUND)
+                .pointAmount(pointAmount)
+                .reason("결제 취소 환불")
+                .build()
+        );
+    }
+
+    @Transactional
+    public void reclaimEarnedPoints(Long memberId, int pointAmount) {
+        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
+                "포인트 정보를 찾을 수 없습니다. memberId=" + memberId));
+
+        int deductAmount = Math.min(memberPoint.getAvailablePoints(), pointAmount);
+        memberPoint.deductPoints(deductAmount);
+
+        memberPointHistoryJpaRepository.save(
+            MemberPointHistory.builder()
+                .memberId(memberId)
+                .pointType(PointType.USE)
+                .pointAmount(-deductAmount)
+                .reason("결제 취소 적립금 회수")
+                .build()
+        );
+    }
 }
