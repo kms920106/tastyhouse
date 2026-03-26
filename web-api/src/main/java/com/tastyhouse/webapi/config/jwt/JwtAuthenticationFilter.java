@@ -49,6 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             if (jwtTokenProvider.validateToken(jwt) && !tokenBlacklist.contains(jwt)) {
+                jwtTokenProvider.validateTokenType(jwt, TokenType.ACCESS);
+
                 String username = jwtTokenProvider.getUsernameFromJWT(jwt);
 
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);

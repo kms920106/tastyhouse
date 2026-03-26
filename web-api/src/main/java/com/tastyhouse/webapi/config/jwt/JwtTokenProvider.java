@@ -56,18 +56,18 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(Authentication authentication) {
-        return createToken(authentication, jwtProperties.getAccessTokenExpiration(), "ACCESS");
+        return createToken(authentication, jwtProperties.getAccessTokenExpiration(), TokenType.ACCESS.name());
     }
 
     public String createRefreshToken(Authentication authentication) {
-        return createToken(authentication, jwtProperties.getRefreshTokenExpiration(), "REFRESH");
+        return createToken(authentication, jwtProperties.getRefreshTokenExpiration(), TokenType.REFRESH.name());
     }
 
     public String createRefreshToken(Authentication authentication, boolean rememberMe) {
         long ttl = rememberMe
                 ? jwtProperties.getRememberMeRefreshTokenExpiration()
                 : jwtProperties.getRefreshTokenExpiration();
-        return createToken(authentication, ttl, "REFRESH");
+        return createToken(authentication, ttl, TokenType.REFRESH.name());
     }
 
     public long getRefreshTokenTtl(boolean rememberMe) {
@@ -112,7 +112,7 @@ public class JwtTokenProvider {
         if (!validateToken(refreshToken)) {
             throw new JwtException("Invalid refresh token");
         }
-        validateTokenType(refreshToken, "REFRESH");
+        validateTokenType(refreshToken, TokenType.REFRESH);
         return createAccessToken(getAuthentication(refreshToken));
     }
 
@@ -120,15 +120,25 @@ public class JwtTokenProvider {
         if (!validateToken(refreshToken)) {
             throw new JwtException("Invalid refresh token");
         }
-        validateTokenType(refreshToken, "REFRESH");
+        validateTokenType(refreshToken, TokenType.REFRESH);
         return createRefreshToken(getAuthentication(refreshToken));
     }
 
-    private void validateTokenType(String token, String expectedType) {
+    public void validateTokenType(String token, TokenType expectedType) {
         Claims claims = parseClaims(token);
         String actualType = claims.get("type", String.class);
-        if (!expectedType.equals(actualType)) {
-            throw new JwtException("잘못된 토큰 타입. expected=" + expectedType + ", actual=" + actualType);
+        if (!expectedType.name().equals(actualType)) {
+            throw new JwtException("잘못된 토큰 타입. expected=" + expectedType.name() + ", actual=" + actualType);
+        }
+    }
+
+    public TokenType getTokenType(String token) {
+        Claims claims = parseClaims(token);
+        String type = claims.get("type", String.class);
+        try {
+            return TokenType.valueOf(type);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new JwtException("알 수 없는 토큰 타입: " + type);
         }
     }
 
@@ -146,7 +156,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(memberId))
-                .claim("type", "PERSONAL_INFO_VERIFY")
+                .claim("type", TokenType.PERSONAL_INFO_VERIFY.name())
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -156,8 +166,7 @@ public class JwtTokenProvider {
     public Long getMemberIdFromVerifyToken(String token) {
         Claims claims = parseClaims(token);
 
-        String type = claims.get("type", String.class);
-        if (!"PERSONAL_INFO_VERIFY".equals(type)) {
+        if (!TokenType.PERSONAL_INFO_VERIFY.name().equals(claims.get("type", String.class))) {
             throw new JwtException("유효하지 않은 인증 토큰입니다.");
         }
 
@@ -167,7 +176,7 @@ public class JwtTokenProvider {
     public boolean validateVerifyToken(String token) {
         try {
             Claims claims = parseClaims(token);
-            return "PERSONAL_INFO_VERIFY".equals(claims.get("type", String.class));
+            return TokenType.PERSONAL_INFO_VERIFY.name().equals(claims.get("type", String.class));
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Invalid verify token.", e);
             return false;
@@ -180,7 +189,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(phoneNumber)
-                .claim("type", "PHONE_VERIFY")
+                .claim("type", TokenType.PHONE_VERIFY.name())
                 .claim("phoneNumber", phoneNumber)
                 .issuedAt(now)
                 .expiration(expiry)
@@ -191,7 +200,7 @@ public class JwtTokenProvider {
     public boolean validatePhoneVerifyToken(String token) {
         try {
             Claims claims = parseClaims(token);
-            return "PHONE_VERIFY".equals(claims.get("type", String.class));
+            return TokenType.PHONE_VERIFY.name().equals(claims.get("type", String.class));
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Invalid phone verify token.", e);
             return false;
@@ -201,8 +210,7 @@ public class JwtTokenProvider {
     public String getPhoneNumberFromPhoneVerifyToken(String token) {
         Claims claims = parseClaims(token);
 
-        String type = claims.get("type", String.class);
-        if (!"PHONE_VERIFY".equals(type)) {
+        if (!TokenType.PHONE_VERIFY.name().equals(claims.get("type", String.class))) {
             throw new JwtException("유효하지 않은 휴대폰 인증 토큰입니다.");
         }
 
@@ -212,8 +220,7 @@ public class JwtTokenProvider {
     public Long getMemberIdFromPhoneVerifyToken(String token) {
         Claims claims = parseClaims(token);
 
-        String type = claims.get("type", String.class);
-        if (!"PHONE_VERIFY".equals(type)) {
+        if (!TokenType.PHONE_VERIFY.name().equals(claims.get("type", String.class))) {
             throw new JwtException("유효하지 않은 휴대폰 인증 토큰입니다.");
         }
 
@@ -226,7 +233,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(email)
-                .claim("type", "EMAIL_VERIFY")
+                .claim("type", TokenType.EMAIL_VERIFY.name())
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -236,7 +243,7 @@ public class JwtTokenProvider {
     public boolean validateEmailVerifyToken(String token) {
         try {
             Claims claims = parseClaims(token);
-            return "EMAIL_VERIFY".equals(claims.get("type", String.class));
+            return TokenType.EMAIL_VERIFY.name().equals(claims.get("type", String.class));
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Invalid email verify token.", e);
             return false;
@@ -246,8 +253,7 @@ public class JwtTokenProvider {
     public String getEmailFromEmailVerifyToken(String token) {
         Claims claims = parseClaims(token);
 
-        String type = claims.get("type", String.class);
-        if (!"EMAIL_VERIFY".equals(type)) {
+        if (!TokenType.EMAIL_VERIFY.name().equals(claims.get("type", String.class))) {
             throw new JwtException("유효하지 않은 이메일 인증 토큰입니다.");
         }
 
