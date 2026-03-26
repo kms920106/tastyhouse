@@ -8,12 +8,14 @@ import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.entity.referral.MemberReferral;
 import com.tastyhouse.core.repository.member.MemberJpaRepository;
 import com.tastyhouse.core.repository.member.MemberWithdrawalJpaRepository;
 import com.tastyhouse.core.repository.place.PlaceRepository;
 import com.tastyhouse.core.repository.point.MemberPointHistoryJpaRepository;
 import com.tastyhouse.core.repository.point.MemberPointJpaRepository;
 import com.tastyhouse.core.repository.follow.FollowRepository;
+import com.tastyhouse.core.repository.referral.MemberReferralJpaRepository;
 import com.tastyhouse.core.repository.review.ReviewJpaRepository;
 import com.tastyhouse.core.repository.review.ReviewRepository;
 import com.tastyhouse.core.common.PageResult;
@@ -51,6 +53,7 @@ public class MemberService {
     private final MemberWithdrawalJpaRepository memberWithdrawalJpaRepository;
     private final MemberPointJpaRepository memberPointJpaRepository;
     private final MemberPointHistoryJpaRepository memberPointHistoryJpaRepository;
+    private final MemberReferralJpaRepository memberReferralJpaRepository;
     private final CouponService couponService;
     private final ReviewRepository reviewRepository;
     private final ReviewJpaRepository reviewJpaRepository;
@@ -64,7 +67,8 @@ public class MemberService {
                        Integer birthDate, String phoneNumber,
                        Boolean pushNotificationEnabled,
                        Boolean marketingInfoEnabled, Boolean eventInfoEnabled,
-                       String phoneVerifyToken, String emailVerifyToken) {
+                       String phoneVerifyToken, String emailVerifyToken,
+                       String referrerNickname) {
 
         if (memberJpaRepository.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
@@ -103,6 +107,22 @@ public class MemberService {
                 birthDate, phoneNumber, pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
 
         memberJpaRepository.save(member);
+
+        if (StringUtils.hasText(referrerNickname)) {
+            if (referrerNickname.equals(nickname)) {
+                throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
+            }
+
+            Member referrer = memberJpaRepository.findByNickname(referrerNickname)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
+
+            memberReferralJpaRepository.save(
+                MemberReferral.builder()
+                    .referrerId(referrer.getId())
+                    .refereeId(member.getId())
+                    .build()
+            );
+        }
     }
 
     public void verifyPersonalInfoToken(Long memberId, String verifyToken) {

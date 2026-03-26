@@ -61,5 +61,9 @@ public record SignUpRequest(
 
     @Schema(description = "이메일 인증 토큰 (회원가입 시 필수)")
     @NotBlank(message = "이메일 인증 토큰을 입력해주세요.")
-    String emailVerifyToken
+    String emailVerifyToken,
+
+    @Schema(description = "추천인 닉네임 (선택)", example = "맛집탐험가")
+    @Size(min = 2, max = 20, message = "추천인 닉네임은 2~20자로 입력해주세요.")
+    String referrerNickname
 ) {}

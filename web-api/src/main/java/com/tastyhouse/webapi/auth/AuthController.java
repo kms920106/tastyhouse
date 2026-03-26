@@ -54,7 +54,8 @@ public class AuthController {
             request.marketingInfoEnabled(),
             request.eventInfoEnabled(),
             request.phoneVerifyToken(),
-            request.emailVerifyToken()
+            request.emailVerifyToken(),
+            request.referrerNickname()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(null));
     }

@@ -872,6 +872,19 @@ CREATE TABLE TOSS_PAYMENT_RECORD
     INDEX idx_toss_payment_record_status (status)
 );
 
+CREATE TABLE MEMBER_REFERRAL
+(
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    referrer_id BIGINT      NOT NULL,
+    referee_id  BIGINT      NOT NULL,
+    status      VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at  DATETIME    NOT NULL,
+    updated_at  DATETIME    NOT NULL,
+    UNIQUE KEY uq_member_referral_referee_id (referee_id),
+    INDEX idx_member_referral_referrer_id (referrer_id),
+    INDEX idx_member_referral_status (status)
+);
+
 CREATE TABLE MEMBER_WITHDRAWAL
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,
