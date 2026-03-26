@@ -36,7 +36,7 @@ public class AuthController {
     @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(phoneVerifyToken)이 필요합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "회원가입 성공", content = @Content(schema = @Schema(hidden = true))),
-        @ApiResponse(responseCode = "400", description = "유효성 검증 실패 또는 비밀번호 불일치 / 인증 토큰 오류", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "400", description = "유효성 검증 실패 또는 인증 토큰 오류", content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(responseCode = "409", description = "아이디 또는 닉네임 중복", content = @Content(schema = @Schema(hidden = true)))
     })
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:signup")
@@ -45,7 +45,6 @@ public class AuthController {
         memberService.signUp(
             request.username(),
             request.password(),
-            request.passwordConfirm(),
             request.nickname(),
             request.fullName(),
             request.gender(),

@@ -58,16 +58,12 @@ public class MemberService {
     private final FollowRepository followRepository;
 
     @Transactional
-    public void signUp(String username, String password, String passwordConfirm,
+    public void signUp(String username, String password,
                        String nickname, String fullName,
                        com.tastyhouse.core.entity.user.Gender gender,
                        Integer birthDate, String phoneNumber,
                        Boolean marketingInfoEnabled, Boolean eventInfoEnabled,
                        String phoneVerifyToken, String emailVerifyToken) {
-
-        if (!password.equals(passwordConfirm)) {
-            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
-        }
 
         if (memberJpaRepository.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);

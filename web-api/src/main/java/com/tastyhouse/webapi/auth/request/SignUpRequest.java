@@ -26,10 +26,6 @@ public record SignUpRequest(
     )
     String password,
 
-    @Schema(description = "비밀번호 확인", example = "Password1!")
-    @NotBlank(message = "비밀번호 확인을 입력해주세요.")
-    String passwordConfirm,
-
     @Schema(description = "닉네임 (2~20자)", example = "맛집탐험가")
     @NotBlank(message = "닉네임을 입력해주세요.")
     @Size(min = 2, max = 20, message = "닉네임은 2~20자로 입력해주세요.")
