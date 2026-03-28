@@ -2,10 +2,12 @@ package com.tastyhouse.external.sms.solapi;
 
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
-import com.tastyhouse.external.sms.solapi.dto.SolapiMessageRequest;
-import com.tastyhouse.external.sms.solapi.dto.SolapiMessageResponse;
+import com.tastyhouse.external.sms.SmsSender;
+import com.tastyhouse.external.sms.solapi.request.SolapiMessageRequest;
+import com.tastyhouse.external.sms.solapi.response.SolapiMessageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,15 +20,21 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
+@ConditionalOnProperty(name = "sms.provider", havingValue = "solapi", matchIfMissing = true)
 @Component
 @RequiredArgsConstructor
-public class SolapiSmsClient {
+public class SolapiSmsClient implements SmsSender {
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String AUTH_SCHEME = "HMAC-SHA256";
 
     private final WebClient.Builder webClientBuilder;
     private final SolapiProperties solapiProperties;
+
+    @Override
+    public void send(String to, String content) {
+        sendSms(to, content);
+    }
 
     public SolapiMessageResponse sendSms(String to, String text) {
         SolapiMessageRequest request = new SolapiMessageRequest(

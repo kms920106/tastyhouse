@@ -1,4 +1,4 @@
-package com.tastyhouse.external.sms.solapi.dto;
+package com.tastyhouse.external.sms.solapi.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

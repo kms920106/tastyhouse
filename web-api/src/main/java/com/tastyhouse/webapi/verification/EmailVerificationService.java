@@ -20,7 +20,6 @@ import java.security.SecureRandom;
 @RequiredArgsConstructor
 public class EmailVerificationService {
 
-    private static final int VERIFICATION_CODE_LENGTH = 6;
     private static final String EMAIL_SUBJECT = "[TastyHouse] 이메일 인증번호 안내";
     private static final String EMAIL_BODY_TEMPLATE = "[TastyHouse] 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
 

@@ -1,4 +1,4 @@
-package com.tastyhouse.external.sms.solapi.dto;
+package com.tastyhouse.external.sms.solapi.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
