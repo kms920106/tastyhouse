@@ -48,9 +48,7 @@ public class PhoneVerificationService {
 
     @Transactional
     public String confirmVerificationCode(String phoneNumber, String verificationCode) {
-        PhoneVerification verification = phoneVerificationJpaRepository
-            .findTopByPhoneNumberAndStatusOrderByCreatedAtDesc(phoneNumber, PhoneVerificationStatus.PENDING)
-            .orElseThrow(() -> new BusinessException(ErrorCode.VERIFICATION_CODE_NOT_FOUND));
+        PhoneVerification verification = phoneVerificationJpaRepository.findTopByPhoneNumberValueAndStatusOrderByCreatedAtDesc(phoneNumber, PhoneVerificationStatus.PENDING).orElseThrow(() -> new BusinessException(ErrorCode.VERIFICATION_CODE_NOT_FOUND));
 
         if (verification.isExpired()) {
             verification.expire();

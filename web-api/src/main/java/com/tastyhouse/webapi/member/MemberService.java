@@ -3,6 +3,7 @@ package com.tastyhouse.webapi.member;
 import com.tastyhouse.core.entity.place.dto.MyBookmarkedPlaceItemDto;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.user.MemberStatus;
 import com.tastyhouse.core.entity.user.MemberWithdrawal;
 import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.core.exception.BusinessException;
@@ -185,6 +186,15 @@ public class MemberService {
     public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
         boolean available = !memberJpaRepository.existsByNickname(nickname);
         return new NicknameAvailabilityResponse(available);
+    }
+
+    // 휴대폰번호로 활성 회원 존재 여부를 확인하여 가입 가능 여부를 반환
+    @Transactional(readOnly = true)
+    public PhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
+        boolean available = !memberJpaRepository.existsByPhoneNumberValueAndMemberStatusNot(
+            phoneNumber, MemberStatus.DELETED
+        );
+        return new PhoneAvailabilityResponse(available);
     }
 
     // 입력한 비밀번호가 저장된 비밀번호와 일치하는지 검증

@@ -34,7 +34,7 @@ public record PersonalInfoResponse(
         return new PersonalInfoResponse(
             member.getUsername(),
             member.getFullName(),
-            member.getPhoneNumber(),
+            member.getPhoneNumber().getValue(),
             member.getBirthDate(),
             member.getGender(),
             member.getPushNotificationEnabled(),

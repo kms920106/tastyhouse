@@ -23,6 +23,7 @@ import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.PointHistoryResponse;
 import com.tastyhouse.webapi.member.response.PointResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
+import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.UsablePointResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.service.CustomUserDetails;
@@ -363,6 +364,21 @@ public class MemberApiController {
         memberService.invalidateToken(bearerToken);
 
         return ResponseEntity.ok(CommonResponse.success(null));
+    }
+
+    @Operation(summary = "휴대폰번호 가입 가능 여부 확인", description = "입력한 휴대폰번호로 이미 가입된 활성 회원이 있는지 확인합니다. 인증번호 발송 전에 호출합니다. 인증 없이 호출 가능합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "확인 성공", content = @Content(schema = @Schema(implementation = PhoneAvailabilityResponse.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (휴대폰번호 미입력)")
+    })
+    @GetMapping("/v1/phone/availability")
+    public ResponseEntity<CommonResponse<PhoneAvailabilityResponse>> checkPhoneAvailability(
+        @Parameter(description = "확인할 휴대폰번호", example = "01099841511")
+        @NotBlank(message = "휴대폰번호를 입력해주세요.")
+        @RequestParam String phoneNumber
+    ) {
+        PhoneAvailabilityResponse response = memberService.checkPhoneAvailability(phoneNumber);
+        return ResponseEntity.ok(CommonResponse.success(response));
     }
 
     @Operation(summary = "닉네임 중복확인", description = "사용하려는 닉네임의 사용 가능 여부를 확인합니다. 인증 없이 호출 가능합니다.")
