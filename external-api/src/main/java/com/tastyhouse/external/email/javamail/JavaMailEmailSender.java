@@ -1,5 +1,6 @@
-package com.tastyhouse.external.email;
+package com.tastyhouse.external.email.javamail;
 
+import com.tastyhouse.external.email.EmailSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 import jakarta.mail.MessagingException;
@@ -13,15 +14,17 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EmailClient {
+public class JavaMailEmailSender implements EmailSender {
 
     private final JavaMailSender javaMailSender;
 
-    public void sendEmail(String to, String subject, String content) {
+    @Override
+    public void send(String to, String subject, String content) {
         sendEmail(to, subject, content, false);
     }
 
-    public void sendHtmlEmail(String to, String subject, String htmlContent) {
+    @Override
+    public void sendHtml(String to, String subject, String htmlContent) {
         sendEmail(to, subject, htmlContent, true);
     }
 

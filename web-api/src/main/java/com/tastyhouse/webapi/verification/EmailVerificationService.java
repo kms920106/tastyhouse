@@ -6,7 +6,7 @@ import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.repository.member.MemberJpaRepository;
 import com.tastyhouse.core.repository.verification.EmailVerificationJpaRepository;
-import com.tastyhouse.external.email.EmailClient;
+import com.tastyhouse.external.email.EmailSender;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class EmailVerificationService {
 
     private final MemberJpaRepository memberJpaRepository;
     private final EmailVerificationJpaRepository emailVerificationJpaRepository;
-    private final EmailClient emailClient;
+    private final EmailSender emailSender;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
@@ -47,7 +47,7 @@ public class EmailVerificationService {
         );
 
         String emailBody = EMAIL_BODY_TEMPLATE.formatted(verificationCode);
-        emailClient.sendEmail(email, EMAIL_SUBJECT, emailBody);
+        emailSender.send(email, EMAIL_SUBJECT, emailBody);
 
         log.info("이메일 인증번호 발송 완료. email: {}", email);
     }
