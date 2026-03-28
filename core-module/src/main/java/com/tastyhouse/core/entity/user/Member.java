@@ -1,6 +1,7 @@
 package com.tastyhouse.core.entity.user;
 
 import com.tastyhouse.core.entity.BaseEntity;
+import com.tastyhouse.core.entity.common.vo.PhoneNumber;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -25,15 +26,15 @@ public class Member extends BaseEntity {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(name = "birth_date")
+    @Column(name = "birth_date", nullable = false)
     private Integer birthDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false, length = 10, columnDefinition = "VARCHAR(10)")
     private Gender gender;
 
-    @Column(name = "phone_number", length = 20)
-    private String phoneNumber;
+    @Embedded
+    private PhoneNumber phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_grade", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
@@ -70,7 +71,7 @@ public class Member extends BaseEntity {
         this.fullName = fullName;
         this.gender = gender;
         this.birthDate = birthDate;
-        this.phoneNumber = phoneNumber;
+        this.phoneNumber = new PhoneNumber(phoneNumber);
         this.memberGrade = MemberGrade.NEWCOMER;
         this.memberStatus = MemberStatus.ACTIVE;
         this.pushNotificationEnabled = pushNotificationEnabled != null ? pushNotificationEnabled : true;
@@ -92,7 +93,7 @@ public class Member extends BaseEntity {
                                    Gender gender, Boolean pushNotificationEnabled,
                                    Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
         if (fullName != null) this.fullName = fullName;
-        if (phoneNumber != null) this.phoneNumber = phoneNumber;
+        if (phoneNumber != null) this.phoneNumber = new PhoneNumber(phoneNumber);
         if (birthDate != null) this.birthDate = birthDate;
         if (gender != null) this.gender = gender;
         if (pushNotificationEnabled != null) this.pushNotificationEnabled = pushNotificationEnabled;

@@ -40,11 +40,13 @@ public record SignUpRequest(
     @NotNull(message = "성별을 선택해주세요.")
     Gender gender,
 
+    @NotNull(message = "생년월일을 입력해주세요.")
     @Schema(description = "생년월일 (YYYYMMDD 형식)", example = "19900101")
     Integer birthDate,
 
+    @NotNull(message = "휴대폰번호를 입력해주세요.")
+    @Pattern(regexp = "^\\d{10,11}$", message = "휴대폰번호는 10~11자리 숫자여야 합니다.")
     @Schema(description = "휴대폰번호 (010XXXXXXXX 형식)", example = "01012345678")
-    @Pattern(regexp = "01[0-9]{8,9}", message = "올바른 휴대폰번호 형식으로 입력해주세요.")
     String phoneNumber,
 
     @Schema(description = "푸시 알림 수신 동의", example = "true")

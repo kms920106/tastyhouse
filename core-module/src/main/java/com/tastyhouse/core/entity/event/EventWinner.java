@@ -1,6 +1,7 @@
 package com.tastyhouse.core.entity.event;
 
 import com.tastyhouse.core.entity.BaseEntity;
+import com.tastyhouse.core.entity.common.vo.PhoneNumber;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -34,8 +35,8 @@ public class EventWinner extends BaseEntity {
     @Column(name = "winner_name", nullable = false, length = 50)
     private String winnerName;
 
-    @Column(name = "phone_number", nullable = false, length = 20)
-    private String phoneNumber;
+    @Embedded
+    private PhoneNumber phoneNumber;
 
     @Column(name = "announced_at", nullable = false)
     private LocalDateTime announcedAt;
@@ -51,28 +52,8 @@ public class EventWinner extends BaseEntity {
         this.eventId = eventId;
         this.rankNo = rankNo;
         this.winnerName = winnerName;
-        this.phoneNumber = phoneNumber;
+        this.phoneNumber = new PhoneNumber(phoneNumber);
         this.announcedAt = announcedAt;
-    }
-
-    public String getMaskedPhoneNumber() {
-        if (phoneNumber == null || phoneNumber.length() < 4) {
-            return phoneNumber;
-        }
-
-        // 010-1234-5678 -> 010-****-5678 형식으로 마스킹
-        String[] parts = phoneNumber.split("-");
-        if (parts.length == 3) {
-            return parts[0] + "-****-" + parts[2];
-        }
-
-        // 하이픈 없는 경우 중간 4자리 마스킹
-        int length = phoneNumber.length();
-        if (length >= 8) {
-            return phoneNumber.substring(0, 3) + "****" + phoneNumber.substring(7);
-        }
-
-        return phoneNumber;
     }
 
     public String getMaskedName() {

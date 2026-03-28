@@ -14,13 +14,13 @@ import java.util.Optional;
 @Repository
 public interface PhoneVerificationJpaRepository extends JpaRepository<PhoneVerification, Long> {
 
-    Optional<PhoneVerification> findTopByPhoneNumberAndStatusOrderByCreatedAtDesc(
+    Optional<PhoneVerification> findTopByPhoneNumberValueAndStatusOrderByCreatedAtDesc(
         String phoneNumber, PhoneVerificationStatus status
     );
 
     @Modifying
     @Query("UPDATE PhoneVerification pv SET pv.status = 'EXPIRED' " +
-           "WHERE pv.phoneNumber = :phoneNumber AND pv.status = 'PENDING'")
+           "WHERE pv.phoneNumber.value = :phoneNumber AND pv.status = 'PENDING'")
     void expireAllPendingByPhoneNumber(@Param("phoneNumber") String phoneNumber);
 
     @Modifying

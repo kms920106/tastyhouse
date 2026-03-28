@@ -97,7 +97,7 @@ CREATE TABLE EVENT_WINNER
     event_id     BIGINT      NOT NULL,
     rank_no      INT         NOT NULL,
     winner_name  VARCHAR(50) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL,
+    phone_number VARCHAR(11) NOT NULL,
     announced_at DATETIME    NOT NULL,
     created_at   DATETIME    NOT NULL,
     updated_at   DATETIME    NOT NULL,
@@ -158,7 +158,7 @@ CREATE TABLE MEMBER
     full_name                 VARCHAR(100) NOT NULL,
     birth_date                INT,
     gender                    VARCHAR(10)  NOT NULL,
-    phone_number              VARCHAR(20),
+    phone_number              VARCHAR(11)  NOT NULL,
     member_grade              VARCHAR(20)  NOT NULL DEFAULT 'NEWCOMER',
     profile_image_file_id     BIGINT,
     status_message            VARCHAR(200),
@@ -899,7 +899,7 @@ CREATE TABLE MEMBER_WITHDRAWAL
 CREATE TABLE PHONE_VERIFICATION
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    phone_number      VARCHAR(20)  NOT NULL,
+    phone_number      VARCHAR(11)  NOT NULL,
     verification_code VARCHAR(6)   NOT NULL,
     status            VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
     expires_at        DATETIME     NOT NULL,

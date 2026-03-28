@@ -1,5 +1,6 @@
 package com.tastyhouse.core.entity.verification;
 
+import com.tastyhouse.core.entity.common.vo.PhoneNumber;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,8 +23,8 @@ public class PhoneVerification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "phone_number", nullable = false, length = 20)
-    private String phoneNumber;
+    @Embedded
+    private PhoneNumber phoneNumber;
 
     @Column(name = "verification_code", nullable = false, length = 6)
     private String verificationCode;
@@ -43,7 +44,7 @@ public class PhoneVerification {
 
     @Builder
     public PhoneVerification(String phoneNumber, String verificationCode) {
-        this.phoneNumber = phoneNumber;
+        this.phoneNumber = new PhoneNumber(phoneNumber);
         this.verificationCode = verificationCode;
         this.status = PhoneVerificationStatus.PENDING;
         this.expiresAt = LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES);
