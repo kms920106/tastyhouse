@@ -3,6 +3,7 @@ package com.tastyhouse.core.repository.file;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.file.UploadedFile;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +15,13 @@ import java.util.Optional;
 public class UploadedFileRepositoryImpl implements UploadedFileRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final EntityManager entityManager;
+
+    @Override
+    public UploadedFile save(UploadedFile uploadedFile) {
+        entityManager.persist(uploadedFile);
+        return uploadedFile;
+    }
 
     @Override
     public Optional<UploadedFile> findById(Long id) {

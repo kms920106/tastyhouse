@@ -2,6 +2,7 @@ package com.tastyhouse.core.repository.rank;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.file.QUploadedFile;
+import com.tastyhouse.core.entity.rank.MemberReviewRank;
 import com.tastyhouse.core.entity.rank.QMemberReviewRank;
 import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.entity.rank.dto.MemberRankDto;
@@ -19,6 +20,7 @@ import java.util.Optional;
 public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
 
     @Override
     public List<MemberRankDto> findMemberRankList(RankType rankType, LocalDate baseDate, int limit) {
@@ -71,5 +73,19 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
                 rank.baseDate.eq(baseDate)
             )
             .fetchOne());
+    }
+
+    @Override
+    public void saveAll(List<MemberReviewRank> ranks) {
+        memberReviewRankJpaRepository.saveAll(ranks);
+    }
+
+    @Override
+    public void deleteByRankTypeAndBaseDate(RankType rankType, LocalDate baseDate) {
+        QMemberReviewRank rank = QMemberReviewRank.memberReviewRank;
+        queryFactory
+            .delete(rank)
+            .where(rank.rankType.eq(rankType), rank.baseDate.eq(baseDate))
+            .execute();
     }
 }

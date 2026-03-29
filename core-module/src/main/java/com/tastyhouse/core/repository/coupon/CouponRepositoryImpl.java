@@ -17,6 +17,8 @@ import java.util.Optional;
 public class CouponRepositoryImpl implements CouponRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final CouponJpaRepository couponJpaRepository;
+    private final MemberCouponJpaRepository memberCouponJpaRepository;
 
     @Override
     public List<Coupon> findActiveCoupons() {
@@ -108,5 +110,30 @@ public class CouponRepositoryImpl implements CouponRepository {
             .fetchOne();
 
         return count != null && count > 0;
+    }
+
+    @Override
+    public Optional<Coupon> findCouponById(Long couponId) {
+        return couponJpaRepository.findById(couponId);
+    }
+
+    @Override
+    public Coupon saveCoupon(Coupon coupon) {
+        return couponJpaRepository.save(coupon);
+    }
+
+    @Override
+    public Optional<MemberCoupon> findMemberCouponById(Long memberCouponId) {
+        return memberCouponJpaRepository.findById(memberCouponId);
+    }
+
+    @Override
+    public MemberCoupon saveMemberCoupon(MemberCoupon memberCoupon) {
+        return memberCouponJpaRepository.save(memberCoupon);
+    }
+
+    @Override
+    public void deleteMemberCouponById(Long memberCouponId) {
+        memberCouponJpaRepository.deleteById(memberCouponId);
     }
 }

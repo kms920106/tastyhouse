@@ -5,6 +5,7 @@ import com.tastyhouse.core.entity.verification.PhoneVerificationStatus;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.repository.verification.PhoneVerificationJpaRepository;
+import com.tastyhouse.core.repository.verification.PhoneVerificationRepository;
 import com.tastyhouse.external.sms.SmsSender;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +23,13 @@ public class PhoneVerificationService {
     private static final String SMS_TEXT_TEMPLATE = "[TastyHouse] 인증번호 [%s]를 입력해주세요.";
 
     private final PhoneVerificationJpaRepository phoneVerificationJpaRepository;
+    private final PhoneVerificationRepository phoneVerificationRepository;
     private final SmsSender smsSender;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public void sendVerificationCode(String phoneNumber) {
-        // 기존 미완료 인증 건 만료 처리
-        phoneVerificationJpaRepository.expireAllPendingByPhoneNumber(phoneNumber);
+        phoneVerificationRepository.expireAllPendingByPhoneNumber(phoneNumber);
 
         String verificationCode = generateVerificationCode();
 
@@ -47,7 +48,9 @@ public class PhoneVerificationService {
 
     @Transactional
     public String confirmVerificationCode(String phoneNumber, String verificationCode) {
-        PhoneVerification verification = phoneVerificationJpaRepository.findTopByPhoneNumberValueAndStatusOrderByCreatedAtDesc(phoneNumber, PhoneVerificationStatus.PENDING).orElseThrow(() -> new BusinessException(ErrorCode.VERIFICATION_CODE_NOT_FOUND));
+        PhoneVerification verification = phoneVerificationRepository
+            .findLatestPendingByPhoneNumber(phoneNumber, PhoneVerificationStatus.PENDING)
+            .orElseThrow(() -> new BusinessException(ErrorCode.VERIFICATION_CODE_NOT_FOUND));
 
         if (verification.isExpired()) {
             verification.expire();
@@ -69,7 +72,7 @@ public class PhoneVerificationService {
 
     private String generateVerificationCode() {
         SecureRandom random = new SecureRandom();
-        int code = random.nextInt(900000) + 100000; // 100000 ~ 999999
+        int code = random.nextInt(900000) + 100000;
         return String.valueOf(code);
     }
 }

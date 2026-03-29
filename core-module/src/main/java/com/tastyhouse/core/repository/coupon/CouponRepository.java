@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public interface CouponRepository {
 
+    Optional<Coupon> findCouponById(Long couponId);
+
     List<Coupon> findActiveCoupons();
 
     List<Coupon> findIssuableCoupons(LocalDateTime currentTime);
@@ -22,4 +24,12 @@ public interface CouponRepository {
     Optional<MemberCoupon> findMemberCouponByMemberIdAndCouponId(Long memberId, Long couponId);
 
     boolean existsMemberCouponByMemberIdAndCouponId(Long memberId, Long couponId);
+
+    Coupon saveCoupon(Coupon coupon);
+
+    Optional<MemberCoupon> findMemberCouponById(Long memberCouponId);
+
+    MemberCoupon saveMemberCoupon(MemberCoupon memberCoupon);
+
+    void deleteMemberCouponById(Long memberCouponId);
 }

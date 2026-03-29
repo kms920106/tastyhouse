@@ -5,10 +5,8 @@ import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.payment.Payment;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
-import com.tastyhouse.core.repository.order.OrderItemJpaRepository;
-import com.tastyhouse.core.repository.order.OrderItemOptionJpaRepository;
-import com.tastyhouse.core.repository.order.OrderJpaRepository;
-import com.tastyhouse.core.repository.payment.PaymentJpaRepository;
+import com.tastyhouse.core.repository.order.OrderRepository;
+import com.tastyhouse.core.repository.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -24,48 +22,46 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OrderCoreService {
 
-    private final OrderJpaRepository orderJpaRepository;
-    private final OrderItemJpaRepository orderItemJpaRepository;
-    private final OrderItemOptionJpaRepository orderItemOptionJpaRepository;
-    private final PaymentJpaRepository paymentJpaRepository;
+    private final OrderRepository orderRepository;
+    private final PaymentRepository paymentRepository;
 
     @Transactional(readOnly = true)
     public Optional<Order> findOrderById(Long orderId) {
-        return orderJpaRepository.findById(orderId);
+        return orderRepository.findById(orderId);
     }
 
     @Transactional(readOnly = true)
     public Page<OrderListItemDto> findOrderListByMemberId(Long memberId, Pageable pageable) {
-        return orderJpaRepository.findOrderListByMemberId(memberId, pageable);
+        return orderRepository.findOrderListByMemberId(memberId, pageable);
     }
 
     @Transactional(readOnly = true)
     public List<OrderItem> findOrderItemsByOrderId(Long orderId) {
-        return orderItemJpaRepository.findByOrderId(orderId);
+        return orderRepository.findOrderItemsByOrderId(orderId);
     }
 
     @Transactional(readOnly = true)
     public List<OrderItemOption> findOrderItemOptionsByOrderItemId(Long orderItemId) {
-        return orderItemOptionJpaRepository.findByOrderItemId(orderItemId);
+        return orderRepository.findOrderItemOptionsByOrderItemId(orderItemId);
     }
 
     @Transactional(readOnly = true)
     public Optional<Payment> findPaymentByOrderId(Long orderId) {
-        return paymentJpaRepository.findByOrderId(orderId);
+        return paymentRepository.findByOrderId(orderId);
     }
 
     @Transactional
     public Order saveOrder(Order order) {
-        return orderJpaRepository.save(order);
+        return orderRepository.save(order);
     }
 
     @Transactional
     public OrderItem saveOrderItem(OrderItem orderItem) {
-        return orderItemJpaRepository.save(orderItem);
+        return orderRepository.saveOrderItem(orderItem);
     }
 
     @Transactional
     public void saveOrderItemOption(OrderItemOption orderItemOption) {
-        orderItemOptionJpaRepository.save(orderItemOption);
+        orderRepository.saveOrderItemOption(orderItemOption);
     }
 }

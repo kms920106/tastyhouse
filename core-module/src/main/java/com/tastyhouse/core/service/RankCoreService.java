@@ -3,7 +3,6 @@ package com.tastyhouse.core.service;
 import com.tastyhouse.core.entity.rank.MemberReviewRank;
 import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.entity.rank.dto.MemberRankDto;
-import com.tastyhouse.core.repository.rank.MemberReviewRankJpaRepository;
 import com.tastyhouse.core.repository.rank.MemberReviewRankRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RankCoreService {
 
-    private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
     private final MemberReviewRankRepository memberReviewRankRepository;
     private final EntityManager entityManager;
 
@@ -36,12 +34,12 @@ public class RankCoreService {
 
     @Transactional
     public void saveAllRanks(List<MemberReviewRank> ranks) {
-        memberReviewRankJpaRepository.saveAll(ranks);
+        memberReviewRankRepository.saveAll(ranks);
     }
 
     @Transactional
     public void deleteOldRanks(RankType rankType, LocalDate baseDate) {
-        memberReviewRankJpaRepository.deleteByRankTypeAndBaseDate(rankType, baseDate);
+        memberReviewRankRepository.deleteByRankTypeAndBaseDate(rankType, baseDate);
         entityManager.flush();
         entityManager.clear();
     }

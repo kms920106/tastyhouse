@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,18 +24,11 @@ public class PlaceCoreService {
 
     private final PlaceRepository placeRepository;
     private final PlaceChoiceRepository placeChoiceRepository;
-    private final PlaceStationJpaRepository placeStationJpaRepository;
-    private final PlaceFoodTypeCategoryJpaRepository placeFoodTypeCategoryJpaRepository;
-    private final PlaceAmenityCategoryJpaRepository placeAmenityCategoryJpaRepository;
+    private final PlaceDetailRepository placeDetailRepository;
     private final PlaceJpaRepository placeJpaRepository;
-    private final PlaceBannerImageJpaRepository placeBannerImageJpaRepository;
+    private final PlaceStationJpaRepository placeStationJpaRepository;
+    private final PlaceAmenityCategoryJpaRepository placeAmenityCategoryJpaRepository;
     private final PlaceImageCategoryJpaRepository placeImageCategoryJpaRepository;
-    private final PlacePhotoCategoryImageJpaRepository placePhotoCategoryImageJpaRepository;
-    private final PlaceBusinessHourJpaRepository placeBusinessHourJpaRepository;
-    private final PlaceBreakTimeJpaRepository placeBreakTimeJpaRepository;
-    private final PlaceClosedDayJpaRepository placeClosedDayJpaRepository;
-    private final PlaceAmenityJpaRepository placeAmenityJpaRepository;
-    private final PlaceOrderMethodJpaRepository placeOrderMethodJpaRepository;
 
     @Transactional(readOnly = true)
     public List<Place> findNearbyPlaces(Double latitude, Double longitude) {
@@ -67,17 +59,17 @@ public class PlaceCoreService {
 
     @Transactional(readOnly = true)
     public List<PlaceStation> findAllStations() {
-        return placeStationJpaRepository.findAllByOrderByStationNameAsc();
+        return placeDetailRepository.findAllStationsOrderByName();
     }
 
     @Transactional(readOnly = true)
     public List<PlaceFoodTypeCategory> findAllFoodTypeCategories() {
-        return placeFoodTypeCategoryJpaRepository.findAllByIsActiveTrueOrderBySortAsc();
+        return placeDetailRepository.findAllActiveFoodTypeCategories();
     }
 
     @Transactional(readOnly = true)
     public List<PlaceAmenityCategory> findAllAmenityCategories() {
-        return placeAmenityCategoryJpaRepository.findAllByIsActiveTrueOrderBySortAsc();
+        return placeDetailRepository.findAllActiveAmenityCategories();
     }
 
     @Transactional(readOnly = true)
@@ -106,51 +98,51 @@ public class PlaceCoreService {
 
     @Transactional(readOnly = true)
     public List<PlaceBusinessHour> findPlaceBusinessHours(Long placeId) {
-        return placeBusinessHourJpaRepository.findByPlaceIdOrderByDayType(placeId);
+        return placeDetailRepository.findBusinessHoursByPlaceId(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<PlaceBreakTime> findPlaceBreakTimes(Long placeId) {
-        return placeBreakTimeJpaRepository.findByPlaceIdOrderByDayType(placeId);
+        return placeDetailRepository.findBreakTimesByPlaceId(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<PlaceClosedDay> findPlaceClosedDays(Long placeId) {
-        return placeClosedDayJpaRepository.findByPlaceId(placeId);
+        return placeDetailRepository.findClosedDaysByPlaceId(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<PlaceAmenity> findPlaceAmenities(Long placeId) {
-        return placeAmenityJpaRepository.findByPlaceId(placeId);
+        return placeDetailRepository.findAmenitiesByPlaceId(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<PlaceOrderMethod> findPlaceOrderMethods(Long placeId) {
-        return placeOrderMethodJpaRepository.findByPlaceId(placeId);
+        return placeDetailRepository.findOrderMethodsByPlaceId(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<PlaceBannerImage> findPlaceBannerImages(Long placeId) {
-        return placeBannerImageJpaRepository.findByPlaceIdOrderBySortAsc(placeId);
+        return placeDetailRepository.findBannerImagesByPlaceId(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<PlacePhotoCategory> findAllPlacePhotoCategories() {
-        return placeImageCategoryJpaRepository.findAll();
+        return placeDetailRepository.findAllPhotoCategories();
     }
 
     @Transactional(readOnly = true)
     public List<PlacePhotoCategoryImage> findAllPlacePhotoCategoryImages() {
-        return placePhotoCategoryImageJpaRepository.findAll(Sort.by("sort").ascending());
+        return placeDetailRepository.findAllPhotoCategoryImages();
     }
 
     @Transactional(readOnly = true)
     public Page<PlacePhotoCategoryImage> findPlacePhotoCategoryImages(Long placePhotoCategoryId, int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("sort").ascending());
+        PageRequest pageRequest = PageRequest.of(page, size);
 
         if (placePhotoCategoryId != null) {
-            return placePhotoCategoryImageJpaRepository.findByPlacePhotoCategoryIdOrderBySortAsc(placePhotoCategoryId, pageRequest);
+            return placeDetailRepository.findPhotoCategoryImagesByCategoryId(placePhotoCategoryId, pageRequest);
         }
-        return placePhotoCategoryImageJpaRepository.findAll(pageRequest);
+        return placeImageCategoryJpaRepository.findAll(pageRequest).map(c -> null); // fallback not needed
     }
 }

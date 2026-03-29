@@ -12,15 +12,14 @@ import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.PlaceReviewStatisticsDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
-import com.tastyhouse.core.repository.follow.FollowJpaRepository;
-import com.tastyhouse.core.repository.place.TagJpaRepository;
-import com.tastyhouse.core.repository.review.ReviewImageJpaRepository;
-import com.tastyhouse.core.repository.review.ReviewJpaRepository;
+import com.tastyhouse.core.repository.follow.FollowRepository;
+import com.tastyhouse.core.repository.place.TagRepository;
+import com.tastyhouse.core.repository.review.ReviewCommentRepository;
+import com.tastyhouse.core.repository.review.ReviewImageRepository;
+import com.tastyhouse.core.repository.review.ReviewLikeRepository;
+import com.tastyhouse.core.repository.review.ReviewReplyRepository;
 import com.tastyhouse.core.repository.review.ReviewRepository;
-import com.tastyhouse.core.repository.review.ReviewLikeJpaRepository;
-import com.tastyhouse.core.repository.review.ReviewTagJpaRepository;
-import com.tastyhouse.core.repository.review.ReviewCommentJpaRepository;
-import com.tastyhouse.core.repository.review.ReviewReplyJpaRepository;
+import com.tastyhouse.core.repository.review.ReviewTagRepository;
 import com.tastyhouse.core.entity.review.ReviewLike;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -40,14 +39,13 @@ import java.util.*;
 public class ReviewCoreService {
 
     private final ReviewRepository reviewRepository;
-    private final ReviewJpaRepository reviewJpaRepository;
-    private final FollowJpaRepository followJpaRepository;
-    private final ReviewTagJpaRepository reviewTagJpaRepository;
-    private final TagJpaRepository tagJpaRepository;
-    private final ReviewLikeJpaRepository reviewLikeJpaRepository;
-    private final ReviewCommentJpaRepository reviewCommentJpaRepository;
-    private final ReviewReplyJpaRepository reviewReplyJpaRepository;
-    private final ReviewImageJpaRepository reviewImageJpaRepository;
+    private final FollowRepository followRepository;
+    private final ReviewTagRepository reviewTagRepository;
+    private final TagRepository tagRepository;
+    private final ReviewLikeRepository reviewLikeRepository;
+    private final ReviewCommentRepository reviewCommentRepository;
+    private final ReviewReplyRepository reviewReplyRepository;
+    private final ReviewImageRepository reviewImageRepository;
 
     @Transactional(readOnly = true)
     public PageResult<BestReviewListItemDto> findBestReviewsWithPagination(int page, int size) {
@@ -58,16 +56,16 @@ public class ReviewCoreService {
 
     @Transactional(readOnly = true)
     public Review findById(Long id) {
-        return reviewJpaRepository.findById(id)
+        return reviewRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
     public Optional<ReviewDetailDto> findReviewDetail(Long reviewId) {
         return reviewRepository.findReviewDetail(reviewId).map(dto -> {
-            List<Long> tagIds = reviewTagJpaRepository.findTagIdsByReviewId(reviewId);
+            List<Long> tagIds = reviewTagRepository.findTagIdsByReviewId(reviewId);
             if (!tagIds.isEmpty()) {
-                List<String> tagNames = tagJpaRepository.findTagNamesByIds(tagIds);
+                List<String> tagNames = tagRepository.findTagNamesByIds(tagIds);
                 return dto.withTagNames(tagNames);
             }
             return dto;
@@ -76,7 +74,7 @@ public class ReviewCoreService {
 
     @Transactional(readOnly = true)
     public boolean isLikedByMember(Long reviewId, Long memberId) {
-        return reviewLikeJpaRepository.existsByReviewIdAndMemberId(reviewId, memberId);
+        return reviewLikeRepository.existsByReviewIdAndMemberId(reviewId, memberId);
     }
 
     @Transactional(readOnly = true)
@@ -88,7 +86,7 @@ public class ReviewCoreService {
 
     @Transactional(readOnly = true)
     public PageResult<LatestReviewListItemDto> findLatestReviewsByFollowingWithPagination(Long memberId, int page, int size) {
-        List<Long> followingMemberIds = followJpaRepository.findFollowingIdsByFollowerId(memberId);
+        List<Long> followingMemberIds = followRepository.findFollowingIdsByFollowerId(memberId);
 
         if (followingMemberIds.isEmpty()) {
             return new PageResult<>(
@@ -127,7 +125,7 @@ public class ReviewCoreService {
         Page<LatestReviewListItemDto> allReviewsPage = reviewRepository.findLatestReviewsByPlaceId(placeId, null, pageRequest, null, "LATEST");
         List<LatestReviewListItemDto> allReviews = allReviewsPage.getContent();
 
-        Long totalReviewCount = reviewJpaRepository.countByPlaceIdAndIsHiddenFalse(placeId);
+        Long totalReviewCount = reviewRepository.countByPlaceIdAndIsHiddenFalse(placeId);
 
         Map<Integer, List<LatestReviewListItemDto>> reviewsByRating = new HashMap<>();
         reviewsByRating.put(1, rating1Reviews);
@@ -149,14 +147,14 @@ public class ReviewCoreService {
 
     @Transactional
     public boolean toggleReviewLike(Long reviewId, Long memberId) {
-        boolean alreadyLiked = reviewLikeJpaRepository.existsByReviewIdAndMemberId(reviewId, memberId);
+        boolean alreadyLiked = reviewLikeRepository.existsByReviewIdAndMemberId(reviewId, memberId);
 
         if (alreadyLiked) {
-            reviewLikeJpaRepository.deleteByReviewIdAndMemberId(reviewId, memberId);
+            reviewLikeRepository.deleteByReviewIdAndMemberId(reviewId, memberId);
             return false;
         } else {
             ReviewLike reviewLike = new ReviewLike(reviewId, memberId);
-            reviewLikeJpaRepository.save(reviewLike);
+            reviewLikeRepository.save(reviewLike);
             return true;
         }
     }
@@ -164,18 +162,18 @@ public class ReviewCoreService {
     @Transactional
     public ReviewComment createComment(Long reviewId, Long memberId, String content) {
         ReviewComment comment = new ReviewComment(reviewId, memberId, content);
-        return reviewCommentJpaRepository.save(comment);
+        return reviewCommentRepository.save(comment);
     }
 
     @Transactional
     public ReviewReply createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
         ReviewReply reply = new ReviewReply(commentId, memberId, replyToMemberId, content);
-        return reviewReplyJpaRepository.save(reply);
+        return reviewReplyRepository.save(reply);
     }
 
     @Transactional(readOnly = true)
     public List<ReviewComment> findCommentsByReviewId(Long reviewId) {
-        return reviewCommentJpaRepository.findByReviewIdAndIsHiddenFalseOrderByCreatedAtDesc(reviewId);
+        return reviewCommentRepository.findByReviewIdOrderByCreatedAtDesc(reviewId);
     }
 
     @Transactional(readOnly = true)
@@ -183,7 +181,7 @@ public class ReviewCoreService {
         if (commentIds.isEmpty()) {
             return List.of();
         }
-        return reviewReplyJpaRepository.findByCommentIdInAndIsHiddenFalseOrderByCreatedAtAsc(commentIds);
+        return reviewReplyRepository.findByCommentIdInAndIsHiddenFalseOrderByCreatedAtAsc(commentIds);
     }
 
     @Transactional(readOnly = true)
@@ -192,11 +190,9 @@ public class ReviewCoreService {
         Page<Review> reviewPage;
 
         if (rating != null) {
-            reviewPage = reviewJpaRepository.findByPlaceIdAndTotalRatingAndIsHiddenFalseOrderByCreatedAtDesc(
-                    placeId, rating.doubleValue(), pageRequest
-            );
+            reviewPage = reviewRepository.findPlaceReviewsByRating(placeId, rating.doubleValue(), pageRequest);
         } else {
-            reviewPage = reviewJpaRepository.findByPlaceIdAndIsHiddenFalseOrderByCreatedAtDesc(placeId, pageRequest);
+            reviewPage = reviewRepository.findPlaceReviews(placeId, pageRequest);
         }
 
         return PageResult.from(reviewPage);
@@ -204,41 +200,33 @@ public class ReviewCoreService {
 
     @Transactional(readOnly = true)
     public List<ReviewImage> findReviewImages(List<Long> reviewIds) {
-        return reviewImageJpaRepository.findByReviewIdInOrderBySortAsc(reviewIds);
+        return reviewImageRepository.findByReviewIdInOrderBySortAsc(reviewIds);
     }
 
     @Transactional(readOnly = true)
     public PlaceReviewStatisticsDto findPlaceReviewStatistics(Long placeId) {
-        Long totalCount = reviewJpaRepository.countByPlaceIdAndIsHiddenFalse(placeId);
+        Long totalCount = reviewRepository.countByPlaceIdAndIsHiddenFalse(placeId);
 
-        Object[][] ratingData = reviewJpaRepository.getRatingCounts(placeId);
-        Map<Integer, Long> ratingMap = new HashMap<>();
-        for (Object[] row : ratingData) {
-            ratingMap.put(((Number) row[0]).intValue(), (Long) row[1]);
-        }
+        Map<Integer, Long> ratingMap = reviewRepository.getRatingCounts(placeId);
         for (int r = 1; r <= 5; r++) {
             ratingMap.putIfAbsent(r, 0L);
         }
 
         if (totalCount > 0) {
-            Long willRevisitCount = reviewJpaRepository.countWillRevisit(placeId);
+            Long willRevisitCount = reviewRepository.countWillRevisit(placeId);
             double willRevisitPercentage = (willRevisitCount * 100.0) / totalCount;
 
             int currentYear = LocalDateTime.now().getYear();
-            Object[][] monthlyData = reviewJpaRepository.getMonthlyReviewCounts(placeId, currentYear);
-            Map<Integer, Long> monthlyMap = new HashMap<>();
-            for (Object[] row : monthlyData) {
-                monthlyMap.put((Integer) row[0], (Long) row[1]);
-            }
+            Map<Integer, Long> monthlyMap = reviewRepository.getMonthlyReviewCounts(placeId, currentYear);
 
             return new PlaceReviewStatisticsDto(
                     totalCount,
-                    reviewJpaRepository.getAverageTasteRating(placeId),
-                    reviewJpaRepository.getAverageAmountRating(placeId),
-                    reviewJpaRepository.getAveragePriceRating(placeId),
-                    reviewJpaRepository.getAverageAtmosphereRating(placeId),
-                    reviewJpaRepository.getAverageKindnessRating(placeId),
-                    reviewJpaRepository.getAverageHygieneRating(placeId),
+                    reviewRepository.getAverageTasteRating(placeId),
+                    reviewRepository.getAverageAmountRating(placeId),
+                    reviewRepository.getAveragePriceRating(placeId),
+                    reviewRepository.getAverageAtmosphereRating(placeId),
+                    reviewRepository.getAverageKindnessRating(placeId),
+                    reviewRepository.getAverageHygieneRating(placeId),
                     willRevisitPercentage,
                     ratingMap,
                     monthlyMap
@@ -265,7 +253,7 @@ public class ReviewCoreService {
         Page<LatestReviewListItemDto> allReviewsPage = reviewRepository.findLatestReviewsByProductId(productId, null, pageRequest, null, "LATEST");
         List<LatestReviewListItemDto> allReviews = allReviewsPage.getContent();
 
-        Long totalReviewCount = reviewJpaRepository.countByProductIdAndIsHiddenFalse(productId);
+        Long totalReviewCount = reviewRepository.countByProductIdAndIsHiddenFalse(productId);
 
         Map<Integer, List<LatestReviewListItemDto>> reviewsByRating = new HashMap<>();
         reviewsByRating.put(1, rating1Reviews);
@@ -294,55 +282,55 @@ public class ReviewCoreService {
 
     @Transactional(readOnly = true)
     public boolean isReviewedByOrderAndProduct(Long orderId, Long productId, Long memberId) {
-        return reviewJpaRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
+        return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
     }
 
     @Transactional
     public Review saveReview(Review review) {
-        return reviewJpaRepository.save(review);
+        return reviewRepository.save(review);
     }
 
     @Transactional
     public void saveReviewImages(List<ReviewImage> images) {
-        reviewImageJpaRepository.saveAll(images);
+        reviewImageRepository.saveAll(images);
     }
 
     @Transactional
     public void saveReviewTags(List<ReviewTag> tags) {
-        reviewTagJpaRepository.saveAll(tags);
+        reviewTagRepository.saveAll(tags);
     }
 
     @Transactional(readOnly = true)
     public Optional<Review> findReviewByIdAndMemberId(Long reviewId, Long memberId) {
-        return reviewJpaRepository.findByIdAndMemberId(reviewId, memberId);
+        return reviewRepository.findByIdAndMemberId(reviewId, memberId);
     }
 
     @Transactional
     public void deleteReviewImages(Long reviewId) {
-        reviewImageJpaRepository.deleteByReviewId(reviewId);
+        reviewImageRepository.deleteByReviewId(reviewId);
     }
 
     @Transactional
     public void deleteReviewTags(Long reviewId) {
-        reviewTagJpaRepository.deleteByReviewId(reviewId);
+        reviewTagRepository.deleteByReviewId(reviewId);
     }
 
     @Transactional
     public void deleteReview(Long reviewId) {
-        reviewJpaRepository.deleteById(reviewId);
+        reviewRepository.deleteById(reviewId);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> findProductReviewStatistics(Long productId) {
         Map<String, Object> statistics = new HashMap<>();
 
-        Long totalCount = reviewJpaRepository.countByProductIdAndIsHiddenFalse(productId);
+        Long totalCount = reviewRepository.countByProductIdAndIsHiddenFalse(productId);
         statistics.put("totalReviewCount", totalCount);
 
         if (totalCount > 0) {
-            statistics.put("averageTasteRating", reviewJpaRepository.getAverageTasteRatingByProductId(productId));
-            statistics.put("averageAmountRating", reviewJpaRepository.getAverageAmountRatingByProductId(productId));
-            statistics.put("averagePriceRating", reviewJpaRepository.getAveragePriceRatingByProductId(productId));
+            statistics.put("averageTasteRating", reviewRepository.getAverageTasteRatingByProductId(productId));
+            statistics.put("averageAmountRating", reviewRepository.getAverageAmountRatingByProductId(productId));
+            statistics.put("averagePriceRating", reviewRepository.getAveragePriceRatingByProductId(productId));
         }
 
         return statistics;

@@ -23,6 +23,7 @@ import java.util.Optional;
 public class FollowRepositoryImpl implements FollowRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final FollowJpaRepository followJpaRepository;
 
     @Override
     public Optional<Follow> findByFollowerIdAndFollowingId(Long followerId, Long followingId) {
@@ -53,6 +54,26 @@ public class FollowRepositoryImpl implements FollowRepository {
             .fetchOne();
 
         return count != null && count > 0;
+    }
+
+    @Override
+    public boolean existsByFollowingId(Long followingId) {
+        QFollow follow = QFollow.follow;
+        return queryFactory
+            .selectOne()
+            .from(follow)
+            .where(follow.followingId.eq(followingId))
+            .fetchFirst() != null;
+    }
+
+    @Override
+    public Follow save(Follow follow) {
+        return followJpaRepository.save(follow);
+    }
+
+    @Override
+    public void delete(Follow follow) {
+        followJpaRepository.delete(follow);
     }
 
     @Override

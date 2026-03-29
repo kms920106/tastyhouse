@@ -6,8 +6,7 @@ import com.tastyhouse.core.entity.point.PointType;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.point.MemberPointHistoryJpaRepository;
-import com.tastyhouse.core.repository.point.MemberPointJpaRepository;
+import com.tastyhouse.core.repository.point.MemberPointRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,17 +19,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PointCoreService {
 
-    private final MemberPointJpaRepository memberPointJpaRepository;
-    private final MemberPointHistoryJpaRepository memberPointHistoryJpaRepository;
+    private final MemberPointRepository memberPointRepository;
 
     @Transactional(readOnly = true)
     public Optional<MemberPoint> findMemberPoint(Long memberId) {
-        return memberPointJpaRepository.findByMemberId(memberId);
+        return memberPointRepository.findByMemberId(memberId);
     }
 
     @Transactional
     public void usePoints(Long memberId, int pointAmount) {
-        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
+        MemberPoint memberPoint = memberPointRepository.findByMemberId(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND));
 
         if (memberPoint.getAvailablePoints() < pointAmount) {
@@ -39,7 +37,7 @@ public class PointCoreService {
 
         memberPoint.deductPoints(pointAmount);
 
-        memberPointHistoryJpaRepository.save(
+        memberPointRepository.saveHistory(
             MemberPointHistory.builder()
                 .memberId(memberId)
                 .pointType(PointType.USE)
@@ -51,12 +49,12 @@ public class PointCoreService {
 
     @Transactional
     public void earnPoints(Long memberId, int pointAmount, String reason) {
-        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
+        MemberPoint memberPoint = memberPointRepository.findByMemberId(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND));
 
         memberPoint.addPoints(pointAmount);
 
-        memberPointHistoryJpaRepository.save(
+        memberPointRepository.saveHistory(
             MemberPointHistory.builder()
                 .memberId(memberId)
                 .pointType(PointType.EARNED)
@@ -68,11 +66,11 @@ public class PointCoreService {
 
     @Transactional
     public MemberPoint getOrCreateMemberPoint(Long memberId) {
-        MemberPoint existing = memberPointJpaRepository.findByMemberId(memberId).orElse(null);
+        MemberPoint existing = memberPointRepository.findByMemberId(memberId).orElse(null);
         if (existing != null) {
             return existing;
         }
-        return memberPointJpaRepository.save(
+        return memberPointRepository.save(
             MemberPoint.builder()
                 .memberId(memberId)
                 .availablePoints(0)
@@ -82,13 +80,13 @@ public class PointCoreService {
 
     @Transactional
     public void refundPoints(Long memberId, int pointAmount) {
-        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
+        MemberPoint memberPoint = memberPointRepository.findByMemberId(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
                 "포인트 정보를 찾을 수 없습니다. memberId=" + memberId));
 
         memberPoint.addPoints(pointAmount);
 
-        memberPointHistoryJpaRepository.save(
+        memberPointRepository.saveHistory(
             MemberPointHistory.builder()
                 .memberId(memberId)
                 .pointType(PointType.REFUND)
@@ -100,14 +98,14 @@ public class PointCoreService {
 
     @Transactional
     public void reclaimEarnedPoints(Long memberId, int pointAmount) {
-        MemberPoint memberPoint = memberPointJpaRepository.findByMemberId(memberId)
+        MemberPoint memberPoint = memberPointRepository.findByMemberId(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
                 "포인트 정보를 찾을 수 없습니다. memberId=" + memberId));
 
         int deductAmount = Math.min(memberPoint.getAvailablePoints(), pointAmount);
         memberPoint.deductPoints(deductAmount);
 
-        memberPointHistoryJpaRepository.save(
+        memberPointRepository.saveHistory(
             MemberPointHistory.builder()
                 .memberId(memberId)
                 .pointType(PointType.USE)

@@ -1,5 +1,7 @@
 package com.tastyhouse.core.repository.review;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,6 +15,7 @@ import com.tastyhouse.core.entity.review.QReview;
 import com.tastyhouse.core.entity.review.QReviewComment;
 import com.tastyhouse.core.entity.review.QReviewImage;
 import com.tastyhouse.core.entity.review.QReviewLike;
+import com.tastyhouse.core.entity.review.Review;
 import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
@@ -28,6 +31,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +42,7 @@ import java.util.stream.Collectors;
 public class ReviewRepositoryImpl implements ReviewRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final ReviewJpaRepository reviewJpaRepository;
 
     @Override
     public Page<BestReviewListItemDto> findBestReviews(Pageable pageable) {
@@ -758,7 +763,336 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .collect(Collectors.toMap(
                 tuple -> tuple.get(reviewImage.reviewId),
                 tuple -> tuple.get(uploadedFile.filePath),
-                (existing, replacement) -> existing // 중복 시 첫 번째 값 유지
+                (existing, replacement) -> existing
             ));
+    }
+
+    @Override
+    public Page<Review> findPlaceReviewsByRating(Long placeId, Double rating, Pageable pageable) {
+        QReview review = QReview.review;
+
+        List<Review> content = queryFactory
+            .selectFrom(review)
+            .where(
+                review.placeId.eq(placeId),
+                review.totalRating.eq(rating),
+                review.isHidden.eq(false)
+            )
+            .orderBy(review.createdAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        long total = queryFactory
+            .select(review.count())
+            .from(review)
+            .where(
+                review.placeId.eq(placeId),
+                review.totalRating.eq(rating),
+                review.isHidden.eq(false)
+            )
+            .fetchOne();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Page<Review> findPlaceReviews(Long placeId, Pageable pageable) {
+        QReview review = QReview.review;
+
+        List<Review> content = queryFactory
+            .selectFrom(review)
+            .where(
+                review.placeId.eq(placeId),
+                review.isHidden.eq(false)
+            )
+            .orderBy(review.createdAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        long total = queryFactory
+            .select(review.count())
+            .from(review)
+            .where(
+                review.placeId.eq(placeId),
+                review.isHidden.eq(false)
+            )
+            .fetchOne();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Long countByPlaceIdAndIsHiddenFalse(Long placeId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.count())
+            .from(review)
+            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Long countWillRevisit(Long placeId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.count())
+            .from(review)
+            .where(
+                review.placeId.eq(placeId),
+                review.isHidden.eq(false),
+                review.willRevisit.eq(true)
+            )
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAverageTasteRating(Long placeId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.tasteRating.avg())
+            .from(review)
+            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAverageAmountRating(Long placeId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.amountRating.avg())
+            .from(review)
+            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAveragePriceRating(Long placeId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.priceRating.avg())
+            .from(review)
+            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAverageAtmosphereRating(Long placeId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.atmosphereRating.avg())
+            .from(review)
+            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAverageKindnessRating(Long placeId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.kindnessRating.avg())
+            .from(review)
+            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAverageHygieneRating(Long placeId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.hygieneRating.avg())
+            .from(review)
+            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Map<Integer, Long> getRatingCounts(Long placeId) {
+        QReview review = QReview.review;
+
+        List<Tuple> results = queryFactory
+            .select(review.totalRating.floor().intValue(), review.count())
+            .from(review)
+            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .groupBy(review.totalRating.floor().intValue())
+            .fetch();
+
+        Map<Integer, Long> ratingMap = new HashMap<>();
+        for (Tuple row : results) {
+            ratingMap.put(row.get(0, Integer.class), row.get(1, Long.class));
+        }
+        return ratingMap;
+    }
+
+    @Override
+    public Map<Integer, Long> getMonthlyReviewCounts(Long placeId, int year) {
+        QReview review = QReview.review;
+
+        List<Tuple> results = queryFactory
+            .select(review.createdAt.month(), review.count())
+            .from(review)
+            .where(
+                review.placeId.eq(placeId),
+                review.isHidden.eq(false),
+                review.createdAt.year().eq(year)
+            )
+            .groupBy(review.createdAt.month())
+            .fetch();
+
+        Map<Integer, Long> monthlyMap = new HashMap<>();
+        for (Tuple row : results) {
+            monthlyMap.put(row.get(0, Integer.class), row.get(1, Long.class));
+        }
+        return monthlyMap;
+    }
+
+    @Override
+    public Page<Review> findProductReviewsByRating(Long productId, Double rating, Pageable pageable) {
+        QReview review = QReview.review;
+
+        List<Review> content = queryFactory
+            .selectFrom(review)
+            .where(
+                review.productId.eq(productId),
+                review.totalRating.eq(rating),
+                review.isHidden.eq(false)
+            )
+            .orderBy(review.createdAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        long total = queryFactory
+            .select(review.count())
+            .from(review)
+            .where(
+                review.productId.eq(productId),
+                review.totalRating.eq(rating),
+                review.isHidden.eq(false)
+            )
+            .fetchOne();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Page<Review> findProductReviews(Long productId, Pageable pageable) {
+        QReview review = QReview.review;
+
+        List<Review> content = queryFactory
+            .selectFrom(review)
+            .where(
+                review.productId.eq(productId),
+                review.isHidden.eq(false)
+            )
+            .orderBy(review.createdAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        long total = queryFactory
+            .select(review.count())
+            .from(review)
+            .where(
+                review.productId.eq(productId),
+                review.isHidden.eq(false)
+            )
+            .fetchOne();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Long countByProductIdAndIsHiddenFalse(Long productId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.count())
+            .from(review)
+            .where(review.productId.eq(productId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAverageTasteRatingByProductId(Long productId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.tasteRating.avg())
+            .from(review)
+            .where(review.productId.eq(productId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAverageAmountRatingByProductId(Long productId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.amountRating.avg())
+            .from(review)
+            .where(review.productId.eq(productId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Double getAveragePriceRatingByProductId(Long productId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .select(review.priceRating.avg())
+            .from(review)
+            .where(review.productId.eq(productId), review.isHidden.eq(false))
+            .fetchOne();
+    }
+
+    @Override
+    public Optional<Review> findByIdAndMemberId(Long reviewId, Long memberId) {
+        QReview review = QReview.review;
+        Review result = queryFactory
+            .selectFrom(review)
+            .where(
+                review.id.eq(reviewId),
+                review.memberId.eq(memberId)
+            )
+            .fetchOne();
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public long countByMemberIdAndIsHiddenFalse(Long memberId) {
+        QReview review = QReview.review;
+        Long count = queryFactory
+            .select(review.count())
+            .from(review)
+            .where(review.memberId.eq(memberId), review.isHidden.eq(false))
+            .fetchOne();
+        return count != null ? count : 0L;
+    }
+
+    @Override
+    public boolean existsByOrderIdAndProductIdAndMemberId(Long orderId, Long productId, Long memberId) {
+        QReview review = QReview.review;
+        return queryFactory
+            .selectOne()
+            .from(review)
+            .where(
+                review.orderId.eq(orderId),
+                review.productId.eq(productId),
+                review.memberId.eq(memberId)
+            )
+            .fetchFirst() != null;
+    }
+
+    @Override
+    public Optional<Review> findById(Long reviewId) {
+        return reviewJpaRepository.findById(reviewId);
+    }
+
+    @Override
+    public Review save(Review review) {
+        return reviewJpaRepository.save(review);
+    }
+
+    @Override
+    public void deleteById(Long reviewId) {
+        reviewJpaRepository.deleteById(reviewId);
     }
 }

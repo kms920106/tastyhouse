@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface UploadedFileRepository {
 
+    UploadedFile save(UploadedFile uploadedFile);
+
     Optional<UploadedFile> findById(Long id);
 
     List<UploadedFile> findByIds(List<Long> ids);

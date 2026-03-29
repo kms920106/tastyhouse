@@ -10,6 +10,7 @@ import com.tastyhouse.core.entity.event.EventWinner;
 import com.tastyhouse.core.repository.event.EventAnnouncementJpaRepository;
 import com.tastyhouse.core.repository.event.EventJpaRepository;
 import com.tastyhouse.core.repository.event.EventPrizeJpaRepository;
+import com.tastyhouse.core.repository.event.EventRepository;
 import com.tastyhouse.core.repository.event.EventWinnerJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,21 +31,22 @@ public class EventCoreService {
     private final EventPrizeJpaRepository eventPrizeJpaRepository;
     private final EventWinnerJpaRepository eventWinnerJpaRepository;
     private final EventAnnouncementJpaRepository eventAnnouncementJpaRepository;
+    private final EventRepository eventRepository;
 
     @Transactional(readOnly = true)
     public Optional<Event> findActiveRankingEvent() {
-        return eventJpaRepository.findFirstByStatusAndTypeOrderByStartAtDesc(EventStatus.ACTIVE, EventType.RANKING);
+        return eventRepository.findLatestByStatusAndType(EventStatus.ACTIVE, EventType.RANKING);
     }
 
     @Transactional(readOnly = true)
     public PageResult<Event> searchEventsByStatus(EventStatus status, int page, int size) {
-        Page<Event> eventPage = eventJpaRepository.findByStatusOrderByStartAtDesc(status, PageRequest.of(page, size));
+        Page<Event> eventPage = eventRepository.findByStatusOrderByStartAtDesc(status, PageRequest.of(page, size));
         return PageResult.from(eventPage);
     }
 
     @Transactional(readOnly = true)
     public List<EventPrize> findEventPrizes(Long eventId) {
-        return eventPrizeJpaRepository.findByEventIdOrderByPrizeRankAsc(eventId);
+        return eventRepository.findPrizesByEventIdOrderByPrizeRankAsc(eventId);
     }
 
     @Transactional
@@ -64,12 +66,12 @@ public class EventCoreService {
 
     @Transactional(readOnly = true)
     public List<EventWinner> findEventWinnersByEventId(Long eventId) {
-        return eventWinnerJpaRepository.findByEventIdOrderByAnnouncedAtDescRankNoAsc(eventId);
+        return eventRepository.findWinnersByEventIdOrderByAnnouncedAtDescRankNoAsc(eventId);
     }
 
     @Transactional(readOnly = true)
     public List<EventWinner> findAllEventWinners() {
-        return eventWinnerJpaRepository.findAllByOrderByAnnouncedAtDescRankNoAsc();
+        return eventRepository.findAllWinnersOrderByAnnouncedAtDescRankNoAsc();
     }
 
     @Transactional
@@ -79,13 +81,13 @@ public class EventCoreService {
 
     @Transactional(readOnly = true)
     public PageResult<EventAnnouncement> findAllEventAnnouncements(int page, int size) {
-        Page<EventAnnouncement> announcementPage = eventAnnouncementJpaRepository.findAllByOrderByAnnouncedAtDesc(PageRequest.of(page, size));
+        Page<EventAnnouncement> announcementPage = eventRepository.findAllAnnouncementsOrderByAnnouncedAtDesc(PageRequest.of(page, size));
         return PageResult.from(announcementPage);
     }
 
     @Transactional(readOnly = true)
     public Optional<EventAnnouncement> findEventAnnouncementByEventId(Long eventId) {
-        return eventAnnouncementJpaRepository.findByEventId(eventId);
+        return eventRepository.findAnnouncementByEventId(eventId);
     }
 
     @Transactional

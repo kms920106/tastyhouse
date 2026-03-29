@@ -11,13 +11,13 @@ import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.entity.referral.MemberReferral;
 import com.tastyhouse.core.repository.member.MemberJpaRepository;
+import com.tastyhouse.core.repository.member.MemberRepository;
 import com.tastyhouse.core.repository.member.MemberWithdrawalJpaRepository;
 import com.tastyhouse.core.repository.place.PlaceRepository;
 import com.tastyhouse.core.repository.point.MemberPointHistoryJpaRepository;
 import com.tastyhouse.core.repository.point.MemberPointJpaRepository;
 import com.tastyhouse.core.repository.follow.FollowRepository;
 import com.tastyhouse.core.repository.referral.MemberReferralJpaRepository;
-import com.tastyhouse.core.repository.review.ReviewJpaRepository;
 import com.tastyhouse.core.repository.review.ReviewRepository;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.common.PageRequest;
@@ -52,12 +52,12 @@ public class MemberService {
 
     private final CouponService couponService;
     private final MemberJpaRepository memberJpaRepository;
+    private final MemberRepository memberRepository;
     private final MemberWithdrawalJpaRepository memberWithdrawalJpaRepository;
     private final MemberPointJpaRepository memberPointJpaRepository;
     private final MemberPointHistoryJpaRepository memberPointHistoryJpaRepository;
     private final MemberReferralJpaRepository memberReferralJpaRepository;
     private final ReviewRepository reviewRepository;
-    private final ReviewJpaRepository reviewJpaRepository;
     private final PlaceRepository placeRepository;
     private final FollowRepository followRepository;
 
@@ -73,12 +73,12 @@ public class MemberService {
                        String referrerNickname) {
 
         // 이메일 중복 여부 확인
-        if (memberJpaRepository.existsByUsername(username)) {
+        if (memberRepository.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
         }
 
         // 닉네임 중복 여부 확인
-        if (memberJpaRepository.existsByNickname(nickname)) {
+        if (memberRepository.existsByNickname(nickname)) {
             throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
         }
 
@@ -110,7 +110,7 @@ public class MemberService {
         }
 
         // 동일 번호로 이미 가입된 활성 회원 존재 여부 확인
-        if (memberJpaRepository.existsByPhoneNumberValueAndMemberStatusNot(phoneNumber, com.tastyhouse.core.entity.user.MemberStatus.DELETED)) {
+        if (memberRepository.existsByPhoneNumberValueAndMemberStatusNot(phoneNumber, com.tastyhouse.core.entity.user.MemberStatus.DELETED)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
@@ -125,7 +125,7 @@ public class MemberService {
             }
 
             // 추천인 닉네임으로 회원 조회
-            Member referrer = memberJpaRepository.findByNickname(referrerNickname).orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
+            Member referrer = memberRepository.findByNickname(referrerNickname).orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
             // 추천인-피추천인 관계 저장
             memberReferralJpaRepository.save(
@@ -184,14 +184,14 @@ public class MemberService {
     // 닉네임 중복 여부를 확인하여 사용 가능 여부를 반환
     @Transactional(readOnly = true)
     public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
-        boolean available = !memberJpaRepository.existsByNickname(nickname);
+        boolean available = !memberRepository.existsByNickname(nickname);
         return new NicknameAvailabilityResponse(available);
     }
 
     // 휴대폰번호로 활성 회원 존재 여부를 확인하여 가입 가능 여부를 반환
     @Transactional(readOnly = true)
     public PhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
-        boolean available = !memberJpaRepository.existsByPhoneNumberValueAndMemberStatusNot(
+        boolean available = !memberRepository.existsByPhoneNumberValueAndMemberStatusNot(
             phoneNumber, MemberStatus.DELETED
         );
         return new PhoneAvailabilityResponse(available);
@@ -375,7 +375,7 @@ public class MemberService {
     // 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회
     @Transactional(readOnly = true)
     public MemberStatsResponse getMemberStats(Long memberId) {
-        long reviewCount = reviewJpaRepository.countByMemberIdAndIsHiddenFalse(memberId);
+        long reviewCount = reviewRepository.countByMemberIdAndIsHiddenFalse(memberId);
         long followingCount = followRepository.countByFollowerId(memberId);
         long followerCount = followRepository.countByFollowingId(memberId);
 

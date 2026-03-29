@@ -24,9 +24,6 @@ public class ProductCoreService {
     private final ProductCategoryJpaRepository productCategoryJpaRepository;
     private final ProductOptionGroupJpaRepository productOptionGroupJpaRepository;
     private final ProductOptionJpaRepository productOptionJpaRepository;
-    private final ProductCommonOptionGroupJpaRepository productCommonOptionGroupJpaRepository;
-    private final ProductCommonOptionJpaRepository productCommonOptionJpaRepository;
-    private final ProductImageJpaRepository productImageJpaRepository;
 
     @Transactional(readOnly = true)
     public PageResult<TodayDiscountProductDto> findTodayDiscountProducts(int page, int size) {
@@ -37,12 +34,12 @@ public class ProductCoreService {
 
     @Transactional(readOnly = true)
     public List<Product> findProductsByPlaceId(Long placeId) {
-        return productJpaRepository.findByPlaceIdAndIsActiveTrueOrderByIsRepresentativeDescRatingDescIdAsc(placeId);
+        return productRepository.findActiveByPlaceIdOrderByRepresentativeAndRating(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<Product> findActiveProductsByPlaceId(Long placeId) {
-        return productJpaRepository.findByPlaceIdAndIsActiveTrueOrderBySortAsc(placeId);
+        return productRepository.findActiveByPlaceIdOrderBySort(placeId);
     }
 
     @Transactional(readOnly = true)
@@ -57,12 +54,12 @@ public class ProductCoreService {
 
     @Transactional(readOnly = true)
     public List<ProductCategory> findProductCategoriesByPlaceId(Long placeId) {
-        return productCategoryJpaRepository.findByPlaceIdAndIsActiveTrueOrderBySortAsc(placeId);
+        return productRepository.findActiveCategoriesByPlaceIdOrderBySort(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<ProductOptionGroup> findProductOptionGroupsByProductId(Long productId) {
-        return productOptionGroupJpaRepository.findByProductIdAndIsActiveTrueOrderBySortAsc(productId);
+        return productRepository.findActiveOptionGroupsByProductIdOrderBySort(productId);
     }
 
     @Transactional(readOnly = true)
@@ -77,22 +74,22 @@ public class ProductCoreService {
 
     @Transactional(readOnly = true)
     public List<ProductOption> findProductOptionsByOptionGroupIds(List<Long> optionGroupIds) {
-        return productOptionJpaRepository.findByOptionGroupIdInAndIsActiveTrueOrderBySortAsc(optionGroupIds);
+        return productRepository.findActiveOptionsByOptionGroupIdsOrderBySort(optionGroupIds);
     }
 
     @Transactional(readOnly = true)
     public List<ProductCommonOptionGroup> findProductCommonOptionGroupsByProductId(Long productId) {
-        return productCommonOptionGroupJpaRepository.findByProductIdAndIsActiveTrueOrderBySortAsc(productId);
+        return productRepository.findActiveCommonOptionGroupsByProductIdOrderBySort(productId);
     }
 
     @Transactional(readOnly = true)
     public List<ProductCommonOption> findProductCommonOptionsByOptionGroupIds(List<Long> optionGroupIds) {
-        return productCommonOptionJpaRepository.findByOptionGroupIdInAndIsActiveTrueOrderBySortAsc(optionGroupIds);
+        return productRepository.findActiveCommonOptionsByOptionGroupIdsOrderBySort(optionGroupIds);
     }
 
     @Transactional(readOnly = true)
     public String getFirstImageUrl(Long productId) {
-        return productImageJpaRepository.findByProductIdAndIsActiveTrueOrderBySortAsc(productId)
+        return productRepository.findActiveImagesByProductIdOrderBySort(productId)
             .stream()
             .findFirst()
             .map(ProductImage::getImageUrl)

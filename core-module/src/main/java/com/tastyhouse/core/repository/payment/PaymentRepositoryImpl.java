@@ -3,12 +3,7 @@ package com.tastyhouse.core.repository.payment;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.order.QOrder;
 import com.tastyhouse.core.entity.order.QOrderItem;
-import com.tastyhouse.core.entity.payment.Payment;
-import com.tastyhouse.core.entity.payment.PaymentRefund;
-import com.tastyhouse.core.entity.payment.PaymentStatus;
-import com.tastyhouse.core.entity.payment.QPayment;
-import com.tastyhouse.core.entity.payment.QPaymentRefund;
-import com.tastyhouse.core.entity.payment.RefundStatus;
+import com.tastyhouse.core.entity.payment.*;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.entity.payment.dto.QOrderListItemDto;
 import com.tastyhouse.core.entity.place.QPlace;
@@ -26,49 +21,49 @@ import java.util.Optional;
 public class PaymentRepositoryImpl implements PaymentRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final PaymentJpaRepository paymentJpaRepository;
+    private final PaymentRefundJpaRepository paymentRefundJpaRepository;
+    private final TossPaymentRecordJpaRepository tossPaymentRecordJpaRepository;
+
+    @Override
+    public Optional<Payment> findById(Long paymentId) {
+        return paymentJpaRepository.findById(paymentId);
+    }
 
     @Override
     public Optional<Payment> findByOrderId(Long orderId) {
         QPayment payment = QPayment.payment;
-
-        Payment result = queryFactory
-            .selectFrom(payment)
-            .where(payment.orderId.eq(orderId))
-            .fetchOne();
-
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(
+            queryFactory.selectFrom(payment)
+                .where(payment.orderId.eq(orderId))
+                .fetchOne()
+        );
     }
 
     @Override
     public Optional<Payment> findByPgTid(String pgTid) {
         QPayment payment = QPayment.payment;
-
-        Payment result = queryFactory
-            .selectFrom(payment)
-            .where(payment.pgTid.eq(pgTid))
-            .fetchOne();
-
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(
+            queryFactory.selectFrom(payment)
+                .where(payment.pgTid.eq(pgTid))
+                .fetchOne()
+        );
     }
 
     @Override
     public Optional<Payment> findByPgOrderId(String pgOrderId) {
         QPayment payment = QPayment.payment;
-
-        Payment result = queryFactory
-            .selectFrom(payment)
-            .where(payment.pgOrderId.eq(pgOrderId))
-            .fetchOne();
-
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(
+            queryFactory.selectFrom(payment)
+                .where(payment.pgOrderId.eq(pgOrderId))
+                .fetchOne()
+        );
     }
 
     @Override
     public List<Payment> findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus paymentStatus) {
         QPayment payment = QPayment.payment;
-
-        return queryFactory
-            .selectFrom(payment)
+        return queryFactory.selectFrom(payment)
             .where(payment.paymentStatus.eq(paymentStatus))
             .orderBy(payment.createdAt.desc())
             .fetch();
@@ -77,48 +72,82 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public boolean existsByOrderId(Long orderId) {
         QPayment payment = QPayment.payment;
-
-        Long count = queryFactory
-            .select(payment.count())
-            .from(payment)
+        return queryFactory.selectOne().from(payment)
             .where(payment.orderId.eq(orderId))
-            .fetchOne();
+            .fetchFirst() != null;
+    }
 
-        return count != null && count > 0;
+    @Override
+    public Payment save(Payment payment) {
+        return paymentJpaRepository.save(payment);
     }
 
     @Override
     public List<PaymentRefund> findRefundsByPaymentIdOrderByCreatedAtDesc(Long paymentId) {
-        QPaymentRefund paymentRefund = QPaymentRefund.paymentRefund;
-
-        return queryFactory
-            .selectFrom(paymentRefund)
-            .where(paymentRefund.paymentId.eq(paymentId))
-            .orderBy(paymentRefund.createdAt.desc())
+        QPaymentRefund refund = QPaymentRefund.paymentRefund;
+        return queryFactory.selectFrom(refund)
+            .where(refund.paymentId.eq(paymentId))
+            .orderBy(refund.createdAt.desc())
             .fetch();
     }
 
     @Override
     public Optional<PaymentRefund> findRefundByPgRefundId(String pgRefundId) {
-        QPaymentRefund paymentRefund = QPaymentRefund.paymentRefund;
-
-        PaymentRefund result = queryFactory
-            .selectFrom(paymentRefund)
-            .where(paymentRefund.pgRefundId.eq(pgRefundId))
-            .fetchOne();
-
-        return Optional.ofNullable(result);
+        QPaymentRefund refund = QPaymentRefund.paymentRefund;
+        return Optional.ofNullable(
+            queryFactory.selectFrom(refund)
+                .where(refund.pgRefundId.eq(pgRefundId))
+                .fetchOne()
+        );
     }
 
     @Override
     public List<PaymentRefund> findRefundsByRefundStatusOrderByCreatedAtDesc(RefundStatus refundStatus) {
-        QPaymentRefund paymentRefund = QPaymentRefund.paymentRefund;
-
-        return queryFactory
-            .selectFrom(paymentRefund)
-            .where(paymentRefund.refundStatus.eq(refundStatus))
-            .orderBy(paymentRefund.createdAt.desc())
+        QPaymentRefund refund = QPaymentRefund.paymentRefund;
+        return queryFactory.selectFrom(refund)
+            .where(refund.refundStatus.eq(refundStatus))
+            .orderBy(refund.createdAt.desc())
             .fetch();
+    }
+
+    @Override
+    public PaymentRefund saveRefund(PaymentRefund paymentRefund) {
+        return paymentRefundJpaRepository.save(paymentRefund);
+    }
+
+    @Override
+    public Optional<TossPaymentRecord> findTossRecordByPaymentId(Long paymentId) {
+        QTossPaymentRecord record = QTossPaymentRecord.tossPaymentRecord;
+        return Optional.ofNullable(
+            queryFactory.selectFrom(record)
+                .where(record.paymentId.eq(paymentId))
+                .fetchOne()
+        );
+    }
+
+    @Override
+    public Optional<TossPaymentRecord> findTossRecordByPaymentKey(String paymentKey) {
+        QTossPaymentRecord record = QTossPaymentRecord.tossPaymentRecord;
+        return Optional.ofNullable(
+            queryFactory.selectFrom(record)
+                .where(record.paymentKey.eq(paymentKey))
+                .fetchOne()
+        );
+    }
+
+    @Override
+    public Optional<TossPaymentRecord> findTossRecordByOrderId(String orderId) {
+        QTossPaymentRecord record = QTossPaymentRecord.tossPaymentRecord;
+        return Optional.ofNullable(
+            queryFactory.selectFrom(record)
+                .where(record.orderId.eq(orderId))
+                .fetchOne()
+        );
+    }
+
+    @Override
+    public TossPaymentRecord saveTossRecord(TossPaymentRecord tossPaymentRecord) {
+        return tossPaymentRecordJpaRepository.save(tossPaymentRecord);
     }
 
     @Override
@@ -127,8 +156,6 @@ public class PaymentRepositoryImpl implements PaymentRepository {
         QPayment payment = QPayment.payment;
         QPlace place = QPlace.place;
         QOrderItem orderItem = QOrderItem.orderItem;
-
-        // 첫 번째 주문 상품명 서브쿼리
         QOrderItem subOrderItem = new QOrderItem("subOrderItem");
 
         List<OrderListItemDto> content = queryFactory

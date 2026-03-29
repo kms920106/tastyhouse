@@ -2,8 +2,7 @@ package com.tastyhouse.core.service;
 
 import com.tastyhouse.core.entity.coupon.Coupon;
 import com.tastyhouse.core.entity.coupon.MemberCoupon;
-import com.tastyhouse.core.repository.coupon.CouponJpaRepository;
-import com.tastyhouse.core.repository.coupon.MemberCouponJpaRepository;
+import com.tastyhouse.core.repository.coupon.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,63 +17,60 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CouponCoreService {
 
-    private final CouponJpaRepository couponJpaRepository;
-    private final MemberCouponJpaRepository memberCouponJpaRepository;
+    private final CouponRepository couponRepository;
 
     @Transactional(readOnly = true)
     public Optional<Coupon> findCouponById(Long couponId) {
-        return couponJpaRepository.findById(couponId);
+        return couponRepository.findCouponById(couponId);
     }
 
     @Transactional(readOnly = true)
     public List<Coupon> findActiveCoupons() {
-        return couponJpaRepository.findByIsActiveTrue();
+        return couponRepository.findActiveCoupons();
     }
 
     @Transactional(readOnly = true)
     public List<Coupon> findIssuableCoupons(LocalDateTime currentTime) {
-        return couponJpaRepository.findByIsActiveTrueAndIssueStartAtLessThanEqualAndIssueEndAtGreaterThanEqual(
-            currentTime, currentTime
-        );
+        return couponRepository.findIssuableCoupons(currentTime);
     }
 
     @Transactional(readOnly = true)
     public List<MemberCoupon> findMemberCoupons(Long memberId) {
-        return memberCouponJpaRepository.findByMemberId(memberId);
+        return couponRepository.findMemberCouponsByMemberId(memberId);
     }
 
     @Transactional(readOnly = true)
     public List<MemberCoupon> findAvailableMemberCoupons(Long memberId) {
-        return memberCouponJpaRepository.findAvailableCouponsByMemberId(memberId, LocalDateTime.now());
+        return couponRepository.findAvailableMemberCouponsByMemberId(memberId, LocalDateTime.now());
     }
 
     @Transactional(readOnly = true)
     public Optional<MemberCoupon> findMemberCouponById(Long memberCouponId) {
-        return memberCouponJpaRepository.findById(memberCouponId);
+        return couponRepository.findMemberCouponById(memberCouponId);
     }
 
     @Transactional(readOnly = true)
     public Optional<MemberCoupon> findMemberCoupon(Long memberId, Long couponId) {
-        return memberCouponJpaRepository.findByMemberIdAndCouponId(memberId, couponId);
+        return couponRepository.findMemberCouponByMemberIdAndCouponId(memberId, couponId);
     }
 
     @Transactional(readOnly = true)
     public boolean existsMemberCoupon(Long memberId, Long couponId) {
-        return memberCouponJpaRepository.existsByMemberIdAndCouponId(memberId, couponId);
+        return couponRepository.existsMemberCouponByMemberIdAndCouponId(memberId, couponId);
     }
 
     @Transactional
     public Coupon saveCoupon(Coupon coupon) {
-        return couponJpaRepository.save(coupon);
+        return couponRepository.saveCoupon(coupon);
     }
 
     @Transactional
     public MemberCoupon saveMemberCoupon(MemberCoupon memberCoupon) {
-        return memberCouponJpaRepository.save(memberCoupon);
+        return couponRepository.saveMemberCoupon(memberCoupon);
     }
 
     @Transactional
     public void deleteMemberCoupon(Long memberCouponId) {
-        memberCouponJpaRepository.deleteById(memberCouponId);
+        couponRepository.deleteMemberCouponById(memberCouponId);
     }
 }

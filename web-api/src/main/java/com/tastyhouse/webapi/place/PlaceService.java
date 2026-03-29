@@ -9,8 +9,8 @@ import com.tastyhouse.core.entity.product.ProductCategory;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.PlaceReviewStatisticsDto;
-import com.tastyhouse.core.repository.place.PlaceBookmarkJpaRepository;
-import com.tastyhouse.core.repository.place.PlaceOwnerMessageHistoryJpaRepository;
+import com.tastyhouse.core.repository.place.PlaceBookmarkRepository;
+import com.tastyhouse.core.repository.place.PlaceDetailRepository;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.common.ReviewsByRatingResult;
 import com.tastyhouse.core.service.PlaceCoreService;
@@ -38,8 +38,8 @@ public class PlaceService {
     private final PlaceCoreService placeCoreService;
     private final ProductCoreService productCoreService;
     private final ReviewCoreService reviewCoreService;
-    private final PlaceBookmarkJpaRepository placeBookmarkJpaRepository;
-    private final PlaceOwnerMessageHistoryJpaRepository placeOwnerMessageHistoryJpaRepository;
+    private final PlaceBookmarkRepository placeBookmarkRepository;
+    private final PlaceDetailRepository placeDetailRepository;
 
     @Transactional(readOnly = true)
     public List<PlaceMapMarkerResponse> searchMapMarkers(Double latitude, Double longitude) {
@@ -185,7 +185,7 @@ public class PlaceService {
         // 사장님 한마디 히스토리 조회
         String ownerMessage = null;
         java.time.LocalDateTime ownerMessageCreatedAt = null;
-        var ownerMessageHistory = placeOwnerMessageHistoryJpaRepository.findFirstByPlaceIdOrderByCreatedAtDesc(placeId);
+        var ownerMessageHistory = placeDetailRepository.findLatestOwnerMessageByPlaceId(placeId);
         if (ownerMessageHistory.isPresent()) {
             ownerMessage = ownerMessageHistory.get().getMessage();
             ownerMessageCreatedAt = ownerMessageHistory.get().getCreatedAt();
@@ -378,19 +378,19 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PlaceBookmarkResponse isBookmarked(Long placeId, Long memberId) {
-        boolean isBookmarked = placeBookmarkJpaRepository.existsByPlaceIdAndMemberId(placeId, memberId);
+        boolean isBookmarked = placeBookmarkRepository.existsByPlaceIdAndMemberId(placeId, memberId);
         return new PlaceBookmarkResponse(isBookmarked);
     }
 
     @Transactional
     public boolean toggleBookmark(Long placeId, Long memberId) {
-        if (placeBookmarkJpaRepository.existsByPlaceIdAndMemberId(placeId, memberId)) {
-            placeBookmarkJpaRepository.deleteByPlaceIdAndMemberId(placeId, memberId);
+        if (placeBookmarkRepository.existsByPlaceIdAndMemberId(placeId, memberId)) {
+            placeBookmarkRepository.deleteByPlaceIdAndMemberId(placeId, memberId);
             return false;
         } else {
             placeCoreService.findPlaceById(placeId); // Ensure place exists
             PlaceBookmark bookmark = new PlaceBookmark(placeId, memberId);
-            placeBookmarkJpaRepository.save(bookmark);
+            placeBookmarkRepository.save(bookmark);
             return true;
         }
     }
@@ -399,7 +399,7 @@ public class PlaceService {
     public PlaceOwnerMessageHistoryResponse getPlaceOwnerMessageHistory(Long placeId) {
         placeCoreService.findPlaceById(placeId); // Ensure place exists
 
-        return placeOwnerMessageHistoryJpaRepository.findFirstByPlaceIdOrderByCreatedAtDesc(placeId)
+        return placeDetailRepository.findLatestOwnerMessageByPlaceId(placeId)
                 .map(history -> new PlaceOwnerMessageHistoryResponse(history.getMessage(), history.getCreatedAt()))
                 .orElse(new PlaceOwnerMessageHistoryResponse(null, null));
     }

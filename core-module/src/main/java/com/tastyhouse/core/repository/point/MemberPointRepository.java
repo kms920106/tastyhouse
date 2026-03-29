@@ -11,4 +11,8 @@ public interface MemberPointRepository {
     Optional<MemberPoint> findByMemberId(Long memberId);
 
     List<MemberPointHistory> findPointHistoryByMemberIdOrderByCreatedAtDesc(Long memberId);
+
+    MemberPoint save(MemberPoint memberPoint);
+
+    MemberPointHistory saveHistory(MemberPointHistory memberPointHistory);
 }

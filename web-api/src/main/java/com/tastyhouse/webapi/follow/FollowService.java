@@ -7,9 +7,8 @@ import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.follow.FollowJpaRepository;
 import com.tastyhouse.core.repository.follow.FollowRepository;
-import com.tastyhouse.core.repository.member.MemberJpaRepository;
+import com.tastyhouse.core.repository.member.MemberRepository;
 import com.tastyhouse.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.follow.response.FollowMemberResponse;
@@ -29,8 +28,7 @@ import java.util.stream.Collectors;
 public class FollowService {
 
     private final FollowRepository followRepository;
-    private final FollowJpaRepository followJpaRepository;
-    private final MemberJpaRepository memberJpaRepository;
+    private final MemberRepository memberRepository;
     private final FileService fileService;
 
     @Transactional
@@ -39,7 +37,7 @@ public class FollowService {
             throw new BusinessException(ErrorCode.FOLLOW_SELF_NOT_ALLOWED);
         }
 
-        if (!memberJpaRepository.existsById(followingId)) {
+        if (!memberRepository.existsById(followingId)) {
             throw new EntityNotFoundException(ErrorCode.FOLLOW_TARGET_NOT_FOUND);
         }
 
@@ -47,7 +45,7 @@ public class FollowService {
             throw new BusinessException(ErrorCode.FOLLOW_ALREADY_EXISTS);
         }
 
-        followJpaRepository.save(Follow.of(followerId, followingId));
+        followRepository.save(Follow.of(followerId, followingId));
     }
 
     @Transactional
@@ -55,7 +53,7 @@ public class FollowService {
         Follow follow = followRepository.findByFollowerIdAndFollowingId(followerId, followingId)
             .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
 
-        followJpaRepository.delete(follow);
+        followRepository.delete(follow);
     }
 
     @Transactional
@@ -63,7 +61,7 @@ public class FollowService {
         Follow follow = followRepository.findByFollowerIdAndFollowingId(followerId, memberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
 
-        followJpaRepository.delete(follow);
+        followRepository.delete(follow);
     }
 
     @Transactional(readOnly = true)
@@ -105,7 +103,7 @@ public class FollowService {
         org.springframework.data.domain.PageRequest springPageRequest =
             org.springframework.data.domain.PageRequest.of(pageRequest.page(), pageRequest.size());
 
-        Page<Member> page = memberJpaRepository.findByNicknameContainingIgnoreCase(nickname, springPageRequest);
+        Page<Member> page = memberRepository.findByNicknameContaining(nickname, springPageRequest);
 
         List<MemberSearchResponse> content = page.getContent().stream()
             .map(member -> {

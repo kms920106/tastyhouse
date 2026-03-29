@@ -16,6 +16,8 @@ import java.util.Optional;
 public class MemberPointRepositoryImpl implements MemberPointRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final MemberPointJpaRepository memberPointJpaRepository;
+    private final MemberPointHistoryJpaRepository memberPointHistoryJpaRepository;
 
     @Override
     public Optional<MemberPoint> findByMemberId(Long memberId) {
@@ -38,5 +40,15 @@ public class MemberPointRepositoryImpl implements MemberPointRepository {
             .where(memberPointHistory.memberId.eq(memberId))
             .orderBy(memberPointHistory.createdAt.desc())
             .fetch();
+    }
+
+    @Override
+    public MemberPoint save(MemberPoint memberPoint) {
+        return memberPointJpaRepository.save(memberPoint);
+    }
+
+    @Override
+    public MemberPointHistory saveHistory(MemberPointHistory memberPointHistory) {
+        return memberPointHistoryJpaRepository.save(memberPointHistory);
     }
 }

@@ -7,7 +7,6 @@ import com.tastyhouse.core.entity.policy.dto.PolicyDocumentDto;
 import com.tastyhouse.core.entity.policy.dto.PolicyListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.policy.PolicyDocumentJpaRepository;
 import com.tastyhouse.core.repository.policy.PolicyDocumentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,6 @@ import java.util.Optional;
 public class PolicyDocumentCoreService {
 
     private final PolicyDocumentRepository policyDocumentRepository;
-    private final PolicyDocumentJpaRepository policyDocumentJpaRepository;
 
     @Transactional(readOnly = true)
     public Optional<PolicyDocumentDto> findCurrentByType(PolicyType type) {
@@ -58,16 +56,16 @@ public class PolicyDocumentCoreService {
             .createdBy(createdBy)
             .build();
 
-        return policyDocumentJpaRepository.save(policyDocument);
+        return policyDocumentRepository.save(policyDocument);
     }
 
     @Transactional
     public void updateCurrentPolicy(Long newPolicyId) {
-        PolicyDocument newPolicy = policyDocumentJpaRepository.findById(newPolicyId)
+        PolicyDocument newPolicy = policyDocumentRepository.findById(newPolicyId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POLICY_NOT_FOUND));
 
-        Optional<PolicyDocument> currentPolicy = policyDocumentJpaRepository
-            .findByTypeAndCurrent(newPolicy.getType(), true);
+        Optional<PolicyDocument> currentPolicy = policyDocumentRepository
+            .findCurrentEntityByType(newPolicy.getType());
 
         currentPolicy.ifPresent(policy -> policy.updateCurrent(false));
 
@@ -77,7 +75,7 @@ public class PolicyDocumentCoreService {
     @Transactional
     public void update(Long id, String title, String content, Boolean mandatory,
                       LocalDateTime effectiveDate, String updatedBy) {
-        PolicyDocument policyDocument = policyDocumentJpaRepository.findById(id)
+        PolicyDocument policyDocument = policyDocumentRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POLICY_NOT_FOUND));
 
         policyDocument.update(title, content, mandatory, effectiveDate, updatedBy);
