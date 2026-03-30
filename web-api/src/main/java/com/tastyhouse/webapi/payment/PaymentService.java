@@ -12,8 +12,8 @@ import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.payment.PaymentRepository;
 import com.tastyhouse.core.service.OrderCoreService;
+import com.tastyhouse.core.service.PaymentCoreService;
 import com.tastyhouse.core.service.PointCoreService;
 import com.tastyhouse.external.payment.toss.TossPaymentClient;
 import com.tastyhouse.external.payment.toss.TossPaymentUtils;
@@ -40,7 +40,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PaymentService {
 
-    private final PaymentRepository paymentRepository;
+    private final PaymentCoreService paymentCoreService;
     private final OrderCoreService orderCoreService;
     private final PointCoreService pointCoreService;
     private final TossPaymentClient tossPaymentClient;
@@ -60,7 +60,7 @@ public class PaymentService {
             throw new BusinessException(ErrorCode.PAYMENT_INVALID_ORDER_STATUS);
         }
 
-        if (paymentRepository.existsByOrderId(request.orderId())) {
+        if (paymentCoreService.existsByOrderId(request.orderId())) {
             throw new BusinessException(ErrorCode.PAYMENT_ALREADY_IN_PROGRESS);
         }
 
@@ -74,14 +74,14 @@ public class PaymentService {
             .pgOrderId(pgOrderId)
             .build();
 
-        Payment savedPayment = paymentRepository.save(payment);
+        Payment savedPayment = paymentCoreService.save(payment);
 
         return buildPaymentResponse(savedPayment);
     }
 
     @Transactional
     public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
-        Payment payment = paymentRepository.findById(request.paymentId())
+        Payment payment = paymentCoreService.findById(request.paymentId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
@@ -106,7 +106,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse confirmTossPayment(Long memberId, TossPaymentConfirmApiRequest request) {
-        Payment payment = paymentRepository.findByPgOrderId(request.pgOrderId())
+        Payment payment = paymentCoreService.findByPgOrderId(request.pgOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
         Order order = orderCoreService.findOrderById(payment.getOrderId())
@@ -136,7 +136,7 @@ public class PaymentService {
             payment.fail();
 
             TossPaymentRecord tossPaymentRecord = buildTossPaymentRecord(payment.getId(), response);
-            paymentRepository.saveTossRecord(tossPaymentRecord);
+            paymentCoreService.saveTossRecord(tossPaymentRecord);
 
             throw new BusinessException(ErrorCode.PAYMENT_APPROVAL_FAILED,
                 response.getMessage() != null ? response.getMessage() : ErrorCode.PAYMENT_APPROVAL_FAILED.getDefaultMessage());
@@ -159,7 +159,7 @@ public class PaymentService {
         order.confirm();
 
         TossPaymentRecord tossPaymentRecord = buildTossPaymentRecord(payment.getId(), response);
-        paymentRepository.saveTossRecord(tossPaymentRecord);
+        paymentCoreService.saveTossRecord(tossPaymentRecord);
 
         log.info("Toss payment confirmed successfully. paymentId: {}, orderId: {}, amount: {}",
             payment.getId(), response.getOrderId(), response.getTotalAmount());
@@ -169,7 +169,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentCancelResponse cancelPayment(Long memberId, Long paymentId, PaymentCancelRequest request) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentCoreService.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
         Order order = orderCoreService.findOrderById(payment.getOrderId())
@@ -198,7 +198,7 @@ public class PaymentService {
                 }
 
                 TossPaymentRecord tossPaymentRecord = buildTossPaymentRecord(payment.getId(), tossResponse);
-                paymentRepository.saveTossRecord(tossPaymentRecord);
+                paymentCoreService.saveTossRecord(tossPaymentRecord);
             } catch (Exception e) {
                 log.error("Toss payment cancel exception. paymentId: {}", paymentId, e);
                 return PaymentCancelResponse.of(PaymentCancelCode.CANCEL_FAILED);
@@ -236,7 +236,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentRefundResponse requestRefund(Long memberId, Long paymentId, RefundRequest request) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentCoreService.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
         Order order = orderCoreService.findOrderById(payment.getOrderId())
@@ -260,7 +260,7 @@ public class PaymentService {
             .refundReason(request.refundReason())
             .build();
 
-        PaymentRefund savedRefund = paymentRepository.saveRefund(refund);
+        PaymentRefund savedRefund = paymentCoreService.saveRefund(refund);
 
         return buildRefundResponse(savedRefund);
     }
@@ -274,7 +274,7 @@ public class PaymentService {
             throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
-        Payment payment = paymentRepository.findByOrderId(orderId)
+        Payment payment = paymentCoreService.findByOrderId(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
 
         return buildPaymentResponse(payment);
@@ -282,7 +282,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse completeOnSitePayment(Long memberId, Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentCoreService.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
         Order order = orderCoreService.findOrderById(payment.getOrderId())

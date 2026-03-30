@@ -12,7 +12,9 @@ import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.PlaceReviewStatisticsDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
+import com.tastyhouse.core.entity.place.Tag;
 import com.tastyhouse.core.repository.follow.FollowRepository;
+import com.tastyhouse.core.repository.member.MemberRepository;
 import com.tastyhouse.core.repository.place.TagRepository;
 import com.tastyhouse.core.repository.review.ReviewCommentRepository;
 import com.tastyhouse.core.repository.review.ReviewImageRepository;
@@ -21,6 +23,7 @@ import com.tastyhouse.core.repository.review.ReviewReplyRepository;
 import com.tastyhouse.core.repository.review.ReviewRepository;
 import com.tastyhouse.core.repository.review.ReviewTagRepository;
 import com.tastyhouse.core.entity.review.ReviewLike;
+import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +49,7 @@ public class ReviewCoreService {
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional(readOnly = true)
     public PageResult<BestReviewListItemDto> findBestReviewsWithPagination(int page, int size) {
@@ -274,6 +278,18 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
+    public long countByMemberIdAndIsHiddenFalse(Long memberId) {
+        return reviewRepository.countByMemberIdAndIsHiddenFalse(memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<MyReviewListItemDto> findMyReviews(Long memberId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<MyReviewListItemDto> reviewPage = reviewRepository.findMyReviews(memberId, pageRequest);
+        return PageResult.from(reviewPage);
+    }
+
+    @Transactional(readOnly = true)
     public PageResult<MyReviewListItemDto> findReviewsByMemberId(Long memberId, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<MyReviewListItemDto> reviewPage = reviewRepository.findReviewsByMemberId(memberId, pageRequest);
@@ -334,5 +350,23 @@ public class ReviewCoreService {
         }
 
         return statistics;
+    }
+
+    @Transactional(readOnly = true)
+    public Member findMemberById(Long memberId) {
+        return memberRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Member> findMembersByIds(Collection<Long> memberIds) {
+        return memberRepository.findAllById(memberIds).stream()
+            .collect(java.util.stream.Collectors.toMap(Member::getId, m -> m));
+    }
+
+    @Transactional
+    public Tag findOrCreateTag(String tagName) {
+        return tagRepository.findByTagName(tagName)
+            .orElseGet(() -> tagRepository.save(new Tag(tagName)));
     }
 }

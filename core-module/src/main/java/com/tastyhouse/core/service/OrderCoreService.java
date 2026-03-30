@@ -5,8 +5,11 @@ import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.payment.Payment;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.repository.order.OrderRepository;
 import com.tastyhouse.core.repository.payment.PaymentRepository;
+import com.tastyhouse.core.repository.review.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -24,6 +27,7 @@ public class OrderCoreService {
 
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional(readOnly = true)
     public Optional<Order> findOrderById(Long orderId) {
@@ -63,5 +67,16 @@ public class OrderCoreService {
     @Transactional
     public void saveOrderItemOption(OrderItemOption orderItemOption) {
         orderRepository.saveOrderItemOption(orderItemOption);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderItem findOrderItemById(Long orderItemId) {
+        return orderRepository.findOrderItemById(orderItemId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_ITEM_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsReviewByOrderIdAndProductIdAndMemberId(Long orderId, Long productId, Long memberId) {
+        return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
     }
 }

@@ -1,6 +1,8 @@
 package com.tastyhouse.webapi.review;
 
+import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.place.Tag;
+import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.review.Review;
 import com.tastyhouse.core.entity.review.ReviewComment;
 import com.tastyhouse.core.entity.review.ReviewImage;
@@ -15,12 +17,8 @@ import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.entity.order.OrderItem;
-import com.tastyhouse.core.entity.product.Product;
-import com.tastyhouse.core.repository.member.MemberRepository;
-import com.tastyhouse.core.repository.order.OrderRepository;
-import com.tastyhouse.core.repository.place.TagRepository;
 import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.file.FileService;
@@ -58,9 +56,7 @@ public class ReviewService {
     private final FileService fileService;
     private final ReviewCoreService reviewCoreService;
     private final ProductCoreService productCoreService;
-    private final MemberRepository memberRepository;
-    private final OrderRepository orderRepository;
-    private final TagRepository tagRepository;
+    private final OrderCoreService orderCoreService;
 
     @Transactional(readOnly = true)
     public PageResult<BestReviewListItem> searchBestReviewList(PageRequest pageRequest) {
@@ -153,17 +149,15 @@ public class ReviewService {
     @Transactional
     public CommentResponse createComment(Long reviewId, Long memberId, String content) {
         ReviewComment comment = reviewCoreService.createComment(reviewId, memberId, content);
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = reviewCoreService.findMemberById(memberId);
         return convertToCommentResponse(comment, member, List.of());
     }
 
     @Transactional
     public ReplyResponse createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
         ReviewReply reply = reviewCoreService.createReply(commentId, memberId, replyToMemberId, content);
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-        Member replyToMember = replyToMemberId != null ? memberRepository.findById(replyToMemberId).orElse(null) : null;
+        Member member = reviewCoreService.findMemberById(memberId);
+        Member replyToMember = replyToMemberId != null ? reviewCoreService.findMembersByIds(List.of(replyToMemberId)).get(replyToMemberId) : null;
         return convertToReplyResponse(reply, member, replyToMember);
     }
 
@@ -193,8 +187,7 @@ public class ReviewService {
             }
         });
 
-        Map<Long, Member> memberMap = memberRepository.findAllById(memberIds).stream()
-            .collect(Collectors.toMap(Member::getId, m -> m));
+        Map<Long, Member> memberMap = reviewCoreService.findMembersByIds(memberIds);
 
         List<CommentResponse> commentResponses = comments.stream()
             .map(comment -> {
@@ -298,8 +291,7 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderItemId, Long memberId) {
-        OrderItem orderItem = orderRepository.findOrderItemById(orderItemId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_ITEM_NOT_FOUND));
+        OrderItem orderItem = orderCoreService.findOrderItemById(orderItemId);
 
         Product product = productCoreService.findProductById(orderItem.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
@@ -321,8 +313,7 @@ public class ReviewService {
     public ReviewResponse createReview(Long memberId, ReviewCreateRequest request) {
         Long orderId = null;
         if (request.orderItemId() != null) {
-            OrderItem orderItem = orderRepository.findOrderItemById(request.orderItemId())
-                    .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_ITEM_NOT_FOUND));
+            OrderItem orderItem = orderCoreService.findOrderItemById(request.orderItemId());
 
             orderId = orderItem.getOrderId();
 
@@ -435,8 +426,7 @@ public class ReviewService {
         }
         List<ReviewTag> reviewTags = tagNames.stream()
                 .map(tagName -> {
-                    Tag tag = tagRepository.findByTagName(tagName)
-                            .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+                    Tag tag = reviewCoreService.findOrCreateTag(tagName);
                     return new ReviewTag(reviewId, tag.getId());
                 })
                 .toList();

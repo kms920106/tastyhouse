@@ -4,9 +4,8 @@ import com.tastyhouse.core.entity.verification.EmailVerification;
 import com.tastyhouse.core.entity.verification.EmailVerificationStatus;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.member.MemberRepository;
-import com.tastyhouse.core.repository.verification.EmailVerificationJpaRepository;
-import com.tastyhouse.core.repository.verification.EmailVerificationRepository;
+import com.tastyhouse.core.service.EmailVerificationCoreService;
+import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.external.email.EmailSender;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -24,23 +23,22 @@ public class EmailVerificationService {
     private static final String EMAIL_SUBJECT = "[TastyHouse] 이메일 인증번호 안내";
     private static final String EMAIL_BODY_TEMPLATE = "[TastyHouse] 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
 
-    private final MemberRepository memberRepository;
-    private final EmailVerificationJpaRepository emailVerificationJpaRepository;
-    private final EmailVerificationRepository emailVerificationRepository;
+    private final MemberCoreService memberCoreService;
+    private final EmailVerificationCoreService emailVerificationCoreService;
     private final EmailSender emailSender;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public void sendVerificationCode(String email) {
-        if (memberRepository.existsByUsername(email)) {
+        if (memberCoreService.existsByUsername(email)) {
             throw new BusinessException(ErrorCode.MEMBER_EMAIL_ALREADY_REGISTERED);
         }
 
-        emailVerificationRepository.expireAllPendingByEmail(email);
+        emailVerificationCoreService.expireAllPendingByEmail(email);
 
         String verificationCode = generateVerificationCode();
 
-        emailVerificationJpaRepository.save(
+        emailVerificationCoreService.save(
             EmailVerification.builder()
                 .email(email)
                 .verificationCode(verificationCode)
@@ -55,7 +53,7 @@ public class EmailVerificationService {
 
     @Transactional
     public String confirmVerificationCode(String email, String verificationCode) {
-        EmailVerification verification = emailVerificationRepository
+        EmailVerification verification = emailVerificationCoreService
             .findLatestPendingByEmail(email, EmailVerificationStatus.PENDING)
             .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
 

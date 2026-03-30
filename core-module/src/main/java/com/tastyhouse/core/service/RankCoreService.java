@@ -45,4 +45,9 @@ public class RankCoreService {
         entityManager.flush();
         entityManager.clear();
     }
+
+    @Transactional(readOnly = true)
+    public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(Long memberId, RankType rankType) {
+        return memberReviewRankRepository.findLatestByMemberIdAndRankType(memberId, rankType);
+    }
 }

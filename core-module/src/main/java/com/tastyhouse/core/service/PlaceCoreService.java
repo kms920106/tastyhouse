@@ -4,6 +4,7 @@ import com.tastyhouse.core.entity.place.*;
 import com.tastyhouse.core.entity.place.dto.BestPlaceItemDto;
 import com.tastyhouse.core.entity.place.dto.EditorChoiceDto;
 import com.tastyhouse.core.entity.place.dto.LatestPlaceItemDto;
+import com.tastyhouse.core.entity.place.dto.MyBookmarkedPlaceItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.repository.place.*;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -29,6 +31,8 @@ public class PlaceCoreService {
     private final PlaceStationJpaRepository placeStationJpaRepository;
     private final PlaceAmenityCategoryJpaRepository placeAmenityCategoryJpaRepository;
     private final PlaceImageCategoryJpaRepository placeImageCategoryJpaRepository;
+    private final PlaceBookmarkRepository placeBookmarkRepository;
+    private final PlaceBookmarkJpaRepository placeBookmarkJpaRepository;
 
     @Transactional(readOnly = true)
     public List<Place> findNearbyPlaces(Double latitude, Double longitude) {
@@ -144,5 +148,32 @@ public class PlaceCoreService {
             return placeDetailRepository.findPhotoCategoryImagesByCategoryId(placePhotoCategoryId, pageRequest);
         }
         return placeImageCategoryJpaRepository.findAll(pageRequest).map(c -> null); // fallback not needed
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isBookmarked(Long placeId, Long memberId) {
+        return placeBookmarkRepository.existsByPlaceIdAndMemberId(placeId, memberId);
+    }
+
+    @Transactional
+    public boolean toggleBookmark(Long placeId, Long memberId) {
+        if (placeBookmarkRepository.existsByPlaceIdAndMemberId(placeId, memberId)) {
+            placeBookmarkRepository.deleteByPlaceIdAndMemberId(placeId, memberId);
+            return false;
+        } else {
+            findPlaceById(placeId);
+            placeBookmarkJpaRepository.save(new PlaceBookmark(placeId, memberId));
+            return true;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<PlaceOwnerMessageHistory> findLatestOwnerMessage(Long placeId) {
+        return placeDetailRepository.findLatestOwnerMessageByPlaceId(placeId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MyBookmarkedPlaceItemDto> findMyBookmarkedPlaces(Long memberId, org.springframework.data.domain.Pageable pageable) {
+        return placeRepository.findMyBookmarkedPlaces(memberId, pageable);
     }
 }

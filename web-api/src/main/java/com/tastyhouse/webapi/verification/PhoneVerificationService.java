@@ -4,8 +4,7 @@ import com.tastyhouse.core.entity.verification.PhoneVerification;
 import com.tastyhouse.core.entity.verification.PhoneVerificationStatus;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.verification.PhoneVerificationJpaRepository;
-import com.tastyhouse.core.repository.verification.PhoneVerificationRepository;
+import com.tastyhouse.core.service.PhoneVerificationCoreService;
 import com.tastyhouse.external.sms.SmsSender;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +21,17 @@ public class PhoneVerificationService {
 
     private static final String SMS_TEXT_TEMPLATE = "[TastyHouse] 인증번호 [%s]를 입력해주세요.";
 
-    private final PhoneVerificationJpaRepository phoneVerificationJpaRepository;
-    private final PhoneVerificationRepository phoneVerificationRepository;
+    private final PhoneVerificationCoreService phoneVerificationCoreService;
     private final SmsSender smsSender;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public void sendVerificationCode(String phoneNumber) {
-        phoneVerificationRepository.expireAllPendingByPhoneNumber(phoneNumber);
+        phoneVerificationCoreService.expireAllPendingByPhoneNumber(phoneNumber);
 
         String verificationCode = generateVerificationCode();
 
-        phoneVerificationJpaRepository.save(
+        phoneVerificationCoreService.save(
             PhoneVerification.builder()
                 .phoneNumber(phoneNumber)
                 .verificationCode(verificationCode)
@@ -48,7 +46,7 @@ public class PhoneVerificationService {
 
     @Transactional
     public String confirmVerificationCode(String phoneNumber, String verificationCode) {
-        PhoneVerification verification = phoneVerificationRepository
+        PhoneVerification verification = phoneVerificationCoreService
             .findLatestPendingByPhoneNumber(phoneNumber, PhoneVerificationStatus.PENDING)
             .orElseThrow(() -> new BusinessException(ErrorCode.VERIFICATION_CODE_NOT_FOUND));
 

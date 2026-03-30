@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.partnership;
 
 import com.tastyhouse.core.entity.partnership.PartnershipRequest;
-import com.tastyhouse.core.repository.partnership.PartnershipRequestJpaRepository;
+import com.tastyhouse.core.service.PartnershipCoreService;
 import com.tastyhouse.webapi.partnership.request.PartnershipRequestCreateRequest;
 import com.tastyhouse.webapi.partnership.response.PartnershipRequestResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PartnershipRequestService {
 
-    private final PartnershipRequestJpaRepository partnershipRequestJpaRepository;
+    private final PartnershipCoreService partnershipCoreService;
 
     @Transactional
     public PartnershipRequestResponse createPartnershipRequest(PartnershipRequestCreateRequest request) {
@@ -27,7 +27,7 @@ public class PartnershipRequestService {
             request.consultationRequestedAt()
         );
 
-        PartnershipRequest savedRequest = partnershipRequestJpaRepository.save(partnershipRequest);
+        PartnershipRequest savedRequest = partnershipCoreService.save(partnershipRequest);
 
         return new PartnershipRequestResponse(
             savedRequest.getId(),

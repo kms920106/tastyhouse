@@ -1,31 +1,23 @@
 package com.tastyhouse.webapi.member;
 
+import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.place.dto.MyBookmarkedPlaceItemDto;
+import com.tastyhouse.core.entity.referral.MemberReferral;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberStatus;
 import com.tastyhouse.core.entity.user.MemberWithdrawal;
 import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.entity.referral.MemberReferral;
-import com.tastyhouse.core.repository.member.MemberJpaRepository;
-import com.tastyhouse.core.repository.member.MemberRepository;
-import com.tastyhouse.core.repository.member.MemberWithdrawalJpaRepository;
-import com.tastyhouse.core.repository.place.PlaceRepository;
-import com.tastyhouse.core.repository.follow.FollowRepository;
-import com.tastyhouse.core.repository.point.MemberPointRepository;
-import com.tastyhouse.core.repository.referral.MemberReferralJpaRepository;
-import com.tastyhouse.core.repository.review.ReviewRepository;
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.core.service.*;
+import com.tastyhouse.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.TokenBlacklist;
 import com.tastyhouse.webapi.coupon.CouponService;
 import com.tastyhouse.webapi.coupon.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.exception.UnauthorizedException;
-import com.tastyhouse.file.FileService;
 import com.tastyhouse.webapi.member.response.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,19 +37,14 @@ import java.util.stream.Collectors;
 public class MemberService {
 
     private final FileService fileService;
+    private final CouponService couponService;
+    private final MemberCoreService memberCoreService;
+    private final PointCoreService pointCoreService;
+    private final ReviewCoreService reviewCoreService;
+    private final PlaceCoreService placeCoreService;
+    private final FollowCoreService followCoreService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final TokenBlacklist tokenBlacklist;
-
-    private final CouponService couponService;
-    private final MemberJpaRepository memberJpaRepository;
-    private final MemberRepository memberRepository;
-    private final MemberWithdrawalJpaRepository memberWithdrawalJpaRepository;
-    private final MemberPointRepository memberPointRepository;
-    private final MemberReferralJpaRepository memberReferralJpaRepository;
-    private final ReviewRepository reviewRepository;
-    private final PlaceRepository placeRepository;
-    private final FollowRepository followRepository;
 
     // 회원가입
     @Transactional
@@ -70,63 +57,52 @@ public class MemberService {
                        String phoneVerifyToken, String emailVerifyToken,
                        String referrerNickname) {
 
-        // 이메일 중복 여부 확인
-        if (memberRepository.existsByUsername(username)) {
+        if (memberCoreService.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
         }
 
-        // 닉네임 중복 여부 확인
-        if (memberRepository.existsByNickname(nickname)) {
+        if (memberCoreService.existsByNickname(nickname)) {
             throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
         }
 
-        // 휴대폰 인증 토큰 존재 여부 및 유효성 검증
         if (!org.springframework.util.StringUtils.hasText(phoneVerifyToken) || !jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_SIGNUP_PHONE_REQUIRED);
         }
 
-        // 인증 토큰에 담긴 번호와 요청 번호 일치 여부 확인
         String verifiedPhone = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
         if (!verifiedPhone.equals(phoneNumber)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_MISMATCH);
         }
 
-        // 이메일 인증 토큰 존재 여부 확인
         if (!StringUtils.hasText(emailVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_SIGNUP_EMAIL_REQUIRED);
         }
 
-        // 이메일 인증 토큰 유효성(만료) 검증
         if (!jwtTokenProvider.validateEmailVerifyToken(emailVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_EMAIL_AUTH_EXPIRED);
         }
 
-        // 인증 토큰에 담긴 이메일과 요청 이메일 일치 여부 확인
         String verifiedEmail = jwtTokenProvider.getEmailFromEmailVerifyToken(emailVerifyToken);
         if (!verifiedEmail.equals(username)) {
             throw new BusinessException(ErrorCode.MEMBER_EMAIL_MISMATCH);
         }
 
-        // 동일 번호로 이미 가입된 활성 회원 존재 여부 확인
-        if (memberRepository.existsByPhoneNumberValueAndMemberStatusNot(phoneNumber, com.tastyhouse.core.entity.user.MemberStatus.DELETED)) {
+        if (memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(phoneNumber, com.tastyhouse.core.entity.user.MemberStatus.DELETED)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
         Member member = new Member(username, passwordEncoder.encode(password), nickname, fullName, gender, birthDate, phoneNumber, pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
-        memberJpaRepository.save(member);
+        memberCoreService.save(member);
 
-        // 추천인 닉네임이 입력된 경우: 자기 자신 추천 방지 및 추천 관계 저장
         if (StringUtils.hasText(referrerNickname)) {
-            // 자기 자신을 추천인으로 지정하는 경우 차단
             if (referrerNickname.equals(nickname)) {
                 throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
             }
 
-            // 추천인 닉네임으로 회원 조회
-            Member referrer = memberRepository.findByNickname(referrerNickname).orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
+            Member referrer = memberCoreService.findByNickname(referrerNickname)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
-            // 추천인-피추천인 관계 저장
-            memberReferralJpaRepository.save(
+            memberCoreService.saveReferral(
                 MemberReferral.builder()
                     .referrerId(referrer.getId())
                     .refereeId(member.getId())
@@ -168,28 +144,17 @@ public class MemberService {
         }
     }
 
-    // 액세스 토큰을 블랙리스트에 등록하여 즉시 무효화
-    public void invalidateToken(String bearerToken) {
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            String accessToken = bearerToken.substring(7).trim();
-            if (jwtTokenProvider.validateToken(accessToken)) {
-                long expirationMillis = jwtTokenProvider.getExpirationMillis(accessToken);
-                tokenBlacklist.add(accessToken, expirationMillis);
-            }
-        }
-    }
-
     // 닉네임 중복 여부를 확인하여 사용 가능 여부를 반환
     @Transactional(readOnly = true)
     public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
-        boolean available = !memberRepository.existsByNickname(nickname);
+        boolean available = !memberCoreService.existsByNickname(nickname);
         return new NicknameAvailabilityResponse(available);
     }
 
     // 휴대폰번호로 활성 회원 존재 여부를 확인하여 가입 가능 여부를 반환
     @Transactional(readOnly = true)
     public PhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
-        boolean available = !memberRepository.existsByPhoneNumberValueAndMemberStatusNot(
+        boolean available = !memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(
             phoneNumber, MemberStatus.DELETED
         );
         return new PhoneAvailabilityResponse(available);
@@ -198,8 +163,7 @@ public class MemberService {
     // 입력한 비밀번호가 저장된 비밀번호와 일치하는지 검증
     @Transactional(readOnly = true)
     public void verifyPassword(Long memberId, String rawPassword) {
-        Member member = memberJpaRepository.findById(memberId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "존재하지 않는 회원입니다."));
+        Member member = memberCoreService.getById(memberId);
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_MISMATCH);
@@ -209,20 +173,16 @@ public class MemberService {
     // 회원의 개인정보를 조회하여 반환
     @Transactional(readOnly = true)
     public PersonalInfoResponse getPersonalInfo(Long memberId) {
-        Member member = memberJpaRepository.findById(memberId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "존재하지 않는 회원입니다."));
-
+        Member member = memberCoreService.getById(memberId);
         return PersonalInfoResponse.from(member);
     }
 
     // 회원을 비활성화하고 탈퇴 사유를 저장
     @Transactional
     public void withdrawMember(Long memberId, WithdrawalReason reason, String reasonDetail) {
-        memberJpaRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "존재하지 않는 회원입니다."))
-            .deactivate();
+        memberCoreService.getById(memberId).deactivate();
 
-        memberWithdrawalJpaRepository.save(
+        memberCoreService.saveWithdrawal(
             MemberWithdrawal.builder()
                 .memberId(memberId)
                 .reason(reason)
@@ -234,7 +194,7 @@ public class MemberService {
     // 회원의 보유 포인트 및 이번 달 소멸 예정 포인트를 조회
     @Transactional(readOnly = true)
     public PointResponse getMemberPoint(Long memberId) {
-        return memberPointRepository.findByMemberId(memberId)
+        return pointCoreService.findMemberPoint(memberId)
             .map(PointResponse::from)
             .orElseGet(() -> new PointResponse(0, 0));
     }
@@ -244,8 +204,7 @@ public class MemberService {
     public PointHistoryResponse getPointHistory(Long memberId) {
         PointResponse pointResponse = getMemberPoint(memberId);
 
-        List<PointHistoryItemResponse> histories = memberPointRepository
-            .findPointHistoryByMemberIdOrderByCreatedAtDesc(memberId)
+        List<PointHistoryItemResponse> histories = pointCoreService.findPointHistory(memberId)
             .stream()
             .map(PointHistoryItemResponse::from)
             .collect(Collectors.toList());
@@ -268,7 +227,7 @@ public class MemberService {
     // 회원이 즉시 사용 가능한 포인트를 조회
     @Transactional(readOnly = true)
     public UsablePointResponse getUsablePoint(Long memberId) {
-        return memberPointRepository.findByMemberId(memberId)
+        return pointCoreService.findMemberPoint(memberId)
             .map(UsablePointResponse::from)
             .orElseGet(() -> new UsablePointResponse(0));
     }
@@ -276,7 +235,7 @@ public class MemberService {
     // 회원 프로필 정보와 프로필 이미지 URL을 조회
     @Transactional(readOnly = true)
     public Optional<MemberProfileResponse> getMemberProfile(Long memberId) {
-        return memberJpaRepository.findById(memberId)
+        return memberCoreService.findById(memberId)
             .map(member -> {
                 String profileImageUrl = null;
                 if (member.getProfileImageFileId() != null) {
@@ -298,8 +257,7 @@ public class MemberService {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
         }
 
-        Member member = memberJpaRepository.findById(memberId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "인증된 회원을 찾을 수 없습니다."));
+        Member member = memberCoreService.getById(memberId);
 
         if (passwordEncoder.matches(newPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
@@ -311,9 +269,7 @@ public class MemberService {
     // 회원의 닉네임, 상태 메시지, 프로필 이미지를 수정
     @Transactional
     public void updateMemberProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
-        Member member = memberJpaRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-        member.changeProfile(nickname, statusMessage, profileImageFileId);
+        memberCoreService.getById(memberId).changeProfile(nickname, statusMessage, profileImageFileId);
     }
 
     // 회원의 이름, 휴대폰, 생년월일, 성별, 알림 수신 설정을 수정
@@ -322,31 +278,17 @@ public class MemberService {
                                    com.tastyhouse.core.entity.user.Gender gender,
                                    Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
                                    Boolean eventInfoEnabled) {
-        Member member = memberJpaRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-        member.updatePersonalInfo(fullName, phoneNumber, birthDate, gender,
+        memberCoreService.getById(memberId).updatePersonalInfo(fullName, phoneNumber, birthDate, gender,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
     }
 
     // 내가 작성한 리뷰 목록을 페이지네이션하여 조회
     @Transactional(readOnly = true)
     public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, PageRequest pageRequest) {
-        org.springframework.data.domain.PageRequest springPageRequest =
-            org.springframework.data.domain.PageRequest.of(pageRequest.page(), pageRequest.size());
-
-        Page<MyReviewListItemDto> page = reviewRepository.findMyReviews(memberId, springPageRequest);
-
-        List<MyReviewListItemResponse> content = page.getContent().stream()
-            .map(MyReviewListItemResponse::from)
-            .collect(Collectors.toList());
-
-        return new PageResult<>(
-            content,
-            page.getTotalElements(),
-            page.getTotalPages(),
-            page.getNumber(),
-            page.getSize()
+        PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findMyReviews(
+            memberId, pageRequest.page(), pageRequest.size()
         );
+        return coreResult.map(MyReviewListItemResponse::from);
     }
 
     // 내가 북마크한 장소 목록을 페이지네이션하여 조회
@@ -355,7 +297,7 @@ public class MemberService {
         org.springframework.data.domain.PageRequest springPageRequest =
             org.springframework.data.domain.PageRequest.of(pageRequest.page(), pageRequest.size());
 
-        Page<MyBookmarkedPlaceItemDto> page = placeRepository.findMyBookmarkedPlaces(memberId, springPageRequest);
+        Page<MyBookmarkedPlaceItemDto> page = placeCoreService.findMyBookmarkedPlaces(memberId, springPageRequest);
 
         List<MyBookmarkedPlaceListItemResponse> content = page.getContent().stream()
             .map(MyBookmarkedPlaceListItemResponse::from)
@@ -373,9 +315,9 @@ public class MemberService {
     // 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회
     @Transactional(readOnly = true)
     public MemberStatsResponse getMemberStats(Long memberId) {
-        long reviewCount = reviewRepository.countByMemberIdAndIsHiddenFalse(memberId);
-        long followingCount = followRepository.countByFollowerId(memberId);
-        long followerCount = followRepository.countByFollowingId(memberId);
+        long reviewCount = reviewCoreService.countByMemberIdAndIsHiddenFalse(memberId);
+        long followingCount = followCoreService.countFollowing(memberId);
+        long followerCount = followCoreService.countFollower(memberId);
 
         return new MemberStatsResponse(reviewCount, followingCount, followerCount);
     }
@@ -383,8 +325,7 @@ public class MemberService {
     // 다른 회원의 프로필과 현재 사용자의 팔로우 여부를 조회
     @Transactional(readOnly = true)
     public OtherMemberProfileResponse getOtherMemberProfile(Long targetMemberId, Long viewerMemberId) {
-        Member member = memberJpaRepository.findById(targetMemberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "회원을 찾을 수 없습니다."));
+        Member member = memberCoreService.getById(targetMemberId);
 
         String profileImageUrl = null;
         if (member.getProfileImageFileId() != null) {
@@ -392,7 +333,7 @@ public class MemberService {
         }
 
         boolean isFollowing = viewerMemberId != null
-            && followRepository.existsByFollowerIdAndFollowingId(viewerMemberId, targetMemberId);
+            && followCoreService.isFollowing(viewerMemberId, targetMemberId);
 
         return new OtherMemberProfileResponse(
             member.getId(), member.getNickname(), member.getMemberGrade(),

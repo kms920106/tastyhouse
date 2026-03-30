@@ -3,8 +3,8 @@ package com.tastyhouse.webapi.grade;
 import com.tastyhouse.core.entity.rank.MemberReviewRank;
 import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.entity.user.MemberGrade;
-import com.tastyhouse.core.repository.rank.MemberReviewRankRepository;
 import com.tastyhouse.core.service.MemberGradeService;
+import com.tastyhouse.core.service.RankCoreService;
 import com.tastyhouse.webapi.grade.response.GradeInfoItem;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GradeService {
 
-    private final MemberReviewRankRepository memberReviewRankRepository;
+    private final RankCoreService rankCoreService;
 
     /**
      * 등급별 최소 리뷰 기준 반환
@@ -67,7 +67,7 @@ public class GradeService {
      */
     @Transactional(readOnly = true)
     public MyGradeResponse getMyGrade(Long memberId) {
-        int currentReviewCount = memberReviewRankRepository
+        int currentReviewCount = rankCoreService
                 .findLatestByMemberIdAndRankType(memberId, RankType.ALL)
                 .map(MemberReviewRank::getReviewCount)
                 .orElse(0);

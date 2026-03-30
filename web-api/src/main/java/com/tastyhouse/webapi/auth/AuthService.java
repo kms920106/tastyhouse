@@ -77,4 +77,15 @@ public class AuthService {
 
         return new JwtResponse(newAccessToken, newRefreshToken, "Bearer");
     }
+
+    // 액세스 토큰을 블랙리스트에 등록하여 즉시 무효화
+    public void invalidateToken(String bearerToken) {
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            String accessToken = bearerToken.substring(7).trim();
+            if (jwtTokenProvider.validateToken(accessToken)) {
+                long expirationMillis = jwtTokenProvider.getExpirationMillis(accessToken);
+                tokenBlacklist.add(accessToken, expirationMillis);
+            }
+        }
+    }
 }

@@ -12,18 +12,14 @@ import com.tastyhouse.core.entity.payment.Payment;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.entity.place.Place;
 import com.tastyhouse.core.entity.product.Product;
-import com.tastyhouse.core.entity.product.ProductImage;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.product.ProductRepository;
-import com.tastyhouse.core.repository.review.ReviewRepository;
 import com.tastyhouse.core.service.*;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.coupon.CouponService;
 import com.tastyhouse.webapi.member.MemberCouponService;
 import com.tastyhouse.webapi.member.MemberService;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
@@ -53,11 +49,9 @@ public class OrderService {
 
     private final OrderCoreService orderCoreService;
     private final PointCoreService pointCoreService;
-    private final CouponService couponService;
+    private final CouponCoreService couponCoreService;
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
-    private final ProductRepository productRepository;
-    private final ReviewRepository reviewRepository;
     private final MemberService memberService;
     private final MemberCouponService memberCouponService;
 
@@ -93,8 +87,7 @@ public class OrderService {
                     ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }
 
-            String productImageUrl = productRepository.findActiveImagesByProductIdOrderBySort(product.getId())
-                .stream().findFirst().map(ProductImage::getImageUrl).orElse(null);
+            String productImageUrl = productCoreService.getFirstImageUrl(product.getId());
 
             int unitPrice = product.getOriginalPrice();
             Integer discountPrice = product.getDiscountPrice();
@@ -156,7 +149,7 @@ public class OrderService {
                 throw new BusinessException(ErrorCode.COUPON_NOT_AVAILABLE);
             }
 
-            Coupon coupon = couponService.findById(memberCoupon.getCouponId())
+            Coupon coupon = couponCoreService.findById(memberCoupon.getCouponId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
 
             int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
@@ -283,7 +276,7 @@ public class OrderService {
                     opt.getId(), opt.getOptionGroupName(), opt.getOptionName(), opt.getAdditionalPrice()))
                 .toList();
 
-            boolean isReviewed = reviewRepository.existsByOrderIdAndProductIdAndMemberId(
+            boolean isReviewed = orderCoreService.existsReviewByOrderIdAndProductIdAndMemberId(
                 order.getId(), item.getProductId(), memberId);
 
             return new OrderItemResponse(

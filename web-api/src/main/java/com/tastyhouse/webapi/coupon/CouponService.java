@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.coupon;
 
 import com.tastyhouse.core.entity.coupon.Coupon;
 import com.tastyhouse.core.entity.coupon.MemberCoupon;
-import com.tastyhouse.core.repository.coupon.CouponJpaRepository;
 import com.tastyhouse.core.service.CouponCoreService;
 import com.tastyhouse.webapi.coupon.response.MemberCouponListItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +21,6 @@ import java.util.stream.Collectors;
 public class CouponService {
 
     private final CouponCoreService couponCoreService;
-    private final CouponJpaRepository couponJpaRepository;
-
-    @Transactional(readOnly = true)
-    public Optional<Coupon> findById(Long couponId) {
-        return couponJpaRepository.findById(couponId);
-    }
 
     @Transactional(readOnly = true)
     public List<MemberCouponListItemResponse> getMemberCoupons(Long memberId) {
@@ -45,7 +38,7 @@ public class CouponService {
 
         // 쿠폰 정보 조회
         Map<Long, Coupon> couponMap = couponIds.stream()
-            .map(this::findById)
+            .map(couponCoreService::findById)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(Collectors.toMap(Coupon::getId, coupon -> coupon));
@@ -94,7 +87,7 @@ public class CouponService {
 
         // 쿠폰 정보 조회
         Map<Long, Coupon> couponMap = couponIds.stream()
-            .map(this::findById)
+            .map(couponCoreService::findById)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(Collectors.toMap(Coupon::getId, coupon -> coupon));

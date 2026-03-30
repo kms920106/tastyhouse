@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.member;
 
 import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.auth.AuthService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.coupon.response.MemberCouponListItemResponse;
@@ -63,6 +64,7 @@ import java.util.List;
 public class MemberApiController {
 
     private final MemberService memberService;
+    private final AuthService authService;
     private final GradeService gradeService;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -361,7 +363,7 @@ public class MemberApiController {
             request.reasonDetail()
         );
 
-        memberService.invalidateToken(bearerToken);
+        authService.invalidateToken(bearerToken);
 
         return ResponseEntity.ok(CommonResponse.success(null));
     }
