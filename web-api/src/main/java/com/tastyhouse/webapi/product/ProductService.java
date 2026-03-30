@@ -7,7 +7,6 @@ import com.tastyhouse.core.entity.product.dto.TodayDiscountProductDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.product.ProductImageJpaRepository;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
@@ -28,7 +27,6 @@ public class ProductService {
 
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
-    private final ProductImageJpaRepository productImageJpaRepository;
     private final ReviewCoreService reviewCoreService;
 
     @Transactional(readOnly = true)
@@ -188,18 +186,11 @@ public class ProductService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return productImageJpaRepository.findByProductIdAndIsActiveTrueOrderBySortAsc(productId)
-            .stream()
-            .findFirst()
-            .map(ProductImage::getImageUrl)
-            .orElse(null);
+        return productCoreService.getFirstImageUrl(productId);
     }
 
     private List<String> getAllImageUrls(Long productId) {
-        return productImageJpaRepository.findByProductIdAndIsActiveTrueOrderBySortAsc(productId)
-            .stream()
-            .map(ProductImage::getImageUrl)
-            .toList();
+        return productCoreService.getAllImageUrls(productId);
     }
 
     @Transactional(readOnly = true)
@@ -249,21 +240,4 @@ public class ProductService {
         );
     }
 
-    public static class ProductReviewsByRatingWithPagination {
-        private final ProductReviewsByRatingResponse response;
-        private final Long totalElements;
-
-        public ProductReviewsByRatingWithPagination(ProductReviewsByRatingResponse response, Long totalElements) {
-            this.response = response;
-            this.totalElements = totalElements;
-        }
-
-        public ProductReviewsByRatingResponse getResponse() {
-            return response;
-        }
-
-        public Long getTotalElements() {
-            return totalElements;
-        }
-    }
 }

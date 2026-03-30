@@ -10,6 +10,4 @@ public interface PlaceBookmarkRepository {
     boolean existsByPlaceIdAndMemberId(Long placeId, Long memberId);
 
     void deleteByPlaceIdAndMemberId(Long placeId, Long memberId);
-
-    PlaceBookmark save(PlaceBookmark bookmark);
 }

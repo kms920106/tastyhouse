@@ -14,7 +14,7 @@ public interface MemberReviewRankRepository {
 
     Optional<MemberRankDto> findMemberRank(Long memberId, RankType rankType, LocalDate baseDate);
 
-    void saveAll(List<MemberReviewRank> ranks);
+    Optional<MemberReviewRank> findLatestByMemberIdAndRankType(Long memberId, RankType rankType);
 
     void deleteByRankTypeAndBaseDate(RankType rankType, LocalDate baseDate);
 }

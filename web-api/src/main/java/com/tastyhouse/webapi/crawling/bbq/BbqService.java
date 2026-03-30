@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 public class BbqService {
 
     private final BbqApiClient bbqApiClient;
+    private final ProductCategoryRepository productCategoryRepository;
     private final ProductCategoryJpaRepository productCategoryJpaRepository;
     private final ProductJpaRepository productJpaRepository;
     private final ProductImageJpaRepository productImageJpaRepository;
@@ -224,7 +225,7 @@ public class BbqService {
      * 카테고리 저장 또는 기존 카테고리 조회
      */
     private ProductCategory saveOrGetCategory(Long placeId, BbqProductCategoryResponse categoryResponse, int sort) {
-        List<ProductCategory> existingCategories = productCategoryJpaRepository.findByNameAndPlaceId(categoryResponse.name(), placeId);
+        List<ProductCategory> existingCategories = productCategoryRepository.findByNameAndPlaceId(categoryResponse.name(), placeId);
         if (!existingCategories.isEmpty()) {
             return existingCategories.get(0);
         }

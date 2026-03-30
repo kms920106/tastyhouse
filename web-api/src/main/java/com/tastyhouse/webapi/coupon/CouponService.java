@@ -2,6 +2,7 @@ package com.tastyhouse.webapi.coupon;
 
 import com.tastyhouse.core.entity.coupon.Coupon;
 import com.tastyhouse.core.entity.coupon.MemberCoupon;
+import com.tastyhouse.core.repository.coupon.CouponJpaRepository;
 import com.tastyhouse.core.service.CouponCoreService;
 import com.tastyhouse.webapi.coupon.response.MemberCouponListItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -19,6 +22,12 @@ import java.util.stream.Collectors;
 public class CouponService {
 
     private final CouponCoreService couponCoreService;
+    private final CouponJpaRepository couponJpaRepository;
+
+    @Transactional(readOnly = true)
+    public Optional<Coupon> findById(Long couponId) {
+        return couponJpaRepository.findById(couponId);
+    }
 
     @Transactional(readOnly = true)
     public List<MemberCouponListItemResponse> getMemberCoupons(Long memberId) {
@@ -36,9 +45,9 @@ public class CouponService {
 
         // 쿠폰 정보 조회
         Map<Long, Coupon> couponMap = couponIds.stream()
-            .map(couponCoreService::findCouponById)
-            .filter(opt -> opt.isPresent())
-            .map(opt -> opt.get())
+            .map(this::findById)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .collect(Collectors.toMap(Coupon::getId, coupon -> coupon));
 
         // 응답 생성
@@ -65,7 +74,7 @@ public class CouponService {
                     memberCoupon.getUsedAt()
                 );
             })
-            .filter(item -> item != null)
+            .filter(Objects::nonNull)
             .toList();
     }
 
@@ -85,9 +94,9 @@ public class CouponService {
 
         // 쿠폰 정보 조회
         Map<Long, Coupon> couponMap = couponIds.stream()
-            .map(couponCoreService::findCouponById)
-            .filter(opt -> opt.isPresent())
-            .map(opt -> opt.get())
+            .map(this::findById)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .collect(Collectors.toMap(Coupon::getId, coupon -> coupon));
 
         // 응답 생성
@@ -114,7 +123,7 @@ public class CouponService {
                     memberCoupon.getUsedAt()
                 );
             })
-            .filter(item -> item != null)
+            .filter(Objects::nonNull)
             .toList();
     }
 }

@@ -61,6 +61,7 @@ public enum ErrorCode {
     MEMBER_PASSWORD_MISMATCH(400, "MEMBER_PASSWORD_MISMATCH", "비밀번호가 일치하지 않습니다."),
     MEMBER_PASSWORD_CONFIRM_MISMATCH(400, "MEMBER_PASSWORD_CONFIRM_MISMATCH", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."),
     MEMBER_PASSWORD_SAME_AS_OLD(400, "MEMBER_PASSWORD_SAME_AS_OLD", "현재 비밀번호와 동일한 비밀번호로 변경할 수 없습니다."),
+    MEMBER_COUPON_NOT_FOUND(404, "MEMBER_COUPON_NOT_FOUND", "회원 쿠폰을 찾을 수 없습니다."),
 
     // 인증 (SMS)
     VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),

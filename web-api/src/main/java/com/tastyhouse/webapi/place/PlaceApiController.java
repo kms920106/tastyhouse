@@ -154,8 +154,8 @@ public class PlaceApiController {
             @PathVariable Long placeId,
             @RequestParam(defaultValue = "0") int page,
             @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size) {
-        PlaceService.PlaceReviewsByRatingWithPagination result = placeService.getPlaceReviewsByRatingWithPagination(placeId, page, size);
-        CommonResponse<PlaceReviewsByRatingResponse> response = CommonResponse.success(result.getResponse());
+        PlaceReviewsByRatingWithPagination result = placeService.getPlaceReviewsByRatingWithPagination(placeId, page, size);
+        CommonResponse<PlaceReviewsByRatingResponse> response = CommonResponse.success(result.response());
         return ResponseEntity.ok(response);
     }
 

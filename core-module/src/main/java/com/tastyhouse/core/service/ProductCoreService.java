@@ -95,4 +95,12 @@ public class ProductCoreService {
             .map(ProductImage::getImageUrl)
             .orElse(null);
     }
+
+    @Transactional(readOnly = true)
+    public List<String> getAllImageUrls(Long productId) {
+        return productRepository.findActiveImagesByProductIdOrderBySort(productId)
+            .stream()
+            .map(ProductImage::getImageUrl)
+            .toList();
+    }
 }

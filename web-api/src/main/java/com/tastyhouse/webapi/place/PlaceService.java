@@ -9,6 +9,7 @@ import com.tastyhouse.core.entity.product.ProductCategory;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.PlaceReviewStatisticsDto;
+import com.tastyhouse.core.repository.place.PlaceBookmarkJpaRepository;
 import com.tastyhouse.core.repository.place.PlaceBookmarkRepository;
 import com.tastyhouse.core.repository.place.PlaceDetailRepository;
 import com.tastyhouse.core.common.PageResult;
@@ -38,6 +39,7 @@ public class PlaceService {
     private final PlaceCoreService placeCoreService;
     private final ProductCoreService productCoreService;
     private final ReviewCoreService reviewCoreService;
+    private final PlaceBookmarkJpaRepository placeBookmarkJpaRepository;
     private final PlaceBookmarkRepository placeBookmarkRepository;
     private final PlaceDetailRepository placeDetailRepository;
 
@@ -251,24 +253,6 @@ public class PlaceService {
                 .toList();
     }
 
-    public static class PlaceReviewsByRatingWithPagination {
-        private final PlaceReviewsByRatingResponse response;
-        private final long totalElements;
-
-        public PlaceReviewsByRatingWithPagination(PlaceReviewsByRatingResponse response, long totalElements) {
-            this.response = response;
-            this.totalElements = totalElements;
-        }
-
-        public PlaceReviewsByRatingResponse getResponse() {
-            return response;
-        }
-
-        public long getTotalElements() {
-            return totalElements;
-        }
-    }
-
     @Transactional(readOnly = true)
     public PlaceReviewsByRatingWithPagination getPlaceReviewsByRatingWithPagination(Long placeId, int page, int size) {
         ReviewsByRatingResult result = reviewCoreService.findPlaceReviewsByRating(placeId, page, size);
@@ -390,7 +374,7 @@ public class PlaceService {
         } else {
             placeCoreService.findPlaceById(placeId); // Ensure place exists
             PlaceBookmark bookmark = new PlaceBookmark(placeId, memberId);
-            placeBookmarkRepository.save(bookmark);
+            placeBookmarkJpaRepository.save(bookmark);
             return true;
         }
     }

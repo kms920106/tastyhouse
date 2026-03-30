@@ -4,15 +4,11 @@ import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductBbq;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
-import com.tastyhouse.core.repository.product.ProductBbqJpaRepository;
-import com.tastyhouse.core.repository.product.ProductJpaRepository;
-import com.tastyhouse.core.repository.product.ProductOptionGroupJpaRepository;
-import com.tastyhouse.core.repository.product.ProductOptionJpaRepository;
+import com.tastyhouse.core.repository.product.*;
 import com.tastyhouse.webapi.crawling.bbq.BbqService;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductSubOptionResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +24,7 @@ public class ProductScheduler {
     private final ProductJpaRepository productJpaRepository;
     private final ProductOptionGroupJpaRepository productOptionGroupJpaRepository;
     private final ProductOptionJpaRepository productOptionJpaRepository;
+    private final ProductBbqRepository productBbqRepository;
     private final ProductBbqJpaRepository productBbqJpaRepository;
 
     private static final Long BBQ_PLACE_ID = 1L;
@@ -43,7 +40,7 @@ public class ProductScheduler {
     public void crawlAndSaveProductOptions() {
         try {
             // 옵션 동기화가 완료되지 않은 ProductBbq 조회
-            Optional<ProductBbq> productBbqOpt = productBbqJpaRepository.findFirstByIsOptionsSyncedFalse();
+            Optional<ProductBbq> productBbqOpt = productBbqRepository.findFirstByIsOptionsSyncedFalse();
             if (productBbqOpt.isEmpty()) {
                 log.debug("옵션 동기화가 필요한 상품이 없습니다.");
                 return;

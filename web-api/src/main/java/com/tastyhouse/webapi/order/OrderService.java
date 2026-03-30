@@ -1,5 +1,6 @@
 package com.tastyhouse.webapi.order;
 
+import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.coupon.Coupon;
 import com.tastyhouse.core.entity.coupon.DiscountType;
 import com.tastyhouse.core.entity.coupon.MemberCoupon;
@@ -18,22 +19,22 @@ import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.product.ProductImageJpaRepository;
-import com.tastyhouse.core.repository.review.ReviewJpaRepository;
-import com.tastyhouse.core.service.CouponCoreService;
-import com.tastyhouse.core.service.OrderCoreService;
-import com.tastyhouse.core.service.PlaceCoreService;
-import com.tastyhouse.core.service.PointCoreService;
-import com.tastyhouse.core.service.ProductCoreService;
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.core.repository.product.ProductRepository;
+import com.tastyhouse.core.repository.review.ReviewRepository;
+import com.tastyhouse.core.service.*;
 import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.coupon.CouponService;
+import com.tastyhouse.webapi.member.MemberCouponService;
 import com.tastyhouse.webapi.member.MemberService;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
 import com.tastyhouse.webapi.order.request.OrderItemOptionRequest;
 import com.tastyhouse.webapi.order.request.OrderItemRequest;
-import com.tastyhouse.webapi.order.response.*;
+import com.tastyhouse.webapi.order.response.OrderItemOptionResponse;
+import com.tastyhouse.webapi.order.response.OrderItemResponse;
+import com.tastyhouse.webapi.order.response.OrderResponse;
+import com.tastyhouse.webapi.order.response.PaymentSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -52,12 +53,13 @@ public class OrderService {
 
     private final OrderCoreService orderCoreService;
     private final PointCoreService pointCoreService;
-    private final CouponCoreService couponCoreService;
+    private final CouponService couponService;
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
-    private final ProductImageJpaRepository productImageJpaRepository;
-    private final ReviewJpaRepository reviewJpaRepository;
+    private final ProductRepository productRepository;
+    private final ReviewRepository reviewRepository;
     private final MemberService memberService;
+    private final MemberCouponService memberCouponService;
 
     @Transactional
     public OrderResponse createOrder(Long memberId, OrderCreateRequest request) {
@@ -91,7 +93,7 @@ public class OrderService {
                     ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }
 
-            String productImageUrl = productImageJpaRepository.findByProductIdAndIsActiveTrueOrderBySortAsc(product.getId())
+            String productImageUrl = productRepository.findActiveImagesByProductIdOrderBySort(product.getId())
                 .stream().findFirst().map(ProductImage::getImageUrl).orElse(null);
 
             int unitPrice = product.getOriginalPrice();
@@ -144,8 +146,7 @@ public class OrderService {
         int couponDiscountAmount = 0;
         Long memberCouponId = null;
         if (request.memberCouponId() != null) {
-            MemberCoupon memberCoupon = couponCoreService.findMemberCouponById(request.memberCouponId())
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+            MemberCoupon memberCoupon = memberCouponService.findById(request.memberCouponId());
 
             if (!memberCoupon.getMemberId().equals(memberId)) {
                 throw new AccessDeniedException(ErrorCode.COUPON_ACCESS_DENIED);
@@ -155,7 +156,7 @@ public class OrderService {
                 throw new BusinessException(ErrorCode.COUPON_NOT_AVAILABLE);
             }
 
-            Coupon coupon = couponCoreService.findCouponById(memberCoupon.getCouponId())
+            Coupon coupon = couponService.findById(memberCoupon.getCouponId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
 
             int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
@@ -282,7 +283,7 @@ public class OrderService {
                     opt.getId(), opt.getOptionGroupName(), opt.getOptionName(), opt.getAdditionalPrice()))
                 .toList();
 
-            boolean isReviewed = reviewJpaRepository.existsByOrderIdAndProductIdAndMemberId(
+            boolean isReviewed = reviewRepository.existsByOrderIdAndProductIdAndMemberId(
                 order.getId(), item.getProductId(), memberId);
 
             return new OrderItemResponse(

@@ -74,8 +74,8 @@ public class ProductApiController {
             @PathVariable Long productId,
             @RequestParam(defaultValue = "0") int page,
             @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size) {
-        ProductService.ProductReviewsByRatingWithPagination result = productService.getProductReviewsByRatingWithPagination(productId, page, size);
-        CommonResponse<ProductReviewsByRatingResponse> response = CommonResponse.success(result.getResponse());
+        ProductReviewsByRatingWithPagination result = productService.getProductReviewsByRatingWithPagination(productId, page, size);
+        CommonResponse<ProductReviewsByRatingResponse> response = CommonResponse.success(result.response());
         return ResponseEntity.ok(response);
     }
 

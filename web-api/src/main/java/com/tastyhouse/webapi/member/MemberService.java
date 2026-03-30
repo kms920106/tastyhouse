@@ -14,9 +14,8 @@ import com.tastyhouse.core.repository.member.MemberJpaRepository;
 import com.tastyhouse.core.repository.member.MemberRepository;
 import com.tastyhouse.core.repository.member.MemberWithdrawalJpaRepository;
 import com.tastyhouse.core.repository.place.PlaceRepository;
-import com.tastyhouse.core.repository.point.MemberPointHistoryJpaRepository;
-import com.tastyhouse.core.repository.point.MemberPointJpaRepository;
 import com.tastyhouse.core.repository.follow.FollowRepository;
+import com.tastyhouse.core.repository.point.MemberPointRepository;
 import com.tastyhouse.core.repository.referral.MemberReferralJpaRepository;
 import com.tastyhouse.core.repository.review.ReviewRepository;
 import com.tastyhouse.core.common.PageResult;
@@ -54,8 +53,7 @@ public class MemberService {
     private final MemberJpaRepository memberJpaRepository;
     private final MemberRepository memberRepository;
     private final MemberWithdrawalJpaRepository memberWithdrawalJpaRepository;
-    private final MemberPointJpaRepository memberPointJpaRepository;
-    private final MemberPointHistoryJpaRepository memberPointHistoryJpaRepository;
+    private final MemberPointRepository memberPointRepository;
     private final MemberReferralJpaRepository memberReferralJpaRepository;
     private final ReviewRepository reviewRepository;
     private final PlaceRepository placeRepository;
@@ -236,7 +234,7 @@ public class MemberService {
     // 회원의 보유 포인트 및 이번 달 소멸 예정 포인트를 조회
     @Transactional(readOnly = true)
     public PointResponse getMemberPoint(Long memberId) {
-        return memberPointJpaRepository.findByMemberId(memberId)
+        return memberPointRepository.findByMemberId(memberId)
             .map(PointResponse::from)
             .orElseGet(() -> new PointResponse(0, 0));
     }
@@ -246,8 +244,8 @@ public class MemberService {
     public PointHistoryResponse getPointHistory(Long memberId) {
         PointResponse pointResponse = getMemberPoint(memberId);
 
-        List<PointHistoryItemResponse> histories = memberPointHistoryJpaRepository
-            .findByMemberIdOrderByCreatedAtDesc(memberId)
+        List<PointHistoryItemResponse> histories = memberPointRepository
+            .findPointHistoryByMemberIdOrderByCreatedAtDesc(memberId)
             .stream()
             .map(PointHistoryItemResponse::from)
             .collect(Collectors.toList());
@@ -270,7 +268,7 @@ public class MemberService {
     // 회원이 즉시 사용 가능한 포인트를 조회
     @Transactional(readOnly = true)
     public UsablePointResponse getUsablePoint(Long memberId) {
-        return memberPointJpaRepository.findByMemberId(memberId)
+        return memberPointRepository.findByMemberId(memberId)
             .map(UsablePointResponse::from)
             .orElseGet(() -> new UsablePointResponse(0));
     }

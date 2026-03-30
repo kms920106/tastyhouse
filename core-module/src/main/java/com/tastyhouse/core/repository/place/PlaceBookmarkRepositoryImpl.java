@@ -43,9 +43,4 @@ public class PlaceBookmarkRepositoryImpl implements PlaceBookmarkRepository {
             .where(bookmark.placeId.eq(placeId), bookmark.memberId.eq(memberId))
             .execute();
     }
-
-    @Override
-    public PlaceBookmark save(PlaceBookmark bookmark) {
-        return placeBookmarkJpaRepository.save(bookmark);
-    }
 }

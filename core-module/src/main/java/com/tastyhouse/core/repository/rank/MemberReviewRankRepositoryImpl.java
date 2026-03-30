@@ -20,7 +20,6 @@ import java.util.Optional;
 public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepository {
 
     private final JPAQueryFactory queryFactory;
-    private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
 
     @Override
     public List<MemberRankDto> findMemberRankList(RankType rankType, LocalDate baseDate, int limit) {
@@ -76,8 +75,17 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
     }
 
     @Override
-    public void saveAll(List<MemberReviewRank> ranks) {
-        memberReviewRankJpaRepository.saveAll(ranks);
+    public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(Long memberId, RankType rankType) {
+        QMemberReviewRank rank = QMemberReviewRank.memberReviewRank;
+
+        return Optional.ofNullable(queryFactory
+            .selectFrom(rank)
+            .where(
+                rank.memberId.eq(memberId),
+                rank.rankType.eq(rankType)
+            )
+            .orderBy(rank.baseDate.desc())
+            .fetchFirst());
     }
 
     @Override
