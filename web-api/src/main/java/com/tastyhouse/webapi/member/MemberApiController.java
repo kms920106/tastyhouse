@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.member;
 import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.coupon.response.MemberCouponListItemResponse;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -16,7 +15,6 @@ import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.OtherMemberProfileResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
-import com.tastyhouse.webapi.grade.GradeService;
 import com.tastyhouse.webapi.member.response.MyBookmarkedPlaceListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
@@ -26,7 +24,6 @@ import com.tastyhouse.webapi.member.response.PointResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.UsablePointResponse;
-import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -64,9 +61,6 @@ import java.util.List;
 public class MemberApiController {
 
     private final MemberService memberService;
-    private final GradeService gradeService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final TokenService tokenService;
 
     @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보를 조회합니다. (마이페이지용)")
     @ApiResponses({
@@ -115,7 +109,7 @@ public class MemberApiController {
     ) {
         memberService.verifyPassword(userDetails.getMemberId(), request.password());
 
-        String verifyToken = jwtTokenProvider.createPersonalInfoVerifyToken(userDetails.getMemberId());
+        String verifyToken = memberService.createPersonalInfoVerifyToken(userDetails.getMemberId());
 
         return ResponseEntity.ok(CommonResponse.success(
             new VerifyPasswordResponse(verifyToken)
@@ -183,7 +177,7 @@ public class MemberApiController {
     public ResponseEntity<CommonResponse<MyGradeResponse>> getMyGrade(
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        MyGradeResponse myGrade = gradeService.getMyGrade(userDetails.getMemberId());
+        MyGradeResponse myGrade = memberService.getMyGrade(userDetails.getMemberId());
         return ResponseEntity.ok(CommonResponse.success(myGrade));
     }
 
@@ -363,7 +357,7 @@ public class MemberApiController {
             request.reasonDetail()
         );
 
-        tokenService.invalidateAccessToken(bearerToken);
+        memberService.invalidateAccessToken(bearerToken);
 
         return ResponseEntity.ok(CommonResponse.success(null));
     }

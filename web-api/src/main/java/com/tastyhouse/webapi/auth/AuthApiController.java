@@ -5,7 +5,6 @@ import com.tastyhouse.webapi.auth.request.LoginRequest;
 import com.tastyhouse.webapi.auth.request.RefreshTokenRequest;
 import com.tastyhouse.webapi.auth.request.SignUpRequest;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
-import com.tastyhouse.webapi.member.MemberService;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,10 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthApiController {
 
     private final AuthService authService;
-    private final MemberService memberService;
 
     @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(phoneVerifyToken)이 필요합니다.")
     @ApiResponses({
@@ -42,7 +40,7 @@ public class AuthController {
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:signup")
     @PostMapping("/signup")
     public ResponseEntity<CommonResponse<Void>> signUp(@Valid @RequestBody SignUpRequest request) {
-        memberService.signUp(
+        authService.signUp(
             request.username(),
             request.password(),
             request.nickname(),

@@ -14,9 +14,11 @@ import com.tastyhouse.core.service.*;
 import com.tastyhouse.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.coupon.CouponService;
 import com.tastyhouse.webapi.coupon.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.exception.UnauthorizedException;
+import com.tastyhouse.webapi.grade.GradeService;
 import com.tastyhouse.webapi.member.response.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,8 @@ public class MemberService {
     private final FollowCoreService followCoreService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final GradeService gradeService;
+    private final TokenService tokenService;
 
     // 회원가입
     @Transactional
@@ -64,7 +68,7 @@ public class MemberService {
             throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
         }
 
-        if (!org.springframework.util.StringUtils.hasText(phoneVerifyToken) || !jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
+        if (!StringUtils.hasText(phoneVerifyToken) || !jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_SIGNUP_PHONE_REQUIRED);
         }
 
@@ -319,6 +323,22 @@ public class MemberService {
         long followerCount = followCoreService.countFollower(memberId);
 
         return new MemberStatsResponse(reviewCount, followingCount, followerCount);
+    }
+
+    // 내 등급 정보 조회
+    @Transactional(readOnly = true)
+    public MyGradeResponse getMyGrade(Long memberId) {
+        return gradeService.getMyGrade(memberId);
+    }
+
+    // 개인정보 수정용 본인인증 토큰 생성
+    public String createPersonalInfoVerifyToken(Long memberId) {
+        return jwtTokenProvider.createPersonalInfoVerifyToken(memberId);
+    }
+
+    // 액세스 토큰 무효화
+    public void invalidateAccessToken(String bearerToken) {
+        tokenService.invalidateAccessToken(bearerToken);
     }
 
     // 다른 회원의 프로필과 현재 사용자의 팔로우 여부를 조회
