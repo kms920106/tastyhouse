@@ -33,7 +33,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +41,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -254,10 +254,8 @@ public class MemberApiController {
     @GetMapping("/v1/me/reviews")
     public ResponseEntity<CommonResponse<List<MyReviewListItemResponse>>> getMyReviews(
         @AuthenticationPrincipal CustomUserDetails userDetails,
-        @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") @RequestParam(defaultValue = "0") int page,
-        @Parameter(description = "페이지 크기", example = "10") @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size
+        @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageRequest pageRequest = new PageRequest(page, size);
         PageResult<MyReviewListItemResponse> pageResult = memberService.getMyReviews(userDetails.getMemberId(), pageRequest);
         CommonResponse<List<MyReviewListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(),
@@ -276,10 +274,8 @@ public class MemberApiController {
     @GetMapping("/v1/me/bookmarks")
     public ResponseEntity<CommonResponse<List<MyBookmarkedPlaceListItemResponse>>> getMyBookmarkedPlaces(
         @AuthenticationPrincipal CustomUserDetails userDetails,
-        @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") @RequestParam(defaultValue = "0") int page,
-        @Parameter(description = "페이지 크기", example = "10") @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size
+        @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageRequest pageRequest = new PageRequest(page, size);
         PageResult<MyBookmarkedPlaceListItemResponse> pageResult = memberService.getMyBookmarkedPlaces(userDetails.getMemberId(), pageRequest);
         CommonResponse<List<MyBookmarkedPlaceListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(),

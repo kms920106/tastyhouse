@@ -10,10 +10,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Max;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +21,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/products")
-@Validated
 public class ProductApiController {
 
     private final ProductService productService;
@@ -30,10 +28,9 @@ public class ProductApiController {
     @Operation(summary = "오늘의 할인 상품 목록 조회", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/today-discounts")
-    public ResponseEntity<CommonResponse<List<TodayDiscountProductItem>>> getTodayDiscounts(@RequestParam(defaultValue = "0") int page, @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size) {
-        PageRequest pageRequest = new PageRequest(page, size);
+    public ResponseEntity<CommonResponse<List<TodayDiscountProductItem>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
         PageResult<TodayDiscountProductItem> pageResult = productService.searchTodayDiscountProducts(pageRequest);
-        CommonResponse<List<TodayDiscountProductItem>> response = CommonResponse.success(pageResult.getContent(), page, size, pageResult.getTotalElements());
+        CommonResponse<List<TodayDiscountProductItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 
@@ -72,9 +69,8 @@ public class ProductApiController {
     @GetMapping("/v1/{productId}/reviews")
     public ResponseEntity<CommonResponse<ProductReviewsByRatingResponse>> getProductReviews(
             @PathVariable Long productId,
-            @RequestParam(defaultValue = "0") int page,
-            @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size) {
-        ProductReviewsByRatingWithPagination result = productService.getProductReviewsByRatingWithPagination(productId, page, size);
+            @Valid @ModelAttribute PageRequest pageRequest) {
+        ProductReviewsByRatingWithPagination result = productService.getProductReviewsByRatingWithPagination(productId, pageRequest.page(), pageRequest.size());
         CommonResponse<ProductReviewsByRatingResponse> response = CommonResponse.success(result.response());
         return ResponseEntity.ok(response);
     }

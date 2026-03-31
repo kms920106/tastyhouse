@@ -19,9 +19,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +30,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reviews")
-@Validated
 public class ReviewApiController {
 
     private final ReviewService reviewService;
@@ -100,21 +97,22 @@ public class ReviewApiController {
     @Operation(summary = "베스트 리뷰 목록 조회", description = "평점이 높은 순으로 정렬된 베스트 리뷰 목록을 페이징하여 조회합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/best")
-    public ResponseEntity<CommonResponse<List<BestReviewListItem>>> getBestReviewList(@RequestParam(defaultValue = "0") int page, @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "5") int size) {
-        PageRequest pageRequest = new PageRequest(page, size);
+    public ResponseEntity<CommonResponse<List<BestReviewListItem>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
         PageResult<BestReviewListItem> pageResult = reviewService.searchBestReviewList(pageRequest);
-        CommonResponse<List<BestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), page, size, pageResult.getTotalElements());
+        CommonResponse<List<BestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "최신 리뷰 목록 조회", description = "최신 리뷰 목록을 페이징하여 조회합니다. type이 ALL이면 전체, FOLLOWING이면 팔로잉한 사용자의 리뷰만 조회합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/latest")
-    public ResponseEntity<CommonResponse<List<LatestReviewListItem>>> getLatestReviewList(@Parameter(description = "페이지 번호 (0부터 시작)", example = "0") @RequestParam(defaultValue = "0") int page, @Parameter(description = "페이지 크기", example = "10") @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size, @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewType type, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageRequest = new PageRequest(page, size);
+    public ResponseEntity<CommonResponse<List<LatestReviewListItem>>> getLatestReviewList(
+            @Valid @ModelAttribute PageRequest pageRequest,
+            @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewType type,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         PageResult<LatestReviewListItem> pageResult = reviewService.searchLatestReviewList(pageRequest, type, memberId);
-        CommonResponse<List<LatestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), page, size, pageResult.getTotalElements());
+        CommonResponse<List<LatestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 
@@ -190,9 +188,7 @@ public class ReviewApiController {
     @GetMapping("/v1/members/{memberId}")
     public ResponseEntity<CommonResponse<List<MyReviewListItemResponse>>> getMemberReviews(
             @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
-            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "페이지 크기", example = "10") @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size) {
-        PageRequest pageRequest = new PageRequest(page, size);
+            @Valid @ModelAttribute PageRequest pageRequest) {
         PageResult<MyReviewListItemResponse> pageResult = reviewService.findMemberReviews(memberId, pageRequest);
         CommonResponse<List<MyReviewListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(), pageResult.getCurrentPage(), pageResult.getPageSize(), pageResult.getTotalElements()

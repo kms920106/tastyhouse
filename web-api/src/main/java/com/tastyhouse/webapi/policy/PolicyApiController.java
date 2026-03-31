@@ -12,10 +12,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Max;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/policies")
-@Validated
 public class PolicyApiController {
 
     private final PolicyService policyService;
@@ -65,12 +63,10 @@ public class PolicyApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/terms-of-service")
     public ResponseEntity<CommonResponse<List<PolicyListItemResponse>>> getTermsOfServiceList(
-        @RequestParam(defaultValue = "0") int page,
-        @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size) {
-        PageRequest pageRequest = new PageRequest(page, size);
+        @Valid @ModelAttribute PageRequest pageRequest) {
         PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.TERMS_OF_SERVICE, pageRequest);
         CommonResponse<List<PolicyListItemResponse>> response = CommonResponse.success(
-            pageResult.getContent(), page, size, pageResult.getTotalElements()
+            pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()
         );
         return ResponseEntity.ok(response);
     }
@@ -79,12 +75,10 @@ public class PolicyApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/privacy-policy")
     public ResponseEntity<CommonResponse<List<PolicyListItemResponse>>> getPrivacyPolicyList(
-        @RequestParam(defaultValue = "0") int page,
-        @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size) {
-        PageRequest pageRequest = new PageRequest(page, size);
+        @Valid @ModelAttribute PageRequest pageRequest) {
         PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.PRIVACY_POLICY, pageRequest);
         CommonResponse<List<PolicyListItemResponse>> response = CommonResponse.success(
-            pageResult.getContent(), page, size, pageResult.getTotalElements()
+            pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()
         );
         return ResponseEntity.ok(response);
     }

@@ -12,10 +12,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Max;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/event")
 @RequiredArgsConstructor
-@Validated
 public class EventApiController {
 
     private final EventService eventService;
@@ -53,12 +51,10 @@ public class EventApiController {
     public ResponseEntity<CommonResponse<List<EventListItemResponse>>> getEventList(
         @Parameter(description = "이벤트 상태 (ACTIVE: 진행중, ENDED: 종료)", example = "ACTIVE")
         @RequestParam EventStatus status,
-        @RequestParam(defaultValue = "0") int page,
-        @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size
+        @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageRequest pageRequest = new PageRequest(page, size);
         PageResult<EventListItemResponse> pageResult = eventService.getEventList(status, pageRequest);
-        CommonResponse<List<EventListItemResponse>> response = CommonResponse.success(pageResult.getContent(), page, size, pageResult.getTotalElements());
+        CommonResponse<List<EventListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 
@@ -82,12 +78,10 @@ public class EventApiController {
     })
     @GetMapping("/v1/announcements")
     public ResponseEntity<CommonResponse<List<EventAnnouncementListItemResponse>>> getEventAnnouncementList(
-        @RequestParam(defaultValue = "0") int page,
-        @Max(value = 10, message = "페이지 크기는 최대 10입니다") @RequestParam(defaultValue = "10") int size
+        @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageRequest pageRequest = new PageRequest(page, size);
         PageResult<EventAnnouncementListItemResponse> pageResult = eventService.getEventAnnouncementList(pageRequest);
-        CommonResponse<List<EventAnnouncementListItemResponse>> response = CommonResponse.success(pageResult.getContent(), page, size, pageResult.getTotalElements());
+        CommonResponse<List<EventAnnouncementListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 
