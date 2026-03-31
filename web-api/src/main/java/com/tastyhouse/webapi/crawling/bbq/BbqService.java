@@ -39,8 +39,6 @@ public class BbqService {
 
     /**
      * BBQ 메뉴 카테고리 목록 조회
-     *
-     * @return ProductCategory Entity 구조에 맞춘 상품 카테고리 목록
      */
     public List<BbqProductCategoryResponse> getMenuCategories() {
         try {
@@ -56,9 +54,6 @@ public class BbqService {
 
     /**
      * BBQ 카테고리별 메뉴 목록 조회
-     *
-     * @param categoryId 카테고리 ID
-     * @return Product Entity 구조에 맞춘 상품 목록
      */
     public List<BbqProductResponse> getMenusByCategoryId(Long categoryId) {
         try {
@@ -74,9 +69,6 @@ public class BbqService {
 
     /**
      * 외부 API 응답을 ProductCategory 구조에 맞는 응답으로 변환
-     *
-     * @param externalResponse 외부 API 응답
-     * @return ProductCategory 구조에 맞춘 응답
      */
     private BbqProductCategoryResponse convertToProductCategoryResponse(BbqMenuCategoryResponse externalResponse) {
         return new BbqProductCategoryResponse(
@@ -90,9 +82,6 @@ public class BbqService {
 
     /**
      * BBQ 메뉴 상세 조회
-     *
-     * @param menuId 메뉴 ID
-     * @return Product Entity 구조에 맞춘 상품 상세 정보
      */
     public BbqProductResponse getMenuDetail(Long menuId) {
         try {
@@ -106,9 +95,6 @@ public class BbqService {
 
     /**
      * 외부 API 응답을 Product 구조에 맞는 응답으로 변환
-     *
-     * @param externalResponse 외부 API 응답
-     * @return Product 구조에 맞춘 응답
      */
     private BbqProductResponse convertToProductResponse(BbqMenuResponse externalResponse) {
         return new BbqProductResponse(
@@ -127,9 +113,6 @@ public class BbqService {
 
     /**
      * BBQ 메뉴 서브 옵션 조회
-     *
-     * @param menuId 메뉴 ID
-     * @return 서브 옵션 목록
      */
     public List<BbqProductSubOptionResponse> getMenuSubOptions(Long menuId) {
         try {
@@ -145,9 +128,6 @@ public class BbqService {
 
     /**
      * 외부 API 응답을 서브 옵션 응답으로 변환
-     *
-     * @param externalResponse 외부 API 응답
-     * @return 서브 옵션 응답
      */
     private BbqProductSubOptionResponse convertToProductSubOptionResponse(BbqMenuSubOptionResponse externalResponse) {
         List<BbqProductSubOptionResponse.SubOptionItemDetailResponse> itemDetails = null;
@@ -174,11 +154,6 @@ public class BbqService {
 
     /**
      * BBQ 메뉴 크롤링 및 저장
-     *
-     * 1. getMenuCategories 호출하여 카테고리 저장
-     * 2. getMenusByCategoryId 호출하여 상품(+이미지) 저장 (카테고리마다 10초 간격)
-     *
-     * @param placeId 플레이스 ID
      */
     @Transactional
     public void crawlAndSaveNewMenu(Long placeId) {
