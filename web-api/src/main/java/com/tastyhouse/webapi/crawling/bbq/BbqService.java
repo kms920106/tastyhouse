@@ -4,7 +4,7 @@ import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductBbq;
 import com.tastyhouse.core.entity.product.ProductCategory;
 import com.tastyhouse.core.entity.product.ProductImage;
-import com.tastyhouse.core.repository.product.*;
+import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.external.bbq.BbqApiClient;
 import com.tastyhouse.external.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.bbq.dto.BbqMenuResponse;
@@ -22,20 +22,14 @@ import java.util.stream.Collectors;
 
 /**
  * BBQ 서비스
- *
- * BBQ API 관련 비즈니스 로직을 처리합니다.
  */
 @Slf4j
-@Service
 @RequiredArgsConstructor
+@Service
 public class BbqService {
 
     private final BbqApiClient bbqApiClient;
-    private final ProductCategoryRepository productCategoryRepository;
-    private final ProductCategoryJpaRepository productCategoryJpaRepository;
-    private final ProductJpaRepository productJpaRepository;
-    private final ProductImageJpaRepository productImageJpaRepository;
-    private final ProductBbqJpaRepository productBbqJpaRepository;
+    private final ProductCoreService productCoreService;
 
     /**
      * BBQ 메뉴 카테고리 목록 조회
@@ -200,7 +194,7 @@ public class BbqService {
      * 카테고리 저장 또는 기존 카테고리 조회
      */
     private ProductCategory saveOrGetCategory(Long placeId, BbqProductCategoryResponse categoryResponse, int sort) {
-        List<ProductCategory> existingCategories = productCategoryRepository.findByNameAndPlaceId(categoryResponse.name(), placeId);
+        List<ProductCategory> existingCategories = productCoreService.findProductCategoriesByNameAndPlaceId(categoryResponse.name(), placeId);
         if (!existingCategories.isEmpty()) {
             return existingCategories.get(0);
         }
@@ -211,7 +205,7 @@ public class BbqService {
                 .sort(sort)
                 .isActive(true)
                 .build();
-        return productCategoryJpaRepository.save(category);
+        return productCoreService.saveProductCategory(category);
     }
 
     /**
@@ -237,7 +231,7 @@ public class BbqService {
                 .isActive(true)
                 .sort(sort)
                 .build();
-        Product savedProduct = productJpaRepository.save(product);
+        Product savedProduct = productCoreService.saveProduct(product);
 
         // 상품 이미지 저장
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {
@@ -247,7 +241,7 @@ public class BbqService {
                     .sort(0)
                     .isActive(true)
                     .build();
-            productImageJpaRepository.save(productImage);
+            productCoreService.saveProductImage(productImage);
         }
 
         // ProductBbq 매핑 저장 (외부 BBQ 메뉴 ID 저장)
@@ -256,7 +250,7 @@ public class BbqService {
                 .bbqMenuId(menuResponse.id())
                 .bbqCategoryId(bbqCategoryId)
                 .build();
-        productBbqJpaRepository.save(productBbq);
+        productCoreService.saveProductBbq(productBbq);
 
         log.debug("상품 저장 완료: productId={}, name={}", savedProduct.getId(), savedProduct.getName());
     }

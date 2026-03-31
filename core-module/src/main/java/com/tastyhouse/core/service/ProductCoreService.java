@@ -21,9 +21,12 @@ public class ProductCoreService {
 
     private final ProductRepository productRepository;
     private final ProductJpaRepository productJpaRepository;
+    private final ProductCategoryRepository productCategoryRepository;
     private final ProductCategoryJpaRepository productCategoryJpaRepository;
     private final ProductOptionGroupJpaRepository productOptionGroupJpaRepository;
     private final ProductOptionJpaRepository productOptionJpaRepository;
+    private final ProductImageJpaRepository productImageJpaRepository;
+    private final ProductBbqJpaRepository productBbqJpaRepository;
 
     @Transactional(readOnly = true)
     public PageResult<TodayDiscountProductDto> findTodayDiscountProducts(int page, int size) {
@@ -102,5 +105,30 @@ public class ProductCoreService {
             .stream()
             .map(ProductImage::getImageUrl)
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductCategory> findProductCategoriesByNameAndPlaceId(String name, Long placeId) {
+        return productCategoryRepository.findByNameAndPlaceId(name, placeId);
+    }
+
+    @Transactional
+    public ProductCategory saveProductCategory(ProductCategory productCategory) {
+        return productCategoryJpaRepository.save(productCategory);
+    }
+
+    @Transactional
+    public Product saveProduct(Product product) {
+        return productJpaRepository.save(product);
+    }
+
+    @Transactional
+    public ProductImage saveProductImage(ProductImage productImage) {
+        return productImageJpaRepository.save(productImage);
+    }
+
+    @Transactional
+    public ProductBbq saveProductBbq(ProductBbq productBbq) {
+        return productBbqJpaRepository.save(productBbq);
     }
 }

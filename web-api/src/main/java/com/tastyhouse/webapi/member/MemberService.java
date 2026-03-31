@@ -14,7 +14,6 @@ import com.tastyhouse.core.service.*;
 import com.tastyhouse.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.webapi.config.jwt.TokenBlacklist;
 import com.tastyhouse.webapi.coupon.CouponService;
 import com.tastyhouse.webapi.coupon.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.exception.UnauthorizedException;
