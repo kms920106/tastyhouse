@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,12 +22,13 @@ public class PhoneVerificationService {
     private final PhoneVerificationCoreService phoneVerificationCoreService;
     private final SmsSender smsSender;
     private final JwtTokenProvider jwtTokenProvider;
+    private final VerificationCodeGenerator verificationCodeGenerator;
 
     @Transactional
     public void sendVerificationCode(String phoneNumber) {
         phoneVerificationCoreService.expireAllPendingByPhoneNumber(phoneNumber);
 
-        String verificationCode = generateVerificationCode();
+        String verificationCode = verificationCodeGenerator.generate();
 
         phoneVerificationCoreService.save(
             PhoneVerification.builder()
@@ -68,9 +67,4 @@ public class PhoneVerificationService {
         return phoneVerifyToken;
     }
 
-    private String generateVerificationCode() {
-        SecureRandom random = new SecureRandom();
-        int code = random.nextInt(900000) + 100000;
-        return String.valueOf(code);
-    }
 }
