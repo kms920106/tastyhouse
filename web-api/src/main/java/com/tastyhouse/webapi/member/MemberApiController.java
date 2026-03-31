@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.member;
 
 import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.webapi.auth.AuthService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.coupon.response.MemberCouponListItemResponse;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -64,9 +64,9 @@ import java.util.List;
 public class MemberApiController {
 
     private final MemberService memberService;
-    private final AuthService authService;
     private final GradeService gradeService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenService tokenService;
 
     @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보를 조회합니다. (마이페이지용)")
     @ApiResponses({
@@ -363,7 +363,7 @@ public class MemberApiController {
             request.reasonDetail()
         );
 
-        authService.invalidateToken(bearerToken);
+        tokenService.invalidateAccessToken(bearerToken);
 
         return ResponseEntity.ok(CommonResponse.success(null));
     }

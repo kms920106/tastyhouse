@@ -2,6 +2,7 @@ package com.tastyhouse.webapi.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
-    private final TokenBlacklist tokenBlacklist;
+    private final TokenService tokenService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -42,13 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (!StringUtils.hasText(jwt)) {
-                // 토큰이 없는 요청은 인증 정보 없이 다음 필터로 전달
-                // SecurityConfig의 authenticated() 설정에 의해 보호된 엔드포인트는 자동으로 401 반환
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            if (jwtTokenProvider.validateToken(jwt) && !tokenBlacklist.contains(jwt)) {
+            if (jwtTokenProvider.validateToken(jwt) && !tokenService.isBlacklisted(jwt)) {
                 jwtTokenProvider.validateTokenType(jwt, TokenType.ACCESS);
 
                 String username = jwtTokenProvider.getUsernameFromJWT(jwt);
@@ -70,7 +69,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
 
     private void writeUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
