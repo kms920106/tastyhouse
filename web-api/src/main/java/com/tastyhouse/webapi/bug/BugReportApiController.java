@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "BugReport", description = "버그 제보 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/bug-reports")
+@RequiredArgsConstructor
+@Tag(name = "BugReport", description = "버그 제보 API")
 public class BugReportApiController {
 
     private final BugReportService bugReportService;

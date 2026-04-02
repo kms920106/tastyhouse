@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Product", description = "상품 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/products")
+@RequiredArgsConstructor
+@Tag(name = "Product", description = "상품 관리 API")
 public class ProductApiController {
 
     private final ProductService productService;

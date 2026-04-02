@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "Notice", description = "공지사항 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/notices")
+@RequiredArgsConstructor
+@Tag(name = "Notice", description = "공지사항 관리 API")
 public class NoticeApiController {
 
     private final NoticeService noticeService;

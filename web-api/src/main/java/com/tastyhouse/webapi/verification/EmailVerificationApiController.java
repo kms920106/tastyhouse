@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Email Verification", description = "이메일 인증 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/email-verifications")
+@RequiredArgsConstructor
+@Tag(name = "Email Verification", description = "이메일 인증 API")
 public class EmailVerificationApiController {
 
     private final EmailVerificationService emailVerificationService;

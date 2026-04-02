@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 /**
  * BBQ 서비스
  */
-@Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class BbqService {
 
     private final BbqApiClient bbqApiClient;

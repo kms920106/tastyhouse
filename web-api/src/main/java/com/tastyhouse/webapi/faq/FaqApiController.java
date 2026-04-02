@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "FAQ", description = "자주하는 질문 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/faqs")
+@RequiredArgsConstructor
+@Tag(name = "FAQ", description = "자주하는 질문 API")
 public class FaqApiController {
 
     private final FaqService faqService;

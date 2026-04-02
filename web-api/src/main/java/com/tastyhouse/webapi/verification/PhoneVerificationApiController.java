@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Phone Verification", description = "휴대폰번호 인증 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/phone-verifications")
+@RequiredArgsConstructor
+@Tag(name = "Phone Verification", description = "휴대폰번호 인증 API")
 public class PhoneVerificationApiController {
 
     private final PhoneVerificationService phoneVerificationService;

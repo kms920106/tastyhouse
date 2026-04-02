@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ProductScheduler {
 
     private final BbqService bbqService;

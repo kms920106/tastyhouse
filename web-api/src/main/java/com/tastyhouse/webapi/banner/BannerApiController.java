@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "Banner", description = "배너 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/banners")
+@RequiredArgsConstructor
+@Tag(name = "Banner", description = "배너 관리 API")
 public class BannerApiController {
 
     private final BannerService bannerService;

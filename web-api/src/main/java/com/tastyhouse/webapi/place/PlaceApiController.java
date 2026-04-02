@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Place", description = "플레이스 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/places")
+@RequiredArgsConstructor
+@Tag(name = "Place", description = "플레이스 관리 API")
 public class PlaceApiController {
 
     private final PlaceService placeService;

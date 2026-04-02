@@ -14,10 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Partnership", description = "광고 및 제휴 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/partnership-requests")
+@RequiredArgsConstructor
+@Tag(name = "Partnership", description = "광고 및 제휴 API")
 public class PartnershipRequestApiController {
 
     private final PartnershipRequestService partnershipRequestService;

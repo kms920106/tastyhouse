@@ -3,10 +3,8 @@ package com.tastyhouse.webapi.member;
 import com.tastyhouse.core.entity.coupon.MemberCoupon;
 import com.tastyhouse.core.service.CouponCoreService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberCouponService {

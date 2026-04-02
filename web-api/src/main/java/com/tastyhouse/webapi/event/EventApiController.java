@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Event", description = "이벤트 관리 API")
 @RestController
 @RequestMapping("/api/event")
 @RequiredArgsConstructor
+@Tag(name = "Event", description = "이벤트 관리 API")
 public class EventApiController {
 
     private final EventService eventService;

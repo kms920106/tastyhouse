@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Policy", description = "약관 및 정책 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/policies")
+@RequiredArgsConstructor
+@Tag(name = "Policy", description = "약관 및 정책 관리 API")
 public class PolicyApiController {
 
     private final PolicyService policyService;

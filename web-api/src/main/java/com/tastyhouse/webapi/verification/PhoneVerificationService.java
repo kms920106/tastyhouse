@@ -12,9 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PhoneVerificationService {
 
     private static final String SMS_TEXT_TEMPLATE = "[TastyHouse] 인증번호 [%s]를 입력해주세요.";

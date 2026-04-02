@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Order", description = "주문 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/orders")
+@RequiredArgsConstructor
+@Tag(name = "Order", description = "주문 API")
 public class OrderApiController {
 
     private final OrderService orderService;

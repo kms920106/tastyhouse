@@ -38,7 +38,6 @@ import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -53,11 +52,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "Member", description = "회원 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/members")
-@Validated
+@RequiredArgsConstructor
+@Tag(name = "Member", description = "회원 관리 API")
 public class MemberApiController {
 
     private final MemberService memberService;

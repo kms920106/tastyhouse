@@ -26,10 +26,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Review", description = "리뷰 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/reviews")
+@RequiredArgsConstructor
+@Tag(name = "Review", description = "리뷰 관리 API")
 public class ReviewApiController {
 
     private final ReviewService reviewService;

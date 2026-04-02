@@ -28,10 +28,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "Follow", description = "팔로우 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/follows")
+@RequiredArgsConstructor
+@Tag(name = "Follow", description = "팔로우 API")
 public class FollowApiController {
 
     private final FollowService followService;

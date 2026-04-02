@@ -6,7 +6,6 @@ import com.tastyhouse.webapi.payment.request.PaymentConfirmRequest;
 import com.tastyhouse.webapi.payment.request.PaymentCreateRequest;
 import com.tastyhouse.webapi.payment.request.RefundRequest;
 import com.tastyhouse.webapi.payment.request.TossPaymentConfirmApiRequest;
-import com.tastyhouse.webapi.payment.response.PaymentCancelCode;
 import com.tastyhouse.webapi.payment.response.PaymentCancelResponse;
 import com.tastyhouse.webapi.payment.response.PaymentRefundResponse;
 import com.tastyhouse.webapi.payment.response.PaymentResponse;
@@ -23,10 +22,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Payment", description = "결제 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/payments")
+@RequiredArgsConstructor
+@Tag(name = "Payment", description = "결제 API")
 public class PaymentApiController {
 
     private final PaymentService paymentService;

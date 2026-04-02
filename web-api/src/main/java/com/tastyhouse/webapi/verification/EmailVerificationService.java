@@ -13,9 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailVerificationService {
 
     private static final String EMAIL_SUBJECT = "[TastyHouse] 이메일 인증번호 안내";

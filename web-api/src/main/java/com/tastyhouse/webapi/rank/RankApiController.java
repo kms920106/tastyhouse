@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "Rank", description = "랭킹 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/ranks")
+@RequiredArgsConstructor
+@Tag(name = "Rank", description = "랭킹 관리 API")
 public class RankApiController {
 
     private final RankService rankService;
