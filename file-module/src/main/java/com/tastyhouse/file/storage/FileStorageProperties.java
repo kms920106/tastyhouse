@@ -43,4 +43,16 @@ public class FileStorageProperties {
      * 예: ap-northeast-2
      */
     private String s3Region = "ap-northeast-2";
+
+    /**
+     * Firebase 서비스 계정 키 파일 경로
+     * 예: path/to/serviceAccountKey.json
+     */
+    private String firebaseServiceAccountPath;
+
+    /**
+     * Firebase Storage 버킷 이름
+     * 예: PROJECT_ID.firebasestorage.app
+     */
+    private String firebaseStorageBucket;
 }
