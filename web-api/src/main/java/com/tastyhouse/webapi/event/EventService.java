@@ -8,7 +8,7 @@ import com.tastyhouse.core.entity.event.EventStatus;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.EventCoreService;
-import com.tastyhouse.file.FileService;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.event.response.EventDurationResponse;
 import com.tastyhouse.webapi.event.response.PrizeItem;

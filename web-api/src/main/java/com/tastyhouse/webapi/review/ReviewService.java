@@ -21,7 +21,7 @@ import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
-import com.tastyhouse.file.FileService;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewType;

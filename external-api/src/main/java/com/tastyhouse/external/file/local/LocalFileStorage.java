@@ -1,7 +1,9 @@
-package com.tastyhouse.file.storage;
+package com.tastyhouse.external.file.local;
 
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.external.file.FileStorageProperties;
+import com.tastyhouse.external.file.FileStorageStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,10 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * 로컬 파일 시스템 저장소 구현체
- * file.storage.type=local 일 때 활성화 (기본값)
- */
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "file.storage.type", havingValue = "local", matchIfMissing = true)

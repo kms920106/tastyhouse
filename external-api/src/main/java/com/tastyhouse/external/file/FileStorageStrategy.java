@@ -1,10 +1,10 @@
-package com.tastyhouse.file.storage;
+package com.tastyhouse.external.file;
 
 import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 파일 저장소 전략 인터페이스
- * 로컬 파일 시스템, S3, GCS 등 다양한 저장소 구현을 지원
+ * 로컬 파일 시스템, S3, Firebase 등 다양한 저장소 구현을 지원
  */
 public interface FileStorageStrategy {
 

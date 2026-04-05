@@ -4,7 +4,7 @@ import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.service.FollowCoreService;
-import com.tastyhouse.file.FileService;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.follow.response.FollowMemberResponse;
 import com.tastyhouse.webapi.follow.response.MemberSearchResponse;

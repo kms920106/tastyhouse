@@ -1,10 +1,9 @@
-package com.tastyhouse.file;
+package com.tastyhouse.external.file;
 
 import com.tastyhouse.core.entity.file.UploadedFile;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.FileCoreService;
-import com.tastyhouse.file.storage.FileStorageStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

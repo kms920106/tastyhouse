@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.file;
 
 import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.file.FileService;
+import com.tastyhouse.external.file.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
