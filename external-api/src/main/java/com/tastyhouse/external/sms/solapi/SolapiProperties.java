@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "solapi")
+@ConfigurationProperties(prefix = "sms.solapi")
 public class SolapiProperties {
 
     private String apiKey;

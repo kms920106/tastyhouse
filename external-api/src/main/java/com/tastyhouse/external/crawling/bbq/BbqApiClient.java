@@ -1,8 +1,8 @@
-package com.tastyhouse.external.bbq;
+package com.tastyhouse.external.crawling.bbq;
 
-import com.tastyhouse.external.bbq.dto.BbqMenuCategoryResponse;
-import com.tastyhouse.external.bbq.dto.BbqMenuResponse;
-import com.tastyhouse.external.bbq.dto.BbqMenuSubOptionResponse;
+import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
+import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
+import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

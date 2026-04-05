@@ -17,9 +17,9 @@ public class SesConfig {
 
     @Bean
     public SesClient sesClient(
-            @Value("${aws.ses.access-key}") String accessKey,
-            @Value("${aws.ses.secret-key}") String secretKey,
-            @Value("${aws.ses.region}") String region
+            @Value("${email.aws.ses.access-key}") String accessKey,
+            @Value("${email.aws.ses.secret-key}") String secretKey,
+            @Value("${email.aws.ses.region}") String region
     ) {
         return SesClient.builder()
                 .region(Region.of(region))

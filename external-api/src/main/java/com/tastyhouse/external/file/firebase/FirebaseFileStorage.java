@@ -5,7 +5,6 @@ import com.google.cloud.storage.Bucket;
 import com.google.firebase.cloud.StorageClient;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.external.file.FileStorageProperties;
 import com.tastyhouse.external.file.FileStorageStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +18,11 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "file.storage.type", havingValue = "firebase")
+@ConditionalOnProperty(name = "file.provider", havingValue = "firebase")
 @RequiredArgsConstructor
 public class FirebaseFileStorage implements FileStorageStrategy {
 
-    private final FileStorageProperties properties;
+    private final FirebaseStorageProperties properties;
 
     @Override
     public String store(MultipartFile file, String storedFilename, String datePath) {

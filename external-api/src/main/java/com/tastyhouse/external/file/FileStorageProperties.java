@@ -8,14 +8,8 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "file.storage")
+@ConfigurationProperties(prefix = "file")
 public class FileStorageProperties {
 
-    private String uploadPath;
-    private String baseUrl;
-    private String type = "local";
-    private String s3BucketName;
-    private String s3Region = "ap-northeast-2";
-    private String firebaseServiceAccountPath;
-    private String firebaseStorageBucket;
+    private String provider;
 }

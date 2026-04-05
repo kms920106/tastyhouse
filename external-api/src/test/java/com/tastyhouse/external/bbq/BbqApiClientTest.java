@@ -1,6 +1,8 @@
 package com.tastyhouse.external.bbq;
 
-import com.tastyhouse.external.bbq.dto.BbqMenuCategoryResponse;
+import com.tastyhouse.external.crawling.bbq.BbqApiClient;
+import com.tastyhouse.external.crawling.bbq.BbqProperties;
+import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

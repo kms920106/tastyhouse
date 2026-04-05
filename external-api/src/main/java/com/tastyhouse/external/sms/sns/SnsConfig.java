@@ -17,9 +17,9 @@ public class SnsConfig {
 
     @Bean
     public SnsClient snsClient(
-            @Value("${aws.sns.access-key}") String accessKey,
-            @Value("${aws.sns.secret-key}") String secretKey,
-            @Value("${aws.sns.region}") String region
+            @Value("${sms.aws.sns.access-key}") String accessKey,
+            @Value("${sms.aws.sns.secret-key}") String secretKey,
+            @Value("${sms.aws.sns.region}") String region
     ) {
         return SnsClient.builder()
                 .region(Region.of(region))
