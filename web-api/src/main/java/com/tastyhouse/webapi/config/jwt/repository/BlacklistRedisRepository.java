@@ -34,6 +34,6 @@ public class BlacklistRedisRepository {
     }
 
     public boolean contains(String accessToken) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(PREFIX + accessToken));
+        return redisTemplate.hasKey(PREFIX + accessToken);
     }
 }

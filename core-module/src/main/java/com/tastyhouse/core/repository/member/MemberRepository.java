@@ -1,6 +1,7 @@
 package com.tastyhouse.core.repository.member;
 
 import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,4 +31,6 @@ public interface MemberRepository {
     boolean existsByPhoneNumberValueAndMemberStatusNot(String phoneNumber, MemberStatus memberStatus);
 
     Page<Member> findAllMembers(Pageable pageable);
+
+    long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade);
 }

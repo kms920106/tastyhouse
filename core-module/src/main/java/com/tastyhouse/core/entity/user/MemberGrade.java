@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * 회원 등급
@@ -12,40 +13,45 @@ import java.util.Arrays;
 @Getter
 @RequiredArgsConstructor
 public enum MemberGrade {
-    NEWCOMER(1, "신입멤버"),    // 가장 낮은 등급
-    ACTIVE(2, "열심멤버"),
-    INSIDER(3, "인싸멤버"),
-    GOURMET(4, "미식멤버"),
-    TEHA(5, "테하멤버");        // 가장 높은 등급
+    NEWCOMER(1, "신입멤버", 0), // 가장 낮은 등급
+    ACTIVE(2, "열심멤버", 100),
+    INSIDER(3, "인싸멤버", 500),
+    GOURMET(4, "미식멤버", 700),
+    TEHA(5, "테하멤버", 1000); // 가장 높은 등급
 
     private final int level;
     private final String displayName;
+    private final int minReviewCount;
+
+    /**
+     * 리뷰 개수로 등급을 결정합니다
+     */
+    public static MemberGrade fromReviewCount(int reviewCount) {
+        return Arrays.stream(values())
+            .filter(grade -> reviewCount >= grade.minReviewCount)
+            .max(Comparator.comparingInt(grade -> grade.minReviewCount))
+            .orElse(NEWCOMER);
+    }
 
     /**
      * level 값으로 MemberGrade를 찾습니다
-     * @param level 등급 레벨 (1-5)
-     * @return MemberGrade
-     * @throws IllegalArgumentException 유효하지 않은 level인 경우
      */
     public static MemberGrade fromLevel(int level) {
         return Arrays.stream(values())
-                .filter(grade -> grade.level == level)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid member grade level: " + level));
+            .filter(grade -> grade.level == level)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Invalid member grade level: " + level));
     }
 
     /**
-     * 다른 등급보다 높은지 확인
+     * 다음 등급의 최소 리뷰 수 - 1 (해당 등급의 최대 리뷰 수)
+     * 최고 등급(TEHA)은 null 반환
      */
-    public boolean isHigherThan(MemberGrade other) {
-        return this.level > other.level;
-    }
-
-    /**
-     * 다른 등급보다 낮은지 확인
-     */
-    public boolean isLowerThan(MemberGrade other) {
-        return this.level < other.level;
+    public Integer getMaxReviewCount() {
+        if (this.isHigherThanOrEqual(TEHA)) {
+            return null;
+        }
+        return fromLevel(this.level + 1).minReviewCount - 1;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.tastyhouse.core.repository.member;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberStatus;
 import com.tastyhouse.core.entity.user.QMember;
 import lombok.RequiredArgsConstructor;
@@ -112,6 +113,15 @@ public class MemberRepositoryImpl implements MemberRepository {
                 member.memberStatus.ne(memberStatus)
             )
             .fetchFirst() != null;
+    }
+
+    @Override
+    public long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade) {
+        QMember member = QMember.member;
+        return queryFactory.update(member)
+            .set(member.memberGrade, grade)
+            .where(member.id.in(memberIds))
+            .execute();
     }
 
     @Override

@@ -173,7 +173,7 @@ public class PlaceCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<MyBookmarkedPlaceItemDto> findMyBookmarkedPlaces(Long memberId, org.springframework.data.domain.Pageable pageable) {
-        return placeRepository.findMyBookmarkedPlaces(memberId, pageable);
+    public Page<MyBookmarkedPlaceItemDto> findMyBookmarkedPlaces(Long memberId, int page, int size) {
+        return placeRepository.findMyBookmarkedPlaces(memberId, PageRequest.of(page, size));
     }
 }

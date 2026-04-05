@@ -2,6 +2,7 @@ package com.tastyhouse.core.service;
 
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.common.ReviewsByRatingResult;
+import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
 import com.tastyhouse.core.entity.review.Review;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.entity.review.ReviewComment;
@@ -354,8 +355,7 @@ public class ReviewCoreService {
 
     @Transactional(readOnly = true)
     public Member findMemberById(Long memberId) {
-        return memberRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        return memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -368,5 +368,13 @@ public class ReviewCoreService {
     public Tag findOrCreateTag(String tagName) {
         return tagRepository.findByTagName(tagName)
             .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+    }
+
+    @Transactional(readOnly = true)
+    public List<MemberReviewCountDto> countReviewsByMemberWithPeriod(
+        LocalDateTime startDate,
+        LocalDateTime endDate
+    ) {
+        return reviewRepository.countReviewsByMemberWithPeriod(startDate, endDate);
     }
 }

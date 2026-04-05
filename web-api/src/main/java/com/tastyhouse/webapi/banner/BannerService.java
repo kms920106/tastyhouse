@@ -17,9 +17,7 @@ public class BannerService {
 
     @Transactional(readOnly = true)
     public PageResult<BannerListItem> searchBannerList(PageRequest pageRequest) {
-        return bannerCoreService.findAllWithPagination(
-            pageRequest.page(), pageRequest.size()
-        ).map(this::convertToBannerListItem);
+        return bannerCoreService.findAllWithPagination(pageRequest.page(), pageRequest.size()).map(this::convertToBannerListItem);
     }
 
     private BannerListItem convertToBannerListItem(BannerListItemDto dto) {

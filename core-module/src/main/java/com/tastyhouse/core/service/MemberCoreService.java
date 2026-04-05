@@ -2,6 +2,7 @@ package com.tastyhouse.core.service;
 
 import com.tastyhouse.core.entity.referral.MemberReferral;
 import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberWithdrawal;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -33,8 +35,7 @@ public class MemberCoreService {
 
     @Transactional(readOnly = true)
     public Member getById(Long memberId) {
-        return memberJpaRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        return memberJpaRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -60,6 +61,11 @@ public class MemberCoreService {
     @Transactional(readOnly = true)
     public Optional<Member> findByUsername(String username) {
         return memberRepository.findByUsername(username);
+    }
+
+    @Transactional
+    public long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade) {
+        return memberRepository.bulkUpdateGrade(memberIds, grade);
     }
 
     @Transactional

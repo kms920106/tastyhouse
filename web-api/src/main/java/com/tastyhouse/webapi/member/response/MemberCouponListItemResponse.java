@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.coupon.response;
+package com.tastyhouse.webapi.member.response;
 
 import com.tastyhouse.core.entity.coupon.DiscountType;
 

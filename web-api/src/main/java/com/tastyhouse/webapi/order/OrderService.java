@@ -14,15 +14,18 @@ import com.tastyhouse.core.entity.place.Place;
 import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
+import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.*;
+import com.tastyhouse.core.service.OrderCoreService;
+import com.tastyhouse.core.service.PointCoreService;
+import com.tastyhouse.core.service.CouponCoreService;
+import com.tastyhouse.core.service.ProductCoreService;
+import com.tastyhouse.core.service.PlaceCoreService;
+import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.member.MemberCouponService;
-import com.tastyhouse.webapi.member.MemberService;
-import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
 import com.tastyhouse.webapi.order.request.OrderItemOptionRequest;
@@ -52,39 +55,26 @@ public class OrderService {
     private final CouponCoreService couponCoreService;
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
-    private final MemberService memberService;
-    private final MemberCouponService memberCouponService;
+    private final MemberCoreService memberCoreService;
 
     @Transactional
     public OrderResponse createOrder(Long memberId, OrderCreateRequest request) {
         Place place = placeCoreService.findPlaceById(request.placeId());
 
-        MemberProfileResponse contact = memberService.getMemberProfile(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "회원 정보를 찾을 수 없습니다."));
+        Member member = memberCoreService.getById(memberId);
 
         int totalProductAmount = 0;
         int productDiscountAmount = 0;
 
-        Order order = Order.builder()
-            .memberId(memberId)
-            .placeId(request.placeId())
-            .orderNumber(generateOrderNumber())
-            .orderStatus(OrderStatus.PENDING)
-            .ordererName(contact.fullName())
-            .ordererPhone(contact.phoneNumber())
-            .ordererEmail(contact.email())
-            .build();
+        Order order = Order.builder().memberId(memberId).placeId(request.placeId()).orderNumber(generateOrderNumber()).orderStatus(OrderStatus.PENDING).ordererName(member.getFullName()).ordererPhone(member.getPhoneNumber().getValue()).ordererEmail(member.getUsername()).build();
 
         Order savedOrder = orderCoreService.saveOrder(order);
 
         for (OrderItemRequest itemRequest : request.orderItems()) {
-            Product product = productCoreService.findProductById(itemRequest.productId())
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
-                    ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + itemRequest.productId()));
+            Product product = productCoreService.findProductById(itemRequest.productId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND, ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + itemRequest.productId()));
 
             if (product.getIsSoldOut()) {
-                throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT,
-                    ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
+                throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT, ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }
 
             String productImageUrl = productCoreService.getFirstImageUrl(product.getId());
@@ -93,34 +83,17 @@ public class OrderService {
             Integer discountPrice = product.getDiscountPrice();
             int optionTotalPrice = 0;
 
-            OrderItem orderItem = OrderItem.builder()
-                .orderId(savedOrder.getId())
-                .productId(product.getId())
-                .productName(product.getName())
-                .productImageUrl(productImageUrl)
-                .quantity(itemRequest.quantity())
-                .unitPrice(unitPrice)
-                .discountPrice(discountPrice)
-                .build();
+            OrderItem orderItem = OrderItem.builder().orderId(savedOrder.getId()).productId(product.getId()).productName(product.getName()).productImageUrl(productImageUrl).quantity(itemRequest.quantity()).unitPrice(unitPrice).discountPrice(discountPrice).build();
 
             OrderItem savedOrderItem = orderCoreService.saveOrderItem(orderItem);
 
             if (itemRequest.selectedOptions() != null) {
                 for (OrderItemOptionRequest optionRequest : itemRequest.selectedOptions()) {
-                    ProductOptionGroup optionGroup = productCoreService.findProductOptionGroupById(optionRequest.groupId())
-                        .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
+                    ProductOptionGroup optionGroup = productCoreService.findProductOptionGroupById(optionRequest.groupId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
 
-                    ProductOption option = productCoreService.findProductOptionById(optionRequest.optionId())
-                        .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
+                    ProductOption option = productCoreService.findProductOptionById(optionRequest.optionId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
 
-                    orderCoreService.saveOrderItemOption(OrderItemOption.builder()
-                        .orderItemId(savedOrderItem.getId())
-                        .optionGroupId(optionGroup.getId())
-                        .optionGroupName(optionGroup.getName())
-                        .optionId(option.getId())
-                        .optionName(option.getName())
-                        .additionalPrice(option.getAdditionalPrice())
-                        .build());
+                    orderCoreService.saveOrderItemOption(OrderItemOption.builder().orderItemId(savedOrderItem.getId()).optionGroupId(optionGroup.getId()).optionGroupName(optionGroup.getName()).optionId(option.getId()).optionName(option.getName()).additionalPrice(option.getAdditionalPrice()).build());
 
                     optionTotalPrice += option.getAdditionalPrice();
                 }
@@ -139,7 +112,7 @@ public class OrderService {
         int couponDiscountAmount = 0;
         Long memberCouponId = null;
         if (request.memberCouponId() != null) {
-            MemberCoupon memberCoupon = memberCouponService.findById(request.memberCouponId());
+            MemberCoupon memberCoupon = couponCoreService.findMemberCouponById(request.memberCouponId());
 
             if (!memberCoupon.getMemberId().equals(memberId)) {
                 throw new AccessDeniedException(ErrorCode.COUPON_ACCESS_DENIED);
@@ -149,8 +122,7 @@ public class OrderService {
                 throw new BusinessException(ErrorCode.COUPON_NOT_AVAILABLE);
             }
 
-            Coupon coupon = couponCoreService.findById(memberCoupon.getCouponId())
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
+            Coupon coupon = couponCoreService.findById(memberCoupon.getCouponId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
 
             int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
             if (orderAmountAfterProductDiscount < coupon.getMinOrderAmount()) {
@@ -179,77 +151,48 @@ public class OrderService {
         int totalDiscountAmount = productDiscountAmount + couponDiscountAmount + pointDiscountAmount;
         int finalAmount = totalProductAmount - totalDiscountAmount;
 
-        validateOrderAmounts(request, totalProductAmount, totalDiscountAmount,
-            productDiscountAmount, couponDiscountAmount, pointDiscountAmount, finalAmount);
+        validateOrderAmounts(request, totalProductAmount, totalDiscountAmount, productDiscountAmount, couponDiscountAmount, pointDiscountAmount, finalAmount);
 
-        savedOrder.updateAmounts(totalProductAmount, productDiscountAmount,
-            couponDiscountAmount, pointDiscountAmount, totalDiscountAmount,
-            finalAmount, memberCouponId, pointDiscountAmount);
+        savedOrder.updateAmounts(totalProductAmount, productDiscountAmount, couponDiscountAmount, pointDiscountAmount, totalDiscountAmount, finalAmount, memberCouponId, pointDiscountAmount);
 
         return buildOrderResponse(savedOrder, place, memberId);
     }
 
-    private void validateOrderAmounts(OrderCreateRequest request,
-                                      int totalProductAmount, int totalDiscountAmount,
-                                      int productDiscountAmount, int couponDiscountAmount,
-                                      int pointDiscountAmount, int finalAmount) {
+    private void validateOrderAmounts(OrderCreateRequest request, int totalProductAmount, int totalDiscountAmount, int productDiscountAmount, int couponDiscountAmount, int pointDiscountAmount, int finalAmount) {
         if (!request.totalProductAmount().equals(totalProductAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_PRODUCT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_PRODUCT_AMOUNT_MISMATCH.getDefaultMessage()
-                    + " 요청: " + request.totalProductAmount() + ", 계산: " + totalProductAmount);
+            throw new BusinessException(ErrorCode.ORDER_PRODUCT_AMOUNT_MISMATCH, ErrorCode.ORDER_PRODUCT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + request.totalProductAmount() + ", 계산: " + totalProductAmount);
         }
         if (!request.productDiscountAmount().equals(productDiscountAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage()
-                    + " 요청: " + request.productDiscountAmount() + ", 계산: " + productDiscountAmount);
+            throw new BusinessException(ErrorCode.ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH, ErrorCode.ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + request.productDiscountAmount() + ", 계산: " + productDiscountAmount);
         }
         if (!request.couponDiscountAmount().equals(couponDiscountAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage()
-                    + " 요청: " + request.couponDiscountAmount() + ", 계산: " + couponDiscountAmount);
+            throw new BusinessException(ErrorCode.ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH, ErrorCode.ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + request.couponDiscountAmount() + ", 계산: " + couponDiscountAmount);
         }
         if (!request.usePoint().equals(pointDiscountAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage()
-                    + " 요청: " + request.usePoint() + ", 계산: " + pointDiscountAmount);
+            throw new BusinessException(ErrorCode.ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH, ErrorCode.ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + request.usePoint() + ", 계산: " + pointDiscountAmount);
         }
         if (!request.totalDiscountAmount().equals(totalDiscountAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage()
-                    + " 요청: " + request.totalDiscountAmount() + ", 계산: " + totalDiscountAmount);
+            throw new BusinessException(ErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH, ErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + request.totalDiscountAmount() + ", 계산: " + totalDiscountAmount);
         }
         if (!request.finalAmount().equals(finalAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH.getDefaultMessage()
-                    + " 요청: " + request.finalAmount() + ", 계산: " + finalAmount);
+            throw new BusinessException(ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH, ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + request.finalAmount() + ", 계산: " + finalAmount);
         }
     }
 
     @Transactional(readOnly = true)
     public PageResult<OrderListItemResponse> getOrderList(Long memberId, PageRequest pageRequest) {
-        org.springframework.data.domain.PageRequest springPageRequest = org.springframework.data.domain.PageRequest
-            .of(pageRequest.page(), pageRequest.size());
+        org.springframework.data.domain.PageRequest springPageRequest = org.springframework.data.domain.PageRequest.of(pageRequest.page(), pageRequest.size());
 
-        Page<OrderListItemDto> page =
-            orderCoreService.findOrderListByMemberId(memberId, springPageRequest);
+        Page<OrderListItemDto> page = orderCoreService.findOrderListByMemberId(memberId, springPageRequest);
 
-        List<OrderListItemResponse> content = page.getContent().stream()
-            .map(OrderListItemResponse::from)
-            .toList();
+        List<OrderListItemResponse> content = page.getContent().stream().map(OrderListItemResponse::from).toList();
 
-        return new PageResult<>(
-            content,
-            page.getTotalElements(),
-            page.getTotalPages(),
-            page.getNumber(),
-            page.getSize()
-        );
+        return new PageResult<>(content, page.getTotalElements(), page.getTotalPages(), page.getNumber(), page.getSize());
     }
 
     @Transactional(readOnly = true)
     public OrderResponse getOrderDetail(Long memberId, Long orderId) {
-        Order order = orderCoreService.findOrderById(orderId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+        Order order = orderCoreService.findOrderById(orderId).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
             throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);
@@ -271,42 +214,19 @@ public class OrderService {
         List<OrderItemResponse> itemResponses = items.stream().map(item -> {
             List<OrderItemOption> options = orderCoreService.findOrderItemOptionsByOrderItemId(item.getId());
 
-            List<OrderItemOptionResponse> optionResponses = options.stream()
-                .map(opt -> new OrderItemOptionResponse(
-                    opt.getId(), opt.getOptionGroupName(), opt.getOptionName(), opt.getAdditionalPrice()))
-                .toList();
+            List<OrderItemOptionResponse> optionResponses = options.stream().map(opt -> new OrderItemOptionResponse(opt.getId(), opt.getOptionGroupName(), opt.getOptionName(), opt.getAdditionalPrice())).toList();
 
-            boolean isReviewed = orderCoreService.existsReviewByOrderIdAndProductIdAndMemberId(
-                order.getId(), item.getProductId(), memberId);
+            boolean isReviewed = orderCoreService.existsReviewByOrderIdAndProductIdAndMemberId(order.getId(), item.getProductId(), memberId);
 
-            return new OrderItemResponse(
-                item.getId(), item.getProductId(), item.getProductName(), item.getProductImageUrl(),
-                item.getQuantity(), item.getUnitPrice(), item.getDiscountPrice(),
-                item.getOptionTotalPrice(), item.getTotalPrice(), isReviewed, optionResponses
-            );
+            return new OrderItemResponse(item.getId(), item.getProductId(), item.getProductName(), item.getProductImageUrl(), item.getQuantity(), item.getUnitPrice(), item.getDiscountPrice(), item.getOptionTotalPrice(), item.getTotalPrice(), isReviewed, optionResponses);
         }).toList();
 
         PaymentSummaryResponse paymentSummary = null;
         Payment payment = orderCoreService.findPaymentByOrderId(order.getId()).orElse(null);
         if (payment != null) {
-            paymentSummary = new PaymentSummaryResponse(
-                payment.getId(), payment.getPaymentMethod(), payment.getPaymentStatus(),
-                payment.getAmount(), payment.getCardCompany(), payment.getCardNumber(),
-                payment.getApprovedAt(), payment.getReceiptUrl()
-            );
+            paymentSummary = new PaymentSummaryResponse(payment.getId(), payment.getPaymentMethod(), payment.getPaymentStatus(), payment.getAmount(), payment.getCardCompany(), payment.getCardNumber(), payment.getApprovedAt(), payment.getReceiptUrl());
         }
 
-        return new OrderResponse(
-            order.getId(), order.getOrderNumber(),
-            payment != null ? payment.getPaymentStatus() : null,
-            place != null ? place.getName() : null,
-            place != null ? place.getPhoneNumber() : null,
-            order.getOrdererName(), order.getOrdererPhone(), order.getOrdererEmail(),
-            order.getTotalProductAmount(), order.getProductDiscountAmount(),
-            order.getCouponDiscountAmount(), order.getPointDiscountAmount(),
-            order.getTotalDiscountAmount(), order.getFinalAmount(),
-            order.getUsedPoint(), order.getEarnedPoint(), itemResponses, paymentSummary,
-            payment != null ? payment.getApprovedAt() : null, order.getCreatedAt()
-        );
+        return new OrderResponse(order.getId(), order.getOrderNumber(), payment != null ? payment.getPaymentStatus() : null, place != null ? place.getName() : null, place != null ? place.getPhoneNumber() : null, order.getOrdererName(), order.getOrdererPhone(), order.getOrdererEmail(), order.getTotalProductAmount(), order.getProductDiscountAmount(), order.getCouponDiscountAmount(), order.getPointDiscountAmount(), order.getTotalDiscountAmount(), order.getFinalAmount(), order.getUsedPoint(), order.getEarnedPoint(), itemResponses, paymentSummary, payment != null ? payment.getApprovedAt() : null, order.getCreatedAt());
     }
 }

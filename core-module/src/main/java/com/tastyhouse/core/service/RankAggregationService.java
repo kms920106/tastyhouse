@@ -5,7 +5,6 @@ import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.review.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,8 +23,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RankAggregationService {
 
-    private final ReviewRepository reviewRepository;
     private final RankCoreService rankCoreService;
+    private final ReviewCoreService reviewCoreService;
 
     @Transactional
     public void aggregateAllRanks() {
@@ -54,8 +53,7 @@ public class RankAggregationService {
 
         log.info("집계 기간: {} ~ {}", startDate, endDate);
 
-        List<MemberReviewCountDto> reviewCounts = reviewRepository
-            .countReviewsByMemberWithPeriod(startDate, endDate);
+        List<MemberReviewCountDto> reviewCounts = reviewCoreService.countReviewsByMemberWithPeriod(startDate, endDate);
 
         log.info("집계된 유저 수: {}", reviewCounts.size());
 
