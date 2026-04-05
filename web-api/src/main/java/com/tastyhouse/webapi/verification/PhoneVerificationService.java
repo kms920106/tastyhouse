@@ -37,8 +37,8 @@ public class PhoneVerificationService {
                 .build()
         );
 
-        String smsText = SMS_TEXT_TEMPLATE.formatted(verificationCode);
-        smsSender.send(phoneNumber, smsText);
+//        String smsText = SMS_TEXT_TEMPLATE.formatted(verificationCode);
+//        smsSender.send(phoneNumber, smsText);
 
         log.info("휴대폰 인증번호 발송 완료. phoneNumber: {}", phoneNumber);
     }
