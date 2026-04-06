@@ -33,8 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Auth", description = "인증 관련 API")
 public class AuthApiController {
 
-    private final AuthService authService;
-    private final PasswordResetService passwordResetService;
+    private final AuthFacade authFacade;
 
     @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(phoneVerifyToken)이 필요합니다.")
     @ApiResponses({
@@ -45,7 +44,7 @@ public class AuthApiController {
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:signup")
     @PostMapping("/signup")
     public ResponseEntity<CommonResponse<Void>> signUp(@Valid @RequestBody SignUpRequest request) {
-        authService.signUp(
+        authFacade.signUp(
             request.username(),
             request.password(),
             request.nickname(),
@@ -72,8 +71,7 @@ public class AuthApiController {
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:login")
     @PostMapping("/login")
     public ResponseEntity<CommonResponse<JwtResponse>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-        return ResponseEntity.ok(CommonResponse.success(
-            authService.login(loginRequest.username(), loginRequest.password(), loginRequest.rememberMe())));
+        return ResponseEntity.ok(CommonResponse.success(authFacade.login(loginRequest.username(), loginRequest.password(), loginRequest.rememberMe())));
     }
 
     @Operation(summary = "토큰 갱신", description = "Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발급합니다.")
@@ -83,7 +81,7 @@ public class AuthApiController {
     })
     @PostMapping("/refresh")
     public ResponseEntity<CommonResponse<JwtResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(CommonResponse.success(authService.refresh(request.refreshToken())));
+        return ResponseEntity.ok(CommonResponse.success(authFacade.refresh(request.refreshToken())));
     }
 
     @Operation(summary = "로그아웃", description = "Access Token을 블랙리스트에 등록하고 Refresh Token을 삭제하여 로그아웃 처리합니다.")
@@ -93,7 +91,7 @@ public class AuthApiController {
     })
     @PostMapping("/logout")
     public ResponseEntity<CommonResponse<Void>> logout(@RequestHeader("Authorization") String bearerToken) {
-        authService.logout(bearerToken);
+        authFacade.logout(bearerToken);
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 
@@ -106,7 +104,7 @@ public class AuthApiController {
     @RateLimit(limit = 5, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:password_reset_request")
     @PostMapping("/password-reset/request")
     public ResponseEntity<CommonResponse<Void>> requestPasswordReset(@Valid @RequestBody PasswordResetRequestRequest request) {
-        passwordResetService.sendPasswordResetCode(request.username());
+        authFacade.sendPasswordResetCode(request.username());
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 
@@ -117,8 +115,7 @@ public class AuthApiController {
     })
     @PostMapping("/password-reset/verify")
     public ResponseEntity<CommonResponse<PasswordResetTokenResponse>> verifyPasswordReset(@Valid @RequestBody PasswordResetVerifyRequest request) {
-        return ResponseEntity.ok(CommonResponse.success(
-            passwordResetService.verifyPasswordResetCode(request.username(), request.verificationCode())));
+        return ResponseEntity.ok(CommonResponse.success(authFacade.verifyPasswordResetCode(request.username(), request.verificationCode())));
     }
 
     @Operation(summary = "비밀번호 재설정", description = "비밀번호 재설정 토큰을 사용하여 새 비밀번호로 변경합니다.")
@@ -128,7 +125,7 @@ public class AuthApiController {
     })
     @PostMapping("/password-reset/confirm")
     public ResponseEntity<CommonResponse<Void>> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
-        passwordResetService.resetPassword(request.passwordResetToken(), request.newPassword(), request.newPasswordConfirm());
+        authFacade.resetPassword(request.passwordResetToken(), request.newPassword(), request.newPasswordConfirm());
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 }

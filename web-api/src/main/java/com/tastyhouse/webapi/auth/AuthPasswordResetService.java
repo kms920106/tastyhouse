@@ -7,6 +7,7 @@ import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.EmailVerificationCoreService;
 import com.tastyhouse.core.service.MemberCoreService;
+import com.tastyhouse.external.email.EmailSender;
 import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.member.service.MemberAccountService;
@@ -20,13 +21,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PasswordResetService {
+public class AuthPasswordResetService {
 
     private static final String EMAIL_SUBJECT = "[TASTY HOUSE] 비밀번호 재설정 인증번호 안내";
     private static final String EMAIL_BODY_TEMPLATE = "[TASTY HOUSE] 비밀번호 재설정 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
 
     private final MemberCoreService memberCoreService;
     private final EmailVerificationCoreService emailVerificationCoreService;
+    private final EmailSender emailSender;
     private final JwtTokenProvider jwtTokenProvider;
     private final VerificationCodeGenerator verificationCodeGenerator;
     private final MemberAccountService memberAccountService;
@@ -52,10 +54,8 @@ public class PasswordResetService {
                 .build()
         );
 
-//        String emailBody = EMAIL_BODY_TEMPLATE.formatted(verificationCode);
-//        emailSender.send(username, EMAIL_SUBJECT, emailBody);
-
-        log.info("비밀번호 재설정 인증코드 발송. username={}", username);
+        String emailBody = EMAIL_BODY_TEMPLATE.formatted(verificationCode);
+        emailSender.send(username, EMAIL_SUBJECT, emailBody);
     }
 
     // 인증코드를 검증하고 비밀번호 재설정 토큰을 발급
@@ -78,8 +78,6 @@ public class PasswordResetService {
 
         String passwordResetToken = jwtTokenProvider.createPasswordResetToken(username);
 
-        log.info("비밀번호 재설정 인증 완료. username={}", username);
-
         return new PasswordResetTokenResponse(passwordResetToken);
     }
 
@@ -100,7 +98,5 @@ public class PasswordResetService {
         }
 
         memberAccountService.updatePassword(member.getId(), newPassword, newPasswordConfirm);
-
-        log.info("비밀번호 재설정 완료. memberId={}", member.getId());
     }
 }

@@ -21,6 +21,7 @@ public class AuthService {
     private final MemberAccountService memberAccountService;
     private final MemberAuthService memberAuthService;
 
+    // 회원가입 토큰 검증 후 신규 회원을 등록
     public void signUp(String username, String password,
                        String nickname, String fullName,
                        Gender gender, Integer birthDate, String phoneNumber,
@@ -36,6 +37,7 @@ public class AuthService {
         );
     }
 
+    // 아이디/비밀번호 인증 후 JWT 토큰을 발급
     public JwtResponse login(String username, String password, boolean rememberMe) {
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(username, password)
@@ -45,10 +47,12 @@ public class AuthService {
         return tokenService.issue(authentication, rememberMe);
     }
 
+    // 리프레시 토큰으로 새 JWT 토큰을 재발급
     public JwtResponse refresh(String refreshToken) {
         return tokenService.refresh(refreshToken);
     }
 
+    // 토큰을 무효화하고 보안 컨텍스트를 초기화하여 로그아웃 처리
     public void logout(String bearerToken) {
         tokenService.revoke(bearerToken);
         SecurityContextHolder.clearContext();
