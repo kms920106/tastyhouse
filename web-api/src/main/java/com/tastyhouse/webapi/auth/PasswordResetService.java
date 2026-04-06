@@ -1,0 +1,106 @@
+package com.tastyhouse.webapi.auth;
+
+import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.verification.EmailVerification;
+import com.tastyhouse.core.entity.verification.EmailVerificationStatus;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.service.EmailVerificationCoreService;
+import com.tastyhouse.core.service.MemberCoreService;
+import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
+import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.webapi.member.service.MemberAccountService;
+import com.tastyhouse.webapi.verification.VerificationCodeGenerator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class PasswordResetService {
+
+    private static final String EMAIL_SUBJECT = "[TASTY HOUSE] 비밀번호 재설정 인증번호 안내";
+    private static final String EMAIL_BODY_TEMPLATE = "[TASTY HOUSE] 비밀번호 재설정 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
+
+    private final MemberCoreService memberCoreService;
+    private final EmailVerificationCoreService emailVerificationCoreService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final VerificationCodeGenerator verificationCodeGenerator;
+    private final MemberAccountService memberAccountService;
+    private final PasswordEncoder passwordEncoder;
+
+    // 아이디(이메일)로 회원을 조회하고 비밀번호 재설정 인증코드를 발송
+    @Transactional
+    public void sendPasswordResetCode(String username) {
+        // 가입된 회원 여부 확인 (보안상 동일한 응답 반환 — 타이밍 공격 방지를 위해 예외 미노출)
+        if (!memberCoreService.existsByUsername(username)) {
+            log.info("비밀번호 재설정 요청: 존재하지 않는 아이디. username={}", username);
+            return;
+        }
+
+        emailVerificationCoreService.expireAllPendingByEmail(username);
+
+        String verificationCode = verificationCodeGenerator.generate();
+
+        emailVerificationCoreService.save(
+            EmailVerification.builder()
+                .email(username)
+                .verificationCode(verificationCode)
+                .build()
+        );
+
+//        String emailBody = EMAIL_BODY_TEMPLATE.formatted(verificationCode);
+//        emailSender.send(username, EMAIL_SUBJECT, emailBody);
+
+        log.info("비밀번호 재설정 인증코드 발송. username={}", username);
+    }
+
+    // 인증코드를 검증하고 비밀번호 재설정 토큰을 발급
+    @Transactional
+    public PasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
+        EmailVerification verification = emailVerificationCoreService
+            .findLatestPendingByEmail(username, EmailVerificationStatus.PENDING)
+            .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
+
+        if (verification.isExpired()) {
+            verification.expire();
+            throw new BusinessException(ErrorCode.EMAIL_VERIFICATION_CODE_EXPIRED);
+        }
+
+        if (!verification.getVerificationCode().equals(verificationCode)) {
+            throw new BusinessException(ErrorCode.EMAIL_VERIFICATION_CODE_MISMATCH);
+        }
+
+        verification.verify();
+
+        String passwordResetToken = jwtTokenProvider.createPasswordResetToken(username);
+
+        log.info("비밀번호 재설정 인증 완료. username={}", username);
+
+        return new PasswordResetTokenResponse(passwordResetToken);
+    }
+
+    // 비밀번호 재설정 토큰을 검증하고 새 비밀번호로 변경
+    @Transactional
+    public void resetPassword(String passwordResetToken, String newPassword, String newPasswordConfirm) {
+        if (!jwtTokenProvider.validatePasswordResetToken(passwordResetToken)) {
+            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_RESET_TOKEN_INVALID);
+        }
+
+        String username = jwtTokenProvider.getUsernameFromPasswordResetToken(passwordResetToken);
+
+        Member member = memberCoreService.findByUsername(username)
+            .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (passwordEncoder.matches(newPassword, member.getPassword())) {
+            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
+        }
+
+        memberAccountService.updatePassword(member.getId(), newPassword, newPasswordConfirm);
+
+        log.info("비밀번호 재설정 완료. memberId={}", member.getId());
+    }
+}

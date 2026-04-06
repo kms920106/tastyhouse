@@ -5,5 +5,6 @@ public enum TokenType {
     REFRESH,
     PHONE_VERIFY,
     EMAIL_VERIFY,
-    PERSONAL_INFO_VERIFY;
+    PERSONAL_INFO_VERIFY,
+    PASSWORD_RESET;
 }

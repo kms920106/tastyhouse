@@ -259,4 +259,37 @@ public class JwtTokenProvider {
 
         return claims.getSubject();
     }
+
+    public String createPasswordResetToken(String username) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + 15 * 60 * 1000L); // 15분
+
+        return Jwts.builder()
+                .subject(username)
+                .claim("type", TokenType.PASSWORD_RESET.name())
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(key)
+                .compact();
+    }
+
+    public boolean validatePasswordResetToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return TokenType.PASSWORD_RESET.name().equals(claims.get("type", String.class));
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("Invalid password reset token.", e);
+            return false;
+        }
+    }
+
+    public String getUsernameFromPasswordResetToken(String token) {
+        Claims claims = parseClaims(token);
+
+        if (!TokenType.PASSWORD_RESET.name().equals(claims.get("type", String.class))) {
+            throw new JwtException("유효하지 않은 비밀번호 재설정 토큰입니다.");
+        }
+
+        return claims.getSubject();
+    }
 }
