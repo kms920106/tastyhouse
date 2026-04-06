@@ -44,10 +44,8 @@ public class EmailVerificationService {
                 .build()
         );
 
-        String emailBody = EMAIL_BODY_TEMPLATE.formatted(verificationCode);
-        emailSender.send(email, EMAIL_SUBJECT, emailBody);
-
-        log.info("이메일 인증번호 발송 완료. email: {}", email);
+//        String emailBody = EMAIL_BODY_TEMPLATE.formatted(verificationCode);
+//        emailSender.send(email, EMAIL_SUBJECT, emailBody);
     }
 
     @Transactional
