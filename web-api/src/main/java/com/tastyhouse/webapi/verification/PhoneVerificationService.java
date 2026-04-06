@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PhoneVerificationService {
 
-    private static final String SMS_TEXT_TEMPLATE = "[TastyHouse] 인증번호 [%s]를 입력해주세요.";
+    private static final String SMS_TEXT_TEMPLATE = "[TASTY HOUSE] 인증번호 [%s]를 입력해주세요.";
 
     private final PhoneVerificationCoreService phoneVerificationCoreService;
     private final SmsSender smsSender;

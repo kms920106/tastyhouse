@@ -18,8 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class EmailVerificationService {
 
-    private static final String EMAIL_SUBJECT = "[TastyHouse] 이메일 인증번호 안내";
-    private static final String EMAIL_BODY_TEMPLATE = "[TastyHouse] 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
+    private static final String EMAIL_SUBJECT = "[TASTY HOUSE] 이메일 인증번호 안내";
+    private static final String EMAIL_BODY_TEMPLATE = "[TASTY HOUSE] 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
 
     private final MemberCoreService memberCoreService;
     private final EmailVerificationCoreService emailVerificationCoreService;
