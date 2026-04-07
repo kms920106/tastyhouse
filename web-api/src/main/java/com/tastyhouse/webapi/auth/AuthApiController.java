@@ -42,7 +42,7 @@ public class AuthApiController {
         @ApiResponse(responseCode = "409", description = "아이디 또는 닉네임 중복", content = @Content(schema = @Schema(hidden = true)))
     })
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:signup")
-    @PostMapping("/signup")
+    @PostMapping("/v1/signup")
     public ResponseEntity<CommonResponse<Void>> signUp(@Valid @RequestBody SignUpRequest request) {
         authFacade.signUp(
             request.username(),
@@ -69,7 +69,7 @@ public class AuthApiController {
         @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (IP당 분당 10회)", content = @Content(schema = @Schema(hidden = true)))
     })
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:login")
-    @PostMapping("/login")
+    @PostMapping("/v1/login")
     public ResponseEntity<CommonResponse<JwtResponse>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(CommonResponse.success(authFacade.login(loginRequest.username(), loginRequest.password(), loginRequest.rememberMe())));
     }
@@ -79,7 +79,7 @@ public class AuthApiController {
         @ApiResponse(responseCode = "200", description = "토큰 갱신 성공", content = @Content(schema = @Schema(implementation = JwtResponse.class))),
         @ApiResponse(responseCode = "401", description = "유효하지 않은 Refresh Token", content = @Content(schema = @Schema(hidden = true)))
     })
-    @PostMapping("/refresh")
+    @PostMapping("/v1/refresh")
     public ResponseEntity<CommonResponse<JwtResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(CommonResponse.success(authFacade.refresh(request.refreshToken())));
     }
@@ -89,7 +89,7 @@ public class AuthApiController {
         @ApiResponse(responseCode = "200", description = "로그아웃 성공", content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(responseCode = "400", description = "유효하지 않은 토큰", content = @Content(schema = @Schema(hidden = true)))
     })
-    @PostMapping("/logout")
+    @PostMapping("/v1/logout")
     public ResponseEntity<CommonResponse<Void>> logout(@RequestHeader("Authorization") String bearerToken) {
         authFacade.logout(bearerToken);
         return ResponseEntity.ok(CommonResponse.success(null));
@@ -102,7 +102,7 @@ public class AuthApiController {
         @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (IP당 분당 5회)", content = @Content(schema = @Schema(hidden = true)))
     })
     @RateLimit(limit = 5, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:password_reset_request")
-    @PostMapping("/password-reset/request")
+    @PostMapping("/v1/password-reset/request")
     public ResponseEntity<CommonResponse<Void>> requestPasswordReset(@Valid @RequestBody PasswordResetRequestRequest request) {
         authFacade.sendPasswordResetCode(request.username());
         return ResponseEntity.ok(CommonResponse.success(null));
@@ -113,7 +113,7 @@ public class AuthApiController {
         @ApiResponse(responseCode = "200", description = "인증 성공, 비밀번호 재설정 토큰 발급", content = @Content(schema = @Schema(implementation = PasswordResetTokenResponse.class))),
         @ApiResponse(responseCode = "400", description = "인증코드 불일치 또는 만료", content = @Content(schema = @Schema(hidden = true)))
     })
-    @PostMapping("/password-reset/verify")
+    @PostMapping("/v1/password-reset/verify")
     public ResponseEntity<CommonResponse<PasswordResetTokenResponse>> verifyPasswordReset(@Valid @RequestBody PasswordResetVerifyRequest request) {
         return ResponseEntity.ok(CommonResponse.success(authFacade.verifyPasswordResetCode(request.username(), request.verificationCode())));
     }
@@ -123,7 +123,7 @@ public class AuthApiController {
         @ApiResponse(responseCode = "200", description = "비밀번호 재설정 성공", content = @Content(schema = @Schema(hidden = true))),
         @ApiResponse(responseCode = "400", description = "토큰 만료/무효, 비밀번호 불일치, 기존 비밀번호와 동일", content = @Content(schema = @Schema(hidden = true)))
     })
-    @PostMapping("/password-reset/confirm")
+    @PostMapping("/v1/password-reset/confirm")
     public ResponseEntity<CommonResponse<Void>> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
         authFacade.resetPassword(request.passwordResetToken(), request.newPassword(), request.newPasswordConfirm());
         return ResponseEntity.ok(CommonResponse.success(null));
