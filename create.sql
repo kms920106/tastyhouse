@@ -153,7 +153,7 @@ CREATE TABLE MEMBER
 (
     id                        BIGINT AUTO_INCREMENT PRIMARY KEY,
     username                  VARCHAR(50)  NOT NULL UNIQUE,
-    password                  VARCHAR(255) NOT NULL,
+    password                  VARCHAR(255),
     nickname                  VARCHAR(50)  NOT NULL,
     full_name                 VARCHAR(100) NOT NULL,
     birth_date                INT,
@@ -168,6 +168,23 @@ CREATE TABLE MEMBER
     member_status             VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
     created_at                DATETIME     NOT NULL,
     updated_at                DATETIME     NOT NULL
+);
+
+CREATE TABLE MEMBER_SOCIAL_ACCOUNT
+(
+    id                          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    member_id                   BIGINT       NOT NULL,
+    provider                    VARCHAR(20)  NOT NULL,
+    provider_id                 VARCHAR(100) NOT NULL,
+    provider_email              VARCHAR(200),
+    provider_nickname           VARCHAR(100),
+    provider_profile_image_url  VARCHAR(500),
+    last_login_at               DATETIME,
+    created_at                  DATETIME     NOT NULL,
+    updated_at                  DATETIME     NOT NULL,
+    UNIQUE KEY uk_member_social_account_provider_provider_id (provider, provider_id),
+    INDEX idx_member_social_account_member_id (member_id),
+    INDEX idx_member_social_account_provider_id (provider, provider_id)
 );
 
 CREATE TABLE MEMBER_REVIEW_RANK

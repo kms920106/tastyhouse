@@ -17,7 +17,7 @@ public class Member extends BaseEntity {
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password")
     private String password;
 
     @Column(name = "nickname", nullable = false, length = 50)
@@ -72,6 +72,23 @@ public class Member extends BaseEntity {
         this.gender = gender;
         this.birthDate = birthDate;
         this.phoneNumber = new PhoneNumber(phoneNumber);
+        this.memberGrade = MemberGrade.NEWCOMER;
+        this.memberStatus = MemberStatus.ACTIVE;
+        this.pushNotificationEnabled = pushNotificationEnabled != null ? pushNotificationEnabled : true;
+        this.marketingInfoEnabled = marketingInfoEnabled != null ? marketingInfoEnabled : false;
+        this.eventInfoEnabled = eventInfoEnabled != null ? eventInfoEnabled : false;
+    }
+
+    public Member(String username, String nickname, String fullName, Gender gender,
+                  Integer birthDate, String phoneNumber,
+                  Boolean pushNotificationEnabled, Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
+        this.username = username;
+        this.password = null;
+        this.nickname = nickname;
+        this.fullName = fullName;
+        this.gender = gender;
+        this.birthDate = birthDate;
+        this.phoneNumber = phoneNumber != null ? new PhoneNumber(phoneNumber) : null;
         this.memberGrade = MemberGrade.NEWCOMER;
         this.memberStatus = MemberStatus.ACTIVE;
         this.pushNotificationEnabled = pushNotificationEnabled != null ? pushNotificationEnabled : true;

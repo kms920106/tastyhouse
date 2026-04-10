@@ -1,14 +1,20 @@
 package com.tastyhouse.webapi.auth;
 
 import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.auth.request.KakaoAccountLinkRequest;
+import com.tastyhouse.webapi.auth.request.KakaoLoginRequest;
+import com.tastyhouse.webapi.auth.request.KakaoSignUpRequest;
 import com.tastyhouse.webapi.auth.request.LoginRequest;
 import com.tastyhouse.webapi.auth.request.PasswordResetConfirmRequest;
 import com.tastyhouse.webapi.auth.request.PasswordResetRequestRequest;
 import com.tastyhouse.webapi.auth.request.PasswordResetVerifyRequest;
+import com.tastyhouse.webapi.auth.request.PhoneLoginRequest;
 import com.tastyhouse.webapi.auth.request.RefreshTokenRequest;
 import com.tastyhouse.webapi.auth.request.SignUpRequest;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
+import com.tastyhouse.webapi.auth.response.KakaoLoginResponse;
 import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
+import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -127,5 +133,68 @@ public class AuthApiController {
     public ResponseEntity<CommonResponse<Void>> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
         authFacade.resetPassword(request.passwordResetToken(), request.newPassword(), request.newPasswordConfirm());
         return ResponseEntity.ok(CommonResponse.success(null));
+    }
+
+    @Operation(summary = "휴대폰 인증 로그인", description = "휴대폰 인증 완료 후 발급된 phoneVerifyToken으로 로그인합니다. 기존 회원이면 JWT를 발급하고, 신규 사용자이면 needsSignUp=true를 반환합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "로그인 성공 또는 회원가입 필요", content = @Content(schema = @Schema(implementation = PhoneLoginResponse.class))),
+        @ApiResponse(responseCode = "400", description = "phoneVerifyToken 만료 또는 유효하지 않음", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:phone_login")
+    @PostMapping("/v1/login/phone")
+    public ResponseEntity<CommonResponse<PhoneLoginResponse>> phoneLogin(@Valid @RequestBody PhoneLoginRequest request) {
+        return ResponseEntity.ok(CommonResponse.success(authFacade.phoneLogin(request.phoneVerifyToken())));
+    }
+
+    @Operation(summary = "카카오 로그인", description = "카카오 인가 코드로 로그인합니다. 기존 회원이면 JWT를 발급하고, 신규 사용자이면 needsSignUp=true와 카카오 프로필 정보를 반환합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "로그인 성공 또는 회원가입 필요", content = @Content(schema = @Schema(implementation = KakaoLoginResponse.class))),
+        @ApiResponse(responseCode = "400", description = "인가 코드 누락 또는 이메일 동의 미완료", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "502", description = "카카오 서버 오류", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:kakao_login")
+    @PostMapping("/v1/login/kakao")
+    public ResponseEntity<CommonResponse<KakaoLoginResponse>> kakaoLogin(@Valid @RequestBody KakaoLoginRequest request) {
+        return ResponseEntity.ok(CommonResponse.success(authFacade.kakaoLogin(request.code())));
+    }
+
+    @Operation(summary = "카카오 계정 연동", description = "카카오 로그인 시 status=NEEDS_LINKING을 받은 경우, 기존 일반가입 계정의 비밀번호로 본인 확인 후 카카오 소셜 계정을 연동하고 JWT를 발급합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "연동 성공, JWT 발급", content = @Content(schema = @Schema(implementation = JwtResponse.class))),
+        @ApiResponse(responseCode = "400", description = "인가 코드 누락 또는 이메일 동의 미완료", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "401", description = "비밀번호 불일치", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "404", description = "연동할 계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "409", description = "이미 연동된 소셜 계정", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:kakao_link")
+    @PostMapping("/v1/link/kakao")
+    public ResponseEntity<CommonResponse<JwtResponse>> kakaoLinkAccount(@Valid @RequestBody KakaoAccountLinkRequest request) {
+        return ResponseEntity.ok(CommonResponse.success(authFacade.kakaoLinkAccount(request.accessToken(), request.phoneVerifyToken())));
+    }
+
+    @Operation(summary = "카카오 회원가입", description = "카카오 인가 코드와 추가 정보로 소셜 회원가입을 완료하고 JWT를 발급합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "회원가입 성공", content = @Content(schema = @Schema(implementation = JwtResponse.class))),
+        @ApiResponse(responseCode = "400", description = "유효성 검증 실패 또는 이메일 동의 미완료", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "409", description = "이미 가입된 소셜 계정, 닉네임/아이디 중복", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:kakao_signup")
+    @PostMapping("/v1/signup/kakao")
+    public ResponseEntity<CommonResponse<JwtResponse>> kakaoSignUp(@Valid @RequestBody KakaoSignUpRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(
+            authFacade.kakaoSignUp(
+                request.code(),
+                request.nickname(),
+                request.fullName(),
+                request.gender(),
+                request.birthDate(),
+                request.phoneNumber(),
+                request.phoneVerifyToken(),
+                request.pushNotificationEnabled(),
+                request.marketingInfoEnabled(),
+                request.eventInfoEnabled(),
+                request.referrerNickname()
+            )
+        ));
     }
 }

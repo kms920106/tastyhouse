@@ -116,6 +116,19 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
+    public Optional<Member> findByPhoneNumberValueAndMemberStatusNot(String phoneNumber, MemberStatus memberStatus) {
+        QMember member = QMember.member;
+        Member result = queryFactory
+            .selectFrom(member)
+            .where(
+                member.phoneNumber.value.eq(phoneNumber),
+                member.memberStatus.ne(memberStatus)
+            )
+            .fetchOne();
+        return Optional.ofNullable(result);
+    }
+
+    @Override
     public long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade) {
         QMember member = QMember.member;
         return queryFactory.update(member)

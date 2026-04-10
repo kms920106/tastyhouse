@@ -54,6 +54,11 @@ public class MemberCoreService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<Member> findByPhoneNumberAndStatusNot(String phoneNumber, com.tastyhouse.core.entity.user.MemberStatus memberStatus) {
+        return memberRepository.findByPhoneNumberValueAndMemberStatusNot(phoneNumber, memberStatus);
+    }
+
+    @Transactional(readOnly = true)
     public Optional<Member> findByNickname(String nickname) {
         return memberRepository.findByNickname(nickname);
     }

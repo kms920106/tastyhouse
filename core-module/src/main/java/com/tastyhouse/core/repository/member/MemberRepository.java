@@ -30,6 +30,8 @@ public interface MemberRepository {
 
     boolean existsByPhoneNumberValueAndMemberStatusNot(String phoneNumber, MemberStatus memberStatus);
 
+    Optional<Member> findByPhoneNumberValueAndMemberStatusNot(String phoneNumber, MemberStatus memberStatus);
+
     Page<Member> findAllMembers(Pageable pageable);
 
     long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade);
