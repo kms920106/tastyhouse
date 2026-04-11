@@ -137,6 +137,8 @@ public enum ErrorCode {
     KAKAO_TEMP_TOKEN_EXPIRED(400, "KAKAO_TEMP_TOKEN_EXPIRED", "카카오 인증이 만료되었습니다. 다시 시도해주세요."),
     NAVER_TEMP_TOKEN_EXPIRED(400, "NAVER_TEMP_TOKEN_EXPIRED", "네이버 인증이 만료되었습니다. 다시 시도해주세요."),
     FACEBOOK_TEMP_TOKEN_EXPIRED(400, "FACEBOOK_TEMP_TOKEN_EXPIRED", "페이스북 인증이 만료되었습니다. 다시 시도해주세요."),
+    APPLE_TEMP_TOKEN_EXPIRED(400, "APPLE_TEMP_TOKEN_EXPIRED", "애플 인증이 만료되었습니다. 다시 시도해주세요."),
+    APPLE_ID_TOKEN_INVALID(400, "APPLE_ID_TOKEN_INVALID", "애플 인증 토큰이 유효하지 않습니다."),
 
     // Rate Limiting
     RATE_LIMIT_EXCEEDED(429, "RATE_LIMIT_EXCEEDED", "요청 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요.");

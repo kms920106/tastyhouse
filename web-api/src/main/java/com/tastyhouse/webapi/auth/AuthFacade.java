@@ -1,9 +1,12 @@
 package com.tastyhouse.webapi.auth;
 
 import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;
 import com.tastyhouse.webapi.auth.facebook.FacebookSocialLoginService;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;
 import com.tastyhouse.webapi.auth.naver.NaverSocialLoginService;
+import com.tastyhouse.webapi.auth.response.AppleLinkResponse;
+import com.tastyhouse.webapi.auth.response.AppleLoginResponse;
 import com.tastyhouse.webapi.auth.response.FacebookLinkResponse;
 import com.tastyhouse.webapi.auth.response.FacebookLoginResponse;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
@@ -25,6 +28,7 @@ public class AuthFacade {
     private final KakaoSocialLoginService kakaoSocialLoginService;
     private final NaverSocialLoginService naverSocialLoginService;
     private final FacebookSocialLoginService facebookSocialLoginService;
+    private final AppleSocialLoginService appleSocialLoginService;
     private final PhoneLoginService phoneLoginService;
 
     // 회원가입
@@ -136,6 +140,27 @@ public class AuthFacade {
                                       Boolean eventInfoEnabled, String referrerNickname) {
         return facebookSocialLoginService.signUp(
             facebookTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
+        );
+    }
+
+    // 애플 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
+    public AppleLoginResponse appleLogin(String authorizationCode) {
+        return appleSocialLoginService.login(authorizationCode);
+    }
+
+    // 애플 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
+    public AppleLinkResponse appleLinkAccount(String appleTempToken, String phoneVerifyToken) {
+        return appleSocialLoginService.linkAccount(appleTempToken, phoneVerifyToken);
+    }
+
+    // 애플 소셜 회원가입 후 JWT 발급
+    public JwtResponse appleSignUp(String appleTempToken, String username, String nickname, String fullName,
+                                   Gender gender, Integer birthDate, String phoneNumber,
+                                   Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
+                                   Boolean eventInfoEnabled, String referrerNickname) {
+        return appleSocialLoginService.signUp(
+            appleTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
     }
