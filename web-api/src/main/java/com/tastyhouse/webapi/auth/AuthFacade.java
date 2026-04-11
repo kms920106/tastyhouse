@@ -3,6 +3,7 @@ package com.tastyhouse.webapi.auth;
 import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
+import com.tastyhouse.webapi.auth.response.KakaoLinkResponse;
 import com.tastyhouse.webapi.auth.response.KakaoLoginResponse;
 import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
 import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
@@ -73,21 +74,19 @@ public class AuthFacade {
         return phoneLoginService.login(phoneVerifyToken);
     }
 
-    // 카카오 계정을 기존 일반가입 계정에 연동 후 JWT 발급
-    public JwtResponse kakaoLinkAccount(String kakaoAccessToken, String phoneVerifyToken) {
-        return kakaoSocialLoginService.linkAccount(kakaoAccessToken, phoneVerifyToken);
+    // 카카오 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
+    public KakaoLinkResponse kakaoLinkAccount(String kakaoTempToken, String phoneVerifyToken) {
+        return kakaoSocialLoginService.linkAccount(kakaoTempToken, phoneVerifyToken);
     }
 
     // 카카오 소셜 회원가입 후 JWT 발급
-    public JwtResponse kakaoSignUp(String authorizationCode, String nickname, String fullName,
+    public JwtResponse kakaoSignUp(String kakaoTempToken, String username, String nickname, String fullName,
                                    Gender gender, Integer birthDate, String phoneNumber,
-                                   String phoneVerifyToken,
                                    Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
                                    Boolean eventInfoEnabled, String referrerNickname) {
         return kakaoSocialLoginService.signUp(
-            authorizationCode, nickname, fullName, gender, birthDate, phoneNumber,
-            phoneVerifyToken, pushNotificationEnabled, marketingInfoEnabled,
-            eventInfoEnabled, referrerNickname
+            kakaoTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
     }
 }

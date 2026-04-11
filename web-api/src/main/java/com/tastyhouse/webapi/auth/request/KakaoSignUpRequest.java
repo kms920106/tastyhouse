@@ -10,9 +10,13 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "카카오 소셜 회원가입 요청")
 public record KakaoSignUpRequest(
 
-    @Schema(description = "카카오 인가 코드 (소셜 계정 연동에 사용)", example = "abc123")
-    @NotBlank(message = "인가 코드를 입력해주세요.")
-    String code,
+    @Schema(description = "카카오 로그인 응답에서 발급된 임시 토큰 (10분 유효)", example = "550e8400-e29b-41d4-a716-446655440000")
+    @NotBlank(message = "카카오 임시 토큰을 입력해주세요.")
+    String kakaoTempToken,
+
+    @Schema(description = "사용자 아이디 (이메일 형식)", example = "user@example.com")
+    @NotBlank(message = "아이디를 입력해주세요.")
+    String username,
 
     @Schema(description = "닉네임 (2~20자)", example = "맛집탐험가")
     @NotBlank(message = "닉네임을 입력해주세요.")
@@ -35,9 +39,6 @@ public record KakaoSignUpRequest(
     @Schema(description = "휴대폰번호 (010XXXXXXXX 형식)", example = "01012345678")
     @Pattern(regexp = "^\\d{10,11}$", message = "휴대폰번호는 10~11자리 숫자여야 합니다.")
     String phoneNumber,
-
-    @Schema(description = "SMS 휴대폰 인증 토큰 (휴대폰번호 입력 시 필수)")
-    String phoneVerifyToken,
 
     @Schema(description = "푸시 알림 수신 동의", example = "true")
     Boolean pushNotificationEnabled,
