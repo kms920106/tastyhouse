@@ -1,8 +1,11 @@
 package com.tastyhouse.webapi.auth;
 
 import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.webapi.auth.facebook.FacebookSocialLoginService;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;
 import com.tastyhouse.webapi.auth.naver.NaverSocialLoginService;
+import com.tastyhouse.webapi.auth.response.FacebookLinkResponse;
+import com.tastyhouse.webapi.auth.response.FacebookLoginResponse;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.auth.response.KakaoLinkResponse;
 import com.tastyhouse.webapi.auth.response.KakaoLoginResponse;
@@ -21,6 +24,7 @@ public class AuthFacade {
     private final AuthPasswordResetService authPasswordResetService;
     private final KakaoSocialLoginService kakaoSocialLoginService;
     private final NaverSocialLoginService naverSocialLoginService;
+    private final FacebookSocialLoginService facebookSocialLoginService;
     private final PhoneLoginService phoneLoginService;
 
     // 회원가입
@@ -111,6 +115,27 @@ public class AuthFacade {
                                    Boolean eventInfoEnabled, String referrerNickname) {
         return naverSocialLoginService.signUp(
             naverTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
+        );
+    }
+
+    // 페이스북 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
+    public FacebookLoginResponse facebookLogin(String accessToken) {
+        return facebookSocialLoginService.login(accessToken);
+    }
+
+    // 페이스북 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
+    public FacebookLinkResponse facebookLinkAccount(String facebookTempToken, String phoneVerifyToken) {
+        return facebookSocialLoginService.linkAccount(facebookTempToken, phoneVerifyToken);
+    }
+
+    // 페이스북 소셜 회원가입 후 JWT 발급
+    public JwtResponse facebookSignUp(String facebookTempToken, String username, String nickname, String fullName,
+                                      Gender gender, Integer birthDate, String phoneNumber,
+                                      Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
+                                      Boolean eventInfoEnabled, String referrerNickname) {
+        return facebookSocialLoginService.signUp(
+            facebookTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
     }

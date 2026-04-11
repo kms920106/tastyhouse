@@ -1,6 +1,9 @@
 package com.tastyhouse.webapi.auth;
 
 import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.auth.request.FacebookAccountLinkRequest;
+import com.tastyhouse.webapi.auth.request.FacebookLoginRequest;
+import com.tastyhouse.webapi.auth.request.FacebookSignUpRequest;
 import com.tastyhouse.webapi.auth.request.KakaoAccountLinkRequest;
 import com.tastyhouse.webapi.auth.request.KakaoLoginRequest;
 import com.tastyhouse.webapi.auth.request.KakaoSignUpRequest;
@@ -14,6 +17,8 @@ import com.tastyhouse.webapi.auth.request.PasswordResetVerifyRequest;
 import com.tastyhouse.webapi.auth.request.PhoneLoginRequest;
 import com.tastyhouse.webapi.auth.request.RefreshTokenRequest;
 import com.tastyhouse.webapi.auth.request.SignUpRequest;
+import com.tastyhouse.webapi.auth.response.FacebookLinkResponse;
+import com.tastyhouse.webapi.auth.response.FacebookLoginResponse;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.auth.response.KakaoLinkResponse;
 import com.tastyhouse.webapi.auth.response.KakaoLoginResponse;
@@ -238,6 +243,56 @@ public class AuthApiController {
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(
             authFacade.naverSignUp(
                 request.naverTempToken(),
+                request.username(),
+                request.nickname(),
+                request.fullName(),
+                request.gender(),
+                request.birthDate(),
+                request.phoneNumber(),
+                request.pushNotificationEnabled(),
+                request.marketingInfoEnabled(),
+                request.eventInfoEnabled(),
+                request.referrerNickname()
+            )
+        ));
+    }
+
+    @Operation(summary = "페이스북 로그인", description = "Facebook JS SDK로부터 발급받은 액세스 토큰으로 로그인합니다. 기존 회원이면 JWT를 발급하고, 신규 사용자이면 needsSignUp=true와 페이스북 프로필 정보를 반환합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "로그인 성공 또는 회원가입 필요", content = @Content(schema = @Schema(implementation = FacebookLoginResponse.class))),
+        @ApiResponse(responseCode = "400", description = "액세스 토큰 누락 또는 유효하지 않음", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "502", description = "페이스북 서버 오류", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:facebook_login")
+    @PostMapping("/v1/login/facebook")
+    public ResponseEntity<CommonResponse<FacebookLoginResponse>> facebookLogin(@Valid @RequestBody FacebookLoginRequest request) {
+        return ResponseEntity.ok(CommonResponse.success(authFacade.facebookLogin(request.accessToken())));
+    }
+
+    @Operation(summary = "페이스북 계정 연동", description = "페이스북 로그인 시 status=NEEDS_LINKING을 받은 경우, 휴대폰 인증(phoneVerifyToken)으로 본인 확인 후 페이스북 소셜 계정을 연동하고 JWT를 발급합니다. 해당 전화번호로 가입된 계정이 없으면 status=NEEDS_SIGN_UP을 반환합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "연동 성공(status=LOGIN, JWT 발급) 또는 신규 회원가입 필요(status=NEEDS_SIGN_UP)", content = @Content(schema = @Schema(implementation = FacebookLinkResponse.class))),
+        @ApiResponse(responseCode = "400", description = "phoneVerifyToken 만료 또는 유효하지 않음", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "409", description = "이미 연동된 소셜 계정", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:facebook_link")
+    @PostMapping("/v1/link/facebook")
+    public ResponseEntity<CommonResponse<FacebookLinkResponse>> facebookLinkAccount(@Valid @RequestBody FacebookAccountLinkRequest request) {
+        return ResponseEntity.ok(CommonResponse.success(authFacade.facebookLinkAccount(request.facebookTempToken(), request.phoneVerifyToken())));
+    }
+
+    @Operation(summary = "페이스북 회원가입", description = "페이스북 임시 토큰과 추가 정보로 소셜 회원가입을 완료하고 JWT를 발급합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "회원가입 성공", content = @Content(schema = @Schema(implementation = JwtResponse.class))),
+        @ApiResponse(responseCode = "400", description = "유효성 검증 실패 또는 임시 토큰 만료", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "409", description = "이미 가입된 소셜 계정, 닉네임/아이디 중복", content = @Content(schema = @Schema(hidden = true)))
+    })
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:facebook_signup")
+    @PostMapping("/v1/signup/facebook")
+    public ResponseEntity<CommonResponse<JwtResponse>> facebookSignUp(@Valid @RequestBody FacebookSignUpRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(
+            authFacade.facebookSignUp(
+                request.facebookTempToken(),
                 request.username(),
                 request.nickname(),
                 request.fullName(),

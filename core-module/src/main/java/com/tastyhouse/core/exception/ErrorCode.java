@@ -136,6 +136,7 @@ public enum ErrorCode {
     SOCIAL_OAUTH_FAILED(502, "SOCIAL_OAUTH_FAILED", "소셜 로그인 처리 중 오류가 발생했습니다."),
     KAKAO_TEMP_TOKEN_EXPIRED(400, "KAKAO_TEMP_TOKEN_EXPIRED", "카카오 인증이 만료되었습니다. 다시 시도해주세요."),
     NAVER_TEMP_TOKEN_EXPIRED(400, "NAVER_TEMP_TOKEN_EXPIRED", "네이버 인증이 만료되었습니다. 다시 시도해주세요."),
+    FACEBOOK_TEMP_TOKEN_EXPIRED(400, "FACEBOOK_TEMP_TOKEN_EXPIRED", "페이스북 인증이 만료되었습니다. 다시 시도해주세요."),
 
     // Rate Limiting
     RATE_LIMIT_EXCEEDED(429, "RATE_LIMIT_EXCEEDED", "요청 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요.");
