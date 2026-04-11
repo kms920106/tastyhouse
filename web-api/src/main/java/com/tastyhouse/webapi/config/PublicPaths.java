@@ -11,7 +11,9 @@ public final class PublicPaths {
     public static final String[] PATTERNS = {
         "/api/auth/v1/signup", "/api/auth/v1/login", "/api/auth/v1/refresh",
         "/api/auth/v1/password-reset/request", "/api/auth/v1/password-reset/verify", "/api/auth/v1/password-reset/confirm",
-        "/api/auth/v1/login/kakao", "/api/auth/v1/signup/kakao", "/api/auth/v1/login/phone", "/api/auth/v1/link/kakao",
+        "/api/auth/v1/login/phone",
+        "/api/auth/v1/login/kakao", "/api/auth/v1/link/kakao", "/api/auth/v1/signup/kakao",
+        "/api/auth/v1/login/naver", "/api/auth/v1/link/naver", "/api/auth/v1/signup/naver",
         "/api/email-verifications/**",
         "/api/phone-verifications/**",
         "/api/policies/**",

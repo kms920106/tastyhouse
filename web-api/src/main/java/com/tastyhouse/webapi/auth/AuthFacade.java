@@ -2,9 +2,12 @@ package com.tastyhouse.webapi.auth;
 
 import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;
+import com.tastyhouse.webapi.auth.naver.NaverSocialLoginService;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.auth.response.KakaoLinkResponse;
 import com.tastyhouse.webapi.auth.response.KakaoLoginResponse;
+import com.tastyhouse.webapi.auth.response.NaverLinkResponse;
+import com.tastyhouse.webapi.auth.response.NaverLoginResponse;
 import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
 import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ public class AuthFacade {
     private final AuthService authService;
     private final AuthPasswordResetService authPasswordResetService;
     private final KakaoSocialLoginService kakaoSocialLoginService;
+    private final NaverSocialLoginService naverSocialLoginService;
     private final PhoneLoginService phoneLoginService;
 
     // 회원가입
@@ -86,6 +90,27 @@ public class AuthFacade {
                                    Boolean eventInfoEnabled, String referrerNickname) {
         return kakaoSocialLoginService.signUp(
             kakaoTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
+        );
+    }
+
+    // 네이버 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
+    public NaverLoginResponse naverLogin(String authorizationCode, String state) {
+        return naverSocialLoginService.login(authorizationCode, state);
+    }
+
+    // 네이버 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
+    public NaverLinkResponse naverLinkAccount(String naverTempToken, String phoneVerifyToken) {
+        return naverSocialLoginService.linkAccount(naverTempToken, phoneVerifyToken);
+    }
+
+    // 네이버 소셜 회원가입 후 JWT 발급
+    public JwtResponse naverSignUp(String naverTempToken, String username, String nickname, String fullName,
+                                   Gender gender, Integer birthDate, String phoneNumber,
+                                   Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
+                                   Boolean eventInfoEnabled, String referrerNickname) {
+        return naverSocialLoginService.signUp(
+            naverTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
     }
