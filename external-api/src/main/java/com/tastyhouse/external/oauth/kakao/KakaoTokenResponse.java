@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.auth.kakao;
+package com.tastyhouse.external.oauth.kakao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

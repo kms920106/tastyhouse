@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.auth.naver;
+package com.tastyhouse.external.oauth.naver;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

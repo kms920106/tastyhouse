@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.auth.naver;
+package com.tastyhouse.external.oauth.kakao;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,47 +11,43 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Component
 @RequiredArgsConstructor
-public class NaverOAuthClient {
+public class KakaoOAuthClient {
 
-    private static final String NAUTH_BASE_URL = "https://nid.naver.com";
-    private static final String NAPI_BASE_URL = "https://openapi.naver.com";
+    private static final String KAUTH_BASE_URL = "https://kauth.kakao.com";
+    private static final String KAPI_BASE_URL = "https://kapi.kakao.com";
 
-    @Value("${naver.client-id}")
+    @Value("${kakao.client-id}")
     private String clientId;
 
-    @Value("${naver.client-secret}")
-    private String clientSecret;
-
-    @Value("${naver.redirect-uri}")
+    @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
     private final WebClient webClient;
 
-    // 인가 코드와 state로 네이버 액세스 토큰을 발급
-    public NaverTokenResponse fetchToken(String authorizationCode, String state) {
+    // 인가 코드로 카카오 액세스 토큰을 발급
+    public KakaoTokenResponse fetchToken(String authorizationCode) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "authorization_code");
         formData.add("client_id", clientId);
-        formData.add("client_secret", clientSecret);
+        formData.add("redirect_uri", redirectUri);
         formData.add("code", authorizationCode);
-        formData.add("state", state);
 
         return webClient.post()
-            .uri(NAUTH_BASE_URL + "/oauth2.0/token")
+            .uri(KAUTH_BASE_URL + "/oauth/token")
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .body(BodyInserters.fromFormData(formData))
             .retrieve()
-            .bodyToMono(NaverTokenResponse.class)
+            .bodyToMono(KakaoTokenResponse.class)
             .block();
     }
 
-    // 네이버 액세스 토큰으로 사용자 정보를 조회
-    public NaverUserInfoResponse fetchUserInfo(String naverAccessToken) {
+    // 카카오 액세스 토큰으로 사용자 정보를 조회
+    public KakaoUserInfoResponse fetchUserInfo(String kakaoAccessToken) {
         return webClient.get()
-            .uri(NAPI_BASE_URL + "/v1/nid/me")
-            .header("Authorization", "Bearer " + naverAccessToken)
+            .uri(KAPI_BASE_URL + "/v2/user/me")
+            .header("Authorization", "Bearer " + kakaoAccessToken)
             .retrieve()
-            .bodyToMono(NaverUserInfoResponse.class)
+            .bodyToMono(KakaoUserInfoResponse.class)
             .block();
     }
 }
