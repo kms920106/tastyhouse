@@ -1,0 +1,62 @@
+server:
+  port: 8080
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%X{requestId:--}] [%thread] %cyan(%logger{36}) : %msg%n"
+  level:
+    root: INFO
+    # INFO: 메타 정보만 로깅 (운영 환경)
+    # DEBUG: Request/Response Body 추가 로깅 (개발 환경)
+    com.tastyhouse.webapi.logging: INFO
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+spring:
+  application:
+    name: web-api
+  config:
+    import:
+      - classpath:application-core.yml
+      - classpath:application-external.yml
+      - optional:file:.env[.properties]
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+jwt:
+  secret: ${JWT_SECRET}
+  accessTokenExpiration: 3600000 # 1시간 (ms)
+  refreshTokenExpiration: 604800000 # 7일 (ms) - 일반 로그인
+  rememberMeRefreshTokenExpiration: 2592000000 # 30일 (ms) - 로그인 상태 유지
+
+# 카카오 로그인
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}
+  redirect-uri: ${KAKAO_REDIRECT_URI}
+
+# 네이버 로그인
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+  redirect-uri: ${NAVER_REDIRECT_URI}
+
+# 페이스북 로그인
+facebook:
+  app-id: ${FACEBOOK_APP_ID}
+  app-secret: ${FACEBOOK_APP_SECRET}
+
+# 애플 로그인
+apple:
+  team-id: ${APPLE_TEAM_ID}
+  client-id: ${APPLE_CLIENT_ID}
+  key-id: ${APPLE_KEY_ID}
+  redirect-uri: ${APPLE_REDIRECT_URI}
+  private-key: ${APPLE_PRIVATE_KEY}
