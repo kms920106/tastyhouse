@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.auth;
 
 import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.core.entity.user.SocialProvider;
 import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;
 import com.tastyhouse.webapi.auth.facebook.FacebookSocialLoginService;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;
@@ -80,20 +81,15 @@ public class AuthFacade {
         return phoneLoginService.login(phoneVerifyToken);
     }
 
-    // 카카오 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public SocialLinkResponse kakaoLinkAccount(String kakaoTempToken, String phoneVerifyToken) {
-        return kakaoSocialLoginService.linkAccount(kakaoTempToken, phoneVerifyToken);
-    }
-
-    // 카카오 소셜 회원가입 후 JWT 발급
-    public JwtResponse kakaoSignUp(String kakaoTempToken, String username, String nickname, String fullName,
-                                   Gender gender, Integer birthDate, String phoneNumber,
-                                   Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                                   Boolean eventInfoEnabled, String referrerNickname) {
-        return kakaoSocialLoginService.signUp(
-            kakaoTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
-        );
+    // 소셜 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
+    public SocialLinkResponse linkAccount(SocialProvider provider, String tempToken, String phoneVerifyToken) {
+        return switch (provider) {
+            case KAKAO -> kakaoSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
+            case NAVER -> naverSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
+            case FACEBOOK -> facebookSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
+            case APPLE -> appleSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
+            default -> throw new IllegalArgumentException("지원하지 않는 소셜 로그인 제공자입니다: " + provider);
+        };
     }
 
     // 네이버 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
@@ -101,41 +97,9 @@ public class AuthFacade {
         return naverSocialLoginService.login(authorizationCode, state);
     }
 
-    // 네이버 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public SocialLinkResponse naverLinkAccount(String naverTempToken, String phoneVerifyToken) {
-        return naverSocialLoginService.linkAccount(naverTempToken, phoneVerifyToken);
-    }
-
-    // 네이버 소셜 회원가입 후 JWT 발급
-    public JwtResponse naverSignUp(String naverTempToken, String username, String nickname, String fullName,
-                                   Gender gender, Integer birthDate, String phoneNumber,
-                                   Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                                   Boolean eventInfoEnabled, String referrerNickname) {
-        return naverSocialLoginService.signUp(
-            naverTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
-        );
-    }
-
     // 페이스북 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
     public SocialLoginResponse facebookLogin(String accessToken) {
         return facebookSocialLoginService.login(accessToken);
-    }
-
-    // 페이스북 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public SocialLinkResponse facebookLinkAccount(String facebookTempToken, String phoneVerifyToken) {
-        return facebookSocialLoginService.linkAccount(facebookTempToken, phoneVerifyToken);
-    }
-
-    // 페이스북 소셜 회원가입 후 JWT 발급
-    public JwtResponse facebookSignUp(String facebookTempToken, String username, String nickname, String fullName,
-                                      Gender gender, Integer birthDate, String phoneNumber,
-                                      Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                                      Boolean eventInfoEnabled, String referrerNickname) {
-        return facebookSocialLoginService.signUp(
-            facebookTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
-        );
     }
 
     // 애플 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
@@ -143,19 +107,29 @@ public class AuthFacade {
         return appleSocialLoginService.login(authorizationCode);
     }
 
-    // 애플 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public SocialLinkResponse appleLinkAccount(String appleTempToken, String phoneVerifyToken) {
-        return appleSocialLoginService.linkAccount(appleTempToken, phoneVerifyToken);
-    }
-
-    // 애플 소셜 회원가입 후 JWT 발급
-    public JwtResponse appleSignUp(String appleTempToken, String username, String nickname, String fullName,
-                                   Gender gender, Integer birthDate, String phoneNumber,
-                                   Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                                   Boolean eventInfoEnabled, String referrerNickname) {
-        return appleSocialLoginService.signUp(
-            appleTempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
-        );
+    // 소셜 소셜 회원가입 후 JWT 발급
+    public JwtResponse socialSignUp(SocialProvider provider, String tempToken, String username, String nickname,
+                                    String fullName, Gender gender, Integer birthDate, String phoneNumber,
+                                    Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
+                                    Boolean eventInfoEnabled, String referrerNickname) {
+        return switch (provider) {
+            case KAKAO -> kakaoSocialLoginService.signUp(
+                tempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
+                pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
+            );
+            case NAVER -> naverSocialLoginService.signUp(
+                tempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
+                pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
+            );
+            case FACEBOOK -> facebookSocialLoginService.signUp(
+                tempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
+                pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
+            );
+            case APPLE -> appleSocialLoginService.signUp(
+                tempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
+                pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
+            );
+            default -> throw new IllegalArgumentException("지원하지 않는 소셜 로그인 제공자입니다: " + provider);
+        };
     }
 }

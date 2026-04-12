@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.auth.request;
 
 import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.core.entity.user.SocialProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,6 +10,10 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "소셜 회원가입 요청")
 public record SocialSignUpRequest(
+
+    @Schema(description = "소셜 로그인 제공자 (KAKAO, NAVER, FACEBOOK, APPLE)", example = "KAKAO")
+    @NotNull(message = "소셜 로그인 제공자를 입력해주세요.")
+    SocialProvider provider,
 
     @Schema(description = "소셜 로그인 응답에서 발급된 임시 토큰 (10분 유효)", example = "550e8400-e29b-41d4-a716-446655440000")
     @NotBlank(message = "소셜 임시 토큰을 입력해주세요.")
