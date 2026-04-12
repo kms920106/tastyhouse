@@ -13,9 +13,10 @@ import com.tastyhouse.core.service.MemberSocialAccountCoreService;
 import com.tastyhouse.external.oauth.facebook.FacebookOAuthClient;
 import com.tastyhouse.external.oauth.facebook.FacebookTokenDebugResponse;
 import com.tastyhouse.external.oauth.facebook.FacebookUserInfoResponse;
-import com.tastyhouse.webapi.auth.response.FacebookLinkResponse;
-import com.tastyhouse.webapi.auth.response.FacebookLoginResponse;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
+import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
+import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
+import com.tastyhouse.webapi.auth.response.SocialProfile;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.FacebookTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
@@ -51,7 +52,7 @@ public class FacebookSocialLoginService {
     // - 신규 사용자: facebookTempToken 반환 (NEEDS_SIGN_UP)
     // - 동일 이메일 일반가입 계정 존재: facebookTempToken 반환 (NEEDS_LINKING)
     @Transactional
-    public FacebookLoginResponse login(String facebookAccessToken) {
+    public SocialLoginResponse login(String facebookAccessToken) {
         validateToken(facebookAccessToken);
 
         FacebookUserInfoResponse facebookUser = facebookOAuthClient.fetchUserInfo(facebookAccessToken);
@@ -65,7 +66,7 @@ public class FacebookSocialLoginService {
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl());
 
             Member member = memberCoreService.getById(socialAccount.getMemberId());
-            return FacebookLoginResponse.ofLogin(issueJwt(member.getUsername()));
+            return SocialLoginResponse.ofLogin(issueJwt(member.getUsername()));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
@@ -73,11 +74,11 @@ public class FacebookSocialLoginService {
         String facebookEmail = facebookUser.email();
         if (StringUtils.hasText(facebookEmail) && memberCoreService.existsByUsername(facebookEmail)) {
             String facebookTempToken = issueTempToken(facebookAccessToken);
-            return FacebookLoginResponse.ofLinkingRequired(facebookTempToken);
+            return SocialLoginResponse.ofLinkingRequired(facebookTempToken);
         }
 
         String facebookTempToken = issueTempToken(facebookAccessToken);
-        return FacebookLoginResponse.ofSignUpRequired(facebookTempToken);
+        return SocialLoginResponse.ofSignUpRequired(facebookTempToken);
     }
 
     // 페이스북 계정을 기존 일반가입 계정에 연동하고 JWT 발급
@@ -86,7 +87,7 @@ public class FacebookSocialLoginService {
     // - 전화번호로 가입된 회원이 없으면 NEEDS_SIGN_UP 반환 (facebookTempToken 유지)
     // - MEMBER_SOCIAL_ACCOUNT INSERT 후 JWT 발급 (facebookTempToken 삭제)
     @Transactional
-    public FacebookLinkResponse linkAccount(String facebookTempToken, String phoneVerifyToken) {
+    public SocialLinkResponse linkAccount(String facebookTempToken, String phoneVerifyToken) {
         if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
@@ -110,12 +111,20 @@ public class FacebookSocialLoginService {
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // facebookTempToken은 /signup/facebook에서 재사용해야 하므로 삭제하지 않는다.
         if (memberOpt.isEmpty()) {
-            return FacebookLinkResponse.ofSignUpRequired(
+            return SocialLinkResponse.ofSignUpRequired(
                 facebookTempToken,
-                providerId,
-                facebookUser.email(),
-                facebookUser.name(),
-                facebookUser.getProfileImageUrl()
+                new SocialProfile(
+                    providerId,
+                    facebookUser.email(),
+                    null,
+                    facebookUser.getProfileImageUrl(),
+                    facebookUser.name(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                )
             );
         }
 
@@ -128,7 +137,7 @@ public class FacebookSocialLoginService {
 
         facebookTempTokenRedisRepository.delete(facebookTempToken);
 
-        return FacebookLinkResponse.ofLogin(issueJwt(member.getUsername()));
+        return SocialLinkResponse.ofLogin(issueJwt(member.getUsername()));
     }
 
     // 페이스북 소셜 회원가입 처리 후 JWT 발급

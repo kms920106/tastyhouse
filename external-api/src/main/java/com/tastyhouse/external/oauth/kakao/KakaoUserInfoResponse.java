@@ -1,6 +1,7 @@
 package com.tastyhouse.external.oauth.kakao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tastyhouse.core.entity.user.Gender;
 
 public record KakaoUserInfoResponse(
     @JsonProperty("id") Long id,
@@ -51,5 +52,15 @@ public record KakaoUserInfoResponse(
     public String getPhoneNumber() {
         if (kakaoAccount == null) return null;
         return kakaoAccount.phoneNumber();
+    }
+
+    // 카카오 gender: "male" → MALE, "female" → FEMALE, 그 외 → null
+    public Gender getGender() {
+        if (kakaoAccount == null || kakaoAccount.gender() == null) return null;
+        return switch (kakaoAccount.gender()) {
+            case "male" -> Gender.MALE;
+            case "female" -> Gender.FEMALE;
+            default -> null;
+        };
     }
 }

@@ -11,7 +11,7 @@ public class CustomUserDetails extends User {
     private final Long memberId;
 
     public CustomUserDetails(Member member, Collection<? extends GrantedAuthority> authorities) {
-        super(member.getUsername(), member.getPassword(), authorities);
+        super(member.getUsername(), member.getPassword() != null ? member.getPassword() : "{noop}SOCIAL_ONLY", authorities);
         this.memberId = member.getId();
     }
 

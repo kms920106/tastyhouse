@@ -5,17 +5,11 @@ import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;
 import com.tastyhouse.webapi.auth.facebook.FacebookSocialLoginService;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;
 import com.tastyhouse.webapi.auth.naver.NaverSocialLoginService;
-import com.tastyhouse.webapi.auth.response.AppleLinkResponse;
-import com.tastyhouse.webapi.auth.response.AppleLoginResponse;
-import com.tastyhouse.webapi.auth.response.FacebookLinkResponse;
-import com.tastyhouse.webapi.auth.response.FacebookLoginResponse;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
-import com.tastyhouse.webapi.auth.response.KakaoLinkResponse;
-import com.tastyhouse.webapi.auth.response.KakaoLoginResponse;
-import com.tastyhouse.webapi.auth.response.NaverLinkResponse;
-import com.tastyhouse.webapi.auth.response.NaverLoginResponse;
 import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
 import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
+import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
+import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -77,7 +71,7 @@ public class AuthFacade {
     }
 
     // 카카오 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
-    public KakaoLoginResponse kakaoLogin(String authorizationCode) {
+    public SocialLoginResponse kakaoLogin(String authorizationCode) {
         return kakaoSocialLoginService.login(authorizationCode);
     }
 
@@ -87,7 +81,7 @@ public class AuthFacade {
     }
 
     // 카카오 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public KakaoLinkResponse kakaoLinkAccount(String kakaoTempToken, String phoneVerifyToken) {
+    public SocialLinkResponse kakaoLinkAccount(String kakaoTempToken, String phoneVerifyToken) {
         return kakaoSocialLoginService.linkAccount(kakaoTempToken, phoneVerifyToken);
     }
 
@@ -103,12 +97,12 @@ public class AuthFacade {
     }
 
     // 네이버 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
-    public NaverLoginResponse naverLogin(String authorizationCode, String state) {
+    public SocialLoginResponse naverLogin(String authorizationCode, String state) {
         return naverSocialLoginService.login(authorizationCode, state);
     }
 
     // 네이버 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public NaverLinkResponse naverLinkAccount(String naverTempToken, String phoneVerifyToken) {
+    public SocialLinkResponse naverLinkAccount(String naverTempToken, String phoneVerifyToken) {
         return naverSocialLoginService.linkAccount(naverTempToken, phoneVerifyToken);
     }
 
@@ -124,12 +118,12 @@ public class AuthFacade {
     }
 
     // 페이스북 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
-    public FacebookLoginResponse facebookLogin(String accessToken) {
+    public SocialLoginResponse facebookLogin(String accessToken) {
         return facebookSocialLoginService.login(accessToken);
     }
 
     // 페이스북 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public FacebookLinkResponse facebookLinkAccount(String facebookTempToken, String phoneVerifyToken) {
+    public SocialLinkResponse facebookLinkAccount(String facebookTempToken, String phoneVerifyToken) {
         return facebookSocialLoginService.linkAccount(facebookTempToken, phoneVerifyToken);
     }
 
@@ -145,12 +139,12 @@ public class AuthFacade {
     }
 
     // 애플 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
-    public AppleLoginResponse appleLogin(String authorizationCode) {
+    public SocialLoginResponse appleLogin(String authorizationCode) {
         return appleSocialLoginService.login(authorizationCode);
     }
 
     // 애플 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public AppleLinkResponse appleLinkAccount(String appleTempToken, String phoneVerifyToken) {
+    public SocialLinkResponse appleLinkAccount(String appleTempToken, String phoneVerifyToken) {
         return appleSocialLoginService.linkAccount(appleTempToken, phoneVerifyToken);
     }
 

@@ -7,12 +7,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "애플 소셜 회원가입 요청")
-public record AppleSignUpRequest(
+@Schema(description = "소셜 회원가입 요청")
+public record SocialSignUpRequest(
 
-    @Schema(description = "애플 로그인 응답에서 발급된 임시 토큰 (10분 유효)", example = "550e8400-e29b-41d4-a716-446655440000")
-    @NotBlank(message = "애플 임시 토큰을 입력해주세요.")
-    String appleTempToken,
+    @Schema(description = "소셜 로그인 응답에서 발급된 임시 토큰 (10분 유효)", example = "550e8400-e29b-41d4-a716-446655440000")
+    @NotBlank(message = "소셜 임시 토큰을 입력해주세요.")
+    String tempToken,
 
     @Schema(description = "사용자 아이디 (이메일 형식)", example = "user@example.com")
     @NotBlank(message = "아이디를 입력해주세요.")
