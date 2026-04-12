@@ -28,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApiLoggingAspect {
 
-    private final SensitiveFieldMasker masker;
+//    private final SensitiveFieldMasker masker;
 
     @Around("within(@org.springframework.web.bind.annotation.RestController *)")
     public Object logControllerExecution(ProceedingJoinPoint joinPoint) throws Throwable {
