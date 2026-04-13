@@ -2,6 +2,8 @@ package com.tastyhouse.webapi.config;
 
 
 import com.tastyhouse.webapi.config.jwt.JwtAuthenticationFilter;
+import com.tastyhouse.webapi.config.security.JwtAccessDeniedHandler;
+import com.tastyhouse.webapi.config.security.JwtAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +35,8 @@ import static com.tastyhouse.webapi.config.PublicPaths.PATTERNS;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Value("${cors.allowed-origins}")
     private String allowedOriginsRaw;
@@ -74,6 +78,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/logout").authenticated()
                 // 나머지 API는 인증 필요
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(jwtAccessDeniedHandler)
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
