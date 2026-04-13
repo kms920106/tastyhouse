@@ -58,7 +58,9 @@ class BbqApiClientTest {
 
         @Bean
         public BbqProperties bbqProperties() {
-            return new BbqProperties();
+            BbqProperties props = new BbqProperties();
+            props.setBaseUrl("https://bbq.co.kr");
+            return props;
         }
 
         @Bean
