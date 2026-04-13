@@ -18,12 +18,11 @@ public class GradeService {
      */
     public List<GradeInfoItem> getGradeInfoList() {
         return Arrays.stream(MemberGrade.values())
-            .map(grade -> new GradeInfoItem(
+            .map(grade -> GradeInfoItem.from(
                 grade,
                 grade.getDisplayName(),
                 grade.getMinReviewCount(),
-                grade.getMaxReviewCount()
-            ))
+                grade.getMaxReviewCount()))
             .collect(Collectors.toList());
     }
 }

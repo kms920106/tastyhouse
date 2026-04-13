@@ -12,7 +12,6 @@ import org.springframework.util.StringUtils;
 
 /**
  * 토큰 발급·갱신·무효화 비즈니스 로직을 담당하는 서비스
- *
  * - JwtTokenProvider: JWT 서명/파싱 전담
  * - RefreshTokenRedisRepository: Refresh Token 저장소
  * - BlacklistRedisRepository: 로그아웃된 Access Token 블랙리스트
@@ -38,7 +37,11 @@ public class TokenService {
                 jwtTokenProvider.getRefreshTokenTtl(rememberMe)
         );
 
-        return new JwtResponse(accessToken, refreshToken, "Bearer");
+        return JwtResponse.of(
+            accessToken,
+            refreshToken,
+            "Bearer"
+        );
     }
 
     /**
@@ -61,7 +64,11 @@ public class TokenService {
 
         refreshTokenRepository.save(username, newRefreshToken, jwtTokenProvider.getRefreshTokenTtl(false));
 
-        return new JwtResponse(newAccessToken, newRefreshToken, "Bearer");
+        return JwtResponse.of(
+            newAccessToken,
+            newRefreshToken,
+            "Bearer"
+        );
     }
 
     /**

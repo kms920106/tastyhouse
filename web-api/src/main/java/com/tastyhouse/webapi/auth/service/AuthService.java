@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.auth;
+package com.tastyhouse.webapi.auth.service;
 
 import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.webapi.auth.response.JwtResponse;

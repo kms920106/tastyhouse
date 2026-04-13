@@ -17,11 +17,15 @@ public class PlacePhotoCategory extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "place_id", nullable = false)
+    private Long placeId; // 장소 ID
+
     @Column(name = "name", nullable = false, length = 100)
     private String name; // 카테고리명 (예: "가게 외관")
 
     @Builder
-    public PlacePhotoCategory(String name) {
+    public PlacePhotoCategory(Long placeId, String name) {
+        this.placeId = placeId;
         this.name = name;
     }
 

@@ -27,7 +27,7 @@ public class PartnershipRequestService {
 
         PartnershipRequest savedRequest = partnershipCoreService.save(partnershipRequest);
 
-        return new PartnershipRequestResponse(
+        return PartnershipRequestResponse.from(
             savedRequest.getId(),
             savedRequest.getBusinessName(),
             savedRequest.getAddress(),

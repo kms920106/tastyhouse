@@ -214,19 +214,55 @@ public class OrderService {
         List<OrderItemResponse> itemResponses = items.stream().map(item -> {
             List<OrderItemOption> options = orderCoreService.findOrderItemOptionsByOrderItemId(item.getId());
 
-            List<OrderItemOptionResponse> optionResponses = options.stream().map(opt -> new OrderItemOptionResponse(opt.getId(), opt.getOptionGroupName(), opt.getOptionName(), opt.getAdditionalPrice())).toList();
+            List<OrderItemOptionResponse> optionResponses =
+                options.stream()
+                    .map(opt -> OrderItemOptionResponse.from(
+                        opt.getId(),
+                        opt.getOptionGroupName(),
+                        opt.getOptionName(),
+                        opt.getAdditionalPrice()))
+                    .toList();
 
             boolean isReviewed = orderCoreService.existsReviewByOrderIdAndProductIdAndMemberId(order.getId(), item.getProductId(), memberId);
 
-            return new OrderItemResponse(item.getId(), item.getProductId(), item.getProductName(), item.getProductImageUrl(), item.getQuantity(), item.getUnitPrice(), item.getDiscountPrice(), item.getOptionTotalPrice(), item.getTotalPrice(), isReviewed, optionResponses);
+            return OrderItemResponse.from(item.getId(), item.getProductId(), item.getProductName(), item.getProductImageUrl(), item.getQuantity(), item.getUnitPrice(), item.getDiscountPrice(), item.getOptionTotalPrice(), item.getTotalPrice(), isReviewed, optionResponses);
         }).toList();
 
         PaymentSummaryResponse paymentSummary = null;
         Payment payment = orderCoreService.findPaymentByOrderId(order.getId()).orElse(null);
         if (payment != null) {
-            paymentSummary = new PaymentSummaryResponse(payment.getId(), payment.getPaymentMethod(), payment.getPaymentStatus(), payment.getAmount(), payment.getCardCompany(), payment.getCardNumber(), payment.getApprovedAt(), payment.getReceiptUrl());
+            paymentSummary = PaymentSummaryResponse.from(
+                payment.getId(),
+                payment.getPaymentMethod(),
+                payment.getPaymentStatus(),
+                payment.getAmount(),
+                payment.getCardCompany(),
+                payment.getCardNumber(),
+                payment.getApprovedAt(),
+                payment.getReceiptUrl()
+            );
         }
 
-        return new OrderResponse(order.getId(), order.getOrderNumber(), payment != null ? payment.getPaymentStatus() : null, place != null ? place.getName() : null, place != null ? place.getPhoneNumber() : null, order.getOrdererName(), order.getOrdererPhone(), order.getOrdererEmail(), order.getTotalProductAmount(), order.getProductDiscountAmount(), order.getCouponDiscountAmount(), order.getPointDiscountAmount(), order.getTotalDiscountAmount(), order.getFinalAmount(), order.getUsedPoint(), order.getEarnedPoint(), itemResponses, paymentSummary, payment != null ? payment.getApprovedAt() : null, order.getCreatedAt());
+        return OrderResponse.from(
+            order.getId(),
+            order.getOrderNumber(),
+            payment != null ? payment.getPaymentStatus() : null,
+            place != null ? place.getName() : null,
+            place != null ? place.getPhoneNumber() : null,
+            order.getOrdererName(),
+            order.getOrdererPhone(),
+            order.getOrdererEmail(),
+            order.getTotalProductAmount(),
+            order.getProductDiscountAmount(),
+            order.getCouponDiscountAmount(),
+            order.getPointDiscountAmount(),
+            order.getTotalDiscountAmount(),
+            order.getFinalAmount(),
+            order.getUsedPoint(),
+            order.getEarnedPoint(),
+            itemResponses,
+            paymentSummary, payment != null ? payment.getApprovedAt() : null,
+            order.getCreatedAt()
+        );
     }
 }

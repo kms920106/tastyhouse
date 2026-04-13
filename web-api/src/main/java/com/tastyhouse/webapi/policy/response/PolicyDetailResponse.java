@@ -5,6 +5,18 @@ import com.tastyhouse.core.entity.policy.PolicyType;
 import java.time.LocalDateTime;
 
 public record PolicyDetailResponse(
+    Long id,
+    PolicyType type,
+    String version,
+    String title,
+    String content,
+    Boolean current,
+    Boolean mandatory,
+    LocalDateTime effectiveDate,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
+) {
+    public static PolicyDetailResponse from(
         Long id,
         PolicyType type,
         String version,
@@ -15,5 +27,18 @@ public record PolicyDetailResponse(
         LocalDateTime effectiveDate,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
-) {
+    ) {
+        return new PolicyDetailResponse(
+            id,
+            type,
+            version,
+            title,
+            content,
+            current,
+            mandatory,
+            effectiveDate,
+            createdAt,
+            updatedAt
+        );
+    }
 }

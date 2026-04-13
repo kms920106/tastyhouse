@@ -34,10 +34,20 @@ public class FaqService {
     }
 
     private FaqCategoryItem toFaqCategoryItem(FaqCategoryDto dto) {
-        return new FaqCategoryItem(dto.id(), dto.name(), dto.sort());
+        return FaqCategoryItem.from(
+            dto.id(),
+            dto.name(),
+            dto.sort()
+        );
     }
 
     private FaqItem toFaqItem(FaqItemDto dto) {
-        return new FaqItem(dto.id(), dto.faqCategoryId(), dto.question(), dto.answer(), dto.sort());
+        return FaqItem.from(
+            dto.id(),
+            dto.faqCategoryId(),
+            dto.question(),
+            dto.answer(),
+            dto.sort()
+        );
     }
 }

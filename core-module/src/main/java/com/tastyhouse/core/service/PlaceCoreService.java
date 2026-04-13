@@ -30,7 +30,6 @@ public class PlaceCoreService {
     private final PlaceJpaRepository placeJpaRepository;
     private final PlaceStationJpaRepository placeStationJpaRepository;
     private final PlaceAmenityCategoryJpaRepository placeAmenityCategoryJpaRepository;
-    private final PlaceImageCategoryJpaRepository placeImageCategoryJpaRepository;
     private final PlaceBookmarkRepository placeBookmarkRepository;
     private final PlaceBookmarkJpaRepository placeBookmarkJpaRepository;
 
@@ -49,11 +48,6 @@ public class PlaceCoreService {
     @Transactional(readOnly = true)
     public Page<LatestPlaceItemDto> findLatestPlaces(int page, int size, Long stationId, List<FoodType> foodTypes, List<Amenity> amenities) {
         return placeRepository.findLatestPlaces(PageRequest.of(page, size), stationId, foodTypes, amenities);
-    }
-
-    @Transactional(readOnly = true)
-    public List<EditorChoiceDto> findEditorChoices() {
-        return placeChoiceRepository.findEditorChoice();
     }
 
     @Transactional(readOnly = true)
@@ -95,12 +89,6 @@ public class PlaceCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PlacePhotoCategory findPlaceImageCategoryById(Long categoryId) {
-        return placeImageCategoryJpaRepository.findById(categoryId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PLACE_IMAGE_CATEGORY_NOT_FOUND));
-    }
-
-    @Transactional(readOnly = true)
     public List<PlaceBusinessHour> findPlaceBusinessHours(Long placeId) {
         return placeDetailRepository.findBusinessHoursByPlaceId(placeId);
     }
@@ -131,23 +119,13 @@ public class PlaceCoreService {
     }
 
     @Transactional(readOnly = true)
-    public List<PlacePhotoCategory> findAllPlacePhotoCategories() {
-        return placeDetailRepository.findAllPhotoCategories();
+    public List<PlacePhotoCategory> findPlacePhotoCategoriesByPlaceId(Long placeId) {
+        return placeDetailRepository.findPhotoCategoriesByPlaceId(placeId);
     }
 
     @Transactional(readOnly = true)
     public List<PlacePhotoCategoryImage> findAllPlacePhotoCategoryImages() {
         return placeDetailRepository.findAllPhotoCategoryImages();
-    }
-
-    @Transactional(readOnly = true)
-    public Page<PlacePhotoCategoryImage> findPlacePhotoCategoryImages(Long placePhotoCategoryId, int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-
-        if (placePhotoCategoryId != null) {
-            return placeDetailRepository.findPhotoCategoryImagesByCategoryId(placePhotoCategoryId, pageRequest);
-        }
-        return placeImageCategoryJpaRepository.findAll(pageRequest).map(c -> null); // fallback not needed
     }
 
     @Transactional(readOnly = true)

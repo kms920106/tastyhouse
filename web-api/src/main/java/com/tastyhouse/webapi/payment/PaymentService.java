@@ -327,7 +327,7 @@ public class PaymentService {
     }
 
     private PaymentResponse buildPaymentResponse(Payment payment) {
-        return new PaymentResponse(
+        return PaymentResponse.from(
             payment.getId(),
             payment.getOrderId(),
             payment.getPaymentMethod(),
@@ -350,7 +350,7 @@ public class PaymentService {
     }
 
     private PaymentRefundResponse buildRefundResponse(PaymentRefund refund) {
-        return new PaymentRefundResponse(
+        return PaymentRefundResponse.from(
             refund.getId(),
             refund.getPaymentId(),
             refund.getRefundAmount(),

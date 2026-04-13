@@ -11,6 +11,9 @@ import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
 import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
 import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
 import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
+import com.tastyhouse.webapi.auth.service.AuthPasswordResetService;
+import com.tastyhouse.webapi.auth.service.AuthService;
+import com.tastyhouse.webapi.auth.service.PhoneLoginService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -27,6 +27,13 @@ public class MemberGradeService {
             reviewsNeeded = nextGrade.getMinReviewCount() - currentReviewCount;
         }
 
-        return new MyGradeResponse(currentGrade, currentGrade.getDisplayName(), nextGrade, nextGrade != null ? nextGrade.getDisplayName() : null, currentReviewCount, reviewsNeeded);
+        return MyGradeResponse.from(
+            currentGrade,
+            currentGrade.getDisplayName(),
+            nextGrade,
+            nextGrade != null ? nextGrade.getDisplayName() : null,
+            currentReviewCount,
+            reviewsNeeded
+        );
     }
 }

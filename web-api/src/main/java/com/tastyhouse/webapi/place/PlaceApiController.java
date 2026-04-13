@@ -172,7 +172,7 @@ public class PlaceApiController {
     public ResponseEntity<CommonResponse<PlaceBookmarkResponse>> isBookmarked(@PathVariable Long placeId, @AuthenticationPrincipal CustomUserDetails userDetails) {
         PlaceBookmarkResponse bookmarked;
         if (userDetails == null) {
-            bookmarked = new PlaceBookmarkResponse(false);
+            bookmarked = PlaceBookmarkResponse.from(false);
         } else {
             Long memberId = userDetails.getMemberId();
             bookmarked = placeService.isBookmarked(placeId, memberId);
@@ -188,7 +188,7 @@ public class PlaceApiController {
             return ResponseEntity.status(401).build();
         }
         boolean bookmarked = placeService.toggleBookmark(placeId, userDetails.getMemberId());
-        return ResponseEntity.ok(CommonResponse.success(new PlaceBookmarkResponse(bookmarked)));
+        return ResponseEntity.ok(CommonResponse.success(PlaceBookmarkResponse.from(bookmarked)));
     }
 
     @Operation(summary = "상호명 조회", description = "플레이스의 상호명을 조회합니다.")

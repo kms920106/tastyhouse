@@ -64,6 +64,6 @@ public class EmailVerificationApiController {
             request.email(),
             request.verificationCode()
         );
-        return ResponseEntity.ok(CommonResponse.success(new EmailVerifyTokenResponse(emailVerifyToken)));
+        return ResponseEntity.ok(CommonResponse.success(EmailVerifyTokenResponse.from(emailVerifyToken)));
     }
 }

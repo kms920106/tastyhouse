@@ -23,7 +23,7 @@ public class MemberPointService {
     public PointResponse getMemberPoint(Long memberId) {
         return pointCoreService.findMemberPoint(memberId)
             .map(PointResponse::from)
-            .orElseGet(() -> new PointResponse(0, 0));
+            .orElseGet(() -> PointResponse.of(0, 0));
     }
 
     // 회원의 포인트 적립·사용 내역을 최신순으로 조회
@@ -36,7 +36,11 @@ public class MemberPointService {
             .map(PointHistoryItemResponse::from)
             .collect(Collectors.toList());
 
-        return new PointHistoryResponse(pointResponse.availablePoints(), pointResponse.expiredThisMonth(), histories);
+        return PointHistoryResponse.from(
+            pointResponse.availablePoints(),
+            pointResponse.expiredThisMonth(),
+            histories
+        );
     }
 
     // 회원이 즉시 사용 가능한 포인트를 조회
@@ -44,6 +48,6 @@ public class MemberPointService {
     public UsablePointResponse getUsablePoint(Long memberId) {
         return pointCoreService.findMemberPoint(memberId)
             .map(UsablePointResponse::from)
-            .orElseGet(() -> new UsablePointResponse(0));
+            .orElseGet(() -> UsablePointResponse.of(0));
     }
 }

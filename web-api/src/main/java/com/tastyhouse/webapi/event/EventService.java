@@ -33,7 +33,10 @@ public class EventService {
     @Transactional(readOnly = true)
     public Optional<EventDurationResponse> getRankingEventDuration() {
         return eventCoreService.findActiveRankingEvent()
-                .map(event -> new EventDurationResponse(event.getStartAt(), event.getEndAt()));
+                .map(event -> EventDurationResponse.from(
+                    event.getStartAt(),
+                    event.getEndAt()
+                ));
     }
 
     @Transactional(readOnly = true)
@@ -49,7 +52,7 @@ public class EventService {
     }
 
     private PrizeItem convertToPrizeItem(EventPrize eventPrize) {
-        return new PrizeItem(
+        return PrizeItem.from(
             eventPrize.getId(),
             eventPrize.getPrizeRank(),
             eventPrize.getName(),
@@ -79,7 +82,7 @@ public class EventService {
     }
 
     private EventListItemResponse convertToEventListItemResponse(Event event) {
-        return new EventListItemResponse(
+        return EventListItemResponse.from(
             event.getId(),
             event.getName(),
             fileService.getFileUrl(event.getThumbnailImageFileId()),
@@ -89,11 +92,11 @@ public class EventService {
     }
 
     private EventDetailResponse convertToEventDetailResponse(Event event) {
-        return new EventDetailResponse(fileService.getFileUrl(event.getBannerImageFileId()));
+        return EventDetailResponse.from(fileService.getFileUrl(event.getBannerImageFileId()));
     }
 
     private EventAnnouncementListItemResponse convertToEventAnnouncementListItemResponse(EventAnnouncement announcement) {
-        return new EventAnnouncementListItemResponse(
+        return EventAnnouncementListItemResponse.from(
             announcement.getId(),
             announcement.getName(),
             announcement.getContent(),

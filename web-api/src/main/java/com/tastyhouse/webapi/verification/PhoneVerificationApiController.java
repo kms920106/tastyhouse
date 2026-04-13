@@ -71,7 +71,7 @@ public class PhoneVerificationApiController {
         );
 
         return ResponseEntity.ok(CommonResponse.success(
-            new PhoneVerifyTokenResponse(phoneVerifyToken)
+            PhoneVerifyTokenResponse.from(phoneVerifyToken)
         ));
     }
 }

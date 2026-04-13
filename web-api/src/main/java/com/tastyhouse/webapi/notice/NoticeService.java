@@ -23,6 +23,11 @@ public class NoticeService {
     }
 
     private NoticeListItem convertToNoticeListItem(NoticeListItemDto dto) {
-        return new NoticeListItem(dto.id(), dto.title(), dto.content(), dto.createdAt());
+        return NoticeListItem.from(
+            dto.id(),
+            dto.title(),
+            dto.content(),
+            dto.createdAt()
+        );
     }
 }

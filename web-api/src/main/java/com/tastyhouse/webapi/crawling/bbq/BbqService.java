@@ -65,7 +65,7 @@ public class BbqService {
      * 외부 API 응답을 ProductCategory 구조에 맞는 응답으로 변환
      */
     private BbqProductCategoryResponse convertToProductCategoryResponse(BbqMenuCategoryResponse externalResponse) {
-        return new BbqProductCategoryResponse(
+        return BbqProductCategoryResponse.from(
                 externalResponse.getId(),
                 null, // 외부 API에는 placeId 정보가 없으므로 null로 설정
                 externalResponse.getCategoryName(),
@@ -91,7 +91,7 @@ public class BbqService {
      * 외부 API 응답을 Product 구조에 맞는 응답으로 변환
      */
     private BbqProductResponse convertToProductResponse(BbqMenuResponse externalResponse) {
-        return new BbqProductResponse(
+        return BbqProductResponse.from(
                 externalResponse.getId(),
                 externalResponse.getMenuName(),
                 externalResponse.getDescription(),
@@ -127,7 +127,7 @@ public class BbqService {
         List<BbqProductSubOptionResponse.SubOptionItemDetailResponse> itemDetails = null;
         if (externalResponse.getSubOptionItemDetailResponseList() != null) {
             itemDetails = externalResponse.getSubOptionItemDetailResponseList().stream()
-                    .map(item -> new BbqProductSubOptionResponse.SubOptionItemDetailResponse(
+                    .map(item -> BbqProductSubOptionResponse.SubOptionItemDetailResponse.from(
                             item.getId(),
                             item.getItemTitle(),
                             item.getAddPrice(),
@@ -137,7 +137,7 @@ public class BbqService {
                     .collect(Collectors.toList());
         }
 
-        return new BbqProductSubOptionResponse(
+        return BbqProductSubOptionResponse.from(
                 externalResponse.getId(),
                 externalResponse.getSubOptionTitle(),
                 externalResponse.getRequiredSelectCount(),

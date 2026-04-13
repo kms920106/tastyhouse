@@ -3,9 +3,6 @@ package com.tastyhouse.core.repository.place;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.place.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -104,28 +101,11 @@ public class PlaceDetailRepositoryImpl implements PlaceDetailRepository {
     }
 
     @Override
-    public Page<PlaceBannerImage> findBannerImagesByPlaceId(Long placeId, Pageable pageable) {
-        QPlaceBannerImage bannerImage = QPlaceBannerImage.placeBannerImage;
-        List<PlaceBannerImage> content = queryFactory
-            .selectFrom(bannerImage)
-            .where(bannerImage.placeId.eq(placeId))
-            .orderBy(bannerImage.sort.asc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-        long total = queryFactory
-            .select(bannerImage.count())
-            .from(bannerImage)
-            .where(bannerImage.placeId.eq(placeId))
-            .fetchOne();
-        return new PageImpl<>(content, pageable, total);
-    }
-
-    @Override
-    public List<PlacePhotoCategory> findAllPhotoCategories() {
+    public List<PlacePhotoCategory> findPhotoCategoriesByPlaceId(Long placeId) {
         QPlacePhotoCategory category = QPlacePhotoCategory.placePhotoCategory;
         return queryFactory
             .selectFrom(category)
+            .where(category.placeId.eq(placeId))
             .fetch();
     }
 
@@ -136,24 +116,6 @@ public class PlaceDetailRepositoryImpl implements PlaceDetailRepository {
             .selectFrom(image)
             .orderBy(image.sort.asc())
             .fetch();
-    }
-
-    @Override
-    public Page<PlacePhotoCategoryImage> findPhotoCategoryImagesByCategoryId(Long placePhotoCategoryId, Pageable pageable) {
-        QPlacePhotoCategoryImage image = QPlacePhotoCategoryImage.placePhotoCategoryImage;
-        List<PlacePhotoCategoryImage> content = queryFactory
-            .selectFrom(image)
-            .where(image.placePhotoCategoryId.eq(placePhotoCategoryId))
-            .orderBy(image.sort.asc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-        long total = queryFactory
-            .select(image.count())
-            .from(image)
-            .where(image.placePhotoCategoryId.eq(placePhotoCategoryId))
-            .fetchOne();
-        return new PageImpl<>(content, pageable, total);
     }
 
     @Override

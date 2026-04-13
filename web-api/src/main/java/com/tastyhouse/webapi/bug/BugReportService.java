@@ -40,7 +40,7 @@ public class BugReportService {
             }
         }
 
-        return new BugReportResponse(
+        return BugReportResponse.from(
             savedReport.getId(),
             savedReport.getDevice(),
             savedReport.getTitle(),

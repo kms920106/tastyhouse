@@ -35,9 +35,14 @@ public class ProductService {
     }
 
     private TodayDiscountProductItem convertToTodayDiscountProductItem(TodayDiscountProductDto dto) {
-        return new TodayDiscountProductItem(
-            dto.id(), dto.placeName(), dto.name(), dto.imageUrl(),
-            dto.originalPrice(), dto.discountPrice(), dto.discountRate()
+        return TodayDiscountProductItem.from(
+            dto.id(),
+            dto.placeName(),
+            dto.name(),
+            dto.imageUrl(),
+            dto.originalPrice(),
+            dto.discountPrice(),
+            dto.discountRate()
         );
     }
 
@@ -60,7 +65,7 @@ public class ProductService {
     }
 
     private ProductCategoryListItem convertToProductCategoryListItem(ProductCategory category) {
-        return new ProductCategoryListItem(category.getId(), category.getName(), category.getSort());
+        return ProductCategoryListItem.from(category.getId(), category.getName(), category.getSort());
     }
 
     @Transactional(readOnly = true)
@@ -82,11 +87,19 @@ public class ProductService {
 
         String imageUrl = getFirstImageUrl(product.getId());
 
-        return new ProductListItem(
-            product.getId(), product.getName(), product.getDescription(), imageUrl,
-            product.getOriginalPrice(), product.getDiscountPrice(), product.getDiscountRate(),
-            product.getRating(), product.getReviewCount(), product.getIsRepresentative(),
-            product.getIsSoldOut(), categoryName
+        return ProductListItem.from(
+            product.getId(),
+            product.getName(),
+            product.getDescription(),
+            imageUrl,
+            product.getOriginalPrice(),
+            product.getDiscountPrice(),
+            product.getDiscountRate(),
+            product.getRating(),
+            product.getReviewCount(),
+            product.getIsRepresentative(),
+            product.getIsSoldOut(),
+            categoryName
         );
     }
 
@@ -108,12 +121,22 @@ public class ProductService {
         Long totalReviewCount = (Long) reviewStatistics.get("totalReviewCount");
         Integer reviewCount = totalReviewCount != null ? totalReviewCount.intValue() : 0;
 
-        return new ProductDetailResponse(
-            product.getId(), product.getPlaceId(), placeName, product.getName(),
-            product.getDescription(), imageUrls, product.getOriginalPrice(),
-            product.getDiscountPrice(), product.getDiscountRate(), product.getRating(),
-            reviewCount, product.getIsRepresentative(), product.getIsSoldOut(),
-            categoryName, optionGroups
+        return ProductDetailResponse.from(
+            product.getId(),
+            product.getPlaceId(),
+            placeName,
+            product.getName(),
+            product.getDescription(),
+            imageUrls,
+            product.getOriginalPrice(),
+            product.getDiscountPrice(),
+            product.getDiscountRate(),
+            product.getRating(),
+            reviewCount,
+            product.getIsRepresentative(),
+            product.getIsSoldOut(),
+            categoryName,
+            optionGroups
         );
     }
 
@@ -136,10 +159,16 @@ public class ProductService {
                     .map(this::convertToOptionResponse)
                     .toList();
 
-                result.add(new ProductDetailResponse.OptionGroupResponse(
-                    group.getId(), group.getName(), group.getDescription(),
-                    group.getIsRequired(), group.getIsMultipleSelect(),
-                    group.getMinSelect(), group.getMaxSelect(), false, options
+                result.add(ProductDetailResponse.OptionGroupResponse.from(
+                    group.getId(),
+                    group.getName(),
+                    group.getDescription(),
+                    group.getIsRequired(),
+                    group.getIsMultipleSelect(),
+                    group.getMinSelect(),
+                    group.getMaxSelect(),
+                    false,
+                    options
                 ));
             }
         }
@@ -160,10 +189,16 @@ public class ProductService {
                     .map(this::convertProductCommonOptionToOptionResponse)
                     .toList();
 
-                result.add(new ProductDetailResponse.OptionGroupResponse(
-                    group.getId(), group.getName(), group.getDescription(),
-                    group.getIsRequired(), group.getIsMultipleSelect(),
-                    group.getMinSelect(), group.getMaxSelect(), true, options
+                result.add(ProductDetailResponse.OptionGroupResponse.from(
+                    group.getId(),
+                    group.getName(),
+                    group.getDescription(),
+                    group.getIsRequired(),
+                    group.getIsMultipleSelect(),
+                    group.getMinSelect(),
+                    group.getMaxSelect(),
+                    true,
+                    options
                 ));
             }
         }
@@ -172,14 +207,20 @@ public class ProductService {
     }
 
     private ProductDetailResponse.OptionResponse convertToOptionResponse(ProductOption option) {
-        return new ProductDetailResponse.OptionResponse(
-            option.getId(), option.getName(), option.getAdditionalPrice(), option.getIsSoldOut()
+        return ProductDetailResponse.OptionResponse.from(
+            option.getId(),
+            option.getName(),
+            option.getAdditionalPrice(),
+            option.getIsSoldOut()
         );
     }
 
     private ProductDetailResponse.OptionResponse convertProductCommonOptionToOptionResponse(ProductCommonOption option) {
-        return new ProductDetailResponse.OptionResponse(
-            option.getId(), option.getName(), option.getAdditionalPrice(), option.getIsSoldOut()
+        return ProductDetailResponse.OptionResponse.from(
+            option.getId(),
+            option.getName(),
+            option.getAdditionalPrice(),
+            option.getIsSoldOut()
         );
     }
 
@@ -207,18 +248,26 @@ public class ProductService {
                 .map(this::convertToProductReviewListItem)
                 .toList();
 
-        ProductReviewsByRatingResponse response = new ProductReviewsByRatingResponse(
-            reviewsByRating, allReviews, result.getTotalReviewCount()
+        ProductReviewsByRatingResponse response = ProductReviewsByRatingResponse.from(
+            reviewsByRating,
+            allReviews,
+            result.getTotalReviewCount()
         );
 
         return new ProductReviewsByRatingWithPagination(response, result.getTotalElements());
     }
 
     private ProductReviewListItem convertToProductReviewListItem(LatestReviewListItemDto dto) {
-        return new ProductReviewListItem(
-            dto.id(), dto.imageUrls(), dto.totalRating(), dto.content(),
-            dto.memberNickname(), dto.memberProfileImageUrl(), dto.createdAt(),
-            dto.productId(), dto.productName()
+        return ProductReviewListItem.from(
+            dto.id(),
+            dto.imageUrls(),
+            dto.totalRating(),
+            dto.content(),
+            dto.memberNickname(),
+            dto.memberProfileImageUrl(),
+            dto.createdAt(),
+            dto.productId(),
+            dto.productName()
         );
     }
 
@@ -229,7 +278,7 @@ public class ProductService {
         Product product = productCoreService.findProductById(productId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        return new ProductReviewStatisticsResponse(
+        return ProductReviewStatisticsResponse.from(
             product.getRating(),
             (Long) statistics.get("totalReviewCount"),
             (Double) statistics.get("averageTasteRating"),

@@ -101,7 +101,7 @@ public class MemberAccountService {
     @Transactional(readOnly = true)
     public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
         boolean available = !memberCoreService.existsByNickname(nickname);
-        return new NicknameAvailabilityResponse(available);
+        return NicknameAvailabilityResponse.from(available);
     }
 
     // 휴대폰번호로 활성 회원 존재 여부를 확인하여 가입 가능 여부를 반환
@@ -110,7 +110,7 @@ public class MemberAccountService {
         boolean available = !memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(
             phoneNumber, MemberStatus.DELETED
         );
-        return new PhoneAvailabilityResponse(available);
+        return PhoneAvailabilityResponse.from(available);
     }
 
     // 회원의 이름, 휴대폰, 생년월일, 성별, 알림 수신 설정을 수정
@@ -138,10 +138,15 @@ public class MemberAccountService {
                     profileImageUrl = fileService.getFileUrl(member.getProfileImageFileId());
                 }
 
-                return new MemberProfileResponse(
-                    member.getId(), member.getNickname(), member.getMemberGrade(),
-                    member.getStatusMessage(), profileImageUrl, member.getFullName(),
-                    member.getPhoneNumber().getValue(), member.getUsername()
+                return MemberProfileResponse.from(
+                    member.getId(),
+                    member.getNickname(),
+                    member.getMemberGrade(),
+                    member.getStatusMessage(),
+                    profileImageUrl,
+                    member.getFullName(),
+                    member.getPhoneNumber().getValue(),
+                    member.getUsername()
                 );
             });
     }

@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.auth;
+package com.tastyhouse.webapi.auth.service;
 
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.verification.EmailVerification;
@@ -78,7 +78,7 @@ public class AuthPasswordResetService {
 
         String passwordResetToken = jwtTokenProvider.createPasswordResetToken(username);
 
-        return new PasswordResetTokenResponse(passwordResetToken);
+        return PasswordResetTokenResponse.from(passwordResetToken);
     }
 
     // 비밀번호 재설정 토큰을 검증하고 새 비밀번호로 변경

@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.auth;
+package com.tastyhouse.webapi.auth.service;
 
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberStatus;

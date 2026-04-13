@@ -3,6 +3,7 @@ package com.tastyhouse.webapi.rank;
 import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.entity.rank.dto.MemberRankDto;
 import com.tastyhouse.core.service.RankCoreService;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.rank.response.MemberRankItem;
 import com.tastyhouse.webapi.rank.response.MyRankResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,34 +18,34 @@ import java.util.List;
 public class RankService {
 
     private final RankCoreService rankCoreService;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public List<MemberRankItem> getMemberRankList(String rankType, int limit) {
         RankType type = parseRankType(rankType);
-        LocalDate baseDate = calculateBaseDate(type);
+        LocalDate baseDate = calculateBaseDate();
 
         List<MemberRankDto> ranks = rankCoreService.searchMemberRankList(type, baseDate, limit);
 
         return ranks.stream()
-            .map(this::convertToMemberRankItem)
+            .map(dto -> MemberRankItem.from(
+                dto.memberId(),
+                dto.nickname(),
+                fileService.getUrlByPath(dto.profileImageUrl()),
+                dto.reviewCount(),
+                dto.rankNo(),
+                dto.grade()))
             .toList();
     }
 
     @Transactional(readOnly = true)
     public MyRankResponse getMyMemberRank(Long memberId, String rankType) {
         RankType type = parseRankType(rankType);
-        LocalDate baseDate = calculateBaseDate(type);
+        LocalDate baseDate = calculateBaseDate();
 
         return rankCoreService.findMemberRank(memberId, type, baseDate)
             .map(MyRankResponse::from)
             .orElse(null);
-    }
-
-    private MemberRankItem convertToMemberRankItem(MemberRankDto dto) {
-        return new MemberRankItem(
-            dto.memberId(), dto.nickname(), dto.profileImageUrl(),
-            dto.reviewCount(), dto.rankNo(), dto.grade()
-        );
     }
 
     private RankType parseRankType(String rankType) {
@@ -55,7 +56,7 @@ public class RankService {
         }
     }
 
-    private LocalDate calculateBaseDate(RankType rankType) {
+    private LocalDate calculateBaseDate() {
         return LocalDate.now();
     }
 }

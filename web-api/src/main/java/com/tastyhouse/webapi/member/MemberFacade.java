@@ -58,7 +58,7 @@ public class MemberFacade {
     public VerifyPasswordResponse verifyPasswordAndIssueToken(Long memberId, String password) {
         memberAuthService.verifyPassword(memberId, password);
         String verifyToken = memberAuthService.createPersonalInfoVerifyToken(memberId);
-        return new VerifyPasswordResponse(verifyToken);
+        return VerifyPasswordResponse.from(verifyToken);
     }
 
     public PersonalInfoResponse getPersonalInfo(Long memberId) {

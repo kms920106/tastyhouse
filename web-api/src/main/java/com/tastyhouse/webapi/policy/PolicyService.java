@@ -44,16 +44,29 @@ public class PolicyService {
     }
 
     private PolicyDetailResponse convertToPolicyDetailResponse(PolicyDocumentDto dto) {
-        return new PolicyDetailResponse(
-            dto.id(), dto.type(), dto.version(), dto.title(), dto.content(),
-            dto.current(), dto.mandatory(), dto.effectiveDate(), dto.createdAt(), dto.updatedAt()
+        return PolicyDetailResponse.from(
+            dto.id(),
+            dto.type(),
+            dto.version(),
+            dto.title(),
+            dto.content(),
+            dto.current(),
+            dto.mandatory(),
+            dto.effectiveDate(),
+            dto.createdAt(),
+            dto.updatedAt()
         );
     }
 
     private PolicyListItemResponse convertToPolicyListItemResponse(PolicyListItemDto dto) {
-        return new PolicyListItemResponse(
-            dto.id(), dto.type(), dto.version(), dto.title(), dto.current(),
-            dto.effectiveDate(), dto.createdAt()
+        return PolicyListItemResponse.from(
+            dto.id(),
+            dto.type(),
+            dto.version(),
+            dto.title(),
+            dto.current(),
+            dto.effectiveDate(),
+            dto.createdAt()
         );
     }
 }

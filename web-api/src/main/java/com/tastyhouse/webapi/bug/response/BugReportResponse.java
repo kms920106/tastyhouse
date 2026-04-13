@@ -11,4 +11,21 @@ public record BugReportResponse(
     List<Long> uploadedFileIds,
     LocalDateTime createdAt
 ) {
+    public static BugReportResponse from(
+        Long id,
+        String device,
+        String title,
+        String content,
+        List<Long> uploadedFileIds,
+        LocalDateTime createdAt
+    ) {
+        return new BugReportResponse(
+            id,
+            device,
+            title,
+            content,
+            uploadedFileIds,
+            createdAt
+        );
+    }
 }

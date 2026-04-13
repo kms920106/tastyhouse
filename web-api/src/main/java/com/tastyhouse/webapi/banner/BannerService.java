@@ -21,6 +21,11 @@ public class BannerService {
     }
 
     private BannerListItem convertToBannerListItem(BannerListItemDto dto) {
-        return new BannerListItem(dto.id(), dto.title(), dto.imageUrl(), dto.linkUrl());
+        return BannerListItem.from(
+            dto.id(),
+            dto.title(),
+            dto.imageUrl(),
+            dto.linkUrl()
+        );
     }
 }

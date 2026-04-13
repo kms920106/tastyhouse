@@ -140,7 +140,7 @@ public class ReviewApiController {
     public ResponseEntity<CommonResponse<ReviewLikeStatusResponse>> isLiked(@PathVariable Long reviewId, @AuthenticationPrincipal CustomUserDetails userDetails) {
         ReviewLikeStatusResponse liked;
         if (userDetails == null) {
-            liked = new ReviewLikeStatusResponse(false);
+            liked = ReviewLikeStatusResponse.from(false);
         } else {
             Long memberId = userDetails.getMemberId();
             liked = reviewService.isLiked(reviewId, memberId);
@@ -153,7 +153,7 @@ public class ReviewApiController {
     @PostMapping("/v1/{reviewId}/like")
     public ResponseEntity<CommonResponse<ReviewLikeResponse>> toggleReviewLike(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId, @AuthenticationPrincipal CustomUserDetails userDetails) {
         boolean liked = reviewService.toggleReviewLike(reviewId, userDetails.getMemberId());
-        return ResponseEntity.ok(CommonResponse.success(new ReviewLikeResponse(liked)));
+        return ResponseEntity.ok(CommonResponse.success(ReviewLikeResponse.from(liked)));
     }
 
     @Operation(summary = "댓글 등록", description = "리뷰에 댓글을 등록합니다.")

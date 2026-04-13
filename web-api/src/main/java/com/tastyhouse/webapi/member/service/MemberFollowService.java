@@ -32,7 +32,14 @@ public class MemberFollowService {
 
         boolean isFollowing = viewerMemberId != null && followCoreService.isFollowing(viewerMemberId, targetMemberId);
 
-        return new OtherMemberProfileResponse(member.getId(), member.getNickname(), member.getMemberGrade(), member.getStatusMessage(), profileImageUrl, isFollowing);
+        return OtherMemberProfileResponse.from(
+            member.getId(),
+            member.getNickname(),
+            member.getMemberGrade(),
+            member.getStatusMessage(),
+            profileImageUrl,
+            isFollowing
+        );
     }
 
     // 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회
@@ -42,6 +49,10 @@ public class MemberFollowService {
         long followingCount = followCoreService.countFollowing(memberId);
         long followerCount = followCoreService.countFollower(memberId);
 
-        return new MemberStatsResponse(reviewCount, followingCount, followerCount);
+        return MemberStatsResponse.from(
+            reviewCount,
+            followingCount,
+            followerCount
+        );
     }
 }

@@ -12,8 +12,6 @@ import com.tastyhouse.core.entity.place.PlaceOwnerMessageHistory;
 import com.tastyhouse.core.entity.place.PlacePhotoCategory;
 import com.tastyhouse.core.entity.place.PlacePhotoCategoryImage;
 import com.tastyhouse.core.entity.place.PlaceStation;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,13 +36,9 @@ public interface PlaceDetailRepository {
 
     List<PlaceBannerImage> findBannerImagesByPlaceId(Long placeId);
 
-    Page<PlaceBannerImage> findBannerImagesByPlaceId(Long placeId, Pageable pageable);
-
-    List<PlacePhotoCategory> findAllPhotoCategories();
+    List<PlacePhotoCategory> findPhotoCategoriesByPlaceId(Long placeId);
 
     List<PlacePhotoCategoryImage> findAllPhotoCategoryImages();
-
-    Page<PlacePhotoCategoryImage> findPhotoCategoryImagesByCategoryId(Long placePhotoCategoryId, Pageable pageable);
 
     Optional<PlaceOwnerMessageHistory> findLatestOwnerMessageByPlaceId(Long placeId);
 }
