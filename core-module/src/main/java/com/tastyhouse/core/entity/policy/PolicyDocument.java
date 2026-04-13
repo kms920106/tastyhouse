@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.policy;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -47,10 +53,17 @@ public class PolicyDocument extends BaseEntity {
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
-    @Builder
-    public PolicyDocument(PolicyType type, String version, String title, String content,
-                         Boolean current, Boolean mandatory, LocalDateTime effectiveDate,
-                         String createdBy, String updatedBy) {
+    private PolicyDocument(
+        PolicyType type,
+        String version,
+        String title,
+        String content,
+        Boolean current,
+        Boolean mandatory,
+        LocalDateTime effectiveDate,
+        String createdBy,
+        String updatedBy
+    ) {
         this.type = type;
         this.version = version;
         this.title = title;
@@ -62,12 +75,40 @@ public class PolicyDocument extends BaseEntity {
         this.updatedBy = updatedBy;
     }
 
+    public static PolicyDocument of(
+        PolicyType type,
+        String version,
+        String title,
+        String content,
+        Boolean current,
+        Boolean mandatory,
+        LocalDateTime effectiveDate,
+        String createdBy
+    ) {
+        return new PolicyDocument(
+            type,
+            version,
+            title,
+            content,
+            current,
+            mandatory,
+            effectiveDate,
+            createdBy,
+            null)
+            ;
+    }
+
     public void updateCurrent(Boolean current) {
         this.current = current;
     }
 
-    public void update(String title, String content, Boolean mandatory,
-                      LocalDateTime effectiveDate, String updatedBy) {
+    public void update(
+        String title,
+        String content,
+        Boolean mandatory,
+        LocalDateTime effectiveDate,
+        String updatedBy
+    ) {
         this.title = title;
         this.content = content;
         this.mandatory = mandatory;

@@ -66,13 +66,23 @@ public class PaymentService {
 
         String pgOrderId = generatePgOrderId();
 
-        Payment payment = Payment.builder()
-            .orderId(request.orderId())
-            .paymentMethod(request.paymentMethod())
-            .paymentStatus(PaymentStatus.PENDING)
-            .amount(order.getFinalAmount())
-            .pgOrderId(pgOrderId)
-            .build();
+        Payment payment =
+            Payment.of(
+                request.orderId(),
+                request.paymentMethod(),
+                PaymentStatus.PENDING,
+                order.getFinalAmount(),
+                null,
+                null,
+                pgOrderId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
 
         Payment savedPayment = paymentCoreService.save(payment);
 
@@ -254,11 +264,15 @@ public class PaymentService {
             throw new BusinessException(ErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED);
         }
 
-        PaymentRefund refund = PaymentRefund.builder()
-            .paymentId(paymentId)
-            .refundAmount(request.refundAmount())
-            .refundReason(request.refundReason())
-            .build();
+        PaymentRefund refund =
+            PaymentRefund.of(
+                paymentId,
+                request.refundAmount(),
+                request.refundReason(),
+                null,
+                null,
+                null
+            );
 
         PaymentRefund savedRefund = paymentCoreService.saveRefund(refund);
 

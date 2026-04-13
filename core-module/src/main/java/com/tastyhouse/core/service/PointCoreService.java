@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -40,12 +39,12 @@ public class PointCoreService {
         memberPoint.deductPoints(pointAmount);
 
         memberPointRepository.saveHistory(
-            MemberPointHistory.builder()
-                .memberId(memberId)
-                .pointType(PointType.USE)
-                .pointAmount(-pointAmount)
-                .reason("주문 결제 사용")
-                .build()
+            MemberPointHistory.of(
+                memberId,
+                PointType.USE,
+                -pointAmount,
+                "주문 결제 사용"
+            )
         );
     }
 
@@ -57,12 +56,12 @@ public class PointCoreService {
         memberPoint.addPoints(pointAmount);
 
         memberPointRepository.saveHistory(
-            MemberPointHistory.builder()
-                .memberId(memberId)
-                .pointType(PointType.EARNED)
-                .pointAmount(pointAmount)
-                .reason(reason)
-                .build()
+            MemberPointHistory.of(
+                memberId,
+                PointType.EARNED,
+                pointAmount,
+                reason
+            )
         );
     }
 
@@ -73,10 +72,7 @@ public class PointCoreService {
             return existing;
         }
         return memberPointRepository.save(
-            MemberPoint.builder()
-                .memberId(memberId)
-                .availablePoints(0)
-                .build()
+            MemberPoint.of(memberId)
         );
     }
 
@@ -89,12 +85,12 @@ public class PointCoreService {
         memberPoint.addPoints(pointAmount);
 
         memberPointRepository.saveHistory(
-            MemberPointHistory.builder()
-                .memberId(memberId)
-                .pointType(PointType.REFUND)
-                .pointAmount(pointAmount)
-                .reason("결제 취소 환불")
-                .build()
+            MemberPointHistory.of(
+                memberId,
+                PointType.REFUND,
+                pointAmount,
+                "결제 취소 환불"
+            )
         );
     }
 
@@ -113,12 +109,12 @@ public class PointCoreService {
         memberPoint.deductPoints(deductAmount);
 
         memberPointRepository.saveHistory(
-            MemberPointHistory.builder()
-                .memberId(memberId)
-                .pointType(PointType.USE)
-                .pointAmount(-deductAmount)
-                .reason("결제 취소 적립금 회수")
-                .build()
+            MemberPointHistory.of(
+                memberId,
+                PointType.USE,
+                -deductAmount,
+                "결제 취소 적립금 회수"
+            )
         );
     }
 }

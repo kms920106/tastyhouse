@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.product;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -35,9 +39,14 @@ public class ProductOption extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Builder
-    public ProductOption(Long optionGroupId, String name, Integer additionalPrice,
-                         Integer sort, Boolean isSoldOut, Boolean isActive) {
+    private ProductOption(
+        Long optionGroupId,
+        String name,
+        Integer additionalPrice,
+        Integer sort,
+        Boolean isSoldOut,
+        Boolean isActive
+    ) {
         this.optionGroupId = optionGroupId;
         this.name = name;
         this.additionalPrice = additionalPrice != null ? additionalPrice : 0;
@@ -46,20 +55,35 @@ public class ProductOption extends BaseEntity {
         this.isActive = isActive != null ? isActive : true;
     }
 
-    public void update(String name, Integer additionalPrice, Integer sort,
-                       Boolean isSoldOut, Boolean isActive) {
+    public static ProductOption of(
+        Long optionGroupId,
+        String name,
+        Integer additionalPrice,
+        Integer sort,
+        Boolean isSoldOut,
+        Boolean isActive
+    ) {
+        return new ProductOption(
+            optionGroupId,
+            name,
+            additionalPrice,
+            sort,
+            isSoldOut,
+            isActive
+        );
+    }
+
+    public void update(
+        String name,
+        Integer additionalPrice,
+        Integer sort,
+        Boolean isSoldOut,
+        Boolean isActive
+    ) {
         this.name = name;
         this.additionalPrice = additionalPrice;
         this.sort = sort;
         this.isSoldOut = isSoldOut;
         this.isActive = isActive;
-    }
-
-    public void markAsSoldOut() {
-        this.isSoldOut = true;
-    }
-
-    public void markAsAvailable() {
-        this.isSoldOut = false;
     }
 }

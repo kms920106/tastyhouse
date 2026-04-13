@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.product;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -44,10 +48,17 @@ public class ProductCommonOptionGroup extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Builder
-    public ProductCommonOptionGroup(Long productId, String name, String description, Boolean isRequired,
-                                    Boolean isMultipleSelect, Integer minSelect, Integer maxSelect,
-                                    Integer sort, Boolean isActive) {
+    private ProductCommonOptionGroup(
+        Long productId,
+        String name,
+        String description,
+        Boolean isRequired,
+        Boolean isMultipleSelect,
+        Integer minSelect,
+        Integer maxSelect,
+        Integer sort,
+        Boolean isActive
+    ) {
         this.productId = productId;
         this.name = name;
         this.description = description;
@@ -59,8 +70,40 @@ public class ProductCommonOptionGroup extends BaseEntity {
         this.isActive = isActive != null ? isActive : true;
     }
 
-    public void update(String name, String description, Boolean isRequired, Boolean isMultipleSelect,
-                       Integer minSelect, Integer maxSelect, Integer sort, Boolean isActive) {
+    public static ProductCommonOptionGroup of(
+        Long productId,
+        String name,
+        String description,
+        Boolean isRequired,
+        Boolean isMultipleSelect,
+        Integer minSelect,
+        Integer maxSelect,
+        Integer sort,
+        Boolean isActive
+    ) {
+        return new ProductCommonOptionGroup(
+            productId,
+            name,
+            description,
+            isRequired,
+            isMultipleSelect,
+            minSelect,
+            maxSelect,
+            sort,
+            isActive
+        );
+    }
+
+    public void update(
+        String name,
+        String description,
+        Boolean isRequired,
+        Boolean isMultipleSelect,
+        Integer minSelect,
+        Integer maxSelect,
+        Integer sort,
+        Boolean isActive
+    ) {
         this.name = name;
         this.description = description;
         this.isRequired = isRequired;

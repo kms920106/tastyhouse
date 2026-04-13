@@ -1,9 +1,14 @@
 package com.tastyhouse.core.entity.event;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -37,8 +42,7 @@ public class EventAnnouncement extends BaseEntity {
     @Column(name = "announced_at", nullable = false)
     private LocalDateTime announcedAt;
 
-    @Builder
-    public EventAnnouncement(
+    private EventAnnouncement(
         Long eventId,
         String name,
         String content,
@@ -50,7 +54,25 @@ public class EventAnnouncement extends BaseEntity {
         this.announcedAt = announcedAt;
     }
 
-    public void update(String name, String contentHtml, LocalDateTime announcedAt) {
+    public static EventAnnouncement of(
+        Long eventId,
+        String name,
+        String content,
+        LocalDateTime announcedAt
+    ) {
+        return new EventAnnouncement(
+            eventId,
+            name,
+            content,
+            announcedAt
+        );
+    }
+
+    public void update(
+        String name,
+        String contentHtml,
+        LocalDateTime announcedAt
+    ) {
         this.name = name;
         this.content = contentHtml;
         this.announcedAt = announcedAt;

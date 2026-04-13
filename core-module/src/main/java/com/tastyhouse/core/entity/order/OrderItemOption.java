@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.order;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -35,14 +39,37 @@ public class OrderItemOption extends BaseEntity {
     @Column(name = "additional_price", nullable = false)
     private Integer additionalPrice;
 
-    @Builder
-    public OrderItemOption(Long orderItemId, Long optionGroupId, String optionGroupName,
-                           Long optionId, String optionName, Integer additionalPrice) {
+    private OrderItemOption(
+        Long orderItemId,
+        Long optionGroupId,
+        String optionGroupName,
+        Long optionId,
+        String optionName,
+        Integer additionalPrice
+    ) {
         this.orderItemId = orderItemId;
         this.optionGroupId = optionGroupId;
         this.optionGroupName = optionGroupName;
         this.optionId = optionId;
         this.optionName = optionName;
         this.additionalPrice = additionalPrice != null ? additionalPrice : 0;
+    }
+
+    public static OrderItemOption of(
+        Long orderItemId,
+        Long optionGroupId,
+        String optionGroupName,
+        Long optionId,
+        String optionName,
+        Integer additionalPrice
+    ) {
+        return new OrderItemOption(
+            orderItemId,
+            optionGroupId,
+            optionGroupName,
+            optionId,
+            optionName,
+            additionalPrice
+        );
     }
 }

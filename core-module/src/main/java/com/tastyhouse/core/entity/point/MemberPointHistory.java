@@ -1,9 +1,16 @@
 package com.tastyhouse.core.entity.point;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -36,8 +43,7 @@ public class MemberPointHistory extends BaseEntity {
     @Column(name = "reason", nullable = false, length = 200)
     private String reason;
 
-    @Builder
-    public MemberPointHistory(
+    private MemberPointHistory(
         Long memberId,
         PointType pointType,
         Integer pointAmount,
@@ -47,5 +53,19 @@ public class MemberPointHistory extends BaseEntity {
         this.pointType = pointType;
         this.pointAmount = pointAmount;
         this.reason = reason;
+    }
+
+    public static MemberPointHistory of(
+        Long memberId,
+        PointType pointType,
+        Integer pointAmount,
+        String reason
+    ) {
+        return new MemberPointHistory(
+            memberId,
+            pointType,
+            pointAmount,
+            reason
+        );
     }
 }

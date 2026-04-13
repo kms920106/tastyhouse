@@ -1,9 +1,14 @@
 package com.tastyhouse.core.entity.place;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,9 +28,21 @@ public class PlaceFoodType extends BaseEntity {
     @Column(name = "place_food_type_category_id", nullable = false)
     private Long placeFoodTypeCategoryId;
 
-    @Builder
-    public PlaceFoodType(Long placeId, Long placeFoodTypeCategoryId) {
+    private PlaceFoodType(
+        Long placeId,
+        Long placeFoodTypeCategoryId
+    ) {
         this.placeId = placeId;
         this.placeFoodTypeCategoryId = placeFoodTypeCategoryId;
+    }
+
+    public static PlaceFoodType of(
+        Long placeId,
+        Long placeFoodTypeCategoryId
+    ) {
+        return new PlaceFoodType(
+            placeId,
+            placeFoodTypeCategoryId
+        );
     }
 }

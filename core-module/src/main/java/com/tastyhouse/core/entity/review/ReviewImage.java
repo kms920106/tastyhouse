@@ -1,9 +1,14 @@
 package com.tastyhouse.core.entity.review;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,10 +36,25 @@ public class ReviewImage extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort; // 이미지 정렬 순서
 
-    @Builder
-    public ReviewImage(Long reviewId, Long uploadedFileId, Integer sort) {
+    private ReviewImage(
+        Long reviewId,
+        Long uploadedFileId,
+        Integer sort
+    ) {
         this.reviewId = reviewId;
         this.uploadedFileId = uploadedFileId;
         this.sort = sort;
+    }
+
+    public static ReviewImage of(
+        Long reviewId,
+        Long uploadedFileId,
+        Integer sort
+    ) {
+        return new ReviewImage(
+            reviewId,
+            uploadedFileId,
+            sort
+        );
     }
 }

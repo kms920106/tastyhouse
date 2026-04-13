@@ -1,9 +1,16 @@
 package com.tastyhouse.core.entity.coupon;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -63,8 +70,7 @@ public class Coupon extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Builder
-    public Coupon(
+    private Coupon(
         String name,
         String description,
         DiscountType discountType,
@@ -90,5 +96,35 @@ public class Coupon extends BaseEntity {
         this.useStartAt = useStartAt;
         this.useEndAt = useEndAt;
         this.isActive = isActive != null ? isActive : true;
+    }
+
+    public static Coupon of(
+        String name,
+        String description,
+        DiscountType discountType,
+        Integer discountAmount,
+        Integer maxDiscountAmount,
+        Integer minOrderAmount,
+        Integer maxDiscountCount,
+        LocalDateTime issueStartAt,
+        LocalDateTime issueEndAt,
+        LocalDateTime useStartAt,
+        LocalDateTime useEndAt,
+        Boolean isActive
+    ) {
+        return new Coupon(
+            name,
+            description,
+            discountType,
+            discountAmount,
+            maxDiscountAmount,
+            minOrderAmount,
+            maxDiscountCount,
+            issueStartAt,
+            issueEndAt,
+            useStartAt,
+            useEndAt,
+            isActive
+        );
     }
 }

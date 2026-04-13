@@ -19,23 +19,25 @@ public class BugReportService {
 
     @Transactional
     public BugReportResponse createBugReport(Long memberId, BugReportCreateRequest request) {
-        BugReport bugReport = BugReport.builder()
-            .memberId(memberId)
-            .device(request.device())
-            .title(request.title())
-            .content(request.content())
-            .build();
+        BugReport bugReport =
+            BugReport.of(
+                memberId,
+                request.device(),
+                request.title(),
+                request.content()
+            );
 
         BugReport savedReport = bugReportCoreService.save(bugReport);
 
         List<Long> uploadedFileIds = request.uploadedFileIds();
         if (uploadedFileIds != null && !uploadedFileIds.isEmpty()) {
             for (int i = 0; i < uploadedFileIds.size(); i++) {
-                BugReportImage image = BugReportImage.builder()
-                    .bugReportId(savedReport.getId())
-                    .uploadedFileId(uploadedFileIds.get(i))
-                    .sort(i)
-                    .build();
+                BugReportImage image =
+                    BugReportImage.of(
+                        savedReport.getId(),
+                        uploadedFileIds.get(i),
+                        i
+                    );
                 bugReportCoreService.saveBugReportImage(image);
             }
         }

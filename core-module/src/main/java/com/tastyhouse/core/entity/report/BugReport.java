@@ -1,9 +1,14 @@
 package com.tastyhouse.core.entity.report;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Index;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,11 +39,29 @@ public class BugReport extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content; // 내용
 
-    @Builder
-    public BugReport(Long memberId, String device, String title, String content) {
+    private BugReport(
+        Long memberId,
+        String device,
+        String title,
+        String content
+    ) {
         this.memberId = memberId;
         this.device = device;
         this.title = title;
         this.content = content;
+    }
+
+    public static BugReport of(
+        Long memberId,
+        String device,
+        String title,
+        String content
+    ) {
+        return new BugReport(
+            memberId,
+            device,
+            title,
+            content
+        );
     }
 }

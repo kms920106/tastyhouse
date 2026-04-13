@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.place;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -33,8 +39,7 @@ public class PlaceFoodTypeCategory extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Builder
-    public PlaceFoodTypeCategory(FoodType foodType, String displayName, String imageUrl, Integer sort, Boolean isActive) {
+    private PlaceFoodTypeCategory(FoodType foodType, String displayName, String imageUrl, Integer sort, Boolean isActive) {
         this.foodType = foodType;
         this.displayName = displayName;
         this.imageUrl = imageUrl;
@@ -42,7 +47,28 @@ public class PlaceFoodTypeCategory extends BaseEntity {
         this.isActive = isActive;
     }
 
-    public void update(String displayName, String imageUrl, Integer sort, Boolean isActive) {
+    public static PlaceFoodTypeCategory of(
+        FoodType foodType,
+        String displayName,
+        String imageUrl,
+        Integer sort,
+        Boolean isActive
+    ) {
+        return new PlaceFoodTypeCategory(
+            foodType,
+            displayName,
+            imageUrl,
+            sort,
+            isActive
+        );
+    }
+
+    public void update(
+        String displayName,
+        String imageUrl,
+        Integer sort,
+        Boolean isActive
+    ) {
         this.displayName = displayName;
         this.imageUrl = imageUrl;
         this.sort = sort;

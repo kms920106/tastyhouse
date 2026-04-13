@@ -199,12 +199,13 @@ public class BbqService {
             return existingCategories.get(0);
         }
 
-        ProductCategory category = ProductCategory.builder()
-                .placeId(placeId)
-                .name(categoryResponse.name())
-                .sort(sort)
-                .isActive(true)
-                .build();
+        ProductCategory category =
+            ProductCategory.of(
+                placeId,
+                categoryResponse.name(),
+                sort,
+                true)
+            ;
         return productCoreService.saveProductCategory(category);
     }
 
@@ -215,41 +216,44 @@ public class BbqService {
         // 상품 상세 정보 조회
         BbqProductResponse menuDetail = getMenuDetail(menuResponse.id());
 
-        Product product = Product.builder()
-                .placeId(placeId)
-                .productCategoryId(categoryId)
-                .name(menuDetail.name())
-                .description(menuDetail.description())
-                .originalPrice(menuDetail.originalPrice())
-                .discountPrice(null)
-                .discountRate(null)
-                .rating(null)
-                .reviewCount(0)
-                .isRepresentative(false)
-                .spiciness(null)
-                .isSoldOut(menuDetail.isSoldOut() != null ? menuDetail.isSoldOut() : false)
-                .isActive(true)
-                .sort(sort)
-                .build();
+        Product product =
+            Product.of(
+                placeId,
+                categoryId,
+                menuDetail.name(),
+                menuDetail.description(),
+                menuDetail.originalPrice(),
+                null,
+                null,
+                null,
+                0,
+                false,
+                null,
+                menuDetail.isSoldOut() != null ? menuDetail.isSoldOut() : false,
+                true,
+                sort);
         Product savedProduct = productCoreService.saveProduct(product);
 
         // 상품 이미지 저장
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {
-            ProductImage productImage = ProductImage.builder()
-                    .productId(savedProduct.getId())
-                    .imageUrl(menuDetail.imageUrl())
-                    .sort(0)
-                    .isActive(true)
-                    .build();
+            ProductImage productImage =
+                ProductImage.of(
+                    savedProduct.getId(),
+                    menuDetail.imageUrl(),
+                    0,
+                    true
+                );
             productCoreService.saveProductImage(productImage);
         }
 
         // ProductBbq 매핑 저장 (외부 BBQ 메뉴 ID 저장)
-        ProductBbq productBbq = ProductBbq.builder()
-                .productId(savedProduct.getId())
-                .bbqMenuId(menuResponse.id())
-                .bbqCategoryId(bbqCategoryId)
-                .build();
+        ProductBbq productBbq =
+            ProductBbq.of(
+                savedProduct.getId(),
+                menuResponse.id(),
+                bbqCategoryId,
+                false
+            );
         productCoreService.saveProductBbq(productBbq);
 
         log.debug("상품 저장 완료: productId={}, name={}", savedProduct.getId(), savedProduct.getName());

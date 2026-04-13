@@ -1,9 +1,16 @@
 package com.tastyhouse.core.entity.event;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -57,8 +64,7 @@ public class Event extends BaseEntity {
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
 
-    @Builder
-    public Event(
+    private Event(
         String name,
         String description,
         String subtitle,
@@ -82,7 +88,29 @@ public class Event extends BaseEntity {
         this.endAt = endAt;
     }
 
-    public void updateStatus(EventStatus status) {
-        this.status = status;
+    public static Event of(
+        String name,
+        String description,
+        String subtitle,
+        Long thumbnailImageFileId,
+        Long bannerImageFileId,
+        String contentHtml,
+        EventType type,
+        EventStatus status,
+        LocalDateTime startAt,
+        LocalDateTime endAt
+    ) {
+        return new Event(
+            name,
+            description,
+            subtitle,
+            thumbnailImageFileId,
+            bannerImageFileId,
+            contentHtml,
+            type,
+            status,
+            startAt,
+            endAt
+        );
     }
 }

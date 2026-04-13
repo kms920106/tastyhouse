@@ -1,9 +1,14 @@
 package com.tastyhouse.core.entity.file;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -37,12 +42,33 @@ public class UploadedFile extends BaseEntity {
     @Column(name = "content_type", nullable = false, length = 100)
     private String contentType;
 
-    @Builder
-    public UploadedFile(String originalFilename, String storedFilename, String filePath, Long fileSize, String contentType) {
+    private UploadedFile(
+        String originalFilename,
+        String storedFilename,
+        String filePath,
+        Long fileSize,
+        String contentType
+    ) {
         this.originalFilename = originalFilename;
         this.storedFilename = storedFilename;
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.contentType = contentType;
+    }
+
+    public static UploadedFile of(
+        String originalFilename,
+        String storedFilename,
+        String filePath,
+        Long fileSize,
+        String contentType
+    ) {
+        return new UploadedFile(
+            originalFilename,
+            storedFilename,
+            filePath,
+            fileSize,
+            contentType
+        );
     }
 }

@@ -31,10 +31,10 @@ public class PhoneVerificationService {
         String verificationCode = verificationCodeGenerator.generate();
 
         phoneVerificationCoreService.save(
-            PhoneVerification.builder()
-                .phoneNumber(phoneNumber)
-                .verificationCode(verificationCode)
-                .build()
+            PhoneVerification.of(
+                phoneNumber,
+                verificationCode
+            )
         );
 
 //        String smsText = SMS_TEXT_TEMPLATE.formatted(verificationCode);

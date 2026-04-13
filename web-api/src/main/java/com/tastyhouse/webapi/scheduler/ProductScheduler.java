@@ -4,7 +4,11 @@ import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductBbq;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
-import com.tastyhouse.core.repository.product.*;
+import com.tastyhouse.core.repository.product.ProductBbqJpaRepository;
+import com.tastyhouse.core.repository.product.ProductBbqRepository;
+import com.tastyhouse.core.repository.product.ProductJpaRepository;
+import com.tastyhouse.core.repository.product.ProductOptionGroupJpaRepository;
+import com.tastyhouse.core.repository.product.ProductOptionJpaRepository;
 import com.tastyhouse.webapi.crawling.bbq.BbqService;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductSubOptionResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +35,6 @@ public class ProductScheduler {
 
     /**
      * BBQ 상품 옵션 크롤링 스케줄러
-     *
      * 옵션 동기화가 완료되지 않은 상품을 찾아서
      * getMenuSubOptions를 호출하여 옵션 저장 (10초 간격 실행)
      */
@@ -78,28 +81,22 @@ public class ProductScheduler {
                 .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다: productId=" + productId));
 
             // 기본 옵션 그룹 저장
-            ProductOptionGroup defaultGroup = ProductOptionGroup.builder()
-                .productId(productId)
-                .name("기본 선택")
-                .description(null)
-                .isRequired(false)
-                .isMultipleSelect(false)
-                .minSelect(0)
-                .maxSelect(1)
-                .sort(0)
-                .isActive(true)
-                .build();
+            ProductOptionGroup defaultGroup =
+                ProductOptionGroup.of(
+                    productId,
+                    "기본 선택",
+                    null,
+                    false,
+                    false,
+                    0,
+                    1,
+                    0,
+                    true
+                );
             ProductOptionGroup savedOptionGroup = productOptionGroupJpaRepository.save(defaultGroup);
 
             // 기본 옵션 저장 (상품명 사용)
-            ProductOption defaultOption = ProductOption.builder()
-                .optionGroupId(savedOptionGroup.getId())
-                .name(product.getName())
-                .additionalPrice(0)
-                .sort(0)
-                .isSoldOut(false)
-                .isActive(true)
-                .build();
+            ProductOption defaultOption = ProductOption.of(savedOptionGroup.getId(), product.getName(), 0, 0, false, true);
             productOptionJpaRepository.save(defaultOption);
 
             log.info("서브 옵션이 없어 기본 옵션 그룹 및 옵션 저장: productId={}, 상품명={}", productId, product.getName());
@@ -110,17 +107,18 @@ public class ProductScheduler {
             BbqProductSubOptionResponse subOption = subOptions.get(i);
 
             // ProductOptionGroup 저장
-            ProductOptionGroup optionGroup = ProductOptionGroup.builder()
-                .productId(productId)
-                .name(subOption.subOptionTitle())
-                .description(null)
-                .isRequired(subOption.requiredSelectCount() != null && subOption.requiredSelectCount() > 0)
-                .isMultipleSelect(subOption.maxSelectCount() != null && subOption.maxSelectCount() > 1)
-                .minSelect(subOption.requiredSelectCount())
-                .maxSelect(subOption.maxSelectCount())
-                .sort(i)
-                .isActive(true)
-                .build();
+            ProductOptionGroup optionGroup =
+                ProductOptionGroup.of(
+                    productId,
+                    subOption.subOptionTitle(),
+                    null,
+                    subOption.requiredSelectCount() != null && subOption.requiredSelectCount() > 0,
+                    subOption.maxSelectCount() != null && subOption.maxSelectCount() > 1,
+                    subOption.requiredSelectCount(),
+                    subOption.maxSelectCount(),
+                    i,
+                    true
+                );
             ProductOptionGroup savedOptionGroup = productOptionGroupJpaRepository.save(optionGroup);
 
             // ProductOption 저장
@@ -129,14 +127,15 @@ public class ProductScheduler {
                     BbqProductSubOptionResponse.SubOptionItemDetailResponse itemDetail =
                         subOption.subOptionItemDetailResponseList().get(j);
 
-                    ProductOption productOption = ProductOption.builder()
-                        .optionGroupId(savedOptionGroup.getId())
-                        .name(itemDetail.itemTitle())
-                        .additionalPrice(itemDetail.addPrice() != null ? itemDetail.addPrice() : 0)
-                        .sort(j)
-                        .isSoldOut(itemDetail.isSoldOut() != null ? itemDetail.isSoldOut() : false)
-                        .isActive(!(itemDetail.isHidden() != null && itemDetail.isHidden()))
-                        .build();
+                    ProductOption productOption =
+                        ProductOption.of(
+                            savedOptionGroup.getId(),
+                            itemDetail.itemTitle(),
+                            itemDetail.addPrice() != null ? itemDetail.addPrice() : 0,
+                            j,
+                            itemDetail.isSoldOut() != null ? itemDetail.isSoldOut() : false,
+                            !(itemDetail.isHidden() != null && itemDetail.isHidden())
+                        );
                     productOptionJpaRepository.save(productOption);
                 }
             }

@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.user;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -27,10 +33,25 @@ public class MemberWithdrawal extends BaseEntity {
     @Column(name = "reason_detail", length = 500)
     private String reasonDetail;
 
-    @Builder
-    private MemberWithdrawal(Long memberId, WithdrawalReason reason, String reasonDetail) {
+    private MemberWithdrawal(
+        Long memberId,
+        WithdrawalReason reason,
+        String reasonDetail
+    ) {
         this.memberId = memberId;
         this.reason = reason;
         this.reasonDetail = reasonDetail;
+    }
+
+    public static MemberWithdrawal of(
+        Long memberId,
+        WithdrawalReason reason,
+        String reasonDetail
+    ) {
+        return new MemberWithdrawal(
+            memberId,
+            reason,
+            reasonDetail
+        );
     }
 }

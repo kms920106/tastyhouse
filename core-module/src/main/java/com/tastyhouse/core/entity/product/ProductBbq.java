@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.product;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -33,12 +37,30 @@ public class ProductBbq extends BaseEntity {
     @Column(name = "is_options_synced", nullable = false)
     private Boolean isOptionsSynced;
 
-    @Builder
-    public ProductBbq(Long productId, Long bbqMenuId, Long bbqCategoryId, Boolean isOptionsSynced) {
+    private ProductBbq(
+        Long productId,
+        Long bbqMenuId,
+        Long bbqCategoryId,
+        Boolean isOptionsSynced
+    ) {
         this.productId = productId;
         this.bbqMenuId = bbqMenuId;
         this.bbqCategoryId = bbqCategoryId;
         this.isOptionsSynced = isOptionsSynced != null ? isOptionsSynced : false;
+    }
+
+    public static ProductBbq of(
+        Long productId,
+        Long bbqMenuId,
+        Long bbqCategoryId,
+        Boolean isOptionsSynced
+    ) {
+        return new ProductBbq(
+            productId,
+            bbqMenuId,
+            bbqCategoryId,
+            isOptionsSynced
+        );
     }
 
     /**

@@ -1,19 +1,27 @@
 package com.tastyhouse.core.entity.verification;
 
-import jakarta.persistence.*;
-import lombok.Builder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
 @Entity
 @Table(name = "EMAIL_VERIFICATION", indexes = {
     @Index(name = "idx_email_verification_email", columnList = "email"),
     @Index(name = "idx_email_verification_expires_at", columnList = "expires_at")
 })
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EmailVerification {
 
     private static final int VERIFICATION_CODE_EXPIRATION_MINUTES = 5;
@@ -41,8 +49,10 @@ public class EmailVerification {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Builder
-    public EmailVerification(String email, String verificationCode) {
+    private EmailVerification(
+        String email,
+        String verificationCode
+    ) {
         this.email = email;
         this.verificationCode = verificationCode;
         this.status = EmailVerificationStatus.PENDING;
@@ -50,12 +60,18 @@ public class EmailVerification {
         this.createdAt = LocalDateTime.now();
     }
 
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expiresAt);
+    public static EmailVerification of(
+        String email,
+        String verificationCode
+    ) {
+        return new EmailVerification(
+            email,
+            verificationCode
+        );
     }
 
-    public boolean isVerified() {
-        return this.status == EmailVerificationStatus.VERIFIED;
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.expiresAt);
     }
 
     public void verify() {

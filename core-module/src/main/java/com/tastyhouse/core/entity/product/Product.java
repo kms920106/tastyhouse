@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.product;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -61,11 +65,22 @@ public class Product extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    @Builder
-    public Product(Long placeId, Long productCategoryId, String name, String description,
-                   Integer originalPrice, Integer discountPrice,
-                   BigDecimal discountRate, Double rating, Integer reviewCount,
-                   Boolean isRepresentative, Integer spiciness, Boolean isSoldOut, Boolean isActive, Integer sort) {
+    private Product(
+        Long placeId,
+        Long productCategoryId,
+        String name,
+        String description,
+        Integer originalPrice,
+        Integer discountPrice,
+        BigDecimal discountRate,
+        Double rating,
+        Integer reviewCount,
+        Boolean isRepresentative,
+        Integer spiciness,
+        Boolean isSoldOut,
+        Boolean isActive,
+        Integer sort
+    ) {
         this.placeId = placeId;
         this.productCategoryId = productCategoryId;
         this.name = name;
@@ -82,10 +97,53 @@ public class Product extends BaseEntity {
         this.sort = sort;
     }
 
-    public void update(Long productCategoryId, String name, String description,
-                       Integer originalPrice, Integer discountPrice,
-                       BigDecimal discountRate, Boolean isRepresentative, Integer spiciness,
-                       Boolean isSoldOut, Boolean isActive, Integer sort) {
+    public static Product of(
+        Long placeId,
+        Long productCategoryId,
+        String name,
+        String description,
+        Integer originalPrice,
+        Integer discountPrice,
+        BigDecimal discountRate,
+        Double rating,
+        Integer reviewCount,
+        Boolean isRepresentative,
+        Integer spiciness,
+        Boolean isSoldOut,
+        Boolean isActive,
+        Integer sort
+    ) {
+        return new Product(
+            placeId,
+            productCategoryId,
+            name,
+            description,
+            originalPrice,
+            discountPrice,
+            discountRate,
+            rating,
+            reviewCount,
+            isRepresentative,
+            spiciness,
+            isSoldOut,
+            isActive,
+            sort
+        );
+    }
+
+    public void update(
+        Long productCategoryId,
+        String name,
+        String description,
+        Integer originalPrice,
+        Integer discountPrice,
+        BigDecimal discountRate,
+        Boolean isRepresentative,
+        Integer spiciness,
+        Boolean isSoldOut,
+        Boolean isActive,
+        Integer sort
+    ) {
         this.productCategoryId = productCategoryId;
         this.name = name;
         this.description = description;
@@ -97,13 +155,5 @@ public class Product extends BaseEntity {
         this.isSoldOut = isSoldOut;
         this.isActive = isActive;
         this.sort = sort;
-    }
-
-    public void markAsSoldOut() {
-        this.isSoldOut = true;
-    }
-
-    public void markAsAvailable() {
-        this.isSoldOut = false;
     }
 }

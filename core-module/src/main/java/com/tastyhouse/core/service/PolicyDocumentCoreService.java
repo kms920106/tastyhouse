@@ -43,18 +43,25 @@ public class PolicyDocumentCoreService {
     }
 
     @Transactional
-    public PolicyDocument create(PolicyType type, String version, String title, String content,
-                                 Boolean mandatory, LocalDateTime effectiveDate, String createdBy) {
-        PolicyDocument policyDocument = PolicyDocument.builder()
-            .type(type)
-            .version(version)
-            .title(title)
-            .content(content)
-            .current(false)
-            .mandatory(mandatory)
-            .effectiveDate(effectiveDate)
-            .createdBy(createdBy)
-            .build();
+    public PolicyDocument create(
+        PolicyType type,
+        String version,
+        String title,
+        String content,
+        Boolean mandatory,
+        LocalDateTime effectiveDate,
+        String createdBy
+    ) {
+        PolicyDocument policyDocument =
+            PolicyDocument.of(
+                type,
+                version,
+                title,
+                content,
+                false,
+                mandatory,
+                effectiveDate, createdBy
+            );
 
         return policyDocumentRepository.save(policyDocument);
     }

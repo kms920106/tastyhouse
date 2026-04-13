@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.order;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,7 +27,7 @@ public class OrderItem extends BaseEntity {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Column(name = "product_name", nullable = false, length = 255)
+    @Column(name = "product_name", nullable = false)
     private String productName;
 
     @Column(name = "product_image_url", length = 500)
@@ -44,9 +48,17 @@ public class OrderItem extends BaseEntity {
     @Column(name = "total_price", nullable = false)
     private Integer totalPrice;
 
-    @Builder
-    public OrderItem(Long orderId, Long productId, String productName, String productImageUrl, Integer quantity, Integer unitPrice, Integer discountPrice,
-                     Integer optionTotalPrice, Integer totalPrice) {
+    private OrderItem(
+        Long orderId,
+        Long productId,
+        String productName,
+        String productImageUrl,
+        Integer quantity,
+        Integer unitPrice,
+        Integer discountPrice,
+        Integer optionTotalPrice,
+        Integer totalPrice
+    ) {
         this.orderId = orderId;
         this.productId = productId;
         this.productName = productName;
@@ -58,7 +70,34 @@ public class OrderItem extends BaseEntity {
         this.totalPrice = totalPrice != null ? totalPrice : 0;
     }
 
-    public void updatePrices(Integer optionTotalPrice, Integer totalPrice) {
+    public static OrderItem of(
+        Long orderId,
+        Long productId,
+        String productName,
+        String productImageUrl,
+        Integer quantity,
+        Integer unitPrice,
+        Integer discountPrice,
+        Integer optionTotalPrice,
+        Integer totalPrice
+    ) {
+        return new OrderItem(
+            orderId,
+            productId,
+            productName,
+            productImageUrl,
+            quantity,
+            unitPrice,
+            discountPrice,
+            optionTotalPrice,
+            totalPrice
+        );
+    }
+
+    public void updatePrices(
+        Integer optionTotalPrice,
+        Integer totalPrice
+    ) {
         this.optionTotalPrice = optionTotalPrice;
         this.totalPrice = totalPrice;
     }

@@ -3,9 +3,14 @@ package com.tastyhouse.core.entity.point;
 import com.tastyhouse.core.entity.BaseEntity;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -33,8 +38,7 @@ public class MemberPoint extends BaseEntity {
     @Column(name = "expired_this_month", nullable = false)
     private Integer expiredThisMonth = 0;
 
-    @Builder
-    public MemberPoint(
+    private MemberPoint(
         Long memberId,
         Integer availablePoints,
         Integer expiredThisMonth
@@ -42,6 +46,14 @@ public class MemberPoint extends BaseEntity {
         this.memberId = memberId;
         this.availablePoints = availablePoints != null ? availablePoints : 0;
         this.expiredThisMonth = expiredThisMonth != null ? expiredThisMonth : 0;
+    }
+
+    public static MemberPoint of(Long memberId) {
+        return new MemberPoint(
+            memberId,
+            0,
+            0
+        );
     }
 
     public void addPoints(Integer amount) {
@@ -53,9 +65,5 @@ public class MemberPoint extends BaseEntity {
             throw new BusinessException(ErrorCode.POINT_INSUFFICIENT);
         }
         this.availablePoints -= amount;
-    }
-
-    public void updateExpiredThisMonth(Integer amount) {
-        this.expiredThisMonth = amount;
     }
 }

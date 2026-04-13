@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.place;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,14 +30,32 @@ public class PlacePhotoCategoryImage extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort; // 정렬 순서
 
-    @Builder
-    public PlacePhotoCategoryImage(Long placePhotoCategoryId, String imageUrl, Integer sort) {
+    private PlacePhotoCategoryImage(
+        Long placePhotoCategoryId,
+        String imageUrl,
+        Integer sort
+    ) {
         this.placePhotoCategoryId = placePhotoCategoryId;
         this.imageUrl = imageUrl;
         this.sort = sort;
     }
 
-    public void update(String imageUrl, Integer sort) {
+    public static PlacePhotoCategoryImage of(
+        Long placePhotoCategoryId,
+        String imageUrl,
+        Integer sort
+    ) {
+        return new PlacePhotoCategoryImage(
+            placePhotoCategoryId,
+            imageUrl,
+            sort
+        );
+    }
+
+    public void update(
+        String imageUrl,
+        Integer sort
+    ) {
         this.imageUrl = imageUrl;
         this.sort = sort;
     }

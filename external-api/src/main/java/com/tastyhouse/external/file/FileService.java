@@ -39,13 +39,14 @@ public class FileService {
 
         String filePath = fileStorageStrategy.store(file, storedFilename, datePath);
 
-        UploadedFile uploadedFile = UploadedFile.builder()
-            .originalFilename(originalFilename)
-            .storedFilename(storedFilename)
-            .filePath(filePath)
-            .fileSize(file.getSize())
-            .contentType(file.getContentType())
-            .build();
+        UploadedFile uploadedFile =
+            UploadedFile.of(
+                originalFilename,
+                storedFilename,
+                filePath,
+                file.getSize(),
+                file.getContentType()
+            );
 
         UploadedFile saved = fileCoreService.save(uploadedFile);
         return saved.getId();

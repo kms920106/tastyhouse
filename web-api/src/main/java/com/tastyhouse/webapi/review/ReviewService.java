@@ -376,17 +376,22 @@ public class ReviewService {
 
         double totalRating = (request.tasteRating() + request.amountRating() + request.priceRating()) / 3.0;
 
-        Review review = Review.builder()
-                .placeId(product.getPlaceId())
-                .productId(product.getId())
-                .memberId(memberId)
-                .content(request.content())
-                .totalRating(Math.round(totalRating * 10.0) / 10.0)
-                .tasteRating(request.tasteRating().doubleValue())
-                .amountRating(request.amountRating().doubleValue())
-                .priceRating(request.priceRating().doubleValue())
-                .orderId(orderId)
-                .build();
+        Review review =
+            Review.of(
+                product.getPlaceId(),
+                product.getId(),
+                memberId,
+                request.content(),
+                Math.round(totalRating * 10.0) / 10.0,
+                request.tasteRating().doubleValue(),
+                request.amountRating().doubleValue(),
+                request.priceRating().doubleValue(),
+                null,
+                null,
+                null,
+                null,
+                orderId
+            );
 
         Review savedReview = reviewCoreService.saveReview(review);
 
@@ -463,11 +468,13 @@ public class ReviewService {
             if (fileId == null) {
                 throw new EntityNotFoundException(ErrorCode.FILE_NOT_FOUND);
             }
-            images.add(ReviewImage.builder()
-                .reviewId(reviewId)
-                .uploadedFileId(fileId)
-                .sort(i + 1)
-                .build());
+            images.add(
+                ReviewImage.of(
+                    reviewId,
+                    fileId,
+                    i + 1
+                )
+            );
         }
         reviewCoreService.saveReviewImages(images);
         return uploadedFileIds;

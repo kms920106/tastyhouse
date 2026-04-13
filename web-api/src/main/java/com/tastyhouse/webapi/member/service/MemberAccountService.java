@@ -64,10 +64,9 @@ public class MemberAccountService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
             memberCoreService.saveReferral(
-                MemberReferral.builder()
-                    .referrerId(referrer.getId())
-                    .refereeId(member.getId())
-                    .build()
+                MemberReferral.of(
+                    referrer.getId(),
+                    member.getId())
             );
         }
     }
@@ -89,11 +88,11 @@ public class MemberAccountService {
         memberCoreService.getById(memberId).deactivate();
 
         memberCoreService.saveWithdrawal(
-            MemberWithdrawal.builder()
-                .memberId(memberId)
-                .reason(reason)
-                .reasonDetail(reasonDetail)
-                .build()
+            MemberWithdrawal.of(
+                memberId,
+                reason,
+                reasonDetail
+            )
         );
     }
 

@@ -2,9 +2,15 @@ package com.tastyhouse.core.entity.event;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import com.tastyhouse.core.entity.common.vo.PhoneNumber;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -41,8 +47,7 @@ public class EventWinner extends BaseEntity {
     @Column(name = "announced_at", nullable = false)
     private LocalDateTime announcedAt;
 
-    @Builder
-    public EventWinner(
+    private EventWinner(
         Long eventId,
         Integer rankNo,
         String winnerName,
@@ -56,18 +61,34 @@ public class EventWinner extends BaseEntity {
         this.announcedAt = announcedAt;
     }
 
-    public String getMaskedName() {
-        if (winnerName == null || winnerName.isEmpty()) {
-            return winnerName;
-        }
-
-        // 홍길동 -> 홍*동 형식으로 마스킹
-        if (winnerName.length() == 2) {
-            return winnerName.charAt(0) + "*";
-        } else if (winnerName.length() >= 3) {
-            return winnerName.charAt(0) + "*" + winnerName.charAt(winnerName.length() - 1);
-        }
-
-        return winnerName;
+    public static EventWinner of(
+        Long eventId,
+        Integer rankNo,
+        String winnerName,
+        String phoneNumber,
+        LocalDateTime announcedAt
+    ) {
+        return new EventWinner(
+            eventId,
+            rankNo,
+            winnerName,
+            phoneNumber,
+            announcedAt
+        );
     }
+
+//    public String getMaskedName() {
+//        if (winnerName == null || winnerName.isEmpty()) {
+//            return winnerName;
+//        }
+//
+//        // 홍길동 -> 홍*동 형식으로 마스킹
+//        if (winnerName.length() == 2) {
+//            return winnerName.charAt(0) + "*";
+//        } else if (winnerName.length() >= 3) {
+//            return winnerName.charAt(0) + "*" + winnerName.charAt(winnerName.length() - 1);
+//        }
+//
+//        return winnerName;
+//    }
 }

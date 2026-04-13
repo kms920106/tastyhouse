@@ -38,10 +38,10 @@ public class EmailVerificationService {
         String verificationCode = verificationCodeGenerator.generate();
 
         emailVerificationCoreService.save(
-            EmailVerification.builder()
-                .email(email)
-                .verificationCode(verificationCode)
-                .build()
+            EmailVerification.of(
+                email,
+                verificationCode
+            )
         );
 
 //        String emailBody = EMAIL_BODY_TEMPLATE.formatted(verificationCode);

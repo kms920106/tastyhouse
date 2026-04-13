@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.payment;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -70,12 +76,22 @@ public class Payment extends BaseEntity {
     @Column(name = "cash_receipt_type", length = 20)
     private String cashReceiptType;
 
-    @Builder
-    public Payment(Long orderId, PaymentMethod paymentMethod, PaymentStatus paymentStatus,
-                   Integer amount, PgProvider pgProvider, String pgTid, String pgOrderId,
-                   String cardCompany, String cardNumber, Integer installmentMonths,
-                   LocalDateTime approvedAt, String receiptUrl,
-                   String cashReceiptNumber, String cashReceiptType) {
+    private Payment(
+        Long orderId,
+        PaymentMethod paymentMethod,
+        PaymentStatus paymentStatus,
+        Integer amount,
+        PgProvider pgProvider,
+        String pgTid,
+        String pgOrderId,
+        String cardCompany,
+        String cardNumber,
+        Integer installmentMonths,
+        LocalDateTime approvedAt,
+        String receiptUrl,
+        String cashReceiptNumber,
+        String cashReceiptType
+    ) {
         this.orderId = orderId;
         this.paymentMethod = paymentMethod;
         this.paymentStatus = paymentStatus != null ? paymentStatus : PaymentStatus.PENDING;
@@ -90,6 +106,40 @@ public class Payment extends BaseEntity {
         this.receiptUrl = receiptUrl;
         this.cashReceiptNumber = cashReceiptNumber;
         this.cashReceiptType = cashReceiptType;
+    }
+
+    public static Payment of(
+        Long orderId,
+        PaymentMethod paymentMethod,
+        PaymentStatus paymentStatus,
+        Integer amount,
+        PgProvider pgProvider,
+        String pgTid,
+        String pgOrderId,
+        String cardCompany,
+        String cardNumber,
+        Integer installmentMonths,
+        LocalDateTime approvedAt,
+        String receiptUrl,
+        String cashReceiptNumber,
+        String cashReceiptType
+    ) {
+        return new Payment(
+            orderId,
+            paymentMethod,
+            paymentStatus,
+            amount,
+            pgProvider,
+            pgTid,
+            pgOrderId,
+            cardCompany,
+            cardNumber,
+            installmentMonths,
+            approvedAt,
+            receiptUrl,
+            cashReceiptNumber,
+            cashReceiptType
+        );
     }
 
     public void complete(String pgTid, LocalDateTime approvedAt, String receiptUrl) {
@@ -119,10 +169,5 @@ public class Payment extends BaseEntity {
         this.cardCompany = cardCompany;
         this.cardNumber = cardNumber;
         this.installmentMonths = installmentMonths;
-    }
-
-    public void updateCashReceiptInfo(String cashReceiptNumber, String cashReceiptType) {
-        this.cashReceiptNumber = cashReceiptNumber;
-        this.cashReceiptType = cashReceiptType;
     }
 }

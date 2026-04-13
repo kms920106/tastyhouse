@@ -66,7 +66,25 @@ public class OrderService {
         int totalProductAmount = 0;
         int productDiscountAmount = 0;
 
-        Order order = Order.builder().memberId(memberId).placeId(request.placeId()).orderNumber(generateOrderNumber()).orderStatus(OrderStatus.PENDING).ordererName(member.getFullName()).ordererPhone(member.getPhoneNumber().getValue()).ordererEmail(member.getUsername()).build();
+        Order order =
+            Order.of(
+                memberId,
+                request.placeId(),
+                generateOrderNumber(),
+                OrderStatus.PENDING,
+                member.getFullName(),
+                member.getPhoneNumber().getValue(),
+                member.getUsername(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                null,
+                0,
+                0
+            );
 
         Order savedOrder = orderCoreService.saveOrder(order);
 
@@ -83,7 +101,18 @@ public class OrderService {
             Integer discountPrice = product.getDiscountPrice();
             int optionTotalPrice = 0;
 
-            OrderItem orderItem = OrderItem.builder().orderId(savedOrder.getId()).productId(product.getId()).productName(product.getName()).productImageUrl(productImageUrl).quantity(itemRequest.quantity()).unitPrice(unitPrice).discountPrice(discountPrice).build();
+            OrderItem orderItem =
+                OrderItem.of(
+                    savedOrder.getId(),
+                    product.getId(),
+                    product.getName(),
+                    productImageUrl,
+                    itemRequest.quantity(),
+                    unitPrice,
+                    discountPrice,
+                    0,
+                    0
+                );
 
             OrderItem savedOrderItem = orderCoreService.saveOrderItem(orderItem);
 
@@ -93,7 +122,16 @@ public class OrderService {
 
                     ProductOption option = productCoreService.findProductOptionById(optionRequest.optionId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
 
-                    orderCoreService.saveOrderItemOption(OrderItemOption.builder().orderItemId(savedOrderItem.getId()).optionGroupId(optionGroup.getId()).optionGroupName(optionGroup.getName()).optionId(option.getId()).optionName(option.getName()).additionalPrice(option.getAdditionalPrice()).build());
+                    orderCoreService.saveOrderItemOption(
+                        OrderItemOption.of(
+                            savedOrderItem.getId(),
+                            optionGroup.getId(),
+                            optionGroup.getName(),
+                            option.getId(),
+                            option.getName(),
+                            option.getAdditionalPrice()
+                        )
+                    );
 
                     optionTotalPrice += option.getAdditionalPrice();
                 }

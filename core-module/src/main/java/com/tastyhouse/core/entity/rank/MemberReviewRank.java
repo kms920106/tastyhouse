@@ -1,9 +1,17 @@
 package com.tastyhouse.core.entity.rank;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -51,8 +59,7 @@ public class MemberReviewRank extends BaseEntity {
     @Column(name = "last_review_at")
     private LocalDateTime lastReviewAt;
 
-    @Builder
-    public MemberReviewRank(
+    private MemberReviewRank(
         Long memberId,
         Integer reviewCount,
         Integer rankNo,
@@ -66,5 +73,23 @@ public class MemberReviewRank extends BaseEntity {
         this.rankType = rankType;
         this.baseDate = baseDate;
         this.lastReviewAt = lastReviewAt;
+    }
+
+    public static MemberReviewRank of(
+        Long memberId,
+        Integer reviewCount,
+        Integer rankNo,
+        RankType rankType,
+        LocalDate baseDate,
+        LocalDateTime lastReviewAt
+    ) {
+        return new MemberReviewRank(
+            memberId,
+            reviewCount,
+            rankNo,
+            rankType,
+            baseDate,
+            lastReviewAt
+        );
     }
 }

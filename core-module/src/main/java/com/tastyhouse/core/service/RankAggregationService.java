@@ -80,14 +80,15 @@ public class RankAggregationService {
             MemberReviewCountDto dto = reviewCounts.get(i);
             int currentRank = i + 1;
 
-            MemberReviewRank rank = MemberReviewRank.builder()
-                .memberId(dto.memberId())
-                .reviewCount(dto.reviewCount().intValue())
-                .rankNo(currentRank)
-                .rankType(rankType)
-                .baseDate(baseDate)
-                .lastReviewAt(dto.lastReviewAt())
-                .build();
+            MemberReviewRank rank =
+                MemberReviewRank.of(
+                    dto.memberId(),
+                    dto.reviewCount().intValue(),
+                    currentRank,
+                    rankType,
+                    baseDate,
+                    dto.lastReviewAt()
+            );
 
             ranks.add(rank);
         }

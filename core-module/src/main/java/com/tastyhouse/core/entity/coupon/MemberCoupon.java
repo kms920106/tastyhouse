@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.coupon;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -47,8 +53,7 @@ public class MemberCoupon extends BaseEntity {
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;
 
-    @Builder
-    public MemberCoupon(
+    private MemberCoupon(
         Long memberId,
         Long couponId,
         Boolean isUsed,
@@ -60,6 +65,22 @@ public class MemberCoupon extends BaseEntity {
         this.isUsed = isUsed != null ? isUsed : false;
         this.usedAt = usedAt;
         this.expiredAt = expiredAt;
+    }
+
+    public static MemberCoupon of(
+        Long memberId,
+        Long couponId,
+        Boolean isUsed,
+        LocalDateTime usedAt,
+        LocalDateTime expiredAt
+    ) {
+        return new MemberCoupon(
+            memberId,
+            couponId,
+            isUsed,
+            usedAt,
+            expiredAt
+        );
     }
 
     public void use() {

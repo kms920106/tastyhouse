@@ -1,9 +1,16 @@
 package com.tastyhouse.core.entity.place;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,9 +31,21 @@ public class PlaceOrderMethod extends BaseEntity {
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
     private OrderMethod orderMethod;
 
-    @Builder
-    public PlaceOrderMethod(Long placeId, OrderMethod orderMethod) {
+    private PlaceOrderMethod(
+        Long placeId,
+        OrderMethod orderMethod
+    ) {
         this.placeId = placeId;
         this.orderMethod = orderMethod;
+    }
+
+    public static PlaceOrderMethod of(
+        Long placeId,
+        OrderMethod orderMethod
+    ) {
+        return new PlaceOrderMethod(
+            placeId,
+            orderMethod
+        );
     }
 }

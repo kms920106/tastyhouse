@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.review;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -59,11 +63,21 @@ public class Review extends BaseEntity {
     @Column(name = "is_hidden", nullable = false)
     private Boolean isHidden = false; // 관리자 미노출 여부
 
-    @Builder
-    public Review(Long placeId, Long productId, Long memberId, String content,
-                  Double totalRating, Double tasteRating, Double amountRating,
-                  Double priceRating, Double atmosphereRating, Double kindnessRating,
-                  Double hygieneRating, Boolean willRevisit, Long orderId) {
+    private Review(
+        Long placeId,
+        Long productId,
+        Long memberId,
+        String content,
+        Double totalRating,
+        Double tasteRating,
+        Double amountRating,
+        Double priceRating,
+        Double atmosphereRating,
+        Double kindnessRating,
+        Double hygieneRating,
+        Boolean willRevisit,
+        Long orderId
+    ) {
         this.placeId = placeId;
         this.productId = productId;
         this.memberId = memberId;
@@ -80,9 +94,49 @@ public class Review extends BaseEntity {
         this.isHidden = false;
     }
 
-    public void updateContent(String content, Double totalRating, Double tasteRating,
-                              Double amountRating, Double priceRating, Double atmosphereRating,
-                              Double kindnessRating, Double hygieneRating, Boolean willRevisit) {
+    public static Review of(
+        Long placeId,
+        Long productId,
+        Long memberId,
+        String content,
+        Double totalRating,
+        Double tasteRating,
+        Double amountRating,
+        Double priceRating,
+        Double atmosphereRating,
+        Double kindnessRating,
+        Double hygieneRating,
+        Boolean willRevisit,
+        Long orderId
+    ) {
+        return new Review(
+            placeId,
+            productId,
+            memberId,
+            content,
+            totalRating,
+            tasteRating,
+            amountRating,
+            priceRating,
+            atmosphereRating,
+            kindnessRating,
+            hygieneRating,
+            willRevisit,
+            orderId
+        );
+    }
+
+    public void updateContent(
+        String content,
+        Double totalRating,
+        Double tasteRating,
+        Double amountRating,
+        Double priceRating,
+        Double atmosphereRating,
+        Double kindnessRating,
+        Double hygieneRating,
+        Boolean willRevisit
+    ) {
         this.content = content;
         this.totalRating = totalRating;
         this.tasteRating = tasteRating;

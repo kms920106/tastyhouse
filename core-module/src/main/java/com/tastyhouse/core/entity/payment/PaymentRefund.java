@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.payment;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -38,9 +44,14 @@ public class PaymentRefund extends BaseEntity {
     @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
 
-    @Builder
-    public PaymentRefund(Long paymentId, Integer refundAmount, String refundReason,
-                         RefundStatus refundStatus, String pgRefundId, LocalDateTime refundedAt) {
+    private PaymentRefund(
+        Long paymentId,
+        Integer refundAmount,
+        String refundReason,
+        RefundStatus refundStatus,
+        String pgRefundId,
+        LocalDateTime refundedAt
+    ) {
         this.paymentId = paymentId;
         this.refundAmount = refundAmount != null ? refundAmount : 0;
         this.refundReason = refundReason;
@@ -49,17 +60,21 @@ public class PaymentRefund extends BaseEntity {
         this.refundedAt = refundedAt;
     }
 
-    public void startProcessing() {
-        this.refundStatus = RefundStatus.PROCESSING;
-    }
-
-    public void complete(String pgRefundId) {
-        this.refundStatus = RefundStatus.COMPLETED;
-        this.pgRefundId = pgRefundId;
-        this.refundedAt = LocalDateTime.now();
-    }
-
-    public void fail() {
-        this.refundStatus = RefundStatus.FAILED;
+    public static PaymentRefund of(
+        Long paymentId,
+        Integer refundAmount,
+        String refundReason,
+        RefundStatus refundStatus,
+        String pgRefundId,
+        LocalDateTime refundedAt
+    ) {
+        return new PaymentRefund(
+            paymentId,
+            refundAmount,
+            refundReason,
+            refundStatus,
+            pgRefundId,
+            refundedAt
+        );
     }
 }

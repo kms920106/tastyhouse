@@ -48,10 +48,9 @@ public class AuthPasswordResetService {
         String verificationCode = verificationCodeGenerator.generate();
 
         emailVerificationCoreService.save(
-            EmailVerification.builder()
-                .email(username)
-                .verificationCode(verificationCode)
-                .build()
+            EmailVerification.of(
+                username,
+                verificationCode)
         );
 
         String emailBody = EMAIL_BODY_TEMPLATE.formatted(verificationCode);

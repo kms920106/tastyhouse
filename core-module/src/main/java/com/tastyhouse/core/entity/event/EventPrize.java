@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.event;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -45,8 +51,7 @@ public class EventPrize extends BaseEntity {
     @Column(name = "image_file_id")
     private Long imageFileId;
 
-    @Builder
-    public EventPrize(
+    private EventPrize(
         Long eventId,
         Integer prizeRank,
         String name,
@@ -58,5 +63,21 @@ public class EventPrize extends BaseEntity {
         this.name = name;
         this.brand = brand;
         this.imageFileId = imageFileId;
+    }
+
+    public static EventPrize of(
+        Long eventId,
+        Integer prizeRank,
+        String name,
+        String brand,
+        Long imageFileId
+    ) {
+        return new EventPrize(
+            eventId,
+            prizeRank,
+            name,
+            brand,
+            imageFileId
+        );
     }
 }

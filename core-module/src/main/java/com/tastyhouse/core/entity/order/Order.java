@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.order;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -66,13 +72,24 @@ public class Order extends BaseEntity {
     @Column(name = "earned_point", nullable = false)
     private Integer earnedPoint;
 
-    @Builder
-    public Order(Long memberId, Long placeId, String orderNumber, OrderStatus orderStatus,
-                 String ordererName, String ordererPhone, String ordererEmail,
-                 Integer totalProductAmount, Integer productDiscountAmount,
-                 Integer couponDiscountAmount, Integer pointDiscountAmount,
-                 Integer totalDiscountAmount, Integer finalAmount,
-                 Long memberCouponId, Integer usedPoint, Integer earnedPoint) {
+    private Order(
+        Long memberId,
+        Long placeId,
+        String orderNumber,
+        OrderStatus orderStatus,
+        String ordererName,
+        String ordererPhone,
+        String ordererEmail,
+        Integer totalProductAmount,
+        Integer productDiscountAmount,
+        Integer couponDiscountAmount,
+        Integer pointDiscountAmount,
+        Integer totalDiscountAmount,
+        Integer finalAmount,
+        Long memberCouponId,
+        Integer usedPoint,
+        Integer earnedPoint
+    ) {
         this.memberId = memberId;
         this.placeId = placeId;
         this.orderNumber = orderNumber;
@@ -91,30 +108,62 @@ public class Order extends BaseEntity {
         this.earnedPoint = earnedPoint != null ? earnedPoint : 0;
     }
 
-    public void updateStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
+    public static Order of(
+        Long memberId,
+        Long placeId,
+        String orderNumber,
+        OrderStatus orderStatus,
+        String ordererName,
+        String ordererPhone,
+        String ordererEmail,
+        Integer totalProductAmount,
+        Integer productDiscountAmount,
+        Integer couponDiscountAmount,
+        Integer pointDiscountAmount,
+        Integer totalDiscountAmount,
+        Integer finalAmount,
+        Long memberCouponId,
+        Integer usedPoint,
+        Integer earnedPoint
+    ) {
+        return new Order(
+            memberId,
+            placeId,
+            orderNumber,
+            orderStatus,
+            ordererName,
+            ordererPhone,
+            ordererEmail,
+            totalProductAmount,
+            productDiscountAmount,
+            couponDiscountAmount,
+            pointDiscountAmount,
+            totalDiscountAmount,
+            finalAmount,
+            memberCouponId,
+            usedPoint,
+            earnedPoint
+        );
     }
 
     public void confirm() {
         this.orderStatus = OrderStatus.CONFIRMED;
     }
 
-    public void startPreparing() {
-        this.orderStatus = OrderStatus.PREPARING;
-    }
-
-    public void complete() {
-        this.orderStatus = OrderStatus.COMPLETED;
-    }
-
     public void cancel() {
         this.orderStatus = OrderStatus.CANCELLED;
     }
 
-    public void updateAmounts(Integer totalProductAmount, Integer productDiscountAmount,
-                              Integer couponDiscountAmount, Integer pointDiscountAmount,
-                              Integer totalDiscountAmount, Integer finalAmount,
-                              Long memberCouponId, Integer usedPoint) {
+    public void updateAmounts(
+        Integer totalProductAmount,
+        Integer productDiscountAmount,
+        Integer couponDiscountAmount,
+        Integer pointDiscountAmount,
+        Integer totalDiscountAmount,
+        Integer finalAmount,
+        Long memberCouponId,
+        Integer usedPoint
+    ) {
         this.totalProductAmount = totalProductAmount;
         this.productDiscountAmount = productDiscountAmount;
         this.couponDiscountAmount = couponDiscountAmount;

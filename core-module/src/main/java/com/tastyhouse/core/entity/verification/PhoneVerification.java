@@ -1,8 +1,16 @@
 package com.tastyhouse.core.entity.verification;
 
 import com.tastyhouse.core.entity.common.vo.PhoneNumber;
-import jakarta.persistence.*;
-import lombok.Builder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -42,8 +50,10 @@ public class PhoneVerification {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Builder
-    public PhoneVerification(String phoneNumber, String verificationCode) {
+    private PhoneVerification(
+        String phoneNumber,
+        String verificationCode
+    ) {
         this.phoneNumber = new PhoneNumber(phoneNumber);
         this.verificationCode = verificationCode;
         this.status = PhoneVerificationStatus.PENDING;
@@ -51,12 +61,18 @@ public class PhoneVerification {
         this.createdAt = LocalDateTime.now();
     }
 
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expiresAt);
+    public static PhoneVerification of(
+        String phoneNumber,
+        String verificationCode
+    ) {
+        return new PhoneVerification(
+            phoneNumber,
+            verificationCode
+        );
     }
 
-    public boolean isVerified() {
-        return this.status == PhoneVerificationStatus.VERIFIED;
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.expiresAt);
     }
 
     public void verify() {

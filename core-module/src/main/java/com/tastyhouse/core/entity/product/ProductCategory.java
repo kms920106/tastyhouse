@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.product;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,15 +33,37 @@ public class ProductCategory extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Builder
-    public ProductCategory(Long placeId, String name, Integer sort, Boolean isActive) {
+    private ProductCategory(
+        Long placeId,
+        String name,
+        Integer sort,
+        Boolean isActive
+    ) {
         this.placeId = placeId;
         this.name = name;
         this.sort = sort;
         this.isActive = isActive != null ? isActive : true;
     }
 
-    public void update(String displayName, Integer sort, Boolean isActive) {
+    public static ProductCategory of(
+        Long placeId,
+        String name,
+        Integer sort,
+        Boolean isActive
+    ) {
+        return new ProductCategory(
+            placeId,
+            name,
+            sort,
+            isActive
+        );
+    }
+
+    public void update(
+        String displayName,
+        Integer sort,
+        Boolean isActive
+    ) {
         this.name = displayName;
         this.sort = sort;
         this.isActive = isActive;

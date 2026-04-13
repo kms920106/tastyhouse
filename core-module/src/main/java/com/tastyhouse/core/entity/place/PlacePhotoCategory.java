@@ -1,9 +1,13 @@
 package com.tastyhouse.core.entity.place;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,14 +26,4 @@ public class PlacePhotoCategory extends BaseEntity {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name; // 카테고리명 (예: "가게 외관")
-
-    @Builder
-    public PlacePhotoCategory(Long placeId, String name) {
-        this.placeId = placeId;
-        this.name = name;
-    }
-
-    public void update(String name) {
-        this.name = name;
-    }
 }

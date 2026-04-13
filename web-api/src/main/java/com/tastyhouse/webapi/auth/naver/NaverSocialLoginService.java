@@ -179,10 +179,9 @@ public class NaverSocialLoginService {
             Member referrer = memberCoreService.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
             memberCoreService.saveReferral(
-                MemberReferral.builder()
-                    .referrerId(referrer.getId())
-                    .refereeId(member.getId())
-                    .build()
+                MemberReferral.of(
+                    referrer.getId(),
+                    member.getId())
             );
         }
 

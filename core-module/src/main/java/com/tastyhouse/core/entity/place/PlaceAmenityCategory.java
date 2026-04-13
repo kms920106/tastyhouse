@@ -1,9 +1,15 @@
 package com.tastyhouse.core.entity.place;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -36,14 +42,38 @@ public class PlaceAmenityCategory extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Builder
-    public PlaceAmenityCategory(Amenity amenity, String displayName, String imageUrlOn, String imageUrlOff, Integer sort, Boolean isActive) {
+    private PlaceAmenityCategory(
+        Amenity amenity,
+        String displayName,
+        String imageUrlOn,
+        String imageUrlOff,
+        Integer sort,
+        Boolean isActive
+    ) {
         this.amenity = amenity;
         this.displayName = displayName;
         this.imageUrlOn = imageUrlOn;
         this.imageUrlOff = imageUrlOff;
         this.sort = sort;
         this.isActive = isActive;
+    }
+
+    public static PlaceAmenityCategory of(
+        Amenity amenity,
+        String displayName,
+        String imageUrlOn,
+        String imageUrlOff,
+        Integer sort,
+        Boolean isActive
+    ) {
+        return new PlaceAmenityCategory(
+            amenity,
+            displayName,
+            imageUrlOn,
+            imageUrlOff,
+            sort,
+            isActive
+        );
     }
 
     public void update(String displayName, String imageUrlOn, String imageUrlOff, Integer sort, Boolean isActive) {

@@ -1,9 +1,17 @@
 package com.tastyhouse.core.entity.referral;
 
 import com.tastyhouse.core.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -42,18 +50,22 @@ public class MemberReferral extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private ReferralStatus status = ReferralStatus.PENDING;
 
-    @Builder
-    public MemberReferral(Long referrerId, Long refereeId) {
+    private MemberReferral(
+        Long referrerId,
+        Long refereeId
+    ) {
         this.referrerId = referrerId;
         this.refereeId = refereeId;
         this.status = ReferralStatus.PENDING;
     }
 
-    public void reward() {
-        this.status = ReferralStatus.REWARDED;
-    }
-
-    public void cancel() {
-        this.status = ReferralStatus.CANCELLED;
+    public static MemberReferral of(
+        Long referrerId,
+        Long refereeId
+    ) {
+        return new MemberReferral(
+            referrerId,
+            refereeId
+        );
     }
 }
