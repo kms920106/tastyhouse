@@ -19,6 +19,7 @@ public final class PublicPaths {
         "/api/policies/**",
         "/api/products/**",
         "/api/ranks/**",
+        "/api/reviews/**",
         "/api/email-verifications/**",
         "/api/phone-verifications/**",
         "/swagger-ui/**", "/swagger-resources/**",
