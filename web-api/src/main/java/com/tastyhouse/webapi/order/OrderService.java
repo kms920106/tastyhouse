@@ -221,7 +221,16 @@ public class OrderService {
     @Transactional(readOnly = true)
     public PageResult<OrderListItemResponse> getOrderList(Long memberId, PageRequest pageRequest) {
         PageResult<OrderListItemDto> coreResult = orderCoreService.findOrderListByMemberId(memberId, pageRequest.page(), pageRequest.size());
-        return coreResult.map(dto -> OrderListItemResponse.from(dto, fileService.getUrlByPath(dto.placeThumbnailImageUrl())));
+        return coreResult.map(dto -> OrderListItemResponse.from(
+            dto.id(),
+            dto.placeName(),
+            fileService.getUrlByPath(dto.placeThumbnailImageUrl()),
+            dto.firstProductName(),
+            dto.totalItemCount(),
+            dto.amount(),
+            dto.paymentStatus(),
+            dto.paymentDate()
+        ));
     }
 
     @Transactional(readOnly = true)

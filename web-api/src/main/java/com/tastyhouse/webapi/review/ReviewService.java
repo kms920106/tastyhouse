@@ -482,10 +482,11 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public PageResult<MemberReviewListItemResponse> findMemberReviews(Long memberId, PageRequest pageRequest) {
-        PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findReviewsByMemberId(
-            memberId, pageRequest.page(), pageRequest.size()
-        );
-        return coreResult.map(dto -> MemberReviewListItemResponse.from(dto, fileService.getUrlByPath(dto.imageUrl())));
+        PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findReviewsByMemberId(memberId, pageRequest.page(), pageRequest.size());
+        return coreResult.map(dto -> MemberReviewListItemResponse.from(
+            dto.id(),
+            fileService.getUrlByPath(dto.imageUrl())
+        ));
     }
 
     private List<String> saveReviewTags(Long reviewId, List<String> tagNames) {
