@@ -101,7 +101,7 @@ public class PlaceService {
         return EditorChoiceResponse.from(
             dto.id(),
             dto.name(),
-            dto.placeImageUrl(),
+            fileService.getUrlByPath(dto.placeImageUrl()),
             dto.title(),
             dto.content(),
             productItems
@@ -114,7 +114,7 @@ public class PlaceService {
             dto.name(),
             dto.stationName(),
             dto.rating(),
-            dto.imageUrl(),
+            fileService.getUrlByPath(dto.imageUrl()),
             dto.foodTypes()
         );
     }
@@ -138,7 +138,7 @@ public class PlaceService {
             dto.id(),
             dto.placeName(),
             dto.name(),
-            dto.imageUrl(),
+            fileService.getUrlByPath(dto.imageUrl()),
             dto.originalPrice(),
             dto.discountPrice(),
             dto.discountRate()

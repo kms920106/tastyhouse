@@ -15,6 +15,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductCategoryListItem;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductListItem;
@@ -41,6 +42,7 @@ public class ProductService {
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
     private final ReviewCoreService reviewCoreService;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public PageResult<TodayDiscountProductItem> searchTodayDiscountProducts(int page, int size) {
@@ -53,7 +55,7 @@ public class ProductService {
             dto.id(),
             dto.placeName(),
             dto.name(),
-            dto.imageUrl(),
+            fileService.getUrlByPath(dto.imageUrl()),
             dto.originalPrice(),
             dto.discountPrice(),
             dto.discountRate()
@@ -239,11 +241,13 @@ public class ProductService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return productCoreService.getFirstImageUrl(productId);
+        return fileService.getUrlByPath(productCoreService.getFirstImageUrl(productId));
     }
 
     private List<String> getAllImageUrls(Long productId) {
-        return productCoreService.getAllImageUrls(productId);
+        return productCoreService.getAllImageUrls(productId).stream()
+            .map(fileService::getUrlByPath)
+            .toList();
     }
 
     @Transactional(readOnly = true)
@@ -274,11 +278,11 @@ public class ProductService {
     private ProductReviewListItem convertToProductReviewListItem(LatestReviewListItemDto dto) {
         return ProductReviewListItem.from(
             dto.id(),
-            dto.imageUrls(),
+            dto.imageUrls().stream().map(fileService::getUrlByPath).toList(),
             dto.totalRating(),
             dto.content(),
             dto.memberNickname(),
-            dto.memberProfileImageUrl(),
+            fileService.getUrlByPath(dto.memberProfileImageUrl()),
             dto.createdAt(),
             dto.productId(),
             dto.productName()
