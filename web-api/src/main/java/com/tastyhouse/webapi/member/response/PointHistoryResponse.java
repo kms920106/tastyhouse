@@ -16,14 +16,14 @@ public record PointHistoryResponse(
     List<PointHistoryItemResponse> histories
 ) {
     public static PointHistoryResponse from(
-        Integer availablePoints,
-        Integer expiredThisMonth,
-        List<PointHistoryItemResponse> histories
+    Integer availablePoints,
+    Integer expiredThisMonth,
+    List<PointHistoryItemResponse> histories
     ) {
-        return new PointHistoryResponse(
-            availablePoints,
-            expiredThisMonth,
-            histories
-        );
+    return new PointHistoryResponse(
+        availablePoints,
+        expiredThisMonth,
+        histories
+    );
     }
 }

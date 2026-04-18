@@ -11,20 +11,20 @@ public record MemberRankItem(
     MemberGrade grade
 ) {
     public static MemberRankItem from(
-        Long memberId,
-        String nickname,
-        String profileImageUrl,
-        Integer reviewCount,
-        Integer rankNo,
-        MemberGrade grade
+    Long memberId,
+    String nickname,
+    String profileImageUrl,
+    Integer reviewCount,
+    Integer rankNo,
+    MemberGrade grade
     ) {
-        return new MemberRankItem(
-            memberId,
-            nickname,
-            profileImageUrl,
-            reviewCount,
-            rankNo,
-            grade
-        );
+    return new MemberRankItem(
+        memberId,
+        nickname,
+        profileImageUrl,
+        reviewCount,
+        rankNo,
+        grade
+    );
     }
 }

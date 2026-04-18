@@ -7,12 +7,12 @@ public record EventDurationResponse(
     LocalDateTime endAt
 ) {
     public static EventDurationResponse from(
-        LocalDateTime startAt,
-        LocalDateTime endAt
+    LocalDateTime startAt,
+    LocalDateTime endAt
     ) {
-        return new EventDurationResponse(
-            startAt,
-            endAt
-        );
+    return new EventDurationResponse(
+        startAt,
+        endAt
+    );
     }
 }

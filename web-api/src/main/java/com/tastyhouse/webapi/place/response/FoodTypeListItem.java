@@ -6,14 +6,14 @@ public record FoodTypeListItem(
     String imageUrl
 ) {
     public static FoodTypeListItem from(
-        String code,
-        String name,
-        String imageUrl
+    String code,
+    String name,
+    String imageUrl
     ) {
-        return new FoodTypeListItem(
-            code,
-            name,
-            imageUrl
-        );
+    return new FoodTypeListItem(
+        code,
+        name,
+        imageUrl
+    );
     }
 }

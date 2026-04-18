@@ -19,16 +19,16 @@ public record PlaceMapMarkerResponse(
     String name
 ) {
     public static PlaceMapMarkerResponse from(
-        Long id,
-        BigDecimal latitude,
-        BigDecimal longitude,
-        String name
+    Long id,
+    BigDecimal latitude,
+    BigDecimal longitude,
+    String name
     ) {
-        return new PlaceMapMarkerResponse(
-            id,
-            latitude,
-            longitude,
-            name
-        );
+    return new PlaceMapMarkerResponse(
+        id,
+        latitude,
+        longitude,
+        name
+    );
     }
 }

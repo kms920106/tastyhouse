@@ -37,28 +37,28 @@ public record PlaceMenuResponse(
     Integer spiciness
 ) {
     public static PlaceMenuResponse from(
-        Long id,
-        String name,
-        String imageUrl,
-        Integer originalPrice,
-        Integer discountPrice,
-        BigDecimal discountRate,
-        Double rating,
-        Integer reviewCount,
-        Boolean isRepresentative,
-        Integer spiciness
+    Long id,
+    String name,
+    String imageUrl,
+    Integer originalPrice,
+    Integer discountPrice,
+    BigDecimal discountRate,
+    Double rating,
+    Integer reviewCount,
+    Boolean isRepresentative,
+    Integer spiciness
     ) {
-        return new PlaceMenuResponse(
-            id,
-            name,
-            imageUrl,
-            originalPrice,
-            discountPrice,
-            discountRate,
-            rating,
-            reviewCount,
-            isRepresentative,
-            spiciness
-        );
+    return new PlaceMenuResponse(
+        id,
+        name,
+        imageUrl,
+        originalPrice,
+        discountPrice,
+        discountRate,
+        rating,
+        reviewCount,
+        isRepresentative,
+        spiciness
+    );
     }
 }

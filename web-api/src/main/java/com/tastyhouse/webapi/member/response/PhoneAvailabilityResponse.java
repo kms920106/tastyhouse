@@ -8,6 +8,6 @@ public record PhoneAvailabilityResponse(
     boolean available
 ) {
     public static PhoneAvailabilityResponse from(boolean available) {
-        return new PhoneAvailabilityResponse(available);
+    return new PhoneAvailabilityResponse(available);
     }
 }

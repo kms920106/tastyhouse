@@ -17,30 +17,30 @@ public record LatestReviewListItem(
     Long commentCount
 ) {
     public static LatestReviewListItem from(
-        Long id,
-        List<String> imageUrls,
-        String stationName,
-        Double totalRating,
-        String content,
-        Long memberId,
-        String memberNickname,
-        String memberProfileImageUrl,
-        LocalDateTime createdAt,
-        Long likeCount,
-        Long commentCount
+    Long id,
+    List<String> imageUrls,
+    String stationName,
+    Double totalRating,
+    String content,
+    Long memberId,
+    String memberNickname,
+    String memberProfileImageUrl,
+    LocalDateTime createdAt,
+    Long likeCount,
+    Long commentCount
     ) {
-        return new LatestReviewListItem(
-            id,
-            imageUrls,
-            stationName,
-            totalRating,
-            content,
-            memberId,
-            memberNickname,
-            memberProfileImageUrl,
-            createdAt,
-            likeCount,
-            commentCount
-        );
+    return new LatestReviewListItem(
+        id,
+        imageUrls,
+        stationName,
+        totalRating,
+        content,
+        memberId,
+        memberNickname,
+        memberProfileImageUrl,
+        createdAt,
+        likeCount,
+        commentCount
+    );
     }
 }

@@ -8,18 +8,18 @@ public record PrizeItem(
     String imageUrl
 ) {
     public static PrizeItem from(
-        Long id,
-        Integer prizeRank,
-        String name,
-        String brand,
-        String imageUrl
+    Long id,
+    Integer prizeRank,
+    String name,
+    String brand,
+    String imageUrl
     ) {
-        return new PrizeItem(
-            id,
-            prizeRank,
-            name,
-            brand,
-            imageUrl
-        );
+    return new PrizeItem(
+        id,
+        prizeRank,
+        name,
+        brand,
+        imageUrl
+    );
     }
 }

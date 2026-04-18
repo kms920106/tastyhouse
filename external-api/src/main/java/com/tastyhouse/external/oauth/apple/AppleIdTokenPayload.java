@@ -25,7 +25,7 @@ public record AppleIdTokenPayload(
     Object isPrivateEmail
 ) {
     public boolean isEmailVerified() {
-        if (emailVerified == null) return false;
-        return "true".equals(emailVerified.toString()) || Boolean.TRUE.equals(emailVerified);
+    if (emailVerified == null) return false;
+    return "true".equals(emailVerified.toString()) || Boolean.TRUE.equals(emailVerified);
     }
 }

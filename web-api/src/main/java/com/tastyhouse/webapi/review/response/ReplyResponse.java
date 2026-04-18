@@ -34,26 +34,26 @@ public record ReplyResponse(
     LocalDateTime createdAt
 ) {
     public static ReplyResponse from(
-        Long id,
-        Long commentId,
-        Long memberId,
-        String memberNickname,
-        String memberProfileImageUrl,
-        Long replyToMemberId,
-        String replyToMemberNickname,
-        String content,
-        LocalDateTime createdAt
+    Long id,
+    Long commentId,
+    Long memberId,
+    String memberNickname,
+    String memberProfileImageUrl,
+    Long replyToMemberId,
+    String replyToMemberNickname,
+    String content,
+    LocalDateTime createdAt
     ) {
-        return new ReplyResponse(
-            id,
-            commentId,
-            memberId,
-            memberNickname,
-            memberProfileImageUrl,
-            replyToMemberId,
-            replyToMemberNickname,
-            content,
-            createdAt
-        );
+    return new ReplyResponse(
+        id,
+        commentId,
+        memberId,
+        memberNickname,
+        memberProfileImageUrl,
+        replyToMemberId,
+        replyToMemberNickname,
+        content,
+        createdAt
+    );
     }
 }

@@ -14,22 +14,22 @@ public record PolicyListItemResponse(
     LocalDateTime createdAt
 ) {
     public static PolicyListItemResponse from(
-        Long id,
-        PolicyType type,
-        String version,
-        String title,
-        Boolean current,
-        LocalDateTime effectiveDate,
-        LocalDateTime createdAt
+    Long id,
+    PolicyType type,
+    String version,
+    String title,
+    Boolean current,
+    LocalDateTime effectiveDate,
+    LocalDateTime createdAt
     ) {
-        return new PolicyListItemResponse(
-            id,
-            type,
-            version,
-            title,
-            current,
-            effectiveDate,
-            createdAt
-        );
+    return new PolicyListItemResponse(
+        id,
+        type,
+        version,
+        title,
+        current,
+        effectiveDate,
+        createdAt
+    );
     }
 }

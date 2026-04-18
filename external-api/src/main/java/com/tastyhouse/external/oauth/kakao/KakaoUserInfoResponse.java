@@ -9,58 +9,58 @@ public record KakaoUserInfoResponse(
     @JsonProperty("kakao_account") KakaoAccount kakaoAccount
 ) {
     public record KakaoAccount(
-        @JsonProperty("profile") Profile profile,
-        @JsonProperty("email_needs_agreement") Boolean emailNeedsAgreement,
-        @JsonProperty("is_email_valid") Boolean isEmailValid,
-        @JsonProperty("is_email_verified") Boolean isEmailVerified,
-        @JsonProperty("email") String email,
-        @JsonProperty("name_needs_agreement") Boolean nameNeedsAgreement,
-        @JsonProperty("name") String name,
-        @JsonProperty("gender_needs_agreement") Boolean genderNeedsAgreement,
-        @JsonProperty("gender") String gender,
-        @JsonProperty("phone_number_needs_agreement") Boolean phoneNumberNeedsAgreement,
-        @JsonProperty("phone_number") String phoneNumber
+    @JsonProperty("profile") Profile profile,
+    @JsonProperty("email_needs_agreement") Boolean emailNeedsAgreement,
+    @JsonProperty("is_email_valid") Boolean isEmailValid,
+    @JsonProperty("is_email_verified") Boolean isEmailVerified,
+    @JsonProperty("email") String email,
+    @JsonProperty("name_needs_agreement") Boolean nameNeedsAgreement,
+    @JsonProperty("name") String name,
+    @JsonProperty("gender_needs_agreement") Boolean genderNeedsAgreement,
+    @JsonProperty("gender") String gender,
+    @JsonProperty("phone_number_needs_agreement") Boolean phoneNumberNeedsAgreement,
+    @JsonProperty("phone_number") String phoneNumber
     ) {}
 
     public record Profile(
-        @JsonProperty("nickname") String nickname,
-        @JsonProperty("thumbnail_image_url") String thumbnailImageUrl,
-        @JsonProperty("profile_image_url") String profileImageUrl,
-        @JsonProperty("is_default_image") Boolean isDefaultImage
+    @JsonProperty("nickname") String nickname,
+    @JsonProperty("thumbnail_image_url") String thumbnailImageUrl,
+    @JsonProperty("profile_image_url") String profileImageUrl,
+    @JsonProperty("is_default_image") Boolean isDefaultImage
     ) {}
 
     public String getEmail() {
-        if (kakaoAccount == null) return null;
-        return kakaoAccount.email();
+    if (kakaoAccount == null) return null;
+    return kakaoAccount.email();
     }
 
     public String getNickname() {
-        if (kakaoAccount == null || kakaoAccount.profile() == null) return null;
-        return kakaoAccount.profile().nickname();
+    if (kakaoAccount == null || kakaoAccount.profile() == null) return null;
+    return kakaoAccount.profile().nickname();
     }
 
     public String getProfileImageUrl() {
-        if (kakaoAccount == null || kakaoAccount.profile() == null) return null;
-        return kakaoAccount.profile().profileImageUrl();
+    if (kakaoAccount == null || kakaoAccount.profile() == null) return null;
+    return kakaoAccount.profile().profileImageUrl();
     }
 
     public String getName() {
-        if (kakaoAccount == null) return null;
-        return kakaoAccount.name();
+    if (kakaoAccount == null) return null;
+    return kakaoAccount.name();
     }
 
     public String getPhoneNumber() {
-        if (kakaoAccount == null) return null;
-        return kakaoAccount.phoneNumber();
+    if (kakaoAccount == null) return null;
+    return kakaoAccount.phoneNumber();
     }
 
     // 카카오 gender: "male" → MALE, "female" → FEMALE, 그 외 → null
     public Gender getGender() {
-        if (kakaoAccount == null || kakaoAccount.gender() == null) return null;
-        return switch (kakaoAccount.gender()) {
-            case "male" -> Gender.MALE;
-            case "female" -> Gender.FEMALE;
-            default -> null;
-        };
+    if (kakaoAccount == null || kakaoAccount.gender() == null) return null;
+    return switch (kakaoAccount.gender()) {
+        case "male" -> Gender.MALE;
+        case "female" -> Gender.FEMALE;
+        default -> null;
+    };
     }
 }

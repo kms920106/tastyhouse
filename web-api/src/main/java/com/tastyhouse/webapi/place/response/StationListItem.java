@@ -5,12 +5,12 @@ public record StationListItem(
     String name
 ) {
     public static StationListItem from(
-        Long id,
-        String name
+    Long id,
+    String name
     ) {
-        return new StationListItem(
-            id,
-            name
-        );
+    return new StationListItem(
+        id,
+        name
+    );
     }
 }

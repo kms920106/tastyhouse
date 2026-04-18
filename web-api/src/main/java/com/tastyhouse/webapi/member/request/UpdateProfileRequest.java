@@ -5,15 +5,15 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "프로필 수정 요청")
 public record UpdateProfileRequest(
-        @Size(max = 50, message = "닉네임은 최대 50자까지 입력 가능합니다.")
-        @Schema(description = "닉네임", example = "맛집탐험가")
-        String nickname,
+    @Size(max = 50, message = "닉네임은 최대 50자까지 입력 가능합니다.")
+    @Schema(description = "닉네임", example = "맛집탐험가")
+    String nickname,
 
-        @Size(max = 200, message = "상태메시지는 최대 200자까지 입력 가능합니다.")
-        @Schema(description = "상태메시지", example = "오늘도 맛있는 하루!")
-        String statusMessage,
+    @Size(max = 200, message = "상태메시지는 최대 200자까지 입력 가능합니다.")
+    @Schema(description = "상태메시지", example = "오늘도 맛있는 하루!")
+    String statusMessage,
 
-        @Schema(description = "프로필 이미지 파일 ID", example = "42")
-        Long profileImageFileId
+    @Schema(description = "프로필 이미지 파일 ID", example = "42")
+    Long profileImageFileId
 ) {
 }

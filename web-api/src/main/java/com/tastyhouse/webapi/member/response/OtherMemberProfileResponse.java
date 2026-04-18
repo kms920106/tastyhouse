@@ -23,20 +23,20 @@ public record OtherMemberProfileResponse(
     boolean isFollowing
 ) {
     public static OtherMemberProfileResponse from(
-        Long id,
-        String nickname,
-        MemberGrade memberGrade,
-        String statusMessage,
-        String profileImageUrl,
-        boolean isFollowing
+    Long id,
+    String nickname,
+    MemberGrade memberGrade,
+    String statusMessage,
+    String profileImageUrl,
+    boolean isFollowing
     ) {
-        return new OtherMemberProfileResponse(
-            id,
-            nickname,
-            memberGrade,
-            statusMessage,
-            profileImageUrl,
-            isFollowing
-        );
+    return new OtherMemberProfileResponse(
+        id,
+        nickname,
+        memberGrade,
+        statusMessage,
+        profileImageUrl,
+        isFollowing
+    );
     }
 }

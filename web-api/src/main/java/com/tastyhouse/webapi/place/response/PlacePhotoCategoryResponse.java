@@ -13,12 +13,12 @@ public record PlacePhotoCategoryResponse(
     List<String> imageUrls
 ) {
     public static PlacePhotoCategoryResponse from(
-        String name,
-        List<String> imageUrls
+    String name,
+    List<String> imageUrls
     ) {
-        return new PlacePhotoCategoryResponse(
-            name,
-            imageUrls
-        );
+    return new PlacePhotoCategoryResponse(
+        name,
+        imageUrls
+    );
     }
 }

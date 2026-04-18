@@ -32,24 +32,24 @@ public record CommentResponse(
     List<ReplyResponse> replies
 ) {
     public static CommentResponse from(
-        Long id,
-        Long reviewId,
-        Long memberId,
-        String memberNickname,
-        String memberProfileImageUrl,
-        String content,
-        LocalDateTime createdAt,
-        List<ReplyResponse> replies
+    Long id,
+    Long reviewId,
+    Long memberId,
+    String memberNickname,
+    String memberProfileImageUrl,
+    String content,
+    LocalDateTime createdAt,
+    List<ReplyResponse> replies
     ) {
-        return new CommentResponse(
-            id,
-            reviewId,
-            memberId,
-            memberNickname,
-            memberProfileImageUrl,
-            content,
-            createdAt,
-            replies
-        );
+    return new CommentResponse(
+        id,
+        reviewId,
+        memberId,
+        memberNickname,
+        memberProfileImageUrl,
+        content,
+        createdAt,
+        replies
+    );
     }
 }

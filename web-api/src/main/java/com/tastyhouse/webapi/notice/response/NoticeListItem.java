@@ -9,16 +9,16 @@ public record NoticeListItem(
     LocalDateTime createdAt
 ) {
     public static NoticeListItem from(
-        Long id,
-        String title,
-        String content,
-        LocalDateTime createdAt
+    Long id,
+    String title,
+    String content,
+    LocalDateTime createdAt
     ) {
-        return new NoticeListItem(
-            id,
-            title,
-            content,
-            createdAt
-        );
+    return new NoticeListItem(
+        id,
+        title,
+        content,
+        createdAt
+    );
     }
 }

@@ -20,18 +20,18 @@ public record PlaceSummaryResponse(
     Double rating
 ) {
     public static PlaceSummaryResponse from(
-        Long id,
-        String name,
-        String roadAddress,
-        String lotAddress,
-        Double rating
+    Long id,
+    String name,
+    String roadAddress,
+    String lotAddress,
+    Double rating
     ) {
-        return new PlaceSummaryResponse(
-            id,
-            name,
-            roadAddress,
-            lotAddress,
-            rating
-        );
+    return new PlaceSummaryResponse(
+        id,
+        name,
+        roadAddress,
+        lotAddress,
+        rating
+    );
     }
 }

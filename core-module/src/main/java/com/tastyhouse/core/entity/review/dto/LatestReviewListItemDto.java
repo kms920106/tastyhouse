@@ -6,19 +6,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record LatestReviewListItemDto(
-        Long id,
-        List<String> imageUrls,
-        String stationName,
-        Double totalRating,
-        String content,
-        Long memberId,
-        String memberNickname,
-        String memberProfileImageUrl,
-        LocalDateTime createdAt,
-        Long productId,
-        String productName,
-        Long likeCount,
-        Long commentCount
+    Long id,
+    List<String> imageUrls,
+    String stationName,
+    Double totalRating,
+    String content,
+    Long memberId,
+    String memberNickname,
+    String memberProfileImageUrl,
+    LocalDateTime createdAt,
+    Long productId,
+    String productName,
+    Long likeCount,
+    Long commentCount
 ) {
     @QueryProjection
     public LatestReviewListItemDto(Long id, String stationName,

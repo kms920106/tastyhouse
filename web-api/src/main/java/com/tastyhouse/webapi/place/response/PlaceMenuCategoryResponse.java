@@ -13,12 +13,12 @@ public record PlaceMenuCategoryResponse(
     List<PlaceMenuResponse> menus
 ) {
     public static PlaceMenuCategoryResponse from(
-        String categoryName,
-        List<PlaceMenuResponse> menus
+    String categoryName,
+    List<PlaceMenuResponse> menus
     ) {
-        return new PlaceMenuCategoryResponse(
-            categoryName,
-            menus
-        );
+    return new PlaceMenuCategoryResponse(
+        categoryName,
+        menus
+    );
     }
 }

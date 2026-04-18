@@ -20,18 +20,18 @@ public record ProductReviewStatisticsResponse(
     Double averagePriceRating
 ) {
     public static ProductReviewStatisticsResponse from(
-        Double totalRating,
-        Long totalReviewCount,
-        Double averageTasteRating,
-        Double averageAmountRating,
-        Double averagePriceRating
+    Double totalRating,
+    Long totalReviewCount,
+    Double averageTasteRating,
+    Double averageAmountRating,
+    Double averagePriceRating
     ) {
-        return new ProductReviewStatisticsResponse(
-            totalRating,
-            totalReviewCount,
-            averageTasteRating,
-            averageAmountRating,
-            averagePriceRating
-        );
+    return new ProductReviewStatisticsResponse(
+        totalRating,
+        totalReviewCount,
+        averageTasteRating,
+        averageAmountRating,
+        averagePriceRating
+    );
     }
 }

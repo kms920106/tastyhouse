@@ -9,14 +9,14 @@ public record PlaceReviewsByRatingResponse(
     Long totalReviewCount
 ) {
     public static PlaceReviewsByRatingResponse from(
-        Map<Integer, List<PlaceReviewListItem>> reviewsByRating,
-        List<PlaceReviewListItem> allReviews,
-        Long totalReviewCount
+    Map<Integer, List<PlaceReviewListItem>> reviewsByRating,
+    List<PlaceReviewListItem> allReviews,
+    Long totalReviewCount
     ) {
-        return new PlaceReviewsByRatingResponse(
-            reviewsByRating,
-            allReviews,
-            totalReviewCount
-        );
+    return new PlaceReviewsByRatingResponse(
+        reviewsByRating,
+        allReviews,
+        totalReviewCount
+    );
     }
 }

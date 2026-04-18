@@ -38,28 +38,28 @@ public record ReviewResponse(
     LocalDateTime createdAt
 ) {
     public static ReviewResponse from(
-        Long reviewId,
-        Long productId,
-        Double tasteRating,
-        Double amountRating,
-        Double priceRating,
-        Double totalRating,
-        String content,
-        List<Long> uploadedFileIds,
-        List<String> tags,
-        LocalDateTime createdAt
+    Long reviewId,
+    Long productId,
+    Double tasteRating,
+    Double amountRating,
+    Double priceRating,
+    Double totalRating,
+    String content,
+    List<Long> uploadedFileIds,
+    List<String> tags,
+    LocalDateTime createdAt
     ) {
-        return new ReviewResponse(
-            reviewId,
-            productId,
-            tasteRating,
-            amountRating,
-            priceRating,
-            totalRating,
-            content,
-            uploadedFileIds,
-            tags,
-            createdAt
-        );
+    return new ReviewResponse(
+        reviewId,
+        productId,
+        tasteRating,
+        amountRating,
+        priceRating,
+        totalRating,
+        content,
+        uploadedFileIds,
+        tags,
+        createdAt
+    );
     }
 }

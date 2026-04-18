@@ -12,20 +12,20 @@ public record BugReportResponse(
     LocalDateTime createdAt
 ) {
     public static BugReportResponse from(
-        Long id,
-        String device,
-        String title,
-        String content,
-        List<Long> uploadedFileIds,
-        LocalDateTime createdAt
+    Long id,
+    String device,
+    String title,
+    String content,
+    List<Long> uploadedFileIds,
+    LocalDateTime createdAt
     ) {
-        return new BugReportResponse(
-            id,
-            device,
-            title,
-            content,
-            uploadedFileIds,
-            createdAt
-        );
+    return new BugReportResponse(
+        id,
+        device,
+        title,
+        content,
+        uploadedFileIds,
+        createdAt
+    );
     }
 }

@@ -6,13 +6,13 @@ import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
 import java.util.List;
 
 public record EditorChoiceDto(
-        Long id,
-        Long placeId,
-        String name,
-        String title,
-        String content,
-        String placeImageUrl,
-        List<ProductSimpleDto> products
+    Long id,
+    Long placeId,
+    String name,
+    String title,
+    String content,
+    String placeImageUrl,
+    List<ProductSimpleDto> products
 ) {
     @QueryProjection
     public EditorChoiceDto {

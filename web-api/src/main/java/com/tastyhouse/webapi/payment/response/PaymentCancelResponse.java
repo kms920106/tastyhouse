@@ -5,6 +5,6 @@ public record PaymentCancelResponse(
     String message
 ) {
     public static PaymentCancelResponse of(PaymentCancelCode cancelCode) {
-        return new PaymentCancelResponse(cancelCode.name(), cancelCode.getMessage());
+    return new PaymentCancelResponse(cancelCode.name(), cancelCode.getMessage());
     }
 }

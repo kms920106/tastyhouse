@@ -14,14 +14,14 @@ public record ProductCategoryListItem(
     Integer sort
 ) {
     public static ProductCategoryListItem from(
-        Long id,
-        String displayName,
-        Integer sort
+    Long id,
+    String displayName,
+    Integer sort
     ) {
-        return new ProductCategoryListItem(
-            id,
-            displayName,
-            sort
-        );
+    return new ProductCategoryListItem(
+        id,
+        displayName,
+        sort
+    );
     }
 }

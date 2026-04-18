@@ -4,9 +4,10 @@ import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.place.Tag;
 import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.review.Review;
+import com.tastyhouse.core.entity.review.ReviewType;
 import com.tastyhouse.core.entity.review.ReviewComment;
-import com.tastyhouse.core.entity.review.ReviewImage;
 import com.tastyhouse.core.entity.review.ReviewReply;
+import com.tastyhouse.core.entity.review.ReviewImage;
 import com.tastyhouse.core.entity.review.ReviewTag;
 import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
@@ -23,7 +24,6 @@ import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
-import com.tastyhouse.webapi.review.request.ReviewType;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.MemberReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.BestReviewListItem;
@@ -57,9 +57,7 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public PageResult<BestReviewListItem> searchBestReviewList(int page, int size) {
-        return reviewCoreService.findBestReviewsWithPagination(
-            page, size
-        ).map(this::convertToBestReviewListItem);
+        return reviewCoreService.findBestReviewsWithPagination(page, size).map(this::convertToBestReviewListItem);
     }
 
     private BestReviewListItem convertToBestReviewListItem(BestReviewListItemDto dto) {

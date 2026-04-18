@@ -14,14 +14,14 @@ public record PlaceBannerResponse(
     Integer sort
 ) {
     public static PlaceBannerResponse from(
-        Long id,
-        String imageUrl,
-        Integer sort
+    Long id,
+    String imageUrl,
+    Integer sort
     ) {
-        return new PlaceBannerResponse(
-            id,
-            imageUrl,
-            sort
-        );
+    return new PlaceBannerResponse(
+        id,
+        imageUrl,
+        sort
+    );
     }
 }

@@ -43,32 +43,32 @@ public record ProductListItem(
     String categoryName
 ) {
     public static ProductListItem from(
-        Long id,
-        String name,
-        String description,
-        String imageUrl,
-        Integer originalPrice,
-        Integer discountPrice,
-        BigDecimal discountRate,
-        Double rating,
-        Integer reviewCount,
-        Boolean isRepresentative,
-        Boolean isSoldOut,
-        String categoryName
+    Long id,
+    String name,
+    String description,
+    String imageUrl,
+    Integer originalPrice,
+    Integer discountPrice,
+    BigDecimal discountRate,
+    Double rating,
+    Integer reviewCount,
+    Boolean isRepresentative,
+    Boolean isSoldOut,
+    String categoryName
     ) {
-        return new ProductListItem(
-            id,
-            name,
-            description,
-            imageUrl,
-            originalPrice,
-            discountPrice,
-            discountRate,
-            rating,
-            reviewCount,
-            isRepresentative,
-            isSoldOut,
-            categoryName
-        );
+    return new ProductListItem(
+        id,
+        name,
+        description,
+        imageUrl,
+        originalPrice,
+        discountPrice,
+        discountRate,
+        rating,
+        reviewCount,
+        isRepresentative,
+        isSoldOut,
+        categoryName
+    );
     }
 }

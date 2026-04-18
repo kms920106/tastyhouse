@@ -15,26 +15,26 @@ public record ProductReviewListItem(
     String productName
 ) {
     public static ProductReviewListItem from(
-        Long id,
-        List<String> imageUrls,
-        Double totalRating,
-        String content,
-        String memberNickname,
-        String memberProfileImageUrl,
-        LocalDateTime createdAt,
-        Long productId,
-        String productName
+    Long id,
+    List<String> imageUrls,
+    Double totalRating,
+    String content,
+    String memberNickname,
+    String memberProfileImageUrl,
+    LocalDateTime createdAt,
+    Long productId,
+    String productName
     ) {
-        return new ProductReviewListItem(
-            id,
-            imageUrls,
-            totalRating,
-            content,
-            memberNickname,
-            memberProfileImageUrl,
-            createdAt,
-            productId,
-            productName
-        );
+    return new ProductReviewListItem(
+        id,
+        imageUrls,
+        totalRating,
+        content,
+        memberNickname,
+        memberProfileImageUrl,
+        createdAt,
+        productId,
+        productName
+    );
     }
 }

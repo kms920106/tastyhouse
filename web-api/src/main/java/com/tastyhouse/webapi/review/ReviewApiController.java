@@ -6,7 +6,7 @@ import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.review.request.CommentCreateRequest;
 import com.tastyhouse.webapi.review.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
-import com.tastyhouse.webapi.review.request.ReviewType;
+import com.tastyhouse.core.entity.review.ReviewType;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.BestReviewListItem;
 import com.tastyhouse.webapi.review.response.MemberReviewListItemResponse;

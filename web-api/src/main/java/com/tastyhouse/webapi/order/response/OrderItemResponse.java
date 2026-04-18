@@ -16,30 +16,30 @@ public record OrderItemResponse(
     List<OrderItemOptionResponse> options
 ) {
     public static OrderItemResponse from(
-        Long id,
-        Long productId,
-        String productName,
-        String productImageUrl,
-        Integer quantity,
-        Integer unitPrice,
-        Integer discountPrice,
-        Integer optionTotalPrice,
-        Integer totalPrice,
-        boolean isReviewed,
-        List<OrderItemOptionResponse> options
+    Long id,
+    Long productId,
+    String productName,
+    String productImageUrl,
+    Integer quantity,
+    Integer unitPrice,
+    Integer discountPrice,
+    Integer optionTotalPrice,
+    Integer totalPrice,
+    boolean isReviewed,
+    List<OrderItemOptionResponse> options
     ) {
-        return new OrderItemResponse(
-            id,
-            productId,
-            productName,
-            productImageUrl,
-            quantity,
-            unitPrice,
-            discountPrice,
-            optionTotalPrice,
-            totalPrice,
-            isReviewed,
-            options
-        );
+    return new OrderItemResponse(
+        id,
+        productId,
+        productName,
+        productImageUrl,
+        quantity,
+        unitPrice,
+        discountPrice,
+        optionTotalPrice,
+        totalPrice,
+        isReviewed,
+        options
+    );
     }
 }

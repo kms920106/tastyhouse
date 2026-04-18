@@ -10,17 +10,17 @@ public record FacebookUserInfoResponse(
     @JsonProperty("picture") Picture picture
 ) {
     public record Picture(
-        @JsonProperty("data") PictureData data
+    @JsonProperty("data") PictureData data
     ) {}
 
     public record PictureData(
-        @JsonProperty("url") String url,
-        @JsonProperty("is_silhouette") Boolean isSilhouette
+    @JsonProperty("url") String url,
+    @JsonProperty("is_silhouette") Boolean isSilhouette
     ) {}
 
     public String getProfileImageUrl() {
-        if (picture == null || picture.data() == null) return null;
-        if (Boolean.TRUE.equals(picture.data().isSilhouette())) return null;
-        return picture.data().url();
+    if (picture == null || picture.data() == null) return null;
+    if (Boolean.TRUE.equals(picture.data().isSilhouette())) return null;
+    return picture.data().url();
     }
 }

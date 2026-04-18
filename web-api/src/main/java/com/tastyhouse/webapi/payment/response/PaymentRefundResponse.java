@@ -15,24 +15,24 @@ public record PaymentRefundResponse(
     LocalDateTime createdAt
 ) {
     public static PaymentRefundResponse from(
-        Long id,
-        Long paymentId,
-        Integer refundAmount,
-        String refundReason,
-        RefundStatus refundStatus,
-        String pgRefundId,
-        LocalDateTime refundedAt,
-        LocalDateTime createdAt
+    Long id,
+    Long paymentId,
+    Integer refundAmount,
+    String refundReason,
+    RefundStatus refundStatus,
+    String pgRefundId,
+    LocalDateTime refundedAt,
+    LocalDateTime createdAt
     ) {
-        return new PaymentRefundResponse(
-            id,
-            paymentId,
-            refundAmount,
-            refundReason,
-            refundStatus,
-            pgRefundId,
-            refundedAt,
-            createdAt
-        );
+    return new PaymentRefundResponse(
+        id,
+        paymentId,
+        refundAmount,
+        refundReason,
+        refundStatus,
+        pgRefundId,
+        refundedAt,
+        createdAt
+    );
     }
 }

@@ -8,18 +8,18 @@ public record BestReviewListItem(
     String content
 ) {
     public static BestReviewListItem from(
-        Long id,
-        String imageUrl,
-        String stationName,
-        Double totalRating,
-        String content
+    Long id,
+    String imageUrl,
+    String stationName,
+    Double totalRating,
+    String content
     ) {
-        return new BestReviewListItem(
-            id,
-            imageUrl,
-            stationName,
-            totalRating,
-            content
-        );
+    return new BestReviewListItem(
+        id,
+        imageUrl,
+        stationName,
+        totalRating,
+        content
+    );
     }
 }

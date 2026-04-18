@@ -8,6 +8,6 @@ public record EventDetailResponse(
     String bannerImageUrl
 ) {
     public static EventDetailResponse from(String bannerImageUrl) {
-        return new EventDetailResponse(bannerImageUrl);
+    return new EventDetailResponse(bannerImageUrl);
     }
 }

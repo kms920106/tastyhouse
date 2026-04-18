@@ -11,12 +11,12 @@ public record PlaceNameResponse(
     String name
 ) {
     public static PlaceNameResponse from(
-        Long id,
-        String name
+    Long id,
+    String name
     ) {
-        return new PlaceNameResponse(
-            id,
-            name
-        );
+    return new PlaceNameResponse(
+        id,
+        name
+    );
     }
 }

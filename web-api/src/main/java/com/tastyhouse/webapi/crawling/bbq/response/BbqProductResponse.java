@@ -40,28 +40,28 @@ public record BbqProductResponse(
     Boolean canTakeout
 ) {
     public static BbqProductResponse from(
-        Long id,
-        String name,
-        String description,
-        String imageUrl,
-        Integer originalPrice,
-        Integer addPrice,
-        Boolean isSoldOut,
-        Boolean isAdultOnly,
-        Boolean canDeliver,
-        Boolean canTakeout
+    Long id,
+    String name,
+    String description,
+    String imageUrl,
+    Integer originalPrice,
+    Integer addPrice,
+    Boolean isSoldOut,
+    Boolean isAdultOnly,
+    Boolean canDeliver,
+    Boolean canTakeout
     ) {
-        return new BbqProductResponse(
-            id,
-            name,
-            description,
-            imageUrl,
-            originalPrice,
-            addPrice,
-            isSoldOut,
-            isAdultOnly,
-            canDeliver,
-            canTakeout
-        );
+    return new BbqProductResponse(
+        id,
+        name,
+        description,
+        imageUrl,
+        originalPrice,
+        addPrice,
+        isSoldOut,
+        isAdultOnly,
+        canDeliver,
+        canTakeout
+    );
     }
 }

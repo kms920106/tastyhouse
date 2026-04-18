@@ -14,8 +14,8 @@ public record PasswordResetConfirmRequest(
     @Schema(description = "새 비밀번호 (영문, 숫자, 특수문자 포함 8~20자)", example = "NewPassword1!")
     @NotBlank(message = "새 비밀번호를 입력해주세요.")
     @Pattern(
-        regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,20}$",
-        message = "비밀번호는 영문, 숫자, 특수문자를 포함하여 8~20자로 입력해주세요."
+    regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,20}$",
+    message = "비밀번호는 영문, 숫자, 특수문자를 포함하여 8~20자로 입력해주세요."
     )
     String newPassword,
 

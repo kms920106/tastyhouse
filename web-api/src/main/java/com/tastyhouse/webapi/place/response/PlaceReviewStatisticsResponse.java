@@ -40,30 +40,30 @@ public record PlaceReviewStatisticsResponse(
     Map<Integer, Long> ratingCounts
 ) {
     public static PlaceReviewStatisticsResponse from(
-        Double totalRating,
-        Long totalReviewCount,
-        Double averageTasteRating,
-        Double averageAmountRating,
-        Double averagePriceRating,
-        Double averageAtmosphereRating,
-        Double averageKindnessRating,
-        Double averageHygieneRating,
-        Double willRevisitPercentage,
-        Map<Integer, Long> monthlyReviewCounts,
-        Map<Integer, Long> ratingCounts
+    Double totalRating,
+    Long totalReviewCount,
+    Double averageTasteRating,
+    Double averageAmountRating,
+    Double averagePriceRating,
+    Double averageAtmosphereRating,
+    Double averageKindnessRating,
+    Double averageHygieneRating,
+    Double willRevisitPercentage,
+    Map<Integer, Long> monthlyReviewCounts,
+    Map<Integer, Long> ratingCounts
     ) {
-        return new PlaceReviewStatisticsResponse(
-            totalRating,
-            totalReviewCount,
-            averageTasteRating,
-            averageAmountRating,
-            averagePriceRating,
-            averageAtmosphereRating,
-            averageKindnessRating,
-            averageHygieneRating,
-            willRevisitPercentage,
-            monthlyReviewCounts,
-            ratingCounts
-        );
+    return new PlaceReviewStatisticsResponse(
+        totalRating,
+        totalReviewCount,
+        averageTasteRating,
+        averageAmountRating,
+        averagePriceRating,
+        averageAtmosphereRating,
+        averageKindnessRating,
+        averageHygieneRating,
+        willRevisitPercentage,
+        monthlyReviewCounts,
+        ratingCounts
+    );
     }
 }

@@ -4,6 +4,6 @@ public record ReviewLikeResponse(
     boolean liked
 ) {
     public static ReviewLikeResponse from(boolean liked) {
-        return new ReviewLikeResponse(liked);
+    return new ReviewLikeResponse(liked);
     }
 }

@@ -9,10 +9,10 @@ public record UsablePointResponse(
     Integer usablePoints
 ) {
     public static UsablePointResponse from(MemberPoint memberPoint) {
-        return new UsablePointResponse(memberPoint.getAvailablePoints());
+    return new UsablePointResponse(memberPoint.getAvailablePoints());
     }
 
     public static UsablePointResponse of(Integer usablePoints) {
-        return new UsablePointResponse(usablePoints);
+    return new UsablePointResponse(usablePoints);
     }
 }

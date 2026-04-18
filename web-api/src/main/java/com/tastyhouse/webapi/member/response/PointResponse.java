@@ -12,16 +12,16 @@ public record PointResponse(
     Integer expiredThisMonth
 ) {
     public static PointResponse from(MemberPoint memberPoint) {
-        return new PointResponse(
-            memberPoint.getAvailablePoints(),
-            memberPoint.getExpiredThisMonth()
-        );
+    return new PointResponse(
+        memberPoint.getAvailablePoints(),
+        memberPoint.getExpiredThisMonth()
+    );
     }
 
     public static PointResponse of(Integer availablePoints, Integer expiredThisMonth) {
-        return new PointResponse(
-            availablePoints,
-            expiredThisMonth
-        );
+    return new PointResponse(
+        availablePoints,
+        expiredThisMonth
+    );
     }
 }

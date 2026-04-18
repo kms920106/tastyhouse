@@ -25,18 +25,18 @@ public record EventListItemResponse(
     LocalDateTime endAt
 ) {
     public static EventListItemResponse from(
-        Long id,
-        String name,
-        String thumbnailImageUrl,
-        LocalDateTime startAt,
-        LocalDateTime endAt
+    Long id,
+    String name,
+    String thumbnailImageUrl,
+    LocalDateTime startAt,
+    LocalDateTime endAt
     ) {
-        return new EventListItemResponse(
-            id,
-            name,
-            thumbnailImageUrl,
-            startAt,
-            endAt
-        );
+    return new EventListItemResponse(
+        id,
+        name,
+        thumbnailImageUrl,
+        startAt,
+        endAt
+    );
     }
 }
