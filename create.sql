@@ -1,15 +1,18 @@
 CREATE TABLE BANNER
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title      VARCHAR(100),
-    image_url  VARCHAR(255) NOT NULL,
-    link_url   VARCHAR(500),
-    start_date DATETIME,
-    end_date   DATETIME,
-    sort       INT          NOT NULL,
-    is_active  TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at DATETIME     NOT NULL,
-    updated_at DATETIME     NOT NULL
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type             VARCHAR(20) NOT NULL,
+    title            VARCHAR(100),
+    uploaded_file_id BIGINT      NOT NULL,
+    link_url         VARCHAR(500),
+    start_date       DATETIME,
+    end_date         DATETIME,
+    sort             INT         NOT NULL,
+    is_active        TINYINT(1)  NOT NULL DEFAULT 1,
+    created_at       DATETIME    NOT NULL,
+    updated_at       DATETIME    NOT NULL,
+    INDEX idx_banner_type (type),
+    INDEX idx_banner_type_active (type, is_active, sort)
 );
 
 CREATE TABLE BUG_REPORT

@@ -28,12 +28,19 @@ public class BannerApiController {
 
     private final BannerService bannerService;
 
-    @Operation(summary = "배너 목록 조회", description = "페이징된 배너 목록을 조회합니다. 제목 검색과 활성화 상태 필터링이 가능합니다.")
+    @Operation(summary = "홈 배너 목록 조회")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1")
-    public ResponseEntity<CommonResponse<List<BannerListItem>>> getBannerList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BannerListItem> pageResult = bannerService.searchBannerList(pageRequest);
-        CommonResponse<List<BannerListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
-        return ResponseEntity.ok(response);
+    @GetMapping("/v1/home")
+    public ResponseEntity<CommonResponse<List<BannerListItem>>> getHomeBanners(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResult<BannerListItem> pageResult = bannerService.findHomeBanners(pageRequest);
+        return ResponseEntity.ok(CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
+    }
+
+    @Operation(summary = "사이드바 배너 목록 조회")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @GetMapping("/v1/sidebar")
+    public ResponseEntity<CommonResponse<List<BannerListItem>>> getSidebarBanners(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResult<BannerListItem> pageResult = bannerService.findSidebarBanners(pageRequest);
+        return ResponseEntity.ok(CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
     }
 }

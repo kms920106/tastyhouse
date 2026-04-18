@@ -15,24 +15,28 @@ public class Banner extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title", length = 100)
-    private String title; // 배너 제목 (관리용)
+    @Column(name = "type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+    @Enumerated(EnumType.STRING)
+    private BannerType type;
 
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
+    @Column(name = "title", length = 100)
+    private String title;
+
+    @Column(name = "uploaded_file_id", nullable = false)
+    private Long uploadedFileId;
 
     @Column(name = "link_url", length = 500)
-    private String linkUrl; // 배너 클릭 시 이동할 URL
+    private String linkUrl;
 
     @Column(name = "start_date")
-    private LocalDateTime startDate; // 시작일자
+    private LocalDateTime startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime endDate; // 종료일자
+    private LocalDateTime endDate;
 
     @Column(name = "sort", nullable = false)
-    private Integer sort; // 우선순위
+    private Integer sort;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean active = true; // 활성상태
+    private Boolean active = true;
 }

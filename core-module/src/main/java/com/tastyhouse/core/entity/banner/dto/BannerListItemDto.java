@@ -5,7 +5,7 @@ import com.querydsl.core.annotations.QueryProjection;
 public record BannerListItemDto(
         Long id,
         String title,
-        String imageUrl,
+        String filePath,
         String linkUrl
 ) {
     @QueryProjection

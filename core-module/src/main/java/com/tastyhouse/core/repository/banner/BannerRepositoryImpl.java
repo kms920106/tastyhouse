@@ -1,10 +1,12 @@
 package com.tastyhouse.core.repository.banner;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.tastyhouse.core.entity.banner.BannerType;
 import com.tastyhouse.core.entity.banner.QBanner;
 import com.tastyhouse.core.entity.banner.dto.BannerListItemDto;
-import com.tastyhouse.core.entity.banner.dto.QBannerListItemDto;
+import com.tastyhouse.core.entity.file.QUploadedFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -21,18 +23,21 @@ public class BannerRepositoryImpl implements BannerRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<BannerListItemDto> findAllWithFilter(Pageable pageable) {
+    public Page<BannerListItemDto> findAllByType(BannerType type, Pageable pageable) {
         QBanner banner = QBanner.banner;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
         JPAQuery<BannerListItemDto> query = queryFactory
-            .select(new QBannerListItemDto(
+            .select(Projections.constructor(BannerListItemDto.class,
                 banner.id,
                 banner.title,
-                banner.imageUrl,
+                uploadedFile.filePath,
                 banner.linkUrl
             ))
             .from(banner)
+            .join(uploadedFile).on(uploadedFile.id.eq(banner.uploadedFileId))
             .where(
+                banner.type.eq(type),
                 banner.active.isTrue(),
                 banner.startDate.loe(LocalDateTime.now()),
                 banner.endDate.goe(LocalDateTime.now())
