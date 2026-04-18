@@ -8,8 +8,8 @@ import com.tastyhouse.webapi.review.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewType;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
-import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.BestReviewListItem;
+import com.tastyhouse.webapi.review.response.MemberReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.CommentListResponse;
 import com.tastyhouse.webapi.review.response.CommentResponse;
 import com.tastyhouse.webapi.review.response.LatestReviewListItem;
@@ -205,11 +205,11 @@ public class ReviewApiController {
         @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     })
     @GetMapping("/v1/members/{memberId}")
-    public ResponseEntity<CommonResponse<List<MyReviewListItemResponse>>> getMemberReviews(
+    public ResponseEntity<CommonResponse<List<MemberReviewListItemResponse>>> getMemberReviews(
             @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
             @Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<MyReviewListItemResponse> pageResult = reviewService.findMemberReviews(memberId, pageRequest);
-        CommonResponse<List<MyReviewListItemResponse>> response = CommonResponse.success(
+        PageResult<MemberReviewListItemResponse> pageResult = reviewService.findMemberReviews(memberId, pageRequest);
+        CommonResponse<List<MemberReviewListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(), pageResult.getCurrentPage(), pageResult.getPageSize(), pageResult.getTotalElements()
         );
         return ResponseEntity.ok(response);

@@ -26,7 +26,7 @@ import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewType;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
-import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
+import com.tastyhouse.webapi.review.response.MemberReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.BestReviewListItem;
 import com.tastyhouse.webapi.review.response.CommentListResponse;
 import com.tastyhouse.webapi.review.response.CommentResponse;
@@ -481,11 +481,11 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<MyReviewListItemResponse> findMemberReviews(Long memberId, PageRequest pageRequest) {
+    public PageResult<MemberReviewListItemResponse> findMemberReviews(Long memberId, PageRequest pageRequest) {
         PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findReviewsByMemberId(
             memberId, pageRequest.page(), pageRequest.size()
         );
-        return coreResult.map(MyReviewListItemResponse::from);
+        return coreResult.map(dto -> MemberReviewListItemResponse.from(dto, fileService.getUrlByPath(dto.imageUrl())));
     }
 
     private List<String> saveReviewTags(Long reviewId, List<String> tagNames) {

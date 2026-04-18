@@ -3,6 +3,7 @@ package com.tastyhouse.webapi.member.service;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.service.ReviewCoreService;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
@@ -15,14 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberReviewService {
 
     private final ReviewCoreService reviewCoreService;
+    private final FileService fileService;
 
-    // 내가 작성한 리뷰 목록을 페이지네이션하여 조회
     @Transactional(readOnly = true)
     public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, PageRequest pageRequest) {
         PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findMyReviews(
-            memberId, pageRequest.page(), pageRequest.size()
+            memberId,
+            pageRequest.page(),
+            pageRequest.size()
         );
-        return coreResult.map(MyReviewListItemResponse::from);
+        return coreResult.map(dto -> MyReviewListItemResponse.from(
+            dto.id(),
+            fileService.getUrlByPath(dto.imageUrl()))
+        );
     }
 
     @Transactional(readOnly = true)
