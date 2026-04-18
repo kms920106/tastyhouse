@@ -1,7 +1,30 @@
 package com.tastyhouse.core.repository.place;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.place.*;
+import com.tastyhouse.core.entity.place.PlaceAmenity;
+import com.tastyhouse.core.entity.place.PlaceAmenityCategory;
+import com.tastyhouse.core.entity.place.PlaceBannerImage;
+import com.tastyhouse.core.entity.place.PlaceBreakTime;
+import com.tastyhouse.core.entity.place.PlaceBusinessHour;
+import com.tastyhouse.core.entity.place.PlaceClosedDay;
+import com.tastyhouse.core.entity.place.PlaceFoodTypeCategory;
+import com.tastyhouse.core.entity.place.PlaceOrderMethod;
+import com.tastyhouse.core.entity.place.PlaceOwnerMessageHistory;
+import com.tastyhouse.core.entity.place.PlacePhotoCategory;
+import com.tastyhouse.core.entity.place.PlacePhotoCategoryImage;
+import com.tastyhouse.core.entity.place.PlaceStation;
+import com.tastyhouse.core.entity.place.QPlaceAmenity;
+import com.tastyhouse.core.entity.place.QPlaceAmenityCategory;
+import com.tastyhouse.core.entity.place.QPlaceBannerImage;
+import com.tastyhouse.core.entity.place.QPlaceBreakTime;
+import com.tastyhouse.core.entity.place.QPlaceBusinessHour;
+import com.tastyhouse.core.entity.place.QPlaceClosedDay;
+import com.tastyhouse.core.entity.place.QPlaceFoodTypeCategory;
+import com.tastyhouse.core.entity.place.QPlaceOrderMethod;
+import com.tastyhouse.core.entity.place.QPlaceOwnerMessageHistory;
+import com.tastyhouse.core.entity.place.QPlacePhotoCategory;
+import com.tastyhouse.core.entity.place.QPlacePhotoCategoryImage;
+import com.tastyhouse.core.entity.place.QPlaceStation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

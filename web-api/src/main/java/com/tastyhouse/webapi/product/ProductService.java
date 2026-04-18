@@ -2,7 +2,12 @@ package com.tastyhouse.webapi.product;
 
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.common.ReviewsByRatingResult;
-import com.tastyhouse.core.entity.product.*;
+import com.tastyhouse.core.entity.product.Product;
+import com.tastyhouse.core.entity.product.ProductCategory;
+import com.tastyhouse.core.entity.product.ProductCommonOption;
+import com.tastyhouse.core.entity.product.ProductCommonOptionGroup;
+import com.tastyhouse.core.entity.product.ProductOption;
+import com.tastyhouse.core.entity.product.ProductOptionGroup;
 import com.tastyhouse.core.entity.product.dto.TodayDiscountProductDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -11,12 +16,23 @@ import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.product.response.*;
+import com.tastyhouse.webapi.product.response.ProductCategoryListItem;
+import com.tastyhouse.webapi.product.response.ProductDetailResponse;
+import com.tastyhouse.webapi.product.response.ProductListItem;
+import com.tastyhouse.webapi.product.response.ProductReviewListItem;
+import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
+import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
+import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
+import com.tastyhouse.webapi.product.response.TodayDiscountProductItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

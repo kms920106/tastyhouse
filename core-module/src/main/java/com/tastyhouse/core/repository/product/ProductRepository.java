@@ -1,6 +1,13 @@
 package com.tastyhouse.core.repository.product;
 
-import com.tastyhouse.core.entity.product.*;
+import com.tastyhouse.core.entity.product.Product;
+import com.tastyhouse.core.entity.product.ProductBbq;
+import com.tastyhouse.core.entity.product.ProductCategory;
+import com.tastyhouse.core.entity.product.ProductCommonOption;
+import com.tastyhouse.core.entity.product.ProductCommonOptionGroup;
+import com.tastyhouse.core.entity.product.ProductImage;
+import com.tastyhouse.core.entity.product.ProductOption;
+import com.tastyhouse.core.entity.product.ProductOptionGroup;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.TodayDiscountProductDto;
 import org.springframework.data.domain.Page;

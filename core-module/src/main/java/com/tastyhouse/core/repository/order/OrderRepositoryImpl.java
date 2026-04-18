@@ -2,7 +2,13 @@ package com.tastyhouse.core.repository.order;
 
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.order.*;
+import com.tastyhouse.core.entity.order.Order;
+import com.tastyhouse.core.entity.order.OrderItem;
+import com.tastyhouse.core.entity.order.OrderItemOption;
+import com.tastyhouse.core.entity.order.OrderStatus;
+import com.tastyhouse.core.entity.order.QOrder;
+import com.tastyhouse.core.entity.order.QOrderItem;
+import com.tastyhouse.core.entity.order.QOrderItemOption;
 import com.tastyhouse.core.entity.payment.PaymentStatus;
 import com.tastyhouse.core.entity.payment.QPayment;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
