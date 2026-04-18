@@ -68,8 +68,8 @@ public class PlaceCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<LatestPlaceItemDto> findLatestPlaces(int page, int size, Long stationId, List<FoodType> foodTypes, List<Amenity> amenities) {
-        return placeRepository.findLatestPlaces(PageRequest.of(page, size), stationId, foodTypes, amenities);
+    public Page<LatestPlaceItemDto> findLatestPlaces(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, int page, int size) {
+        return placeRepository.findLatestPlaces(stationId, foodTypes, amenities, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)

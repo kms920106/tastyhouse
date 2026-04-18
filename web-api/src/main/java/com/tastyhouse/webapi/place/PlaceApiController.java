@@ -92,7 +92,7 @@ public class PlaceApiController {
             @RequestParam(required = false) List<FoodType> foodTypes,
             @RequestParam(required = false) List<Amenity> amenities) {
         LatestPlaceFilterRequest filterRequest = new LatestPlaceFilterRequest(stationId, foodTypes, amenities);
-        PageResult<LatestPlaceListItem> pageResult = placeService.searchLatestPlaces(pageRequest.page(), pageRequest.size(), filterRequest);
+        PageResult<LatestPlaceListItem> pageResult = placeService.searchLatestPlaces(filterRequest, pageRequest.page(), pageRequest.size());
         CommonResponse<List<LatestPlaceListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }

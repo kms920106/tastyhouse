@@ -4,7 +4,6 @@ import com.tastyhouse.core.entity.order.Order;
 import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.payment.Payment;
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -36,9 +35,8 @@ public class OrderCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<OrderListItemDto> findOrderListByMemberId(Long memberId, int page, int size) {
-        Page<OrderListItemDto> orderPage = orderRepository.findOrderListByMemberId(memberId, PageRequest.of(page, size));
-        return PageResult.from(orderPage);
+    public Page<OrderListItemDto> findOrderListByMemberId(Long memberId, int page, int size) {
+        return orderRepository.findOrderListByMemberId(memberId, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)

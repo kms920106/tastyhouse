@@ -18,12 +18,12 @@ public class BannerService {
 
     @Transactional(readOnly = true)
     public PageResult<BannerListItem> findHomeBanners(int page, int size) {
-        return bannerCoreService.findHomeBanners(page, size).map(this::toBannerListItem);
+        return PageResult.from(bannerCoreService.findHomeBanners(page, size)).map(this::toBannerListItem);
     }
 
     @Transactional(readOnly = true)
     public PageResult<BannerListItem> findSidebarBanners(int page, int size) {
-        return bannerCoreService.findSidebarBanners(page, size).map(this::toBannerListItem);
+        return PageResult.from(bannerCoreService.findSidebarBanners(page, size)).map(this::toBannerListItem);
     }
 
     private BannerListItem toBannerListItem(BannerListItemDto dto) {

@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.follow.Follow;
 import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
 import com.tastyhouse.core.entity.user.Member;
@@ -58,21 +57,18 @@ public class FollowCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<FollowMemberDto> findFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
-        Page<FollowMemberDto> followingPage = followRepository.findFollowingList(memberId, viewerMemberId, PageRequest.of(page, size));
-        return PageResult.from(followingPage);
+    public Page<FollowMemberDto> findFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
+        return followRepository.findFollowingList(memberId, viewerMemberId, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)
-    public PageResult<FollowMemberDto> findFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
-        Page<FollowMemberDto> followerPage = followRepository.findFollowerList(memberId, viewerMemberId, PageRequest.of(page, size));
-        return PageResult.from(followerPage);
+    public Page<FollowMemberDto> findFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
+        return followRepository.findFollowerList(memberId, viewerMemberId, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)
-    public PageResult<Member> findMembersByNicknameContaining(String nickname, int page, int size) {
-        Page<Member> memberPage = memberRepository.findByNicknameContaining(nickname, PageRequest.of(page, size));
-        return PageResult.from(memberPage);
+    public Page<Member> findMembersByNicknameContaining(String nickname, int page, int size) {
+        return memberRepository.findByNicknameContaining(nickname, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)

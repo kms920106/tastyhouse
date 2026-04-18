@@ -100,7 +100,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
     }
 
     @Override
-    public Page<LatestPlaceItemDto> findLatestPlaces(Pageable pageable, Long stationId, List<FoodType> foodTypes, List<Amenity> amenities) {
+    public Page<LatestPlaceItemDto> findLatestPlaces(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, Pageable pageable) {
         // 필터 조건 생성
         BooleanBuilder whereClause = new BooleanBuilder();
         whereClause.and(place.permanentlyClosed.eq(false));

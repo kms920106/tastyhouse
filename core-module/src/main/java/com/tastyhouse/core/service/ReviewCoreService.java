@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.common.ReviewsByRatingResult;
 import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
 import com.tastyhouse.core.entity.review.Review;
@@ -30,6 +29,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,10 +57,8 @@ public class ReviewCoreService {
     private final MemberRepository memberRepository;
 
     @Transactional(readOnly = true)
-    public PageResult<BestReviewListItemDto> findBestReviewsWithPagination(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<BestReviewListItemDto> reviewPage = reviewRepository.findBestReviews(pageRequest);
-        return PageResult.from(reviewPage);
+    public Page<BestReviewListItemDto> findBestReviewsWithPagination(int page, int size) {
+        return reviewRepository.findBestReviews(PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)
@@ -87,39 +85,20 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestReviewListItemDto> findLatestReviewsWithPagination(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<LatestReviewListItemDto> reviewPage = reviewRepository.findLatestReviews(pageRequest);
-        return PageResult.from(reviewPage);
+    public Page<LatestReviewListItemDto> findLatestReviewsWithPagination(int page, int size) {
+        return reviewRepository.findLatestReviews(PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestReviewListItemDto> findLatestReviewsByFollowingWithPagination(Long memberId, int page, int size) {
+    public Page<LatestReviewListItemDto> findLatestReviewsByFollowingWithPagination(Long memberId, int page, int size) {
         List<Long> followingMemberIds = followRepository.findFollowingIdsByFollowerId(memberId);
 
+        PageRequest pageRequest = PageRequest.of(page, size);
         if (followingMemberIds.isEmpty()) {
-            return new PageResult<>(
-                List.of(),
-                0L,
-                0,
-                page,
-                size
-            );
+            return new PageImpl<>(new java.util.ArrayList<>(), pageRequest, 0);
         }
 
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<LatestReviewListItemDto> reviewPage = reviewRepository.findLatestReviewsByFollowing(
-            followingMemberIds,
-            pageRequest
-        );
-
-        return new PageResult<>(
-            reviewPage.getContent(),
-            reviewPage.getTotalElements(),
-            reviewPage.getTotalPages(),
-            reviewPage.getNumber(),
-            reviewPage.getSize()
-        );
+        return reviewRepository.findLatestReviewsByFollowing(followingMemberIds, pageRequest);
     }
 
     @Transactional(readOnly = true)
@@ -194,17 +173,12 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<Review> findPlaceReviews(Long placeId, Integer rating, int page, int size) {
+    public Page<Review> findPlaceReviews(Long placeId, Integer rating, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<Review> reviewPage;
-
         if (rating != null) {
-            reviewPage = reviewRepository.findPlaceReviewsByRating(placeId, rating.doubleValue(), pageRequest);
-        } else {
-            reviewPage = reviewRepository.findPlaceReviews(placeId, pageRequest);
+            return reviewRepository.findPlaceReviewsByRating(placeId, rating.doubleValue(), pageRequest);
         }
-
-        return PageResult.from(reviewPage);
+        return reviewRepository.findPlaceReviews(placeId, pageRequest);
     }
 
     @Transactional(readOnly = true)
@@ -288,17 +262,13 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<MyReviewListItemDto> findMyReviews(Long memberId, int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<MyReviewListItemDto> reviewPage = reviewRepository.findMyReviews(memberId, pageRequest);
-        return PageResult.from(reviewPage);
+    public Page<MyReviewListItemDto> findMyReviews(Long memberId, int page, int size) {
+        return reviewRepository.findMyReviews(memberId, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)
-    public PageResult<MyReviewListItemDto> findReviewsByMemberId(Long memberId, int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<MyReviewListItemDto> reviewPage = reviewRepository.findReviewsByMemberId(memberId, pageRequest);
-        return PageResult.from(reviewPage);
+    public Page<MyReviewListItemDto> findReviewsByMemberId(Long memberId, int page, int size) {
+        return reviewRepository.findReviewsByMemberId(memberId, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)

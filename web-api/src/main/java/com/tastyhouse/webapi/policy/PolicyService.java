@@ -37,8 +37,7 @@ public class PolicyService {
 
     @Transactional(readOnly = true)
     public PageResult<PolicyListItemResponse> searchAllByType(PolicyType type, int page, int size) {
-        return policyDocumentCoreService
-            .findAllByTypeWithPagination(type, page, size)
+        return PageResult.from(policyDocumentCoreService.findAllByTypeWithPagination(type, page, size))
             .map(this::convertToPolicyListItemResponse);
     }
 

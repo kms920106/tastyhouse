@@ -16,9 +16,7 @@ public class NoticeService {
 
     @Transactional(readOnly = true)
     public PageResult<NoticeListItem> searchNoticeList(int page, int size) {
-        return noticeCoreService.findAllWithPagination(
-            page, size
-        ).map(this::convertToNoticeListItem);
+        return PageResult.from(noticeCoreService.findAllWithPagination(page, size)).map(this::convertToNoticeListItem);
     }
 
     private NoticeListItem convertToNoticeListItem(NoticeListItemDto dto) {

@@ -44,9 +44,8 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public PageResult<TodayDiscountProductItem> searchTodayDiscountProducts(int page, int size) {
-        return productCoreService.findTodayDiscountProducts(
-            page, size
-        ).map(this::convertToTodayDiscountProductItem);
+        return PageResult.from(productCoreService.findTodayDiscountProducts(page, size))
+            .map(this::convertToTodayDiscountProductItem);
     }
 
     private TodayDiscountProductItem convertToTodayDiscountProductItem(TodayDiscountProductDto dto) {

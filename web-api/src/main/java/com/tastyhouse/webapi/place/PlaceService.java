@@ -80,33 +80,17 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PageResult<BestPlaceListItem> searchBestPlaces(int page, int size) {
-        org.springframework.data.domain.Page<BestPlaceItemDto> pageData =
-            placeCoreService.findBestPlaces(page, size);
-
-        List<BestPlaceListItem> bestPlaceListItems = pageData.getContent().stream().map(this::convertToBestPlaceListItem).toList();
-
-        return new PageResult<>(bestPlaceListItems, pageData.getTotalElements(), pageData.getTotalPages(), pageData.getNumber(), pageData.getSize());
+        return PageResult.from(placeCoreService.findBestPlaces(page, size)).map(this::convertToBestPlaceListItem);
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestPlaceListItem> searchLatestPlaces(int page, int size, LatestPlaceFilterRequest filterRequest) {
-        org.springframework.data.domain.Page<LatestPlaceItemDto> pageData = placeCoreService.findLatestPlaces(
-                page,
-                size,
-                filterRequest.stationId(),
-                filterRequest.foodTypes(),
-                filterRequest.amenities()
-        );
-
-        List<LatestPlaceListItem> latestPlaceListItems = pageData.getContent().stream().map(this::convertToLatestPlaceListItem).toList();
-
-        return new PageResult<>(latestPlaceListItems, pageData.getTotalElements(), pageData.getTotalPages(), pageData.getNumber(), pageData.getSize());
+    public PageResult<LatestPlaceListItem> searchLatestPlaces(LatestPlaceFilterRequest filterRequest, int page, int size) {
+        return PageResult.from(placeCoreService.findLatestPlaces(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size)).map(this::convertToLatestPlaceListItem);
     }
 
     @Transactional(readOnly = true)
     public List<EditorChoiceResponse> searchEditorChoices(int page, int size) {
-        return placeCoreService.findEditorChoices(page, size)
-            .getContent().stream().map(this::convertToEditorChoiceResponse).toList();
+        return placeCoreService.findEditorChoices(page, size).getContent().stream().map(this::convertToEditorChoiceResponse).toList();
     }
 
     private EditorChoiceResponse convertToEditorChoiceResponse(EditorChoiceDto dto) {

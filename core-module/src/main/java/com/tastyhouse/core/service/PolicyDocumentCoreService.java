@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.policy.PolicyDocument;
 import com.tastyhouse.core.entity.policy.PolicyType;
 import com.tastyhouse.core.entity.policy.dto.PolicyDocumentDto;
@@ -36,10 +35,8 @@ public class PolicyDocumentCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<PolicyListItemDto> findAllByTypeWithPagination(PolicyType type, int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<PolicyListItemDto> policyPage = policyDocumentRepository.findAllByType(type, pageRequest);
-        return PageResult.from(policyPage);
+    public Page<PolicyListItemDto> findAllByTypeWithPagination(PolicyType type, int page, int size) {
+        return policyDocumentRepository.findAllByType(type, PageRequest.of(page, size));
     }
 
     @Transactional

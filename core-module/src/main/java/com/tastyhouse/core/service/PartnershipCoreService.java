@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.partnership.PartnershipRequest;
 import com.tastyhouse.core.repository.partnership.PartnershipRepository;
 import com.tastyhouse.core.repository.partnership.PartnershipRequestJpaRepository;
@@ -27,10 +26,8 @@ public class PartnershipCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<PartnershipRequest> findAllWithPagination(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<PartnershipRequest> partnershipPage = partnershipRepository.findAllOrderByCreatedAtDesc(pageRequest);
-        return PageResult.from(partnershipPage);
+    public Page<PartnershipRequest> findAllWithPagination(int page, int size) {
+        return partnershipRepository.findAllOrderByCreatedAtDesc(PageRequest.of(page, size));
     }
 
     @Transactional

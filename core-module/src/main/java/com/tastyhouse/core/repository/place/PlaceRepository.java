@@ -18,7 +18,7 @@ public interface PlaceRepository {
 
     Page<BestPlaceItemDto> findBestPlaces(Pageable pageable);
 
-    Page<LatestPlaceItemDto> findLatestPlaces(Pageable pageable, Long stationId, List<FoodType> foodTypes, List<Amenity> amenities);
+    Page<LatestPlaceItemDto> findLatestPlaces(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, Pageable pageable);
 
     Page<MyBookmarkedPlaceItemDto> findMyBookmarkedPlaces(Long memberId, Pageable pageable);
 }

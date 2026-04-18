@@ -62,7 +62,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public PageResult<EventListItemResponse> getEventList(EventStatus status, int page, int size) {
-        return eventCoreService.searchEventsByStatus(status, page, size)
+        return PageResult.from(eventCoreService.searchEventsByStatus(status, page, size))
             .map(this::convertToEventListItemResponse);
     }
 
@@ -76,7 +76,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public PageResult<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
-        return eventCoreService.findAllEventAnnouncements(page, size)
+        return PageResult.from(eventCoreService.findAllEventAnnouncements(page, size))
             .map(this::convertToEventAnnouncementListItemResponse);
     }
 

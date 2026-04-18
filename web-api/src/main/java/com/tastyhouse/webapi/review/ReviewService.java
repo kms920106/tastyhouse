@@ -11,7 +11,6 @@ import com.tastyhouse.core.entity.review.ReviewImage;
 import com.tastyhouse.core.entity.review.ReviewTag;
 import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
-import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.exception.AccessDeniedException;
@@ -57,7 +56,7 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public PageResult<BestReviewListItem> searchBestReviewList(int page, int size) {
-        return reviewCoreService.findBestReviewsWithPagination(page, size).map(this::convertToBestReviewListItem);
+        return PageResult.from(reviewCoreService.findBestReviewsWithPagination(page, size)).map(this::convertToBestReviewListItem);
     }
 
     private BestReviewListItem convertToBestReviewListItem(BestReviewListItemDto dto) {
@@ -77,22 +76,12 @@ public class ReviewService {
         ReviewType type,
         Long memberId
     ) {
-        PageResult<LatestReviewListItemDto> coreResult;
-
         if (type == ReviewType.FOLLOWING && memberId != null) {
-            coreResult = reviewCoreService.findLatestReviewsByFollowingWithPagination(
-                memberId,
-                page,
-                size
-            );
-        } else {
-            coreResult = reviewCoreService.findLatestReviewsWithPagination(
-                page,
-                size
-            );
+            return PageResult.from(reviewCoreService.findLatestReviewsByFollowingWithPagination(memberId, page, size))
+                .map(this::convertToLatestReviewListItem);
         }
-
-        return coreResult.map(this::convertToLatestReviewListItem);
+        return PageResult.from(reviewCoreService.findLatestReviewsWithPagination(page, size))
+            .map(this::convertToLatestReviewListItem);
     }
 
     private LatestReviewListItem convertToLatestReviewListItem(LatestReviewListItemDto dto) {
@@ -480,11 +469,11 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public PageResult<MemberReviewListItemResponse> findMemberReviews(Long memberId, int page, int size) {
-        PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findReviewsByMemberId(memberId, page, size);
-        return coreResult.map(dto -> MemberReviewListItemResponse.from(
-            dto.id(),
-            fileService.getUrlByPath(dto.imageUrl())
-        ));
+        return PageResult.from(reviewCoreService.findReviewsByMemberId(memberId, page, size))
+            .map(dto -> MemberReviewListItemResponse.from(
+                dto.id(),
+                fileService.getUrlByPath(dto.imageUrl())
+            ));
     }
 
     private List<String> saveReviewTags(Long reviewId, List<String> tagNames) {

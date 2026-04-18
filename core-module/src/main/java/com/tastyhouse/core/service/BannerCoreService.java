@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.banner.Banner;
 import com.tastyhouse.core.entity.banner.BannerType;
 import com.tastyhouse.core.entity.banner.dto.BannerListItemDto;
@@ -24,17 +23,13 @@ public class BannerCoreService {
     private final BannerJpaRepository bannerJpaRepository;
 
     @Transactional(readOnly = true)
-    public PageResult<BannerListItemDto> findHomeBanners(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<BannerListItemDto> bannerPage = bannerRepository.findAllByType(BannerType.HOME, pageRequest);
-        return PageResult.from(bannerPage);
+    public Page<BannerListItemDto> findHomeBanners(int page, int size) {
+        return bannerRepository.findAllByType(BannerType.HOME, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)
-    public PageResult<BannerListItemDto> findSidebarBanners(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<BannerListItemDto> bannerPage = bannerRepository.findAllByType(BannerType.SIDEBAR, pageRequest);
-        return PageResult.from(bannerPage);
+    public Page<BannerListItemDto> findSidebarBanners(int page, int size) {
+        return bannerRepository.findAllByType(BannerType.SIDEBAR, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)

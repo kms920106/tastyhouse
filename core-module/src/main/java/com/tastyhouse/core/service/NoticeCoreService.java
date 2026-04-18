@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.notice.Notice;
 import com.tastyhouse.core.entity.notice.dto.NoticeListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -23,10 +22,8 @@ public class NoticeCoreService {
     private final NoticeJpaRepository noticeJpaRepository;
 
     @Transactional(readOnly = true)
-    public PageResult<NoticeListItemDto> findAllWithPagination(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<NoticeListItemDto> noticePage = noticeRepository.findAllWithFilter(pageRequest);
-        return PageResult.from(noticePage);
+    public Page<NoticeListItemDto> findAllWithPagination(int page, int size) {
+        return noticeRepository.findAllWithFilter(PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)

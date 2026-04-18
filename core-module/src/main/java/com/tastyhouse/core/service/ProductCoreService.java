@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductBbq;
 import com.tastyhouse.core.entity.product.ProductCategory;
@@ -43,10 +42,8 @@ public class ProductCoreService {
     private final ProductBbqJpaRepository productBbqJpaRepository;
 
     @Transactional(readOnly = true)
-    public PageResult<TodayDiscountProductDto> findTodayDiscountProducts(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<TodayDiscountProductDto> productPage = productRepository.findTodayDiscountProducts(pageRequest);
-        return PageResult.from(productPage);
+    public Page<TodayDiscountProductDto> findTodayDiscountProducts(int page, int size) {
+        return productRepository.findTodayDiscountProducts(PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)

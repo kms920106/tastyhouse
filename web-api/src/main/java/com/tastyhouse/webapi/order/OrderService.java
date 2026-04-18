@@ -9,7 +9,6 @@ import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.order.OrderStatus;
 import com.tastyhouse.core.entity.payment.Payment;
-import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.entity.place.Place;
 import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductOption;
@@ -219,17 +218,17 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public PageResult<OrderListItemResponse> getOrderList(Long memberId, int page, int size) {
-        PageResult<OrderListItemDto> coreResult = orderCoreService.findOrderListByMemberId(memberId, page, size);
-        return coreResult.map(dto -> OrderListItemResponse.from(
-            dto.id(),
-            dto.placeName(),
-            fileService.getUrlByPath(dto.placeThumbnailImageFilePath()),
-            dto.firstProductName(),
-            dto.totalItemCount(),
-            dto.amount(),
-            dto.paymentStatus(),
-            dto.paymentDate()
-        ));
+        return PageResult.from(orderCoreService.findOrderListByMemberId(memberId, page, size))
+            .map(dto -> OrderListItemResponse.from(
+                dto.id(),
+                dto.placeName(),
+                fileService.getUrlByPath(dto.placeThumbnailImageFilePath()),
+                dto.firstProductName(),
+                dto.totalItemCount(),
+                dto.amount(),
+                dto.paymentStatus(),
+                dto.paymentDate()
+            ));
     }
 
     @Transactional(readOnly = true)

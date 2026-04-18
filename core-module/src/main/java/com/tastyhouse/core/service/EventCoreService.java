@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.event.Event;
 import com.tastyhouse.core.entity.event.EventAnnouncement;
 import com.tastyhouse.core.entity.event.EventPrize;
@@ -39,9 +38,8 @@ public class EventCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<Event> searchEventsByStatus(EventStatus status, int page, int size) {
-        Page<Event> eventPage = eventRepository.findByStatusOrderByStartAtDesc(status, PageRequest.of(page, size));
-        return PageResult.from(eventPage);
+    public Page<Event> searchEventsByStatus(EventStatus status, int page, int size) {
+        return eventRepository.findByStatusOrderByStartAtDesc(status, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)
@@ -80,9 +78,8 @@ public class EventCoreService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<EventAnnouncement> findAllEventAnnouncements(int page, int size) {
-        Page<EventAnnouncement> announcementPage = eventRepository.findAllAnnouncementsOrderByAnnouncedAtDesc(PageRequest.of(page, size));
-        return PageResult.from(announcementPage);
+    public Page<EventAnnouncement> findAllEventAnnouncements(int page, int size) {
+        return eventRepository.findAllAnnouncementsOrderByAnnouncedAtDesc(PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)
