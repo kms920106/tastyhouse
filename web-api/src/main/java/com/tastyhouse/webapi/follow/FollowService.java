@@ -10,12 +10,8 @@ import com.tastyhouse.webapi.follow.response.FollowMemberResponse;
 import com.tastyhouse.webapi.follow.response.MemberSearchResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,55 +38,24 @@ public class FollowService {
 
     @Transactional(readOnly = true)
     public PageResult<FollowMemberResponse> getFollowingList(Long memberId, Long viewerMemberId, PageRequest pageRequest) {
-        org.springframework.data.domain.PageRequest springPageRequest =
-            org.springframework.data.domain.PageRequest.of(pageRequest.page(), pageRequest.size());
-
-        Page<FollowMemberDto> page = followCoreService.findFollowingList(memberId, viewerMemberId, springPageRequest);
-
-        List<FollowMemberResponse> content = page.getContent().stream()
-            .map(dto -> {
-                String profileImageUrl = resolveProfileImageUrl(dto.profileImageFileId());
-                return FollowMemberResponse.of(dto, profileImageUrl);
-            })
-            .collect(Collectors.toList());
-
-        return new PageResult<>(content, page.getTotalElements(), page.getTotalPages(), page.getNumber(), page.getSize());
+        PageResult<FollowMemberDto> coreResult = followCoreService.findFollowingList(memberId, viewerMemberId, pageRequest.page(), pageRequest.size());
+        return coreResult.map(dto -> FollowMemberResponse.of(dto, resolveProfileImageUrl(dto.profileImageFileId())));
     }
 
     @Transactional(readOnly = true)
     public PageResult<FollowMemberResponse> getFollowerList(Long memberId, Long viewerMemberId, PageRequest pageRequest) {
-        org.springframework.data.domain.PageRequest springPageRequest =
-            org.springframework.data.domain.PageRequest.of(pageRequest.page(), pageRequest.size());
-
-        Page<FollowMemberDto> page = followCoreService.findFollowerList(memberId, viewerMemberId, springPageRequest);
-
-        List<FollowMemberResponse> content = page.getContent().stream()
-            .map(dto -> {
-                String profileImageUrl = resolveProfileImageUrl(dto.profileImageFileId());
-                return FollowMemberResponse.of(dto, profileImageUrl);
-            })
-            .collect(Collectors.toList());
-
-        return new PageResult<>(content, page.getTotalElements(), page.getTotalPages(), page.getNumber(), page.getSize());
+        PageResult<FollowMemberDto> coreResult = followCoreService.findFollowerList(memberId, viewerMemberId, pageRequest.page(), pageRequest.size());
+        return coreResult.map(dto -> FollowMemberResponse.of(dto, resolveProfileImageUrl(dto.profileImageFileId())));
     }
 
     @Transactional(readOnly = true)
     public PageResult<MemberSearchResponse> searchMembersByNickname(String nickname, Long viewerMemberId, PageRequest pageRequest) {
-        org.springframework.data.domain.PageRequest springPageRequest =
-            org.springframework.data.domain.PageRequest.of(pageRequest.page(), pageRequest.size());
-
-        Page<Member> page = followCoreService.findMembersByNicknameContaining(nickname, springPageRequest);
-
-        List<MemberSearchResponse> content = page.getContent().stream()
-            .map(member -> {
-                String profileImageUrl = resolveProfileImageUrl(member.getProfileImageFileId());
-                boolean isFollowing = viewerMemberId != null
-                    && followCoreService.isFollowing(viewerMemberId, member.getId());
-                return MemberSearchResponse.of(member, profileImageUrl, isFollowing);
-            })
-            .collect(Collectors.toList());
-
-        return new PageResult<>(content, page.getTotalElements(), page.getTotalPages(), page.getNumber(), page.getSize());
+        PageResult<Member> coreResult = followCoreService.findMembersByNicknameContaining(nickname, pageRequest.page(), pageRequest.size());
+        return coreResult.map(member -> {
+            String profileImageUrl = resolveProfileImageUrl(member.getProfileImageFileId());
+            boolean isFollowing = viewerMemberId != null && followCoreService.isFollowing(viewerMemberId, member.getId());
+            return MemberSearchResponse.of(member, profileImageUrl, isFollowing);
+        });
     }
 
     private String resolveProfileImageUrl(Long profileImageFileId) {

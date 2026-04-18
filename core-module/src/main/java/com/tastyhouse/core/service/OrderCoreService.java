@@ -4,6 +4,7 @@ import com.tastyhouse.core.entity.order.Order;
 import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.payment.Payment;
+import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -13,7 +14,7 @@ import com.tastyhouse.core.repository.review.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +36,9 @@ public class OrderCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderListItemDto> findOrderListByMemberId(Long memberId, Pageable pageable) {
-        return orderRepository.findOrderListByMemberId(memberId, pageable);
+    public PageResult<OrderListItemDto> findOrderListByMemberId(Long memberId, int page, int size) {
+        Page<OrderListItemDto> orderPage = orderRepository.findOrderListByMemberId(memberId, PageRequest.of(page, size));
+        return PageResult.from(orderPage);
     }
 
     @Transactional(readOnly = true)

@@ -37,7 +37,6 @@ import com.tastyhouse.webapi.order.response.OrderResponse;
 import com.tastyhouse.webapi.order.response.PaymentSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -221,15 +220,8 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public PageResult<OrderListItemResponse> getOrderList(Long memberId, PageRequest pageRequest) {
-        org.springframework.data.domain.PageRequest springPageRequest = org.springframework.data.domain.PageRequest.of(pageRequest.page(), pageRequest.size());
-
-        Page<OrderListItemDto> page = orderCoreService.findOrderListByMemberId(memberId, springPageRequest);
-
-        List<OrderListItemResponse> content = page.getContent().stream()
-            .map(dto -> OrderListItemResponse.from(dto, fileService.getUrlByPath(dto.placeThumbnailImageUrl())))
-            .toList();
-
-        return new PageResult<>(content, page.getTotalElements(), page.getTotalPages(), page.getNumber(), page.getSize());
+        PageResult<OrderListItemDto> coreResult = orderCoreService.findOrderListByMemberId(memberId, pageRequest.page(), pageRequest.size());
+        return coreResult.map(dto -> OrderListItemResponse.from(dto, fileService.getUrlByPath(dto.placeThumbnailImageUrl())));
     }
 
     @Transactional(readOnly = true)

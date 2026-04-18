@@ -1,5 +1,6 @@
 package com.tastyhouse.core.service;
 
+import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.follow.Follow;
 import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
 import com.tastyhouse.core.entity.user.Member;
@@ -11,7 +12,7 @@ import com.tastyhouse.core.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,18 +58,21 @@ public class FollowCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<FollowMemberDto> findFollowingList(Long memberId, Long viewerMemberId, Pageable pageable) {
-        return followRepository.findFollowingList(memberId, viewerMemberId, pageable);
+    public PageResult<FollowMemberDto> findFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
+        Page<FollowMemberDto> followingPage = followRepository.findFollowingList(memberId, viewerMemberId, PageRequest.of(page, size));
+        return PageResult.from(followingPage);
     }
 
     @Transactional(readOnly = true)
-    public Page<FollowMemberDto> findFollowerList(Long memberId, Long viewerMemberId, Pageable pageable) {
-        return followRepository.findFollowerList(memberId, viewerMemberId, pageable);
+    public PageResult<FollowMemberDto> findFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
+        Page<FollowMemberDto> followerPage = followRepository.findFollowerList(memberId, viewerMemberId, PageRequest.of(page, size));
+        return PageResult.from(followerPage);
     }
 
     @Transactional(readOnly = true)
-    public Page<Member> findMembersByNicknameContaining(String nickname, Pageable pageable) {
-        return memberRepository.findByNicknameContaining(nickname, pageable);
+    public PageResult<Member> findMembersByNicknameContaining(String nickname, int page, int size) {
+        Page<Member> memberPage = memberRepository.findByNicknameContaining(nickname, PageRequest.of(page, size));
+        return PageResult.from(memberPage);
     }
 
     @Transactional(readOnly = true)
