@@ -7,7 +7,6 @@ import com.tastyhouse.core.entity.policy.dto.PolicyListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.PolicyDocumentCoreService;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
 import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +36,9 @@ public class PolicyService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<PolicyListItemResponse> searchAllByType(PolicyType type, PageRequest pageRequest) {
+    public PageResult<PolicyListItemResponse> searchAllByType(PolicyType type, int page, int size) {
         return policyDocumentCoreService
-            .findAllByTypeWithPagination(type, pageRequest.page(), pageRequest.size())
+            .findAllByTypeWithPagination(type, page, size)
             .map(this::convertToPolicyListItemResponse);
     }
 

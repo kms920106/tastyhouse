@@ -62,7 +62,7 @@ public class EventApiController {
         @RequestParam EventStatus status,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<EventListItemResponse> pageResult = eventService.getEventList(status, pageRequest);
+        PageResult<EventListItemResponse> pageResult = eventService.getEventList(status, pageRequest.page(), pageRequest.size());
         CommonResponse<List<EventListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
@@ -89,7 +89,7 @@ public class EventApiController {
     public ResponseEntity<CommonResponse<List<EventAnnouncementListItemResponse>>> getEventAnnouncementList(
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<EventAnnouncementListItemResponse> pageResult = eventService.getEventAnnouncementList(pageRequest);
+        PageResult<EventAnnouncementListItemResponse> pageResult = eventService.getEventAnnouncementList(pageRequest.page(), pageRequest.size());
         CommonResponse<List<EventAnnouncementListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }

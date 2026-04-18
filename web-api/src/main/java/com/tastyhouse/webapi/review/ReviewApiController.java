@@ -117,7 +117,7 @@ public class ReviewApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/best")
     public ResponseEntity<CommonResponse<List<BestReviewListItem>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BestReviewListItem> pageResult = reviewService.searchBestReviewList(pageRequest);
+        PageResult<BestReviewListItem> pageResult = reviewService.searchBestReviewList(pageRequest.page(), pageRequest.size());
         CommonResponse<List<BestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
@@ -130,7 +130,7 @@ public class ReviewApiController {
             @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewType type,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        PageResult<LatestReviewListItem> pageResult = reviewService.searchLatestReviewList(pageRequest, type, memberId);
+        PageResult<LatestReviewListItem> pageResult = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), type, memberId);
         CommonResponse<List<LatestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
@@ -208,7 +208,7 @@ public class ReviewApiController {
     public ResponseEntity<CommonResponse<List<MemberReviewListItemResponse>>> getMemberReviews(
             @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
             @Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<MemberReviewListItemResponse> pageResult = reviewService.findMemberReviews(memberId, pageRequest);
+        PageResult<MemberReviewListItemResponse> pageResult = reviewService.findMemberReviews(memberId, pageRequest.page(), pageRequest.size());
         CommonResponse<List<MemberReviewListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(), pageResult.getCurrentPage(), pageResult.getPageSize(), pageResult.getTotalElements()
         );

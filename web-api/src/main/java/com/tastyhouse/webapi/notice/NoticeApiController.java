@@ -32,7 +32,7 @@ public class NoticeApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1")
     public ResponseEntity<CommonResponse<List<NoticeListItem>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<NoticeListItem> pageResult = noticeService.searchNoticeList(pageRequest);
+        PageResult<NoticeListItem> pageResult = noticeService.searchNoticeList(pageRequest.page(), pageRequest.size());
         CommonResponse<List<NoticeListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }

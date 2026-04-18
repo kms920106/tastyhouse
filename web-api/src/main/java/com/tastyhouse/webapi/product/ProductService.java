@@ -15,7 +15,6 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.product.response.ProductCategoryListItem;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductListItem;
@@ -44,9 +43,9 @@ public class ProductService {
     private final ReviewCoreService reviewCoreService;
 
     @Transactional(readOnly = true)
-    public PageResult<TodayDiscountProductItem> searchTodayDiscountProducts(PageRequest pageRequest) {
+    public PageResult<TodayDiscountProductItem> searchTodayDiscountProducts(int page, int size) {
         return productCoreService.findTodayDiscountProducts(
-            pageRequest.page(), pageRequest.size()
+            page, size
         ).map(this::convertToTodayDiscountProductItem);
     }
 

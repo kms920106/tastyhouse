@@ -26,7 +26,6 @@ import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
 import com.tastyhouse.webapi.order.request.OrderItemOptionRequest;
@@ -219,8 +218,8 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<OrderListItemResponse> getOrderList(Long memberId, PageRequest pageRequest) {
-        PageResult<OrderListItemDto> coreResult = orderCoreService.findOrderListByMemberId(memberId, pageRequest.page(), pageRequest.size());
+    public PageResult<OrderListItemResponse> getOrderList(Long memberId, int page, int size) {
+        PageResult<OrderListItemDto> coreResult = orderCoreService.findOrderListByMemberId(memberId, page, size);
         return coreResult.map(dto -> OrderListItemResponse.from(
             dto.id(),
             dto.placeName(),

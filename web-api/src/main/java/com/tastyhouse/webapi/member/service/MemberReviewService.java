@@ -4,7 +4,6 @@ import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +18,11 @@ public class MemberReviewService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, PageRequest pageRequest) {
+    public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
         PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findMyReviews(
             memberId,
-            pageRequest.page(),
-            pageRequest.size()
+            page,
+            size
         );
         return coreResult.map(dto -> MyReviewListItemResponse.from(
             dto.id(),

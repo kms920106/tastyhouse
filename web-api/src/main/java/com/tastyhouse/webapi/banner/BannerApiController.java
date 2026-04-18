@@ -32,7 +32,7 @@ public class BannerApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/home")
     public ResponseEntity<CommonResponse<List<BannerListItem>>> getHomeBanners(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BannerListItem> pageResult = bannerService.findHomeBanners(pageRequest);
+        PageResult<BannerListItem> pageResult = bannerService.findHomeBanners(pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
     }
 
@@ -40,7 +40,7 @@ public class BannerApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/sidebar")
     public ResponseEntity<CommonResponse<List<BannerListItem>>> getSidebarBanners(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BannerListItem> pageResult = bannerService.findSidebarBanners(pageRequest);
+        PageResult<BannerListItem> pageResult = bannerService.findSidebarBanners(pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
     }
 }

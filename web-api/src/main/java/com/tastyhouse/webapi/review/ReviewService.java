@@ -22,7 +22,6 @@ import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewType;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
@@ -57,9 +56,9 @@ public class ReviewService {
     private final OrderCoreService orderCoreService;
 
     @Transactional(readOnly = true)
-    public PageResult<BestReviewListItem> searchBestReviewList(PageRequest pageRequest) {
+    public PageResult<BestReviewListItem> searchBestReviewList(int page, int size) {
         return reviewCoreService.findBestReviewsWithPagination(
-            pageRequest.page(), pageRequest.size()
+            page, size
         ).map(this::convertToBestReviewListItem);
     }
 
@@ -75,7 +74,8 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public PageResult<LatestReviewListItem> searchLatestReviewList(
-        PageRequest pageRequest,
+        int page,
+        int size,
         ReviewType type,
         Long memberId
     ) {
@@ -84,13 +84,13 @@ public class ReviewService {
         if (type == ReviewType.FOLLOWING && memberId != null) {
             coreResult = reviewCoreService.findLatestReviewsByFollowingWithPagination(
                 memberId,
-                pageRequest.page(),
-                pageRequest.size()
+                page,
+                size
             );
         } else {
             coreResult = reviewCoreService.findLatestReviewsWithPagination(
-                pageRequest.page(),
-                pageRequest.size()
+                page,
+                size
             );
         }
 
@@ -481,8 +481,8 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<MemberReviewListItemResponse> findMemberReviews(Long memberId, PageRequest pageRequest) {
-        PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findReviewsByMemberId(memberId, pageRequest.page(), pageRequest.size());
+    public PageResult<MemberReviewListItemResponse> findMemberReviews(Long memberId, int page, int size) {
+        PageResult<MyReviewListItemDto> coreResult = reviewCoreService.findReviewsByMemberId(memberId, page, size);
         return coreResult.map(dto -> MemberReviewListItemResponse.from(
             dto.id(),
             fileService.getUrlByPath(dto.imageUrl())

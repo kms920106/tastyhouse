@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.notice;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.notice.dto.NoticeListItemDto;
 import com.tastyhouse.core.service.NoticeCoreService;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.notice.response.NoticeListItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +15,9 @@ public class NoticeService {
     private final NoticeCoreService noticeCoreService;
 
     @Transactional(readOnly = true)
-    public PageResult<NoticeListItem> searchNoticeList(PageRequest pageRequest) {
+    public PageResult<NoticeListItem> searchNoticeList(int page, int size) {
         return noticeCoreService.findAllWithPagination(
-            pageRequest.page(), pageRequest.size()
+            page, size
         ).map(this::convertToNoticeListItem);
     }
 

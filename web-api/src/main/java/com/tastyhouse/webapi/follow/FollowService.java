@@ -5,7 +5,6 @@ import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.service.FollowCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.follow.response.FollowMemberResponse;
 import com.tastyhouse.webapi.follow.response.MemberSearchResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,20 +36,20 @@ public class FollowService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<FollowMemberResponse> getFollowingList(Long memberId, Long viewerMemberId, PageRequest pageRequest) {
-        PageResult<FollowMemberDto> coreResult = followCoreService.findFollowingList(memberId, viewerMemberId, pageRequest.page(), pageRequest.size());
+    public PageResult<FollowMemberResponse> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
+        PageResult<FollowMemberDto> coreResult = followCoreService.findFollowingList(memberId, viewerMemberId, page, size);
         return coreResult.map(dto -> FollowMemberResponse.of(dto, resolveProfileImageUrl(dto.profileImageFileId())));
     }
 
     @Transactional(readOnly = true)
-    public PageResult<FollowMemberResponse> getFollowerList(Long memberId, Long viewerMemberId, PageRequest pageRequest) {
-        PageResult<FollowMemberDto> coreResult = followCoreService.findFollowerList(memberId, viewerMemberId, pageRequest.page(), pageRequest.size());
+    public PageResult<FollowMemberResponse> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
+        PageResult<FollowMemberDto> coreResult = followCoreService.findFollowerList(memberId, viewerMemberId, page, size);
         return coreResult.map(dto -> FollowMemberResponse.of(dto, resolveProfileImageUrl(dto.profileImageFileId())));
     }
 
     @Transactional(readOnly = true)
-    public PageResult<MemberSearchResponse> searchMembersByNickname(String nickname, Long viewerMemberId, PageRequest pageRequest) {
-        PageResult<Member> coreResult = followCoreService.findMembersByNicknameContaining(nickname, pageRequest.page(), pageRequest.size());
+    public PageResult<MemberSearchResponse> searchMembersByNickname(String nickname, Long viewerMemberId, int page, int size) {
+        PageResult<Member> coreResult = followCoreService.findMembersByNicknameContaining(nickname, page, size);
         return coreResult.map(member -> {
             String profileImageUrl = resolveProfileImageUrl(member.getProfileImageFileId());
             boolean isFollowing = viewerMemberId != null && followCoreService.isFollowing(viewerMemberId, member.getId());

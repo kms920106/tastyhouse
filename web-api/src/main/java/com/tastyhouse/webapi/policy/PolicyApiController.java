@@ -101,7 +101,7 @@ public class PolicyApiController {
     @GetMapping("/v1/terms-of-service")
     public ResponseEntity<CommonResponse<List<PolicyListItemResponse>>> getTermsOfServiceList(
         @Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.TERMS_OF_SERVICE, pageRequest);
+        PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.TERMS_OF_SERVICE, pageRequest.page(), pageRequest.size());
         CommonResponse<List<PolicyListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()
         );
@@ -113,7 +113,7 @@ public class PolicyApiController {
     @GetMapping("/v1/privacy-policy")
     public ResponseEntity<CommonResponse<List<PolicyListItemResponse>>> getPrivacyPolicyList(
         @Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.PRIVACY_POLICY, pageRequest);
+        PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.PRIVACY_POLICY, pageRequest.page(), pageRequest.size());
         CommonResponse<List<PolicyListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()
         );
@@ -125,7 +125,7 @@ public class PolicyApiController {
     @GetMapping("/v1/electronic-financial-transactions")
     public ResponseEntity<CommonResponse<List<PolicyListItemResponse>>> getElectronicFinancialTransactionsList(
         @Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS, pageRequest);
+        PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS, pageRequest.page(), pageRequest.size());
         CommonResponse<List<PolicyListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()
         );
@@ -137,7 +137,7 @@ public class PolicyApiController {
     @GetMapping("/v1/age-verification")
     public ResponseEntity<CommonResponse<List<PolicyListItemResponse>>> getAgeVerificationList(
         @Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.AGE_VERIFICATION, pageRequest);
+        PageResult<PolicyListItemResponse> pageResult = policyService.searchAllByType(PolicyType.AGE_VERIFICATION, pageRequest.page(), pageRequest.size());
         CommonResponse<List<PolicyListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()
         );

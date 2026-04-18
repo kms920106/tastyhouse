@@ -69,7 +69,7 @@ public class PlaceApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/best")
     public ResponseEntity<CommonResponse<List<BestPlaceListItem>>> getBestPlaces(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BestPlaceListItem> pageResult = placeService.searchBestPlaces(pageRequest);
+        PageResult<BestPlaceListItem> pageResult = placeService.searchBestPlaces(pageRequest.page(), pageRequest.size());
         CommonResponse<List<BestPlaceListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
@@ -78,7 +78,7 @@ public class PlaceApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/editor-choice")
     public ResponseEntity<CommonResponse<List<EditorChoiceResponse>>> getEditorChoices(@Valid @ModelAttribute PageRequest pageRequest) {
-        List<EditorChoiceResponse> editorChoiceResponses = placeService.searchEditorChoices(pageRequest);
+        List<EditorChoiceResponse> editorChoiceResponses = placeService.searchEditorChoices(pageRequest.page(), pageRequest.size());
         CommonResponse<List<EditorChoiceResponse>> response = CommonResponse.success(editorChoiceResponses);
         return ResponseEntity.ok(response);
     }
@@ -92,7 +92,7 @@ public class PlaceApiController {
             @RequestParam(required = false) List<FoodType> foodTypes,
             @RequestParam(required = false) List<Amenity> amenities) {
         LatestPlaceFilterRequest filterRequest = new LatestPlaceFilterRequest(stationId, foodTypes, amenities);
-        PageResult<LatestPlaceListItem> pageResult = placeService.searchLatestPlaces(pageRequest, filterRequest);
+        PageResult<LatestPlaceListItem> pageResult = placeService.searchLatestPlaces(pageRequest.page(), pageRequest.size(), filterRequest);
         CommonResponse<List<LatestPlaceListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }

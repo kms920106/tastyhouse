@@ -93,7 +93,7 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<FollowMemberResponse> pageResult = followService.getFollowingList(memberId, userDetails.getMemberId(), pageRequest);
+        PageResult<FollowMemberResponse> pageResult = followService.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),
@@ -113,7 +113,7 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<FollowMemberResponse> pageResult = followService.getFollowerList(memberId, userDetails.getMemberId(), pageRequest);
+        PageResult<FollowMemberResponse> pageResult = followService.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),
@@ -133,7 +133,7 @@ public class FollowApiController {
         @Parameter(description = "검색할 닉네임", example = "맛집") @RequestParam String nickname,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MemberSearchResponse> pageResult = followService.searchMembersByNickname(nickname, userDetails.getMemberId(), pageRequest);
+        PageResult<MemberSearchResponse> pageResult = followService.searchMembersByNickname(nickname, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),

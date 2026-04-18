@@ -5,7 +5,6 @@ import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
@@ -122,16 +121,16 @@ public class MemberFacade {
         return memberCouponService.getAvailableMemberCoupons(memberId);
     }
 
-    public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, PageRequest pageRequest) {
-        return memberReviewService.getMyReviews(memberId, pageRequest);
+    public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
+        return memberReviewService.getMyReviews(memberId, page, size);
     }
 
     public MyReviewCountResponse getMyReviewCount(Long memberId) {
         return memberReviewService.getMyReviewCount(memberId);
     }
 
-    public PageResult<MyBookmarkedPlaceListItemResponse> getMyBookmarkedPlaces(Long memberId, PageRequest pageRequest) {
-        return memberPlaceService.getMyBookmarkedPlaces(memberId, pageRequest);
+    public PageResult<MyBookmarkedPlaceListItemResponse> getMyBookmarkedPlaces(Long memberId, int page, int size) {
+        return memberPlaceService.getMyBookmarkedPlaces(memberId, page, size);
     }
 
     public OtherMemberProfileResponse getOtherMemberProfile(Long targetMemberId, Long viewerMemberId) {

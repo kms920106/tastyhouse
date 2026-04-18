@@ -61,7 +61,7 @@ public class OrderApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
-        PageResult<OrderListItemResponse> pageResult = orderService.getOrderList(memberId, pageRequest);
+        PageResult<OrderListItemResponse> pageResult = orderService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
         CommonResponse<List<OrderListItemResponse>> response = CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),

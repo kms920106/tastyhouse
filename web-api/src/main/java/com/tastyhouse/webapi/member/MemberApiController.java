@@ -234,7 +234,7 @@ public class MemberApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MyReviewListItemResponse> pageResult = memberFacade.getMyReviews(userDetails.getMemberId(), pageRequest);
+        PageResult<MyReviewListItemResponse> pageResult = memberFacade.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),
@@ -253,7 +253,7 @@ public class MemberApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MyBookmarkedPlaceListItemResponse> pageResult = memberFacade.getMyBookmarkedPlaces(userDetails.getMemberId(), pageRequest);
+        PageResult<MyBookmarkedPlaceListItemResponse> pageResult = memberFacade.getMyBookmarkedPlaces(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),

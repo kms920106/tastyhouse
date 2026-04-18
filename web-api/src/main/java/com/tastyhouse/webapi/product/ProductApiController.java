@@ -39,7 +39,7 @@ public class ProductApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/today-discounts")
     public ResponseEntity<CommonResponse<List<TodayDiscountProductItem>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<TodayDiscountProductItem> pageResult = productService.searchTodayDiscountProducts(pageRequest);
+        PageResult<TodayDiscountProductItem> pageResult = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
         CommonResponse<List<TodayDiscountProductItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }

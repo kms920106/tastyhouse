@@ -25,7 +25,6 @@ import com.tastyhouse.core.common.ReviewsByRatingResult;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.place.request.LatestPlaceFilterRequest;
 import com.tastyhouse.webapi.place.response.AmenityListItem;
 import com.tastyhouse.webapi.place.response.BestPlaceListItem;
@@ -78,33 +77,33 @@ public class PlaceService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<BestPlaceListItem> searchBestPlaces(PageRequest pageRequest) {
-        org.springframework.data.domain.Page<BestPlaceItemDto> page =
-            placeCoreService.findBestPlaces(pageRequest.page(), pageRequest.size());
+    public PageResult<BestPlaceListItem> searchBestPlaces(int page, int size) {
+        org.springframework.data.domain.Page<BestPlaceItemDto> pageData =
+            placeCoreService.findBestPlaces(page, size);
 
-        List<BestPlaceListItem> bestPlaceListItems = page.getContent().stream().map(this::convertToBestPlaceListItem).toList();
+        List<BestPlaceListItem> bestPlaceListItems = pageData.getContent().stream().map(this::convertToBestPlaceListItem).toList();
 
-        return new PageResult<>(bestPlaceListItems, page.getTotalElements(), page.getTotalPages(), page.getNumber(), page.getSize());
+        return new PageResult<>(bestPlaceListItems, pageData.getTotalElements(), pageData.getTotalPages(), pageData.getNumber(), pageData.getSize());
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestPlaceListItem> searchLatestPlaces(PageRequest pageRequest, LatestPlaceFilterRequest filterRequest) {
-        org.springframework.data.domain.Page<LatestPlaceItemDto> page = placeCoreService.findLatestPlaces(
-                pageRequest.page(),
-                pageRequest.size(),
+    public PageResult<LatestPlaceListItem> searchLatestPlaces(int page, int size, LatestPlaceFilterRequest filterRequest) {
+        org.springframework.data.domain.Page<LatestPlaceItemDto> pageData = placeCoreService.findLatestPlaces(
+                page,
+                size,
                 filterRequest.stationId(),
                 filterRequest.foodTypes(),
                 filterRequest.amenities()
         );
 
-        List<LatestPlaceListItem> latestPlaceListItems = page.getContent().stream().map(this::convertToLatestPlaceListItem).toList();
+        List<LatestPlaceListItem> latestPlaceListItems = pageData.getContent().stream().map(this::convertToLatestPlaceListItem).toList();
 
-        return new PageResult<>(latestPlaceListItems, page.getTotalElements(), page.getTotalPages(), page.getNumber(), page.getSize());
+        return new PageResult<>(latestPlaceListItems, pageData.getTotalElements(), pageData.getTotalPages(), pageData.getNumber(), pageData.getSize());
     }
 
     @Transactional(readOnly = true)
-    public List<EditorChoiceResponse> searchEditorChoices(PageRequest pageRequest) {
-        return placeCoreService.findEditorChoices(pageRequest.page(), pageRequest.size())
+    public List<EditorChoiceResponse> searchEditorChoices(int page, int size) {
+        return placeCoreService.findEditorChoices(page, size)
             .getContent().stream().map(this::convertToEditorChoiceResponse).toList();
     }
 
