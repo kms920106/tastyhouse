@@ -13,6 +13,7 @@ import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
 import com.tastyhouse.webapi.member.response.MyBookmarkedPlaceListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
+import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.PointHistoryResponse;
 import com.tastyhouse.webapi.member.response.PointResponse;
@@ -209,6 +210,18 @@ public class MemberApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyUsablePoint(userDetails.getMemberId())));
+    }
+
+    @Operation(summary = "내가 작성한 리뷰 개수 조회", description = "로그인한 회원이 작성한 리뷰 개수를 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+        @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    })
+    @GetMapping("/v1/me/reviews/count")
+    public ResponseEntity<CommonResponse<MyReviewCountResponse>> getMyReviewCount(
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyReviewCount(userDetails.getMemberId())));
     }
 
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "로그인한 회원이 작성한 리뷰 목록을 페이징하여 조회합니다.")

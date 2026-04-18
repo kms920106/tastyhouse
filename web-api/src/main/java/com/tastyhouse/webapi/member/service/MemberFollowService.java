@@ -45,7 +45,7 @@ public class MemberFollowService {
     // 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회
     @Transactional(readOnly = true)
     public MemberStatsResponse getMemberStats(Long memberId) {
-        long reviewCount = reviewCoreService.countByMemberIdAndIsHiddenFalse(memberId);
+        long reviewCount = reviewCoreService.countVisibleReviewsByMemberId(memberId);
         long followingCount = followCoreService.countFollowing(memberId);
         long followerCount = followCoreService.countFollower(memberId);
 

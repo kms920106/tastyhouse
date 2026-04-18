@@ -1057,7 +1057,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public long countByMemberIdAndIsHiddenFalse(Long memberId) {
+    public long countVisibleReviewsByMemberId(Long memberId) {
         QReview review = QReview.review;
         Long count = queryFactory
             .select(review.count())

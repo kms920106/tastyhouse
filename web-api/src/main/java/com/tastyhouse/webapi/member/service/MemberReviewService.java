@@ -4,6 +4,7 @@ import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,5 +23,11 @@ public class MemberReviewService {
             memberId, pageRequest.page(), pageRequest.size()
         );
         return coreResult.map(MyReviewListItemResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public MyReviewCountResponse getMyReviewCount(Long memberId) {
+        long count = reviewCoreService.countVisibleReviewsByMemberId(memberId);
+        return MyReviewCountResponse.from(count);
     }
 }

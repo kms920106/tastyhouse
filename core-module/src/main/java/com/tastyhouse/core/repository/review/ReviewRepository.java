@@ -86,7 +86,7 @@ public interface ReviewRepository {
 
     Optional<Review> findByIdAndMemberId(Long reviewId, Long memberId);
 
-    long countByMemberIdAndIsHiddenFalse(Long memberId);
+    long countVisibleReviewsByMemberId(Long memberId);
 
     boolean existsByOrderIdAndProductIdAndMemberId(Long orderId, Long productId, Long memberId);
 

@@ -283,8 +283,8 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
-    public long countByMemberIdAndIsHiddenFalse(Long memberId) {
-        return reviewRepository.countByMemberIdAndIsHiddenFalse(memberId);
+    public long countVisibleReviewsByMemberId(Long memberId) {
+        return reviewRepository.countVisibleReviewsByMemberId(memberId);
     }
 
     @Transactional(readOnly = true)

@@ -11,6 +11,7 @@ import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.MyBookmarkedPlaceListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
+import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.OtherMemberProfileResponse;
@@ -123,6 +124,10 @@ public class MemberFacade {
 
     public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, PageRequest pageRequest) {
         return memberReviewService.getMyReviews(memberId, pageRequest);
+    }
+
+    public MyReviewCountResponse getMyReviewCount(Long memberId) {
+        return memberReviewService.getMyReviewCount(memberId);
     }
 
     public PageResult<MyBookmarkedPlaceListItemResponse> getMyBookmarkedPlaces(Long memberId, PageRequest pageRequest) {
