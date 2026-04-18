@@ -25,6 +25,7 @@ import com.tastyhouse.core.common.ReviewsByRatingResult;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.place.request.LatestPlaceFilterRequest;
 import com.tastyhouse.webapi.place.response.AmenityListItem;
 import com.tastyhouse.webapi.place.response.BestPlaceListItem;
@@ -64,6 +65,7 @@ public class PlaceService {
     private final PlaceCoreService placeCoreService;
     private final ProductCoreService productCoreService;
     private final ReviewCoreService reviewCoreService;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public List<PlaceMapMarkerResponse> searchMapMarkers(Double latitude, Double longitude) {
@@ -135,8 +137,15 @@ public class PlaceService {
 
     private LatestPlaceListItem convertToLatestPlaceListItem(LatestPlaceItemDto dto) {
         return LatestPlaceListItem.from(
-            dto.id(), dto.name(), dto.stationName(), dto.rating(), dto.imageUrl(),
-            dto.createdAt(), dto.reviewCount(), dto.bookmarkCount(), dto.foodTypes()
+            dto.id(),
+            dto.name(),
+            dto.stationName(),
+            dto.rating(),
+            fileService.getUrlByPath(dto.imageUrl()),
+            dto.createdAt(),
+            dto.reviewCount(),
+            dto.bookmarkCount(),
+            dto.foodTypes()
         );
     }
 

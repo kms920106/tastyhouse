@@ -13,6 +13,7 @@ import com.tastyhouse.core.entity.payment.PaymentStatus;
 import com.tastyhouse.core.entity.payment.QPayment;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.entity.payment.dto.QOrderListItemDto;
+import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.place.QPlace;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -145,6 +146,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         QOrder order = QOrder.order;
         QPayment payment = QPayment.payment;
         QPlace place = QPlace.place;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
         QOrderItem orderItem = QOrderItem.orderItem;
         QOrderItem subOrderItem = new QOrderItem("subOrderItem");
 
@@ -152,7 +154,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             .select(new QOrderListItemDto(
                 order.id,
                 place.name,
-                place.thumbnailImageUrl,
+                uploadedFile.filePath,
                 JPAExpressions
                     .select(subOrderItem.productName)
                     .from(subOrderItem)
@@ -177,6 +179,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                     .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED))
             )
             .leftJoin(place).on(place.id.eq(order.placeId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
             .where(order.memberId.eq(memberId))
             .orderBy(order.createdAt.desc())
             .offset(pageable.getOffset())

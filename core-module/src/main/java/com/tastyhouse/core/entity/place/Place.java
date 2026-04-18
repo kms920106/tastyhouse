@@ -47,6 +47,9 @@ public class Place extends BaseEntity {
     @Column(name = "closed_days")
     private String closedDays; // 휴무일 (예: "연중무휴", "매주 월요일")
 
-    @Column(name = "thumbnail_image_url")
-    private String thumbnailImageUrl; // 목록용 썸네일 이미지 URL
+    @Column(name = "thumbnail_uploaded_file_id")
+    private Long thumbnailUploadedFileId;
+
+    @Column(name = "is_permanently_closed", nullable = false)
+    private boolean permanentlyClosed;
 }

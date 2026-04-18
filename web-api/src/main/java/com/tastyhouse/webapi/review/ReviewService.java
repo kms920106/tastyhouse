@@ -50,10 +50,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReviewService {
 
-    private final FileService fileService;
     private final ReviewCoreService reviewCoreService;
     private final ProductCoreService productCoreService;
     private final OrderCoreService orderCoreService;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public PageResult<BestReviewListItem> searchBestReviewList(int page, int size) {

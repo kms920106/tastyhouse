@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.entity.place.QPlace.place;
 import static com.tastyhouse.core.entity.place.QPlaceAmenity.placeAmenity;
 import static com.tastyhouse.core.entity.place.QPlaceAmenityCategory.placeAmenityCategory;
@@ -44,20 +45,20 @@ public class PlaceRepositoryImpl implements PlaceRepository {
         BigDecimal latDiff = BigDecimal.valueOf(degreeDistance);
         BigDecimal lonDiff = BigDecimal.valueOf(degreeDistance);
 
-        return queryFactory.select(place).from(place).where(place.latitude.between(latitude.subtract(latDiff), latitude.add(latDiff)).and(place.longitude.between(longitude.subtract(lonDiff), longitude.add(lonDiff)))).fetch();
+        return queryFactory.select(place).from(place).where(place.latitude.between(latitude.subtract(latDiff), latitude.add(latDiff)).and(place.longitude.between(longitude.subtract(lonDiff), longitude.add(lonDiff))).and(place.permanentlyClosed.eq(false))).fetch();
     }
 
     @Override
     public Page<BestPlaceItemDto> findBestPlaces(Pageable pageable) {
         // 1. 전체 개수 조회
-        Long total = queryFactory.select(place.count()).from(place).where(place.rating.isNotNull()).fetchOne();
+        Long total = queryFactory.select(place.count()).from(place).where(place.rating.isNotNull().and(place.permanentlyClosed.eq(false))).fetchOne();
 
         if (total == null || total == 0) {
             return new PageImpl<>(List.of(), pageable, 0);
         }
 
         // 2. 평점 기준 페이징 처리된 Place 조회
-        List<Place> pagedPlaces = queryFactory.selectFrom(place).where(place.rating.isNotNull()).orderBy(place.rating.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
+        List<Place> pagedPlaces = queryFactory.selectFrom(place).where(place.rating.isNotNull().and(place.permanentlyClosed.eq(false))).orderBy(place.rating.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 
         if (pagedPlaces.isEmpty()) {
             return new PageImpl<>(List.of(), pageable, total);
@@ -68,7 +69,18 @@ public class PlaceRepositoryImpl implements PlaceRepository {
         // 3. Place별 Station 정보 조회
         var stationMap = queryFactory.select(place.id, placeStation.stationName).from(place).join(placeStation).on(placeStation.id.eq(place.stationId)).where(place.id.in(placeIds)).fetch().stream().collect(Collectors.toMap(tuple -> tuple.get(place.id), tuple -> tuple.get(placeStation.stationName)));
 
-        // 4. Place별 음식종류 목록 조회
+        // 4. Place별 썸네일 이미지 filePath 조회
+        var thumbnailFilePathMap = queryFactory
+            .select(place.id, uploadedFile.filePath)
+            .from(place)
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
+            .where(place.id.in(placeIds))
+            .fetch()
+            .stream()
+            .filter(tuple -> tuple.get(uploadedFile.filePath) != null)
+            .collect(Collectors.toMap(tuple -> tuple.get(place.id), tuple -> tuple.get(uploadedFile.filePath)));
+
+        // 5. Place별 음식종류 목록 조회
         var foodTypeMap = queryFactory
             .select(placeFoodType.placeId, placeFoodTypeCategory.foodType)
             .from(placeFoodType)
@@ -81,8 +93,8 @@ public class PlaceRepositoryImpl implements PlaceRepository {
                 Collectors.mapping(tuple -> tuple.get(placeFoodTypeCategory.foodType), Collectors.toList())
             ));
 
-        // 5. 결과 조합
-        List<BestPlaceItemDto> content = pagedPlaces.stream().map(p -> new BestPlaceItemDto(p.getId(), p.getName(), stationMap.get(p.getId()), p.getRating(), p.getThumbnailImageUrl(), foodTypeMap.getOrDefault(p.getId(), List.of()))).collect(Collectors.toList());
+        // 6. 결과 조합
+        List<BestPlaceItemDto> content = pagedPlaces.stream().map(p -> new BestPlaceItemDto(p.getId(), p.getName(), stationMap.get(p.getId()), p.getRating(), thumbnailFilePathMap.get(p.getId()), foodTypeMap.getOrDefault(p.getId(), List.of()))).collect(Collectors.toList());
 
         return new PageImpl<>(content, pageable, total);
     }
@@ -91,6 +103,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
     public Page<LatestPlaceItemDto> findLatestPlaces(Pageable pageable, Long stationId, List<FoodType> foodTypes, List<Amenity> amenities) {
         // 필터 조건 생성
         BooleanBuilder whereClause = new BooleanBuilder();
+        whereClause.and(place.permanentlyClosed.eq(false));
 
         // 전철역 필터
         if (stationId != null) {
@@ -176,7 +189,18 @@ public class PlaceRepositoryImpl implements PlaceRepository {
         // 3. Place별 Station 정보 조회
         var stationMap = queryFactory.select(place.id, placeStation.stationName).from(place).join(placeStation).on(placeStation.id.eq(place.stationId)).where(place.id.in(placeIds)).fetch().stream().collect(Collectors.toMap(tuple -> tuple.get(place.id), tuple -> tuple.get(placeStation.stationName)));
 
-        // 4. Place별 리뷰 개수 조회
+        // 4. Place별 썸네일 이미지 filePath 조회
+        var thumbnailFilePathMap = queryFactory
+            .select(place.id, uploadedFile.filePath)
+            .from(place)
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
+            .where(place.id.in(placeIds))
+            .fetch()
+            .stream()
+            .filter(tuple -> tuple.get(uploadedFile.filePath) != null)
+            .collect(Collectors.toMap(tuple -> tuple.get(place.id), tuple -> tuple.get(uploadedFile.filePath)));
+
+        // 5. Place별 리뷰 개수 조회
         var reviewCountMap = queryFactory.select(review.placeId, review.count()).from(review).where(review.placeId.in(placeIds).and(review.isHidden.eq(false))).groupBy(review.placeId).fetch().stream().collect(Collectors.toMap(tuple -> tuple.get(review.placeId), tuple -> tuple.get(review.count())));
 
         // 5. Place별 찜 개수 조회
@@ -195,13 +219,13 @@ public class PlaceRepositoryImpl implements PlaceRepository {
                 Collectors.mapping(tuple -> tuple.get(placeFoodTypeCategory.foodType), Collectors.toList())
             ));
 
-        // 7. 결과 조합
+        // 8. 결과 조합
         List<LatestPlaceItemDto> content = pagedPlaces.stream().map(p -> new LatestPlaceItemDto(
             p.getId(),
             p.getName(),
             stationMap.get(p.getId()),
             p.getRating(),
-            p.getThumbnailImageUrl(),
+            thumbnailFilePathMap.get(p.getId()),
             p.getCreatedAt(),
             reviewCountMap.getOrDefault(p.getId(), 0L),
             bookmarkCountMap.getOrDefault(p.getId(), 0L),
@@ -217,6 +241,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
         Long total = queryFactory
             .select(placeBookmark.count())
             .from(placeBookmark)
+            .join(place).on(placeBookmark.placeId.eq(place.id).and(place.permanentlyClosed.eq(false)))
             .where(placeBookmark.memberId.eq(memberId))
             .fetchOne();
 
@@ -232,11 +257,12 @@ public class PlaceRepositoryImpl implements PlaceRepository {
                 place.name,
                 placeStation.stationName,
                 place.rating,
-                place.thumbnailImageUrl
+                uploadedFile.filePath
             )
             .from(placeBookmark)
-            .join(place).on(placeBookmark.placeId.eq(place.id))
+            .join(place).on(placeBookmark.placeId.eq(place.id).and(place.permanentlyClosed.eq(false)))
             .join(placeStation).on(place.stationId.eq(placeStation.id))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
             .where(placeBookmark.memberId.eq(memberId))
             .orderBy(placeBookmark.createdAt.desc())
             .offset(pageable.getOffset())
@@ -251,7 +277,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
                 tuple.get(place.name),
                 tuple.get(placeStation.stationName),
                 tuple.get(place.rating),
-                tuple.get(place.thumbnailImageUrl),
+                tuple.get(uploadedFile.filePath),
                 true
             ))
             .collect(Collectors.toList());

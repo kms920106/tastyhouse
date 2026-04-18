@@ -11,15 +11,15 @@ public record MyBookmarkedPlaceListItemResponse(
     String imageUrl,
     Boolean isBookmarked
 ) {
-    public static MyBookmarkedPlaceListItemResponse from(MyBookmarkedPlaceItemDto dto) {
-    return new MyBookmarkedPlaceListItemResponse(
-        dto.placeId(),
-        dto.bookmarkId(),
-        dto.placeName(),
-        dto.stationName(),
-        dto.rating(),
-        dto.imageUrl(),
-        dto.isBookmarked()
-    );
+    public static MyBookmarkedPlaceListItemResponse from(MyBookmarkedPlaceItemDto dto, String imageUrl) {
+        return new MyBookmarkedPlaceListItemResponse(
+            dto.placeId(),
+            dto.bookmarkId(),
+            dto.placeName(),
+            dto.stationName(),
+            dto.rating(),
+            imageUrl,
+            dto.isBookmarked()
+        );
     }
 }

@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.entity.place.dto.QPlaceChoice.placeChoice;
 import static com.tastyhouse.core.entity.place.QPlace.place;
 import static com.tastyhouse.core.entity.product.QProduct.product;
@@ -39,10 +40,11 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                 place.name,
                 placeChoice.title,
                 placeChoice.content,
-                place.thumbnailImageUrl
+                uploadedFile.filePath
             )
             .from(placeChoice)
-            .innerJoin(place).on(place.id.eq(placeChoice.placeId))
+            .innerJoin(place).on(place.id.eq(placeChoice.placeId).and(place.permanentlyClosed.eq(false)))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
             .fetch();
 
         // 2. 모든 PlaceChoice의 placeId 추출
@@ -112,7 +114,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                     tuple.get(place.name),
                     tuple.get(placeChoice.title),
                     tuple.get(placeChoice.content),
-                    tuple.get(place.thumbnailImageUrl),
+                    tuple.get(uploadedFile.filePath),
                     products
                 );
             })
@@ -139,10 +141,11 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                 place.name,
                 placeChoice.title,
                 placeChoice.content,
-                place.thumbnailImageUrl
+                uploadedFile.filePath
             )
             .from(placeChoice)
-            .innerJoin(place).on(place.id.eq(placeChoice.placeId))
+            .innerJoin(place).on(place.id.eq(placeChoice.placeId).and(place.permanentlyClosed.eq(false)))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
@@ -214,7 +217,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                     tuple.get(place.name),
                     tuple.get(placeChoice.title),
                     tuple.get(placeChoice.content),
-                    tuple.get(place.thumbnailImageUrl),
+                    tuple.get(uploadedFile.filePath),
                     products
                 );
             })

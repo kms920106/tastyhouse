@@ -223,7 +223,7 @@ public class OrderService {
         return coreResult.map(dto -> OrderListItemResponse.from(
             dto.id(),
             dto.placeName(),
-            fileService.getUrlByPath(dto.placeThumbnailImageUrl()),
+            fileService.getUrlByPath(dto.placeThumbnailImageFilePath()),
             dto.firstProductName(),
             dto.totalItemCount(),
             dto.amount(),

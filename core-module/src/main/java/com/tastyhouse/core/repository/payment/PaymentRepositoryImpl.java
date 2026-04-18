@@ -13,6 +13,7 @@ import com.tastyhouse.core.entity.payment.RefundStatus;
 import com.tastyhouse.core.entity.payment.TossPaymentRecord;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.entity.payment.dto.QOrderListItemDto;
+import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.place.QPlace;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -162,6 +163,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
         QOrder order = QOrder.order;
         QPayment payment = QPayment.payment;
         QPlace place = QPlace.place;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
         QOrderItem orderItem = QOrderItem.orderItem;
         QOrderItem subOrderItem = new QOrderItem("subOrderItem");
 
@@ -169,7 +171,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
             .select(new QOrderListItemDto(
                 order.id,
                 place.name,
-                place.thumbnailImageUrl,
+                uploadedFile.filePath,
                 queryFactory
                     .select(subOrderItem.productName)
                     .from(subOrderItem)
@@ -187,6 +189,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
             .from(order)
             .innerJoin(payment).on(payment.orderId.eq(order.id))
             .innerJoin(place).on(place.id.eq(order.placeId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
             .where(order.memberId.eq(memberId))
             .orderBy(order.createdAt.desc())
             .offset(pageable.getOffset())

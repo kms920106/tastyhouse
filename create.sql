@@ -347,7 +347,8 @@ CREATE TABLE PLACE
     lot_address       VARCHAR(500),
     phone_number      VARCHAR(20),
     closed_days       VARCHAR(100),
-    thumbnailImageUrl VARCHAR(255),
+    thumbnail_uploaded_file_id BIGINT,
+    is_permanently_closed      TINYINT(1)    NOT NULL DEFAULT 0,
     created_at        DATETIME      NOT NULL,
     updated_at        DATETIME      NOT NULL
 );
