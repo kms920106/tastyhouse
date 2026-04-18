@@ -25,6 +25,7 @@ import com.tastyhouse.core.service.CouponCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.MemberCoreService;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
@@ -56,6 +57,7 @@ public class OrderService {
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
     private final MemberCoreService memberCoreService;
+    private final FileService fileService;
 
     @Transactional
     public OrderResponse createOrder(Long memberId, OrderCreateRequest request) {
@@ -223,7 +225,9 @@ public class OrderService {
 
         Page<OrderListItemDto> page = orderCoreService.findOrderListByMemberId(memberId, springPageRequest);
 
-        List<OrderListItemResponse> content = page.getContent().stream().map(OrderListItemResponse::from).toList();
+        List<OrderListItemResponse> content = page.getContent().stream()
+            .map(dto -> OrderListItemResponse.from(dto, fileService.getUrlByPath(dto.placeThumbnailImageUrl())))
+            .toList();
 
         return new PageResult<>(content, page.getTotalElements(), page.getTotalPages(), page.getNumber(), page.getSize());
     }

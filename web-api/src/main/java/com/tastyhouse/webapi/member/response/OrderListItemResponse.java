@@ -6,20 +6,20 @@ import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import java.time.LocalDateTime;
 
 public record OrderListItemResponse(
-        Long id,
-        String placeName,
-        String placeThumbnailImageUrl,
-        String firstProductName,
-        Integer totalItemCount,
-        Integer amount,
-        PaymentStatus paymentStatus,
-        LocalDateTime paymentDate
+    Long id,
+    String placeName,
+    String placeThumbnailImageUrl,
+    String firstProductName,
+    Integer totalItemCount,
+    Integer amount,
+    PaymentStatus paymentStatus,
+    LocalDateTime paymentDate
 ) {
-    public static OrderListItemResponse from(OrderListItemDto dto) {
+    public static OrderListItemResponse from(OrderListItemDto dto, String placeThumbnailImageUrl) {
         return new OrderListItemResponse(
             dto.id(),
             dto.placeName(),
-            dto.placeThumbnailImageUrl(),
+            placeThumbnailImageUrl,
             dto.firstProductName(),
             dto.totalItemCount(),
             dto.amount(),
