@@ -1,6 +1,7 @@
 package com.tastyhouse.core.repository.event;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.event.Event;
 import com.tastyhouse.core.entity.event.EventAnnouncement;
@@ -15,7 +16,6 @@ import com.tastyhouse.core.entity.event.dto.PrizeItemDto;
 import com.tastyhouse.core.entity.file.QUploadedFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
@@ -57,12 +57,11 @@ public class EventRepositoryImpl implements EventRepository {
             .limit(pageable.getPageSize())
             .fetch();
 
-        long total = queryFactory
+        JPAQuery<Long> countQuery = queryFactory
             .select(eventAnnouncement.count())
-            .from(eventAnnouncement)
-            .fetchOne();
+            .from(eventAnnouncement);
 
-        return new PageImpl<>(content, pageable, total);
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     @Override

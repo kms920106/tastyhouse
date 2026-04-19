@@ -12,6 +12,7 @@ import com.tastyhouse.core.repository.member.MemberJpaRepository;
 import com.tastyhouse.core.repository.member.MemberRepository;
 import com.tastyhouse.core.repository.member.MemberWithdrawalJpaRepository;
 import com.tastyhouse.core.repository.referral.MemberReferralJpaRepository;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -81,13 +82,13 @@ public class MemberCoreService {
     }
 
     @Transactional
-    public MemberWithdrawal saveWithdrawal(MemberWithdrawal memberWithdrawal) {
-        return memberWithdrawalJpaRepository.save(memberWithdrawal);
+    public void saveWithdrawal(@NonNull MemberWithdrawal memberWithdrawal) {
+        memberWithdrawalJpaRepository.save(memberWithdrawal);
     }
 
     @Transactional
-    public MemberReferral saveReferral(MemberReferral memberReferral) {
-        return memberReferralJpaRepository.save(memberReferral);
+    public void saveReferral(@NonNull MemberReferral memberReferral) {
+        memberReferralJpaRepository.save(memberReferral);
     }
 
     @Transactional(readOnly = true)

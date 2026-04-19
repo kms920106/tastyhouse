@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -157,9 +158,13 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .fetch();
 
         return results.stream()
+            .filter(tuple -> tuple.get(reviewImage.reviewId) != null)
             .collect(Collectors.groupingBy(
-                tuple -> tuple.get(reviewImage.reviewId),
-                Collectors.mapping(tuple -> tuple.get(uploadedFile.filePath), Collectors.toList())
+                tuple -> Objects.requireNonNull(tuple.get(reviewImage.reviewId)),
+                Collectors.mapping(
+                    tuple -> Objects.toString(tuple.get(uploadedFile.filePath), ""),
+                    Collectors.toList()
+                )
             ));
     }
 
@@ -759,9 +764,10 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .fetch();
 
         return results.stream()
+            .filter(tuple -> tuple.get(reviewImage.reviewId) != null && tuple.get(uploadedFile.filePath) != null)
             .collect(Collectors.toMap(
-                tuple -> tuple.get(reviewImage.reviewId),
-                tuple -> tuple.get(uploadedFile.filePath),
+                tuple -> Objects.requireNonNull(tuple.get(reviewImage.reviewId)),
+                tuple -> Objects.requireNonNull(tuple.get(uploadedFile.filePath)),
                 (existing, replacement) -> existing
             ));
     }
