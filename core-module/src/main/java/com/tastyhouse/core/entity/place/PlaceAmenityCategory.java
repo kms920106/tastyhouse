@@ -30,11 +30,11 @@ public class PlaceAmenityCategory extends BaseEntity {
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName;
 
-    @Column(name = "image_url_on", nullable = false)
-    private String imageUrlOn;
+    @Column(name = "active_image_file_id", nullable = false)
+    private Long activeImageFileId;
 
-    @Column(name = "image_url_off", nullable = false)
-    private String imageUrlOff;
+    @Column(name = "inactive_image_file_id", nullable = false)
+    private Long inactiveImageFileId;
 
     @Column(name = "sort", nullable = false)
     private Integer sort;
@@ -45,15 +45,15 @@ public class PlaceAmenityCategory extends BaseEntity {
     private PlaceAmenityCategory(
         Amenity amenity,
         String displayName,
-        String imageUrlOn,
-        String imageUrlOff,
+        Long activeImageFileId,
+        Long inactiveImageFileId,
         Integer sort,
         Boolean isActive
     ) {
         this.amenity = amenity;
         this.displayName = displayName;
-        this.imageUrlOn = imageUrlOn;
-        this.imageUrlOff = imageUrlOff;
+        this.activeImageFileId = activeImageFileId;
+        this.inactiveImageFileId = inactiveImageFileId;
         this.sort = sort;
         this.isActive = isActive;
     }
@@ -61,25 +61,25 @@ public class PlaceAmenityCategory extends BaseEntity {
     public static PlaceAmenityCategory of(
         Amenity amenity,
         String displayName,
-        String imageUrlOn,
-        String imageUrlOff,
+        Long activeImageFileId,
+        Long inactiveImageFileId,
         Integer sort,
         Boolean isActive
     ) {
         return new PlaceAmenityCategory(
             amenity,
             displayName,
-            imageUrlOn,
-            imageUrlOff,
+            activeImageFileId,
+            inactiveImageFileId,
             sort,
             isActive
         );
     }
 
-    public void update(String displayName, String imageUrlOn, String imageUrlOff, Integer sort, Boolean isActive) {
+    public void update(String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, Boolean isActive) {
         this.displayName = displayName;
-        this.imageUrlOn = imageUrlOn;
-        this.imageUrlOff = imageUrlOff;
+        this.activeImageFileId = activeImageFileId;
+        this.inactiveImageFileId = inactiveImageFileId;
         this.sort = sort;
         this.isActive = isActive;
     }

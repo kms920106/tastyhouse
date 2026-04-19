@@ -1,17 +1,15 @@
 package com.tastyhouse.core.repository.place;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.place.PlaceAmenity;
-import com.tastyhouse.core.entity.place.PlaceAmenityCategory;
-import com.tastyhouse.core.entity.place.PlaceBannerImage;
 import com.tastyhouse.core.entity.place.PlaceBreakTime;
 import com.tastyhouse.core.entity.place.PlaceBusinessHour;
 import com.tastyhouse.core.entity.place.PlaceClosedDay;
-import com.tastyhouse.core.entity.place.PlaceFoodTypeCategory;
 import com.tastyhouse.core.entity.place.PlaceOrderMethod;
 import com.tastyhouse.core.entity.place.PlaceOwnerMessageHistory;
 import com.tastyhouse.core.entity.place.PlacePhotoCategory;
-import com.tastyhouse.core.entity.place.PlacePhotoCategoryImage;
 import com.tastyhouse.core.entity.place.PlaceStation;
 import com.tastyhouse.core.entity.place.QPlaceAmenity;
 import com.tastyhouse.core.entity.place.QPlaceAmenityCategory;
@@ -25,6 +23,11 @@ import com.tastyhouse.core.entity.place.QPlaceOwnerMessageHistory;
 import com.tastyhouse.core.entity.place.QPlacePhotoCategory;
 import com.tastyhouse.core.entity.place.QPlacePhotoCategoryImage;
 import com.tastyhouse.core.entity.place.QPlaceStation;
+import com.tastyhouse.core.entity.place.dto.PlaceAmenityCategoryDto;
+import com.tastyhouse.core.entity.place.dto.PlaceAmenityWithCategoryDto;
+import com.tastyhouse.core.entity.place.dto.PlaceBannerImageDto;
+import com.tastyhouse.core.entity.place.dto.PlaceFoodTypeCategoryDto;
+import com.tastyhouse.core.entity.place.dto.PlacePhotoCategoryImageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -47,20 +50,46 @@ public class PlaceDetailRepositoryImpl implements PlaceDetailRepository {
     }
 
     @Override
-    public List<PlaceFoodTypeCategory> findAllActiveFoodTypeCategories() {
+    public List<PlaceFoodTypeCategoryDto> findAllActiveFoodTypeCategories() {
         QPlaceFoodTypeCategory category = QPlaceFoodTypeCategory.placeFoodTypeCategory;
+        QUploadedFile activeFile = new QUploadedFile("activeFile");
+        QUploadedFile inactiveFile = new QUploadedFile("inactiveFile");
         return queryFactory
-            .selectFrom(category)
+            .select(Projections.constructor(PlaceFoodTypeCategoryDto.class,
+                category.id,
+                category.foodType,
+                category.displayName,
+                activeFile.filePath,
+                inactiveFile.filePath,
+                category.sort,
+                category.isActive
+            ))
+            .from(category)
+            .join(activeFile).on(activeFile.id.eq(category.activeImageFileId))
+            .join(inactiveFile).on(inactiveFile.id.eq(category.inactiveImageFileId))
             .where(category.isActive.eq(true))
             .orderBy(category.sort.asc())
             .fetch();
     }
 
     @Override
-    public List<PlaceAmenityCategory> findAllActiveAmenityCategories() {
+    public List<PlaceAmenityCategoryDto> findAllActiveAmenityCategories() {
         QPlaceAmenityCategory category = QPlaceAmenityCategory.placeAmenityCategory;
+        QUploadedFile activeFile = new QUploadedFile("activeFile");
+        QUploadedFile inactiveFile = new QUploadedFile("inactiveFile");
         return queryFactory
-            .selectFrom(category)
+            .select(Projections.constructor(PlaceAmenityCategoryDto.class,
+                category.id,
+                category.amenity,
+                category.displayName,
+                activeFile.filePath,
+                inactiveFile.filePath,
+                category.sort,
+                category.isActive
+            ))
+            .from(category)
+            .join(activeFile).on(activeFile.id.eq(category.activeImageFileId))
+            .join(inactiveFile).on(inactiveFile.id.eq(category.inactiveImageFileId))
             .where(category.isActive.eq(true))
             .orderBy(category.sort.asc())
             .fetch();
@@ -105,6 +134,24 @@ public class PlaceDetailRepositoryImpl implements PlaceDetailRepository {
     }
 
     @Override
+    public List<PlaceAmenityWithCategoryDto> findAmenitiesWithCategoryByPlaceId(Long placeId) {
+        QPlaceAmenity amenity = QPlaceAmenity.placeAmenity;
+        QPlaceAmenityCategory category = QPlaceAmenityCategory.placeAmenityCategory;
+        QUploadedFile activeFile = new QUploadedFile("activeFile");
+        return queryFactory
+            .select(Projections.constructor(PlaceAmenityWithCategoryDto.class,
+                category.amenity,
+                category.displayName,
+                activeFile.filePath
+            ))
+            .from(amenity)
+            .join(category).on(category.id.eq(amenity.placeAmenityCategoryId))
+            .join(activeFile).on(activeFile.id.eq(category.activeImageFileId))
+            .where(amenity.placeId.eq(placeId))
+            .fetch();
+    }
+
+    @Override
     public List<PlaceOrderMethod> findOrderMethodsByPlaceId(Long placeId) {
         QPlaceOrderMethod orderMethod = QPlaceOrderMethod.placeOrderMethod;
         return queryFactory
@@ -114,10 +161,17 @@ public class PlaceDetailRepositoryImpl implements PlaceDetailRepository {
     }
 
     @Override
-    public List<PlaceBannerImage> findBannerImagesByPlaceId(Long placeId) {
+    public List<PlaceBannerImageDto> findBannerImagesByPlaceId(Long placeId) {
         QPlaceBannerImage bannerImage = QPlaceBannerImage.placeBannerImage;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
         return queryFactory
-            .selectFrom(bannerImage)
+            .select(Projections.constructor(PlaceBannerImageDto.class,
+                bannerImage.id,
+                uploadedFile.filePath,
+                bannerImage.sort
+            ))
+            .from(bannerImage)
+            .join(uploadedFile).on(uploadedFile.id.eq(bannerImage.imageFileId))
             .where(bannerImage.placeId.eq(placeId))
             .orderBy(bannerImage.sort.asc())
             .fetch();
@@ -133,10 +187,18 @@ public class PlaceDetailRepositoryImpl implements PlaceDetailRepository {
     }
 
     @Override
-    public List<PlacePhotoCategoryImage> findAllPhotoCategoryImages() {
+    public List<PlacePhotoCategoryImageDto> findAllPhotoCategoryImages() {
         QPlacePhotoCategoryImage image = QPlacePhotoCategoryImage.placePhotoCategoryImage;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
         return queryFactory
-            .selectFrom(image)
+            .select(Projections.constructor(PlacePhotoCategoryImageDto.class,
+                image.id,
+                image.placePhotoCategoryId,
+                uploadedFile.filePath,
+                image.sort
+            ))
+            .from(image)
+            .join(uploadedFile).on(uploadedFile.id.eq(image.imageFileId))
             .orderBy(image.sort.asc())
             .fetch();
     }

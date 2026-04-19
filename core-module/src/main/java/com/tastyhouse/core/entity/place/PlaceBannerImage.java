@@ -20,9 +20,9 @@ public class PlaceBannerImage {
     @Column(name = "place_id", nullable = false)
     private Long placeId;
 
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
+    @Column(name = "image_file_id", nullable = false)
+    private Long imageFileId;
 
     @Column(name = "sort")
-    private Integer sort; // 정렬 순서
+    private Integer sort;
 }

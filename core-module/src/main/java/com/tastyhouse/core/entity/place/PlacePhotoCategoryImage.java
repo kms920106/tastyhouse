@@ -24,39 +24,39 @@ public class PlacePhotoCategoryImage extends BaseEntity {
     @Column(name = "place_photo_category_id", nullable = false)
     private Long placePhotoCategoryId; // 이미지 카테고리 ID
 
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl; // 이미지 URL
+    @Column(name = "image_file_id", nullable = false)
+    private Long imageFileId;
 
     @Column(name = "sort", nullable = false)
-    private Integer sort; // 정렬 순서
+    private Integer sort;
 
     private PlacePhotoCategoryImage(
         Long placePhotoCategoryId,
-        String imageUrl,
+        Long imageFileId,
         Integer sort
     ) {
         this.placePhotoCategoryId = placePhotoCategoryId;
-        this.imageUrl = imageUrl;
+        this.imageFileId = imageFileId;
         this.sort = sort;
     }
 
     public static PlacePhotoCategoryImage of(
         Long placePhotoCategoryId,
-        String imageUrl,
+        Long imageFileId,
         Integer sort
     ) {
         return new PlacePhotoCategoryImage(
             placePhotoCategoryId,
-            imageUrl,
+            imageFileId,
             sort
         );
     }
 
     public void update(
-        String imageUrl,
+        Long imageFileId,
         Integer sort
     ) {
-        this.imageUrl = imageUrl;
+        this.imageFileId = imageFileId;
         this.sort = sort;
     }
 }

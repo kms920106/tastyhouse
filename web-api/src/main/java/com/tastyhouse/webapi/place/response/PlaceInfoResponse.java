@@ -159,18 +159,18 @@ public record PlaceInfoResponse(
     @Schema(description = "편의시설 표시명", example = "주차 가능")
     String name,
 
-    @Schema(description = "편의시설 이미지 URL (ON)", example = "https://example.com/parking-on.png")
-    String imageUrlOn
+    @Schema(description = "편의시설 활성 이미지 URL", example = "https://example.com/parking-on.png")
+    String activeImageUrl
     ) {
     public static AmenityItem from(
         String code,
         String name,
-        String imageUrlOn
+        String activeImageUrl
     ) {
         return new AmenityItem(
             code,
             name,
-            imageUrlOn
+            activeImageUrl
         );
     }
     }

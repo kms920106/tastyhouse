@@ -30,8 +30,11 @@ public class PlaceFoodTypeCategory extends BaseEntity {
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName;
 
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
+    @Column(name = "active_image_file_id", nullable = false)
+    private Long activeImageFileId;
+
+    @Column(name = "inactive_image_file_id", nullable = false)
+    private Long inactiveImageFileId;
 
     @Column(name = "sort", nullable = false)
     private Integer sort;
@@ -39,10 +42,11 @@ public class PlaceFoodTypeCategory extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    private PlaceFoodTypeCategory(FoodType foodType, String displayName, String imageUrl, Integer sort, Boolean isActive) {
+    private PlaceFoodTypeCategory(FoodType foodType, String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, Boolean isActive) {
         this.foodType = foodType;
         this.displayName = displayName;
-        this.imageUrl = imageUrl;
+        this.activeImageFileId = activeImageFileId;
+        this.inactiveImageFileId = inactiveImageFileId;
         this.sort = sort;
         this.isActive = isActive;
     }
@@ -50,28 +54,18 @@ public class PlaceFoodTypeCategory extends BaseEntity {
     public static PlaceFoodTypeCategory of(
         FoodType foodType,
         String displayName,
-        String imageUrl,
+        Long activeImageFileId,
+        Long inactiveImageFileId,
         Integer sort,
         Boolean isActive
     ) {
         return new PlaceFoodTypeCategory(
             foodType,
             displayName,
-            imageUrl,
+            activeImageFileId,
+            inactiveImageFileId,
             sort,
             isActive
         );
-    }
-
-    public void update(
-        String displayName,
-        String imageUrl,
-        Integer sort,
-        Boolean isActive
-    ) {
-        this.displayName = displayName;
-        this.imageUrl = imageUrl;
-        this.sort = sort;
-        this.isActive = isActive;
     }
 }

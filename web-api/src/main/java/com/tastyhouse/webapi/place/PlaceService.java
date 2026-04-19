@@ -1,17 +1,17 @@
 package com.tastyhouse.webapi.place;
 
 import com.tastyhouse.core.entity.place.Place;
-import com.tastyhouse.core.entity.place.PlaceAmenity;
-import com.tastyhouse.core.entity.place.PlaceAmenityCategory;
-import com.tastyhouse.core.entity.place.PlaceBannerImage;
 import com.tastyhouse.core.entity.place.PlaceBreakTime;
 import com.tastyhouse.core.entity.place.PlaceBusinessHour;
 import com.tastyhouse.core.entity.place.PlaceClosedDay;
-import com.tastyhouse.core.entity.place.PlaceFoodTypeCategory;
 import com.tastyhouse.core.entity.place.PlaceOrderMethod;
 import com.tastyhouse.core.entity.place.PlacePhotoCategory;
-import com.tastyhouse.core.entity.place.PlacePhotoCategoryImage;
 import com.tastyhouse.core.entity.place.PlaceStation;
+import com.tastyhouse.core.entity.place.dto.PlaceAmenityCategoryDto;
+import com.tastyhouse.core.entity.place.dto.PlaceAmenityWithCategoryDto;
+import com.tastyhouse.core.entity.place.dto.PlaceBannerImageDto;
+import com.tastyhouse.core.entity.place.dto.PlaceFoodTypeCategoryDto;
+import com.tastyhouse.core.entity.place.dto.PlacePhotoCategoryImageDto;
 import com.tastyhouse.core.entity.place.dto.BestPlaceItemDto;
 import com.tastyhouse.core.entity.place.dto.EditorChoiceDto;
 import com.tastyhouse.core.entity.place.dto.LatestPlaceItemDto;
@@ -153,7 +153,7 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<FoodTypeListItem> searchAllFoodTypes() {
-        List<PlaceFoodTypeCategory> categories = placeCoreService.findAllFoodTypeCategories();
+        List<PlaceFoodTypeCategoryDto> categories = placeCoreService.findAllFoodTypeCategories();
         return categories.stream()
                 .map(this::convertToFoodTypeListItem)
                 .toList();
@@ -161,7 +161,7 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<AmenityListItem> searchAllAmenities() {
-        List<PlaceAmenityCategory> categories = placeCoreService.findAllAmenityCategories();
+        List<PlaceAmenityCategoryDto> categories = placeCoreService.findAllAmenityCategories();
         return categories.stream()
                 .map(this::convertToAmenityListItem)
                 .toList();
@@ -174,20 +174,21 @@ public class PlaceService {
         );
     }
 
-    private FoodTypeListItem convertToFoodTypeListItem(PlaceFoodTypeCategory category) {
+    private FoodTypeListItem convertToFoodTypeListItem(PlaceFoodTypeCategoryDto category) {
         return FoodTypeListItem.from(
-            category.getFoodType().name(),
-            category.getDisplayName(),
-            category.getImageUrl()
+            category.foodType().name(),
+            category.displayName(),
+            fileService.getUrlByPath(category.activeFilePath()),
+            fileService.getUrlByPath(category.inactiveFilePath())
         );
     }
 
-    private AmenityListItem convertToAmenityListItem(PlaceAmenityCategory category) {
+    private AmenityListItem convertToAmenityListItem(PlaceAmenityCategoryDto category) {
         return AmenityListItem.from(
-            category.getAmenity().name(),
-            category.getDisplayName(),
-            category.getImageUrlOn(),
-            category.getImageUrlOff()
+            category.amenity().name(),
+            category.displayName(),
+            fileService.getUrlByPath(category.activeFilePath()),
+            fileService.getUrlByPath(category.inactiveFilePath())
         );
     }
 
@@ -211,7 +212,7 @@ public class PlaceService {
         List<PlaceBusinessHour> businessHours = placeCoreService.findPlaceBusinessHours(placeId);
         List<PlaceBreakTime> breakTimes = placeCoreService.findPlaceBreakTimes(placeId);
         List<PlaceClosedDay> closedDays = placeCoreService.findPlaceClosedDays(placeId);
-        List<PlaceAmenity> placeAmenities = placeCoreService.findPlaceAmenities(placeId);
+        List<PlaceAmenityWithCategoryDto> placeAmenities = placeCoreService.findPlaceAmenitiesWithCategory(placeId);
 
         List<PlaceInfoResponse.BusinessHourItem> businessHourItems = businessHours.stream()
                 .map(this::convertToBusinessHourItem)
@@ -255,7 +256,7 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<PlaceBannerResponse> getPlaceBanners(Long placeId) {
-        List<PlaceBannerImage> banners = placeCoreService.findPlaceBannerImages(placeId);
+        List<PlaceBannerImageDto> banners = placeCoreService.findPlaceBannerImages(placeId);
         return banners.stream()
                 .map(this::convertToPlaceBannerResponse)
                 .toList();
@@ -289,19 +290,17 @@ public class PlaceService {
     @Transactional(readOnly = true)
     public List<PlacePhotoCategoryResponse> getPlacePhotos(Long placeId) {
         List<PlacePhotoCategory> categories = placeCoreService.findPlacePhotoCategoriesByPlaceId(placeId);
-        List<PlacePhotoCategoryImage> images = placeCoreService.findAllPlacePhotoCategoryImages();
+        List<PlacePhotoCategoryImageDto> images = placeCoreService.findAllPlacePhotoCategoryImages();
 
-        // 카테고리 ID별로 이미지 그룹화
-        Map<Long, List<PlacePhotoCategoryImage>> imagesByCategory = images.stream()
-                .filter(image -> image.getPlacePhotoCategoryId() != null)
-                .collect(Collectors.groupingBy(PlacePhotoCategoryImage::getPlacePhotoCategoryId));
+        Map<Long, List<PlacePhotoCategoryImageDto>> imagesByCategory = images.stream()
+                .filter(image -> image.placePhotoCategoryId() != null)
+                .collect(Collectors.groupingBy(PlacePhotoCategoryImageDto::placePhotoCategoryId));
 
-        // 카테고리 순서대로 응답 생성
         return categories.stream()
                 .map(category -> {
-                    List<PlacePhotoCategoryImage> categoryImages = imagesByCategory.getOrDefault(category.getId(), new ArrayList<>());
+                    List<PlacePhotoCategoryImageDto> categoryImages = imagesByCategory.getOrDefault(category.getId(), new ArrayList<>());
                     List<String> imageUrls = categoryImages.stream()
-                            .map(PlacePhotoCategoryImage::getImageUrl)
+                            .map(image -> fileService.getUrlByPath(image.filePath()))
                             .toList();
                     return PlacePhotoCategoryResponse.from(
                         category.getName(),
@@ -400,20 +399,19 @@ public class PlaceService {
         );
     }
 
-    private PlaceInfoResponse.AmenityItem convertToAmenityItem(PlaceAmenity placeAmenity) {
-        PlaceAmenityCategory category = placeCoreService.findPlaceAmenityCategoryById(placeAmenity.getPlaceAmenityCategoryId());
+    private PlaceInfoResponse.AmenityItem convertToAmenityItem(PlaceAmenityWithCategoryDto dto) {
         return PlaceInfoResponse.AmenityItem.from(
-            category.getAmenity().name(),
-            category.getDisplayName(),
-            category.getImageUrlOn()
+            dto.amenity().name(),
+            dto.displayName(),
+            fileService.getUrlByPath(dto.activeFilePath())
         );
     }
 
-    private PlaceBannerResponse convertToPlaceBannerResponse(PlaceBannerImage image) {
+    private PlaceBannerResponse convertToPlaceBannerResponse(PlaceBannerImageDto image) {
         return PlaceBannerResponse.from(
-            image.getId(),
-            image.getImageUrl(),
-            image.getSort()
+            image.id(),
+            fileService.getUrlByPath(image.filePath()),
+            image.sort()
         );
     }
 

@@ -436,15 +436,15 @@ CREATE TABLE PLACE_OWNER_MESSAGE_HISTORY
 
 CREATE TABLE PLACE_AMENITY_CATEGORY
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    amenity       VARCHAR(50)  NOT NULL UNIQUE,
-    display_name  VARCHAR(100) NOT NULL,
-    image_url_on  VARCHAR(255) NOT NULL,
-    image_url_off VARCHAR(255) NOT NULL,
-    sort          INT          NOT NULL,
-    is_active     TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at    DATETIME     NOT NULL,
-    updated_at    DATETIME     NOT NULL,
+    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    amenity                 VARCHAR(50)  NOT NULL UNIQUE,
+    display_name            VARCHAR(100) NOT NULL,
+    active_image_file_id    BIGINT       NOT NULL,
+    inactive_image_file_id  BIGINT       NOT NULL,
+    sort                    INT          NOT NULL,
+    is_active               TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at              DATETIME     NOT NULL,
+    updated_at              DATETIME     NOT NULL,
     INDEX idx_amenity_category_active (is_active, sort)
 );
 
@@ -523,15 +523,15 @@ CREATE TABLE PLACE_CHOICE
 
 CREATE TABLE PLACE_FOOD_TYPE_CATEGORY
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    food_type     VARCHAR(50)  NOT NULL UNIQUE,
-    display_name  VARCHAR(100) NOT NULL,
-    image_url_on  VARCHAR(255) NOT NULL,
-    image_url_off VARCHAR(255) NOT NULL,
-    sort          INT          NOT NULL,
-    is_active     TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at    DATETIME     NOT NULL,
-    updated_at    DATETIME     NOT NULL,
+    id                     BIGINT AUTO_INCREMENT PRIMARY KEY,
+    food_type              VARCHAR(50)  NOT NULL UNIQUE,
+    display_name           VARCHAR(100) NOT NULL,
+    active_image_file_id   BIGINT       NOT NULL,
+    inactive_image_file_id BIGINT       NOT NULL,
+    sort                   INT          NOT NULL,
+    is_active              TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at             DATETIME     NOT NULL,
+    updated_at             DATETIME     NOT NULL,
     INDEX idx_food_type_category_active (is_active, sort)
 );
 
@@ -557,20 +557,20 @@ CREATE TABLE PLACE_PHOTO_CATEGORY
 CREATE TABLE PLACE_PHOTO_CATEGORY_IMAGE
 (
     id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_photo_category_id BIGINT       NOT NULL,
-    image_url               VARCHAR(255) NOT NULL,
-    sort                    INT          NOT NULL,
-    created_at              DATETIME     NOT NULL,
-    updated_at              DATETIME     NOT NULL,
+    place_photo_category_id BIGINT   NOT NULL,
+    image_file_id           BIGINT   NOT NULL,
+    sort                    INT      NOT NULL,
+    created_at              DATETIME NOT NULL,
+    updated_at              DATETIME NOT NULL,
     INDEX idx_place_photo_category_image_category_id (place_photo_category_id)
 );
 
 CREATE TABLE PLACE_BANNER_IMAGE
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id   BIGINT       NOT NULL,
-    image_url  VARCHAR(255) NOT NULL,
-    sort       INT,
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    place_id       BIGINT   NOT NULL,
+    image_file_id  BIGINT   NOT NULL,
+    sort           INT,
     INDEX idx_place_banner_image_place_id (place_id)
 );
 

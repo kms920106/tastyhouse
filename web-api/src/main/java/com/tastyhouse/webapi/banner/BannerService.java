@@ -27,6 +27,11 @@ public class BannerService {
     }
 
     private BannerListItem toBannerListItem(BannerListItemDto dto) {
-        return BannerListItem.from(dto.id(), dto.title(), fileService.getUrlByPath(dto.filePath()), dto.linkUrl());
+        return BannerListItem.from(
+            dto.id(),
+            dto.title(),
+            fileService.getUrlByPath(dto.filePath()),
+            dto.linkUrl()
+        );
     }
 }
