@@ -241,11 +241,11 @@ public class ProductService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return fileService.getUrlByPath(productCoreService.getFirstImageUrl(productId));
+        return fileService.getUrlByPath(productCoreService.getFirstImageFilePath(productId));
     }
 
     private List<String> getAllImageUrls(Long productId) {
-        return productCoreService.getAllImageUrls(productId).stream()
+        return productCoreService.getAllImageFilePaths(productId).stream()
             .map(fileService::getUrlByPath)
             .toList();
     }

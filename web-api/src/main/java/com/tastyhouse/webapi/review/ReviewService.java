@@ -318,7 +318,7 @@ public class ReviewService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return productCoreService.getFirstImageUrl(productId);
+        return productCoreService.getFirstImageFilePath(productId);
     }
 
     @Transactional(readOnly = true)

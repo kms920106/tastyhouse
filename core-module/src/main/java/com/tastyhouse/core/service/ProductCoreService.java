@@ -102,19 +102,19 @@ public class ProductCoreService {
     }
 
     @Transactional(readOnly = true)
-    public String getFirstImageUrl(Long productId) {
+    public String getFirstImageFilePath(Long productId) {
         return productRepository.findActiveImagesByProductIdOrderBySort(productId)
             .stream()
             .findFirst()
-            .map(ProductImage::getImageUrl)
+            .map(image -> productRepository.findFilePathByUploadedFileId(image.getUploadedFileId()))
             .orElse(null);
     }
 
     @Transactional(readOnly = true)
-    public List<String> getAllImageUrls(Long productId) {
+    public List<String> getAllImageFilePaths(Long productId) {
         return productRepository.findActiveImagesByProductIdOrderBySort(productId)
             .stream()
-            .map(ProductImage::getImageUrl)
+            .map(image -> productRepository.findFilePathByUploadedFileId(image.getUploadedFileId()))
             .toList();
     }
 

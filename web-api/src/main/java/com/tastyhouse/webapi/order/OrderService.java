@@ -94,7 +94,7 @@ public class OrderService {
                 throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT, ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }
 
-            String productImageUrl = productCoreService.getFirstImageUrl(product.getId());
+            String productImageUrl = productCoreService.getFirstImageFilePath(product.getId());
 
             int unitPrice = product.getOriginalPrice();
             Integer discountPrice = product.getDiscountPrice();

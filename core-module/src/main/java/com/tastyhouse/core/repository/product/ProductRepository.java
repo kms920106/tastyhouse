@@ -57,4 +57,6 @@ public interface ProductRepository {
     boolean existsBbqByProductId(Long productId);
 
     Optional<ProductBbq> findFirstBbqWithOptionsSyncPending();
+
+    String findFilePathByUploadedFileId(Long uploadedFileId);
 }

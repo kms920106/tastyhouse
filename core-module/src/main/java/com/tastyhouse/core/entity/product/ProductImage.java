@@ -24,46 +24,46 @@ public class ProductImage extends BaseEntity {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
-
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @Column(name = "uploaded_file_id", nullable = false)
+    private Long uploadedFileId;
+
     private ProductImage(
         Long productId,
-        String imageUrl,
+        Long uploadedFileId,
         Integer sort,
         Boolean isActive
     ) {
         this.productId = productId;
-        this.imageUrl = imageUrl;
+        this.uploadedFileId = uploadedFileId;
         this.sort = sort;
         this.isActive = isActive != null ? isActive : true;
     }
 
     public static ProductImage of(
         Long productId,
-        String imageUrl,
+        Long uploadedFileId,
         Integer sort,
         Boolean isActive) {
         return new ProductImage(
             productId,
-            imageUrl,
+            uploadedFileId,
             sort,
             isActive
         );
     }
 
     public void update(
-        String imageUrl,
+        Long uploadedFileId,
         Integer sort,
         Boolean isActive
     ) {
-        this.imageUrl = imageUrl;
+        this.uploadedFileId = uploadedFileId;
         this.sort = sort;
         this.isActive = isActive;
     }

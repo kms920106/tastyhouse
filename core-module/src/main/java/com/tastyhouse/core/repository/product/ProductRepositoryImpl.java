@@ -117,7 +117,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                             .and(subProductImage.isActive.eq(true)))
                 ))
             )
-            .leftJoin(uploadedFile).on(productImage.uploadedFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.uploadedFileId))
             .where(product.placeId.eq(placeId)
                 .and(product.isActive.eq(true)))
             .fetch();
@@ -301,5 +301,15 @@ public class ProductRepositoryImpl implements ProductRepository {
                 .where(bbq.isOptionsSynced.eq(false))
                 .fetchFirst()
         );
+    }
+
+    @Override
+    public String findFilePathByUploadedFileId(Long uploadedFileId) {
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+        return queryFactory
+            .select(uploadedFile.filePath)
+            .from(uploadedFile)
+            .where(uploadedFile.id.eq(uploadedFileId))
+            .fetchOne();
     }
 }

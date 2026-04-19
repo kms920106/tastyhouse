@@ -64,7 +64,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                     product.id,
                     place.name,
                     product.name,
-                    productImage.imageUrl,
+                    uploadedFile.filePath,
                     product.originalPrice,
                     product.discountPrice,
                     product.discountRate
@@ -83,6 +83,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                             .and(subProductImage.isActive.eq(true)))
                 ))
             )
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.uploadedFileId))
             .where(product.placeId.in(placeIds))
             .fetch();
 

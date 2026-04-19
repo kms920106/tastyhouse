@@ -6,6 +6,7 @@ import com.tastyhouse.core.entity.product.ProductCategory;
 import com.tastyhouse.core.entity.product.ProductImage;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.external.crawling.bbq.BbqApiClient;
+import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;
@@ -30,6 +31,7 @@ public class BbqService {
 
     private final BbqApiClient bbqApiClient;
     private final ProductCoreService productCoreService;
+    private final FileService fileService;
 
     /**
      * BBQ 메뉴 카테고리 목록 조회
@@ -236,10 +238,11 @@ public class BbqService {
 
         // 상품 이미지 저장
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {
+            Long uploadedFileId = fileService.uploadFromUrl(menuDetail.imageUrl());
             ProductImage productImage =
                 ProductImage.of(
                     savedProduct.getId(),
-                    menuDetail.imageUrl(),
+                    uploadedFileId,
                     0,
                     true
                 );
