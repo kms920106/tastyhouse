@@ -1,12 +1,13 @@
 package com.tastyhouse.core.repository.review;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.review.QReviewTag;
 import com.tastyhouse.core.entity.review.ReviewTag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+
+import static com.tastyhouse.core.entity.review.QReviewTag.reviewTag;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,7 +18,6 @@ public class ReviewTagRepositoryImpl implements ReviewTagRepository {
 
     @Override
     public List<Long> findTagIdsByReviewId(Long reviewId) {
-        QReviewTag reviewTag = QReviewTag.reviewTag;
         return queryFactory
             .select(reviewTag.tagId)
             .from(reviewTag)
@@ -32,7 +32,6 @@ public class ReviewTagRepositoryImpl implements ReviewTagRepository {
 
     @Override
     public void deleteByReviewId(Long reviewId) {
-        QReviewTag reviewTag = QReviewTag.reviewTag;
         queryFactory
             .delete(reviewTag)
             .where(reviewTag.reviewId.eq(reviewId))

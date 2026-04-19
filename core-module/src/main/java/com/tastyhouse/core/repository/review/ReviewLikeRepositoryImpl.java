@@ -2,7 +2,6 @@ package com.tastyhouse.core.repository.review;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.review.QReviewLike;
 import com.tastyhouse.core.entity.review.ReviewLike;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -10,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.tastyhouse.core.entity.review.QReviewLike.reviewLike;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,8 +21,6 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
 
     @Override
     public Map<Long, Long> countByReviewIdIn(List<Long> reviewIds) {
-        QReviewLike reviewLike = QReviewLike.reviewLike;
-
         List<Tuple> results = queryFactory
             .select(reviewLike.reviewId, reviewLike.count())
             .from(reviewLike)
@@ -38,7 +37,6 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
 
     @Override
     public boolean existsByReviewIdAndMemberId(Long reviewId, Long memberId) {
-        QReviewLike reviewLike = QReviewLike.reviewLike;
         return queryFactory
             .selectOne()
             .from(reviewLike)
@@ -51,7 +49,6 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
 
     @Override
     public void deleteByReviewIdAndMemberId(Long reviewId, Long memberId) {
-        QReviewLike reviewLike = QReviewLike.reviewLike;
         queryFactory
             .delete(reviewLike)
             .where(

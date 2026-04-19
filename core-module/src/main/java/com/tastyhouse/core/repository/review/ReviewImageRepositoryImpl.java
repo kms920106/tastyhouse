@@ -1,12 +1,13 @@
 package com.tastyhouse.core.repository.review;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.review.QReviewImage;
 import com.tastyhouse.core.entity.review.ReviewImage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+
+import static com.tastyhouse.core.entity.review.QReviewImage.reviewImage;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,7 +18,6 @@ public class ReviewImageRepositoryImpl implements ReviewImageRepository {
 
     @Override
     public List<ReviewImage> findByReviewIdOrderBySortAsc(Long reviewId) {
-        QReviewImage reviewImage = QReviewImage.reviewImage;
         return queryFactory
             .selectFrom(reviewImage)
             .where(reviewImage.reviewId.eq(reviewId))
@@ -27,7 +27,6 @@ public class ReviewImageRepositoryImpl implements ReviewImageRepository {
 
     @Override
     public List<ReviewImage> findByReviewIdInOrderBySortAsc(List<Long> reviewIds) {
-        QReviewImage reviewImage = QReviewImage.reviewImage;
         return queryFactory
             .selectFrom(reviewImage)
             .where(reviewImage.reviewId.in(reviewIds))
@@ -42,7 +41,6 @@ public class ReviewImageRepositoryImpl implements ReviewImageRepository {
 
     @Override
     public void deleteByReviewId(Long reviewId) {
-        QReviewImage reviewImage = QReviewImage.reviewImage;
         queryFactory
             .delete(reviewImage)
             .where(reviewImage.reviewId.eq(reviewId))

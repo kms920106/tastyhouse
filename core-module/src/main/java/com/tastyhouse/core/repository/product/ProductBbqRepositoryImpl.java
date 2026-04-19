@@ -2,11 +2,12 @@ package com.tastyhouse.core.repository.product;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.product.ProductBbq;
-import com.tastyhouse.core.entity.product.QProductBbq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+
+import static com.tastyhouse.core.entity.product.QProductBbq.productBbq;
 
 @Repository
 @RequiredArgsConstructor
@@ -16,8 +17,6 @@ public class ProductBbqRepositoryImpl implements ProductBbqRepository {
 
     @Override
     public Optional<ProductBbq> findFirstByIsOptionsSyncedFalse() {
-        QProductBbq productBbq = QProductBbq.productBbq;
-
         return Optional.ofNullable(queryFactory
             .selectFrom(productBbq)
             .where(productBbq.isOptionsSynced.isFalse())

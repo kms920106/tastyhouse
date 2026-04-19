@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+
 @Repository
 @RequiredArgsConstructor
 public class UploadedFileRepositoryImpl implements UploadedFileRepository {
@@ -25,8 +27,6 @@ public class UploadedFileRepositoryImpl implements UploadedFileRepository {
 
     @Override
     public Optional<UploadedFile> findById(Long id) {
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         UploadedFile result = queryFactory
             .selectFrom(uploadedFile)
             .where(uploadedFile.id.eq(id))

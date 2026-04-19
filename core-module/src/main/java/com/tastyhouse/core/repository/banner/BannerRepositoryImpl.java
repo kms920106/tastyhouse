@@ -4,9 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.banner.BannerType;
-import com.tastyhouse.core.entity.banner.QBanner;
 import com.tastyhouse.core.entity.banner.dto.BannerListItemDto;
-import com.tastyhouse.core.entity.file.QUploadedFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -16,6 +14,9 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.tastyhouse.core.entity.banner.QBanner.banner;
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+
 @Repository
 @RequiredArgsConstructor
 public class BannerRepositoryImpl implements BannerRepository {
@@ -24,9 +25,6 @@ public class BannerRepositoryImpl implements BannerRepository {
 
     @Override
     public Page<BannerListItemDto> findAllByType(BannerType type, Pageable pageable) {
-        QBanner banner = QBanner.banner;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         JPAQuery<BannerListItemDto> query = queryFactory
             .select(Projections.constructor(BannerListItemDto.class,
                 banner.id,

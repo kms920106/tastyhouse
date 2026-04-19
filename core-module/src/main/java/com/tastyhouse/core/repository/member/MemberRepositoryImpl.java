@@ -3,11 +3,9 @@ package com.tastyhouse.core.repository.member;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberStatus;
-import com.tastyhouse.core.entity.user.QMember;
 import com.tastyhouse.core.entity.user.dto.MemberProfileDetailDto;
 import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +16,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.entity.user.QMember.member;
 
 @Repository
 @RequiredArgsConstructor
@@ -38,7 +39,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Optional<Member> findByUsername(String username) {
-        QMember member = QMember.member;
         Member result = queryFactory
             .selectFrom(member)
             .where(member.username.eq(username))
@@ -48,7 +48,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public boolean existsByUsername(String username) {
-        QMember member = QMember.member;
         return queryFactory
             .selectOne()
             .from(member)
@@ -58,7 +57,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public boolean existsByNickname(String nickname) {
-        QMember member = QMember.member;
         return queryFactory
             .selectOne()
             .from(member)
@@ -68,7 +66,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Optional<Member> findByNickname(String nickname) {
-        QMember member = QMember.member;
         Member result = queryFactory
             .selectFrom(member)
             .where(member.nickname.eq(nickname))
@@ -78,8 +75,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Page<MemberWithProfileImageDto> findByNicknameContaining(String nickname, Pageable pageable) {
-        QMember member = QMember.member;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
         List<MemberWithProfileImageDto> content = queryFactory
             .select(Projections.constructor(MemberWithProfileImageDto.class,
@@ -107,7 +102,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public boolean existsByPhoneNumberValueAndMemberStatusNot(String phoneNumber, MemberStatus memberStatus) {
-        QMember member = QMember.member;
         return queryFactory
             .selectOne()
             .from(member)
@@ -120,7 +114,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Optional<Member> findByPhoneNumberValueAndMemberStatusNot(String phoneNumber, MemberStatus memberStatus) {
-        QMember member = QMember.member;
         Member result = queryFactory
             .selectFrom(member)
             .where(
@@ -133,7 +126,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade) {
-        QMember member = QMember.member;
         return queryFactory.update(member)
             .set(member.memberGrade, grade)
             .where(member.id.in(memberIds))
@@ -142,8 +134,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Optional<MemberWithProfileImageDto> findMemberWithProfileImageById(Long memberId) {
-        QMember member = QMember.member;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
         MemberWithProfileImageDto result = queryFactory
             .select(Projections.constructor(MemberWithProfileImageDto.class,
@@ -163,8 +153,6 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Optional<MemberProfileDetailDto> findMemberProfileDetailById(Long memberId) {
-        QMember member = QMember.member;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
         MemberProfileDetailDto result = queryFactory
             .select(Projections.constructor(MemberProfileDetailDto.class,

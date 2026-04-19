@@ -1,7 +1,6 @@
 package com.tastyhouse.core.repository.notice;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.notice.QNotice;
 import com.tastyhouse.core.entity.notice.dto.NoticeListItemDto;
 import com.tastyhouse.core.entity.notice.dto.QNoticeListItemDto;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import static com.tastyhouse.core.entity.notice.QNotice.notice;
+
 @Repository
 @RequiredArgsConstructor
 public class NoticeRepositoryImpl implements NoticeRepository {
@@ -20,8 +21,6 @@ public class NoticeRepositoryImpl implements NoticeRepository {
 
     @Override
     public Page<NoticeListItemDto> findAllWithFilter(Pageable pageable) {
-        QNotice notice = QNotice.notice;
-
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)

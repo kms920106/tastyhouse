@@ -4,16 +4,8 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.file.QUploadedFile;
-import com.tastyhouse.core.entity.place.QPlace;
-import com.tastyhouse.core.entity.place.QPlaceStation;
-import com.tastyhouse.core.entity.product.QProduct;
 import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
 import com.tastyhouse.core.entity.rank.dto.QMemberReviewCountDto;
-import com.tastyhouse.core.entity.review.QReview;
-import com.tastyhouse.core.entity.review.QReviewComment;
-import com.tastyhouse.core.entity.review.QReviewImage;
-import com.tastyhouse.core.entity.review.QReviewLike;
 import com.tastyhouse.core.entity.review.Review;
 import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
@@ -22,7 +14,9 @@ import com.tastyhouse.core.entity.review.dto.QBestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.QLatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
 import com.tastyhouse.core.entity.review.dto.QReviewDetailDto;
-import com.tastyhouse.core.entity.user.QMember;
+import com.tastyhouse.core.entity.review.QReviewComment;
+import com.tastyhouse.core.entity.review.QReviewImage;
+import com.tastyhouse.core.entity.review.QReviewLike;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -37,22 +31,28 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.entity.place.QPlace.place;
+import static com.tastyhouse.core.entity.place.QPlaceStation.placeStation;
+import static com.tastyhouse.core.entity.product.QProduct.product;
+import static com.tastyhouse.core.entity.review.QReview.review;
+import static com.tastyhouse.core.entity.review.QReviewImage.reviewImage;
+import static com.tastyhouse.core.entity.user.QMember.member;
+
 @Repository
 @RequiredArgsConstructor
 public class ReviewRepositoryImpl implements ReviewRepository {
+
+    private static final QReviewImage subReviewImage = new QReviewImage("subReviewImage");
+    private static final QReviewLike subReviewLike = new QReviewLike("subReviewLike");
+    private static final QReviewComment subReviewComment = new QReviewComment("subReviewComment");
+    private static final QReviewLike sortReviewLike = new QReviewLike("sortReviewLike");
 
     private final JPAQueryFactory queryFactory;
     private final ReviewJpaRepository reviewJpaRepository;
 
     @Override
     public Page<BestReviewListItemDto> findBestReviews(Pageable pageable) {
-        QReview review = QReview.review;
-        QPlace place = QPlace.place;
-        QPlaceStation placeStation = QPlaceStation.placeStation;
-        QReviewImage reviewImage = QReviewImage.reviewImage;
-        QReviewImage subReviewImage = new QReviewImage("subReviewImage");
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         JPAQuery<BestReviewListItemDto> query = queryFactory
             .select(new QBestReviewListItemDto(
                 review.id,
@@ -89,15 +89,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Page<LatestReviewListItemDto> findLatestReviews(Pageable pageable) {
-        QReview review = QReview.review;
-        QPlace place = QPlace.place;
-        QPlaceStation placeStation = QPlaceStation.placeStation;
-        QMember member = QMember.member;
-        QProduct product = QProduct.product;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-        QReviewLike subReviewLike = new QReviewLike("subReviewLike");
-        QReviewComment subReviewComment = new QReviewComment("subReviewComment");
-
         JPAQuery<LatestReviewListItemDto> query = queryFactory
             .select(new QLatestReviewListItemDto(
                 review.id,
@@ -146,10 +137,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     private Map<Long, List<String>> findImageUrlsByReviewIds(List<Long> reviewIds) {
-        QReviewImage reviewImage = QReviewImage.reviewImage;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
-        List<com.querydsl.core.Tuple> results = queryFactory
+        List<Tuple> results = queryFactory
             .select(reviewImage.reviewId, uploadedFile.filePath)
             .from(reviewImage)
             .innerJoin(uploadedFile).on(reviewImage.imageFileId.eq(uploadedFile.id))
@@ -170,15 +158,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Page<LatestReviewListItemDto> findLatestReviewsByFollowing(List<Long> followingMemberIds, Pageable pageable) {
-        QReview review = QReview.review;
-        QPlace place = QPlace.place;
-        QPlaceStation placeStation = QPlaceStation.placeStation;
-        QMember member = QMember.member;
-        QProduct product = QProduct.product;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-        QReviewLike subReviewLike = new QReviewLike("subReviewLike");
-        QReviewComment subReviewComment = new QReviewComment("subReviewComment");
-
         JPAQuery<LatestReviewListItemDto> query = queryFactory
             .select(new QLatestReviewListItemDto(
                 review.id,
@@ -231,22 +210,11 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Page<LatestReviewListItemDto> findLatestReviewsByPlaceId(Long placeId, Integer rating, Pageable pageable, Boolean hasImage, String sortType) {
-        QReview review = QReview.review;
-        QPlace place = QPlace.place;
-        QPlaceStation placeStation = QPlaceStation.placeStation;
-        QMember member = QMember.member;
-        QProduct product = QProduct.product;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-        QReviewLike subReviewLike = new QReviewLike("subReviewLike");
-        QReviewComment subReviewComment = new QReviewComment("subReviewComment");
-
         var whereClause = review.placeId.eq(placeId).and(review.isHidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
-                // rating이 5인 경우 정확히 5.0만
                 whereClause = whereClause.and(review.totalRating.eq(5.0));
             } else {
-                // rating이 3, 4인 경우 해당 범위 (예: 4 -> 4.0 ~ 4.9)
                 whereClause = whereClause.and(
                     review.totalRating.goe(rating.doubleValue())
                         .and(review.totalRating.lt(rating.doubleValue() + 1.0))
@@ -254,11 +222,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             }
         }
 
-        // 이미지 필터링
         if (hasImage != null) {
-            QReviewImage subReviewImage = new QReviewImage("subReviewImage");
             if (hasImage) {
-                // 이미지가 있는 리뷰만
                 whereClause = whereClause.and(
                     JPAExpressions
                         .selectOne()
@@ -267,7 +232,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                         .exists()
                 );
             } else {
-                // 이미지가 없는 리뷰만
                 whereClause = whereClause.and(
                     JPAExpressions
                         .selectOne()
@@ -306,20 +270,15 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .leftJoin(product).on(review.productId.eq(product.id))
             .where(whereClause);
 
-        // 정렬 로직
         if ("RECOMMENDED".equals(sortType)) {
-            // 추천순: 좋아요 수 기준 (내림차순)
-            QReviewLike sortReviewLike = new QReviewLike("sortReviewLike");
             query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(review.id))
                 .groupBy(review.id, placeStation.stationName, review.totalRating, review.content,
                     member.id, member.nickname, uploadedFile.filePath, review.createdAt,
                     product.id, product.name)
                 .orderBy(sortReviewLike.count().desc(), review.createdAt.desc());
         } else if ("OLDEST".equals(sortType)) {
-            // 오래된순
             query.orderBy(review.createdAt.asc());
         } else {
-            // 최신순 (기본값)
             query.orderBy(review.createdAt.desc());
         }
 
@@ -342,12 +301,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public List<MemberReviewCountDto> countReviewsByMemberWithPeriod(
-        LocalDateTime startDate,
-        LocalDateTime endDate
-    ) {
-        QReview review = QReview.review;
-
+    public List<MemberReviewCountDto> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return queryFactory
             .select(new QMemberReviewCountDto(
                 review.memberId,
@@ -370,12 +324,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Optional<ReviewDetailDto> findReviewDetail(Long reviewId) {
-        QReview review = QReview.review;
-        QPlace place = QPlace.place;
-        QPlaceStation placeStation = QPlaceStation.placeStation;
-        QMember member = QMember.member;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         ReviewDetailDto result = queryFactory
             .select(new QReviewDetailDto(
                 review.id,
@@ -417,22 +365,11 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public List<LatestReviewListItemDto> findReviewsByPlaceIdAndRating(Long placeId, Integer rating, int limit) {
-        QReview review = QReview.review;
-        QPlace place = QPlace.place;
-        QPlaceStation placeStation = QPlaceStation.placeStation;
-        QMember member = QMember.member;
-        QProduct product = QProduct.product;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-        QReviewLike subReviewLike = new QReviewLike("subReviewLike");
-        QReviewComment subReviewComment = new QReviewComment("subReviewComment");
-
         var whereClause = review.placeId.eq(placeId).and(review.isHidden.eq(false));
 
         if (rating == 5) {
-            // rating이 5인 경우 정확히 5.0만
             whereClause = whereClause.and(review.totalRating.eq(5.0));
         } else {
-            // rating이 1, 2, 3, 4인 경우 해당 범위 (예: 4 -> 4.0 ~ 4.9)
             whereClause = whereClause.and(
                 review.totalRating.goe(rating.doubleValue())
                     .and(review.totalRating.lt(rating.doubleValue() + 1.0))
@@ -483,15 +420,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Page<LatestReviewListItemDto> findLatestReviewsByProductId(Long productId, Integer rating, Pageable pageable, Boolean hasImage, String sortType) {
-        QReview review = QReview.review;
-        QPlace place = QPlace.place;
-        QPlaceStation placeStation = QPlaceStation.placeStation;
-        QMember member = QMember.member;
-        QProduct product = QProduct.product;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-        QReviewLike subReviewLike = new QReviewLike("subReviewLike");
-        QReviewComment subReviewComment = new QReviewComment("subReviewComment");
-
         var whereClause = review.productId.eq(productId).and(review.isHidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
@@ -505,7 +433,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         }
 
         if (hasImage != null) {
-            QReviewImage subReviewImage = new QReviewImage("subReviewImage");
             if (hasImage) {
                 whereClause = whereClause.and(
                     JPAExpressions
@@ -554,7 +481,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .where(whereClause);
 
         if ("RECOMMENDED".equals(sortType)) {
-            QReviewLike sortReviewLike = new QReviewLike("sortReviewLike");
             query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(review.id))
                 .groupBy(review.id, placeStation.stationName, review.totalRating, review.content,
                     member.id, member.nickname, uploadedFile.filePath, review.createdAt,
@@ -586,15 +512,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public List<LatestReviewListItemDto> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit) {
-        QReview review = QReview.review;
-        QPlace place = QPlace.place;
-        QPlaceStation placeStation = QPlaceStation.placeStation;
-        QMember member = QMember.member;
-        QProduct product = QProduct.product;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-        QReviewLike subReviewLike = new QReviewLike("subReviewLike");
-        QReviewComment subReviewComment = new QReviewComment("subReviewComment");
-
         var whereClause = review.productId.eq(productId).and(review.isHidden.eq(false));
 
         if (rating == 5) {
@@ -649,9 +566,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     private List<String> findImageUrlsByReviewId(Long reviewId) {
-        QReviewImage reviewImage = QReviewImage.reviewImage;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         return queryFactory
             .select(uploadedFile.filePath)
             .from(reviewImage)
@@ -663,9 +577,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Page<MyReviewListItemDto> findMyReviews(Long memberId, Pageable pageable) {
-        QReview review = QReview.review;
-
-        // 1. 먼저 리뷰 ID만 조회 (total count 계산용)
         List<Long> allReviewIds = queryFactory
             .select(review.id)
             .from(review)
@@ -678,7 +589,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
         long total = allReviewIds.size();
 
-        // 2. 페이징된 리뷰 ID 조회
         List<Long> pagedReviewIds = queryFactory
             .select(review.id)
             .from(review)
@@ -691,10 +601,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .limit(pageable.getPageSize())
             .fetch();
 
-        // 3. 각 리뷰의 첫 번째 이미지 URL 조회
         Map<Long, String> imageUrlMap = findFirstImageUrlsByReviewIds(pagedReviewIds);
 
-        // 4. DTO 생성
         List<MyReviewListItemDto> reviews = pagedReviewIds.stream()
             .map(reviewId -> new MyReviewListItemDto(reviewId, imageUrlMap.get(reviewId)))
             .collect(Collectors.toList());
@@ -704,8 +612,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Page<MyReviewListItemDto> findReviewsByMemberId(Long memberId, Pageable pageable) {
-        QReview review = QReview.review;
-
         List<Long> allReviewIds = queryFactory
             .select(review.id)
             .from(review)
@@ -744,11 +650,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             return Map.of();
         }
 
-        QReviewImage reviewImage = QReviewImage.reviewImage;
-        QReviewImage subReviewImage = new QReviewImage("subReviewImage");
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
-        List<com.querydsl.core.Tuple> results = queryFactory
+        List<Tuple> results = queryFactory
             .select(reviewImage.reviewId, uploadedFile.filePath)
             .from(reviewImage)
             .innerJoin(uploadedFile).on(reviewImage.imageFileId.eq(uploadedFile.id))
@@ -774,7 +676,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Long countByPlaceIdAndIsHiddenFalse(Long placeId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.count())
             .from(review)
@@ -784,7 +685,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Long countWillRevisit(Long placeId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.count())
             .from(review)
@@ -798,7 +698,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAverageTasteRating(Long placeId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.tasteRating.avg())
             .from(review)
@@ -808,7 +707,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAverageAmountRating(Long placeId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.amountRating.avg())
             .from(review)
@@ -818,7 +716,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAveragePriceRating(Long placeId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.priceRating.avg())
             .from(review)
@@ -828,7 +725,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAverageAtmosphereRating(Long placeId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.atmosphereRating.avg())
             .from(review)
@@ -838,7 +734,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAverageKindnessRating(Long placeId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.kindnessRating.avg())
             .from(review)
@@ -848,7 +743,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAverageHygieneRating(Long placeId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.hygieneRating.avg())
             .from(review)
@@ -858,8 +752,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Map<Integer, Long> getRatingCounts(Long placeId) {
-        QReview review = QReview.review;
-
         List<Tuple> results = queryFactory
             .select(review.totalRating.floor().intValue(), review.count())
             .from(review)
@@ -876,8 +768,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Map<Integer, Long> getMonthlyReviewCounts(Long placeId, int year) {
-        QReview review = QReview.review;
-
         List<Tuple> results = queryFactory
             .select(review.createdAt.month(), review.count())
             .from(review)
@@ -898,7 +788,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Long countByProductIdAndIsHiddenFalse(Long productId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.count())
             .from(review)
@@ -908,7 +797,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAverageTasteRatingByProductId(Long productId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.tasteRating.avg())
             .from(review)
@@ -918,7 +806,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAverageAmountRatingByProductId(Long productId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.amountRating.avg())
             .from(review)
@@ -928,7 +815,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Double getAveragePriceRatingByProductId(Long productId) {
-        QReview review = QReview.review;
         return queryFactory
             .select(review.priceRating.avg())
             .from(review)
@@ -938,7 +824,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public Optional<Review> findByIdAndMemberId(Long reviewId, Long memberId) {
-        QReview review = QReview.review;
         Review result = queryFactory
             .selectFrom(review)
             .where(
@@ -951,7 +836,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public long countVisibleReviewsByMemberId(Long memberId) {
-        QReview review = QReview.review;
         Long count = queryFactory
             .select(review.count())
             .from(review)
@@ -962,7 +846,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
     @Override
     public boolean existsByOrderIdAndProductIdAndMemberId(Long orderId, Long productId, Long memberId) {
-        QReview review = QReview.review;
         return queryFactory
             .selectOne()
             .from(review)

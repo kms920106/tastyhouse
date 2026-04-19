@@ -5,11 +5,8 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.follow.Follow;
-import com.tastyhouse.core.entity.follow.QFollow;
 import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
-import com.tastyhouse.core.entity.user.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +15,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.entity.follow.QFollow.follow;
+import static com.tastyhouse.core.entity.user.QMember.member;
 
 @Repository
 @RequiredArgsConstructor
@@ -28,8 +29,6 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public Optional<Follow> findByFollowerIdAndFollowingId(Long followerId, Long followingId) {
-        QFollow follow = QFollow.follow;
-
         Follow result = queryFactory
             .selectFrom(follow)
             .where(
@@ -43,8 +42,6 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId) {
-        QFollow follow = QFollow.follow;
-
         Long count = queryFactory
             .select(follow.count())
             .from(follow)
@@ -59,7 +56,6 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public boolean existsByFollowingId(Long followingId) {
-        QFollow follow = QFollow.follow;
         return queryFactory
             .selectOne()
             .from(follow)
@@ -79,8 +75,6 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public List<Long> findFollowingIdsByFollowerId(Long followerId) {
-        QFollow follow = QFollow.follow;
-
         return queryFactory
             .select(follow.followingId)
             .from(follow)
@@ -90,8 +84,6 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public long countByFollowerId(Long followerId) {
-        QFollow follow = QFollow.follow;
-
         Long count = queryFactory
             .select(follow.count())
             .from(follow)
@@ -103,8 +95,6 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public long countByFollowingId(Long followingId) {
-        QFollow follow = QFollow.follow;
-
         Long count = queryFactory
             .select(follow.count())
             .from(follow)
@@ -116,10 +106,7 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public Page<FollowMemberDto> findFollowingList(Long memberId, Long viewerMemberId, Pageable pageable) {
-        QFollow follow = QFollow.follow;
-        QFollow viewerFollow = new QFollow("viewerFollow");
-        QMember member = QMember.member;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+        com.tastyhouse.core.entity.follow.QFollow viewerFollow = new com.tastyhouse.core.entity.follow.QFollow("viewerFollow");
 
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
@@ -158,10 +145,7 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public Page<FollowMemberDto> findFollowerList(Long memberId, Long viewerMemberId, Pageable pageable) {
-        QFollow follow = QFollow.follow;
-        QFollow viewerFollow = new QFollow("viewerFollow");
-        QMember member = QMember.member;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+        com.tastyhouse.core.entity.follow.QFollow viewerFollow = new com.tastyhouse.core.entity.follow.QFollow("viewerFollow");
 
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()

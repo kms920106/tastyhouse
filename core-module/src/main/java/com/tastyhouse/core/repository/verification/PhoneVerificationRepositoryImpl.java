@@ -3,12 +3,13 @@ package com.tastyhouse.core.repository.verification;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.verification.PhoneVerification;
 import com.tastyhouse.core.entity.verification.PhoneVerificationStatus;
-import com.tastyhouse.core.entity.verification.QPhoneVerification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+
+import static com.tastyhouse.core.entity.verification.QPhoneVerification.phoneVerification;
 
 @Repository
 @RequiredArgsConstructor
@@ -18,14 +19,13 @@ public class PhoneVerificationRepositoryImpl implements PhoneVerificationReposit
 
     @Override
     public Optional<PhoneVerification> findLatestPendingByPhoneNumber(String phoneNumber, PhoneVerificationStatus status) {
-        QPhoneVerification pv = QPhoneVerification.phoneVerification;
         PhoneVerification result = queryFactory
-            .selectFrom(pv)
+            .selectFrom(phoneVerification)
             .where(
-                pv.phoneNumber.value.eq(phoneNumber),
-                pv.status.eq(status)
+                phoneVerification.phoneNumber.value.eq(phoneNumber),
+                phoneVerification.status.eq(status)
             )
-            .orderBy(pv.createdAt.desc())
+            .orderBy(phoneVerification.createdAt.desc())
             .limit(1)
             .fetchOne();
         return Optional.ofNullable(result);
@@ -33,26 +33,24 @@ public class PhoneVerificationRepositoryImpl implements PhoneVerificationReposit
 
     @Override
     public void expireAllPendingByPhoneNumber(String phoneNumber) {
-        QPhoneVerification pv = QPhoneVerification.phoneVerification;
         queryFactory
-            .update(pv)
-            .set(pv.status, PhoneVerificationStatus.EXPIRED)
+            .update(phoneVerification)
+            .set(phoneVerification.status, PhoneVerificationStatus.EXPIRED)
             .where(
-                pv.phoneNumber.value.eq(phoneNumber),
-                pv.status.eq(PhoneVerificationStatus.PENDING)
+                phoneVerification.phoneNumber.value.eq(phoneNumber),
+                phoneVerification.status.eq(PhoneVerificationStatus.PENDING)
             )
             .execute();
     }
 
     @Override
     public void expireAllOverdue(LocalDateTime now) {
-        QPhoneVerification pv = QPhoneVerification.phoneVerification;
         queryFactory
-            .update(pv)
-            .set(pv.status, PhoneVerificationStatus.EXPIRED)
+            .update(phoneVerification)
+            .set(phoneVerification.status, PhoneVerificationStatus.EXPIRED)
             .where(
-                pv.status.eq(PhoneVerificationStatus.PENDING),
-                pv.expiresAt.lt(now)
+                phoneVerification.status.eq(PhoneVerificationStatus.PENDING),
+                phoneVerification.expiresAt.lt(now)
             )
             .execute();
     }

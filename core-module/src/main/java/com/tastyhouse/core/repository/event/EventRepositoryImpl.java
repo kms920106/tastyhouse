@@ -7,13 +7,9 @@ import com.tastyhouse.core.entity.event.Event;
 import com.tastyhouse.core.entity.event.EventAnnouncement;
 import com.tastyhouse.core.entity.event.EventStatus;
 import com.tastyhouse.core.entity.event.EventType;
-import com.tastyhouse.core.entity.event.QEvent;
-import com.tastyhouse.core.entity.event.QEventAnnouncement;
-import com.tastyhouse.core.entity.event.QEventPrize;
 import com.tastyhouse.core.entity.event.dto.EventDetailDto;
 import com.tastyhouse.core.entity.event.dto.EventListItemDto;
 import com.tastyhouse.core.entity.event.dto.PrizeItemDto;
-import com.tastyhouse.core.entity.file.QUploadedFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +19,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import static com.tastyhouse.core.entity.event.QEvent.event;
+import static com.tastyhouse.core.entity.event.QEventAnnouncement.eventAnnouncement;
+import static com.tastyhouse.core.entity.event.QEventPrize.eventPrize;
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+
 @Repository
 @RequiredArgsConstructor
 public class EventRepositoryImpl implements EventRepository {
@@ -31,8 +32,6 @@ public class EventRepositoryImpl implements EventRepository {
 
     @Override
     public Optional<Event> findLatestByStatusAndType(EventStatus status, EventType type) {
-        QEvent event = QEvent.event;
-
         Event result = queryFactory
             .selectFrom(event)
             .where(
@@ -48,8 +47,6 @@ public class EventRepositoryImpl implements EventRepository {
 
     @Override
     public Page<EventAnnouncement> findAllAnnouncementsOrderByAnnouncedAtDesc(Pageable pageable) {
-        QEventAnnouncement eventAnnouncement = QEventAnnouncement.eventAnnouncement;
-
         List<EventAnnouncement> content = queryFactory
             .selectFrom(eventAnnouncement)
             .orderBy(eventAnnouncement.announcedAt.desc())
@@ -66,9 +63,6 @@ public class EventRepositoryImpl implements EventRepository {
 
     @Override
     public Page<EventListItemDto> findEventListItemsByStatus(EventStatus status, Pageable pageable) {
-        QEvent event = QEvent.event;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         List<EventListItemDto> content = queryFactory
             .select(Projections.constructor(EventListItemDto.class,
                 event.id,
@@ -95,9 +89,6 @@ public class EventRepositoryImpl implements EventRepository {
 
     @Override
     public List<PrizeItemDto> findPrizeItemsByEventId(Long eventId) {
-        QEventPrize eventPrize = QEventPrize.eventPrize;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         return queryFactory
             .select(Projections.constructor(PrizeItemDto.class,
                 eventPrize.id,
@@ -115,9 +106,6 @@ public class EventRepositoryImpl implements EventRepository {
 
     @Override
     public Optional<EventDetailDto> findEventDetailById(Long eventId) {
-        QEvent event = QEvent.event;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         EventDetailDto result = queryFactory
             .select(Projections.constructor(EventDetailDto.class,
                 uploadedFile.filePath

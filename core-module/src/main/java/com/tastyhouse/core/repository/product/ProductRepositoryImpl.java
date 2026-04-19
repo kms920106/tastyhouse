@@ -3,7 +3,6 @@ package com.tastyhouse.core.repository.product;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.place.QPlace;
 import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductBbq;
 import com.tastyhouse.core.entity.product.ProductCategory;
@@ -12,15 +11,6 @@ import com.tastyhouse.core.entity.product.ProductCommonOptionGroup;
 import com.tastyhouse.core.entity.product.ProductImage;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
-import com.tastyhouse.core.entity.product.QProduct;
-import com.tastyhouse.core.entity.product.QProductBbq;
-import com.tastyhouse.core.entity.product.QProductCategory;
-import com.tastyhouse.core.entity.product.QProductCommonOption;
-import com.tastyhouse.core.entity.product.QProductCommonOptionGroup;
-import com.tastyhouse.core.entity.product.QProductImage;
-import com.tastyhouse.core.entity.product.QProductOption;
-import com.tastyhouse.core.entity.product.QProductOptionGroup;
-import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.QProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.QTodayDiscountProductDto;
@@ -34,6 +24,17 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.entity.place.QPlace.place;
+import static com.tastyhouse.core.entity.product.QProduct.product;
+import static com.tastyhouse.core.entity.product.QProductBbq.productBbq;
+import static com.tastyhouse.core.entity.product.QProductCategory.productCategory;
+import static com.tastyhouse.core.entity.product.QProductCommonOption.productCommonOption;
+import static com.tastyhouse.core.entity.product.QProductCommonOptionGroup.productCommonOptionGroup;
+import static com.tastyhouse.core.entity.product.QProductImage.productImage;
+import static com.tastyhouse.core.entity.product.QProductOption.productOption;
+import static com.tastyhouse.core.entity.product.QProductOptionGroup.productOptionGroup;
+
 @Repository
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
@@ -42,11 +43,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public Page<TodayDiscountProductDto> findTodayDiscountProducts(Pageable pageable) {
-        QProduct product = QProduct.product;
-        QPlace place = QPlace.place;
-        QProductImage productImage = QProductImage.productImage;
-        QProductImage subProductImage = new QProductImage("subProductImage");
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+        com.tastyhouse.core.entity.product.QProductImage subProductImage = new com.tastyhouse.core.entity.product.QProductImage("subProductImage");
 
         JPAQuery<TodayDiscountProductDto> query = queryFactory
             .select(new QTodayDiscountProductDto(
@@ -88,11 +85,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<ProductSimpleDto> findProductsByPlaceId(Long placeId) {
-        QProduct product = QProduct.product;
-        QPlace place = QPlace.place;
-        QProductImage productImage = QProductImage.productImage;
-        QProductImage subProductImage = new QProductImage("subProductImage");
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+        com.tastyhouse.core.entity.product.QProductImage subProductImage = new com.tastyhouse.core.entity.product.QProductImage("subProductImage");
 
         return queryFactory
             .select(new QProductSimpleDto(
@@ -125,7 +118,6 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<Product> findByPlaceIdOrderByRepresentativeAndRating(Long placeId) {
-        QProduct product = QProduct.product;
         return queryFactory
             .selectFrom(product)
             .where(product.placeId.eq(placeId))
@@ -135,7 +127,6 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<Product> findActiveByPlaceIdOrderByRepresentativeAndRating(Long placeId) {
-        QProduct product = QProduct.product;
         return queryFactory
             .selectFrom(product)
             .where(product.placeId.eq(placeId), product.isActive.eq(true))
@@ -145,7 +136,6 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<Product> findActiveByPlaceIdOrderBySort(Long placeId) {
-        QProduct product = QProduct.product;
         return queryFactory
             .selectFrom(product)
             .where(product.placeId.eq(placeId), product.isActive.eq(true))
@@ -155,7 +145,6 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<Product> findByPlaceId(Long placeId) {
-        QProduct product = QProduct.product;
         return queryFactory
             .selectFrom(product)
             .where(product.placeId.eq(placeId))
@@ -164,148 +153,133 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<ProductCategory> findActiveCategoriesByPlaceIdOrderBySort(Long placeId) {
-        QProductCategory category = QProductCategory.productCategory;
         return queryFactory
-            .selectFrom(category)
-            .where(category.placeId.eq(placeId), category.isActive.eq(true))
-            .orderBy(category.sort.asc())
+            .selectFrom(productCategory)
+            .where(productCategory.placeId.eq(placeId), productCategory.isActive.eq(true))
+            .orderBy(productCategory.sort.asc())
             .fetch();
     }
 
     @Override
     public List<ProductCategory> findCategoriesByNameAndPlaceId(String name, Long placeId) {
-        QProductCategory category = QProductCategory.productCategory;
         return queryFactory
-            .selectFrom(category)
-            .where(category.name.eq(name), category.placeId.eq(placeId))
+            .selectFrom(productCategory)
+            .where(productCategory.name.eq(name), productCategory.placeId.eq(placeId))
             .fetch();
     }
 
     @Override
     public List<ProductImage> findActiveImagesByProductIdOrderBySort(Long productId) {
-        QProductImage image = QProductImage.productImage;
         return queryFactory
-            .selectFrom(image)
-            .where(image.productId.eq(productId), image.isActive.eq(true))
-            .orderBy(image.sort.asc())
+            .selectFrom(productImage)
+            .where(productImage.productId.eq(productId), productImage.isActive.eq(true))
+            .orderBy(productImage.sort.asc())
             .fetch();
     }
 
     @Override
     public List<ProductImage> findImagesByProductIdOrderBySort(Long productId) {
-        QProductImage image = QProductImage.productImage;
         return queryFactory
-            .selectFrom(image)
-            .where(image.productId.eq(productId))
-            .orderBy(image.sort.asc())
+            .selectFrom(productImage)
+            .where(productImage.productId.eq(productId))
+            .orderBy(productImage.sort.asc())
             .fetch();
     }
 
     @Override
     public List<ProductOptionGroup> findActiveOptionGroupsByProductIdOrderBySort(Long productId) {
-        QProductOptionGroup group = QProductOptionGroup.productOptionGroup;
         return queryFactory
-            .selectFrom(group)
-            .where(group.productId.eq(productId), group.isActive.eq(true))
-            .orderBy(group.sort.asc())
+            .selectFrom(productOptionGroup)
+            .where(productOptionGroup.productId.eq(productId), productOptionGroup.isActive.eq(true))
+            .orderBy(productOptionGroup.sort.asc())
             .fetch();
     }
 
     @Override
     public boolean existsOptionGroupByProductId(Long productId) {
-        QProductOptionGroup group = QProductOptionGroup.productOptionGroup;
         return queryFactory
             .selectOne()
-            .from(group)
-            .where(group.productId.eq(productId))
+            .from(productOptionGroup)
+            .where(productOptionGroup.productId.eq(productId))
             .fetchFirst() != null;
     }
 
     @Override
     public List<ProductOption> findActiveOptionsByOptionGroupIdOrderBySort(Long optionGroupId) {
-        QProductOption option = QProductOption.productOption;
         return queryFactory
-            .selectFrom(option)
-            .where(option.optionGroupId.eq(optionGroupId), option.isActive.eq(true))
-            .orderBy(option.sort.asc())
+            .selectFrom(productOption)
+            .where(productOption.optionGroupId.eq(optionGroupId), productOption.isActive.eq(true))
+            .orderBy(productOption.sort.asc())
             .fetch();
     }
 
     @Override
     public List<ProductOption> findActiveOptionsByOptionGroupIdsOrderBySort(List<Long> optionGroupIds) {
-        QProductOption option = QProductOption.productOption;
         return queryFactory
-            .selectFrom(option)
-            .where(option.optionGroupId.in(optionGroupIds), option.isActive.eq(true))
-            .orderBy(option.sort.asc())
+            .selectFrom(productOption)
+            .where(productOption.optionGroupId.in(optionGroupIds), productOption.isActive.eq(true))
+            .orderBy(productOption.sort.asc())
             .fetch();
     }
 
     @Override
     public List<ProductCommonOptionGroup> findActiveCommonOptionGroupsByProductIdOrderBySort(Long productId) {
-        QProductCommonOptionGroup group = QProductCommonOptionGroup.productCommonOptionGroup;
         return queryFactory
-            .selectFrom(group)
-            .where(group.productId.eq(productId), group.isActive.eq(true))
-            .orderBy(group.sort.asc())
+            .selectFrom(productCommonOptionGroup)
+            .where(productCommonOptionGroup.productId.eq(productId), productCommonOptionGroup.isActive.eq(true))
+            .orderBy(productCommonOptionGroup.sort.asc())
             .fetch();
     }
 
     @Override
     public List<ProductCommonOption> findActiveCommonOptionsByOptionGroupIdOrderBySort(Long optionGroupId) {
-        QProductCommonOption option = QProductCommonOption.productCommonOption;
         return queryFactory
-            .selectFrom(option)
-            .where(option.optionGroupId.eq(optionGroupId), option.isActive.eq(true))
-            .orderBy(option.sort.asc())
+            .selectFrom(productCommonOption)
+            .where(productCommonOption.optionGroupId.eq(optionGroupId), productCommonOption.isActive.eq(true))
+            .orderBy(productCommonOption.sort.asc())
             .fetch();
     }
 
     @Override
     public List<ProductCommonOption> findActiveCommonOptionsByOptionGroupIdsOrderBySort(List<Long> optionGroupIds) {
-        QProductCommonOption option = QProductCommonOption.productCommonOption;
         return queryFactory
-            .selectFrom(option)
-            .where(option.optionGroupId.in(optionGroupIds), option.isActive.eq(true))
-            .orderBy(option.sort.asc())
+            .selectFrom(productCommonOption)
+            .where(productCommonOption.optionGroupId.in(optionGroupIds), productCommonOption.isActive.eq(true))
+            .orderBy(productCommonOption.sort.asc())
             .fetch();
     }
 
     @Override
     public Optional<ProductBbq> findBbqByProductId(Long productId) {
-        QProductBbq bbq = QProductBbq.productBbq;
         return Optional.ofNullable(
             queryFactory
-                .selectFrom(bbq)
-                .where(bbq.productId.eq(productId))
+                .selectFrom(productBbq)
+                .where(productBbq.productId.eq(productId))
                 .fetchOne()
         );
     }
 
     @Override
     public boolean existsBbqByProductId(Long productId) {
-        QProductBbq bbq = QProductBbq.productBbq;
         return queryFactory
             .selectOne()
-            .from(bbq)
-            .where(bbq.productId.eq(productId))
+            .from(productBbq)
+            .where(productBbq.productId.eq(productId))
             .fetchFirst() != null;
     }
 
     @Override
     public Optional<ProductBbq> findFirstBbqWithOptionsSyncPending() {
-        QProductBbq bbq = QProductBbq.productBbq;
         return Optional.ofNullable(
             queryFactory
-                .selectFrom(bbq)
-                .where(bbq.isOptionsSynced.eq(false))
+                .selectFrom(productBbq)
+                .where(productBbq.isOptionsSynced.eq(false))
                 .fetchFirst()
         );
     }
 
     @Override
     public String findFilePathByImageFileId(Long imageFileId) {
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
         return queryFactory
             .select(uploadedFile.filePath)
             .from(uploadedFile)

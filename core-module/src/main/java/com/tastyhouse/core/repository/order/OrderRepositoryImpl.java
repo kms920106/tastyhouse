@@ -1,20 +1,13 @@
 package com.tastyhouse.core.repository.order;
 
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.order.Order;
 import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.order.OrderStatus;
-import com.tastyhouse.core.entity.order.QOrder;
-import com.tastyhouse.core.entity.order.QOrderItem;
-import com.tastyhouse.core.entity.order.QOrderItemOption;
 import com.tastyhouse.core.entity.payment.PaymentStatus;
-import com.tastyhouse.core.entity.payment.QPayment;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.entity.payment.dto.QOrderListItemDto;
-import com.tastyhouse.core.entity.file.QUploadedFile;
-import com.tastyhouse.core.entity.place.QPlace;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -23,6 +16,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.entity.order.QOrder.order;
+import static com.tastyhouse.core.entity.order.QOrderItem.orderItem;
+import static com.tastyhouse.core.entity.order.QOrderItemOption.orderItemOption;
+import static com.tastyhouse.core.entity.payment.QPayment.payment;
+import static com.tastyhouse.core.entity.place.QPlace.place;
 
 @Repository
 @RequiredArgsConstructor
@@ -40,7 +40,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Optional<Order> findByOrderNumber(String orderNumber) {
-        QOrder order = QOrder.order;
         return Optional.ofNullable(
             queryFactory.selectFrom(order)
                 .where(order.orderNumber.eq(orderNumber))
@@ -50,7 +49,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<Order> findByMemberIdOrderByCreatedAtDesc(Long memberId) {
-        QOrder order = QOrder.order;
         return queryFactory.selectFrom(order)
             .where(order.memberId.eq(memberId))
             .orderBy(order.createdAt.desc())
@@ -59,7 +57,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Page<Order> findByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable) {
-        QOrder order = QOrder.order;
         List<Order> content = queryFactory.selectFrom(order)
             .where(order.memberId.eq(memberId))
             .orderBy(order.createdAt.desc())
@@ -73,7 +70,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<Order> findByMemberIdAndOrderStatusOrderByCreatedAtDesc(Long memberId, OrderStatus orderStatus) {
-        QOrder order = QOrder.order;
         return queryFactory.selectFrom(order)
             .where(order.memberId.eq(memberId), order.orderStatus.eq(orderStatus))
             .orderBy(order.createdAt.desc())
@@ -82,7 +78,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<Order> findByPlaceIdOrderByCreatedAtDesc(Long placeId) {
-        QOrder order = QOrder.order;
         return queryFactory.selectFrom(order)
             .where(order.placeId.eq(placeId))
             .orderBy(order.createdAt.desc())
@@ -91,7 +86,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<Order> findByPlaceIdAndOrderStatusOrderByCreatedAtDesc(Long placeId, OrderStatus orderStatus) {
-        QOrder order = QOrder.order;
         return queryFactory.selectFrom(order)
             .where(order.placeId.eq(placeId), order.orderStatus.eq(orderStatus))
             .orderBy(order.createdAt.desc())
@@ -100,7 +94,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public boolean existsByOrderNumber(String orderNumber) {
-        QOrder order = QOrder.order;
         return queryFactory.selectOne().from(order)
             .where(order.orderNumber.eq(orderNumber))
             .fetchFirst() != null;
@@ -113,9 +106,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Page<Order> findCompletedOrCancelledOrdersByMemberId(Long memberId, Pageable pageable) {
-        QOrder order = QOrder.order;
-        QPayment payment = QPayment.payment;
-
         List<Order> content = queryFactory
             .selectFrom(order)
             .innerJoin(payment).on(
@@ -143,32 +133,13 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Page<OrderListItemDto> findOrderListByMemberId(Long memberId, Pageable pageable) {
-        QOrder order = QOrder.order;
-        QPayment payment = QPayment.payment;
-        QPlace place = QPlace.place;
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-        QOrderItem orderItem = QOrderItem.orderItem;
-        QOrderItem subOrderItem = new QOrderItem("subOrderItem");
-
         List<OrderListItemDto> content = queryFactory
             .select(new QOrderListItemDto(
                 order.id,
                 place.name,
                 uploadedFile.filePath,
-                JPAExpressions
-                    .select(subOrderItem.productName)
-                    .from(subOrderItem)
-                    .where(subOrderItem.orderId.eq(order.id)
-                        .and(subOrderItem.id.eq(
-                            JPAExpressions
-                                .select(subOrderItem.id.min())
-                                .from(subOrderItem)
-                                .where(subOrderItem.orderId.eq(order.id))
-                        ))),
-                JPAExpressions
-                    .select(orderItem.id.count().intValue())
-                    .from(orderItem)
-                    .where(orderItem.orderId.eq(order.id)),
+                orderItem.productName.min(),
+                orderItem.id.count().intValue(),
                 order.finalAmount,
                 payment.paymentStatus,
                 payment.approvedAt
@@ -180,7 +151,9 @@ public class OrderRepositoryImpl implements OrderRepository {
             )
             .leftJoin(place).on(place.id.eq(order.placeId))
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
+            .leftJoin(orderItem).on(orderItem.orderId.eq(order.id))
             .where(order.memberId.eq(memberId))
+            .groupBy(order.id, place.name, uploadedFile.filePath, order.finalAmount, payment.paymentStatus, payment.approvedAt)
             .orderBy(order.createdAt.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -206,7 +179,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<OrderItem> findOrderItemsByOrderId(Long orderId) {
-        QOrderItem orderItem = QOrderItem.orderItem;
         return queryFactory.selectFrom(orderItem)
             .where(orderItem.orderId.eq(orderId))
             .fetch();
@@ -214,9 +186,8 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<OrderItemOption> findOrderItemOptionsByOrderItemId(Long orderItemId) {
-        QOrderItemOption option = QOrderItemOption.orderItemOption;
-        return queryFactory.selectFrom(option)
-            .where(option.orderItemId.eq(orderItemId))
+        return queryFactory.selectFrom(orderItemOption)
+            .where(orderItemOption.orderItemId.eq(orderItemId))
             .fetch();
     }
 
