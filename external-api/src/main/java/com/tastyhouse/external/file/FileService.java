@@ -9,6 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
@@ -29,6 +34,7 @@ public class FileService {
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
+    // 멀티파트 파일을 검증 후 저장소에 업로드하고 DB에 저장된 파일 ID를 반환한다.
     public Long upload(MultipartFile file) {
         validateFile(file);
 
@@ -52,11 +58,13 @@ public class FileService {
         return saved.getId();
     }
 
+    // 파일 ID로 저장된 파일의 접근 URL을 반환한다.
     public String getFileUrl(Long fileId) {
         UploadedFile file = fileCoreService.findById(fileId);
         return fileStorageStrategy.getFileUrl(file.getFilePath());
     }
 
+    // 파일 경로로 접근 URL을 반환하며, 경로가 null이면 null을 반환한다.
     public String getUrlByPath(String filePath) {
         if (filePath == null) {
             return null;
@@ -64,6 +72,7 @@ public class FileService {
         return fileStorageStrategy.getFileUrl(filePath);
     }
 
+    // 파일의 존재 여부, 크기, 콘텐츠 타입, 확장자를 검증한다.
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new BusinessException(ErrorCode.FILE_EMPTY);
@@ -85,6 +94,38 @@ public class FileService {
         }
     }
 
+    // 외부 URL에서 이미지를 다운로드하여 업로드하고 파일 ID를 반환한다.
+    public Long uploadFromUrl(String imageUrl) {
+        try {
+            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(imageUrl))
+                .GET()
+                .build();
+
+            HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+            if (response.statusCode() != 200) {
+                throw new BusinessException(ErrorCode.FILE_EMPTY);
+            }
+
+            byte[] imageBytes = response.body();
+            String rawContentType = response.headers().firstValue("Content-Type").orElse("image/jpeg");
+            String contentType = rawContentType.split(";")[0].trim();
+
+            String rawFilename = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+            String filename = rawFilename.contains("?") ? rawFilename.substring(0, rawFilename.indexOf("?")) : rawFilename;
+
+            MultipartFile multipartFile = new ByteArrayMultipartFile(filename, contentType, imageBytes);
+            return upload(multipartFile);
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("이미지 다운로드 실패: url={}", imageUrl, e);
+            throw new RuntimeException("이미지 다운로드 실패: " + imageUrl, e);
+        }
+    }
+
+    // 파일명에서 소문자로 변환된 확장자를 추출한다.
     private String extractExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             throw new BusinessException(ErrorCode.FILE_EXTENSION_UNKNOWN);

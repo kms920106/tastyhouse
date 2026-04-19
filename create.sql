@@ -245,13 +245,14 @@ CREATE TABLE PRODUCT_BBQ
 
 CREATE TABLE PRODUCT_IMAGE
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_id BIGINT       NOT NULL,
-    image_url  VARCHAR(255) NOT NULL,
-    sort       INT          NOT NULL,
-    is_active  TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at DATETIME     NOT NULL,
-    updated_at DATETIME     NOT NULL,
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_id       BIGINT       NOT NULL,
+    image_url        VARCHAR(255) NOT NULL,
+    sort             INT          NOT NULL,
+    is_active        TINYINT(1)   NOT NULL DEFAULT 1,
+    uploaded_file_id BIGINT,
+    created_at       DATETIME     NOT NULL,
+    updated_at       DATETIME     NOT NULL,
     INDEX idx_product_image_product_id (product_id),
     INDEX idx_product_image_active (product_id, is_active, sort)
 );
