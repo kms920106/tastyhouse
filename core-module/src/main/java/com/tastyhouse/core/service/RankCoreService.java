@@ -30,7 +30,7 @@ public class RankCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<MemberRankDto> findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
+    public MemberRankDto findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
         return memberReviewRankRepository.findMemberRank(memberId, rankType, baseDate);
     }
 

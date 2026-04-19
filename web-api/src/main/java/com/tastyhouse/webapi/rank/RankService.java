@@ -43,9 +43,18 @@ public class RankService {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = calculateBaseDate();
 
-        return rankCoreService.findMemberRank(memberId, type, baseDate)
-            .map(MyRankResponse::from)
-            .orElse(null);
+        MemberRankDto dto = rankCoreService.findMemberRank(memberId, type, baseDate);
+        if (dto == null) {
+            return null;
+        }
+        return MyRankResponse.from(
+            dto.memberId(),
+            dto.nickname(),
+            fileService.getUrlByPath(dto.profileImageUrl()),
+            dto.reviewCount(),
+            dto.rankNo(),
+            dto.grade()
+        );
     }
 
     private RankType parseRankType(String rankType) {

@@ -12,7 +12,7 @@ public interface MemberReviewRankRepository {
 
     List<MemberRankDto> findMemberRankList(RankType rankType, LocalDate baseDate, int limit);
 
-    Optional<MemberRankDto> findMemberRank(Long memberId, RankType rankType, LocalDate baseDate);
+    MemberRankDto findMemberRank(Long memberId, RankType rankType, LocalDate baseDate);
 
     Optional<MemberReviewRank> findLatestByMemberIdAndRankType(Long memberId, RankType rankType);
 

@@ -49,12 +49,12 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
     }
 
     @Override
-    public Optional<MemberRankDto> findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
+    public MemberRankDto findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
         QMemberReviewRank rank = QMemberReviewRank.memberReviewRank;
         QMember member = QMember.member;
         QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
-        return Optional.ofNullable(queryFactory
+        return queryFactory
             .select(new QMemberRankDto(
                 rank.memberId,
                 member.nickname,
@@ -71,7 +71,7 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
                 rank.rankType.eq(rankType),
                 rank.baseDate.eq(baseDate)
             )
-            .fetchOne());
+            .fetchOne();
     }
 
     @Override
