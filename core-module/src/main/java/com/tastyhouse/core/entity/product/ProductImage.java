@@ -57,14 +57,4 @@ public class ProductImage extends BaseEntity {
             isActive
         );
     }
-
-    public void update(
-        Long uploadedFileId,
-        Integer sort,
-        Boolean isActive
-    ) {
-        this.uploadedFileId = uploadedFileId;
-        this.sort = sort;
-        this.isActive = isActive;
-    }
 }
