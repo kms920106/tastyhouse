@@ -30,30 +30,30 @@ public class ReviewImage extends BaseEntity {
     @Column(name = "review_id", nullable = false)
     private Long reviewId;
 
-    @Column(name = "uploaded_file_id", nullable = false)
-    private Long uploadedFileId; // UploadedFile PK
+    @Column(name = "image_file_id", nullable = false)
+    private Long imageFileId;
 
     @Column(name = "sort", nullable = false)
-    private Integer sort; // 이미지 정렬 순서
+    private Integer sort;
 
     private ReviewImage(
         Long reviewId,
-        Long uploadedFileId,
+        Long imageFileId,
         Integer sort
     ) {
         this.reviewId = reviewId;
-        this.uploadedFileId = uploadedFileId;
+        this.imageFileId = imageFileId;
         this.sort = sort;
     }
 
     public static ReviewImage of(
         Long reviewId,
-        Long uploadedFileId,
+        Long imageFileId,
         Integer sort
     ) {
         return new ReviewImage(
             reviewId,
-            uploadedFileId,
+            imageFileId,
             sort
         );
     }

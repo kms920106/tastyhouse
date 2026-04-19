@@ -73,7 +73,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
         var thumbnailFilePathMap = queryFactory
             .select(place.id, uploadedFile.filePath)
             .from(place)
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
             .where(place.id.in(placeIds))
             .fetch()
             .stream()
@@ -193,7 +193,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
         var thumbnailFilePathMap = queryFactory
             .select(place.id, uploadedFile.filePath)
             .from(place)
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
             .where(place.id.in(placeIds))
             .fetch()
             .stream()
@@ -262,7 +262,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
             .from(placeBookmark)
             .join(place).on(placeBookmark.placeId.eq(place.id).and(place.permanentlyClosed.eq(false)))
             .join(placeStation).on(place.stationId.eq(placeStation.id))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
             .where(placeBookmark.memberId.eq(memberId))
             .orderBy(placeBookmark.createdAt.desc())
             .offset(pageable.getOffset())

@@ -3,7 +3,7 @@ CREATE TABLE BANNER
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     type             VARCHAR(20) NOT NULL,
     title            VARCHAR(100),
-    uploaded_file_id BIGINT      NOT NULL,
+    image_file_id    BIGINT      NOT NULL,
     link_url         VARCHAR(500),
     start_date       DATETIME,
     end_date         DATETIME,
@@ -31,7 +31,7 @@ CREATE TABLE BUG_REPORT_IMAGE
 (
     id               BIGINT   AUTO_INCREMENT PRIMARY KEY,
     bug_report_id    BIGINT   NOT NULL,
-    uploaded_file_id BIGINT   NOT NULL,
+    image_file_id    BIGINT   NOT NULL,
     sort             INT      NOT NULL,
     created_at       DATETIME NOT NULL,
     updated_at       DATETIME NOT NULL,
@@ -247,10 +247,9 @@ CREATE TABLE PRODUCT_IMAGE
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     product_id       BIGINT       NOT NULL,
-    image_url        VARCHAR(255) NOT NULL,
     sort             INT          NOT NULL,
     is_active        TINYINT(1)   NOT NULL DEFAULT 1,
-    uploaded_file_id BIGINT,
+    image_file_id    BIGINT       NOT NULL,
     created_at       DATETIME     NOT NULL,
     updated_at       DATETIME     NOT NULL,
     INDEX idx_product_image_product_id (product_id),
@@ -348,7 +347,7 @@ CREATE TABLE PLACE
     lot_address       VARCHAR(500),
     phone_number      VARCHAR(20),
     closed_days       VARCHAR(100),
-    thumbnail_uploaded_file_id BIGINT,
+    thumbnail_image_file_id    BIGINT,
     is_permanently_closed      TINYINT(1)    NOT NULL DEFAULT 0,
     created_at        DATETIME      NOT NULL,
     updated_at        DATETIME      NOT NULL
@@ -621,7 +620,7 @@ CREATE TABLE REVIEW_IMAGE
 (
     id               BIGINT   AUTO_INCREMENT PRIMARY KEY,
     review_id        BIGINT   NOT NULL,
-    uploaded_file_id BIGINT   NOT NULL,
+    image_file_id    BIGINT   NOT NULL,
     sort             INT      NOT NULL,
     created_at       DATETIME NOT NULL,
     updated_at       DATETIME NOT NULL,

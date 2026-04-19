@@ -189,7 +189,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
             .from(order)
             .innerJoin(payment).on(payment.orderId.eq(order.id))
             .innerJoin(place).on(place.id.eq(order.placeId))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
             .where(order.memberId.eq(memberId))
             .orderBy(order.createdAt.desc())
             .offset(pageable.getOffset())

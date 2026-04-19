@@ -30,29 +30,29 @@ public class ProductImage extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Column(name = "uploaded_file_id", nullable = false)
-    private Long uploadedFileId;
+    @Column(name = "image_file_id", nullable = false)
+    private Long imageFileId;
 
     private ProductImage(
         Long productId,
-        Long uploadedFileId,
+        Long imageFileId,
         Integer sort,
         Boolean isActive
     ) {
         this.productId = productId;
-        this.uploadedFileId = uploadedFileId;
+        this.imageFileId = imageFileId;
         this.sort = sort;
         this.isActive = isActive != null ? isActive : true;
     }
 
     public static ProductImage of(
         Long productId,
-        Long uploadedFileId,
+        Long imageFileId,
         Integer sort,
         Boolean isActive) {
         return new ProductImage(
             productId,
-            uploadedFileId,
+            imageFileId,
             sort,
             isActive
         );

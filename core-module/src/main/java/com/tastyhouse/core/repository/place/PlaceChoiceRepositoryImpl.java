@@ -44,7 +44,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
             )
             .from(placeChoice)
             .innerJoin(place).on(place.id.eq(placeChoice.placeId).and(place.permanentlyClosed.eq(false)))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
             .fetch();
 
         // 2. 모든 PlaceChoice의 placeId 추출
@@ -83,7 +83,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                             .and(subProductImage.isActive.eq(true)))
                 ))
             )
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.uploadedFileId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.imageFileId))
             .where(product.placeId.in(placeIds))
             .fetch();
 
@@ -146,7 +146,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
             )
             .from(placeChoice)
             .innerJoin(place).on(place.id.eq(placeChoice.placeId).and(place.permanentlyClosed.eq(false)))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailUploadedFileId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
@@ -187,7 +187,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                         .and(subProductImage.isActive.eq(true)))
                 ))
             )
-            .leftJoin(uploadedFile).on(productImage.uploadedFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
             .where(product.placeId.in(placeIds))
             .fetch();
 

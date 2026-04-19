@@ -73,7 +73,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                         .where(subReviewImage.reviewId.eq(review.id))
                 ))
             )
-            .leftJoin(uploadedFile).on(reviewImage.uploadedFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFile).on(reviewImage.imageFileId.eq(uploadedFile.id))
             .where(review.isHidden.eq(false))
             .orderBy(review.totalRating.desc(), review.createdAt.desc());
 
@@ -152,7 +152,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         List<com.querydsl.core.Tuple> results = queryFactory
             .select(reviewImage.reviewId, uploadedFile.filePath)
             .from(reviewImage)
-            .innerJoin(uploadedFile).on(reviewImage.uploadedFileId.eq(uploadedFile.id))
+            .innerJoin(uploadedFile).on(reviewImage.imageFileId.eq(uploadedFile.id))
             .where(reviewImage.reviewId.in(reviewIds))
             .orderBy(reviewImage.sort.asc())
             .fetch();
@@ -651,7 +651,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         return queryFactory
             .select(uploadedFile.filePath)
             .from(reviewImage)
-            .innerJoin(uploadedFile).on(reviewImage.uploadedFileId.eq(uploadedFile.id))
+            .innerJoin(uploadedFile).on(reviewImage.imageFileId.eq(uploadedFile.id))
             .where(reviewImage.reviewId.eq(reviewId))
             .orderBy(reviewImage.sort.asc())
             .fetch();
@@ -747,7 +747,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         List<com.querydsl.core.Tuple> results = queryFactory
             .select(reviewImage.reviewId, uploadedFile.filePath)
             .from(reviewImage)
-            .innerJoin(uploadedFile).on(reviewImage.uploadedFileId.eq(uploadedFile.id))
+            .innerJoin(uploadedFile).on(reviewImage.imageFileId.eq(uploadedFile.id))
             .where(
                 reviewImage.reviewId.in(reviewIds),
                 reviewImage.sort.eq(

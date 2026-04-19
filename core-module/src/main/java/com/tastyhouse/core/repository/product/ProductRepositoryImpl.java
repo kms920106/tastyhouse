@@ -71,7 +71,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                             .and(subProductImage.isActive.eq(true)))
                 ))
             )
-            .leftJoin(uploadedFile).on(productImage.uploadedFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
             .where(product.discountPrice.isNotNull()
             .and(product.isActive.eq(true)))
             .orderBy(product.discountRate.desc());
@@ -117,7 +117,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                             .and(subProductImage.isActive.eq(true)))
                 ))
             )
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.uploadedFileId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.imageFileId))
             .where(product.placeId.eq(placeId)
                 .and(product.isActive.eq(true)))
             .fetch();
@@ -304,12 +304,12 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public String findFilePathByUploadedFileId(Long uploadedFileId) {
+    public String findFilePathByImageFileId(Long imageFileId) {
         QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
         return queryFactory
             .select(uploadedFile.filePath)
             .from(uploadedFile)
-            .where(uploadedFile.id.eq(uploadedFileId))
+            .where(uploadedFile.id.eq(imageFileId))
             .fetchOne();
     }
 }

@@ -35,7 +35,7 @@ public class BannerRepositoryImpl implements BannerRepository {
                 banner.linkUrl
             ))
             .from(banner)
-            .join(uploadedFile).on(uploadedFile.id.eq(banner.uploadedFileId))
+            .join(uploadedFile).on(uploadedFile.id.eq(banner.imageFileId))
             .where(
                 banner.type.eq(type),
                 banner.active.isTrue(),

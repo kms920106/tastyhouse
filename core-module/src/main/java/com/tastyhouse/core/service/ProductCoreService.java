@@ -106,7 +106,7 @@ public class ProductCoreService {
         return productRepository.findActiveImagesByProductIdOrderBySort(productId)
             .stream()
             .findFirst()
-            .map(image -> productRepository.findFilePathByUploadedFileId(image.getUploadedFileId()))
+            .map(image -> productRepository.findFilePathByImageFileId(image.getImageFileId()))
             .orElse(null);
     }
 
@@ -114,7 +114,7 @@ public class ProductCoreService {
     public List<String> getAllImageFilePaths(Long productId) {
         return productRepository.findActiveImagesByProductIdOrderBySort(productId)
             .stream()
-            .map(image -> productRepository.findFilePathByUploadedFileId(image.getUploadedFileId()))
+            .map(image -> productRepository.findFilePathByImageFileId(image.getImageFileId()))
             .toList();
     }
 

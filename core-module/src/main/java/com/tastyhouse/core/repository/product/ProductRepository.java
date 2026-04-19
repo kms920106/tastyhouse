@@ -58,5 +58,5 @@ public interface ProductRepository {
 
     Optional<ProductBbq> findFirstBbqWithOptionsSyncPending();
 
-    String findFilePathByUploadedFileId(Long uploadedFileId);
+    String findFilePathByImageFileId(Long imageFileId);
 }
