@@ -20,6 +20,7 @@ import com.tastyhouse.core.entity.product.QProductCommonOptionGroup;
 import com.tastyhouse.core.entity.product.QProductImage;
 import com.tastyhouse.core.entity.product.QProductOption;
 import com.tastyhouse.core.entity.product.QProductOptionGroup;
+import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.QProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.QTodayDiscountProductDto;
@@ -45,13 +46,14 @@ public class ProductRepositoryImpl implements ProductRepository {
         QPlace place = QPlace.place;
         QProductImage productImage = QProductImage.productImage;
         QProductImage subProductImage = new QProductImage("subProductImage");
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
         JPAQuery<TodayDiscountProductDto> query = queryFactory
             .select(new QTodayDiscountProductDto(
                 product.id,
                 place.name,
                 product.name,
-                productImage.imageUrl,
+                uploadedFile.filePath,
                 product.originalPrice,
                 product.discountPrice,
                 product.discountRate
@@ -69,8 +71,9 @@ public class ProductRepositoryImpl implements ProductRepository {
                             .and(subProductImage.isActive.eq(true)))
                 ))
             )
+            .leftJoin(uploadedFile).on(productImage.uploadedFileId.eq(uploadedFile.id))
             .where(product.discountPrice.isNotNull()
-                .and(product.isActive.eq(true)))
+            .and(product.isActive.eq(true)))
             .orderBy(product.discountRate.desc());
 
         long total = query.fetch().size();
@@ -89,13 +92,14 @@ public class ProductRepositoryImpl implements ProductRepository {
         QPlace place = QPlace.place;
         QProductImage productImage = QProductImage.productImage;
         QProductImage subProductImage = new QProductImage("subProductImage");
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
         return queryFactory
             .select(new QProductSimpleDto(
                 product.id,
                 place.name,
                 product.name,
-                productImage.imageUrl,
+                uploadedFile.filePath,
                 product.originalPrice,
                 product.discountPrice,
                 product.discountRate
@@ -113,6 +117,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                             .and(subProductImage.isActive.eq(true)))
                 ))
             )
+            .leftJoin(uploadedFile).on(productImage.uploadedFileId.eq(uploadedFile.id))
             .where(product.placeId.eq(placeId)
                 .and(product.isActive.eq(true)))
             .fetch();

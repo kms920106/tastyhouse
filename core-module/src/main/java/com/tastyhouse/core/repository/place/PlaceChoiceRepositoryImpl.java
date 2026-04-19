@@ -56,7 +56,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
         // 3. 해당 placeId들의 모든 products 조회 (placeId도 함께 조회)
         QProductImage productImage = QProductImage.productImage;
         QProductImage subProductImage = new QProductImage("subProductImage");
-        
+
         List<Tuple> productTuples = queryFactory
             .select(
                 product.placeId,
@@ -159,7 +159,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
         // 4. 해당 placeId들의 모든 products 조회 (placeId도 함께 조회)
         QProductImage productImage = QProductImage.productImage;
         QProductImage subProductImage = new QProductImage("subProductImage");
-        
+
         List<Tuple> productTuples = queryFactory
             .select(
                 product.placeId,
@@ -167,7 +167,7 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                     product.id,
                     place.name,
                     product.name,
-                    productImage.imageUrl,
+                    uploadedFile.filePath,
                     product.originalPrice,
                     product.discountPrice,
                     product.discountRate
@@ -183,9 +183,10 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
                         .select(subProductImage.sort.min())
                         .from(subProductImage)
                         .where(subProductImage.productId.eq(product.id)
-                            .and(subProductImage.isActive.eq(true)))
+                        .and(subProductImage.isActive.eq(true)))
                 ))
             )
+            .leftJoin(uploadedFile).on(productImage.uploadedFileId.eq(uploadedFile.id))
             .where(product.placeId.in(placeIds))
             .fetch();
 
