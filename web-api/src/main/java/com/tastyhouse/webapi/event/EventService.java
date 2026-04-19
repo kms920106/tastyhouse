@@ -1,19 +1,20 @@
 package com.tastyhouse.webapi.event;
 
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.entity.event.Event;
 import com.tastyhouse.core.entity.event.EventAnnouncement;
-import com.tastyhouse.core.entity.event.EventPrize;
 import com.tastyhouse.core.entity.event.EventStatus;
+import com.tastyhouse.core.entity.event.dto.EventDetailDto;
+import com.tastyhouse.core.entity.event.dto.EventListItemDto;
+import com.tastyhouse.core.entity.event.dto.PrizeItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.EventCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.event.response.EventDurationResponse;
-import com.tastyhouse.webapi.event.response.PrizeItem;
-import com.tastyhouse.webapi.event.response.EventListItemResponse;
-import com.tastyhouse.webapi.event.response.EventDetailResponse;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
+import com.tastyhouse.webapi.event.response.EventDetailResponse;
+import com.tastyhouse.webapi.event.response.EventDurationResponse;
+import com.tastyhouse.webapi.event.response.EventListItemResponse;
+import com.tastyhouse.webapi.event.response.PrizeItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,36 +43,36 @@ public class EventService {
     public List<PrizeItem> getActivePrizes() {
         return eventCoreService.findActiveRankingEvent()
             .map(event -> {
-                List<EventPrize> eventPrizes = eventCoreService.findEventPrizes(event.getId());
-                return eventPrizes.stream()
+                List<PrizeItemDto> prizes = eventCoreService.findPrizeItemsByEventId(event.getId());
+                return prizes.stream()
                     .map(this::convertToPrizeItem)
                     .toList();
             })
             .orElse(Collections.emptyList());
     }
 
-    private PrizeItem convertToPrizeItem(EventPrize eventPrize) {
+    private PrizeItem convertToPrizeItem(PrizeItemDto dto) {
         return PrizeItem.from(
-            eventPrize.getId(),
-            eventPrize.getPrizeRank(),
-            eventPrize.getName(),
-            eventPrize.getBrand(),
-            fileService.getFileUrl(eventPrize.getImageFileId())
+            dto.id(),
+            dto.prizeRank(),
+            dto.name(),
+            dto.brand(),
+            fileService.getUrlByPath(dto.imageFilePath())
         );
     }
 
     @Transactional(readOnly = true)
     public PageResult<EventListItemResponse> getEventList(EventStatus status, int page, int size) {
-        return PageResult.from(eventCoreService.searchEventsByStatus(status, page, size))
+        return PageResult.from(eventCoreService.findEventListItemsByStatus(status, page, size))
             .map(this::convertToEventListItemResponse);
     }
 
     @Transactional(readOnly = true)
     public EventDetailResponse getEventDetail(Long eventId) {
-        Event event = eventCoreService.findEventById(eventId)
+        EventDetailDto dto = eventCoreService.findEventDetailById(eventId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "이벤트를 찾을 수 없습니다."));
 
-        return convertToEventDetailResponse(event);
+        return EventDetailResponse.from(fileService.getUrlByPath(dto.bannerFilePath()));
     }
 
     @Transactional(readOnly = true)
@@ -80,18 +81,14 @@ public class EventService {
             .map(this::convertToEventAnnouncementListItemResponse);
     }
 
-    private EventListItemResponse convertToEventListItemResponse(Event event) {
+    private EventListItemResponse convertToEventListItemResponse(EventListItemDto dto) {
         return EventListItemResponse.from(
-            event.getId(),
-            event.getName(),
-            fileService.getFileUrl(event.getThumbnailImageFileId()),
-            event.getStartAt(),
-            event.getEndAt()
+            dto.eventId(),
+            dto.name(),
+            fileService.getUrlByPath(dto.thumbnailFilePath()),
+            dto.startAt(),
+            dto.endAt()
         );
-    }
-
-    private EventDetailResponse convertToEventDetailResponse(Event event) {
-        return EventDetailResponse.from(fileService.getFileUrl(event.getBannerImageFileId()));
     }
 
     private EventAnnouncementListItemResponse convertToEventAnnouncementListItemResponse(EventAnnouncement announcement) {

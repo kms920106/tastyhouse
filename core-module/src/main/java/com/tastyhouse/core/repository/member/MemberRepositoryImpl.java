@@ -1,17 +1,21 @@
 package com.tastyhouse.core.repository.member;
 
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberStatus;
 import com.tastyhouse.core.entity.user.QMember;
+import com.tastyhouse.core.entity.user.dto.MemberProfileDetailDto;
+import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,15 +34,6 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public boolean existsById(Long memberId) {
         return memberJpaRepository.existsById(memberId);
-    }
-
-    @Override
-    public List<Member> findAllById(Collection<Long> memberIds) {
-        QMember member = QMember.member;
-        return queryFactory
-            .selectFrom(member)
-            .where(member.id.in(memberIds))
-            .fetch();
     }
 
     @Override
@@ -82,24 +77,32 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Page<Member> findByNicknameContaining(String nickname, Pageable pageable) {
+    public Page<MemberWithProfileImageDto> findByNicknameContaining(String nickname, Pageable pageable) {
         QMember member = QMember.member;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
-        List<Member> content = queryFactory
-            .selectFrom(member)
+        List<MemberWithProfileImageDto> content = queryFactory
+            .select(Projections.constructor(MemberWithProfileImageDto.class,
+                member.id,
+                member.nickname,
+                member.memberGrade,
+                member.statusMessage,
+                uploadedFile.filePath
+            ))
+            .from(member)
+            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(member.nickname.containsIgnoreCase(nickname))
             .orderBy(member.createdAt.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
 
-        long total = queryFactory
+        JPAQuery<Long> countQuery = queryFactory
             .select(member.count())
             .from(member)
-            .where(member.nickname.containsIgnoreCase(nickname))
-            .fetchOne();
+            .where(member.nickname.containsIgnoreCase(nickname));
 
-        return new PageImpl<>(content, pageable, total);
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     @Override
@@ -138,21 +141,47 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Page<Member> findAllMembers(Pageable pageable) {
+    public Optional<MemberWithProfileImageDto> findMemberWithProfileImageById(Long memberId) {
         QMember member = QMember.member;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
-        List<Member> content = queryFactory
-            .selectFrom(member)
-            .orderBy(member.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        long total = queryFactory
-            .select(member.count())
+        MemberWithProfileImageDto result = queryFactory
+            .select(Projections.constructor(MemberWithProfileImageDto.class,
+                member.id,
+                member.nickname,
+                member.memberGrade,
+                member.statusMessage,
+                uploadedFile.filePath
+            ))
             .from(member)
+            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .where(member.id.eq(memberId))
             .fetchOne();
 
-        return new PageImpl<>(content, pageable, total);
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<MemberProfileDetailDto> findMemberProfileDetailById(Long memberId) {
+        QMember member = QMember.member;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+
+        MemberProfileDetailDto result = queryFactory
+            .select(Projections.constructor(MemberProfileDetailDto.class,
+                member.id,
+                member.nickname,
+                member.memberGrade,
+                member.statusMessage,
+                uploadedFile.filePath,
+                member.fullName,
+                member.phoneNumber.value,
+                member.username
+            ))
+            .from(member)
+            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .where(member.id.eq(memberId))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 }

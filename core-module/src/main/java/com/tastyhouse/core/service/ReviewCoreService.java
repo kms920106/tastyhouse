@@ -23,7 +23,7 @@ import com.tastyhouse.core.repository.review.ReviewReplyRepository;
 import com.tastyhouse.core.repository.review.ReviewRepository;
 import com.tastyhouse.core.repository.review.ReviewTagRepository;
 import com.tastyhouse.core.entity.review.ReviewLike;
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -173,20 +173,6 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Review> findPlaceReviews(Long placeId, Integer rating, int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        if (rating != null) {
-            return reviewRepository.findPlaceReviewsByRating(placeId, rating.doubleValue(), pageRequest);
-        }
-        return reviewRepository.findPlaceReviews(placeId, pageRequest);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ReviewImage> findReviewImages(List<Long> reviewIds) {
-        return reviewImageRepository.findByReviewIdInOrderBySortAsc(reviewIds);
-    }
-
-    @Transactional(readOnly = true)
     public PlaceReviewStatisticsDto findPlaceReviewStatistics(Long placeId) {
         Long totalCount = reviewRepository.countByPlaceIdAndIsHiddenFalse(placeId);
 
@@ -328,14 +314,13 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Member findMemberById(Long memberId) {
-        return memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-    }
-
-    @Transactional(readOnly = true)
-    public Map<Long, Member> findMembersByIds(Collection<Long> memberIds) {
-        return memberRepository.findAllById(memberIds).stream()
-            .collect(java.util.stream.Collectors.toMap(Member::getId, m -> m));
+    public Map<Long, MemberWithProfileImageDto> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {
+        return memberIds.stream()
+            .distinct()
+            .map(memberRepository::findMemberWithProfileImageById)
+            .filter(java.util.Optional::isPresent)
+            .map(java.util.Optional::get)
+            .collect(java.util.stream.Collectors.toMap(MemberWithProfileImageDto::id, dto -> dto));
     }
 
     @Transactional

@@ -1,20 +1,23 @@
 package com.tastyhouse.core.repository.event;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.event.Event;
 import com.tastyhouse.core.entity.event.EventAnnouncement;
-import com.tastyhouse.core.entity.event.EventPrize;
 import com.tastyhouse.core.entity.event.EventStatus;
 import com.tastyhouse.core.entity.event.EventType;
-import com.tastyhouse.core.entity.event.EventWinner;
 import com.tastyhouse.core.entity.event.QEvent;
 import com.tastyhouse.core.entity.event.QEventAnnouncement;
 import com.tastyhouse.core.entity.event.QEventPrize;
-import com.tastyhouse.core.entity.event.QEventWinner;
+import com.tastyhouse.core.entity.event.dto.EventDetailDto;
+import com.tastyhouse.core.entity.event.dto.EventListItemDto;
+import com.tastyhouse.core.entity.event.dto.PrizeItemDto;
+import com.tastyhouse.core.entity.file.QUploadedFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,41 +28,6 @@ import java.util.Optional;
 public class EventRepositoryImpl implements EventRepository {
 
     private final JPAQueryFactory queryFactory;
-
-    @Override
-    public Page<Event> findByStatusOrderByStartAtDesc(EventStatus status, Pageable pageable) {
-        QEvent event = QEvent.event;
-
-        List<Event> content = queryFactory
-            .selectFrom(event)
-            .where(event.status.eq(status))
-            .orderBy(event.startAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        long total = queryFactory
-            .select(event.count())
-            .from(event)
-            .where(event.status.eq(status))
-            .fetchOne();
-
-        return new PageImpl<>(content, pageable, total);
-    }
-
-    @Override
-    public Optional<Event> findLatestByStatus(EventStatus status) {
-        QEvent event = QEvent.event;
-
-        Event result = queryFactory
-            .selectFrom(event)
-            .where(event.status.eq(status))
-            .orderBy(event.startAt.desc())
-            .limit(1)
-            .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
 
     @Override
     public Optional<Event> findLatestByStatusAndType(EventStatus status, EventType type) {
@@ -73,56 +41,6 @@ public class EventRepositoryImpl implements EventRepository {
             )
             .orderBy(event.startAt.desc())
             .limit(1)
-            .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
-
-    @Override
-    public List<EventPrize> findPrizesByEventIdOrderByPrizeRankAsc(Long eventId) {
-        QEventPrize eventPrize = QEventPrize.eventPrize;
-
-        return queryFactory
-            .selectFrom(eventPrize)
-            .where(eventPrize.eventId.eq(eventId))
-            .orderBy(eventPrize.prizeRank.asc())
-            .fetch();
-    }
-
-    @Override
-    public List<EventWinner> findWinnersByEventIdOrderByAnnouncedAtDescRankNoAsc(Long eventId) {
-        QEventWinner eventWinner = QEventWinner.eventWinner;
-
-        return queryFactory
-            .selectFrom(eventWinner)
-            .where(eventWinner.eventId.eq(eventId))
-            .orderBy(
-                eventWinner.announcedAt.desc(),
-                eventWinner.rankNo.asc()
-            )
-            .fetch();
-    }
-
-    @Override
-    public List<EventWinner> findAllWinnersOrderByAnnouncedAtDescRankNoAsc() {
-        QEventWinner eventWinner = QEventWinner.eventWinner;
-
-        return queryFactory
-            .selectFrom(eventWinner)
-            .orderBy(
-                eventWinner.announcedAt.desc(),
-                eventWinner.rankNo.asc()
-            )
-            .fetch();
-    }
-
-    @Override
-    public Optional<EventAnnouncement> findAnnouncementByEventId(Long eventId) {
-        QEventAnnouncement eventAnnouncement = QEventAnnouncement.eventAnnouncement;
-
-        EventAnnouncement result = queryFactory
-            .selectFrom(eventAnnouncement)
-            .where(eventAnnouncement.eventId.eq(eventId))
             .fetchOne();
 
         return Optional.ofNullable(result);
@@ -145,5 +63,71 @@ public class EventRepositoryImpl implements EventRepository {
             .fetchOne();
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Page<EventListItemDto> findEventListItemsByStatus(EventStatus status, Pageable pageable) {
+        QEvent event = QEvent.event;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+
+        List<EventListItemDto> content = queryFactory
+            .select(Projections.constructor(EventListItemDto.class,
+                event.id,
+                event.name,
+                uploadedFile.filePath,
+                event.startAt,
+                event.endAt
+            ))
+            .from(event)
+            .leftJoin(uploadedFile).on(event.thumbnailImageFileId.eq(uploadedFile.id))
+            .where(event.status.eq(status))
+            .orderBy(event.startAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        com.querydsl.jpa.impl.JPAQuery<Long> countQuery = queryFactory
+            .select(event.count())
+            .from(event)
+            .where(event.status.eq(status));
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public List<PrizeItemDto> findPrizeItemsByEventId(Long eventId) {
+        QEventPrize eventPrize = QEventPrize.eventPrize;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+
+        return queryFactory
+            .select(Projections.constructor(PrizeItemDto.class,
+                eventPrize.id,
+                eventPrize.prizeRank,
+                eventPrize.name,
+                eventPrize.brand,
+                uploadedFile.filePath
+            ))
+            .from(eventPrize)
+            .leftJoin(uploadedFile).on(eventPrize.imageFileId.eq(uploadedFile.id))
+            .where(eventPrize.eventId.eq(eventId))
+            .orderBy(eventPrize.prizeRank.asc())
+            .fetch();
+    }
+
+    @Override
+    public Optional<EventDetailDto> findEventDetailById(Long eventId) {
+        QEvent event = QEvent.event;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
+
+        EventDetailDto result = queryFactory
+            .select(Projections.constructor(EventDetailDto.class,
+                uploadedFile.filePath
+            ))
+            .from(event)
+            .leftJoin(uploadedFile).on(event.bannerImageFileId.eq(uploadedFile.id))
+            .where(event.id.eq(eventId))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 }

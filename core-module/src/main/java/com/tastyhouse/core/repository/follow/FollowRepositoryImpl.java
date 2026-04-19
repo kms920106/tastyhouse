@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.follow.Follow;
 import com.tastyhouse.core.entity.follow.QFollow;
 import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
@@ -118,6 +119,7 @@ public class FollowRepositoryImpl implements FollowRepository {
         QFollow follow = QFollow.follow;
         QFollow viewerFollow = new QFollow("viewerFollow");
         QMember member = QMember.member;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
@@ -134,11 +136,12 @@ public class FollowRepositoryImpl implements FollowRepository {
                 member.id,
                 member.nickname,
                 member.memberGrade,
-                member.profileImageFileId,
+                uploadedFile.filePath,
                 isFollowing
             ))
             .from(follow)
             .join(member).on(follow.followingId.eq(member.id))
+            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(follow.followerId.eq(memberId))
             .orderBy(follow.createdAt.desc())
             .offset(pageable.getOffset())
@@ -158,6 +161,7 @@ public class FollowRepositoryImpl implements FollowRepository {
         QFollow follow = QFollow.follow;
         QFollow viewerFollow = new QFollow("viewerFollow");
         QMember member = QMember.member;
+        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
 
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
@@ -174,11 +178,12 @@ public class FollowRepositoryImpl implements FollowRepository {
                 member.id,
                 member.nickname,
                 member.memberGrade,
-                member.profileImageFileId,
+                uploadedFile.filePath,
                 isFollowing
             ))
             .from(follow)
             .join(member).on(follow.followerId.eq(member.id))
+            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(follow.followingId.eq(memberId))
             .orderBy(follow.createdAt.desc())
             .offset(pageable.getOffset())

@@ -1,6 +1,8 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.FollowCoreService;
 import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
@@ -23,21 +25,17 @@ public class MemberFollowService {
     // 다른 회원의 프로필과 현재 사용자의 팔로우 여부를 조회
     @Transactional(readOnly = true)
     public OtherMemberProfileResponse getOtherMemberProfile(Long targetMemberId, Long viewerMemberId) {
-        Member member = memberCoreService.getById(targetMemberId);
-
-        String profileImageUrl = null;
-        if (member.getProfileImageFileId() != null) {
-            profileImageUrl = fileService.getFileUrl(member.getProfileImageFileId());
-        }
+        MemberWithProfileImageDto dto = memberCoreService.findMemberWithProfileImageById(targetMemberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         boolean isFollowing = viewerMemberId != null && followCoreService.isFollowing(viewerMemberId, targetMemberId);
 
         return OtherMemberProfileResponse.from(
-            member.getId(),
-            member.getNickname(),
-            member.getMemberGrade(),
-            member.getStatusMessage(),
-            profileImageUrl,
+            dto.id(),
+            dto.nickname(),
+            dto.memberGrade(),
+            dto.statusMessage(),
+            fileService.getUrlByPath(dto.profileImageFilePath()),
             isFollowing
         );
     }

@@ -130,24 +130,17 @@ public class MemberAccountService {
     // 회원 프로필 정보와 프로필 이미지 URL을 조회
     @Transactional(readOnly = true)
     public Optional<MemberProfileResponse> getMemberProfile(Long memberId) {
-        return memberCoreService.findById(memberId)
-            .map(member -> {
-                String profileImageUrl = null;
-                if (member.getProfileImageFileId() != null) {
-                    profileImageUrl = fileService.getFileUrl(member.getProfileImageFileId());
-                }
-
-                return MemberProfileResponse.from(
-                    member.getId(),
-                    member.getNickname(),
-                    member.getMemberGrade(),
-                    member.getStatusMessage(),
-                    profileImageUrl,
-                    member.getFullName(),
-                    member.getPhoneNumber().getValue(),
-                    member.getUsername()
-                );
-            });
+        return memberCoreService.findMemberProfileDetailById(memberId)
+            .map(dto -> MemberProfileResponse.from(
+                dto.id(),
+                dto.nickname(),
+                dto.memberGrade(),
+                dto.statusMessage(),
+                fileService.getUrlByPath(dto.profileImageFilePath()),
+                dto.fullName(),
+                dto.phoneNumber(),
+                dto.username()
+            ));
     }
 
     // 회원의 개인정보를 조회하여 반환

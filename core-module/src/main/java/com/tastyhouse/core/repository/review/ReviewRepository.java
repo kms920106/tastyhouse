@@ -30,10 +30,7 @@ public interface ReviewRepository {
 
     List<LatestReviewListItemDto> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit);
 
-    List<MemberReviewCountDto> countReviewsByMemberWithPeriod(
-        LocalDateTime startDate,
-        LocalDateTime endDate
-    );
+    List<MemberReviewCountDto> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate);
 
     Optional<ReviewDetailDto> findReviewDetail(Long reviewId);
 
@@ -41,12 +38,6 @@ public interface ReviewRepository {
 
     Page<MyReviewListItemDto> findReviewsByMemberId(Long memberId, Pageable pageable);
 
-    // 장소 리뷰 조회 (페이징)
-    Page<Review> findPlaceReviewsByRating(Long placeId, Double rating, Pageable pageable);
-
-    Page<Review> findPlaceReviews(Long placeId, Pageable pageable);
-
-    // 장소 리뷰 통계
     Long countByPlaceIdAndIsHiddenFalse(Long placeId);
 
     Long countWillRevisit(Long placeId);
@@ -67,12 +58,6 @@ public interface ReviewRepository {
 
     Map<Integer, Long> getMonthlyReviewCounts(Long placeId, int year);
 
-    // 상품 리뷰 조회 (페이징)
-    Page<Review> findProductReviewsByRating(Long productId, Double rating, Pageable pageable);
-
-    Page<Review> findProductReviews(Long productId, Pageable pageable);
-
-    // 상품 리뷰 통계
     Long countByProductIdAndIsHiddenFalse(Long productId);
 
     Double getAverageTasteRatingByProductId(Long productId);
@@ -81,7 +66,6 @@ public interface ReviewRepository {
 
     Double getAveragePriceRatingByProductId(Long productId);
 
-    // 회원 리뷰 조회
     Optional<Review> findById(Long reviewId);
 
     Optional<Review> findByIdAndMemberId(Long reviewId, Long memberId);

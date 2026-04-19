@@ -58,12 +58,6 @@ public class FileService {
         return saved.getId();
     }
 
-    // 파일 ID로 저장된 파일의 접근 URL을 반환한다.
-    public String getFileUrl(Long fileId) {
-        UploadedFile file = fileCoreService.findById(fileId);
-        return fileStorageStrategy.getFileUrl(file.getFilePath());
-    }
-
     // 파일 경로로 접근 URL을 반환하며, 경로가 null이면 null을 반환한다.
     public String getUrlByPath(String filePath) {
         if (filePath == null) {

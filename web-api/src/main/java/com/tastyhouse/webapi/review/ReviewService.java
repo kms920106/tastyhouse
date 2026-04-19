@@ -12,7 +12,7 @@ import com.tastyhouse.core.entity.review.ReviewTag;
 import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -147,16 +147,16 @@ public class ReviewService {
     @Transactional
     public CommentResponse createComment(Long reviewId, Long memberId, String content) {
         ReviewComment comment = reviewCoreService.createComment(reviewId, memberId, content);
-        Member member = reviewCoreService.findMemberById(memberId);
+        MemberWithProfileImageDto member = reviewCoreService.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
         return convertToCommentResponse(comment, member, List.of());
     }
 
     @Transactional
     public ReplyResponse createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
         ReviewReply reply = reviewCoreService.createReply(commentId, memberId, replyToMemberId, content);
-        Member member = reviewCoreService.findMemberById(memberId);
-        Member replyToMember = replyToMemberId != null ? reviewCoreService.findMembersByIds(List.of(replyToMemberId)).get(replyToMemberId) : null;
-        return convertToReplyResponse(reply, member, replyToMember);
+        List<Long> ids = replyToMemberId != null ? List.of(memberId, replyToMemberId) : List.of(memberId);
+        Map<Long, MemberWithProfileImageDto> memberMap = reviewCoreService.findMemberWithProfileImagesByIds(ids);
+        return convertToReplyResponse(reply, memberMap.get(memberId), replyToMemberId != null ? memberMap.get(replyToMemberId) : null);
     }
 
     @Transactional(readOnly = true)
@@ -185,11 +185,11 @@ public class ReviewService {
             }
         });
 
-        Map<Long, Member> memberMap = reviewCoreService.findMembersByIds(memberIds);
+        Map<Long, MemberWithProfileImageDto> memberMap = reviewCoreService.findMemberWithProfileImagesByIds(memberIds);
 
         List<CommentResponse> commentResponses = comments.stream()
             .map(comment -> {
-                Member member = memberMap.get(comment.getMemberId());
+                MemberWithProfileImageDto member = memberMap.get(comment.getMemberId());
                 List<ReviewReply> replies = repliesByCommentId.getOrDefault(comment.getId(), List.of());
                 List<ReplyResponse> replyResponses = replies.stream()
                     .map(reply -> convertToReplyResponse(
@@ -209,38 +209,28 @@ public class ReviewService {
         );
     }
 
-    private CommentResponse convertToCommentResponse(ReviewComment comment, Member member, List<ReplyResponse> replies) {
-        String memberProfileImageUrl = null;
-        if (member != null && member.getProfileImageFileId() != null) {
-            memberProfileImageUrl = fileService.getFileUrl(member.getProfileImageFileId());
-        }
-
+    private CommentResponse convertToCommentResponse(ReviewComment comment, MemberWithProfileImageDto member, List<ReplyResponse> replies) {
         return CommentResponse.from(
             comment.getId(),
             comment.getReviewId(),
             comment.getMemberId(),
-            member != null ? member.getNickname() : null,
-            memberProfileImageUrl,
+            member != null ? member.nickname() : null,
+            member != null ? fileService.getUrlByPath(member.profileImageFilePath()) : null,
             comment.getContent(),
             comment.getCreatedAt(),
             replies
         );
     }
 
-    private ReplyResponse convertToReplyResponse(ReviewReply reply, Member member, Member replyToMember) {
-        String memberProfileImageUrl = null;
-        if (member != null && member.getProfileImageFileId() != null) {
-            memberProfileImageUrl = fileService.getFileUrl(member.getProfileImageFileId());
-        }
-
+    private ReplyResponse convertToReplyResponse(ReviewReply reply, MemberWithProfileImageDto member, MemberWithProfileImageDto replyToMember) {
         return ReplyResponse.from(
             reply.getId(),
             reply.getCommentId(),
             reply.getMemberId(),
-            member != null ? member.getNickname() : null,
-            memberProfileImageUrl,
+            member != null ? member.nickname() : null,
+            member != null ? fileService.getUrlByPath(member.profileImageFilePath()) : null,
             reply.getReplyToMemberId(),
-            replyToMember != null ? replyToMember.getNickname() : null,
+            replyToMember != null ? replyToMember.nickname() : null,
             reply.getContent(),
             reply.getCreatedAt()
         );

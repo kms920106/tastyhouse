@@ -36,29 +36,28 @@ public class FollowService {
     @Transactional(readOnly = true)
     public PageResult<FollowMemberResponse> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
         return PageResult.from(followCoreService.findFollowingList(memberId, viewerMemberId, page, size))
-            .map(dto -> FollowMemberResponse.of(dto, resolveProfileImageUrl(dto.profileImageFileId())));
+            .map(dto -> FollowMemberResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
     }
 
     @Transactional(readOnly = true)
     public PageResult<FollowMemberResponse> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
         return PageResult.from(followCoreService.findFollowerList(memberId, viewerMemberId, page, size))
-            .map(dto -> FollowMemberResponse.of(dto, resolveProfileImageUrl(dto.profileImageFileId())));
+            .map(dto -> FollowMemberResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
     }
 
     @Transactional(readOnly = true)
     public PageResult<MemberSearchResponse> searchMembersByNickname(String nickname, Long viewerMemberId, int page, int size) {
         return PageResult.from(followCoreService.findMembersByNicknameContaining(nickname, page, size))
-            .map(member -> {
-                String profileImageUrl = resolveProfileImageUrl(member.getProfileImageFileId());
-                boolean isFollowing = viewerMemberId != null && followCoreService.isFollowing(viewerMemberId, member.getId());
-                return MemberSearchResponse.of(member, profileImageUrl, isFollowing);
+            .map(dto -> {
+                String profileImageUrl = fileService.getUrlByPath(dto.profileImageFilePath());
+                boolean isFollowing = viewerMemberId != null && followCoreService.isFollowing(viewerMemberId, dto.id());
+                return MemberSearchResponse.of(
+                    dto.id(),
+                    dto.nickname(),
+                    dto.memberGrade(),
+                    profileImageUrl,
+                    isFollowing
+                );
             });
-    }
-
-    private String resolveProfileImageUrl(Long profileImageFileId) {
-        if (profileImageFileId == null) {
-            return null;
-        }
-        return fileService.getFileUrl(profileImageFileId);
     }
 }

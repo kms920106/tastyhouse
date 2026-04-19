@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.follow.response;
 
-import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -20,13 +19,19 @@ public record MemberSearchResponse(
     @Schema(description = "내가 팔로우 중인지 여부", example = "false")
     boolean following
 ) {
-    public static MemberSearchResponse of(Member member, String profileImageUrl, boolean isFollowing) {
-    return new MemberSearchResponse(
-        member.getId(),
-        member.getNickname(),
-        member.getMemberGrade(),
-        profileImageUrl,
-        isFollowing
-    );
+    public static MemberSearchResponse of(
+        Long memberId,
+        String nickname,
+        MemberGrade memberGrade,
+        String profileImageUrl,
+        boolean isFollowing
+    ) {
+        return new MemberSearchResponse(
+            memberId,
+            nickname,
+            memberGrade,
+            profileImageUrl,
+            isFollowing
+        );
     }
 }

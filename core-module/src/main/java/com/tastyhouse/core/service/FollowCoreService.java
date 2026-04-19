@@ -2,7 +2,7 @@ package com.tastyhouse.core.service;
 
 import com.tastyhouse.core.entity.follow.Follow;
 import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -67,7 +67,7 @@ public class FollowCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Member> findMembersByNicknameContaining(String nickname, int page, int size) {
+    public Page<MemberWithProfileImageDto> findMembersByNicknameContaining(String nickname, int page, int size) {
         return memberRepository.findByNicknameContaining(nickname, PageRequest.of(page, size));
     }
 

@@ -6,7 +6,7 @@ public record FollowMemberDto(
     Long memberId,
     String nickname,
     MemberGrade memberGrade,
-    Long profileImageFileId,
+    String profileImageFilePath,
     boolean isFollowing
 ) {
 }

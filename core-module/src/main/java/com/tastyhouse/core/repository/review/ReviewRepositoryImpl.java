@@ -1,7 +1,6 @@
 package com.tastyhouse.core.repository.review;
 
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -768,62 +767,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Page<Review> findPlaceReviewsByRating(Long placeId, Double rating, Pageable pageable) {
-        QReview review = QReview.review;
-
-        List<Review> content = queryFactory
-            .selectFrom(review)
-            .where(
-                review.placeId.eq(placeId),
-                review.totalRating.eq(rating),
-                review.isHidden.eq(false)
-            )
-            .orderBy(review.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        long total = queryFactory
-            .select(review.count())
-            .from(review)
-            .where(
-                review.placeId.eq(placeId),
-                review.totalRating.eq(rating),
-                review.isHidden.eq(false)
-            )
-            .fetchOne();
-
-        return new PageImpl<>(content, pageable, total);
-    }
-
-    @Override
-    public Page<Review> findPlaceReviews(Long placeId, Pageable pageable) {
-        QReview review = QReview.review;
-
-        List<Review> content = queryFactory
-            .selectFrom(review)
-            .where(
-                review.placeId.eq(placeId),
-                review.isHidden.eq(false)
-            )
-            .orderBy(review.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        long total = queryFactory
-            .select(review.count())
-            .from(review)
-            .where(
-                review.placeId.eq(placeId),
-                review.isHidden.eq(false)
-            )
-            .fetchOne();
-
-        return new PageImpl<>(content, pageable, total);
-    }
-
-    @Override
     public Long countByPlaceIdAndIsHiddenFalse(Long placeId) {
         QReview review = QReview.review;
         return queryFactory
@@ -945,62 +888,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             monthlyMap.put(row.get(0, Integer.class), row.get(1, Long.class));
         }
         return monthlyMap;
-    }
-
-    @Override
-    public Page<Review> findProductReviewsByRating(Long productId, Double rating, Pageable pageable) {
-        QReview review = QReview.review;
-
-        List<Review> content = queryFactory
-            .selectFrom(review)
-            .where(
-                review.productId.eq(productId),
-                review.totalRating.eq(rating),
-                review.isHidden.eq(false)
-            )
-            .orderBy(review.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        long total = queryFactory
-            .select(review.count())
-            .from(review)
-            .where(
-                review.productId.eq(productId),
-                review.totalRating.eq(rating),
-                review.isHidden.eq(false)
-            )
-            .fetchOne();
-
-        return new PageImpl<>(content, pageable, total);
-    }
-
-    @Override
-    public Page<Review> findProductReviews(Long productId, Pageable pageable) {
-        QReview review = QReview.review;
-
-        List<Review> content = queryFactory
-            .selectFrom(review)
-            .where(
-                review.productId.eq(productId),
-                review.isHidden.eq(false)
-            )
-            .orderBy(review.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        long total = queryFactory
-            .select(review.count())
-            .from(review)
-            .where(
-                review.productId.eq(productId),
-                review.isHidden.eq(false)
-            )
-            .fetchOne();
-
-        return new PageImpl<>(content, pageable, total);
     }
 
     @Override
