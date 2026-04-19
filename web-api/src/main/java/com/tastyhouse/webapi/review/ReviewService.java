@@ -308,7 +308,7 @@ public class ReviewService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return productCoreService.getFirstImageFilePath(productId);
+        return fileService.getUrlByPath(productCoreService.getFirstImageFilePath(productId));
     }
 
     @Transactional(readOnly = true)
@@ -322,8 +322,7 @@ public class ReviewService {
                 ? product.getDiscountPrice()
                 : product.getOriginalPrice();
 
-        boolean isReviewed = reviewCoreService.isReviewedByOrderAndProduct(
-                orderItem.getOrderId(), orderItem.getProductId(), memberId);
+        boolean isReviewed = reviewCoreService.isReviewedByOrderAndProduct(orderItem.getOrderId(), orderItem.getProductId(), memberId);
 
         return ReviewWriteInfoResponse.from(
             product.getId(),

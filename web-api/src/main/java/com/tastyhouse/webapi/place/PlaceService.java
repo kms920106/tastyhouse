@@ -335,13 +335,15 @@ public class PlaceService {
     }
 
     private PlaceReviewListItem convertToPlaceReviewListItem(LatestReviewListItemDto dto) {
+        List<String> imageUrls = dto.imageUrls().stream().map(fileService::getUrlByPath).toList();
+
         return PlaceReviewListItem.from(
             dto.id(),
-            dto.imageUrls(),
+            imageUrls,
             dto.totalRating(),
             dto.content(),
             dto.memberNickname(),
-            dto.memberProfileImageUrl(),
+            fileService.getUrlByPath(dto.memberProfileImageUrl()),
             dto.createdAt(),
             dto.productId(),
             dto.productName()
