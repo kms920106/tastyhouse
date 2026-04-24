@@ -460,15 +460,16 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PlaceOrderMethodResponse getPlaceOrderMethods(Long placeId) {
-        placeCoreService.findPlaceById(placeId); // Ensure place exists
+        placeCoreService.findPlaceById(placeId);
         List<PlaceOrderMethod> placeOrderMethods = placeCoreService.findPlaceOrderMethods(placeId);
 
-        List<PlaceOrderMethodResponse.OrderMethodItem> orderMethodItems = placeOrderMethods.stream()
+        List<PlaceOrderMethodResponse.OrderMethodItem> orderMethodItems =
+            placeOrderMethods.stream()
                 .map(pom -> PlaceOrderMethodResponse.OrderMethodItem.from(
                     pom.getOrderMethod().name(),
                     pom.getOrderMethod().getDisplayName()))
                 .toList();
 
-        return PlaceOrderMethodResponse.from(placeId, orderMethodItems);
+        return PlaceOrderMethodResponse.from(orderMethodItems);
     }
 }
