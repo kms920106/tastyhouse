@@ -23,10 +23,13 @@ import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.entity.place.dto.QPlaceChoice.placeChoice;
 import static com.tastyhouse.core.entity.place.QPlace.place;
 import static com.tastyhouse.core.entity.product.QProduct.product;
+import static com.tastyhouse.core.entity.product.QProductImage.productImage;
 
 @Repository
 @RequiredArgsConstructor
 public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
+
+    private static final QProductImage subProductImage = new QProductImage("subProductImage");
 
     private final JPAQueryFactory queryFactory;
 
@@ -54,9 +57,6 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
             .toList();
 
         // 3. 해당 placeId들의 모든 products 조회 (placeId도 함께 조회)
-        QProductImage productImage = QProductImage.productImage;
-        QProductImage subProductImage = new QProductImage("subProductImage");
-
         List<Tuple> productTuples = queryFactory
             .select(
                 product.placeId,
@@ -158,9 +158,6 @@ public class PlaceChoiceRepositoryImpl implements PlaceChoiceRepository {
             .toList();
 
         // 4. 해당 placeId들의 모든 products 조회 (placeId도 함께 조회)
-        QProductImage productImage = QProductImage.productImage;
-        QProductImage subProductImage = new QProductImage("subProductImage");
-
         List<Tuple> productTuples = queryFactory
             .select(
                 product.placeId,

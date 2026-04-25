@@ -4,7 +4,6 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.policy.PolicyDocument;
 import com.tastyhouse.core.entity.policy.PolicyType;
-import com.tastyhouse.core.entity.policy.QPolicyDocument;
 import com.tastyhouse.core.entity.policy.dto.PolicyDocumentDto;
 import com.tastyhouse.core.entity.policy.dto.PolicyListItemDto;
 import com.tastyhouse.core.entity.policy.dto.QPolicyDocumentDto;
@@ -19,6 +18,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import static com.tastyhouse.core.entity.policy.QPolicyDocument.policyDocument;
+
 @Repository
 @RequiredArgsConstructor
 public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
@@ -28,8 +29,6 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
 
     @Override
     public Optional<PolicyDocumentDto> findCurrentByType(PolicyType type) {
-        QPolicyDocument policyDocument = QPolicyDocument.policyDocument;
-
         PolicyDocumentDto result = queryFactory
             .select(new QPolicyDocumentDto(
                 policyDocument.id,
@@ -55,8 +54,6 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
 
     @Override
     public Optional<PolicyDocumentDto> findByTypeAndVersion(PolicyType type, String version) {
-        QPolicyDocument policyDocument = QPolicyDocument.policyDocument;
-
         PolicyDocumentDto result = queryFactory
             .select(new QPolicyDocumentDto(
                 policyDocument.id,
@@ -82,8 +79,6 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
 
     @Override
     public Optional<PolicyDocument> findById(Long id) {
-        QPolicyDocument policyDocument = QPolicyDocument.policyDocument;
-
         PolicyDocument result = queryFactory
             .selectFrom(policyDocument)
             .where(policyDocument.id.eq(id))
@@ -94,8 +89,6 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
 
     @Override
     public Optional<PolicyDocument> findCurrentEntityByType(PolicyType type) {
-        QPolicyDocument policyDocument = QPolicyDocument.policyDocument;
-
         PolicyDocument result = queryFactory
             .selectFrom(policyDocument)
             .where(
@@ -118,8 +111,6 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
 
     @Override
     public Page<PolicyListItemDto> findAllByType(PolicyType type, Pageable pageable) {
-        QPolicyDocument policyDocument = QPolicyDocument.policyDocument;
-
         JPAQuery<PolicyListItemDto> query = queryFactory
             .select(new QPolicyListItemDto(
                 policyDocument.id,

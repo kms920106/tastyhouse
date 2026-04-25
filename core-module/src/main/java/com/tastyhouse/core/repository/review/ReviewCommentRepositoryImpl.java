@@ -2,7 +2,6 @@ package com.tastyhouse.core.repository.review;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.review.QReviewComment;
 import com.tastyhouse.core.entity.review.ReviewComment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -10,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.tastyhouse.core.entity.review.QReviewComment.reviewComment;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,7 +21,6 @@ public class ReviewCommentRepositoryImpl implements ReviewCommentRepository {
 
     @Override
     public List<ReviewComment> findByReviewIdOrderByCreatedAtDesc(Long reviewId) {
-        QReviewComment reviewComment = QReviewComment.reviewComment;
         return queryFactory
             .selectFrom(reviewComment)
             .where(
@@ -33,8 +33,6 @@ public class ReviewCommentRepositoryImpl implements ReviewCommentRepository {
 
     @Override
     public Map<Long, Long> countByReviewIdIn(List<Long> reviewIds) {
-        QReviewComment reviewComment = QReviewComment.reviewComment;
-
         List<Tuple> results = queryFactory
             .select(reviewComment.reviewId, reviewComment.count())
             .from(reviewComment)

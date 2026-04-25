@@ -6,6 +6,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.follow.Follow;
+import com.tastyhouse.core.entity.follow.QFollow;
 import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,8 @@ import static com.tastyhouse.core.entity.user.QMember.member;
 @Repository
 @RequiredArgsConstructor
 public class FollowRepositoryImpl implements FollowRepository {
+
+    private static final QFollow viewerFollow = new QFollow("viewerFollow");
 
     private final JPAQueryFactory queryFactory;
     private final FollowJpaRepository followJpaRepository;
@@ -106,8 +109,6 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public Page<FollowMemberDto> findFollowingList(Long memberId, Long viewerMemberId, Pageable pageable) {
-        com.tastyhouse.core.entity.follow.QFollow viewerFollow = new com.tastyhouse.core.entity.follow.QFollow("viewerFollow");
-
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
@@ -145,8 +146,6 @@ public class FollowRepositoryImpl implements FollowRepository {
 
     @Override
     public Page<FollowMemberDto> findFollowerList(Long memberId, Long viewerMemberId, Pageable pageable) {
-        com.tastyhouse.core.entity.follow.QFollow viewerFollow = new com.tastyhouse.core.entity.follow.QFollow("viewerFollow");
-
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)

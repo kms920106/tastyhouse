@@ -1,7 +1,6 @@
 package com.tastyhouse.core.repository.file;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.file.QUploadedFile;
 import com.tastyhouse.core.entity.file.UploadedFile;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +36,6 @@ public class UploadedFileRepositoryImpl implements UploadedFileRepository {
 
     @Override
     public List<UploadedFile> findByIds(List<Long> ids) {
-        QUploadedFile uploadedFile = QUploadedFile.uploadedFile;
-
         return queryFactory
             .selectFrom(uploadedFile)
             .where(uploadedFile.id.in(ids))

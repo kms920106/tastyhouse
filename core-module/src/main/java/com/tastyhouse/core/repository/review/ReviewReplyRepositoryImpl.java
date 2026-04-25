@@ -1,12 +1,13 @@
 package com.tastyhouse.core.repository.review;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.review.QReviewReply;
 import com.tastyhouse.core.entity.review.ReviewReply;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+
+import static com.tastyhouse.core.entity.review.QReviewReply.reviewReply;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,7 +18,6 @@ public class ReviewReplyRepositoryImpl implements ReviewReplyRepository {
 
     @Override
     public List<ReviewReply> findByCommentIdAndIsHiddenFalseOrderByCreatedAtAsc(Long commentId) {
-        QReviewReply reviewReply = QReviewReply.reviewReply;
         return queryFactory
             .selectFrom(reviewReply)
             .where(
@@ -30,7 +30,6 @@ public class ReviewReplyRepositoryImpl implements ReviewReplyRepository {
 
     @Override
     public List<ReviewReply> findByCommentIdInAndIsHiddenFalseOrderByCreatedAtAsc(List<Long> commentIds) {
-        QReviewReply reviewReply = QReviewReply.reviewReply;
         return queryFactory
             .selectFrom(reviewReply)
             .where(

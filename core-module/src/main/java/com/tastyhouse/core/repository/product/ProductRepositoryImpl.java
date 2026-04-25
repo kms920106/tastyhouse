@@ -11,6 +11,7 @@ import com.tastyhouse.core.entity.product.ProductCommonOptionGroup;
 import com.tastyhouse.core.entity.product.ProductImage;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
+import com.tastyhouse.core.entity.product.QProductImage;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.QProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.QTodayDiscountProductDto;
@@ -39,12 +40,12 @@ import static com.tastyhouse.core.entity.product.QProductOptionGroup.productOpti
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
 
+    private static final QProductImage subProductImage = new QProductImage("subProductImage");
+
     private final JPAQueryFactory queryFactory;
 
     @Override
     public Page<TodayDiscountProductDto> findTodayDiscountProducts(Pageable pageable) {
-        com.tastyhouse.core.entity.product.QProductImage subProductImage = new com.tastyhouse.core.entity.product.QProductImage("subProductImage");
-
         JPAQuery<TodayDiscountProductDto> query = queryFactory
             .select(new QTodayDiscountProductDto(
                 product.id,
@@ -85,8 +86,6 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<ProductSimpleDto> findProductsByPlaceId(Long placeId) {
-        com.tastyhouse.core.entity.product.QProductImage subProductImage = new com.tastyhouse.core.entity.product.QProductImage("subProductImage");
-
         return queryFactory
             .select(new QProductSimpleDto(
                 product.id,
