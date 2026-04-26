@@ -105,7 +105,7 @@ public class OrderService {
                     savedOrder.getId(),
                     product.getId(),
                     product.getName(),
-                    productImageUrl,
+                    fileService.getUrlByPath(productImageUrl),
                     itemRequest.quantity(),
                     unitPrice,
                     discountPrice,
@@ -266,7 +266,19 @@ public class OrderService {
 
             boolean isReviewed = orderCoreService.existsReviewByOrderIdAndProductIdAndMemberId(order.getId(), item.getProductId(), memberId);
 
-            return OrderItemResponse.from(item.getId(), item.getProductId(), item.getProductName(), item.getProductImageUrl(), item.getQuantity(), item.getUnitPrice(), item.getDiscountPrice(), item.getOptionTotalPrice(), item.getTotalPrice(), isReviewed, optionResponses);
+            return OrderItemResponse.from(
+                item.getId(),
+                item.getProductId(),
+                item.getProductName(),
+                fileService.getUrlByPath(item.getProductImageUrl()),
+                item.getQuantity(),
+                item.getUnitPrice(),
+                item.getDiscountPrice(),
+                item.getOptionTotalPrice(),
+                item.getTotalPrice(),
+                isReviewed,
+                optionResponses
+            );
         }).toList();
 
         PaymentSummaryResponse paymentSummary = null;

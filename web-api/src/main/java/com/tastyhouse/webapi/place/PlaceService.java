@@ -423,7 +423,7 @@ public class PlaceService {
         return PlaceMenuResponse.from(
             product.getId(),
             product.getName(),
-            imageUrl,
+            fileService.getUrlByPath(imageUrl),
             product.getOriginalPrice(),
             product.getDiscountPrice(),
             product.getDiscountRate(),
