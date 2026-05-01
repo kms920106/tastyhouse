@@ -6,9 +6,7 @@ import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
 import com.tastyhouse.webapi.event.response.EventDetailResponse;
-import com.tastyhouse.webapi.event.response.EventDurationResponse;
 import com.tastyhouse.webapi.event.response.EventListItemResponse;
-import com.tastyhouse.webapi.event.response.PrizeItem;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -35,22 +33,6 @@ import java.util.List;
 public class EventApiController {
 
     private final EventService eventService;
-
-    @Operation(summary = "진행중인 랭킹 이벤트 기간 조회", description = "현재 진행중인 랭킹 이벤트의 시작일자와 종료일자를 조회합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))), @ApiResponse(responseCode = "404", description = "진행중인 랭킹 이벤트 없음", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/rank/duration")
-    public ResponseEntity<CommonResponse<EventDurationResponse>> getRankingEventDuration() {
-        return eventService.getRankingEventDuration().map(duration -> ResponseEntity.ok(CommonResponse.success(duration))).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @Operation(summary = "현재 진행중인 경품 목록 조회", description = "현재 진행중인 프로모션의 등수별 경품 목록을 조회합니다. (1등, 2등, 3등 등)")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/rank/prizes")
-    public ResponseEntity<CommonResponse<List<PrizeItem>>> getActivePrizeList() {
-        List<PrizeItem> prizes = eventService.getActivePrizes();
-        CommonResponse<List<PrizeItem>> response = CommonResponse.success(prizes);
-        return ResponseEntity.ok(response);
-    }
 
     @Operation(summary = "이벤트 목록 조회", description = "상태별 이벤트 목록을 조회합니다. (진행중, 종료)")
     @ApiResponses({
@@ -93,5 +75,4 @@ public class EventApiController {
         CommonResponse<List<EventAnnouncementListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
-
 }

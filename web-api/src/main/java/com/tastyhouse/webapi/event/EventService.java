@@ -5,23 +5,16 @@ import com.tastyhouse.core.entity.event.EventAnnouncement;
 import com.tastyhouse.core.entity.event.EventStatus;
 import com.tastyhouse.core.entity.event.dto.EventDetailDto;
 import com.tastyhouse.core.entity.event.dto.EventListItemDto;
-import com.tastyhouse.core.entity.event.dto.PrizeItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.EventCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
 import com.tastyhouse.webapi.event.response.EventDetailResponse;
-import com.tastyhouse.webapi.event.response.EventDurationResponse;
 import com.tastyhouse.webapi.event.response.EventListItemResponse;
-import com.tastyhouse.webapi.event.response.PrizeItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,37 +22,6 @@ public class EventService {
 
     private final EventCoreService eventCoreService;
     private final FileService fileService;
-
-    @Transactional(readOnly = true)
-    public Optional<EventDurationResponse> getRankingEventDuration() {
-        return eventCoreService.findActiveRankingEvent()
-                .map(event -> EventDurationResponse.from(
-                    event.getStartAt(),
-                    event.getEndAt()
-                ));
-    }
-
-    @Transactional(readOnly = true)
-    public List<PrizeItem> getActivePrizes() {
-        return eventCoreService.findActiveRankingEvent()
-            .map(event -> {
-                List<PrizeItemDto> prizes = eventCoreService.findPrizeItemsByEventId(event.getId());
-                return prizes.stream()
-                    .map(this::convertToPrizeItem)
-                    .toList();
-            })
-            .orElse(Collections.emptyList());
-    }
-
-    private PrizeItem convertToPrizeItem(PrizeItemDto dto) {
-        return PrizeItem.from(
-            dto.id(),
-            dto.prizeRank(),
-            dto.name(),
-            dto.brand(),
-            fileService.getUrlByPath(dto.imageFilePath())
-        );
-    }
 
     @Transactional(readOnly = true)
     public PageResult<EventListItemResponse> getEventList(EventStatus status, int page, int size) {

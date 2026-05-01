@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.event;
+package com.tastyhouse.core.entity.rank;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -16,28 +16,23 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @Table(
-    name = "EVENT_PRIZE",
+    name = "RANK_PRIZE",
     uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_event_prize_rank",
-            columnNames = {"event_id", "prize_rank"}
-        )
+        @UniqueConstraint(name = "uk_rank_prize_rank", columnNames = {"rank_id", "prize_rank"})
     },
     indexes = {
-        @Index(name = "idx_event_prize", columnList = "event_id, prize_rank"),
-        @Index(name = "idx_prize_brand", columnList = "brand"),
-        @Index(name = "idx_prize_name", columnList = "name")
+        @Index(name = "idx_rank_prize", columnList = "rank_id, prize_rank")
     }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class EventPrize extends BaseEntity {
+public class RankPrize extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "event_id", nullable = false)
-    private Long eventId;
+    @Column(name = "rank_id", nullable = false)
+    private Long rankId;
 
     @Column(name = "prize_rank", nullable = false)
     private Integer prizeRank;
@@ -51,33 +46,15 @@ public class EventPrize extends BaseEntity {
     @Column(name = "image_file_id")
     private Long imageFileId;
 
-    private EventPrize(
-        Long eventId,
-        Integer prizeRank,
-        String name,
-        String brand,
-        Long imageFileId
-    ) {
-        this.eventId = eventId;
+    private RankPrize(Long rankId, Integer prizeRank, String name, String brand, Long imageFileId) {
+        this.rankId = rankId;
         this.prizeRank = prizeRank;
         this.name = name;
         this.brand = brand;
         this.imageFileId = imageFileId;
     }
 
-    public static EventPrize of(
-        Long eventId,
-        Integer prizeRank,
-        String name,
-        String brand,
-        Long imageFileId
-    ) {
-        return new EventPrize(
-            eventId,
-            prizeRank,
-            name,
-            brand,
-            imageFileId
-        );
+    public static RankPrize of(Long rankId, Integer prizeRank, String name, String brand, Long imageFileId) {
+        return new RankPrize(rankId, prizeRank, name, brand, imageFileId);
     }
 }

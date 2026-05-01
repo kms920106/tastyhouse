@@ -76,22 +76,6 @@ CREATE TABLE MEMBER_COUPON
     INDEX idx_member_coupon_used (member_id, is_used)
 );
 
-CREATE TABLE EVENT_PRIZE
-(
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    event_id       BIGINT       NOT NULL,
-    prize_rank     INT          NOT NULL,
-    name           VARCHAR(200) NOT NULL,
-    brand          VARCHAR(100) NOT NULL,
-    image_file_id  BIGINT,
-    created_at     DATETIME     NOT NULL,
-    updated_at     DATETIME     NOT NULL,
-    UNIQUE KEY uk_event_prize_rank (event_id, prize_rank),
-    INDEX idx_event_prize (event_id, prize_rank),
-    INDEX idx_prize_brand (brand),
-    INDEX idx_prize_name (name)
-);
-
 CREATE TABLE EVENT_WINNER
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -941,4 +925,30 @@ CREATE TABLE EMAIL_VERIFICATION
     created_at        DATETIME     NOT NULL,
     INDEX idx_email_verification_email (email),
     INDEX idx_email_verification_expires_at (expires_at)
+);
+
+CREATE TABLE RANKS
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    start_at   DATETIME   NOT NULL,
+    end_at     DATETIME   NOT NULL,
+    is_active  TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME   NOT NULL,
+    updated_at DATETIME   NOT NULL,
+    INDEX idx_rank_active (is_active),
+    INDEX idx_rank_period (start_at, end_at)
+);
+
+CREATE TABLE RANK_PRIZE
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    rank_id       BIGINT       NOT NULL,
+    prize_rank    INT          NOT NULL,
+    name          VARCHAR(200) NOT NULL,
+    brand         VARCHAR(100) NOT NULL,
+    image_file_id BIGINT,
+    created_at    DATETIME     NOT NULL,
+    updated_at    DATETIME     NOT NULL,
+    UNIQUE KEY uk_rank_prize_rank (rank_id, prize_rank),
+    INDEX idx_rank_prize (rank_id, prize_rank)
 );

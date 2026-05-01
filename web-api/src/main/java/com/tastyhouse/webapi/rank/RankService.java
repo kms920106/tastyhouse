@@ -2,28 +2,47 @@ package com.tastyhouse.webapi.rank;
 
 import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.entity.rank.dto.MemberRankDto;
+import com.tastyhouse.core.entity.rank.dto.RankPrizeDto;
 import com.tastyhouse.core.service.RankCoreService;
+import com.tastyhouse.core.service.RankInfoCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.rank.response.MemberRankItem;
 import com.tastyhouse.webapi.rank.response.MyRankResponse;
+import com.tastyhouse.webapi.rank.response.RankDurationResponse;
+import com.tastyhouse.webapi.rank.response.RankPrizeItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class RankService {
 
     private final RankCoreService rankCoreService;
+    private final RankInfoCoreService rankInfoCoreService;
     private final FileService fileService;
+
+    @Transactional(readOnly = true)
+    public Optional<RankDurationResponse> getDuration() {
+        return rankInfoCoreService.findActiveDuration()
+            .map(dto -> RankDurationResponse.from(dto.startAt(), dto.endAt()));
+    }
+
+    @Transactional(readOnly = true)
+    public List<RankPrizeItemResponse> getPrizes() {
+        return rankInfoCoreService.findActivePrizes().stream()
+            .map(this::convertToPrizeItemResponse)
+            .toList();
+    }
 
     @Transactional(readOnly = true)
     public List<MemberRankItem> getMemberRankList(String rankType, int limit) {
         RankType type = parseRankType(rankType);
-        LocalDate baseDate = calculateBaseDate();
+        LocalDate baseDate = LocalDate.now();
 
         List<MemberRankDto> ranks = rankCoreService.searchMemberRankList(type, baseDate, limit);
 
@@ -41,7 +60,7 @@ public class RankService {
     @Transactional(readOnly = true)
     public MyRankResponse getMyMemberRank(Long memberId, String rankType) {
         RankType type = parseRankType(rankType);
-        LocalDate baseDate = calculateBaseDate();
+        LocalDate baseDate = LocalDate.now();
 
         MemberRankDto dto = rankCoreService.findMemberRank(memberId, type, baseDate);
         if (dto == null) {
@@ -57,15 +76,21 @@ public class RankService {
         );
     }
 
+    private RankPrizeItemResponse convertToPrizeItemResponse(RankPrizeDto dto) {
+        return RankPrizeItemResponse.from(
+            dto.id(),
+            dto.prizeRank(),
+            dto.name(),
+            dto.brand(),
+            fileService.getUrlByPath(dto.imageFilePath())
+        );
+    }
+
     private RankType parseRankType(String rankType) {
         try {
             return RankType.valueOf(rankType.toUpperCase());
         } catch (IllegalArgumentException e) {
             return RankType.ALL;
         }
-    }
-
-    private LocalDate calculateBaseDate() {
-        return LocalDate.now();
     }
 }

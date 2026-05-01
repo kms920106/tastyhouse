@@ -9,7 +9,6 @@ import com.tastyhouse.core.entity.event.EventStatus;
 import com.tastyhouse.core.entity.event.EventType;
 import com.tastyhouse.core.entity.event.dto.EventDetailDto;
 import com.tastyhouse.core.entity.event.dto.EventListItemDto;
-import com.tastyhouse.core.entity.event.dto.PrizeItemDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +20,6 @@ import java.util.Optional;
 
 import static com.tastyhouse.core.entity.event.QEvent.event;
 import static com.tastyhouse.core.entity.event.QEventAnnouncement.eventAnnouncement;
-import static com.tastyhouse.core.entity.event.QEventPrize.eventPrize;
 import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
 
 @Repository
@@ -85,23 +83,6 @@ public class EventRepositoryImpl implements EventRepository {
             .where(event.status.eq(status));
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
-    }
-
-    @Override
-    public List<PrizeItemDto> findPrizeItemsByEventId(Long eventId) {
-        return queryFactory
-            .select(Projections.constructor(PrizeItemDto.class,
-                eventPrize.id,
-                eventPrize.prizeRank,
-                eventPrize.name,
-                eventPrize.brand,
-                uploadedFile.filePath
-            ))
-            .from(eventPrize)
-            .leftJoin(uploadedFile).on(eventPrize.imageFileId.eq(uploadedFile.id))
-            .where(eventPrize.eventId.eq(eventId))
-            .orderBy(eventPrize.prizeRank.asc())
-            .fetch();
     }
 
     @Override
