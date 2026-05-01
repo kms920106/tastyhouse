@@ -99,7 +99,6 @@ CREATE TABLE EVENT
     thumbnail_image_file_id BIGINT,
     banner_image_file_id    BIGINT,
     content_html            TEXT,
-    type                VARCHAR(50)  NOT NULL DEFAULT 'RANKING',
     status              VARCHAR(20)  NOT NULL,
     start_at            DATETIME     NOT NULL,
     end_at              DATETIME     NOT NULL,

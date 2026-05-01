@@ -6,7 +6,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.event.Event;
 import com.tastyhouse.core.entity.event.EventAnnouncement;
 import com.tastyhouse.core.entity.event.EventStatus;
-import com.tastyhouse.core.entity.event.EventType;
 import com.tastyhouse.core.entity.event.dto.EventDetailDto;
 import com.tastyhouse.core.entity.event.dto.EventListItemDto;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +28,11 @@ public class EventRepositoryImpl implements EventRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Optional<Event> findLatestByStatusAndType(EventStatus status, EventType type) {
+    public Optional<Event> findLatestByStatus(EventStatus status) {
         Event result = queryFactory
             .selectFrom(event)
             .where(
-                event.status.eq(status),
-                event.type.eq(type)
+                event.status.eq(status)
             )
             .orderBy(event.startAt.desc())
             .limit(1)

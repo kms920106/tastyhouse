@@ -51,10 +51,6 @@ public class Event extends BaseEntity {
     private String contentHtml;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, length = 50, columnDefinition = "VARCHAR(50) DEFAULT 'RANKING'")
-    private EventType type;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private EventStatus status;
 
@@ -71,7 +67,6 @@ public class Event extends BaseEntity {
         Long thumbnailImageFileId,
         Long bannerImageFileId,
         String contentHtml,
-        EventType type,
         EventStatus status,
         LocalDateTime startAt,
         LocalDateTime endAt
@@ -82,7 +77,6 @@ public class Event extends BaseEntity {
         this.thumbnailImageFileId = thumbnailImageFileId;
         this.bannerImageFileId = bannerImageFileId;
         this.contentHtml = contentHtml;
-        this.type = type;
         this.status = status;
         this.startAt = startAt;
         this.endAt = endAt;
@@ -95,7 +89,6 @@ public class Event extends BaseEntity {
         Long thumbnailImageFileId,
         Long bannerImageFileId,
         String contentHtml,
-        EventType type,
         EventStatus status,
         LocalDateTime startAt,
         LocalDateTime endAt
@@ -107,7 +100,6 @@ public class Event extends BaseEntity {
             thumbnailImageFileId,
             bannerImageFileId,
             contentHtml,
-            type,
             status,
             startAt,
             endAt
