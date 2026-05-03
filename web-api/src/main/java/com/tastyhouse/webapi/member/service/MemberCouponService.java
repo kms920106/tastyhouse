@@ -30,20 +30,44 @@ public class MemberCouponService {
         }
 
         // 쿠폰 ID 목록 추출
-        List<Long> couponIds = memberCoupons.stream().map(MemberCoupon::getCouponId).distinct().toList();
+        List<Long> couponIds = memberCoupons.stream()
+            .map(MemberCoupon::getCouponId)
+            .distinct()
+            .toList();
 
         // 쿠폰 정보 조회
-        Map<Long, Coupon> couponMap = couponIds.stream().map(couponCoreService::findById).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toMap(Coupon::getId, coupon -> coupon));
+        Map<Long, Coupon> couponMap = couponIds.stream()
+            .map(couponCoreService::findById)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toMap(Coupon::getId, coupon -> coupon));
 
         // 응답 생성
-        return memberCoupons.stream().map(memberCoupon -> {
-            Coupon coupon = couponMap.get(memberCoupon.getCouponId());
-            if (coupon == null) {
-                return null;
-            }
+        return memberCoupons.stream()
+            .map(memberCoupon -> {
+                Coupon coupon = couponMap.get(memberCoupon.getCouponId());
+                if (coupon == null) {
+                    return null;
+                }
 
-            return MemberCouponListItemResponse.of(memberCoupon.getId(), coupon.getId(), coupon.getName(), coupon.getDescription(), coupon.getDiscountType(), coupon.getDiscountAmount(), coupon.getMaxDiscountAmount(), coupon.getMinOrderAmount(), coupon.getUseStartAt(), coupon.getUseEndAt(), memberCoupon.getExpiredAt(), memberCoupon.getIsUsed(), memberCoupon.getUsedAt());
-        }).filter(Objects::nonNull).toList();
+                return MemberCouponListItemResponse.of(
+                    memberCoupon.getId(),
+                    coupon.getId(),
+                    coupon.getName(),
+                    coupon.getDescription(),
+                    coupon.getDiscountType(),
+                    coupon.getDiscountAmount(),
+                    coupon.getMaxDiscountAmount(),
+                    coupon.getMinOrderAmount(),
+                    coupon.getUseStartAt(),
+                    coupon.getUseEndAt(),
+                    memberCoupon.getExpiredAt(),
+                    memberCoupon.getIsUsed(),
+                    memberCoupon.getUsedAt()
+                );
+            })
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     // 회원이 현재 사용 가능한 쿠폰 목록만 조회
@@ -56,19 +80,43 @@ public class MemberCouponService {
         }
 
         // 쿠폰 ID 목록 추출
-        List<Long> couponIds = memberCoupons.stream().map(MemberCoupon::getCouponId).distinct().toList();
+        List<Long> couponIds = memberCoupons.stream()
+            .map(MemberCoupon::getCouponId)
+            .distinct()
+            .toList();
 
         // 쿠폰 정보 조회
-        Map<Long, Coupon> couponMap = couponIds.stream().map(couponCoreService::findById).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toMap(Coupon::getId, coupon -> coupon));
+        Map<Long, Coupon> couponMap = couponIds.stream()
+            .map(couponCoreService::findById)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toMap(Coupon::getId, coupon -> coupon));
 
         // 응답 생성
-        return memberCoupons.stream().map(memberCoupon -> {
-            Coupon coupon = couponMap.get(memberCoupon.getCouponId());
-            if (coupon == null) {
-                return null;
-            }
+        return memberCoupons.stream()
+            .map(memberCoupon -> {
+                Coupon coupon = couponMap.get(memberCoupon.getCouponId());
+                if (coupon == null) {
+                    return null;
+                }
 
-            return MemberCouponListItemResponse.of(memberCoupon.getId(), coupon.getId(), coupon.getName(), coupon.getDescription(), coupon.getDiscountType(), coupon.getDiscountAmount(), coupon.getMaxDiscountAmount(), coupon.getMinOrderAmount(), coupon.getUseStartAt(), coupon.getUseEndAt(), memberCoupon.getExpiredAt(), memberCoupon.getIsUsed(), memberCoupon.getUsedAt());
-        }).filter(Objects::nonNull).toList();
+                return MemberCouponListItemResponse.of(
+                    memberCoupon.getId(),
+                    coupon.getId(),
+                    coupon.getName(),
+                    coupon.getDescription(),
+                    coupon.getDiscountType(),
+                    coupon.getDiscountAmount(),
+                    coupon.getMaxDiscountAmount(),
+                    coupon.getMinOrderAmount(),
+                    coupon.getUseStartAt(),
+                    coupon.getUseEndAt(),
+                    memberCoupon.getExpiredAt(),
+                    memberCoupon.getIsUsed(),
+                    memberCoupon.getUsedAt()
+                );
+            })
+            .filter(Objects::nonNull)
+            .toList();
     }
 }

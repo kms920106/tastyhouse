@@ -19,7 +19,8 @@ public record MemberCouponListItemResponse(
     LocalDateTime expiredAt,
     Boolean isUsed,
     LocalDateTime usedAt,
-    Long daysRemaining
+    Long daysRemaining,
+    Boolean isExpired
 ) {
     public static MemberCouponListItemResponse of(
         Long id,
@@ -36,18 +37,30 @@ public record MemberCouponListItemResponse(
         Boolean isUsed,
         LocalDateTime usedAt
     ) {
-    Long daysRemaining = null;
-    if (!isUsed && expiredAt != null) {
         LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(expiredAt)) {
+
+        Long daysRemaining = null;
+        if (!isUsed && expiredAt != null && now.isBefore(expiredAt)) {
             daysRemaining = ChronoUnit.DAYS.between(now, expiredAt);
         }
-    }
 
-    return new MemberCouponListItemResponse(
-        id, couponId, name, description, discountType,
-        discountAmount, maxDiscountAmount, minOrderAmount,
-        useStartAt, useEndAt, expiredAt, isUsed, usedAt, daysRemaining
-    );
+        boolean isExpired = expiredAt != null && now.isAfter(expiredAt);
+
+        return new MemberCouponListItemResponse(
+            id,
+            couponId,
+            name, description,
+            discountType,
+            discountAmount,
+            maxDiscountAmount,
+            minOrderAmount,
+            useStartAt,
+            useEndAt,
+            expiredAt,
+            isUsed,
+            usedAt,
+            daysRemaining,
+            isExpired
+        );
     }
 }
