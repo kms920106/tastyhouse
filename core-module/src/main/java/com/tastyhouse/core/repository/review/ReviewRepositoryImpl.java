@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.entity.order.QOrderItem.orderItem;
 import static com.tastyhouse.core.entity.place.QPlace.place;
 import static com.tastyhouse.core.entity.place.QPlaceStation.placeStation;
 import static com.tastyhouse.core.entity.product.QProduct.product;
@@ -58,12 +59,18 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.id,
                 uploadedFile.filePath,
                 placeStation.stationName,
+                place.name,
+                orderItem.productName,
                 review.totalRating,
                 review.content
             ))
             .from(review)
             .innerJoin(place).on(review.placeId.eq(place.id))
             .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .leftJoin(orderItem).on(
+                orderItem.orderId.eq(review.orderId)
+                .and(orderItem.productId.eq(review.productId))
+            )
             .leftJoin(reviewImage).on(
                 reviewImage.reviewId.eq(review.id)
                 .and(reviewImage.sort.eq(

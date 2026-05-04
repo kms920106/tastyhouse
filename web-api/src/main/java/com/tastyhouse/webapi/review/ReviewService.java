@@ -64,6 +64,8 @@ public class ReviewService {
             dto.id(),
             fileService.getUrlByPath(dto.imageUrl()),
             dto.stationName(),
+            dto.placeName(),
+            dto.productName(),
             dto.totalRating(),
             dto.content()
         );

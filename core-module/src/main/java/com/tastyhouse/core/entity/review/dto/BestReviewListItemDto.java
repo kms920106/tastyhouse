@@ -6,6 +6,8 @@ public record BestReviewListItemDto(
     Long id,
     String imageUrl,
     String stationName,
+    String placeName,
+    String productName,
     Double totalRating,
     String content
 ) {
