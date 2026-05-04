@@ -15,6 +15,7 @@ public final class PublicPaths {
         "/api/faqs/**",
         "/api/members/v1/phone/availability", "/api/members/v1/nickname/availability",
         "/api/notices/**",
+        "/api/partnership-requests/**",
         "/api/places/**",
         "/api/policies/**",
         "/api/products/**",
