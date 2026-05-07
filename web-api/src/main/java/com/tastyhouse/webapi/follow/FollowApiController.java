@@ -4,6 +4,7 @@ import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.follow.response.FollowMemberResponse;
+import com.tastyhouse.webapi.follow.response.IsFollowingResponse;
 import com.tastyhouse.webapi.follow.response.MemberSearchResponse;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,6 +81,20 @@ public class FollowApiController {
     ) {
         followService.removeFollower(userDetails.getMemberId(), followerId);
         return ResponseEntity.ok(CommonResponse.success(null));
+    }
+
+    @Operation(summary = "팔로우 여부 조회", description = "내가 특정 회원을 팔로우 중인지 여부를 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = IsFollowingResponse.class))),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @GetMapping("/v1/{memberId}/is-following")
+    public ResponseEntity<CommonResponse<IsFollowingResponse>> isFollowing(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @Parameter(description = "팔로우 여부를 확인할 회원 ID", example = "2") @PathVariable Long memberId
+    ) {
+        boolean isFollowing = followService.isFollowing(userDetails.getMemberId(), memberId);
+        return ResponseEntity.ok(CommonResponse.success(IsFollowingResponse.of(memberId, isFollowing)));
     }
 
     @Operation(summary = "팔로잉 목록 조회", description = "특정 회원의 팔로잉 목록을 페이징하여 조회합니다. 본인 조회 시 각 팔로잉 회원에 대한 내 팔로우 여부가 포함됩니다.")

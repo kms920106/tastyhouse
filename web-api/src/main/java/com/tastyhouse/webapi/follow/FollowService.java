@@ -34,6 +34,11 @@ public class FollowService {
     }
 
     @Transactional(readOnly = true)
+    public boolean isFollowing(Long viewerMemberId, Long targetMemberId) {
+        return followCoreService.isFollowing(viewerMemberId, targetMemberId);
+    }
+
+    @Transactional(readOnly = true)
     public PageResult<FollowMemberResponse> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
         return PageResult.from(followCoreService.findFollowingList(memberId, viewerMemberId, page, size))
             .map(dto -> FollowMemberResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
