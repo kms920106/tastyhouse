@@ -1,36 +1,37 @@
 package com.tastyhouse.webapi.member.response;
 
 import com.tastyhouse.core.entity.user.MemberGrade;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public record MemberProfileResponse(
+    @Schema(description = "회원 ID", example = "1")
     Long id,
+
+    @Schema(description = "닉네임", example = "맛집탐험가")
     String nickname,
-    MemberGrade grade,
+
+    @Schema(description = "회원 등급", example = "NEWCOMER")
+    MemberGrade memberGrade,
+
+    @Schema(description = "상태 메시지", example = "오늘도 맛있는 하루!")
     String statusMessage,
-    String profileImageUrl,
-    String fullName,
-    String phoneNumber,
-    String email
+
+    @Schema(description = "프로필 이미지 URL")
+    String profileImageUrl
 ) {
     public static MemberProfileResponse from(
-    Long id,
-    String nickname,
-    MemberGrade grade,
-    String statusMessage,
-    String profileImageUrl,
-    String fullName,
-    String phoneNumber,
-    String email
+        Long id,
+        String nickname,
+        MemberGrade memberGrade,
+        String statusMessage,
+        String profileImageUrl
     ) {
-    return new MemberProfileResponse(
-        id,
-        nickname,
-        grade,
-        statusMessage,
-        profileImageUrl,
-        fullName,
-        phoneNumber,
-        email
-    );
+        return new MemberProfileResponse(
+            id,
+            nickname,
+            memberGrade,
+            statusMessage,
+            profileImageUrl
+        );
     }
 }

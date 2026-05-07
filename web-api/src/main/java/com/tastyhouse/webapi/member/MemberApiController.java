@@ -5,9 +5,9 @@ import com.tastyhouse.webapi.member.request.UpdatePersonalInfoRequest;
 import com.tastyhouse.webapi.member.request.UpdateProfileRequest;
 import com.tastyhouse.webapi.member.request.VerifyPasswordRequest;
 import com.tastyhouse.webapi.member.request.WithdrawMemberRequest;
-import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
-import com.tastyhouse.webapi.member.response.OtherMemberProfileResponse;
+import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
+import com.tastyhouse.webapi.member.response.MemberMeResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
 import com.tastyhouse.webapi.member.response.MyBookmarkedPlaceListItemResponse;
@@ -61,12 +61,12 @@ public class MemberApiController {
 
     @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보를 조회합니다. (마이페이지용)")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = MemberProfileResponse.class))),
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = MemberMeResponse.class))),
         @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
         @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     })
     @GetMapping("/v1/me")
-    public ResponseEntity<CommonResponse<MemberProfileResponse>> getMyProfile(
+    public ResponseEntity<CommonResponse<MemberMeResponse>> getMyProfile(
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyProfile(userDetails.getMemberId())));
@@ -281,21 +281,19 @@ public class MemberApiController {
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 
-    @Operation(summary = "다른 회원 프로필 조회", description = "특정 회원의 프로필 정보(닉네임, 등급, 상태메시지, 프로필 이미지, 리뷰 수, 팔로잉/팔로워 수, 내 팔로우 여부)를 조회합니다.")
+    @Operation(summary = "회원 프로필 조회", description = "특정 회원의 프로필 정보(닉네임, 등급, 상태메시지, 프로필 이미지)만 조회합니다.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = OtherMemberProfileResponse.class))),
-        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = MemberProfileResponse.class))),
         @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     })
     @GetMapping("/v1/{memberId}/profile")
-    public ResponseEntity<CommonResponse<OtherMemberProfileResponse>> getOtherMemberProfile(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<CommonResponse<MemberProfileResponse>> getMemberBasicProfile(
         @Parameter(description = "조회할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
-        return ResponseEntity.ok(CommonResponse.success(memberFacade.getOtherMemberProfile(memberId, userDetails.getMemberId())));
+        return ResponseEntity.ok(CommonResponse.success(memberFacade.getMemberBasicProfile(memberId)));
     }
 
-    @Operation(summary = "특정 회원 통계 조회", description = "특정 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회합니다.")
+    @Operation(summary = "회원 통계 조회", description = "특정 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = MemberStatsResponse.class))),
         @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),

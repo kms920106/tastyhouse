@@ -5,15 +5,15 @@ import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
+import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
+import com.tastyhouse.webapi.member.response.MemberMeResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.MyBookmarkedPlaceListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.OtherMemberProfileResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.PointHistoryResponse;
@@ -46,7 +46,7 @@ public class MemberFacade {
     private final MemberCouponService memberCouponService;
     private final MemberGradeService memberGradeService;
 
-    public MemberProfileResponse getMyProfile(Long memberId) {
+    public MemberMeResponse getMyProfile(Long memberId) {
         return memberAccountService.getMemberProfile(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "회원을 찾을 수 없습니다."));
     }
@@ -133,8 +133,8 @@ public class MemberFacade {
         return memberPlaceService.getMyBookmarkedPlaces(memberId, page, size);
     }
 
-    public OtherMemberProfileResponse getOtherMemberProfile(Long targetMemberId, Long viewerMemberId) {
-        return memberFollowService.getOtherMemberProfile(targetMemberId, viewerMemberId);
+    public MemberProfileResponse getMemberBasicProfile(Long targetMemberId) {
+        return memberFollowService.getMemberProfile(targetMemberId);
     }
 
     public MemberStatsResponse getMemberStats(Long memberId) {

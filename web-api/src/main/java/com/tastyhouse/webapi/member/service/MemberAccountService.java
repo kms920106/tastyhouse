@@ -10,7 +10,7 @@ import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.member.response.MemberProfileResponse;
+import com.tastyhouse.webapi.member.response.MemberMeResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
@@ -129,9 +129,9 @@ public class MemberAccountService {
 
     // 회원 프로필 정보와 프로필 이미지 URL을 조회
     @Transactional(readOnly = true)
-    public Optional<MemberProfileResponse> getMemberProfile(Long memberId) {
+    public Optional<MemberMeResponse> getMemberProfile(Long memberId) {
         return memberCoreService.findMemberProfileDetailById(memberId)
-            .map(dto -> MemberProfileResponse.from(
+            .map(dto -> MemberMeResponse.from(
                 dto.id(),
                 dto.nickname(),
                 dto.memberGrade(),

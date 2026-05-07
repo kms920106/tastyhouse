@@ -7,8 +7,8 @@ import com.tastyhouse.core.service.FollowCoreService;
 import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.OtherMemberProfileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,21 +22,18 @@ public class MemberFollowService {
     private final FollowCoreService followCoreService;
     private final FileService fileService;
 
-    // 다른 회원의 프로필과 현재 사용자의 팔로우 여부를 조회
+    // 회원의 프로필 조회
     @Transactional(readOnly = true)
-    public OtherMemberProfileResponse getOtherMemberProfile(Long targetMemberId, Long viewerMemberId) {
+    public MemberProfileResponse getMemberProfile(Long targetMemberId) {
         MemberWithProfileImageDto dto = memberCoreService.findMemberWithProfileImageById(targetMemberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        boolean isFollowing = viewerMemberId != null && followCoreService.isFollowing(viewerMemberId, targetMemberId);
-
-        return OtherMemberProfileResponse.from(
+        return MemberProfileResponse.from(
             dto.id(),
             dto.nickname(),
             dto.memberGrade(),
             dto.statusMessage(),
-            fileService.getUrlByPath(dto.profileImageFilePath()),
-            isFollowing
+            fileService.getUrlByPath(dto.profileImageFilePath())
         );
     }
 
