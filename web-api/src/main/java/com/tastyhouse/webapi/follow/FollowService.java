@@ -51,6 +51,18 @@ public class FollowService {
     }
 
     @Transactional(readOnly = true)
+    public PageResult<FollowMemberResponse> getPublicFollowingList(Long memberId, int page, int size) {
+        return PageResult.from(followCoreService.findFollowingList(memberId, null, page, size))
+            .map(dto -> FollowMemberResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<FollowMemberResponse> getPublicFollowerList(Long memberId, int page, int size) {
+        return PageResult.from(followCoreService.findFollowerList(memberId, null, page, size))
+            .map(dto -> FollowMemberResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
+    }
+
+    @Transactional(readOnly = true)
     public PageResult<MemberSearchResponse> searchMembersByNickname(String nickname, Long viewerMemberId, int page, int size) {
         return PageResult.from(followCoreService.findMembersByNicknameContaining(nickname, page, size))
             .map(dto -> {

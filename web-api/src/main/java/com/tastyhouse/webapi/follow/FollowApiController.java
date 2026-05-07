@@ -137,6 +137,42 @@ public class FollowApiController {
         ));
     }
 
+    @Operation(summary = "팔로잉 목록 조회 (비로그인)", description = "특정 회원의 팔로잉 목록을 페이징하여 조회합니다. 팔로우 여부는 항상 false로 응답합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    })
+    @GetMapping("/v1/{memberId}/following/public")
+    public ResponseEntity<CommonResponse<List<FollowMemberResponse>>> getPublicFollowingList(
+        @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
+        @Valid @ModelAttribute PageRequest pageRequest
+    ) {
+        PageResult<FollowMemberResponse> pageResult = followService.getPublicFollowingList(memberId, pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(CommonResponse.success(
+            pageResult.getContent(),
+            pageResult.getCurrentPage(),
+            pageResult.getPageSize(),
+            pageResult.getTotalElements()
+        ));
+    }
+
+    @Operation(summary = "팔로워 목록 조회 (비로그인)", description = "특정 회원의 팔로워 목록을 페이징하여 조회합니다. 팔로우 여부는 항상 false로 응답합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    })
+    @GetMapping("/v1/{memberId}/followers/public")
+    public ResponseEntity<CommonResponse<List<FollowMemberResponse>>> getPublicFollowerList(
+        @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
+        @Valid @ModelAttribute PageRequest pageRequest
+    ) {
+        PageResult<FollowMemberResponse> pageResult = followService.getPublicFollowerList(memberId, pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(CommonResponse.success(
+            pageResult.getContent(),
+            pageResult.getCurrentPage(),
+            pageResult.getPageSize(),
+            pageResult.getTotalElements()
+        ));
+    }
+
     @Operation(summary = "회원 검색 (닉네임)", description = "닉네임으로 회원을 검색합니다. 각 회원에 대한 내 팔로우 여부가 포함됩니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "검색 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
