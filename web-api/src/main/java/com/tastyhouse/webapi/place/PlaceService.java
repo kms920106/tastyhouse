@@ -196,10 +196,7 @@ public class PlaceService {
     @Transactional(readOnly = true)
     public PlaceDetailResponse getPlaceDetail(Long placeId) {
         Place place = placeCoreService.findPlaceById(placeId);
-        String thumbnailImageUrl = placeCoreService.findThumbnailFilePath(place.getThumbnailImageFileId())
-                .map(fileService::getUrlByPath)
-                .orElse(null);
-        return PlaceDetailResponse.from(place, thumbnailImageUrl);
+        return PlaceDetailResponse.from(place);
     }
 
     @Transactional(readOnly = true)

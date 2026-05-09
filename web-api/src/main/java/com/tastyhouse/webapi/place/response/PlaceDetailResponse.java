@@ -29,12 +29,9 @@ public record PlaceDetailResponse(
     String lotAddress,
 
     @Schema(description = "전화번호", example = "02-1234-5678")
-    String phoneNumber,
-
-    @Schema(description = "썸네일 이미지 URL", example = "https://cdn.example.com/images/thumb.jpg")
-    String thumbnailImageUrl
+    String phoneNumber
 ) {
-    public static PlaceDetailResponse from(Place place, String thumbnailImageUrl) {
+    public static PlaceDetailResponse from(Place place) {
         return new PlaceDetailResponse(
             place.getId(),
             place.getName(),
@@ -43,8 +40,7 @@ public record PlaceDetailResponse(
             place.getRating(),
             place.getRoadAddress(),
             place.getLotAddress(),
-            place.getPhoneNumber(),
-            thumbnailImageUrl
+            place.getPhoneNumber()
         );
     }
 }
