@@ -35,7 +35,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -192,7 +192,7 @@ public class PlaceApiController {
     @Operation(summary = "북마크 여부 조회", description = "플레이스가 현재 사용자에 의해 북마크되었는지 여부를 조회합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공")})
     @GetMapping("/v1/{placeId}/bookmark")
-    public ResponseEntity<CommonResponse<PlaceBookmarkResponse>> isBookmarked(@PathVariable Long placeId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CommonResponse<PlaceBookmarkResponse>> isBookmarked(@PathVariable Long placeId, @CurrentUser CustomUserDetails userDetails) {
         PlaceBookmarkResponse bookmarked;
         if (userDetails == null) {
             bookmarked = PlaceBookmarkResponse.from(false);
@@ -206,7 +206,7 @@ public class PlaceApiController {
     @Operation(summary = "북마크 토글", description = "플레이스에 대한 북마크를 추가하거나 제거합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "처리 성공")})
     @PostMapping("/v1/{placeId}/bookmark")
-    public ResponseEntity<CommonResponse<PlaceBookmarkResponse>> toggleBookmark(@PathVariable Long placeId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CommonResponse<PlaceBookmarkResponse>> toggleBookmark(@PathVariable Long placeId, @CurrentUser CustomUserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(401).build();
         }

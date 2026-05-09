@@ -31,7 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -62,7 +62,7 @@ public class ReviewApiController {
     @GetMapping("/v1/write/order-items/{orderItemId}")
     public ResponseEntity<CommonResponse<ReviewWriteInfoResponse>> getReviewWriteInfo(
             @Parameter(description = "주문 상품 ID", example = "1") @PathVariable Long orderItemId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @CurrentUser CustomUserDetails userDetails) {
         ReviewWriteInfoResponse response = reviewService.getReviewWriteInfo(orderItemId, userDetails.getMemberId());
         return ResponseEntity.ok(CommonResponse.success(response));
     }
@@ -77,7 +77,7 @@ public class ReviewApiController {
     @PostMapping("/v1")
     public ResponseEntity<CommonResponse<ReviewResponse>> createReview(
             @Valid @RequestBody ReviewCreateRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @CurrentUser CustomUserDetails userDetails) {
         ReviewResponse response = reviewService.createReview(userDetails.getMemberId(), request);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
@@ -93,7 +93,7 @@ public class ReviewApiController {
     public ResponseEntity<CommonResponse<ReviewResponse>> updateReview(
             @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
             @Valid @RequestBody ReviewUpdateRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @CurrentUser CustomUserDetails userDetails) {
         ReviewResponse response = reviewService.updateReview(reviewId, userDetails.getMemberId(), request);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
@@ -108,7 +108,7 @@ public class ReviewApiController {
     @DeleteMapping("/v1/{reviewId}")
     public ResponseEntity<CommonResponse<Void>> deleteReview(
             @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @CurrentUser CustomUserDetails userDetails) {
         reviewService.deleteReview(reviewId, userDetails.getMemberId());
         return ResponseEntity.ok(CommonResponse.success(null));
     }
@@ -128,7 +128,7 @@ public class ReviewApiController {
     public ResponseEntity<CommonResponse<List<LatestReviewListItem>>> getLatestReviewList(
             @Valid @ModelAttribute PageRequest pageRequest,
             @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewType type,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @CurrentUser CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         PageResult<LatestReviewListItem> pageResult = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), type, memberId);
         CommonResponse<List<LatestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
@@ -156,7 +156,7 @@ public class ReviewApiController {
     @Operation(summary = "리뷰 좋아요 여부 조회", description = "리뷰가 현재 사용자에 의해 좋아요되었는지 여부를 조회합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공")})
     @GetMapping("/v1/{reviewId}/like")
-    public ResponseEntity<CommonResponse<ReviewLikeStatusResponse>> isLiked(@PathVariable Long reviewId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CommonResponse<ReviewLikeStatusResponse>> isLiked(@PathVariable Long reviewId, @CurrentUser CustomUserDetails userDetails) {
         ReviewLikeStatusResponse liked;
         if (userDetails == null) {
             liked = ReviewLikeStatusResponse.from(false);
@@ -170,7 +170,7 @@ public class ReviewApiController {
     @Operation(summary = "리뷰 좋아요 토글", description = "리뷰에 좋아요를 토글합니다. 이미 좋아요한 경우 취소되고, 아닌 경우 좋아요가 추가됩니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "좋아요 토글 성공", content = @Content(schema = @Schema(implementation = ReviewLikeResponse.class))), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
     @PostMapping("/v1/{reviewId}/like")
-    public ResponseEntity<CommonResponse<ReviewLikeResponse>> toggleReviewLike(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CommonResponse<ReviewLikeResponse>> toggleReviewLike(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId, @CurrentUser CustomUserDetails userDetails) {
         boolean liked = reviewService.toggleReviewLike(reviewId, userDetails.getMemberId());
         return ResponseEntity.ok(CommonResponse.success(ReviewLikeResponse.from(liked)));
     }
@@ -178,7 +178,7 @@ public class ReviewApiController {
     @Operation(summary = "댓글 등록", description = "리뷰에 댓글을 등록합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "댓글 등록 성공", content = @Content(schema = @Schema(implementation = CommentResponse.class))), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
     @PostMapping("/v1/{reviewId}/comments")
-    public ResponseEntity<CommonResponse<CommentResponse>> createComment(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId, @Valid @RequestBody CommentCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CommonResponse<CommentResponse>> createComment(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId, @Valid @RequestBody CommentCreateRequest request, @CurrentUser CustomUserDetails userDetails) {
         CommentResponse response = reviewService.createComment(reviewId, userDetails.getMemberId(), request.content());
         return ResponseEntity.ok(CommonResponse.success(response));
     }
@@ -186,7 +186,7 @@ public class ReviewApiController {
     @Operation(summary = "답글 등록", description = "댓글에 답글을 등록합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "답글 등록 성공", content = @Content(schema = @Schema(implementation = ReplyResponse.class))), @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
     @PostMapping("/v1/comments/{commentId}/replies")
-    public ResponseEntity<CommonResponse<ReplyResponse>> createReply(@Parameter(description = "댓글 ID", example = "1") @PathVariable Long commentId, @Valid @RequestBody ReplyCreateRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CommonResponse<ReplyResponse>> createReply(@Parameter(description = "댓글 ID", example = "1") @PathVariable Long commentId, @Valid @RequestBody ReplyCreateRequest request, @CurrentUser CustomUserDetails userDetails) {
         ReplyResponse response = reviewService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
         return ResponseEntity.ok(CommonResponse.success(response));
     }

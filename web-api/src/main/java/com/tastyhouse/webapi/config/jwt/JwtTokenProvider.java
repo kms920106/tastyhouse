@@ -1,5 +1,6 @@
 package com.tastyhouse.webapi.config.jwt;
 
+import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -15,7 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -50,10 +50,15 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date validity = new Date(now.getTime() + expirationTime);
 
+        Long memberId = null;
+        if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            memberId = userDetails.getMemberId();
+        }
         return Jwts.builder()
                 .subject(authentication.getName())
                 .claim("auth", authorities)
                 .claim("type", tokenType)
+                .claim("memberId", memberId)
                 .issuedAt(now)
                 .expiration(validity)
                 .signWith(key)
@@ -88,7 +93,8 @@ public class JwtTokenProvider {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        User principal = new User(claims.getSubject(), "", authorities);
+        Long memberId = claims.get("memberId", Long.class);
+        CustomUserDetails principal = new CustomUserDetails(memberId, claims.getSubject(), authorities);
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
@@ -133,7 +139,7 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(token);
         String actualType = claims.get("type", String.class);
         if (!expectedType.name().equals(actualType)) {
-            throw new JwtException("잘못된 토큰 타입. expected=" + expectedType.name() + ", actual=" + actualType);
+            throw new JwtException("유효하지 않은 토큰입니다.");
         }
     }
 

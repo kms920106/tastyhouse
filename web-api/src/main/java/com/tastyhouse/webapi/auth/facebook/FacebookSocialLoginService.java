@@ -22,13 +22,10 @@ import com.tastyhouse.webapi.config.jwt.repository.FacebookTempTokenRedisReposit
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -66,7 +63,7 @@ public class FacebookSocialLoginService {
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl());
 
             Member member = memberCoreService.getById(socialAccount.getMemberId());
-            return SocialLoginResponse.ofLogin(issueJwt(member.getUsername()));
+            return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
@@ -137,7 +134,7 @@ public class FacebookSocialLoginService {
 
         facebookTempTokenRedisRepository.delete(facebookTempToken);
 
-        return SocialLinkResponse.ofLogin(issueJwt(member.getUsername()));
+        return SocialLinkResponse.ofLogin(issueJwt(member));
     }
 
     // 페이스북 소셜 회원가입 처리 후 JWT 발급
@@ -198,7 +195,7 @@ public class FacebookSocialLoginService {
 
         facebookTempTokenRedisRepository.delete(facebookTempToken);
 
-        return issueJwt(member.getUsername());
+        return issueJwt(member);
     }
 
     // Facebook 공식 문서 권장: 서버에서 액세스 토큰의 app_id가 자신의 앱과 일치하는지 반드시 검증
@@ -215,10 +212,7 @@ public class FacebookSocialLoginService {
         return facebookTempToken;
     }
 
-    private JwtResponse issueJwt(String username) {
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            username, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-        return tokenService.issue(authentication, false);
+    private JwtResponse issueJwt(Member member) {
+        return tokenService.issue(member, false);
     }
 }

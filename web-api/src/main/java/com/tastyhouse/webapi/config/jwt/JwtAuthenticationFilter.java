@@ -2,23 +2,19 @@ package com.tastyhouse.webapi.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.config.PublicPaths;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
-import com.tastyhouse.webapi.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.tastyhouse.webapi.config.PublicPaths;
 
 import java.io.IOException;
 
@@ -28,7 +24,6 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final CustomUserDetailsService customUserDetailsService;
     private final TokenService tokenService;
     private final ObjectMapper objectMapper;
 
@@ -50,12 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtTokenProvider.validateToken(jwt) && !tokenService.isBlacklisted(jwt)) {
                 jwtTokenProvider.validateTokenType(jwt, TokenType.ACCESS);
 
-                String username = jwtTokenProvider.getUsernameFromJWT(jwt);
-
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
+                Authentication authentication = jwtTokenProvider.getAuthentication(jwt);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
                 writeUnauthorizedResponse(response, "Invalid or expired token");

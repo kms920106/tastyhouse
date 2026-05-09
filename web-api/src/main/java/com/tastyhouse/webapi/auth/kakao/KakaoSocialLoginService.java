@@ -21,13 +21,10 @@ import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.KakaoTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -61,7 +58,7 @@ public class KakaoSocialLoginService {
             socialAccount.updateProviderInfo(kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl());
 
             Member member = memberCoreService.getById(socialAccount.getMemberId());
-            return SocialLoginResponse.ofLogin(issueJwt(member.getUsername()));
+            return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
@@ -132,7 +129,7 @@ public class KakaoSocialLoginService {
 
         kakaoTempTokenRedisRepository.delete(kakaoTempToken);
 
-        return SocialLinkResponse.ofLogin(issueJwt(member.getUsername()));
+        return SocialLinkResponse.ofLogin(issueJwt(member));
     }
 
     // 카카오 소셜 회원가입 처리 후 JWT 발급
@@ -194,7 +191,7 @@ public class KakaoSocialLoginService {
 
         kakaoTempTokenRedisRepository.delete(kakaoTempToken);
 
-        return issueJwt(member.getUsername());
+        return issueJwt(member);
     }
 
     private String issueTempToken(String kakaoAccessToken) {
@@ -203,10 +200,7 @@ public class KakaoSocialLoginService {
         return kakaoTempToken;
     }
 
-    private JwtResponse issueJwt(String username) {
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            username, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-        return tokenService.issue(authentication, false);
+    private JwtResponse issueJwt(Member member) {
+        return tokenService.issue(member, false);
     }
 }

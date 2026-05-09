@@ -19,6 +19,7 @@ import com.tastyhouse.webapi.member.response.PointResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.UsablePointResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.CommonResponse;
@@ -35,7 +36,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -66,7 +66,7 @@ public class MemberApiController {
     })
     @PutMapping("/v1/me/profile")
     public ResponseEntity<CommonResponse<Void>> updateMyProfile(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Valid @RequestBody UpdateProfileRequest request
     ) {
         memberFacade.updateMyProfile(userDetails.getMemberId(), request.nickname(), request.statusMessage(), request.profileImageFileId());
@@ -81,7 +81,7 @@ public class MemberApiController {
     })
     @PostMapping("/v1/me/verify-password")
     public ResponseEntity<CommonResponse<VerifyPasswordResponse>> verifyPassword(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Valid @RequestBody VerifyPasswordRequest request
     ) {
         VerifyPasswordResponse response = memberFacade.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password());
@@ -95,7 +95,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/personal-info")
     public ResponseEntity<CommonResponse<PersonalInfoResponse>> getMyPersonalInfo(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getPersonalInfo(userDetails.getMemberId())));
     }
@@ -113,7 +113,7 @@ public class MemberApiController {
     })
     @PutMapping("/v1/me/personal-info")
     public ResponseEntity<CommonResponse<Void>> updateMyPersonalInfo(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @RequestHeader("X-Verify-Token") String verifyToken,
         @RequestHeader(value = "X-Phone-Verify-Token", required = false) String phoneVerifyToken,
         @Valid @RequestBody UpdatePersonalInfoRequest request
@@ -133,7 +133,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/grade")
     public ResponseEntity<CommonResponse<MyGradeResponse>> getMyGrade(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyGrade(userDetails.getMemberId())));
     }
@@ -145,7 +145,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/point")
     public ResponseEntity<CommonResponse<PointResponse>> getMyPoint(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyPoint(userDetails.getMemberId())));
     }
@@ -157,7 +157,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/coupons")
     public ResponseEntity<CommonResponse<List<MemberCouponListItemResponse>>> getMyCoupons(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyCoupons(userDetails.getMemberId())));
     }
@@ -169,7 +169,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/coupons/available")
     public ResponseEntity<CommonResponse<List<MemberCouponListItemResponse>>> getMyAvailableCoupons(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyAvailableCoupons(userDetails.getMemberId())));
     }
@@ -181,7 +181,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/point/history")
     public ResponseEntity<CommonResponse<PointHistoryResponse>> getMyPointHistory(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyPointHistory(userDetails.getMemberId())));
     }
@@ -193,7 +193,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/point/usable")
     public ResponseEntity<CommonResponse<UsablePointResponse>> getMyUsablePoint(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyUsablePoint(userDetails.getMemberId())));
     }
@@ -205,7 +205,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/reviews/count")
     public ResponseEntity<CommonResponse<MyReviewCountResponse>> getMyReviewCount(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(CommonResponse.success(memberFacade.getMyReviewCount(userDetails.getMemberId())));
     }
@@ -217,7 +217,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/reviews")
     public ResponseEntity<CommonResponse<List<MyReviewListItemResponse>>> getMyReviews(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PageResult<MyReviewListItemResponse> pageResult = memberFacade.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
@@ -236,7 +236,7 @@ public class MemberApiController {
     })
     @GetMapping("/v1/me/bookmarks")
     public ResponseEntity<CommonResponse<List<MyBookmarkedPlaceListItemResponse>>> getMyBookmarkedPlaces(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PageResult<MyBookmarkedPlaceListItemResponse> pageResult = memberFacade.getMyBookmarkedPlaces(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
@@ -259,7 +259,7 @@ public class MemberApiController {
     })
     @PutMapping("/v1/me/password")
     public ResponseEntity<CommonResponse<Void>> updateMyPassword(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @RequestHeader("X-Verify-Token") String verifyToken,
         @Valid @RequestBody UpdatePasswordRequest request
     ) {
@@ -300,7 +300,7 @@ public class MemberApiController {
     })
     @DeleteMapping("/v1/me")
     public ResponseEntity<CommonResponse<Void>> withdrawMember(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Valid @RequestBody WithdrawMemberRequest request,
         @RequestHeader("Authorization") String bearerToken
     ) {

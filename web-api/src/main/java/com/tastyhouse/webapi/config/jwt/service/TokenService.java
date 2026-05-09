@@ -1,14 +1,20 @@
 package com.tastyhouse.webapi.config.jwt.service;
 
+import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.BlacklistRedisRepository;
 import com.tastyhouse.webapi.config.jwt.repository.RefreshTokenRedisRepository;
 import com.tastyhouse.webapi.exception.UnauthorizedException;
+import com.tastyhouse.webapi.service.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 /**
  * 토큰 발급·갱신·무효화 비즈니스 로직을 담당하는 서비스
@@ -23,6 +29,18 @@ public class TokenService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRedisRepository refreshTokenRepository;
     private final BlacklistRedisRepository blacklistRepository;
+
+    /**
+     * 소셜/휴대폰 로그인 등 Member 객체를 직접 사용하는 모든 로그인 경로의 단일 토큰 발급 진입점
+     */
+    public JwtResponse issue(Member member, boolean rememberMe) {
+        CustomUserDetails userDetails = new CustomUserDetails(
+            member.getId(),
+            member.getUsername(),
+            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+        return issue(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()), rememberMe);
+    }
 
     /**
      * 로그인 성공 시 Access Token + Refresh Token 발급 및 저장

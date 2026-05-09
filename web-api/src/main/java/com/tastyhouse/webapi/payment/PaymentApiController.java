@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,7 +45,7 @@ public class PaymentApiController {
     @PostMapping("/v1")
     public ResponseEntity<CommonResponse<PaymentResponse>> createPayment(
         @Valid @RequestBody PaymentCreateRequest request,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentResponse response = paymentService.createPayment(userDetails.getMemberId(), request);
         return ResponseEntity.ok(CommonResponse.success(response));
@@ -75,7 +75,7 @@ public class PaymentApiController {
     @PostMapping("/v1/toss/confirm")
     public ResponseEntity<CommonResponse<PaymentResponse>> confirmTossPayment(
         @Valid @RequestBody TossPaymentConfirmApiRequest request,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentResponse response = paymentService.confirmTossPayment(userDetails.getMemberId(), request);
         return ResponseEntity.ok(CommonResponse.success(response));
@@ -91,7 +91,7 @@ public class PaymentApiController {
     @GetMapping("/v1/order/{orderId}")
     public ResponseEntity<CommonResponse<PaymentResponse>> getPaymentByOrderId(
         @PathVariable Long orderId,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentResponse response = paymentService.getPaymentByOrderId(userDetails.getMemberId(), orderId);
         return ResponseEntity.ok(CommonResponse.success(response));
@@ -108,7 +108,7 @@ public class PaymentApiController {
     public ResponseEntity<CommonResponse<PaymentCancelResponse>> cancelPayment(
         @PathVariable Long paymentId,
         @Valid @RequestBody PaymentCancelRequest request,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentCancelResponse response = paymentService.cancelPayment(userDetails.getMemberId(), paymentId, request);
         return ResponseEntity.ok(CommonResponse.success(response));
@@ -125,7 +125,7 @@ public class PaymentApiController {
     @PostMapping("/v1/{paymentId}/complete")
     public ResponseEntity<CommonResponse<PaymentResponse>> completeOnSitePayment(
         @PathVariable Long paymentId,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentResponse response = paymentService.completeOnSitePayment(userDetails.getMemberId(), paymentId);
         return ResponseEntity.ok(CommonResponse.success(response));
@@ -143,7 +143,7 @@ public class PaymentApiController {
     public ResponseEntity<CommonResponse<PaymentRefundResponse>> requestRefund(
         @PathVariable Long paymentId,
         @Valid @RequestBody RefundRequest request,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentRefundResponse response = paymentService.requestRefund(userDetails.getMemberId(), paymentId, request);
         return ResponseEntity.ok(CommonResponse.success(response));

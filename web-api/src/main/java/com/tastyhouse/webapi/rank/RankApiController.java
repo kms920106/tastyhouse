@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -72,7 +72,7 @@ public class RankApiController {
     })
     @GetMapping("/v1/members/me")
     public ResponseEntity<CommonResponse<MyRankResponse>> getMyMemberRank(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type
     ) {
         MyRankResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), type);

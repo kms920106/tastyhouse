@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,7 +44,7 @@ public class OrderApiController {
     @PostMapping("/v1")
     public ResponseEntity<CommonResponse<OrderResponse>> createOrder(
         @Valid @RequestBody OrderCreateRequest request,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         OrderResponse response = orderService.createOrder(userDetails.getMemberId(), request);
         return ResponseEntity.ok(CommonResponse.success(response));
@@ -57,7 +57,7 @@ public class OrderApiController {
     })
     @GetMapping("/v1")
     public ResponseEntity<CommonResponse<List<OrderListItemResponse>>> getOrderList(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
@@ -81,7 +81,7 @@ public class OrderApiController {
     @GetMapping("/v1/{orderId}")
     public ResponseEntity<CommonResponse<OrderResponse>> getOrderDetail(
         @PathVariable Long orderId,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         OrderResponse response = orderService.getOrderDetail(userDetails.getMemberId(), orderId);
         return ResponseEntity.ok(CommonResponse.success(response));

@@ -10,12 +10,9 @@ import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,17 +36,10 @@ public class PhoneLoginService {
         Optional<Member> memberOpt = memberCoreService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isPresent()) {
-            JwtResponse jwt = issueJwt(memberOpt.get().getUsername());
+            JwtResponse jwt = tokenService.issue(memberOpt.get(), false);
             return PhoneLoginResponse.ofLogin(jwt);
         }
 
         return PhoneLoginResponse.ofSignUpRequired();
-    }
-
-    private JwtResponse issueJwt(String username) {
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            username, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-        return tokenService.issue(authentication, false);
     }
 }

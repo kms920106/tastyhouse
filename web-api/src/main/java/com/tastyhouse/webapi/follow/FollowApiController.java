@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -46,7 +46,7 @@ public class FollowApiController {
     })
     @PostMapping("/v1/{memberId}")
     public ResponseEntity<CommonResponse<Void>> follow(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "팔로우할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
         followService.follow(userDetails.getMemberId(), memberId);
@@ -61,7 +61,7 @@ public class FollowApiController {
     })
     @DeleteMapping("/v1/{memberId}")
     public ResponseEntity<CommonResponse<Void>> unfollow(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "언팔로우할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
         followService.unfollow(userDetails.getMemberId(), memberId);
@@ -76,7 +76,7 @@ public class FollowApiController {
     })
     @DeleteMapping("/v1/followers/{followerId}")
     public ResponseEntity<CommonResponse<Void>> removeFollower(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "삭제할 팔로워 회원 ID", example = "2") @PathVariable Long followerId
     ) {
         followService.removeFollower(userDetails.getMemberId(), followerId);
@@ -90,7 +90,7 @@ public class FollowApiController {
     })
     @GetMapping("/v1/{memberId}/is-following")
     public ResponseEntity<CommonResponse<IsFollowingResponse>> isFollowing(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "팔로우 여부를 확인할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
         boolean isFollowing = followService.isFollowing(userDetails.getMemberId(), memberId);
@@ -104,7 +104,7 @@ public class FollowApiController {
     })
     @GetMapping("/v1/{memberId}/following")
     public ResponseEntity<CommonResponse<List<FollowMemberResponse>>> getFollowingList(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
@@ -124,7 +124,7 @@ public class FollowApiController {
     })
     @GetMapping("/v1/{memberId}/followers")
     public ResponseEntity<CommonResponse<List<FollowMemberResponse>>> getFollowerList(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
@@ -180,7 +180,7 @@ public class FollowApiController {
     })
     @GetMapping("/v1/search")
     public ResponseEntity<CommonResponse<List<MemberSearchResponse>>> searchMembers(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "검색할 닉네임", example = "맛집") @RequestParam String nickname,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {

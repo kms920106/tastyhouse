@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +35,7 @@ public class BugReportApiController {
     @PostMapping("/v1")
     public ResponseEntity<CommonResponse<BugReportResponse>> createBugReport(
         @Valid @RequestBody BugReportCreateRequest request,
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @CurrentUser CustomUserDetails userDetails
     ) {
         BugReportResponse response = bugReportService.createBugReport(userDetails.getMemberId(), request);
         return ResponseEntity.ok(CommonResponse.success(response));
