@@ -267,8 +267,8 @@ public class MemberMeApiController {
     @DeleteMapping("/v1/me")
     public ResponseEntity<CommonResponse<Void>> withdrawMember(
         @CurrentUser CustomUserDetails userDetails,
-        @Valid @RequestBody WithdrawMemberRequest request,
-        @RequestHeader("Authorization") String bearerToken
+        @RequestHeader("Authorization") String bearerToken,
+        @Valid @RequestBody WithdrawMemberRequest request
     ) {
         memberFacade.withdrawMember(userDetails.getMemberId(), request.reason(), request.reasonDetail(), bearerToken);
         return ResponseEntity.ok(CommonResponse.success(null));
