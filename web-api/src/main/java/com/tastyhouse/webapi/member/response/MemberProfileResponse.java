@@ -4,9 +4,6 @@ import com.tastyhouse.core.entity.user.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record MemberProfileResponse(
-    @Schema(description = "회원 ID", example = "1")
-    Long id,
-
     @Schema(description = "닉네임", example = "맛집탐험가")
     String nickname,
 
@@ -20,14 +17,12 @@ public record MemberProfileResponse(
     String profileImageUrl
 ) {
     public static MemberProfileResponse from(
-        Long id,
         String nickname,
         MemberGrade memberGrade,
         String statusMessage,
         String profileImageUrl
     ) {
         return new MemberProfileResponse(
-            id,
             nickname,
             memberGrade,
             statusMessage,

@@ -6,10 +6,13 @@ import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.core.entity.user.MemberWithdrawal;
 import com.tastyhouse.core.entity.user.MemberStatus;
 import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
@@ -117,6 +120,20 @@ public class MemberAccountService {
                                    Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
                                    Boolean eventInfoEnabled) {
         memberCoreService.getById(memberId).updatePersonalInfo(fullName, phoneNumber, birthDate, gender, pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
+    }
+
+    // 회원의 프로필 조회
+    @Transactional(readOnly = true)
+    public MemberProfileResponse getMemberProfile(Long targetMemberId) {
+        MemberWithProfileImageDto dto = memberCoreService.findMemberWithProfileImageById(targetMemberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return MemberProfileResponse.from(
+            dto.nickname(),
+            dto.memberGrade(),
+            dto.statusMessage(),
+            fileService.getUrlByPath(dto.profileImageFilePath())
+        );
     }
 
     // 회원의 닉네임, 상태 메시지, 프로필 이미지를 수정

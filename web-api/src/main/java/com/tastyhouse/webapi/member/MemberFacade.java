@@ -126,7 +126,7 @@ public class MemberFacade {
     }
 
     public MemberProfileResponse getMemberBasicProfile(Long targetMemberId) {
-        return memberFollowService.getMemberProfile(targetMemberId);
+        return memberAccountService.getMemberProfile(targetMemberId);
     }
 
     public MemberStatsResponse getMemberStats(Long memberId) {
