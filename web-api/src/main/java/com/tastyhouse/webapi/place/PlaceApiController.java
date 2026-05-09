@@ -22,6 +22,7 @@ import com.tastyhouse.webapi.place.response.PlacePhotoCategoryResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewStatisticsResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingWithPagination;
+import com.tastyhouse.webapi.place.response.PlaceDetailResponse;
 import com.tastyhouse.webapi.place.response.PlaceSummaryResponse;
 import com.tastyhouse.webapi.place.response.StationListItem;
 import com.tastyhouse.webapi.service.CustomUserDetails;
@@ -122,6 +123,15 @@ public class PlaceApiController {
         List<AmenityListItem> amenities = placeService.searchAllAmenities();
         CommonResponse<List<AmenityListItem>> response = CommonResponse.success(amenities);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "플레이스 상세 조회", description = "플레이스의 기본 정보를 조회합니다. 상호명, 주소, 위도/경도, 평점, 전화번호, 썸네일 이미지를 포함합니다.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+                   @ApiResponse(responseCode = "404", description = "존재하지 않는 플레이스")})
+    @GetMapping("/v1/{placeId}")
+    public ResponseEntity<CommonResponse<PlaceDetailResponse>> getPlaceDetail(@PathVariable Long placeId) {
+        PlaceDetailResponse placeDetail = placeService.getPlaceDetail(placeId);
+        return ResponseEntity.ok(CommonResponse.success(placeDetail));
     }
 
     @Operation(summary = "요약 정보 조회", description = "플레이스의 요약 정보를 조회합니다. 상호명, 도로명 주소, 지번 주소, 총 평점을 포함합니다.")

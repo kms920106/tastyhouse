@@ -46,6 +46,7 @@ import com.tastyhouse.webapi.place.response.PlaceReviewListItem;
 import com.tastyhouse.webapi.place.response.PlaceReviewStatisticsResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingWithPagination;
+import com.tastyhouse.webapi.place.response.PlaceDetailResponse;
 import com.tastyhouse.webapi.place.response.PlaceSummaryResponse;
 import com.tastyhouse.webapi.place.response.StationListItem;
 import lombok.RequiredArgsConstructor;
@@ -190,6 +191,15 @@ public class PlaceService {
             fileService.getUrlByPath(category.activeFilePath()),
             fileService.getUrlByPath(category.inactiveFilePath())
         );
+    }
+
+    @Transactional(readOnly = true)
+    public PlaceDetailResponse getPlaceDetail(Long placeId) {
+        Place place = placeCoreService.findPlaceById(placeId);
+        String thumbnailImageUrl = placeCoreService.findThumbnailFilePath(place.getThumbnailImageFileId())
+                .map(fileService::getUrlByPath)
+                .orElse(null);
+        return PlaceDetailResponse.from(place, thumbnailImageUrl);
     }
 
     @Transactional(readOnly = true)
