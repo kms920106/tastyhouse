@@ -143,21 +143,30 @@ public class PlaceApiController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "배너 이미지 조회", description = "플레이스의 배너 이미지 목록을 조회합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/{placeId}/banners")
-    public ResponseEntity<CommonResponse<List<PlaceBannerResponse>>> getPlaceBanners(@PathVariable Long placeId) {
-        List<PlaceBannerResponse> banners = placeService.getPlaceBanners(placeId);
-        CommonResponse<List<PlaceBannerResponse>> response = CommonResponse.success(banners);
-        return ResponseEntity.ok(response);
-    }
-
     @Operation(summary = "정보 조회", description = "플레이스의 기본 정보를 조회합니다. 운영시간, 전화번호 등을 포함합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/{placeId}/info")
     public ResponseEntity<CommonResponse<PlaceInfoResponse>> getPlaceInfo(@PathVariable Long placeId) {
         PlaceInfoResponse placeInfo = placeService.getPlaceInfo(placeId);
         CommonResponse<PlaceInfoResponse> response = CommonResponse.success(placeInfo);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "상호명 조회", description = "플레이스의 상호명을 조회합니다.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @GetMapping("/v1/{placeId}/name")
+    public ResponseEntity<CommonResponse<PlaceNameResponse>> getPlaceName(@PathVariable Long placeId) {
+        PlaceNameResponse placeName = placeService.getPlaceName(placeId);
+        CommonResponse<PlaceNameResponse> response = CommonResponse.success(placeName);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "배너 이미지 조회", description = "플레이스의 배너 이미지 목록을 조회합니다.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @GetMapping("/v1/{placeId}/banners")
+    public ResponseEntity<CommonResponse<List<PlaceBannerResponse>>> getPlaceBanners(@PathVariable Long placeId) {
+        List<PlaceBannerResponse> banners = placeService.getPlaceBanners(placeId);
+        CommonResponse<List<PlaceBannerResponse>> response = CommonResponse.success(banners);
         return ResponseEntity.ok(response);
     }
 
@@ -222,15 +231,6 @@ public class PlaceApiController {
         }
         boolean bookmarked = placeService.toggleBookmark(placeId, userDetails.getMemberId());
         return ResponseEntity.ok(CommonResponse.success(PlaceBookmarkResponse.from(bookmarked)));
-    }
-
-    @Operation(summary = "상호명 조회", description = "플레이스의 상호명을 조회합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/{placeId}/name")
-    public ResponseEntity<CommonResponse<PlaceNameResponse>> getPlaceName(@PathVariable Long placeId) {
-        PlaceNameResponse placeName = placeService.getPlaceName(placeId);
-        CommonResponse<PlaceNameResponse> response = CommonResponse.success(placeName);
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "주문 수단 조회", description = "플레이스에서 주문 가능한 수단을 조회합니다. 테이블 오더, 예약, 포장 정보를 포함합니다.")
