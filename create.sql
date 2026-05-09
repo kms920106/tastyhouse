@@ -329,7 +329,6 @@ CREATE TABLE PLACE
     road_address      VARCHAR(500),
     lot_address       VARCHAR(500),
     phone_number      VARCHAR(20),
-    closed_days       VARCHAR(100),
     thumbnail_image_file_id    BIGINT,
     is_permanently_closed      TINYINT(1)    NOT NULL DEFAULT 0,
     created_at        DATETIME      NOT NULL,

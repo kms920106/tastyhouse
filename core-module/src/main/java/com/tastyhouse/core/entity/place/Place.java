@@ -44,9 +44,6 @@ public class Place extends BaseEntity {
     @Column(name = "phone_number")
     private String phoneNumber; // 전화번호
 
-    @Column(name = "closed_days")
-    private String closedDays; // 휴무일 (예: "연중무휴", "매주 월요일")
-
     @Column(name = "thumbnail_image_file_id")
     private Long thumbnailImageFileId;
 
