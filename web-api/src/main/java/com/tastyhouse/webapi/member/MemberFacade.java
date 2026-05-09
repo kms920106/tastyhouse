@@ -3,11 +3,8 @@ package com.tastyhouse.webapi.member;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.core.entity.user.WithdrawalReason;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
-import com.tastyhouse.webapi.member.response.MemberMeResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.MyBookmarkedPlaceListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
@@ -45,11 +42,6 @@ public class MemberFacade {
     private final MemberReviewService memberReviewService;
     private final MemberCouponService memberCouponService;
     private final MemberGradeService memberGradeService;
-
-    public MemberMeResponse getMyProfile(Long memberId) {
-        return memberAccountService.getMemberProfile(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "회원을 찾을 수 없습니다."));
-    }
 
     public void updateMyProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
         memberAccountService.updateMemberProfile(memberId, nickname, statusMessage, profileImageFileId);

@@ -24,20 +24,20 @@ public record MyGradeResponse(
     int reviewsNeededForNextGrade
 ) {
     public static MyGradeResponse from(
-    MemberGrade currentGrade,
-    String currentGradeDisplayName,
-    MemberGrade nextGrade,
-    String nextGradeDisplayName,
-    int currentReviewCount,
-    int reviewsNeededForNextGrade
+        MemberGrade currentGrade,
+        String currentGradeDisplayName,
+        MemberGrade nextGrade,
+        String nextGradeDisplayName,
+        int currentReviewCount,
+        int reviewsNeededForNextGrade
     ) {
-    return new MyGradeResponse(
-        currentGrade,
-        currentGradeDisplayName,
-        nextGrade,
-        nextGradeDisplayName,
-        currentReviewCount,
-        reviewsNeededForNextGrade
-    );
+        return new MyGradeResponse(
+            currentGrade,
+            currentGradeDisplayName,
+            nextGrade,
+            nextGradeDisplayName,
+            currentReviewCount,
+            reviewsNeededForNextGrade
+        );
     }
 }

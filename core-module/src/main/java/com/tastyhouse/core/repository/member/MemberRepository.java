@@ -3,7 +3,6 @@ package com.tastyhouse.core.repository.member;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberStatus;
-import com.tastyhouse.core.entity.user.dto.MemberProfileDetailDto;
 import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,5 +34,5 @@ public interface MemberRepository {
 
     Optional<MemberWithProfileImageDto> findMemberWithProfileImageById(Long memberId);
 
-    Optional<MemberProfileDetailDto> findMemberProfileDetailById(Long memberId);
+
 }

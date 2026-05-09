@@ -4,7 +4,6 @@ import com.tastyhouse.core.entity.referral.MemberReferral;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberWithdrawal;
-import com.tastyhouse.core.entity.user.dto.MemberProfileDetailDto;
 import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -96,8 +95,4 @@ public class MemberCoreService {
         return memberRepository.findMemberWithProfileImageById(memberId);
     }
 
-    @Transactional(readOnly = true)
-    public Optional<MemberProfileDetailDto> findMemberProfileDetailById(Long memberId) {
-        return memberRepository.findMemberProfileDetailById(memberId);
-    }
 }

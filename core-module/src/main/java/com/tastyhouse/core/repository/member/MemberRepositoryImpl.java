@@ -6,7 +6,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberStatus;
-import com.tastyhouse.core.entity.user.dto.MemberProfileDetailDto;
 import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -151,25 +150,4 @@ public class MemberRepositoryImpl implements MemberRepository {
         return Optional.ofNullable(result);
     }
 
-    @Override
-    public Optional<MemberProfileDetailDto> findMemberProfileDetailById(Long memberId) {
-
-        MemberProfileDetailDto result = queryFactory
-            .select(Projections.constructor(MemberProfileDetailDto.class,
-                member.id,
-                member.nickname,
-                member.memberGrade,
-                member.statusMessage,
-                uploadedFile.filePath,
-                member.fullName,
-                member.phoneNumber.value,
-                member.username
-            ))
-            .from(member)
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
-            .where(member.id.eq(memberId))
-            .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
 }
