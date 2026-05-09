@@ -121,7 +121,7 @@ public class KakaoSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        MemberSocialAccount socialAccount = new MemberSocialAccount(
+        MemberSocialAccount socialAccount = MemberSocialAccount.of(
             member.getId(), SocialProvider.KAKAO, providerId,
             kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl()
         );
@@ -136,10 +136,19 @@ public class KakaoSocialLoginService {
     // - kakaoTempToken으로 Redis에서 kakaoAccessToken 조회
     // - 회원가입 완료 후 kakaoTempToken 삭제 (1회용)
     @Transactional
-    public JwtResponse signUp(String kakaoTempToken, String username, String nickname, String fullName,
-                              Gender gender, Integer birthDate, String phoneNumber,
-                              Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                              Boolean eventInfoEnabled, String referrerNickname) {
+    public JwtResponse signUp(
+        String kakaoTempToken,
+        String username,
+        String nickname,
+        String fullName,
+        Gender gender,
+        Integer birthDate,
+        String phoneNumber,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled,
+        String referrerNickname
+    ) {
         String kakaoAccessToken = kakaoTempTokenRedisRepository.findKakaoAccessToken(kakaoTempToken);
         if (kakaoAccessToken == null) {
             throw new BusinessException(ErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
@@ -148,15 +157,18 @@ public class KakaoSocialLoginService {
         KakaoUserInfoResponse kakaoUser = kakaoOAuthClient.fetchUserInfo(kakaoAccessToken);
         String providerId = String.valueOf(kakaoUser.id());
 
-        if (memberSocialAccountCoreService.existsByProviderAndProviderId(SocialProvider.KAKAO, providerId)) {
+        boolean existsByProviderAndProviderId = memberSocialAccountCoreService.existsByProviderAndProviderId(SocialProvider.KAKAO, providerId);
+        if (existsByProviderAndProviderId) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        if (memberCoreService.existsByUsername(username)) {
+        boolean existsByUsername = memberCoreService.existsByUsername(username);
+        if (existsByUsername) {
             throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
         }
 
-        if (memberCoreService.existsByNickname(nickname)) {
+        boolean existsByNickname = memberCoreService.existsByNickname(nickname);
+        if (existsByNickname) {
             throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
         }
 
@@ -165,33 +177,51 @@ public class KakaoSocialLoginService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
-        Member member = new Member(username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
-        memberCoreService.save(member);
+        Member savedMember = memberCoreService.save(
+            Member.ofSocial(
+                username,
+                nickname,
+                fullName,
+                gender,
+                birthDate,
+                phoneNumber,
+                pushNotificationEnabled,
+                marketingInfoEnabled,
+                eventInfoEnabled
+            )
+        );
+        Long memberId = savedMember.getId();
 
         if (StringUtils.hasText(referrerNickname)) {
             if (referrerNickname.equals(nickname)) {
                 throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
             }
+
             Member referrer = memberCoreService.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
+
             memberCoreService.saveReferral(
                 MemberReferral.of(
                     referrer.getId(),
-                    member.getId()
+                    memberId
                 )
             );
         }
 
-        MemberSocialAccount socialAccount = new MemberSocialAccount(
-            member.getId(), SocialProvider.KAKAO, providerId,
-            kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl()
+        memberSocialAccountCoreService.save(
+            MemberSocialAccount.of(
+                memberId,
+                SocialProvider.KAKAO,
+                providerId,
+                kakaoUser.getEmail(),
+                kakaoUser.getNickname(),
+                kakaoUser.getProfileImageUrl()
+            )
         );
-        memberSocialAccountCoreService.save(socialAccount);
 
         kakaoTempTokenRedisRepository.delete(kakaoTempToken);
 
-        return issueJwt(member);
+        return issueJwt(savedMember);
     }
 
     private String issueTempToken(String kakaoAccessToken) {

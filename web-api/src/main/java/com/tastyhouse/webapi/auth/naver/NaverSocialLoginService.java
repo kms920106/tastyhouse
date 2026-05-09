@@ -121,7 +121,7 @@ public class NaverSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        MemberSocialAccount socialAccount = new MemberSocialAccount(
+        MemberSocialAccount socialAccount = MemberSocialAccount.of(
             member.getId(), SocialProvider.NAVER, providerId,
             naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
         );
@@ -165,9 +165,19 @@ public class NaverSocialLoginService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
-        Member member = new Member(username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
-        memberCoreService.save(member);
+        Member savedMember = memberCoreService.save(
+            Member.ofSocial(
+                username,
+                nickname,
+                fullName,
+                gender,
+                birthDate,
+                phoneNumber,
+                pushNotificationEnabled,
+                marketingInfoEnabled,
+                eventInfoEnabled)
+        );
+        Long memberId = savedMember.getId();
 
         if (StringUtils.hasText(referrerNickname)) {
             if (referrerNickname.equals(nickname)) {
@@ -178,19 +188,19 @@ public class NaverSocialLoginService {
             memberCoreService.saveReferral(
                 MemberReferral.of(
                     referrer.getId(),
-                    member.getId())
+                    memberId)
             );
         }
 
-        MemberSocialAccount socialAccount = new MemberSocialAccount(
-            member.getId(), SocialProvider.NAVER, providerId,
+        MemberSocialAccount socialAccount = MemberSocialAccount.of(
+            memberId, SocialProvider.NAVER, providerId,
             naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
         );
         memberSocialAccountCoreService.save(socialAccount);
 
         naverTempTokenRedisRepository.delete(naverTempToken);
 
-        return issueJwt(member);
+        return issueJwt(savedMember);
     }
 
     private String issueTempToken(String naverAccessToken) {

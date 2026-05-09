@@ -115,11 +115,11 @@ public class AppleSocialLoginService {
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
-        Optional<Member> memberOpt = memberCoreService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> findMember = memberCoreService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // appleTempToken은 /signup/apple에서 재사용해야 하므로 삭제하지 않는다.
-        if (memberOpt.isEmpty()) {
+        if (findMember.isEmpty()) {
             return SocialLinkResponse.ofSignUpRequired(
                 appleTempToken,
                 new SocialProfile(
@@ -137,12 +137,18 @@ public class AppleSocialLoginService {
             );
         }
 
-        Member member = memberOpt.get();
-        MemberSocialAccount socialAccount = new MemberSocialAccount(
-            member.getId(), SocialProvider.APPLE, providerId,
-            appleUser.email(), null, null
+        Member member = findMember.get();
+
+        memberSocialAccountCoreService.save(
+            MemberSocialAccount.of(
+                member.getId(),
+                SocialProvider.APPLE,
+                providerId,
+                appleUser.email(),
+                null,
+                null
+            )
         );
-        memberSocialAccountCoreService.save(socialAccount);
 
         appleTempTokenRedisRepository.delete(appleTempToken);
 
@@ -153,10 +159,19 @@ public class AppleSocialLoginService {
     // - appleTempToken으로 Redis에서 appleIdToken 조회
     // - 회원가입 완료 후 appleTempToken 삭제 (1회용)
     @Transactional
-    public JwtResponse signUp(String appleTempToken, String username, String nickname, String fullName,
-                              Gender gender, Integer birthDate, String phoneNumber,
-                              Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                              Boolean eventInfoEnabled, String referrerNickname) {
+    public JwtResponse signUp(
+        String appleTempToken,
+        String username,
+        String nickname,
+        String fullName,
+        Gender gender,
+        Integer birthDate,
+        String phoneNumber,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled,
+        String referrerNickname
+    ) {
         String appleIdToken = appleTempTokenRedisRepository.findAppleIdToken(appleTempToken);
         if (appleIdToken == null) {
             throw new BusinessException(ErrorCode.APPLE_TEMP_TOKEN_EXPIRED);
@@ -188,32 +203,51 @@ public class AppleSocialLoginService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
-        Member member = new Member(username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
-        memberCoreService.save(member);
+        Member savedMember = memberCoreService.save(
+            Member.ofSocial(
+                username,
+                nickname,
+                fullName,
+                gender,
+                birthDate,
+                phoneNumber,
+                pushNotificationEnabled,
+                marketingInfoEnabled,
+                eventInfoEnabled
+            )
+        );
+        Long memberId = savedMember.getId();
 
         if (StringUtils.hasText(referrerNickname)) {
             if (referrerNickname.equals(nickname)) {
                 throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
             }
-            Member referrer = memberCoreService.findByNickname(referrerNickname)
+
+            Member referrerMember = memberCoreService.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
+
             memberCoreService.saveReferral(
                 MemberReferral.of(
-                    referrer.getId(),
-                    member.getId())
+                    referrerMember.getId(),
+                    memberId
+                )
             );
         }
 
-        MemberSocialAccount socialAccount = new MemberSocialAccount(
-            member.getId(), SocialProvider.APPLE, providerId,
-            appleUser.email(), null, null
+        memberSocialAccountCoreService.save(
+            MemberSocialAccount.of(
+                memberId,
+                SocialProvider.APPLE,
+                providerId,
+                appleUser.email(),
+                null,
+                null
+            )
         );
-        memberSocialAccountCoreService.save(socialAccount);
 
         appleTempTokenRedisRepository.delete(appleTempToken);
 
-        return issueJwt(member);
+        return issueJwt(savedMember);
     }
 
     private String issueTempToken(String appleIdToken) {

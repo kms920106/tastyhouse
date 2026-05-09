@@ -11,8 +11,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 @Table(name = "MEMBER")
@@ -67,31 +70,20 @@ public class Member extends BaseEntity {
     @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private MemberStatus memberStatus = MemberStatus.ACTIVE;
 
-    protected Member() {
-    }
-
-    public Member(String username, String password, String nickname, String fullName, Gender gender,
-                  Integer birthDate, String phoneNumber,
-                  Boolean pushNotificationEnabled, Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
+    private Member(
+        String username,
+        String password,
+        String nickname,
+        String fullName,
+        Gender gender,
+        Integer birthDate,
+        String phoneNumber,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled
+    ) {
         this.username = username;
         this.password = password;
-        this.nickname = nickname;
-        this.fullName = fullName;
-        this.gender = gender;
-        this.birthDate = birthDate;
-        this.phoneNumber = new PhoneNumber(phoneNumber);
-        this.memberGrade = MemberGrade.NEWCOMER;
-        this.memberStatus = MemberStatus.ACTIVE;
-        this.pushNotificationEnabled = pushNotificationEnabled != null ? pushNotificationEnabled : true;
-        this.marketingInfoEnabled = marketingInfoEnabled != null ? marketingInfoEnabled : false;
-        this.eventInfoEnabled = eventInfoEnabled != null ? eventInfoEnabled : false;
-    }
-
-    public Member(String username, String nickname, String fullName, Gender gender,
-                  Integer birthDate, String phoneNumber,
-                  Boolean pushNotificationEnabled, Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
-        this.username = username;
-        this.password = null;
         this.nickname = nickname;
         this.fullName = fullName;
         this.gender = gender;
@@ -104,19 +96,80 @@ public class Member extends BaseEntity {
         this.eventInfoEnabled = eventInfoEnabled != null ? eventInfoEnabled : false;
     }
 
-    public void changePassword(String encodedPassword) {
+    public static Member of(
+        String username,
+        String password,
+        String nickname,
+        String fullName,
+        Gender gender,
+        Integer birthDate,
+        String phoneNumber,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled
+    ) {
+        return new Member(
+            username,
+            password,
+            nickname,
+            fullName,
+            gender,
+            birthDate,
+            phoneNumber,
+            pushNotificationEnabled,
+            marketingInfoEnabled,
+            eventInfoEnabled
+        );
+    }
+
+    public static Member ofSocial(
+        String username,
+        String nickname,
+        String fullName,
+        Gender gender,
+        Integer birthDate,
+        String phoneNumber,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled
+    ) {
+        return new Member(
+            username,
+            null,
+            nickname,
+            fullName,
+            gender,
+            birthDate,
+            phoneNumber,
+            pushNotificationEnabled,
+            marketingInfoEnabled,
+            eventInfoEnabled
+        );
+    }
+
+    public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
 
-    public void changeProfile(String nickname, String statusMessage, Long profileImageFileId) {
+    public void updateProfile(
+        String nickname,
+        String statusMessage,
+        Long profileImageFileId
+    ) {
         if (nickname != null) this.nickname = nickname;
         if (statusMessage != null) this.statusMessage = statusMessage;
         if (profileImageFileId != null) this.profileImageFileId = profileImageFileId;
     }
 
-    public void updatePersonalInfo(String fullName, String phoneNumber, Integer birthDate,
-                                   Gender gender, Boolean pushNotificationEnabled,
-                                   Boolean marketingInfoEnabled, Boolean eventInfoEnabled) {
+    public void updatePersonalInfo(
+        String fullName,
+        String phoneNumber,
+        Integer birthDate,
+        Gender gender,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled
+    ) {
         if (fullName != null) this.fullName = fullName;
         if (phoneNumber != null) this.phoneNumber = new PhoneNumber(phoneNumber);
         if (birthDate != null) this.birthDate = birthDate;

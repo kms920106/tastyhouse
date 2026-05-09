@@ -126,7 +126,7 @@ public class FacebookSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        MemberSocialAccount socialAccount = new MemberSocialAccount(
+        MemberSocialAccount socialAccount = MemberSocialAccount.of(
             member.getId(), SocialProvider.FACEBOOK, providerId,
             facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
         );
@@ -170,7 +170,7 @@ public class FacebookSocialLoginService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
-        Member member = new Member(username, nickname, fullName, gender, birthDate, phoneNumber,
+        Member member = Member.ofSocial(username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
         memberCoreService.save(member);
 
@@ -187,7 +187,7 @@ public class FacebookSocialLoginService {
             );
         }
 
-        MemberSocialAccount socialAccount = new MemberSocialAccount(
+        MemberSocialAccount socialAccount = MemberSocialAccount.of(
             member.getId(), SocialProvider.FACEBOOK, providerId,
             facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
         );

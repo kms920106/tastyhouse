@@ -33,14 +33,19 @@ public class MemberAccountService {
 
     // 회원가입 (토큰 검증은 MemberFacade에서 MemberAuthService를 통해 선행)
     @Transactional
-    public void signUp(String username, String password,
-                       String nickname, String fullName,
-                       Gender gender,
-                       Integer birthDate, String phoneNumber,
-                       Boolean pushNotificationEnabled,
-                       Boolean marketingInfoEnabled, Boolean eventInfoEnabled,
-                       String referrerNickname) {
-
+    public void signUp(
+        String username,
+        String password,
+        String nickname,
+        String fullName,
+        Gender gender,
+        Integer birthDate,
+        String phoneNumber,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled,
+        String referrerNickname
+    ) {
         if (memberCoreService.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
         }
@@ -53,40 +58,62 @@ public class MemberAccountService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
-        Member member = new Member(username, passwordEncoder.encode(password), nickname, fullName, gender, birthDate, phoneNumber, pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
-        memberCoreService.save(member);
+        Member savedMember = memberCoreService.save(Member.of(
+            username,
+            passwordEncoder.encode(password),
+            nickname,
+            fullName,
+            gender,
+            birthDate,
+            phoneNumber,
+            pushNotificationEnabled,
+            marketingInfoEnabled,
+            eventInfoEnabled
+        ));
 
         if (StringUtils.hasText(referrerNickname)) {
             if (referrerNickname.equals(nickname)) {
                 throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
             }
 
-            Member referrer = memberCoreService.findByNickname(referrerNickname)
+            Member referrerMember = memberCoreService.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
             memberCoreService.saveReferral(
                 MemberReferral.of(
-                    referrer.getId(),
-                    member.getId())
+                    referrerMember.getId(),
+                    savedMember.getId()
+                )
             );
         }
     }
 
     // 새 비밀번호 확인 일치 여부를 검증한 후 변경 (기존 비번 동일 여부는 MemberFacade에서 MemberAuthService를 통해 선행)
     @Transactional
-    public void updatePassword(Long memberId, String newPassword, String newPasswordConfirm) {
+    public void updatePassword(
+        Long memberId,
+        String newPassword,
+        String newPasswordConfirm
+    ) {
         if (!newPassword.equals(newPasswordConfirm)) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
         }
 
         Member member = memberCoreService.getById(memberId);
-        member.changePassword(passwordEncoder.encode(newPassword));
+        member.updatePassword(
+            passwordEncoder.encode(newPassword)
+        );
     }
 
     // 회원을 비활성화하고 탈퇴 사유를 저장
     @Transactional
-    public void withdrawMember(Long memberId, WithdrawalReason reason, String reasonDetail) {
-        memberCoreService.getById(memberId).deactivate();
+    public void withdrawMember(
+        Long memberId,
+        WithdrawalReason reason,
+        String reasonDetail
+    ) {
+        Member member = memberCoreService.getById(memberId);
+        member.deactivate();
 
         memberCoreService.saveWithdrawal(
             MemberWithdrawal.of(
@@ -108,18 +135,34 @@ public class MemberAccountService {
     @Transactional(readOnly = true)
     public PhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
         boolean available = !memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(
-            phoneNumber, MemberStatus.DELETED
+            phoneNumber,
+            MemberStatus.DELETED
         );
         return PhoneAvailabilityResponse.from(available);
     }
 
     // 회원의 이름, 휴대폰, 생년월일, 성별, 알림 수신 설정을 수정
     @Transactional
-    public void updatePersonalInfo(Long memberId, String fullName, String phoneNumber, Integer birthDate,
-                                   Gender gender,
-                                   Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                                   Boolean eventInfoEnabled) {
-        memberCoreService.getById(memberId).updatePersonalInfo(fullName, phoneNumber, birthDate, gender, pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
+    public void updatePersonalInfo(
+        Long memberId,
+        String fullName,
+        String phoneNumber,
+        Integer birthDate,
+        Gender gender,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled
+    ) {
+        Member member = memberCoreService.getById(memberId);
+        member.updatePersonalInfo(
+            fullName,
+            phoneNumber,
+            birthDate,
+            gender,
+            pushNotificationEnabled,
+            marketingInfoEnabled,
+            eventInfoEnabled
+        );
     }
 
     // 회원의 프로필 조회
@@ -132,14 +175,26 @@ public class MemberAccountService {
             dto.nickname(),
             dto.memberGrade(),
             dto.statusMessage(),
-            fileService.getUrlByPath(dto.profileImageFilePath())
+            fileService.getUrlByPath(
+                dto.profileImageFilePath()
+            )
         );
     }
 
     // 회원의 닉네임, 상태 메시지, 프로필 이미지를 수정
     @Transactional
-    public void updateMemberProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
-        memberCoreService.getById(memberId).changeProfile(nickname, statusMessage, profileImageFileId);
+    public void updateMemberProfile(
+        Long memberId,
+        String nickname,
+        String statusMessage,
+        Long profileImageFileId
+    ) {
+        Member member = memberCoreService.getById(memberId);
+        member.updateProfile(
+            nickname,
+            statusMessage,
+            profileImageFileId
+        );
     }
 
     // 회원의 개인정보를 조회하여 반환
