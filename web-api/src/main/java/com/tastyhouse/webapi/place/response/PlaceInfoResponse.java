@@ -2,27 +2,11 @@ package com.tastyhouse.webapi.place.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Schema(description = "플레이스 기본 정보 응답")
 public record PlaceInfoResponse(
-    @Schema(description = "플레이스 ID", example = "1")
-    Long id,
-
-    @Schema(description = "위도", example = "37.5234")
-    BigDecimal latitude,
-
-    @Schema(description = "경도", example = "127.0234")
-    BigDecimal longitude,
-
-    @Schema(description = "전철역명", example = "신사역")
-    String stationName,
-
-    @Schema(description = "전화번호", example = "02-1234-5678")
-    String phoneNumber,
-
     @Schema(description = "휴무일 목록")
     List<ClosedDayItem> closedDays,
 
@@ -42,11 +26,6 @@ public record PlaceInfoResponse(
     LocalDateTime ownerMessageCreatedAt
 ) {
     public static PlaceInfoResponse from(
-    Long id,
-    BigDecimal latitude,
-    BigDecimal longitude,
-    String stationName,
-    String phoneNumber,
     List<ClosedDayItem> closedDays,
     List<BusinessHourItem> businessHours,
     List<BreakTimeItem> breakTimes,
@@ -55,11 +34,6 @@ public record PlaceInfoResponse(
     LocalDateTime ownerMessageCreatedAt
     ) {
     return new PlaceInfoResponse(
-        id,
-        latitude,
-        longitude,
-        stationName,
-        phoneNumber,
         closedDays,
         businessHours,
         breakTimes,

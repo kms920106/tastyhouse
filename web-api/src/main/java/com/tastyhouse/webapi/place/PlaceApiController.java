@@ -16,14 +16,12 @@ import com.tastyhouse.webapi.place.response.PlaceBookmarkResponse;
 import com.tastyhouse.webapi.place.response.PlaceInfoResponse;
 import com.tastyhouse.webapi.place.response.PlaceMapMarkerResponse;
 import com.tastyhouse.webapi.place.response.PlaceMenuCategoryResponse;
-import com.tastyhouse.webapi.place.response.PlaceNameResponse;
 import com.tastyhouse.webapi.place.response.PlaceOrderMethodResponse;
 import com.tastyhouse.webapi.place.response.PlacePhotoCategoryResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewStatisticsResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingWithPagination;
 import com.tastyhouse.webapi.place.response.PlaceDetailResponse;
-import com.tastyhouse.webapi.place.response.PlaceSummaryResponse;
 import com.tastyhouse.webapi.place.response.StationListItem;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -134,30 +132,12 @@ public class PlaceApiController {
         return ResponseEntity.ok(CommonResponse.success(placeDetail));
     }
 
-    @Operation(summary = "요약 정보 조회", description = "플레이스의 요약 정보를 조회합니다. 상호명, 도로명 주소, 지번 주소, 총 평점을 포함합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/{placeId}/summary")
-    public ResponseEntity<CommonResponse<PlaceSummaryResponse>> getPlaceSummary(@PathVariable Long placeId) {
-        PlaceSummaryResponse placeSummary = placeService.getPlaceSummary(placeId);
-        CommonResponse<PlaceSummaryResponse> response = CommonResponse.success(placeSummary);
-        return ResponseEntity.ok(response);
-    }
-
     @Operation(summary = "정보 조회", description = "플레이스의 기본 정보를 조회합니다. 운영시간, 전화번호 등을 포함합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/{placeId}/info")
     public ResponseEntity<CommonResponse<PlaceInfoResponse>> getPlaceInfo(@PathVariable Long placeId) {
         PlaceInfoResponse placeInfo = placeService.getPlaceInfo(placeId);
         CommonResponse<PlaceInfoResponse> response = CommonResponse.success(placeInfo);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "상호명 조회", description = "플레이스의 상호명을 조회합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/{placeId}/name")
-    public ResponseEntity<CommonResponse<PlaceNameResponse>> getPlaceName(@PathVariable Long placeId) {
-        PlaceNameResponse placeName = placeService.getPlaceName(placeId);
-        CommonResponse<PlaceNameResponse> response = CommonResponse.success(placeName);
         return ResponseEntity.ok(response);
     }
 

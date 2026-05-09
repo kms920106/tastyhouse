@@ -39,7 +39,6 @@ import com.tastyhouse.webapi.place.response.PlaceInfoResponse;
 import com.tastyhouse.webapi.place.response.PlaceMapMarkerResponse;
 import com.tastyhouse.webapi.place.response.PlaceMenuCategoryResponse;
 import com.tastyhouse.webapi.place.response.PlaceMenuResponse;
-import com.tastyhouse.webapi.place.response.PlaceNameResponse;
 import com.tastyhouse.webapi.place.response.PlaceOrderMethodResponse;
 import com.tastyhouse.webapi.place.response.PlacePhotoCategoryResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewListItem;
@@ -47,7 +46,6 @@ import com.tastyhouse.webapi.place.response.PlaceReviewStatisticsResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingWithPagination;
 import com.tastyhouse.webapi.place.response.PlaceDetailResponse;
-import com.tastyhouse.webapi.place.response.PlaceSummaryResponse;
 import com.tastyhouse.webapi.place.response.StationListItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -200,22 +198,8 @@ public class PlaceService {
     }
 
     @Transactional(readOnly = true)
-    public PlaceSummaryResponse getPlaceSummary(Long placeId) {
-        Place place = placeCoreService.findPlaceById(placeId);
-
-        return PlaceSummaryResponse.from(
-            place.getId(),
-            place.getName(),
-            place.getRoadAddress(),
-            place.getLotAddress(),
-            place.getRating()
-        );
-    }
-
-    @Transactional(readOnly = true)
     public PlaceInfoResponse getPlaceInfo(Long placeId) {
-        Place place = placeCoreService.findPlaceById(placeId);
-        PlaceStation station = placeCoreService.findStationById(place.getStationId());
+        placeCoreService.findPlaceById(placeId);
         List<PlaceBusinessHour> businessHours = placeCoreService.findPlaceBusinessHours(placeId);
         List<PlaceBreakTime> breakTimes = placeCoreService.findPlaceBreakTimes(placeId);
         List<PlaceClosedDay> closedDays = placeCoreService.findPlaceClosedDays(placeId);
@@ -237,7 +221,6 @@ public class PlaceService {
                 .map(this::convertToAmenityItem)
                 .toList();
 
-        // 사장님 한마디 히스토리 조회
         String ownerMessage = null;
         java.time.LocalDateTime ownerMessageCreatedAt = null;
         var ownerMessageHistory = placeCoreService.findLatestOwnerMessage(placeId);
@@ -247,11 +230,6 @@ public class PlaceService {
         }
 
         return PlaceInfoResponse.from(
-            place.getId(),
-            place.getLatitude(),
-            place.getLongitude(),
-            station.getStationName(),
-            place.getPhoneNumber(),
             closedDayItems,
             businessHourItems,
             breakTimeItems,
@@ -454,15 +432,6 @@ public class PlaceService {
     @Transactional
     public boolean toggleBookmark(Long placeId, Long memberId) {
         return placeCoreService.toggleBookmark(placeId, memberId);
-    }
-
-    @Transactional(readOnly = true)
-    public PlaceNameResponse getPlaceName(Long placeId) {
-        Place place = placeCoreService.findPlaceById(placeId);
-        return PlaceNameResponse.from(
-            place.getId(),
-            place.getName()
-        );
     }
 
     @Transactional(readOnly = true)
