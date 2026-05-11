@@ -7,16 +7,16 @@ public record AmenityListItem(
     String inactiveImageUrl
 ) {
     public static AmenityListItem from(
-    String code,
-    String name,
-    String activeImageUrl,
-    String inactiveImageUrl
+        String code,
+        String name,
+        String activeImageUrl,
+        String inactiveImageUrl
     ) {
-    return new AmenityListItem(
-        code,
-        name,
-        activeImageUrl,
-        inactiveImageUrl
-    );
+        return new AmenityListItem(
+            code,
+            name,
+            activeImageUrl,
+            inactiveImageUrl
+        );
     }
 }
