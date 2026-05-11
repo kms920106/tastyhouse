@@ -1,8 +1,7 @@
 package com.tastyhouse.webapi.rank;
 
 import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.webapi.rank.response.MemberRankItem;
-import com.tastyhouse.webapi.rank.response.MyRankResponse;
+import com.tastyhouse.webapi.rank.response.MemberRankResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeItemResponse;
 import com.tastyhouse.webapi.service.CustomUserDetails;
@@ -58,11 +57,11 @@ public class RankApiController {
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     })
     @GetMapping("/v1/members")
-    public ResponseEntity<CommonResponse<List<MemberRankItem>>> getMemberRankList(
+    public ResponseEntity<CommonResponse<List<MemberRankResponse>>> getMemberRankList(
         @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type,
         @Parameter(description = "조회할 랭킹 개수", example = "100") @RequestParam(defaultValue = "100") int limit
     ) {
-        List<MemberRankItem> ranks = rankService.getMemberRankList(type, limit);
+        List<MemberRankResponse> ranks = rankService.getMemberRankList(type, limit);
         return ResponseEntity.ok(CommonResponse.success(ranks));
     }
 
@@ -71,11 +70,11 @@ public class RankApiController {
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     })
     @GetMapping("/v1/members/me")
-    public ResponseEntity<CommonResponse<MyRankResponse>> getMyMemberRank(
+    public ResponseEntity<CommonResponse<MemberRankResponse>> getMyMemberRank(
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type
     ) {
-        MyRankResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), type);
+        MemberRankResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), type);
         return ResponseEntity.ok(CommonResponse.success(myRank));
     }
 }

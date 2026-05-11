@@ -3,11 +3,14 @@ package com.tastyhouse.webapi.rank;
 import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.entity.rank.dto.MemberRankDto;
 import com.tastyhouse.core.entity.rank.dto.RankPrizeDto;
+import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.core.service.RankCoreService;
 import com.tastyhouse.core.service.RankInfoCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.rank.response.MemberRankItem;
-import com.tastyhouse.webapi.rank.response.MyRankResponse;
+import com.tastyhouse.webapi.rank.response.MemberRankResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ public class RankService {
 
     private final RankCoreService rankCoreService;
     private final RankInfoCoreService rankInfoCoreService;
+    private final MemberCoreService memberCoreService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
@@ -40,14 +44,14 @@ public class RankService {
     }
 
     @Transactional(readOnly = true)
-    public List<MemberRankItem> getMemberRankList(String rankType, int limit) {
+    public List<MemberRankResponse> getMemberRankList(String rankType, int limit) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
         List<MemberRankDto> ranks = rankCoreService.searchMemberRankList(type, baseDate, limit);
 
         return ranks.stream()
-            .map(dto -> MemberRankItem.from(
+            .map(dto -> MemberRankResponse.of(
                 dto.memberId(),
                 dto.nickname(),
                 fileService.getUrlByPath(dto.profileImageUrl()),
@@ -58,15 +62,24 @@ public class RankService {
     }
 
     @Transactional(readOnly = true)
-    public MyRankResponse getMyMemberRank(Long memberId, String rankType) {
+    public MemberRankResponse getMyMemberRank(Long memberId, String rankType) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
         MemberRankDto dto = rankCoreService.findMemberRank(memberId, type, baseDate);
         if (dto == null) {
-            return null;
+            MemberWithProfileImageDto member = memberCoreService.findMemberWithProfileImageById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            return MemberRankResponse.of(
+                memberId,
+                member.nickname(),
+                fileService.getUrlByPath(member.profileImageFilePath()),
+                0,
+                null,
+                member.memberGrade()
+            );
         }
-        return MyRankResponse.from(
+        return MemberRankResponse.of(
             dto.memberId(),
             dto.nickname(),
             fileService.getUrlByPath(dto.profileImageUrl()),

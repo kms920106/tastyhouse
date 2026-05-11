@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.rank.response;
 
 import com.tastyhouse.core.entity.user.MemberGrade;
 
-public record MyRankResponse(
+public record MemberRankResponse(
     Long memberId,
     String nickname,
     String profileImageUrl,
@@ -10,7 +10,7 @@ public record MyRankResponse(
     Integer rankNo,
     MemberGrade grade
 ) {
-    public static MyRankResponse from(
+    public static MemberRankResponse of(
         Long memberId,
         String nickname,
         String profileImageUrl,
@@ -18,7 +18,7 @@ public record MyRankResponse(
         Integer rankNo,
         MemberGrade grade
     ) {
-        return new MyRankResponse(
+        return new MemberRankResponse(
             memberId,
             nickname,
             profileImageUrl,

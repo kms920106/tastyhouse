@@ -175,9 +175,7 @@ public class MemberAccountService {
             dto.nickname(),
             dto.memberGrade(),
             dto.statusMessage(),
-            fileService.getUrlByPath(
-                dto.profileImageFilePath()
-            )
+            fileService.getUrlByPath(dto.profileImageFilePath())
         );
     }
 
