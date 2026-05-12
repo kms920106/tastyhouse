@@ -15,7 +15,7 @@ import com.tastyhouse.webapi.place.response.PlaceBannerResponse;
 import com.tastyhouse.webapi.place.response.PlaceBookmarkResponse;
 import com.tastyhouse.webapi.place.response.PlaceInfoResponse;
 import com.tastyhouse.webapi.place.response.PlaceMapMarkerResponse;
-import com.tastyhouse.webapi.place.response.PlaceMenuCategoryResponse;
+import com.tastyhouse.webapi.place.response.PlaceProductCategoryResponse;
 import com.tastyhouse.webapi.place.response.PlaceOrderMethodResponse;
 import com.tastyhouse.webapi.place.response.PlacePhotoCategoryResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewStatisticsResponse;
@@ -150,12 +150,12 @@ public class PlaceApiController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "메뉴 목록 조회", description = "플레이스의 메뉴 목록을 조회합니다. 카테고리별로 그룹화되어 반환됩니다.")
+    @Operation(summary = "상품 목록 조회", description = "플레이스의 상품 목록을 조회합니다. 카테고리별로 그룹화되어 반환됩니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/{placeId}/menus")
-    public ResponseEntity<CommonResponse<List<PlaceMenuCategoryResponse>>> getPlaceMenus(@PathVariable Long placeId) {
-        List<PlaceMenuCategoryResponse> menus = placeService.getPlaceMenus(placeId);
-        CommonResponse<List<PlaceMenuCategoryResponse>> response = CommonResponse.success(menus);
+    @GetMapping("/v1/{placeId}/products")
+    public ResponseEntity<CommonResponse<List<PlaceProductCategoryResponse>>> getPlaceProducts(@PathVariable Long placeId) {
+        List<PlaceProductCategoryResponse> products = placeService.getPlaceProducts(placeId);
+        CommonResponse<List<PlaceProductCategoryResponse>> response = CommonResponse.success(products);
         return ResponseEntity.ok(response);
     }
 

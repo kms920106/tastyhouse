@@ -37,8 +37,8 @@ import com.tastyhouse.webapi.place.response.PlaceBannerResponse;
 import com.tastyhouse.webapi.place.response.PlaceBookmarkResponse;
 import com.tastyhouse.webapi.place.response.PlaceInfoResponse;
 import com.tastyhouse.webapi.place.response.PlaceMapMarkerResponse;
-import com.tastyhouse.webapi.place.response.PlaceMenuCategoryResponse;
-import com.tastyhouse.webapi.place.response.PlaceMenuResponse;
+import com.tastyhouse.webapi.place.response.PlaceProductCategoryResponse;
+import com.tastyhouse.webapi.place.response.PlaceProductResponse;
 import com.tastyhouse.webapi.place.response.PlaceOrderMethodResponse;
 import com.tastyhouse.webapi.place.response.PlacePhotoCategoryResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewListItem;
@@ -248,7 +248,7 @@ public class PlaceService {
     }
 
     @Transactional(readOnly = true)
-    public List<PlaceMenuCategoryResponse> getPlaceMenus(Long placeId) {
+    public List<PlaceProductCategoryResponse> getPlaceProducts(Long placeId) {
         List<ProductCategory> categories = productCoreService.findProductCategoriesByPlaceId(placeId);
         List<Product> products = productCoreService.findProductsByPlaceId(placeId);
 
@@ -261,10 +261,10 @@ public class PlaceService {
         return categories.stream()
                 .map(category -> {
                     List<Product> categoryProducts = productsByCategory.getOrDefault(category.getId(), new ArrayList<>());
-                    List<PlaceMenuResponse> menuResponses = categoryProducts.stream()
+                    List<PlaceProductResponse> menuResponses = categoryProducts.stream()
                             .map(this::convertToPlaceMenuResponse)
                             .toList();
-                    return PlaceMenuCategoryResponse.from(
+                    return PlaceProductCategoryResponse.from(
                         category.getName(),
                         menuResponses
                     );
@@ -402,10 +402,10 @@ public class PlaceService {
         );
     }
 
-    private PlaceMenuResponse convertToPlaceMenuResponse(Product product) {
+    private PlaceProductResponse convertToPlaceMenuResponse(Product product) {
         String imageUrl = getFirstImageUrl(product.getId());
 
-        return PlaceMenuResponse.from(
+        return PlaceProductResponse.from(
             product.getId(),
             product.getName(),
             fileService.getUrlByPath(imageUrl),

@@ -4,12 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
-@Schema(description = "플레이스 메뉴 응답")
-public record PlaceMenuResponse(
-    @Schema(description = "메뉴 ID", example = "1")
+@Schema(description = "플레이스 상품 응답")
+public record PlaceProductResponse(
+    @Schema(description = "상품 ID", example = "1")
     Long id,
 
-    @Schema(description = "메뉴명", example = "명란 크림 파스타")
+    @Schema(description = "상품명", example = "명란 크림 파스타")
     String name,
 
     @Schema(description = "이미지 URL", example = "https://example.com/menu.jpg")
@@ -24,19 +24,19 @@ public record PlaceMenuResponse(
     @Schema(description = "할인율", example = "10")
     BigDecimal discountRate,
 
-    @Schema(description = "메뉴 평점", example = "3.5")
+    @Schema(description = "상품 평점", example = "3.5")
     Double rating,
 
     @Schema(description = "리뷰 수", example = "24")
     Integer reviewCount,
 
-    @Schema(description = "대표 메뉴 여부", example = "true")
+    @Schema(description = "대표 상품 여부", example = "true")
     Boolean isRepresentative,
 
     @Schema(description = "매운맛 정도 (0-5 또는 0-10)", example = "3")
     Integer spiciness
 ) {
-    public static PlaceMenuResponse from(
+    public static PlaceProductResponse from(
         Long id,
         String name,
         String imageUrl,
@@ -48,7 +48,7 @@ public record PlaceMenuResponse(
         Boolean isRepresentative,
         Integer spiciness
     ) {
-        return new PlaceMenuResponse(
+        return new PlaceProductResponse(
             id,
             name,
             imageUrl,
