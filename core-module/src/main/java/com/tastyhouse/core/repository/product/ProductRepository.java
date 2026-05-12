@@ -26,8 +26,6 @@ public interface ProductRepository {
 
     List<Product> findActiveByPlaceIdOrderByRepresentativeAndRating(Long placeId);
 
-    List<Product> findActiveByPlaceIdOrderBySort(Long placeId);
-
     List<Product> findByPlaceId(Long placeId);
 
     List<ProductCategory> findActiveCategoriesByPlaceIdOrderBySort(Long placeId);

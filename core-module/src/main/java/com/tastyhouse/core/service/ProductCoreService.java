@@ -52,11 +52,6 @@ public class ProductCoreService {
     }
 
     @Transactional(readOnly = true)
-    public List<Product> findActiveProductsByPlaceId(Long placeId) {
-        return productRepository.findActiveByPlaceIdOrderBySort(placeId);
-    }
-
-    @Transactional(readOnly = true)
     public Optional<Product> findProductById(Long productId) {
         return productJpaRepository.findById(productId);
     }

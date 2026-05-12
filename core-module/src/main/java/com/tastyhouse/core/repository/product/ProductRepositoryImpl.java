@@ -134,15 +134,6 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public List<Product> findActiveByPlaceIdOrderBySort(Long placeId) {
-        return queryFactory
-            .selectFrom(product)
-            .where(product.placeId.eq(placeId), product.isActive.eq(true))
-            .orderBy(product.sort.asc())
-            .fetch();
-    }
-
-    @Override
     public List<Product> findByPlaceId(Long placeId) {
         return queryFactory
             .selectFrom(product)

@@ -3,9 +3,7 @@ package com.tastyhouse.webapi.product;
 import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.webapi.product.response.ProductCategoryListItem;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
-import com.tastyhouse.webapi.product.response.ProductListItem;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
@@ -41,24 +39,6 @@ public class ProductApiController {
     public ResponseEntity<CommonResponse<List<TodayDiscountProductItem>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
         PageResult<TodayDiscountProductItem> pageResult = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
         CommonResponse<List<TodayDiscountProductItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "플레이스별 상품 목록 조회", description = "특정 플레이스의 상품 목록을 조회합니다. 상품명, 이미지, 가격, 할인 정보, 평점, 리뷰 수 등을 포함합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/places/{placeId}")
-    public ResponseEntity<CommonResponse<List<ProductListItem>>> getProductsByPlaceId(@PathVariable Long placeId) {
-        List<ProductListItem> products = productService.searchProductsByPlaceId(placeId);
-        CommonResponse<List<ProductListItem>> response = CommonResponse.success(products);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "플레이스별 상품 카테고리 목록 조회", description = "특정 플레이스의 상품 카테고리 목록을 조회합니다. 카테고리 타입, 표시명, 정렬 순서를 포함합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
-    @GetMapping("/v1/places/{placeId}/categories")
-    public ResponseEntity<CommonResponse<List<ProductCategoryListItem>>> getProductCategoriesByPlaceId(@PathVariable Long placeId) {
-        List<ProductCategoryListItem> categories = productService.searchProductCategoriesByPlaceId(placeId);
-        CommonResponse<List<ProductCategoryListItem>> response = CommonResponse.success(categories);
         return ResponseEntity.ok(response);
     }
 

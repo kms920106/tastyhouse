@@ -16,9 +16,7 @@ import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.product.response.ProductCategoryListItem;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
-import com.tastyhouse.webapi.product.response.ProductListItem;
 import com.tastyhouse.webapi.product.response.ProductReviewListItem;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
@@ -63,60 +61,9 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProductListItem> searchProductsByPlaceId(Long placeId) {
-        List<Product> products = productCoreService.findActiveProductsByPlaceId(placeId);
-        Map<Long, String> categoryNameMap = buildCategoryNameMap(placeId);
-
-        return products.stream()
-            .map(product -> convertToProductListItem(product, categoryNameMap))
-            .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ProductCategoryListItem> searchProductCategoriesByPlaceId(Long placeId) {
-        List<ProductCategory> categories = productCoreService.findProductCategoriesByPlaceId(placeId);
-        return categories.stream()
-            .map(this::convertToProductCategoryListItem)
-            .toList();
-    }
-
-    private ProductCategoryListItem convertToProductCategoryListItem(ProductCategory category) {
-        return ProductCategoryListItem.from(category.getId(), category.getName(), category.getSort());
-    }
-
-    @Transactional(readOnly = true)
     public Optional<ProductDetailResponse> findProductById(Long productId) {
         return productCoreService.findProductById(productId)
             .map(this::buildProductDetailResponse);
-    }
-
-    private Map<Long, String> buildCategoryNameMap(Long placeId) {
-        List<ProductCategory> categories = productCoreService.findProductCategoriesByPlaceId(placeId);
-        return categories.stream()
-            .collect(Collectors.toMap(ProductCategory::getId, ProductCategory::getName));
-    }
-
-    private ProductListItem convertToProductListItem(Product product, Map<Long, String> categoryNameMap) {
-        String categoryName = product.getProductCategoryId() != null
-            ? categoryNameMap.get(product.getProductCategoryId())
-            : null;
-
-        String imageUrl = getFirstImageUrl(product.getId());
-
-        return ProductListItem.from(
-            product.getId(),
-            product.getName(),
-            product.getDescription(),
-            imageUrl,
-            product.getOriginalPrice(),
-            product.getDiscountPrice(),
-            product.getDiscountRate(),
-            product.getRating(),
-            product.getReviewCount(),
-            product.getIsRepresentative(),
-            product.getIsSoldOut(),
-            categoryName
-        );
     }
 
     private ProductDetailResponse buildProductDetailResponse(Product product) {
@@ -238,10 +185,6 @@ public class ProductService {
             option.getAdditionalPrice(),
             option.getIsSoldOut()
         );
-    }
-
-    private String getFirstImageUrl(Long productId) {
-        return fileService.getUrlByPath(productCoreService.getFirstImageFilePath(productId));
     }
 
     private List<String> getAllImageUrls(Long productId) {
