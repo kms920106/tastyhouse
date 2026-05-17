@@ -38,7 +38,7 @@ import com.tastyhouse.webapi.place.response.PlaceBookmarkResponse;
 import com.tastyhouse.webapi.place.response.PlaceInfoResponse;
 import com.tastyhouse.webapi.place.response.PlaceMapMarkerResponse;
 import com.tastyhouse.webapi.place.response.PlaceProductCategoryResponse;
-import com.tastyhouse.webapi.place.response.PlaceProductResponse;
+import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.place.response.PlaceOrderMethodResponse;
 import com.tastyhouse.webapi.place.response.PlacePhotoCategoryResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewListItem;
@@ -261,7 +261,7 @@ public class PlaceService {
         return categories.stream()
                 .map(category -> {
                     List<Product> categoryProducts = productsByCategory.getOrDefault(category.getId(), new ArrayList<>());
-                    List<PlaceProductResponse> menuResponses = categoryProducts.stream()
+                    List<ProductSummaryResponse> menuResponses = categoryProducts.stream()
                             .map(this::convertToPlaceMenuResponse)
                             .toList();
                     return PlaceProductCategoryResponse.from(
@@ -402,10 +402,10 @@ public class PlaceService {
         );
     }
 
-    private PlaceProductResponse convertToPlaceMenuResponse(Product product) {
+    private ProductSummaryResponse convertToPlaceMenuResponse(Product product) {
         String imageUrl = getFirstImageUrl(product.getId());
 
-        return PlaceProductResponse.from(
+        return ProductSummaryResponse.from(
             product.getId(),
             product.getName(),
             fileService.getUrlByPath(imageUrl),

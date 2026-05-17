@@ -6,6 +6,7 @@ import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
+import com.tastyhouse.core.entity.review.dto.SearchReviewItemDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,6 +18,8 @@ import java.util.Optional;
 public interface ReviewRepository {
 
     Page<BestReviewListItemDto> findBestReviews(Pageable pageable);
+
+    Page<SearchReviewItemDto> searchByKeyword(String keyword, Pageable pageable);
 
     Page<LatestReviewListItemDto> findLatestReviews(Pageable pageable);
 

@@ -1,5 +1,6 @@
 package com.tastyhouse.core.repository.product;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -15,6 +16,7 @@ import com.tastyhouse.core.entity.product.QProductImage;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.QProductSimpleDto;
 import com.tastyhouse.core.entity.product.dto.QTodayDiscountProductDto;
+import com.tastyhouse.core.entity.product.dto.SearchProductItemDto;
 import com.tastyhouse.core.entity.product.dto.TodayDiscountProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -266,6 +268,63 @@ public class ProductRepositoryImpl implements ProductRepository {
                 .where(productBbq.isOptionsSynced.eq(false))
                 .fetchFirst()
         );
+    }
+
+    @Override
+    public Page<SearchProductItemDto> searchByKeyword(String keyword, Pageable pageable) {
+        Long total = queryFactory
+            .select(product.count())
+            .from(product)
+            .innerJoin(place).on(product.placeId.eq(place.id))
+            .where(
+                product.name.containsIgnoreCase(keyword)
+                .and(product.isActive.eq(true))
+                .and(product.isSoldOut.eq(false))
+                .and(place.permanentlyClosed.eq(false))
+            )
+            .fetchOne();
+
+        if (total == null || total == 0) return new PageImpl<>(List.of(), pageable, 0);
+
+        List<SearchProductItemDto> content = queryFactory
+            .select(Projections.constructor(SearchProductItemDto.class,
+                product.id,
+                place.name,
+                product.name,
+                uploadedFile.filePath,
+                product.originalPrice,
+                product.discountPrice,
+                product.discountRate,
+                product.rating,
+                product.reviewCount,
+                product.isRepresentative,
+                product.spiciness
+            ))
+            .from(product)
+            .innerJoin(place).on(product.placeId.eq(place.id))
+            .leftJoin(productImage).on(
+                productImage.productId.eq(product.id)
+                .and(productImage.isActive.eq(true))
+                .and(productImage.sort.eq(
+                    JPAExpressions.select(subProductImage.sort.min())
+                        .from(subProductImage)
+                        .where(subProductImage.productId.eq(product.id)
+                            .and(subProductImage.isActive.eq(true)))
+                ))
+            )
+            .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
+            .where(
+                product.name.containsIgnoreCase(keyword)
+                .and(product.isActive.eq(true))
+                .and(product.isSoldOut.eq(false))
+                .and(place.permanentlyClosed.eq(false))
+            )
+            .orderBy(product.isRepresentative.desc().nullsLast(), product.rating.desc().nullsLast())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        return new PageImpl<>(content, pageable, total);
     }
 
     @Override

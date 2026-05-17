@@ -140,6 +140,9 @@ public enum ErrorCode {
     APPLE_TEMP_TOKEN_EXPIRED(400, "APPLE_TEMP_TOKEN_EXPIRED", "애플 인증이 만료되었습니다. 다시 시도해주세요."),
     APPLE_ID_TOKEN_INVALID(400, "APPLE_ID_TOKEN_INVALID", "애플 인증 토큰이 유효하지 않습니다."),
 
+    // 검색
+    SEARCH_KEYWORD_BLANK(400, "SEARCH_KEYWORD_BLANK", "검색어를 입력해주세요."),
+
     // Rate Limiting
     RATE_LIMIT_EXCEEDED(429, "RATE_LIMIT_EXCEEDED", "요청 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요.");
 

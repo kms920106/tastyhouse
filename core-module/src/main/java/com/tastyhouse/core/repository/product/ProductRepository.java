@@ -9,6 +9,7 @@ import com.tastyhouse.core.entity.product.ProductImage;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
+import com.tastyhouse.core.entity.product.dto.SearchProductItemDto;
 import com.tastyhouse.core.entity.product.dto.TodayDiscountProductDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,8 @@ import java.util.Optional;
 public interface ProductRepository {
 
     Page<TodayDiscountProductDto> findTodayDiscountProducts(Pageable pageable);
+
+    Page<SearchProductItemDto> searchByKeyword(String keyword, Pageable pageable);
 
     List<ProductSimpleDto> findProductsByPlaceId(Long placeId);
 

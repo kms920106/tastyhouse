@@ -1,11 +1,11 @@
-package com.tastyhouse.webapi.place.response;
+package com.tastyhouse.webapi.product.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
-@Schema(description = "플레이스 상품 응답")
-public record PlaceProductResponse(
+@Schema(description = "상품 요약 응답")
+public record ProductSummaryResponse(
     @Schema(description = "상품 ID", example = "1")
     Long id,
 
@@ -36,7 +36,7 @@ public record PlaceProductResponse(
     @Schema(description = "매운맛 정도 (0-5 또는 0-10)", example = "3")
     Integer spiciness
 ) {
-    public static PlaceProductResponse from(
+    public static ProductSummaryResponse from(
         Long id,
         String name,
         String imageUrl,
@@ -48,7 +48,7 @@ public record PlaceProductResponse(
         Boolean isRepresentative,
         Integer spiciness
     ) {
-        return new PlaceProductResponse(
+        return new ProductSummaryResponse(
             id,
             name,
             imageUrl,

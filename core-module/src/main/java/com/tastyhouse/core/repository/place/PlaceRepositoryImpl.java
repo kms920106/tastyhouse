@@ -8,6 +8,7 @@ import com.tastyhouse.core.entity.place.Place;
 import com.tastyhouse.core.entity.place.dto.BestPlaceItemDto;
 import com.tastyhouse.core.entity.place.dto.LatestPlaceItemDto;
 import com.tastyhouse.core.entity.place.dto.MyBookmarkedPlaceItemDto;
+import com.tastyhouse.core.entity.place.dto.SearchPlaceItemDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -231,6 +232,123 @@ public class PlaceRepositoryImpl implements PlaceRepository {
             bookmarkCountMap.getOrDefault(p.getId(), 0L),
             foodTypeMap.getOrDefault(p.getId(), List.of())
         )).collect(Collectors.toList());
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Page<BestPlaceItemDto> searchByKeyword(String keyword, Pageable pageable) {
+        BooleanBuilder where = new BooleanBuilder()
+                .and(place.permanentlyClosed.eq(false))
+                .and(place.name.containsIgnoreCase(keyword));
+
+        Long total = queryFactory.select(place.count()).from(place).where(where).fetchOne();
+        if (total == null || total == 0) return new PageImpl<>(List.of(), pageable, 0);
+
+        List<Place> pagedPlaces = queryFactory.selectFrom(place)
+                .where(where)
+                .orderBy(place.rating.desc().nullsLast())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        if (pagedPlaces.isEmpty()) return new PageImpl<>(List.of(), pageable, total);
+
+        List<Long> placeIds = pagedPlaces.stream().map(Place::getId).collect(Collectors.toList());
+
+        var stationMap = queryFactory.select(place.id, placeStation.stationName)
+                .from(place).join(placeStation).on(placeStation.id.eq(place.stationId))
+                .where(place.id.in(placeIds)).fetch().stream()
+                .collect(Collectors.toMap(t -> t.get(place.id), t -> t.get(placeStation.stationName)));
+
+        var thumbnailFilePathMap = queryFactory.select(place.id, uploadedFile.filePath)
+                .from(place).leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
+                .where(place.id.in(placeIds)).fetch().stream()
+                .filter(t -> t.get(uploadedFile.filePath) != null)
+                .collect(Collectors.toMap(t -> t.get(place.id), t -> t.get(uploadedFile.filePath)));
+
+        var foodTypeMap = queryFactory.select(placeFoodType.placeId, placeFoodTypeCategory.foodType)
+                .from(placeFoodType).join(placeFoodTypeCategory).on(placeFoodType.placeFoodTypeCategoryId.eq(placeFoodTypeCategory.id))
+                .where(placeFoodType.placeId.in(placeIds)).fetch().stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.get(placeFoodType.placeId),
+                        Collectors.mapping(t -> t.get(placeFoodTypeCategory.foodType), Collectors.toList())
+                ));
+
+        List<BestPlaceItemDto> content = pagedPlaces.stream()
+                .map(p -> new BestPlaceItemDto(
+                        p.getId(),
+                        p.getName(),
+                        stationMap.get(p.getId()),
+                        p.getRating(),
+                        thumbnailFilePathMap.get(p.getId()),
+                        foodTypeMap.getOrDefault(p.getId(), List.of())
+                )).collect(Collectors.toList());
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Page<SearchPlaceItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, Pageable pageable) {
+        BooleanBuilder where = new BooleanBuilder()
+                .and(place.permanentlyClosed.eq(false))
+                .and(place.name.containsIgnoreCase(keyword));
+
+        Long total = queryFactory.select(place.count()).from(place).where(where).fetchOne();
+        if (total == null || total == 0) return new PageImpl<>(List.of(), pageable, 0);
+
+        List<Place> pagedPlaces = queryFactory.selectFrom(place)
+                .where(where)
+                .orderBy(place.rating.desc().nullsLast())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        if (pagedPlaces.isEmpty()) return new PageImpl<>(List.of(), pageable, total);
+
+        List<Long> placeIds = pagedPlaces.stream().map(Place::getId).collect(Collectors.toList());
+
+        var stationMap = queryFactory.select(place.id, placeStation.stationName)
+                .from(place).join(placeStation).on(placeStation.id.eq(place.stationId))
+                .where(place.id.in(placeIds)).fetch().stream()
+                .collect(Collectors.toMap(t -> t.get(place.id), t -> t.get(placeStation.stationName)));
+
+        var thumbnailFilePathMap = queryFactory.select(place.id, uploadedFile.filePath)
+                .from(place).leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
+                .where(place.id.in(placeIds)).fetch().stream()
+                .filter(t -> t.get(uploadedFile.filePath) != null)
+                .collect(Collectors.toMap(t -> t.get(place.id), t -> t.get(uploadedFile.filePath)));
+
+        var foodTypeMap = queryFactory.select(placeFoodType.placeId, placeFoodTypeCategory.foodType)
+                .from(placeFoodType).join(placeFoodTypeCategory).on(placeFoodType.placeFoodTypeCategoryId.eq(placeFoodTypeCategory.id))
+                .where(placeFoodType.placeId.in(placeIds)).fetch().stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.get(placeFoodType.placeId),
+                        Collectors.mapping(t -> t.get(placeFoodTypeCategory.foodType), Collectors.toList())
+                ));
+
+        Set<Long> bookmarkedPlaceIds = new HashSet<>();
+        if (memberId != null) {
+            bookmarkedPlaceIds = new HashSet<>(
+                queryFactory.select(placeBookmark.placeId)
+                    .from(placeBookmark)
+                    .where(placeBookmark.placeId.in(placeIds)
+                        .and(placeBookmark.memberId.eq(memberId)))
+                    .fetch()
+            );
+        }
+
+        final Set<Long> bookmarked = bookmarkedPlaceIds;
+        List<SearchPlaceItemDto> content = pagedPlaces.stream()
+                .map(p -> new SearchPlaceItemDto(
+                        p.getId(),
+                        p.getName(),
+                        stationMap.get(p.getId()),
+                        p.getRating(),
+                        thumbnailFilePathMap.get(p.getId()),
+                        foodTypeMap.getOrDefault(p.getId(), List.of()),
+                        bookmarked.contains(p.getId())
+                )).collect(Collectors.toList());
 
         return new PageImpl<>(content, pageable, total);
     }

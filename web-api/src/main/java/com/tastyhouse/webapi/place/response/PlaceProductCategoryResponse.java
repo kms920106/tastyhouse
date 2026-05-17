@@ -1,5 +1,6 @@
 package com.tastyhouse.webapi.place.response;
 
+import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -10,11 +11,11 @@ public record PlaceProductCategoryResponse(
     String categoryName,
 
     @Schema(description = "상품 목록")
-    List<PlaceProductResponse> products
+    List<ProductSummaryResponse> products
 ) {
     public static PlaceProductCategoryResponse from(
         String categoryName,
-        List<PlaceProductResponse> menus
+        List<ProductSummaryResponse> menus
     ) {
         return new PlaceProductCategoryResponse(
             categoryName,

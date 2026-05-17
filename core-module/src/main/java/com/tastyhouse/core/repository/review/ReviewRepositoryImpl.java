@@ -4,6 +4,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.core.types.Projections;
 import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
 import com.tastyhouse.core.entity.rank.dto.QMemberReviewCountDto;
 import com.tastyhouse.core.entity.review.Review;
@@ -14,6 +15,7 @@ import com.tastyhouse.core.entity.review.dto.QBestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.QLatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
 import com.tastyhouse.core.entity.review.dto.QReviewDetailDto;
+import com.tastyhouse.core.entity.review.dto.SearchReviewItemDto;
 import com.tastyhouse.core.entity.review.QReviewComment;
 import com.tastyhouse.core.entity.review.QReviewImage;
 import com.tastyhouse.core.entity.review.QReviewLike;
@@ -877,5 +879,47 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     @Override
     public void deleteById(Long reviewId) {
         reviewJpaRepository.deleteById(reviewId);
+    }
+
+    @Override
+    public Page<SearchReviewItemDto> searchByKeyword(String keyword, Pageable pageable) {
+        Long total = queryFactory
+            .select(review.countDistinct())
+            .from(review)
+            .innerJoin(reviewImage).on(reviewImage.reviewId.eq(review.id))
+            .where(
+                review.content.containsIgnoreCase(keyword)
+                .and(review.isHidden.eq(false))
+            )
+            .fetchOne();
+
+        if (total == null || total == 0) return new PageImpl<>(List.of(), pageable, 0);
+
+        List<SearchReviewItemDto> content = queryFactory
+            .select(Projections.constructor(SearchReviewItemDto.class,
+                review.id,
+                uploadedFile.filePath,
+                review.placeId
+            ))
+            .from(review)
+            .innerJoin(reviewImage).on(
+                reviewImage.reviewId.eq(review.id)
+                .and(reviewImage.sort.eq(
+                    JPAExpressions.select(subReviewImage.sort.min())
+                        .from(subReviewImage)
+                        .where(subReviewImage.reviewId.eq(review.id))
+                ))
+            )
+            .innerJoin(uploadedFile).on(reviewImage.imageFileId.eq(uploadedFile.id))
+            .where(
+                review.content.containsIgnoreCase(keyword)
+                .and(review.isHidden.eq(false))
+            )
+            .orderBy(review.createdAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        return new PageImpl<>(content, pageable, total);
     }
 }

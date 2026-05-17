@@ -1,0 +1,27 @@
+package com.tastyhouse.core.repository.search;
+
+import com.tastyhouse.core.entity.search.SearchKeywordLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public interface SearchKeywordLogJpaRepository extends JpaRepository<SearchKeywordLog, Long> {
+
+    @Query(value = """
+            SELECT keyword, COUNT(*) as cnt
+            FROM SEARCH_KEYWORD_LOG
+            WHERE searched_at >= :since
+            GROUP BY keyword
+            ORDER BY cnt DESC
+            LIMIT 10
+            """, nativeQuery = true)
+    List<Object[]> findTop10KeywordsSince(@Param("since") LocalDateTime since);
+
+    @Modifying
+    @Query("DELETE FROM SearchKeywordLog s WHERE s.searchedAt < :before")
+    void deleteOlderThan(@Param("before") LocalDateTime before);
+}

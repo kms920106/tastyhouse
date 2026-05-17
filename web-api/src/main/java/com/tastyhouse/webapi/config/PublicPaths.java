@@ -23,6 +23,7 @@ public final class PublicPaths {
         "/api/products/**",
         "/api/follows/v1/*/following/public", "/api/follows/v1/*/followers/public",
         "/api/ranks/v1/duration", "/api/ranks/v1/prizes", "/api/ranks/v1/members",
+        "/api/search/**",
         "/api/reviews/**",
         "/api/email-verifications/**",
         "/api/phone-verifications/**",

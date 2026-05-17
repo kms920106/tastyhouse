@@ -950,3 +950,30 @@ CREATE TABLE RANK_PRIZE
     UNIQUE KEY uk_rank_prize_rank (rank_id, prize_rank),
     INDEX idx_rank_prize (rank_id, prize_rank)
 );
+
+CREATE TABLE SEARCH_KEYWORD_LOG (
+                                    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                    keyword     VARCHAR(100) NOT NULL,
+                                    searched_at DATETIME     NOT NULL,
+                                    INDEX idx_keyword_searched_at (keyword, searched_at)
+);
+
+CREATE TABLE POPULAR_KEYWORD (
+                                 id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                 keyword    VARCHAR(100) NOT NULL,
+                                 rank       INT          NOT NULL,
+                                 is_new     BOOLEAN      NOT NULL DEFAULT FALSE,
+                                 is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+                                 created_at DATETIME     NOT NULL,
+                                 updated_at DATETIME     NOT NULL,
+                                 INDEX idx_is_active_rank (is_active, rank)
+);
+
+CREATE TABLE RECOMMENDED_KEYWORD (
+                                     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                     keyword    VARCHAR(100) NOT NULL,
+                                     sort_order INT          NOT NULL DEFAULT 0,
+                                     is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+                                     created_at DATETIME     NOT NULL,
+                                     updated_at DATETIME     NOT NULL
+);
