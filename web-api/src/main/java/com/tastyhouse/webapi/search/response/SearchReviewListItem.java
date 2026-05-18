@@ -4,15 +4,13 @@ import com.tastyhouse.core.entity.review.dto.SearchReviewItemDto;
 import com.tastyhouse.external.file.FileService;
 
 public record SearchReviewListItem(
-    Long reviewId,
-    String imageUrl,
-    Long placeId
+    Long id,
+    String imageUrl
 ) {
     public static SearchReviewListItem from(SearchReviewItemDto dto, FileService fileService) {
         return new SearchReviewListItem(
-            dto.reviewId(),
-            fileService.getUrlByPath(dto.imageFilePath()),
-            dto.placeId()
+            dto.id(),
+            fileService.getUrlByPath(dto.imageFilePath())
         );
     }
 }

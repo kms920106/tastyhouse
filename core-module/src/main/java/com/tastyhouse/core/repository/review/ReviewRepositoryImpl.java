@@ -898,8 +898,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         List<SearchReviewItemDto> content = queryFactory
             .select(Projections.constructor(SearchReviewItemDto.class,
                 review.id,
-                uploadedFile.filePath,
-                review.placeId
+                uploadedFile.filePath
             ))
             .from(review)
             .innerJoin(reviewImage).on(
