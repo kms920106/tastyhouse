@@ -16,9 +16,8 @@
 - [6. DDD 빌딩블록 도입 가이드](#6-ddd-빌딩블록-도입-가이드)
 - [7. Verification 파일럿 단계별 작업](#7-verification-파일럿-단계별-작업)
 - [8. *CoreService 재배치 매핑](#8-coreservice-재배치-매핑)
-- [9. ArchUnit 의존성 검증](#9-archunit-의존성-검증)
-- [10. 위험 요소 및 마이그레이션 주의사항](#10-위험-요소-및-마이그레이션-주의사항)
-- [11. 검증 체크리스트](#11-검증-체크리스트)
+- [9. 위험 요소 및 마이그레이션 주의사항](#9-위험-요소-및-마이그레이션-주의사항)
+- [10. 검증 체크리스트](#10-검증-체크리스트)
 
 ---
 
@@ -124,7 +123,7 @@ external-api/com/tastyhouse/external
 **1 BC = 3개 PR 분할 원칙** (PR 거대화 방지):
 - **PR-1**: 패키지 이동 (mechanical move only — 동작 변경 없음)
 - **PR-2**: AR / VO 도입 (캡슐화 메서드, 식별자 강타입, ID 참조 전환)
-- **PR-3**: DomainEvent 도입 + ArchUnit 룰 강화
+- **PR-3**: DomainEvent 도입
 
 ---
 
@@ -522,7 +521,7 @@ public class EmailVerification extends AbstractAggregateRoot<EmailVerification> 
 }
 ```
 
-### 7.4 PR-3: DomainEvent + ArchUnit
+### 7.4 PR-3: DomainEvent
 
 ```java
 // domain/event/EmailVerifiedEvent.java
@@ -544,26 +543,6 @@ public class MemberSignupEventListener {
 }
 ```
 
-ArchUnit 룰 추가:
-```java
-// core-module/src/test/java/com/tastyhouse/core/architecture/VerificationArchitectureTest.java
-@AnalyzeClasses(packagesOf = TastyhouseCoreApplication.class)
-public class VerificationArchitectureTest {
-
-    @ArchTest
-    static final ArchRule domainShouldNotDependOnSpring = noClasses()
-        .that().resideInAPackage("..domain.verification.domain..")
-        .should().dependOnClassesThat()
-        .resideInAnyPackage("org.springframework..");
-
-    @ArchTest
-    static final ArchRule verificationShouldNotDependOnOtherBcInfrastructure = noClasses()
-        .that().resideInAPackage("..domain.verification..")
-        .should().dependOnClassesThat()
-        .resideInAnyPackage("..domain.member.infrastructure..", "..domain.payment.infrastructure..");
-}
-```
-
 ---
 
 ## 8. *CoreService 재배치 매핑
@@ -581,70 +560,7 @@ public class VerificationArchitectureTest {
 
 ---
 
-## 9. ArchUnit 의존성 검증
-
-### 9.1 의존성 추가
-
-```gradle
-// core-module/build.gradle
-dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
-}
-```
-
-### 9.2 공통 룰 (점진 강화)
-
-```java
-@AnalyzeClasses(packagesOf = TastyhouseCoreApplication.class)
-public class CommonArchitectureTest {
-
-    // 도메인 레이어는 인프라/프레임워크에 의존하지 않는다
-    @ArchTest
-    static final ArchRule domainShouldNotDependOnInfrastructure =
-        noClasses()
-            .that().resideInAPackage("..core.domain.(*).domain..")
-            .should().dependOnClassesThat()
-            .resideInAnyPackage("..core.domain.(*).infrastructure..");
-
-    // application은 다른 BC의 infrastructure에 의존하지 않는다
-    @ArchTest
-    static final ArchRule applicationShouldNotCrossBcInfrastructure =
-        slices().matching("..core.domain.(*)..")
-            .should().notDependOnEachOther()
-            .ignoreDependency(
-                resideInAPackage("..core.domain.(*).application.."),
-                resideInAPackage("..core.shared..")
-            );
-
-    // shared는 도메인에 의존하지 않는다
-    @ArchTest
-    static final ArchRule sharedShouldNotDependOnDomain =
-        noClasses()
-            .that().resideInAPackage("..core.shared..")
-            .should().dependOnClassesThat()
-            .resideInAPackage("..core.domain..");
-}
-```
-
-### 9.3 BC 단위 강화 (전환 완료 BC부터)
-
-```java
-// VerificationArchitectureTest, MemberArchitectureTest 등 BC별 추가
-@ArchTest
-static final ArchRule verificationDomainShouldBePure =
-    noClasses()
-        .that().resideInAPackage("..core.domain.verification.domain..")
-        .should().dependOnClassesThat()
-        .resideInAnyPackage(
-            "jakarta.persistence..",   // @Entity 분리 후
-            "org.springframework..",
-            "com.querydsl.."
-        );
-```
-
----
-
-## 10. 위험 요소 및 마이그레이션 주의사항
+## 9. 위험 요소 및 마이그레이션 주의사항
 
 | #   | 위험                                                         | 대응                                                                  |
 | --- | ------------------------------------------------------------ | --------------------------------------------------------------------- |
@@ -661,30 +577,29 @@ static final ArchRule verificationDomainShouldBePure =
 
 ---
 
-## 11. 검증 체크리스트
+## 10. 검증 체크리스트
 
 각 BC 전환 PR마다 아래 항목을 모두 통과해야 머지.
 
-### 11.1 정적 검증
+### 10.1 정적 검증
 
 - [ ] 컴파일 그린
-- [ ] ArchUnit 룰 통과 (해당 BC 룰 + 공통 룰)
 - [ ] `hibernate.ddl-auto=validate`로 스키마 무변경 확인
 - [ ] QueryDSL Q클래스 정상 생성 (`./gradlew clean compileJava`)
 
-### 11.2 회귀 테스트
+### 10.2 회귀 테스트
 
 - [ ] 기존 단위 테스트 그린
 - [ ] `@SpringBootTest` 통합 테스트 그린
 - [ ] OpenAPI 응답 JSON 스냅샷 동일성 (필드 추가/삭제 없음)
 - [ ] 핵심 시나리오 e2e (회원가입/주문/결제/리뷰 흐름)
 
-### 11.3 성능 회귀
+### 10.3 성능 회귀
 
 - [ ] QueryDSL 핵심 쿼리 explain plan 비교 (인덱스 사용 동일)
 - [ ] 응답시간 측정 (주요 API: 회원조회, 주문조회, 가게리스트)
 
-### 11.4 운영 안정성
+### 10.4 운영 안정성
 
 - [ ] 로컬 도커 컴포즈로 실행 후 주요 시나리오 수동 확인
 - [ ] Redis 캐시 키 변경 여부 확인 (FQCN 포함 시 비우기)
