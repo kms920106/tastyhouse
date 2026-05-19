@@ -47,7 +47,6 @@
 | 첫 파일럿       | **Verification** 도메인                                           | 외부 의존 명확, 결합도 낮음                   |
 | AR 외부 참조    | **ID 참조** (`Order.memberId: MemberId`)                          | 정통 DDD, BC 경계 명확                        |
 | 내부 레이어     | `domain` / `application` / `infrastructure` (3-layer)             | presentation은 web-api/admin-api 유지         |
-| 부분 Hexagonal  | Payment, File, Verification (외부 어댑터 명확한 BC)               | OutPort + Adapter로 외부 의존 격리            |
 
 ---
 
@@ -69,7 +68,7 @@ core-module/com/tastyhouse/core
     │   ├── application/
     │   │   ├── EmailVerificationCommandService
     │   │   ├── EmailVerificationQueryService
-    │   │   ├── port/out/    MailSender, SmsSender (interface)
+    │   │   ├── service/     MailSender, SmsSender (interface)
     │   │   └── dto/         command, result
     │   └── infrastructure/
     │       └── persistence/ EmailVerificationJpaRepository, EmailVerificationRepositoryImpl
@@ -86,7 +85,7 @@ core-module/com/tastyhouse/core
     ├── place/   (17 엔티티 → Place AR + 내부 엔티티/VO 정리)
     ├── product/
     ├── order/
-    ├── payment/             ← Hexagonal 적용 (port/in, port/out, adapter/in, adapter/out)
+    ├── payment/
     ├── review/
     ├── coupon/  point/  rank/  file/
     └── support/             (notice, event, banner, policy, faq, follow, referral, report, partnership)
@@ -96,12 +95,6 @@ web-api/com/tastyhouse/webapi
 ├── member/controller, dto
 ├── ...
 └── config, auth, scheduler, ratelimit, logging   (그대로 유지)
-
-external-api/com/tastyhouse/external
-├── email/                   ← MailSender 어댑터 구현
-├── sms/                     ← SmsSender 어댑터 구현
-├── payment/toss/            ← PaymentGateway 어댑터 구현
-└── file/                    ← FileStorage 어댑터 구현
 ```
 
 ---
@@ -115,7 +108,7 @@ external-api/com/tastyhouse/external
 |    3 | Place        | 17개 엔티티 → AR 분리 연습                             |
 |    4 | Product      | Order 의존 정착                                        |
 |    5 | Order        | Member·Place·Product 정착 후                           |
-|    6 | Payment      | Hexagonal 본격 적용, Order 안정화 후                   |
+|    6 | Payment      | Order 안정화 후                                        |
 |    7 | Review / Coupon / Point·Rank | 부가 BC                                |
 |    8 | support 통합 | Notice/Event/Banner/Policy/Faq/Follow/Referral/Report/Partnership |
 |    9 | File         | CDN/스토리지 추상화                                    |
@@ -147,13 +140,13 @@ presentation(web-api, admin-api)
 | ------------------- | ------------------------------------------ | ----------------------------------------- | ------------------------------------------------- |
 | **domain**          | `core/domain/<bc>/domain/`                 | AR, Entity, VO, DomainEvent, Repository(interface) | Spring/JPA import 금지 (단, `@Entity`는 과도기 허용) |
 | **application**     | `core/domain/<bc>/application/`            | UseCase 조율, 트랜잭션 경계, DTO 변환     | 다른 BC의 infrastructure 직접 참조 금지            |
-| **infrastructure**  | `core/domain/<bc>/infrastructure/`         | Repository 구현, 외부 어댑터              | 다른 BC의 application/infrastructure 참조 금지    |
+| **infrastructure**  | `core/domain/<bc>/infrastructure/`         | Repository 구현                           | 다른 BC의 application/infrastructure 참조 금지    |
 | **presentation**    | `web-api/`, `admin-api/`                   | Controller, Request/Response DTO          | application 레이어만 호출                         |
 
 ### 5.3 BC 횡단 규칙
 
 ```
-✅ allowed: domain.member.application → domain.verification.application (out port)
+✅ allowed: domain.member.application → domain.verification.application
 ❌ forbidden: domain.member.domain → domain.verification.infrastructure
 ❌ forbidden: domain.member.application → domain.verification.infrastructure
 ```
@@ -327,7 +320,6 @@ public class MemberWithdrawnEventListener {
 
 **원칙**:
 - 초기엔 동기 `@TransactionalEventListener(AFTER_COMMIT)`
-- 점진적으로 비동기 + Outbox 패턴 도입 (특히 Payment)
 
 ---
 
@@ -341,7 +333,6 @@ public class MemberWithdrawnEventListener {
 | Status enum     | `core/entity/verification/EmailVerificationStatus`, `PhoneVerificationStatus` |
 | Repository      | `core/repository/verification/`                                   |
 | Service         | `core/service/EmailVerificationCoreService`, `PhoneVerificationCoreService` |
-| 외부 어댑터     | `external-api/email/ses`, `external-api/email/javamail`, `external-api/sms/sns`, `external-api/sms/solapi` |
 | Controller      | `web-api/controller/verification/VerificationApiController`       |
 
 ### 7.2 PR-1: 패키지 이동 (mechanical)
@@ -356,7 +347,6 @@ public class MemberWithdrawnEventListener {
    ├── domain/model/         ← 기존 entity 이동
    ├── domain/repository/    ← 인터페이스 추출
    ├── application/          ← *CoreService 분할 후 이동
-   ├── application/port/out/ ← MailSender, SmsSender 인터페이스 신규
    └── infrastructure/persistence/  ← JPA Repository 구현
    ```
 
@@ -397,7 +387,7 @@ public class MemberWithdrawnEventListener {
    @RequiredArgsConstructor
    public class EmailVerificationCommandService {
        private final EmailVerificationRepository repository;
-       private final MailSender mailSender;  // out port
+       private final MailSender mailSender;
 
        public EmailVerificationResult requestVerification(RequestVerificationCommand cmd) {
            EmailVerification verification = EmailVerification.create(cmd.email());
@@ -422,27 +412,7 @@ public class MemberWithdrawnEventListener {
    }
    ```
 
-4. 외부 어댑터 (out port 구현)
-   ```java
-   // core-module: application/port/out/MailSender.java (interface)
-   public interface MailSender {
-       void send(Email to, VerificationCode code);
-   }
-
-   // external-api: email/ses/SesMailSenderAdapter.java
-   @Component
-   @RequiredArgsConstructor
-   public class SesMailSenderAdapter implements MailSender {
-       private final AmazonSimpleEmailService sesClient;
-
-       @Override
-       public void send(Email to, VerificationCode code) {
-           // SES 호출
-       }
-   }
-   ```
-
-5. Controller 호출 변경
+4. Controller 호출 변경
    ```java
    // VerificationApiController
    // Before
@@ -453,7 +423,7 @@ public class MemberWithdrawnEventListener {
    private final EmailVerificationQueryService emailVerificationQueryService;
    ```
 
-6. 기존 `*CoreService` 삭제 (위임 후 안전 확인 시).
+5. 기존 `*CoreService` 삭제 (위임 후 안전 확인 시).
 
 ### 7.3 PR-2: AR / VO 도입
 
@@ -549,13 +519,13 @@ public class MemberSignupEventListener {
 
 | 기존                                                           | 이동 후                                                                                                |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `EmailVerificationCoreService` / `PhoneVerificationCoreService` | `application/EmailVerificationCommandService` + `QueryService` + out port `MailSender`/`SmsSender`     |
+| `EmailVerificationCoreService` / `PhoneVerificationCoreService` | `application/EmailVerificationCommandService` + `EmailVerificationQueryService`                         |
 | `MemberCoreService` (write+read 혼재)                           | `application/MemberCommandService` + `MemberQueryService` 분리 (CQS). 단순 위임은 AR 메서드로 흡수      |
 | `MemberWithdrawalCoreService`                                   | `MemberWithdrawalUseCase` (application) + `MemberWithdrawnEvent` 발행                                   |
 | `MemberSocialAccountCoreService`                                | `Member` AR 내부 메서드 + application 협력                                                              |
 | `RankAggregationService`                                        | application 레이어 도메인 서비스 (여러 AR 협력 — Domain Service)                                        |
-| `PaymentCoreService`                                            | `application/port/in/PaymentUseCase` + `out/PaymentGateway` + `out/PaymentRepository`. Toss 어댑터는 external-api로 |
-| `FileCoreService`                                               | application + out port `FileStorage` (S3/Firebase 어댑터는 external-api)                                |
+| `PaymentCoreService`                                            | `application/PaymentCommandService` + `PaymentQueryService`. Toss 연동은 infrastructure 레이어로          |
+| `FileCoreService`                                               | `application/FileCommandService` + `FileQueryService`                                                    |
 | 그 외 *CoreService                                              | `<bc>/application/<Bc>CommandService` + `<Bc>QueryService` 패턴 적용                                    |
 
 ---
@@ -567,13 +537,12 @@ public class MemberSignupEventListener {
 | 1   | JPA 양방향 연관관계 절단 시 N+1, 페치 조인 쿼리 영향         | PR-1은 패키지 이동만, PR-2에서 ID 참조로 단계적 전환                  |
 | 2   | QueryDSL Q클래스 경로 변경                                   | gradle querydsl generated 경로 확인, 빌드 캐시 무효화 (`./gradlew clean`) |
 | 3   | 순환 의존 (Member↔Review, Place↔Review)                      | Domain Service(application 레이어)에서 조율, AR 직접 참조 금지        |
-| 4   | 트랜잭션 경계 변화로 데이터 일관성 깨짐                      | DomainEvent + Outbox 패턴 (Payment부터). 초기엔 `AFTER_COMMIT` 동기   |
+| 4   | 트랜잭션 경계 변화로 데이터 일관성 깨짐                      | DomainEvent 도입. 초기엔 `AFTER_COMMIT` 동기                          |
 | 5   | DTO 위치 혼재 (`entity/place/dto/`)                          | read model로 분류해 `application/dto/`로 이동, native projection은 infrastructure |
 | 6   | admin-api 호환 깨짐                                           | admin도 동일 application 서비스 사용 → command/query 변경 시 동시 수정 PR |
 | 7   | 스키마 무변경 보장                                           | `@Table(name=...)` 명시 점검, `hibernate.ddl-auto=validate` 적용     |
 | 8   | `@Entity` 클래스 패키지 이동 시 직렬화/캐시 충돌             | Redis 캐시 키에 FQCN 포함 여부 확인, 배포 전 캐시 비우기              |
-| 9   | 외부 어댑터 이동 시 빈 충돌                                  | 동일 인터페이스 빈이 여러 개일 경우 `@Primary` 또는 `@Qualifier` 명시 |
-| 10  | 트랜잭션 전파 변경으로 readOnly 누락                          | `QueryService`는 항상 `@Transactional(readOnly = true)`               |
+| 9   | 트랜잭션 전파 변경으로 readOnly 누락                          | `QueryService`는 항상 `@Transactional(readOnly = true)`               |
 
 ---
 
@@ -615,7 +584,6 @@ public class MemberSignupEventListener {
 - [ ] `core/domain/verification/domain/event/`
 - [ ] `core/domain/verification/domain/repository/`
 - [ ] `core/domain/verification/application/`
-- [ ] `core/domain/verification/application/port/out/`
 - [ ] `core/domain/verification/infrastructure/persistence/`
 
 파일 이동:
@@ -625,12 +593,11 @@ public class MemberSignupEventListener {
 - [ ] `repository/verification/*JpaRepository` → `domain/verification/infrastructure/persistence/`
 
 신규 작성:
-- [ ] `MailSender`, `SmsSender` (out port 인터페이스)
+- [ ] `MailSender`, `SmsSender` (인터페이스)
 - [ ] `EmailVerificationRepository`, `PhoneVerificationRepository` (도메인 인터페이스)
 - [ ] `*RepositoryImpl` (infrastructure 구현)
 - [ ] `EmailVerificationCommandService`, `EmailVerificationQueryService`
 - [ ] `PhoneVerificationCommandService`, `PhoneVerificationQueryService`
-- [ ] `external-api`에 `SesMailSenderAdapter`, `JavaMailSenderAdapter`, `SnsSmsAdapter`, `SolapiSmsAdapter`
 
 호출 변경:
 - [ ] `VerificationApiController` → application 서비스 호출로 변경
@@ -639,4 +606,3 @@ public class MemberSignupEventListener {
 정리:
 - [ ] 기존 `EmailVerificationCoreService`, `PhoneVerificationCoreService` 삭제
 - [ ] 기존 `entity/verification/`, `repository/verification/` 빈 디렉토리 정리
-- [ ] 기존 `external-api/email/`, `external-api/sms/`의 직접 호출 코드 정리
