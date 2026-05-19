@@ -1,8 +1,10 @@
-package com.tastyhouse.core.repository.notice;
+package com.tastyhouse.core.domain.notice.infrastructure.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.notice.dto.NoticeListItemDto;
-import com.tastyhouse.core.entity.notice.dto.QNoticeListItemDto;
+import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
+import com.tastyhouse.core.domain.notice.application.dto.QNoticeListItemDto;
+import com.tastyhouse.core.domain.notice.domain.model.Notice;
+import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -10,14 +12,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
-import static com.tastyhouse.core.entity.notice.QNotice.notice;
+import static com.tastyhouse.core.domain.notice.domain.model.QNotice.notice;
 
 @Repository
 @RequiredArgsConstructor
 public class NoticeRepositoryImpl implements NoticeRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final NoticeJpaRepository noticeJpaRepository;
 
     @Override
     public Page<NoticeListItemDto> findAllWithFilter(Pageable pageable) {
@@ -42,5 +46,13 @@ public class NoticeRepositoryImpl implements NoticeRepository {
             .fetch();
 
         return new PageImpl<>(notices, pageable, total != null ? total : 0L);
+    }
+
+    @Override
+    public Optional<Notice> findById(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+        return noticeJpaRepository.findById(id);
     }
 }

@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.notice.dto;
+package com.tastyhouse.core.domain.notice.application.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 

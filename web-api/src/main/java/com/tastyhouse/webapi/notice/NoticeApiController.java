@@ -1,8 +1,10 @@
 package com.tastyhouse.webapi.notice;
 
 import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
+import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
+import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.notice.response.NoticeListItem;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,14 +28,28 @@ import java.util.List;
 @Tag(name = "Notice", description = "공지사항 관리 API")
 public class NoticeApiController {
 
-    private final NoticeService noticeService;
+    private final NoticeQueryService noticeQueryService;
 
     @Operation(summary = "공지사항 목록 조회", description = "페이징된 공지사항 목록을 조회합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1")
-    public ResponseEntity<CommonResponse<List<NoticeListItem>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<NoticeListItem> pageResult = noticeService.searchNoticeList(pageRequest.page(), pageRequest.size());
-        CommonResponse<List<NoticeListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<CommonResponse<List<NoticeListItem>>> getNoticeList(
+        @Valid @ModelAttribute PageRequest pageRequest) {
+
+        PageResult<NoticeListItem> pageResult = PageResult
+            .from(noticeQueryService.findAllWithPagination(pageRequest.page(), pageRequest.size()))
+            .map(this::toNoticeListItem);
+
+        return ResponseEntity.ok(CommonResponse.success(
+            pageResult.getContent(),
+            pageRequest.page(),
+            pageRequest.size(),
+            pageResult.getTotalElements()
+        ));
+    }
+
+    private NoticeListItem toNoticeListItem(NoticeListItemDto dto) {
+        return NoticeListItem.from(dto.id(), dto.title(), dto.content(), dto.createdAt());
     }
 }

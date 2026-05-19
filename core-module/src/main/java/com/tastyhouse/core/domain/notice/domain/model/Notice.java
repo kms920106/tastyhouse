@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.notice;
+package com.tastyhouse.core.domain.notice.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;

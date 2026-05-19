@@ -540,6 +540,7 @@ public class MemberSignupEventListener {
 | 7   | 스키마 무변경 보장                                           | `@Table(name=...)` 명시 점검, `hibernate.ddl-auto=validate` 적용     |
 | 8   | `@Entity` 클래스 패키지 이동 시 직렬화/캐시 충돌             | Redis 캐시 키에 FQCN 포함 여부 확인, 배포 전 캐시 비우기              |
 | 9   | 트랜잭션 전파 변경으로 readOnly 누락                          | `QueryService`는 항상 `@Transactional(readOnly = true)`               |
+| 10  | 패키지 이동 후 `DatabaseConfig` 스캔 범위 미반영으로 빈 등록 실패 | `@EnableJpaRepositories`, `@EntityScan`의 `basePackages`에 `com.tastyhouse.core.domain` 추가 |
 
 ---
 
