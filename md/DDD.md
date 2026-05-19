@@ -82,7 +82,7 @@ core-module/com/tastyhouse/core
     │   ├── application/     MemberCommandService, MemberQueryService
     │   └── infrastructure/  persistence (JPA + QueryDSL)
     │
-    ├── place/   (17 엔티티 → Place AR + 내부 엔티티/VO 정리)
+    ├── place/   (17 엔티티 → Place AR + 연관 엔티티 별도 Repository 분리 / VO 정리)
     ├── product/
     ├── order/
     ├── payment/
@@ -207,7 +207,7 @@ JPA 매핑이 필요한 VO는 `@Embeddable` + `AttributeConverter` 활용.
 
 #### AR 후보
 
-| AR        | 포함 엔티티/VO                                  |
+| AR        | 연관 엔티티(별도 Repository) / VO               |
 | --------- | ----------------------------------------------- |
 | `Member`  | MemberSocialAccount, Email, Nickname            |
 | `Place`   | PlaceBusinessHour, PlaceBreakTime, PlacePhoto, PlaceMenu |
@@ -215,36 +215,33 @@ JPA 매핑이 필요한 VO는 `@Embeddable` + `AttributeConverter` 활용.
 | `Payment` | PaymentRefund, TossPaymentRecord                |
 | `Review`  | ReviewComment, ReviewLike, ReviewImage          |
 
+> `@OneToMany`, `@ManyToOne`, `@ElementCollection` 사용 금지.  
+> AR 내부 자식 엔티티도 별도 Repository로 분리하고, 외부 BC 참조는 ID VO로만 처리한다.
+
 #### 외부 참조는 ID로
 
-**Before (양방향 연관관계)**
 ```java
 @Entity
+@Table(name = "orders")
 public class Order {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;  // ← 객체 참조
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id")
-    private Place place;
-}
-```
-
-**After (ID 참조)**
-```java
-@Entity
-public class Order {
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "member_id"))
-    private MemberId memberId;  // ← ID만 참조
+    private MemberId memberId;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "place_id"))
     private PlaceId placeId;
+    // OrderItem은 OrderItemRepository로 분리 — AR 내부라도 @OneToMany 미사용
+}
+```
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> items = new ArrayList<>();  // ← AR 내부 엔티티는 객체 참조 OK
+```java
+// domain/repository/OrderItemRepository.java
+public interface OrderItemRepository {
+    List<OrderItem> findByOrderId(OrderId orderId);
+    OrderItem save(OrderItem item);
+    void deleteByOrderId(OrderId orderId);
 }
 ```
 
@@ -534,7 +531,7 @@ public class MemberSignupEventListener {
 
 | #   | 위험                                                         | 대응                                                                  |
 | --- | ------------------------------------------------------------ | --------------------------------------------------------------------- |
-| 1   | JPA 양방향 연관관계 절단 시 N+1, 페치 조인 쿼리 영향         | PR-1은 패키지 이동만, PR-2에서 ID 참조로 단계적 전환                  |
+| 1   | 연관관계 제거 후 N+1 쿼리 발생                               | Repository 분리 시 필요한 조회는 명시적 쿼리로 대체, QueryDSL fetch join 활용 |
 | 2   | QueryDSL Q클래스 경로 변경                                   | gradle querydsl generated 경로 확인, 빌드 캐시 무효화 (`./gradlew clean`) |
 | 3   | 순환 의존 (Member↔Review, Place↔Review)                      | Domain Service(application 레이어)에서 조율, AR 직접 참조 금지        |
 | 4   | 트랜잭션 경계 변화로 데이터 일관성 깨짐                      | DomainEvent 도입. 초기엔 `AFTER_COMMIT` 동기                          |
