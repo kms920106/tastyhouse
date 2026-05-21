@@ -6,7 +6,7 @@ import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.MyBookmarkedPlaceListItemResponse;
+import com.tastyhouse.webapi.member.response.PlaceBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
@@ -121,7 +121,7 @@ public class MemberFacade {
         return memberReviewService.getMyReviewCount(memberId);
     }
 
-    public PageResult<MyBookmarkedPlaceListItemResponse> getMyBookmarkedPlaces(Long memberId, int page, int size) {
+    public PageResult<PlaceBookmarkListItemResponse> getMyBookmarkedPlaces(Long memberId, int page, int size) {
         return memberPlaceService.getMyBookmarkedPlaces(memberId, page, size);
     }
 

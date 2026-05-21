@@ -15,7 +15,7 @@ import com.tastyhouse.core.entity.place.PlaceStation;
 import com.tastyhouse.core.entity.place.dto.BestPlaceItemDto;
 import com.tastyhouse.core.entity.place.dto.EditorChoiceDto;
 import com.tastyhouse.core.entity.place.dto.LatestPlaceItemDto;
-import com.tastyhouse.core.entity.place.dto.MyBookmarkedPlaceItemDto;
+import com.tastyhouse.core.entity.place.dto.PlaceBookmarkedItemDto;
 import com.tastyhouse.core.entity.place.dto.PlaceAmenityCategoryDto;
 import com.tastyhouse.core.entity.place.dto.PlaceAmenityWithCategoryDto;
 import com.tastyhouse.core.entity.place.dto.PlaceBannerImageDto;
@@ -173,7 +173,7 @@ public class PlaceCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<MyBookmarkedPlaceItemDto> findMyBookmarkedPlaces(Long memberId, int page, int size) {
+    public Page<PlaceBookmarkedItemDto> findMyBookmarkedPlaces(Long memberId, int page, int size) {
         return placeRepository.findMyBookmarkedPlaces(memberId, PageRequest.of(page, size));
     }
 

@@ -18,7 +18,6 @@ import java.util.List;
 public class SearchService {
 
     private final SearchCoreService searchCoreService;
-    private final SearchLogAsyncService searchLogAsyncService;
     private final FileService fileService;
 
     public List<PopularKeywordResponse> getPopularKeywords() {
@@ -31,12 +30,6 @@ public class SearchService {
         return searchCoreService.findActiveRecommendedKeywords().stream()
                 .map(rk -> new RecommendedKeywordResponse(rk.getKeyword()))
                 .toList();
-    }
-
-    public PageResult<SearchPlaceListItem> searchPlaces(String keyword, int page, int size) {
-        searchLogAsyncService.log(keyword);
-        return PageResult.from(searchCoreService.searchPlaces(keyword, page, size))
-                .map(dto -> SearchPlaceListItem.from(dto, fileService));
     }
 
     public PageResult<ProductSummaryResponse> searchMenus(String keyword, int page, int size) {
@@ -62,6 +55,13 @@ public class SearchService {
 
     public PageResult<SearchPlaceListItem> searchPlacesPaged(String keyword, Long memberId, int page, int size) {
         return PageResult.from(searchCoreService.searchPlacesWithBookmark(keyword, memberId, page, size))
-                .map(dto -> SearchPlaceListItem.from(dto, fileService));
+                .map(dto -> SearchPlaceListItem.from(
+                    dto.placeId(),
+                    dto.placeName(),
+                    dto.stationName(),
+                    dto.rating(),
+                    dto.imageUrl() != null ? fileService.getUrlByPath(dto.imageUrl()) : null,
+                    dto.isBookmarked()
+                ));
     }
 }

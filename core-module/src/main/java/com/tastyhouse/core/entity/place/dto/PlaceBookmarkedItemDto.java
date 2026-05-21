@@ -2,7 +2,7 @@ package com.tastyhouse.core.entity.place.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-public record MyBookmarkedPlaceItemDto(
+public record PlaceBookmarkedItemDto(
     Long placeId,
     Long bookmarkId,
     String placeName,
@@ -12,6 +12,6 @@ public record MyBookmarkedPlaceItemDto(
     Boolean isBookmarked
 ) {
     @QueryProjection
-    public MyBookmarkedPlaceItemDto {
+    public PlaceBookmarkedItemDto {
     }
 }

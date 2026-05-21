@@ -7,10 +7,10 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
+import com.tastyhouse.webapi.search.response.SearchPlaceListItem;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
-import com.tastyhouse.webapi.search.response.SearchPlaceListItem;
 import com.tastyhouse.webapi.search.response.SearchReviewListItem;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,25 +46,6 @@ public class SearchApiController {
     @GetMapping("/v1/recommended-keywords")
     public ResponseEntity<CommonResponse<List<RecommendedKeywordResponse>>> getRecommendedKeywords() {
         return ResponseEntity.ok(CommonResponse.success(searchService.getRecommendedKeywords()));
-    }
-
-    @Operation(summary = "검색", description = "검색어로 플레이스를 조회합니다. 검색 로그가 비동기로 기록됩니다.")
-    @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search")
-    @GetMapping("/v1")
-    public ResponseEntity<CommonResponse<List<SearchPlaceListItem>>> search(
-        @RequestParam String query,
-        @Valid @ModelAttribute PageRequest pageRequest
-    ) {
-        String keyword = query.strip();
-        if (keyword.isBlank()) {
-            throw new BusinessException(ErrorCode.SEARCH_KEYWORD_BLANK);
-        }
-
-        PageResult<SearchPlaceListItem> result = searchService.searchPlaces(keyword, pageRequest.page(), pageRequest.size());
-
-        return ResponseEntity.ok(CommonResponse.success(
-            result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
-        ));
     }
 
     @Operation(summary = "메뉴 검색", description = "메뉴 탭 — 메뉴명 기반 검색. 판매 중인 메뉴만 포함.")

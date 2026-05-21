@@ -1,7 +1,6 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.entity.place.dto.BestPlaceItemDto;
-import com.tastyhouse.core.entity.place.dto.SearchPlaceItemDto;
+import com.tastyhouse.core.entity.place.dto.PlaceBookmarkedItemDto;
 import com.tastyhouse.core.entity.product.dto.SearchProductItemDto;
 import com.tastyhouse.core.entity.review.dto.SearchReviewItemDto;
 import com.tastyhouse.core.entity.search.PopularKeyword;
@@ -58,11 +57,6 @@ public class SearchCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<BestPlaceItemDto> searchPlaces(String keyword, int page, int size) {
-        return placeRepository.searchByKeyword(keyword, PageRequest.of(page, size));
-    }
-
-    @Transactional(readOnly = true)
     public Page<SearchProductItemDto> searchProducts(String keyword, int page, int size) {
         return productRepository.searchByKeyword(keyword, PageRequest.of(page, size));
     }
@@ -73,7 +67,7 @@ public class SearchCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SearchPlaceItemDto> searchPlacesWithBookmark(String keyword, Long memberId, int page, int size) {
+    public Page<PlaceBookmarkedItemDto> searchPlacesWithBookmark(String keyword, Long memberId, int page, int size) {
         return placeRepository.searchByKeywordWithBookmark(keyword, memberId, PageRequest.of(page, size));
     }
 

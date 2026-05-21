@@ -5,8 +5,7 @@ import com.tastyhouse.core.entity.place.FoodType;
 import com.tastyhouse.core.entity.place.Place;
 import com.tastyhouse.core.entity.place.dto.BestPlaceItemDto;
 import com.tastyhouse.core.entity.place.dto.LatestPlaceItemDto;
-import com.tastyhouse.core.entity.place.dto.MyBookmarkedPlaceItemDto;
-import com.tastyhouse.core.entity.place.dto.SearchPlaceItemDto;
+import com.tastyhouse.core.entity.place.dto.PlaceBookmarkedItemDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -21,9 +20,7 @@ public interface PlaceRepository {
 
     Page<LatestPlaceItemDto> findLatestPlaces(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, Pageable pageable);
 
-    Page<MyBookmarkedPlaceItemDto> findMyBookmarkedPlaces(Long memberId, Pageable pageable);
+    Page<PlaceBookmarkedItemDto> findMyBookmarkedPlaces(Long memberId, Pageable pageable);
 
-    Page<BestPlaceItemDto> searchByKeyword(String keyword, Pageable pageable);
-
-    Page<SearchPlaceItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, Pageable pageable);
+    Page<PlaceBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, Pageable pageable);
 }

@@ -8,7 +8,7 @@ import com.tastyhouse.webapi.member.request.WithdrawMemberRequest;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
-import com.tastyhouse.webapi.member.response.MyBookmarkedPlaceListItemResponse;
+import com.tastyhouse.webapi.member.response.PlaceBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
@@ -226,11 +226,11 @@ public class MemberMeApiController {
         @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     })
     @GetMapping("/v1/me/bookmarks")
-    public ResponseEntity<CommonResponse<List<MyBookmarkedPlaceListItemResponse>>> getMyBookmarkedPlaces(
+    public ResponseEntity<CommonResponse<List<PlaceBookmarkListItemResponse>>> getMyBookmarkedPlaces(
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MyBookmarkedPlaceListItemResponse> pageResult = memberFacade.getMyBookmarkedPlaces(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<PlaceBookmarkListItemResponse> pageResult = memberFacade.getMyBookmarkedPlaces(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),
