@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.report;
+package com.tastyhouse.core.domain.bug.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -25,36 +25,24 @@ public class BugReportImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "bug_report_id", nullable = false)
-    private Long bugReportId; // 버그 신고 ID (BUG_REPORT.id 참조)
+    private Long bugReportId;
 
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId; // 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    private Long imageFileId;
 
     @Column(name = "sort", nullable = false)
-    private Integer sort; // 정렬 순서
+    private Integer sort;
 
-    private BugReportImage(
-        Long bugReportId,
-        Long imageFileId,
-        Integer sort
-    ) {
+    private BugReportImage(Long bugReportId, Long imageFileId, Integer sort) {
         this.bugReportId = bugReportId;
         this.imageFileId = imageFileId;
         this.sort = sort;
     }
 
-    public static BugReportImage of(
-        Long bugReportId,
-        Long imageFileId,
-        Integer sort
-    ) {
-        return new BugReportImage(
-            bugReportId,
-            imageFileId,
-            sort
-        );
+    public static BugReportImage create(Long bugReportId, Long imageFileId, Integer sort) {
+        return new BugReportImage(bugReportId, imageFileId, sort);
     }
 }
