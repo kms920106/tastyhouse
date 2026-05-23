@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.faq;
 
-import com.tastyhouse.core.entity.faq.dto.FaqCategoryDto;
-import com.tastyhouse.core.entity.faq.dto.FaqItemDto;
-import com.tastyhouse.core.service.FaqCoreService;
+import com.tastyhouse.core.domain.faq.application.FaqQueryService;
+import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
 import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
 import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,37 +17,37 @@ import java.util.List;
 @Slf4j
 public class FaqService {
 
-    private final FaqCoreService faqCoreService;
+    private final FaqQueryService faqQueryService;
 
     @Transactional(readOnly = true)
     public List<FaqCategoryListItemResponse> searchCategories() {
-        return faqCoreService.findAllActiveCategories().stream()
+        return faqQueryService.findAllActiveCategories().stream()
                 .map(this::toFaqCategoryListItemResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<FaqListItemResponse> searchFaqListItemResponses(Long categoryId) {
-        return faqCoreService.findFaqItems(categoryId).stream()
+        return faqQueryService.findFaqItems(categoryId).stream()
                 .map(this::toFaqListItemResponse)
                 .toList();
     }
 
-    private FaqCategoryListItemResponse toFaqCategoryListItemResponse(FaqCategoryDto dto) {
+    private FaqCategoryListItemResponse toFaqCategoryListItemResponse(FaqCategoryResult result) {
         return FaqCategoryListItemResponse.from(
-            dto.id(),
-            dto.name(),
-            dto.sort()
+            result.id(),
+            result.name(),
+            result.sort()
         );
     }
 
-    private FaqListItemResponse toFaqListItemResponse(FaqItemDto dto) {
+    private FaqListItemResponse toFaqListItemResponse(FaqResult result) {
         return FaqListItemResponse.from(
-            dto.id(),
-            dto.faqCategoryId(),
-            dto.question(),
-            dto.answer(),
-            dto.sort()
+            result.id(),
+            result.faqCategoryId(),
+            result.question(),
+            result.answer(),
+            result.sort()
         );
     }
 }

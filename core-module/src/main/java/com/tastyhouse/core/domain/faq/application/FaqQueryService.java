@@ -1,29 +1,26 @@
-package com.tastyhouse.core.service;
+package com.tastyhouse.core.domain.faq.application;
 
-import com.tastyhouse.core.entity.faq.dto.FaqCategoryDto;
-import com.tastyhouse.core.entity.faq.dto.FaqItemDto;
-import com.tastyhouse.core.repository.faq.FaqRepository;
+import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
+import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Slf4j
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class FaqCoreService {
+public class FaqQueryService {
 
     private final FaqRepository faqRepository;
 
-    @Transactional(readOnly = true)
-    public List<FaqCategoryDto> findAllActiveCategories() {
+    public List<FaqCategoryResult> findAllActiveCategories() {
         return faqRepository.findAllActiveCategories();
     }
 
-    @Transactional(readOnly = true)
-    public List<FaqItemDto> findFaqItems(Long categoryId) {
+    public List<FaqResult> findFaqItems(Long categoryId) {
         if (categoryId == null) {
             return faqRepository.findAllActiveItems();
         }

@@ -1,17 +1,18 @@
-package com.tastyhouse.core.repository.faq;
+package com.tastyhouse.core.domain.faq.infrastructure.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.faq.dto.FaqCategoryDto;
-import com.tastyhouse.core.entity.faq.dto.FaqItemDto;
-import com.tastyhouse.core.entity.faq.dto.QFaqCategoryDto;
-import com.tastyhouse.core.entity.faq.dto.QFaqItemDto;
+import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
+import com.tastyhouse.core.domain.faq.application.dto.QFaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.QFaqResult;
+import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.tastyhouse.core.entity.faq.QFaq.faq;
-import static com.tastyhouse.core.entity.faq.QFaqCategory.faqCategory;
+import static com.tastyhouse.core.domain.faq.domain.model.QFaq.faq;
+import static com.tastyhouse.core.domain.faq.domain.model.QFaqCategory.faqCategory;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,9 +21,9 @@ public class FaqRepositoryImpl implements FaqRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<FaqCategoryDto> findAllActiveCategories() {
+    public List<FaqCategoryResult> findAllActiveCategories() {
         return queryFactory
-                .select(new QFaqCategoryDto(
+                .select(new QFaqCategoryResult(
                         faqCategory.id,
                         faqCategory.name,
                         faqCategory.sort
@@ -34,9 +35,9 @@ public class FaqRepositoryImpl implements FaqRepository {
     }
 
     @Override
-    public List<FaqItemDto> findAllActiveItems() {
+    public List<FaqResult> findAllActiveItems() {
         return queryFactory
-                .select(new QFaqItemDto(
+                .select(new QFaqResult(
                         faq.id,
                         faq.faqCategoryId,
                         faq.question,
@@ -50,9 +51,9 @@ public class FaqRepositoryImpl implements FaqRepository {
     }
 
     @Override
-    public List<FaqItemDto> findActiveItemsByCategoryId(Long categoryId) {
+    public List<FaqResult> findActiveItemsByCategoryId(Long categoryId) {
         return queryFactory
-                .select(new QFaqItemDto(
+                .select(new QFaqResult(
                         faq.id,
                         faq.faqCategoryId,
                         faq.question,

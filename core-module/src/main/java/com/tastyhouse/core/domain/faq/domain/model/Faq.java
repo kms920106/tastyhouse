@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.faq;
+package com.tastyhouse.core.domain.faq.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -16,20 +16,20 @@ public class Faq extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "faq_category_id", nullable = false)
-    private Long faqCategoryId; // FAQ 카테고리 ID (FAQ_CATEGORY.id 참조)
+    private Long faqCategoryId;
 
     @Column(name = "question", nullable = false, length = 500)
-    private String question; // 질문 내용
+    private String question;
 
     @Column(name = "answer", nullable = false, columnDefinition = "TEXT")
-    private String answer; // 답변 내용
+    private String answer;
 
     @Column(name = "sort", nullable = false)
-    private Integer sort; // FAQ 노출 순서
+    private Integer sort;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean active = true; // 활성화 여부 (true: 활성)
+    private Boolean active = true;
 }

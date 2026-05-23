@@ -1,8 +1,8 @@
-package com.tastyhouse.core.entity.faq.dto;
+package com.tastyhouse.core.domain.faq.application.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-public record FaqItemDto(
+public record FaqResult(
     Long id,
     Long faqCategoryId,
     String question,
@@ -10,6 +10,6 @@ public record FaqItemDto(
     Integer sort
 ) {
     @QueryProjection
-    public FaqItemDto {
+    public FaqResult {
     }
 }
