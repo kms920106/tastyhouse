@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.product.response;
 
 import java.math.BigDecimal;
 
-public record TodayDiscountProductItem(
+public record TodayDiscountProductListItemResponse(
     Long id,
     String placeName,
     String name,
@@ -11,7 +11,7 @@ public record TodayDiscountProductItem(
     Integer discountPrice,
     BigDecimal discountRate
 ) {
-    public static TodayDiscountProductItem from(
+    public static TodayDiscountProductListItemResponse from(
     Long id,
     String placeName,
     String name,
@@ -20,7 +20,7 @@ public record TodayDiscountProductItem(
     Integer discountPrice,
     BigDecimal discountRate
     ) {
-    return new TodayDiscountProductItem(
+    return new TodayDiscountProductListItemResponse(
         id,
         placeName,
         name,

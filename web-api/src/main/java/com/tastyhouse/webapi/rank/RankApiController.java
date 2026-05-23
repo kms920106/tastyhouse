@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.rank;
 
 import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.webapi.rank.response.MemberRankResponse;
+import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
-import com.tastyhouse.webapi.rank.response.RankPrizeItemResponse;
+import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,8 +47,8 @@ public class RankApiController {
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     })
     @GetMapping("/v1/prizes")
-    public ResponseEntity<CommonResponse<List<RankPrizeItemResponse>>> getPrizes() {
-        List<RankPrizeItemResponse> prizes = rankService.getPrizes();
+    public ResponseEntity<CommonResponse<List<RankPrizeListItemResponse>>> getPrizes() {
+        List<RankPrizeListItemResponse> prizes = rankService.getPrizes();
         return ResponseEntity.ok(CommonResponse.success(prizes));
     }
 
@@ -57,11 +57,11 @@ public class RankApiController {
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     })
     @GetMapping("/v1/members")
-    public ResponseEntity<CommonResponse<List<MemberRankResponse>>> getMemberRankList(
+    public ResponseEntity<CommonResponse<List<MemberRankListItemResponse>>> getMemberRankList(
         @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type,
         @Parameter(description = "조회할 랭킹 개수", example = "100") @RequestParam(defaultValue = "100") int limit
     ) {
-        List<MemberRankResponse> ranks = rankService.getMemberRankList(type, limit);
+        List<MemberRankListItemResponse> ranks = rankService.getMemberRankList(type, limit);
         return ResponseEntity.ok(CommonResponse.success(ranks));
     }
 
@@ -70,11 +70,11 @@ public class RankApiController {
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     })
     @GetMapping("/v1/members/me")
-    public ResponseEntity<CommonResponse<MemberRankResponse>> getMyMemberRank(
+    public ResponseEntity<CommonResponse<MemberRankListItemResponse>> getMyMemberRank(
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type
     ) {
-        MemberRankResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), type);
+        MemberRankListItemResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), type);
         return ResponseEntity.ok(CommonResponse.success(myRank));
     }
 }

@@ -1,20 +1,20 @@
 package com.tastyhouse.webapi.faq.response;
 
-public record FaqItem(
+public record FaqListItemResponse(
     Long id,
     Long categoryId,
     String question,
     String answer,
     Integer sort
 ) {
-    public static FaqItem from(
+    public static FaqListItemResponse from(
     Long id,
     Long categoryId,
     String question,
     String answer,
     Integer sort
     ) {
-    return new FaqItem(
+    return new FaqListItemResponse(
         id,
         categoryId,
         question,

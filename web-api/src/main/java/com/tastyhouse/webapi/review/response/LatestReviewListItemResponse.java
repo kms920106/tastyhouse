@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.review.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record LatestReviewListItem(
+public record LatestReviewListItemResponse(
     Long id,
     List<String> imageUrls,
     String stationName,
@@ -16,7 +16,7 @@ public record LatestReviewListItem(
     Long likeCount,
     Long commentCount
 ) {
-    public static LatestReviewListItem from(
+    public static LatestReviewListItemResponse from(
     Long id,
     List<String> imageUrls,
     String stationName,
@@ -29,7 +29,7 @@ public record LatestReviewListItem(
     Long likeCount,
     Long commentCount
     ) {
-    return new LatestReviewListItem(
+    return new LatestReviewListItemResponse(
         id,
         imageUrls,
         stationName,

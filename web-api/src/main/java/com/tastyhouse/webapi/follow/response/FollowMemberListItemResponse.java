@@ -4,7 +4,7 @@ import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record FollowMemberResponse(
+public record FollowMemberListItemResponse(
     @Schema(description = "회원 ID", example = "1")
     Long memberId,
 
@@ -20,8 +20,8 @@ public record FollowMemberResponse(
     @Schema(description = "내가 팔로우 중인지 여부", example = "true")
     boolean following
 ) {
-    public static FollowMemberResponse of(FollowMemberDto dto, String profileImageUrl) {
-    return new FollowMemberResponse(
+    public static FollowMemberListItemResponse of(FollowMemberDto dto, String profileImageUrl) {
+    return new FollowMemberListItemResponse(
         dto.memberId(),
         dto.nickname(),
         dto.memberGrade(),

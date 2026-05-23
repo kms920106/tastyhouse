@@ -1,16 +1,16 @@
 package com.tastyhouse.webapi.faq.response;
 
-public record FaqCategoryItem(
+public record FaqCategoryListItemResponse(
     Long id,
     String name,
     Integer sort
 ) {
-    public static FaqCategoryItem from(
+    public static FaqCategoryListItemResponse from(
     Long id,
     String name,
     Integer sort
     ) {
-    return new FaqCategoryItem(
+    return new FaqCategoryListItemResponse(
         id,
         name,
         sort

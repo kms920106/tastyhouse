@@ -25,10 +25,10 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.MemberReviewListItemResponse;
-import com.tastyhouse.webapi.review.response.BestReviewListItem;
+import com.tastyhouse.webapi.review.response.BestReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.CommentListResponse;
 import com.tastyhouse.webapi.review.response.CommentResponse;
-import com.tastyhouse.webapi.review.response.LatestReviewListItem;
+import com.tastyhouse.webapi.review.response.LatestReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.ReplyResponse;
 import com.tastyhouse.webapi.review.response.ReviewDetailResponse;
 import com.tastyhouse.webapi.review.response.ReviewLikeStatusResponse;
@@ -55,12 +55,12 @@ public class ReviewService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResult<BestReviewListItem> searchBestReviewList(int page, int size) {
-        return PageResult.from(reviewCoreService.findBestReviewsWithPagination(page, size)).map(this::convertToBestReviewListItem);
+    public PageResult<BestReviewListItemResponse> searchBestReviewList(int page, int size) {
+        return PageResult.from(reviewCoreService.findBestReviewsWithPagination(page, size)).map(this::convertToBestReviewListItemResponse);
     }
 
-    private BestReviewListItem convertToBestReviewListItem(BestReviewListItemDto dto) {
-        return BestReviewListItem.from(
+    private BestReviewListItemResponse convertToBestReviewListItemResponse(BestReviewListItemDto dto) {
+        return BestReviewListItemResponse.from(
             dto.id(),
             fileService.getUrlByPath(dto.imageUrl()),
             dto.stationName(),
@@ -72,7 +72,7 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestReviewListItem> searchLatestReviewList(
+    public PageResult<LatestReviewListItemResponse> searchLatestReviewList(
         int page,
         int size,
         ReviewType type,
@@ -80,19 +80,19 @@ public class ReviewService {
     ) {
         if (type == ReviewType.FOLLOWING && memberId != null) {
             return PageResult.from(reviewCoreService.findLatestReviewsByFollowingWithPagination(memberId, page, size))
-                .map(this::convertToLatestReviewListItem);
+                .map(this::convertToLatestReviewListItemResponse);
         }
         return PageResult.from(reviewCoreService.findLatestReviewsWithPagination(page, size))
-            .map(this::convertToLatestReviewListItem);
+            .map(this::convertToLatestReviewListItemResponse);
     }
 
-    private LatestReviewListItem convertToLatestReviewListItem(LatestReviewListItemDto dto) {
+    private LatestReviewListItemResponse convertToLatestReviewListItemResponse(LatestReviewListItemDto dto) {
         List<String> imageUrls = dto.imageUrls() == null ? List.of() :
             dto.imageUrls().stream()
                 .map(fileService::getUrlByPath)
                 .toList();
 
-        return LatestReviewListItem.from(
+        return LatestReviewListItemResponse.from(
             dto.id(), imageUrls, dto.stationName(), dto.totalRating(), dto.content(),
             dto.memberId(), dto.memberNickname(),
             fileService.getUrlByPath(dto.memberProfileImageUrl()),

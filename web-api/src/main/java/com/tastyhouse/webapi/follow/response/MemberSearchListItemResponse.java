@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.follow.response;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record MemberSearchResponse(
+public record MemberSearchListItemResponse(
     @Schema(description = "회원 ID", example = "1")
     Long memberId,
 
@@ -19,14 +19,14 @@ public record MemberSearchResponse(
     @Schema(description = "내가 팔로우 중인지 여부", example = "false")
     boolean following
 ) {
-    public static MemberSearchResponse of(
+    public static MemberSearchListItemResponse of(
         Long memberId,
         String nickname,
         MemberGrade memberGrade,
         String profileImageUrl,
         boolean isFollowing
     ) {
-        return new MemberSearchResponse(
+        return new MemberSearchListItemResponse(
             memberId,
             nickname,
             memberGrade,

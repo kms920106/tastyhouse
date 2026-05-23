@@ -10,9 +10,9 @@ import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.core.service.RankCoreService;
 import com.tastyhouse.core.service.RankInfoCoreService;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.rank.response.MemberRankResponse;
+import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
-import com.tastyhouse.webapi.rank.response.RankPrizeItemResponse;
+import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,21 +37,21 @@ public class RankService {
     }
 
     @Transactional(readOnly = true)
-    public List<RankPrizeItemResponse> getPrizes() {
+    public List<RankPrizeListItemResponse> getPrizes() {
         return rankInfoCoreService.findActivePrizes().stream()
             .map(this::convertToPrizeItemResponse)
             .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<MemberRankResponse> getMemberRankList(String rankType, int limit) {
+    public List<MemberRankListItemResponse> getMemberRankList(String rankType, int limit) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
         List<MemberRankDto> ranks = rankCoreService.searchMemberRankList(type, baseDate, limit);
 
         return ranks.stream()
-            .map(dto -> MemberRankResponse.of(
+            .map(dto -> MemberRankListItemResponse.of(
                 dto.memberId(),
                 dto.nickname(),
                 fileService.getUrlByPath(dto.profileImageUrl()),
@@ -62,7 +62,7 @@ public class RankService {
     }
 
     @Transactional(readOnly = true)
-    public MemberRankResponse getMyMemberRank(Long memberId, String rankType) {
+    public MemberRankListItemResponse getMyMemberRank(Long memberId, String rankType) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
@@ -70,7 +70,7 @@ public class RankService {
         if (dto == null) {
             MemberWithProfileImageDto member = memberCoreService.findMemberWithProfileImageById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-            return MemberRankResponse.of(
+            return MemberRankListItemResponse.of(
                 memberId,
                 member.nickname(),
                 fileService.getUrlByPath(member.profileImageFilePath()),
@@ -79,7 +79,7 @@ public class RankService {
                 member.memberGrade()
             );
         }
-        return MemberRankResponse.of(
+        return MemberRankListItemResponse.of(
             dto.memberId(),
             dto.nickname(),
             fileService.getUrlByPath(dto.profileImageUrl()),
@@ -89,8 +89,8 @@ public class RankService {
         );
     }
 
-    private RankPrizeItemResponse convertToPrizeItemResponse(RankPrizeDto dto) {
-        return RankPrizeItemResponse.from(
+    private RankPrizeListItemResponse convertToPrizeItemResponse(RankPrizeDto dto) {
+        return RankPrizeListItemResponse.from(
             dto.id(),
             dto.prizeRank(),
             dto.name(),

@@ -8,11 +8,11 @@ import com.tastyhouse.webapi.review.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.core.entity.review.ReviewType;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
-import com.tastyhouse.webapi.review.response.BestReviewListItem;
+import com.tastyhouse.webapi.review.response.BestReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.MemberReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.CommentListResponse;
 import com.tastyhouse.webapi.review.response.CommentResponse;
-import com.tastyhouse.webapi.review.response.LatestReviewListItem;
+import com.tastyhouse.webapi.review.response.LatestReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.ReplyResponse;
 import com.tastyhouse.webapi.review.response.ReviewDetailResponse;
 import com.tastyhouse.webapi.review.response.ReviewLikeResponse;
@@ -116,22 +116,22 @@ public class ReviewApiController {
     @Operation(summary = "베스트 리뷰 목록 조회", description = "평점이 높은 순으로 정렬된 베스트 리뷰 목록을 페이징하여 조회합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/best")
-    public ResponseEntity<CommonResponse<List<BestReviewListItem>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BestReviewListItem> pageResult = reviewService.searchBestReviewList(pageRequest.page(), pageRequest.size());
-        CommonResponse<List<BestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
+    public ResponseEntity<CommonResponse<List<BestReviewListItemResponse>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResult<BestReviewListItemResponse> pageResult = reviewService.searchBestReviewList(pageRequest.page(), pageRequest.size());
+        CommonResponse<List<BestReviewListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "최신 리뷰 목록 조회", description = "최신 리뷰 목록을 페이징하여 조회합니다. type이 ALL이면 전체, FOLLOWING이면 팔로잉한 사용자의 리뷰만 조회합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/latest")
-    public ResponseEntity<CommonResponse<List<LatestReviewListItem>>> getLatestReviewList(
+    public ResponseEntity<CommonResponse<List<LatestReviewListItemResponse>>> getLatestReviewList(
             @Valid @ModelAttribute PageRequest pageRequest,
             @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewType type,
             @CurrentUser CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        PageResult<LatestReviewListItem> pageResult = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), type, memberId);
-        CommonResponse<List<LatestReviewListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
+        PageResult<LatestReviewListItemResponse> pageResult = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), type, memberId);
+        CommonResponse<List<LatestReviewListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 

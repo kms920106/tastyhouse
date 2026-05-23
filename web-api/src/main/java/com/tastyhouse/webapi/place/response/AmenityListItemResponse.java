@@ -1,18 +1,18 @@
 package com.tastyhouse.webapi.place.response;
 
-public record FoodTypeListItem(
+public record AmenityListItemResponse(
     String code,
     String name,
     String activeImageUrl,
     String inactiveImageUrl
 ) {
-    public static FoodTypeListItem from(
+    public static AmenityListItemResponse from(
         String code,
         String name,
         String activeImageUrl,
         String inactiveImageUrl
     ) {
-        return new FoodTypeListItem(
+        return new AmenityListItemResponse(
             code,
             name,
             activeImageUrl,

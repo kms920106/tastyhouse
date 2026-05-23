@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.Map;
 
 public record ProductReviewsByRatingResponse(
-    Map<Integer, List<ProductReviewListItem>> reviewsByRating,
-    List<ProductReviewListItem> allReviews,
+    Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating,
+    List<ProductReviewListItemResponse> allReviews,
     Long totalReviewCount
 ) {
     public static ProductReviewsByRatingResponse from(
-    Map<Integer, List<ProductReviewListItem>> reviewsByRating,
-    List<ProductReviewListItem> allReviews,
+    Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating,
+    List<ProductReviewListItemResponse> allReviews,
     Long totalReviewCount
     ) {
     return new ProductReviewsByRatingResponse(

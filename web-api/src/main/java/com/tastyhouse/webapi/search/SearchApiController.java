@@ -7,11 +7,11 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapi.search.response.SearchPlaceListItem;
+import com.tastyhouse.webapi.search.response.SearchPlaceListItemResponse;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
-import com.tastyhouse.webapi.search.response.SearchReviewListItem;
+import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,12 +64,12 @@ public class SearchApiController {
     @Operation(summary = "리뷰 검색", description = "리뷰 탭 — 리뷰 내용 기반 검색. 이미지가 있는 리뷰의 대표 사진 1장 반환.")
     @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:reviews")
     @GetMapping("/v1/reviews")
-    public ResponseEntity<CommonResponse<List<SearchReviewListItem>>> searchReviews(
+    public ResponseEntity<CommonResponse<List<SearchReviewListItemResponse>>> searchReviews(
         @RequestParam String query,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         String keyword = validateKeyword(query);
-        PageResult<SearchReviewListItem> result = searchService.searchReviews(keyword, pageRequest.page(), pageRequest.size());
+        PageResult<SearchReviewListItemResponse> result = searchService.searchReviews(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
         ));
@@ -78,13 +78,13 @@ public class SearchApiController {
     @Operation(summary = "플레이스 검색", description = "플레이스 탭 — 플레이스명 기반 검색. 로그인 사용자 전용이며 북마크 여부가 포함됩니다.")
     @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:places")
     @GetMapping("/v1/places")
-    public ResponseEntity<CommonResponse<List<SearchPlaceListItem>>> searchPlacesPaged(
+    public ResponseEntity<CommonResponse<List<SearchPlaceListItemResponse>>> searchPlacesPaged(
         @RequestParam String query,
         @Valid @ModelAttribute PageRequest pageRequest,
         @CurrentUser CustomUserDetails userDetails
     ) {
         String keyword = validateKeyword(query);
-        PageResult<SearchPlaceListItem> result = searchService.searchPlacesPaged(keyword, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<SearchPlaceListItemResponse> result = searchService.searchPlacesPaged(keyword, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
         ));
@@ -93,12 +93,12 @@ public class SearchApiController {
     @Operation(summary = "플레이스 검색 (비로그인)", description = "플레이스 탭 — 플레이스명 기반 검색. 인증 없이 접근 가능하며 북마크 여부는 항상 false로 응답합니다.")
     @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:places:public")
     @GetMapping("/v1/places/public")
-    public ResponseEntity<CommonResponse<List<SearchPlaceListItem>>> searchPlacesPublic(
+    public ResponseEntity<CommonResponse<List<SearchPlaceListItemResponse>>> searchPlacesPublic(
         @RequestParam String query,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         String keyword = validateKeyword(query);
-        PageResult<SearchPlaceListItem> result = searchService.searchPlacesPublic(keyword, pageRequest.page(), pageRequest.size());
+        PageResult<SearchPlaceListItemResponse> result = searchService.searchPlacesPublic(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
         ));

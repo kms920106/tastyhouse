@@ -27,12 +27,12 @@ import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.place.request.LatestPlaceFilterRequest;
-import com.tastyhouse.webapi.place.response.AmenityListItem;
-import com.tastyhouse.webapi.place.response.BestPlaceListItem;
+import com.tastyhouse.webapi.place.response.AmenityListItemResponse;
+import com.tastyhouse.webapi.place.response.BestPlaceListItemResponse;
 import com.tastyhouse.webapi.place.response.EditorChoiceProductItem;
 import com.tastyhouse.webapi.place.response.EditorChoiceResponse;
-import com.tastyhouse.webapi.place.response.FoodTypeListItem;
-import com.tastyhouse.webapi.place.response.LatestPlaceListItem;
+import com.tastyhouse.webapi.place.response.FoodTypeListItemResponse;
+import com.tastyhouse.webapi.place.response.LatestPlaceListItemResponse;
 import com.tastyhouse.webapi.place.response.PlaceBannerResponse;
 import com.tastyhouse.webapi.place.response.PlaceBookmarkResponse;
 import com.tastyhouse.webapi.place.response.PlaceInfoResponse;
@@ -41,12 +41,12 @@ import com.tastyhouse.webapi.place.response.PlaceProductCategoryResponse;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.place.response.PlaceOrderMethodResponse;
 import com.tastyhouse.webapi.place.response.PlacePhotoCategoryResponse;
-import com.tastyhouse.webapi.place.response.PlaceReviewListItem;
+import com.tastyhouse.webapi.place.response.PlaceReviewListItemResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewStatisticsResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingWithPagination;
 import com.tastyhouse.webapi.place.response.PlaceDetailResponse;
-import com.tastyhouse.webapi.place.response.StationListItem;
+import com.tastyhouse.webapi.place.response.StationListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,13 +78,13 @@ public class PlaceService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<BestPlaceListItem> searchBestPlaces(int page, int size) {
-        return PageResult.from(placeCoreService.findBestPlaces(page, size)).map(this::convertToBestPlaceListItem);
+    public PageResult<BestPlaceListItemResponse> searchBestPlaces(int page, int size) {
+        return PageResult.from(placeCoreService.findBestPlaces(page, size)).map(this::convertToBestPlaceListItemResponse);
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestPlaceListItem> searchLatestPlaces(LatestPlaceFilterRequest filterRequest, int page, int size) {
-        return PageResult.from(placeCoreService.findLatestPlaces(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size)).map(this::convertToLatestPlaceListItem);
+    public PageResult<LatestPlaceListItemResponse> searchLatestPlaces(LatestPlaceFilterRequest filterRequest, int page, int size) {
+        return PageResult.from(placeCoreService.findLatestPlaces(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size)).map(this::convertToLatestPlaceListItemResponse);
     }
 
     @Transactional(readOnly = true)
@@ -107,8 +107,8 @@ public class PlaceService {
         );
     }
 
-    private BestPlaceListItem convertToBestPlaceListItem(BestPlaceItemDto dto) {
-        return BestPlaceListItem.from(
+    private BestPlaceListItemResponse convertToBestPlaceListItemResponse(BestPlaceItemDto dto) {
+        return BestPlaceListItemResponse.from(
             dto.id(),
             dto.name(),
             dto.stationName(),
@@ -118,8 +118,8 @@ public class PlaceService {
         );
     }
 
-    private LatestPlaceListItem convertToLatestPlaceListItem(LatestPlaceItemDto dto) {
-        return LatestPlaceListItem.from(
+    private LatestPlaceListItemResponse convertToLatestPlaceListItemResponse(LatestPlaceItemDto dto) {
+        return LatestPlaceListItemResponse.from(
             dto.id(),
             dto.name(),
             dto.stationName(),
@@ -145,36 +145,36 @@ public class PlaceService {
     }
 
     @Transactional(readOnly = true)
-    public List<StationListItem> searchAllStations() {
+    public List<StationListItemResponse> searchAllStations() {
         List<PlaceStation> stations = placeCoreService.findAllStations();
-        return stations.stream().map(this::convertToStationListItem).toList();
+        return stations.stream().map(this::convertToStationListItemResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<FoodTypeListItem> searchAllFoodTypes() {
+    public List<FoodTypeListItemResponse> searchAllFoodTypes() {
         List<PlaceFoodTypeCategoryDto> categories = placeCoreService.findAllFoodTypeCategories();
         return categories.stream()
-                .map(this::convertToFoodTypeListItem)
+                .map(this::convertToFoodTypeListItemResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<AmenityListItem> searchAllAmenities() {
+    public List<AmenityListItemResponse> searchAllAmenities() {
         List<PlaceAmenityCategoryDto> categories = placeCoreService.findAllAmenityCategories();
         return categories.stream()
-                .map(this::convertToAmenityListItem)
+                .map(this::convertToAmenityListItemResponse)
                 .toList();
     }
 
-    private StationListItem convertToStationListItem(PlaceStation station) {
-        return StationListItem.from(
+    private StationListItemResponse convertToStationListItemResponse(PlaceStation station) {
+        return StationListItemResponse.from(
             station.getId(),
             station.getStationName()
         );
     }
 
-    private FoodTypeListItem convertToFoodTypeListItem(PlaceFoodTypeCategoryDto category) {
-        return FoodTypeListItem.from(
+    private FoodTypeListItemResponse convertToFoodTypeListItemResponse(PlaceFoodTypeCategoryDto category) {
+        return FoodTypeListItemResponse.from(
             category.foodType().name(),
             category.displayName(),
             fileService.getUrlByPath(category.activeFilePath()),
@@ -182,8 +182,8 @@ public class PlaceService {
         );
     }
 
-    private AmenityListItem convertToAmenityListItem(PlaceAmenityCategoryDto category) {
-        return AmenityListItem.from(
+    private AmenityListItemResponse convertToAmenityListItemResponse(PlaceAmenityCategoryDto category) {
+        return AmenityListItemResponse.from(
             category.amenity().name(),
             category.displayName(),
             fileService.getUrlByPath(category.activeFilePath()),
@@ -299,16 +299,16 @@ public class PlaceService {
     public PlaceReviewsByRatingWithPagination getPlaceReviewsByRatingWithPagination(Long placeId, int page, int size) {
         ReviewsByRatingResult result = reviewCoreService.findPlaceReviewsByRating(placeId, page, size);
 
-        Map<Integer, List<PlaceReviewListItem>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
+        Map<Integer, List<PlaceReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry<Integer, List<LatestReviewListItemDto>>::getKey,
                         entry -> entry.getValue().stream()
-                                .map(this::convertToPlaceReviewListItem)
+                                .map(this::convertToPlaceReviewListItemResponse)
                                 .toList()
                 ));
 
-        List<PlaceReviewListItem> allReviews = result.getAllReviews().stream()
-                .map(this::convertToPlaceReviewListItem)
+        List<PlaceReviewListItemResponse> allReviews = result.getAllReviews().stream()
+                .map(this::convertToPlaceReviewListItemResponse)
                 .toList();
 
         PlaceReviewsByRatingResponse response = PlaceReviewsByRatingResponse.from(
@@ -319,10 +319,10 @@ public class PlaceService {
         return new PlaceReviewsByRatingWithPagination(response, result.getTotalElements());
     }
 
-    private PlaceReviewListItem convertToPlaceReviewListItem(LatestReviewListItemDto dto) {
+    private PlaceReviewListItemResponse convertToPlaceReviewListItemResponse(LatestReviewListItemDto dto) {
         List<String> imageUrls = dto.imageUrls().stream().map(fileService::getUrlByPath).toList();
 
-        return PlaceReviewListItem.from(
+        return PlaceReviewListItemResponse.from(
             dto.id(),
             imageUrls,
             dto.totalRating(),

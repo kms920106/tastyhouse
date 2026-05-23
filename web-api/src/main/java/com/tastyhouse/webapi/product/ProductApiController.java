@@ -7,7 +7,7 @@ import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
-import com.tastyhouse.webapi.product.response.TodayDiscountProductItem;
+import com.tastyhouse.webapi.product.response.TodayDiscountProductListItemResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -36,9 +36,9 @@ public class ProductApiController {
     @Operation(summary = "오늘의 할인 상품 목록 조회", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/today-discounts")
-    public ResponseEntity<CommonResponse<List<TodayDiscountProductItem>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<TodayDiscountProductItem> pageResult = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
-        CommonResponse<List<TodayDiscountProductItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
+    public ResponseEntity<CommonResponse<List<TodayDiscountProductListItemResponse>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResult<TodayDiscountProductListItemResponse> pageResult = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
+        CommonResponse<List<TodayDiscountProductListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 

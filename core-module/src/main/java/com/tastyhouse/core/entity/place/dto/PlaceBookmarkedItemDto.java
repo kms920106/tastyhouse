@@ -9,7 +9,7 @@ public record PlaceBookmarkedItemDto(
     String stationName,
     Double rating,
     String imageUrl,
-    Boolean isBookmarked
+    boolean bookmarked
 ) {
     @QueryProjection
     public PlaceBookmarkedItemDto {

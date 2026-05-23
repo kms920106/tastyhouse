@@ -1,30 +1,30 @@
 package com.tastyhouse.webapi.search.response;
 
-public record SearchPlaceListItem(
+public record SearchPlaceListItemResponse(
     Long placeId,
     Long bookmarkId,
     String placeName,
     String stationName,
     Double rating,
     String imageUrl,
-    Boolean isBookmarked
+    boolean bookmarked
 ) {
-    public static SearchPlaceListItem from(
+    public static SearchPlaceListItemResponse from(
         Long placeId,
         String placeName,
         String stationName,
         Double rating,
         String imageUrl,
-        Boolean isBookmarked
+        boolean bookmarked
     ) {
-        return new SearchPlaceListItem(
+        return new SearchPlaceListItemResponse(
             placeId,
             null,
             placeName,
             stationName,
             rating,
             imageUrl,
-            isBookmarked
+            bookmarked
         );
     }
 }

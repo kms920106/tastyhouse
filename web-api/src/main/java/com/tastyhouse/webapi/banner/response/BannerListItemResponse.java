@@ -1,18 +1,18 @@
 package com.tastyhouse.webapi.banner.response;
 
-public record BannerListItem(
+public record BannerListItemResponse(
     Long id,
     String title,
     String imageUrl,
     String linkUrl
 ) {
-    public static BannerListItem from(
+    public static BannerListItemResponse from(
     Long id,
     String title,
     String imageUrl,
     String linkUrl
     ) {
-    return new BannerListItem(
+    return new BannerListItemResponse(
         id,
         title,
         imageUrl,

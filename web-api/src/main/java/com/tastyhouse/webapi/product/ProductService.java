@@ -17,11 +17,11 @@ import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
-import com.tastyhouse.webapi.product.response.ProductReviewListItem;
+import com.tastyhouse.webapi.product.response.ProductReviewListItemResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
-import com.tastyhouse.webapi.product.response.TodayDiscountProductItem;
+import com.tastyhouse.webapi.product.response.TodayDiscountProductListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,13 +43,13 @@ public class ProductService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResult<TodayDiscountProductItem> searchTodayDiscountProducts(int page, int size) {
+    public PageResult<TodayDiscountProductListItemResponse> searchTodayDiscountProducts(int page, int size) {
         return PageResult.from(productCoreService.findTodayDiscountProducts(page, size))
-            .map(this::convertToTodayDiscountProductItem);
+            .map(this::convertToTodayDiscountProductListItemResponse);
     }
 
-    private TodayDiscountProductItem convertToTodayDiscountProductItem(TodayDiscountProductDto dto) {
-        return TodayDiscountProductItem.from(
+    private TodayDiscountProductListItemResponse convertToTodayDiscountProductListItemResponse(TodayDiscountProductDto dto) {
+        return TodayDiscountProductListItemResponse.from(
             dto.id(),
             dto.placeName(),
             dto.name(),
@@ -197,16 +197,16 @@ public class ProductService {
     public ProductReviewsByRatingWithPagination getProductReviewsByRatingWithPagination(Long productId, int page, int size) {
         ReviewsByRatingResult result = reviewCoreService.findProductReviewsByRating(productId, page, size);
 
-        Map<Integer, List<ProductReviewListItem>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
+        Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry<Integer, List<LatestReviewListItemDto>>::getKey,
                         entry -> entry.getValue().stream()
-                                .map(this::convertToProductReviewListItem)
+                                .map(this::convertToProductReviewListItemResponse)
                                 .toList()
                 ));
 
-        List<ProductReviewListItem> allReviews = result.getAllReviews().stream()
-                .map(this::convertToProductReviewListItem)
+        List<ProductReviewListItemResponse> allReviews = result.getAllReviews().stream()
+                .map(this::convertToProductReviewListItemResponse)
                 .toList();
 
         ProductReviewsByRatingResponse response = ProductReviewsByRatingResponse.from(
@@ -218,8 +218,8 @@ public class ProductService {
         return new ProductReviewsByRatingWithPagination(response, result.getTotalElements());
     }
 
-    private ProductReviewListItem convertToProductReviewListItem(LatestReviewListItemDto dto) {
-        return ProductReviewListItem.from(
+    private ProductReviewListItemResponse convertToProductReviewListItemResponse(LatestReviewListItemDto dto) {
+        return ProductReviewListItemResponse.from(
             dto.id(),
             dto.imageUrls().stream().map(fileService::getUrlByPath).toList(),
             dto.totalRating(),

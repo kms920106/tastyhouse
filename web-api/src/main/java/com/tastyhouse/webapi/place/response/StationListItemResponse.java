@@ -1,14 +1,14 @@
 package com.tastyhouse.webapi.place.response;
 
-public record StationListItem(
+public record StationListItemResponse(
     Long id,
     String name
 ) {
-    public static StationListItem from(
+    public static StationListItemResponse from(
     Long id,
     String name
     ) {
-    return new StationListItem(
+    return new StationListItemResponse(
         id,
         name
     );

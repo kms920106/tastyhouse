@@ -3,8 +3,8 @@ package com.tastyhouse.webapi.faq;
 import com.tastyhouse.core.entity.faq.dto.FaqCategoryDto;
 import com.tastyhouse.core.entity.faq.dto.FaqItemDto;
 import com.tastyhouse.core.service.FaqCoreService;
-import com.tastyhouse.webapi.faq.response.FaqCategoryItem;
-import com.tastyhouse.webapi.faq.response.FaqItem;
+import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
+import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,29 +20,29 @@ public class FaqService {
     private final FaqCoreService faqCoreService;
 
     @Transactional(readOnly = true)
-    public List<FaqCategoryItem> searchCategories() {
+    public List<FaqCategoryListItemResponse> searchCategories() {
         return faqCoreService.findAllActiveCategories().stream()
-                .map(this::toFaqCategoryItem)
+                .map(this::toFaqCategoryListItemResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<FaqItem> searchFaqItems(Long categoryId) {
+    public List<FaqListItemResponse> searchFaqListItemResponses(Long categoryId) {
         return faqCoreService.findFaqItems(categoryId).stream()
-                .map(this::toFaqItem)
+                .map(this::toFaqListItemResponse)
                 .toList();
     }
 
-    private FaqCategoryItem toFaqCategoryItem(FaqCategoryDto dto) {
-        return FaqCategoryItem.from(
+    private FaqCategoryListItemResponse toFaqCategoryListItemResponse(FaqCategoryDto dto) {
+        return FaqCategoryListItemResponse.from(
             dto.id(),
             dto.name(),
             dto.sort()
         );
     }
 
-    private FaqItem toFaqItem(FaqItemDto dto) {
-        return FaqItem.from(
+    private FaqListItemResponse toFaqListItemResponse(FaqItemDto dto) {
+        return FaqListItemResponse.from(
             dto.id(),
             dto.faqCategoryId(),
             dto.question(),

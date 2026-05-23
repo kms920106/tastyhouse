@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.faq;
 
 import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.webapi.faq.response.FaqCategoryItem;
-import com.tastyhouse.webapi.faq.response.FaqItem;
+import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
+import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,17 +29,17 @@ public class FaqApiController {
     @Operation(summary = "FAQ 카테고리 목록 조회", description = "활성화된 FAQ 카테고리 목록을 정렬 순서대로 조회합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/categories")
-    public ResponseEntity<CommonResponse<List<FaqCategoryItem>>> getFaqCategories() {
-        List<FaqCategoryItem> categories = faqService.searchCategories();
+    public ResponseEntity<CommonResponse<List<FaqCategoryListItemResponse>>> getFaqCategories() {
+        List<FaqCategoryListItemResponse> categories = faqService.searchCategories();
         return ResponseEntity.ok(CommonResponse.success(categories));
     }
 
     @Operation(summary = "FAQ 목록 조회", description = "카테고리 ID로 필터링하거나 전체 FAQ 목록을 조회합니다. categoryId 미입력 시 전체 조회합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1")
-    public ResponseEntity<CommonResponse<List<FaqItem>>> getFaqList(
+    public ResponseEntity<CommonResponse<List<FaqListItemResponse>>> getFaqList(
             @RequestParam(required = false) Long categoryId) {
-        List<FaqItem> faqs = faqService.searchFaqItems(categoryId);
+        List<FaqListItemResponse> faqs = faqService.searchFaqListItemResponses(categoryId);
         return ResponseEntity.ok(CommonResponse.success(faqs));
     }
 }

@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.review.response;
 
-public record BestReviewListItem(
+public record BestReviewListItemResponse(
     Long id,
     String imageUrl,
     String stationName,
@@ -9,7 +9,7 @@ public record BestReviewListItem(
     Double totalRating,
     String content
 ) {
-    public static BestReviewListItem from(
+    public static BestReviewListItemResponse from(
         Long id,
         String imageUrl,
         String stationName,
@@ -18,7 +18,7 @@ public record BestReviewListItem(
         Double totalRating,
         String content
     ) {
-        return new BestReviewListItem(
+        return new BestReviewListItemResponse(
             id,
             imageUrl,
             stationName,

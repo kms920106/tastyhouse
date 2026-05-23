@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.banner;
 
 import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.webapi.banner.response.BannerListItem;
+import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,16 +31,16 @@ public class BannerApiController {
     @Operation(summary = "홈 배너 목록 조회")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/home")
-    public ResponseEntity<CommonResponse<List<BannerListItem>>> getHomeBanners(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BannerListItem> pageResult = bannerService.findHomeBanners(pageRequest.page(), pageRequest.size());
+    public ResponseEntity<CommonResponse<List<BannerListItemResponse>>> getHomeBanners(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResult<BannerListItemResponse> pageResult = bannerService.findHomeBanners(pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
     }
 
     @Operation(summary = "사이드바 배너 목록 조회")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/sidebar")
-    public ResponseEntity<CommonResponse<List<BannerListItem>>> getSidebarBanners(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BannerListItem> pageResult = bannerService.findSidebarBanners(pageRequest.page(), pageRequest.size());
+    public ResponseEntity<CommonResponse<List<BannerListItemResponse>>> getSidebarBanners(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResult<BannerListItemResponse> pageResult = bannerService.findSidebarBanners(pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
     }
 }

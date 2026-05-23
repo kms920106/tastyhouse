@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.rank.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "랭킹 경품 응답")
-public record RankPrizeItemResponse(
+public record RankPrizeListItemResponse(
     @Schema(description = "경품 ID", example = "1")
     Long id,
 
@@ -19,7 +19,7 @@ public record RankPrizeItemResponse(
     @Schema(description = "경품 이미지 URL", example = "https://example.com/prize.jpg")
     String imageUrl
 ) {
-    public static RankPrizeItemResponse from(Long id, Integer prizeRank, String name, String brand, String imageUrl) {
-        return new RankPrizeItemResponse(id, prizeRank, name, brand, imageUrl);
+    public static RankPrizeListItemResponse from(Long id, Integer prizeRank, String name, String brand, String imageUrl) {
+        return new RankPrizeListItemResponse(id, prizeRank, name, brand, imageUrl);
     }
 }

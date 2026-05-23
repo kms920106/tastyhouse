@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.place.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record PlaceReviewListItem(
+public record PlaceReviewListItemResponse(
     Long id,
     List<String> imageUrls,
     Double totalRating,
@@ -14,7 +14,7 @@ public record PlaceReviewListItem(
     Long productId,
     String productName
 ) {
-    public static PlaceReviewListItem from(
+    public static PlaceReviewListItemResponse from(
         Long id,
         List<String> imageUrls,
         Double totalRating,
@@ -25,7 +25,7 @@ public record PlaceReviewListItem(
         Long productId,
         String productName
     ) {
-        return new PlaceReviewListItem(
+        return new PlaceReviewListItemResponse(
             id,
             imageUrls,
             totalRating,

@@ -6,11 +6,11 @@ import com.tastyhouse.core.entity.place.Amenity;
 import com.tastyhouse.core.entity.place.FoodType;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.place.request.LatestPlaceFilterRequest;
-import com.tastyhouse.webapi.place.response.AmenityListItem;
-import com.tastyhouse.webapi.place.response.BestPlaceListItem;
+import com.tastyhouse.webapi.place.response.AmenityListItemResponse;
+import com.tastyhouse.webapi.place.response.BestPlaceListItemResponse;
 import com.tastyhouse.webapi.place.response.EditorChoiceResponse;
-import com.tastyhouse.webapi.place.response.FoodTypeListItem;
-import com.tastyhouse.webapi.place.response.LatestPlaceListItem;
+import com.tastyhouse.webapi.place.response.FoodTypeListItemResponse;
+import com.tastyhouse.webapi.place.response.LatestPlaceListItemResponse;
 import com.tastyhouse.webapi.place.response.PlaceBannerResponse;
 import com.tastyhouse.webapi.place.response.PlaceBookmarkResponse;
 import com.tastyhouse.webapi.place.response.PlaceInfoResponse;
@@ -22,7 +22,7 @@ import com.tastyhouse.webapi.place.response.PlaceReviewStatisticsResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingResponse;
 import com.tastyhouse.webapi.place.response.PlaceReviewsByRatingWithPagination;
 import com.tastyhouse.webapi.place.response.PlaceDetailResponse;
-import com.tastyhouse.webapi.place.response.StationListItem;
+import com.tastyhouse.webapi.place.response.StationListItemResponse;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -67,9 +67,9 @@ public class PlaceApiController {
     @Operation(summary = "베스트 플레이스 목록 조회", description = "평점 기준 베스트 플레이스를 페이징하여 조회합니다. 이미지, 전철역명, 평점, 가게명, 태그 정보를 포함합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/best")
-    public ResponseEntity<CommonResponse<List<BestPlaceListItem>>> getBestPlaces(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BestPlaceListItem> pageResult = placeService.searchBestPlaces(pageRequest.page(), pageRequest.size());
-        CommonResponse<List<BestPlaceListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
+    public ResponseEntity<CommonResponse<List<BestPlaceListItemResponse>>> getBestPlaces(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResult<BestPlaceListItemResponse> pageResult = placeService.searchBestPlaces(pageRequest.page(), pageRequest.size());
+        CommonResponse<List<BestPlaceListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 
@@ -85,41 +85,41 @@ public class PlaceApiController {
     @Operation(summary = "최신 플레이스 목록 조회", description = "최근 등록된 플레이스를 페이징하여 조회합니다. 이미지, 전철역명, 평점, 가게명, 태그, 등록일 정보를 포함합니다. 전철역, 음식종류, 편의시설 필터를 적용할 수 있습니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/latest")
-    public ResponseEntity<CommonResponse<List<LatestPlaceListItem>>> getLatestPlaces(
+    public ResponseEntity<CommonResponse<List<LatestPlaceListItemResponse>>> getLatestPlaces(
             @Valid @ModelAttribute PageRequest pageRequest,
             @RequestParam(required = false) Long stationId,
             @RequestParam(required = false) List<FoodType> foodTypes,
             @RequestParam(required = false) List<Amenity> amenities) {
         LatestPlaceFilterRequest filterRequest = new LatestPlaceFilterRequest(stationId, foodTypes, amenities);
-        PageResult<LatestPlaceListItem> pageResult = placeService.searchLatestPlaces(filterRequest, pageRequest.page(), pageRequest.size());
-        CommonResponse<List<LatestPlaceListItem>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
+        PageResult<LatestPlaceListItemResponse> pageResult = placeService.searchLatestPlaces(filterRequest, pageRequest.page(), pageRequest.size());
+        CommonResponse<List<LatestPlaceListItemResponse>> response = CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "전철역 목록 조회", description = "전철역 목록을 가나다라 순으로 조회합니다. ID와 전철역명을 반환합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/stations")
-    public ResponseEntity<CommonResponse<List<StationListItem>>> getStations() {
-        List<StationListItem> stations = placeService.searchAllStations();
-        CommonResponse<List<StationListItem>> response = CommonResponse.success(stations);
+    public ResponseEntity<CommonResponse<List<StationListItemResponse>>> getStations() {
+        List<StationListItemResponse> stations = placeService.searchAllStations();
+        CommonResponse<List<StationListItemResponse>> response = CommonResponse.success(stations);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "음식종류 목록 조회", description = "음식종류 전체 목록을 조회합니다. 코드와 표시명을 반환합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/food-types")
-    public ResponseEntity<CommonResponse<List<FoodTypeListItem>>> getFoodTypes() {
-        List<FoodTypeListItem> foodTypes = placeService.searchAllFoodTypes();
-        CommonResponse<List<FoodTypeListItem>> response = CommonResponse.success(foodTypes);
+    public ResponseEntity<CommonResponse<List<FoodTypeListItemResponse>>> getFoodTypes() {
+        List<FoodTypeListItemResponse> foodTypes = placeService.searchAllFoodTypes();
+        CommonResponse<List<FoodTypeListItemResponse>> response = CommonResponse.success(foodTypes);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "편의시설 목록 조회", description = "편의시설 전체 목록을 조회합니다. 코드와 표시명을 반환합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/amenities")
-    public ResponseEntity<CommonResponse<List<AmenityListItem>>> getAmenities() {
-        List<AmenityListItem> amenities = placeService.searchAllAmenities();
-        CommonResponse<List<AmenityListItem>> response = CommonResponse.success(amenities);
+    public ResponseEntity<CommonResponse<List<AmenityListItemResponse>>> getAmenities() {
+        List<AmenityListItemResponse> amenities = placeService.searchAllAmenities();
+        CommonResponse<List<AmenityListItemResponse>> response = CommonResponse.success(amenities);
         return ResponseEntity.ok(response);
     }
 

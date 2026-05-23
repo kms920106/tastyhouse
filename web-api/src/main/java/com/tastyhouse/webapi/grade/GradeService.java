@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.grade;
 
 import com.tastyhouse.core.entity.user.MemberGrade;
-import com.tastyhouse.webapi.grade.response.GradeInfoItem;
+import com.tastyhouse.webapi.grade.response.GradeInfoListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +16,9 @@ public class GradeService {
     /**
      * 전체 등급 세부 조건 목록 조회
      */
-    public List<GradeInfoItem> getGradeInfoList() {
+    public List<GradeInfoListItemResponse> getGradeInfoList() {
         return Arrays.stream(MemberGrade.values())
-            .map(grade -> GradeInfoItem.from(
+            .map(grade -> GradeInfoListItemResponse.from(
                 grade,
                 grade.getDisplayName(),
                 grade.getMinReviewCount(),

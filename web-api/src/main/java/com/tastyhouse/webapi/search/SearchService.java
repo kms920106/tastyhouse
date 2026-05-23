@@ -6,8 +6,8 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
-import com.tastyhouse.webapi.search.response.SearchPlaceListItem;
-import com.tastyhouse.webapi.search.response.SearchReviewListItem;
+import com.tastyhouse.webapi.search.response.SearchPlaceListItemResponse;
+import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -48,32 +48,32 @@ public class SearchService {
                 ));
     }
 
-    public PageResult<SearchReviewListItem> searchReviews(String keyword, int page, int size) {
+    public PageResult<SearchReviewListItemResponse> searchReviews(String keyword, int page, int size) {
         return PageResult.from(searchCoreService.searchReviews(keyword, page, size))
-                .map(dto -> SearchReviewListItem.from(dto, fileService));
+                .map(dto -> SearchReviewListItemResponse.from(dto, fileService));
     }
 
-    public PageResult<SearchPlaceListItem> searchPlacesPaged(String keyword, Long memberId, int page, int size) {
+    public PageResult<SearchPlaceListItemResponse> searchPlacesPaged(String keyword, Long memberId, int page, int size) {
         return PageResult.from(searchCoreService.searchPlacesWithBookmark(keyword, memberId, page, size))
-                .map(dto -> SearchPlaceListItem.from(
+                .map(dto -> SearchPlaceListItemResponse.from(
                     dto.placeId(),
                     dto.placeName(),
                     dto.stationName(),
                     dto.rating(),
                     dto.imageUrl() != null ? fileService.getUrlByPath(dto.imageUrl()) : null,
-                    dto.isBookmarked()
+                    dto.bookmarked()
                 ));
     }
 
-    public PageResult<SearchPlaceListItem> searchPlacesPublic(String keyword, int page, int size) {
+    public PageResult<SearchPlaceListItemResponse> searchPlacesPublic(String keyword, int page, int size) {
         return PageResult.from(searchCoreService.searchPlacesWithBookmark(keyword, null, page, size))
-                .map(dto -> SearchPlaceListItem.from(
+                .map(dto -> SearchPlaceListItemResponse.from(
                     dto.placeId(),
                     dto.placeName(),
                     dto.stationName(),
                     dto.rating(),
                     dto.imageUrl() != null ? fileService.getUrlByPath(dto.imageUrl()) : null,
-                    dto.isBookmarked()
+                    dto.bookmarked()
                 ));
     }
 }

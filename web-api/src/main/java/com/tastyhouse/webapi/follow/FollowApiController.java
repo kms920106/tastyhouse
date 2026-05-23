@@ -3,9 +3,9 @@ package com.tastyhouse.webapi.follow;
 import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.follow.response.FollowMemberResponse;
+import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
 import com.tastyhouse.webapi.follow.response.IsFollowingResponse;
-import com.tastyhouse.webapi.follow.response.MemberSearchResponse;
+import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -103,12 +103,12 @@ public class FollowApiController {
         @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @GetMapping("/v1/{memberId}/following")
-    public ResponseEntity<CommonResponse<List<FollowMemberResponse>>> getFollowingList(
+    public ResponseEntity<CommonResponse<List<FollowMemberListItemResponse>>> getFollowingList(
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<FollowMemberResponse> pageResult = followService.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<FollowMemberListItemResponse> pageResult = followService.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),
@@ -123,12 +123,12 @@ public class FollowApiController {
         @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @GetMapping("/v1/{memberId}/followers")
-    public ResponseEntity<CommonResponse<List<FollowMemberResponse>>> getFollowerList(
+    public ResponseEntity<CommonResponse<List<FollowMemberListItemResponse>>> getFollowerList(
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<FollowMemberResponse> pageResult = followService.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<FollowMemberListItemResponse> pageResult = followService.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),
@@ -142,11 +142,11 @@ public class FollowApiController {
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     })
     @GetMapping("/v1/{memberId}/following/public")
-    public ResponseEntity<CommonResponse<List<FollowMemberResponse>>> getPublicFollowingList(
+    public ResponseEntity<CommonResponse<List<FollowMemberListItemResponse>>> getPublicFollowingList(
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<FollowMemberResponse> pageResult = followService.getPublicFollowingList(memberId, pageRequest.page(), pageRequest.size());
+        PageResult<FollowMemberListItemResponse> pageResult = followService.getPublicFollowingList(memberId, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),
@@ -160,11 +160,11 @@ public class FollowApiController {
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     })
     @GetMapping("/v1/{memberId}/followers/public")
-    public ResponseEntity<CommonResponse<List<FollowMemberResponse>>> getPublicFollowerList(
+    public ResponseEntity<CommonResponse<List<FollowMemberListItemResponse>>> getPublicFollowerList(
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<FollowMemberResponse> pageResult = followService.getPublicFollowerList(memberId, pageRequest.page(), pageRequest.size());
+        PageResult<FollowMemberListItemResponse> pageResult = followService.getPublicFollowerList(memberId, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),
@@ -179,12 +179,12 @@ public class FollowApiController {
         @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @GetMapping("/v1/search")
-    public ResponseEntity<CommonResponse<List<MemberSearchResponse>>> searchMembers(
+    public ResponseEntity<CommonResponse<List<MemberSearchListItemResponse>>> searchMembers(
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "검색할 닉네임", example = "맛집") @RequestParam String nickname,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MemberSearchResponse> pageResult = followService.searchMembersByNickname(nickname, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<MemberSearchListItemResponse> pageResult = followService.searchMembersByNickname(nickname, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),

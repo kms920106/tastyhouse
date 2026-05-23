@@ -25,7 +25,7 @@ public class MemberPlaceService {
                 dto.stationName(),
                 dto.rating(),
                 fileService.getUrlByPath(dto.imageUrl()),
-                dto.isBookmarked()
+                dto.bookmarked()
             ));
     }
 }

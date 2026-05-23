@@ -2,40 +2,30 @@ package com.tastyhouse.webapi.place.response;
 
 import com.tastyhouse.core.entity.place.FoodType;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-public record LatestPlaceListItem(
+public record BestPlaceListItemResponse(
     Long id,
     String name,
     String stationName,
     Double rating,
     String imageUrl,
-    LocalDateTime createdAt,
-    Long reviewCount,
-    Long bookmarkCount,
     List<FoodType> foodTypes
 ) {
-    public static LatestPlaceListItem from(
+    public static BestPlaceListItemResponse from(
     Long id,
     String name,
     String stationName,
     Double rating,
     String imageUrl,
-    LocalDateTime createdAt,
-    Long reviewCount,
-    Long bookmarkCount,
     List<FoodType> foodTypes
     ) {
-    return new LatestPlaceListItem(
+    return new BestPlaceListItemResponse(
         id,
         name,
         stationName,
         rating,
         imageUrl,
-        createdAt,
-        reviewCount,
-        bookmarkCount,
         foodTypes
     );
     }

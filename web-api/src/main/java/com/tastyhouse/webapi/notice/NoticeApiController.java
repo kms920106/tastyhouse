@@ -5,7 +5,7 @@ import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.notice.response.NoticeListItem;
+import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,12 +34,12 @@ public class NoticeApiController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공",
         content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1")
-    public ResponseEntity<CommonResponse<List<NoticeListItem>>> getNoticeList(
+    public ResponseEntity<CommonResponse<List<NoticeListItemResponse>>> getNoticeList(
         @Valid @ModelAttribute PageRequest pageRequest) {
 
-        PageResult<NoticeListItem> pageResult = PageResult
+        PageResult<NoticeListItemResponse> pageResult = PageResult
             .from(noticeQueryService.findAllWithPagination(pageRequest.page(), pageRequest.size()))
-            .map(this::toNoticeListItem);
+            .map(this::toNoticeListItemResponse);
 
         return ResponseEntity.ok(CommonResponse.success(
             pageResult.getContent(),
@@ -49,7 +49,7 @@ public class NoticeApiController {
         ));
     }
 
-    private NoticeListItem toNoticeListItem(NoticeListItemDto dto) {
-        return NoticeListItem.from(dto.id(), dto.title(), dto.content(), dto.createdAt());
+    private NoticeListItemResponse toNoticeListItemResponse(NoticeListItemDto dto) {
+        return NoticeListItemResponse.from(dto.id(), dto.title(), dto.content(), dto.createdAt());
     }
 }

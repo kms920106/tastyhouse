@@ -3,12 +3,12 @@ package com.tastyhouse.webapi.search.response;
 import com.tastyhouse.core.entity.review.dto.SearchReviewItemDto;
 import com.tastyhouse.external.file.FileService;
 
-public record SearchReviewListItem(
+public record SearchReviewListItemResponse(
     Long id,
     String imageUrl
 ) {
-    public static SearchReviewListItem from(SearchReviewItemDto dto, FileService fileService) {
-        return new SearchReviewListItem(
+    public static SearchReviewListItemResponse from(SearchReviewItemDto dto, FileService fileService) {
+        return new SearchReviewListItemResponse(
             dto.id(),
             fileService.getUrlByPath(dto.imageFilePath())
         );
