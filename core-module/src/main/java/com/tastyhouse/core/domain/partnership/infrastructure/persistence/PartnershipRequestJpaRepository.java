@@ -1,6 +1,6 @@
-package com.tastyhouse.core.repository.partnership;
+package com.tastyhouse.core.domain.partnership.infrastructure.persistence;
 
-import com.tastyhouse.core.entity.partnership.PartnershipRequest;
+import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

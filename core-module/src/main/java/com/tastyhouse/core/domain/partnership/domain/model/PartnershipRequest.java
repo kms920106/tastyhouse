@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.partnership;
+package com.tastyhouse.core.domain.partnership.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -21,28 +21,28 @@ public class PartnershipRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "business_name", nullable = false, length = 200)
-    private String businessName; // 사업장(업체) 이름
+    private String businessName;
 
     @Column(name = "address", nullable = false, length = 500)
-    private String address; // 사업장 주소
+    private String address;
 
     @Column(name = "address_detail", length = 500)
-    private String addressDetail; // 사업장 상세 주소
+    private String addressDetail;
 
     @Column(name = "contact_name", nullable = false, length = 100)
-    private String contactName; // 담당자 이름
+    private String contactName;
 
     @Column(name = "contact_phone", nullable = false, length = 20)
-    private String contactPhone; // 담당자 연락처
+    private String contactPhone;
 
     @Column(name = "consultation_requested_at", nullable = false)
-    private LocalDateTime consultationRequestedAt; // 상담 신청 일시
+    private LocalDateTime consultationRequestedAt;
 
     public PartnershipRequest(String businessName, String address, String addressDetail,
-                            String contactName, String contactPhone, LocalDateTime consultationRequestedAt) {
+                              String contactName, String contactPhone, LocalDateTime consultationRequestedAt) {
         this.businessName = businessName;
         this.address = address;
         this.addressDetail = addressDetail;
@@ -52,7 +52,7 @@ public class PartnershipRequest extends BaseEntity {
     }
 
     public static PartnershipRequest of(String businessName, String address, String addressDetail,
-                                       String contactName, String contactPhone, LocalDateTime consultationRequestedAt) {
+                                        String contactName, String contactPhone, LocalDateTime consultationRequestedAt) {
         return new PartnershipRequest(businessName, address, addressDetail, contactName, contactPhone, consultationRequestedAt);
     }
 }

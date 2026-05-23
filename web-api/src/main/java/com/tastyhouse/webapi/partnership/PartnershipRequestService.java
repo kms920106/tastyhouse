@@ -1,22 +1,24 @@
 package com.tastyhouse.webapi.partnership;
 
-import com.tastyhouse.core.entity.partnership.PartnershipRequest;
-import com.tastyhouse.core.service.PartnershipCoreService;
+import com.tastyhouse.core.domain.partnership.application.PartnershipCommandService;
+import com.tastyhouse.core.domain.partnership.application.dto.result.PartnershipRequestResult;
 import com.tastyhouse.webapi.partnership.request.PartnershipRequestCreateRequest;
 import com.tastyhouse.webapi.partnership.response.PartnershipRequestResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PartnershipRequestService {
 
-    private final PartnershipCoreService partnershipCoreService;
+    private final PartnershipCommandService partnershipCommandService;
 
     @Transactional
     public PartnershipRequestResponse createPartnershipRequest(PartnershipRequestCreateRequest request) {
-        PartnershipRequest partnershipRequest = PartnershipRequest.of(
+        PartnershipRequestResult result = partnershipCommandService.create(
             request.businessName(),
             request.address(),
             request.addressDetail(),
@@ -25,17 +27,15 @@ public class PartnershipRequestService {
             request.consultationRequestedAt()
         );
 
-        PartnershipRequest savedRequest = partnershipCoreService.save(partnershipRequest);
-
         return PartnershipRequestResponse.from(
-            savedRequest.getId(),
-            savedRequest.getBusinessName(),
-            savedRequest.getAddress(),
-            savedRequest.getAddressDetail(),
-            savedRequest.getContactName(),
-            savedRequest.getContactPhone(),
-            savedRequest.getConsultationRequestedAt(),
-            savedRequest.getCreatedAt()
+            result.id(),
+            result.businessName(),
+            result.address(),
+            result.addressDetail(),
+            result.contactName(),
+            result.contactPhone(),
+            result.consultationRequestedAt(),
+            result.createdAt()
         );
     }
 }
