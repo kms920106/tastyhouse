@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.banner.dto;
+package com.tastyhouse.core.domain.banner.application.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 
