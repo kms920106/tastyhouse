@@ -1,0 +1,93 @@
+package com.tastyhouse.webapi.product.response;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.util.List;
+
+@Schema(description = "상품 옵션 그룹 목록")
+public record ProductOptionGroupsResponse(
+    @Schema(description = "옵션 그룹 목록")
+    List<OptionGroupResponse> optionGroups
+) {
+    public static ProductOptionGroupsResponse from(List<OptionGroupResponse> optionGroups) {
+        return new ProductOptionGroupsResponse(optionGroups);
+    }
+
+    @Schema(description = "옵션 그룹")
+    public record OptionGroupResponse(
+        @Schema(description = "옵션 그룹 ID", example = "1")
+        Long id,
+
+        @Schema(description = "옵션 그룹명", example = "맵기 선택")
+        String name,
+
+        @Schema(description = "옵션 그룹 설명", example = "원하시는 맵기를 선택해주세요")
+        String description,
+
+        @Schema(description = "필수 선택 여부", example = "true")
+        Boolean isRequired,
+
+        @Schema(description = "복수 선택 가능 여부", example = "false")
+        Boolean isMultipleSelect,
+
+        @Schema(description = "최소 선택 개수", example = "1")
+        Integer minSelect,
+
+        @Schema(description = "최대 선택 개수", example = "1")
+        Integer maxSelect,
+
+        @Schema(description = "공통 옵션 여부", example = "false")
+        Boolean isCommon,
+
+        @Schema(description = "옵션 목록")
+        List<OptionResponse> options
+    ) {
+        public static OptionGroupResponse from(
+            Long id,
+            String name,
+            String description,
+            Boolean isRequired,
+            Boolean isMultipleSelect,
+            Integer minSelect,
+            Integer maxSelect,
+            Boolean isCommon,
+            List<OptionResponse> options
+        ) {
+            return new OptionGroupResponse(
+                id,
+                name,
+                description,
+                isRequired,
+                isMultipleSelect,
+                minSelect,
+                maxSelect,
+                isCommon,
+                options
+            );
+        }
+    }
+
+    @Schema(description = "옵션")
+    public record OptionResponse(
+        @Schema(description = "옵션 ID", example = "1")
+        Long id,
+
+        @Schema(description = "옵션명", example = "많이 맵게")
+        String name,
+
+        @Schema(description = "추가 금액", example = "0")
+        Integer additionalPrice,
+
+        @Schema(description = "품절 여부", example = "false")
+        Boolean isSoldOut
+    ) {
+        public static OptionResponse from(
+            Long id,
+            String name,
+            Integer additionalPrice,
+            Boolean isSoldOut
+        ) {
+            return new OptionResponse(id, name, additionalPrice, isSoldOut);
+        }
+    }
+}

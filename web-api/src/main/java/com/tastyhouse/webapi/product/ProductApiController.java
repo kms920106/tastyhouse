@@ -4,6 +4,7 @@ import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
+import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
@@ -42,7 +43,7 @@ public class ProductApiController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "상품 상세 조회", description = "상품의 상세 정보를 조회합니다. 기본 정보와 함께 옵션 그룹 및 옵션 목록을 포함합니다.")
+    @Operation(summary = "상품 상세 조회", description = "상품의 기본 정보를 조회합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
         @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음")
@@ -52,6 +53,17 @@ public class ProductApiController {
         return productService.findProductById(productId)
             .map(product -> ResponseEntity.ok(CommonResponse.success(product)))
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "상품 옵션 조회", description = "상품의 옵션 그룹 및 옵션 목록을 조회합니다. 개별 옵션(isCommon: false)과 공통 옵션(isCommon: true)을 단일 목록으로 반환합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+        @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음")
+    })
+    @GetMapping("/v1/{productId}/options")
+    public ResponseEntity<CommonResponse<ProductOptionGroupsResponse>> getProductOptions(@PathVariable Long productId) {
+        ProductOptionGroupsResponse response = productService.findProductOptions(productId);
+        return ResponseEntity.ok(CommonResponse.success(response));
     }
 
     @Operation(summary = "리뷰 목록 조회", description = "상품의 리뷰 목록을 평점별로 조회합니다. 각 평점(1점, 2점, 3점, 4점, 5점)별로 최대 5개씩, 전체 리뷰는 페이지네이션으로 조회합니다. 총 리뷰 개수도 함께 반환됩니다.")

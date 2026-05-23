@@ -17,6 +17,7 @@ import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
+import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewListItemResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
@@ -76,8 +77,6 @@ public class ProductService {
                 .orElse(null);
         }
 
-        List<ProductDetailResponse.OptionGroupResponse> optionGroups = buildOptionGroups(product);
-
         List<String> imageUrls = getAllImageUrls(product.getId());
 
         Map<String, Object> reviewStatistics = reviewCoreService.findProductReviewStatistics(product.getId());
@@ -98,15 +97,21 @@ public class ProductService {
             reviewCount,
             product.getIsRepresentative(),
             product.getIsSoldOut(),
-            categoryName,
-            optionGroups
+            categoryName
         );
     }
 
-    private List<ProductDetailResponse.OptionGroupResponse> buildOptionGroups(Product product) {
-        List<ProductDetailResponse.OptionGroupResponse> result = new ArrayList<>();
+    @Transactional(readOnly = true)
+    public ProductOptionGroupsResponse findProductOptions(Long productId) {
+        productCoreService.findProductById(productId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+        return ProductOptionGroupsResponse.from(buildOptionGroups(productId));
+    }
 
-        List<ProductOptionGroup> productOptionGroups = productCoreService.findProductOptionGroupsByProductId(product.getId());
+    private List<ProductOptionGroupsResponse.OptionGroupResponse> buildOptionGroups(Long productId) {
+        List<ProductOptionGroupsResponse.OptionGroupResponse> result = new ArrayList<>();
+
+        List<ProductOptionGroup> productOptionGroups = productCoreService.findProductOptionGroupsByProductId(productId);
         if (!productOptionGroups.isEmpty()) {
             List<Long> optionGroupIds = productOptionGroups.stream()
                 .map(ProductOptionGroup::getId)
@@ -116,13 +121,13 @@ public class ProductService {
                 .collect(Collectors.groupingBy(ProductOption::getOptionGroupId));
 
             for (ProductOptionGroup group : productOptionGroups) {
-                List<ProductDetailResponse.OptionResponse> options = optionsByGroupId
+                List<ProductOptionGroupsResponse.OptionResponse> options = optionsByGroupId
                     .getOrDefault(group.getId(), Collections.emptyList())
                     .stream()
-                    .map(this::convertToOptionResponse)
+                    .map(o -> toOptionResponse(o.getId(), o.getName(), o.getAdditionalPrice(), o.getIsSoldOut()))
                     .toList();
 
-                result.add(ProductDetailResponse.OptionGroupResponse.from(
+                result.add(ProductOptionGroupsResponse.OptionGroupResponse.from(
                     group.getId(),
                     group.getName(),
                     group.getDescription(),
@@ -136,7 +141,7 @@ public class ProductService {
             }
         }
 
-        List<ProductCommonOptionGroup> productCommonOptionGroups = productCoreService.findProductCommonOptionGroupsByProductId(product.getId());
+        List<ProductCommonOptionGroup> productCommonOptionGroups = productCoreService.findProductCommonOptionGroupsByProductId(productId);
         if (!productCommonOptionGroups.isEmpty()) {
             List<Long> commonOptionGroupIds = productCommonOptionGroups.stream()
                 .map(ProductCommonOptionGroup::getId)
@@ -146,13 +151,13 @@ public class ProductService {
                 .collect(Collectors.groupingBy(ProductCommonOption::getOptionGroupId));
 
             for (ProductCommonOptionGroup group : productCommonOptionGroups) {
-                List<ProductDetailResponse.OptionResponse> options = commonOptionsByGroupId
+                List<ProductOptionGroupsResponse.OptionResponse> options = commonOptionsByGroupId
                     .getOrDefault(group.getId(), Collections.emptyList())
                     .stream()
-                    .map(this::convertProductCommonOptionToOptionResponse)
+                    .map(o -> toOptionResponse(o.getId(), o.getName(), o.getAdditionalPrice(), o.getIsSoldOut()))
                     .toList();
 
-                result.add(ProductDetailResponse.OptionGroupResponse.from(
+                result.add(ProductOptionGroupsResponse.OptionGroupResponse.from(
                     group.getId(),
                     group.getName(),
                     group.getDescription(),
@@ -169,22 +174,10 @@ public class ProductService {
         return result;
     }
 
-    private ProductDetailResponse.OptionResponse convertToOptionResponse(ProductOption option) {
-        return ProductDetailResponse.OptionResponse.from(
-            option.getId(),
-            option.getName(),
-            option.getAdditionalPrice(),
-            option.getIsSoldOut()
-        );
-    }
-
-    private ProductDetailResponse.OptionResponse convertProductCommonOptionToOptionResponse(ProductCommonOption option) {
-        return ProductDetailResponse.OptionResponse.from(
-            option.getId(),
-            option.getName(),
-            option.getAdditionalPrice(),
-            option.getIsSoldOut()
-        );
+    private ProductOptionGroupsResponse.OptionResponse toOptionResponse(
+        Long id, String name, Integer additionalPrice, Boolean isSoldOut
+    ) {
+        return ProductOptionGroupsResponse.OptionResponse.from(id, name, additionalPrice, isSoldOut);
     }
 
     private List<String> getAllImageUrls(Long productId) {
