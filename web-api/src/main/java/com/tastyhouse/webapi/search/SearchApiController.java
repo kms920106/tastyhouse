@@ -12,14 +12,13 @@ import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchReviewListItem;
+import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,16 +75,30 @@ public class SearchApiController {
         ));
     }
 
-    @Operation(summary = "플레이스 검색", description = "플레이스 탭 — 플레이스명 기반 검색. 로그인 시 북마크 여부 포함.")
+    @Operation(summary = "플레이스 검색", description = "플레이스 탭 — 플레이스명 기반 검색. 로그인 사용자 전용이며 북마크 여부가 포함됩니다.")
     @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:places")
     @GetMapping("/v1/places")
     public ResponseEntity<CommonResponse<List<SearchPlaceListItem>>> searchPlacesPaged(
         @RequestParam String query,
+        @Valid @ModelAttribute PageRequest pageRequest,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        String keyword = validateKeyword(query);
+        PageResult<SearchPlaceListItem> result = searchService.searchPlacesPaged(keyword, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(CommonResponse.success(
+            result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
+        ));
+    }
+
+    @Operation(summary = "플레이스 검색 (비로그인)", description = "플레이스 탭 — 플레이스명 기반 검색. 인증 없이 접근 가능하며 북마크 여부는 항상 false로 응답합니다.")
+    @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:places:public")
+    @GetMapping("/v1/places/public")
+    public ResponseEntity<CommonResponse<List<SearchPlaceListItem>>> searchPlacesPublic(
+        @RequestParam String query,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         String keyword = validateKeyword(query);
-        Long memberId = resolveCurrentMemberId();
-        PageResult<SearchPlaceListItem> result = searchService.searchPlacesPaged(keyword, memberId, pageRequest.page(), pageRequest.size());
+        PageResult<SearchPlaceListItem> result = searchService.searchPlacesPublic(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(CommonResponse.success(
             result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
         ));
@@ -97,14 +110,5 @@ public class SearchApiController {
             throw new BusinessException(ErrorCode.SEARCH_KEYWORD_BLANK);
         }
         return keyword;
-    }
-
-    private Long resolveCurrentMemberId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated()
-            && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
-            return userDetails.getMemberId();
-        }
-        return null;
     }
 }

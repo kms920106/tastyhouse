@@ -64,4 +64,16 @@ public class SearchService {
                     dto.isBookmarked()
                 ));
     }
+
+    public PageResult<SearchPlaceListItem> searchPlacesPublic(String keyword, int page, int size) {
+        return PageResult.from(searchCoreService.searchPlacesWithBookmark(keyword, null, page, size))
+                .map(dto -> SearchPlaceListItem.from(
+                    dto.placeId(),
+                    dto.placeName(),
+                    dto.stationName(),
+                    dto.rating(),
+                    dto.imageUrl() != null ? fileService.getUrlByPath(dto.imageUrl()) : null,
+                    dto.isBookmarked()
+                ));
+    }
 }
