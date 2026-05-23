@@ -12,9 +12,12 @@ import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.domain.point.application.PointCommandService;
+import com.tastyhouse.core.domain.point.application.dto.command.EarnPointCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.ReclaimPointCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.RefundPointCommand;
 import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.core.service.PaymentCoreService;
-import com.tastyhouse.core.service.PointCoreService;
 import com.tastyhouse.external.payment.toss.TossPaymentClient;
 import com.tastyhouse.external.payment.toss.TossPaymentUtils;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
@@ -42,7 +45,7 @@ public class PaymentService {
 
     private final PaymentCoreService paymentCoreService;
     private final OrderCoreService orderCoreService;
-    private final PointCoreService pointCoreService;
+    private final PointCommandService pointCommandService;
     private final TossPaymentClient tossPaymentClient;
 
     private static final int CASH_POINT_EARN_RATE = 10;
@@ -227,11 +230,11 @@ public class PaymentService {
         if (order.getUsedPoint() <= 0 && order.getEarnedPoint() <= 0) return;
 
         if (order.getUsedPoint() > 0) {
-            pointCoreService.refundPoints(memberId, order.getUsedPoint());
+            pointCommandService.refundPoints(new RefundPointCommand(memberId, order.getUsedPoint()));
         }
 
         if (order.getEarnedPoint() > 0) {
-            pointCoreService.reclaimEarnedPoints(memberId, order.getEarnedPoint());
+            pointCommandService.reclaimEarnedPoints(new ReclaimPointCommand(memberId, order.getEarnedPoint()));
         }
     }
 
@@ -325,11 +328,11 @@ public class PaymentService {
 
         int earnedPoint = (int) (payment.getAmount() * CASH_POINT_EARN_RATE / 100.0);
 
-        pointCoreService.getOrCreateMemberPoint(memberId);
+        pointCommandService.getOrCreateMemberPoint(memberId);
         order.updateEarnedPoint(earnedPoint);
 
-        pointCoreService.earnPoints(memberId, earnedPoint,
-            "현장 현금 결제 적립 (" + CASH_POINT_EARN_RATE + "%)");
+        pointCommandService.earnPoints(new EarnPointCommand(memberId, earnedPoint,
+            "현장 현금 결제 적립 (" + CASH_POINT_EARN_RATE + "%)"));
     }
 
     private boolean isOnSitePayment(PaymentMethod method) {

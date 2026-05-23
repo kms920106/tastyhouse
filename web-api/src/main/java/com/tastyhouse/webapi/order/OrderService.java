@@ -18,8 +18,9 @@ import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.domain.point.application.PointCommandService;
+import com.tastyhouse.core.domain.point.application.dto.command.UsePointCommand;
 import com.tastyhouse.core.service.OrderCoreService;
-import com.tastyhouse.core.service.PointCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.MemberCoreService;
@@ -48,7 +49,7 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderCoreService orderCoreService;
-    private final PointCoreService pointCoreService;
+    private final PointCommandService pointCommandService;
     private final CouponCommandService couponCommandService;
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
@@ -159,7 +160,7 @@ public class OrderService {
         int pointDiscountAmount = 0;
         if (request.usePoint() > 0) {
             pointDiscountAmount = request.usePoint();
-            pointCoreService.usePoints(memberId, pointDiscountAmount);
+            pointCommandService.usePoints(new UsePointCommand(memberId, pointDiscountAmount));
         }
 
         int totalDiscountAmount = productDiscountAmount + couponDiscountAmount + pointDiscountAmount;

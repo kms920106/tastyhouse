@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.core.service.PointCoreService;
+import com.tastyhouse.core.domain.point.application.PointQueryService;
 import com.tastyhouse.webapi.member.response.PointHistoryItemResponse;
 import com.tastyhouse.webapi.member.response.PointHistoryResponse;
 import com.tastyhouse.webapi.member.response.PointResponse;
@@ -16,22 +16,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MemberPointService {
 
-    private final PointCoreService pointCoreService;
+    private final PointQueryService pointQueryService;
 
-    // 회원의 보유 포인트 및 이번 달 소멸 예정 포인트를 조회
     @Transactional(readOnly = true)
     public PointResponse getMemberPoint(Long memberId) {
-        return pointCoreService.findMemberPoint(memberId)
+        return pointQueryService.findMemberPoint(memberId)
             .map(PointResponse::from)
             .orElseGet(() -> PointResponse.of(0, 0));
     }
 
-    // 회원의 포인트 적립·사용 내역을 최신순으로 조회
     @Transactional(readOnly = true)
     public PointHistoryResponse getPointHistory(Long memberId) {
         PointResponse pointResponse = getMemberPoint(memberId);
 
-        List<PointHistoryItemResponse> histories = pointCoreService.findPointHistory(memberId)
+        List<PointHistoryItemResponse> histories = pointQueryService.findPointHistory(memberId)
             .stream()
             .map(PointHistoryItemResponse::from)
             .collect(Collectors.toList());
@@ -43,10 +41,9 @@ public class MemberPointService {
         );
     }
 
-    // 회원이 즉시 사용 가능한 포인트를 조회
     @Transactional(readOnly = true)
     public UsablePointResponse getUsablePoint(Long memberId) {
-        return pointCoreService.findMemberPoint(memberId)
+        return pointQueryService.findMemberPoint(memberId)
             .map(UsablePointResponse::from)
             .orElseGet(() -> UsablePointResponse.of(0));
     }

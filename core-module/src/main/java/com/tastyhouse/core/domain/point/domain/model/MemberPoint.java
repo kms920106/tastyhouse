@@ -1,5 +1,6 @@
-package com.tastyhouse.core.entity.point;
+package com.tastyhouse.core.domain.point.domain.model;
 
+import com.tastyhouse.core.domain.point.domain.vo.MemberPointId;
 import com.tastyhouse.core.entity.BaseEntity;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -27,33 +28,29 @@ public class MemberPoint extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "member_id", nullable = false, unique = true)
-    private Long memberId; // 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     @Column(name = "available_points", nullable = false)
-    private Integer availablePoints = 0; // 사용 가능한 포인트 잔액
+    private Integer availablePoints = 0;
 
     @Column(name = "expired_this_month", nullable = false)
-    private Integer expiredThisMonth = 0; // 이번 달 소멸 예정 포인트
+    private Integer expiredThisMonth = 0;
 
-    private MemberPoint(
-        Long memberId,
-        Integer availablePoints,
-        Integer expiredThisMonth
-    ) {
+    private MemberPoint(Long memberId, Integer availablePoints, Integer expiredThisMonth) {
         this.memberId = memberId;
         this.availablePoints = availablePoints != null ? availablePoints : 0;
         this.expiredThisMonth = expiredThisMonth != null ? expiredThisMonth : 0;
     }
 
     public static MemberPoint of(Long memberId) {
-        return new MemberPoint(
-            memberId,
-            0,
-            0
-        );
+        return new MemberPoint(memberId, 0, 0);
+    }
+
+    public MemberPointId getMemberPointId() {
+        return new MemberPointId(this.id);
     }
 
     public void addPoints(Integer amount) {

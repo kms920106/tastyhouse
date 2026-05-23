@@ -1,6 +1,6 @@
-package com.tastyhouse.core.repository.point;
+package com.tastyhouse.core.domain.point.infrastructure.persistence;
 
-import com.tastyhouse.core.entity.point.MemberPointHistory;
+import com.tastyhouse.core.domain.point.domain.model.MemberPointHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberPointHistoryJpaRepository extends JpaRepository<MemberPointHistory, Long> {

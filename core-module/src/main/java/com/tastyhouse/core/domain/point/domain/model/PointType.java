@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.point;
+package com.tastyhouse.core.domain.point.domain.model;
 
 public enum PointType {
     EARNED,  // 적립

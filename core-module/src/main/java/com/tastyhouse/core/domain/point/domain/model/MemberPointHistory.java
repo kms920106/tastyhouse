@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.point;
+package com.tastyhouse.core.domain.point.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -28,44 +28,29 @@ public class MemberPointHistory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "point_type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private PointType pointType; // 포인트 유형 (EARN: 적립, USE: 사용, EXPIRE: 소멸, REFUND: 환불)
+    private PointType pointType;
 
     @Column(name = "point_amount", nullable = false)
-    private Integer pointAmount; // 포인트 변동 금액 (양수: 적립, 음수: 차감)
+    private Integer pointAmount;
 
     @Column(name = "reason", nullable = false, length = 200)
-    private String reason; // 포인트 변동 사유
+    private String reason;
 
-    private MemberPointHistory(
-        Long memberId,
-        PointType pointType,
-        Integer pointAmount,
-        String reason
-    ) {
+    private MemberPointHistory(Long memberId, PointType pointType, Integer pointAmount, String reason) {
         this.memberId = memberId;
         this.pointType = pointType;
         this.pointAmount = pointAmount;
         this.reason = reason;
     }
 
-    public static MemberPointHistory of(
-        Long memberId,
-        PointType pointType,
-        Integer pointAmount,
-        String reason
-    ) {
-        return new MemberPointHistory(
-            memberId,
-            pointType,
-            pointAmount,
-            reason
-        );
+    public static MemberPointHistory of(Long memberId, PointType pointType, Integer pointAmount, String reason) {
+        return new MemberPointHistory(memberId, pointType, pointAmount, reason);
     }
 }

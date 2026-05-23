@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.member.response;
 
-import com.tastyhouse.core.entity.point.MemberPointHistory;
-import com.tastyhouse.core.entity.point.PointType;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
+import com.tastyhouse.core.domain.point.domain.model.PointType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
@@ -20,14 +20,14 @@ public record PointHistoryItemResponse(
     @Schema(description = "포인트 유형 (EARNED: 적립, USE: 사용, REFUND: 환불)", example = "EARNED")
     PointType pointType
 ) {
-    public static PointHistoryItemResponse from(MemberPointHistory history) {
-    return new PointHistoryItemResponse(
-        history.getReason(),
-        history.getCreatedAt().toLocalDate(),
-        history.getPointType() == PointType.USE
-            ? -history.getPointAmount()
-            : history.getPointAmount(),
-        history.getPointType()
-    );
+    public static PointHistoryItemResponse from(MemberPointHistoryResult history) {
+        return new PointHistoryItemResponse(
+            history.reason(),
+            history.createdAt().toLocalDate(),
+            history.pointType() == PointType.USE
+                ? -history.pointAmount()
+                : history.pointAmount(),
+            history.pointType()
+        );
     }
 }
