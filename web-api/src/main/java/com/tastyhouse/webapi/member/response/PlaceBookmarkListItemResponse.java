@@ -7,7 +7,7 @@ public record PlaceBookmarkListItemResponse(
     String stationName,
     Double rating,
     String imageUrl,
-    Boolean isBookmarked
+    boolean bookmarked
 ) {
     public static PlaceBookmarkListItemResponse from(
         Long placeId,
@@ -16,7 +16,7 @@ public record PlaceBookmarkListItemResponse(
         String stationName,
         Double rating,
         String imageUrl,
-        Boolean isBookmarked
+        boolean bookmarked
     ) {
         return new PlaceBookmarkListItemResponse(
             placeId,
@@ -25,7 +25,7 @@ public record PlaceBookmarkListItemResponse(
             stationName,
             rating,
             imageUrl,
-            isBookmarked
+            bookmarked
         );
     }
 }
