@@ -1,13 +1,14 @@
-package com.tastyhouse.core.repository.follow;
+package com.tastyhouse.core.domain.follow.infrastructure.persistence;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.follow.Follow;
-import com.tastyhouse.core.entity.follow.QFollow;
-import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
+import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
+import com.tastyhouse.core.domain.follow.domain.model.Follow;
+import com.tastyhouse.core.domain.follow.domain.model.QFollow;
+import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.entity.follow.QFollow.follow;
+import static com.tastyhouse.core.domain.follow.domain.model.QFollow.follow;
 import static com.tastyhouse.core.entity.user.QMember.member;
 
 @Repository
@@ -108,7 +109,7 @@ public class FollowRepositoryImpl implements FollowRepository {
     }
 
     @Override
-    public Page<FollowMemberDto> findFollowingList(Long memberId, Long viewerMemberId, Pageable pageable) {
+    public Page<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, Pageable pageable) {
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
@@ -119,8 +120,8 @@ public class FollowRepositoryImpl implements FollowRepository {
                 .exists()
             : com.querydsl.core.types.dsl.Expressions.FALSE;
 
-        List<FollowMemberDto> content = queryFactory
-            .select(Projections.constructor(FollowMemberDto.class,
+        List<FollowMemberResult> content = queryFactory
+            .select(Projections.constructor(FollowMemberResult.class,
                 member.id,
                 member.nickname,
                 member.memberGrade,
@@ -145,7 +146,7 @@ public class FollowRepositoryImpl implements FollowRepository {
     }
 
     @Override
-    public Page<FollowMemberDto> findFollowerList(Long memberId, Long viewerMemberId, Pageable pageable) {
+    public Page<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, Pageable pageable) {
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
@@ -156,8 +157,8 @@ public class FollowRepositoryImpl implements FollowRepository {
                 .exists()
             : com.querydsl.core.types.dsl.Expressions.FALSE;
 
-        List<FollowMemberDto> content = queryFactory
-            .select(Projections.constructor(FollowMemberDto.class,
+        List<FollowMemberResult> content = queryFactory
+            .select(Projections.constructor(FollowMemberResult.class,
                 member.id,
                 member.nickname,
                 member.memberGrade,

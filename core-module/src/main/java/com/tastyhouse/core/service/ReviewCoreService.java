@@ -13,7 +13,7 @@ import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.PlaceReviewStatisticsDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
 import com.tastyhouse.core.entity.place.Tag;
-import com.tastyhouse.core.repository.follow.FollowRepository;
+import com.tastyhouse.core.domain.follow.application.FollowQueryService;
 import com.tastyhouse.core.repository.member.MemberRepository;
 import com.tastyhouse.core.repository.place.TagRepository;
 import com.tastyhouse.core.repository.review.ReviewCommentRepository;
@@ -47,7 +47,7 @@ import java.util.Optional;
 public class ReviewCoreService {
 
     private final ReviewRepository reviewRepository;
-    private final FollowRepository followRepository;
+    private final FollowQueryService followQueryService;
     private final ReviewTagRepository reviewTagRepository;
     private final TagRepository tagRepository;
     private final ReviewLikeRepository reviewLikeRepository;
@@ -91,7 +91,7 @@ public class ReviewCoreService {
 
     @Transactional(readOnly = true)
     public Page<LatestReviewListItemDto> findLatestReviewsByFollowingWithPagination(Long memberId, int page, int size) {
-        List<Long> followingMemberIds = followRepository.findFollowingIdsByFollowerId(memberId);
+        List<Long> followingMemberIds = followQueryService.findFollowingIds(memberId);
 
         PageRequest pageRequest = PageRequest.of(page, size);
         if (followingMemberIds.isEmpty()) {

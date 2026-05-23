@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.follow;
+package com.tastyhouse.core.domain.follow.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -23,13 +23,13 @@ public class Follow extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "follower_id", nullable = false)
-    private Long followerId; // 팔로우를 건 회원 ID (MEMBER.id 참조)
+    private Long followerId;
 
     @Column(name = "following_id", nullable = false)
-    private Long followingId; // 팔로우 대상 회원 ID (MEMBER.id 참조)
+    private Long followingId;
 
     public Follow(Long followerId, Long followingId) {
         this.followerId = followerId;

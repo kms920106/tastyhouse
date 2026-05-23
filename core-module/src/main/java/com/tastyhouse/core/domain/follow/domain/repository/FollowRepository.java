@@ -1,7 +1,7 @@
-package com.tastyhouse.core.repository.follow;
+package com.tastyhouse.core.domain.follow.domain.repository;
 
-import com.tastyhouse.core.entity.follow.Follow;
-import com.tastyhouse.core.entity.follow.dto.FollowMemberDto;
+import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
+import com.tastyhouse.core.domain.follow.domain.model.Follow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -26,7 +26,7 @@ public interface FollowRepository {
 
     void delete(Follow follow);
 
-    Page<FollowMemberDto> findFollowingList(Long memberId, Long viewerMemberId, Pageable pageable);
+    Page<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, Pageable pageable);
 
-    Page<FollowMemberDto> findFollowerList(Long memberId, Long viewerMemberId, Pageable pageable);
+    Page<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, Pageable pageable);
 }
