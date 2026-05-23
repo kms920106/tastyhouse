@@ -4,6 +4,7 @@ import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
+import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
@@ -53,6 +54,17 @@ public class ProductApiController {
         return productService.findProductById(productId)
             .map(product -> ResponseEntity.ok(CommonResponse.success(product)))
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "상품 이미지 목록 조회", description = "상품의 이미지 URL 목록을 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+        @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음")
+    })
+    @GetMapping("/v1/{productId}/images")
+    public ResponseEntity<CommonResponse<ProductImagesResponse>> getProductImages(@PathVariable Long productId) {
+        ProductImagesResponse response = productService.findProductImages(productId);
+        return ResponseEntity.ok(CommonResponse.success(response));
     }
 
     @Operation(summary = "상품 옵션 조회", description = "상품의 옵션 그룹 및 옵션 목록을 조회합니다. 개별 옵션(isCommon: false)과 공통 옵션(isCommon: true)을 단일 목록으로 반환합니다.")

@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.product;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.common.ReviewsByRatingResult;
 import com.tastyhouse.core.entity.product.Product;
-import com.tastyhouse.core.entity.product.ProductCategory;
 import com.tastyhouse.core.entity.product.ProductCommonOption;
 import com.tastyhouse.core.entity.product.ProductCommonOptionGroup;
 import com.tastyhouse.core.entity.product.ProductOption;
@@ -12,11 +11,11 @@ import com.tastyhouse.core.entity.product.dto.TodayDiscountProductDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
+import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewListItemResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
@@ -39,7 +38,6 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ProductCoreService productCoreService;
-    private final PlaceCoreService placeCoreService;
     private final ReviewCoreService reviewCoreService;
     private final FileService fileService;
 
@@ -68,36 +66,19 @@ public class ProductService {
     }
 
     private ProductDetailResponse buildProductDetailResponse(Product product) {
-        String placeName = placeCoreService.findPlaceById(product.getPlaceId()).getName();
-
-        String categoryName = null;
-        if (product.getProductCategoryId() != null) {
-            categoryName = productCoreService.findProductCategoryById(product.getProductCategoryId())
-                .map(ProductCategory::getName)
-                .orElse(null);
-        }
-
-        List<String> imageUrls = getAllImageUrls(product.getId());
-
         Map<String, Object> reviewStatistics = reviewCoreService.findProductReviewStatistics(product.getId());
         Long totalReviewCount = (Long) reviewStatistics.get("totalReviewCount");
         Integer reviewCount = totalReviewCount != null ? totalReviewCount.intValue() : 0;
 
         return ProductDetailResponse.from(
             product.getId(),
-            product.getPlaceId(),
-            placeName,
             product.getName(),
             product.getDescription(),
-            imageUrls,
             product.getOriginalPrice(),
             product.getDiscountPrice(),
             product.getDiscountRate(),
-            product.getRating(),
             reviewCount,
-            product.getIsRepresentative(),
-            product.getIsSoldOut(),
-            categoryName
+            product.getIsSoldOut()
         );
     }
 
@@ -178,6 +159,13 @@ public class ProductService {
         Long id, String name, Integer additionalPrice, Boolean isSoldOut
     ) {
         return ProductOptionGroupsResponse.OptionResponse.from(id, name, additionalPrice, isSoldOut);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductImagesResponse findProductImages(Long productId) {
+        productCoreService.findProductById(productId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+        return ProductImagesResponse.from(getAllImageUrls(productId));
     }
 
     private List<String> getAllImageUrls(Long productId) {
