@@ -19,25 +19,25 @@ public class ProductCommonOption extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "option_group_id", nullable = false)
-    private Long optionGroupId;
+    private Long optionGroupId; // 공통 옵션 그룹 ID (PRODUCT_COMMON_OPTION_GROUP.id 참조)
 
     @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    private String name; // 공통 옵션명
 
     @Column(name = "additional_price", nullable = false)
-    private Integer additionalPrice;
+    private Integer additionalPrice; // 추가 금액 (원)
 
     @Column(name = "sort", nullable = false)
-    private Integer sort;
+    private Integer sort; // 정렬 순서
 
     @Column(name = "is_sold_out", nullable = false)
-    private Boolean isSoldOut;
+    private Boolean isSoldOut; // 품절 여부 (true: 품절)
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive; // 활성화 여부 (true: 활성)
 
     private ProductCommonOption(
         Long optionGroupId,

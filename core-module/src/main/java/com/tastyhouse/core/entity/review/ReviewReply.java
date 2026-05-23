@@ -16,22 +16,22 @@ public class ReviewReply extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "comment_id", nullable = false)
-    private Long commentId;
+    private Long commentId; // 댓글 ID (REVIEW_COMMENT.id 참조)
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 답글 작성자 회원 ID (MEMBER.id 참조)
 
     @Column(name = "reply_to_member_id")
-    private Long replyToMemberId; // 답글 대상 멤버 ID (nullable)
+    private Long replyToMemberId; // 답글 대상 회원 ID (MEMBER.id 참조, null이면 댓글에 대한 첫 답글)
 
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
-    private String content;
+    private String content; // 답글 내용
 
     @Column(name = "is_hidden", nullable = false)
-    private Boolean isHidden = false; // 관리자 미노출 여부
+    private Boolean isHidden = false; // 숨김 여부 (true: 관리자에 의해 숨김 처리)
 
     protected ReviewReply() {
     }

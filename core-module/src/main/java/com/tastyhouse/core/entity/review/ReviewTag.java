@@ -18,13 +18,13 @@ public class ReviewTag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    private Long reviewId; // 리뷰 ID (REVIEW.id 참조)
 
     @Column(name = "tag_id", nullable = false)
-    private Long tagId;
+    private Long tagId; // 태그 ID (TAG.id 참조)
 
     public ReviewTag(Long reviewId, Long tagId) {
         this.reviewId = reviewId;

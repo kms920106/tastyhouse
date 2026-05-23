@@ -36,22 +36,22 @@ public class MemberCoupon extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 회원 ID (MEMBER.id 참조)
 
     @Column(name = "coupon_id", nullable = false)
-    private Long couponId;
+    private Long couponId; // 쿠폰 ID (COUPON.id 참조)
 
     @Column(name = "is_used", nullable = false)
-    private Boolean isUsed = false;
+    private Boolean isUsed = false; // 사용 여부 (true: 사용)
 
     @Column(name = "used_at")
-    private LocalDateTime usedAt;
+    private LocalDateTime usedAt; // 사용 일시
 
     @Column(name = "expired_at", nullable = false)
-    private LocalDateTime expiredAt;
+    private LocalDateTime expiredAt; // 만료 일시
 
     private MemberCoupon(
         Long memberId,

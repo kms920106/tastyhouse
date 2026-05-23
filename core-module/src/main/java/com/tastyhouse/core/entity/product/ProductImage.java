@@ -19,19 +19,19 @@ public class ProductImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private Long productId; // 상품 ID (PRODUCT.id 참조)
 
     @Column(name = "sort", nullable = false)
-    private Integer sort;
+    private Integer sort; // 이미지 정렬 순서
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive; // 활성화 여부 (true: 활성)
 
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
+    private Long imageFileId; // 이미지 파일 ID (FILE.id 참조)
 
     private ProductImage(
         Long productId,

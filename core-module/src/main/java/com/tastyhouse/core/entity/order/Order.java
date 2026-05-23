@@ -21,56 +21,56 @@ public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 주문한 회원 ID (MEMBER.id 참조)
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 주문 장소 ID (PLACE.id 참조)
 
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
-    private String orderNumber;
+    private String orderNumber; // 주문 번호 (고유 식별 번호)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private OrderStatus orderStatus;
+    private OrderStatus orderStatus; // 주문 상태 (PENDING: 대기, CONFIRMED: 확정, CANCELLED: 취소)
 
     @Column(name = "orderer_name", nullable = false, length = 100)
-    private String ordererName;
+    private String ordererName; // 주문자 이름
 
     @Column(name = "orderer_phone", nullable = false, length = 20)
-    private String ordererPhone;
+    private String ordererPhone; // 주문자 연락처
 
     @Column(name = "orderer_email", length = 100)
-    private String ordererEmail;
+    private String ordererEmail; // 주문자 이메일
 
     @Column(name = "total_product_amount", nullable = false)
-    private Integer totalProductAmount;
+    private Integer totalProductAmount; // 상품 금액 합계 (할인 전)
 
     @Column(name = "product_discount_amount", nullable = false)
-    private Integer productDiscountAmount;
+    private Integer productDiscountAmount; // 상품 자체 할인 금액
 
     @Column(name = "coupon_discount_amount", nullable = false)
-    private Integer couponDiscountAmount;
+    private Integer couponDiscountAmount; // 쿠폰 할인 금액
 
     @Column(name = "point_discount_amount", nullable = false)
-    private Integer pointDiscountAmount;
+    private Integer pointDiscountAmount; // 포인트 할인 금액
 
     @Column(name = "total_discount_amount", nullable = false)
-    private Integer totalDiscountAmount;
+    private Integer totalDiscountAmount; // 총 할인 금액 합계
 
     @Column(name = "final_amount", nullable = false)
-    private Integer finalAmount;
+    private Integer finalAmount; // 최종 결제 금액
 
     @Column(name = "member_coupon_id")
-    private Long memberCouponId;
+    private Long memberCouponId; // 사용한 회원 쿠폰 ID (MEMBER_COUPON.id 참조, null이면 쿠폰 미사용)
 
     @Column(name = "used_point", nullable = false)
-    private Integer usedPoint;
+    private Integer usedPoint; // 사용한 포인트
 
     @Column(name = "earned_point", nullable = false)
-    private Integer earnedPoint;
+    private Integer earnedPoint; // 이 주문으로 적립된 포인트
 
     private Order(
         Long memberId,

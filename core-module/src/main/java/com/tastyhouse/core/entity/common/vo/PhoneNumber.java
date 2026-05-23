@@ -13,7 +13,7 @@ public class PhoneNumber {
     private static final String PHONE_NUMBER_PATTERN = "^01[0-9]{8,9}$";
 
     @Column(name = "phone_number", nullable = false, length = 11)
-    private String value;
+    private String value; // 휴대폰 번호 (01012345678 형식)
 
     protected PhoneNumber() {
     }

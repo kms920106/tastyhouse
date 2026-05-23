@@ -19,16 +19,16 @@ public class PlacePhotoCategoryImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_photo_category_id", nullable = false)
-    private Long placePhotoCategoryId; // 이미지 카테고리 ID
+    private Long placePhotoCategoryId; // 사진 카테고리 ID (PLACE_PHOTO_CATEGORY.id 참조)
 
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
+    private Long imageFileId; // 이미지 파일 ID (FILE.id 참조)
 
     @Column(name = "sort", nullable = false)
-    private Integer sort;
+    private Integer sort; // 정렬 순서
 
     private PlacePhotoCategoryImage(
         Long placePhotoCategoryId,

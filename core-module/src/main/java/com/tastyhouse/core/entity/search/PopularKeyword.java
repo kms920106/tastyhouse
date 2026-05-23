@@ -21,19 +21,19 @@ public class PopularKeyword extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "keyword", nullable = false)
-    private String keyword;
+    private String keyword; // 인기 검색어
 
     @Column(name = "rank", nullable = false)
-    private int rank;
+    private int rank; // 인기 순위
 
     @Column(name = "is_new", nullable = false)
-    private Boolean isNew;
+    private Boolean isNew; // 신규 키워드 여부 (true: 신규)
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive; // 활성화 여부 (true: 활성)
 
     private PopularKeyword(String keyword, int rank, Boolean isNew, Boolean isActive) {
         this.keyword = keyword;

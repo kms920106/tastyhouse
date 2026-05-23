@@ -31,44 +31,44 @@ public class Coupon extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "name", nullable = false, length = 200)
-    private String name;
+    private String name; // 쿠폰 이름
 
     @Column(name = "description", length = 500)
-    private String description;
+    private String description; // 쿠폰 설명
 
     @Enumerated(EnumType.STRING)
     @Column(name = "discount_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DiscountType discountType = DiscountType.AMOUNT;
+    private DiscountType discountType = DiscountType.AMOUNT; // 할인 유형 (AMOUNT: 금액, RATE: 비율)
 
     @Column(name = "discount_amount", nullable = false)
-    private Integer discountAmount;
+    private Integer discountAmount; // 할인 금액 또는 할인율
 
     @Column(name = "max_discount_amount")
-    private Integer maxDiscountAmount;
+    private Integer maxDiscountAmount; // 최대 할인 금액 (비율 할인 시 상한)
 
     @Column(name = "min_order_amount", nullable = false)
-    private Integer minOrderAmount = 0;
+    private Integer minOrderAmount = 0; // 최소 주문 금액
 
     @Column(name = "max_discount_count")
-    private Integer maxDiscountCount;
+    private Integer maxDiscountCount; // 최대 발급 수량
 
     @Column(name = "issue_start_at", nullable = false)
-    private LocalDateTime issueStartAt;
+    private LocalDateTime issueStartAt; // 발급 시작 일시
 
     @Column(name = "issue_end_at", nullable = false)
-    private LocalDateTime issueEndAt;
+    private LocalDateTime issueEndAt; // 발급 종료 일시
 
     @Column(name = "use_start_at", nullable = false)
-    private LocalDateTime useStartAt;
+    private LocalDateTime useStartAt; // 사용 가능 시작 일시
 
     @Column(name = "use_end_at", nullable = false)
-    private LocalDateTime useEndAt;
+    private LocalDateTime useEndAt; // 사용 가능 종료 일시
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    private Boolean isActive = true; // 활성화 여부 (true: 활성)
 
     private Coupon(
         String name,

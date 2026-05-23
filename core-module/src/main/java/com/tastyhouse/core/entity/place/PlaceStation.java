@@ -15,8 +15,8 @@ public class PlaceStation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "station_name", nullable = false)
-    private String stationName;
+    private String stationName; // 지하철역 이름
 }

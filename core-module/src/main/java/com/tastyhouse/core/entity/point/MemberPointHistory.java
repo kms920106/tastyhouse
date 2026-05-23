@@ -28,20 +28,20 @@ public class MemberPointHistory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 회원 ID (MEMBER.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "point_type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private PointType pointType;
+    private PointType pointType; // 포인트 유형 (EARN: 적립, USE: 사용, EXPIRE: 소멸, REFUND: 환불)
 
     @Column(name = "point_amount", nullable = false)
-    private Integer pointAmount;
+    private Integer pointAmount; // 포인트 변동 금액 (양수: 적립, 음수: 차감)
 
     @Column(name = "reason", nullable = false, length = 200)
-    private String reason;
+    private String reason; // 포인트 변동 사유
 
     private MemberPointHistory(
         Long memberId,

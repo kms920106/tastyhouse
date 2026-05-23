@@ -23,52 +23,52 @@ public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "username", nullable = false, unique = true, length = 50)
-    private String username;
+    private String username; // 로그인 아이디 (이메일 형식)
 
     @Column(name = "password")
-    private String password;
+    private String password; // 비밀번호 (암호화 저장, 소셜 로그인 회원은 null)
 
     @Column(name = "nickname", nullable = false, length = 50)
-    private String nickname;
+    private String nickname; // 닉네임
 
     @Column(name = "full_name", nullable = false, length = 100)
-    private String fullName;
+    private String fullName; // 실명
 
     @Column(name = "birth_date", nullable = false)
-    private Integer birthDate;
+    private Integer birthDate; // 생년월일 (yyyyMMdd 형식, 예: 19900101)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false, length = 10, columnDefinition = "VARCHAR(10)")
-    private Gender gender;
+    private Gender gender; // 성별 (예: MALE, FEMALE)
 
     @Embedded
-    private PhoneNumber phoneNumber;
+    private PhoneNumber phoneNumber; // 휴대폰 번호 (값 객체)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_grade", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberGrade memberGrade = MemberGrade.NEWCOMER;
+    private MemberGrade memberGrade = MemberGrade.NEWCOMER; // 회원 등급 (예: NEWCOMER, REGULAR, VIP)
 
     @Column(name = "profile_image_file_id")
-    private Long profileImageFileId;
+    private Long profileImageFileId; // 프로필 이미지 파일 ID (FILE.id 참조)
 
     @Column(name = "status_message", length = 200)
-    private String statusMessage;
+    private String statusMessage; // 상태 메시지
 
     @Column(name = "push_notification_enabled", nullable = false)
-    private Boolean pushNotificationEnabled = true;
+    private Boolean pushNotificationEnabled = true; // 푸시 알림 수신 동의 여부 (true: 수신 동의)
 
     @Column(name = "marketing_info_enabled", nullable = false)
-    private Boolean marketingInfoEnabled = false;
+    private Boolean marketingInfoEnabled = false; // 마케팅 정보 수신 동의 여부 (true: 수신 동의)
 
     @Column(name = "event_info_enabled", nullable = false)
-    private Boolean eventInfoEnabled = false;
+    private Boolean eventInfoEnabled = false; // 이벤트 정보 수신 동의 여부 (true: 수신 동의)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberStatus memberStatus = MemberStatus.ACTIVE;
+    private MemberStatus memberStatus = MemberStatus.ACTIVE; // 회원 상태 (예: ACTIVE, SUSPENDED, DELETED)
 
     private Member(
         String username,

@@ -21,26 +21,26 @@ public class PlaceAmenityCategory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Enumerated(EnumType.STRING)
     @Column(name = "amenity", nullable = false, unique = true, length = 50, columnDefinition = "VARCHAR(50)")
-    private Amenity amenity;
+    private Amenity amenity; // 편의시설 유형 (WIFI, PARKING, PET_FRIENDLY 등)
 
     @Column(name = "display_name", nullable = false, length = 100)
-    private String displayName;
+    private String displayName; // 화면 표시명
 
     @Column(name = "active_image_file_id", nullable = false)
-    private Long activeImageFileId;
+    private Long activeImageFileId; // 활성 상태 아이콘 파일 ID (FILE.id 참조)
 
     @Column(name = "inactive_image_file_id", nullable = false)
-    private Long inactiveImageFileId;
+    private Long inactiveImageFileId; // 비활성 상태 아이콘 파일 ID (FILE.id 참조)
 
     @Column(name = "sort", nullable = false)
-    private Integer sort;
+    private Integer sort; // 정렬 순서
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive; // 사용 여부 (true: 사용 중)
 
     private PlaceAmenityCategory(
         Amenity amenity,

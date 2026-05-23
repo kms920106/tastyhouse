@@ -23,19 +23,19 @@ public class ProductBbq extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "product_id", nullable = false, unique = true)
-    private Long productId;
+    private Long productId; // 상품 ID (PRODUCT.id 참조)
 
     @Column(name = "bbq_menu_id", nullable = false)
-    private Long bbqMenuId;
+    private Long bbqMenuId; // BBQ API 외부 메뉴 ID
 
     @Column(name = "bbq_category_id")
-    private Long bbqCategoryId;
+    private Long bbqCategoryId; // BBQ API 외부 카테고리 ID
 
     @Column(name = "is_options_synced", nullable = false)
-    private Boolean isOptionsSynced;
+    private Boolean isOptionsSynced; // 옵션 동기화 완료 여부 (true: 동기화 완료)
 
     private ProductBbq(
         Long productId,

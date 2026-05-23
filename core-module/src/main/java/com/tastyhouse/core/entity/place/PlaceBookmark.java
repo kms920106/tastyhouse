@@ -16,13 +16,13 @@ public class PlaceBookmark extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 장소 ID (PLACE.id 참조)
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 회원 ID (MEMBER.id 참조)
 
     protected PlaceBookmark() {
     }

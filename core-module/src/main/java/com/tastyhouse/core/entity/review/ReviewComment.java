@@ -16,19 +16,19 @@ public class ReviewComment extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    private Long reviewId; // 리뷰 ID (REVIEW.id 참조)
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 댓글 작성자 회원 ID (MEMBER.id 참조)
 
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
-    private String content;
+    private String content; // 댓글 내용
 
     @Column(name = "is_hidden", nullable = false)
-    private Boolean isHidden = false; // 관리자 미노출 여부
+    private Boolean isHidden = false; // 숨김 여부 (true: 관리자에 의해 숨김 처리)
 
     protected ReviewComment() {
     }

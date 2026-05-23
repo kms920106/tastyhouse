@@ -19,34 +19,34 @@ public class OrderItem extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "order_id", nullable = false)
-    private Long orderId;
+    private Long orderId; // 주문 ID (ORDERS.id 참조)
 
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private Long productId; // 상품 ID (PRODUCT.id 참조)
 
     @Column(name = "product_name", nullable = false)
-    private String productName;
+    private String productName; // 주문 당시 상품명 (스냅샷)
 
     @Column(name = "product_image_url", length = 500)
-    private String productImageUrl;
+    private String productImageUrl; // 주문 당시 상품 이미지 URL (스냅샷)
 
     @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    private Integer quantity; // 주문 수량
 
     @Column(name = "unit_price", nullable = false)
-    private Integer unitPrice;
+    private Integer unitPrice; // 단위 상품 가격 (할인 전)
 
     @Column(name = "discount_price")
-    private Integer discountPrice;
+    private Integer discountPrice; // 상품 할인 금액 (null이면 할인 없음)
 
     @Column(name = "option_total_price", nullable = false)
-    private Integer optionTotalPrice;
+    private Integer optionTotalPrice; // 선택 옵션 추가 금액 합계
 
     @Column(name = "total_price", nullable = false)
-    private Integer totalPrice;
+    private Integer totalPrice; // 이 주문 항목의 최종 금액 합계
 
     private OrderItem(
         Long orderId,

@@ -16,14 +16,14 @@ public class PlaceChoice extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 장소 ID (PLACE.id 참조)
 
     @Column(name = "title", nullable = false, length = 200)
-    private String title;
+    private String title; // 선택지 제목
 
     @Column(name = "content", columnDefinition = "TEXT")
-    private String content;
+    private String content; // 선택지 상세 내용
 }

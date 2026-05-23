@@ -30,22 +30,22 @@ public class EventWinner extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "event_id", nullable = false)
-    private Long eventId;
+    private Long eventId; // 이벤트 ID (EVENT.id 참조)
 
     @Column(name = "rank_no", nullable = false)
-    private Integer rankNo;
+    private Integer rankNo; // 당첨 순위
 
     @Column(name = "winner_name", nullable = false, length = 50)
-    private String winnerName;
+    private String winnerName; // 당첨자 이름
 
     @Embedded
-    private PhoneNumber phoneNumber;
+    private PhoneNumber phoneNumber; // 휴대폰 번호 (값 객체)
 
     @Column(name = "announced_at", nullable = false)
-    private LocalDateTime announcedAt;
+    private LocalDateTime announcedAt; // 당첨 발표 일시
 
     private EventWinner(
         Long eventId,

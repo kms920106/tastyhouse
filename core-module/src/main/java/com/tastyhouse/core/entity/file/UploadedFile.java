@@ -25,22 +25,22 @@ public class UploadedFile extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "original_filename", nullable = false, length = 500)
-    private String originalFilename;
+    private String originalFilename; // 업로드 원본 파일명
 
     @Column(name = "stored_filename", nullable = false, length = 500)
-    private String storedFilename;
+    private String storedFilename; // 서버에 저장된 파일명 (UUID 등으로 변환된 이름)
 
     @Column(name = "file_path", nullable = false, length = 1000)
-    private String filePath;
+    private String filePath; // 파일 저장 경로
 
     @Column(name = "file_size", nullable = false)
-    private Long fileSize;
+    private Long fileSize; // 파일 크기 (bytes)
 
     @Column(name = "content_type", nullable = false, length = 100)
-    private String contentType;
+    private String contentType; // MIME 타입 (예: image/jpeg, application/pdf)
 
     private UploadedFile(
         String originalFilename,

@@ -22,14 +22,14 @@ public class PlaceOrderMethod extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 장소 ID (PLACE.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private OrderMethod orderMethod;
+    private OrderMethod orderMethod; // 주문 방식 (COUNTER, KIOSK, TABLE_ORDER, APP 등)
 
     private PlaceOrderMethod(
         Long placeId,

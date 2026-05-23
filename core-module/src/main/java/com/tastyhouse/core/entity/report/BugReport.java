@@ -25,13 +25,13 @@ public class BugReport extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 신고한 회원 ID (MEMBER.id 참조)
 
     @Column(name = "device", nullable = false, length = 100)
-    private String device; // 단말기 (iPhone 18, Galaxy 24SE 등)
+    private String device; // 기기 정보 (iPhone 18, Galaxy 24SE 등)
 
     @Column(name = "title", nullable = false, length = 200)
     private String title; // 제목

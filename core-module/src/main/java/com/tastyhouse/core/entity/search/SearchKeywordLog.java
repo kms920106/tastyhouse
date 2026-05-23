@@ -20,13 +20,13 @@ public class SearchKeywordLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "keyword", nullable = false)
-    private String keyword;
+    private String keyword; // 검색어
 
     @Column(name = "searched_at", nullable = false)
-    private LocalDateTime searchedAt;
+    private LocalDateTime searchedAt; // 검색 일시
 
     private SearchKeywordLog(String keyword, LocalDateTime searchedAt) {
         this.keyword = keyword;

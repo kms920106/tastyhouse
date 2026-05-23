@@ -25,16 +25,16 @@ public class BugReportImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "bug_report_id", nullable = false)
-    private Long bugReportId;
+    private Long bugReportId; // 버그 신고 ID (BUG_REPORT.id 참조)
 
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
+    private Long imageFileId; // 이미지 파일 ID (UPLOADED_FILE.id 참조)
 
     @Column(name = "sort", nullable = false)
-    private Integer sort;
+    private Integer sort; // 정렬 순서
 
     private BugReportImage(
         Long bugReportId,

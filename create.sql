@@ -1,979 +1,979 @@
 CREATE TABLE BANNER
 (
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    type             VARCHAR(20) NOT NULL,
-    title            VARCHAR(100),
-    image_file_id    BIGINT      NOT NULL,
-    link_url         VARCHAR(500),
-    start_date       DATETIME,
-    end_date         DATETIME,
-    sort             INT         NOT NULL,
-    is_active        TINYINT(1)  NOT NULL DEFAULT 1,
-    created_at       DATETIME    NOT NULL,
-    updated_at       DATETIME    NOT NULL,
-    INDEX idx_banner_type (type),
-    INDEX idx_banner_type_active (type, is_active, sort)
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 배너 ID (PK)
+    type             VARCHAR(20) NOT NULL,               -- 배너 유형 (MAIN, EVENT 등)
+    title            VARCHAR(100),                       -- 배너 제목
+    image_file_id    BIGINT      NOT NULL,               -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    link_url         VARCHAR(500),                       -- 클릭 시 이동 URL
+    start_date       DATETIME,                           -- 노출 시작 일시
+    end_date         DATETIME,                           -- 노출 종료 일시
+    sort             INT         NOT NULL,               -- 정렬 순서
+    is_active        TINYINT(1)  NOT NULL DEFAULT 1,     -- 활성화 여부 (1: 활성, 0: 비활성)
+    created_at       DATETIME    NOT NULL,               -- 생성 일시
+    updated_at       DATETIME    NOT NULL,               -- 수정 일시
+    INDEX idx_banner_type (type),                        -- 인덱스: 유형별 조회
+    INDEX idx_banner_type_active (type, is_active, sort) -- 인덱스: 유형·활성·정렬 복합 조회
 );
 
 CREATE TABLE BUG_REPORT
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id  BIGINT       NOT NULL,
-    device     VARCHAR(100) NOT NULL,
-    title      VARCHAR(200) NOT NULL,
-    content    TEXT         NOT NULL,
-    created_at DATETIME     NOT NULL,
-    updated_at DATETIME     NOT NULL,
-    INDEX idx_bug_report_member_id (member_id)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 버그 신고 ID (PK)
+    member_id  BIGINT       NOT NULL,             -- 신고한 회원 ID (MEMBER.id 참조)
+    device     VARCHAR(100) NOT NULL,             -- 기기 정보
+    title      VARCHAR(200) NOT NULL,             -- 신고 제목
+    content    TEXT         NOT NULL,             -- 신고 내용
+    created_at DATETIME     NOT NULL,             -- 생성 일시
+    updated_at DATETIME     NOT NULL,             -- 수정 일시
+    INDEX idx_bug_report_member_id (member_id)    -- 인덱스: 회원별 조회
 );
 
 CREATE TABLE BUG_REPORT_IMAGE
 (
-    id               BIGINT   AUTO_INCREMENT PRIMARY KEY,
-    bug_report_id    BIGINT   NOT NULL,
-    image_file_id    BIGINT   NOT NULL,
-    sort             INT      NOT NULL,
-    created_at       DATETIME NOT NULL,
-    updated_at       DATETIME NOT NULL,
-    INDEX idx_bug_report_image_bug_report_id (bug_report_id)
+    id               BIGINT   AUTO_INCREMENT PRIMARY KEY,    -- 버그 신고 이미지 ID (PK)
+    bug_report_id    BIGINT   NOT NULL,                      -- 버그 신고 ID (BUG_REPORT.id 참조)
+    image_file_id    BIGINT   NOT NULL,                      -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    sort             INT      NOT NULL,                      -- 정렬 순서
+    created_at       DATETIME NOT NULL,                      -- 생성 일시
+    updated_at       DATETIME NOT NULL,                      -- 수정 일시
+    INDEX idx_bug_report_image_bug_report_id (bug_report_id) -- 인덱스: 버그 신고별 조회
 );
 
 CREATE TABLE COUPON
 (
-    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name               VARCHAR(200) NOT NULL,
-    description        VARCHAR(500),
-    discount_type      VARCHAR(20)  NOT NULL DEFAULT 'AMOUNT',
-    discount_amount    INT          NOT NULL,
-    max_discount_amount INT,
-    min_order_amount   INT          NOT NULL DEFAULT 0,
-    max_discount_count INT,
-    issue_start_at     DATETIME     NOT NULL,
-    issue_end_at       DATETIME     NOT NULL,
-    use_start_at       DATETIME     NOT NULL,
-    use_end_at         DATETIME     NOT NULL,
-    is_active          TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at         DATETIME     NOT NULL,
-    updated_at         DATETIME     NOT NULL,
-    INDEX idx_coupon_active (is_active),
-    INDEX idx_coupon_issue_period (issue_start_at, issue_end_at),
-    INDEX idx_coupon_use_period (use_start_at, use_end_at)
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,         -- 쿠폰 ID (PK)
+    name               VARCHAR(200) NOT NULL,                     -- 쿠폰 이름
+    description        VARCHAR(500),                              -- 쿠폰 설명
+    discount_type      VARCHAR(20)  NOT NULL DEFAULT 'AMOUNT',    -- 할인 유형 (AMOUNT: 금액, RATE: 비율)
+    discount_amount    INT          NOT NULL,                     -- 할인 금액 또는 할인율
+    max_discount_amount INT,                                      -- 최대 할인 금액 (비율 할인 시 상한)
+    min_order_amount   INT          NOT NULL DEFAULT 0,           -- 최소 주문 금액
+    max_discount_count INT,                                       -- 최대 발급 수량
+    issue_start_at     DATETIME     NOT NULL,                     -- 발급 시작 일시
+    issue_end_at       DATETIME     NOT NULL,                     -- 발급 종료 일시
+    use_start_at       DATETIME     NOT NULL,                     -- 사용 가능 시작 일시
+    use_end_at         DATETIME     NOT NULL,                     -- 사용 가능 종료 일시
+    is_active          TINYINT(1)   NOT NULL DEFAULT 1,           -- 활성화 여부 (1: 활성, 0: 비활성)
+    created_at         DATETIME     NOT NULL,                     -- 생성 일시
+    updated_at         DATETIME     NOT NULL,                     -- 수정 일시
+    INDEX idx_coupon_active (is_active),                          -- 인덱스: 활성화 여부별 조회
+    INDEX idx_coupon_issue_period (issue_start_at, issue_end_at), -- 인덱스: 발급 기간 조회
+    INDEX idx_coupon_use_period (use_start_at, use_end_at)        -- 인덱스: 사용 기간 조회
 );
 
 CREATE TABLE MEMBER_COUPON
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id  BIGINT      NOT NULL,
-    coupon_id  BIGINT      NOT NULL,
-    is_used    TINYINT(1)  NOT NULL DEFAULT 0,
-    used_at    DATETIME,
-    expired_at DATETIME    NOT NULL,
-    created_at DATETIME    NOT NULL,
-    updated_at DATETIME    NOT NULL,
-    UNIQUE KEY uk_member_coupon (member_id, coupon_id),
-    INDEX idx_member_coupon_member_id (member_id),
-    INDEX idx_member_coupon_coupon_id (coupon_id),
-    INDEX idx_member_coupon_used (member_id, is_used)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,              -- 회원 쿠폰 ID (PK)
+    member_id  BIGINT      NOT NULL,                           -- 회원 ID (MEMBER.id 참조)
+    coupon_id  BIGINT      NOT NULL,                           -- 쿠폰 ID (COUPON.id 참조)
+    is_used    TINYINT(1)  NOT NULL DEFAULT 0,                 -- 사용 여부 (1: 사용, 0: 미사용)
+    used_at    DATETIME,                                       -- 사용 일시
+    expired_at DATETIME    NOT NULL,                           -- 만료 일시
+    created_at DATETIME    NOT NULL,                           -- 생성 일시
+    updated_at DATETIME    NOT NULL,                           -- 수정 일시
+    UNIQUE KEY uk_member_coupon (member_id, coupon_id),        -- 유니크: 회원당 쿠폰 중복 발급 방지
+    INDEX idx_member_coupon_member_id (member_id),             -- 인덱스: 회원별 조회
+    INDEX idx_member_coupon_coupon_id (coupon_id),             -- 인덱스: 쿠폰별 조회
+    INDEX idx_member_coupon_used (member_id, is_used)          -- 인덱스: 회원·사용여부 복합 조회
 );
 
 CREATE TABLE EVENT_WINNER
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    event_id     BIGINT      NOT NULL,
-    rank_no      INT         NOT NULL,
-    winner_name  VARCHAR(50) NOT NULL,
-    phone_number VARCHAR(11) NOT NULL,
-    announced_at DATETIME    NOT NULL,
-    created_at   DATETIME    NOT NULL,
-    updated_at   DATETIME    NOT NULL,
-    INDEX idx_event_winner_event_id (event_id),
-    INDEX idx_event_winner_announced_at (announced_at)
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 이벤트 당첨자 ID (PK)
+    event_id     BIGINT      NOT NULL,                               -- 이벤트 ID (EVENT.id 참조)
+    rank_no      INT         NOT NULL,                               -- 당첨 순위
+    winner_name  VARCHAR(50) NOT NULL,                               -- 당첨자 이름
+    phone_number VARCHAR(11) NOT NULL,                               -- 당첨자 휴대폰 번호
+    announced_at DATETIME    NOT NULL,                               -- 당첨 발표 일시
+    created_at   DATETIME    NOT NULL,                               -- 생성 일시
+    updated_at   DATETIME    NOT NULL,                               -- 수정 일시
+    INDEX idx_event_winner_event_id (event_id),                      -- 인덱스: 이벤트별 조회
+    INDEX idx_event_winner_announced_at (announced_at)               -- 인덱스: 발표 일시별 조회
 );
 
 CREATE TABLE EVENT
 (
-    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name                    VARCHAR(200) NOT NULL,
-    description             VARCHAR(1000),
-    subtitle                VARCHAR(200),
-    thumbnail_image_file_id BIGINT,
-    banner_image_file_id    BIGINT,
-    content_html            TEXT,
-    status              VARCHAR(20)  NOT NULL,
-    start_at            DATETIME     NOT NULL,
-    end_at              DATETIME     NOT NULL,
-    created_at          DATETIME     NOT NULL,
-    updated_at          DATETIME     NOT NULL,
-    INDEX idx_event_status (status),
-    INDEX idx_event_period (start_at, end_at)
+    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 이벤트 ID (PK)
+    name                    VARCHAR(200) NOT NULL,              -- 이벤트 이름
+    description             VARCHAR(1000),                      -- 이벤트 설명
+    subtitle                VARCHAR(200),                       -- 이벤트 부제목
+    thumbnail_image_file_id BIGINT,                             -- 썸네일 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    banner_image_file_id    BIGINT,                             -- 배너 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    content_html            TEXT,                               -- 이벤트 상세 내용 (HTML)
+    status              VARCHAR(20)  NOT NULL,                  -- 이벤트 상태 (UPCOMING, ONGOING, ENDED 등)
+    start_at            DATETIME     NOT NULL,                  -- 이벤트 시작 일시
+    end_at              DATETIME     NOT NULL,                  -- 이벤트 종료 일시
+    created_at          DATETIME     NOT NULL,                  -- 생성 일시
+    updated_at          DATETIME     NOT NULL,                  -- 수정 일시
+    INDEX idx_event_status (status),                            -- 인덱스: 상태별 조회
+    INDEX idx_event_period (start_at, end_at)                   -- 인덱스: 기간별 조회
 );
 
 CREATE TABLE EVENT_ANNOUNCEMENT
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    event_id     BIGINT       NOT NULL UNIQUE,
-    name         VARCHAR(200) NOT NULL,
-    content      VARCHAR(1000) NOT NULL,
-    announced_at DATETIME     NOT NULL,
-    created_at   DATETIME     NOT NULL,
-    updated_at   DATETIME     NOT NULL,
-    INDEX idx_event_announcement_event_id (event_id),
-    INDEX idx_event_announcement_announced_at (announced_at)
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,                              -- 이벤트 공지 ID (PK)
+    event_id     BIGINT       NOT NULL UNIQUE,                                   -- 이벤트 ID (EVENT.id 참조, 이벤트당 1개)
+    name         VARCHAR(200) NOT NULL,                                          -- 공지 이름
+    content      VARCHAR(1000) NOT NULL,                                         -- 공지 내용
+    announced_at DATETIME     NOT NULL,                                          -- 공지 발표 일시
+    created_at   DATETIME     NOT NULL,                                          -- 생성 일시
+    updated_at   DATETIME     NOT NULL,                                          -- 수정 일시
+    INDEX idx_event_announcement_event_id (event_id),                            -- 인덱스: 이벤트별 조회
+    INDEX idx_event_announcement_announced_at (announced_at)                     -- 인덱스: 발표 일시별 조회
 );
 
 CREATE TABLE FOLLOW
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    follower_id  BIGINT   NOT NULL,
-    following_id BIGINT   NOT NULL,
-    created_at   DATETIME NOT NULL,
-    updated_at   DATETIME NOT NULL,
-    UNIQUE KEY uk_follow_follower_following (follower_id, following_id),
-    INDEX idx_follow_follower_id (follower_id),
-    INDEX idx_follow_following_id (following_id)
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,                     -- 팔로우 ID (PK)
+    follower_id  BIGINT   NOT NULL,                                     -- 팔로워 회원 ID (MEMBER.id 참조)
+    following_id BIGINT   NOT NULL,                                     -- 팔로잉 회원 ID (MEMBER.id 참조)
+    created_at   DATETIME NOT NULL,                                     -- 생성 일시
+    updated_at   DATETIME NOT NULL,                                     -- 수정 일시
+    UNIQUE KEY uk_follow_follower_following (follower_id, following_id), -- 유니크: 중복 팔로우 방지
+    INDEX idx_follow_follower_id (follower_id),                          -- 인덱스: 팔로워별 조회
+    INDEX idx_follow_following_id (following_id)                         -- 인덱스: 팔로잉별 조회
 );
 
 CREATE TABLE MEMBER
 (
-    id                        BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username                  VARCHAR(50)  NOT NULL UNIQUE,
-    password                  VARCHAR(255),
-    nickname                  VARCHAR(50)  NOT NULL,
-    full_name                 VARCHAR(100) NOT NULL,
-    birth_date                INT,
-    gender                    VARCHAR(10)  NOT NULL,
-    phone_number              VARCHAR(11)  NOT NULL,
-    member_grade              VARCHAR(20)  NOT NULL DEFAULT 'NEWCOMER',
-    profile_image_file_id     BIGINT,
-    status_message            VARCHAR(200),
-    push_notification_enabled TINYINT(1)   NOT NULL DEFAULT 1,
-    marketing_info_enabled    TINYINT(1)   NOT NULL DEFAULT 0,
-    event_info_enabled        TINYINT(1)   NOT NULL DEFAULT 0,
-    member_status             VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
-    created_at                DATETIME     NOT NULL,
-    updated_at                DATETIME     NOT NULL
+    id                        BIGINT AUTO_INCREMENT PRIMARY KEY, -- 회원 ID (PK)
+    username                  VARCHAR(50)  NOT NULL UNIQUE,      -- 사용자명 (로그인 ID)
+    password                  VARCHAR(255),                      -- 비밀번호 (소셜 로그인 시 NULL)
+    nickname                  VARCHAR(50)  NOT NULL,             -- 닉네임
+    full_name                 VARCHAR(100) NOT NULL,             -- 실명
+    birth_date                INT,                               -- 생년월일 (YYYYMMDD 형식)
+    gender                    VARCHAR(10)  NOT NULL,             -- 성별 (MALE, FEMALE 등)
+    phone_number              VARCHAR(11)  NOT NULL,             -- 휴대폰 번호
+    member_grade              VARCHAR(20)  NOT NULL DEFAULT 'NEWCOMER', -- 회원 등급 (NEWCOMER, BRONZE 등)
+    profile_image_file_id     BIGINT,                            -- 프로필 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    status_message            VARCHAR(200),                      -- 상태 메시지
+    push_notification_enabled TINYINT(1)   NOT NULL DEFAULT 1,  -- 푸시 알림 수신 여부 (1: 허용)
+    marketing_info_enabled    TINYINT(1)   NOT NULL DEFAULT 0,  -- 마케팅 정보 수신 여부 (1: 허용)
+    event_info_enabled        TINYINT(1)   NOT NULL DEFAULT 0,  -- 이벤트 정보 수신 여부 (1: 허용)
+    member_status             VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE', -- 회원 상태 (ACTIVE, DELETED 등)
+    created_at                DATETIME     NOT NULL,             -- 생성 일시
+    updated_at                DATETIME     NOT NULL              -- 수정 일시
 );
 
 CREATE TABLE MEMBER_SOCIAL_ACCOUNT
 (
-    id                          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id                   BIGINT       NOT NULL,
-    provider                    VARCHAR(20)  NOT NULL,
-    provider_id                 VARCHAR(100) NOT NULL,
-    provider_email              VARCHAR(200),
-    provider_nickname           VARCHAR(100),
-    provider_profile_image_url  VARCHAR(500),
-    last_login_at               DATETIME,
-    created_at                  DATETIME     NOT NULL,
-    updated_at                  DATETIME     NOT NULL,
-    UNIQUE KEY uk_member_social_account_provider_provider_id (provider, provider_id),
-    INDEX idx_member_social_account_member_id (member_id),
-    INDEX idx_member_social_account_provider_id (provider, provider_id)
+    id                          BIGINT AUTO_INCREMENT PRIMARY KEY,                              -- 소셜 계정 ID (PK)
+    member_id                   BIGINT       NOT NULL,                                           -- 회원 ID (MEMBER.id 참조)
+    provider                    VARCHAR(20)  NOT NULL,                                           -- 소셜 제공자 (KAKAO, NAVER, GOOGLE 등)
+    provider_id                 VARCHAR(100) NOT NULL,                                           -- 소셜 제공자 고유 ID
+    provider_email              VARCHAR(200),                                                    -- 소셜 계정 이메일
+    provider_nickname           VARCHAR(100),                                                    -- 소셜 계정 닉네임
+    provider_profile_image_url  VARCHAR(500),                                                    -- 소셜 계정 프로필 이미지 URL
+    last_login_at               DATETIME,                                                        -- 마지막 로그인 일시
+    created_at                  DATETIME     NOT NULL,                                           -- 생성 일시
+    updated_at                  DATETIME     NOT NULL,                                           -- 수정 일시
+    UNIQUE KEY uk_member_social_account_provider_provider_id (provider, provider_id),            -- 유니크: 제공자·제공자ID 중복 방지
+    INDEX idx_member_social_account_member_id (member_id),                                       -- 인덱스: 회원별 조회
+    INDEX idx_member_social_account_provider_id (provider, provider_id)                          -- 인덱스: 소셜 제공자·ID 조회
 );
 
 CREATE TABLE MEMBER_REVIEW_RANK
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id      BIGINT      NOT NULL,
-    review_count   INT         NOT NULL,
-    rank_no        INT         NOT NULL,
-    rank_type      VARCHAR(20) NOT NULL,
-    base_date      DATE        NOT NULL,
-    last_review_at DATETIME,
-    created_at     DATETIME    NOT NULL,
-    updated_at     DATETIME    NOT NULL,
-    UNIQUE KEY uk_member_rank (member_id, rank_type, base_date),
-    INDEX idx_rank_query (rank_type, base_date, rank_no),
-    INDEX idx_member_rank (member_id, rank_type)
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,                    -- 회원 리뷰 랭킹 ID (PK)
+    member_id      BIGINT      NOT NULL,                                 -- 회원 ID (MEMBER.id 참조)
+    review_count   INT         NOT NULL,                                 -- 리뷰 작성 수
+    rank_no        INT         NOT NULL,                                 -- 순위
+    rank_type      VARCHAR(20) NOT NULL,                                 -- 랭킹 유형 (WEEKLY, MONTHLY 등)
+    base_date      DATE        NOT NULL,                                 -- 랭킹 기준 날짜
+    last_review_at DATETIME,                                             -- 마지막 리뷰 작성 일시
+    created_at     DATETIME    NOT NULL,                                 -- 생성 일시
+    updated_at     DATETIME    NOT NULL,                                 -- 수정 일시
+    UNIQUE KEY uk_member_rank (member_id, rank_type, base_date),         -- 유니크: 회원·유형·날짜 중복 방지
+    INDEX idx_rank_query (rank_type, base_date, rank_no),                -- 인덱스: 유형·날짜·순위 복합 조회
+    INDEX idx_member_rank (member_id, rank_type)                         -- 인덱스: 회원·유형 조회
 );
 
 CREATE TABLE PRODUCT
 (
-    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id            BIGINT        NOT NULL,
-    product_category_id BIGINT,
-    name                VARCHAR(255)  NOT NULL,
-    description         VARCHAR(1000),
-    price               INT           NOT NULL,
-    discount_price      INT,
-    discount_rate       DECIMAL(19, 2),
-    rating              DOUBLE,
-    review_count        INT           DEFAULT 0,
-    is_representative   TINYINT(1)    DEFAULT 0,
-    spiciness           INT,
-    is_sold_out         TINYINT(1)    NOT NULL DEFAULT 0,
-    is_active           TINYINT(1)    NOT NULL DEFAULT 1,
-    sort                INT           NOT NULL,
-    created_at          DATETIME      NOT NULL,
-    updated_at          DATETIME      NOT NULL,
-    INDEX idx_product_place_id (place_id),
-    INDEX idx_product_category (place_id, product_category_id),
-    INDEX idx_product_representative (place_id, is_representative),
-    INDEX idx_product_active (place_id, is_active, sort)
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,           -- 상품 ID (PK)
+    place_id            BIGINT        NOT NULL,                      -- 장소 ID (PLACE.id 참조)
+    product_category_id BIGINT,                                      -- 상품 카테고리 ID (PRODUCT_CATEGORY.id 참조)
+    name                VARCHAR(255)  NOT NULL,                      -- 상품명
+    description         VARCHAR(1000),                               -- 상품 설명
+    price               INT           NOT NULL,                      -- 정가
+    discount_price      INT,                                         -- 할인가
+    discount_rate       DECIMAL(19, 2),                              -- 할인율 (%)
+    rating              DOUBLE,                                      -- 평균 평점
+    review_count        INT           DEFAULT 0,                     -- 리뷰 수
+    is_representative   TINYINT(1)    DEFAULT 0,                     -- 대표 상품 여부 (1: 대표)
+    spiciness           INT,                                         -- 맵기 단계
+    is_sold_out         TINYINT(1)    NOT NULL DEFAULT 0,            -- 품절 여부 (1: 품절)
+    is_active           TINYINT(1)    NOT NULL DEFAULT 1,            -- 활성화 여부 (1: 활성)
+    sort                INT           NOT NULL,                      -- 정렬 순서
+    created_at          DATETIME      NOT NULL,                      -- 생성 일시
+    updated_at          DATETIME      NOT NULL,                      -- 수정 일시
+    INDEX idx_product_place_id (place_id),                           -- 인덱스: 장소별 조회
+    INDEX idx_product_category (place_id, product_category_id),      -- 인덱스: 장소·카테고리 복합 조회
+    INDEX idx_product_representative (place_id, is_representative),  -- 인덱스: 장소·대표상품 조회
+    INDEX idx_product_active (place_id, is_active, sort)             -- 인덱스: 장소·활성·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_BBQ
 (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_id      BIGINT   NOT NULL UNIQUE,
-    bbq_menu_id     BIGINT   NOT NULL,
-    bbq_category_id BIGINT,
-    is_options_synced TINYINT(1) NOT NULL DEFAULT 0,
-    created_at      DATETIME NOT NULL,
-    updated_at      DATETIME NOT NULL,
-    INDEX idx_product_bbq_product_id (product_id),
-    INDEX idx_product_bbq_menu_id (bbq_menu_id),
-    INDEX idx_product_bbq_category_id (bbq_category_id)
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,               -- BBQ 상품 연동 ID (PK)
+    product_id      BIGINT   NOT NULL UNIQUE,                        -- 상품 ID (PRODUCT.id 참조)
+    bbq_menu_id     BIGINT   NOT NULL,                               -- BBQ 메뉴 ID
+    bbq_category_id BIGINT,                                          -- BBQ 카테고리 ID
+    is_options_synced TINYINT(1) NOT NULL DEFAULT 0,                 -- 옵션 동기화 여부 (1: 동기화 완료)
+    created_at      DATETIME NOT NULL,                               -- 생성 일시
+    updated_at      DATETIME NOT NULL,                               -- 수정 일시
+    INDEX idx_product_bbq_product_id (product_id),                   -- 인덱스: 상품별 조회
+    INDEX idx_product_bbq_menu_id (bbq_menu_id),                     -- 인덱스: BBQ 메뉴별 조회
+    INDEX idx_product_bbq_category_id (bbq_category_id)              -- 인덱스: BBQ 카테고리별 조회
 );
 
 CREATE TABLE PRODUCT_IMAGE
 (
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_id       BIGINT       NOT NULL,
-    sort             INT          NOT NULL,
-    is_active        TINYINT(1)   NOT NULL DEFAULT 1,
-    image_file_id    BIGINT       NOT NULL,
-    created_at       DATETIME     NOT NULL,
-    updated_at       DATETIME     NOT NULL,
-    INDEX idx_product_image_product_id (product_id),
-    INDEX idx_product_image_active (product_id, is_active, sort)
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 상품 이미지 ID (PK)
+    product_id       BIGINT       NOT NULL,                            -- 상품 ID (PRODUCT.id 참조)
+    sort             INT          NOT NULL,                            -- 정렬 순서
+    is_active        TINYINT(1)   NOT NULL DEFAULT 1,                  -- 활성화 여부 (1: 활성)
+    image_file_id    BIGINT       NOT NULL,                            -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    created_at       DATETIME     NOT NULL,                            -- 생성 일시
+    updated_at       DATETIME     NOT NULL,                            -- 수정 일시
+    INDEX idx_product_image_product_id (product_id),                   -- 인덱스: 상품별 조회
+    INDEX idx_product_image_active (product_id, is_active, sort)       -- 인덱스: 상품·활성·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_CATEGORY
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id      BIGINT       NOT NULL,
-    name  VARCHAR(100) NOT NULL,
-    sort          INT          NOT NULL,
-    is_active     TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at    DATETIME     NOT NULL,
-    updated_at    DATETIME     NOT NULL,
-    INDEX idx_product_category_place_id (place_id),
-    INDEX idx_product_category_active (place_id, is_active, sort)
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,                      -- 상품 카테고리 ID (PK)
+    place_id      BIGINT       NOT NULL,                                  -- 장소 ID (PLACE.id 참조)
+    name  VARCHAR(100) NOT NULL,                                          -- 카테고리 이름
+    sort          INT          NOT NULL,                                  -- 정렬 순서
+    is_active     TINYINT(1)   NOT NULL DEFAULT 1,                        -- 활성화 여부 (1: 활성)
+    created_at    DATETIME     NOT NULL,                                  -- 생성 일시
+    updated_at    DATETIME     NOT NULL,                                  -- 수정 일시
+    INDEX idx_product_category_place_id (place_id),                       -- 인덱스: 장소별 조회
+    INDEX idx_product_category_active (place_id, is_active, sort)         -- 인덱스: 장소·활성·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_COMMON_OPTION_GROUP
 (
-    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_id         BIGINT       NOT NULL,
-    name               VARCHAR(100) NOT NULL,
-    description        VARCHAR(500),
-    is_required        TINYINT(1)   NOT NULL DEFAULT 0,
-    is_multiple_select TINYINT(1)   NOT NULL DEFAULT 0,
-    min_select         INT,
-    max_select         INT,
-    sort               INT          NOT NULL,
-    is_active          TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at         DATETIME     NOT NULL,
-    updated_at         DATETIME     NOT NULL,
-    INDEX idx_product_common_option_group_product_id (product_id),
-    INDEX idx_product_common_option_group_active (product_id, is_active, sort)
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,                                 -- 공통 옵션 그룹 ID (PK)
+    product_id         BIGINT       NOT NULL,                                             -- 상품 ID (PRODUCT.id 참조)
+    name               VARCHAR(100) NOT NULL,                                             -- 옵션 그룹 이름
+    description        VARCHAR(500),                                                      -- 옵션 그룹 설명
+    is_required        TINYINT(1)   NOT NULL DEFAULT 0,                                   -- 필수 선택 여부 (1: 필수)
+    is_multiple_select TINYINT(1)   NOT NULL DEFAULT 0,                                   -- 다중 선택 여부 (1: 가능)
+    min_select         INT,                                                                -- 최소 선택 수
+    max_select         INT,                                                                -- 최대 선택 수
+    sort               INT          NOT NULL,                                             -- 정렬 순서
+    is_active          TINYINT(1)   NOT NULL DEFAULT 1,                                   -- 활성화 여부 (1: 활성)
+    created_at         DATETIME     NOT NULL,                                             -- 생성 일시
+    updated_at         DATETIME     NOT NULL,                                             -- 수정 일시
+    INDEX idx_product_common_option_group_product_id (product_id),                        -- 인덱스: 상품별 조회
+    INDEX idx_product_common_option_group_active (product_id, is_active, sort)            -- 인덱스: 상품·활성·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_COMMON_OPTION
 (
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    option_group_id  BIGINT       NOT NULL,
-    name             VARCHAR(100) NOT NULL,
-    additional_price INT          NOT NULL DEFAULT 0,
-    sort             INT          NOT NULL,
-    is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,
-    is_active        TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at       DATETIME     NOT NULL,
-    updated_at       DATETIME     NOT NULL,
-    INDEX idx_product_common_option_group_id (option_group_id),
-    INDEX idx_product_common_option_active (option_group_id, is_active, sort)
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,                              -- 공통 옵션 ID (PK)
+    option_group_id  BIGINT       NOT NULL,                                          -- 옵션 그룹 ID (PRODUCT_COMMON_OPTION_GROUP.id 참조)
+    name             VARCHAR(100) NOT NULL,                                          -- 옵션 이름
+    additional_price INT          NOT NULL DEFAULT 0,                                -- 추가 금액
+    sort             INT          NOT NULL,                                          -- 정렬 순서
+    is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,                                -- 품절 여부 (1: 품절)
+    is_active        TINYINT(1)   NOT NULL DEFAULT 1,                                -- 활성화 여부 (1: 활성)
+    created_at       DATETIME     NOT NULL,                                          -- 생성 일시
+    updated_at       DATETIME     NOT NULL,                                          -- 수정 일시
+    INDEX idx_product_common_option_group_id (option_group_id),                      -- 인덱스: 옵션 그룹별 조회
+    INDEX idx_product_common_option_active (option_group_id, is_active, sort)        -- 인덱스: 옵션 그룹·활성·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_OPTION
 (
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    option_group_id  BIGINT       NOT NULL,
-    name             VARCHAR(100) NOT NULL,
-    additional_price INT          NOT NULL DEFAULT 0,
-    sort             INT          NOT NULL,
-    is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,
-    is_active        TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at       DATETIME     NOT NULL,
-    updated_at       DATETIME     NOT NULL,
-    INDEX idx_product_option_group_id (option_group_id),
-    INDEX idx_product_option_active (option_group_id, is_active, sort)
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,                         -- 상품 옵션 ID (PK)
+    option_group_id  BIGINT       NOT NULL,                                     -- 옵션 그룹 ID (PRODUCT_OPTION_GROUP.id 참조)
+    name             VARCHAR(100) NOT NULL,                                     -- 옵션 이름
+    additional_price INT          NOT NULL DEFAULT 0,                           -- 추가 금액
+    sort             INT          NOT NULL,                                     -- 정렬 순서
+    is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,                           -- 품절 여부 (1: 품절)
+    is_active        TINYINT(1)   NOT NULL DEFAULT 1,                           -- 활성화 여부 (1: 활성)
+    created_at       DATETIME     NOT NULL,                                     -- 생성 일시
+    updated_at       DATETIME     NOT NULL,                                     -- 수정 일시
+    INDEX idx_product_option_group_id (option_group_id),                        -- 인덱스: 옵션 그룹별 조회
+    INDEX idx_product_option_active (option_group_id, is_active, sort)          -- 인덱스: 옵션 그룹·활성·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_OPTION_GROUP
 (
-    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_id         BIGINT       NOT NULL,
-    name               VARCHAR(100) NOT NULL,
-    description        VARCHAR(500),
-    is_required        TINYINT(1)   NOT NULL DEFAULT 0,
-    is_multiple_select TINYINT(1)   NOT NULL DEFAULT 0,
-    min_select         INT,
-    max_select         INT,
-    sort               INT          NOT NULL,
-    is_active          TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at         DATETIME     NOT NULL,
-    updated_at         DATETIME     NOT NULL,
-    INDEX idx_product_option_group_product_id (product_id),
-    INDEX idx_product_option_group_active (product_id, is_active, sort)
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,                             -- 상품 옵션 그룹 ID (PK)
+    product_id         BIGINT       NOT NULL,                                         -- 상품 ID (PRODUCT.id 참조)
+    name               VARCHAR(100) NOT NULL,                                         -- 옵션 그룹 이름
+    description        VARCHAR(500),                                                  -- 옵션 그룹 설명
+    is_required        TINYINT(1)   NOT NULL DEFAULT 0,                               -- 필수 선택 여부 (1: 필수)
+    is_multiple_select TINYINT(1)   NOT NULL DEFAULT 0,                               -- 다중 선택 여부 (1: 가능)
+    min_select         INT,                                                            -- 최소 선택 수
+    max_select         INT,                                                            -- 최대 선택 수
+    sort               INT          NOT NULL,                                         -- 정렬 순서
+    is_active          TINYINT(1)   NOT NULL DEFAULT 1,                               -- 활성화 여부 (1: 활성)
+    created_at         DATETIME     NOT NULL,                                         -- 생성 일시
+    updated_at         DATETIME     NOT NULL,                                         -- 수정 일시
+    INDEX idx_product_option_group_product_id (product_id),                           -- 인덱스: 상품별 조회
+    INDEX idx_product_option_group_active (product_id, is_active, sort)               -- 인덱스: 상품·활성·정렬 복합 조회
 );
 
 CREATE TABLE PLACE
 (
-    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    station_id        BIGINT        NOT NULL,
-    name              VARCHAR(255)  NOT NULL UNIQUE,
-    latitude          DECIMAL(9, 6) NOT NULL,
-    longitude         DECIMAL(9, 6) NOT NULL,
-    rating            DOUBLE,
-    road_address      VARCHAR(500),
-    lot_address       VARCHAR(500),
-    phone_number      VARCHAR(20),
-    thumbnail_image_file_id    BIGINT,
-    is_permanently_closed      TINYINT(1)    NOT NULL DEFAULT 0,
-    created_at        DATETIME      NOT NULL,
-    updated_at        DATETIME      NOT NULL
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY, -- 장소 ID (PK)
+    station_id        BIGINT        NOT NULL,            -- 지하철역 ID (PLACE_STATION.id 참조)
+    name              VARCHAR(255)  NOT NULL UNIQUE,     -- 장소 이름
+    latitude          DECIMAL(9, 6) NOT NULL,            -- 위도
+    longitude         DECIMAL(9, 6) NOT NULL,            -- 경도
+    rating            DOUBLE,                            -- 평균 평점
+    road_address      VARCHAR(500),                      -- 도로명 주소
+    lot_address       VARCHAR(500),                      -- 지번 주소
+    phone_number      VARCHAR(20),                       -- 대표 전화번호
+    thumbnail_image_file_id    BIGINT,                   -- 썸네일 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    is_permanently_closed      TINYINT(1)    NOT NULL DEFAULT 0, -- 폐업 여부 (1: 폐업)
+    created_at        DATETIME      NOT NULL,            -- 생성 일시
+    updated_at        DATETIME      NOT NULL             -- 수정 일시
 );
 
 CREATE TABLE MEMBER_POINT
 (
-    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id               BIGINT   NOT NULL UNIQUE,
-    available_points        INT      NOT NULL DEFAULT 0,
-    expired_this_month      INT      NOT NULL DEFAULT 0,
-    created_at              DATETIME NOT NULL,
-    updated_at              DATETIME NOT NULL,
-    INDEX idx_member_point_member_id (member_id)
+    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 회원 포인트 ID (PK)
+    member_id               BIGINT   NOT NULL UNIQUE,            -- 회원 ID (MEMBER.id 참조)
+    available_points        INT      NOT NULL DEFAULT 0,         -- 사용 가능 포인트
+    expired_this_month      INT      NOT NULL DEFAULT 0,         -- 이번 달 만료 예정 포인트
+    created_at              DATETIME NOT NULL,                   -- 생성 일시
+    updated_at              DATETIME NOT NULL,                   -- 수정 일시
+    INDEX idx_member_point_member_id (member_id)                 -- 인덱스: 회원별 조회
 );
 
 CREATE TABLE MEMBER_POINT_HISTORY
 (
-    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id         BIGINT       NOT NULL,
-    point_type        VARCHAR(50)  NOT NULL,
-    point_amount      INT          NOT NULL,
-    reason            VARCHAR(200) NOT NULL,
-    created_at        DATETIME     NOT NULL,
-    updated_at        DATETIME     NOT NULL,
-    INDEX idx_member_point_history_member_id (member_id),
-    INDEX idx_member_point_history_created_at (created_at)
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,                    -- 포인트 이력 ID (PK)
+    member_id         BIGINT       NOT NULL,                                -- 회원 ID (MEMBER.id 참조)
+    point_type        VARCHAR(50)  NOT NULL,                                -- 포인트 유형 (EARN, USE, EXPIRE 등)
+    point_amount      INT          NOT NULL,                                -- 포인트 변동 금액
+    reason            VARCHAR(200) NOT NULL,                                -- 변동 사유
+    created_at        DATETIME     NOT NULL,                                -- 생성 일시
+    updated_at        DATETIME     NOT NULL,                                -- 수정 일시
+    INDEX idx_member_point_history_member_id (member_id),                   -- 인덱스: 회원별 조회
+    INDEX idx_member_point_history_created_at (created_at)                  -- 인덱스: 생성 일시별 조회
 );
 
 CREATE TABLE NOTICE
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title      VARCHAR(200)  NOT NULL,
-    content    VARCHAR(1000) NOT NULL,
-    is_active  TINYINT(1)    NOT NULL DEFAULT 1,
-    created_at DATETIME      NOT NULL,
-    updated_at DATETIME      NOT NULL,
-    INDEX idx_notice_active (is_active),
-    INDEX idx_notice_created_at (created_at)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 공지사항 ID (PK)
+    title      VARCHAR(200)  NOT NULL,            -- 공지 제목
+    content    VARCHAR(1000) NOT NULL,            -- 공지 내용
+    is_active  TINYINT(1)    NOT NULL DEFAULT 1,  -- 활성화 여부 (1: 활성)
+    created_at DATETIME      NOT NULL,            -- 생성 일시
+    updated_at DATETIME      NOT NULL,            -- 수정 일시
+    INDEX idx_notice_active (is_active),          -- 인덱스: 활성화 여부별 조회
+    INDEX idx_notice_created_at (created_at)      -- 인덱스: 생성 일시별 조회
 );
 
 CREATE TABLE POLICY_DOCUMENT
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    type           VARCHAR(50)  NOT NULL,
-    version        VARCHAR(20)  NOT NULL,
-    title          VARCHAR(200) NOT NULL,
-    content        LONGTEXT     NOT NULL,
-    is_current     TINYINT(1)   NOT NULL DEFAULT 0,
-    mandatory      TINYINT(1)   NOT NULL DEFAULT 1,
-    effective_date DATETIME     NOT NULL,
-    created_by     VARCHAR(100),
-    updated_by     VARCHAR(100),
-    created_at     DATETIME     NOT NULL,
-    updated_at     DATETIME     NOT NULL,
-    UNIQUE KEY uk_policy_document_type_version (type, version),
-    INDEX idx_policy_document_type_current (type, is_current),
-    INDEX idx_policy_document_type (type),
-    INDEX idx_policy_document_effective_date (effective_date)
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,                           -- 약관 문서 ID (PK)
+    type           VARCHAR(50)  NOT NULL,                                       -- 약관 유형 (TERMS, PRIVACY 등)
+    version        VARCHAR(20)  NOT NULL,                                       -- 버전
+    title          VARCHAR(200) NOT NULL,                                       -- 제목
+    content        LONGTEXT     NOT NULL,                                       -- 내용 (HTML)
+    is_current     TINYINT(1)   NOT NULL DEFAULT 0,                             -- 현재 적용 버전 여부 (1: 적용 중)
+    mandatory      TINYINT(1)   NOT NULL DEFAULT 1,                             -- 필수 동의 여부 (1: 필수)
+    effective_date DATETIME     NOT NULL,                                       -- 시행 일시
+    created_by     VARCHAR(100),                                                -- 생성자
+    updated_by     VARCHAR(100),                                                -- 수정자
+    created_at     DATETIME     NOT NULL,                                       -- 생성 일시
+    updated_at     DATETIME     NOT NULL,                                       -- 수정 일시
+    UNIQUE KEY uk_policy_document_type_version (type, version),                 -- 유니크: 유형·버전 중복 방지
+    INDEX idx_policy_document_type_current (type, is_current),                  -- 인덱스: 유형·현재 버전 조회
+    INDEX idx_policy_document_type (type),                                      -- 인덱스: 유형별 조회
+    INDEX idx_policy_document_effective_date (effective_date)                   -- 인덱스: 시행 일시별 조회
 );
 
 CREATE TABLE PARTNERSHIP_REQUEST
 (
-    id                         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    business_name              VARCHAR(200) NOT NULL,
-    address                    VARCHAR(500) NOT NULL,
-    address_detail             VARCHAR(500),
-    contact_name               VARCHAR(100) NOT NULL,
-    contact_phone              VARCHAR(20)  NOT NULL,
-    consultation_requested_at  DATETIME     NOT NULL,
-    created_at                 DATETIME     NOT NULL,
-    updated_at                 DATETIME     NOT NULL,
-    INDEX idx_partnership_request_business_name (business_name),
-    INDEX idx_partnership_request_consultation_date (consultation_requested_at)
+    id                         BIGINT AUTO_INCREMENT PRIMARY KEY,                                    -- 제휴 신청 ID (PK)
+    business_name              VARCHAR(200) NOT NULL,                                                -- 사업체명
+    address                    VARCHAR(500) NOT NULL,                                                -- 사업체 주소
+    address_detail             VARCHAR(500),                                                         -- 사업체 상세 주소
+    contact_name               VARCHAR(100) NOT NULL,                                                -- 담당자 이름
+    contact_phone              VARCHAR(20)  NOT NULL,                                                -- 담당자 연락처
+    consultation_requested_at  DATETIME     NOT NULL,                                                -- 상담 희망 일시
+    created_at                 DATETIME     NOT NULL,                                                -- 생성 일시
+    updated_at                 DATETIME     NOT NULL,                                                -- 수정 일시
+    INDEX idx_partnership_request_business_name (business_name),                                     -- 인덱스: 사업체명별 조회
+    INDEX idx_partnership_request_consultation_date (consultation_requested_at)                      -- 인덱스: 상담 희망 일시별 조회
 );
 
 CREATE TABLE PLACE_OWNER_MESSAGE_HISTORY
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id      BIGINT   NOT NULL,
-    message       TEXT,
-    created_at    DATETIME NOT NULL,
-    updated_at    DATETIME NOT NULL,
-    INDEX idx_place_owner_message_history_place_id (place_id)
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,                           -- 사장님 메시지 이력 ID (PK)
+    place_id      BIGINT   NOT NULL,                                           -- 장소 ID (PLACE.id 참조)
+    message       TEXT,                                                        -- 메시지 내용
+    created_at    DATETIME NOT NULL,                                           -- 생성 일시
+    updated_at    DATETIME NOT NULL,                                           -- 수정 일시
+    INDEX idx_place_owner_message_history_place_id (place_id)                  -- 인덱스: 장소별 조회
 );
 
 CREATE TABLE PLACE_AMENITY_CATEGORY
 (
-    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
-    amenity                 VARCHAR(50)  NOT NULL UNIQUE,
-    display_name            VARCHAR(100) NOT NULL,
-    active_image_file_id    BIGINT       NOT NULL,
-    inactive_image_file_id  BIGINT       NOT NULL,
-    sort                    INT          NOT NULL,
-    is_active               TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at              DATETIME     NOT NULL,
-    updated_at              DATETIME     NOT NULL,
-    INDEX idx_amenity_category_active (is_active, sort)
+    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 편의시설 카테고리 ID (PK)
+    amenity                 VARCHAR(50)  NOT NULL UNIQUE,        -- 편의시설 코드 (WIFI, PARKING 등)
+    display_name            VARCHAR(100) NOT NULL,               -- 화면 표시 이름
+    active_image_file_id    BIGINT       NOT NULL,               -- 활성 상태 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    inactive_image_file_id  BIGINT       NOT NULL,               -- 비활성 상태 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    sort                    INT          NOT NULL,               -- 정렬 순서
+    is_active               TINYINT(1)   NOT NULL DEFAULT 1,     -- 활성화 여부 (1: 활성)
+    created_at              DATETIME     NOT NULL,               -- 생성 일시
+    updated_at              DATETIME     NOT NULL,               -- 수정 일시
+    INDEX idx_amenity_category_active (is_active, sort)          -- 인덱스: 활성·정렬 복합 조회
 );
 
 CREATE TABLE PLACE_AMENITY
 (
-    id                        BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id                  BIGINT NOT NULL,
-    place_amenity_category_id BIGINT NOT NULL,
-    UNIQUE KEY uk_place_amenity (place_id, place_amenity_category_id),
-    INDEX idx_place_amenity_place_id (place_id)
+    id                        BIGINT AUTO_INCREMENT PRIMARY KEY,                        -- 장소 편의시설 ID (PK)
+    place_id                  BIGINT NOT NULL,                                          -- 장소 ID (PLACE.id 참조)
+    place_amenity_category_id BIGINT NOT NULL,                                          -- 편의시설 카테고리 ID (PLACE_AMENITY_CATEGORY.id 참조)
+    UNIQUE KEY uk_place_amenity (place_id, place_amenity_category_id),                  -- 유니크: 장소·편의시설 중복 방지
+    INDEX idx_place_amenity_place_id (place_id)                                         -- 인덱스: 장소별 조회
 );
 
 CREATE TABLE PLACE_BOOKMARK
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id   BIGINT   NOT NULL,
-    member_id  BIGINT   NOT NULL,
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    UNIQUE KEY uk_place_bookmark (place_id, member_id),
-    INDEX idx_place_bookmark_place_id (place_id),
-    INDEX idx_place_bookmark_member_id (member_id)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                   -- 장소 북마크 ID (PK)
+    place_id   BIGINT   NOT NULL,                                   -- 장소 ID (PLACE.id 참조)
+    member_id  BIGINT   NOT NULL,                                   -- 회원 ID (MEMBER.id 참조)
+    created_at DATETIME NOT NULL,                                   -- 생성 일시
+    updated_at DATETIME NOT NULL,                                   -- 수정 일시
+    UNIQUE KEY uk_place_bookmark (place_id, member_id),             -- 유니크: 장소·회원 중복 방지
+    INDEX idx_place_bookmark_place_id (place_id),                   -- 인덱스: 장소별 조회
+    INDEX idx_place_bookmark_member_id (member_id)                  -- 인덱스: 회원별 조회
 );
 
 CREATE TABLE PLACE_BUSINESS_HOUR
 (
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id         BIGINT      NOT NULL,
-    day_type         VARCHAR(20) NOT NULL,
-    open_time        TIME,
-    close_time       TIME,
-    is_closed        TINYINT(1),
-    INDEX idx_place_business_hour_place_id (place_id),
-    UNIQUE KEY uk_place_business_hour (place_id, day_type)
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,               -- 영업 시간 ID (PK)
+    place_id         BIGINT      NOT NULL,                            -- 장소 ID (PLACE.id 참조)
+    day_type         VARCHAR(20) NOT NULL,                            -- 요일 유형 (MON, TUE, WEEKDAY, WEEKEND 등)
+    open_time        TIME,                                            -- 영업 시작 시간
+    close_time       TIME,                                            -- 영업 종료 시간
+    is_closed        TINYINT(1),                                      -- 휴무 여부 (1: 휴무)
+    INDEX idx_place_business_hour_place_id (place_id),                -- 인덱스: 장소별 조회
+    UNIQUE KEY uk_place_business_hour (place_id, day_type)            -- 유니크: 장소·요일 중복 방지
 );
 
 CREATE TABLE PLACE_BREAK_TIME
 (
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id         BIGINT      NOT NULL,
-    day_type         VARCHAR(20) NOT NULL,
-    start_time TIME        NOT NULL,
-    end_time   TIME        NOT NULL,
-    INDEX idx_place_break_time_place_id (place_id),
-    UNIQUE KEY uk_place_break_time (place_id, day_type)
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,           -- 휴게 시간 ID (PK)
+    place_id         BIGINT      NOT NULL,                        -- 장소 ID (PLACE.id 참조)
+    day_type         VARCHAR(20) NOT NULL,                        -- 요일 유형 (MON, TUE, WEEKDAY, WEEKEND 등)
+    start_time TIME        NOT NULL,                              -- 휴게 시작 시간
+    end_time   TIME        NOT NULL,                              -- 휴게 종료 시간
+    INDEX idx_place_break_time_place_id (place_id),               -- 인덱스: 장소별 조회
+    UNIQUE KEY uk_place_break_time (place_id, day_type)           -- 유니크: 장소·요일 중복 방지
 );
 
 CREATE TABLE PLACE_CLOSED_DAY
 (
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id         BIGINT      NOT NULL,
-    closed_day_type  VARCHAR(50) NOT NULL,
-    INDEX idx_place_closed_day_place_id (place_id)
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 정기 휴무일 ID (PK)
+    place_id         BIGINT      NOT NULL,                          -- 장소 ID (PLACE.id 참조)
+    closed_day_type  VARCHAR(50) NOT NULL,                          -- 휴무 유형 (EVERY_MON, FIRST_SAT 등)
+    INDEX idx_place_closed_day_place_id (place_id)                  -- 인덱스: 장소별 조회
 );
 
 CREATE TABLE PLACE_ORDER_METHOD
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id     BIGINT       NOT NULL,
-    order_method VARCHAR(50)  NOT NULL,
-    created_at   DATETIME     NOT NULL,
-    updated_at   DATETIME     NOT NULL,
-    UNIQUE KEY uk_place_order_method (place_id, order_method),
-    INDEX idx_place_order_method_place_id (place_id)
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,                      -- 주문 방식 ID (PK)
+    place_id     BIGINT       NOT NULL,                                  -- 장소 ID (PLACE.id 참조)
+    order_method VARCHAR(50)  NOT NULL,                                  -- 주문 방식 (DINE_IN, TAKEOUT, DELIVERY 등)
+    created_at   DATETIME     NOT NULL,                                  -- 생성 일시
+    updated_at   DATETIME     NOT NULL,                                  -- 수정 일시
+    UNIQUE KEY uk_place_order_method (place_id, order_method),           -- 유니크: 장소·주문방식 중복 방지
+    INDEX idx_place_order_method_place_id (place_id)                     -- 인덱스: 장소별 조회
 );
 
 CREATE TABLE PLACE_CHOICE
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id   BIGINT       NOT NULL,
-    title      VARCHAR(200) NOT NULL,
-    content    TEXT,
-    created_at DATETIME     NOT NULL,
-    updated_at DATETIME     NOT NULL
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 장소 픽 ID (PK)
+    place_id   BIGINT       NOT NULL,             -- 장소 ID (PLACE.id 참조)
+    title      VARCHAR(200) NOT NULL,             -- 픽 제목
+    content    TEXT,                              -- 픽 내용
+    created_at DATETIME     NOT NULL,             -- 생성 일시
+    updated_at DATETIME     NOT NULL              -- 수정 일시
 );
 
 CREATE TABLE PLACE_FOOD_TYPE_CATEGORY
 (
-    id                     BIGINT AUTO_INCREMENT PRIMARY KEY,
-    food_type              VARCHAR(50)  NOT NULL UNIQUE,
-    display_name           VARCHAR(100) NOT NULL,
-    active_image_file_id   BIGINT       NOT NULL,
-    inactive_image_file_id BIGINT       NOT NULL,
-    sort                   INT          NOT NULL,
-    is_active              TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at             DATETIME     NOT NULL,
-    updated_at             DATETIME     NOT NULL,
-    INDEX idx_food_type_category_active (is_active, sort)
+    id                     BIGINT AUTO_INCREMENT PRIMARY KEY,    -- 음식 유형 카테고리 ID (PK)
+    food_type              VARCHAR(50)  NOT NULL UNIQUE,          -- 음식 유형 코드 (KOREAN, JAPANESE 등)
+    display_name           VARCHAR(100) NOT NULL,                 -- 화면 표시 이름
+    active_image_file_id   BIGINT       NOT NULL,                 -- 활성 상태 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    inactive_image_file_id BIGINT       NOT NULL,                 -- 비활성 상태 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    sort                   INT          NOT NULL,                 -- 정렬 순서
+    is_active              TINYINT(1)   NOT NULL DEFAULT 1,       -- 활성화 여부 (1: 활성)
+    created_at             DATETIME     NOT NULL,                 -- 생성 일시
+    updated_at             DATETIME     NOT NULL,                 -- 수정 일시
+    INDEX idx_food_type_category_active (is_active, sort)         -- 인덱스: 활성·정렬 복합 조회
 );
 
 CREATE TABLE PLACE_FOOD_TYPE
 (
-    id                          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id                    BIGINT NOT NULL,
-    place_food_type_category_id BIGINT NOT NULL,
-    UNIQUE KEY uk_place_food_type (place_id, place_food_type_category_id),
-    INDEX idx_place_food_type_place_id (place_id)
+    id                          BIGINT AUTO_INCREMENT PRIMARY KEY,                      -- 장소 음식 유형 ID (PK)
+    place_id                    BIGINT NOT NULL,                                        -- 장소 ID (PLACE.id 참조)
+    place_food_type_category_id BIGINT NOT NULL,                                        -- 음식 유형 카테고리 ID (PLACE_FOOD_TYPE_CATEGORY.id 참조)
+    UNIQUE KEY uk_place_food_type (place_id, place_food_type_category_id),              -- 유니크: 장소·음식유형 중복 방지
+    INDEX idx_place_food_type_place_id (place_id)                                       -- 인덱스: 장소별 조회
 );
 
 CREATE TABLE PLACE_PHOTO_CATEGORY
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id   BIGINT       NOT NULL,
-    name       VARCHAR(100) NOT NULL,
-    created_at DATETIME     NOT NULL,
-    updated_at DATETIME     NOT NULL,
-    INDEX idx_place_photo_category_place_id (place_id)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                    -- 사진 카테고리 ID (PK)
+    place_id   BIGINT       NOT NULL,                                -- 장소 ID (PLACE.id 참조)
+    name       VARCHAR(100) NOT NULL,                                -- 카테고리 이름
+    created_at DATETIME     NOT NULL,                                -- 생성 일시
+    updated_at DATETIME     NOT NULL,                                -- 수정 일시
+    INDEX idx_place_photo_category_place_id (place_id)               -- 인덱스: 장소별 조회
 );
 
 CREATE TABLE PLACE_PHOTO_CATEGORY_IMAGE
 (
-    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_photo_category_id BIGINT   NOT NULL,
-    image_file_id           BIGINT   NOT NULL,
-    sort                    INT      NOT NULL,
-    created_at              DATETIME NOT NULL,
-    updated_at              DATETIME NOT NULL,
-    INDEX idx_place_photo_category_image_category_id (place_photo_category_id)
+    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,                             -- 사진 카테고리 이미지 ID (PK)
+    place_photo_category_id BIGINT   NOT NULL,                                             -- 사진 카테고리 ID (PLACE_PHOTO_CATEGORY.id 참조)
+    image_file_id           BIGINT   NOT NULL,                                             -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    sort                    INT      NOT NULL,                                             -- 정렬 순서
+    created_at              DATETIME NOT NULL,                                             -- 생성 일시
+    updated_at              DATETIME NOT NULL,                                             -- 수정 일시
+    INDEX idx_place_photo_category_image_category_id (place_photo_category_id)             -- 인덱스: 사진 카테고리별 조회
 );
 
 CREATE TABLE PLACE_BANNER_IMAGE
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id       BIGINT   NOT NULL,
-    image_file_id  BIGINT   NOT NULL,
-    sort           INT,
-    INDEX idx_place_banner_image_place_id (place_id)
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 장소 배너 이미지 ID (PK)
+    place_id       BIGINT   NOT NULL,                             -- 장소 ID (PLACE.id 참조)
+    image_file_id  BIGINT   NOT NULL,                             -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    sort           INT,                                           -- 정렬 순서
+    INDEX idx_place_banner_image_place_id (place_id)              -- 인덱스: 장소별 조회
 );
 
 CREATE TABLE PLACE_STATION
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    station_name VARCHAR(255) NOT NULL
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY, -- 지하철역 ID (PK)
+    station_name VARCHAR(255) NOT NULL              -- 역 이름
 );
 
 CREATE TABLE REVIEW
 (
-    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    place_id          BIGINT     NOT NULL,
-    product_id        BIGINT     NOT NULL,
-    member_id         BIGINT     NOT NULL,
-    order_id          BIGINT,
-    content           TEXT       NOT NULL,
-    total_rating      DOUBLE     NOT NULL,
-    taste_rating      DOUBLE,
-    amount_rating     DOUBLE,
-    price_rating      DOUBLE,
-    atmosphere_rating DOUBLE,
-    kindness_rating   DOUBLE,
-    hygiene_rating    DOUBLE,
-    will_revisit      TINYINT(1),
-    is_hidden         TINYINT(1) NOT NULL DEFAULT 0,
-    created_at        DATETIME   NOT NULL,
-    updated_at        DATETIME   NOT NULL,
-    INDEX idx_review_product_id (product_id),
-    INDEX idx_review_order_id (order_id)
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY, -- 리뷰 ID (PK)
+    place_id          BIGINT     NOT NULL,               -- 장소 ID (PLACE.id 참조)
+    product_id        BIGINT     NOT NULL,               -- 상품 ID (PRODUCT.id 참조)
+    member_id         BIGINT     NOT NULL,               -- 작성자 회원 ID (MEMBER.id 참조)
+    order_id          BIGINT,                            -- 주문 ID (ORDERS.id 참조, NULL 시 비인증 리뷰)
+    content           TEXT       NOT NULL,               -- 리뷰 내용
+    total_rating      DOUBLE     NOT NULL,               -- 종합 평점
+    taste_rating      DOUBLE,                            -- 맛 평점
+    amount_rating     DOUBLE,                            -- 양 평점
+    price_rating      DOUBLE,                            -- 가격 평점
+    atmosphere_rating DOUBLE,                            -- 분위기 평점
+    kindness_rating   DOUBLE,                            -- 친절 평점
+    hygiene_rating    DOUBLE,                            -- 위생 평점
+    will_revisit      TINYINT(1),                        -- 재방문 의향 (1: 있음)
+    is_hidden         TINYINT(1) NOT NULL DEFAULT 0,     -- 숨김 여부 (1: 숨김)
+    created_at        DATETIME   NOT NULL,               -- 생성 일시
+    updated_at        DATETIME   NOT NULL,               -- 수정 일시
+    INDEX idx_review_product_id (product_id),            -- 인덱스: 상품별 조회
+    INDEX idx_review_order_id (order_id)                 -- 인덱스: 주문별 조회
 );
 
 CREATE TABLE REVIEW_COMMENT
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    review_id  BIGINT     NOT NULL,
-    member_id  BIGINT     NOT NULL,
-    content    TEXT       NOT NULL,
-    is_hidden  TINYINT(1) NOT NULL DEFAULT 0,
-    created_at DATETIME   NOT NULL,
-    updated_at DATETIME   NOT NULL,
-    INDEX idx_review_comment_review_id (review_id),
-    INDEX idx_review_comment_member_id (member_id)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,              -- 리뷰 댓글 ID (PK)
+    review_id  BIGINT     NOT NULL,                            -- 리뷰 ID (REVIEW.id 참조)
+    member_id  BIGINT     NOT NULL,                            -- 작성자 회원 ID (MEMBER.id 참조)
+    content    TEXT       NOT NULL,                            -- 댓글 내용
+    is_hidden  TINYINT(1) NOT NULL DEFAULT 0,                  -- 숨김 여부 (1: 숨김)
+    created_at DATETIME   NOT NULL,                            -- 생성 일시
+    updated_at DATETIME   NOT NULL,                            -- 수정 일시
+    INDEX idx_review_comment_review_id (review_id),            -- 인덱스: 리뷰별 조회
+    INDEX idx_review_comment_member_id (member_id)             -- 인덱스: 회원별 조회
 );
 
 CREATE TABLE REVIEW_IMAGE
 (
-    id               BIGINT   AUTO_INCREMENT PRIMARY KEY,
-    review_id        BIGINT   NOT NULL,
-    image_file_id    BIGINT   NOT NULL,
-    sort             INT      NOT NULL,
-    created_at       DATETIME NOT NULL,
-    updated_at       DATETIME NOT NULL,
-    INDEX idx_review_image_review_id (review_id)
+    id               BIGINT   AUTO_INCREMENT PRIMARY KEY, -- 리뷰 이미지 ID (PK)
+    review_id        BIGINT   NOT NULL,                   -- 리뷰 ID (REVIEW.id 참조)
+    image_file_id    BIGINT   NOT NULL,                   -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    sort             INT      NOT NULL,                   -- 정렬 순서
+    created_at       DATETIME NOT NULL,                   -- 생성 일시
+    updated_at       DATETIME NOT NULL,                   -- 수정 일시
+    INDEX idx_review_image_review_id (review_id)          -- 인덱스: 리뷰별 조회
 );
 
 CREATE TABLE REVIEW_LIKE
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    review_id  BIGINT   NOT NULL,
-    member_id  BIGINT   NOT NULL,
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    UNIQUE KEY uk_review_like (review_id, member_id),
-    INDEX idx_review_like_review_id (review_id),
-    INDEX idx_review_like_member_id (member_id)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 리뷰 좋아요 ID (PK)
+    review_id  BIGINT   NOT NULL,                             -- 리뷰 ID (REVIEW.id 참조)
+    member_id  BIGINT   NOT NULL,                             -- 회원 ID (MEMBER.id 참조)
+    created_at DATETIME NOT NULL,                             -- 생성 일시
+    updated_at DATETIME NOT NULL,                             -- 수정 일시
+    UNIQUE KEY uk_review_like (review_id, member_id),         -- 유니크: 리뷰·회원 중복 방지
+    INDEX idx_review_like_review_id (review_id),              -- 인덱스: 리뷰별 조회
+    INDEX idx_review_like_member_id (member_id)               -- 인덱스: 회원별 조회
 );
 
 CREATE TABLE REVIEW_PRODUCT
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    review_id  BIGINT NOT NULL,
-    product_id BIGINT NOT NULL,
-    INDEX idx_review_product_review_id (review_id),
-    INDEX idx_review_product_product_id (product_id),
-    UNIQUE KEY uk_review_product (review_id, product_id)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 리뷰 상품 ID (PK)
+    review_id  BIGINT NOT NULL,                                    -- 리뷰 ID (REVIEW.id 참조)
+    product_id BIGINT NOT NULL,                                    -- 상품 ID (PRODUCT.id 참조)
+    INDEX idx_review_product_review_id (review_id),                -- 인덱스: 리뷰별 조회
+    INDEX idx_review_product_product_id (product_id),              -- 인덱스: 상품별 조회
+    UNIQUE KEY uk_review_product (review_id, product_id)           -- 유니크: 리뷰·상품 중복 방지
 );
 
 CREATE TABLE REVIEW_REPLY
 (
-    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
-    comment_id         BIGINT     NOT NULL,
-    member_id          BIGINT     NOT NULL,
-    reply_to_member_id BIGINT,
-    content            TEXT       NOT NULL,
-    is_hidden          TINYINT(1) NOT NULL DEFAULT 0,
-    created_at         DATETIME   NOT NULL,
-    updated_at         DATETIME   NOT NULL,
-    INDEX idx_review_reply_comment_id (comment_id),
-    INDEX idx_review_reply_member_id (member_id)
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,         -- 리뷰 대댓글 ID (PK)
+    comment_id         BIGINT     NOT NULL,                       -- 댓글 ID (REVIEW_COMMENT.id 참조)
+    member_id          BIGINT     NOT NULL,                       -- 작성자 회원 ID (MEMBER.id 참조)
+    reply_to_member_id BIGINT,                                    -- 답글 대상 회원 ID (MEMBER.id 참조)
+    content            TEXT       NOT NULL,                       -- 대댓글 내용
+    is_hidden          TINYINT(1) NOT NULL DEFAULT 0,             -- 숨김 여부 (1: 숨김)
+    created_at         DATETIME   NOT NULL,                       -- 생성 일시
+    updated_at         DATETIME   NOT NULL,                       -- 수정 일시
+    INDEX idx_review_reply_comment_id (comment_id),               -- 인덱스: 댓글별 조회
+    INDEX idx_review_reply_member_id (member_id)                  -- 인덱스: 회원별 조회
 );
 
 CREATE TABLE REVIEW_TAG
 (
-    id        BIGINT AUTO_INCREMENT PRIMARY KEY,
-    review_id BIGINT NOT NULL,
-    tag_id    BIGINT NOT NULL,
-    INDEX idx_review_tag_review_id (review_id),
-    INDEX idx_review_tag_tag_id (tag_id)
+    id        BIGINT AUTO_INCREMENT PRIMARY KEY,       -- 리뷰 태그 ID (PK)
+    review_id BIGINT NOT NULL,                         -- 리뷰 ID (REVIEW.id 참조)
+    tag_id    BIGINT NOT NULL,                         -- 태그 ID (TAG.id 참조)
+    INDEX idx_review_tag_review_id (review_id),        -- 인덱스: 리뷰별 조회
+    INDEX idx_review_tag_tag_id (tag_id)               -- 인덱스: 태그별 조회
 );
 
 CREATE TABLE TAG
 (
-    id       BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tag_name VARCHAR(255) NOT NULL
+    id       BIGINT AUTO_INCREMENT PRIMARY KEY, -- 태그 ID (PK)
+    tag_name VARCHAR(255) NOT NULL              -- 태그 이름
 );
 
 CREATE TABLE ORDERS
 (
-    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id               BIGINT       NOT NULL,
-    place_id                BIGINT       NOT NULL,
-    order_number            VARCHAR(50)  NOT NULL UNIQUE,
-    order_status            VARCHAR(20)  NOT NULL,
-    orderer_name            VARCHAR(100) NOT NULL,
-    orderer_phone           VARCHAR(20)  NOT NULL,
-    orderer_email           VARCHAR(100),
-    total_product_amount    INT          NOT NULL DEFAULT 0,
-    product_discount_amount INT          NOT NULL DEFAULT 0,
-    coupon_discount_amount  INT          NOT NULL DEFAULT 0,
-    point_discount_amount   INT          NOT NULL DEFAULT 0,
-    total_discount_amount   INT          NOT NULL DEFAULT 0,
-    final_amount            INT          NOT NULL DEFAULT 0,
-    member_coupon_id        BIGINT,
-    used_point              INT          NOT NULL DEFAULT 0,
-    earned_point            INT          NOT NULL DEFAULT 0,
-    created_at              DATETIME     NOT NULL,
-    updated_at              DATETIME     NOT NULL,
-    INDEX idx_orders_member_id (member_id),
-    INDEX idx_orders_place_id (place_id),
-    INDEX idx_orders_order_status (order_status),
-    INDEX idx_orders_created_at (created_at)
+    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 주문 ID (PK)
+    member_id               BIGINT       NOT NULL,               -- 회원 ID (MEMBER.id 참조)
+    place_id                BIGINT       NOT NULL,               -- 장소 ID (PLACE.id 참조)
+    order_number            VARCHAR(50)  NOT NULL UNIQUE,        -- 주문 번호
+    order_status            VARCHAR(20)  NOT NULL,               -- 주문 상태 (PENDING, CONFIRMED, CANCELLED 등)
+    orderer_name            VARCHAR(100) NOT NULL,               -- 주문자 이름
+    orderer_phone           VARCHAR(20)  NOT NULL,               -- 주문자 연락처
+    orderer_email           VARCHAR(100),                        -- 주문자 이메일
+    total_product_amount    INT          NOT NULL DEFAULT 0,     -- 상품 금액 합계
+    product_discount_amount INT          NOT NULL DEFAULT 0,     -- 상품 할인 금액
+    coupon_discount_amount  INT          NOT NULL DEFAULT 0,     -- 쿠폰 할인 금액
+    point_discount_amount   INT          NOT NULL DEFAULT 0,     -- 포인트 할인 금액
+    total_discount_amount   INT          NOT NULL DEFAULT 0,     -- 총 할인 금액
+    final_amount            INT          NOT NULL DEFAULT 0,     -- 최종 결제 금액
+    member_coupon_id        BIGINT,                              -- 사용한 회원 쿠폰 ID (MEMBER_COUPON.id 참조)
+    used_point              INT          NOT NULL DEFAULT 0,     -- 사용 포인트
+    earned_point            INT          NOT NULL DEFAULT 0,     -- 적립 포인트
+    created_at              DATETIME     NOT NULL,               -- 생성 일시
+    updated_at              DATETIME     NOT NULL,               -- 수정 일시
+    INDEX idx_orders_member_id (member_id),                      -- 인덱스: 회원별 조회
+    INDEX idx_orders_place_id (place_id),                        -- 인덱스: 장소별 조회
+    INDEX idx_orders_order_status (order_status),                -- 인덱스: 주문 상태별 조회
+    INDEX idx_orders_created_at (created_at)                     -- 인덱스: 생성 일시별 조회
 );
 
 CREATE TABLE ORDER_ITEM
 (
-    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id          BIGINT       NOT NULL,
-    product_id        BIGINT       NOT NULL,
-    product_name      VARCHAR(255) NOT NULL,
-    product_image_url VARCHAR(500),
-    quantity          INT          NOT NULL DEFAULT 1,
-    unit_price        INT          NOT NULL DEFAULT 0,
-    discount_price    INT,
-    option_total_price INT         NOT NULL DEFAULT 0,
-    total_price       INT          NOT NULL DEFAULT 0,
-    created_at        DATETIME     NOT NULL,
-    updated_at        DATETIME     NOT NULL,
-    INDEX idx_order_item_order_id (order_id),
-    INDEX idx_order_item_product_id (product_id)
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,         -- 주문 상품 ID (PK)
+    order_id          BIGINT       NOT NULL,                     -- 주문 ID (ORDERS.id 참조)
+    product_id        BIGINT       NOT NULL,                     -- 상품 ID (PRODUCT.id 참조)
+    product_name      VARCHAR(255) NOT NULL,                     -- 주문 시점 상품명 (스냅샷)
+    product_image_url VARCHAR(500),                              -- 주문 시점 상품 이미지 URL (스냅샷)
+    quantity          INT          NOT NULL DEFAULT 1,           -- 수량
+    unit_price        INT          NOT NULL DEFAULT 0,           -- 단가
+    discount_price    INT,                                       -- 할인가
+    option_total_price INT         NOT NULL DEFAULT 0,           -- 옵션 금액 합계
+    total_price       INT          NOT NULL DEFAULT 0,           -- 상품 총 금액
+    created_at        DATETIME     NOT NULL,                     -- 생성 일시
+    updated_at        DATETIME     NOT NULL,                     -- 수정 일시
+    INDEX idx_order_item_order_id (order_id),                    -- 인덱스: 주문별 조회
+    INDEX idx_order_item_product_id (product_id)                 -- 인덱스: 상품별 조회
 );
 
 CREATE TABLE ORDER_ITEM_OPTION
 (
-    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_item_id     BIGINT       NOT NULL,
-    option_group_id   BIGINT,
-    option_group_name VARCHAR(100) NOT NULL,
-    option_id         BIGINT,
-    option_name       VARCHAR(100) NOT NULL,
-    additional_price  INT          NOT NULL DEFAULT 0,
-    created_at        DATETIME     NOT NULL,
-    updated_at        DATETIME     NOT NULL,
-    INDEX idx_order_item_option_order_item_id (order_item_id)
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 주문 상품 옵션 ID (PK)
+    order_item_id     BIGINT       NOT NULL,                              -- 주문 상품 ID (ORDER_ITEM.id 참조)
+    option_group_id   BIGINT,                                             -- 옵션 그룹 ID (스냅샷, NULL 가능)
+    option_group_name VARCHAR(100) NOT NULL,                              -- 주문 시점 옵션 그룹 이름 (스냅샷)
+    option_id         BIGINT,                                             -- 옵션 ID (스냅샷, NULL 가능)
+    option_name       VARCHAR(100) NOT NULL,                              -- 주문 시점 옵션 이름 (스냅샷)
+    additional_price  INT          NOT NULL DEFAULT 0,                    -- 옵션 추가 금액
+    created_at        DATETIME     NOT NULL,                              -- 생성 일시
+    updated_at        DATETIME     NOT NULL,                              -- 수정 일시
+    INDEX idx_order_item_option_order_item_id (order_item_id)             -- 인덱스: 주문 상품별 조회
 );
 
 CREATE TABLE PAYMENT
 (
-    id                   BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id             BIGINT      NOT NULL UNIQUE,
-    payment_method       VARCHAR(30) NOT NULL,
-    payment_status       VARCHAR(20) NOT NULL,
-    amount               INT         NOT NULL DEFAULT 0,
-    pg_provider          VARCHAR(30),
-    pg_tid               VARCHAR(100),
-    pg_order_id          VARCHAR(100),
-    card_company         VARCHAR(50),
-    card_number          VARCHAR(30),
-    installment_months   INT,
-    approved_at          DATETIME,
-    cancelled_at         DATETIME,
-    cancel_reason        VARCHAR(500),
-    receipt_url          VARCHAR(500),
-    cash_receipt_number  VARCHAR(50),
-    cash_receipt_type    VARCHAR(20),
-    created_at           DATETIME    NOT NULL,
-    updated_at           DATETIME    NOT NULL,
-    INDEX idx_payment_order_id (order_id),
-    INDEX idx_payment_payment_status (payment_status),
-    INDEX idx_payment_pg_tid (pg_tid),
-    INDEX idx_payment_created_at (created_at)
+    id                   BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 결제 ID (PK)
+    order_id             BIGINT      NOT NULL UNIQUE,            -- 주문 ID (ORDERS.id 참조)
+    payment_method       VARCHAR(30) NOT NULL,                   -- 결제 수단 (CARD, VIRTUAL_ACCOUNT 등)
+    payment_status       VARCHAR(20) NOT NULL,                   -- 결제 상태 (PENDING, DONE, CANCELLED 등)
+    amount               INT         NOT NULL DEFAULT 0,         -- 결제 금액
+    pg_provider          VARCHAR(30),                            -- PG사 (TOSS 등)
+    pg_tid               VARCHAR(100),                           -- PG사 거래 ID
+    pg_order_id          VARCHAR(100),                           -- PG사 주문 ID
+    card_company         VARCHAR(50),                            -- 카드사
+    card_number          VARCHAR(30),                            -- 카드 번호 (마스킹)
+    installment_months   INT,                                    -- 할부 개월 수 (0: 일시불)
+    approved_at          DATETIME,                               -- 결제 승인 일시
+    cancelled_at         DATETIME,                               -- 결제 취소 일시
+    cancel_reason        VARCHAR(500),                           -- 취소 사유
+    receipt_url          VARCHAR(500),                           -- 영수증 URL
+    cash_receipt_number  VARCHAR(50),                            -- 현금영수증 번호
+    cash_receipt_type    VARCHAR(20),                            -- 현금영수증 유형 (소득공제, 지출증빙)
+    created_at           DATETIME    NOT NULL,                   -- 생성 일시
+    updated_at           DATETIME    NOT NULL,                   -- 수정 일시
+    INDEX idx_payment_order_id (order_id),                       -- 인덱스: 주문별 조회
+    INDEX idx_payment_payment_status (payment_status),           -- 인덱스: 결제 상태별 조회
+    INDEX idx_payment_pg_tid (pg_tid),                           -- 인덱스: PG사 거래 ID 조회
+    INDEX idx_payment_created_at (created_at)                    -- 인덱스: 생성 일시별 조회
 );
 
 CREATE TABLE PAYMENT_REFUND
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    payment_id    BIGINT      NOT NULL,
-    refund_amount INT         NOT NULL DEFAULT 0,
-    refund_reason VARCHAR(500),
-    refund_status VARCHAR(20) NOT NULL,
-    pg_refund_id  VARCHAR(100),
-    refunded_at   DATETIME,
-    created_at    DATETIME    NOT NULL,
-    updated_at    DATETIME    NOT NULL,
-    INDEX idx_payment_refund_payment_id (payment_id),
-    INDEX idx_payment_refund_refund_status (refund_status)
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 환불 ID (PK)
+    payment_id    BIGINT      NOT NULL,                               -- 결제 ID (PAYMENT.id 참조)
+    refund_amount INT         NOT NULL DEFAULT 0,                     -- 환불 금액
+    refund_reason VARCHAR(500),                                       -- 환불 사유
+    refund_status VARCHAR(20) NOT NULL,                               -- 환불 상태 (PENDING, COMPLETED, FAILED 등)
+    pg_refund_id  VARCHAR(100),                                       -- PG사 환불 ID
+    refunded_at   DATETIME,                                           -- 환불 완료 일시
+    created_at    DATETIME    NOT NULL,                               -- 생성 일시
+    updated_at    DATETIME    NOT NULL,                               -- 수정 일시
+    INDEX idx_payment_refund_payment_id (payment_id),                 -- 인덱스: 결제별 조회
+    INDEX idx_payment_refund_refund_status (refund_status)            -- 인덱스: 환불 상태별 조회
 );
 
 CREATE TABLE UPLOADED_FILE
 (
-    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    original_filename VARCHAR(500)  NOT NULL,
-    stored_filename   VARCHAR(500)  NOT NULL,
-    file_path         VARCHAR(1000) NOT NULL,
-    file_size         BIGINT        NOT NULL,
-    content_type      VARCHAR(100)  NOT NULL,
-    created_at        DATETIME      NOT NULL,
-    updated_at        DATETIME      NOT NULL,
-    INDEX idx_uploaded_file_created_at (created_at)
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 업로드 파일 ID (PK)
+    original_filename VARCHAR(500)  NOT NULL,             -- 원본 파일명
+    stored_filename   VARCHAR(500)  NOT NULL,             -- 저장 파일명 (UUID 등)
+    file_path         VARCHAR(1000) NOT NULL,             -- 파일 저장 경로
+    file_size         BIGINT        NOT NULL,             -- 파일 크기 (bytes)
+    content_type      VARCHAR(100)  NOT NULL,             -- MIME 타입
+    created_at        DATETIME      NOT NULL,             -- 생성 일시
+    updated_at        DATETIME      NOT NULL,             -- 수정 일시
+    INDEX idx_uploaded_file_created_at (created_at)       -- 인덱스: 생성 일시별 조회
 );
 
 CREATE TABLE FAQ_CATEGORY
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name         VARCHAR(100) NOT NULL,
-    sort         INT          NOT NULL,
-    is_active    TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at   DATETIME     NOT NULL,
-    updated_at   DATETIME     NOT NULL,
-    INDEX idx_faq_category_active (is_active, sort)
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,              -- FAQ 카테고리 ID (PK)
+    name         VARCHAR(100) NOT NULL,                          -- 카테고리 이름
+    sort         INT          NOT NULL,                          -- 정렬 순서
+    is_active    TINYINT(1)   NOT NULL DEFAULT 1,                -- 활성화 여부 (1: 활성)
+    created_at   DATETIME     NOT NULL,                          -- 생성 일시
+    updated_at   DATETIME     NOT NULL,                          -- 수정 일시
+    INDEX idx_faq_category_active (is_active, sort)              -- 인덱스: 활성·정렬 복합 조회
 );
 
 CREATE TABLE FAQ
 (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    faq_category_id BIGINT        NOT NULL,
-    question        VARCHAR(500)  NOT NULL,
-    answer          TEXT          NOT NULL,
-    sort            INT           NOT NULL,
-    is_active       TINYINT(1)    NOT NULL DEFAULT 1,
-    created_at      DATETIME      NOT NULL,
-    updated_at      DATETIME      NOT NULL,
-    INDEX idx_faq_category_id (faq_category_id),
-    INDEX idx_faq_active (faq_category_id, is_active, sort)
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,                    -- FAQ ID (PK)
+    faq_category_id BIGINT        NOT NULL,                               -- FAQ 카테고리 ID (FAQ_CATEGORY.id 참조)
+    question        VARCHAR(500)  NOT NULL,                               -- 질문
+    answer          TEXT          NOT NULL,                               -- 답변
+    sort            INT           NOT NULL,                               -- 정렬 순서
+    is_active       TINYINT(1)    NOT NULL DEFAULT 1,                     -- 활성화 여부 (1: 활성)
+    created_at      DATETIME      NOT NULL,                               -- 생성 일시
+    updated_at      DATETIME      NOT NULL,                               -- 수정 일시
+    INDEX idx_faq_category_id (faq_category_id),                          -- 인덱스: 카테고리별 조회
+    INDEX idx_faq_active (faq_category_id, is_active, sort)               -- 인덱스: 카테고리·활성·정렬 복합 조회
 );
 
 CREATE TABLE TOSS_PAYMENT_RECORD
 (
-    id                                  BIGINT AUTO_INCREMENT PRIMARY KEY,
-    payment_id                          BIGINT       NOT NULL,
-    version                             VARCHAR(20),
-    payment_key                         VARCHAR(200),
-    type                                VARCHAR(20),
-    order_id                            VARCHAR(64),
-    order_name                          VARCHAR(100),
-    m_id                                VARCHAR(14),
-    currency                            VARCHAR(10),
-    method                              VARCHAR(30),
-    total_amount                        INT,
-    balance_amount                      INT,
-    status                              VARCHAR(30),
-    requested_at                        DATETIME,
-    approved_at                         DATETIME,
-    use_escrow                          TINYINT(1),
-    last_transaction_key                VARCHAR(64),
-    supplied_amount                     INT,
-    vat                                 INT,
-    culture_expense                     TINYINT(1),
-    tax_free_amount                     INT,
-    tax_exemption_amount                INT,
-    is_partial_cancelable               TINYINT(1),
-    card_amount                         INT,
-    card_issuer_code                    VARCHAR(10),
-    card_acquirer_code                  VARCHAR(10),
-    card_number                         VARCHAR(20),
-    card_installment_plan_months        INT,
-    card_approve_no                     VARCHAR(8),
-    card_use_card_point                 TINYINT(1),
-    card_type                           VARCHAR(20),
-    card_owner_type                     VARCHAR(20),
-    card_acquire_status                 VARCHAR(30),
-    card_is_interest_free               TINYINT(1),
-    card_interest_payer                 VARCHAR(20),
-    virtual_account_type                VARCHAR(20),
-    virtual_account_number              VARCHAR(20),
-    virtual_account_bank_code           VARCHAR(10),
-    virtual_account_customer_name       VARCHAR(100),
-    virtual_account_depositor_name      VARCHAR(100),
-    virtual_account_due_date            DATETIME,
-    virtual_account_refund_status       VARCHAR(30),
-    virtual_account_expired             TINYINT(1),
-    virtual_account_settlement_status   VARCHAR(30),
-    mobile_phone_customer_mobile_phone  VARCHAR(15),
-    mobile_phone_settlement_status      VARCHAR(30),
-    mobile_phone_receipt_url            VARCHAR(500),
-    gift_certificate_approve_no         VARCHAR(8),
-    gift_certificate_settlement_status  VARCHAR(30),
-    transfer_bank_code                  VARCHAR(10),
-    transfer_settlement_status          VARCHAR(30),
-    receipt_url                         VARCHAR(500),
-    checkout_url                        VARCHAR(500),
-    easy_pay_provider                   VARCHAR(30),
-    easy_pay_amount                     INT,
-    easy_pay_discount_amount            INT,
-    country                             VARCHAR(2),
-    failure_code                        VARCHAR(50),
-    failure_message                     VARCHAR(510),
-    cash_receipt_type                   VARCHAR(20),
-    cash_receipt_key                    VARCHAR(200),
-    cash_receipt_issue_number           VARCHAR(9),
-    cash_receipt_url                    VARCHAR(500),
-    cash_receipt_amount                 INT,
-    cash_receipt_tax_free_amount        INT,
-    discount_amount                     INT,
-    created_at                          DATETIME     NOT NULL,
-    updated_at                          DATETIME     NOT NULL,
-    INDEX idx_toss_payment_record_payment_id (payment_id),
-    INDEX idx_toss_payment_record_payment_key (payment_key),
-    INDEX idx_toss_payment_record_order_id (order_id),
-    INDEX idx_toss_payment_record_status (status)
+    id                                  BIGINT AUTO_INCREMENT PRIMARY KEY,   -- Toss 결제 기록 ID (PK)
+    payment_id                          BIGINT       NOT NULL,               -- 결제 ID (PAYMENT.id 참조)
+    version                             VARCHAR(20),                         -- Toss API 응답 버전
+    payment_key                         VARCHAR(200),                        -- Toss 결제 키 (결제 고유 식별자)
+    type                                VARCHAR(20),                         -- 결제 타입 (NORMAL, BILLING, BRANDPAY 등)
+    order_id                            VARCHAR(64),                         -- 주문 번호
+    order_name                          VARCHAR(100),                        -- 주문명
+    m_id                                VARCHAR(14),                         -- 상점 아이디 (MID)
+    currency                            VARCHAR(10),                         -- 결제 통화
+    method                              VARCHAR(30),                         -- 결제 수단 (카드, 가상계좌 등)
+    total_amount                        INT,                                 -- 총 결제 금액
+    balance_amount                      INT,                                 -- 취소 가능 금액 (잔고)
+    status                              VARCHAR(30),                         -- 결제 처리 상태
+    requested_at                        DATETIME,                            -- 결제 요청 일시
+    approved_at                         DATETIME,                            -- 결제 승인 일시
+    use_escrow                          TINYINT(1),                          -- 에스크로 사용 여부
+    last_transaction_key                VARCHAR(64),                         -- 마지막 거래 키
+    supplied_amount                     INT,                                 -- 공급가액
+    vat                                 INT,                                 -- 부가세
+    culture_expense                     TINYINT(1),                          -- 문화비 지출 여부
+    tax_free_amount                     INT,                                 -- 면세 금액
+    tax_exemption_amount                INT,                                 -- 과세 제외 금액
+    is_partial_cancelable               TINYINT(1),                          -- 부분 취소 가능 여부
+    card_amount                         INT,                                 -- 카드사 청구 금액
+    card_issuer_code                    VARCHAR(10),                         -- 카드 발급사 코드
+    card_acquirer_code                  VARCHAR(10),                         -- 카드 매입사 코드
+    card_number                         VARCHAR(20),                         -- 카드 번호 (마스킹)
+    card_installment_plan_months        INT,                                 -- 할부 개월 수 (0: 일시불)
+    card_approve_no                     VARCHAR(8),                          -- 카드 승인 번호
+    card_use_card_point                 TINYINT(1),                          -- 카드 포인트 사용 여부
+    card_type                           VARCHAR(20),                         -- 카드 종류 (신용, 체크, 기프트 등)
+    card_owner_type                     VARCHAR(20),                         -- 카드 소유자 유형 (개인, 법인 등)
+    card_acquire_status                 VARCHAR(30),                         -- 카드 매입 상태
+    card_is_interest_free               TINYINT(1),                          -- 무이자 할부 여부
+    card_interest_payer                 VARCHAR(20),                         -- 할부 수수료 부담 주체
+    virtual_account_type                VARCHAR(20),                         -- 가상계좌 유형 (일반, 고정)
+    virtual_account_number              VARCHAR(20),                         -- 가상계좌 번호
+    virtual_account_bank_code           VARCHAR(10),                         -- 가상계좌 은행 코드
+    virtual_account_customer_name       VARCHAR(100),                        -- 가상계좌 발급 구매자명
+    virtual_account_depositor_name      VARCHAR(100),                        -- 가상계좌 입금자명
+    virtual_account_due_date            DATETIME,                            -- 가상계좌 입금 기한
+    virtual_account_refund_status       VARCHAR(30),                         -- 가상계좌 환불 상태
+    virtual_account_expired             TINYINT(1),                          -- 가상계좌 만료 여부
+    virtual_account_settlement_status   VARCHAR(30),                         -- 가상계좌 정산 상태
+    mobile_phone_customer_mobile_phone  VARCHAR(15),                         -- 휴대폰 결제 구매자 번호
+    mobile_phone_settlement_status      VARCHAR(30),                         -- 휴대폰 결제 정산 상태
+    mobile_phone_receipt_url            VARCHAR(500),                        -- 휴대폰 결제 영수증 URL
+    gift_certificate_approve_no         VARCHAR(8),                          -- 상품권 결제 승인 번호
+    gift_certificate_settlement_status  VARCHAR(30),                         -- 상품권 정산 상태
+    transfer_bank_code                  VARCHAR(10),                         -- 계좌이체 은행 코드
+    transfer_settlement_status          VARCHAR(30),                         -- 계좌이체 정산 상태
+    receipt_url                         VARCHAR(500),                        -- 영수증 URL
+    checkout_url                        VARCHAR(500),                        -- 결제창 URL
+    easy_pay_provider                   VARCHAR(30),                         -- 간편결제사 코드
+    easy_pay_amount                     INT,                                 -- 간편결제 결제 금액
+    easy_pay_discount_amount            INT,                                 -- 간편결제 즉시 할인 금액
+    country                             VARCHAR(2),                          -- 결제 국가 코드 (ISO-3166)
+    failure_code                        VARCHAR(50),                         -- 결제 실패 에러 코드
+    failure_message                     VARCHAR(510),                        -- 결제 실패 에러 메시지
+    cash_receipt_type                   VARCHAR(20),                         -- 현금영수증 유형 (소득공제, 지출증빙)
+    cash_receipt_key                    VARCHAR(200),                        -- 현금영수증 키
+    cash_receipt_issue_number           VARCHAR(9),                          -- 현금영수증 발급 번호
+    cash_receipt_url                    VARCHAR(500),                        -- 현금영수증 확인 URL
+    cash_receipt_amount                 INT,                                 -- 현금영수증 처리 금액
+    cash_receipt_tax_free_amount        INT,                                 -- 현금영수증 면세 처리 금액
+    discount_amount                     INT,                                 -- 즉시 할인 금액
+    created_at                          DATETIME     NOT NULL,               -- 생성 일시
+    updated_at                          DATETIME     NOT NULL,               -- 수정 일시
+    INDEX idx_toss_payment_record_payment_id (payment_id),                   -- 인덱스: 결제별 조회
+    INDEX idx_toss_payment_record_payment_key (payment_key),                 -- 인덱스: 결제 키별 조회
+    INDEX idx_toss_payment_record_order_id (order_id),                       -- 인덱스: 주문 ID별 조회
+    INDEX idx_toss_payment_record_status (status)                            -- 인덱스: 결제 상태별 조회
 );
 
 CREATE TABLE MEMBER_REFERRAL
 (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    referrer_id BIGINT      NOT NULL,
-    referee_id  BIGINT      NOT NULL,
-    status      VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    created_at  DATETIME    NOT NULL,
-    updated_at  DATETIME    NOT NULL,
-    UNIQUE KEY uq_member_referral_referee_id (referee_id),
-    INDEX idx_member_referral_referrer_id (referrer_id),
-    INDEX idx_member_referral_status (status)
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,                   -- 추천인 이력 ID (PK)
+    referrer_id BIGINT      NOT NULL,                                -- 추천인 회원 ID (MEMBER.id 참조)
+    referee_id  BIGINT      NOT NULL,                                -- 피추천인 회원 ID (MEMBER.id 참조)
+    status      VARCHAR(20) NOT NULL DEFAULT 'PENDING',             -- 추천 상태 (PENDING, COMPLETED 등)
+    created_at  DATETIME    NOT NULL,                                -- 생성 일시
+    updated_at  DATETIME    NOT NULL,                                -- 수정 일시
+    UNIQUE KEY uq_member_referral_referee_id (referee_id),           -- 유니크: 피추천인 중복 방지 (1인 1회)
+    INDEX idx_member_referral_referrer_id (referrer_id),             -- 인덱스: 추천인별 조회
+    INDEX idx_member_referral_status (status)                        -- 인덱스: 상태별 조회
 );
 
 CREATE TABLE MEMBER_WITHDRAWAL
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id     BIGINT       NOT NULL,
-    reason        VARCHAR(50)  NOT NULL,
-    reason_detail VARCHAR(500),
-    created_at    DATETIME     NOT NULL,
-    updated_at    DATETIME     NOT NULL,
-    INDEX idx_member_withdrawal_member_id (member_id)
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 회원 탈퇴 ID (PK)
+    member_id     BIGINT       NOT NULL,                         -- 탈퇴 회원 ID (MEMBER.id 참조)
+    reason        VARCHAR(50)  NOT NULL,                         -- 탈퇴 사유 코드
+    reason_detail VARCHAR(500),                                  -- 탈퇴 사유 상세
+    created_at    DATETIME     NOT NULL,                         -- 생성 일시
+    updated_at    DATETIME     NOT NULL,                         -- 수정 일시
+    INDEX idx_member_withdrawal_member_id (member_id)            -- 인덱스: 회원별 조회
 );
 
 CREATE TABLE PHONE_VERIFICATION
 (
-    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    phone_number      VARCHAR(11)  NOT NULL,
-    verification_code VARCHAR(6)   NOT NULL,
-    status            VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
-    expires_at        DATETIME     NOT NULL,
-    verified_at       DATETIME,
-    created_at        DATETIME     NOT NULL,
-    INDEX idx_phone_verification_phone_number (phone_number),
-    INDEX idx_phone_verification_expires_at (expires_at)
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 휴대폰 인증 ID (PK)
+    phone_number      VARCHAR(11)  NOT NULL,                              -- 인증 휴대폰 번호
+    verification_code VARCHAR(6)   NOT NULL,                              -- 인증 코드 (6자리)
+    status            VARCHAR(20)  NOT NULL DEFAULT 'PENDING',            -- 인증 상태 (PENDING, VERIFIED, EXPIRED 등)
+    expires_at        DATETIME     NOT NULL,                              -- 만료 일시
+    verified_at       DATETIME,                                           -- 인증 완료 일시
+    created_at        DATETIME     NOT NULL,                              -- 생성 일시
+    INDEX idx_phone_verification_phone_number (phone_number),             -- 인덱스: 휴대폰 번호별 조회
+    INDEX idx_phone_verification_expires_at (expires_at)                  -- 인덱스: 만료 일시별 조회
 );
 
 CREATE TABLE EMAIL_VERIFICATION
 (
-    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    email             VARCHAR(100) NOT NULL,
-    verification_code VARCHAR(6)   NOT NULL,
-    status            VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
-    expires_at        DATETIME     NOT NULL,
-    verified_at       DATETIME,
-    created_at        DATETIME     NOT NULL,
-    INDEX idx_email_verification_email (email),
-    INDEX idx_email_verification_expires_at (expires_at)
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 이메일 인증 ID (PK)
+    email             VARCHAR(100) NOT NULL,                            -- 인증 이메일 주소
+    verification_code VARCHAR(6)   NOT NULL,                            -- 인증 코드 (6자리)
+    status            VARCHAR(20)  NOT NULL DEFAULT 'PENDING',          -- 인증 상태 (PENDING, VERIFIED, EXPIRED 등)
+    expires_at        DATETIME     NOT NULL,                            -- 만료 일시
+    verified_at       DATETIME,                                         -- 인증 완료 일시
+    created_at        DATETIME     NOT NULL,                            -- 생성 일시
+    INDEX idx_email_verification_email (email),                         -- 인덱스: 이메일별 조회
+    INDEX idx_email_verification_expires_at (expires_at)                -- 인덱스: 만료 일시별 조회
 );
 
 CREATE TABLE RANKS
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    start_at   DATETIME   NOT NULL,
-    end_at     DATETIME   NOT NULL,
-    is_active  TINYINT(1) NOT NULL DEFAULT 1,
-    created_at DATETIME   NOT NULL,
-    updated_at DATETIME   NOT NULL,
-    INDEX idx_rank_active (is_active),
-    INDEX idx_rank_period (start_at, end_at)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 랭킹 ID (PK)
+    start_at   DATETIME   NOT NULL,                   -- 랭킹 시작 일시
+    end_at     DATETIME   NOT NULL,                   -- 랭킹 종료 일시
+    is_active  TINYINT(1) NOT NULL DEFAULT 1,         -- 활성화 여부 (1: 활성)
+    created_at DATETIME   NOT NULL,                   -- 생성 일시
+    updated_at DATETIME   NOT NULL,                   -- 수정 일시
+    INDEX idx_rank_active (is_active),                -- 인덱스: 활성화 여부별 조회
+    INDEX idx_rank_period (start_at, end_at)          -- 인덱스: 기간별 조회
 );
 
 CREATE TABLE RANK_PRIZE
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    rank_id       BIGINT       NOT NULL,
-    prize_rank    INT          NOT NULL,
-    name          VARCHAR(200) NOT NULL,
-    brand         VARCHAR(100) NOT NULL,
-    image_file_id BIGINT,
-    created_at    DATETIME     NOT NULL,
-    updated_at    DATETIME     NOT NULL,
-    UNIQUE KEY uk_rank_prize_rank (rank_id, prize_rank),
-    INDEX idx_rank_prize (rank_id, prize_rank)
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 랭킹 경품 ID (PK)
+    rank_id       BIGINT       NOT NULL,                            -- 랭킹 ID (RANKS.id 참조)
+    prize_rank    INT          NOT NULL,                            -- 수상 순위
+    name          VARCHAR(200) NOT NULL,                            -- 경품 이름
+    brand         VARCHAR(100) NOT NULL,                            -- 경품 브랜드
+    image_file_id BIGINT,                                           -- 경품 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    created_at    DATETIME     NOT NULL,                            -- 생성 일시
+    updated_at    DATETIME     NOT NULL,                            -- 수정 일시
+    UNIQUE KEY uk_rank_prize_rank (rank_id, prize_rank),            -- 유니크: 랭킹·순위 중복 방지
+    INDEX idx_rank_prize (rank_id, prize_rank)                      -- 인덱스: 랭킹·순위 복합 조회
 );
 
 CREATE TABLE SEARCH_KEYWORD_LOG (
-                                    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                    keyword     VARCHAR(100) NOT NULL,
-                                    searched_at DATETIME     NOT NULL,
-                                    INDEX idx_keyword_searched_at (keyword, searched_at)
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 검색 키워드 로그 ID (PK)
+    keyword     VARCHAR(100) NOT NULL,                 -- 검색 키워드
+    searched_at DATETIME     NOT NULL,                 -- 검색 일시
+    INDEX idx_keyword_searched_at (keyword, searched_at) -- 인덱스: 키워드·검색 일시 복합 조회
 );
 
 CREATE TABLE POPULAR_KEYWORD (
-                                 id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                 keyword    VARCHAR(100) NOT NULL,
-                                 rank       INT          NOT NULL,
-                                 is_new     BOOLEAN      NOT NULL DEFAULT FALSE,
-                                 is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
-                                 created_at DATETIME     NOT NULL,
-                                 updated_at DATETIME     NOT NULL,
-                                 INDEX idx_is_active_rank (is_active, rank)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 인기 검색어 ID (PK)
+    keyword    VARCHAR(100) NOT NULL,             -- 검색어
+    rank       INT          NOT NULL,             -- 순위
+    is_new     BOOLEAN      NOT NULL DEFAULT FALSE, -- 신규 진입 여부 (true: 신규)
+    is_active  BOOLEAN      NOT NULL DEFAULT TRUE,  -- 활성화 여부 (true: 활성)
+    created_at DATETIME     NOT NULL,             -- 생성 일시
+    updated_at DATETIME     NOT NULL,             -- 수정 일시
+    INDEX idx_is_active_rank (is_active, rank)    -- 인덱스: 활성·순위 복합 조회
 );
 
 CREATE TABLE RECOMMENDED_KEYWORD (
-                                     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                     keyword    VARCHAR(100) NOT NULL,
-                                     sort_order INT          NOT NULL DEFAULT 0,
-                                     is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
-                                     created_at DATETIME     NOT NULL,
-                                     updated_at DATETIME     NOT NULL
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 추천 검색어 ID (PK)
+    keyword    VARCHAR(100) NOT NULL,              -- 검색어
+    sort_order INT          NOT NULL DEFAULT 0,    -- 정렬 순서
+    is_active  BOOLEAN      NOT NULL DEFAULT TRUE, -- 활성화 여부 (true: 활성)
+    created_at DATETIME     NOT NULL,              -- 생성 일시
+    updated_at DATETIME     NOT NULL               -- 수정 일시
 );

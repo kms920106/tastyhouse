@@ -21,25 +21,25 @@ public class PartnershipRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "business_name", nullable = false, length = 200)
-    private String businessName;
+    private String businessName; // 사업장(업체) 이름
 
     @Column(name = "address", nullable = false, length = 500)
-    private String address;
+    private String address; // 사업장 주소
 
     @Column(name = "address_detail", length = 500)
-    private String addressDetail;
+    private String addressDetail; // 사업장 상세 주소
 
     @Column(name = "contact_name", nullable = false, length = 100)
-    private String contactName;
+    private String contactName; // 담당자 이름
 
     @Column(name = "contact_phone", nullable = false, length = 20)
-    private String contactPhone;
+    private String contactPhone; // 담당자 연락처
 
     @Column(name = "consultation_requested_at", nullable = false)
-    private LocalDateTime consultationRequestedAt;
+    private LocalDateTime consultationRequestedAt; // 상담 신청 일시
 
     public PartnershipRequest(String businessName, String address, String addressDetail,
                             String contactName, String contactPhone, LocalDateTime consultationRequestedAt) {

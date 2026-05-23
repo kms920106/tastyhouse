@@ -25,16 +25,16 @@ public class ReviewImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    private Long reviewId; // 리뷰 ID (REVIEW.id 참조)
 
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
+    private Long imageFileId; // 이미지 파일 ID (FILE.id 참조)
 
     @Column(name = "sort", nullable = false)
-    private Integer sort;
+    private Integer sort; // 이미지 노출 순서 (오름차순 정렬)
 
     private ReviewImage(
         Long reviewId,

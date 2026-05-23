@@ -28,26 +28,26 @@ public class EmailVerification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "email", nullable = false, length = 100)
-    private String email;
+    private String email; // 인증 대상 이메일 주소
 
     @Column(name = "verification_code", nullable = false, length = 6)
-    private String verificationCode;
+    private String verificationCode; // 인증 코드 (6자리 숫자)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private EmailVerificationStatus status;
+    private EmailVerificationStatus status; // 인증 상태 (예: PENDING, VERIFIED, EXPIRED)
 
     @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;
+    private LocalDateTime expiresAt; // 인증 코드 만료 일시
 
     @Column(name = "verified_at")
-    private LocalDateTime verifiedAt;
+    private LocalDateTime verifiedAt; // 인증 완료 일시
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; // 인증 요청 생성 일시
 
     private EmailVerification(
         String email,

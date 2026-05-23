@@ -21,26 +21,26 @@ public class PlaceFoodTypeCategory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Enumerated(EnumType.STRING)
     @Column(name = "food_type", nullable = false, unique = true, length = 50, columnDefinition = "VARCHAR(50)")
-    private FoodType foodType;
+    private FoodType foodType; // 음식 유형 (KOREAN, JAPANESE, CHINESE, WESTERN 등)
 
     @Column(name = "display_name", nullable = false, length = 100)
-    private String displayName;
+    private String displayName; // 화면 표시명
 
     @Column(name = "active_image_file_id", nullable = false)
-    private Long activeImageFileId;
+    private Long activeImageFileId; // 활성 상태 아이콘 파일 ID (FILE.id 참조)
 
     @Column(name = "inactive_image_file_id", nullable = false)
-    private Long inactiveImageFileId;
+    private Long inactiveImageFileId; // 비활성 상태 아이콘 파일 ID (FILE.id 참조)
 
     @Column(name = "sort", nullable = false)
-    private Integer sort;
+    private Integer sort; // 정렬 순서
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive; // 사용 여부 (true: 사용 중)
 
     private PlaceFoodTypeCategory(FoodType foodType, String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, Boolean isActive) {
         this.foodType = foodType;

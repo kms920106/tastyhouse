@@ -18,10 +18,10 @@ public class Tag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "tag_name", nullable = false)
-    private String tagName;
+    private String tagName; // 태그명
 
     public Tag(String tagName) {
         this.tagName = tagName;

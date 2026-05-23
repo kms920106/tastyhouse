@@ -28,16 +28,16 @@ public class Rank extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "start_at", nullable = false)
-    private LocalDateTime startAt;
+    private LocalDateTime startAt; // 랭킹 시작 일시
 
     @Column(name = "end_at", nullable = false)
-    private LocalDateTime endAt;
+    private LocalDateTime endAt; // 랭킹 종료 일시
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive; // 활성화 여부 (true: 활성)
 
     private Rank(LocalDateTime startAt, LocalDateTime endAt, Boolean isActive) {
         this.startAt = startAt;

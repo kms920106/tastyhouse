@@ -19,49 +19,49 @@ public class Review extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 장소 ID (PLACE.id 참조)
 
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private Long productId; // 상품 ID (PRODUCT.id 참조)
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 회원 ID (MEMBER.id 참조)
 
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
-    private String content; // 내용
+    private String content; // 리뷰 내용
 
     @Column(name = "total_rating", nullable = false)
-    private Double totalRating; // 총 평점
+    private Double totalRating; // 종합 평점
 
     @Column(name = "taste_rating")
-    private Double tasteRating; // 맛
+    private Double tasteRating; // 맛 평점
 
     @Column(name = "amount_rating")
-    private Double amountRating; // 양
+    private Double amountRating; // 양 평점
 
     @Column(name = "price_rating")
-    private Double priceRating; // 가격
+    private Double priceRating; // 가격 평점
 
     @Column(name = "atmosphere_rating")
-    private Double atmosphereRating; // 분위기
+    private Double atmosphereRating; // 분위기 평점
 
     @Column(name = "kindness_rating")
-    private Double kindnessRating; // 친절도
+    private Double kindnessRating; // 친절도 평점
 
     @Column(name = "hygiene_rating")
-    private Double hygieneRating; // 위생
+    private Double hygieneRating; // 위생 평점
 
     @Column(name = "will_revisit")
-    private Boolean willRevisit; // 재방문 의사
+    private Boolean willRevisit; // 재방문 의사 (true: 재방문 의향 있음)
 
     @Column(name = "order_id")
-    private Long orderId; // null이면 일반 리뷰, 값이 있으면 주문/결제 기반 인증 리뷰
+    private Long orderId; // 주문 ID (ORDERS.id 참조, null이면 일반 리뷰, 값이 있으면 주문 기반 인증 리뷰)
 
     @Column(name = "is_hidden", nullable = false)
-    private Boolean isHidden = false; // 관리자 미노출 여부
+    private Boolean isHidden = false; // 숨김 여부 (true: 관리자에 의해 숨김 처리)
 
     private Review(
         Long placeId,

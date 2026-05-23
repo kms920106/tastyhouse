@@ -23,26 +23,26 @@ public class PaymentRefund extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "payment_id", nullable = false)
-    private Long paymentId;
+    private Long paymentId; // 결제 ID (PAYMENT.id 참조)
 
     @Column(name = "refund_amount", nullable = false)
-    private Integer refundAmount;
+    private Integer refundAmount; // 환불 금액
 
     @Column(name = "refund_reason", length = 500)
-    private String refundReason;
+    private String refundReason; // 환불 사유
 
     @Enumerated(EnumType.STRING)
     @Column(name = "refund_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RefundStatus refundStatus;
+    private RefundStatus refundStatus; // 환불 상태 (PENDING: 대기, COMPLETED: 완료, FAILED: 실패)
 
     @Column(name = "pg_refund_id", length = 100)
-    private String pgRefundId;
+    private String pgRefundId; // PG사 환불 거래 ID
 
     @Column(name = "refunded_at")
-    private LocalDateTime refundedAt;
+    private LocalDateTime refundedAt; // 환불 완료 일시
 
     private PaymentRefund(
         Long paymentId,

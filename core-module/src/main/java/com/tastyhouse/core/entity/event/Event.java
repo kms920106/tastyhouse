@@ -30,35 +30,35 @@ public class Event extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "name", nullable = false, length = 200)
-    private String name;
+    private String name; // 이벤트명
 
     @Column(name = "description", length = 1000)
-    private String description;
+    private String description; // 이벤트 설명
 
     @Column(name = "subtitle", length = 200)
-    private String subtitle;
+    private String subtitle; // 이벤트 부제목
 
     @Column(name = "thumbnail_image_file_id")
-    private Long thumbnailImageFileId;
+    private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
 
     @Column(name = "banner_image_file_id")
-    private Long bannerImageFileId;
+    private Long bannerImageFileId; // 배너 이미지 파일 ID (FILE.id 참조)
 
     @Column(name = "content_html", columnDefinition = "TEXT")
-    private String contentHtml;
+    private String contentHtml; // 이벤트 본문 HTML
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private EventStatus status;
+    private EventStatus status; // 이벤트 상태 (예: SCHEDULED, ONGOING, ENDED)
 
     @Column(name = "start_at", nullable = false)
-    private LocalDateTime startAt;
+    private LocalDateTime startAt; // 이벤트 시작 일시
 
     @Column(name = "end_at", nullable = false)
-    private LocalDateTime endAt;
+    private LocalDateTime endAt; // 이벤트 종료 일시
 
     private Event(
         String name,

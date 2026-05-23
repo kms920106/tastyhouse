@@ -20,13 +20,13 @@ public class PlaceFoodType extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 장소 ID (PLACE.id 참조)
 
     @Column(name = "place_food_type_category_id", nullable = false)
-    private Long placeFoodTypeCategoryId;
+    private Long placeFoodTypeCategoryId; // 음식 유형 카테고리 ID (PLACE_FOOD_TYPE_CATEGORY.id 참조)
 
     private PlaceFoodType(
         Long placeId,

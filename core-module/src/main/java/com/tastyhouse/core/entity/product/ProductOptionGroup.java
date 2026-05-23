@@ -19,34 +19,34 @@ public class ProductOptionGroup extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private Long productId; // 상품 ID (PRODUCT.id 참조)
 
     @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    private String name; // 옵션 그룹명
 
     @Column(name = "description", length = 500)
-    private String description;
+    private String description; // 옵션 그룹 설명
 
     @Column(name = "is_required", nullable = false)
-    private Boolean isRequired;
+    private Boolean isRequired; // 필수 선택 여부 (true: 필수)
 
     @Column(name = "is_multiple_select", nullable = false)
-    private Boolean isMultipleSelect;
+    private Boolean isMultipleSelect; // 다중 선택 허용 여부 (true: 다중 선택 가능)
 
     @Column(name = "min_select")
-    private Integer minSelect;
+    private Integer minSelect; // 최소 선택 수
 
     @Column(name = "max_select")
-    private Integer maxSelect;
+    private Integer maxSelect; // 최대 선택 수
 
     @Column(name = "sort", nullable = false)
-    private Integer sort;
+    private Integer sort; // 정렬 순서
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive; // 활성화 여부 (true: 활성)
 
     private ProductOptionGroup(
         Long productId,

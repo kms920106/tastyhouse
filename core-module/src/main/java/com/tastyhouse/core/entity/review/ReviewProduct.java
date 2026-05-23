@@ -15,11 +15,11 @@ public class ReviewProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    private Long reviewId; // 리뷰 ID (REVIEW.id 참조)
 
     @Column(name = "product_id", nullable = false)
-    private Long productId; // 리뷰에서 선택한 메뉴
+    private Long productId; // 리뷰에서 선택한 상품 ID (PRODUCT.id 참조)
 }

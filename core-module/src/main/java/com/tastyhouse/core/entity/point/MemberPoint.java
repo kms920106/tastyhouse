@@ -27,16 +27,16 @@ public class MemberPoint extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "member_id", nullable = false, unique = true)
-    private Long memberId;
+    private Long memberId; // 회원 ID (MEMBER.id 참조)
 
     @Column(name = "available_points", nullable = false)
-    private Integer availablePoints = 0;
+    private Integer availablePoints = 0; // 사용 가능한 포인트 잔액
 
     @Column(name = "expired_this_month", nullable = false)
-    private Integer expiredThisMonth = 0;
+    private Integer expiredThisMonth = 0; // 이번 달 소멸 예정 포인트
 
     private MemberPoint(
         Long memberId,

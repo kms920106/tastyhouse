@@ -20,13 +20,13 @@ public class PlaceAmenity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 장소 ID (PLACE.id 참조)
 
     @Column(name = "place_amenity_category_id", nullable = false)
-    private Long placeAmenityCategoryId;
+    private Long placeAmenityCategoryId; // 편의시설 카테고리 ID (PLACE_AMENITY_CATEGORY.id 참조)
 
     private PlaceAmenity(
         Long placeId,

@@ -29,22 +29,22 @@ public class RankPrize extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "rank_id", nullable = false)
-    private Long rankId;
+    private Long rankId; // 랭킹 ID (RANKS.id 참조)
 
     @Column(name = "prize_rank", nullable = false)
-    private Integer prizeRank;
+    private Integer prizeRank; // 시상 순위 (1위, 2위 등)
 
     @Column(name = "name", nullable = false, length = 200)
-    private String name;
+    private String name; // 경품명
 
     @Column(name = "brand", nullable = false, length = 100)
-    private String brand;
+    private String brand; // 경품 브랜드명
 
     @Column(name = "image_file_id")
-    private Long imageFileId;
+    private Long imageFileId; // 경품 이미지 파일 ID (FILE.id 참조)
 
     private RankPrize(Long rankId, Integer prizeRank, String name, String brand, Long imageFileId) {
         this.rankId = rankId;

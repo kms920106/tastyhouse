@@ -23,13 +23,13 @@ public class Follow extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "follower_id", nullable = false)
-    private Long followerId;
+    private Long followerId; // 팔로우를 건 회원 ID (MEMBER.id 참조)
 
     @Column(name = "following_id", nullable = false)
-    private Long followingId;
+    private Long followingId; // 팔로우 대상 회원 ID (MEMBER.id 참조)
 
     public Follow(Long followerId, Long followingId) {
         this.followerId = followerId;

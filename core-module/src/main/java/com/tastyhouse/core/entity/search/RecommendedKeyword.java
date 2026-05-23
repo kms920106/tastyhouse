@@ -19,14 +19,14 @@ public class RecommendedKeyword extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "keyword", nullable = false)
-    private String keyword;
+    private String keyword; // 추천 검색어
 
     @Column(name = "sort_order", nullable = false)
-    private int sortOrder;
+    private int sortOrder; // 추천 검색어 노출 순서
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive; // 활성화 여부 (true: 활성)
 }

@@ -30,29 +30,29 @@ public class MemberSocialAccount extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 회원 ID (MEMBER.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "provider", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private SocialProvider provider;
+    private SocialProvider provider; // 소셜 로그인 제공자 (예: KAKAO, NAVER, GOOGLE)
 
     @Column(name = "provider_id", nullable = false, length = 100)
-    private String providerId;
+    private String providerId; // 소셜 제공자가 발급한 고유 식별자
 
     @Column(name = "provider_email", length = 200)
-    private String providerEmail;
+    private String providerEmail; // 소셜 제공자로부터 받은 이메일
 
     @Column(name = "provider_nickname", length = 100)
-    private String providerNickname;
+    private String providerNickname; // 소셜 제공자로부터 받은 닉네임
 
     @Column(name = "provider_profile_image_url", length = 500)
-    private String providerProfileImageUrl;
+    private String providerProfileImageUrl; // 소셜 제공자로부터 받은 프로필 이미지 URL
 
     @Column(name = "last_login_at")
-    private LocalDateTime lastLoginAt;
+    private LocalDateTime lastLoginAt; // 마지막 소셜 로그인 일시
 
     private MemberSocialAccount(
         Long memberId,

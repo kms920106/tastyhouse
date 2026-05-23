@@ -38,26 +38,26 @@ public class MemberReviewRank extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private Long memberId; // 회원 ID (MEMBER.id 참조)
 
     @Column(name = "review_count", nullable = false)
-    private Integer reviewCount;
+    private Integer reviewCount; // 리뷰 작성 수
 
     @Column(name = "rank_no", nullable = false)
-    private Integer rankNo;
+    private Integer rankNo; // 순위 번호
 
     @Enumerated(EnumType.STRING)
     @Column(name = "rank_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RankType rankType;
+    private RankType rankType; // 랭킹 유형 (WEEKLY, MONTHLY 등)
 
     @Column(name = "base_date", nullable = false)
-    private LocalDate baseDate;
+    private LocalDate baseDate; // 랭킹 기준 날짜
 
     @Column(name = "last_review_at")
-    private LocalDateTime lastReviewAt;
+    private LocalDateTime lastReviewAt; // 마지막 리뷰 작성 일시
 
     private MemberReviewRank(
         Long memberId,

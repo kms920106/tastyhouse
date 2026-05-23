@@ -17,12 +17,12 @@ public class PlaceClosedDay {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 장소 ID (PLACE.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "closed_day_type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private ClosedDayType closedDayType;
+    private ClosedDayType closedDayType; // 정기 휴무 유형 (FIRST_MON, SECOND_SUN, EVERY_TUE 등)
 }

@@ -38,17 +38,17 @@ public class MemberReferral extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "referrer_id", nullable = false)
-    private Long referrerId;
+    private Long referrerId; // 추천인 회원 ID (MEMBER.id 참조)
 
     @Column(name = "referee_id", nullable = false)
-    private Long refereeId;
+    private Long refereeId; // 피추천인 회원 ID (MEMBER.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ReferralStatus status = ReferralStatus.PENDING;
+    private ReferralStatus status = ReferralStatus.PENDING; // 추천 처리 상태 (예: PENDING, COMPLETED, CANCELLED)
 
     private MemberReferral(
         Long referrerId,

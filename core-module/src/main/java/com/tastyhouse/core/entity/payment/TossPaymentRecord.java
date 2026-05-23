@@ -22,266 +22,202 @@ public class TossPaymentRecord extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "payment_id", nullable = false)
-    private Long paymentId; // Payment Entity와 연결
+    private Long paymentId; // 결제 ID (PAYMENT.id 참조)
 
-    // Payment 객체의 응답 버전입니다. 버전 2022-06-08부터 날짜 기반 버저닝을 사용합니다.
     @Column(name = "version", length = 20)
-    private String version;
+    private String version; // Toss 응답 API 버전 (날짜 기반 버저닝, 예: 2022-06-08)
 
-    // 결제의 키값입니다. 최대 길이는 200자입니다. 결제를 식별하는 역할로, 중복되지 않는 고유한 값입니다.
     @Column(name = "payment_key", length = 200)
-    private String paymentKey;
+    private String paymentKey; // Toss 결제 키 (결제 고유 식별자, 최대 200자)
 
-    // 결제 타입 정보입니다. NORMAL(일반결제), BILLING(자동결제), BRANDPAY(브랜드페이) 중 하나입니다.
     @Column(name = "type", length = 20)
-    private String type;
+    private String type; // 결제 타입 (NORMAL: 일반결제, BILLING: 자동결제, BRANDPAY: 브랜드페이)
 
-    // 주문번호입니다. 결제 요청에서 내 상점이 직접 생성한 영문 대소문자, 숫자, 특수문자 -, _로 이루어진 6자 이상 64자 이하의 문자열입니다.
     @Column(name = "order_id", length = 64)
-    private String orderId;
+    private String orderId; // Toss에 전달한 주문번호 (영문 대소문자, 숫자, -, _ 조합 6~64자)
 
-    // 구매상품입니다. 예를 들면 생수 외 1건 같은 형식입니다. 최대 길이는 100자입니다.
     @Column(name = "order_name", length = 100)
-    private String orderName;
+    private String orderName; // 구매 상품명 (예: 생수 외 1건)
 
-    // 상점아이디(MID)입니다. 토스페이먼츠에서 발급합니다. 최대 길이는 14자입니다.
     @Column(name = "m_id", length = 14)
-    private String mId;
+    private String mId; // 상점아이디 (MID, 토스페이먼츠에서 발급)
 
-    // 결제할 때 사용한 통화입니다.
     @Column(name = "currency", length = 10)
-    private String currency;
+    private String currency; // 결제 통화 (예: KRW)
 
-    // 결제수단입니다. 카드, 가상계좌, 간편결제, 휴대폰, 계좌이체, 문화상품권, 도서문화상품권, 게임문화상품권 중 하나입니다.
     @Column(name = "method", length = 30)
-    private String method;
+    private String method; // 결제 수단 (카드, 가상계좌, 간편결제, 휴대폰, 계좌이체 등)
 
-    // 총 결제 금액입니다. 결제가 취소되는 등 결제 상태가 변해도 최초에 결제된 결제 금액으로 유지됩니다.
     @Column(name = "total_amount")
-    private Integer totalAmount;
+    private Integer totalAmount; // 총 결제 금액 (취소 후에도 최초 결제 금액 유지)
 
-    // 취소할 수 있는 금액(잔고)입니다.
     @Column(name = "balance_amount")
-    private Integer balanceAmount;
+    private Integer balanceAmount; // 취소 가능 잔액
 
-    // 결제 처리 상태입니다. READY, IN_PROGRESS, WAITING_FOR_DEPOSIT, DONE, CANCELED, PARTIAL_CANCELED, ABORTED, EXPIRED 중 하나입니다.
     @Column(name = "status", length = 30)
-    private String status;
+    private String status; // 결제 처리 상태 (READY, IN_PROGRESS, WAITING_FOR_DEPOSIT, DONE, CANCELED, PARTIAL_CANCELED, ABORTED, EXPIRED)
 
-    // 결제가 일어난 날짜와 시간 정보입니다.
     @Column(name = "requested_at")
-    private LocalDateTime requestedAt;
+    private LocalDateTime requestedAt; // 결제 요청 일시
 
-    // 결제 승인이 일어난 날짜와 시간 정보입니다.
     @Column(name = "approved_at")
-    private LocalDateTime approvedAt;
+    private LocalDateTime approvedAt; // 결제 승인 일시
 
-    // 에스크로 사용 여부입니다.
     @Column(name = "use_escrow")
-    private Boolean useEscrow;
+    private Boolean useEscrow; // 에스크로 사용 여부 (true: 에스크로 사용)
 
-    // 마지막 거래의 키값입니다. 최대 길이는 64자입니다.
     @Column(name = "last_transaction_key", length = 64)
-    private String lastTransactionKey;
+    private String lastTransactionKey; // 마지막 거래 키값 (최대 64자)
 
-    // 공급가액입니다.
     @Column(name = "supplied_amount")
-    private Integer suppliedAmount;
+    private Integer suppliedAmount; // 공급가액 (부가세 제외 금액)
 
-    // 부가세입니다.
     @Column(name = "vat")
-    private Integer vat;
+    private Integer vat; // 부가세
 
-    // 문화비 지출 여부입니다.
     @Column(name = "culture_expense")
-    private Boolean cultureExpense;
+    private Boolean cultureExpense; // 문화비 지출 여부 (true: 문화비로 지출)
 
-    // 결제 금액 중 면세 금액입니다.
     @Column(name = "tax_free_amount")
-    private Integer taxFreeAmount;
+    private Integer taxFreeAmount; // 면세 금액
 
-    // 과세를 제외한 결제 금액(컵 보증금 등)입니다.
     @Column(name = "tax_exemption_amount")
-    private Integer taxExemptionAmount;
+    private Integer taxExemptionAmount; // 과세 제외 금액 (컵 보증금 등)
 
-    // 부분 취소 가능 여부입니다.
     @Column(name = "is_partial_cancelable")
-    private Boolean isPartialCancelable;
+    private Boolean isPartialCancelable; // 부분 취소 가능 여부 (true: 부분 취소 가능)
 
-    // 카드사에 결제 요청한 금액입니다.
     @Column(name = "card_amount")
-    private Integer cardAmount;
+    private Integer cardAmount; // 카드사에 결제 요청한 금액
 
-    // 카드 발급사 두 자리 코드입니다.
     @Column(name = "card_issuer_code", length = 10)
-    private String cardIssuerCode;
+    private String cardIssuerCode; // 카드 발급사 코드 (두 자리)
 
-    // 카드 매입사 두 자리 코드입니다.
     @Column(name = "card_acquirer_code", length = 10)
-    private String cardAcquirerCode;
+    private String cardAcquirerCode; // 카드 매입사 코드 (두 자리)
 
-    // 카드번호입니다. 번호의 일부는 마스킹 되어 있습니다.
     @Column(name = "card_number", length = 20)
-    private String cardNumber;
+    private String cardNumber; // 카드번호 (일부 마스킹 처리)
 
-    // 할부 개월 수입니다. 일시불이면 0입니다.
     @Column(name = "card_installment_plan_months")
-    private Integer cardInstallmentPlanMonths;
+    private Integer cardInstallmentPlanMonths; // 할부 개월 수 (0이면 일시불)
 
-    // 카드사 승인 번호입니다. 최대 길이는 8자입니다.
     @Column(name = "card_approve_no", length = 8)
-    private String cardApproveNo;
+    private String cardApproveNo; // 카드사 승인 번호 (최대 8자)
 
-    // 카드사 포인트 사용 여부입니다.
     @Column(name = "card_use_card_point")
-    private Boolean cardUseCardPoint;
+    private Boolean cardUseCardPoint; // 카드사 포인트 사용 여부 (true: 포인트 사용)
 
-    // 카드 종류입니다. 신용, 체크, 기프트, 미확인 중 하나입니다.
     @Column(name = "card_type", length = 20)
-    private String cardType;
+    private String cardType; // 카드 종류 (신용, 체크, 기프트, 미확인)
 
-    // 카드의 소유자 타입입니다. 개인, 법인, 미확인 중 하나입니다.
     @Column(name = "card_owner_type", length = 20)
-    private String cardOwnerType;
+    private String cardOwnerType; // 카드 소유자 타입 (개인, 법인, 미확인)
 
-    // 카드 결제의 매입 상태입니다. READY, REQUESTED, COMPLETED, CANCEL_REQUESTED, CANCELED 중 하나입니다.
     @Column(name = "card_acquire_status", length = 30)
-    private String cardAcquireStatus;
+    private String cardAcquireStatus; // 카드 매입 상태 (READY, REQUESTED, COMPLETED, CANCEL_REQUESTED, CANCELED)
 
-    // 무이자 할부의 적용 여부입니다.
     @Column(name = "card_is_interest_free")
-    private Boolean cardIsInterestFree;
+    private Boolean cardIsInterestFree; // 무이자 할부 적용 여부 (true: 무이자 할부)
 
-    // 할부 수수료를 부담하는 주체입니다. BUYER, CARD_COMPANY, MERCHANT 중 하나입니다.
     @Column(name = "card_interest_payer", length = 20)
-    private String cardInterestPayer;
+    private String cardInterestPayer; // 할부 수수료 부담 주체 (BUYER, CARD_COMPANY, MERCHANT)
 
-    // 가상계좌 타입을 나타냅니다. 일반, 고정 중 하나입니다.
     @Column(name = "virtual_account_type", length = 20)
-    private String virtualAccountType;
+    private String virtualAccountType; // 가상계좌 타입 (일반, 고정)
 
-    // 발급된 계좌번호입니다.
     @Column(name = "virtual_account_number", length = 20)
-    private String virtualAccountNumber;
+    private String virtualAccountNumber; // 발급된 가상계좌 번호
 
-    // 가상계좌 은행 두 자리 코드입니다.
     @Column(name = "virtual_account_bank_code", length = 10)
-    private String virtualAccountBankCode;
+    private String virtualAccountBankCode; // 가상계좌 은행 코드 (두 자리)
 
-    // 가상계좌를 발급한 구매자명입니다.
     @Column(name = "virtual_account_customer_name", length = 100)
-    private String virtualAccountCustomerName;
+    private String virtualAccountCustomerName; // 가상계좌를 발급한 구매자명
 
-    // 가상계좌에 입금한 계좌의 입금자명입니다.
     @Column(name = "virtual_account_depositor_name", length = 100)
-    private String virtualAccountDepositorName;
+    private String virtualAccountDepositorName; // 가상계좌 입금자명
 
-    // 입금 기한입니다.
     @Column(name = "virtual_account_due_date")
-    private LocalDateTime virtualAccountDueDate;
+    private LocalDateTime virtualAccountDueDate; // 가상계좌 입금 기한
 
-    // 환불 처리 상태입니다. NONE, PENDING, FAILED, PARTIAL_FAILED, COMPLETED 중 하나입니다.
     @Column(name = "virtual_account_refund_status", length = 30)
-    private String virtualAccountRefundStatus;
+    private String virtualAccountRefundStatus; // 가상계좌 환불 처리 상태 (NONE, PENDING, FAILED, PARTIAL_FAILED, COMPLETED)
 
-    // 가상계좌의 만료 여부입니다.
     @Column(name = "virtual_account_expired")
-    private Boolean virtualAccountExpired;
+    private Boolean virtualAccountExpired; // 가상계좌 만료 여부 (true: 만료됨)
 
-    // 정산 상태입니다. INCOMPLETED, COMPLETED 중 하나입니다.
     @Column(name = "virtual_account_settlement_status", length = 30)
-    private String virtualAccountSettlementStatus;
+    private String virtualAccountSettlementStatus; // 가상계좌 정산 상태 (INCOMPLETED, COMPLETED)
 
-    // 구매자가 결제에 사용한 휴대폰 번호입니다.
     @Column(name = "mobile_phone_customer_mobile_phone", length = 15)
-    private String mobilePhoneCustomerMobilePhone;
+    private String mobilePhoneCustomerMobilePhone; // 구매자 휴대폰 번호 (휴대폰 결제 시)
 
-    // 휴대폰 정산 상태입니다.
     @Column(name = "mobile_phone_settlement_status", length = 30)
-    private String mobilePhoneSettlementStatus;
+    private String mobilePhoneSettlementStatus; // 휴대폰 결제 정산 상태
 
-    // 휴대폰 결제 내역 영수증을 확인할 수 있는 주소입니다.
     @Column(name = "mobile_phone_receipt_url", length = 500)
-    private String mobilePhoneReceiptUrl;
+    private String mobilePhoneReceiptUrl; // 휴대폰 결제 영수증 URL
 
-    // 상품권 결제 승인번호입니다.
     @Column(name = "gift_certificate_approve_no", length = 8)
-    private String giftCertificateApproveNo;
+    private String giftCertificateApproveNo; // 상품권 결제 승인번호 (최대 8자)
 
-    // 상품권 정산 상태입니다.
     @Column(name = "gift_certificate_settlement_status", length = 30)
-    private String giftCertificateSettlementStatus;
+    private String giftCertificateSettlementStatus; // 상품권 정산 상태
 
-    // 계좌이체 은행 두 자리 코드입니다.
     @Column(name = "transfer_bank_code", length = 10)
-    private String transferBankCode;
+    private String transferBankCode; // 계좌이체 은행 코드 (두 자리)
 
-    // 계좌이체 정산 상태입니다.
     @Column(name = "transfer_settlement_status", length = 30)
-    private String transferSettlementStatus;
+    private String transferSettlementStatus; // 계좌이체 정산 상태
 
-    // 발행된 영수증 URL입니다.
     @Column(name = "receipt_url", length = 500)
-    private String receiptUrl;
+    private String receiptUrl; // 발행된 영수증 URL
 
-    // 결제창이 열리는 주소입니다.
     @Column(name = "checkout_url", length = 500)
-    private String checkoutUrl;
+    private String checkoutUrl; // 결제창 URL
 
-    // 선택한 간편결제사 코드입니다.
     @Column(name = "easy_pay_provider", length = 30)
-    private String easyPayProvider;
+    private String easyPayProvider; // 간편결제사 코드
 
-    // 간편결제 서비스에 등록된 계좌 혹은 현금성 포인트로 결제한 금액입니다.
     @Column(name = "easy_pay_amount")
-    private Integer easyPayAmount;
+    private Integer easyPayAmount; // 간편결제 서비스 계좌 또는 현금성 포인트로 결제한 금액
 
-    // 간편결제 서비스의 적립 포인트나 쿠폰 등으로 즉시 할인된 금액입니다.
     @Column(name = "easy_pay_discount_amount")
-    private Integer easyPayDiscountAmount;
+    private Integer easyPayDiscountAmount; // 간편결제 적립 포인트 또는 쿠폰 즉시 할인 금액
 
-    // 결제한 국가입니다. ISO-3166의 두 자리 국가 코드 형식입니다.
     @Column(name = "country", length = 2)
-    private String country;
+    private String country; // 결제 국가 코드 (ISO-3166 두 자리, 예: KR)
 
-    // 결제 승인 실패 오류 타입을 보여주는 에러 코드입니다.
     @Column(name = "failure_code", length = 50)
-    private String failureCode;
+    private String failureCode; // 결제 승인 실패 에러 코드
 
-    // 에러 메시지입니다.
     @Column(name = "failure_message", length = 510)
-    private String failureMessage;
+    private String failureMessage; // 결제 승인 실패 에러 메시지
 
-    // 현금영수증의 종류입니다. 소득공제, 지출증빙 중 하나입니다.
     @Column(name = "cash_receipt_type", length = 20)
-    private String cashReceiptType;
+    private String cashReceiptType; // 현금영수증 종류 (소득공제, 지출증빙)
 
-    // 현금영수증의 키값입니다.
     @Column(name = "cash_receipt_key", length = 200)
-    private String cashReceiptKey;
+    private String cashReceiptKey; // 현금영수증 키값
 
-    // 현금영수증 발급 번호입니다.
     @Column(name = "cash_receipt_issue_number", length = 9)
-    private String cashReceiptIssueNumber;
+    private String cashReceiptIssueNumber; // 현금영수증 발급 번호
 
-    // 발행된 현금영수증을 확인할 수 있는 주소입니다.
     @Column(name = "cash_receipt_url", length = 500)
-    private String cashReceiptUrl;
+    private String cashReceiptUrl; // 현금영수증 확인 URL
 
-    // 현금영수증 처리된 금액입니다.
     @Column(name = "cash_receipt_amount")
-    private Integer cashReceiptAmount;
+    private Integer cashReceiptAmount; // 현금영수증 처리 금액
 
-    // 현금영수증 면세 처리된 금액입니다.
     @Column(name = "cash_receipt_tax_free_amount")
-    private Integer cashReceiptTaxFreeAmount;
+    private Integer cashReceiptTaxFreeAmount; // 현금영수증 면세 처리 금액
 
-    // 카드사 및 퀵계좌이체의 즉시 할인 프로모션을 적용한 결제 금액입니다.
     @Column(name = "discount_amount")
-    private Integer discountAmount;
+    private Integer discountAmount; // 카드사 및 퀵계좌이체 즉시 할인 프로모션 적용 금액
 
     @Builder
     public TossPaymentRecord(Long paymentId, String version, String paymentKey, String type,

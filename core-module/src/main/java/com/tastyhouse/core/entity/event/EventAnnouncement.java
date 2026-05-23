@@ -28,19 +28,19 @@ public class EventAnnouncement extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "event_id", nullable = false, unique = true)
-    private Long eventId;
+    private Long eventId; // 이벤트 ID (EVENT.id 참조)
 
     @Column(name = "name", nullable = false, length = 200)
-    private String name;
+    private String name; // 당첨자 발표 제목
 
     @Column(name = "content", nullable = false, length = 1000)
-    private String content;
+    private String content; // 당첨자 발표 내용
 
     @Column(name = "announced_at", nullable = false)
-    private LocalDateTime announcedAt;
+    private LocalDateTime announcedAt; // 당첨자 발표 일시
 
     private EventAnnouncement(
         Long eventId,

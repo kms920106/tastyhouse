@@ -19,21 +19,21 @@ public class PlaceBusinessHour {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    private Long placeId; // 장소 ID (PLACE.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "day_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DayType dayType; // 요일 타입 (평일, 토요일, 일요일, 공휴일)
+    private DayType dayType; // 요일 유형 (WEEKDAY, SATURDAY, SUNDAY, HOLIDAY 등)
 
     @Column(name = "open_time")
-    private LocalTime openTime; // 오픈 시간
+    private LocalTime openTime; // 영업 시작 시각
 
     @Column(name = "close_time")
-    private LocalTime closeTime; // 마감 시간
+    private LocalTime closeTime; // 영업 종료 시각
 
     @Column(name = "is_closed")
-    private Boolean isClosed; // 해당 요일 휴무 여부
+    private Boolean isClosed; // 휴무 여부 (true: 휴무)
 }
