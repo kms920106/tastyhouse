@@ -24,9 +24,6 @@ public record ProductDetailResponse(
     @Schema(description = "할인율", example = "10.00")
     BigDecimal discountRate,
 
-    @Schema(description = "리뷰 수", example = "128")
-    Integer reviewCount,
-
     @Schema(description = "품절 여부", example = "false")
     Boolean isSoldOut
 ) {
@@ -37,7 +34,6 @@ public record ProductDetailResponse(
         Integer originalPrice,
         Integer discountPrice,
         BigDecimal discountRate,
-        Integer reviewCount,
         Boolean isSoldOut
     ) {
         return new ProductDetailResponse(
@@ -47,7 +43,6 @@ public record ProductDetailResponse(
             originalPrice,
             discountPrice,
             discountRate,
-            reviewCount,
             isSoldOut
         );
     }

@@ -17,6 +17,7 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
+import com.tastyhouse.webapi.product.response.ProductReviewCountResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewListItemResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
@@ -30,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,16 +60,9 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<ProductDetailResponse> findProductById(Long productId) {
-        return productCoreService.findProductById(productId)
-            .map(this::buildProductDetailResponse);
-    }
-
-    private ProductDetailResponse buildProductDetailResponse(Product product) {
-        Map<String, Object> reviewStatistics = reviewCoreService.findProductReviewStatistics(product.getId());
-        Long totalReviewCount = (Long) reviewStatistics.get("totalReviewCount");
-        Integer reviewCount = totalReviewCount != null ? totalReviewCount.intValue() : 0;
-
+    public ProductDetailResponse findProductById(Long productId) {
+        Product product = productCoreService.findProductById(productId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         return ProductDetailResponse.from(
             product.getId(),
             product.getName(),
@@ -77,9 +70,17 @@ public class ProductService {
             product.getOriginalPrice(),
             product.getDiscountPrice(),
             product.getDiscountRate(),
-            reviewCount,
             product.getIsSoldOut()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public ProductReviewCountResponse findProductReviewCount(Long productId) {
+        productCoreService.findProductById(productId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+        Map<String, Object> statistics = reviewCoreService.findProductReviewStatistics(productId);
+        Long total = (Long) statistics.get("totalReviewCount");
+        return ProductReviewCountResponse.from(total != null ? total.intValue() : 0);
     }
 
     @Transactional(readOnly = true)

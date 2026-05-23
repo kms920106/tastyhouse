@@ -6,6 +6,7 @@ import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
+import com.tastyhouse.webapi.product.response.ProductReviewCountResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
@@ -51,9 +52,8 @@ public class ProductApiController {
     })
     @GetMapping("/v1/{productId}")
     public ResponseEntity<CommonResponse<ProductDetailResponse>> getProductById(@PathVariable Long productId) {
-        return productService.findProductById(productId)
-            .map(product -> ResponseEntity.ok(CommonResponse.success(product)))
-            .orElse(ResponseEntity.notFound().build());
+        ProductDetailResponse response = productService.findProductById(productId);
+        return ResponseEntity.ok(CommonResponse.success(response));
     }
 
     @Operation(summary = "상품 이미지 목록 조회", description = "상품의 이미지 URL 목록을 조회합니다.")
@@ -75,6 +75,17 @@ public class ProductApiController {
     @GetMapping("/v1/{productId}/options")
     public ResponseEntity<CommonResponse<ProductOptionGroupsResponse>> getProductOptions(@PathVariable Long productId) {
         ProductOptionGroupsResponse response = productService.findProductOptions(productId);
+        return ResponseEntity.ok(CommonResponse.success(response));
+    }
+
+    @Operation(summary = "상품 리뷰 수 조회", description = "상품의 리뷰 총 개수를 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
+        @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음")
+    })
+    @GetMapping("/v1/{productId}/reviews/count")
+    public ResponseEntity<CommonResponse<ProductReviewCountResponse>> getProductReviewCount(@PathVariable Long productId) {
+        ProductReviewCountResponse response = productService.findProductReviewCount(productId);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 
