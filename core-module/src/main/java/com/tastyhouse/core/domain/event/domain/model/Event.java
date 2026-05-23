@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.event;
+package com.tastyhouse.core.domain.event.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -52,7 +52,7 @@ public class Event extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private EventStatus status; // 이벤트 상태 (예: SCHEDULED, ONGOING, ENDED)
+    private EventStatus status; // 이벤트 상태 (예: SCHEDULED, ACTIVE, ENDED)
 
     @Column(name = "start_at", nullable = false)
     private LocalDateTime startAt; // 이벤트 시작 일시

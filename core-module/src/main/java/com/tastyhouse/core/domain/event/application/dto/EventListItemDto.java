@@ -1,4 +1,6 @@
-package com.tastyhouse.core.entity.event.dto;
+package com.tastyhouse.core.domain.event.application.dto;
+
+import com.querydsl.core.annotations.QueryProjection;
 
 import java.time.LocalDateTime;
 
@@ -9,4 +11,7 @@ public record EventListItemDto(
     LocalDateTime startAt,
     LocalDateTime endAt
 ) {
+    @QueryProjection
+    public EventListItemDto {
+    }
 }

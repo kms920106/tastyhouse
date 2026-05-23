@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.event;
+package com.tastyhouse.core.domain.event.domain.model;
 
 public enum EventStatus {
     SCHEDULED,  // 예정

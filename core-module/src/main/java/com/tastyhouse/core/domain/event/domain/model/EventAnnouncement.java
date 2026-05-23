@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.event;
+package com.tastyhouse.core.domain.event.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;

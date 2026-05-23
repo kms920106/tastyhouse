@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.event;
+package com.tastyhouse.core.domain.event.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import com.tastyhouse.core.entity.common.vo.PhoneNumber;
@@ -76,19 +76,4 @@ public class EventWinner extends BaseEntity {
             announcedAt
         );
     }
-
-//    public String getMaskedName() {
-//        if (winnerName == null || winnerName.isEmpty()) {
-//            return winnerName;
-//        }
-//
-//        // 홍길동 -> 홍*동 형식으로 마스킹
-//        if (winnerName.length() == 2) {
-//            return winnerName.charAt(0) + "*";
-//        } else if (winnerName.length() >= 3) {
-//            return winnerName.charAt(0) + "*" + winnerName.charAt(winnerName.length() - 1);
-//        }
-//
-//        return winnerName;
-//    }
 }

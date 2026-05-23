@@ -1,13 +1,14 @@
-package com.tastyhouse.core.repository.event;
+package com.tastyhouse.core.domain.event.infrastructure.persistence;
 
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.event.Event;
-import com.tastyhouse.core.entity.event.EventAnnouncement;
-import com.tastyhouse.core.entity.event.EventStatus;
-import com.tastyhouse.core.entity.event.dto.EventDetailDto;
-import com.tastyhouse.core.entity.event.dto.EventListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
+import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.QEventDetailDto;
+import com.tastyhouse.core.domain.event.application.dto.QEventListItemDto;
+import com.tastyhouse.core.domain.event.domain.model.Event;
+import com.tastyhouse.core.domain.event.domain.model.EventStatus;
+import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +18,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-import static com.tastyhouse.core.entity.event.QEvent.event;
-import static com.tastyhouse.core.entity.event.QEventAnnouncement.eventAnnouncement;
+import static com.tastyhouse.core.domain.event.domain.model.QEvent.event;
 import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
 
 @Repository
@@ -31,9 +31,7 @@ public class EventRepositoryImpl implements EventRepository {
     public Optional<Event> findLatestByStatus(EventStatus status) {
         Event result = queryFactory
             .selectFrom(event)
-            .where(
-                event.status.eq(status)
-            )
+            .where(event.status.eq(status))
             .orderBy(event.startAt.desc())
             .limit(1)
             .fetchOne();
@@ -42,25 +40,9 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public Page<EventAnnouncement> findAllAnnouncementsOrderByAnnouncedAtDesc(Pageable pageable) {
-        List<EventAnnouncement> content = queryFactory
-            .selectFrom(eventAnnouncement)
-            .orderBy(eventAnnouncement.announcedAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        JPAQuery<Long> countQuery = queryFactory
-            .select(eventAnnouncement.count())
-            .from(eventAnnouncement);
-
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
-    }
-
-    @Override
     public Page<EventListItemDto> findEventListItemsByStatus(EventStatus status, Pageable pageable) {
         List<EventListItemDto> content = queryFactory
-            .select(Projections.constructor(EventListItemDto.class,
+            .select(new QEventListItemDto(
                 event.id,
                 event.name,
                 uploadedFile.filePath,
@@ -75,7 +57,7 @@ public class EventRepositoryImpl implements EventRepository {
             .limit(pageable.getPageSize())
             .fetch();
 
-        com.querydsl.jpa.impl.JPAQuery<Long> countQuery = queryFactory
+        JPAQuery<Long> countQuery = queryFactory
             .select(event.count())
             .from(event)
             .where(event.status.eq(status));
@@ -86,7 +68,7 @@ public class EventRepositoryImpl implements EventRepository {
     @Override
     public Optional<EventDetailDto> findEventDetailById(Long eventId) {
         EventDetailDto result = queryFactory
-            .select(Projections.constructor(EventDetailDto.class,
+            .select(new QEventDetailDto(
                 uploadedFile.filePath
             ))
             .from(event)
