@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.tastyhouse.core.domain.event.domain.model.QEvent.event;
-import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 
 @Repository
 @RequiredArgsConstructor

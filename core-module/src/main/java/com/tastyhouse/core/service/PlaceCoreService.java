@@ -23,7 +23,7 @@ import com.tastyhouse.core.entity.place.dto.PlaceFoodTypeCategoryDto;
 import com.tastyhouse.core.entity.place.dto.PlacePhotoCategoryImageDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.file.UploadedFileJpaRepository;
+import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.repository.place.PlaceBookmarkJpaRepository;
 import com.tastyhouse.core.repository.place.PlaceBookmarkRepository;
 import com.tastyhouse.core.repository.place.PlaceChoiceRepository;
@@ -54,7 +54,7 @@ public class PlaceCoreService {
     private final PlaceStationJpaRepository placeStationJpaRepository;
     private final PlaceBookmarkRepository placeBookmarkRepository;
     private final PlaceBookmarkJpaRepository placeBookmarkJpaRepository;
-    private final UploadedFileJpaRepository uploadedFileJpaRepository;
+    private final FileQueryService fileQueryService;
 
     @Transactional(readOnly = true)
     public List<Place> findNearbyPlaces(Double latitude, Double longitude) {
@@ -179,8 +179,6 @@ public class PlaceCoreService {
 
     @Transactional(readOnly = true)
     public Optional<String> findThumbnailFilePath(Long thumbnailImageFileId) {
-        if (thumbnailImageFileId == null) return Optional.empty();
-        return uploadedFileJpaRepository.findById(thumbnailImageFileId)
-                .map(uploadedFile -> uploadedFile.getFilePath());
+        return fileQueryService.findFilePath(thumbnailImageFileId);
     }
 }

@@ -2,7 +2,7 @@ package com.tastyhouse.core.repository.place;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.file.QUploadedFile;
+import com.tastyhouse.core.domain.file.domain.model.QUploadedFile;
 import com.tastyhouse.core.entity.place.PlaceAmenity;
 import com.tastyhouse.core.entity.place.PlaceBreakTime;
 import com.tastyhouse.core.entity.place.PlaceBusinessHour;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-import static com.tastyhouse.core.entity.file.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.entity.place.QPlaceAmenity.placeAmenity;
 import static com.tastyhouse.core.entity.place.QPlaceAmenityCategory.placeAmenityCategory;
 import static com.tastyhouse.core.entity.place.QPlaceBannerImage.placeBannerImage;

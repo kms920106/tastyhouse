@@ -1,9 +1,9 @@
 package com.tastyhouse.external.file;
 
-import com.tastyhouse.core.entity.file.UploadedFile;
+import com.tastyhouse.core.domain.file.application.FileCommandService;
+import com.tastyhouse.core.domain.file.application.dto.command.UploadFileCommand;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.FileCoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FileService {
 
-    private final FileCoreService fileCoreService;
+    private final FileCommandService fileCommandService;
     private final FileStorageStrategy fileStorageStrategy;
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
@@ -45,17 +45,15 @@ public class FileService {
 
         String filePath = fileStorageStrategy.store(file, storedFilename, datePath);
 
-        UploadedFile uploadedFile =
-            UploadedFile.of(
-                originalFilename,
-                storedFilename,
-                filePath,
-                file.getSize(),
-                file.getContentType()
-            );
+        UploadFileCommand command = new UploadFileCommand(
+            originalFilename,
+            storedFilename,
+            filePath,
+            file.getSize(),
+            file.getContentType()
+        );
 
-        UploadedFile saved = fileCoreService.save(uploadedFile);
-        return saved.getId();
+        return fileCommandService.save(command).value();
     }
 
     // 파일 경로로 접근 URL을 반환하며, 경로가 null이면 null을 반환한다.

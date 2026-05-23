@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.file;
+package com.tastyhouse.core.domain.file.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -54,6 +54,10 @@ public class UploadedFile extends BaseEntity {
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.contentType = contentType;
+    }
+
+    public UploadedFileId getUploadedFileId() {
+        return new UploadedFileId(this.id);
     }
 
     public static UploadedFile of(
