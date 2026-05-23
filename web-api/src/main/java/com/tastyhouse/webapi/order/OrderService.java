@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.order;
 
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.entity.coupon.Coupon;
-import com.tastyhouse.core.entity.coupon.DiscountType;
-import com.tastyhouse.core.entity.coupon.MemberCoupon;
+import com.tastyhouse.core.domain.coupon.application.CouponCommandService;
+import com.tastyhouse.core.domain.coupon.application.dto.command.UseCouponCommand;
+import com.tastyhouse.core.domain.coupon.application.dto.result.UseCouponResult;
 import com.tastyhouse.core.entity.order.Order;
 import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
@@ -20,7 +20,6 @@ import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.core.service.PointCoreService;
-import com.tastyhouse.core.service.CouponCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.MemberCoreService;
@@ -50,7 +49,7 @@ public class OrderService {
 
     private final OrderCoreService orderCoreService;
     private final PointCoreService pointCoreService;
-    private final CouponCoreService couponCoreService;
+    private final CouponCommandService couponCommandService;
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
     private final MemberCoreService memberCoreService;
@@ -149,34 +148,12 @@ public class OrderService {
         int couponDiscountAmount = 0;
         Long memberCouponId = null;
         if (request.memberCouponId() != null) {
-            MemberCoupon memberCoupon = couponCoreService.findMemberCouponById(request.memberCouponId());
-
-            if (!memberCoupon.getMemberId().equals(memberId)) {
-                throw new AccessDeniedException(ErrorCode.COUPON_ACCESS_DENIED);
-            }
-
-            if (!memberCoupon.isAvailable()) {
-                throw new BusinessException(ErrorCode.COUPON_NOT_AVAILABLE);
-            }
-
-            Coupon coupon = couponCoreService.findById(memberCoupon.getCouponId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
-
             int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
-            if (orderAmountAfterProductDiscount < coupon.getMinOrderAmount()) {
-                throw new BusinessException(ErrorCode.ORDER_MINIMUM_AMOUNT_NOT_MET);
-            }
-
-            if (coupon.getDiscountType() == DiscountType.AMOUNT) {
-                couponDiscountAmount = coupon.getDiscountAmount();
-            } else if (coupon.getDiscountType() == DiscountType.RATE) {
-                couponDiscountAmount = (int) Math.round(orderAmountAfterProductDiscount * coupon.getDiscountAmount() / 100.0);
-                if (coupon.getMaxDiscountAmount() != null && couponDiscountAmount > coupon.getMaxDiscountAmount()) {
-                    couponDiscountAmount = coupon.getMaxDiscountAmount();
-                }
-            }
-
-            memberCouponId = memberCoupon.getId();
-            memberCoupon.use();
+            UseCouponResult couponResult = couponCommandService.useCoupon(
+                new UseCouponCommand(request.memberCouponId(), memberId, orderAmountAfterProductDiscount)
+            );
+            couponDiscountAmount = couponResult.couponDiscountAmount();
+            memberCouponId = couponResult.memberCouponId();
         }
 
         int pointDiscountAmount = 0;

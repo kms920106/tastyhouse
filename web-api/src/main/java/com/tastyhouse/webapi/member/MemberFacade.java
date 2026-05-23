@@ -4,6 +4,7 @@ import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
+import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.PlaceBookmarkListItemResponse;
@@ -19,7 +20,6 @@ import com.tastyhouse.webapi.member.response.UsablePointResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
 import com.tastyhouse.webapi.member.service.MemberAccountService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
-import com.tastyhouse.webapi.member.service.MemberCouponService;
 import com.tastyhouse.webapi.member.service.MemberFollowService;
 import com.tastyhouse.webapi.member.service.MemberGradeService;
 import com.tastyhouse.webapi.member.service.MemberPlaceService;
@@ -40,7 +40,7 @@ public class MemberFacade {
     private final MemberPointService memberPointService;
     private final MemberPlaceService memberPlaceService;
     private final MemberReviewService memberReviewService;
-    private final MemberCouponService memberCouponService;
+    private final CouponQueryService couponQueryService;
     private final MemberGradeService memberGradeService;
 
     public void updateMyProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
@@ -106,11 +106,25 @@ public class MemberFacade {
     }
 
     public List<MemberCouponListItemResponse> getMyCoupons(Long memberId) {
-        return memberCouponService.getMemberCoupons(memberId);
+        return couponQueryService.findMemberCoupons(memberId).stream()
+            .map(r -> MemberCouponListItemResponse.of(
+                r.id(), r.couponId(), r.name(), r.description(),
+                r.discountType(), r.discountAmount(), r.maxDiscountAmount(),
+                r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
+                r.expiredAt(), r.isUsed(), r.usedAt()
+            ))
+            .toList();
     }
 
     public List<MemberCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
-        return memberCouponService.getAvailableMemberCoupons(memberId);
+        return couponQueryService.findAvailableMemberCoupons(memberId).stream()
+            .map(r -> MemberCouponListItemResponse.of(
+                r.id(), r.couponId(), r.name(), r.description(),
+                r.discountType(), r.discountAmount(), r.maxDiscountAmount(),
+                r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
+                r.expiredAt(), r.isUsed(), r.usedAt()
+            ))
+            .toList();
     }
 
     public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {

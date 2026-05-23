@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.coupon;
+package com.tastyhouse.core.domain.coupon.domain.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

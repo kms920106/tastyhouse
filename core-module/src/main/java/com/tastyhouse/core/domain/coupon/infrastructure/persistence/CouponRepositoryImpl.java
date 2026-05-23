@@ -1,0 +1,26 @@
+package com.tastyhouse.core.domain.coupon.infrastructure.persistence;
+
+import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
+import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
+import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+@RequiredArgsConstructor
+public class CouponRepositoryImpl implements CouponRepository {
+
+    private final CouponJpaRepository couponJpaRepository;
+
+    @Override
+    public Optional<Coupon> findById(CouponId id) {
+        return couponJpaRepository.findById(id.value());
+    }
+
+    @Override
+    public Coupon save(Coupon coupon) {
+        return couponJpaRepository.save(coupon);
+    }
+}

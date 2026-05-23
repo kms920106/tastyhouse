@@ -1,6 +1,8 @@
-package com.tastyhouse.core.entity.coupon;
+package com.tastyhouse.core.domain.coupon.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,22 +38,22 @@ public class MemberCoupon extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     @Column(name = "coupon_id", nullable = false)
-    private Long couponId; // 쿠폰 ID (COUPON.id 참조)
+    private Long couponId;
 
     @Column(name = "is_used", nullable = false)
-    private Boolean isUsed = false; // 사용 여부 (true: 사용)
+    private Boolean isUsed = false;
 
     @Column(name = "used_at")
-    private LocalDateTime usedAt; // 사용 일시
+    private LocalDateTime usedAt;
 
     @Column(name = "expired_at", nullable = false)
-    private LocalDateTime expiredAt; // 만료 일시
+    private LocalDateTime expiredAt;
 
     private MemberCoupon(
         Long memberId,
@@ -74,16 +76,17 @@ public class MemberCoupon extends BaseEntity {
         LocalDateTime usedAt,
         LocalDateTime expiredAt
     ) {
-        return new MemberCoupon(
-            memberId,
-            couponId,
-            isUsed,
-            usedAt,
-            expiredAt
-        );
+        return new MemberCoupon(memberId, couponId, isUsed, usedAt, expiredAt);
+    }
+
+    public MemberCouponId getMemberCouponId() {
+        return new MemberCouponId(this.id);
     }
 
     public void use() {
+        if (!isAvailable()) {
+            throw new BusinessException(ErrorCode.COUPON_NOT_AVAILABLE);
+        }
         this.isUsed = true;
         this.usedAt = LocalDateTime.now();
     }

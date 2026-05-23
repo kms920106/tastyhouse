@@ -1,6 +1,8 @@
-package com.tastyhouse.core.entity.coupon;
+package com.tastyhouse.core.domain.coupon.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -31,44 +33,44 @@ public class Coupon extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "name", nullable = false, length = 200)
-    private String name; // 쿠폰 이름
+    private String name;
 
     @Column(name = "description", length = 500)
-    private String description; // 쿠폰 설명
+    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "discount_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DiscountType discountType = DiscountType.AMOUNT; // 할인 유형 (AMOUNT: 금액, RATE: 비율)
+    private DiscountType discountType = DiscountType.AMOUNT;
 
     @Column(name = "discount_amount", nullable = false)
-    private Integer discountAmount; // 할인 금액 또는 할인율
+    private Integer discountAmount;
 
     @Column(name = "max_discount_amount")
-    private Integer maxDiscountAmount; // 최대 할인 금액 (비율 할인 시 상한)
+    private Integer maxDiscountAmount;
 
     @Column(name = "min_order_amount", nullable = false)
-    private Integer minOrderAmount = 0; // 최소 주문 금액
+    private Integer minOrderAmount = 0;
 
     @Column(name = "max_discount_count")
-    private Integer maxDiscountCount; // 최대 발급 수량
+    private Integer maxDiscountCount;
 
     @Column(name = "issue_start_at", nullable = false)
-    private LocalDateTime issueStartAt; // 발급 시작 일시
+    private LocalDateTime issueStartAt;
 
     @Column(name = "issue_end_at", nullable = false)
-    private LocalDateTime issueEndAt; // 발급 종료 일시
+    private LocalDateTime issueEndAt;
 
     @Column(name = "use_start_at", nullable = false)
-    private LocalDateTime useStartAt; // 사용 가능 시작 일시
+    private LocalDateTime useStartAt;
 
     @Column(name = "use_end_at", nullable = false)
-    private LocalDateTime useEndAt; // 사용 가능 종료 일시
+    private LocalDateTime useEndAt;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true; // 활성화 여부 (true: 활성)
+    private Boolean isActive = true;
 
     private Coupon(
         String name,
@@ -113,18 +115,27 @@ public class Coupon extends BaseEntity {
         Boolean isActive
     ) {
         return new Coupon(
-            name,
-            description,
-            discountType,
-            discountAmount,
-            maxDiscountAmount,
-            minOrderAmount,
-            maxDiscountCount,
-            issueStartAt,
-            issueEndAt,
-            useStartAt,
-            useEndAt,
-            isActive
+            name, description, discountType, discountAmount, maxDiscountAmount,
+            minOrderAmount, maxDiscountCount, issueStartAt, issueEndAt,
+            useStartAt, useEndAt, isActive
         );
+    }
+
+    public CouponId getCouponId() {
+        return new CouponId(this.id);
+    }
+
+    public int calculateDiscount(int orderAmount) {
+        if (discountType == DiscountType.AMOUNT) {
+            return discountAmount;
+        }
+        int calculated = (int) Math.round(orderAmount * discountAmount / 100.0);
+        return (maxDiscountAmount != null) ? Math.min(calculated, maxDiscountAmount) : calculated;
+    }
+
+    public void validateMinOrderAmount(int orderAmount) {
+        if (orderAmount < minOrderAmount) {
+            throw new BusinessException(ErrorCode.ORDER_MINIMUM_AMOUNT_NOT_MET);
+        }
     }
 }
