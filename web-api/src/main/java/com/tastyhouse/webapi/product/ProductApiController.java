@@ -35,7 +35,7 @@ public class ProductApiController {
 
     private final ProductService productService;
 
-    @Operation(summary = "오늘의 할인 상품 목록 조회", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
+    @Operation(summary = "상품 목록 조회 (오늘의 할인)", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/today-discounts")
     public ResponseEntity<CommonResponse<List<TodayDiscountProductListItemResponse>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
@@ -78,7 +78,7 @@ public class ProductApiController {
         return ResponseEntity.ok(CommonResponse.success(response));
     }
 
-    @Operation(summary = "리뷰 목록 조회", description = "상품의 리뷰 목록을 평점별로 조회합니다. 각 평점(1점, 2점, 3점, 4점, 5점)별로 최대 5개씩, 전체 리뷰는 페이지네이션으로 조회합니다. 총 리뷰 개수도 함께 반환됩니다.")
+    @Operation(summary = "상품 리뷰 목록 조회", description = "상품의 리뷰 목록을 평점별로 조회합니다. 각 평점(1점, 2점, 3점, 4점, 5점)별로 최대 5개씩, 전체 리뷰는 페이지네이션으로 조회합니다. 총 리뷰 개수도 함께 반환됩니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/{productId}/reviews")
     public ResponseEntity<CommonResponse<ProductReviewsByRatingResponse>> getProductReviews(
@@ -89,7 +89,7 @@ public class ProductApiController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "리뷰 통계 조회", description = "상품의 리뷰 통계를 조회합니다. 평점, 맛 평점, 양 평점, 가격 평점을 포함합니다.")
+    @Operation(summary = "상품 리뷰 통계 조회", description = "상품의 리뷰 통계를 조회합니다. 평점, 맛 평점, 양 평점, 가격 평점을 포함합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
     @GetMapping("/v1/{productId}/reviews/statistics")
     public ResponseEntity<CommonResponse<ProductReviewStatisticsResponse>> getProductReviewStatistics(@PathVariable Long productId) {
