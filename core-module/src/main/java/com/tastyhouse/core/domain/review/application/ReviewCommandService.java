@@ -78,6 +78,7 @@ public class ReviewCommandService {
             new ReviewId(saved.getId()),
             cmd.memberId(),
             cmd.placeId(),
+            cmd.productId(),
             LocalDateTime.now()
         ));
 
@@ -143,6 +144,7 @@ public class ReviewCommandService {
         eventPublisher.publishEvent(new ReviewDeletedEvent(
             new ReviewId(cmd.reviewId()),
             cmd.memberId(),
+            cmd.productId(),
             LocalDateTime.now()
         ));
     }

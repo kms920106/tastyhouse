@@ -1,11 +1,11 @@
 package com.tastyhouse.core.domain.search.application;
 
 import com.tastyhouse.core.entity.place.dto.PlaceBookmarkedItemDto;
-import com.tastyhouse.core.entity.product.dto.SearchProductItemDto;
+import com.tastyhouse.core.domain.product.application.ProductQueryService;
+import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.repository.place.PlaceRepository;
-import com.tastyhouse.core.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,12 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SearchResultQueryService {
 
-    private final ProductRepository productRepository;
+    private final ProductQueryService productQueryService;
     private final ReviewRepository reviewRepository;
     private final PlaceRepository placeRepository;
 
-    public Page<SearchProductItemDto> searchProducts(String keyword, int page, int size) {
-        return productRepository.searchByKeyword(keyword, PageRequest.of(page, size));
+    public Page<SearchProductItemResult> searchProducts(String keyword, int page, int size) {
+        return productQueryService.searchByKeyword(keyword, page, size);
     }
 
     public Page<SearchReviewItemResult> searchReviews(String keyword, int page, int size) {

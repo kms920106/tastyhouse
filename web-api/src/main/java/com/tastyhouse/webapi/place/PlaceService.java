@@ -15,16 +15,16 @@ import com.tastyhouse.core.entity.place.dto.PlacePhotoCategoryImageDto;
 import com.tastyhouse.core.entity.place.dto.BestPlaceItemDto;
 import com.tastyhouse.core.entity.place.dto.EditorChoiceDto;
 import com.tastyhouse.core.entity.place.dto.LatestPlaceItemDto;
-import com.tastyhouse.core.entity.product.Product;
-import com.tastyhouse.core.entity.product.ProductCategory;
-import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
+import com.tastyhouse.core.domain.product.application.ProductQueryService;
+import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
+import com.tastyhouse.core.domain.product.domain.model.Product;
+import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.PlaceReviewStatisticsResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.service.PlaceCoreService;
-import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.place.request.LatestPlaceFilterRequest;
 import com.tastyhouse.webapi.place.response.AmenityListItemResponse;
@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 public class PlaceService {
 
     private final PlaceCoreService placeCoreService;
-    private final ProductCoreService productCoreService;
+    private final ProductQueryService productQueryService;
     private final ReviewQueryService reviewQueryService;
     private final FileService fileService;
 
@@ -132,7 +132,7 @@ public class PlaceService {
         );
     }
 
-    private EditorChoiceProductItem convertToEditorChoiceProductItem(ProductSimpleDto dto) {
+    private EditorChoiceProductItem convertToEditorChoiceProductItem(ProductSimpleResult dto) {
         return EditorChoiceProductItem.from(
             dto.id(),
             dto.placeName(),
@@ -249,8 +249,8 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<PlaceProductCategoryResponse> getPlaceProducts(Long placeId) {
-        List<ProductCategory> categories = productCoreService.findProductCategoriesByPlaceId(placeId);
-        List<Product> products = productCoreService.findProductsByPlaceId(placeId);
+        List<ProductCategory> categories = productQueryService.findProductCategoriesByPlaceId(placeId);
+        List<Product> products = productQueryService.findActiveProductsByPlaceId(placeId);
 
         // 카테고리 ID별로 Product 그룹화
         Map<Long, List<Product>> productsByCategory = products.stream()
@@ -420,7 +420,7 @@ public class PlaceService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return productCoreService.getFirstImageFilePath(productId);
+        return productQueryService.getFirstImageFilePath(productId);
     }
 
     @Transactional(readOnly = true)

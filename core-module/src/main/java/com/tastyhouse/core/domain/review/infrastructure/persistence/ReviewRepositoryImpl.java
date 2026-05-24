@@ -38,7 +38,7 @@ import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploade
 import static com.tastyhouse.core.entity.order.QOrderItem.orderItem;
 import static com.tastyhouse.core.entity.place.QPlace.place;
 import static com.tastyhouse.core.entity.place.QPlaceStation.placeStation;
-import static com.tastyhouse.core.entity.product.QProduct.product;
+import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.review.domain.model.QReview.review;
 import static com.tastyhouse.core.domain.review.domain.model.QReviewImage.reviewImage;
 import static com.tastyhouse.core.domain.member.domain.model.QMember.member;

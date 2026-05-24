@@ -1,7 +1,8 @@
 package com.tastyhouse.webapi.review;
 
 import com.tastyhouse.core.entity.order.OrderItem;
-import com.tastyhouse.core.entity.product.Product;
+import com.tastyhouse.core.domain.product.application.ProductQueryService;
+import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.review.application.ReviewCommandService;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewCommand;
@@ -23,7 +24,6 @@ import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.service.OrderCoreService;
-import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
@@ -54,7 +54,7 @@ public class ReviewService {
 
     private final ReviewCommandService reviewCommandService;
     private final ReviewQueryService reviewQueryService;
-    private final ProductCoreService productCoreService;
+    private final ProductQueryService productQueryService;
     private final OrderCoreService orderCoreService;
     private final FileService fileService;
 
@@ -260,7 +260,7 @@ public class ReviewService {
                 .toList();
         String reviewMemberProfileImageUrl = fileService.getUrlByPath(reviewDetail.memberProfileImageUrl());
 
-        return productCoreService.findProductById(review.getProductId())
+        return productQueryService.findProductById(review.getProductId())
             .map(product -> {
                 Integer price = product.getDiscountPrice() != null
                     ? product.getDiscountPrice()
@@ -313,14 +313,14 @@ public class ReviewService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return fileService.getUrlByPath(productCoreService.getFirstImageFilePath(productId));
+        return fileService.getUrlByPath(productQueryService.getFirstImageFilePath(productId));
     }
 
     @Transactional(readOnly = true)
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderItemId, Long memberId) {
         OrderItem orderItem = orderCoreService.findOrderItemById(orderItemId);
 
-        Product product = productCoreService.findProductById(orderItem.getProductId())
+        Product product = productQueryService.findProductById(orderItem.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         Integer price = product.getDiscountPrice() != null
@@ -349,7 +349,7 @@ public class ReviewService {
             orderId = orderItem.getOrderId();
         }
 
-        Product product = productCoreService.findProductById(request.productId())
+        Product product = productQueryService.findProductById(request.productId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewResult result = reviewCommandService.createReview(new CreateReviewCommand(
@@ -409,7 +409,8 @@ public class ReviewService {
 
     @Transactional
     public void deleteReview(Long reviewId, Long memberId) {
-        reviewCommandService.deleteReview(new DeleteReviewCommand(reviewId, memberId));
+        Review review = reviewQueryService.findById(reviewId);
+        reviewCommandService.deleteReview(new DeleteReviewCommand(reviewId, memberId, review.getProductId()));
     }
 
     @Transactional(readOnly = true)

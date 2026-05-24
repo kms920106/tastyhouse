@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public record ReviewDeletedEvent(
     ReviewId reviewId,
     Long memberId,
+    Long productId,
     LocalDateTime occurredAt
 ) {
 }

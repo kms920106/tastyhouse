@@ -8,6 +8,7 @@ public record ReviewCreatedEvent(
     ReviewId reviewId,
     Long memberId,
     Long placeId,
+    Long productId,
     LocalDateTime occurredAt
 ) {
 }

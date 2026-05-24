@@ -1,0 +1,47 @@
+package com.tastyhouse.core.domain.product.infrastructure.persistence;
+
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
+import com.tastyhouse.core.domain.product.domain.repository.ProductCategoryRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+import static com.tastyhouse.core.domain.product.domain.model.QProductCategory.productCategory;
+
+@Repository
+@RequiredArgsConstructor
+public class ProductCategoryRepositoryImpl implements ProductCategoryRepository {
+
+    private final JPAQueryFactory queryFactory;
+    private final ProductCategoryJpaRepository productCategoryJpaRepository;
+
+    @Override
+    public Optional<ProductCategory> findById(Long id) {
+        return productCategoryJpaRepository.findById(id);
+    }
+
+    @Override
+    public List<ProductCategory> findActiveCategoriesByPlaceIdOrderBySort(Long placeId) {
+        return queryFactory
+            .selectFrom(productCategory)
+            .where(productCategory.placeId.eq(placeId), productCategory.isActive.eq(true))
+            .orderBy(productCategory.sort.asc())
+            .fetch();
+    }
+
+    @Override
+    public List<ProductCategory> findCategoriesByNameAndPlaceId(String name, Long placeId) {
+        return queryFactory
+            .selectFrom(productCategory)
+            .where(productCategory.name.eq(name), productCategory.placeId.eq(placeId))
+            .fetch();
+    }
+
+    @Override
+    public ProductCategory save(ProductCategory entity) {
+        return productCategoryJpaRepository.save(entity);
+    }
+}

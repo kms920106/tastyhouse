@@ -1,19 +1,16 @@
 package com.tastyhouse.webapi.product;
 
 import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.core.domain.product.application.ProductQueryService;
+import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
+import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
+import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ProductReviewStatisticsResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
-import com.tastyhouse.core.entity.product.Product;
-import com.tastyhouse.core.entity.product.ProductCommonOption;
-import com.tastyhouse.core.entity.product.ProductCommonOptionGroup;
-import com.tastyhouse.core.entity.product.ProductOption;
-import com.tastyhouse.core.entity.product.ProductOptionGroup;
-import com.tastyhouse.core.entity.product.dto.TodayDiscountProductDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductImagesResponse;
@@ -28,8 +25,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,17 +33,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductService {
 
-    private final ProductCoreService productCoreService;
+    private final ProductQueryService productQueryService;
     private final ReviewQueryService reviewQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
     public PageResult<TodayDiscountProductListItemResponse> searchTodayDiscountProducts(int page, int size) {
-        return PageResult.from(productCoreService.findTodayDiscountProducts(page, size))
+        return PageResult.from(productQueryService.findTodayDiscountProducts(page, size))
             .map(this::convertToTodayDiscountProductListItemResponse);
     }
 
-    private TodayDiscountProductListItemResponse convertToTodayDiscountProductListItemResponse(TodayDiscountProductDto dto) {
+    private TodayDiscountProductListItemResponse convertToTodayDiscountProductListItemResponse(TodayDiscountProductResult dto) {
         return TodayDiscountProductListItemResponse.from(
             dto.id(),
             dto.placeName(),
@@ -62,7 +57,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductDetailResponse findProductById(Long productId) {
-        Product product = productCoreService.findProductById(productId)
+        Product product = productQueryService.findProductById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         return ProductDetailResponse.from(
             product.getId(),
@@ -77,7 +72,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductReviewCountResponse findProductReviewCount(Long productId) {
-        productCoreService.findProductById(productId)
+        productQueryService.findProductById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         ProductReviewStatisticsResult statistics = reviewQueryService.findProductReviewStatistics(productId);
         Long total = statistics.totalReviewCount();
@@ -86,94 +81,36 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductOptionGroupsResponse findProductOptions(Long productId) {
-        productCoreService.findProductById(productId)
+        productQueryService.findProductById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
-        return ProductOptionGroupsResponse.from(buildOptionGroups(productId));
+        ProductOptionsResult result = productQueryService.findProductOptions(productId);
+        return ProductOptionGroupsResponse.from(convertToOptionGroupResponses(result));
     }
 
-    private List<ProductOptionGroupsResponse.OptionGroupResponse> buildOptionGroups(Long productId) {
-        List<ProductOptionGroupsResponse.OptionGroupResponse> result = new ArrayList<>();
-
-        List<ProductOptionGroup> productOptionGroups = productCoreService.findProductOptionGroupsByProductId(productId);
-        if (!productOptionGroups.isEmpty()) {
-            List<Long> optionGroupIds = productOptionGroups.stream()
-                .map(ProductOptionGroup::getId)
-                .toList();
-            List<ProductOption> productOptions = productCoreService.findProductOptionsByOptionGroupIds(optionGroupIds);
-            Map<Long, List<ProductOption>> optionsByGroupId = productOptions.stream()
-                .collect(Collectors.groupingBy(ProductOption::getOptionGroupId));
-
-            for (ProductOptionGroup group : productOptionGroups) {
-                List<ProductOptionGroupsResponse.OptionResponse> options = optionsByGroupId
-                    .getOrDefault(group.getId(), Collections.emptyList())
-                    .stream()
-                    .map(o -> toOptionResponse(o.getId(), o.getName(), o.getAdditionalPrice(), o.getIsSoldOut()))
+    private List<ProductOptionGroupsResponse.OptionGroupResponse> convertToOptionGroupResponses(ProductOptionsResult result) {
+        return result.optionGroups().stream()
+            .map(group -> {
+                List<ProductOptionGroupsResponse.OptionResponse> options = group.options().stream()
+                    .map(o -> ProductOptionGroupsResponse.OptionResponse.from(
+                        o.id(), o.name(), o.additionalPrice(), o.isSoldOut()))
                     .toList();
-
-                result.add(ProductOptionGroupsResponse.OptionGroupResponse.from(
-                    group.getId(),
-                    group.getName(),
-                    group.getDescription(),
-                    group.getIsRequired(),
-                    group.getIsMultipleSelect(),
-                    group.getMinSelect(),
-                    group.getMaxSelect(),
-                    false,
-                    options
-                ));
-            }
-        }
-
-        List<ProductCommonOptionGroup> productCommonOptionGroups = productCoreService.findProductCommonOptionGroupsByProductId(productId);
-        if (!productCommonOptionGroups.isEmpty()) {
-            List<Long> commonOptionGroupIds = productCommonOptionGroups.stream()
-                .map(ProductCommonOptionGroup::getId)
-                .toList();
-            List<ProductCommonOption> commonOptions = productCoreService.findProductCommonOptionsByOptionGroupIds(commonOptionGroupIds);
-            Map<Long, List<ProductCommonOption>> commonOptionsByGroupId = commonOptions.stream()
-                .collect(Collectors.groupingBy(ProductCommonOption::getOptionGroupId));
-
-            for (ProductCommonOptionGroup group : productCommonOptionGroups) {
-                List<ProductOptionGroupsResponse.OptionResponse> options = commonOptionsByGroupId
-                    .getOrDefault(group.getId(), Collections.emptyList())
-                    .stream()
-                    .map(o -> toOptionResponse(o.getId(), o.getName(), o.getAdditionalPrice(), o.getIsSoldOut()))
-                    .toList();
-
-                result.add(ProductOptionGroupsResponse.OptionGroupResponse.from(
-                    group.getId(),
-                    group.getName(),
-                    group.getDescription(),
-                    group.getIsRequired(),
-                    group.getIsMultipleSelect(),
-                    group.getMinSelect(),
-                    group.getMaxSelect(),
-                    true,
-                    options
-                ));
-            }
-        }
-
-        return result;
-    }
-
-    private ProductOptionGroupsResponse.OptionResponse toOptionResponse(
-        Long id, String name, Integer additionalPrice, Boolean isSoldOut
-    ) {
-        return ProductOptionGroupsResponse.OptionResponse.from(id, name, additionalPrice, isSoldOut);
+                return ProductOptionGroupsResponse.OptionGroupResponse.from(
+                    group.id(), group.name(), group.description(),
+                    group.isRequired(), group.isMultipleSelect(),
+                    group.minSelect(), group.maxSelect(), group.isCommon(), options
+                );
+            })
+            .toList();
     }
 
     @Transactional(readOnly = true)
     public ProductImagesResponse findProductImages(Long productId) {
-        productCoreService.findProductById(productId)
+        productQueryService.findProductById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
-        return ProductImagesResponse.from(getAllImageUrls(productId));
-    }
-
-    private List<String> getAllImageUrls(Long productId) {
-        return productCoreService.getAllImageFilePaths(productId).stream()
+        List<String> imageUrls = productQueryService.getAllImageFilePaths(productId).stream()
             .map(fileService::getUrlByPath)
             .toList();
+        return ProductImagesResponse.from(imageUrls);
     }
 
     @Transactional(readOnly = true)
@@ -181,21 +118,19 @@ public class ProductService {
         ReviewsByRatingResult result = reviewQueryService.findProductReviewsByRating(productId, page, size);
 
         Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().stream()
-                                .map(this::convertToProductReviewListItemResponse)
-                                .toList()
-                ));
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().stream()
+                    .map(this::convertToProductReviewListItemResponse)
+                    .toList()
+            ));
 
         List<ProductReviewListItemResponse> allReviews = result.getAllReviews().stream()
-                .map(this::convertToProductReviewListItemResponse)
-                .toList();
+            .map(this::convertToProductReviewListItemResponse)
+            .toList();
 
         ProductReviewsByRatingResponse response = ProductReviewsByRatingResponse.from(
-            reviewsByRating,
-            allReviews,
-            result.getTotalReviewCount()
+            reviewsByRating, allReviews, result.getTotalReviewCount()
         );
 
         return new ProductReviewsByRatingWithPagination(response, result.getTotalElements());
@@ -219,8 +154,8 @@ public class ProductService {
     public ProductReviewStatisticsResponse getProductReviewStatistics(Long productId) {
         ProductReviewStatisticsResult statistics = reviewQueryService.findProductReviewStatistics(productId);
 
-        Product product = productCoreService.findProductById(productId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+        Product product = productQueryService.findProductById(productId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
         return ProductReviewStatisticsResponse.from(
             product.getRating(),

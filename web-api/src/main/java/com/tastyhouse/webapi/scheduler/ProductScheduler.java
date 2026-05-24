@@ -1,14 +1,12 @@
 package com.tastyhouse.webapi.scheduler;
 
-import com.tastyhouse.core.entity.product.Product;
-import com.tastyhouse.core.entity.product.ProductBbq;
-import com.tastyhouse.core.entity.product.ProductOption;
-import com.tastyhouse.core.entity.product.ProductOptionGroup;
-import com.tastyhouse.core.repository.product.ProductBbqJpaRepository;
-import com.tastyhouse.core.repository.product.ProductBbqRepository;
-import com.tastyhouse.core.repository.product.ProductJpaRepository;
-import com.tastyhouse.core.repository.product.ProductOptionGroupJpaRepository;
-import com.tastyhouse.core.repository.product.ProductOptionJpaRepository;
+import com.tastyhouse.core.domain.product.application.ProductCommandService;
+import com.tastyhouse.core.domain.product.application.ProductQueryService;
+import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOptionCommand;
+import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOptionGroupCommand;
+import com.tastyhouse.core.domain.product.domain.model.Product;
+import com.tastyhouse.core.domain.product.domain.model.ProductBbq;
+import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
 import com.tastyhouse.webapi.crawling.bbq.BbqService;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductSubOptionResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,25 +23,14 @@ import java.util.Optional;
 public class ProductScheduler {
 
     private final BbqService bbqService;
-    private final ProductJpaRepository productJpaRepository;
-    private final ProductOptionGroupJpaRepository productOptionGroupJpaRepository;
-    private final ProductOptionJpaRepository productOptionJpaRepository;
-    private final ProductBbqRepository productBbqRepository;
-    private final ProductBbqJpaRepository productBbqJpaRepository;
+    private final ProductCommandService productCommandService;
+    private final ProductQueryService productQueryService;
 
-    private static final Long BBQ_PLACE_ID = 1L;
-
-    /**
-     * BBQ 상품 옵션 크롤링 스케줄러
-     * 옵션 동기화가 완료되지 않은 상품을 찾아서
-     * getMenuSubOptions를 호출하여 옵션 저장 (10초 간격 실행)
-     */
-//    @Scheduled(fixedDelay = 10000)
+    //    @Scheduled(fixedDelay = 10000)
     @Transactional
     public void crawlAndSaveProductOptions() {
         try {
-            // 옵션 동기화가 완료되지 않은 ProductBbq 조회
-            Optional<ProductBbq> productBbqOpt = productBbqRepository.findFirstByIsOptionsSyncedFalse();
+            Optional<ProductBbq> productBbqOpt = productQueryService.findFirstBbqWithOptionsSyncPending();
             if (productBbqOpt.isEmpty()) {
                 log.debug("옵션 동기화가 필요한 상품이 없습니다.");
                 return;
@@ -55,12 +42,9 @@ public class ProductScheduler {
 
             log.info("상품 옵션 크롤링 시작: productId={}, bbqMenuId={}", productId, bbqMenuId);
 
-            // getMenuSubOptions 호출하여 옵션 저장
             saveProductOptions(productId, bbqMenuId);
 
-            // 옵션 동기화 완료 표시 (옵션이 0개여도 완료 처리)
-            productBbq.markOptionsSynced();
-            productBbqJpaRepository.save(productBbq);
+            productCommandService.markBbqOptionsSynced(productId);
 
             log.info("상품 옵션 저장 완료: productId={}", productId);
         } catch (Exception e) {
@@ -68,36 +52,20 @@ public class ProductScheduler {
         }
     }
 
-    /**
-     * 상품 옵션 저장
-     */
     private void saveProductOptions(Long productId, Long bbqMenuId) {
         List<BbqProductSubOptionResponse> subOptions = bbqService.getMenuSubOptions(bbqMenuId);
 
-        // subOptions가 비어있으면 기본 옵션 그룹 및 옵션 저장
         if (subOptions.isEmpty()) {
-            // 상품 정보 조회
-            Product product = productJpaRepository.findById(productId)
+            Product product = productQueryService.findProductById(productId)
                 .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다: productId=" + productId));
 
-            // 기본 옵션 그룹 저장
-            ProductOptionGroup defaultGroup =
-                ProductOptionGroup.of(
-                    productId,
-                    "기본 선택",
-                    null,
-                    false,
-                    false,
-                    0,
-                    1,
-                    0,
-                    true
-                );
-            ProductOptionGroup savedOptionGroup = productOptionGroupJpaRepository.save(defaultGroup);
+            ProductOptionGroup savedOptionGroup = productCommandService.saveProductOptionGroup(
+                new SaveProductOptionGroupCommand(productId, "기본 선택", null, false, false, 0, 1, 0, true)
+            );
 
-            // 기본 옵션 저장 (상품명 사용)
-            ProductOption defaultOption = ProductOption.of(savedOptionGroup.getId(), product.getName(), 0, 0, false, true);
-            productOptionJpaRepository.save(defaultOption);
+            productCommandService.saveProductOption(
+                new SaveProductOptionCommand(savedOptionGroup.getId(), product.getName(), 0, 0, false, true)
+            );
 
             log.info("서브 옵션이 없어 기본 옵션 그룹 및 옵션 저장: productId={}, 상품명={}", productId, product.getName());
             return;
@@ -106,9 +74,8 @@ public class ProductScheduler {
         for (int i = 0; i < subOptions.size(); i++) {
             BbqProductSubOptionResponse subOption = subOptions.get(i);
 
-            // ProductOptionGroup 저장
-            ProductOptionGroup optionGroup =
-                ProductOptionGroup.of(
+            ProductOptionGroup savedOptionGroup = productCommandService.saveProductOptionGroup(
+                new SaveProductOptionGroupCommand(
                     productId,
                     subOption.subOptionTitle(),
                     null,
@@ -118,25 +85,24 @@ public class ProductScheduler {
                     subOption.maxSelectCount(),
                     i,
                     true
-                );
-            ProductOptionGroup savedOptionGroup = productOptionGroupJpaRepository.save(optionGroup);
+                )
+            );
 
-            // ProductOption 저장
             if (subOption.subOptionItemDetailResponseList() != null) {
                 for (int j = 0; j < subOption.subOptionItemDetailResponseList().size(); j++) {
                     BbqProductSubOptionResponse.SubOptionItemDetailResponse itemDetail =
                         subOption.subOptionItemDetailResponseList().get(j);
 
-                    ProductOption productOption =
-                        ProductOption.of(
+                    productCommandService.saveProductOption(
+                        new SaveProductOptionCommand(
                             savedOptionGroup.getId(),
                             itemDetail.itemTitle(),
                             itemDetail.addPrice() != null ? itemDetail.addPrice() : 0,
                             j,
                             itemDetail.isSoldOut() != null ? itemDetail.isSoldOut() : false,
                             !(itemDetail.isHidden() != null && itemDetail.isHidden())
-                        );
-                    productOptionJpaRepository.save(productOption);
+                        )
+                    );
                 }
             }
         }

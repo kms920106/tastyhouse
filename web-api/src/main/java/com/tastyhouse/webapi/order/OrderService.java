@@ -10,9 +10,9 @@ import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.order.OrderStatus;
 import com.tastyhouse.core.entity.payment.Payment;
 import com.tastyhouse.core.entity.place.Place;
-import com.tastyhouse.core.entity.product.Product;
-import com.tastyhouse.core.entity.product.ProductOption;
-import com.tastyhouse.core.entity.product.ProductOptionGroup;
+import com.tastyhouse.core.domain.product.domain.model.Product;
+import com.tastyhouse.core.domain.product.domain.model.ProductOption;
+import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
@@ -23,7 +23,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.domain.point.application.PointCommandService;
 import com.tastyhouse.core.domain.point.application.dto.command.UsePointCommand;
 import com.tastyhouse.core.service.OrderCoreService;
-import com.tastyhouse.core.service.ProductCoreService;
+import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
@@ -52,7 +52,7 @@ public class OrderService {
     private final OrderCoreService orderCoreService;
     private final PointCommandService pointCommandService;
     private final CouponCommandService couponCommandService;
-    private final ProductCoreService productCoreService;
+    private final ProductQueryService productQueryService;
     private final PlaceCoreService placeCoreService;
     private final MemberQueryService memberQueryService;
     private final FileService fileService;
@@ -89,13 +89,13 @@ public class OrderService {
         Order savedOrder = orderCoreService.saveOrder(order);
 
         for (OrderItemRequest itemRequest : request.orderItems()) {
-            Product product = productCoreService.findProductById(itemRequest.productId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND, ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + itemRequest.productId()));
+            Product product = productQueryService.findProductById(itemRequest.productId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND, ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + itemRequest.productId()));
 
             if (product.getIsSoldOut()) {
                 throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT, ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }
 
-            String productImageUrl = productCoreService.getFirstImageFilePath(product.getId());
+            String productImageUrl = productQueryService.getFirstImageFilePath(product.getId());
 
             int unitPrice = product.getOriginalPrice();
             Integer discountPrice = product.getDiscountPrice();
@@ -118,9 +118,9 @@ public class OrderService {
 
             if (itemRequest.selectedOptions() != null) {
                 for (OrderItemOptionRequest optionRequest : itemRequest.selectedOptions()) {
-                    ProductOptionGroup optionGroup = productCoreService.findProductOptionGroupById(optionRequest.groupId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
+                    ProductOptionGroup optionGroup = productQueryService.findProductOptionGroupById(optionRequest.groupId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
 
-                    ProductOption option = productCoreService.findProductOptionById(optionRequest.optionId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
+                    ProductOption option = productQueryService.findProductOptionById(optionRequest.optionId()).orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
 
                     orderCoreService.saveOrderItemOption(
                         OrderItemOption.of(
