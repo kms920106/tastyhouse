@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.search;
+package com.tastyhouse.core.domain.search.domain.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,13 +20,13 @@ public class SearchKeywordLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "keyword", nullable = false)
-    private String keyword; // 검색어
+    private String keyword;
 
     @Column(name = "searched_at", nullable = false)
-    private LocalDateTime searchedAt; // 검색 일시
+    private LocalDateTime searchedAt;
 
     private SearchKeywordLog(String keyword, LocalDateTime searchedAt) {
         this.keyword = keyword;

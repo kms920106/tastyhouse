@@ -1,6 +1,6 @@
-package com.tastyhouse.core.repository.search;
+package com.tastyhouse.core.domain.search.infrastructure.persistence;
 
-import com.tastyhouse.core.entity.search.SearchKeywordLog;
+import com.tastyhouse.core.domain.search.domain.model.SearchKeywordLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

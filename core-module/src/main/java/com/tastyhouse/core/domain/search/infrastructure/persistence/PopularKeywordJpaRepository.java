@@ -1,6 +1,6 @@
-package com.tastyhouse.core.repository.search;
+package com.tastyhouse.core.domain.search.infrastructure.persistence;
 
-import com.tastyhouse.core.entity.search.PopularKeyword;
+import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.search;
+package com.tastyhouse.core.domain.search.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -19,14 +19,14 @@ public class RecommendedKeyword extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "keyword", nullable = false)
-    private String keyword; // 추천 검색어
+    private String keyword;
 
     @Column(name = "sort_order", nullable = false)
-    private int sortOrder; // 추천 검색어 노출 순서
+    private int sortOrder;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive; // 활성화 여부 (true: 활성)
+    private Boolean isActive;
 }

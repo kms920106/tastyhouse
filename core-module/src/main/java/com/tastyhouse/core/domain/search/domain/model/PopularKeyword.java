@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.search;
+package com.tastyhouse.core.domain.search.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -21,19 +21,19 @@ public class PopularKeyword extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "keyword", nullable = false)
-    private String keyword; // 인기 검색어
+    private String keyword;
 
     @Column(name = "rank", nullable = false)
-    private int rank; // 인기 순위
+    private int rank;
 
     @Column(name = "is_new", nullable = false)
-    private Boolean isNew; // 신규 키워드 여부 (true: 신규)
+    private Boolean isNew;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive; // 활성화 여부 (true: 활성)
+    private Boolean isActive;
 
     private PopularKeyword(String keyword, int rank, Boolean isNew, Boolean isActive) {
         this.keyword = keyword;
