@@ -1,32 +1,30 @@
-package com.tastyhouse.core.service;
+package com.tastyhouse.core.domain.member.infrastructure.persistence;
 
-import com.tastyhouse.core.entity.user.MemberSocialAccount;
-import com.tastyhouse.core.entity.user.SocialProvider;
-import com.tastyhouse.core.repository.member.MemberSocialAccountJpaRepository;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Service
+@Repository
 @RequiredArgsConstructor
-public class MemberSocialAccountCoreService {
+public class MemberSocialAccountRepositoryImpl implements MemberSocialAccountRepository {
 
     private final MemberSocialAccountJpaRepository memberSocialAccountJpaRepository;
 
-    @Transactional(readOnly = true)
+    @Override
     public Optional<MemberSocialAccount> findByProviderAndProviderId(SocialProvider provider, String providerId) {
         return memberSocialAccountJpaRepository.findByProviderAndProviderId(provider, providerId);
     }
 
-    @Transactional(readOnly = true)
+    @Override
     public boolean existsByProviderAndProviderId(SocialProvider provider, String providerId) {
         return memberSocialAccountJpaRepository.existsByProviderAndProviderId(provider, providerId);
     }
 
-    @Transactional
-    @SuppressWarnings("null")
+    @Override
     public MemberSocialAccount save(MemberSocialAccount socialAccount) {
         return memberSocialAccountJpaRepository.save(socialAccount);
     }

@@ -1,12 +1,14 @@
-package com.tastyhouse.core.repository.member;
+package com.tastyhouse.core.domain.member.infrastructure.persistence;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.user.Member;
-import com.tastyhouse.core.entity.user.MemberGrade;
-import com.tastyhouse.core.entity.user.MemberStatus;
-import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.entity.user.QMember.member;
+import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,22 +29,23 @@ public class MemberRepositoryImpl implements MemberRepository {
     private final MemberJpaRepository memberJpaRepository;
 
     @Override
-    public Optional<Member> findById(Long memberId) {
-        return memberJpaRepository.findById(memberId);
+    public Optional<Member> findById(MemberId memberId) {
+        return memberJpaRepository.findById(memberId.value());
     }
 
     @Override
-    public boolean existsById(Long memberId) {
-        return memberJpaRepository.existsById(memberId);
+    public boolean existsById(MemberId memberId) {
+        return memberJpaRepository.existsById(memberId.value());
     }
 
     @Override
     public Optional<Member> findByUsername(String username) {
-        Member result = queryFactory
-            .selectFrom(member)
-            .where(member.username.eq(username))
-            .fetchOne();
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(
+            queryFactory
+                .selectFrom(member)
+                .where(member.username.eq(username))
+                .fetchOne()
+        );
     }
 
     @Override
@@ -65,18 +68,18 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Optional<Member> findByNickname(String nickname) {
-        Member result = queryFactory
-            .selectFrom(member)
-            .where(member.nickname.eq(nickname))
-            .fetchOne();
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(
+            queryFactory
+                .selectFrom(member)
+                .where(member.nickname.eq(nickname))
+                .fetchOne()
+        );
     }
 
     @Override
-    public Page<MemberWithProfileImageDto> findByNicknameContaining(String nickname, Pageable pageable) {
-
-        List<MemberWithProfileImageDto> content = queryFactory
-            .select(Projections.constructor(MemberWithProfileImageDto.class,
+    public Page<MemberWithProfileImageResult> findByNicknameContaining(String nickname, Pageable pageable) {
+        List<MemberWithProfileImageResult> content = queryFactory
+            .select(Projections.constructor(MemberWithProfileImageResult.class,
                 member.id,
                 member.nickname,
                 member.memberGrade,
@@ -100,7 +103,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public boolean existsByPhoneNumberValueAndMemberStatusNot(String phoneNumber, MemberStatus memberStatus) {
+    public boolean existsByPhoneNumberAndStatusNot(String phoneNumber, MemberStatus memberStatus) {
         return queryFactory
             .selectOne()
             .from(member)
@@ -112,15 +115,16 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Optional<Member> findByPhoneNumberValueAndMemberStatusNot(String phoneNumber, MemberStatus memberStatus) {
-        Member result = queryFactory
-            .selectFrom(member)
-            .where(
-                member.phoneNumber.value.eq(phoneNumber),
-                member.memberStatus.ne(memberStatus)
-            )
-            .fetchOne();
-        return Optional.ofNullable(result);
+    public Optional<Member> findByPhoneNumberAndStatusNot(String phoneNumber, MemberStatus memberStatus) {
+        return Optional.ofNullable(
+            queryFactory
+                .selectFrom(member)
+                .where(
+                    member.phoneNumber.value.eq(phoneNumber),
+                    member.memberStatus.ne(memberStatus)
+                )
+                .fetchOne()
+        );
     }
 
     @Override
@@ -132,22 +136,25 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Optional<MemberWithProfileImageDto> findMemberWithProfileImageById(Long memberId) {
-
-        MemberWithProfileImageDto result = queryFactory
-            .select(Projections.constructor(MemberWithProfileImageDto.class,
-                member.id,
-                member.nickname,
-                member.memberGrade,
-                member.statusMessage,
-                uploadedFile.filePath
-            ))
-            .from(member)
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
-            .where(member.id.eq(memberId))
-            .fetchOne();
-
-        return Optional.ofNullable(result);
+    public Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(MemberId memberId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(Projections.constructor(MemberWithProfileImageResult.class,
+                    member.id,
+                    member.nickname,
+                    member.memberGrade,
+                    member.statusMessage,
+                    uploadedFile.filePath
+                ))
+                .from(member)
+                .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+                .where(member.id.eq(memberId.value()))
+                .fetchOne()
+        );
     }
 
+    @Override
+    public Member save(Member member) {
+        return memberJpaRepository.save(member);
+    }
 }

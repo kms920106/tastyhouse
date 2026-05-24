@@ -14,7 +14,7 @@ import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.entity.rank.QMemberReviewRank.memberReviewRank;
-import static com.tastyhouse.core.entity.user.QMember.member;
+import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
 
 @Repository
 @RequiredArgsConstructor

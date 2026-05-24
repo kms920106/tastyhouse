@@ -1,16 +1,15 @@
 package com.tastyhouse.webapi.auth.naver;
 
-import com.tastyhouse.core.domain.referral.application.ReferralCommandService;
-import com.tastyhouse.core.domain.referral.application.dto.command.RegisterReferralCommand;
-import com.tastyhouse.core.entity.user.Gender;
-import com.tastyhouse.core.entity.user.Member;
-import com.tastyhouse.core.entity.user.MemberSocialAccount;
-import com.tastyhouse.core.entity.user.MemberStatus;
-import com.tastyhouse.core.entity.user.SocialProvider;
+import com.tastyhouse.core.domain.member.application.MemberCommandService;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.MemberCoreService;
-import com.tastyhouse.core.service.MemberSocialAccountCoreService;
 import com.tastyhouse.external.oauth.naver.NaverOAuthClient;
 import com.tastyhouse.external.oauth.naver.NaverTokenResponse;
 import com.tastyhouse.external.oauth.naver.NaverUserInfoResponse;
@@ -34,9 +33,8 @@ import java.util.UUID;
 public class NaverSocialLoginService {
 
     private final NaverOAuthClient naverOAuthClient;
-    private final ReferralCommandService referralCommandService;
-    private final MemberCoreService memberCoreService;
-    private final MemberSocialAccountCoreService memberSocialAccountCoreService;
+    private final MemberCommandService memberCommandService;
+    private final MemberQueryService memberQueryService;
     private final TokenService tokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final NaverTempTokenRedisRepository naverTempTokenRedisRepository;
@@ -53,20 +51,20 @@ public class NaverSocialLoginService {
         String providerId = naverUser.getProviderId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberSocialAccountCoreService.findByProviderAndProviderId(SocialProvider.NAVER, providerId);
+            memberQueryService.findSocialAccount(SocialProvider.NAVER, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl());
 
-            Member member = memberCoreService.getById(socialAccount.getMemberId());
+            Member member = memberQueryService.getById(new MemberId(socialAccount.getMemberId()));
             return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
         // → 사용자 동의 후 연동 처리가 필요하므로 NEEDS_LINKING 반환
         String naverEmail = naverUser.getEmail();
-        if (StringUtils.hasText(naverEmail) && memberCoreService.existsByUsername(naverEmail)) {
+        if (StringUtils.hasText(naverEmail) && memberQueryService.existsByUsername(naverEmail)) {
             String naverTempToken = issueTempToken(naverToken.accessToken());
             return SocialLoginResponse.ofLinkingRequired(naverTempToken);
         }
@@ -95,12 +93,12 @@ public class NaverSocialLoginService {
         String providerId = naverUser.getProviderId();
 
         // 이미 네이버 소셜 계정이 연동된 경우 중복 연동을 방지한다.
-        if (memberSocialAccountCoreService.existsByProviderAndProviderId(SocialProvider.NAVER, providerId)) {
+        if (memberQueryService.existsSocialAccount(SocialProvider.NAVER, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
-        Optional<Member> memberOpt = memberCoreService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberQueryService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // naverTempToken은 /signup/naver에서 재사용해야 하므로 삭제하지 않는다.
@@ -123,11 +121,12 @@ public class NaverSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        MemberSocialAccount socialAccount = MemberSocialAccount.of(
-            member.getId(), SocialProvider.NAVER, providerId,
-            naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
+        memberCommandService.saveSocialAccount(
+            MemberSocialAccount.of(
+                member.getId(), SocialProvider.NAVER, providerId,
+                naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
+            )
         );
-        memberSocialAccountCoreService.save(socialAccount);
 
         naverTempTokenRedisRepository.delete(naverTempToken);
 
@@ -150,53 +149,21 @@ public class NaverSocialLoginService {
         NaverUserInfoResponse naverUser = naverOAuthClient.fetchUserInfo(naverAccessToken);
         String providerId = naverUser.getProviderId();
 
-        if (memberSocialAccountCoreService.existsByProviderAndProviderId(SocialProvider.NAVER, providerId)) {
+        if (memberQueryService.existsSocialAccount(SocialProvider.NAVER, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        if (memberCoreService.existsByUsername(username)) {
-            throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
-        }
-
-        if (memberCoreService.existsByNickname(nickname)) {
-            throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
-        }
-
-        if (StringUtils.hasText(phoneNumber) &&
-            memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(phoneNumber, MemberStatus.DELETED)) {
-            throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
-        }
-
-        Member savedMember = memberCoreService.save(
-            Member.ofSocial(
-                username,
-                nickname,
-                fullName,
-                gender,
-                birthDate,
-                phoneNumber,
-                pushNotificationEnabled,
-                marketingInfoEnabled,
-                eventInfoEnabled)
+        Member savedMember = memberCommandService.signUpSocial(
+            username, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         );
-        Long memberId = savedMember.getId();
 
-        if (StringUtils.hasText(referrerNickname)) {
-            if (referrerNickname.equals(nickname)) {
-                throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
-            }
-            Member referrer = memberCoreService.findByNickname(referrerNickname)
-                .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
-            referralCommandService.register(
-                new RegisterReferralCommand(referrer.getId(), memberId)
-            );
-        }
-
-        MemberSocialAccount socialAccount = MemberSocialAccount.of(
-            memberId, SocialProvider.NAVER, providerId,
-            naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
+        memberCommandService.saveSocialAccount(
+            MemberSocialAccount.of(
+                savedMember.getId(), SocialProvider.NAVER, providerId,
+                naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
+            )
         );
-        memberSocialAccountCoreService.save(socialAccount);
 
         naverTempTokenRedisRepository.delete(naverTempToken);
 

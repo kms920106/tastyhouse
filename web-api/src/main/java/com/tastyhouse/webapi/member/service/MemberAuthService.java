@@ -1,9 +1,10 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.exception.UnauthorizedException;
@@ -17,7 +18,7 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class MemberAuthService {
 
-    private final MemberCoreService memberCoreService;
+    private final MemberQueryService memberQueryService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenService tokenService;
@@ -25,7 +26,7 @@ public class MemberAuthService {
     // 입력한 비밀번호가 저장된 비밀번호와 일치하는지 검증
     @Transactional(readOnly = true)
     public void verifyPassword(Long memberId, String rawPassword) {
-        Member member = memberCoreService.getById(memberId);
+        Member member = memberQueryService.getById(new MemberId(memberId));
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_MISMATCH);
@@ -94,7 +95,7 @@ public class MemberAuthService {
     // 새 비밀번호가 기존 비밀번호와 동일한 경우 예외 처리
     @Transactional(readOnly = true)
     public void verifyNotSamePassword(Long memberId, String newPassword) {
-        Member member = memberCoreService.getById(memberId);
+        Member member = memberQueryService.getById(new MemberId(memberId));
         if (passwordEncoder.matches(newPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
         }

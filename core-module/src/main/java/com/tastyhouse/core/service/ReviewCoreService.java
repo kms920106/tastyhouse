@@ -14,7 +14,8 @@ import com.tastyhouse.core.entity.review.dto.PlaceReviewStatisticsDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
 import com.tastyhouse.core.entity.place.Tag;
 import com.tastyhouse.core.domain.follow.application.FollowQueryService;
-import com.tastyhouse.core.repository.member.MemberRepository;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.repository.place.TagRepository;
 import com.tastyhouse.core.repository.review.ReviewCommentRepository;
 import com.tastyhouse.core.repository.review.ReviewImageRepository;
@@ -23,7 +24,6 @@ import com.tastyhouse.core.repository.review.ReviewReplyRepository;
 import com.tastyhouse.core.repository.review.ReviewRepository;
 import com.tastyhouse.core.repository.review.ReviewTagRepository;
 import com.tastyhouse.core.entity.review.ReviewLike;
-import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +54,7 @@ public class ReviewCoreService {
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
     private final ReviewImageRepository reviewImageRepository;
-    private final MemberRepository memberRepository;
+    private final MemberQueryService memberQueryService;
 
     @Transactional(readOnly = true)
     public Page<BestReviewListItemDto> findBestReviewsWithPagination(int page, int size) {
@@ -314,13 +314,8 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
-    public Map<Long, MemberWithProfileImageDto> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {
-        return memberIds.stream()
-            .distinct()
-            .map(memberRepository::findMemberWithProfileImageById)
-            .filter(java.util.Optional::isPresent)
-            .map(java.util.Optional::get)
-            .collect(java.util.stream.Collectors.toMap(MemberWithProfileImageDto::id, dto -> dto));
+    public Map<Long, MemberWithProfileImageResult> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {
+        return memberQueryService.findMemberWithProfileImagesByIds(memberIds);
     }
 
     @Transactional

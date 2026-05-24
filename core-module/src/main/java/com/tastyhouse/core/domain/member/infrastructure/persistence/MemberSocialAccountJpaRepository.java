@@ -1,7 +1,7 @@
-package com.tastyhouse.core.repository.member;
+package com.tastyhouse.core.domain.member.infrastructure.persistence;
 
-import com.tastyhouse.core.entity.user.MemberSocialAccount;
-import com.tastyhouse.core.entity.user.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

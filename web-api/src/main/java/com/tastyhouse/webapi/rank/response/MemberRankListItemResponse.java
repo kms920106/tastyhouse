@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.rank.response;
 
-import com.tastyhouse.core.entity.user.MemberGrade;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 
 public record MemberRankListItemResponse(
     Long memberId,

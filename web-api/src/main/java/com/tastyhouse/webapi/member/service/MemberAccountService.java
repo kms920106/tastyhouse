@@ -1,17 +1,18 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.core.domain.referral.application.ReferralCommandService;
-import com.tastyhouse.core.domain.referral.application.dto.command.RegisterReferralCommand;
-import com.tastyhouse.core.entity.user.Member;
-import com.tastyhouse.core.entity.user.WithdrawalReason;
-import com.tastyhouse.core.entity.user.MemberWithdrawal;
-import com.tastyhouse.core.entity.user.MemberStatus;
-import com.tastyhouse.core.entity.user.Gender;
-import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
-import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.domain.member.application.MemberCommandService;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.application.dto.command.UpdatePersonalInfoCommand;
+import com.tastyhouse.core.domain.member.application.dto.command.UpdateProfileCommand;
+import com.tastyhouse.core.domain.member.application.dto.command.WithdrawMemberCommand;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
@@ -21,15 +22,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 
 @Service
 @RequiredArgsConstructor
 public class MemberAccountService {
 
-    private final MemberCoreService memberCoreService;
-    private final ReferralCommandService referralCommandService;
+    private final MemberCommandService memberCommandService;
+    private final MemberQueryService memberQueryService;
     private final FileService fileService;
     private final PasswordEncoder passwordEncoder;
 
@@ -48,19 +48,7 @@ public class MemberAccountService {
         Boolean eventInfoEnabled,
         String referrerNickname
     ) {
-        if (memberCoreService.existsByUsername(username)) {
-            throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
-        }
-
-        if (memberCoreService.existsByNickname(nickname)) {
-            throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
-        }
-
-        if (memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(phoneNumber, MemberStatus.DELETED)) {
-            throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
-        }
-
-        Member savedMember = memberCoreService.save(Member.of(
+        memberCommandService.signUp(
             username,
             passwordEncoder.encode(password),
             nickname,
@@ -70,21 +58,9 @@ public class MemberAccountService {
             phoneNumber,
             pushNotificationEnabled,
             marketingInfoEnabled,
-            eventInfoEnabled
-        ));
-
-        if (StringUtils.hasText(referrerNickname)) {
-            if (referrerNickname.equals(nickname)) {
-                throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
-            }
-
-            Member referrerMember = memberCoreService.findByNickname(referrerNickname)
-                .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
-
-            referralCommandService.register(
-                new RegisterReferralCommand(referrerMember.getId(), savedMember.getId())
-            );
-        }
+            eventInfoEnabled,
+            referrerNickname
+        );
     }
 
     // 새 비밀번호 확인 일치 여부를 검증한 후 변경 (기존 비번 동일 여부는 MemberFacade에서 MemberAuthService를 통해 선행)
@@ -95,11 +71,11 @@ public class MemberAccountService {
         String newPasswordConfirm
     ) {
         if (!newPassword.equals(newPasswordConfirm)) {
-            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
+            throw new com.tastyhouse.core.exception.BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
         }
 
-        Member member = memberCoreService.getById(memberId);
-        member.updatePassword(
+        memberCommandService.updatePassword(
+            new MemberId(memberId),
             passwordEncoder.encode(newPassword)
         );
     }
@@ -111,32 +87,22 @@ public class MemberAccountService {
         WithdrawalReason reason,
         String reasonDetail
     ) {
-        Member member = memberCoreService.getById(memberId);
-        member.deactivate();
-
-        memberCoreService.saveWithdrawal(
-            MemberWithdrawal.of(
-                memberId,
-                reason,
-                reasonDetail
-            )
+        memberCommandService.withdraw(
+            new WithdrawMemberCommand(new MemberId(memberId), reason, reasonDetail)
         );
     }
 
     // 닉네임 중복 여부를 확인하여 사용 가능 여부를 반환
     @Transactional(readOnly = true)
     public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
-        boolean available = !memberCoreService.existsByNickname(nickname);
+        boolean available = !memberQueryService.existsByNickname(nickname);
         return NicknameAvailabilityResponse.from(available);
     }
 
     // 휴대폰번호로 활성 회원 존재 여부를 확인하여 가입 가능 여부를 반환
     @Transactional(readOnly = true)
     public PhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
-        boolean available = !memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(
-            phoneNumber,
-            MemberStatus.DELETED
-        );
+        boolean available = !memberQueryService.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
         return PhoneAvailabilityResponse.from(available);
     }
 
@@ -152,29 +118,31 @@ public class MemberAccountService {
         Boolean marketingInfoEnabled,
         Boolean eventInfoEnabled
     ) {
-        Member member = memberCoreService.getById(memberId);
-        member.updatePersonalInfo(
-            fullName,
-            phoneNumber,
-            birthDate,
-            gender,
-            pushNotificationEnabled,
-            marketingInfoEnabled,
-            eventInfoEnabled
+        memberCommandService.updatePersonalInfo(
+            new UpdatePersonalInfoCommand(
+                new MemberId(memberId),
+                fullName,
+                phoneNumber,
+                birthDate,
+                gender,
+                pushNotificationEnabled,
+                marketingInfoEnabled,
+                eventInfoEnabled
+            )
         );
     }
 
     // 회원의 프로필 조회
     @Transactional(readOnly = true)
     public MemberProfileResponse getMemberProfile(Long targetMemberId) {
-        MemberWithProfileImageDto dto = memberCoreService.findMemberWithProfileImageById(targetMemberId)
+        MemberWithProfileImageResult result = memberQueryService.findMemberWithProfileImage(new MemberId(targetMemberId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return MemberProfileResponse.from(
-            dto.nickname(),
-            dto.memberGrade(),
-            dto.statusMessage(),
-            fileService.getUrlByPath(dto.profileImageFilePath())
+            result.nickname(),
+            result.memberGrade(),
+            result.statusMessage(),
+            fileService.getUrlByPath(result.profileImageFilePath())
         );
     }
 
@@ -186,18 +154,20 @@ public class MemberAccountService {
         String statusMessage,
         Long profileImageFileId
     ) {
-        Member member = memberCoreService.getById(memberId);
-        member.updateProfile(
-            nickname,
-            statusMessage,
-            profileImageFileId
+        memberCommandService.updateProfile(
+            new UpdateProfileCommand(
+                new MemberId(memberId),
+                nickname,
+                statusMessage,
+                profileImageFileId
+            )
         );
     }
 
     // 회원의 개인정보를 조회하여 반환
     @Transactional(readOnly = true)
     public PersonalInfoResponse getPersonalInfo(Long memberId) {
-        Member member = memberCoreService.getById(memberId);
+        Member member = memberQueryService.getById(new MemberId(memberId));
         return PersonalInfoResponse.from(member);
     }
 }

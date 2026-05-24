@@ -13,7 +13,9 @@ import com.tastyhouse.core.entity.place.Place;
 import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -23,7 +25,6 @@ import com.tastyhouse.core.domain.point.application.dto.command.UsePointCommand;
 import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
 import com.tastyhouse.core.service.PlaceCoreService;
-import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
@@ -53,14 +54,14 @@ public class OrderService {
     private final CouponCommandService couponCommandService;
     private final ProductCoreService productCoreService;
     private final PlaceCoreService placeCoreService;
-    private final MemberCoreService memberCoreService;
+    private final MemberQueryService memberQueryService;
     private final FileService fileService;
 
     @Transactional
     public OrderResponse createOrder(Long memberId, OrderCreateRequest request) {
         Place place = placeCoreService.findPlaceById(request.placeId());
 
-        Member member = memberCoreService.getById(memberId);
+        Member member = memberQueryService.getById(new MemberId(memberId));
 
         int totalProductAmount = 0;
         int productDiscountAmount = 0;

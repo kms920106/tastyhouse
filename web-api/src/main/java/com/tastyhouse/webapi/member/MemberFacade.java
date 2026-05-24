@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.member;
 
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.entity.user.Gender;
-import com.tastyhouse.core.entity.user.WithdrawalReason;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;

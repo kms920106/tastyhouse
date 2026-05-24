@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.service;
 
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.domain.member.domain.model.Member;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 

@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.member.response;
 
-import com.tastyhouse.core.entity.user.Gender;
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "개인정보 조회 응답")

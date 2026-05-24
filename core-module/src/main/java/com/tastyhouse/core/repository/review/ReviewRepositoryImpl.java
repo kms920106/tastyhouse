@@ -40,7 +40,7 @@ import static com.tastyhouse.core.entity.place.QPlaceStation.placeStation;
 import static com.tastyhouse.core.entity.product.QProduct.product;
 import static com.tastyhouse.core.entity.review.QReview.review;
 import static com.tastyhouse.core.entity.review.QReviewImage.reviewImage;
-import static com.tastyhouse.core.entity.user.QMember.member;
+import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
 
 @Repository
 @RequiredArgsConstructor

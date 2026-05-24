@@ -1,7 +1,7 @@
 package com.tastyhouse.external.oauth.naver;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
 
 // 네이버 프로필 API 응답 (GET https://openapi.naver.com/v1/nid/me)
 // 사용자 정보는 최상위 "response" 객체 안에 중첩된다.

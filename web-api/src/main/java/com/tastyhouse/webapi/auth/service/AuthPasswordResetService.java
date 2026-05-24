@@ -1,12 +1,12 @@
 package com.tastyhouse.webapi.auth.service;
 
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.entity.verification.EmailVerification;
 import com.tastyhouse.core.entity.verification.EmailVerificationStatus;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.EmailVerificationCoreService;
-import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.external.email.EmailSender;
 import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
@@ -26,7 +26,7 @@ public class AuthPasswordResetService {
     private static final String EMAIL_SUBJECT = "[TASTY HOUSE] 비밀번호 재설정 인증번호 안내";
     private static final String EMAIL_BODY_TEMPLATE = "[TASTY HOUSE] 비밀번호 재설정 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
 
-    private final MemberCoreService memberCoreService;
+    private final MemberQueryService memberQueryService;
     private final EmailVerificationCoreService emailVerificationCoreService;
     private final EmailSender emailSender;
     private final JwtTokenProvider jwtTokenProvider;
@@ -38,7 +38,7 @@ public class AuthPasswordResetService {
     @Transactional
     public void sendPasswordResetCode(String username) {
         // 가입된 회원 여부 확인 (보안상 동일한 응답 반환 — 타이밍 공격 방지를 위해 예외 미노출)
-        if (!memberCoreService.existsByUsername(username)) {
+        if (!memberQueryService.existsByUsername(username)) {
             log.info("비밀번호 재설정 요청: 존재하지 않는 아이디. username={}", username);
             return;
         }
@@ -89,7 +89,7 @@ public class AuthPasswordResetService {
 
         String username = jwtTokenProvider.getUsernameFromPasswordResetToken(passwordResetToken);
 
-        Member member = memberCoreService.findByUsername(username)
+        Member member = memberQueryService.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (passwordEncoder.matches(newPassword, member.getPassword())) {

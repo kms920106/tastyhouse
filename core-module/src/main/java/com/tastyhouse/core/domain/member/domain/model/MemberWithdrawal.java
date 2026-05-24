@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.user;
+package com.tastyhouse.core.domain.member.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -21,37 +21,25 @@ public class MemberWithdrawal extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 탈퇴한 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reason", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private WithdrawalReason reason; // 탈퇴 사유 코드 (예: DISSATISFIED, PRIVACY, RARELY_USED, OTHER)
+    private WithdrawalReason reason;
 
     @Column(name = "reason_detail", length = 500)
-    private String reasonDetail; // 탈퇴 사유 상세 내용 (직접 입력)
+    private String reasonDetail;
 
-    private MemberWithdrawal(
-        Long memberId,
-        WithdrawalReason reason,
-        String reasonDetail
-    ) {
+    private MemberWithdrawal(Long memberId, WithdrawalReason reason, String reasonDetail) {
         this.memberId = memberId;
         this.reason = reason;
         this.reasonDetail = reasonDetail;
     }
 
-    public static MemberWithdrawal of(
-        Long memberId,
-        WithdrawalReason reason,
-        String reasonDetail
-    ) {
-        return new MemberWithdrawal(
-            memberId,
-            reason,
-            reasonDetail
-        );
+    public static MemberWithdrawal of(Long memberId, WithdrawalReason reason, String reasonDetail) {
+        return new MemberWithdrawal(memberId, reason, reasonDetail);
     }
 }

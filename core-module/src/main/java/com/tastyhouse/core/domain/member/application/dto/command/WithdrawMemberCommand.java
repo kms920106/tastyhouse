@@ -1,0 +1,11 @@
+package com.tastyhouse.core.domain.member.application.dto.command;
+
+import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+
+public record WithdrawMemberCommand(
+    MemberId memberId,
+    WithdrawalReason reason,
+    String reasonDetail
+) {
+}

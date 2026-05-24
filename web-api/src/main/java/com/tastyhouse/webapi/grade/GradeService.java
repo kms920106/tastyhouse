@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.grade;
 
-import com.tastyhouse.core.entity.user.MemberGrade;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.webapi.grade.response.GradeInfoListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

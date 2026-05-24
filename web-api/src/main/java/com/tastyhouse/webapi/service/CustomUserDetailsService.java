@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.service;
 
-import com.tastyhouse.core.entity.user.Member;
-import com.tastyhouse.core.service.MemberCoreService;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.model.Member;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,12 +19,12 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final MemberCoreService memberCoreService;
+    private final MemberQueryService memberQueryService;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Member member = memberCoreService.findByUsername(username)
+        Member member = memberQueryService.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
         // For simplicity, assigning a default role "USER".

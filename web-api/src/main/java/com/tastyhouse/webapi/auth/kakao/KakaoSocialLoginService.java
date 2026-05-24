@@ -1,16 +1,15 @@
 package com.tastyhouse.webapi.auth.kakao;
 
-import com.tastyhouse.core.domain.referral.application.ReferralCommandService;
-import com.tastyhouse.core.domain.referral.application.dto.command.RegisterReferralCommand;
-import com.tastyhouse.core.entity.user.Gender;
-import com.tastyhouse.core.entity.user.Member;
-import com.tastyhouse.core.entity.user.MemberSocialAccount;
-import com.tastyhouse.core.entity.user.MemberStatus;
-import com.tastyhouse.core.entity.user.SocialProvider;
+import com.tastyhouse.core.domain.member.application.MemberCommandService;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.MemberCoreService;
-import com.tastyhouse.core.service.MemberSocialAccountCoreService;
 import com.tastyhouse.external.oauth.kakao.KakaoOAuthClient;
 import com.tastyhouse.external.oauth.kakao.KakaoTokenResponse;
 import com.tastyhouse.external.oauth.kakao.KakaoUserInfoResponse;
@@ -34,9 +33,8 @@ import java.util.UUID;
 public class KakaoSocialLoginService {
 
     private final KakaoOAuthClient kakaoOAuthClient;
-    private final ReferralCommandService referralCommandService;
-    private final MemberCoreService memberCoreService;
-    private final MemberSocialAccountCoreService memberSocialAccountCoreService;
+    private final MemberCommandService memberCommandService;
+    private final MemberQueryService memberQueryService;
     private final TokenService tokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoTempTokenRedisRepository kakaoTempTokenRedisRepository;
@@ -53,20 +51,20 @@ public class KakaoSocialLoginService {
         String providerId = String.valueOf(kakaoUser.id());
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberSocialAccountCoreService.findByProviderAndProviderId(SocialProvider.KAKAO, providerId);
+            memberQueryService.findSocialAccount(SocialProvider.KAKAO, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl());
 
-            Member member = memberCoreService.getById(socialAccount.getMemberId());
+            Member member = memberQueryService.getById(new MemberId(socialAccount.getMemberId()));
             return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
         // → 사용자 동의 후 연동 처리가 필요하므로 NEEDS_LINKING 반환
         String kakaoEmail = kakaoUser.getEmail();
-        if (StringUtils.hasText(kakaoEmail) && memberCoreService.existsByUsername(kakaoEmail)) {
+        if (StringUtils.hasText(kakaoEmail) && memberQueryService.existsByUsername(kakaoEmail)) {
             String kakaoTempToken = issueTempToken(kakaoToken.accessToken());
             return SocialLoginResponse.ofLinkingRequired(kakaoTempToken);
         }
@@ -95,12 +93,12 @@ public class KakaoSocialLoginService {
         String providerId = String.valueOf(kakaoUser.id());
 
         // 이미 카카오 소셜 계정이 연동된 경우 중복 연동을 방지한다.
-        if (memberSocialAccountCoreService.existsByProviderAndProviderId(SocialProvider.KAKAO, providerId)) {
+        if (memberQueryService.existsSocialAccount(SocialProvider.KAKAO, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
-        Optional<Member> memberOpt = memberCoreService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberQueryService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // kakaoTempToken은 /signup/kakao에서 재사용해야 하므로 삭제하지 않는다.
@@ -123,11 +121,12 @@ public class KakaoSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        MemberSocialAccount socialAccount = MemberSocialAccount.of(
-            member.getId(), SocialProvider.KAKAO, providerId,
-            kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl()
+        memberCommandService.saveSocialAccount(
+            MemberSocialAccount.of(
+                member.getId(), SocialProvider.KAKAO, providerId,
+                kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl()
+            )
         );
-        memberSocialAccountCoreService.save(socialAccount);
 
         kakaoTempTokenRedisRepository.delete(kakaoTempToken);
 
@@ -159,57 +158,18 @@ public class KakaoSocialLoginService {
         KakaoUserInfoResponse kakaoUser = kakaoOAuthClient.fetchUserInfo(kakaoAccessToken);
         String providerId = String.valueOf(kakaoUser.id());
 
-        boolean existsByProviderAndProviderId = memberSocialAccountCoreService.existsByProviderAndProviderId(SocialProvider.KAKAO, providerId);
-        if (existsByProviderAndProviderId) {
+        if (memberQueryService.existsSocialAccount(SocialProvider.KAKAO, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        boolean existsByUsername = memberCoreService.existsByUsername(username);
-        if (existsByUsername) {
-            throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
-        }
-
-        boolean existsByNickname = memberCoreService.existsByNickname(nickname);
-        if (existsByNickname) {
-            throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
-        }
-
-        if (StringUtils.hasText(phoneNumber) &&
-            memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(phoneNumber, MemberStatus.DELETED)) {
-            throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
-        }
-
-        Member savedMember = memberCoreService.save(
-            Member.ofSocial(
-                username,
-                nickname,
-                fullName,
-                gender,
-                birthDate,
-                phoneNumber,
-                pushNotificationEnabled,
-                marketingInfoEnabled,
-                eventInfoEnabled
-            )
+        Member savedMember = memberCommandService.signUpSocial(
+            username, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         );
-        Long memberId = savedMember.getId();
 
-        if (StringUtils.hasText(referrerNickname)) {
-            if (referrerNickname.equals(nickname)) {
-                throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
-            }
-
-            Member referrer = memberCoreService.findByNickname(referrerNickname)
-                .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
-
-            referralCommandService.register(
-                new RegisterReferralCommand(referrer.getId(), memberId)
-            );
-        }
-
-        memberSocialAccountCoreService.save(
+        memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                memberId,
+                savedMember.getId(),
                 SocialProvider.KAKAO,
                 providerId,
                 kakaoUser.getEmail(),

@@ -12,7 +12,7 @@ import com.tastyhouse.core.entity.review.ReviewTag;
 import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
-import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -149,7 +149,7 @@ public class ReviewService {
     @Transactional
     public CommentResponse createComment(Long reviewId, Long memberId, String content) {
         ReviewComment comment = reviewCoreService.createComment(reviewId, memberId, content);
-        MemberWithProfileImageDto member = reviewCoreService.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
+        MemberWithProfileImageResult member = reviewCoreService.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
         return convertToCommentResponse(comment, member, List.of());
     }
 
@@ -157,7 +157,7 @@ public class ReviewService {
     public ReplyResponse createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
         ReviewReply reply = reviewCoreService.createReply(commentId, memberId, replyToMemberId, content);
         List<Long> ids = replyToMemberId != null ? List.of(memberId, replyToMemberId) : List.of(memberId);
-        Map<Long, MemberWithProfileImageDto> memberMap = reviewCoreService.findMemberWithProfileImagesByIds(ids);
+        Map<Long, MemberWithProfileImageResult> memberMap = reviewCoreService.findMemberWithProfileImagesByIds(ids);
         return convertToReplyResponse(reply, memberMap.get(memberId), replyToMemberId != null ? memberMap.get(replyToMemberId) : null);
     }
 
@@ -187,11 +187,11 @@ public class ReviewService {
             }
         });
 
-        Map<Long, MemberWithProfileImageDto> memberMap = reviewCoreService.findMemberWithProfileImagesByIds(memberIds);
+        Map<Long, MemberWithProfileImageResult> memberMap = reviewCoreService.findMemberWithProfileImagesByIds(memberIds);
 
         List<CommentResponse> commentResponses = comments.stream()
             .map(comment -> {
-                MemberWithProfileImageDto member = memberMap.get(comment.getMemberId());
+                MemberWithProfileImageResult member = memberMap.get(comment.getMemberId());
                 List<ReviewReply> replies = repliesByCommentId.getOrDefault(comment.getId(), List.of());
                 List<ReplyResponse> replyResponses = replies.stream()
                     .map(reply -> convertToReplyResponse(
@@ -211,7 +211,7 @@ public class ReviewService {
         );
     }
 
-    private CommentResponse convertToCommentResponse(ReviewComment comment, MemberWithProfileImageDto member, List<ReplyResponse> replies) {
+    private CommentResponse convertToCommentResponse(ReviewComment comment, MemberWithProfileImageResult member, List<ReplyResponse> replies) {
         return CommentResponse.from(
             comment.getId(),
             comment.getReviewId(),
@@ -224,7 +224,7 @@ public class ReviewService {
         );
     }
 
-    private ReplyResponse convertToReplyResponse(ReviewReply reply, MemberWithProfileImageDto member, MemberWithProfileImageDto replyToMember) {
+    private ReplyResponse convertToReplyResponse(ReviewReply reply, MemberWithProfileImageResult member, MemberWithProfileImageResult replyToMember) {
         return ReplyResponse.from(
             reply.getId(),
             reply.getCommentId(),

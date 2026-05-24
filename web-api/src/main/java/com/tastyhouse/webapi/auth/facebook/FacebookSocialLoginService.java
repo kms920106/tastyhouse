@@ -1,16 +1,15 @@
 package com.tastyhouse.webapi.auth.facebook;
 
-import com.tastyhouse.core.domain.referral.application.ReferralCommandService;
-import com.tastyhouse.core.domain.referral.application.dto.command.RegisterReferralCommand;
-import com.tastyhouse.core.entity.user.Gender;
-import com.tastyhouse.core.entity.user.Member;
-import com.tastyhouse.core.entity.user.MemberSocialAccount;
-import com.tastyhouse.core.entity.user.MemberStatus;
-import com.tastyhouse.core.entity.user.SocialProvider;
+import com.tastyhouse.core.domain.member.application.MemberCommandService;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.MemberCoreService;
-import com.tastyhouse.core.service.MemberSocialAccountCoreService;
 import com.tastyhouse.external.oauth.facebook.FacebookOAuthClient;
 import com.tastyhouse.external.oauth.facebook.FacebookTokenDebugResponse;
 import com.tastyhouse.external.oauth.facebook.FacebookUserInfoResponse;
@@ -38,9 +37,8 @@ public class FacebookSocialLoginService {
     private String facebookAppId;
 
     private final FacebookOAuthClient facebookOAuthClient;
-    private final ReferralCommandService referralCommandService;
-    private final MemberCoreService memberCoreService;
-    private final MemberSocialAccountCoreService memberSocialAccountCoreService;
+    private final MemberCommandService memberCommandService;
+    private final MemberQueryService memberQueryService;
     private final TokenService tokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final FacebookTempTokenRedisRepository facebookTempTokenRedisRepository;
@@ -58,20 +56,20 @@ public class FacebookSocialLoginService {
         String providerId = facebookUser.id();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberSocialAccountCoreService.findByProviderAndProviderId(SocialProvider.FACEBOOK, providerId);
+            memberQueryService.findSocialAccount(SocialProvider.FACEBOOK, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl());
 
-            Member member = memberCoreService.getById(socialAccount.getMemberId());
+            Member member = memberQueryService.getById(new MemberId(socialAccount.getMemberId()));
             return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
         // → 사용자 동의 후 연동 처리가 필요하므로 NEEDS_LINKING 반환
         String facebookEmail = facebookUser.email();
-        if (StringUtils.hasText(facebookEmail) && memberCoreService.existsByUsername(facebookEmail)) {
+        if (StringUtils.hasText(facebookEmail) && memberQueryService.existsByUsername(facebookEmail)) {
             String facebookTempToken = issueTempToken(facebookAccessToken);
             return SocialLoginResponse.ofLinkingRequired(facebookTempToken);
         }
@@ -100,12 +98,12 @@ public class FacebookSocialLoginService {
         String providerId = facebookUser.id();
 
         // 이미 페이스북 소셜 계정이 연동된 경우 중복 연동을 방지한다.
-        if (memberSocialAccountCoreService.existsByProviderAndProviderId(SocialProvider.FACEBOOK, providerId)) {
+        if (memberQueryService.existsSocialAccount(SocialProvider.FACEBOOK, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
-        Optional<Member> memberOpt = memberCoreService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberQueryService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // facebookTempToken은 /signup/facebook에서 재사용해야 하므로 삭제하지 않는다.
@@ -128,11 +126,12 @@ public class FacebookSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        MemberSocialAccount socialAccount = MemberSocialAccount.of(
-            member.getId(), SocialProvider.FACEBOOK, providerId,
-            facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
+        memberCommandService.saveSocialAccount(
+            MemberSocialAccount.of(
+                member.getId(), SocialProvider.FACEBOOK, providerId,
+                facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
+            )
         );
-        memberSocialAccountCoreService.save(socialAccount);
 
         facebookTempTokenRedisRepository.delete(facebookTempToken);
 
@@ -155,47 +154,25 @@ public class FacebookSocialLoginService {
         FacebookUserInfoResponse facebookUser = facebookOAuthClient.fetchUserInfo(facebookAccessToken);
         String providerId = facebookUser.id();
 
-        if (memberSocialAccountCoreService.existsByProviderAndProviderId(SocialProvider.FACEBOOK, providerId)) {
+        if (memberQueryService.existsSocialAccount(SocialProvider.FACEBOOK, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        if (memberCoreService.existsByUsername(username)) {
-            throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
-        }
-
-        if (memberCoreService.existsByNickname(nickname)) {
-            throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
-        }
-
-        if (StringUtils.hasText(phoneNumber) &&
-            memberCoreService.existsByPhoneNumberValueAndMemberStatusNot(phoneNumber, MemberStatus.DELETED)) {
-            throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
-        }
-
-        Member member = Member.ofSocial(username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
-        memberCoreService.save(member);
-
-        if (StringUtils.hasText(referrerNickname)) {
-            if (referrerNickname.equals(nickname)) {
-                throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
-            }
-            Member referrer = memberCoreService.findByNickname(referrerNickname)
-                .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
-            referralCommandService.register(
-                new RegisterReferralCommand(referrer.getId(), member.getId())
-            );
-        }
-
-        MemberSocialAccount socialAccount = MemberSocialAccount.of(
-            member.getId(), SocialProvider.FACEBOOK, providerId,
-            facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
+        Member savedMember = memberCommandService.signUpSocial(
+            username, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         );
-        memberSocialAccountCoreService.save(socialAccount);
+
+        memberCommandService.saveSocialAccount(
+            MemberSocialAccount.of(
+                savedMember.getId(), SocialProvider.FACEBOOK, providerId,
+                facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
+            )
+        );
 
         facebookTempTokenRedisRepository.delete(facebookTempToken);
 
-        return issueJwt(member);
+        return issueJwt(savedMember);
     }
 
     // Facebook 공식 문서 권장: 서버에서 액세스 토큰의 app_id가 자신의 앱과 일치하는지 반드시 검증

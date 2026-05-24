@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.follow.response;
 
 import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
-import com.tastyhouse.core.entity.user.MemberGrade;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record FollowMemberListItemResponse(

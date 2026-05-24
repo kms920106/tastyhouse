@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.grade.response;
 
-import com.tastyhouse.core.entity.user.MemberGrade;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "등급 세부 조건 항목")

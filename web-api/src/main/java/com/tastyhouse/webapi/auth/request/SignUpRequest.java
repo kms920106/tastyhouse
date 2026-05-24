@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.auth.request;
 
-import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

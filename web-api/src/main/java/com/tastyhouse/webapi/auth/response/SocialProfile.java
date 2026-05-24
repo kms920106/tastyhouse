@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.auth.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

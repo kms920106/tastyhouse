@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.member.service;
 
 import com.tastyhouse.core.entity.rank.MemberReviewRank;
 import com.tastyhouse.core.entity.rank.RankType;
-import com.tastyhouse.core.entity.user.MemberGrade;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.service.RankCoreService;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import lombok.RequiredArgsConstructor;

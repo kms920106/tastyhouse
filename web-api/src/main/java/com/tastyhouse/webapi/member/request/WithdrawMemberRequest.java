@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.member.request;
 
-import com.tastyhouse.core.entity.user.WithdrawalReason;
+import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

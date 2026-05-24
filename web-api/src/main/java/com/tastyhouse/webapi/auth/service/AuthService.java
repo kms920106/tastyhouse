@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.auth.service;
 
-import com.tastyhouse.core.entity.user.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.member.service.MemberAccountService;

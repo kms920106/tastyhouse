@@ -1,10 +1,10 @@
 package com.tastyhouse.webapi.auth.service;
 
-import com.tastyhouse.core.entity.user.Member;
-import com.tastyhouse.core.entity.user.MemberStatus;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
@@ -20,7 +20,7 @@ import java.util.Optional;
 public class PhoneLoginService {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final MemberCoreService memberCoreService;
+    private final MemberQueryService memberQueryService;
     private final TokenService tokenService;
 
     // phoneVerifyToken을 검증하고, 해당 번호로 가입된 회원이 있으면 JWT 발급
@@ -33,7 +33,7 @@ public class PhoneLoginService {
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
 
-        Optional<Member> memberOpt = memberCoreService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberQueryService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isPresent()) {
             JwtResponse jwt = tokenService.issue(memberOpt.get(), false);

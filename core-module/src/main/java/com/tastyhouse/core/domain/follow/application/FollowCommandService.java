@@ -5,7 +5,8 @@ import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.member.MemberRepository;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,14 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowCommandService {
 
     private final FollowRepository followRepository;
-    private final MemberRepository memberRepository;
+    private final MemberQueryService memberQueryService;
 
     public void follow(Long followerId, Long followingId) {
         if (followerId.equals(followingId)) {
             throw new BusinessException(ErrorCode.FOLLOW_SELF_NOT_ALLOWED);
         }
 
-        if (!memberRepository.existsById(followingId)) {
+        if (memberQueryService.findById(new MemberId(followingId)).isEmpty()) {
             throw new EntityNotFoundException(ErrorCode.FOLLOW_TARGET_NOT_FOUND);
         }
 

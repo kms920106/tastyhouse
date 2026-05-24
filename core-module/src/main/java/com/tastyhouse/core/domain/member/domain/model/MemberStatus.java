@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.user;
+package com.tastyhouse.core.domain.member.domain.model;
 
 public enum MemberStatus {
     ACTIVE,      // 가입

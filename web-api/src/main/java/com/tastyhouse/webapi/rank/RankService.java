@@ -1,12 +1,13 @@
 package com.tastyhouse.webapi.rank;
 
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.entity.rank.dto.MemberRankDto;
 import com.tastyhouse.core.entity.rank.dto.RankPrizeDto;
-import com.tastyhouse.core.entity.user.dto.MemberWithProfileImageDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.core.service.RankCoreService;
 import com.tastyhouse.core.service.RankInfoCoreService;
 import com.tastyhouse.external.file.FileService;
@@ -27,7 +28,7 @@ public class RankService {
 
     private final RankCoreService rankCoreService;
     private final RankInfoCoreService rankInfoCoreService;
-    private final MemberCoreService memberCoreService;
+    private final MemberQueryService memberQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
@@ -68,7 +69,7 @@ public class RankService {
 
         MemberRankDto dto = rankCoreService.findMemberRank(memberId, type, baseDate);
         if (dto == null) {
-            MemberWithProfileImageDto member = memberCoreService.findMemberWithProfileImageById(memberId)
+            MemberWithProfileImageResult member = memberQueryService.findMemberWithProfileImage(new MemberId(memberId))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
             return MemberRankListItemResponse.of(
                 memberId,

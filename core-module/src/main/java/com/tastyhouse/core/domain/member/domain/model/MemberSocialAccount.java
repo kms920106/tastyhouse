@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.user;
+package com.tastyhouse.core.domain.member.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -30,29 +30,29 @@ public class MemberSocialAccount extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "provider", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private SocialProvider provider; // 소셜 로그인 제공자 (예: KAKAO, NAVER, GOOGLE)
+    private SocialProvider provider;
 
     @Column(name = "provider_id", nullable = false, length = 100)
-    private String providerId; // 소셜 제공자가 발급한 고유 식별자
+    private String providerId;
 
     @Column(name = "provider_email", length = 200)
-    private String providerEmail; // 소셜 제공자로부터 받은 이메일
+    private String providerEmail;
 
     @Column(name = "provider_nickname", length = 100)
-    private String providerNickname; // 소셜 제공자로부터 받은 닉네임
+    private String providerNickname;
 
     @Column(name = "provider_profile_image_url", length = 500)
-    private String providerProfileImageUrl; // 소셜 제공자로부터 받은 프로필 이미지 URL
+    private String providerProfileImageUrl;
 
     @Column(name = "last_login_at")
-    private LocalDateTime lastLoginAt; // 마지막 소셜 로그인 일시
+    private LocalDateTime lastLoginAt;
 
     private MemberSocialAccount(
         Long memberId,
@@ -80,12 +80,7 @@ public class MemberSocialAccount extends BaseEntity {
         String providerProfileImageUrl
     ) {
         return new MemberSocialAccount(
-            memberId,
-            provider,
-            providerId,
-            providerEmail,
-            providerNickname,
-            providerProfileImageUrl
+            memberId, provider, providerId, providerEmail, providerNickname, providerProfileImageUrl
         );
     }
 

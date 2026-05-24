@@ -1,6 +1,6 @@
 package com.tastyhouse.core.domain.follow.application.dto.result;
 
-import com.tastyhouse.core.entity.user.MemberGrade;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 
 public record FollowMemberResult(
     Long memberId,

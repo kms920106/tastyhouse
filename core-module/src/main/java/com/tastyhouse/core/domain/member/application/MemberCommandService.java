@@ -1,0 +1,157 @@
+package com.tastyhouse.core.domain.member.application;
+
+import com.tastyhouse.core.domain.member.application.dto.command.UpdatePersonalInfoCommand;
+import com.tastyhouse.core.domain.member.application.dto.command.UpdateProfileCommand;
+import com.tastyhouse.core.domain.member.application.dto.command.WithdrawMemberCommand;
+import com.tastyhouse.core.domain.member.domain.event.MemberRegisteredEvent;
+import com.tastyhouse.core.domain.member.domain.event.MemberWithdrawnEvent;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawal;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
+import com.tastyhouse.core.domain.member.domain.repository.MemberWithdrawalRepository;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.referral.application.ReferralCommandService;
+import com.tastyhouse.core.domain.referral.application.dto.command.RegisterReferralCommand;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class MemberCommandService {
+
+    private final MemberRepository memberRepository;
+    private final MemberSocialAccountRepository memberSocialAccountRepository;
+    private final MemberWithdrawalRepository memberWithdrawalRepository;
+    private final ReferralCommandService referralCommandService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public Member signUp(
+        String username,
+        String password,
+        String nickname,
+        String fullName,
+        Gender gender,
+        Integer birthDate,
+        String phoneNumber,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled,
+        String referrerNickname
+    ) {
+        if (memberRepository.existsByUsername(username)) {
+            throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
+        }
+        if (memberRepository.existsByNickname(nickname)) {
+            throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
+        }
+        if (memberRepository.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED)) {
+            throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
+        }
+
+        Member member = memberRepository.save(Member.of(
+            username, password, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
+        ));
+
+        if (StringUtils.hasText(referrerNickname)) {
+            if (referrerNickname.equals(nickname)) {
+                throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
+            }
+            Member referrer = memberRepository.findByNickname(referrerNickname)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
+            referralCommandService.register(
+                new RegisterReferralCommand(referrer.getId(), member.getId())
+            );
+        }
+
+        eventPublisher.publishEvent(new MemberRegisteredEvent(
+            member.getMemberId(), member.getUsername(), LocalDateTime.now()
+        ));
+
+        return member;
+    }
+
+    public Member signUpSocial(
+        String username,
+        String nickname,
+        String fullName,
+        Gender gender,
+        Integer birthDate,
+        String phoneNumber,
+        Boolean pushNotificationEnabled,
+        Boolean marketingInfoEnabled,
+        Boolean eventInfoEnabled
+    ) {
+        Member member = memberRepository.save(Member.ofSocial(
+            username, nickname, fullName, gender, birthDate, phoneNumber,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
+        ));
+
+        eventPublisher.publishEvent(new MemberRegisteredEvent(
+            member.getMemberId(), member.getUsername(), LocalDateTime.now()
+        ));
+
+        return member;
+    }
+
+    public void withdraw(WithdrawMemberCommand command) {
+        Member member = memberRepository.findById(command.memberId())
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        member.withdraw(command.reason());
+        memberRepository.save(member);
+
+        LocalDateTime now = LocalDateTime.now();
+        memberWithdrawalRepository.save(
+            MemberWithdrawal.of(command.memberId().value(), command.reason(), command.reasonDetail())
+        );
+
+        eventPublisher.publishEvent(
+            new MemberWithdrawnEvent(member.getMemberId(), command.reason(), now)
+        );
+    }
+
+    public void updateProfile(UpdateProfileCommand command) {
+        Member member = memberRepository.findById(command.memberId())
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.updateProfile(command.nickname(), command.statusMessage(), command.profileImageFileId());
+    }
+
+    public void updatePersonalInfo(UpdatePersonalInfoCommand command) {
+        Member member = memberRepository.findById(command.memberId())
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.updatePersonalInfo(
+            command.fullName(), command.phoneNumber(), command.birthDate(), command.gender(),
+            command.pushNotificationEnabled(), command.marketingInfoEnabled(), command.eventInfoEnabled()
+        );
+    }
+
+    public void updatePassword(MemberId memberId, String encodedPassword) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.updatePassword(encodedPassword);
+    }
+
+    public long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade) {
+        return memberRepository.bulkUpdateGrade(memberIds, grade);
+    }
+
+    public MemberSocialAccount saveSocialAccount(MemberSocialAccount socialAccount) {
+        return memberSocialAccountRepository.save(socialAccount);
+    }
+}

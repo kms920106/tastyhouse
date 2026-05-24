@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.config.jwt.service;
 
-import com.tastyhouse.core.entity.user.Member;
+import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.BlacklistRedisRepository;

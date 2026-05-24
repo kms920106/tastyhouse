@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.auth;
 
-import com.tastyhouse.core.entity.user.Gender;
-import com.tastyhouse.core.entity.user.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;
 import com.tastyhouse.webapi.auth.facebook.FacebookSocialLoginService;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;

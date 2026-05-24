@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.scheduler;
 
+import com.tastyhouse.core.domain.member.application.MemberCommandService;
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
-import com.tastyhouse.core.entity.user.MemberGrade;
-import com.tastyhouse.core.service.MemberCoreService;
 import com.tastyhouse.core.service.ReviewCoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class GradeSchedulerService {
 
     private final ReviewCoreService reviewCoreService;
-    private final MemberCoreService memberCoreService;
+    private final MemberCommandService memberCommandService;
 
     /**
      * 모든 회원의 등급을 리뷰 개수 기준으로 업데이트
@@ -81,6 +81,6 @@ public class GradeSchedulerService {
             return 0;
         }
 
-        return memberCoreService.bulkUpdateGrade(memberIds, grade);
+        return memberCommandService.bulkUpdateGrade(memberIds, grade);
     }
 }
