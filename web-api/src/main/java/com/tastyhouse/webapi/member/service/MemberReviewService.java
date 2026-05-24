@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.member.service;
 
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.service.ReviewCoreService;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
@@ -13,12 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberReviewService {
 
-    private final ReviewCoreService reviewCoreService;
+    private final ReviewQueryService reviewQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
     public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
-        return PageResult.from(reviewCoreService.findMyReviews(memberId, page, size))
+        return PageResult.from(reviewQueryService.findMyReviews(memberId, page, size))
             .map(dto -> MyReviewListItemResponse.from(
                 dto.id(),
                 fileService.getUrlByPath(dto.imageUrl())
@@ -27,7 +27,7 @@ public class MemberReviewService {
 
     @Transactional(readOnly = true)
     public MyReviewCountResponse getMyReviewCount(Long memberId) {
-        long count = reviewCoreService.countVisibleReviewsByMemberId(memberId);
+        long count = reviewQueryService.countVisibleReviewsByMemberId(memberId);
         return MyReviewCountResponse.from(count);
     }
 }

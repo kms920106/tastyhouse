@@ -9,7 +9,7 @@ import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.repository.order.OrderRepository;
 import com.tastyhouse.core.repository.payment.PaymentRepository;
-import com.tastyhouse.core.repository.review.ReviewRepository;
+import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

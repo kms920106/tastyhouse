@@ -1,26 +1,29 @@
 package com.tastyhouse.webapi.review;
 
 import com.tastyhouse.core.entity.order.OrderItem;
-import com.tastyhouse.core.entity.place.Tag;
 import com.tastyhouse.core.entity.product.Product;
-import com.tastyhouse.core.entity.review.Review;
-import com.tastyhouse.core.entity.review.ReviewType;
-import com.tastyhouse.core.entity.review.ReviewComment;
-import com.tastyhouse.core.entity.review.ReviewReply;
-import com.tastyhouse.core.entity.review.ReviewImage;
-import com.tastyhouse.core.entity.review.ReviewTag;
-import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
-import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
-import com.tastyhouse.core.entity.review.dto.ReviewDetailDto;
+import com.tastyhouse.core.domain.review.application.ReviewCommandService;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
+import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewCommentCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewReplyCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.DeleteReviewCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ToggleReviewLikeCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.UpdateReviewCommand;
+import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
+import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewResult;
+import com.tastyhouse.core.domain.review.domain.model.Review;
+import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
+import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
+import com.tastyhouse.core.domain.review.domain.model.ReviewType;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
-import com.tastyhouse.core.exception.AccessDeniedException;
-import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
-import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
@@ -49,17 +52,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReviewService {
 
-    private final ReviewCoreService reviewCoreService;
+    private final ReviewCommandService reviewCommandService;
+    private final ReviewQueryService reviewQueryService;
     private final ProductCoreService productCoreService;
     private final OrderCoreService orderCoreService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
     public PageResult<BestReviewListItemResponse> searchBestReviewList(int page, int size) {
-        return PageResult.from(reviewCoreService.findBestReviewsWithPagination(page, size)).map(this::convertToBestReviewListItemResponse);
+        return PageResult.from(reviewQueryService.findBestReviewsWithPagination(page, size))
+            .map(this::convertToBestReviewListItemResponse);
     }
 
-    private BestReviewListItemResponse convertToBestReviewListItemResponse(BestReviewListItemDto dto) {
+    private BestReviewListItemResponse convertToBestReviewListItemResponse(BestReviewListItemResult dto) {
         return BestReviewListItemResponse.from(
             dto.id(),
             fileService.getUrlByPath(dto.imageUrl()),
@@ -79,14 +84,14 @@ public class ReviewService {
         Long memberId
     ) {
         if (type == ReviewType.FOLLOWING && memberId != null) {
-            return PageResult.from(reviewCoreService.findLatestReviewsByFollowingWithPagination(memberId, page, size))
+            return PageResult.from(reviewQueryService.findLatestReviewsByFollowingWithPagination(memberId, page, size))
                 .map(this::convertToLatestReviewListItemResponse);
         }
-        return PageResult.from(reviewCoreService.findLatestReviewsWithPagination(page, size))
+        return PageResult.from(reviewQueryService.findLatestReviewsWithPagination(page, size))
             .map(this::convertToLatestReviewListItemResponse);
     }
 
-    private LatestReviewListItemResponse convertToLatestReviewListItemResponse(LatestReviewListItemDto dto) {
+    private LatestReviewListItemResponse convertToLatestReviewListItemResponse(LatestReviewListItemResult dto) {
         List<String> imageUrls = dto.imageUrls() == null ? List.of() :
             dto.imageUrls().stream()
                 .map(fileService::getUrlByPath)
@@ -102,11 +107,11 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public Optional<ReviewDetailResponse> findReviewDetail(Long reviewId) {
-        return reviewCoreService.findReviewDetail(reviewId)
+        return reviewQueryService.findReviewDetail(reviewId)
             .map(this::convertToReviewDetailResponse);
     }
 
-    private ReviewDetailResponse convertToReviewDetailResponse(ReviewDetailDto dto) {
+    private ReviewDetailResponse convertToReviewDetailResponse(ReviewDetailResult dto) {
         List<String> imageUrls = dto.imageUrls() == null ? List.of() :
             dto.imageUrls().stream()
                 .map(fileService::getUrlByPath)
@@ -137,33 +142,37 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public ReviewLikeStatusResponse isLiked(Long reviewId, Long memberId) {
-        boolean isLiked = reviewCoreService.isLikedByMember(reviewId, memberId);
+        boolean isLiked = reviewQueryService.isLikedByMember(reviewId, memberId);
         return ReviewLikeStatusResponse.from(isLiked);
     }
 
     @Transactional
     public boolean toggleReviewLike(Long reviewId, Long memberId) {
-        return reviewCoreService.toggleReviewLike(reviewId, memberId);
+        return reviewCommandService.toggleReviewLike(new ToggleReviewLikeCommand(reviewId, memberId));
     }
 
     @Transactional
     public CommentResponse createComment(Long reviewId, Long memberId, String content) {
-        ReviewComment comment = reviewCoreService.createComment(reviewId, memberId, content);
-        MemberWithProfileImageResult member = reviewCoreService.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
+        ReviewComment comment = reviewCommandService.createComment(
+            new CreateReviewCommentCommand(reviewId, memberId, content)
+        );
+        MemberWithProfileImageResult member = reviewQueryService.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
         return convertToCommentResponse(comment, member, List.of());
     }
 
     @Transactional
     public ReplyResponse createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
-        ReviewReply reply = reviewCoreService.createReply(commentId, memberId, replyToMemberId, content);
+        ReviewReply reply = reviewCommandService.createReply(
+            new CreateReviewReplyCommand(commentId, memberId, replyToMemberId, content)
+        );
         List<Long> ids = replyToMemberId != null ? List.of(memberId, replyToMemberId) : List.of(memberId);
-        Map<Long, MemberWithProfileImageResult> memberMap = reviewCoreService.findMemberWithProfileImagesByIds(ids);
+        Map<Long, MemberWithProfileImageResult> memberMap = reviewQueryService.findMemberWithProfileImagesByIds(ids);
         return convertToReplyResponse(reply, memberMap.get(memberId), replyToMemberId != null ? memberMap.get(replyToMemberId) : null);
     }
 
     @Transactional(readOnly = true)
     public CommentListResponse searchCommentsWithReplies(Long reviewId) {
-        List<ReviewComment> comments = reviewCoreService.findCommentsByReviewId(reviewId);
+        List<ReviewComment> comments = reviewQueryService.findCommentsByReviewId(reviewId);
 
         if (comments.isEmpty()) {
             return CommentListResponse.from(List.of(), 0);
@@ -173,7 +182,7 @@ public class ReviewService {
             .map(ReviewComment::getId)
             .toList();
 
-        List<ReviewReply> allReplies = reviewCoreService.findRepliesByCommentIds(commentIds);
+        List<ReviewReply> allReplies = reviewQueryService.findRepliesByCommentIds(commentIds);
 
         Map<Long, List<ReviewReply>> repliesByCommentId = allReplies.stream()
             .collect(Collectors.groupingBy(ReviewReply::getCommentId));
@@ -187,7 +196,7 @@ public class ReviewService {
             }
         });
 
-        Map<Long, MemberWithProfileImageResult> memberMap = reviewCoreService.findMemberWithProfileImagesByIds(memberIds);
+        Map<Long, MemberWithProfileImageResult> memberMap = reviewQueryService.findMemberWithProfileImagesByIds(memberIds);
 
         List<CommentResponse> commentResponses = comments.stream()
             .map(comment -> {
@@ -205,10 +214,7 @@ public class ReviewService {
             .toList();
 
         int totalCount = comments.size() + allReplies.size();
-        return CommentListResponse.from(
-            commentResponses,
-            totalCount
-        );
+        return CommentListResponse.from(commentResponses, totalCount);
     }
 
     private CommentResponse convertToCommentResponse(ReviewComment comment, MemberWithProfileImageResult member, List<ReplyResponse> replies) {
@@ -240,13 +246,13 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public Optional<ReviewProductResponse> findReviewProduct(Long reviewId) {
-        Optional<ReviewDetailDto> reviewDetailOpt = reviewCoreService.findReviewDetail(reviewId);
+        Optional<ReviewDetailResult> reviewDetailOpt = reviewQueryService.findReviewDetail(reviewId);
         if (reviewDetailOpt.isEmpty()) {
             return Optional.empty();
         }
 
-        ReviewDetailDto reviewDetail = reviewDetailOpt.get();
-        Review review = reviewCoreService.findById(reviewId);
+        ReviewDetailResult reviewDetail = reviewDetailOpt.get();
+        Review review = reviewQueryService.findById(reviewId);
 
         List<String> reviewImageUrls = reviewDetail.imageUrls() == null ? List.of() :
             reviewDetail.imageUrls().stream()
@@ -285,10 +291,7 @@ public class ReviewService {
             })
             .or(() -> Optional.of(
                 ReviewProductResponse.from(
-                    null,
-                    null,
-                    null,
-                    null,
+                    null, null, null, null,
                     reviewDetail.id(),
                     reviewDetail.content(),
                     reviewDetail.totalRating(),
@@ -324,7 +327,9 @@ public class ReviewService {
                 ? product.getDiscountPrice()
                 : product.getOriginalPrice();
 
-        boolean isReviewed = reviewCoreService.isReviewedByOrderAndProduct(orderItem.getOrderId(), orderItem.getProductId(), memberId);
+        boolean isReviewed = reviewQueryService.isReviewedByOrderAndProduct(
+            orderItem.getOrderId(), orderItem.getProductId(), memberId
+        );
 
         return ReviewWriteInfoResponse.from(
             product.getId(),
@@ -341,143 +346,78 @@ public class ReviewService {
         Long orderId = null;
         if (request.orderItemId() != null) {
             OrderItem orderItem = orderCoreService.findOrderItemById(request.orderItemId());
-
             orderId = orderItem.getOrderId();
-
-            if (reviewCoreService.isReviewedByOrderAndProduct(orderId, request.productId(), memberId)) {
-                throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
-            }
         }
 
         Product product = productCoreService.findProductById(request.productId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
-        double totalRating = (request.tasteRating() + request.amountRating() + request.priceRating()) / 3.0;
-
-        Review review =
-            Review.of(
-                product.getPlaceId(),
-                product.getId(),
-                memberId,
-                request.content(),
-                Math.round(totalRating * 10.0) / 10.0,
-                request.tasteRating().doubleValue(),
-                request.amountRating().doubleValue(),
-                request.priceRating().doubleValue(),
-                null,
-                null,
-                null,
-                null,
-                orderId
-            );
-
-        Review savedReview = reviewCoreService.saveReview(review);
-
-        List<Long> savedUploadedFileIds = saveReviewImages(savedReview.getId(), request.uploadedFileIds());
-        List<String> tags = saveReviewTags(savedReview.getId(), request.tags());
+        ReviewResult result = reviewCommandService.createReview(new CreateReviewCommand(
+            product.getPlaceId(),
+            product.getId(),
+            memberId,
+            request.orderItemId(),
+            orderId,
+            request.tasteRating(),
+            request.amountRating(),
+            request.priceRating(),
+            request.content(),
+            request.uploadedFileIds(),
+            request.tags()
+        ));
 
         return ReviewResponse.from(
-            savedReview.getId(),
-            savedReview.getProductId(),
-            savedReview.getTasteRating(),
-            savedReview.getAmountRating(),
-            savedReview.getPriceRating(),
-            savedReview.getTotalRating(),
-            savedReview.getContent(),
-            savedUploadedFileIds,
-            tags,
-            savedReview.getCreatedAt()
+            result.id(),
+            result.productId(),
+            result.tasteRating(),
+            result.amountRating(),
+            result.priceRating(),
+            result.totalRating(),
+            result.content(),
+            result.uploadedFileIds(),
+            result.tags(),
+            result.createdAt()
         );
     }
 
     @Transactional
     public ReviewResponse updateReview(Long reviewId, Long memberId, ReviewUpdateRequest request) {
-        Review review = reviewCoreService.findReviewByIdAndMemberId(reviewId, memberId)
-                .orElseThrow(() -> new AccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED));
-
-        double totalRating = (request.tasteRating() + request.amountRating() + request.priceRating()) / 3.0;
-
-        review.updateContent(
-                request.content(),
-                Math.round(totalRating * 10.0) / 10.0,
-                request.tasteRating().doubleValue(),
-                request.amountRating().doubleValue(),
-                request.priceRating().doubleValue(),
-                null, null, null, null
-        );
-
-        reviewCoreService.deleteReviewImages(reviewId);
-        reviewCoreService.deleteReviewTags(reviewId);
-
-        List<Long> savedUploadedFileIds = saveReviewImages(reviewId, request.uploadedFileIds());
-        List<String> tags = saveReviewTags(reviewId, request.tags());
+        ReviewResult result = reviewCommandService.updateReview(new UpdateReviewCommand(
+            reviewId,
+            memberId,
+            request.tasteRating(),
+            request.amountRating(),
+            request.priceRating(),
+            request.content(),
+            request.uploadedFileIds(),
+            request.tags()
+        ));
 
         return ReviewResponse.from(
-            review.getId(),
-            review.getProductId(),
-            review.getTasteRating(),
-            review.getAmountRating(),
-            review.getPriceRating(),
-            review.getTotalRating(),
-            review.getContent(),
-            savedUploadedFileIds,
-            tags,
-            review.getCreatedAt()
+            result.id(),
+            result.productId(),
+            result.tasteRating(),
+            result.amountRating(),
+            result.priceRating(),
+            result.totalRating(),
+            result.content(),
+            result.uploadedFileIds(),
+            result.tags(),
+            result.createdAt()
         );
     }
 
     @Transactional
     public void deleteReview(Long reviewId, Long memberId) {
-        reviewCoreService.findReviewByIdAndMemberId(reviewId, memberId)
-                .orElseThrow(() -> new AccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED));
-
-        reviewCoreService.deleteReviewImages(reviewId);
-        reviewCoreService.deleteReviewTags(reviewId);
-        reviewCoreService.deleteReview(reviewId);
-    }
-
-    private List<Long> saveReviewImages(Long reviewId, List<Long> uploadedFileIds) {
-        if (uploadedFileIds == null || uploadedFileIds.isEmpty()) {
-            return List.of();
-        }
-        List<ReviewImage> images = new ArrayList<>();
-        for (int i = 0; i < uploadedFileIds.size(); i++) {
-            Long fileId = uploadedFileIds.get(i);
-            if (fileId == null) {
-                throw new EntityNotFoundException(ErrorCode.FILE_NOT_FOUND);
-            }
-            images.add(
-                ReviewImage.of(
-                    reviewId,
-                    fileId,
-                    i + 1
-                )
-            );
-        }
-        reviewCoreService.saveReviewImages(images);
-        return uploadedFileIds;
+        reviewCommandService.deleteReview(new DeleteReviewCommand(reviewId, memberId));
     }
 
     @Transactional(readOnly = true)
     public PageResult<MemberReviewListItemResponse> findMemberReviews(Long memberId, int page, int size) {
-        return PageResult.from(reviewCoreService.findReviewsByMemberId(memberId, page, size))
+        return PageResult.from(reviewQueryService.findReviewsByMemberId(memberId, page, size))
             .map(dto -> MemberReviewListItemResponse.from(
                 dto.id(),
                 fileService.getUrlByPath(dto.imageUrl())
             ));
-    }
-
-    private List<String> saveReviewTags(Long reviewId, List<String> tagNames) {
-        if (tagNames == null || tagNames.isEmpty()) {
-            return List.of();
-        }
-        List<ReviewTag> reviewTags = tagNames.stream()
-                .map(tagName -> {
-                    Tag tag = reviewCoreService.findOrCreateTag(tagName);
-                    return new ReviewTag(reviewId, tag.getId());
-                })
-                .toList();
-        reviewCoreService.saveReviewTags(reviewTags);
-        return tagNames;
     }
 }

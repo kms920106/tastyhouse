@@ -28,7 +28,7 @@ import static com.tastyhouse.core.entity.place.QPlaceBookmark.placeBookmark;
 import static com.tastyhouse.core.entity.place.QPlaceFoodType.placeFoodType;
 import static com.tastyhouse.core.entity.place.QPlaceFoodTypeCategory.placeFoodTypeCategory;
 import static com.tastyhouse.core.entity.place.QPlaceStation.placeStation;
-import static com.tastyhouse.core.entity.review.QReview.review;
+import static com.tastyhouse.core.domain.review.domain.model.QReview.review;
 
 @Repository
 @RequiredArgsConstructor

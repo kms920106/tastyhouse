@@ -18,13 +18,13 @@ import com.tastyhouse.core.entity.place.dto.LatestPlaceItemDto;
 import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductCategory;
 import com.tastyhouse.core.entity.product.dto.ProductSimpleDto;
-import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
-import com.tastyhouse.core.entity.review.dto.PlaceReviewStatisticsDto;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
+import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
+import com.tastyhouse.core.domain.review.application.dto.result.PlaceReviewStatisticsResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.common.ReviewsByRatingResult;
 import com.tastyhouse.core.service.PlaceCoreService;
 import com.tastyhouse.core.service.ProductCoreService;
-import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.place.request.LatestPlaceFilterRequest;
 import com.tastyhouse.webapi.place.response.AmenityListItemResponse;
@@ -63,7 +63,7 @@ public class PlaceService {
 
     private final PlaceCoreService placeCoreService;
     private final ProductCoreService productCoreService;
-    private final ReviewCoreService reviewCoreService;
+    private final ReviewQueryService reviewQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
@@ -297,11 +297,11 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PlaceReviewsByRatingWithPagination getPlaceReviewsByRatingWithPagination(Long placeId, int page, int size) {
-        ReviewsByRatingResult result = reviewCoreService.findPlaceReviewsByRating(placeId, page, size);
+        ReviewsByRatingResult result = reviewQueryService.findPlaceReviewsByRating(placeId, page, size);
 
         Map<Integer, List<PlaceReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
                 .collect(Collectors.toMap(
-                        Map.Entry<Integer, List<LatestReviewListItemDto>>::getKey,
+                        Map.Entry::getKey,
                         entry -> entry.getValue().stream()
                                 .map(this::convertToPlaceReviewListItemResponse)
                                 .toList()
@@ -319,7 +319,7 @@ public class PlaceService {
         return new PlaceReviewsByRatingWithPagination(response, result.getTotalElements());
     }
 
-    private PlaceReviewListItemResponse convertToPlaceReviewListItemResponse(LatestReviewListItemDto dto) {
+    private PlaceReviewListItemResponse convertToPlaceReviewListItemResponse(LatestReviewListItemResult dto) {
         List<String> imageUrls = dto.imageUrls().stream().map(fileService::getUrlByPath).toList();
 
         return PlaceReviewListItemResponse.from(
@@ -337,7 +337,7 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PlaceReviewStatisticsResponse getPlaceReviewStatistics(Long placeId) {
-        PlaceReviewStatisticsDto statistics = reviewCoreService.findPlaceReviewStatistics(placeId);
+        PlaceReviewStatisticsResult statistics = reviewQueryService.findPlaceReviewStatistics(placeId);
 
         Place place = placeCoreService.findPlaceById(placeId);
 

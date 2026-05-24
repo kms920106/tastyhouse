@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.scheduler;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
-import com.tastyhouse.core.service.ReviewCoreService;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GradeSchedulerService {
 
-    private final ReviewCoreService reviewCoreService;
+    private final ReviewQueryService reviewQueryService;
     private final MemberCommandService memberCommandService;
 
     /**
@@ -34,7 +34,7 @@ public class GradeSchedulerService {
         LocalDateTime startDate = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
         LocalDateTime endDate = LocalDateTime.now();
 
-        List<MemberReviewCountResult> reviewCounts = reviewCoreService.countReviewsByMemberWithPeriod(startDate, endDate);
+        List<MemberReviewCountResult> reviewCounts = reviewQueryService.countReviewsByMemberWithPeriod(startDate, endDate);
 
         log.info("리뷰 작성 회원 수: {}", reviewCounts.size());
 

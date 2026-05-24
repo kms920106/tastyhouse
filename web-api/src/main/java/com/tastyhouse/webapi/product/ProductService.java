@@ -1,18 +1,19 @@
 package com.tastyhouse.webapi.product;
 
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.common.ReviewsByRatingResult;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
+import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ProductReviewStatisticsResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
 import com.tastyhouse.core.entity.product.Product;
 import com.tastyhouse.core.entity.product.ProductCommonOption;
 import com.tastyhouse.core.entity.product.ProductCommonOptionGroup;
 import com.tastyhouse.core.entity.product.ProductOption;
 import com.tastyhouse.core.entity.product.ProductOptionGroup;
 import com.tastyhouse.core.entity.product.dto.TodayDiscountProductDto;
-import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.service.ProductCoreService;
-import com.tastyhouse.core.service.ReviewCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductImagesResponse;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ProductCoreService productCoreService;
-    private final ReviewCoreService reviewCoreService;
+    private final ReviewQueryService reviewQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
@@ -78,8 +79,8 @@ public class ProductService {
     public ProductReviewCountResponse findProductReviewCount(Long productId) {
         productCoreService.findProductById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
-        Map<String, Object> statistics = reviewCoreService.findProductReviewStatistics(productId);
-        Long total = (Long) statistics.get("totalReviewCount");
+        ProductReviewStatisticsResult statistics = reviewQueryService.findProductReviewStatistics(productId);
+        Long total = statistics.totalReviewCount();
         return ProductReviewCountResponse.from(total != null ? total.intValue() : 0);
     }
 
@@ -177,11 +178,11 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductReviewsByRatingWithPagination getProductReviewsByRatingWithPagination(Long productId, int page, int size) {
-        ReviewsByRatingResult result = reviewCoreService.findProductReviewsByRating(productId, page, size);
+        ReviewsByRatingResult result = reviewQueryService.findProductReviewsByRating(productId, page, size);
 
         Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
                 .collect(Collectors.toMap(
-                        Map.Entry<Integer, List<LatestReviewListItemDto>>::getKey,
+                        Map.Entry::getKey,
                         entry -> entry.getValue().stream()
                                 .map(this::convertToProductReviewListItemResponse)
                                 .toList()
@@ -200,7 +201,7 @@ public class ProductService {
         return new ProductReviewsByRatingWithPagination(response, result.getTotalElements());
     }
 
-    private ProductReviewListItemResponse convertToProductReviewListItemResponse(LatestReviewListItemDto dto) {
+    private ProductReviewListItemResponse convertToProductReviewListItemResponse(LatestReviewListItemResult dto) {
         return ProductReviewListItemResponse.from(
             dto.id(),
             dto.imageUrls().stream().map(fileService::getUrlByPath).toList(),
@@ -216,18 +217,17 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductReviewStatisticsResponse getProductReviewStatistics(Long productId) {
-        Map<String, Object> statistics = reviewCoreService.findProductReviewStatistics(productId);
+        ProductReviewStatisticsResult statistics = reviewQueryService.findProductReviewStatistics(productId);
 
         Product product = productCoreService.findProductById(productId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
         return ProductReviewStatisticsResponse.from(
             product.getRating(),
-            (Long) statistics.get("totalReviewCount"),
-            (Double) statistics.get("averageTasteRating"),
-            (Double) statistics.get("averageAmountRating"),
-            (Double) statistics.get("averagePriceRating")
+            statistics.totalReviewCount(),
+            statistics.averageTasteRating(),
+            statistics.averageAmountRating(),
+            statistics.averagePriceRating()
         );
     }
-
 }

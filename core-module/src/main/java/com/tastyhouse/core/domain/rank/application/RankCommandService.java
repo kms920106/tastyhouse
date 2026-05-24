@@ -6,7 +6,7 @@ import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.ReviewCoreService;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import java.util.List;
 public class RankCommandService {
 
     private final MemberReviewRankRepository memberReviewRankRepository;
-    private final ReviewCoreService reviewCoreService;
+    private final ReviewQueryService reviewQueryService;
     private final EntityManager entityManager;
 
     public void saveAllRanks(List<MemberReviewRank> ranks) {
@@ -65,7 +65,7 @@ public class RankCommandService {
 
         log.info("집계 기간: {} ~ {}", startDate, endDate);
 
-        List<MemberReviewCountResult> reviewCounts = reviewCoreService.countReviewsByMemberWithPeriod(startDate, endDate);
+        List<MemberReviewCountResult> reviewCounts = reviewQueryService.countReviewsByMemberWithPeriod(startDate, endDate);
 
         log.info("집계된 유저 수: {}", reviewCounts.size());
 
