@@ -1,21 +1,25 @@
-package com.tastyhouse.core.repository.referral;
+package com.tastyhouse.core.domain.referral.infrastructure.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.referral.MemberReferral;
-import com.tastyhouse.core.entity.referral.ReferralStatus;
+import com.tastyhouse.core.domain.referral.domain.model.MemberReferral;
+import com.tastyhouse.core.domain.referral.domain.model.QMemberReferral;
+import com.tastyhouse.core.domain.referral.domain.model.ReferralStatus;
+import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
+import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-import static com.tastyhouse.core.entity.referral.QMemberReferral.memberReferral;
+import static com.tastyhouse.core.domain.referral.domain.model.QMemberReferral.memberReferral;
 
 @Repository
 @RequiredArgsConstructor
 public class MemberReferralRepositoryImpl implements MemberReferralRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final MemberReferralJpaRepository memberReferralJpaRepository;
 
     @Override
     public boolean existsByRefereeId(Long refereeId) {
@@ -52,5 +56,15 @@ public class MemberReferralRepositoryImpl implements MemberReferralRepository {
             .where(memberReferral.refereeId.eq(refereeId))
             .fetchOne();
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<MemberReferral> findById(ReferralId id) {
+        return memberReferralJpaRepository.findById(id.value());
+    }
+
+    @Override
+    public MemberReferral save(MemberReferral referral) {
+        return memberReferralJpaRepository.save(referral);
     }
 }

@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.auth.facebook;
 
-import com.tastyhouse.core.entity.referral.MemberReferral;
+import com.tastyhouse.core.domain.referral.application.ReferralCommandService;
+import com.tastyhouse.core.domain.referral.application.dto.command.RegisterReferralCommand;
 import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberSocialAccount;
@@ -37,6 +38,7 @@ public class FacebookSocialLoginService {
     private String facebookAppId;
 
     private final FacebookOAuthClient facebookOAuthClient;
+    private final ReferralCommandService referralCommandService;
     private final MemberCoreService memberCoreService;
     private final MemberSocialAccountCoreService memberSocialAccountCoreService;
     private final TokenService tokenService;
@@ -180,10 +182,8 @@ public class FacebookSocialLoginService {
             }
             Member referrer = memberCoreService.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
-            memberCoreService.saveReferral(
-                MemberReferral.of(
-                    referrer.getId(),
-                    member.getId())
+            referralCommandService.register(
+                new RegisterReferralCommand(referrer.getId(), member.getId())
             );
         }
 

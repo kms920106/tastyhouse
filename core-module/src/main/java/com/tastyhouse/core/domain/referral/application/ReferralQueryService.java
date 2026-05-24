@@ -1,0 +1,34 @@
+package com.tastyhouse.core.domain.referral.application;
+
+import com.tastyhouse.core.domain.referral.application.dto.result.MemberReferralResult;
+import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class ReferralQueryService {
+
+    private final MemberReferralRepository memberReferralRepository;
+
+    public boolean existsByRefereeId(Long refereeId) {
+        return memberReferralRepository.existsByRefereeId(refereeId);
+    }
+
+    public List<MemberReferralResult> findByReferrerId(Long referrerId) {
+        return memberReferralRepository.findByReferrerId(referrerId)
+            .stream()
+            .map(MemberReferralResult::from)
+            .toList();
+    }
+
+    public Optional<MemberReferralResult> findByRefereeId(Long refereeId) {
+        return memberReferralRepository.findByRefereeId(refereeId)
+            .map(MemberReferralResult::from);
+    }
+}

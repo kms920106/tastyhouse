@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.core.entity.referral.MemberReferral;
+import com.tastyhouse.core.domain.referral.application.ReferralCommandService;
+import com.tastyhouse.core.domain.referral.application.dto.command.RegisterReferralCommand;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.WithdrawalReason;
 import com.tastyhouse.core.entity.user.MemberWithdrawal;
@@ -28,6 +29,7 @@ import org.springframework.util.StringUtils;
 public class MemberAccountService {
 
     private final MemberCoreService memberCoreService;
+    private final ReferralCommandService referralCommandService;
     private final FileService fileService;
     private final PasswordEncoder passwordEncoder;
 
@@ -79,11 +81,8 @@ public class MemberAccountService {
             Member referrerMember = memberCoreService.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
-            memberCoreService.saveReferral(
-                MemberReferral.of(
-                    referrerMember.getId(),
-                    savedMember.getId()
-                )
+            referralCommandService.register(
+                new RegisterReferralCommand(referrerMember.getId(), savedMember.getId())
             );
         }
     }

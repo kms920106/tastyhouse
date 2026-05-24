@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.auth.kakao;
 
-import com.tastyhouse.core.entity.referral.MemberReferral;
+import com.tastyhouse.core.domain.referral.application.ReferralCommandService;
+import com.tastyhouse.core.domain.referral.application.dto.command.RegisterReferralCommand;
 import com.tastyhouse.core.entity.user.Gender;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberSocialAccount;
@@ -33,6 +34,7 @@ import java.util.UUID;
 public class KakaoSocialLoginService {
 
     private final KakaoOAuthClient kakaoOAuthClient;
+    private final ReferralCommandService referralCommandService;
     private final MemberCoreService memberCoreService;
     private final MemberSocialAccountCoreService memberSocialAccountCoreService;
     private final TokenService tokenService;
@@ -200,11 +202,8 @@ public class KakaoSocialLoginService {
             Member referrer = memberCoreService.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
-            memberCoreService.saveReferral(
-                MemberReferral.of(
-                    referrer.getId(),
-                    memberId
-                )
+            referralCommandService.register(
+                new RegisterReferralCommand(referrer.getId(), memberId)
             );
         }
 

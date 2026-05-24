@@ -1,6 +1,5 @@
 package com.tastyhouse.core.service;
 
-import com.tastyhouse.core.entity.referral.MemberReferral;
 import com.tastyhouse.core.entity.user.Member;
 import com.tastyhouse.core.entity.user.MemberGrade;
 import com.tastyhouse.core.entity.user.MemberWithdrawal;
@@ -10,7 +9,6 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.repository.member.MemberJpaRepository;
 import com.tastyhouse.core.repository.member.MemberRepository;
 import com.tastyhouse.core.repository.member.MemberWithdrawalJpaRepository;
-import com.tastyhouse.core.repository.referral.MemberReferralJpaRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +26,6 @@ public class MemberCoreService {
     private final MemberJpaRepository memberJpaRepository;
     private final MemberRepository memberRepository;
     private final MemberWithdrawalJpaRepository memberWithdrawalJpaRepository;
-    private final MemberReferralJpaRepository memberReferralJpaRepository;
 
     @Transactional(readOnly = true)
     public Optional<Member> findById(Long memberId) {
@@ -83,11 +80,6 @@ public class MemberCoreService {
     @Transactional
     public void saveWithdrawal(@NonNull MemberWithdrawal memberWithdrawal) {
         memberWithdrawalJpaRepository.save(memberWithdrawal);
-    }
-
-    @Transactional
-    public void saveReferral(@NonNull MemberReferral memberReferral) {
-        memberReferralJpaRepository.save(memberReferral);
     }
 
     @Transactional(readOnly = true)
