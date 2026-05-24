@@ -260,7 +260,7 @@ memberRepository.save(member);
 **After (Rich)**
 ```java
 // Member AR 내부에 메서드
-public class Member {
+public class Member extends BaseEntity {
     public void withdraw(WithdrawalReason reason, LocalDateTime now) {
         if (this.status == MemberStatus.WITHDRAWN) {
             throw new BusinessException(ErrorCode.ALREADY_WITHDRAWN);
@@ -269,30 +269,54 @@ public class Member {
         this.withdrawnAt = now;
         this.email = null;
         this.nickname = null;
-        registerEvent(new MemberWithdrawnEvent(this.id, reason, now));
     }
 }
 
-// Application 서비스
-public void withdraw(MemberId memberId, WithdrawalReason reason) {
-    Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-    member.withdraw(reason, LocalDateTime.now());
-    memberRepository.save(member);
+// Application 서비스 (이벤트 발행은 CommandService에서 담당)
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class MemberCommandService {
+    private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public void withdraw(MemberId memberId, WithdrawalReason reason) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.withdraw(reason, LocalDateTime.now());
+        memberRepository.save(member);
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(memberId, reason, LocalDateTime.now()));
+    }
 }
 ```
 
 ### 6.3 DomainEvent
 
-#### Spring AbstractAggregateRoot 활용
+#### ApplicationEventPublisher 직접 주입 방식
 
 ```java
 @Entity
-public class Member extends AbstractAggregateRoot<Member> {
+public class Member extends BaseEntity {
 
     public void withdraw(WithdrawalReason reason, LocalDateTime now) {
         // ... 상태 변경 ...
-        registerEvent(new MemberWithdrawnEvent(this.id, reason, now));
+    }
+}
+
+// MemberCommandService
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class MemberCommandService {
+    private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public void withdraw(MemberId memberId, WithdrawalReason reason) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.withdraw(reason, LocalDateTime.now());
+        memberRepository.save(member);
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(memberId, reason, LocalDateTime.now()));
     }
 }
 ```
@@ -446,7 +470,7 @@ public record EmailVerificationId(Long value) { }
 
 // domain/model/EmailVerification.java (AR)
 @Entity
-public class EmailVerification extends AbstractAggregateRoot<EmailVerification> {
+public class EmailVerification extends BaseEntity {
 
     @Id @GeneratedValue
     private Long id;
@@ -483,7 +507,24 @@ public class EmailVerification extends AbstractAggregateRoot<EmailVerification> 
             throw new BusinessException(ErrorCode.VERIFICATION_CODE_MISMATCH);
         }
         this.status = EmailVerificationStatus.VERIFIED;
-        registerEvent(new EmailVerifiedEvent(new EmailVerificationId(this.id), this.email, now));
+        // 이벤트 발행은 CommandService에서 담당
+    }
+}
+
+// EmailVerificationCommandService
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class EmailVerificationCommandService {
+    private final EmailVerificationRepository repository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public void verify(EmailVerificationId id, VerificationCode input) {
+        EmailVerification verification = repository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.VERIFICATION_NOT_FOUND));
+        verification.verify(input, LocalDateTime.now());
+        repository.save(verification);
+        eventPublisher.publishEvent(new EmailVerifiedEvent(id, verification.getEmail(), LocalDateTime.now()));
     }
 }
 ```
