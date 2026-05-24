@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.policy.response;
 
-import com.tastyhouse.core.entity.policy.PolicyType;
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 
 import java.time.LocalDateTime;
 

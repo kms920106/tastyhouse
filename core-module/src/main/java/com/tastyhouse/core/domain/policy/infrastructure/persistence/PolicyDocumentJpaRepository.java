@@ -1,7 +1,7 @@
-package com.tastyhouse.core.repository.policy;
+package com.tastyhouse.core.domain.policy.infrastructure.persistence;
 
-import com.tastyhouse.core.entity.policy.PolicyDocument;
-import com.tastyhouse.core.entity.policy.PolicyType;
+import com.tastyhouse.core.domain.policy.domain.model.PolicyDocument;
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

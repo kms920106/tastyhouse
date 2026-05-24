@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.policy;
+package com.tastyhouse.core.domain.policy.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -23,35 +23,35 @@ public class PolicyDocument extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private PolicyType type; // 약관 유형 (예: TERMS_OF_SERVICE, PRIVACY_POLICY, MARKETING)
+    private PolicyType type;
 
     @Column(name = "version", nullable = false, length = 20)
-    private String version; // 약관 버전 (예: 1.0, 2.1)
+    private String version;
 
     @Column(name = "title", nullable = false, length = 200)
-    private String title; // 약관 제목
+    private String title;
 
     @Column(name = "content", nullable = false, columnDefinition = "LONGTEXT")
-    private String content; // 약관 본문 내용
+    private String content;
 
     @Column(name = "is_current", nullable = false)
-    private Boolean current = false; // 현재 적용 중인 약관 여부 (true: 현재 버전)
+    private Boolean current = false;
 
     @Column(name = "mandatory", nullable = false)
-    private Boolean mandatory = true; // 필수 동의 여부 (true: 필수)
+    private Boolean mandatory = true;
 
     @Column(name = "effective_date", nullable = false)
-    private LocalDateTime effectiveDate; // 약관 시행 일시
+    private LocalDateTime effectiveDate;
 
     @Column(name = "created_by", length = 100)
-    private String createdBy; // 약관 등록자
+    private String createdBy;
 
     @Column(name = "updated_by", length = 100)
-    private String updatedBy; // 약관 최종 수정자
+    private String updatedBy;
 
     private PolicyDocument(
         PolicyType type,
@@ -80,35 +80,22 @@ public class PolicyDocument extends BaseEntity {
         String version,
         String title,
         String content,
-        Boolean current,
         Boolean mandatory,
         LocalDateTime effectiveDate,
         String createdBy
     ) {
-        return new PolicyDocument(
-            type,
-            version,
-            title,
-            content,
-            current,
-            mandatory,
-            effectiveDate,
-            createdBy,
-            null)
-            ;
+        return new PolicyDocument(type, version, title, content, false, mandatory, effectiveDate, createdBy, null);
     }
 
-    public void updateCurrent(Boolean current) {
-        this.current = current;
+    public void activate() {
+        this.current = true;
     }
 
-    public void update(
-        String title,
-        String content,
-        Boolean mandatory,
-        LocalDateTime effectiveDate,
-        String updatedBy
-    ) {
+    public void deactivate() {
+        this.current = false;
+    }
+
+    public void update(String title, String content, Boolean mandatory, LocalDateTime effectiveDate, String updatedBy) {
         this.title = title;
         this.content = content;
         this.mandatory = mandatory;

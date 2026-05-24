@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.policy;
+package com.tastyhouse.core.domain.policy.domain.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -1,11 +1,11 @@
-package com.tastyhouse.core.entity.policy.dto;
+package com.tastyhouse.core.domain.policy.application.dto.result;
 
 import com.querydsl.core.annotations.QueryProjection;
-import com.tastyhouse.core.entity.policy.PolicyType;
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 
 import java.time.LocalDateTime;
 
-public record PolicyListItemDto(
+public record PolicyListItemResult(
     Long id,
     PolicyType type,
     String version,
@@ -15,6 +15,6 @@ public record PolicyListItemDto(
     LocalDateTime createdAt
 ) {
     @QueryProjection
-    public PolicyListItemDto {
+    public PolicyListItemResult {
     }
 }

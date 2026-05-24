@@ -1,13 +1,15 @@
-package com.tastyhouse.core.repository.policy;
+package com.tastyhouse.core.domain.policy.infrastructure.persistence;
 
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.policy.PolicyDocument;
-import com.tastyhouse.core.entity.policy.PolicyType;
-import com.tastyhouse.core.entity.policy.dto.PolicyDocumentDto;
-import com.tastyhouse.core.entity.policy.dto.PolicyListItemDto;
-import com.tastyhouse.core.entity.policy.dto.QPolicyDocumentDto;
-import com.tastyhouse.core.entity.policy.dto.QPolicyListItemDto;
+import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
+import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
+import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyDocumentResult;
+import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyListItemResult;
+import com.tastyhouse.core.domain.policy.domain.model.PolicyDocument;
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
+import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
+import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +20,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-import static com.tastyhouse.core.entity.policy.QPolicyDocument.policyDocument;
+import static com.tastyhouse.core.domain.policy.domain.model.QPolicyDocument.policyDocument;
 
 @Repository
 @RequiredArgsConstructor
@@ -28,9 +30,32 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
     private final EntityManager entityManager;
 
     @Override
-    public Optional<PolicyDocumentDto> findCurrentByType(PolicyType type) {
-        PolicyDocumentDto result = queryFactory
-            .select(new QPolicyDocumentDto(
+    public Optional<PolicyDocument> findById(PolicyDocumentId id) {
+        PolicyDocument result = queryFactory
+            .selectFrom(policyDocument)
+            .where(policyDocument.id.eq(id.value()))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<PolicyDocument> findCurrentEntityByType(PolicyType type) {
+        PolicyDocument result = queryFactory
+            .selectFrom(policyDocument)
+            .where(
+                policyDocument.type.eq(type),
+                policyDocument.current.isTrue()
+            )
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<PolicyDocumentResult> findCurrentByType(PolicyType type) {
+        PolicyDocumentResult result = queryFactory
+            .select(new QPolicyDocumentResult(
                 policyDocument.id,
                 policyDocument.type,
                 policyDocument.version,
@@ -53,9 +78,9 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
     }
 
     @Override
-    public Optional<PolicyDocumentDto> findByTypeAndVersion(PolicyType type, String version) {
-        PolicyDocumentDto result = queryFactory
-            .select(new QPolicyDocumentDto(
+    public Optional<PolicyDocumentResult> findByTypeAndVersion(PolicyType type, String version) {
+        PolicyDocumentResult result = queryFactory
+            .select(new QPolicyDocumentResult(
                 policyDocument.id,
                 policyDocument.type,
                 policyDocument.version,
@@ -78,41 +103,9 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
     }
 
     @Override
-    public Optional<PolicyDocument> findById(Long id) {
-        PolicyDocument result = queryFactory
-            .selectFrom(policyDocument)
-            .where(policyDocument.id.eq(id))
-            .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
-
-    @Override
-    public Optional<PolicyDocument> findCurrentEntityByType(PolicyType type) {
-        PolicyDocument result = queryFactory
-            .selectFrom(policyDocument)
-            .where(
-                policyDocument.type.eq(type),
-                policyDocument.current.isTrue()
-            )
-            .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
-
-    @Override
-    public PolicyDocument save(PolicyDocument policyDocument) {
-        if (policyDocument.getId() == null) {
-            entityManager.persist(policyDocument);
-            return policyDocument;
-        }
-        return entityManager.merge(policyDocument);
-    }
-
-    @Override
-    public Page<PolicyListItemDto> findAllByType(PolicyType type, Pageable pageable) {
-        JPAQuery<PolicyListItemDto> query = queryFactory
-            .select(new QPolicyListItemDto(
+    public Page<PolicyListItemResult> findAllByType(PolicyType type, Pageable pageable) {
+        JPAQuery<PolicyListItemResult> query = queryFactory
+            .select(new QPolicyListItemResult(
                 policyDocument.id,
                 policyDocument.type,
                 policyDocument.version,
@@ -127,11 +120,20 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
 
         long total = query.fetch().size();
 
-        List<PolicyListItemDto> policies = query
+        List<PolicyListItemResult> policies = query
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
 
         return new PageImpl<>(policies, pageable, total);
+    }
+
+    @Override
+    public PolicyDocument save(PolicyDocument policyDocument) {
+        if (policyDocument.getId() == null) {
+            entityManager.persist(policyDocument);
+            return policyDocument;
+        }
+        return entityManager.merge(policyDocument);
     }
 }

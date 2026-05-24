@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.policy.request;
 
-import com.tastyhouse.core.entity.policy.PolicyType;
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
