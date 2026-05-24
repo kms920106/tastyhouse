@@ -17,14 +17,14 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @Table(
-    name = "RANKS",
+    name = "RANK_PERIOD",
     indexes = {
-        @Index(name = "idx_rank_active", columnList = "is_active"),
-        @Index(name = "idx_rank_period", columnList = "start_at, end_at")
+        @Index(name = "idx_rank_period_active", columnList = "is_active"),
+        @Index(name = "idx_rank_period_range", columnList = "start_at, end_at")
     }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Rank extends BaseEntity {
+public class RankPeriod extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,13 +39,13 @@ public class Rank extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    private Rank(LocalDateTime startAt, LocalDateTime endAt, Boolean isActive) {
+    private RankPeriod(LocalDateTime startAt, LocalDateTime endAt, Boolean isActive) {
         this.startAt = startAt;
         this.endAt = endAt;
         this.isActive = isActive;
     }
 
-    public static Rank of(LocalDateTime startAt, LocalDateTime endAt) {
-        return new Rank(startAt, endAt, true);
+    public static RankPeriod of(LocalDateTime startAt, LocalDateTime endAt) {
+        return new RankPeriod(startAt, endAt, true);
     }
 }

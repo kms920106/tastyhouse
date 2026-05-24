@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.rank.domain.model.QRank.rank;
+import static com.tastyhouse.core.domain.rank.domain.model.QRankPeriod.rankPeriod;
 import static com.tastyhouse.core.domain.rank.domain.model.QRankPrize.rankPrize;
 
 @Repository
@@ -25,12 +25,12 @@ public class RankInfoRepositoryImpl implements RankInfoRepository {
     public Optional<RankDurationResult> findActiveDuration() {
         RankDurationResult result = queryFactory
             .select(Projections.constructor(RankDurationResult.class,
-                rank.startAt,
-                rank.endAt
+                rankPeriod.startAt,
+                rankPeriod.endAt
             ))
-            .from(rank)
-            .where(rank.isActive.isTrue())
-            .orderBy(rank.startAt.desc())
+            .from(rankPeriod)
+            .where(rankPeriod.isActive.isTrue())
+            .orderBy(rankPeriod.startAt.desc())
             .limit(1)
             .fetchOne();
 
@@ -47,11 +47,11 @@ public class RankInfoRepositoryImpl implements RankInfoRepository {
                 rankPrize.brand,
                 uploadedFile.filePath
             ))
-            .from(rank)
-            .innerJoin(rankPrize).on(rankPrize.rankId.eq(rank.id))
+            .from(rankPeriod)
+            .innerJoin(rankPrize).on(rankPrize.rankId.eq(rankPeriod.id))
             .leftJoin(uploadedFile).on(rankPrize.imageFileId.eq(uploadedFile.id))
-            .where(rank.isActive.isTrue())
-            .orderBy(rank.startAt.desc(), rankPrize.prizeRank.asc())
+            .where(rankPeriod.isActive.isTrue())
+            .orderBy(rankPeriod.startAt.desc(), rankPrize.prizeRank.asc())
             .fetch();
     }
 }

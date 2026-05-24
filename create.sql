@@ -925,22 +925,22 @@ CREATE TABLE EMAIL_VERIFICATION
     INDEX idx_email_verification_expires_at (expires_at)                -- 인덱스: 만료 일시별 조회
 );
 
-CREATE TABLE RANKS
+CREATE TABLE RANK_PERIOD
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 랭킹 ID (PK)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 랭킹 기간 ID (PK)
     start_at   DATETIME   NOT NULL,                   -- 랭킹 시작 일시
     end_at     DATETIME   NOT NULL,                   -- 랭킹 종료 일시
     is_active  TINYINT(1) NOT NULL DEFAULT 1,         -- 활성화 여부 (1: 활성)
     created_at DATETIME   NOT NULL,                   -- 생성 일시
     updated_at DATETIME   NOT NULL,                   -- 수정 일시
-    INDEX idx_rank_active (is_active),                -- 인덱스: 활성화 여부별 조회
-    INDEX idx_rank_period (start_at, end_at)          -- 인덱스: 기간별 조회
+    INDEX idx_rank_period_active (is_active),         -- 인덱스: 활성화 여부별 조회
+    INDEX idx_rank_period_range (start_at, end_at)    -- 인덱스: 기간별 조회
 );
 
 CREATE TABLE RANK_PRIZE
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 랭킹 경품 ID (PK)
-    rank_id       BIGINT       NOT NULL,                            -- 랭킹 ID (RANKS.id 참조)
+    rank_id       BIGINT       NOT NULL,                            -- 랭킹 기간 ID (RANK_PERIOD.id 참조)
     prize_rank    INT          NOT NULL,                            -- 수상 순위
     name          VARCHAR(200) NOT NULL,                            -- 경품 이름
     brand         VARCHAR(100) NOT NULL,                            -- 경품 브랜드
