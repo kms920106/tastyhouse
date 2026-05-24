@@ -1,8 +1,8 @@
 package com.tastyhouse.external.sms.solapi;
 
+import com.tastyhouse.core.domain.verification.application.port.out.SmsSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
-import com.tastyhouse.external.sms.SmsSender;
 import com.tastyhouse.external.sms.solapi.request.SolapiMessageRequest;
 import com.tastyhouse.external.sms.solapi.response.SolapiMessageResponse;
 import lombok.RequiredArgsConstructor;

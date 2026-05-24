@@ -2,20 +2,33 @@ package com.tastyhouse.core.domain.verification.domain.vo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.security.SecureRandom;
 
 @Embeddable
-public record VerificationCode(
-    @Column(name = "verification_code", nullable = false, length = 6)
-    String value
-) {
+@Getter
+@EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class VerificationCode {
+
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    public VerificationCode {
+    @Column(name = "verification_code", nullable = false, length = 6)
+    private String value;
+
+    private VerificationCode(String value) {
         if (value == null || !value.matches("^[0-9]{6}$")) {
             throw new IllegalArgumentException("인증코드는 6자리 숫자여야 합니다.");
         }
+        this.value = value;
+    }
+
+    public static VerificationCode of(String value) {
+        return new VerificationCode(value);
     }
 
     public static VerificationCode generate() {

@@ -1,6 +1,11 @@
 package com.tastyhouse.webapi.verification;
 
 import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.core.domain.verification.application.EmailVerificationCommandService;
+import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmEmailVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.command.SendEmailVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.result.EmailVerificationResult;
+import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapi.verification.request.ConfirmEmailVerificationCodeRequest;
@@ -26,7 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Email Verification", description = "이메일 인증 API")
 public class EmailVerificationApiController {
 
-    private final EmailVerificationService emailVerificationService;
+    private final EmailVerificationCommandService emailVerificationCommandService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(
         summary = "인증번호 발송",
@@ -42,7 +48,9 @@ public class EmailVerificationApiController {
     public ResponseEntity<CommonResponse<Void>> sendVerificationCode(
         @Valid @RequestBody SendEmailVerificationCodeRequest request
     ) {
-        emailVerificationService.sendVerificationCode(request.email());
+        emailVerificationCommandService.sendVerificationCode(
+            new SendEmailVerificationCommand(request.email())
+        );
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 
@@ -60,10 +68,10 @@ public class EmailVerificationApiController {
     public ResponseEntity<CommonResponse<EmailVerifyTokenResponse>> confirmVerificationCode(
         @Valid @RequestBody ConfirmEmailVerificationCodeRequest request
     ) {
-        String emailVerifyToken = emailVerificationService.confirmVerificationCode(
-            request.email(),
-            request.verificationCode()
+        EmailVerificationResult result = emailVerificationCommandService.confirmVerificationCode(
+            new ConfirmEmailVerificationCommand(request.email(), request.verificationCode())
         );
+        String emailVerifyToken = jwtTokenProvider.createEmailVerifyToken(result.email());
         return ResponseEntity.ok(CommonResponse.success(EmailVerifyTokenResponse.from(emailVerifyToken)));
     }
 }

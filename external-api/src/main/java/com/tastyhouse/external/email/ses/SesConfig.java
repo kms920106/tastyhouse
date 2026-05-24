@@ -1,7 +1,7 @@
 package com.tastyhouse.external.email.ses;
 
+import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
 import com.tastyhouse.external.email.EmailProperties;
-import com.tastyhouse.external.email.EmailSender;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +30,7 @@ public class SesConfig {
     }
 
     @Bean
-    public EmailSender awsSesEmailSender(SesClient sesClient, EmailProperties emailProperties) {
+    public MailSender awsSesEmailSender(SesClient sesClient, EmailProperties emailProperties) {
         return new AwsSesEmailSender(sesClient, emailProperties.getSenderAddress());
     }
 }

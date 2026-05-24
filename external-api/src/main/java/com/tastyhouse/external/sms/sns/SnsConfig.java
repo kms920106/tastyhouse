@@ -1,6 +1,6 @@
 package com.tastyhouse.external.sms.sns;
 
-import com.tastyhouse.external.sms.SmsSender;
+import com.tastyhouse.core.domain.verification.application.port.out.SmsSender;
 import com.tastyhouse.external.sms.SmsProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

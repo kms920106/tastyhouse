@@ -48,7 +48,7 @@ public class EmailVerificationCommandService {
             .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now();
-        verification.verify(new VerificationCode(command.verificationCode()), now);
+        verification.verify(VerificationCode.of(command.verificationCode()), now);
 
         eventPublisher.publishEvent(new EmailVerifiedEvent(
             verification.getEmailVerificationId(),

@@ -1,6 +1,11 @@
 package com.tastyhouse.webapi.verification;
 
 import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.core.domain.verification.application.PhoneVerificationCommandService;
+import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmPhoneVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.command.SendPhoneVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.result.PhoneVerificationResult;
+import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapi.verification.request.ConfirmVerificationCodeRequest;
@@ -26,7 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Phone Verification", description = "휴대폰번호 인증 API")
 public class PhoneVerificationApiController {
 
-    private final PhoneVerificationService phoneVerificationService;
+    private final PhoneVerificationCommandService phoneVerificationCommandService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(
         summary = "인증번호 발송",
@@ -43,10 +49,9 @@ public class PhoneVerificationApiController {
     public ResponseEntity<CommonResponse<Void>> sendVerificationCode(
         @Valid @RequestBody SendVerificationCodeRequest request
     ) {
-        phoneVerificationService.sendVerificationCode(
-            request.phoneNumber()
+        phoneVerificationCommandService.sendVerificationCode(
+            new SendPhoneVerificationCommand(request.phoneNumber())
         );
-
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 
@@ -65,11 +70,10 @@ public class PhoneVerificationApiController {
     public ResponseEntity<CommonResponse<PhoneVerifyTokenResponse>> confirmVerificationCode(
         @Valid @RequestBody ConfirmVerificationCodeRequest request
     ) {
-        String phoneVerifyToken = phoneVerificationService.confirmVerificationCode(
-            request.phoneNumber(),
-            request.verificationCode()
+        PhoneVerificationResult result = phoneVerificationCommandService.confirmVerificationCode(
+            new ConfirmPhoneVerificationCommand(request.phoneNumber(), request.verificationCode())
         );
-
+        String phoneVerifyToken = jwtTokenProvider.createPhoneVerifyToken(result.phoneNumber());
         return ResponseEntity.ok(CommonResponse.success(
             PhoneVerifyTokenResponse.from(phoneVerifyToken)
         ));

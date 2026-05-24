@@ -1,7 +1,7 @@
 package com.tastyhouse.external.email.javamail;
 
+import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
 import com.tastyhouse.external.email.EmailProperties;
-import com.tastyhouse.external.email.EmailSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 import jakarta.mail.MessagingException;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "email.provider", havingValue = "javamail", matchIfMissing = true)
 @Component
 @RequiredArgsConstructor
-public class JavaMailEmailSender implements EmailSender {
+public class JavaMailEmailSender implements MailSender {
 
     private final JavaMailSender javaMailSender;
     private final EmailProperties emailProperties;

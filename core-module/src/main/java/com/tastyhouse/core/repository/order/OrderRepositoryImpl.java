@@ -139,7 +139,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 place.name,
                 uploadedFile.filePath,
                 orderItem.productName.min(),
-                orderItem.id.count().intValue(),
+                orderItem.id.count().castToNum(Integer.class),
                 order.finalAmount,
                 payment.paymentStatus,
                 payment.approvedAt

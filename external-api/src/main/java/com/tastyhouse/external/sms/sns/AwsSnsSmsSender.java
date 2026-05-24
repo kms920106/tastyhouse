@@ -1,8 +1,8 @@
 package com.tastyhouse.external.sms.sns;
 
+import com.tastyhouse.core.domain.verification.application.port.out.SmsSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
-import com.tastyhouse.external.sms.SmsSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.sns.SnsClient;

@@ -1,6 +1,6 @@
 package com.tastyhouse.external.email.ses;
 
-import com.tastyhouse.external.email.EmailSender;
+import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.ses.model.SesException;
 
 @Slf4j
 @RequiredArgsConstructor
-public class AwsSesEmailSender implements EmailSender {
+public class AwsSesEmailSender implements MailSender {
 
     private final SesClient sesClient;
     private final String senderEmail;

@@ -42,7 +42,7 @@ public class PhoneVerificationCommandService {
             .orElseThrow(() -> new BusinessException(ErrorCode.VERIFICATION_CODE_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now();
-        verification.verify(new VerificationCode(command.verificationCode()), now);
+        verification.verify(VerificationCode.of(command.verificationCode()), now);
 
         eventPublisher.publishEvent(new PhoneVerifiedEvent(
             verification.getPhoneVerificationId(),
