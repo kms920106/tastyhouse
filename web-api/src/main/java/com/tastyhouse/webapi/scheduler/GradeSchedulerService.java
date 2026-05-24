@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.scheduler;
 
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.service.ReviewCoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class GradeSchedulerService {
         LocalDateTime startDate = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
         LocalDateTime endDate = LocalDateTime.now();
 
-        List<MemberReviewCountDto> reviewCounts = reviewCoreService.countReviewsByMemberWithPeriod(startDate, endDate);
+        List<MemberReviewCountResult> reviewCounts = reviewCoreService.countReviewsByMemberWithPeriod(startDate, endDate);
 
         log.info("리뷰 작성 회원 수: {}", reviewCounts.size());
 
@@ -60,13 +60,13 @@ public class GradeSchedulerService {
     /**
      * 리뷰 개수에 따라 회원을 등급별로 그룹핑
      */
-    private Map<MemberGrade, List<Long>> groupMembersByGrade(List<MemberReviewCountDto> reviewCounts) {
+    private Map<MemberGrade, List<Long>> groupMembersByGrade(List<MemberReviewCountResult> reviewCounts) {
         Map<MemberGrade, List<Long>> gradeGroups = new HashMap<>();
 
         for (MemberGrade grade : MemberGrade.values()) {
             gradeGroups.put(grade, reviewCounts.stream()
                 .filter(dto -> MemberGrade.fromReviewCount(dto.reviewCount().intValue()) == grade)
-                .map(MemberReviewCountDto::memberId)
+                .map(MemberReviewCountResult::memberId)
                 .collect(Collectors.toList()));
         }
 

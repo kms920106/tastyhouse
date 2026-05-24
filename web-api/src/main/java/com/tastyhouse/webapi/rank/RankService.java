@@ -3,13 +3,13 @@ package com.tastyhouse.webapi.rank;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.entity.rank.RankType;
-import com.tastyhouse.core.entity.rank.dto.MemberRankDto;
-import com.tastyhouse.core.entity.rank.dto.RankPrizeDto;
+import com.tastyhouse.core.domain.rank.application.RankCommandService;
+import com.tastyhouse.core.domain.rank.application.RankQueryService;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
+import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.RankCoreService;
-import com.tastyhouse.core.service.RankInfoCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
@@ -26,20 +26,20 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RankService {
 
-    private final RankCoreService rankCoreService;
-    private final RankInfoCoreService rankInfoCoreService;
+    private final RankQueryService rankQueryService;
+    private final RankCommandService rankCommandService;
     private final MemberQueryService memberQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
     public Optional<RankDurationResponse> getDuration() {
-        return rankInfoCoreService.findActiveDuration()
+        return rankQueryService.findActiveDuration()
             .map(dto -> RankDurationResponse.from(dto.startAt(), dto.endAt()));
     }
 
     @Transactional(readOnly = true)
     public List<RankPrizeListItemResponse> getPrizes() {
-        return rankInfoCoreService.findActivePrizes().stream()
+        return rankQueryService.findActivePrizes().stream()
             .map(this::convertToPrizeItemResponse)
             .toList();
     }
@@ -49,7 +49,7 @@ public class RankService {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
-        List<MemberRankDto> ranks = rankCoreService.searchMemberRankList(type, baseDate, limit);
+        List<MemberRankResult> ranks = rankQueryService.searchMemberRankList(type, baseDate, limit);
 
         return ranks.stream()
             .map(dto -> MemberRankListItemResponse.of(
@@ -67,7 +67,7 @@ public class RankService {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
-        MemberRankDto dto = rankCoreService.findMemberRank(memberId, type, baseDate);
+        MemberRankResult dto = rankQueryService.findMemberRank(memberId, type, baseDate);
         if (dto == null) {
             MemberWithProfileImageResult member = memberQueryService.findMemberWithProfileImage(new MemberId(memberId))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -90,7 +90,7 @@ public class RankService {
         );
     }
 
-    private RankPrizeListItemResponse convertToPrizeItemResponse(RankPrizeDto dto) {
+    private RankPrizeListItemResponse convertToPrizeItemResponse(RankPrizeResult dto) {
         return RankPrizeListItemResponse.from(
             dto.id(),
             dto.prizeRank(),

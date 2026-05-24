@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.core.entity.rank.MemberReviewRank;
-import com.tastyhouse.core.entity.rank.RankType;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.core.service.RankCoreService;
+import com.tastyhouse.core.domain.rank.application.RankQueryService;
+import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
+import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,11 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberGradeService {
 
-    private final RankCoreService rankCoreService;
+    private final RankQueryService rankQueryService;
 
     @Transactional(readOnly = true)
     public MyGradeResponse getMyGrade(Long memberId) {
-        int currentReviewCount = rankCoreService.findLatestByMemberIdAndRankType(memberId, RankType.ALL).map(MemberReviewRank::getReviewCount).orElse(0);
+        int currentReviewCount = rankQueryService.findLatestByMemberIdAndRankType(memberId, RankType.ALL).map(MemberReviewRank::getReviewCount).orElse(0);
 
         MemberGrade currentGrade = MemberGrade.fromReviewCount(currentReviewCount);
         MemberGrade nextGrade = currentGrade.isHigherThanOrEqual(MemberGrade.TEHA) ? null : MemberGrade.fromLevel(currentGrade.getLevel() + 1);

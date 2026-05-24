@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.rank;
+package com.tastyhouse.core.domain.rank.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -29,22 +29,22 @@ public class RankPrize extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "rank_id", nullable = false)
-    private Long rankId; // 랭킹 ID (RANKS.id 참조)
+    private Long rankId;
 
     @Column(name = "prize_rank", nullable = false)
-    private Integer prizeRank; // 시상 순위 (1위, 2위 등)
+    private Integer prizeRank;
 
     @Column(name = "name", nullable = false, length = 200)
-    private String name; // 경품명
+    private String name;
 
     @Column(name = "brand", nullable = false, length = 100)
-    private String brand; // 경품 브랜드명
+    private String brand;
 
     @Column(name = "image_file_id")
-    private Long imageFileId; // 경품 이미지 파일 ID (FILE.id 참조)
+    private Long imageFileId;
 
     private RankPrize(Long rankId, Integer prizeRank, String name, String brand, Long imageFileId) {
         this.rankId = rankId;

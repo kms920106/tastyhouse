@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.rank;
+package com.tastyhouse.core.domain.rank.domain.model;
 
 public enum RankType {
     ALL,        // 전체 기간

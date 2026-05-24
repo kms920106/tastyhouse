@@ -1,6 +1,6 @@
 package com.tastyhouse.core.repository.review;
 
-import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.entity.review.Review;
 import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
@@ -33,7 +33,7 @@ public interface ReviewRepository {
 
     List<LatestReviewListItemDto> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit);
 
-    List<MemberReviewCountDto> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate);
+    List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate);
 
     Optional<ReviewDetailDto> findReviewDetail(Long reviewId);
 

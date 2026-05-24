@@ -1,6 +1,6 @@
-package com.tastyhouse.core.entity.rank.dto;
+package com.tastyhouse.core.domain.rank.application.dto.result;
 
-public record RankPrizeDto(
+public record RankPrizeResult(
     Long id,
     Integer prizeRank,
     String name,

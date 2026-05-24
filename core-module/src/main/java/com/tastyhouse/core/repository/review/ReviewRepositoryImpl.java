@@ -5,8 +5,8 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.core.types.Projections;
-import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
-import com.tastyhouse.core.entity.rank.dto.QMemberReviewCountDto;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.QMemberReviewCountResult;
 import com.tastyhouse.core.entity.review.Review;
 import com.tastyhouse.core.entity.review.dto.BestReviewListItemDto;
 import com.tastyhouse.core.entity.review.dto.LatestReviewListItemDto;
@@ -310,9 +310,9 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public List<MemberReviewCountDto> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
+    public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return queryFactory
-            .select(new QMemberReviewCountDto(
+            .select(new QMemberReviewCountResult(
                 review.memberId,
                 review.count(),
                 review.createdAt.max()

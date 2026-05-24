@@ -1,9 +1,10 @@
-package com.tastyhouse.core.repository.rank;
+package com.tastyhouse.core.domain.rank.infrastructure.persistence;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.rank.dto.RankDurationDto;
-import com.tastyhouse.core.entity.rank.dto.RankPrizeDto;
+import com.tastyhouse.core.domain.rank.application.dto.result.RankDurationResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
+import com.tastyhouse.core.domain.rank.domain.repository.RankInfoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -11,19 +12,19 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.entity.rank.QRank.rank;
-import static com.tastyhouse.core.entity.rank.QRankPrize.rankPrize;
+import static com.tastyhouse.core.domain.rank.domain.model.QRank.rank;
+import static com.tastyhouse.core.domain.rank.domain.model.QRankPrize.rankPrize;
 
 @Repository
 @RequiredArgsConstructor
-public class RankRepositoryImpl implements RankRepository {
+public class RankInfoRepositoryImpl implements RankInfoRepository {
 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Optional<RankDurationDto> findActiveDuration() {
-        RankDurationDto result = queryFactory
-            .select(Projections.constructor(RankDurationDto.class,
+    public Optional<RankDurationResult> findActiveDuration() {
+        RankDurationResult result = queryFactory
+            .select(Projections.constructor(RankDurationResult.class,
                 rank.startAt,
                 rank.endAt
             ))
@@ -37,9 +38,9 @@ public class RankRepositoryImpl implements RankRepository {
     }
 
     @Override
-    public List<RankPrizeDto> findActivePrizes() {
+    public List<RankPrizeResult> findActivePrizes() {
         return queryFactory
-            .select(Projections.constructor(RankPrizeDto.class,
+            .select(Projections.constructor(RankPrizeResult.class,
                 rankPrize.id,
                 rankPrize.prizeRank,
                 rankPrize.name,

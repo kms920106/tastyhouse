@@ -1,9 +1,9 @@
-package com.tastyhouse.core.entity.rank.dto;
+package com.tastyhouse.core.domain.rank.application.dto.result;
 
 import com.querydsl.core.annotations.QueryProjection;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 
-public record MemberRankDto(
+public record MemberRankResult(
     Long memberId,
     String nickname,
     String profileImageUrl,
@@ -12,6 +12,6 @@ public record MemberRankDto(
     MemberGrade grade
 ) {
     @QueryProjection
-    public MemberRankDto {
+    public MemberRankResult {
     }
 }

@@ -1,7 +1,7 @@
 package com.tastyhouse.core.service;
 
 import com.tastyhouse.core.common.ReviewsByRatingResult;
-import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.entity.review.Review;
 import com.tastyhouse.core.entity.review.dto.MyReviewListItemDto;
 import com.tastyhouse.core.entity.review.ReviewComment;
@@ -325,7 +325,7 @@ public class ReviewCoreService {
     }
 
     @Transactional(readOnly = true)
-    public List<MemberReviewCountDto> countReviewsByMemberWithPeriod(
+    public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(
         LocalDateTime startDate,
         LocalDateTime endDate
     ) {

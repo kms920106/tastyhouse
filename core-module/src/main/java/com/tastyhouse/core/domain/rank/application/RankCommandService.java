@@ -1,10 +1,13 @@
-package com.tastyhouse.core.service;
+package com.tastyhouse.core.domain.rank.application;
 
-import com.tastyhouse.core.entity.rank.MemberReviewRank;
-import com.tastyhouse.core.entity.rank.RankType;
-import com.tastyhouse.core.entity.rank.dto.MemberReviewCountDto;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
+import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
+import com.tastyhouse.core.domain.rank.domain.model.RankType;
+import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.service.ReviewCoreService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,13 +23,24 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
-public class RankAggregationService {
+public class RankCommandService {
 
-    private final RankCoreService rankCoreService;
+    private final MemberReviewRankRepository memberReviewRankRepository;
     private final ReviewCoreService reviewCoreService;
+    private final EntityManager entityManager;
 
-    @Transactional
+    public void saveAllRanks(List<MemberReviewRank> ranks) {
+        memberReviewRankRepository.saveAll(ranks);
+    }
+
+    public void deleteOldRanks(RankType rankType, LocalDate baseDate) {
+        memberReviewRankRepository.deleteByRankTypeAndBaseDate(rankType, baseDate);
+        entityManager.flush();
+        entityManager.clear();
+    }
+
     public void aggregateAllRanks() {
         log.info("=== 전체 랭킹 집계 시작 ===");
         LocalDate today = LocalDate.now();
@@ -38,12 +52,10 @@ public class RankAggregationService {
         log.info("=== 전체 랭킹 집계 완료 ===");
     }
 
-    @Transactional
     public void aggregateRankByType(RankType rankType, LocalDate baseDate) {
         aggregateRankByType(rankType, baseDate, 10);
     }
 
-    @Transactional
     public void aggregateRankByType(RankType rankType, LocalDate baseDate, int limit) {
         log.info("랭킹 집계 시작: type={}, baseDate={}, limit={}", rankType, baseDate, limit);
 
@@ -53,46 +65,39 @@ public class RankAggregationService {
 
         log.info("집계 기간: {} ~ {}", startDate, endDate);
 
-        List<MemberReviewCountDto> reviewCounts = reviewCoreService.countReviewsByMemberWithPeriod(startDate, endDate);
+        List<MemberReviewCountResult> reviewCounts = reviewCoreService.countReviewsByMemberWithPeriod(startDate, endDate);
 
         log.info("집계된 유저 수: {}", reviewCounts.size());
 
-        // 상위 N개만 저장
-        List<MemberReviewCountDto> topReviewCounts = reviewCounts.stream()
+        List<MemberReviewCountResult> topReviewCounts = reviewCounts.stream()
             .limit(limit)
             .toList();
 
         List<MemberReviewRank> ranks = buildRanks(topReviewCounts, rankType, baseDate);
 
-        rankCoreService.deleteOldRanks(rankType, baseDate);
-        rankCoreService.saveAllRanks(ranks);
+        deleteOldRanks(rankType, baseDate);
+        saveAllRanks(ranks);
 
         log.info("랭킹 저장 완료: {} 건 (전체 {} 명 중 상위 {}명)", ranks.size(), reviewCounts.size(), limit);
     }
 
     private List<MemberReviewRank> buildRanks(
-        List<MemberReviewCountDto> reviewCounts,
+        List<MemberReviewCountResult> reviewCounts,
         RankType rankType,
         LocalDate baseDate
     ) {
         List<MemberReviewRank> ranks = new ArrayList<>();
         for (int i = 0; i < reviewCounts.size(); i++) {
-            MemberReviewCountDto dto = reviewCounts.get(i);
-            int currentRank = i + 1;
-
-            MemberReviewRank rank =
-                MemberReviewRank.of(
-                    dto.memberId(),
-                    dto.reviewCount().intValue(),
-                    currentRank,
-                    rankType,
-                    baseDate,
-                    dto.lastReviewAt()
-            );
-
-            ranks.add(rank);
+            MemberReviewCountResult dto = reviewCounts.get(i);
+            ranks.add(MemberReviewRank.of(
+                dto.memberId(),
+                dto.reviewCount().intValue(),
+                i + 1,
+                rankType,
+                baseDate,
+                dto.lastReviewAt()
+            ));
         }
-
         return ranks;
     }
 
@@ -105,20 +110,17 @@ public class RankAggregationService {
                 startDate = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
                 endDate = LocalDateTime.of(baseDate, LocalTime.MAX);
                 break;
-
             case MONTHLY:
                 YearMonth yearMonth = YearMonth.from(baseDate);
                 startDate = LocalDateTime.of(yearMonth.atDay(1), LocalTime.MIN);
                 endDate = LocalDateTime.of(yearMonth.atEndOfMonth(), LocalTime.MAX);
                 break;
-
             case WEEKLY:
                 LocalDate weekStart = baseDate.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
                 LocalDate weekEnd = weekStart.plusDays(6);
                 startDate = LocalDateTime.of(weekStart, LocalTime.MIN);
                 endDate = LocalDateTime.of(weekEnd, LocalTime.MAX);
                 break;
-
             default:
                 throw new BusinessException(ErrorCode.RANK_TYPE_UNKNOWN,
                     ErrorCode.RANK_TYPE_UNKNOWN.getDefaultMessage() + ": " + rankType);

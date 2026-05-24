@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.rank;
+package com.tastyhouse.core.domain.rank.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -38,26 +38,26 @@ public class MemberReviewRank extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     @Column(name = "review_count", nullable = false)
-    private Integer reviewCount; // 리뷰 작성 수
+    private Integer reviewCount;
 
     @Column(name = "rank_no", nullable = false)
-    private Integer rankNo; // 순위 번호
+    private Integer rankNo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "rank_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RankType rankType; // 랭킹 유형 (WEEKLY, MONTHLY 등)
+    private RankType rankType;
 
     @Column(name = "base_date", nullable = false)
-    private LocalDate baseDate; // 랭킹 기준 날짜
+    private LocalDate baseDate;
 
     @Column(name = "last_review_at")
-    private LocalDateTime lastReviewAt; // 마지막 리뷰 작성 일시
+    private LocalDateTime lastReviewAt;
 
     private MemberReviewRank(
         Long memberId,
@@ -83,13 +83,6 @@ public class MemberReviewRank extends BaseEntity {
         LocalDate baseDate,
         LocalDateTime lastReviewAt
     ) {
-        return new MemberReviewRank(
-            memberId,
-            reviewCount,
-            rankNo,
-            rankType,
-            baseDate,
-            lastReviewAt
-        );
+        return new MemberReviewRank(memberId, reviewCount, rankNo, rankType, baseDate, lastReviewAt);
     }
 }

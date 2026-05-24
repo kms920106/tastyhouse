@@ -1,10 +1,11 @@
-package com.tastyhouse.core.repository.rank;
+package com.tastyhouse.core.domain.rank.infrastructure.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.entity.rank.MemberReviewRank;
-import com.tastyhouse.core.entity.rank.RankType;
-import com.tastyhouse.core.entity.rank.dto.MemberRankDto;
-import com.tastyhouse.core.entity.rank.dto.QMemberRankDto;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.QMemberRankResult;
+import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
+import com.tastyhouse.core.domain.rank.domain.model.RankType;
+import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -13,19 +14,20 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.entity.rank.QMemberReviewRank.memberReviewRank;
 import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
+import static com.tastyhouse.core.domain.rank.domain.model.QMemberReviewRank.memberReviewRank;
 
 @Repository
 @RequiredArgsConstructor
 public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
 
     @Override
-    public List<MemberRankDto> findMemberRankList(RankType rankType, LocalDate baseDate, int limit) {
+    public List<MemberRankResult> findMemberRankList(RankType rankType, LocalDate baseDate, int limit) {
         return queryFactory
-            .select(new QMemberRankDto(
+            .select(new QMemberRankResult(
                 memberReviewRank.memberId,
                 member.nickname,
                 uploadedFile.filePath,
@@ -46,9 +48,9 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
     }
 
     @Override
-    public MemberRankDto findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
+    public MemberRankResult findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
         return queryFactory
-            .select(new QMemberRankDto(
+            .select(new QMemberRankResult(
                 memberReviewRank.memberId,
                 member.nickname,
                 uploadedFile.filePath,
@@ -80,10 +82,18 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
     }
 
     @Override
+    public void saveAll(List<MemberReviewRank> ranks) {
+        memberReviewRankJpaRepository.saveAll(ranks);
+    }
+
+    @Override
     public void deleteByRankTypeAndBaseDate(RankType rankType, LocalDate baseDate) {
         queryFactory
             .delete(memberReviewRank)
-            .where(memberReviewRank.rankType.eq(rankType), memberReviewRank.baseDate.eq(baseDate))
+            .where(
+                memberReviewRank.rankType.eq(rankType),
+                memberReviewRank.baseDate.eq(baseDate)
+            )
             .execute();
     }
 }

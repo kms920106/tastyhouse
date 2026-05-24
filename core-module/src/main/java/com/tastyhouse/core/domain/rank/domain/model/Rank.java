@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.rank;
+package com.tastyhouse.core.domain.rank.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -28,16 +28,16 @@ public class Rank extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "start_at", nullable = false)
-    private LocalDateTime startAt; // 랭킹 시작 일시
+    private LocalDateTime startAt;
 
     @Column(name = "end_at", nullable = false)
-    private LocalDateTime endAt; // 랭킹 종료 일시
+    private LocalDateTime endAt;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive; // 활성화 여부 (true: 활성)
+    private Boolean isActive;
 
     private Rank(LocalDateTime startAt, LocalDateTime endAt, Boolean isActive) {
         this.startAt = startAt;
