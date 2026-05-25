@@ -1,11 +1,11 @@
 package com.tastyhouse.core.domain.search.application;
 
-import com.tastyhouse.core.entity.place.dto.PlaceBookmarkedItemDto;
+import com.tastyhouse.core.domain.place.application.dto.result.PlaceBookmarkedItemDto;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
-import com.tastyhouse.core.repository.place.PlaceRepository;
+import com.tastyhouse.core.domain.place.domain.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

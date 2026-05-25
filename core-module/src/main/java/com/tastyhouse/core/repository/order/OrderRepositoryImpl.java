@@ -22,7 +22,7 @@ import static com.tastyhouse.core.entity.order.QOrder.order;
 import static com.tastyhouse.core.entity.order.QOrderItem.orderItem;
 import static com.tastyhouse.core.entity.order.QOrderItemOption.orderItemOption;
 import static com.tastyhouse.core.entity.payment.QPayment.payment;
-import static com.tastyhouse.core.entity.place.QPlace.place;
+import static com.tastyhouse.core.domain.place.domain.model.QPlace.place;
 
 @Repository
 @RequiredArgsConstructor

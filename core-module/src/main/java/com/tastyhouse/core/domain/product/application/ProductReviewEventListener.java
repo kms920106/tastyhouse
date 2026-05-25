@@ -1,6 +1,5 @@
 package com.tastyhouse.core.domain.product.application;
 
-import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
 import com.tastyhouse.core.domain.review.domain.event.ReviewCreatedEvent;
 import com.tastyhouse.core.domain.review.domain.event.ReviewDeletedEvent;

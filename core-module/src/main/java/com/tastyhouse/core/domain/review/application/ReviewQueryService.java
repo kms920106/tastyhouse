@@ -22,7 +22,7 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewCommentReposito
 import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.place.TagRepository;
+import com.tastyhouse.core.domain.place.domain.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

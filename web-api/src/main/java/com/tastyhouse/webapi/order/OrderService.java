@@ -9,7 +9,7 @@ import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.order.OrderStatus;
 import com.tastyhouse.core.entity.payment.Payment;
-import com.tastyhouse.core.entity.place.Place;
+import com.tastyhouse.core.domain.place.domain.model.Place;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.ProductOption;
 import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
@@ -24,7 +24,7 @@ import com.tastyhouse.core.domain.point.application.PointCommandService;
 import com.tastyhouse.core.domain.point.application.dto.command.UsePointCommand;
 import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
-import com.tastyhouse.core.service.PlaceCoreService;
+import com.tastyhouse.core.domain.place.application.PlaceQueryService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
@@ -53,13 +53,13 @@ public class OrderService {
     private final PointCommandService pointCommandService;
     private final CouponCommandService couponCommandService;
     private final ProductQueryService productQueryService;
-    private final PlaceCoreService placeCoreService;
+    private final PlaceQueryService placeQueryService;
     private final MemberQueryService memberQueryService;
     private final FileService fileService;
 
     @Transactional
     public OrderResponse createOrder(Long memberId, OrderCreateRequest request) {
-        Place place = placeCoreService.findPlaceById(request.placeId());
+        Place place = placeQueryService.findPlaceById(request.placeId());
 
         Member member = memberQueryService.getById(new MemberId(memberId));
 
@@ -218,7 +218,7 @@ public class OrderService {
             throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
-        Place place = placeCoreService.findPlaceById(order.getPlaceId());
+        Place place = placeQueryService.findPlaceById(order.getPlaceId());
         return buildOrderResponse(order, place, memberId);
     }
 

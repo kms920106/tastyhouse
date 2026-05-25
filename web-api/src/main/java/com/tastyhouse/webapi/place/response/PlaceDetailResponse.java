@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.place.response;
 
-import com.tastyhouse.core.entity.place.Place;
+import com.tastyhouse.core.domain.place.domain.model.Place;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;

@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.member.service;
 
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.service.PlaceCoreService;
+import com.tastyhouse.core.domain.place.application.PlaceQueryService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.PlaceBookmarkListItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberPlaceService {
 
-    private final PlaceCoreService placeCoreService;
+    private final PlaceQueryService placeQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
     public PageResult<PlaceBookmarkListItemResponse> getMyBookmarkedPlaces(Long memberId, int page, int size) {
-        return PageResult.from(placeCoreService.findMyBookmarkedPlaces(memberId, page, size))
+        return PageResult.from(placeQueryService.findMyBookmarkedPlaces(memberId, page, size))
             .map(dto -> PlaceBookmarkListItemResponse.from(
                 dto.placeId(),
                 dto.bookmarkId(),

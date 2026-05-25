@@ -2,8 +2,8 @@ package com.tastyhouse.webapi.place;
 
 import com.tastyhouse.core.common.CommonResponse;
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.entity.place.Amenity;
-import com.tastyhouse.core.entity.place.FoodType;
+import com.tastyhouse.core.domain.place.domain.model.Amenity;
+import com.tastyhouse.core.domain.place.domain.model.FoodType;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.place.request.LatestPlaceFilterRequest;
 import com.tastyhouse.webapi.place.response.AmenityListItemResponse;

@@ -24,7 +24,7 @@ import java.util.Optional;
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;
-import static com.tastyhouse.core.entity.place.QPlace.place;
+import static com.tastyhouse.core.domain.place.domain.model.QPlace.place;
 
 @Repository
 @RequiredArgsConstructor

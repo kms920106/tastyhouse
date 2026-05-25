@@ -23,7 +23,7 @@ import static com.tastyhouse.core.entity.order.QOrderItem.orderItem;
 import static com.tastyhouse.core.entity.payment.QPayment.payment;
 import static com.tastyhouse.core.entity.payment.QPaymentRefund.paymentRefund;
 import static com.tastyhouse.core.entity.payment.QTossPaymentRecord.tossPaymentRecord;
-import static com.tastyhouse.core.entity.place.QPlace.place;
+import static com.tastyhouse.core.domain.place.domain.model.QPlace.place;
 
 @Repository
 @RequiredArgsConstructor

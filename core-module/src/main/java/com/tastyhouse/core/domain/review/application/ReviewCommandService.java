@@ -23,10 +23,10 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewTagRepository;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.entity.place.Tag;
+import com.tastyhouse.core.domain.place.domain.model.Tag;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.repository.place.TagRepository;
+import com.tastyhouse.core.domain.place.domain.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.place.response;
 
-import com.tastyhouse.core.entity.place.FoodType;
+import com.tastyhouse.core.domain.place.domain.model.FoodType;
 
 import java.time.LocalDateTime;
 import java.util.List;

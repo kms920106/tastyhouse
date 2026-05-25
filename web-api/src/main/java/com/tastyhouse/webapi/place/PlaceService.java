@@ -1,20 +1,20 @@
 package com.tastyhouse.webapi.place;
 
-import com.tastyhouse.core.entity.place.Place;
-import com.tastyhouse.core.entity.place.PlaceBreakTime;
-import com.tastyhouse.core.entity.place.PlaceBusinessHour;
-import com.tastyhouse.core.entity.place.PlaceClosedDay;
-import com.tastyhouse.core.entity.place.PlaceOrderMethod;
-import com.tastyhouse.core.entity.place.PlacePhotoCategory;
-import com.tastyhouse.core.entity.place.PlaceStation;
-import com.tastyhouse.core.entity.place.dto.PlaceAmenityCategoryDto;
-import com.tastyhouse.core.entity.place.dto.PlaceAmenityWithCategoryDto;
-import com.tastyhouse.core.entity.place.dto.PlaceBannerImageDto;
-import com.tastyhouse.core.entity.place.dto.PlaceFoodTypeCategoryDto;
-import com.tastyhouse.core.entity.place.dto.PlacePhotoCategoryImageDto;
-import com.tastyhouse.core.entity.place.dto.BestPlaceItemDto;
-import com.tastyhouse.core.entity.place.dto.EditorChoiceDto;
-import com.tastyhouse.core.entity.place.dto.LatestPlaceItemDto;
+import com.tastyhouse.core.domain.place.application.dto.result.BestPlaceItemDto;
+import com.tastyhouse.core.domain.place.application.dto.result.EditorChoiceDto;
+import com.tastyhouse.core.domain.place.application.dto.result.LatestPlaceItemDto;
+import com.tastyhouse.core.domain.place.application.dto.result.PlaceAmenityCategoryDto;
+import com.tastyhouse.core.domain.place.application.dto.result.PlaceAmenityWithCategoryDto;
+import com.tastyhouse.core.domain.place.application.dto.result.PlaceBannerImageDto;
+import com.tastyhouse.core.domain.place.application.dto.result.PlaceFoodTypeCategoryDto;
+import com.tastyhouse.core.domain.place.application.dto.result.PlacePhotoCategoryImageDto;
+import com.tastyhouse.core.domain.place.domain.model.Place;
+import com.tastyhouse.core.domain.place.domain.model.PlaceBreakTime;
+import com.tastyhouse.core.domain.place.domain.model.PlaceBusinessHour;
+import com.tastyhouse.core.domain.place.domain.model.PlaceClosedDay;
+import com.tastyhouse.core.domain.place.domain.model.PlaceOrderMethod;
+import com.tastyhouse.core.domain.place.domain.model.PlacePhotoCategory;
+import com.tastyhouse.core.domain.place.domain.model.PlaceStation;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
 import com.tastyhouse.core.domain.product.domain.model.Product;
@@ -24,7 +24,8 @@ import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewList
 import com.tastyhouse.core.domain.review.application.dto.result.PlaceReviewStatisticsResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.service.PlaceCoreService;
+import com.tastyhouse.core.domain.place.application.PlaceCommandService;
+import com.tastyhouse.core.domain.place.application.PlaceQueryService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.place.request.LatestPlaceFilterRequest;
 import com.tastyhouse.webapi.place.response.AmenityListItemResponse;
@@ -61,14 +62,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PlaceService {
 
-    private final PlaceCoreService placeCoreService;
+    private final PlaceQueryService placeQueryService;
+    private final PlaceCommandService placeCommandService;
     private final ProductQueryService productQueryService;
     private final ReviewQueryService reviewQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
     public List<PlaceMapMarkerResponse> searchMapMarkers(Double latitude, Double longitude) {
-        return placeCoreService.findNearbyPlaces(latitude, longitude).stream()
+        return placeQueryService.findNearbyPlaces(latitude, longitude).stream()
                 .map(place -> PlaceMapMarkerResponse.from(
                     place.getId(),
                     place.getLatitude(),
@@ -79,17 +81,17 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PageResult<BestPlaceListItemResponse> searchBestPlaces(int page, int size) {
-        return PageResult.from(placeCoreService.findBestPlaces(page, size)).map(this::convertToBestPlaceListItemResponse);
+        return PageResult.from(placeQueryService.findBestPlaces(page, size)).map(this::convertToBestPlaceListItemResponse);
     }
 
     @Transactional(readOnly = true)
     public PageResult<LatestPlaceListItemResponse> searchLatestPlaces(LatestPlaceFilterRequest filterRequest, int page, int size) {
-        return PageResult.from(placeCoreService.findLatestPlaces(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size)).map(this::convertToLatestPlaceListItemResponse);
+        return PageResult.from(placeQueryService.findLatestPlaces(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size)).map(this::convertToLatestPlaceListItemResponse);
     }
 
     @Transactional(readOnly = true)
     public List<EditorChoiceResponse> searchEditorChoices(int page, int size) {
-        return placeCoreService.findEditorChoices(page, size).getContent().stream().map(this::convertToEditorChoiceResponse).toList();
+        return placeQueryService.findEditorChoices(page, size).getContent().stream().map(this::convertToEditorChoiceResponse).toList();
     }
 
     private EditorChoiceResponse convertToEditorChoiceResponse(EditorChoiceDto dto) {
@@ -146,13 +148,13 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<StationListItemResponse> searchAllStations() {
-        List<PlaceStation> stations = placeCoreService.findAllStations();
+        List<PlaceStation> stations = placeQueryService.findAllStations();
         return stations.stream().map(this::convertToStationListItemResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<FoodTypeListItemResponse> searchAllFoodTypes() {
-        List<PlaceFoodTypeCategoryDto> categories = placeCoreService.findAllFoodTypeCategories();
+        List<PlaceFoodTypeCategoryDto> categories = placeQueryService.findAllFoodTypeCategories();
         return categories.stream()
                 .map(this::convertToFoodTypeListItemResponse)
                 .toList();
@@ -160,7 +162,7 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<AmenityListItemResponse> searchAllAmenities() {
-        List<PlaceAmenityCategoryDto> categories = placeCoreService.findAllAmenityCategories();
+        List<PlaceAmenityCategoryDto> categories = placeQueryService.findAllAmenityCategories();
         return categories.stream()
                 .map(this::convertToAmenityListItemResponse)
                 .toList();
@@ -193,17 +195,17 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PlaceDetailResponse getPlaceDetail(Long placeId) {
-        Place place = placeCoreService.findPlaceById(placeId);
+        Place place = placeQueryService.findPlaceById(placeId);
         return PlaceDetailResponse.from(place);
     }
 
     @Transactional(readOnly = true)
     public PlaceInfoResponse getPlaceInfo(Long placeId) {
-        placeCoreService.findPlaceById(placeId);
-        List<PlaceBusinessHour> businessHours = placeCoreService.findPlaceBusinessHours(placeId);
-        List<PlaceBreakTime> breakTimes = placeCoreService.findPlaceBreakTimes(placeId);
-        List<PlaceClosedDay> closedDays = placeCoreService.findPlaceClosedDays(placeId);
-        List<PlaceAmenityWithCategoryDto> placeAmenities = placeCoreService.findPlaceAmenitiesWithCategory(placeId);
+        placeQueryService.findPlaceById(placeId);
+        List<PlaceBusinessHour> businessHours = placeQueryService.findPlaceBusinessHours(placeId);
+        List<PlaceBreakTime> breakTimes = placeQueryService.findPlaceBreakTimes(placeId);
+        List<PlaceClosedDay> closedDays = placeQueryService.findPlaceClosedDays(placeId);
+        List<PlaceAmenityWithCategoryDto> placeAmenities = placeQueryService.findPlaceAmenitiesWithCategory(placeId);
 
         List<PlaceInfoResponse.BusinessHourItem> businessHourItems = businessHours.stream()
                 .map(this::convertToBusinessHourItem)
@@ -223,7 +225,7 @@ public class PlaceService {
 
         String ownerMessage = null;
         java.time.LocalDateTime ownerMessageCreatedAt = null;
-        var ownerMessageHistory = placeCoreService.findLatestOwnerMessage(placeId);
+        var ownerMessageHistory = placeQueryService.findLatestOwnerMessage(placeId);
         if (ownerMessageHistory.isPresent()) {
             ownerMessage = ownerMessageHistory.get().getMessage();
             ownerMessageCreatedAt = ownerMessageHistory.get().getCreatedAt();
@@ -241,7 +243,7 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<PlaceBannerResponse> getPlaceBanners(Long placeId) {
-        List<PlaceBannerImageDto> banners = placeCoreService.findPlaceBannerImages(placeId);
+        List<PlaceBannerImageDto> banners = placeQueryService.findPlaceBannerImages(placeId);
         return banners.stream()
                 .map(this::convertToPlaceBannerResponse)
                 .toList();
@@ -274,8 +276,8 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<PlacePhotoCategoryResponse> getPlacePhotos(Long placeId) {
-        List<PlacePhotoCategory> categories = placeCoreService.findPlacePhotoCategoriesByPlaceId(placeId);
-        List<PlacePhotoCategoryImageDto> images = placeCoreService.findAllPlacePhotoCategoryImages();
+        List<PlacePhotoCategory> categories = placeQueryService.findPlacePhotoCategoriesByPlaceId(placeId);
+        List<PlacePhotoCategoryImageDto> images = placeQueryService.findAllPlacePhotoCategoryImages();
 
         Map<Long, List<PlacePhotoCategoryImageDto>> imagesByCategory = images.stream()
                 .filter(image -> image.placePhotoCategoryId() != null)
@@ -339,7 +341,7 @@ public class PlaceService {
     public PlaceReviewStatisticsResponse getPlaceReviewStatistics(Long placeId) {
         PlaceReviewStatisticsResult statistics = reviewQueryService.findPlaceReviewStatistics(placeId);
 
-        Place place = placeCoreService.findPlaceById(placeId);
+        Place place = placeQueryService.findPlaceById(placeId);
 
         return PlaceReviewStatisticsResponse.from(
             place.getRating(),
@@ -425,19 +427,19 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public PlaceBookmarkResponse isBookmarked(Long placeId, Long memberId) {
-        boolean isBookmarked = placeCoreService.isBookmarked(placeId, memberId);
+        boolean isBookmarked = placeQueryService.isBookmarked(placeId, memberId);
         return PlaceBookmarkResponse.from(isBookmarked);
     }
 
     @Transactional
     public boolean toggleBookmark(Long placeId, Long memberId) {
-        return placeCoreService.toggleBookmark(placeId, memberId);
+        return placeCommandService.toggleBookmark(placeId, memberId);
     }
 
     @Transactional(readOnly = true)
     public PlaceOrderMethodResponse getPlaceOrderMethods(Long placeId) {
-        placeCoreService.findPlaceById(placeId);
-        List<PlaceOrderMethod> placeOrderMethods = placeCoreService.findPlaceOrderMethods(placeId);
+        placeQueryService.findPlaceById(placeId);
+        List<PlaceOrderMethod> placeOrderMethods = placeQueryService.findPlaceOrderMethods(placeId);
 
         List<PlaceOrderMethodResponse.OrderMethodItem> orderMethodItems =
             placeOrderMethods.stream()
