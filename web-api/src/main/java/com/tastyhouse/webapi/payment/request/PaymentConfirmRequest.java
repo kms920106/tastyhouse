@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.payment.request;
 
-import com.tastyhouse.core.entity.payment.PgProvider;
+import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

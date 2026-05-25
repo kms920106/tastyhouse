@@ -1,7 +1,7 @@
 package com.tastyhouse.core.entity.payment.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
-import com.tastyhouse.core.entity.payment.PaymentStatus;
+import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 
 import java.time.LocalDateTime;
 

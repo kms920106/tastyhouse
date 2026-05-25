@@ -8,7 +8,7 @@ import com.tastyhouse.core.entity.order.Order;
 import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.order.OrderStatus;
-import com.tastyhouse.core.entity.payment.Payment;
+import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.place.domain.model.Place;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.ProductOption;
@@ -267,7 +267,7 @@ public class OrderService {
                 payment.getId(),
                 payment.getPaymentMethod(),
                 payment.getPaymentStatus(),
-                payment.getAmount(),
+                payment.getAmount() != null ? payment.getAmount().value() : null,
                 payment.getCardCompany(),
                 payment.getCardNumber(),
                 payment.getApprovedAt(),

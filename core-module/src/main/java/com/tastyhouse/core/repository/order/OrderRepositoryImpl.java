@@ -1,11 +1,13 @@
 package com.tastyhouse.core.repository.order;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.entity.order.Order;
 import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
 import com.tastyhouse.core.entity.order.OrderStatus;
-import com.tastyhouse.core.entity.payment.PaymentStatus;
+import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.entity.payment.dto.QOrderListItemDto;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploade
 import static com.tastyhouse.core.entity.order.QOrder.order;
 import static com.tastyhouse.core.entity.order.QOrderItem.orderItem;
 import static com.tastyhouse.core.entity.order.QOrderItemOption.orderItemOption;
-import static com.tastyhouse.core.entity.payment.QPayment.payment;
+import static com.tastyhouse.core.domain.payment.domain.model.QPayment.payment;
 import static com.tastyhouse.core.domain.place.domain.model.QPlace.place;
 
 @Repository
@@ -106,12 +108,13 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Page<Order> findCompletedOrCancelledOrdersByMemberId(Long memberId, Pageable pageable) {
+        BooleanExpression paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId")
+            .eq(order.id)
+            .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED));
+
         List<Order> content = queryFactory
             .selectFrom(order)
-            .innerJoin(payment).on(
-                payment.orderId.eq(order.id)
-                    .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED))
-            )
+            .innerJoin(payment).on(paymentJoinCondition)
             .where(order.memberId.eq(memberId))
             .orderBy(order.createdAt.desc())
             .offset(pageable.getOffset())
@@ -121,10 +124,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         long total = queryFactory
             .select(order.count())
             .from(order)
-            .innerJoin(payment).on(
-                payment.orderId.eq(order.id)
-                    .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED))
-            )
+            .innerJoin(payment).on(paymentJoinCondition)
             .where(order.memberId.eq(memberId))
             .fetchOne();
 
@@ -133,6 +133,10 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Page<OrderListItemDto> findOrderListByMemberId(Long memberId, Pageable pageable) {
+        BooleanExpression paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId")
+            .eq(order.id)
+            .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED));
+
         List<OrderListItemDto> content = queryFactory
             .select(new QOrderListItemDto(
                 order.id,
@@ -145,10 +149,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 payment.approvedAt
             ))
             .from(order)
-            .innerJoin(payment).on(
-                payment.orderId.eq(order.id)
-                    .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED))
-            )
+            .innerJoin(payment).on(paymentJoinCondition)
             .leftJoin(place).on(place.id.eq(order.placeId))
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
             .leftJoin(orderItem).on(orderItem.orderId.eq(order.id))
@@ -162,10 +163,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         long total = queryFactory
             .select(order.count())
             .from(order)
-            .innerJoin(payment).on(
-                payment.orderId.eq(order.id)
-                    .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED))
-            )
+            .innerJoin(payment).on(paymentJoinCondition)
             .where(order.memberId.eq(memberId))
             .fetchOne();
 

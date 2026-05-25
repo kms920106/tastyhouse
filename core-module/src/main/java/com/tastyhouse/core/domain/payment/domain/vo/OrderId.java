@@ -1,0 +1,10 @@
+package com.tastyhouse.core.domain.payment.domain.vo;
+
+public record OrderId(Long value) {
+
+    public OrderId {
+        if (value == null || value <= 0) {
+            throw new IllegalArgumentException("OrderId는 양수여야 합니다: " + value);
+        }
+    }
+}

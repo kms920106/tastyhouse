@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.order.response;
 
-import com.tastyhouse.core.entity.payment.PaymentMethod;
-import com.tastyhouse.core.entity.payment.PaymentStatus;
+import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
+import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 
 import java.time.LocalDateTime;
 

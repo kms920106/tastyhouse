@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.payment;
+package com.tastyhouse.core.domain.payment.domain.model;
 
 public enum PaymentMethod {
     CASH_ON_SITE,   // 현장 현금 결제

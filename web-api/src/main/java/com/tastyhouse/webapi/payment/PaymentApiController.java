@@ -1,6 +1,16 @@
 package com.tastyhouse.webapi.payment;
 
 import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.core.domain.payment.application.PaymentCommandService;
+import com.tastyhouse.core.domain.payment.application.PaymentQueryService;
+import com.tastyhouse.core.domain.payment.application.dto.command.CancelPaymentCommand;
+import com.tastyhouse.core.domain.payment.application.dto.command.ConfirmPaymentCommand;
+import com.tastyhouse.core.domain.payment.application.dto.command.CreatePaymentCommand;
+import com.tastyhouse.core.domain.payment.application.dto.command.RequestRefundCommand;
+import com.tastyhouse.core.domain.payment.application.dto.command.TossConfirmCommand;
+import com.tastyhouse.core.domain.payment.application.dto.result.PaymentCancelResult;
+import com.tastyhouse.core.domain.payment.application.dto.result.PaymentRefundResult;
+import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 import com.tastyhouse.webapi.payment.request.PaymentCancelRequest;
 import com.tastyhouse.webapi.payment.request.PaymentConfirmRequest;
 import com.tastyhouse.webapi.payment.request.PaymentCreateRequest;
@@ -9,6 +19,7 @@ import com.tastyhouse.webapi.payment.request.TossPaymentConfirmApiRequest;
 import com.tastyhouse.webapi.payment.response.PaymentCancelResponse;
 import com.tastyhouse.webapi.payment.response.PaymentRefundResponse;
 import com.tastyhouse.webapi.payment.response.PaymentResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,7 +30,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +43,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Payment", description = "결제 API")
 public class PaymentApiController {
 
-    private final PaymentService paymentService;
+    private final PaymentCommandService paymentCommandService;
+    private final PaymentQueryService paymentQueryService;
 
     @Operation(summary = "결제 생성", description = "주문에 대한 결제를 생성합니다.")
     @ApiResponses({
@@ -47,8 +58,11 @@ public class PaymentApiController {
         @Valid @RequestBody PaymentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.createPayment(userDetails.getMemberId(), request);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        PaymentResult result = paymentCommandService.createPayment(
+            userDetails.getMemberId(),
+            new CreatePaymentCommand(request.orderId(), request.paymentMethod())
+        );
+        return ResponseEntity.ok(CommonResponse.success(PaymentResponse.from(result)));
     }
 
     @Operation(summary = "결제 승인 (PG 콜백)", description = "PG사로부터 결제 승인을 처리합니다.")
@@ -60,8 +74,19 @@ public class PaymentApiController {
     public ResponseEntity<CommonResponse<PaymentResponse>> confirmPayment(
         @Valid @RequestBody PaymentConfirmRequest request
     ) {
-        PaymentResponse response = paymentService.confirmPayment(request);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        PaymentResult result = paymentCommandService.confirmPayment(
+            new ConfirmPaymentCommand(
+                request.paymentId(),
+                request.pgProvider(),
+                request.pgTid(),
+                request.pgOrderId(),
+                request.cardCompany(),
+                request.cardNumber(),
+                request.installmentMonths(),
+                request.receiptUrl()
+            )
+        );
+        return ResponseEntity.ok(CommonResponse.success(PaymentResponse.from(result)));
     }
 
     @Operation(summary = "토스 결제 승인", description = "토스페이먼츠 결제를 승인합니다. 프론트엔드에서 /success 리다이렉트 후 호출합니다.")
@@ -77,8 +102,11 @@ public class PaymentApiController {
         @Valid @RequestBody TossPaymentConfirmApiRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.confirmTossPayment(userDetails.getMemberId(), request);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        PaymentResult result = paymentCommandService.confirmTossPayment(
+            userDetails.getMemberId(),
+            new TossConfirmCommand(request.paymentKey(), request.pgOrderId(), request.amount())
+        );
+        return ResponseEntity.ok(CommonResponse.success(PaymentResponse.from(result)));
     }
 
     @Operation(summary = "주문별 결제 조회", description = "주문에 대한 결제 정보를 조회합니다.")
@@ -93,8 +121,8 @@ public class PaymentApiController {
         @PathVariable Long orderId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.getPaymentByOrderId(userDetails.getMemberId(), orderId);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        PaymentResult result = paymentQueryService.getPaymentByOrderId(userDetails.getMemberId(), orderId);
+        return ResponseEntity.ok(CommonResponse.success(PaymentResponse.from(result)));
     }
 
     @Operation(summary = "결제 취소", description = "결제를 취소합니다.")
@@ -110,8 +138,10 @@ public class PaymentApiController {
         @Valid @RequestBody PaymentCancelRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentCancelResponse response = paymentService.cancelPayment(userDetails.getMemberId(), paymentId, request);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        PaymentCancelResult result = paymentCommandService.cancelPayment(
+            userDetails.getMemberId(), paymentId, new CancelPaymentCommand(request.cancelReason())
+        );
+        return ResponseEntity.ok(CommonResponse.success(PaymentCancelResponse.of(result)));
     }
 
     @Operation(summary = "현장결제 완료", description = "현장결제를 완료 처리합니다. 구매자가 직접 호출합니다.")
@@ -127,8 +157,8 @@ public class PaymentApiController {
         @PathVariable Long paymentId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.completeOnSitePayment(userDetails.getMemberId(), paymentId);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        PaymentResult result = paymentCommandService.completeOnSitePayment(userDetails.getMemberId(), paymentId);
+        return ResponseEntity.ok(CommonResponse.success(PaymentResponse.from(result)));
     }
 
     @Operation(summary = "환불 요청", description = "결제에 대한 환불을 요청합니다.")
@@ -145,7 +175,9 @@ public class PaymentApiController {
         @Valid @RequestBody RefundRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentRefundResponse response = paymentService.requestRefund(userDetails.getMemberId(), paymentId, request);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        PaymentRefundResult result = paymentCommandService.requestRefund(
+            userDetails.getMemberId(), paymentId, new RequestRefundCommand(request.refundAmount(), request.refundReason())
+        );
+        return ResponseEntity.ok(CommonResponse.success(PaymentRefundResponse.from(result)));
     }
 }

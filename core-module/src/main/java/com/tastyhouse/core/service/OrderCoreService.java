@@ -3,12 +3,13 @@ package com.tastyhouse.core.service;
 import com.tastyhouse.core.entity.order.Order;
 import com.tastyhouse.core.entity.order.OrderItem;
 import com.tastyhouse.core.entity.order.OrderItemOption;
-import com.tastyhouse.core.entity.payment.Payment;
+import com.tastyhouse.core.domain.payment.domain.model.Payment;
+import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
+import com.tastyhouse.core.domain.payment.domain.vo.OrderId;
 import com.tastyhouse.core.entity.payment.dto.OrderListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.repository.order.OrderRepository;
-import com.tastyhouse.core.repository.payment.PaymentRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,7 @@ public class OrderCoreService {
 
     @Transactional(readOnly = true)
     public Optional<Payment> findPaymentByOrderId(Long orderId) {
-        return paymentRepository.findByOrderId(orderId);
+        return paymentRepository.findByOrderId(new OrderId(orderId));
     }
 
     @Transactional

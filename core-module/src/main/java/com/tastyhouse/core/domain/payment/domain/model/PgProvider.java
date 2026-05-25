@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.payment;
+package com.tastyhouse.core.domain.payment.domain.model;
 
 public enum PgProvider {
     TOSS,           // 토스페이먼츠

@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.payment.response;
+package com.tastyhouse.core.domain.payment.domain.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

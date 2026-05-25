@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.payment;
+package com.tastyhouse.core.domain.payment.domain.model;
 
 public enum RefundStatus {
     PENDING,        // 환불 대기
