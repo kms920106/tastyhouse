@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.payment.domain.vo;
+package com.tastyhouse.core.domain.order.domain.vo;
 
 public record OrderId(Long value) {
 

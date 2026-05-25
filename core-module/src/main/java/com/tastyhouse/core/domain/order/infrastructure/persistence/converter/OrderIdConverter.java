@@ -1,6 +1,6 @@
-package com.tastyhouse.core.domain.payment.infrastructure.persistence.converter;
+package com.tastyhouse.core.domain.order.infrastructure.persistence.converter;
 
-import com.tastyhouse.core.domain.payment.domain.vo.OrderId;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

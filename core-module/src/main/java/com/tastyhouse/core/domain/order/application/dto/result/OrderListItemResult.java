@@ -1,11 +1,11 @@
-package com.tastyhouse.core.entity.payment.dto;
+package com.tastyhouse.core.domain.order.application.dto.result;
 
 import com.querydsl.core.annotations.QueryProjection;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 
 import java.time.LocalDateTime;
 
-public record OrderListItemDto(
+public record OrderListItemResult(
     Long id,
     String placeName,
     String placeThumbnailImageFilePath,
@@ -16,6 +16,6 @@ public record OrderListItemDto(
     LocalDateTime paymentDate
 ) {
     @QueryProjection
-    public OrderListItemDto {
+    public OrderListItemResult {
     }
 }

@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.order;
+package com.tastyhouse.core.domain.order.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -19,34 +19,34 @@ public class OrderItem extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "order_id", nullable = false)
-    private Long orderId; // 주문 ID (ORDERS.id 참조)
+    private Long orderId;
 
     @Column(name = "product_id", nullable = false)
-    private Long productId; // 상품 ID (PRODUCT.id 참조)
+    private Long productId;
 
     @Column(name = "product_name", nullable = false)
-    private String productName; // 주문 당시 상품명 (스냅샷)
+    private String productName;
 
     @Column(name = "product_image_url", length = 500)
-    private String productImageUrl; // 주문 당시 상품 이미지 URL (스냅샷)
+    private String productImageUrl;
 
     @Column(name = "quantity", nullable = false)
-    private Integer quantity; // 주문 수량
+    private Integer quantity;
 
     @Column(name = "unit_price", nullable = false)
-    private Integer unitPrice; // 단위 상품 가격 (할인 전)
+    private Integer unitPrice;
 
     @Column(name = "discount_price")
-    private Integer discountPrice; // 상품 할인 금액 (null이면 할인 없음)
+    private Integer discountPrice;
 
     @Column(name = "option_total_price", nullable = false)
-    private Integer optionTotalPrice; // 선택 옵션 추가 금액 합계
+    private Integer optionTotalPrice;
 
     @Column(name = "total_price", nullable = false)
-    private Integer totalPrice; // 이 주문 항목의 최종 금액 합계
+    private Integer totalPrice;
 
     private OrderItem(
         Long orderId,
@@ -94,10 +94,7 @@ public class OrderItem extends BaseEntity {
         );
     }
 
-    public void updatePrices(
-        Integer optionTotalPrice,
-        Integer totalPrice
-    ) {
+    public void updatePrices(Integer optionTotalPrice, Integer totalPrice) {
         this.optionTotalPrice = optionTotalPrice;
         this.totalPrice = totalPrice;
     }

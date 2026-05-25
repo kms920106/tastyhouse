@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.order;
+package com.tastyhouse.core.domain.order.domain.model;
 
 public enum OrderStatus {
     PENDING,        // 주문 대기

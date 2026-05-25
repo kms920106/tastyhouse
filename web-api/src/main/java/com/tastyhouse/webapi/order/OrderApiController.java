@@ -1,11 +1,26 @@
 package com.tastyhouse.webapi.order;
 
 import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.core.domain.order.application.OrderCommandService;
+import com.tastyhouse.core.domain.order.application.OrderQueryService;
+import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderCommand;
+import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderItemCommand;
+import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderItemOptionCommand;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderItemOptionResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
+import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
+import com.tastyhouse.webapi.order.response.OrderItemOptionResponse;
+import com.tastyhouse.webapi.order.response.OrderItemResponse;
 import com.tastyhouse.webapi.order.response.OrderResponse;
+import com.tastyhouse.webapi.order.response.PaymentSummaryResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,8 +30,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +48,10 @@ import java.util.List;
 @Tag(name = "Order", description = "주문 API")
 public class OrderApiController {
 
-    private final OrderService orderService;
+    private final OrderCommandService orderCommandService;
+    private final OrderQueryService orderQueryService;
+    private final ReviewQueryService reviewQueryService;
+    private final FileService fileService;
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
     @ApiResponses({
@@ -46,8 +64,9 @@ public class OrderApiController {
         @Valid @RequestBody OrderCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        OrderResponse response = orderService.createOrder(userDetails.getMemberId(), request);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        CreateOrderCommand command = toCreateOrderCommand(request);
+        OrderResult result = orderCommandService.createOrder(userDetails.getMemberId(), command);
+        return ResponseEntity.ok(CommonResponse.success(toOrderResponse(result, userDetails.getMemberId())));
     }
 
     @Operation(summary = "주문 목록 조회", description = "회원의 주문 목록을 조회합니다.")
@@ -61,12 +80,16 @@ public class OrderApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
-        PageResult<OrderListItemResponse> pageResult = orderService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
+        org.springframework.data.domain.Page<OrderListItemResult> page =
+            orderQueryService.findOrderList(memberId, pageRequest.page(), pageRequest.size());
+        List<OrderListItemResponse> items = page.getContent().stream()
+            .map(this::toOrderListItemResponse)
+            .toList();
         CommonResponse<List<OrderListItemResponse>> response = CommonResponse.success(
-            pageResult.getContent(),
-            pageResult.getCurrentPage(),
-            pageResult.getPageSize(),
-            pageResult.getTotalElements()
+            items,
+            page.getNumber(),
+            page.getSize(),
+            page.getTotalElements()
         );
         return ResponseEntity.ok(response);
     }
@@ -83,8 +106,116 @@ public class OrderApiController {
         @PathVariable Long orderId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        OrderResponse response = orderService.getOrderDetail(userDetails.getMemberId(), orderId);
-        return ResponseEntity.ok(CommonResponse.success(response));
+        Long memberId = userDetails.getMemberId();
+        OrderResult result = orderQueryService.findOrderDetail(memberId, orderId);
+        return ResponseEntity.ok(CommonResponse.success(toOrderResponse(result, memberId)));
     }
 
+    private OrderListItemResponse toOrderListItemResponse(OrderListItemResult dto) {
+        return OrderListItemResponse.from(
+            dto.id(),
+            dto.placeName(),
+            fileService.getUrlByPath(dto.placeThumbnailImageFilePath()),
+            dto.firstProductName(),
+            dto.totalItemCount(),
+            dto.amount(),
+            dto.paymentStatus(),
+            dto.paymentDate()
+        );
+    }
+
+    private CreateOrderCommand toCreateOrderCommand(OrderCreateRequest request) {
+        List<CreateOrderItemCommand> itemCommands = request.orderItems().stream()
+            .map(item -> {
+                List<CreateOrderItemOptionCommand> optionCommands = item.selectedOptions() == null ? null :
+                    item.selectedOptions().stream()
+                        .map(opt -> new CreateOrderItemOptionCommand(opt.groupId(), opt.optionId()))
+                        .toList();
+                return new CreateOrderItemCommand(item.productId(), item.quantity(), optionCommands);
+            })
+            .toList();
+        return new CreateOrderCommand(
+            request.placeId(),
+            itemCommands,
+            request.memberCouponId(),
+            request.usePoint(),
+            request.totalProductAmount(),
+            request.totalDiscountAmount(),
+            request.productDiscountAmount(),
+            request.couponDiscountAmount(),
+            request.finalAmount()
+        );
+    }
+
+    private OrderResponse toOrderResponse(OrderResult result, Long memberId) {
+        List<OrderItemResponse> itemResponses = result.orderItems().stream()
+            .map(item -> toOrderItemResponse(item, result.id(), memberId))
+            .toList();
+
+        PaymentSummaryResponse paymentSummary = null;
+        if (result.payment() != null) {
+            paymentSummary = PaymentSummaryResponse.from(
+                result.payment().id(),
+                result.payment().paymentMethod(),
+                result.payment().paymentStatus(),
+                result.payment().amount(),
+                result.payment().cardCompany(),
+                result.payment().cardNumber(),
+                result.payment().approvedAt(),
+                result.payment().receiptUrl()
+            );
+        }
+
+        return OrderResponse.from(
+            result.id(),
+            result.orderNumber(),
+            result.paymentStatus(),
+            result.placeName(),
+            result.placePhoneNumber(),
+            result.ordererName(),
+            result.ordererPhone(),
+            result.ordererEmail(),
+            result.totalProductAmount(),
+            result.productDiscountAmount(),
+            result.couponDiscountAmount(),
+            result.pointDiscountAmount(),
+            result.totalDiscountAmount(),
+            result.finalAmount(),
+            result.usedPoint(),
+            result.earnedPoint(),
+            itemResponses,
+            paymentSummary,
+            result.approvedAt(),
+            result.createdAt()
+        );
+    }
+
+    private OrderItemResponse toOrderItemResponse(OrderItemResult item, Long orderId, Long memberId) {
+        List<OrderItemOptionResponse> optionResponses = item.options().stream()
+            .map(opt -> OrderItemOptionResponse.from(
+                opt.id(),
+                opt.optionGroupName(),
+                opt.optionName(),
+                opt.additionalPrice()
+            ))
+            .toList();
+
+        boolean isReviewed = reviewQueryService.existsReviewByOrderItemAndMember(
+            orderId, item.productId(), memberId
+        );
+
+        return OrderItemResponse.from(
+            item.id(),
+            item.productId(),
+            item.productName(),
+            fileService.getUrlByPath(item.productImageFilePath()),
+            item.quantity(),
+            item.unitPrice(),
+            item.discountPrice(),
+            item.optionTotalPrice(),
+            item.totalPrice(),
+            isReviewed,
+            optionResponses
+        );
+    }
 }

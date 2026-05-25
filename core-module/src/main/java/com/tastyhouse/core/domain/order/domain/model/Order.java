@@ -1,6 +1,8 @@
-package com.tastyhouse.core.entity.order;
+package com.tastyhouse.core.domain.order.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
+import com.tastyhouse.core.exception.AccessDeniedException;
+import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,56 +23,56 @@ public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 주문한 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     @Column(name = "place_id", nullable = false)
-    private Long placeId; // 주문 장소 ID (PLACE.id 참조)
+    private Long placeId;
 
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
-    private String orderNumber; // 주문 번호 (고유 식별 번호)
+    private String orderNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private OrderStatus orderStatus; // 주문 상태 (PENDING: 대기, CONFIRMED: 확정, CANCELLED: 취소)
+    private OrderStatus orderStatus;
 
     @Column(name = "orderer_name", nullable = false, length = 100)
-    private String ordererName; // 주문자 이름
+    private String ordererName;
 
     @Column(name = "orderer_phone", nullable = false, length = 20)
-    private String ordererPhone; // 주문자 연락처
+    private String ordererPhone;
 
     @Column(name = "orderer_email", length = 100)
-    private String ordererEmail; // 주문자 이메일
+    private String ordererEmail;
 
     @Column(name = "total_product_amount", nullable = false)
-    private Integer totalProductAmount; // 상품 금액 합계 (할인 전)
+    private Integer totalProductAmount;
 
     @Column(name = "product_discount_amount", nullable = false)
-    private Integer productDiscountAmount; // 상품 자체 할인 금액
+    private Integer productDiscountAmount;
 
     @Column(name = "coupon_discount_amount", nullable = false)
-    private Integer couponDiscountAmount; // 쿠폰 할인 금액
+    private Integer couponDiscountAmount;
 
     @Column(name = "point_discount_amount", nullable = false)
-    private Integer pointDiscountAmount; // 포인트 할인 금액
+    private Integer pointDiscountAmount;
 
     @Column(name = "total_discount_amount", nullable = false)
-    private Integer totalDiscountAmount; // 총 할인 금액 합계
+    private Integer totalDiscountAmount;
 
     @Column(name = "final_amount", nullable = false)
-    private Integer finalAmount; // 최종 결제 금액
+    private Integer finalAmount;
 
     @Column(name = "member_coupon_id")
-    private Long memberCouponId; // 사용한 회원 쿠폰 ID (MEMBER_COUPON.id 참조, null이면 쿠폰 미사용)
+    private Long memberCouponId;
 
     @Column(name = "used_point", nullable = false)
-    private Integer usedPoint; // 사용한 포인트
+    private Integer usedPoint;
 
     @Column(name = "earned_point", nullable = false)
-    private Integer earnedPoint; // 이 주문으로 적립된 포인트
+    private Integer earnedPoint;
 
     private Order(
         Long memberId,
@@ -144,6 +146,12 @@ public class Order extends BaseEntity {
             usedPoint,
             earnedPoint
         );
+    }
+
+    public void validateOwnership(Long memberId) {
+        if (!this.memberId.equals(memberId)) {
+            throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);
+        }
     }
 
     public void confirm() {

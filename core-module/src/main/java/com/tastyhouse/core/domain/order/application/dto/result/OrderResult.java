@@ -1,0 +1,82 @@
+package com.tastyhouse.core.domain.order.application.dto.result;
+
+import com.tastyhouse.core.domain.order.domain.model.Order;
+import com.tastyhouse.core.domain.payment.domain.model.Payment;
+import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public record OrderResult(
+    Long id,
+    String orderNumber,
+    PaymentStatus paymentStatus,
+    String placeName,
+    String placePhoneNumber,
+    String ordererName,
+    String ordererPhone,
+    String ordererEmail,
+    Integer totalProductAmount,
+    Integer productDiscountAmount,
+    Integer couponDiscountAmount,
+    Integer pointDiscountAmount,
+    Integer totalDiscountAmount,
+    Integer finalAmount,
+    Integer usedPoint,
+    Integer earnedPoint,
+    List<OrderItemResult> orderItems,
+    PaymentResult payment,
+    LocalDateTime approvedAt,
+    LocalDateTime createdAt
+) {
+    public record PaymentResult(
+        Long id,
+        com.tastyhouse.core.domain.payment.domain.model.PaymentMethod paymentMethod,
+        PaymentStatus paymentStatus,
+        Integer amount,
+        String cardCompany,
+        String cardNumber,
+        LocalDateTime approvedAt,
+        String receiptUrl
+    ) {
+        public static PaymentResult from(Payment payment) {
+            return new PaymentResult(
+                payment.getId(),
+                payment.getPaymentMethod(),
+                payment.getPaymentStatus(),
+                payment.getAmount() != null ? payment.getAmount().value() : null,
+                payment.getCardCompany(),
+                payment.getCardNumber(),
+                payment.getApprovedAt(),
+                payment.getReceiptUrl()
+            );
+        }
+    }
+
+    public static OrderResult from(Order order, String placeName, String placePhoneNumber,
+                                   List<OrderItemResult> orderItems, Payment payment) {
+        PaymentResult paymentResult = payment != null ? PaymentResult.from(payment) : null;
+        return new OrderResult(
+            order.getId(),
+            order.getOrderNumber(),
+            payment != null ? payment.getPaymentStatus() : null,
+            placeName,
+            placePhoneNumber,
+            order.getOrdererName(),
+            order.getOrdererPhone(),
+            order.getOrdererEmail(),
+            order.getTotalProductAmount(),
+            order.getProductDiscountAmount(),
+            order.getCouponDiscountAmount(),
+            order.getPointDiscountAmount(),
+            order.getTotalDiscountAmount(),
+            order.getFinalAmount(),
+            order.getUsedPoint(),
+            order.getEarnedPoint(),
+            orderItems,
+            paymentResult,
+            payment != null ? payment.getApprovedAt() : null,
+            order.getCreatedAt()
+        );
+    }
+}

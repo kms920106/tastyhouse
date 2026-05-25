@@ -23,17 +23,17 @@ import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRefundRepository;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
-import com.tastyhouse.core.domain.payment.domain.vo.OrderId;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentRefundId;
 import com.tastyhouse.core.domain.payment.domain.vo.PgOrderId;
-import com.tastyhouse.core.entity.order.Order;
-import com.tastyhouse.core.entity.order.OrderStatus;
+import com.tastyhouse.core.domain.order.application.OrderQueryService;
+import com.tastyhouse.core.domain.order.domain.model.Order;
+import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.service.OrderCoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,14 +50,14 @@ public class PaymentCommandService {
     private final PaymentRepository paymentRepository;
     private final PaymentRefundRepository paymentRefundRepository;
     private final PgPaymentGateway pgPaymentGateway;
-    private final OrderCoreService orderCoreService;
+    private final OrderQueryService orderQueryService;
     private final ApplicationEventPublisher eventPublisher;
 
     private static final int CASH_POINT_EARN_RATE = 10;
 
     @Transactional
     public PaymentResult createPayment(Long memberId, CreatePaymentCommand command) {
-        Order order = orderCoreService.findOrderById(command.orderId())
+        Order order = orderQueryService.findById(command.orderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -94,7 +94,7 @@ public class PaymentCommandService {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
-        Order order = orderCoreService.findOrderById(payment.getOrderId().value())
+        Order order = orderQueryService.findById(payment.getOrderId().value())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         payment.updatePgInfo(command.pgProvider(), command.pgTid(), command.pgOrderId());
@@ -114,7 +114,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findByPgOrderId(command.pgOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderCoreService.findOrderById(payment.getOrderId().value())
+        Order order = orderQueryService.findById(payment.getOrderId().value())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -172,7 +172,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderCoreService.findOrderById(payment.getOrderId().value())
+        Order order = orderQueryService.findById(payment.getOrderId().value())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -224,7 +224,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderCoreService.findOrderById(payment.getOrderId().value())
+        Order order = orderQueryService.findById(payment.getOrderId().value())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -261,7 +261,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderCoreService.findOrderById(payment.getOrderId().value())
+        Order order = orderQueryService.findById(payment.getOrderId().value())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {

@@ -2,7 +2,7 @@ package com.tastyhouse.core.domain.payment.domain.repository;
 
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.core.domain.payment.domain.vo.OrderId;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 
 import java.util.List;

@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.entity.order.QOrderItem.orderItem;
+import static com.tastyhouse.core.domain.order.domain.model.QOrderItem.orderItem;
 import static com.tastyhouse.core.domain.place.domain.model.QPlace.place;
 import static com.tastyhouse.core.domain.place.domain.model.QPlaceStation.placeStation;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;

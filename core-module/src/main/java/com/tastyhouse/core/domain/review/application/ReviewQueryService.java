@@ -220,6 +220,10 @@ public class ReviewQueryService {
         return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
     }
 
+    public boolean existsReviewByOrderItemAndMember(Long orderId, Long productId, Long memberId) {
+        return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
+    }
+
     public Optional<Review> findReviewByIdAndMemberId(Long reviewId, Long memberId) {
         return reviewRepository.findByIdAndMemberId(reviewId, memberId);
     }

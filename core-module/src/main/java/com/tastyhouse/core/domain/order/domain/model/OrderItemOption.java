@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity.order;
+package com.tastyhouse.core.domain.order.domain.model;
 
 import com.tastyhouse.core.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -19,25 +19,25 @@ public class OrderItemOption extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "order_item_id", nullable = false)
-    private Long orderItemId; // 주문 상품 ID (ORDER_ITEM.id 참조)
+    private Long orderItemId;
 
     @Column(name = "option_group_id")
-    private Long optionGroupId; // 옵션 그룹 ID (PRODUCT_OPTION_GROUP.id 참조, null이면 삭제된 옵션 그룹)
+    private Long optionGroupId;
 
     @Column(name = "option_group_name", nullable = false, length = 100)
-    private String optionGroupName; // 주문 당시 옵션 그룹명 (스냅샷)
+    private String optionGroupName;
 
     @Column(name = "option_id")
-    private Long optionId; // 옵션 ID (PRODUCT_OPTION.id 참조, null이면 삭제된 옵션)
+    private Long optionId;
 
     @Column(name = "option_name", nullable = false, length = 100)
-    private String optionName; // 주문 당시 옵션명 (스냅샷)
+    private String optionName;
 
     @Column(name = "additional_price", nullable = false)
-    private Integer additionalPrice; // 옵션 추가 금액
+    private Integer additionalPrice;
 
     private OrderItemOption(
         Long orderItemId,

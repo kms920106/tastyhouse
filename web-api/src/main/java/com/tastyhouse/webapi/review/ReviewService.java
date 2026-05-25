@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.review;
 
-import com.tastyhouse.core.entity.order.OrderItem;
+import com.tastyhouse.core.domain.order.application.OrderQueryService;
+import com.tastyhouse.core.domain.order.domain.model.OrderItem;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.review.application.ReviewCommandService;
@@ -23,7 +24,6 @@ import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfil
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.common.PageResult;
-import com.tastyhouse.core.service.OrderCoreService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
@@ -55,7 +55,7 @@ public class ReviewService {
     private final ReviewCommandService reviewCommandService;
     private final ReviewQueryService reviewQueryService;
     private final ProductQueryService productQueryService;
-    private final OrderCoreService orderCoreService;
+    private final OrderQueryService orderQueryService;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
@@ -318,7 +318,7 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderItemId, Long memberId) {
-        OrderItem orderItem = orderCoreService.findOrderItemById(orderItemId);
+        OrderItem orderItem = orderQueryService.findOrderItemById(orderItemId);
 
         Product product = productQueryService.findProductById(orderItem.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
@@ -345,7 +345,7 @@ public class ReviewService {
     public ReviewResponse createReview(Long memberId, ReviewCreateRequest request) {
         Long orderId = null;
         if (request.orderItemId() != null) {
-            OrderItem orderItem = orderCoreService.findOrderItemById(request.orderItemId());
+            OrderItem orderItem = orderQueryService.findOrderItemById(request.orderItemId());
             orderId = orderItem.getOrderId();
         }
 
