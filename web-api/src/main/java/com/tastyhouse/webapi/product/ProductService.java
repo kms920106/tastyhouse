@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.product;
 
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
@@ -38,8 +38,8 @@ public class ProductService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResult<TodayDiscountProductListItemResponse> searchTodayDiscountProducts(int page, int size) {
-        return PageResult.from(productQueryService.findTodayDiscountProducts(page, size))
+    public PageResponse<TodayDiscountProductListItemResponse> searchTodayDiscountProducts(int page, int size) {
+        return PageResponse.from(productQueryService.findTodayDiscountProducts(page, size))
             .map(this::convertToTodayDiscountProductListItemResponse);
     }
 

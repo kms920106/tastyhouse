@@ -23,7 +23,7 @@ import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.PlaceReviewStatisticsResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.place.application.PlaceCommandService;
 import com.tastyhouse.core.domain.place.application.PlaceQueryService;
 import com.tastyhouse.external.file.FileService;
@@ -80,13 +80,13 @@ public class PlaceService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<BestPlaceListItemResponse> searchBestPlaces(int page, int size) {
-        return PageResult.from(placeQueryService.findBestPlaces(page, size)).map(this::convertToBestPlaceListItemResponse);
+    public PageResponse<BestPlaceListItemResponse> searchBestPlaces(int page, int size) {
+        return PageResponse.from(placeQueryService.findBestPlaces(page, size)).map(this::convertToBestPlaceListItemResponse);
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestPlaceListItemResponse> searchLatestPlaces(LatestPlaceFilterRequest filterRequest, int page, int size) {
-        return PageResult.from(placeQueryService.findLatestPlaces(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size)).map(this::convertToLatestPlaceListItemResponse);
+    public PageResponse<LatestPlaceListItemResponse> searchLatestPlaces(LatestPlaceFilterRequest filterRequest, int page, int size) {
+        return PageResponse.from(placeQueryService.findLatestPlaces(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size)).map(this::convertToLatestPlaceListItemResponse);
     }
 
     @Transactional(readOnly = true)

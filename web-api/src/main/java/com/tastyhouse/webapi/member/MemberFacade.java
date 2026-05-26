@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.member;
 
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
@@ -127,7 +127,7 @@ public class MemberFacade {
             .toList();
     }
 
-    public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
+    public PageResponse<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
         return memberReviewService.getMyReviews(memberId, page, size);
     }
 
@@ -135,7 +135,7 @@ public class MemberFacade {
         return memberReviewService.getMyReviewCount(memberId);
     }
 
-    public PageResult<PlaceBookmarkListItemResponse> getMyBookmarkedPlaces(Long memberId, int page, int size) {
+    public PageResponse<PlaceBookmarkListItemResponse> getMyBookmarkedPlaces(Long memberId, int page, int size) {
         return memberPlaceService.getMyBookmarkedPlaces(memberId, page, size);
     }
 

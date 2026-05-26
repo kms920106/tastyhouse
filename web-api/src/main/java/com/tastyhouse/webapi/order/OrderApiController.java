@@ -1,13 +1,11 @@
 package com.tastyhouse.webapi.order;
 
-import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.core.domain.order.application.OrderCommandService;
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderCommand;
 import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderItemCommand;
 import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderItemOptionCommand;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderItemOptionResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
@@ -25,12 +23,10 @@ import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -55,27 +51,27 @@ public class OrderApiController {
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "주문 생성 성공", content = @Content(schema = @Schema(implementation = OrderResponse.class))),
-        @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 생성 성공", content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PostMapping("/v1")
-    public ResponseEntity<CommonResponse<OrderResponse>> createOrder(
+    public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
         @Valid @RequestBody OrderCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
         CreateOrderCommand command = toCreateOrderCommand(request);
         OrderResult result = orderCommandService.createOrder(userDetails.getMemberId(), command);
-        return ResponseEntity.ok(CommonResponse.success(toOrderResponse(result, userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(toOrderResponse(result, userDetails.getMemberId())));
     }
 
     @Operation(summary = "주문 목록 조회", description = "회원의 주문 목록을 조회합니다.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공"),
-        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @GetMapping("/v1")
-    public ResponseEntity<CommonResponse<List<OrderListItemResponse>>> getOrderList(
+    public ResponseEntity<ApiResponse<List<OrderListItemResponse>>> getOrderList(
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
@@ -85,7 +81,7 @@ public class OrderApiController {
         List<OrderListItemResponse> items = page.getContent().stream()
             .map(this::toOrderListItemResponse)
             .toList();
-        CommonResponse<List<OrderListItemResponse>> response = CommonResponse.success(
+        ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
             items,
             page.getNumber(),
             page.getSize(),
@@ -96,19 +92,19 @@ public class OrderApiController {
 
     @Operation(summary = "주문 상세 조회", description = "주문 상세 정보를 조회합니다.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = OrderResponse.class))),
-        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-        @ApiResponse(responseCode = "403", description = "접근 권한 없음 (본인 주문이 아닌 경우)"),
-        @ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음")
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "접근 권한 없음 (본인 주문이 아닌 경우)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음")
     })
     @GetMapping("/v1/{orderId}")
-    public ResponseEntity<CommonResponse<OrderResponse>> getOrderDetail(
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetail(
         @PathVariable Long orderId,
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
         OrderResult result = orderQueryService.findOrderDetail(memberId, orderId);
-        return ResponseEntity.ok(CommonResponse.success(toOrderResponse(result, memberId)));
+        return ResponseEntity.ok(ApiResponse.success(toOrderResponse(result, memberId)));
     }
 
     private OrderListItemResponse toOrderListItemResponse(OrderListItemResult dto) {

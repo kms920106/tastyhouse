@@ -1,4 +1,4 @@
-package com.tastyhouse.core.common;
+package com.tastyhouse.core.shared.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

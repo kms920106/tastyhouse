@@ -2,7 +2,7 @@ package com.tastyhouse.core.domain.payment.domain.model;
 
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
-import com.tastyhouse.core.common.BaseEntity;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

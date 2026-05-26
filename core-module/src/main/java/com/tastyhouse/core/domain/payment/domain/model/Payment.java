@@ -3,7 +3,7 @@ package com.tastyhouse.core.domain.payment.domain.model;
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.vo.PgOrderId;
-import com.tastyhouse.core.common.BaseEntity;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.Column;

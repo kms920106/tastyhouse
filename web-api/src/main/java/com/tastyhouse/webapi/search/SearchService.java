@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.search;
 
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.search.application.SearchKeywordQueryService;
 import com.tastyhouse.core.domain.search.application.SearchResultQueryService;
 import com.tastyhouse.external.file.FileService;
@@ -34,8 +34,8 @@ public class SearchService {
             .toList();
     }
 
-    public PageResult<ProductSummaryResponse> searchMenus(String keyword, int page, int size) {
-        return PageResult.from(searchResultQueryService.searchProducts(keyword, page, size))
+    public PageResponse<ProductSummaryResponse> searchMenus(String keyword, int page, int size) {
+        return PageResponse.from(searchResultQueryService.searchProducts(keyword, page, size))
             .map(dto -> ProductSummaryResponse.from(
                 dto.id(),
                 dto.name(),
@@ -50,13 +50,13 @@ public class SearchService {
             ));
     }
 
-    public PageResult<SearchReviewListItemResponse> searchReviews(String keyword, int page, int size) {
-        return PageResult.from(searchResultQueryService.searchReviews(keyword, page, size))
+    public PageResponse<SearchReviewListItemResponse> searchReviews(String keyword, int page, int size) {
+        return PageResponse.from(searchResultQueryService.searchReviews(keyword, page, size))
             .map(dto -> SearchReviewListItemResponse.from(dto, fileService));
     }
 
-    public PageResult<SearchPlaceListItemResponse> searchPlacesPaged(String keyword, Long memberId, int page, int size) {
-        return PageResult.from(searchResultQueryService.searchPlacesWithBookmark(keyword, memberId, page, size))
+    public PageResponse<SearchPlaceListItemResponse> searchPlacesPaged(String keyword, Long memberId, int page, int size) {
+        return PageResponse.from(searchResultQueryService.searchPlacesWithBookmark(keyword, memberId, page, size))
             .map(dto -> SearchPlaceListItemResponse.from(
                 dto.placeId(),
                 dto.placeName(),
@@ -67,8 +67,8 @@ public class SearchService {
             ));
     }
 
-    public PageResult<SearchPlaceListItemResponse> searchPlacesPublic(String keyword, int page, int size) {
-        return PageResult.from(searchResultQueryService.searchPlacesWithBookmark(keyword, null, page, size))
+    public PageResponse<SearchPlaceListItemResponse> searchPlacesPublic(String keyword, int page, int size) {
+        return PageResponse.from(searchResultQueryService.searchPlacesWithBookmark(keyword, null, page, size))
             .map(dto -> SearchPlaceListItemResponse.from(
                 dto.placeId(),
                 dto.placeName(),

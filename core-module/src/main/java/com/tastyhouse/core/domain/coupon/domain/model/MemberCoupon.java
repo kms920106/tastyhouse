@@ -1,6 +1,6 @@
 package com.tastyhouse.core.domain.coupon.domain.model;
 
-import com.tastyhouse.core.common.BaseEntity;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.Column;

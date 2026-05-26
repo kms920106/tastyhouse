@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
@@ -17,8 +17,8 @@ public class MemberReviewService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
-        return PageResult.from(reviewQueryService.findMyReviews(memberId, page, size))
+    public PageResponse<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
+        return PageResponse.from(reviewQueryService.findMyReviews(memberId, page, size))
             .map(dto -> MyReviewListItemResponse.from(
                 dto.id(),
                 fileService.getUrlByPath(dto.imageUrl())

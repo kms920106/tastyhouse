@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.notice;
 
-import com.tastyhouse.core.common.CommonResponse;
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.webapi.common.PageRequest;
@@ -9,7 +9,6 @@ import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,17 +30,17 @@ public class NoticeApiController {
     private final NoticeQueryService noticeQueryService;
 
     @Operation(summary = "공지사항 목록 조회", description = "페이징된 공지사항 목록을 조회합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공",
-        content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1")
-    public ResponseEntity<CommonResponse<List<NoticeListItemResponse>>> getNoticeList(
+    public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(
         @Valid @ModelAttribute PageRequest pageRequest) {
 
-        PageResult<NoticeListItemResponse> pageResult = PageResult
+        PageResponse<NoticeListItemResponse> pageResult = PageResponse
             .from(noticeQueryService.findAllWithPagination(pageRequest.page(), pageRequest.size()))
             .map(this::toNoticeListItemResponse);
 
-        return ResponseEntity.ok(CommonResponse.success(
+        return ResponseEntity.ok(ApiResponse.success(
             pageResult.getContent(),
             pageRequest.page(),
             pageRequest.size(),

@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.verification;
 
-import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.core.domain.verification.application.EmailVerificationCommandService;
 import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmEmailVerificationCommand;
 import com.tastyhouse.core.domain.verification.application.dto.command.SendEmailVerificationCommand;
@@ -14,7 +14,6 @@ import com.tastyhouse.webapi.verification.response.EmailVerifyTokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,19 +38,19 @@ public class EmailVerificationApiController {
         description = "입력한 이메일로 6자리 인증번호를 발송합니다. 기존 미완료 인증은 자동 만료됩니다."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "인증번호 발송 성공"),
-        @ApiResponse(responseCode = "400", description = "잘못된 이메일 형식"),
-        @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (이메일당 일 5회)")
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "인증번호 발송 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 이메일 형식"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "요청 횟수 초과 (이메일당 일 5회)")
     })
     @RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.FIELD, keyField = "email", keyPrefix = "rate_limit:email_verification")
     @PostMapping("/v1/send")
-    public ResponseEntity<CommonResponse<Void>> sendVerificationCode(
+    public ResponseEntity<ApiResponse<Void>> sendVerificationCode(
         @Valid @RequestBody SendEmailVerificationCodeRequest request
     ) {
         emailVerificationCommandService.sendVerificationCode(
             new SendEmailVerificationCommand(request.email())
         );
-        return ResponseEntity.ok(CommonResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(
@@ -60,18 +59,18 @@ public class EmailVerificationApiController {
                       "회원가입 시 emailVerifyToken을 포함하여 사용합니다."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "인증 성공 - emailVerifyToken 반환",
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "인증 성공 - emailVerifyToken 반환",
             content = @Content(schema = @Schema(implementation = EmailVerifyTokenResponse.class))),
-        @ApiResponse(responseCode = "400", description = "인증번호 불일치 또는 만료")
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "인증번호 불일치 또는 만료")
     })
     @PostMapping("/v1/confirm")
-    public ResponseEntity<CommonResponse<EmailVerifyTokenResponse>> confirmVerificationCode(
+    public ResponseEntity<ApiResponse<EmailVerifyTokenResponse>> confirmVerificationCode(
         @Valid @RequestBody ConfirmEmailVerificationCodeRequest request
     ) {
         EmailVerificationResult result = emailVerificationCommandService.confirmVerificationCode(
             new ConfirmEmailVerificationCommand(request.email(), request.verificationCode())
         );
         String emailVerifyToken = jwtTokenProvider.createEmailVerifyToken(result.email());
-        return ResponseEntity.ok(CommonResponse.success(EmailVerifyTokenResponse.from(emailVerifyToken)));
+        return ResponseEntity.ok(ApiResponse.success(EmailVerifyTokenResponse.from(emailVerifyToken)));
     }
 }

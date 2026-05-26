@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.rank;
 
-import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -32,49 +31,49 @@ public class RankApiController {
 
     @Operation(summary = "랭킹 기간 조회", description = "현재 진행중인 랭킹의 시작일자와 종료일자를 조회합니다.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class))),
-        @ApiResponse(responseCode = "404", description = "진행중인 랭킹 없음", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "진행중인 랭킹 없음", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     })
     @GetMapping("/v1/duration")
-    public ResponseEntity<CommonResponse<RankDurationResponse>> getDuration() {
+    public ResponseEntity<ApiResponse<RankDurationResponse>> getDuration() {
         return rankService.getDuration()
-            .map(duration -> ResponseEntity.ok(CommonResponse.success(duration)))
+            .map(duration -> ResponseEntity.ok(ApiResponse.success(duration)))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "랭킹 경품 목록 조회", description = "현재 진행중인 랭킹의 등수별 경품 목록을 조회합니다.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     })
     @GetMapping("/v1/prizes")
-    public ResponseEntity<CommonResponse<List<RankPrizeListItemResponse>>> getPrizes() {
+    public ResponseEntity<ApiResponse<List<RankPrizeListItemResponse>>> getPrizes() {
         List<RankPrizeListItemResponse> prizes = rankService.getPrizes();
-        return ResponseEntity.ok(CommonResponse.success(prizes));
+        return ResponseEntity.ok(ApiResponse.success(prizes));
     }
 
     @Operation(summary = "멤버 리뷰 랭킹 조회", description = "유저별 리뷰 작성 개수 기준 랭킹을 조회합니다. (전체/월간/주간)")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     })
     @GetMapping("/v1/members")
-    public ResponseEntity<CommonResponse<List<MemberRankListItemResponse>>> getMemberRankList(
+    public ResponseEntity<ApiResponse<List<MemberRankListItemResponse>>> getMemberRankList(
         @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type,
         @Parameter(description = "조회할 랭킹 개수", example = "100") @RequestParam(defaultValue = "100") int limit
     ) {
         List<MemberRankListItemResponse> ranks = rankService.getMemberRankList(type, limit);
-        return ResponseEntity.ok(CommonResponse.success(ranks));
+        return ResponseEntity.ok(ApiResponse.success(ranks));
     }
 
     @Operation(summary = "내 리뷰 랭킹 조회", description = "현재 로그인한 유저의 리뷰 작성 개수 기준 랭킹을 조회합니다. (전체/월간/주간)")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     })
     @GetMapping("/v1/members/me")
-    public ResponseEntity<CommonResponse<MemberRankListItemResponse>> getMyMemberRank(
+    public ResponseEntity<ApiResponse<MemberRankListItemResponse>> getMyMemberRank(
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type
     ) {
         MemberRankListItemResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), type);
-        return ResponseEntity.ok(CommonResponse.success(myRank));
+        return ResponseEntity.ok(ApiResponse.success(myRank));
     }
 }

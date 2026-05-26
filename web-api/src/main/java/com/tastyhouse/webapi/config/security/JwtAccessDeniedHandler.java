@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.common.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(
-            objectMapper.writeValueAsString(CommonResponse.error("접근 권한이 없습니다."))
+            objectMapper.writeValueAsString(ApiResponse.error("접근 권한이 없습니다."))
         );
     }
 }

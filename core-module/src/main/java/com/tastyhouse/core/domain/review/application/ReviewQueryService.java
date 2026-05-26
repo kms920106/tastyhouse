@@ -1,6 +1,5 @@
 package com.tastyhouse.core.domain.review.application;
 
-import com.tastyhouse.core.common.PageResult;
 import com.tastyhouse.core.domain.follow.application.FollowQueryService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
@@ -50,7 +49,6 @@ public class ReviewQueryService {
     private final ReviewReplyRepository reviewReplyRepository;
     private final MemberQueryService memberQueryService;
     private final FollowQueryService followQueryService;
-    // TODO: Place BC 미전환 과도기 허용 — Place 도메인 DDD 전환 후 PlaceTagQueryService 참조로 교체
     private final TagRepository tagRepository;
 
     public Page<BestReviewListItemResult> findBestReviewsWithPagination(int page, int size) {

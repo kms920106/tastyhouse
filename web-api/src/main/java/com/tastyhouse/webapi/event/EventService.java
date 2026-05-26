@@ -1,6 +1,6 @@
 package com.tastyhouse.webapi.event;
 
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.event.application.EventQueryService;
 import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
@@ -24,8 +24,8 @@ public class EventService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResult<EventListItemResponse> getEventList(EventStatus status, int page, int size) {
-        return PageResult.from(eventQueryService.findEventListItemsByStatus(status, page, size))
+    public PageResponse<EventListItemResponse> getEventList(EventStatus status, int page, int size) {
+        return PageResponse.from(eventQueryService.findEventListItemsByStatus(status, page, size))
             .map(this::convertToEventListItemResponse);
     }
 
@@ -38,8 +38,8 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
-        return PageResult.from(eventQueryService.findAllEventAnnouncements(page, size))
+    public PageResponse<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
+        return PageResponse.from(eventQueryService.findAllEventAnnouncements(page, size))
             .map(this::convertToEventAnnouncementListItemResponse);
     }
 

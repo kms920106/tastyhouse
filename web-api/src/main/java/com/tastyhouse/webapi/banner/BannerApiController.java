@@ -1,13 +1,12 @@
 package com.tastyhouse.webapi.banner;
 
-import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.core.common.PageResult;
+import com.tastyhouse.webapi.common.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,18 +28,18 @@ public class BannerApiController {
     private final BannerService bannerService;
 
     @Operation(summary = "홈 배너 목록 조회")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/home")
-    public ResponseEntity<CommonResponse<List<BannerListItemResponse>>> getHomeBanners(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BannerListItemResponse> pageResult = bannerService.findHomeBanners(pageRequest.page(), pageRequest.size());
-        return ResponseEntity.ok(CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
+    public ResponseEntity<ApiResponse<List<BannerListItemResponse>>> getHomeBanners(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResponse<BannerListItemResponse> pageResult = bannerService.findHomeBanners(pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(ApiResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
     }
 
     @Operation(summary = "사이드바 배너 목록 조회")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/sidebar")
-    public ResponseEntity<CommonResponse<List<BannerListItemResponse>>> getSidebarBanners(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BannerListItemResponse> pageResult = bannerService.findSidebarBanners(pageRequest.page(), pageRequest.size());
-        return ResponseEntity.ok(CommonResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
+    public ResponseEntity<ApiResponse<List<BannerListItemResponse>>> getSidebarBanners(@Valid @ModelAttribute PageRequest pageRequest) {
+        PageResponse<BannerListItemResponse> pageResult = bannerService.findSidebarBanners(pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(ApiResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements()));
     }
 }

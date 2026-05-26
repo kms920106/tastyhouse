@@ -2,7 +2,7 @@ package com.tastyhouse.adminapi.policy;
 
 import com.tastyhouse.adminapi.policy.request.PolicyCreateRequest;
 import com.tastyhouse.adminapi.policy.request.PolicyUpdateRequest;
-import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.core.domain.policy.application.PolicyCommandService;
 import com.tastyhouse.core.domain.policy.application.dto.command.CreatePolicyCommand;
 import com.tastyhouse.core.domain.policy.application.dto.command.UpdatePolicyCommand;
@@ -10,7 +10,6 @@ import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,9 +32,9 @@ public class PolicyAdminApiController {
     private final PolicyCommandService policyCommandService;
 
     @Operation(summary = "약관 생성", description = "새로운 약관을 생성합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "생성 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "생성 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @PostMapping("/v1")
-    public ResponseEntity<CommonResponse<Long>> createPolicy(@Valid @RequestBody PolicyCreateRequest request) {
+    public ResponseEntity<ApiResponse<Long>> createPolicy(@Valid @RequestBody PolicyCreateRequest request) {
         PolicyDocumentId id = policyCommandService.createPolicy(new CreatePolicyCommand(
             request.type(),
             request.version(),
@@ -45,13 +44,13 @@ public class PolicyAdminApiController {
             request.effectiveDate(),
             request.createdBy()
         ));
-        return ResponseEntity.ok(CommonResponse.success(id.value()));
+        return ResponseEntity.ok(ApiResponse.success(id.value()));
     }
 
     @Operation(summary = "약관 수정", description = "기존 약관을 수정합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "수정 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "수정 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @PutMapping("/v1/{id}")
-    public ResponseEntity<CommonResponse<Void>> updatePolicy(
+    public ResponseEntity<ApiResponse<Void>> updatePolicy(
         @PathVariable Long id,
         @Valid @RequestBody PolicyUpdateRequest request) {
         policyCommandService.updatePolicy(new PolicyDocumentId(id), new UpdatePolicyCommand(
@@ -61,14 +60,14 @@ public class PolicyAdminApiController {
             request.effectiveDate(),
             request.updatedBy()
         ));
-        return ResponseEntity.ok(CommonResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "현재 약관 변경", description = "지정된 약관을 현재 유효한 약관으로 변경합니다.")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "변경 성공", content = @Content(schema = @Schema(implementation = CommonResponse.class)))})
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "변경 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @PatchMapping("/v1/{id}/current")
-    public ResponseEntity<CommonResponse<Void>> updateCurrentPolicy(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> updateCurrentPolicy(@PathVariable Long id) {
         policyCommandService.activatePolicy(new PolicyDocumentId(id));
-        return ResponseEntity.ok(CommonResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

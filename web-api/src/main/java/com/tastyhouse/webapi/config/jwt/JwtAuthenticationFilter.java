@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -69,7 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void writeUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(CommonResponse.error(message)));
+        response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(message)));
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {

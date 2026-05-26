@@ -1,7 +1,7 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
 import com.tastyhouse.core.domain.product.domain.vo.ProductDiscountInfo;
-import com.tastyhouse.core.common.BaseEntity;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;

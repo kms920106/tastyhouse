@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tastyhouse.core.common.CommonResponse;
+import com.tastyhouse.webapi.common.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(
-            objectMapper.writeValueAsString(CommonResponse.error("인증이 필요합니다."))
+            objectMapper.writeValueAsString(ApiResponse.error("인증이 필요합니다."))
         );
     }
 }
