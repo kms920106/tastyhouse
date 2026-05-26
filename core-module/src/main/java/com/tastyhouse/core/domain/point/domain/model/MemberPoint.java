@@ -1,7 +1,7 @@
 package com.tastyhouse.core.domain.point.domain.model;
 
 import com.tastyhouse.core.domain.point.domain.vo.MemberPointId;
-import com.tastyhouse.core.entity.BaseEntity;
+import com.tastyhouse.core.common.BaseEntity;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.Column;

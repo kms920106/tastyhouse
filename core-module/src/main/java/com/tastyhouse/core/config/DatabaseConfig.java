@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableJpaRepositories(basePackages = {"com.tastyhouse.core.repository", "com.tastyhouse.core.domain"})
-@EntityScan(basePackages = {"com.tastyhouse.core.entity", "com.tastyhouse.core.domain"})
+@EntityScan(basePackages = {"com.tastyhouse.core.domain"})
 @EnableJpaAuditing
 @EnableTransactionManagement
 public class DatabaseConfig {

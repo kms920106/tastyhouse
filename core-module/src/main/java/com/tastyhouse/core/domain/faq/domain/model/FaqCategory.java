@@ -1,6 +1,6 @@
 package com.tastyhouse.core.domain.faq.domain.model;
 
-import com.tastyhouse.core.entity.BaseEntity;
+import com.tastyhouse.core.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

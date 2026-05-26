@@ -1,4 +1,4 @@
-package com.tastyhouse.core.entity;
+package com.tastyhouse.core.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
@@ -17,9 +17,9 @@ public abstract class BaseEntity {
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt; // 생성 일시 (자동 설정)
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt; // 수정 일시 (자동 갱신)
+    private LocalDateTime updatedAt;
 }

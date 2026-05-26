@@ -2,7 +2,7 @@ package com.tastyhouse.core.domain.verification.domain.model;
 
 import com.tastyhouse.core.domain.verification.domain.vo.PhoneVerificationId;
 import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
-import com.tastyhouse.core.entity.common.vo.PhoneNumber;
+import com.tastyhouse.core.shared.vo.PhoneNumber;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.AttributeOverride;

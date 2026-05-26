@@ -1,7 +1,7 @@
 package com.tastyhouse.core.domain.event.domain.model;
 
-import com.tastyhouse.core.entity.BaseEntity;
-import com.tastyhouse.core.entity.common.vo.PhoneNumber;
+import com.tastyhouse.core.common.BaseEntity;
+import com.tastyhouse.core.shared.vo.PhoneNumber;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
