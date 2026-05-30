@@ -7,7 +7,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapi.search.response.SearchPlaceListItemResponse;
+import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
@@ -75,30 +75,30 @@ public class SearchApiController {
         ));
     }
 
-    @Operation(summary = "플레이스 검색", description = "플레이스 탭 — 플레이스명 기반 검색. 로그인 사용자 전용이며 북마크 여부가 포함됩니다.")
-    @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:places")
-    @GetMapping("/v1/places")
-    public ResponseEntity<ApiResponse<List<SearchPlaceListItemResponse>>> searchPlacesPaged(
+    @Operation(summary = "가게 검색", description = "가게 탭 — 가게명 기반 검색. 로그인 사용자 전용이며 북마크 여부가 포함됩니다.")
+    @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:shops")
+    @GetMapping("/v1/shops")
+    public ResponseEntity<ApiResponse<List<SearchShopListItemResponse>>> searchShopsPaged(
         @RequestParam String query,
         @Valid @ModelAttribute PageRequest pageRequest,
         @CurrentUser CustomUserDetails userDetails
     ) {
         String keyword = validateKeyword(query);
-        PageResponse<SearchPlaceListItemResponse> result = searchService.searchPlacesPaged(keyword, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResponse<SearchShopListItemResponse> result = searchService.searchShopsPaged(keyword, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
         ));
     }
 
-    @Operation(summary = "플레이스 검색 (비로그인)", description = "플레이스 탭 — 플레이스명 기반 검색. 인증 없이 접근 가능하며 북마크 여부는 항상 false로 응답합니다.")
-    @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:places:public")
-    @GetMapping("/v1/places/public")
-    public ResponseEntity<ApiResponse<List<SearchPlaceListItemResponse>>> searchPlacesPublic(
+    @Operation(summary = "가게 검색 (비로그인)", description = "가게 탭 — 가게명 기반 검색. 인증 없이 접근 가능하며 북마크 여부는 항상 false로 응답합니다.")
+    @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:shops:public")
+    @GetMapping("/v1/shops/public")
+    public ResponseEntity<ApiResponse<List<SearchShopListItemResponse>>> searchShopsPublic(
         @RequestParam String query,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         String keyword = validateKeyword(query);
-        PageResponse<SearchPlaceListItemResponse> result = searchService.searchPlacesPublic(keyword, pageRequest.page(), pageRequest.size());
+        PageResponse<SearchShopListItemResponse> result = searchService.searchShopsPublic(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
         ));

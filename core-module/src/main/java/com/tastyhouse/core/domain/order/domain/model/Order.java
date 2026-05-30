@@ -28,8 +28,8 @@ public class Order extends BaseEntity {
     @Column(name = "member_id", nullable = false)
     private Long memberId;
 
-    @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    @Column(name = "shop_id", nullable = false)
+    private Long shopId;
 
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
     private String orderNumber;
@@ -76,7 +76,7 @@ public class Order extends BaseEntity {
 
     private Order(
         Long memberId,
-        Long placeId,
+        Long shopId,
         String orderNumber,
         OrderStatus orderStatus,
         String ordererName,
@@ -93,7 +93,7 @@ public class Order extends BaseEntity {
         Integer earnedPoint
     ) {
         this.memberId = memberId;
-        this.placeId = placeId;
+        this.shopId = shopId;
         this.orderNumber = orderNumber;
         this.orderStatus = orderStatus != null ? orderStatus : OrderStatus.PENDING;
         this.ordererName = ordererName;
@@ -112,7 +112,7 @@ public class Order extends BaseEntity {
 
     public static Order of(
         Long memberId,
-        Long placeId,
+        Long shopId,
         String orderNumber,
         OrderStatus orderStatus,
         String ordererName,
@@ -130,7 +130,7 @@ public class Order extends BaseEntity {
     ) {
         return new Order(
             memberId,
-            placeId,
+            shopId,
             orderNumber,
             orderStatus,
             ordererName,

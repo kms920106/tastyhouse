@@ -4,7 +4,7 @@ public record BestReviewListItemResponse(
     Long id,
     String imageUrl,
     String stationName,
-    String placeName,
+    String shopName,
     String productName,
     Double totalRating,
     String content
@@ -13,7 +13,7 @@ public record BestReviewListItemResponse(
         Long id,
         String imageUrl,
         String stationName,
-        String placeName,
+        String shopName,
         String productName,
         Double totalRating,
         String content
@@ -22,7 +22,7 @@ public record BestReviewListItemResponse(
             id,
             imageUrl,
             stationName,
-            placeName,
+            shopName,
             productName,
             totalRating,
             content

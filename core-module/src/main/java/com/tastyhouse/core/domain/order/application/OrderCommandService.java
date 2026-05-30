@@ -17,8 +17,8 @@ import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.order.domain.repository.OrderItemOptionRepository;
 import com.tastyhouse.core.domain.order.domain.repository.OrderItemRepository;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
-import com.tastyhouse.core.domain.place.application.PlaceQueryService;
-import com.tastyhouse.core.domain.place.domain.model.Place;
+import com.tastyhouse.core.domain.shop.application.ShopQueryService;
+import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.point.application.PointCommandService;
 import com.tastyhouse.core.domain.point.application.dto.command.UsePointCommand;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
@@ -47,7 +47,7 @@ public class OrderCommandService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderItemOptionRepository orderItemOptionRepository;
-    private final PlaceQueryService placeQueryService;
+    private final ShopQueryService shopQueryService;
     private final MemberQueryService memberQueryService;
     private final ProductQueryService productQueryService;
     private final CouponCommandService couponCommandService;
@@ -56,12 +56,12 @@ public class OrderCommandService {
 
     @Transactional
     public OrderResult createOrder(Long memberId, CreateOrderCommand command) {
-        Place place = placeQueryService.findPlaceById(command.placeId());
+        Shop shop = shopQueryService.findShopById(command.shopId());
         Member member = memberQueryService.getById(new MemberId(memberId));
 
         Order order = Order.of(
             memberId,
-            command.placeId(),
+            command.shopId(),
             generateOrderNumber(),
             OrderStatus.PENDING,
             member.getFullName(),
@@ -164,15 +164,15 @@ public class OrderCommandService {
         eventPublisher.publishEvent(new OrderCreatedEvent(
             savedOrder.getId(),
             memberId,
-            savedOrder.getPlaceId(),
+            savedOrder.getShopId(),
             savedOrder.getFinalAmount(),
             savedOrder.getCreatedAt()
         ));
 
         return OrderResult.from(
             savedOrder,
-            place != null ? place.getName() : null,
-            place != null ? place.getPhoneNumber() : null,
+            shop != null ? shop.getName() : null,
+            shop != null ? shop.getPhoneNumber() : null,
             itemResults,
             null
         );

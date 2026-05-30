@@ -3,7 +3,7 @@ package com.tastyhouse.core.domain.order.application.dto.command;
 import java.util.List;
 
 public record CreateOrderCommand(
-    Long placeId,
+    Long shopId,
     List<CreateOrderItemCommand> orderItems,
     Long memberCouponId,
     Integer usePoint,

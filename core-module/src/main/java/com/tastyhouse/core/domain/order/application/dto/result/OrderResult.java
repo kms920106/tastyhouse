@@ -11,8 +11,8 @@ public record OrderResult(
     Long id,
     String orderNumber,
     PaymentStatus paymentStatus,
-    String placeName,
-    String placePhoneNumber,
+    String shopName,
+    String shopPhoneNumber,
     String ordererName,
     String ordererPhone,
     String ordererEmail,
@@ -53,15 +53,15 @@ public record OrderResult(
         }
     }
 
-    public static OrderResult from(Order order, String placeName, String placePhoneNumber,
+    public static OrderResult from(Order order, String shopName, String shopPhoneNumber,
                                    List<OrderItemResult> orderItems, Payment payment) {
         PaymentResult paymentResult = payment != null ? PaymentResult.from(payment) : null;
         return new OrderResult(
             order.getId(),
             order.getOrderNumber(),
             payment != null ? payment.getPaymentStatus() : null,
-            placeName,
-            placePhoneNumber,
+            shopName,
+            shopPhoneNumber,
             order.getOrdererName(),
             order.getOrdererPhone(),
             order.getOrdererEmail(),

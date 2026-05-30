@@ -9,9 +9,9 @@ public interface ProductCategoryRepository {
 
     Optional<ProductCategory> findById(Long id);
 
-    List<ProductCategory> findActiveCategoriesByPlaceIdOrderBySort(Long placeId);
+    List<ProductCategory> findActiveCategoriesByShopIdOrderBySort(Long shopId);
 
-    List<ProductCategory> findCategoriesByNameAndPlaceId(String name, Long placeId);
+    List<ProductCategory> findCategoriesByNameAndShopId(String name, Long shopId);
 
     ProductCategory save(ProductCategory productCategory);
 }

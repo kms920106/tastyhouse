@@ -8,7 +8,7 @@ public record BbqProductCategoryResponse(
     Long id,
 
     @Schema(description = "플레이스 ID", example = "1")
-    Long placeId,
+    Long shopId,
 
     @Schema(description = "카테고리명", example = "시그니처 메뉴")
     String name,
@@ -21,14 +21,14 @@ public record BbqProductCategoryResponse(
 ) {
     public static BbqProductCategoryResponse from(
     Long id,
-    Long placeId,
+    Long shopId,
     String name,
     Integer sort,
     Boolean isActive
     ) {
     return new BbqProductCategoryResponse(
         id,
-        placeId,
+        shopId,
         name,
         sort,
         isActive

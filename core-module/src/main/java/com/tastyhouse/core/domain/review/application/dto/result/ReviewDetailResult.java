@@ -7,8 +7,8 @@ import java.util.List;
 
 public record ReviewDetailResult(
     Long id,
-    Long placeId,
-    String placeName,
+    Long shopId,
+    String shopName,
     String stationName,
     String content,
     Double totalRating,
@@ -29,8 +29,8 @@ public record ReviewDetailResult(
     @QueryProjection
     public ReviewDetailResult(
         Long id,
-        Long placeId,
-        String placeName,
+        Long shopId,
+        String shopName,
         String stationName,
         String content,
         Double totalRating,
@@ -47,7 +47,7 @@ public record ReviewDetailResult(
         LocalDateTime createdAt
     ) {
         this(
-            id, placeId, placeName, stationName, content,
+            id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
             memberId, memberNickname, memberProfileImageUrl, createdAt,
@@ -57,7 +57,7 @@ public record ReviewDetailResult(
 
     public ReviewDetailResult withImageUrls(List<String> imageUrls) {
         return new ReviewDetailResult(
-            id, placeId, placeName, stationName, content,
+            id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
             memberId, memberNickname, memberProfileImageUrl, createdAt,
@@ -67,7 +67,7 @@ public record ReviewDetailResult(
 
     public ReviewDetailResult withTagNames(List<String> tagNames) {
         return new ReviewDetailResult(
-            id, placeId, placeName, stationName, content,
+            id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
             memberId, memberNickname, memberProfileImageUrl, createdAt,

@@ -16,13 +16,13 @@ public interface ProductRepository {
 
     Page<SearchProductItemResult> searchByKeyword(String keyword, Pageable pageable);
 
-    List<ProductSimpleResult> findProductsByPlaceId(Long placeId);
+    List<ProductSimpleResult> findProductsByShopId(Long shopId);
 
-    List<Product> findByPlaceIdOrderByRepresentativeAndRating(Long placeId);
+    List<Product> findByShopIdOrderByRepresentativeAndRating(Long shopId);
 
-    List<Product> findActiveByPlaceIdOrderByRepresentativeAndRating(Long placeId);
+    List<Product> findActiveByShopIdOrderByRepresentativeAndRating(Long shopId);
 
-    List<Product> findByPlaceId(Long placeId);
+    List<Product> findByShopId(Long shopId);
 
     Optional<Product> findById(Long id);
 

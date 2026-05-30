@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 
 public record OrderListItemResult(
     Long id,
-    String placeName,
-    String placeThumbnailImageFilePath,
+    String shopName,
+    String shopThumbnailImageFilePath,
     String firstProductName,
     Integer totalItemCount,
     Integer amount,

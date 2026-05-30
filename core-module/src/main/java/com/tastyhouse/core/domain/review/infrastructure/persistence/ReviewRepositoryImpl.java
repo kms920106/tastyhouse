@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.order.domain.model.QOrderItem.orderItem;
-import static com.tastyhouse.core.domain.place.domain.model.QPlace.place;
-import static com.tastyhouse.core.domain.place.domain.model.QPlaceStation.placeStation;
+import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
+import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.review.domain.model.QReview.review;
 import static com.tastyhouse.core.domain.review.domain.model.QReviewImage.reviewImage;
@@ -61,15 +61,15 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .select(new QBestReviewListItemResult(
                 review.id,
                 uploadedFile.filePath,
-                placeStation.stationName,
-                place.name,
+                station.stationName,
+                shop.name,
                 orderItem.productName,
                 review.totalRating,
                 review.content
             ))
             .from(review)
-            .innerJoin(place).on(review.placeId.eq(place.id))
-            .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
             .leftJoin(orderItem).on(
                 orderItem.orderId.eq(review.orderId)
                 .and(orderItem.productId.eq(review.productId))
@@ -102,7 +102,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         JPAQuery<LatestReviewListItemResult> query = queryFactory
             .select(new QLatestReviewListItemResult(
                 review.id,
-                placeStation.stationName,
+                station.stationName,
                 review.totalRating,
                 review.content,
                 member.id,
@@ -120,8 +120,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                         .and(subReviewComment.isHidden.eq(false)))
             ))
             .from(review)
-            .innerJoin(place).on(review.placeId.eq(place.id))
-            .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
             .innerJoin(member).on(review.memberId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
@@ -171,7 +171,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         JPAQuery<LatestReviewListItemResult> query = queryFactory
             .select(new QLatestReviewListItemResult(
                 review.id,
-                placeStation.stationName,
+                station.stationName,
                 review.totalRating,
                 review.content,
                 member.id,
@@ -189,8 +189,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                         .and(subReviewComment.isHidden.eq(false)))
             ))
             .from(review)
-            .innerJoin(place).on(review.placeId.eq(place.id))
-            .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
             .innerJoin(member).on(review.memberId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
@@ -219,8 +219,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Page<LatestReviewListItemResult> findLatestReviewsByPlaceId(Long placeId, Integer rating, Pageable pageable, Boolean hasImage, String sortType) {
-        var whereClause = review.placeId.eq(placeId).and(review.isHidden.eq(false));
+    public Page<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, Pageable pageable, Boolean hasImage, String sortType) {
+        var whereClause = review.shopId.eq(shopId).and(review.isHidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
                 whereClause = whereClause.and(review.totalRating.eq(5.0));
@@ -255,7 +255,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         JPAQuery<LatestReviewListItemResult> query = queryFactory
             .select(new QLatestReviewListItemResult(
                 review.id,
-                placeStation.stationName,
+                station.stationName,
                 review.totalRating,
                 review.content,
                 member.id,
@@ -273,8 +273,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                         .and(subReviewComment.isHidden.eq(false)))
             ))
             .from(review)
-            .innerJoin(place).on(review.placeId.eq(place.id))
-            .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
             .innerJoin(member).on(review.memberId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
@@ -282,7 +282,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
         if ("RECOMMENDED".equals(sortType)) {
             query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(review.id))
-                .groupBy(review.id, placeStation.stationName, review.totalRating, review.content,
+                .groupBy(review.id, station.stationName, review.totalRating, review.content,
                     member.id, member.nickname, uploadedFile.filePath, review.createdAt,
                     product.id, product.name)
                 .orderBy(sortReviewLike.count().desc(), review.createdAt.desc());
@@ -337,9 +337,9 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         ReviewDetailResult result = queryFactory
             .select(new QReviewDetailResult(
                 review.id,
-                place.id,
-                place.name,
-                placeStation.stationName,
+                shop.id,
+                shop.name,
+                station.stationName,
                 review.content,
                 review.totalRating,
                 review.tasteRating,
@@ -355,8 +355,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.createdAt
             ))
             .from(review)
-            .innerJoin(place).on(review.placeId.eq(place.id))
-            .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
             .innerJoin(member).on(review.memberId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(
@@ -374,8 +374,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public List<LatestReviewListItemResult> findReviewsByPlaceIdAndRating(Long placeId, Integer rating, int limit) {
-        var whereClause = review.placeId.eq(placeId).and(review.isHidden.eq(false));
+    public List<LatestReviewListItemResult> findReviewsByShopIdAndRating(Long shopId, Integer rating, int limit) {
+        var whereClause = review.shopId.eq(shopId).and(review.isHidden.eq(false));
 
         if (rating == 5) {
             whereClause = whereClause.and(review.totalRating.eq(5.0));
@@ -389,7 +389,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         List<LatestReviewListItemResult> reviews = queryFactory
             .select(new QLatestReviewListItemResult(
                 review.id,
-                placeStation.stationName,
+                station.stationName,
                 review.totalRating,
                 review.content,
                 member.id,
@@ -407,8 +407,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                         .and(subReviewComment.isHidden.eq(false)))
             ))
             .from(review)
-            .innerJoin(place).on(review.placeId.eq(place.id))
-            .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
             .innerJoin(member).on(review.memberId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
@@ -465,7 +465,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         JPAQuery<LatestReviewListItemResult> query = queryFactory
             .select(new QLatestReviewListItemResult(
                 review.id,
-                placeStation.stationName,
+                station.stationName,
                 review.totalRating,
                 review.content,
                 member.id,
@@ -483,8 +483,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                         .and(subReviewComment.isHidden.eq(false)))
             ))
             .from(review)
-            .innerJoin(place).on(review.placeId.eq(place.id))
-            .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
             .innerJoin(member).on(review.memberId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
@@ -492,7 +492,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
 
         if ("RECOMMENDED".equals(sortType)) {
             query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(review.id))
-                .groupBy(review.id, placeStation.stationName, review.totalRating, review.content,
+                .groupBy(review.id, station.stationName, review.totalRating, review.content,
                     member.id, member.nickname, uploadedFile.filePath, review.createdAt,
                     product.id, product.name)
                 .orderBy(sortReviewLike.count().desc(), review.createdAt.desc());
@@ -536,7 +536,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         List<LatestReviewListItemResult> reviews = queryFactory
             .select(new QLatestReviewListItemResult(
                 review.id,
-                placeStation.stationName,
+                station.stationName,
                 review.totalRating,
                 review.content,
                 member.id,
@@ -554,8 +554,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                         .and(subReviewComment.isHidden.eq(false)))
             ))
             .from(review)
-            .innerJoin(place).on(review.placeId.eq(place.id))
-            .innerJoin(placeStation).on(place.stationId.eq(placeStation.id))
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
             .innerJoin(member).on(review.memberId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
@@ -685,21 +685,21 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Long countByPlaceIdAndIsHiddenFalse(Long placeId) {
+    public Long countByShopIdAndIsHiddenFalse(Long shopId) {
         return queryFactory
             .select(review.count())
             .from(review)
-            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .where(review.shopId.eq(shopId), review.isHidden.eq(false))
             .fetchOne();
     }
 
     @Override
-    public Long countWillRevisit(Long placeId) {
+    public Long countWillRevisit(Long shopId) {
         return queryFactory
             .select(review.count())
             .from(review)
             .where(
-                review.placeId.eq(placeId),
+                review.shopId.eq(shopId),
                 review.isHidden.eq(false),
                 review.willRevisit.eq(true)
             )
@@ -707,65 +707,65 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Double getAverageTasteRating(Long placeId) {
+    public Double getAverageTasteRating(Long shopId) {
         return queryFactory
             .select(review.tasteRating.avg())
             .from(review)
-            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .where(review.shopId.eq(shopId), review.isHidden.eq(false))
             .fetchOne();
     }
 
     @Override
-    public Double getAverageAmountRating(Long placeId) {
+    public Double getAverageAmountRating(Long shopId) {
         return queryFactory
             .select(review.amountRating.avg())
             .from(review)
-            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .where(review.shopId.eq(shopId), review.isHidden.eq(false))
             .fetchOne();
     }
 
     @Override
-    public Double getAveragePriceRating(Long placeId) {
+    public Double getAveragePriceRating(Long shopId) {
         return queryFactory
             .select(review.priceRating.avg())
             .from(review)
-            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .where(review.shopId.eq(shopId), review.isHidden.eq(false))
             .fetchOne();
     }
 
     @Override
-    public Double getAverageAtmosphereRating(Long placeId) {
+    public Double getAverageAtmosphereRating(Long shopId) {
         return queryFactory
             .select(review.atmosphereRating.avg())
             .from(review)
-            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .where(review.shopId.eq(shopId), review.isHidden.eq(false))
             .fetchOne();
     }
 
     @Override
-    public Double getAverageKindnessRating(Long placeId) {
+    public Double getAverageKindnessRating(Long shopId) {
         return queryFactory
             .select(review.kindnessRating.avg())
             .from(review)
-            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .where(review.shopId.eq(shopId), review.isHidden.eq(false))
             .fetchOne();
     }
 
     @Override
-    public Double getAverageHygieneRating(Long placeId) {
+    public Double getAverageHygieneRating(Long shopId) {
         return queryFactory
             .select(review.hygieneRating.avg())
             .from(review)
-            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .where(review.shopId.eq(shopId), review.isHidden.eq(false))
             .fetchOne();
     }
 
     @Override
-    public Map<Integer, Long> getRatingCounts(Long placeId) {
+    public Map<Integer, Long> getRatingCounts(Long shopId) {
         List<Tuple> results = queryFactory
             .select(review.totalRating.floor().intValue(), review.count())
             .from(review)
-            .where(review.placeId.eq(placeId), review.isHidden.eq(false))
+            .where(review.shopId.eq(shopId), review.isHidden.eq(false))
             .groupBy(review.totalRating.floor().intValue())
             .fetch();
 
@@ -777,12 +777,12 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Map<Integer, Long> getMonthlyReviewCounts(Long placeId, int year) {
+    public Map<Integer, Long> getMonthlyReviewCounts(Long shopId, int year) {
         List<Tuple> results = queryFactory
             .select(review.createdAt.month(), review.count())
             .from(review)
             .where(
-                review.placeId.eq(placeId),
+                review.shopId.eq(shopId),
                 review.isHidden.eq(false),
                 review.createdAt.year().eq(year)
             )

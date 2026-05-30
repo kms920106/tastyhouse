@@ -6,7 +6,7 @@ public record BestReviewListItemResult(
     Long id,
     String imageUrl,
     String stationName,
-    String placeName,
+    String shopName,
     String productName,
     Double totalRating,
     String content

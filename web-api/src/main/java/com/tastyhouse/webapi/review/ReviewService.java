@@ -69,7 +69,7 @@ public class ReviewService {
             dto.id(),
             fileService.getUrlByPath(dto.imageUrl()),
             dto.stationName(),
-            dto.placeName(),
+            dto.shopName(),
             dto.productName(),
             dto.totalRating(),
             dto.content()
@@ -119,8 +119,8 @@ public class ReviewService {
 
         return ReviewDetailResponse.from(
             dto.id(),
-            dto.placeId(),
-            dto.placeName(),
+            dto.shopId(),
+            dto.shopName(),
             dto.stationName(),
             dto.content(),
             dto.totalRating(),
@@ -353,7 +353,7 @@ public class ReviewService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewResult result = reviewCommandService.createReview(new CreateReviewCommand(
-            product.getPlaceId(),
+            product.getShopId(),
             product.getId(),
             memberId,
             request.orderItemId(),

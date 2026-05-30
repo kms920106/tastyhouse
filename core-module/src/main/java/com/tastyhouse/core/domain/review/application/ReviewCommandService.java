@@ -23,10 +23,10 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewTagRepository;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.domain.place.domain.model.Tag;
+import com.tastyhouse.core.domain.shop.domain.model.Tag;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.domain.place.domain.repository.TagRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -47,7 +47,7 @@ public class ReviewCommandService {
     private final ReviewLikeRepository reviewLikeRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
-    // TODO: Place BC 미전환 과도기 허용 — Place 도메인 DDD 전환 후 PlaceTagQueryService 참조로 교체
+    // TODO: Shop BC 미전환 과도기 허용 — Shop 도메인 DDD 전환 후 ShopTagQueryService 참조로 교체
     private final TagRepository tagRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -57,7 +57,7 @@ public class ReviewCommandService {
         ) / 10.0;
 
         Review review = Review.of(
-            cmd.placeId(),
+            cmd.shopId(),
             cmd.productId(),
             cmd.memberId(),
             cmd.content(),
@@ -77,7 +77,7 @@ public class ReviewCommandService {
         eventPublisher.publishEvent(new ReviewCreatedEvent(
             new ReviewId(saved.getId()),
             cmd.memberId(),
-            cmd.placeId(),
+            cmd.shopId(),
             cmd.productId(),
             LocalDateTime.now()
         ));

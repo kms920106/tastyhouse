@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record ProductSoldOutChangedEvent(
     Long productId,
-    Long placeId,
+    Long shopId,
     boolean isSoldOut,
     LocalDateTime occurredAt
 ) {

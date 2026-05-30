@@ -3,7 +3,7 @@ package com.tastyhouse.core.domain.review.application.dto.command;
 import java.util.List;
 
 public record CreateReviewCommand(
-    Long placeId,
+    Long shopId,
     Long productId,
     Long memberId,
     Long orderItemId,

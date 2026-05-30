@@ -128,7 +128,7 @@ public class BbqService {
     }
 
     @Transactional
-    public void crawlAndSaveNewMenu(Long placeId) {
+    public void crawlAndSaveNewMenu(Long shopId) {
         try {
             List<BbqProductCategoryResponse> menuCategories = getMenuCategories();
             log.info("BBQ 카테고리 {}개 조회 완료", menuCategories.size());
@@ -136,14 +136,14 @@ public class BbqService {
             for (int categoryIndex = 0; categoryIndex < menuCategories.size(); categoryIndex++) {
                 BbqProductCategoryResponse categoryResponse = menuCategories.get(categoryIndex);
 
-                ProductCategory savedCategory = saveOrGetCategory(placeId, categoryResponse, categoryIndex);
+                ProductCategory savedCategory = saveOrGetCategory(shopId, categoryResponse, categoryIndex);
 
                 List<BbqProductResponse> menus = getMenusByCategoryId(categoryResponse.id());
                 log.info("카테고리 '{}' - 상품 {}개 조회", categoryResponse.name(), menus.size());
 
                 for (int menuIndex = 0; menuIndex < menus.size(); menuIndex++) {
                     BbqProductResponse menuResponse = menus.get(menuIndex);
-                    saveProductWithImage(placeId, savedCategory.getId(), menuResponse, categoryResponse.id(), menuIndex);
+                    saveProductWithImage(shopId, savedCategory.getId(), menuResponse, categoryResponse.id(), menuIndex);
                 }
 
                 if (categoryIndex < menuCategories.size() - 1) {
@@ -152,32 +152,32 @@ public class BbqService {
                 }
             }
 
-            log.info("BBQ 메뉴 크롤링 및 저장 완료. placeId: {}", placeId);
+            log.info("BBQ 메뉴 크롤링 및 저장 완료. shopId: {}", shopId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.error("크롤링 중 인터럽트 발생: placeId={}", placeId, e);
+            log.error("크롤링 중 인터럽트 발생: shopId={}", shopId, e);
             throw new RuntimeException("크롤링 중단됨", e);
         } catch (Exception e) {
-            log.error("BBQ 메뉴 크롤링 및 저장 중 오류 발생: placeId={}", placeId, e);
+            log.error("BBQ 메뉴 크롤링 및 저장 중 오류 발생: shopId={}", shopId, e);
             throw new RuntimeException("BBQ 메뉴 크롤링 및 저장 실패", e);
         }
     }
 
-    private ProductCategory saveOrGetCategory(Long placeId, BbqProductCategoryResponse categoryResponse, int sort) {
-        List<ProductCategory> existingCategories = productQueryService.findProductCategoriesByNameAndPlaceId(categoryResponse.name(), placeId);
+    private ProductCategory saveOrGetCategory(Long shopId, BbqProductCategoryResponse categoryResponse, int sort) {
+        List<ProductCategory> existingCategories = productQueryService.findProductCategoriesByNameAndShopId(categoryResponse.name(), shopId);
         if (!existingCategories.isEmpty()) {
             return existingCategories.get(0);
         }
         return productCommandService.createProductCategory(new CreateProductCategoryCommand(
-            placeId, categoryResponse.name(), sort, true
+            shopId, categoryResponse.name(), sort, true
         ));
     }
 
-    private void saveProductWithImage(Long placeId, Long categoryId, BbqProductResponse menuResponse, Long bbqCategoryId, int sort) {
+    private void saveProductWithImage(Long shopId, Long categoryId, BbqProductResponse menuResponse, Long bbqCategoryId, int sort) {
         BbqProductResponse menuDetail = getMenuDetail(menuResponse.id());
 
         Product savedProduct = productCommandService.createProduct(new CreateProductCommand(
-            placeId, categoryId, menuDetail.name(), menuDetail.description(),
+            shopId, categoryId, menuDetail.name(), menuDetail.description(),
             menuDetail.originalPrice(), null, null, null, 0, false, null,
             menuDetail.isSoldOut() != null ? menuDetail.isSoldOut() : false, true, sort
         ));

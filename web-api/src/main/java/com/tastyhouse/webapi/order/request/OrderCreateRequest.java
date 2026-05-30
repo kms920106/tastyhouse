@@ -12,7 +12,7 @@ import java.util.List;
 public record OrderCreateRequest(
     @NotNull(message = "매장 ID는 필수입니다")
     @Schema(description = "매장 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-    Long placeId,
+    Long shopId,
 
     @NotEmpty(message = "주문 상품은 필수입니다")
     @Valid

@@ -45,7 +45,7 @@ public class ProductCommandService {
     @Transactional
     public Product createProduct(CreateProductCommand cmd) {
         Product product = Product.of(
-            cmd.placeId(),
+            cmd.shopId(),
             cmd.productCategoryId(),
             cmd.name(),
             cmd.description(),
@@ -63,7 +63,7 @@ public class ProductCommandService {
         Product saved = productRepository.save(product);
         eventPublisher.publishEvent(new ProductCreatedEvent(
             saved.getId(),
-            saved.getPlaceId(),
+            saved.getShopId(),
             LocalDateTime.now()
         ));
         return saved;
@@ -72,7 +72,7 @@ public class ProductCommandService {
     @Transactional
     public ProductCategory createProductCategory(CreateProductCategoryCommand cmd) {
         ProductCategory category = ProductCategory.of(
-            cmd.placeId(),
+            cmd.shopId(),
             cmd.name(),
             cmd.sort(),
             cmd.isActive()
@@ -139,7 +139,7 @@ public class ProductCommandService {
         productRepository.save(product);
         eventPublisher.publishEvent(new ProductSoldOutChangedEvent(
             product.getId(),
-            product.getPlaceId(),
+            product.getShopId(),
             true,
             LocalDateTime.now()
         ));
@@ -153,7 +153,7 @@ public class ProductCommandService {
         productRepository.save(product);
         eventPublisher.publishEvent(new ProductDeactivatedEvent(
             product.getId(),
-            product.getPlaceId(),
+            product.getShopId(),
             LocalDateTime.now()
         ));
     }

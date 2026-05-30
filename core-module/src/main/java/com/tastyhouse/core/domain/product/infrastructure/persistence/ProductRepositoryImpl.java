@@ -24,7 +24,7 @@ import java.util.Optional;
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;
-import static com.tastyhouse.core.domain.place.domain.model.QPlace.place;
+import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 
 @Repository
 @RequiredArgsConstructor
@@ -40,7 +40,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         JPAQuery<TodayDiscountProductResult> query = queryFactory
             .select(new QTodayDiscountProductResult(
                 product.id,
-                place.name,
+                shop.name,
                 product.name,
                 uploadedFile.filePath,
                 product.originalPrice,
@@ -48,7 +48,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.discountInfo.discountRate
             ))
             .from(product)
-            .innerJoin(place).on(product.placeId.eq(place.id))
+            .innerJoin(shop).on(product.shopId.eq(shop.id))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
                     .and(productImage.isActive.eq(true))
@@ -80,12 +80,12 @@ public class ProductRepositoryImpl implements ProductRepository {
         Long total = queryFactory
             .select(product.count())
             .from(product)
-            .innerJoin(place).on(product.placeId.eq(place.id))
+            .innerJoin(shop).on(product.shopId.eq(shop.id))
             .where(
                 product.name.containsIgnoreCase(keyword)
                     .and(product.isActive.eq(true))
                     .and(product.isSoldOut.eq(false))
-                    .and(place.permanentlyClosed.eq(false))
+                    .and(shop.permanentlyClosed.eq(false))
             )
             .fetchOne();
 
@@ -94,7 +94,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         List<SearchProductItemResult> content = queryFactory
             .select(Projections.constructor(SearchProductItemResult.class,
                 product.id,
-                place.name,
+                shop.name,
                 product.name,
                 uploadedFile.filePath,
                 product.originalPrice,
@@ -106,7 +106,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.spiciness
             ))
             .from(product)
-            .innerJoin(place).on(product.placeId.eq(place.id))
+            .innerJoin(shop).on(product.shopId.eq(shop.id))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
                     .and(productImage.isActive.eq(true))
@@ -122,7 +122,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.name.containsIgnoreCase(keyword)
                     .and(product.isActive.eq(true))
                     .and(product.isSoldOut.eq(false))
-                    .and(place.permanentlyClosed.eq(false))
+                    .and(shop.permanentlyClosed.eq(false))
             )
             .orderBy(product.isRepresentative.desc().nullsLast(), product.rating.desc().nullsLast())
             .offset(pageable.getOffset())
@@ -133,11 +133,11 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public List<ProductSimpleResult> findProductsByPlaceId(Long placeId) {
+    public List<ProductSimpleResult> findProductsByShopId(Long shopId) {
         return queryFactory
             .select(new QProductSimpleResult(
                 product.id,
-                place.name,
+                shop.name,
                 product.name,
                 uploadedFile.filePath,
                 product.originalPrice,
@@ -145,7 +145,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.discountInfo.discountRate
             ))
             .from(product)
-            .innerJoin(place).on(place.id.eq(product.placeId))
+            .innerJoin(shop).on(shop.id.eq(product.shopId))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
                     .and(productImage.isActive.eq(true))
@@ -158,34 +158,34 @@ public class ProductRepositoryImpl implements ProductRepository {
                     ))
             )
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.imageFileId))
-            .where(product.placeId.eq(placeId)
+            .where(product.shopId.eq(shopId)
                 .and(product.isActive.eq(true)))
             .fetch();
     }
 
     @Override
-    public List<Product> findByPlaceIdOrderByRepresentativeAndRating(Long placeId) {
+    public List<Product> findByShopIdOrderByRepresentativeAndRating(Long shopId) {
         return queryFactory
             .selectFrom(product)
-            .where(product.placeId.eq(placeId))
+            .where(product.shopId.eq(shopId))
             .orderBy(product.isRepresentative.desc(), product.rating.desc(), product.id.asc())
             .fetch();
     }
 
     @Override
-    public List<Product> findActiveByPlaceIdOrderByRepresentativeAndRating(Long placeId) {
+    public List<Product> findActiveByShopIdOrderByRepresentativeAndRating(Long shopId) {
         return queryFactory
             .selectFrom(product)
-            .where(product.placeId.eq(placeId), product.isActive.eq(true))
+            .where(product.shopId.eq(shopId), product.isActive.eq(true))
             .orderBy(product.isRepresentative.desc(), product.rating.desc(), product.id.asc())
             .fetch();
     }
 
     @Override
-    public List<Product> findByPlaceId(Long placeId) {
+    public List<Product> findByShopId(Long shopId) {
         return queryFactory
             .selectFrom(product)
-            .where(product.placeId.eq(placeId))
+            .where(product.shopId.eq(shopId))
             .fetch();
     }
 

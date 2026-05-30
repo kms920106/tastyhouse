@@ -54,16 +54,16 @@ public class ProductQueryService {
         return productCategoryRepository.findById(categoryId);
     }
 
-    public List<Product> findActiveProductsByPlaceId(Long placeId) {
-        return productRepository.findActiveByPlaceIdOrderByRepresentativeAndRating(placeId);
+    public List<Product> findActiveProductsByShopId(Long shopId) {
+        return productRepository.findActiveByShopIdOrderByRepresentativeAndRating(shopId);
     }
 
-    public List<ProductCategory> findProductCategoriesByPlaceId(Long placeId) {
-        return productCategoryRepository.findActiveCategoriesByPlaceIdOrderBySort(placeId);
+    public List<ProductCategory> findProductCategoriesByShopId(Long shopId) {
+        return productCategoryRepository.findActiveCategoriesByShopIdOrderBySort(shopId);
     }
 
-    public List<ProductCategory> findProductCategoriesByNameAndPlaceId(String name, Long placeId) {
-        return productCategoryRepository.findCategoriesByNameAndPlaceId(name, placeId);
+    public List<ProductCategory> findProductCategoriesByNameAndShopId(String name, Long shopId) {
+        return productCategoryRepository.findCategoriesByNameAndShopId(name, shopId);
     }
 
     public List<ProductOptionGroup> findProductOptionGroupsByProductId(Long productId) {

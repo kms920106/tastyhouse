@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 
 public record OrderListItemResponse(
     Long id,
-    String placeName,
-    String placeThumbnailImageUrl,
+    String shopName,
+    String shopThumbnailImageUrl,
     String firstProductName,
     Integer totalItemCount,
     Integer amount,
@@ -16,8 +16,8 @@ public record OrderListItemResponse(
 ) {
     public static OrderListItemResponse from(
     Long id,
-    String placeName,
-    String placeThumbnailImageUrl,
+    String shopName,
+    String shopThumbnailImageUrl,
     String firstProductName,
     Integer totalItemCount,
     Integer amount,
@@ -26,8 +26,8 @@ public record OrderListItemResponse(
     ) {
     return new OrderListItemResponse(
         id,
-        placeName,
-        placeThumbnailImageUrl,
+        shopName,
+        shopThumbnailImageUrl,
         firstProductName,
         totalItemCount,
         amount,

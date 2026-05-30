@@ -3,7 +3,7 @@ package com.tastyhouse.core.domain.product.application.dto.command;
 import java.math.BigDecimal;
 
 public record CreateProductCommand(
-    Long placeId,
+    Long shopId,
     Long productCategoryId,
     String name,
     String description,

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public record OrderCreatedEvent(
     Long orderId,
     Long memberId,
-    Long placeId,
+    Long shopId,
     Integer finalAmount,
     LocalDateTime createdAt
 ) {

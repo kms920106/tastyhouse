@@ -190,7 +190,7 @@ CREATE TABLE MEMBER_REVIEW_RANK
 CREATE TABLE PRODUCT
 (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,           -- 상품 ID (PK)
-    place_id            BIGINT        NOT NULL,                      -- 장소 ID (PLACE.id 참조)
+    shop_id            BIGINT        NOT NULL,                      -- 장소 ID (SHOP.id 참조)
     product_category_id BIGINT,                                      -- 상품 카테고리 ID (PRODUCT_CATEGORY.id 참조)
     name                VARCHAR(255)  NOT NULL,                      -- 상품명
     description         VARCHAR(1000),                               -- 상품 설명
@@ -206,10 +206,10 @@ CREATE TABLE PRODUCT
     sort                INT           NOT NULL,                      -- 정렬 순서
     created_at          DATETIME      NOT NULL,                      -- 생성 일시
     updated_at          DATETIME      NOT NULL,                      -- 수정 일시
-    INDEX idx_product_place_id (place_id),                           -- 인덱스: 장소별 조회
-    INDEX idx_product_category (place_id, product_category_id),      -- 인덱스: 장소·카테고리 복합 조회
-    INDEX idx_product_representative (place_id, is_representative),  -- 인덱스: 장소·대표상품 조회
-    INDEX idx_product_active (place_id, is_active, sort)             -- 인덱스: 장소·활성·정렬 복합 조회
+    INDEX idx_product_shop_id (shop_id),                           -- 인덱스: 장소별 조회
+    INDEX idx_product_category (shop_id, product_category_id),      -- 인덱스: 장소·카테고리 복합 조회
+    INDEX idx_product_representative (shop_id, is_representative),  -- 인덱스: 장소·대표상품 조회
+    INDEX idx_product_active (shop_id, is_active, sort)             -- 인덱스: 장소·활성·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_BBQ
@@ -242,14 +242,14 @@ CREATE TABLE PRODUCT_IMAGE
 CREATE TABLE PRODUCT_CATEGORY
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,                      -- 상품 카테고리 ID (PK)
-    place_id      BIGINT       NOT NULL,                                  -- 장소 ID (PLACE.id 참조)
+    shop_id      BIGINT       NOT NULL,                                  -- 장소 ID (SHOP.id 참조)
     name  VARCHAR(100) NOT NULL,                                          -- 카테고리 이름
     sort          INT          NOT NULL,                                  -- 정렬 순서
     is_active     TINYINT(1)   NOT NULL DEFAULT 1,                        -- 활성화 여부 (1: 활성)
     created_at    DATETIME     NOT NULL,                                  -- 생성 일시
     updated_at    DATETIME     NOT NULL,                                  -- 수정 일시
-    INDEX idx_product_category_place_id (place_id),                       -- 인덱스: 장소별 조회
-    INDEX idx_product_category_active (place_id, is_active, sort)         -- 인덱스: 장소·활성·정렬 복합 조회
+    INDEX idx_product_category_shop_id (shop_id),                       -- 인덱스: 장소별 조회
+    INDEX idx_product_category_active (shop_id, is_active, sort)         -- 인덱스: 장소·활성·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_COMMON_OPTION_GROUP
@@ -318,10 +318,10 @@ CREATE TABLE PRODUCT_OPTION_GROUP
     INDEX idx_product_option_group_active (product_id, is_active, sort)               -- 인덱스: 상품·활성·정렬 복합 조회
 );
 
-CREATE TABLE PLACE
+CREATE TABLE SHOP
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY, -- 장소 ID (PK)
-    station_id        BIGINT        NOT NULL,            -- 지하철역 ID (PLACE_STATION.id 참조)
+    station_id        BIGINT        NOT NULL,            -- 지하철역 ID (STATION.id 참조)
     name              VARCHAR(255)  NOT NULL UNIQUE,     -- 장소 이름
     latitude          DECIMAL(9, 6) NOT NULL,            -- 위도
     longitude         DECIMAL(9, 6) NOT NULL,            -- 경도
@@ -406,17 +406,17 @@ CREATE TABLE PARTNERSHIP_REQUEST
     INDEX idx_partnership_request_consultation_date (consultation_requested_at)                      -- 인덱스: 상담 희망 일시별 조회
 );
 
-CREATE TABLE PLACE_OWNER_MESSAGE_HISTORY
+CREATE TABLE SHOP_OWNER_MESSAGE_HISTORY
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,                           -- 사장님 메시지 이력 ID (PK)
-    place_id      BIGINT   NOT NULL,                                           -- 장소 ID (PLACE.id 참조)
+    shop_id      BIGINT   NOT NULL,                                           -- 장소 ID (SHOP.id 참조)
     message       TEXT,                                                        -- 메시지 내용
     created_at    DATETIME NOT NULL,                                           -- 생성 일시
     updated_at    DATETIME NOT NULL,                                           -- 수정 일시
-    INDEX idx_place_owner_message_history_place_id (place_id)                  -- 인덱스: 장소별 조회
+    INDEX idx_shop_owner_message_history_shop_id (shop_id)                  -- 인덱스: 장소별 조회
 );
 
-CREATE TABLE PLACE_AMENITY_CATEGORY
+CREATE TABLE SHOP_AMENITY_CATEGORY
 (
     id                      BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 편의시설 카테고리 ID (PK)
     amenity                 VARCHAR(50)  NOT NULL UNIQUE,        -- 편의시설 코드 (WIFI, PARKING 등)
@@ -430,80 +430,80 @@ CREATE TABLE PLACE_AMENITY_CATEGORY
     INDEX idx_amenity_category_active (is_active, sort)          -- 인덱스: 활성·정렬 복합 조회
 );
 
-CREATE TABLE PLACE_AMENITY
+CREATE TABLE SHOP_AMENITY
 (
-    id                        BIGINT AUTO_INCREMENT PRIMARY KEY,                        -- 장소 편의시설 ID (PK)
-    place_id                  BIGINT NOT NULL,                                          -- 장소 ID (PLACE.id 참조)
-    place_amenity_category_id BIGINT NOT NULL,                                          -- 편의시설 카테고리 ID (PLACE_AMENITY_CATEGORY.id 참조)
-    UNIQUE KEY uk_place_amenity (place_id, place_amenity_category_id),                  -- 유니크: 장소·편의시설 중복 방지
-    INDEX idx_place_amenity_place_id (place_id)                                         -- 인덱스: 장소별 조회
+    id                        BIGINT AUTO_INCREMENT PRIMARY KEY,                        -- 가게 편의시설 ID (PK)
+    shop_id                  BIGINT NOT NULL,                                          -- 장소 ID (SHOP.id 참조)
+    shop_amenity_category_id BIGINT NOT NULL,                                          -- 편의시설 카테고리 ID (SHOP_AMENITY_CATEGORY.id 참조)
+    UNIQUE KEY uk_shop_amenity (shop_id, shop_amenity_category_id),                  -- 유니크: 장소·편의시설 중복 방지
+    INDEX idx_shop_amenity_shop_id (shop_id)                                         -- 인덱스: 장소별 조회
 );
 
-CREATE TABLE PLACE_BOOKMARK
+CREATE TABLE SHOP_BOOKMARK
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                   -- 장소 북마크 ID (PK)
-    place_id   BIGINT   NOT NULL,                                   -- 장소 ID (PLACE.id 참조)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                   -- 가게 북마크 ID (PK)
+    shop_id   BIGINT   NOT NULL,                                   -- 장소 ID (SHOP.id 참조)
     member_id  BIGINT   NOT NULL,                                   -- 회원 ID (MEMBER.id 참조)
     created_at DATETIME NOT NULL,                                   -- 생성 일시
     updated_at DATETIME NOT NULL,                                   -- 수정 일시
-    UNIQUE KEY uk_place_bookmark (place_id, member_id),             -- 유니크: 장소·회원 중복 방지
-    INDEX idx_place_bookmark_place_id (place_id),                   -- 인덱스: 장소별 조회
-    INDEX idx_place_bookmark_member_id (member_id)                  -- 인덱스: 회원별 조회
+    UNIQUE KEY uk_shop_bookmark (shop_id, member_id),             -- 유니크: 장소·회원 중복 방지
+    INDEX idx_shop_bookmark_shop_id (shop_id),                   -- 인덱스: 장소별 조회
+    INDEX idx_shop_bookmark_member_id (member_id)                  -- 인덱스: 회원별 조회
 );
 
-CREATE TABLE PLACE_BUSINESS_HOUR
+CREATE TABLE SHOP_BUSINESS_HOUR
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,               -- 영업 시간 ID (PK)
-    place_id         BIGINT      NOT NULL,                            -- 장소 ID (PLACE.id 참조)
+    shop_id         BIGINT      NOT NULL,                            -- 장소 ID (SHOP.id 참조)
     day_type         VARCHAR(20) NOT NULL,                            -- 요일 유형 (MON, TUE, WEEKDAY, WEEKEND 등)
     open_time        TIME,                                            -- 영업 시작 시간
     close_time       TIME,                                            -- 영업 종료 시간
     is_closed        TINYINT(1),                                      -- 휴무 여부 (1: 휴무)
-    INDEX idx_place_business_hour_place_id (place_id),                -- 인덱스: 장소별 조회
-    UNIQUE KEY uk_place_business_hour (place_id, day_type)            -- 유니크: 장소·요일 중복 방지
+    INDEX idx_shop_business_hour_shop_id (shop_id),                -- 인덱스: 장소별 조회
+    UNIQUE KEY uk_shop_business_hour (shop_id, day_type)            -- 유니크: 장소·요일 중복 방지
 );
 
-CREATE TABLE PLACE_BREAK_TIME
+CREATE TABLE SHOP_BREAK_TIME
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,           -- 휴게 시간 ID (PK)
-    place_id         BIGINT      NOT NULL,                        -- 장소 ID (PLACE.id 참조)
+    shop_id         BIGINT      NOT NULL,                        -- 장소 ID (SHOP.id 참조)
     day_type         VARCHAR(20) NOT NULL,                        -- 요일 유형 (MON, TUE, WEEKDAY, WEEKEND 등)
     start_time TIME        NOT NULL,                              -- 휴게 시작 시간
     end_time   TIME        NOT NULL,                              -- 휴게 종료 시간
-    INDEX idx_place_break_time_place_id (place_id),               -- 인덱스: 장소별 조회
-    UNIQUE KEY uk_place_break_time (place_id, day_type)           -- 유니크: 장소·요일 중복 방지
+    INDEX idx_shop_break_time_shop_id (shop_id),               -- 인덱스: 장소별 조회
+    UNIQUE KEY uk_shop_break_time (shop_id, day_type)           -- 유니크: 장소·요일 중복 방지
 );
 
-CREATE TABLE PLACE_CLOSED_DAY
+CREATE TABLE SHOP_CLOSED_DAY
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 정기 휴무일 ID (PK)
-    place_id         BIGINT      NOT NULL,                          -- 장소 ID (PLACE.id 참조)
+    shop_id         BIGINT      NOT NULL,                          -- 장소 ID (SHOP.id 참조)
     closed_day_type  VARCHAR(50) NOT NULL,                          -- 휴무 유형 (EVERY_MON, FIRST_SAT 등)
-    INDEX idx_place_closed_day_place_id (place_id)                  -- 인덱스: 장소별 조회
+    INDEX idx_shop_closed_day_shop_id (shop_id)                  -- 인덱스: 장소별 조회
 );
 
-CREATE TABLE PLACE_ORDER_METHOD
+CREATE TABLE SHOP_ORDER_METHOD
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,                      -- 주문 방식 ID (PK)
-    place_id     BIGINT       NOT NULL,                                  -- 장소 ID (PLACE.id 참조)
+    shop_id     BIGINT       NOT NULL,                                  -- 장소 ID (SHOP.id 참조)
     order_method VARCHAR(50)  NOT NULL,                                  -- 주문 방식 (DINE_IN, TAKEOUT, DELIVERY 등)
     created_at   DATETIME     NOT NULL,                                  -- 생성 일시
     updated_at   DATETIME     NOT NULL,                                  -- 수정 일시
-    UNIQUE KEY uk_place_order_method (place_id, order_method),           -- 유니크: 장소·주문방식 중복 방지
-    INDEX idx_place_order_method_place_id (place_id)                     -- 인덱스: 장소별 조회
+    UNIQUE KEY uk_shop_order_method (shop_id, order_method),           -- 유니크: 장소·주문방식 중복 방지
+    INDEX idx_shop_order_method_shop_id (shop_id)                     -- 인덱스: 장소별 조회
 );
 
-CREATE TABLE PLACE_CHOICE
+CREATE TABLE SHOP_CHOICE
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 장소 픽 ID (PK)
-    place_id   BIGINT       NOT NULL,             -- 장소 ID (PLACE.id 참조)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 가게 픽 ID (PK)
+    shop_id   BIGINT       NOT NULL,             -- 장소 ID (SHOP.id 참조)
     title      VARCHAR(200) NOT NULL,             -- 픽 제목
     content    TEXT,                              -- 픽 내용
     created_at DATETIME     NOT NULL,             -- 생성 일시
     updated_at DATETIME     NOT NULL              -- 수정 일시
 );
 
-CREATE TABLE PLACE_FOOD_TYPE_CATEGORY
+CREATE TABLE SHOP_FOOD_TYPE_CATEGORY
 (
     id                     BIGINT AUTO_INCREMENT PRIMARY KEY,    -- 음식 유형 카테고리 ID (PK)
     food_type              VARCHAR(50)  NOT NULL UNIQUE,          -- 음식 유형 코드 (KOREAN, JAPANESE 등)
@@ -517,46 +517,46 @@ CREATE TABLE PLACE_FOOD_TYPE_CATEGORY
     INDEX idx_food_type_category_active (is_active, sort)         -- 인덱스: 활성·정렬 복합 조회
 );
 
-CREATE TABLE PLACE_FOOD_TYPE
+CREATE TABLE SHOP_FOOD_TYPE
 (
-    id                          BIGINT AUTO_INCREMENT PRIMARY KEY,                      -- 장소 음식 유형 ID (PK)
-    place_id                    BIGINT NOT NULL,                                        -- 장소 ID (PLACE.id 참조)
-    place_food_type_category_id BIGINT NOT NULL,                                        -- 음식 유형 카테고리 ID (PLACE_FOOD_TYPE_CATEGORY.id 참조)
-    UNIQUE KEY uk_place_food_type (place_id, place_food_type_category_id),              -- 유니크: 장소·음식유형 중복 방지
-    INDEX idx_place_food_type_place_id (place_id)                                       -- 인덱스: 장소별 조회
+    id                          BIGINT AUTO_INCREMENT PRIMARY KEY,                      -- 가게 음식 유형 ID (PK)
+    shop_id                    BIGINT NOT NULL,                                        -- 장소 ID (SHOP.id 참조)
+    shop_food_type_category_id BIGINT NOT NULL,                                        -- 음식 유형 카테고리 ID (SHOP_FOOD_TYPE_CATEGORY.id 참조)
+    UNIQUE KEY uk_shop_food_type (shop_id, shop_food_type_category_id),              -- 유니크: 장소·음식유형 중복 방지
+    INDEX idx_shop_food_type_shop_id (shop_id)                                       -- 인덱스: 장소별 조회
 );
 
-CREATE TABLE PLACE_PHOTO_CATEGORY
+CREATE TABLE SHOP_PHOTO_CATEGORY
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,                    -- 사진 카테고리 ID (PK)
-    place_id   BIGINT       NOT NULL,                                -- 장소 ID (PLACE.id 참조)
+    shop_id   BIGINT       NOT NULL,                                -- 장소 ID (SHOP.id 참조)
     name       VARCHAR(100) NOT NULL,                                -- 카테고리 이름
     created_at DATETIME     NOT NULL,                                -- 생성 일시
     updated_at DATETIME     NOT NULL,                                -- 수정 일시
-    INDEX idx_place_photo_category_place_id (place_id)               -- 인덱스: 장소별 조회
+    INDEX idx_shop_photo_category_shop_id (shop_id)               -- 인덱스: 장소별 조회
 );
 
-CREATE TABLE PLACE_PHOTO_CATEGORY_IMAGE
+CREATE TABLE SHOP_PHOTO_CATEGORY_IMAGE
 (
     id                      BIGINT AUTO_INCREMENT PRIMARY KEY,                             -- 사진 카테고리 이미지 ID (PK)
-    place_photo_category_id BIGINT   NOT NULL,                                             -- 사진 카테고리 ID (PLACE_PHOTO_CATEGORY.id 참조)
+    shop_photo_category_id BIGINT   NOT NULL,                                             -- 사진 카테고리 ID (SHOP_PHOTO_CATEGORY.id 참조)
     image_file_id           BIGINT   NOT NULL,                                             -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
     sort                    INT      NOT NULL,                                             -- 정렬 순서
     created_at              DATETIME NOT NULL,                                             -- 생성 일시
     updated_at              DATETIME NOT NULL,                                             -- 수정 일시
-    INDEX idx_place_photo_category_image_category_id (place_photo_category_id)             -- 인덱스: 사진 카테고리별 조회
+    INDEX idx_shop_photo_category_image_category_id (shop_photo_category_id)             -- 인덱스: 사진 카테고리별 조회
 );
 
-CREATE TABLE PLACE_BANNER_IMAGE
+CREATE TABLE SHOP_BANNER_IMAGE
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 장소 배너 이미지 ID (PK)
-    place_id       BIGINT   NOT NULL,                             -- 장소 ID (PLACE.id 참조)
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 가게 배너 이미지 ID (PK)
+    shop_id       BIGINT   NOT NULL,                             -- 장소 ID (SHOP.id 참조)
     image_file_id  BIGINT   NOT NULL,                             -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
     sort           INT,                                           -- 정렬 순서
-    INDEX idx_place_banner_image_place_id (place_id)              -- 인덱스: 장소별 조회
+    INDEX idx_shop_banner_image_shop_id (shop_id)              -- 인덱스: 장소별 조회
 );
 
-CREATE TABLE PLACE_STATION
+CREATE TABLE STATION
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY, -- 지하철역 ID (PK)
     station_name VARCHAR(255) NOT NULL              -- 역 이름
@@ -565,7 +565,7 @@ CREATE TABLE PLACE_STATION
 CREATE TABLE REVIEW
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY, -- 리뷰 ID (PK)
-    place_id          BIGINT     NOT NULL,               -- 장소 ID (PLACE.id 참조)
+    shop_id          BIGINT     NOT NULL,               -- 장소 ID (SHOP.id 참조)
     product_id        BIGINT     NOT NULL,               -- 상품 ID (PRODUCT.id 참조)
     member_id         BIGINT     NOT NULL,               -- 작성자 회원 ID (MEMBER.id 참조)
     order_id          BIGINT,                            -- 주문 ID (ORDERS.id 참조, NULL 시 비인증 리뷰)
@@ -664,7 +664,7 @@ CREATE TABLE ORDERS
 (
     id                      BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 주문 ID (PK)
     member_id               BIGINT       NOT NULL,               -- 회원 ID (MEMBER.id 참조)
-    place_id                BIGINT       NOT NULL,               -- 장소 ID (PLACE.id 참조)
+    shop_id                BIGINT       NOT NULL,               -- 장소 ID (SHOP.id 참조)
     order_number            VARCHAR(50)  NOT NULL UNIQUE,        -- 주문 번호
     order_status            VARCHAR(20)  NOT NULL,               -- 주문 상태 (PENDING, CONFIRMED, CANCELLED 등)
     orderer_name            VARCHAR(100) NOT NULL,               -- 주문자 이름
@@ -682,7 +682,7 @@ CREATE TABLE ORDERS
     created_at              DATETIME     NOT NULL,               -- 생성 일시
     updated_at              DATETIME     NOT NULL,               -- 수정 일시
     INDEX idx_orders_member_id (member_id),                      -- 인덱스: 회원별 조회
-    INDEX idx_orders_place_id (place_id),                        -- 인덱스: 장소별 조회
+    INDEX idx_orders_shop_id (shop_id),                        -- 인덱스: 장소별 조회
     INDEX idx_orders_order_status (order_status),                -- 인덱스: 주문 상태별 조회
     INDEX idx_orders_created_at (created_at)                     -- 인덱스: 생성 일시별 조회
 );

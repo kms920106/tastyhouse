@@ -8,7 +8,7 @@ import com.tastyhouse.webapi.member.request.WithdrawMemberRequest;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
-import com.tastyhouse.webapi.member.response.PlaceBookmarkListItemResponse;
+import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
@@ -219,17 +219,17 @@ public class MemberMeApiController {
         ));
     }
 
-    @Operation(summary = "내가 즐겨찾기한 플레이스 목록 조회", description = "로그인한 회원이 북마크한 플레이스 목록을 페이징하여 조회합니다.")
+    @Operation(summary = "내가 즐겨찾기한 가게 목록 조회", description = "로그인한 회원이 북마크한 가게 목록을 페이징하여 조회합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     })
     @GetMapping("/v1/me/bookmarks")
-    public ResponseEntity<ApiResponse<List<PlaceBookmarkListItemResponse>>> getMyBookmarkedPlaces(
+    public ResponseEntity<ApiResponse<List<ShopBookmarkListItemResponse>>> getMyBookmarkedShops(
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResponse<PlaceBookmarkListItemResponse> pageResult = memberFacade.getMyBookmarkedPlaces(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResponse<ShopBookmarkListItemResponse> pageResult = memberFacade.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.getContent(),
             pageResult.getCurrentPage(),

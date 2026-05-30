@@ -5,8 +5,8 @@ import java.util.List;
 
 public record ReviewDetailResponse(
     Long id,
-    Long placeId,
-    String placeName,
+    Long shopId,
+    String shopName,
     String stationName,
     String content,
     Double totalRating,
@@ -26,8 +26,8 @@ public record ReviewDetailResponse(
 ) {
     public static ReviewDetailResponse from(
     Long id,
-    Long placeId,
-    String placeName,
+    Long shopId,
+    String shopName,
     String stationName,
     String content,
     Double totalRating,
@@ -47,8 +47,8 @@ public record ReviewDetailResponse(
     ) {
     return new ReviewDetailResponse(
         id,
-        placeId,
-        placeName,
+        shopId,
+        shopName,
         stationName,
         content,
         totalRating,

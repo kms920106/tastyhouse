@@ -21,8 +21,8 @@ public class Review extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    @Column(name = "shop_id", nullable = false)
+    private Long shopId;
 
     @Column(name = "product_id", nullable = false)
     private Long productId;
@@ -64,7 +64,7 @@ public class Review extends BaseEntity {
     private Boolean isHidden = false;
 
     private Review(
-        Long placeId,
+        Long shopId,
         Long productId,
         Long memberId,
         String content,
@@ -78,7 +78,7 @@ public class Review extends BaseEntity {
         Boolean willRevisit,
         Long orderId
     ) {
-        this.placeId = placeId;
+        this.shopId = shopId;
         this.productId = productId;
         this.memberId = memberId;
         this.content = content;
@@ -95,7 +95,7 @@ public class Review extends BaseEntity {
     }
 
     public static Review of(
-        Long placeId,
+        Long shopId,
         Long productId,
         Long memberId,
         String content,
@@ -110,7 +110,7 @@ public class Review extends BaseEntity {
         Long orderId
     ) {
         return new Review(
-            placeId,
+            shopId,
             productId,
             memberId,
             content,

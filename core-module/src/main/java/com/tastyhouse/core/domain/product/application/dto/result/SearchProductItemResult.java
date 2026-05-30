@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 public record SearchProductItemResult(
     Long id,
-    String placeName,
+    String shopName,
     String name,
     String imageFilePath,
     Integer originalPrice,

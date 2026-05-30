@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public record ReviewCreatedEvent(
     ReviewId reviewId,
     Long memberId,
-    Long placeId,
+    Long shopId,
     Long productId,
     LocalDateTime occurredAt
 ) {

@@ -20,7 +20,7 @@ import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploade
 import static com.tastyhouse.core.domain.order.domain.model.QOrder.order;
 import static com.tastyhouse.core.domain.order.domain.model.QOrderItem.orderItem;
 import static com.tastyhouse.core.domain.payment.domain.model.QPayment.payment;
-import static com.tastyhouse.core.domain.place.domain.model.QPlace.place;
+import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 
 @Repository
 @RequiredArgsConstructor
@@ -52,7 +52,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         List<OrderListItemResult> content = queryFactory
             .select(new QOrderListItemResult(
                 order.id,
-                place.name,
+                shop.name,
                 uploadedFile.filePath,
                 orderItem.productName.min(),
                 orderItem.id.count().castToNum(Integer.class),
@@ -62,11 +62,11 @@ public class OrderRepositoryImpl implements OrderRepository {
             ))
             .from(order)
             .innerJoin(payment).on(paymentJoinCondition)
-            .leftJoin(place).on(place.id.eq(order.placeId))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(place.thumbnailImageFileId))
+            .leftJoin(shop).on(shop.id.eq(order.shopId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shop.thumbnailImageFileId))
             .leftJoin(orderItem).on(orderItem.orderId.eq(order.id))
             .where(order.memberId.eq(memberId))
-            .groupBy(order.id, place.name, uploadedFile.filePath, order.finalAmount, payment.paymentStatus, payment.approvedAt)
+            .groupBy(order.id, shop.name, uploadedFile.filePath, order.finalAmount, payment.paymentStatus, payment.approvedAt)
             .orderBy(order.createdAt.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())

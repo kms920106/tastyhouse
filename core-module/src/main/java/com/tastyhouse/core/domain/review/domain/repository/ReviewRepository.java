@@ -25,9 +25,9 @@ public interface ReviewRepository {
 
     Page<LatestReviewListItemResult> findLatestReviewsByFollowing(List<Long> followingMemberIds, Pageable pageable);
 
-    Page<LatestReviewListItemResult> findLatestReviewsByPlaceId(Long placeId, Integer rating, Pageable pageable, Boolean hasImage, String sortType);
+    Page<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, Pageable pageable, Boolean hasImage, String sortType);
 
-    List<LatestReviewListItemResult> findReviewsByPlaceIdAndRating(Long placeId, Integer rating, int limit);
+    List<LatestReviewListItemResult> findReviewsByShopIdAndRating(Long shopId, Integer rating, int limit);
 
     Page<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, Pageable pageable, Boolean hasImage, String sortType);
 
@@ -41,25 +41,25 @@ public interface ReviewRepository {
 
     Page<MyReviewListItemResult> findReviewsByMemberId(Long memberId, Pageable pageable);
 
-    Long countByPlaceIdAndIsHiddenFalse(Long placeId);
+    Long countByShopIdAndIsHiddenFalse(Long shopId);
 
-    Long countWillRevisit(Long placeId);
+    Long countWillRevisit(Long shopId);
 
-    Double getAverageTasteRating(Long placeId);
+    Double getAverageTasteRating(Long shopId);
 
-    Double getAverageAmountRating(Long placeId);
+    Double getAverageAmountRating(Long shopId);
 
-    Double getAveragePriceRating(Long placeId);
+    Double getAveragePriceRating(Long shopId);
 
-    Double getAverageAtmosphereRating(Long placeId);
+    Double getAverageAtmosphereRating(Long shopId);
 
-    Double getAverageKindnessRating(Long placeId);
+    Double getAverageKindnessRating(Long shopId);
 
-    Double getAverageHygieneRating(Long placeId);
+    Double getAverageHygieneRating(Long shopId);
 
-    Map<Integer, Long> getRatingCounts(Long placeId);
+    Map<Integer, Long> getRatingCounts(Long shopId);
 
-    Map<Integer, Long> getMonthlyReviewCounts(Long placeId, int year);
+    Map<Integer, Long> getMonthlyReviewCounts(Long shopId, int year);
 
     Long countByProductIdAndIsHiddenFalse(Long productId);
 

@@ -25,8 +25,8 @@ public class Product extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    @Column(name = "shop_id", nullable = false)
+    private Long shopId;
 
     @Column(name = "product_category_id")
     private Long productCategoryId;
@@ -65,7 +65,7 @@ public class Product extends BaseEntity {
     private Integer sort;
 
     private Product(
-        Long placeId,
+        Long shopId,
         Long productCategoryId,
         String name,
         String description,
@@ -80,7 +80,7 @@ public class Product extends BaseEntity {
         Boolean isActive,
         Integer sort
     ) {
-        this.placeId = placeId;
+        this.shopId = shopId;
         this.productCategoryId = productCategoryId;
         this.name = name;
         this.description = description;
@@ -96,7 +96,7 @@ public class Product extends BaseEntity {
     }
 
     public static Product of(
-        Long placeId,
+        Long shopId,
         Long productCategoryId,
         String name,
         String description,
@@ -112,7 +112,7 @@ public class Product extends BaseEntity {
         Integer sort
     ) {
         return new Product(
-            placeId, productCategoryId, name, description,
+            shopId, productCategoryId, name, description,
             originalPrice, discountPrice, discountRate,
             rating, reviewCount, isRepresentative, spiciness,
             isSoldOut, isActive, sort

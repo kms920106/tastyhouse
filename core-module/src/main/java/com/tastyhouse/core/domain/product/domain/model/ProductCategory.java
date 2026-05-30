@@ -21,8 +21,8 @@ public class ProductCategory extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    @Column(name = "shop_id", nullable = false)
+    private Long shopId;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -33,15 +33,15 @@ public class ProductCategory extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    private ProductCategory(Long placeId, String name, Integer sort, Boolean isActive) {
-        this.placeId = placeId;
+    private ProductCategory(Long shopId, String name, Integer sort, Boolean isActive) {
+        this.shopId = shopId;
         this.name = name;
         this.sort = sort;
         this.isActive = isActive != null ? isActive : true;
     }
 
-    public static ProductCategory of(Long placeId, String name, Integer sort, Boolean isActive) {
-        return new ProductCategory(placeId, name, sort, isActive);
+    public static ProductCategory of(Long shopId, String name, Integer sort, Boolean isActive) {
+        return new ProductCategory(shopId, name, sort, isActive);
     }
 
     public void update(String displayName, Integer sort, Boolean isActive) {

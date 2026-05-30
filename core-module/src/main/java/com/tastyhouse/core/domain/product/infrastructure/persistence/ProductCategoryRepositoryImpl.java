@@ -24,19 +24,19 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
     }
 
     @Override
-    public List<ProductCategory> findActiveCategoriesByPlaceIdOrderBySort(Long placeId) {
+    public List<ProductCategory> findActiveCategoriesByShopIdOrderBySort(Long shopId) {
         return queryFactory
             .selectFrom(productCategory)
-            .where(productCategory.placeId.eq(placeId), productCategory.isActive.eq(true))
+            .where(productCategory.shopId.eq(shopId), productCategory.isActive.eq(true))
             .orderBy(productCategory.sort.asc())
             .fetch();
     }
 
     @Override
-    public List<ProductCategory> findCategoriesByNameAndPlaceId(String name, Long placeId) {
+    public List<ProductCategory> findCategoriesByNameAndShopId(String name, Long shopId) {
         return queryFactory
             .selectFrom(productCategory)
-            .where(productCategory.name.eq(name), productCategory.placeId.eq(placeId))
+            .where(productCategory.name.eq(name), productCategory.shopId.eq(shopId))
             .fetch();
     }
 

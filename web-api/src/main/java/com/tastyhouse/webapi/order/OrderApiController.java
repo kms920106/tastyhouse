@@ -110,8 +110,8 @@ public class OrderApiController {
     private OrderListItemResponse toOrderListItemResponse(OrderListItemResult dto) {
         return OrderListItemResponse.from(
             dto.id(),
-            dto.placeName(),
-            fileService.getUrlByPath(dto.placeThumbnailImageFilePath()),
+            dto.shopName(),
+            fileService.getUrlByPath(dto.shopThumbnailImageFilePath()),
             dto.firstProductName(),
             dto.totalItemCount(),
             dto.amount(),
@@ -131,7 +131,7 @@ public class OrderApiController {
             })
             .toList();
         return new CreateOrderCommand(
-            request.placeId(),
+            request.shopId(),
             itemCommands,
             request.memberCouponId(),
             request.usePoint(),
@@ -166,8 +166,8 @@ public class OrderApiController {
             result.id(),
             result.orderNumber(),
             result.paymentStatus(),
-            result.placeName(),
-            result.placePhoneNumber(),
+            result.shopName(),
+            result.shopPhoneNumber(),
             result.ordererName(),
             result.ordererPhone(),
             result.ordererEmail(),

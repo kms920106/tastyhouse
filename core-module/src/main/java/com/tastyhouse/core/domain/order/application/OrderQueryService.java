@@ -13,8 +13,8 @@ import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
-import com.tastyhouse.core.domain.place.application.PlaceQueryService;
-import com.tastyhouse.core.domain.place.domain.model.Place;
+import com.tastyhouse.core.domain.shop.application.ShopQueryService;
+import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class OrderQueryService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemOptionRepository orderItemOptionRepository;
     private final PaymentRepository paymentRepository;
-    private final PlaceQueryService placeQueryService;
+    private final ShopQueryService shopQueryService;
 
     public Optional<Order> findById(Long orderId) {
         return orderRepository.findById(orderId);
@@ -51,7 +51,7 @@ public class OrderQueryService {
 
         order.validateOwnership(memberId);
 
-        Place place = placeQueryService.findPlaceById(order.getPlaceId());
+        Shop shop = shopQueryService.findShopById(order.getShopId());
 
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         List<OrderItemResult> itemResults = items.stream()
@@ -79,8 +79,8 @@ public class OrderQueryService {
 
         return OrderResult.from(
             order,
-            place != null ? place.getName() : null,
-            place != null ? place.getPhoneNumber() : null,
+            shop != null ? shop.getName() : null,
+            shop != null ? shop.getPhoneNumber() : null,
             itemResults,
             payment
         );

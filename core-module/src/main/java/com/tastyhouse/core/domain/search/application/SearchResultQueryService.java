@@ -1,11 +1,11 @@
 package com.tastyhouse.core.domain.search.application;
 
-import com.tastyhouse.core.domain.place.application.dto.result.PlaceBookmarkedItemDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemDto;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
-import com.tastyhouse.core.domain.place.domain.repository.PlaceRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,7 +19,7 @@ public class SearchResultQueryService {
 
     private final ProductQueryService productQueryService;
     private final ReviewRepository reviewRepository;
-    private final PlaceRepository placeRepository;
+    private final ShopRepository shopRepository;
 
     public Page<SearchProductItemResult> searchProducts(String keyword, int page, int size) {
         return productQueryService.searchByKeyword(keyword, page, size);
@@ -29,7 +29,7 @@ public class SearchResultQueryService {
         return reviewRepository.searchByKeyword(keyword, PageRequest.of(page, size));
     }
 
-    public Page<PlaceBookmarkedItemDto> searchPlacesWithBookmark(String keyword, Long memberId, int page, int size) {
-        return placeRepository.searchByKeywordWithBookmark(keyword, memberId, PageRequest.of(page, size));
+    public Page<ShopBookmarkedItemDto> searchShopsWithBookmark(String keyword, Long memberId, int page, int size) {
+        return shopRepository.searchByKeywordWithBookmark(keyword, memberId, PageRequest.of(page, size));
     }
 }

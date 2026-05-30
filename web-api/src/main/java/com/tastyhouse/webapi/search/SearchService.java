@@ -7,7 +7,7 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
-import com.tastyhouse.webapi.search.response.SearchPlaceListItemResponse;
+import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
 import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,11 +55,11 @@ public class SearchService {
             .map(dto -> SearchReviewListItemResponse.from(dto, fileService));
     }
 
-    public PageResponse<SearchPlaceListItemResponse> searchPlacesPaged(String keyword, Long memberId, int page, int size) {
-        return PageResponse.from(searchResultQueryService.searchPlacesWithBookmark(keyword, memberId, page, size))
-            .map(dto -> SearchPlaceListItemResponse.from(
-                dto.placeId(),
-                dto.placeName(),
+    public PageResponse<SearchShopListItemResponse> searchShopsPaged(String keyword, Long memberId, int page, int size) {
+        return PageResponse.from(searchResultQueryService.searchShopsWithBookmark(keyword, memberId, page, size))
+            .map(dto -> SearchShopListItemResponse.from(
+                dto.shopId(),
+                dto.shopName(),
                 dto.stationName(),
                 dto.rating(),
                 dto.imageUrl() != null ? fileService.getUrlByPath(dto.imageUrl()) : null,
@@ -67,11 +67,11 @@ public class SearchService {
             ));
     }
 
-    public PageResponse<SearchPlaceListItemResponse> searchPlacesPublic(String keyword, int page, int size) {
-        return PageResponse.from(searchResultQueryService.searchPlacesWithBookmark(keyword, null, page, size))
-            .map(dto -> SearchPlaceListItemResponse.from(
-                dto.placeId(),
-                dto.placeName(),
+    public PageResponse<SearchShopListItemResponse> searchShopsPublic(String keyword, int page, int size) {
+        return PageResponse.from(searchResultQueryService.searchShopsWithBookmark(keyword, null, page, size))
+            .map(dto -> SearchShopListItemResponse.from(
+                dto.shopId(),
+                dto.shopName(),
                 dto.stationName(),
                 dto.rating(),
                 dto.imageUrl() != null ? fileService.getUrlByPath(dto.imageUrl()) : null,

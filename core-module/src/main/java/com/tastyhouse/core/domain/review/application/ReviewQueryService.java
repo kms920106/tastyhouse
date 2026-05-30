@@ -6,7 +6,7 @@ import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfil
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.MyReviewListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.PlaceReviewStatisticsResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ShopReviewStatisticsResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ProductReviewStatisticsResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
@@ -21,7 +21,7 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewCommentReposito
 import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.domain.place.domain.repository.TagRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -90,17 +90,17 @@ public class ReviewQueryService {
         return reviewRepository.findLatestReviewsByFollowing(followingMemberIds, pageRequest);
     }
 
-    public ReviewsByRatingResult findPlaceReviewsByRating(Long placeId, int page, int size) {
-        List<LatestReviewListItemResult> rating1Reviews = reviewRepository.findReviewsByPlaceIdAndRating(placeId, 1, 5);
-        List<LatestReviewListItemResult> rating2Reviews = reviewRepository.findReviewsByPlaceIdAndRating(placeId, 2, 5);
-        List<LatestReviewListItemResult> rating3Reviews = reviewRepository.findReviewsByPlaceIdAndRating(placeId, 3, 5);
-        List<LatestReviewListItemResult> rating4Reviews = reviewRepository.findReviewsByPlaceIdAndRating(placeId, 4, 5);
-        List<LatestReviewListItemResult> rating5Reviews = reviewRepository.findReviewsByPlaceIdAndRating(placeId, 5, 5);
+    public ReviewsByRatingResult findShopReviewsByRating(Long shopId, int page, int size) {
+        List<LatestReviewListItemResult> rating1Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 1, 5);
+        List<LatestReviewListItemResult> rating2Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 2, 5);
+        List<LatestReviewListItemResult> rating3Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 3, 5);
+        List<LatestReviewListItemResult> rating4Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 4, 5);
+        List<LatestReviewListItemResult> rating5Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 5, 5);
 
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByPlaceId(placeId, null, pageRequest, null, "LATEST");
+        Page<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByShopId(shopId, null, pageRequest, null, "LATEST");
 
-        Long totalReviewCount = reviewRepository.countByPlaceIdAndIsHiddenFalse(placeId);
+        Long totalReviewCount = reviewRepository.countByShopIdAndIsHiddenFalse(shopId);
 
         Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
         reviewsByRating.put(1, rating1Reviews);
@@ -150,36 +150,36 @@ public class ReviewQueryService {
         );
     }
 
-    public PlaceReviewStatisticsResult findPlaceReviewStatistics(Long placeId) {
-        Long totalCount = reviewRepository.countByPlaceIdAndIsHiddenFalse(placeId);
+    public ShopReviewStatisticsResult findShopReviewStatistics(Long shopId) {
+        Long totalCount = reviewRepository.countByShopIdAndIsHiddenFalse(shopId);
 
-        Map<Integer, Long> ratingMap = reviewRepository.getRatingCounts(placeId);
+        Map<Integer, Long> ratingMap = reviewRepository.getRatingCounts(shopId);
         for (int r = 1; r <= 5; r++) {
             ratingMap.putIfAbsent(r, 0L);
         }
 
         if (totalCount > 0) {
-            Long willRevisitCount = reviewRepository.countWillRevisit(placeId);
+            Long willRevisitCount = reviewRepository.countWillRevisit(shopId);
             double willRevisitPercentage = (willRevisitCount * 100.0) / totalCount;
 
             int currentYear = LocalDateTime.now().getYear();
-            Map<Integer, Long> monthlyMap = reviewRepository.getMonthlyReviewCounts(placeId, currentYear);
+            Map<Integer, Long> monthlyMap = reviewRepository.getMonthlyReviewCounts(shopId, currentYear);
 
-            return new PlaceReviewStatisticsResult(
+            return new ShopReviewStatisticsResult(
                 totalCount,
-                reviewRepository.getAverageTasteRating(placeId),
-                reviewRepository.getAverageAmountRating(placeId),
-                reviewRepository.getAveragePriceRating(placeId),
-                reviewRepository.getAverageAtmosphereRating(placeId),
-                reviewRepository.getAverageKindnessRating(placeId),
-                reviewRepository.getAverageHygieneRating(placeId),
+                reviewRepository.getAverageTasteRating(shopId),
+                reviewRepository.getAverageAmountRating(shopId),
+                reviewRepository.getAveragePriceRating(shopId),
+                reviewRepository.getAverageAtmosphereRating(shopId),
+                reviewRepository.getAverageKindnessRating(shopId),
+                reviewRepository.getAverageHygieneRating(shopId),
                 willRevisitPercentage,
                 ratingMap,
                 monthlyMap
             );
         }
 
-        return new PlaceReviewStatisticsResult(
+        return new ShopReviewStatisticsResult(
             totalCount,
             null, null, null, null, null, null, null,
             ratingMap,
@@ -245,8 +245,8 @@ public class ReviewQueryService {
         return reviewRepository.countReviewsByMemberWithPeriod(startDate, endDate);
     }
 
-    public Page<LatestReviewListItemResult> findLatestReviewsByPlaceId(Long placeId, Integer rating, int page, int size, Boolean hasImage, String sortType) {
-        return reviewRepository.findLatestReviewsByPlaceId(placeId, rating, PageRequest.of(page, size), hasImage, sortType);
+    public Page<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, int page, int size, Boolean hasImage, String sortType) {
+        return reviewRepository.findLatestReviewsByShopId(shopId, rating, PageRequest.of(page, size), hasImage, sortType);
     }
 
     public Page<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, int page, int size, Boolean hasImage, String sortType) {

@@ -7,7 +7,7 @@ import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.PlaceBookmarkListItemResponse;
+import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
@@ -22,7 +22,7 @@ import com.tastyhouse.webapi.member.service.MemberAccountService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 import com.tastyhouse.webapi.member.service.MemberFollowService;
 import com.tastyhouse.webapi.member.service.MemberGradeService;
-import com.tastyhouse.webapi.member.service.MemberPlaceService;
+import com.tastyhouse.webapi.member.service.MemberShopService;
 import com.tastyhouse.webapi.member.service.MemberPointService;
 import com.tastyhouse.webapi.member.service.MemberReviewService;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class MemberFacade {
     private final MemberAuthService memberAuthService;
     private final MemberFollowService memberFollowService;
     private final MemberPointService memberPointService;
-    private final MemberPlaceService memberPlaceService;
+    private final MemberShopService memberShopService;
     private final MemberReviewService memberReviewService;
     private final CouponQueryService couponQueryService;
     private final MemberGradeService memberGradeService;
@@ -135,8 +135,8 @@ public class MemberFacade {
         return memberReviewService.getMyReviewCount(memberId);
     }
 
-    public PageResponse<PlaceBookmarkListItemResponse> getMyBookmarkedPlaces(Long memberId, int page, int size) {
-        return memberPlaceService.getMyBookmarkedPlaces(memberId, page, size);
+    public PageResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
+        return memberShopService.getMyBookmarkedShops(memberId, page, size);
     }
 
     public MemberProfileResponse getMemberBasicProfile(Long targetMemberId) {

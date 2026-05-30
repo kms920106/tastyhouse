@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public record TodayDiscountProductListItemResponse(
     Long id,
-    String placeName,
+    String shopName,
     String name,
     String imageUrl,
     Integer originalPrice,
@@ -13,7 +13,7 @@ public record TodayDiscountProductListItemResponse(
 ) {
     public static TodayDiscountProductListItemResponse from(
         Long id,
-        String placeName,
+        String shopName,
         String name,
         String imageUrl,
         Integer originalPrice,
@@ -22,7 +22,7 @@ public record TodayDiscountProductListItemResponse(
     ) {
         return new TodayDiscountProductListItemResponse(
             id,
-            placeName,
+            shopName,
             name,
             imageUrl,
             originalPrice,

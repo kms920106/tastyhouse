@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record ProductDeactivatedEvent(
     Long productId,
-    Long placeId,
+    Long shopId,
     LocalDateTime occurredAt
 ) {
 }

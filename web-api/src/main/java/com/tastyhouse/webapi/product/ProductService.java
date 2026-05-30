@@ -46,7 +46,7 @@ public class ProductService {
     private TodayDiscountProductListItemResponse convertToTodayDiscountProductListItemResponse(TodayDiscountProductResult dto) {
         return TodayDiscountProductListItemResponse.from(
             dto.id(),
-            dto.placeName(),
+            dto.shopName(),
             dto.name(),
             fileService.getUrlByPath(dto.imageUrl()),
             dto.originalPrice(),
