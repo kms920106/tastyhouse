@@ -147,7 +147,17 @@ public enum ErrorCode {
     SEARCH_KEYWORD_BLANK(400, "SEARCH_KEYWORD_BLANK", "검색어를 입력해주세요."),
 
     // Rate Limiting
-    RATE_LIMIT_EXCEEDED(429, "RATE_LIMIT_EXCEEDED", "요청 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요.");
+    RATE_LIMIT_EXCEEDED(429, "RATE_LIMIT_EXCEEDED", "요청 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요."),
+
+    // 예약
+    RESERVATION_NOT_FOUND(404, "RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다."),
+    RESERVATION_ACCESS_DENIED(403, "RESERVATION_ACCESS_DENIED", "본인의 예약만 처리할 수 있습니다."),
+    RESERVATION_INVALID_STATUS(400, "RESERVATION_INVALID_STATUS", "현재 상태에서는 해당 처리를 할 수 없습니다."),
+    RESERVATION_SLOT_FULL(409, "RESERVATION_SLOT_FULL", "해당 시간대는 예약이 마감되었습니다."),
+    RESERVATION_INVALID_TIME(400, "RESERVATION_INVALID_TIME", "예약할 수 없는 시간입니다."),
+    RESERVATION_PAST_NOT_ALLOWED(400, "RESERVATION_PAST_NOT_ALLOWED", "지난 일시는 예약할 수 없습니다."),
+    RESERVATION_TERMS_NOT_AGREED(400, "RESERVATION_TERMS_NOT_AGREED", "필수 약관에 동의해야 예약할 수 있습니다."),
+    DUPLICATE_RESERVATION(409, "DUPLICATE_RESERVATION", "이미 동일한 시간에 예약이 존재합니다.");
 
     private final int httpStatusCode;
     private final String code;

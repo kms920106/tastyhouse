@@ -977,3 +977,33 @@ CREATE TABLE RECOMMENDED_KEYWORD (
     created_at DATETIME     NOT NULL,              -- 생성 일시
     updated_at DATETIME     NOT NULL               -- 수정 일시
 );
+
+CREATE TABLE SHOP_RESERVATION_SLOT
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,                   -- 슬롯 ID (PK)
+    shop_id        BIGINT   NOT NULL,                                   -- 장소 ID (SHOP.id 참조)
+    slot_date      DATE     NOT NULL,                                   -- 슬롯 날짜
+    slot_time      TIME     NOT NULL,                                   -- 슬롯 시간 (30분 단위)
+    capacity       INT      NOT NULL,                                   -- 슬롯당 정원 (팀 수)
+    reserved_count INT      NOT NULL DEFAULT 0,                         -- 현재 점유 팀 수
+    version        BIGINT,                                              -- 낙관적 락 버전 (@Version)
+    created_at     DATETIME NOT NULL,                                   -- 생성 일시
+    updated_at     DATETIME NOT NULL,                                   -- 수정 일시
+    UNIQUE KEY uk_shop_reservation_slot (shop_id, slot_date, slot_time) -- 유니크: 가게·날짜·시간 슬롯 중복 방지
+);
+
+CREATE TABLE RESERVATION
+(
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,                            -- 예약 ID (PK)
+    member_id        BIGINT      NOT NULL,                                         -- 예약자 회원 ID (MEMBER.id 참조)
+    shop_id          BIGINT      NOT NULL,                                         -- 장소 ID (SHOP.id 참조)
+    reservation_date DATE        NOT NULL,                                         -- 예약 날짜
+    reservation_time TIME        NOT NULL,                                         -- 예약 시간
+    party_size       INT         NOT NULL,                                         -- 방문 인원수
+    status           VARCHAR(20) NOT NULL,                                         -- 예약 상태 (PENDING, CONFIRMED, REJECTED, CANCELED, COMPLETED)
+    request          TEXT,                                                         -- 요청사항
+    created_at       DATETIME    NOT NULL,                                         -- 생성 일시
+    updated_at       DATETIME    NOT NULL,                                         -- 수정 일시
+    INDEX idx_reservation_shop_slot (shop_id, reservation_date, reservation_time), -- 인덱스: 가게·날짜·시간 복합 조회
+    INDEX idx_reservation_member (member_id)                                       -- 인덱스: 회원별 조회
+);
