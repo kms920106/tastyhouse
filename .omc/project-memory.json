@@ -1,0 +1,307 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1780407408510,
+  "projectRoot": "/Users/god/Downloads/project/github/tastyhouse/tastyhouse-api",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Java/Kotlin",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "build.gradle"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "gradle",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "admin-api": {
+      "path": "admin-api",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1780407408485,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 1,
+      "lastAccessed": 1780407408485,
+      "keyFiles": [
+        "resolvedMainClassName"
+      ]
+    },
+    "core-module": {
+      "path": "core-module",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1780407408486,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "external-api": {
+      "path": "external-api",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1780407408487,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "gradle": {
+      "path": "gradle",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1780407408487,
+      "keyFiles": []
+    },
+    "json": {
+      "path": "json",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1780407408488,
+      "keyFiles": []
+    },
+    "md": {
+      "path": "md",
+      "purpose": null,
+      "fileCount": 8,
+      "lastAccessed": 1780407408488,
+      "keyFiles": [
+        "AI.md",
+        "ANNOTATION.md",
+        "APPLE-LOGIN.md",
+        "CLEAN-ARCHITECTURE.md",
+        "FACEBOOK-LOGIN.md"
+      ]
+    },
+    "web-api": {
+      "path": "web-api",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1780407408489,
+      "keyFiles": [
+        "build.gradle"
+      ]
+    },
+    "admin-api/bin": {
+      "path": "admin-api/bin",
+      "purpose": "Executable scripts",
+      "fileCount": 0,
+      "lastAccessed": 1780407408491,
+      "keyFiles": []
+    },
+    "admin-api/src": {
+      "path": "admin-api/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1780407408492,
+      "keyFiles": []
+    },
+    "core-module/bin": {
+      "path": "core-module/bin",
+      "purpose": "Executable scripts",
+      "fileCount": 0,
+      "lastAccessed": 1780407408492,
+      "keyFiles": []
+    },
+    "core-module/build": {
+      "path": "core-module/build",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1780407408493,
+      "keyFiles": []
+    },
+    "core-module/src": {
+      "path": "core-module/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1780407408493,
+      "keyFiles": []
+    },
+    "external-api/build": {
+      "path": "external-api/build",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1780407408494,
+      "keyFiles": []
+    },
+    "external-api/src": {
+      "path": "external-api/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1780407408494,
+      "keyFiles": []
+    },
+    "web-api/bin": {
+      "path": "web-api/bin",
+      "purpose": "Executable scripts",
+      "fileCount": 0,
+      "lastAccessed": 1780407408495,
+      "keyFiles": []
+    },
+    "web-api/build": {
+      "path": "web-api/build",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1780407408496,
+      "keyFiles": []
+    },
+    "web-api/src": {
+      "path": "web-api/src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1780407408497,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "core-module/src/main/java/com/tastyhouse/core/AGENTS.md",
+      "accessCount": 6,
+      "lastAccessed": 1780407723245,
+      "type": "file"
+    },
+    {
+      "path": "external-api/src/main/java/com/tastyhouse/external/AGENTS.md",
+      "accessCount": 4,
+      "lastAccessed": 1780407724472,
+      "type": "file"
+    },
+    {
+      "path": "web-api/src/main/java/com/tastyhouse/webapi/AGENTS.md",
+      "accessCount": 3,
+      "lastAccessed": 1780407721937,
+      "type": "file"
+    },
+    {
+      "path": "md/CLEAN-ARCHITECTURE.md",
+      "accessCount": 2,
+      "lastAccessed": 1780407591568,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "accessCount": 2,
+      "lastAccessed": 1780407622434,
+      "type": "file"
+    },
+    {
+      "path": "REAME.md",
+      "accessCount": 1,
+      "lastAccessed": 1780407454409,
+      "type": "file"
+    },
+    {
+      "path": "md/AI.md",
+      "accessCount": 1,
+      "lastAccessed": 1780407468172,
+      "type": "file"
+    },
+    {
+      "path": "core-module/AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1780407525025,
+      "type": "file"
+    },
+    {
+      "path": "web-api/AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1780407537341,
+      "type": "file"
+    },
+    {
+      "path": "external-api/AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1780407548739,
+      "type": "file"
+    },
+    {
+      "path": "admin-api/AGENTS.md",
+      "accessCount": 1,
+      "lastAccessed": 1780407557104,
+      "type": "file"
+    },
+    {
+      "path": "core-module/src/main/java/com/tastyhouse/core/config/DatabaseConfig.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407590692,
+      "type": "file"
+    },
+    {
+      "path": "core-module/src/main/java/com/tastyhouse/core/config/QueryDslConfig.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407590880,
+      "type": "file"
+    },
+    {
+      "path": "core-module/src/main/java/com/tastyhouse/core/shared/entity/BaseEntity.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407591332,
+      "type": "file"
+    },
+    {
+      "path": "web-api/src/main/java/com/tastyhouse/webapi/WebApiApplication.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407603785,
+      "type": "file"
+    },
+    {
+      "path": "web-api/src/main/java/com/tastyhouse/webapi/exception/GlobalExceptionHandler.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407604159,
+      "type": "file"
+    },
+    {
+      "path": "web-api/src/main/java/com/tastyhouse/webapi/shop/ShopApiController.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407609738,
+      "type": "file"
+    },
+    {
+      "path": "core-module/src/main/java/com/tastyhouse/core/exception/ErrorCode.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407611388,
+      "type": "file"
+    },
+    {
+      "path": "core-module/src/main/java/com/tastyhouse/core/exception/BusinessException.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407611947,
+      "type": "file"
+    },
+    {
+      "path": "core-module/src/main/java/com/tastyhouse/core/domain/reservation/domain/model/Reservation.java",
+      "accessCount": 1,
+      "lastAccessed": 1780407612039,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
