@@ -157,7 +157,7 @@ public enum ErrorCode {
     RESERVATION_INVALID_TIME(400, "RESERVATION_INVALID_TIME", "예약할 수 없는 시간입니다."),
     RESERVATION_PAST_NOT_ALLOWED(400, "RESERVATION_PAST_NOT_ALLOWED", "지난 일시는 예약할 수 없습니다."),
     RESERVATION_TERMS_NOT_AGREED(400, "RESERVATION_TERMS_NOT_AGREED", "필수 약관에 동의해야 예약할 수 있습니다."),
-    DUPLICATE_RESERVATION(409, "DUPLICATE_RESERVATION", "이미 동일한 시간에 예약이 존재합니다.");
+    DUPLICATE_RESERVATION(409, "DUPLICATE_RESERVATION", "이미 해당 날짜에 예약이 존재합니다. 예약을 변경하려면 기존 예약을 취소해주세요.");
 
     private final int httpStatusCode;
     private final String code;

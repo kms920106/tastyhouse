@@ -65,8 +65,8 @@ public class ReservationCreator {
         Shop shop = shopQueryService.findShopById(cmd.shopId());
         memberQueryService.getById(new MemberId(memberId));
 
-        // 5. 본인 중복(더블탭) 차단
-        if (reservationRepository.existsActiveByMemberShopDateTime(memberId, cmd.shopId(), cmd.date(), cmd.time())) {
+        // 5. 본인 중복 차단 (같은 가게 + 같은 날짜에 재예약 차단 예약 1건 제한)
+        if (reservationRepository.existsBlockingByMemberShopDate(memberId, cmd.shopId(), cmd.date())) {
             throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
         }
 

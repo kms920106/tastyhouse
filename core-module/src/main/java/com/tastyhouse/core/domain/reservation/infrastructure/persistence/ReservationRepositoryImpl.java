@@ -43,17 +43,29 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public boolean existsActiveByMemberShopDateTime(Long memberId, Long shopId, LocalDate date, LocalTime time) {
+    public boolean existsBlockingByMemberShopDate(Long memberId, Long shopId, LocalDate date) {
         return queryFactory.selectOne()
             .from(reservation)
             .where(
                 reservation.memberId.eq(memberId),
                 reservation.shopId.eq(shopId),
                 reservation.reservationDate.eq(date),
-                reservation.reservationTime.eq(time),
-                reservation.status.in(ReservationStatus.PENDING, ReservationStatus.CONFIRMED)
+                reservation.status.in(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED)
             )
             .fetchFirst() != null;
+    }
+
+    @Override
+    public List<LocalTime> findBlockingTimesByMemberShopDate(Long memberId, Long shopId, LocalDate date) {
+        return queryFactory.select(reservation.reservationTime)
+            .from(reservation)
+            .where(
+                reservation.memberId.eq(memberId),
+                reservation.shopId.eq(shopId),
+                reservation.reservationDate.eq(date),
+                reservation.status.in(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED)
+            )
+            .fetch();
     }
 
     @Override
