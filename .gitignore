@@ -47,3 +47,6 @@ bin/
 .apt_generated_tests/
 **/.apt_generated/
 **/.apt_generated_tests/
+
+# oh-my-claudecode state
+.omc/

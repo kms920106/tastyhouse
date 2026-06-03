@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /Users/god/Downloads/project/github/tastyhouse/tastyhouse-api/external-api/src/main/java/com/tastyhouse/external && echo \\\"Current: $(pwd)\\\" && echo \\\"Going up 7 levels:\\\" && cd ../../....",
-  "error": "Exit code 1\nCurrent: /Users/god/Downloads/project/github/tastyhouse/tastyhouse-api/external-api/src/main/java/com/tastyhouse/external\nGoing up 7 levels:\n/Users/god/Downloads/project/github\nls: AGENTS.md: No such file or directory",
-  "timestamp": "2026-06-02T13:41:03.419Z",
-  "retry_count": 4
-}

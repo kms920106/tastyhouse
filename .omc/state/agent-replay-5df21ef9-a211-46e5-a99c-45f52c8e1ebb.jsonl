@@ -1,7 +1,0 @@
-{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:deepinit"}
-{"t":0,"agent":"a961913","agent_type":"writer","event":"agent_start","parent_mode":"none"}
-{"t":0,"agent":"a3fb46f","agent_type":"writer","event":"agent_start","parent_mode":"none"}
-{"t":0,"agent":"aa1fedb","agent_type":"writer","event":"agent_start","parent_mode":"none"}
-{"t":0,"agent":"a3fb46f","agent_type":"writer","event":"agent_stop","success":true,"duration_ms":76794}
-{"t":0,"agent":"a961913","agent_type":"writer","event":"agent_stop","success":true,"duration_ms":97734}
-{"t":0,"agent":"aa1fedb","agent_type":"writer","event":"agent_stop","success":true,"duration_ms":82145}
