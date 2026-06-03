@@ -11,6 +11,7 @@ public record ReservationResult(
     Long id,
     Long shopId,
     String shopName,
+    String shopImageUrl,
     Long memberId,
     LocalDate reservationDate,
     LocalTime reservationTime,
@@ -19,11 +20,12 @@ public record ReservationResult(
     String request,
     LocalDateTime createdAt
 ) {
-    public static ReservationResult from(Reservation reservation, String shopName) {
+    public static ReservationResult from(Reservation reservation, String shopName, String shopImageUrl) {
         return new ReservationResult(
             reservation.getId(),
             reservation.getShopId(),
             shopName,
+            shopImageUrl,
             reservation.getMemberId(),
             reservation.getReservationDate(),
             reservation.getReservationTime(),

@@ -95,6 +95,8 @@ public class ReservationCreator {
         );
         Reservation saved = reservationRepository.save(reservation);
 
-        return ReservationResult.from(saved, shop.getName());
+        String shopImageUrl = shopQueryService.findThumbnailFilePath(shop.getThumbnailImageFileId())
+            .orElse(null);
+        return ReservationResult.from(saved, shop.getName(), shopImageUrl);
     }
 }

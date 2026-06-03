@@ -7,6 +7,7 @@ import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
 import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
+import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -111,7 +112,9 @@ public class ReservationCommandService {
     }
 
     private ReservationResult toResult(Reservation reservation) {
-        String shopName = shopQueryService.findShopById(reservation.getShopId()).getName();
-        return ReservationResult.from(reservation, shopName);
+        Shop shop = shopQueryService.findShopById(reservation.getShopId());
+        String shopImageUrl = shopQueryService.findThumbnailFilePath(shop.getThumbnailImageFileId())
+            .orElse(null);
+        return ReservationResult.from(reservation, shop.getName(), shopImageUrl);
     }
 }

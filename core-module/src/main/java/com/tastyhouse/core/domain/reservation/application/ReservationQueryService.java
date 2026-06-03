@@ -89,6 +89,8 @@ public class ReservationQueryService {
 
     private ReservationResult toResult(Reservation reservation) {
         Shop shop = shopQueryService.findShopById(reservation.getShopId());
-        return ReservationResult.from(reservation, shop.getName());
+        String shopImageUrl = shopQueryService.findThumbnailFilePath(shop.getThumbnailImageFileId())
+            .orElse(null);
+        return ReservationResult.from(reservation, shop.getName(), shopImageUrl);
     }
 }

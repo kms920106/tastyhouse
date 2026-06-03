@@ -6,6 +6,7 @@ import com.tastyhouse.core.domain.reservation.application.dto.command.CreateRese
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.reservation.request.ReservationCreateRequest;
+import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.service.CustomUserDetails;
@@ -34,6 +35,7 @@ public class ReservationApiController {
 
     private final ReservationCommandService reservationCommandService;
     private final ReservationQueryService reservationQueryService;
+    private final ReservationService reservationService;
 
     @Operation(summary = "예약 생성", description = "가게 시간 슬롯에 예약을 신청합니다. (PENDING)")
     @ApiResponses({
@@ -71,14 +73,14 @@ public class ReservationApiController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-    @Operation(summary = "예약 상세 조회", description = "본인의 예약 상세를 조회합니다.")
-    @GetMapping("/v1/{reservationId}")
-    public ResponseEntity<ApiResponse<ReservationResponse>> getDetail(
+    @Operation(summary = "예약 완료 상세 조회", description = "본인의 예약 상세를 조회합니다.")
+    @GetMapping("/v1/{reservationId}/complete")
+    public ResponseEntity<ApiResponse<ReservationCompleteDetailResponse>> getDetail(
         @PathVariable Long reservationId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReservationResult result = reservationQueryService.findDetail(userDetails.getMemberId(), reservationId);
-        return ResponseEntity.ok(ApiResponse.success(ReservationResponse.from(result)));
+        ReservationCompleteDetailResponse response = reservationService.getDetail(userDetails.getMemberId(), reservationId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "예약 취소", description = "본인의 예약을 취소합니다. (PENDING|CONFIRMED -> CANCELED)")
