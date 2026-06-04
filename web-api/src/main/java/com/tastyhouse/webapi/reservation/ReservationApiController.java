@@ -7,6 +7,7 @@ import com.tastyhouse.core.domain.reservation.application.dto.result.Reservation
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.reservation.request.ReservationCreateRequest;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
+import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.service.CustomUserDetails;
@@ -80,6 +81,22 @@ public class ReservationApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         ReservationCompleteDetailResponse response = reservationService.getDetail(userDetails.getMemberId(), reservationId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "예약 상세 조회", description = "본인의 예약 단건 상세 정보를 조회합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "예약 상세 조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인의 예약이 아님"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "예약을 찾을 수 없음")
+    })
+    @GetMapping("/v1/{reservationId}")
+    public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservationDetail(
+        @PathVariable Long reservationId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        ReservationDetailResponse response = reservationService.getReservationDetail(userDetails.getMemberId(), reservationId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

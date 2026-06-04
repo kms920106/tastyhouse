@@ -115,6 +115,12 @@ public class ReservationCommandService {
         Shop shop = shopQueryService.findShopById(reservation.getShopId());
         String shopImageUrl = shopQueryService.findThumbnailFilePath(shop.getThumbnailImageFileId())
             .orElse(null);
-        return ReservationResult.from(reservation, shop.getName(), shopImageUrl);
+        return ReservationResult.from(
+            reservation,
+            shop.getName(),
+            shopImageUrl,
+            shop.getRoadAddress(),
+            shop.getLotAddress()
+        );
     }
 }

@@ -97,6 +97,12 @@ public class ReservationCreator {
 
         String shopImageUrl = shopQueryService.findThumbnailFilePath(shop.getThumbnailImageFileId())
             .orElse(null);
-        return ReservationResult.from(saved, shop.getName(), shopImageUrl);
+        return ReservationResult.from(
+            saved,
+            shop.getName(),
+            shopImageUrl,
+            shop.getRoadAddress(),
+            shop.getLotAddress()
+        );
     }
 }
