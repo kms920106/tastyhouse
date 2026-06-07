@@ -117,12 +117,15 @@ public class Reservation extends BaseEntity {
 
     /**
      * 사용자 취소: PENDING|CONFIRMED -> CANCELED
+     * 취소 불가 상태는 사유별로 구분된 예외를 던져 안내 메시지를 세분화한다.
      */
     public void cancel() {
-        if (this.status != ReservationStatus.PENDING && this.status != ReservationStatus.CONFIRMED) {
-            throw new BusinessException(ErrorCode.RESERVATION_INVALID_STATUS);
+        switch (this.status) {
+            case PENDING, CONFIRMED -> this.status = ReservationStatus.CANCELED;
+            case CANCELED -> throw new BusinessException(ErrorCode.RESERVATION_ALREADY_CANCELED);
+            case REJECTED -> throw new BusinessException(ErrorCode.RESERVATION_ALREADY_REJECTED);
+            case COMPLETED -> throw new BusinessException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
         }
-        this.status = ReservationStatus.CANCELED;
     }
 
     /**

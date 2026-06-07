@@ -89,7 +89,7 @@ public class ReservationCommandService {
      * 사용자 취소: PENDING|CONFIRMED -> CANCELED (슬롯 정원 반납)
      */
     @Transactional
-    public ReservationResult cancel(Long memberId, Long reservationId) {
+    public ReservationResult cancel(Long reservationId, Long memberId) {
         Reservation reservation = getReservation(reservationId);
         reservation.validateOwnership(memberId);
         reservation.cancel();

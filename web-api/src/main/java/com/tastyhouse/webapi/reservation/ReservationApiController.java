@@ -101,13 +101,20 @@ public class ReservationApiController {
     }
 
     @Operation(summary = "예약 취소", description = "본인의 예약을 취소합니다. (PENDING|CONFIRMED -> CANCELED)")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "예약 취소 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인의 예약이 아님"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "예약을 찾을 수 없음"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "취소 불가 상태 (이미 취소/거절/방문완료된 예약)")
+    })
     @PatchMapping("/v1/{reservationId}/cancel")
-    public ResponseEntity<ApiResponse<ReservationResponse>> cancel(
+    public ResponseEntity<ApiResponse<Void>> cancel(
         @PathVariable Long reservationId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReservationResult result = reservationCommandService.cancel(userDetails.getMemberId(), reservationId);
-        return ResponseEntity.ok(ApiResponse.success(ReservationResponse.from(result)));
+        reservationCommandService.cancel(reservationId, userDetails.getMemberId());
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "예약 승인(점주)", description = "점주가 예약을 승인합니다. (PENDING -> CONFIRMED)")
