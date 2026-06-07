@@ -6,6 +6,7 @@ import java.util.List;
 
 public record DailySlotAvailabilityResult(
     LocalDate date,
+    boolean hasMyReservation,
     List<SlotAvailability> slots
 ) {
     public record SlotAvailability(

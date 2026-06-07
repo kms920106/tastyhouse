@@ -3,7 +3,6 @@ package com.tastyhouse.core.domain.reservation.domain.repository;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,10 +21,11 @@ public interface ReservationRepository {
     boolean existsBlockingByMemberShopDate(Long memberId, Long shopId, LocalDate date);
 
     /**
-     * 동일 회원이 동일 가게의 동일 날짜에 가진 차단 예약(PENDING/CONFIRMED/COMPLETED)의 시간 목록.
-     * 가용성 조회 시 해당 슬롯을 비활성화하기 위해 사용.
+     * 동일 회원이 동일 가게의 동일 날짜에 가진 차단 예약(PENDING/CONFIRMED/COMPLETED) 1건.
+     * 가용성 조회 시 "이 날짜에 내 예약이 있는지" 플래그와 기존 예약 ID 제공에 사용.
+     * (회원+가게+날짜당 차단 예약은 최대 1건이므로 단건 조회)
      */
-    List<LocalTime> findBlockingTimesByMemberShopDate(Long memberId, Long shopId, LocalDate date);
+    Optional<Reservation> findBlockingByMemberShopDate(Long memberId, Long shopId, LocalDate date);
 
     Reservation save(Reservation reservation);
 }

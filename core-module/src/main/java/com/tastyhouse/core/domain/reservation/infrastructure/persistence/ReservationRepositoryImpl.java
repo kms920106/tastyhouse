@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,16 +55,18 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public List<LocalTime> findBlockingTimesByMemberShopDate(Long memberId, Long shopId, LocalDate date) {
-        return queryFactory.select(reservation.reservationTime)
-            .from(reservation)
-            .where(
-                reservation.memberId.eq(memberId),
-                reservation.shopId.eq(shopId),
-                reservation.reservationDate.eq(date),
-                reservation.status.in(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED)
-            )
-            .fetch();
+    public Optional<Reservation> findBlockingByMemberShopDate(Long memberId, Long shopId, LocalDate date) {
+        return Optional.ofNullable(
+            queryFactory.selectFrom(reservation)
+                .where(
+                    reservation.memberId.eq(memberId),
+                    reservation.shopId.eq(shopId),
+                    reservation.reservationDate.eq(date),
+                    reservation.status.in(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED)
+                )
+                .orderBy(reservation.reservationTime.asc())
+                .fetchFirst()
+        );
     }
 
     @Override

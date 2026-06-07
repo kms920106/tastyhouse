@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiResponse<T> {
     private boolean success;
+    private String errorCode;
     private String message;
     private T data;
     private Pagination pagination;
@@ -26,26 +27,30 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, null, data, null);
+        return new ApiResponse<>(true, null, null, data, null);
     }
 
     public static <T> ApiResponse<T> success(T data, String message) {
-        return new ApiResponse<>(true, message, data, null);
+        return new ApiResponse<>(true, null, message, data, null);
     }
 
     public static <T> ApiResponse<List<T>> success(List<T> data, int page, int size, long totalElements) {
         int totalPages = (int) Math.ceil((double) totalElements / size);
         Pagination pageInfo = new Pagination(page, size, totalElements, totalPages);
-        return new ApiResponse<>(true, null, data, pageInfo);
+        return new ApiResponse<>(true, null, null, data, pageInfo);
     }
 
     public static <T> ApiResponse<List<T>> success(List<T> data, int page, int size, long totalElements, String message) {
         int totalPages = (int) Math.ceil((double) totalElements / size);
         Pagination pageInfo = new Pagination(page, size, totalElements, totalPages);
-        return new ApiResponse<>(true, message, data, pageInfo);
+        return new ApiResponse<>(true, null, message, data, pageInfo);
     }
 
     public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>(false, message, null, null);
+        return new ApiResponse<>(false, null, message, null, null);
+    }
+
+    public static <T> ApiResponse<T> error(String errorCode, String message) {
+        return new ApiResponse<>(false, errorCode, message, null, null);
     }
 }

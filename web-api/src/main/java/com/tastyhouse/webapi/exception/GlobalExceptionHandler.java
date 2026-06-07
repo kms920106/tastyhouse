@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity
             .status(status)
-            .body(ApiResponse.error(e.getMessage()));
+            .body(ApiResponse.error(e.getErrorCode().getCode(), e.getMessage()));
     }
 
     @ExceptionHandler(ExternalApiException.class)
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity
             .status(status)
-            .body(ApiResponse.error(e.getMessage()));
+            .body(ApiResponse.error(e.getErrorCode().getCode(), e.getMessage()));
     }
 
     @ExceptionHandler(RateLimitException.class)
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
         log.warn("RateLimitException: {}", e.getMessage());
         return ResponseEntity
             .status(HttpStatus.TOO_MANY_REQUESTS)
-            .body(ApiResponse.error(ErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()));
+            .body(ApiResponse.error(ErrorCode.RATE_LIMIT_EXCEEDED.getCode(), ErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()));
     }
 
     @ExceptionHandler(BadCredentialsException.class)

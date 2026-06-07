@@ -20,10 +20,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -68,8 +66,8 @@ public class ReservationQueryService {
         Map<LocalTime, ShopReservationSlot> slotByTime = slotRepository.findByShopAndDate(shopId, date).stream()
             .collect(Collectors.toMap(ShopReservationSlot::getSlotTime, Function.identity()));
 
-        Set<LocalTime> myReservedTimes = new HashSet<>(
-            reservationRepository.findBlockingTimesByMemberShopDate(memberId, shopId, date));
+        // 회원+가게+날짜당 차단 예약은 최대 1건. 존재 여부로 그 날짜 전체 슬롯 비활성화를 판단한다.
+        boolean hasMyReservation = reservationRepository.findBlockingByMemberShopDate(memberId, shopId, date).isPresent();
 
         LocalDateTime now = LocalDateTime.now(KST);
 
@@ -78,13 +76,13 @@ public class ReservationQueryService {
                 ShopReservationSlot slot = slotByTime.get(time);
                 int remaining = slot != null ? slot.remaining() : ReservationSlot.CAPACITY_PER_SLOT;
                 boolean notPast = LocalDateTime.of(date, time).isAfter(now);
-                boolean reservedByMe = myReservedTimes.contains(time);
-                boolean available = remaining > 0 && notPast && !reservedByMe;
+                // 이미 그 날짜에 예약이 있으면(가게+날짜 1건 제약) 모든 슬롯을 비활성화한다.
+                boolean available = remaining > 0 && notPast && !hasMyReservation;
                 return new SlotAvailability(time, remaining, available);
             })
             .toList();
 
-        return new DailySlotAvailabilityResult(date, slots);
+        return new DailySlotAvailabilityResult(date, hasMyReservation, slots);
     }
 
     private ReservationResult toResult(Reservation reservation) {
