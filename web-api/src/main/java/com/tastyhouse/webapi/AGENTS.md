@@ -65,7 +65,7 @@
 
 ### Common Patterns
 - **Controller + Request/Response DTO**: `@RestController @RequestMapping("/api/{domain}")` → `Method(@Valid {Domain}Request) → ResponseEntity<ApiResponse<{Domain}Response>>`.
-- **ApiResponse 통일**: `ApiResponse.success(data)`, `ApiResponse.error(message)` — code/success/message/data 필드.
+- **ApiResponse 통일**: `ApiResponse.success(data)`, `ApiResponse.error(message)`, `ApiResponse.error(errorCode, message)` — success/errorCode/message/data 필드. 에러 시 `errorCode`에 ErrorCode.code(예: `DUPLICATE_RESERVATION`)가 실려 프론트 분기에 사용(BusinessException/ExternalApiException/RateLimit 핸들러).
 - **페이징**: PageRequest (size/page) → PageResponse<T> (content/totalElements/totalPages/currentPage/size).
 - **@CurrentUser** 커스텀 애노테이션으로 인증된 사용자 주입 — SecurityContextHolder 간접화.
 - **CQS**: 쓰기 메서드는 `@Transactional`, 읽기는 `@Transactional(readOnly = true)` (core-module service 단).
