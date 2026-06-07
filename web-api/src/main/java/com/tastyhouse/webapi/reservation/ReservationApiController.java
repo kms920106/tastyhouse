@@ -3,12 +3,14 @@ package com.tastyhouse.webapi.reservation;
 import com.tastyhouse.core.domain.reservation.application.ReservationCommandService;
 import com.tastyhouse.core.domain.reservation.application.ReservationQueryService;
 import com.tastyhouse.core.domain.reservation.application.dto.command.CreateReservationCommand;
+import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.reservation.request.ReservationCreateRequest;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
+import com.tastyhouse.webapi.reservation.response.SlotAvailabilityResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.service.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +27,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -37,6 +42,17 @@ public class ReservationApiController {
     private final ReservationCommandService reservationCommandService;
     private final ReservationQueryService reservationQueryService;
     private final ReservationService reservationService;
+
+    @Operation(summary = "슬롯 가용성 조회", description = "가게의 특정 날짜 슬롯별 잔여/가용 정보를 조회합니다. 로그인 필수 — 내 예약 슬롯은 available=false로 반환.")
+    @GetMapping("/v1/availability")
+    public ResponseEntity<ApiResponse<SlotAvailabilityResponse>> getAvailability(
+        @RequestParam Long shopId,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        DailySlotAvailabilityResult result = reservationQueryService.findSlotAvailability(shopId, date, userDetails.getMemberId());
+        return ResponseEntity.ok(ApiResponse.success(SlotAvailabilityResponse.from(result)));
+    }
 
     @Operation(summary = "예약 생성", description = "가게 시간 슬롯에 예약을 신청합니다. (PENDING)")
     @ApiResponses({
