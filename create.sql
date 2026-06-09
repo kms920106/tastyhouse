@@ -666,7 +666,7 @@ CREATE TABLE ORDERS
     member_id               BIGINT       NOT NULL,               -- 회원 ID (MEMBER.id 참조)
     shop_id                BIGINT       NOT NULL,               -- 장소 ID (SHOP.id 참조)
     order_number            VARCHAR(50)  NOT NULL UNIQUE,        -- 주문 번호
-    order_method            VARCHAR(50)  NOT NULL,               -- 주문 방법 (TABLE_ORDER, RESERVATION, DELIVERY, TAKEOUT)
+    order_method            VARCHAR(50)  NOT NULL,               -- 주문 방법 (TABLE, RESERVATION, DELIVERY, TAKEOUT)
     order_status            VARCHAR(20)  NOT NULL,               -- 주문 상태 (PENDING, CONFIRMED, CANCELLED 등)
     orderer_name            VARCHAR(100) NOT NULL,               -- 주문자 이름
     orderer_phone           VARCHAR(20)  NOT NULL,               -- 주문자 연락처

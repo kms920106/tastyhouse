@@ -16,7 +16,7 @@ public record OrderCreateRequest(
     Long shopId,
 
     @NotNull(message = "주문 방법은 필수입니다")
-    @Schema(description = "주문 방법", example = "TABLE_ORDER", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "주문 방법", example = "TABLE", requiredMode = Schema.RequiredMode.REQUIRED)
     OrderMethod orderMethod,
 
     @NotEmpty(message = "주문 상품은 필수입니다")

@@ -29,7 +29,7 @@ public class ShopOrderMethod extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private OrderMethod orderMethod; // 주문 방식 (COUNTER, KIOSK, TABLE_ORDER, APP 등)
+    private OrderMethod orderMethod; // 주문 방식
 
     private ShopOrderMethod(
         Long shopId,
