@@ -132,6 +132,7 @@ public class OrderApiController {
             .toList();
         return new CreateOrderCommand(
             request.shopId(),
+            request.orderMethod(),
             itemCommands,
             request.memberCouponId(),
             request.usePoint(),
@@ -165,6 +166,7 @@ public class OrderApiController {
         return OrderResponse.from(
             result.id(),
             result.orderNumber(),
+            result.orderMethod(),
             result.paymentStatus(),
             result.shopName(),
             result.shopPhoneNumber(),

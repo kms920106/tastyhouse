@@ -63,6 +63,7 @@ public class OrderCommandService {
             memberId,
             command.shopId(),
             generateOrderNumber(),
+            command.orderMethod(),
             OrderStatus.PENDING,
             member.getFullName(),
             member.getPhoneNumber().getValue(),

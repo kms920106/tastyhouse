@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.order.response;
 
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 public record OrderResponse(
     Long id,
     String orderNumber,
+    OrderMethod orderMethod,
     PaymentStatus paymentStatus,
     String shopName,
     String shopPhoneNumber,
@@ -30,6 +32,7 @@ public record OrderResponse(
     public static OrderResponse from(
     Long id,
     String orderNumber,
+    OrderMethod orderMethod,
     PaymentStatus paymentStatus,
     String shopName,
     String shopPhoneNumber,
@@ -52,6 +55,7 @@ public record OrderResponse(
     return new OrderResponse(
         id,
         orderNumber,
+        orderMethod,
         paymentStatus,
         shopName,
         shopPhoneNumber,

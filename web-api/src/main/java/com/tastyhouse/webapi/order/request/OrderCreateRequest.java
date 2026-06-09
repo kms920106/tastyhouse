@@ -1,5 +1,6 @@
 package com.tastyhouse.webapi.order.request;
 
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -13,6 +14,10 @@ public record OrderCreateRequest(
     @NotNull(message = "매장 ID는 필수입니다")
     @Schema(description = "매장 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Long shopId,
+
+    @NotNull(message = "주문 방법은 필수입니다")
+    @Schema(description = "주문 방법", example = "TABLE_ORDER", requiredMode = Schema.RequiredMode.REQUIRED)
+    OrderMethod orderMethod,
 
     @NotEmpty(message = "주문 상품은 필수입니다")
     @Valid

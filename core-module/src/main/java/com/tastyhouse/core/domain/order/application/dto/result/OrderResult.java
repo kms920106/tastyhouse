@@ -3,6 +3,7 @@ package com.tastyhouse.core.domain.order.application.dto.result;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 public record OrderResult(
     Long id,
     String orderNumber,
+    OrderMethod orderMethod,
     PaymentStatus paymentStatus,
     String shopName,
     String shopPhoneNumber,
@@ -59,6 +61,7 @@ public record OrderResult(
         return new OrderResult(
             order.getId(),
             order.getOrderNumber(),
+            order.getOrderMethod(),
             payment != null ? payment.getPaymentStatus() : null,
             shopName,
             shopPhoneNumber,

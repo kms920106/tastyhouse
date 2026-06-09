@@ -3,6 +3,7 @@ package com.tastyhouse.core.domain.order.domain.model;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -33,6 +34,10 @@ public class Order extends BaseEntity {
 
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
     private String orderNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
+    private OrderMethod orderMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
@@ -78,6 +83,7 @@ public class Order extends BaseEntity {
         Long memberId,
         Long shopId,
         String orderNumber,
+        OrderMethod orderMethod,
         OrderStatus orderStatus,
         String ordererName,
         String ordererPhone,
@@ -95,6 +101,7 @@ public class Order extends BaseEntity {
         this.memberId = memberId;
         this.shopId = shopId;
         this.orderNumber = orderNumber;
+        this.orderMethod = orderMethod;
         this.orderStatus = orderStatus != null ? orderStatus : OrderStatus.PENDING;
         this.ordererName = ordererName;
         this.ordererPhone = ordererPhone;
@@ -114,6 +121,7 @@ public class Order extends BaseEntity {
         Long memberId,
         Long shopId,
         String orderNumber,
+        OrderMethod orderMethod,
         OrderStatus orderStatus,
         String ordererName,
         String ordererPhone,
@@ -132,6 +140,7 @@ public class Order extends BaseEntity {
             memberId,
             shopId,
             orderNumber,
+            orderMethod,
             orderStatus,
             ordererName,
             ordererPhone,
