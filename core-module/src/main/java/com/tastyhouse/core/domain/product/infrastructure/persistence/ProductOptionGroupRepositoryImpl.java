@@ -33,6 +33,17 @@ public class ProductOptionGroupRepositoryImpl implements ProductOptionGroupRepos
     }
 
     @Override
+    public List<ProductOptionGroup> findAllByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return queryFactory
+            .selectFrom(productOptionGroup)
+            .where(productOptionGroup.id.in(ids))
+            .fetch();
+    }
+
+    @Override
     public boolean existsByProductId(Long productId) {
         return queryFactory
             .selectOne()

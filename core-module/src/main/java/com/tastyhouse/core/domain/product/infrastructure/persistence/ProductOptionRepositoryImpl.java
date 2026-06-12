@@ -33,6 +33,17 @@ public class ProductOptionRepositoryImpl implements ProductOptionRepository {
     }
 
     @Override
+    public List<ProductOption> findActiveByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return queryFactory
+            .selectFrom(productOption)
+            .where(productOption.id.in(ids), productOption.isActive.eq(true))
+            .fetch();
+    }
+
+    @Override
     public ProductOption save(ProductOption entity) {
         return productOptionJpaRepository.save(entity);
     }

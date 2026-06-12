@@ -1,7 +1,10 @@
 package com.tastyhouse.core.domain.product.infrastructure.persistence;
 
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.domain.product.domain.model.ProductImage;
+import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -34,6 +37,34 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
             .from(uploadedFile)
             .where(uploadedFile.id.eq(imageFileId))
             .fetchOne();
+    }
+
+    @Override
+    public List<ProductRepresentativeImage> findRepresentativeImagePathsByProductIds(List<Long> productIds) {
+        if (productIds.isEmpty()) {
+            return List.of();
+        }
+        QProductImage subProductImage = new QProductImage("subProductImage");
+        return queryFactory
+            .select(Projections.constructor(
+                ProductRepresentativeImage.class,
+                productImage.productId,
+                uploadedFile.filePath
+            ))
+            .from(productImage)
+            .innerJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
+            .where(
+                productImage.productId.in(productIds),
+                productImage.isActive.eq(true),
+                productImage.sort.eq(
+                    JPAExpressions
+                        .select(subProductImage.sort.min())
+                        .from(subProductImage)
+                        .where(subProductImage.productId.eq(productImage.productId)
+                            .and(subProductImage.isActive.eq(true)))
+                )
+            )
+            .fetch();
     }
 
     @Override

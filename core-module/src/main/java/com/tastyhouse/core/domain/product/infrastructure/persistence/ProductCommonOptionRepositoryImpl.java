@@ -27,6 +27,17 @@ public class ProductCommonOptionRepositoryImpl implements ProductCommonOptionRep
     }
 
     @Override
+    public List<ProductCommonOption> findActiveByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return queryFactory
+            .selectFrom(productCommonOption)
+            .where(productCommonOption.id.in(ids), productCommonOption.isActive.eq(true))
+            .fetch();
+    }
+
+    @Override
     public ProductCommonOption save(ProductCommonOption entity) {
         return productCommonOptionJpaRepository.save(entity);
     }

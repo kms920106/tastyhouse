@@ -11,6 +11,8 @@ public interface ProductOptionGroupRepository {
 
     Optional<ProductOptionGroup> findById(Long id);
 
+    List<ProductOptionGroup> findAllByIds(List<Long> ids);
+
     boolean existsByProductId(Long productId);
 
     ProductOptionGroup save(ProductOptionGroup productOptionGroup);

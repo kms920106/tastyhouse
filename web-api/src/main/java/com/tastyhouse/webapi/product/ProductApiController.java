@@ -3,6 +3,8 @@ package com.tastyhouse.webapi.product;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.product.request.ProductBatchRequest;
+import com.tastyhouse.webapi.product.response.ProductBatchResponse;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
@@ -22,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,6 +56,14 @@ public class ProductApiController {
     @GetMapping("/v1/{productId}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductById(@PathVariable Long productId) {
         ProductDetailResponse response = productService.findProductById(productId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "상품 배치 조회 (옵션 포함)", description = "여러 (상품ID, 옵션ID) 조합을 한 번에 조회합니다. 상품별로 그룹핑하여 기본 정보(이름/정가/할인가)와 요청한 옵션 정보만 반환하므로, 상품마다 상세·옵션 API를 따로 호출하는 N+1 호출을 단일 호출로 대체합니다. 장바구니·주문서 등 여러 상품을 동시에 표시하는 화면에서 사용합니다. 판매 종료되었거나 존재하지 않는 상품은 결과에서 제외하지 않고 available=false 로 남깁니다(요청 순서 유지). 요청한 옵션 중 조회에 실패하거나 해당 상품에 속하지 않는 옵션은 options 에서 제외됩니다.")
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
+    @PostMapping("/v1/batch")
+    public ResponseEntity<ApiResponse<ProductBatchResponse>> getProductsBatch(@Valid @RequestBody ProductBatchRequest request) {
+        ProductBatchResponse response = productService.findProductsBatch(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

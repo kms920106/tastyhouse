@@ -1,5 +1,7 @@
 package com.tastyhouse.core.domain.product.application;
 
+import com.tastyhouse.core.domain.product.application.dto.command.ProductBatchQuery;
+import com.tastyhouse.core.domain.product.application.dto.result.ProductBatchResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
@@ -164,6 +166,127 @@ public class ProductQueryService {
 
         return new ProductOptionsResult(result);
     }
+
+    /**
+     * 장바구니 배치 조회. (상품ID, 옵션ID) 조합 목록을 받아 상품 단위로 그룹핑하여 반환합니다.
+     * - 존재하지 않거나 비활성인 상품은 제외하지 않고 available=false 로 남깁니다.
+     *   (프론트가 "판매 종료" 안내를 띄울 수 있도록 — 쿠팡 cartItemEnable 방식)
+     * - 옵션은 해당 상품에 실제로 속하고 조회에 성공한 경우에만 options 에 포함됩니다.
+     * - 요청한 productId 의 최초 등장 순서를 유지합니다.
+     * 상품/옵션/그룹을 각각 배치(in) 조회하여 N+1 을 방지합니다.
+     */
+    public List<ProductBatchResult> findProductsBatch(ProductBatchQuery query) {
+        List<ProductBatchQuery.BatchItem> items = query.items();
+        if (items == null || items.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> productIds = items.stream()
+            .map(ProductBatchQuery.BatchItem::productId)
+            .filter(java.util.Objects::nonNull)
+            .distinct()
+            .toList();
+        List<Long> optionIds = items.stream()
+            .map(ProductBatchQuery.BatchItem::optionId)
+            .filter(java.util.Objects::nonNull)
+            .distinct()
+            .toList();
+
+        Map<Long, Product> productById = productRepository.findAllByIds(productIds).stream()
+            .collect(Collectors.toMap(Product::getId, p -> p));
+
+        // 대표 이미지 경로 배치 조회. productId -> filePath (대표 이미지 없으면 키 없음)
+        Map<Long, String> imagePathByProductId = productImageRepository
+            .findRepresentativeImagePathsByProductIds(productIds).stream()
+            .collect(Collectors.toMap(
+                ProductImageRepository.ProductRepresentativeImage::productId,
+                ProductImageRepository.ProductRepresentativeImage::filePath,
+                (existing, ignored) -> existing
+            ));
+
+        // 옵션 조회 (일반 + 공통). optionId -> (groupId, name, additionalPrice)
+        Map<Long, OptionInfo> optionById = new java.util.HashMap<>();
+        List<ProductOption> options = productOptionRepository.findActiveByIds(optionIds);
+        for (ProductOption o : options) {
+            optionById.put(o.getId(), new OptionInfo(o.getOptionGroupId(), o.getName(), o.getAdditionalPrice(), false));
+        }
+        List<ProductCommonOption> commonOptions = productCommonOptionRepository.findActiveByIds(optionIds);
+        for (ProductCommonOption o : commonOptions) {
+            optionById.putIfAbsent(o.getId(), new OptionInfo(o.getOptionGroupId(), o.getName(), o.getAdditionalPrice(), true));
+        }
+
+        // 그룹 조회 (옵션의 소속 상품 검증용). groupId -> productId
+        List<Long> normalGroupIds = optionById.values().stream()
+            .filter(info -> !info.common()).map(OptionInfo::groupId).distinct().toList();
+        List<Long> commonGroupIds = optionById.values().stream()
+            .filter(OptionInfo::common).map(OptionInfo::groupId).distinct().toList();
+
+        Map<Long, Long> normalGroupProductId = productOptionGroupRepository.findAllByIds(normalGroupIds).stream()
+            .collect(Collectors.toMap(ProductOptionGroup::getId, ProductOptionGroup::getProductId));
+        Map<Long, Long> commonGroupProductId = productCommonOptionGroupRepository.findAllByIds(commonGroupIds).stream()
+            .collect(Collectors.toMap(ProductCommonOptionGroup::getId, ProductCommonOptionGroup::getProductId));
+
+        // 요청 순서(productId 최초 등장순)를 유지하며 상품별로 옵션을 그룹핑.
+        // 미존재 상품도 available=false 로 남기기 위해 모든 요청 productId 를 키로 등록한다.
+        Map<Long, List<ProductBatchResult.BatchOptionResult>> optionsByProductId = new java.util.LinkedHashMap<>();
+        for (ProductBatchQuery.BatchItem item : items) {
+            Long productId = item.productId();
+            if (productId == null) {
+                continue;
+            }
+            optionsByProductId.computeIfAbsent(productId, k -> new ArrayList<>());
+
+            // 상품이 없으면 옵션도 채울 수 없으므로 건너뛴다(키는 위에서 이미 등록됨).
+            if (!productById.containsKey(productId)) {
+                continue;
+            }
+
+            Long optionId = item.optionId();
+            if (optionId == null) {
+                continue;
+            }
+            OptionInfo optionInfo = optionById.get(optionId);
+            if (optionInfo == null) {
+                continue;
+            }
+            Long ownerProductId = optionInfo.common()
+                ? commonGroupProductId.get(optionInfo.groupId())
+                : normalGroupProductId.get(optionInfo.groupId());
+            // 그룹이 없거나, 옵션이 요청한 상품에 속하지 않으면 제외
+            if (ownerProductId == null || !productId.equals(ownerProductId)) {
+                continue;
+            }
+            List<ProductBatchResult.BatchOptionResult> bucket = optionsByProductId.get(productId);
+            boolean alreadyAdded = bucket.stream().anyMatch(o -> o.id().equals(optionId));
+            if (!alreadyAdded) {
+                bucket.add(new ProductBatchResult.BatchOptionResult(
+                    optionId, optionInfo.name(), optionInfo.additionalPrice()
+                ));
+            }
+        }
+
+        return optionsByProductId.entrySet().stream()
+            .map(entry -> {
+                Product product = productById.get(entry.getKey());
+                if (product == null) {
+                    // 존재하지 않거나 비활성인 상품: available=false 로 남긴다.
+                    return new ProductBatchResult(entry.getKey(), false, null, null, null, null, null, List.of());
+                }
+                return new ProductBatchResult(
+                    product.getId(),
+                    true,
+                    product.getName(),
+                    imagePathByProductId.get(product.getId()),
+                    product.getOriginalPrice(),
+                    product.getDiscountPrice(),
+                    product.getDiscountRate(),
+                    entry.getValue()
+                );
+            })
+            .toList();
+    }
+
+    private record OptionInfo(Long groupId, String name, Integer additionalPrice, boolean common) {}
 
     public Optional<ProductBbq> findBbqByProductId(Long productId) {
         return productBbqRepository.findByProductId(productId);

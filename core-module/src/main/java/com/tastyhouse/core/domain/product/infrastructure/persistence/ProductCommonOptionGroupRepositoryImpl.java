@@ -27,6 +27,17 @@ public class ProductCommonOptionGroupRepositoryImpl implements ProductCommonOpti
     }
 
     @Override
+    public List<ProductCommonOptionGroup> findAllByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return queryFactory
+            .selectFrom(productCommonOptionGroup)
+            .where(productCommonOptionGroup.id.in(ids))
+            .fetch();
+    }
+
+    @Override
     public ProductCommonOptionGroup save(ProductCommonOptionGroup entity) {
         return productCommonOptionGroupJpaRepository.save(entity);
     }

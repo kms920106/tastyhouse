@@ -8,5 +8,7 @@ public interface ProductCommonOptionGroupRepository {
 
     List<ProductCommonOptionGroup> findActiveByProductIdOrderBySort(Long productId);
 
+    List<ProductCommonOptionGroup> findAllByIds(List<Long> ids);
+
     ProductCommonOptionGroup save(ProductCommonOptionGroup productCommonOptionGroup);
 }

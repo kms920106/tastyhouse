@@ -195,6 +195,17 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public List<Product> findAllByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return queryFactory
+            .selectFrom(product)
+            .where(product.id.in(ids), product.isActive.eq(true))
+            .fetch();
+    }
+
+    @Override
     public boolean existsById(Long id) {
         return productJpaRepository.existsById(id);
     }

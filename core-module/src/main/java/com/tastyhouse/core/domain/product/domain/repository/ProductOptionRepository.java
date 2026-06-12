@@ -11,5 +11,7 @@ public interface ProductOptionRepository {
 
     Optional<ProductOption> findById(Long id);
 
+    List<ProductOption> findActiveByIds(List<Long> ids);
+
     ProductOption save(ProductOption productOption);
 }

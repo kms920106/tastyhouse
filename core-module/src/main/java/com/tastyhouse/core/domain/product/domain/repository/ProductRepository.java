@@ -26,6 +26,8 @@ public interface ProductRepository {
 
     Optional<Product> findById(Long id);
 
+    List<Product> findAllByIds(List<Long> ids);
+
     boolean existsById(Long id);
 
     Product save(Product product);

@@ -2,6 +2,8 @@ package com.tastyhouse.webapi.product;
 
 import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
+import com.tastyhouse.core.domain.product.application.dto.command.ProductBatchQuery;
+import com.tastyhouse.core.domain.product.application.dto.result.ProductBatchResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
 import com.tastyhouse.core.domain.product.domain.model.Product;
@@ -12,6 +14,8 @@ import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingR
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.product.request.ProductBatchRequest;
+import com.tastyhouse.webapi.product.response.ProductBatchResponse;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
@@ -85,6 +89,42 @@ public class ProductService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         ProductOptionsResult result = productQueryService.findProductOptions(productId);
         return ProductOptionGroupsResponse.from(convertToOptionGroupResponses(result));
+    }
+
+    /**
+     * 상품 배치 조회. (상품ID, 옵션ID) 조합 목록을 받아 상품 단위로 그룹핑하여 반환합니다.
+     * 판매 종료/미존재 상품은 제외하지 않고 available=false 로 남기며, 옵션은 조회에 성공한 것만 포함됩니다.
+     */
+    @Transactional(readOnly = true)
+    public ProductBatchResponse findProductsBatch(ProductBatchRequest request) {
+        List<ProductBatchQuery.BatchItem> items = request.items().stream()
+            .map(item -> new ProductBatchQuery.BatchItem(item.productId(), item.optionId()))
+            .toList();
+
+        List<ProductBatchResult> results = productQueryService.findProductsBatch(new ProductBatchQuery(items));
+
+        List<ProductBatchResponse.ProductResponse> products = results.stream()
+            .map(this::convertToProductBatchResponse)
+            .toList();
+
+        return ProductBatchResponse.from(products);
+    }
+
+    private ProductBatchResponse.ProductResponse convertToProductBatchResponse(ProductBatchResult result) {
+        List<ProductBatchResponse.OptionResponse> options = result.options().stream()
+            .map(option -> new ProductBatchResponse.OptionResponse(
+                option.id(), option.name(), option.price()
+            ))
+            .toList();
+        return new ProductBatchResponse.ProductResponse(
+            result.id(),
+            result.available(),
+            result.name(),
+            fileService.getUrlByPath(result.imageFilePath()),
+            result.originalPrice(),
+            result.discountPrice(),
+            options
+        );
     }
 
     private List<ProductOptionGroupsResponse.OptionGroupResponse> convertToOptionGroupResponses(ProductOptionsResult result) {
