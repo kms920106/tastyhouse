@@ -2,7 +2,7 @@ package com.tastyhouse.core.domain.order.application.dto.result;
 
 import java.util.List;
 
-public record OrderItemResult(
+public record OrderProductResult(
     Long id,
     Long productId,
     String productName,
@@ -12,6 +12,6 @@ public record OrderItemResult(
     Integer discountPrice,
     Integer optionTotalPrice,
     Integer totalPrice,
-    List<OrderItemOptionResult> options
+    List<OrderProductOptionResult> options
 ) {
 }

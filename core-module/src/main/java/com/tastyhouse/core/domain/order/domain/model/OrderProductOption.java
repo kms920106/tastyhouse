@@ -14,15 +14,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-@Table(name = "ORDER_ITEM_OPTION")
-public class OrderItemOption extends BaseEntity {
+@Table(name = "ORDER_PRODUCT_OPTION")
+public class OrderProductOption extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_item_id", nullable = false)
-    private Long orderItemId;
+    @Column(name = "order_product_id", nullable = false)
+    private Long orderProductId;
 
     @Column(name = "option_group_id")
     private Long optionGroupId;
@@ -39,15 +39,15 @@ public class OrderItemOption extends BaseEntity {
     @Column(name = "additional_price", nullable = false)
     private Integer additionalPrice;
 
-    private OrderItemOption(
-        Long orderItemId,
+    private OrderProductOption(
+        Long orderProductId,
         Long optionGroupId,
         String optionGroupName,
         Long optionId,
         String optionName,
         Integer additionalPrice
     ) {
-        this.orderItemId = orderItemId;
+        this.orderProductId = orderProductId;
         this.optionGroupId = optionGroupId;
         this.optionGroupName = optionGroupName;
         this.optionId = optionId;
@@ -55,16 +55,16 @@ public class OrderItemOption extends BaseEntity {
         this.additionalPrice = additionalPrice != null ? additionalPrice : 0;
     }
 
-    public static OrderItemOption of(
-        Long orderItemId,
+    public static OrderProductOption of(
+        Long orderProductId,
         Long optionGroupId,
         String optionGroupName,
         Long optionId,
         String optionName,
         Integer additionalPrice
     ) {
-        return new OrderItemOption(
-            orderItemId,
+        return new OrderProductOption(
+            orderProductId,
             optionGroupId,
             optionGroupName,
             optionId,

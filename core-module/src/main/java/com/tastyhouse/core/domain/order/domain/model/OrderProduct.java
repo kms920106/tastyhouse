@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-@Table(name = "ORDER_ITEM")
-public class OrderItem extends BaseEntity {
+@Table(name = "ORDER_PRODUCT")
+public class OrderProduct extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,7 +48,7 @@ public class OrderItem extends BaseEntity {
     @Column(name = "total_price", nullable = false)
     private Integer totalPrice;
 
-    private OrderItem(
+    private OrderProduct(
         Long orderId,
         Long productId,
         String productName,
@@ -70,7 +70,7 @@ public class OrderItem extends BaseEntity {
         this.totalPrice = totalPrice != null ? totalPrice : 0;
     }
 
-    public static OrderItem of(
+    public static OrderProduct of(
         Long orderId,
         Long productId,
         String productName,
@@ -81,7 +81,7 @@ public class OrderItem extends BaseEntity {
         Integer optionTotalPrice,
         Integer totalPrice
     ) {
-        return new OrderItem(
+        return new OrderProduct(
             orderId,
             productId,
             productName,

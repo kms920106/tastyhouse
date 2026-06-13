@@ -22,7 +22,7 @@ public record OrderCreateRequest(
     @NotEmpty(message = "주문 상품은 필수입니다")
     @Valid
     @Schema(description = "주문 상품 목록", requiredMode = Schema.RequiredMode.REQUIRED)
-    List<OrderItemRequest> orderItems,
+    List<OrderProductRequest> orderProducts,
 
     @Schema(description = "사용할 회원 쿠폰 ID", example = "5")
     Long memberCouponId,

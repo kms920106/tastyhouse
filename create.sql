@@ -688,7 +688,7 @@ CREATE TABLE ORDERS
     INDEX idx_orders_created_at (created_at)                     -- 인덱스: 생성 일시별 조회
 );
 
-CREATE TABLE ORDER_ITEM
+CREATE TABLE ORDER_PRODUCT
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,         -- 주문 상품 ID (PK)
     order_id          BIGINT       NOT NULL,                     -- 주문 ID (ORDERS.id 참조)
@@ -702,14 +702,14 @@ CREATE TABLE ORDER_ITEM
     total_price       INT          NOT NULL DEFAULT 0,           -- 상품 총 금액
     created_at        DATETIME     NOT NULL,                     -- 생성 일시
     updated_at        DATETIME     NOT NULL,                     -- 수정 일시
-    INDEX idx_order_item_order_id (order_id),                    -- 인덱스: 주문별 조회
-    INDEX idx_order_item_product_id (product_id)                 -- 인덱스: 상품별 조회
+    INDEX idx_order_product_order_id (order_id),                 -- 인덱스: 주문별 조회
+    INDEX idx_order_product_product_id (product_id)              -- 인덱스: 상품별 조회
 );
 
-CREATE TABLE ORDER_ITEM_OPTION
+CREATE TABLE ORDER_PRODUCT_OPTION
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 주문 상품 옵션 ID (PK)
-    order_item_id     BIGINT       NOT NULL,                              -- 주문 상품 ID (ORDER_ITEM.id 참조)
+    order_product_id  BIGINT       NOT NULL,                              -- 주문 상품 ID (ORDER_PRODUCT.id 참조)
     option_group_id   BIGINT,                                             -- 옵션 그룹 ID (스냅샷, NULL 가능)
     option_group_name VARCHAR(100) NOT NULL,                              -- 주문 시점 옵션 그룹 이름 (스냅샷)
     option_id         BIGINT,                                             -- 옵션 ID (스냅샷, NULL 가능)
@@ -717,7 +717,7 @@ CREATE TABLE ORDER_ITEM_OPTION
     additional_price  INT          NOT NULL DEFAULT 0,                    -- 옵션 추가 금액
     created_at        DATETIME     NOT NULL,                              -- 생성 일시
     updated_at        DATETIME     NOT NULL,                              -- 수정 일시
-    INDEX idx_order_item_option_order_item_id (order_item_id)             -- 인덱스: 주문 상품별 조회
+    INDEX idx_order_product_option_order_product_id (order_product_id)    -- 인덱스: 주문 상품별 조회
 );
 
 CREATE TABLE PAYMENT

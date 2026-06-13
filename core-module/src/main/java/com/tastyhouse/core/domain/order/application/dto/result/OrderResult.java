@@ -2,6 +2,7 @@ package com.tastyhouse.core.domain.order.application.dto.result;
 
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
+import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
@@ -26,14 +27,14 @@ public record OrderResult(
     Integer finalAmount,
     Integer usedPoint,
     Integer earnedPoint,
-    List<OrderItemResult> orderItems,
+    List<OrderProductResult> orderProducts,
     PaymentResult payment,
     LocalDateTime approvedAt,
     LocalDateTime createdAt
 ) {
     public record PaymentResult(
         Long id,
-        com.tastyhouse.core.domain.payment.domain.model.PaymentMethod paymentMethod,
+        PaymentMethod paymentMethod,
         PaymentStatus paymentStatus,
         Integer amount,
         String cardCompany,
@@ -55,8 +56,13 @@ public record OrderResult(
         }
     }
 
-    public static OrderResult from(Order order, String shopName, String shopPhoneNumber,
-                                   List<OrderItemResult> orderItems, Payment payment) {
+    public static OrderResult from(
+        Order order,
+        String shopName,
+        String shopPhoneNumber,
+        List<OrderProductResult> orderProducts,
+        Payment payment
+    ) {
         PaymentResult paymentResult = payment != null ? PaymentResult.from(payment) : null;
         return new OrderResult(
             order.getId(),
@@ -76,7 +82,7 @@ public record OrderResult(
             order.getFinalAmount(),
             order.getUsedPoint(),
             order.getEarnedPoint(),
-            orderItems,
+            orderProducts,
             paymentResult,
             payment != null ? payment.getApprovedAt() : null,
             order.getCreatedAt()

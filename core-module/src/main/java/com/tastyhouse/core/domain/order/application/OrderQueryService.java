@@ -1,14 +1,14 @@
 package com.tastyhouse.core.domain.order.application;
 
-import com.tastyhouse.core.domain.order.application.dto.result.OrderItemOptionResult;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.order.domain.model.Order;
-import com.tastyhouse.core.domain.order.domain.model.OrderItem;
-import com.tastyhouse.core.domain.order.domain.model.OrderItemOption;
-import com.tastyhouse.core.domain.order.domain.repository.OrderItemOptionRepository;
-import com.tastyhouse.core.domain.order.domain.repository.OrderItemRepository;
+import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
+import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepository;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
@@ -32,8 +32,8 @@ import java.util.Optional;
 public class OrderQueryService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final OrderItemOptionRepository orderItemOptionRepository;
+    private final OrderProductRepository orderProductRepository;
+    private final OrderProductOptionRepository orderProductOptionRepository;
     private final PaymentRepository paymentRepository;
     private final ShopQueryService shopQueryService;
 
@@ -53,14 +53,14 @@ public class OrderQueryService {
 
         Shop shop = shopQueryService.findShopById(order.getShopId());
 
-        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
-        List<OrderItemResult> itemResults = items.stream()
+        List<OrderProduct> items = orderProductRepository.findByOrderId(orderId);
+        List<OrderProductResult> itemResults = items.stream()
             .map(item -> {
-                List<OrderItemOption> options = orderItemOptionRepository.findByOrderItemId(item.getId());
-                List<OrderItemOptionResult> optionResults = options.stream()
-                    .map(OrderItemOptionResult::from)
+                List<OrderProductOption> options = orderProductOptionRepository.findByOrderProductId(item.getId());
+                List<OrderProductOptionResult> optionResults = options.stream()
+                    .map(OrderProductOptionResult::from)
                     .toList();
-                return new OrderItemResult(
+                return new OrderProductResult(
                     item.getId(),
                     item.getProductId(),
                     item.getProductName(),
@@ -86,17 +86,17 @@ public class OrderQueryService {
         );
     }
 
-    public OrderItem findOrderItemById(Long orderItemId) {
-        return orderItemRepository.findById(orderItemId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_ITEM_NOT_FOUND));
+    public OrderProduct findOrderProductById(Long orderProductId) {
+        return orderProductRepository.findById(orderProductId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
     }
 
-    public List<OrderItem> findOrderItems(Long orderId) {
-        return orderItemRepository.findByOrderId(orderId);
+    public List<OrderProduct> findOrderProducts(Long orderId) {
+        return orderProductRepository.findByOrderId(orderId);
     }
 
-    public List<OrderItemOption> findOrderItemOptions(Long orderItemId) {
-        return orderItemOptionRepository.findByOrderItemId(orderItemId);
+    public List<OrderProductOption> findOrderProductOptions(Long orderProductId) {
+        return orderProductOptionRepository.findByOrderProductId(orderProductId);
     }
 
     public Optional<Payment> findPaymentByOrderId(Long orderId) {

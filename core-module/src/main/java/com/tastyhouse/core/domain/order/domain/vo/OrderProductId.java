@@ -1,10 +1,10 @@
 package com.tastyhouse.core.domain.order.domain.vo;
 
-public record OrderItemId(Long value) {
+public record OrderProductId(Long value) {
 
-    public OrderItemId {
+    public OrderProductId {
         if (value == null || value <= 0) {
-            throw new IllegalArgumentException("OrderItemId는 양수여야 합니다: " + value);
+            throw new IllegalArgumentException("OrderProductId는 양수여야 합니다: " + value);
         }
     }
 }

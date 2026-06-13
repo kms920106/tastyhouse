@@ -1,15 +1,15 @@
 package com.tastyhouse.core.domain.order.domain.repository;
 
-import com.tastyhouse.core.domain.order.domain.model.OrderItem;
+import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface OrderItemRepository {
+public interface OrderProductRepository {
 
-    Optional<OrderItem> findById(Long orderItemId);
+    Optional<OrderProduct> findById(Long orderProductId);
 
-    List<OrderItem> findByOrderId(Long orderId);
+    List<OrderProduct> findByOrderId(Long orderId);
 
-    OrderItem save(OrderItem orderItem);
+    OrderProduct save(OrderProduct orderProduct);
 }

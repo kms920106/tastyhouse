@@ -1,37 +1,37 @@
 package com.tastyhouse.core.domain.order.infrastructure.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.order.domain.model.OrderItem;
-import com.tastyhouse.core.domain.order.domain.repository.OrderItemRepository;
+import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-import static com.tastyhouse.core.domain.order.domain.model.QOrderItem.orderItem;
+import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderProduct;
 
 @Repository
 @RequiredArgsConstructor
-public class OrderItemRepositoryImpl implements OrderItemRepository {
+public class OrderProductRepositoryImpl implements OrderProductRepository {
 
     private final JPAQueryFactory queryFactory;
-    private final OrderItemJpaRepository orderItemJpaRepository;
+    private final OrderProductJpaRepository orderProductJpaRepository;
 
     @Override
-    public Optional<OrderItem> findById(Long orderItemId) {
-        return orderItemJpaRepository.findById(orderItemId);
+    public Optional<OrderProduct> findById(Long orderProductId) {
+        return orderProductJpaRepository.findById(orderProductId);
     }
 
     @Override
-    public List<OrderItem> findByOrderId(Long orderId) {
-        return queryFactory.selectFrom(orderItem)
-            .where(orderItem.orderId.eq(orderId))
+    public List<OrderProduct> findByOrderId(Long orderId) {
+        return queryFactory.selectFrom(orderProduct)
+            .where(orderProduct.orderId.eq(orderId))
             .fetch();
     }
 
     @Override
-    public OrderItem save(OrderItem orderItem) {
-        return orderItemJpaRepository.save(orderItem);
+    public OrderProduct save(OrderProduct orderProduct) {
+        return orderProductJpaRepository.save(orderProduct);
     }
 }

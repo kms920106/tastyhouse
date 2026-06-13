@@ -93,7 +93,7 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND(404, "REVIEW_NOT_FOUND", "리뷰를 찾을 수 없습니다."),
     REVIEW_ACCESS_DENIED(403, "REVIEW_ACCESS_DENIED", "본인의 리뷰만 수정/삭제할 수 있습니다."),
     REVIEW_ALREADY_EXISTS(400, "REVIEW_ALREADY_EXISTS", "이미 리뷰를 작성한 상품입니다."),
-    REVIEW_ORDER_ITEM_NOT_FOUND(404, "REVIEW_ORDER_ITEM_NOT_FOUND", "주문 상품을 찾을 수 없습니다."),
+    REVIEW_ORDER_PRODUCT_NOT_FOUND(404, "REVIEW_ORDER_PRODUCT_NOT_FOUND", "주문 상품을 찾을 수 없습니다."),
     REVIEW_ORDER_ACCESS_DENIED(403, "REVIEW_ORDER_ACCESS_DENIED", "본인의 주문에 대해서만 리뷰를 작성할 수 있습니다."),
 
     // 가게

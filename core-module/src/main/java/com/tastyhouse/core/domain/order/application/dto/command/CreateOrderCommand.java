@@ -7,7 +7,7 @@ import java.util.List;
 public record CreateOrderCommand(
     Long shopId,
     OrderMethod orderMethod,
-    List<CreateOrderItemCommand> orderItems,
+    List<CreateOrderProductCommand> orderProducts,
     Long memberCouponId,
     Integer usePoint,
     Integer totalProductAmount,

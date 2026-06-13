@@ -1,15 +1,15 @@
 package com.tastyhouse.core.domain.order.application.dto.result;
 
-import com.tastyhouse.core.domain.order.domain.model.OrderItemOption;
+import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
 
-public record OrderItemOptionResult(
+public record OrderProductOptionResult(
     Long id,
     String optionGroupName,
     String optionName,
     Integer additionalPrice
 ) {
-    public static OrderItemOptionResult from(OrderItemOption option) {
-        return new OrderItemOptionResult(
+    public static OrderProductOptionResult from(OrderProductOption option) {
+        return new OrderProductOptionResult(
             option.getId(),
             option.getOptionGroupName(),
             option.getOptionName(),

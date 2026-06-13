@@ -58,15 +58,15 @@ public class ReviewApiController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문 상품을 찾을 수 없음")
     })
-    @GetMapping("/v1/write/order-items/{orderItemId}")
+    @GetMapping("/v1/write/order-items/{orderProductId}")
     public ResponseEntity<ApiResponse<ReviewWriteInfoResponse>> getReviewWriteInfo(
-            @Parameter(description = "주문 상품 ID", example = "1") @PathVariable Long orderItemId,
+            @Parameter(description = "주문 상품 ID", example = "1") @PathVariable Long orderProductId,
             @CurrentUser CustomUserDetails userDetails) {
-        ReviewWriteInfoResponse response = reviewService.getReviewWriteInfo(orderItemId, userDetails.getMemberId());
+        ReviewWriteInfoResponse response = reviewService.getReviewWriteInfo(orderProductId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "리뷰 등록", description = "리뷰를 등록합니다. orderItemId가 있으면 주문 기반 인증 리뷰, 없으면 일반 리뷰로 등록됩니다.")
+    @Operation(summary = "리뷰 등록", description = "리뷰를 등록합니다. orderProductId가 있으면 주문 기반 인증 리뷰, 없으면 일반 리뷰로 등록됩니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "등록 성공", content = @Content(schema = @Schema(implementation = ReviewResponse.class))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "이미 리뷰를 작성한 상품"),

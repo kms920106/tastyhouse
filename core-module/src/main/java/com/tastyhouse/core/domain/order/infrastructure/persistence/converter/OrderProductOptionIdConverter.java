@@ -1,19 +1,19 @@
 package com.tastyhouse.core.domain.order.infrastructure.persistence.converter;
 
-import com.tastyhouse.core.domain.order.domain.vo.OrderItemOptionId;
+import com.tastyhouse.core.domain.order.domain.vo.OrderProductOptionId;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class OrderItemOptionIdConverter implements AttributeConverter<OrderItemOptionId, Long> {
+public class OrderProductOptionIdConverter implements AttributeConverter<OrderProductOptionId, Long> {
 
     @Override
-    public Long convertToDatabaseColumn(OrderItemOptionId attribute) {
+    public Long convertToDatabaseColumn(OrderProductOptionId attribute) {
         return attribute == null ? null : attribute.value();
     }
 
     @Override
-    public OrderItemOptionId convertToEntityAttribute(Long dbData) {
-        return dbData == null ? null : new OrderItemOptionId(dbData);
+    public OrderProductOptionId convertToEntityAttribute(Long dbData) {
+        return dbData == null ? null : new OrderProductOptionId(dbData);
     }
 }

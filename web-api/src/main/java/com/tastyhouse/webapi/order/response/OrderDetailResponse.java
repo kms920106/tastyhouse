@@ -6,7 +6,7 @@ import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record OrderResponse(
+public record OrderDetailResponse(
     Long id,
     String orderNumber,
     OrderMethod orderMethod,
@@ -24,12 +24,12 @@ public record OrderResponse(
     Integer finalAmount,
     Integer usedPoint,
     Integer earnedPoint,
-    List<OrderItemResponse> orderProducts,
+    List<OrderProductResponse> orderProducts,
     PaymentSummaryResponse payment,
     LocalDateTime approvedAt,
     LocalDateTime createdAt
 ) {
-    public static OrderResponse from(
+    public static OrderDetailResponse from(
         Long id,
         String orderNumber,
         OrderMethod orderMethod,
@@ -47,12 +47,12 @@ public record OrderResponse(
         Integer finalAmount,
         Integer usedPoint,
         Integer earnedPoint,
-        List<OrderItemResponse> orderItems,
+        List<OrderProductResponse> orderProducts,
         PaymentSummaryResponse payment,
         LocalDateTime approvedAt,
         LocalDateTime createdAt
     ) {
-        return new OrderResponse(
+        return new OrderDetailResponse(
             id,
             orderNumber,
             orderMethod,
@@ -70,7 +70,7 @@ public record OrderResponse(
             finalAmount,
             usedPoint,
             earnedPoint,
-            orderItems,
+            orderProducts,
             payment,
             approvedAt,
             createdAt

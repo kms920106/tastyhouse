@@ -218,7 +218,7 @@ public class ReviewQueryService {
         return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
     }
 
-    public boolean existsReviewByOrderItemAndMember(Long orderId, Long productId, Long memberId) {
+    public boolean existsReviewByOrderProductAndMember(Long orderId, Long productId, Long memberId) {
         return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
     }
 

@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.order.domain.model.QOrderItem.orderItem;
+import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderProduct;
 import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
@@ -63,16 +63,16 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 uploadedFile.filePath,
                 station.stationName,
                 shop.name,
-                orderItem.productName,
+                orderProduct.productName,
                 review.totalRating,
                 review.content
             ))
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .leftJoin(orderItem).on(
-                orderItem.orderId.eq(review.orderId)
-                .and(orderItem.productId.eq(review.productId))
+            .leftJoin(orderProduct).on(
+                orderProduct.orderId.eq(review.orderId)
+                .and(orderProduct.productId.eq(review.productId))
             )
             .leftJoin(reviewImage).on(
                 reviewImage.reviewId.eq(review.id)

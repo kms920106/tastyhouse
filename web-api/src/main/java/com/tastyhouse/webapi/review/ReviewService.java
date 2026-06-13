@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.review;
 
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
-import com.tastyhouse.core.domain.order.domain.model.OrderItem;
+import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.review.application.ReviewCommandService;
@@ -317,10 +317,10 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public ReviewWriteInfoResponse getReviewWriteInfo(Long orderItemId, Long memberId) {
-        OrderItem orderItem = orderQueryService.findOrderItemById(orderItemId);
+    public ReviewWriteInfoResponse getReviewWriteInfo(Long orderProductId, Long memberId) {
+        OrderProduct orderProduct = orderQueryService.findOrderProductById(orderProductId);
 
-        Product product = productQueryService.findProductById(orderItem.getProductId())
+        Product product = productQueryService.findProductById(orderProduct.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         Integer price = product.getDiscountPrice() != null
@@ -328,7 +328,7 @@ public class ReviewService {
                 : product.getOriginalPrice();
 
         boolean isReviewed = reviewQueryService.isReviewedByOrderAndProduct(
-            orderItem.getOrderId(), orderItem.getProductId(), memberId
+            orderProduct.getOrderId(), orderProduct.getProductId(), memberId
         );
 
         return ReviewWriteInfoResponse.from(
@@ -336,7 +336,7 @@ public class ReviewService {
             product.getName(),
             getFirstImageUrl(product.getId()),
             price,
-            orderItem.getOrderId(),
+            orderProduct.getOrderId(),
             isReviewed
         );
     }
@@ -344,9 +344,9 @@ public class ReviewService {
     @Transactional
     public ReviewResponse createReview(Long memberId, ReviewCreateRequest request) {
         Long orderId = null;
-        if (request.orderItemId() != null) {
-            OrderItem orderItem = orderQueryService.findOrderItemById(request.orderItemId());
-            orderId = orderItem.getOrderId();
+        if (request.orderProductId() != null) {
+            OrderProduct orderProduct = orderQueryService.findOrderProductById(request.orderProductId());
+            orderId = orderProduct.getOrderId();
         }
 
         Product product = productQueryService.findProductById(request.productId())
@@ -356,7 +356,7 @@ public class ReviewService {
             product.getShopId(),
             product.getId(),
             memberId,
-            request.orderItemId(),
+            request.orderProductId(),
             orderId,
             request.tasteRating(),
             request.amountRating(),

@@ -6,7 +6,7 @@ public record CreateReviewCommand(
     Long shopId,
     Long productId,
     Long memberId,
-    Long orderItemId,
+    Long orderProductId,
     Long orderId,
     Integer tasteRating,
     Integer amountRating,

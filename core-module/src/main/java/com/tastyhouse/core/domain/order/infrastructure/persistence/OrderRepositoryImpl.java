@@ -18,7 +18,7 @@ import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.order.domain.model.QOrder.order;
-import static com.tastyhouse.core.domain.order.domain.model.QOrderItem.orderItem;
+import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderProduct;
 import static com.tastyhouse.core.domain.payment.domain.model.QPayment.payment;
 import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 
@@ -54,8 +54,8 @@ public class OrderRepositoryImpl implements OrderRepository {
                 order.id,
                 shop.name,
                 uploadedFile.filePath,
-                orderItem.productName.min(),
-                orderItem.id.count().castToNum(Integer.class),
+                orderProduct.productName.min(),
+                orderProduct.id.count().castToNum(Integer.class),
                 order.finalAmount,
                 payment.paymentStatus,
                 payment.approvedAt
@@ -64,7 +64,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             .innerJoin(payment).on(paymentJoinCondition)
             .leftJoin(shop).on(shop.id.eq(order.shopId))
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(shop.thumbnailImageFileId))
-            .leftJoin(orderItem).on(orderItem.orderId.eq(order.id))
+            .leftJoin(orderProduct).on(orderProduct.orderId.eq(order.id))
             .where(order.memberId.eq(memberId))
             .groupBy(order.id, shop.name, uploadedFile.filePath, order.finalAmount, payment.paymentStatus, payment.approvedAt)
             .orderBy(order.createdAt.desc())

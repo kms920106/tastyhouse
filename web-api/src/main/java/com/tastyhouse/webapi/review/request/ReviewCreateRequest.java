@@ -13,7 +13,7 @@ import java.util.List;
 public record ReviewCreateRequest(
 
     @Schema(description = "주문 상품 ID (주문 기반 리뷰 시 필수, 일반 리뷰 시 null)", example = "10")
-    Long orderItemId,
+    Long orderProductId,
 
     @NotNull(message = "상품 ID는 필수입니다")
     @Schema(description = "상품 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)

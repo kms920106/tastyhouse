@@ -8,14 +8,14 @@ import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderCommand;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderItemOptionCommand;
+import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderProductOptionCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.order.domain.model.Order;
-import com.tastyhouse.core.domain.order.domain.model.OrderItem;
-import com.tastyhouse.core.domain.order.domain.model.OrderItemOption;
+import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
+import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
 import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.core.domain.order.domain.repository.OrderItemOptionRepository;
-import com.tastyhouse.core.domain.order.domain.repository.OrderItemRepository;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepository;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
@@ -45,8 +45,8 @@ import java.util.UUID;
 public class OrderCommandService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final OrderItemOptionRepository orderItemOptionRepository;
+    private final OrderProductRepository orderProductRepository;
+    private final OrderProductOptionRepository orderProductOptionRepository;
     private final ShopQueryService shopQueryService;
     private final MemberQueryService memberQueryService;
     private final ProductQueryService productQueryService;
@@ -75,7 +75,7 @@ public class OrderCommandService {
         int totalProductAmount = 0;
         int productDiscountAmount = 0;
 
-        for (var itemCommand : command.orderItems()) {
+        for (var itemCommand : command.orderProducts()) {
             Product product = productQueryService.findProductById(itemCommand.productId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
                     ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + itemCommand.productId()));
@@ -90,7 +90,7 @@ public class OrderCommandService {
             Integer discountPrice = product.getDiscountPrice();
             int optionTotalPrice = 0;
 
-            OrderItem orderItem = OrderItem.of(
+            OrderProduct orderProduct = OrderProduct.of(
                 savedOrder.getId(),
                 product.getId(),
                 product.getName(),
@@ -100,10 +100,10 @@ public class OrderCommandService {
                 discountPrice,
                 0, 0
             );
-            OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+            OrderProduct savedOrderProduct = orderProductRepository.save(orderProduct);
 
             if (itemCommand.selectedOptions() != null) {
-                for (CreateOrderItemOptionCommand optionCommand : itemCommand.selectedOptions()) {
+                for (CreateOrderProductOptionCommand optionCommand : itemCommand.selectedOptions()) {
                     ProductOptionGroup optionGroup = productQueryService
                         .findProductOptionGroupById(optionCommand.groupId())
                         .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
@@ -112,8 +112,8 @@ public class OrderCommandService {
                         .findProductOptionById(optionCommand.optionId())
                         .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
 
-                    orderItemOptionRepository.save(OrderItemOption.of(
-                        savedOrderItem.getId(),
+                    orderProductOptionRepository.save(OrderProductOption.of(
+                        savedOrderProduct.getId(),
                         optionGroup.getId(),
                         optionGroup.getName(),
                         option.getId(),
@@ -129,7 +129,7 @@ public class OrderCommandService {
             int itemTotal = (effectivePrice + optionTotalPrice) * itemCommand.quantity();
             int itemDiscount = discountPrice != null ? (unitPrice - discountPrice) * itemCommand.quantity() : 0;
 
-            savedOrderItem.updatePrices(optionTotalPrice, itemTotal);
+            savedOrderProduct.updatePrices(optionTotalPrice, itemTotal);
 
             totalProductAmount += unitPrice * itemCommand.quantity() + optionTotalPrice * itemCommand.quantity();
             productDiscountAmount += itemDiscount;
@@ -159,8 +159,8 @@ public class OrderCommandService {
 
         savedOrder.updateAmounts(totalProductAmount, productDiscountAmount, couponDiscountAmount, pointDiscountAmount, totalDiscountAmount, finalAmount, memberCouponId, pointDiscountAmount);
 
-        List<OrderItem> items = orderItemRepository.findByOrderId(savedOrder.getId());
-        List<com.tastyhouse.core.domain.order.application.dto.result.OrderItemResult> itemResults = buildOrderItemResults(items);
+        List<OrderProduct> items = orderProductRepository.findByOrderId(savedOrder.getId());
+        List<com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult> itemResults = buildOrderProductResults(items);
 
         eventPublisher.publishEvent(new OrderCreatedEvent(
             savedOrder.getId(),
@@ -179,15 +179,15 @@ public class OrderCommandService {
         );
     }
 
-    private List<com.tastyhouse.core.domain.order.application.dto.result.OrderItemResult> buildOrderItemResults(List<OrderItem> items) {
+    private List<com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult> buildOrderProductResults(List<OrderProduct> items) {
         return items.stream()
             .map(item -> {
-                List<OrderItemOption> options = orderItemOptionRepository.findByOrderItemId(item.getId());
-                List<com.tastyhouse.core.domain.order.application.dto.result.OrderItemOptionResult> optionResults =
+                List<OrderProductOption> options = orderProductOptionRepository.findByOrderProductId(item.getId());
+                List<com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult> optionResults =
                     options.stream()
-                        .map(com.tastyhouse.core.domain.order.application.dto.result.OrderItemOptionResult::from)
+                        .map(com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult::from)
                         .toList();
-                return new com.tastyhouse.core.domain.order.application.dto.result.OrderItemResult(
+                return new com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult(
                     item.getId(),
                     item.getProductId(),
                     item.getProductName(),
