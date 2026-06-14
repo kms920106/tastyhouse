@@ -4,6 +4,7 @@ import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
+import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
@@ -141,6 +142,10 @@ public class MemberFacade {
 
     public MemberProfileResponse getMemberBasicProfile(Long targetMemberId) {
         return memberAccountService.getMemberProfile(targetMemberId);
+    }
+
+    public MyProfileResponse getMyProfile(Long memberId) {
+        return memberAccountService.getMyProfile(memberId);
     }
 
     public MemberStatsResponse getMemberStats(Long memberId) {

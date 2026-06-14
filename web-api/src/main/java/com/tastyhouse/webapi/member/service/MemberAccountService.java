@@ -15,6 +15,7 @@ import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
+import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
@@ -139,6 +140,21 @@ public class MemberAccountService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return MemberProfileResponse.from(
+            result.nickname(),
+            result.memberGrade(),
+            result.statusMessage(),
+            fileService.getUrlByPath(result.profileImageFilePath())
+        );
+    }
+
+    // 로그인한 회원 본인의 프로필 조회 (소유권 비교용 식별자 id 포함)
+    @Transactional(readOnly = true)
+    public MyProfileResponse getMyProfile(Long memberId) {
+        MemberWithProfileImageResult result = memberQueryService.findMemberWithProfileImage(new MemberId(memberId))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return MyProfileResponse.from(
+            memberId,
             result.nickname(),
             result.memberGrade(),
             result.statusMessage(),
