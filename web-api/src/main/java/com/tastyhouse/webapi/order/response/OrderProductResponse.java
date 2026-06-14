@@ -8,12 +8,12 @@ import java.util.List;
 public record OrderProductResponse(
     Long id,
     Long productId,
-    String productName,
-    String productImageUrl,
+    String name,
+    String imageUrl,
     Integer quantity,
-    Integer unitPrice,
+    Integer originalPrice,
     Integer discountPrice,
-    Integer optionTotalPrice,
+    Integer totalOptionPrice,
     Integer totalPrice,
     List<OrderProductOptionResponse> options,
     boolean reviewed
@@ -34,7 +34,7 @@ public record OrderProductResponse(
         }
     }
 
-    public static OrderProductResponse from(OrderProductResult result, String productImageUrl, boolean reviewed) {
+    public static OrderProductResponse from(OrderProductResult result, String imageUrl, boolean reviewed) {
         List<OrderProductOptionResponse> optionResponses = result.options() == null ? List.of() :
             result.options().stream()
                 .map(OrderProductOptionResponse::from)
@@ -42,12 +42,12 @@ public record OrderProductResponse(
         return new OrderProductResponse(
             result.id(),
             result.productId(),
-            result.productName(),
-            productImageUrl,
+            result.name(),
+            imageUrl,
             result.quantity(),
-            result.unitPrice(),
+            result.originalPrice(),
             result.discountPrice(),
-            result.optionTotalPrice(),
+            result.totalOptionPrice(),
             result.totalPrice(),
             optionResponses,
             reviewed

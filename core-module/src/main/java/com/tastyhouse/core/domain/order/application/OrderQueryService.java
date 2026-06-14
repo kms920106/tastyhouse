@@ -63,12 +63,12 @@ public class OrderQueryService {
                 return new OrderProductResult(
                     item.getId(),
                     item.getProductId(),
-                    item.getProductName(),
-                    item.getProductImageUrl(),
+                    item.getName(),
+                    item.getImageUrl(),
                     item.getQuantity(),
-                    item.getUnitPrice(),
+                    item.getOriginalPrice(),
                     item.getDiscountPrice(),
-                    item.getOptionTotalPrice(),
+                    item.getTotalOptionPrice(),
                     item.getTotalPrice(),
                     optionResults
                 );

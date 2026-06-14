@@ -194,7 +194,7 @@ CREATE TABLE PRODUCT
     product_category_id BIGINT,                                      -- 상품 카테고리 ID (PRODUCT_CATEGORY.id 참조)
     name                VARCHAR(255)  NOT NULL,                      -- 상품명
     description         VARCHAR(1000),                               -- 상품 설명
-    price               INT           NOT NULL,                      -- 정가
+    original_price      INT           NOT NULL,                      -- 정가
     discount_price      INT,                                         -- 할인가
     discount_rate       DECIMAL(19, 2),                              -- 할인율 (%)
     rating              DOUBLE,                                      -- 평균 평점
@@ -693,12 +693,12 @@ CREATE TABLE ORDER_PRODUCT
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,         -- 주문 상품 ID (PK)
     order_id          BIGINT       NOT NULL,                     -- 주문 ID (ORDERS.id 참조)
     product_id        BIGINT       NOT NULL,                     -- 상품 ID (PRODUCT.id 참조)
-    product_name      VARCHAR(255) NOT NULL,                     -- 주문 시점 상품명 (스냅샷)
-    product_image_url VARCHAR(500),                              -- 주문 시점 상품 이미지 URL (스냅샷)
+    name              VARCHAR(255) NOT NULL,                     -- 주문 시점 상품명 (스냅샷)
+    image_url         VARCHAR(500),                              -- 주문 시점 상품 이미지 URL (스냅샷)
     quantity          INT          NOT NULL DEFAULT 1,           -- 수량
-    unit_price        INT          NOT NULL DEFAULT 0,           -- 단가
+    original_price    INT          NOT NULL DEFAULT 0,           -- 정가
     discount_price    INT,                                       -- 할인가
-    option_total_price INT         NOT NULL DEFAULT 0,           -- 옵션 금액 합계
+    total_option_price INT         NOT NULL DEFAULT 0,           -- 옵션 금액 합계
     total_price       INT          NOT NULL DEFAULT 0,           -- 상품 총 금액
     created_at        DATETIME     NOT NULL,                     -- 생성 일시
     updated_at        DATETIME     NOT NULL,                     -- 수정 일시

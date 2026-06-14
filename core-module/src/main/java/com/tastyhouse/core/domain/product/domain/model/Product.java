@@ -37,7 +37,7 @@ public class Product extends BaseEntity {
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Column(name = "price", nullable = false)
+    @Column(name = "original_price", nullable = false)
     private Integer originalPrice;
 
     @Embedded

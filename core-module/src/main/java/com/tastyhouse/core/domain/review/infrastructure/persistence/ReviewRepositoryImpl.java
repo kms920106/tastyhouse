@@ -63,7 +63,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 uploadedFile.filePath,
                 station.stationName,
                 shop.name,
-                orderProduct.productName,
+                orderProduct.name,
                 review.totalRating,
                 review.content
             ))

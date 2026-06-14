@@ -5,12 +5,12 @@ import java.util.List;
 public record OrderProductResult(
     Long id,
     Long productId,
-    String productName,
-    String productImageFilePath,
+    String name,
+    String imageUrl,
     Integer quantity,
-    Integer unitPrice,
+    Integer originalPrice,
     Integer discountPrice,
-    Integer optionTotalPrice,
+    Integer totalOptionPrice,
     Integer totalPrice,
     List<OrderProductOptionResult> options
 ) {

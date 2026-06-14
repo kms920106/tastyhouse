@@ -151,8 +151,8 @@ public class OrderApiController {
                     orderProduct.productId(),
                     memberId
                 );
-                String productImageUrl = fileService.getUrlByPath(orderProduct.productImageFilePath());
-                return OrderProductResponse.from(orderProduct, productImageUrl, reviewed);
+                String imageUrl = fileService.getUrlByPath(orderProduct.imageUrl());
+                return OrderProductResponse.from(orderProduct, imageUrl, reviewed);
             })
             .toList();
 

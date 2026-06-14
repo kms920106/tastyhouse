@@ -86,9 +86,9 @@ public class OrderCommandService {
             }
 
             String productImageFilePath = productQueryService.getFirstImageFilePath(product.getId());
-            int unitPrice = product.getOriginalPrice();
+            int originalPrice = product.getOriginalPrice();
             Integer discountPrice = product.getDiscountPrice();
-            int optionTotalPrice = 0;
+            int totalOptionPrice = 0;
 
             OrderProduct orderProduct = OrderProduct.of(
                 savedOrder.getId(),
@@ -96,7 +96,7 @@ public class OrderCommandService {
                 product.getName(),
                 productImageFilePath,
                 itemCommand.quantity(),
-                unitPrice,
+                originalPrice,
                 discountPrice,
                 0, 0
             );
@@ -121,17 +121,17 @@ public class OrderCommandService {
                         option.getAdditionalPrice()
                     ));
 
-                    optionTotalPrice += option.getAdditionalPrice();
+                    totalOptionPrice += option.getAdditionalPrice();
                 }
             }
 
-            int effectivePrice = discountPrice != null ? discountPrice : unitPrice;
-            int itemTotal = (effectivePrice + optionTotalPrice) * itemCommand.quantity();
-            int itemDiscount = discountPrice != null ? (unitPrice - discountPrice) * itemCommand.quantity() : 0;
+            int effectivePrice = discountPrice != null ? discountPrice : originalPrice;
+            int itemTotal = (effectivePrice + totalOptionPrice) * itemCommand.quantity();
+            int itemDiscount = discountPrice != null ? (originalPrice - discountPrice) * itemCommand.quantity() : 0;
 
-            savedOrderProduct.updatePrices(optionTotalPrice, itemTotal);
+            savedOrderProduct.updatePrices(totalOptionPrice, itemTotal);
 
-            totalProductAmount += unitPrice * itemCommand.quantity() + optionTotalPrice * itemCommand.quantity();
+            totalProductAmount += originalPrice * itemCommand.quantity() + totalOptionPrice * itemCommand.quantity();
             productDiscountAmount += itemDiscount;
         }
 
@@ -190,12 +190,12 @@ public class OrderCommandService {
                 return new com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult(
                     item.getId(),
                     item.getProductId(),
-                    item.getProductName(),
-                    item.getProductImageUrl(),
+                    item.getName(),
+                    item.getImageUrl(),
                     item.getQuantity(),
-                    item.getUnitPrice(),
+                    item.getOriginalPrice(),
                     item.getDiscountPrice(),
-                    item.getOptionTotalPrice(),
+                    item.getTotalOptionPrice(),
                     item.getTotalPrice(),
                     optionResults
                 );

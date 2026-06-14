@@ -27,23 +27,23 @@ public class OrderProduct extends BaseEntity {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Column(name = "product_name", nullable = false)
-    private String productName;
+    @Column(name = "name", nullable = false)
+    private String name;
 
-    @Column(name = "product_image_url", length = 500)
-    private String productImageUrl;
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "unit_price", nullable = false)
-    private Integer unitPrice;
+    @Column(name = "original_price", nullable = false)
+    private Integer originalPrice;
 
     @Column(name = "discount_price")
     private Integer discountPrice;
 
-    @Column(name = "option_total_price", nullable = false)
-    private Integer optionTotalPrice;
+    @Column(name = "total_option_price", nullable = false)
+    private Integer totalOptionPrice;
 
     @Column(name = "total_price", nullable = false)
     private Integer totalPrice;
@@ -51,51 +51,51 @@ public class OrderProduct extends BaseEntity {
     private OrderProduct(
         Long orderId,
         Long productId,
-        String productName,
-        String productImageUrl,
+        String name,
+        String imageUrl,
         Integer quantity,
-        Integer unitPrice,
+        Integer originalPrice,
         Integer discountPrice,
-        Integer optionTotalPrice,
+        Integer totalOptionPrice,
         Integer totalPrice
     ) {
         this.orderId = orderId;
         this.productId = productId;
-        this.productName = productName;
-        this.productImageUrl = productImageUrl;
+        this.name = name;
+        this.imageUrl = imageUrl;
         this.quantity = quantity != null ? quantity : 1;
-        this.unitPrice = unitPrice != null ? unitPrice : 0;
+        this.originalPrice = originalPrice != null ? originalPrice : 0;
         this.discountPrice = discountPrice;
-        this.optionTotalPrice = optionTotalPrice != null ? optionTotalPrice : 0;
+        this.totalOptionPrice = totalOptionPrice != null ? totalOptionPrice : 0;
         this.totalPrice = totalPrice != null ? totalPrice : 0;
     }
 
     public static OrderProduct of(
         Long orderId,
         Long productId,
-        String productName,
-        String productImageUrl,
+        String name,
+        String imageUrl,
         Integer quantity,
-        Integer unitPrice,
+        Integer originalPrice,
         Integer discountPrice,
-        Integer optionTotalPrice,
+        Integer totalOptionPrice,
         Integer totalPrice
     ) {
         return new OrderProduct(
             orderId,
             productId,
-            productName,
-            productImageUrl,
+            name,
+            imageUrl,
             quantity,
-            unitPrice,
+            originalPrice,
             discountPrice,
-            optionTotalPrice,
+            totalOptionPrice,
             totalPrice
         );
     }
 
-    public void updatePrices(Integer optionTotalPrice, Integer totalPrice) {
-        this.optionTotalPrice = optionTotalPrice;
+    public void updatePrices(Integer totalOptionPrice, Integer totalPrice) {
+        this.totalOptionPrice = totalOptionPrice;
         this.totalPrice = totalPrice;
     }
 }

@@ -54,7 +54,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 order.id,
                 shop.name,
                 uploadedFile.filePath,
-                orderProduct.productName.min(),
+                orderProduct.name.min(),
                 orderProduct.id.count().castToNum(Integer.class),
                 order.finalAmount,
                 payment.paymentStatus,
