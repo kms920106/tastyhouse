@@ -5,7 +5,7 @@ import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-public record MemberCouponListItemResponse(
+public record MyCouponListItemResponse(
     Long id,
     Long couponId,
     String name,
@@ -22,7 +22,7 @@ public record MemberCouponListItemResponse(
     Long daysRemaining,
     Boolean isExpired
 ) {
-    public static MemberCouponListItemResponse of(
+    public static MyCouponListItemResponse of(
         Long id,
         Long couponId,
         String name,
@@ -46,7 +46,7 @@ public record MemberCouponListItemResponse(
 
         boolean isExpired = expiredAt != null && now.isAfter(expiredAt);
 
-        return new MemberCouponListItemResponse(
+        return new MyCouponListItemResponse(
             id,
             couponId,
             name, description,

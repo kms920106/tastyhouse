@@ -6,7 +6,7 @@ import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
-import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
+import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
@@ -106,9 +106,9 @@ public class MemberFacade {
         return memberPointService.getUsablePoint(memberId);
     }
 
-    public List<MemberCouponListItemResponse> getMyCoupons(Long memberId) {
+    public List<MyCouponListItemResponse> getMyCoupons(Long memberId) {
         return couponQueryService.findMemberCoupons(memberId).stream()
-            .map(r -> MemberCouponListItemResponse.of(
+            .map(r -> MyCouponListItemResponse.of(
                 r.id(), r.couponId(), r.name(), r.description(),
                 r.discountType(), r.discountAmount(), r.maxDiscountAmount(),
                 r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
@@ -117,9 +117,9 @@ public class MemberFacade {
             .toList();
     }
 
-    public List<MemberCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
+    public List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
         return couponQueryService.findAvailableMemberCoupons(memberId).stream()
-            .map(r -> MemberCouponListItemResponse.of(
+            .map(r -> MyCouponListItemResponse.of(
                 r.id(), r.couponId(), r.name(), r.description(),
                 r.discountType(), r.discountAmount(), r.maxDiscountAmount(),
                 r.minOrderAmount(), r.useStartAt(), r.useEndAt(),

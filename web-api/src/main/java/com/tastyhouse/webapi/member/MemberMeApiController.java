@@ -5,7 +5,7 @@ import com.tastyhouse.webapi.member.request.UpdatePersonalInfoRequest;
 import com.tastyhouse.webapi.member.request.UpdateProfileRequest;
 import com.tastyhouse.webapi.member.request.VerifyPasswordRequest;
 import com.tastyhouse.webapi.member.request.WithdrawMemberRequest;
-import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
+import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
@@ -172,7 +172,7 @@ public class MemberMeApiController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     })
     @GetMapping("/v1/me/coupons")
-    public ResponseEntity<ApiResponse<List<MemberCouponListItemResponse>>> getMyCoupons(
+    public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyCoupons(
         @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyCoupons(userDetails.getMemberId())));
@@ -184,7 +184,7 @@ public class MemberMeApiController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     })
     @GetMapping("/v1/me/coupons/available")
-    public ResponseEntity<ApiResponse<List<MemberCouponListItemResponse>>> getMyAvailableCoupons(
+    public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyAvailableCoupons(
         @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyAvailableCoupons(userDetails.getMemberId())));
