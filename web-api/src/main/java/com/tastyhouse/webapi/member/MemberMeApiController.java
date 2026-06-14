@@ -6,6 +6,7 @@ import com.tastyhouse.webapi.member.request.UpdateProfileRequest;
 import com.tastyhouse.webapi.member.request.VerifyPasswordRequest;
 import com.tastyhouse.webapi.member.request.WithdrawMemberRequest;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
+import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
@@ -48,6 +49,18 @@ import java.util.List;
 public class MemberMeApiController {
 
     private final MemberFacade memberFacade;
+
+    @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보(닉네임, 등급, 상태메시지, 프로필 이미지)만 조회합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = MemberProfileResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @GetMapping("/v1/me/profile")
+    public ResponseEntity<ApiResponse<MemberProfileResponse>> getMyProfile(
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMemberBasicProfile(userDetails.getMemberId())));
+    }
 
     @Operation(summary = "프로필 수정", description = "로그인한 회원의 프로필 정보를 수정합니다. (닉네임, 상태메시지, 프로필 이미지)")
     @ApiResponses({
