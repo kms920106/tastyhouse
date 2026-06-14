@@ -57,4 +57,5 @@ public record SocialSignUpRequest(
     @Schema(description = "추천인 닉네임 (선택)", example = "맛집탐험가")
     @Size(min = 2, max = 20, message = "추천인 닉네임은 2~20자로 입력해주세요.")
     String referrerNickname
-) {}
+) {
+}

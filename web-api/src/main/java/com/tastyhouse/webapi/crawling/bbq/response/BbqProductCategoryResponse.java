@@ -20,18 +20,18 @@ public record BbqProductCategoryResponse(
     Boolean isActive
 ) {
     public static BbqProductCategoryResponse from(
-    Long id,
-    Long shopId,
-    String name,
-    Integer sort,
-    Boolean isActive
+        Long id,
+        Long shopId,
+        String name,
+        Integer sort,
+        Boolean isActive
     ) {
-    return new BbqProductCategoryResponse(
-        id,
-        shopId,
-        name,
-        sort,
-        isActive
-    );
+        return new BbqProductCategoryResponse(
+            id,
+            shopId,
+            name,
+            sort,
+            isActive
+        );
     }
 }

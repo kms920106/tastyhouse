@@ -23,20 +23,20 @@ public record ReviewWriteInfoResponse(
     Boolean isReviewed
 ) {
     public static ReviewWriteInfoResponse from(
-    Long productId,
-    String productName,
-    String productImageUrl,
-    Integer productPrice,
-    Long orderId,
-    Boolean isReviewed
+        Long productId,
+        String productName,
+        String productImageUrl,
+        Integer productPrice,
+        Long orderId,
+        Boolean isReviewed
     ) {
-    return new ReviewWriteInfoResponse(
-        productId,
-        productName,
-        productImageUrl,
-        productPrice,
-        orderId,
-        isReviewed
-    );
+        return new ReviewWriteInfoResponse(
+            productId,
+            productName,
+            productImageUrl,
+            productPrice,
+            orderId,
+            isReviewed
+        );
     }
 }

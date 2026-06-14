@@ -31,15 +31,15 @@ public record PersonalInfoResponse(
     Boolean eventInfoEnabled
 ) {
     public static PersonalInfoResponse from(Member member) {
-    return new PersonalInfoResponse(
-        member.getUsername(),
-        member.getFullName(),
-        member.getPhoneNumber().getValue(),
-        member.getBirthDate(),
-        member.getGender(),
-        member.getPushNotificationEnabled(),
-        member.getMarketingInfoEnabled(),
-        member.getEventInfoEnabled()
-    );
+        return new PersonalInfoResponse(
+            member.getUsername(),
+            member.getFullName(),
+            member.getPhoneNumber().getValue(),
+            member.getBirthDate(),
+            member.getGender(),
+            member.getPushNotificationEnabled(),
+            member.getMarketingInfoEnabled(),
+            member.getEventInfoEnabled()
+        );
     }
 }

@@ -12,10 +12,10 @@ public record PhoneLoginResponse(
     JwtResponse jwt
 ) {
     public static PhoneLoginResponse ofLogin(JwtResponse jwt) {
-    return new PhoneLoginResponse(false, jwt);
+        return new PhoneLoginResponse(false, jwt);
     }
 
     public static PhoneLoginResponse ofSignUpRequired() {
-    return new PhoneLoginResponse(true, null);
+        return new PhoneLoginResponse(true, null);
     }
 }

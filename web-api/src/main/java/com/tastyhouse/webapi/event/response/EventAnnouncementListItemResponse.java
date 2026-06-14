@@ -21,16 +21,16 @@ public record EventAnnouncementListItemResponse(
     LocalDateTime announcedAt
 ) {
     public static EventAnnouncementListItemResponse from(
-    Long id,
-    String name,
-    String content,
-    LocalDateTime announcedAt
+        Long id,
+        String name,
+        String content,
+        LocalDateTime announcedAt
     ) {
-    return new EventAnnouncementListItemResponse(
-        id,
-        name,
-        content,
-        announcedAt
-    );
+        return new EventAnnouncementListItemResponse(
+            id,
+            name,
+            content,
+            announcedAt
+        );
     }
 }

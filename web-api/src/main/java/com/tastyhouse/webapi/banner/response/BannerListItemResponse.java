@@ -7,16 +7,16 @@ public record BannerListItemResponse(
     String linkUrl
 ) {
     public static BannerListItemResponse from(
-    Long id,
-    String title,
-    String imageUrl,
-    String linkUrl
+        Long id,
+        String title,
+        String imageUrl,
+        String linkUrl
     ) {
-    return new BannerListItemResponse(
-        id,
-        title,
-        imageUrl,
-        linkUrl
-    );
+        return new BannerListItemResponse(
+            id,
+            title,
+            imageUrl,
+            linkUrl
+        );
     }
 }

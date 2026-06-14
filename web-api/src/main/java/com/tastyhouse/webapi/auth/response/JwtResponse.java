@@ -6,14 +6,14 @@ public record JwtResponse(
     String tokenType
 ) {
     public static JwtResponse of(
-    String accessToken,
-    String refreshToken,
-    String tokenType
+        String accessToken,
+        String refreshToken,
+        String tokenType
     ) {
-    return new JwtResponse(
-        accessToken,
-        refreshToken,
-        tokenType
-    );
+        return new JwtResponse(
+            accessToken,
+            refreshToken,
+            tokenType
+        );
     }
 }

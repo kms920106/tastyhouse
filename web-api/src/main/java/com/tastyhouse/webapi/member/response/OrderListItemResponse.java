@@ -15,24 +15,24 @@ public record OrderListItemResponse(
     LocalDateTime paymentDate
 ) {
     public static OrderListItemResponse from(
-    Long id,
-    String shopName,
-    String shopThumbnailImageUrl,
-    String firstProductName,
-    Integer totalItemCount,
-    Integer amount,
-    PaymentStatus paymentStatus,
-    LocalDateTime paymentDate
+        Long id,
+        String shopName,
+        String shopThumbnailImageUrl,
+        String firstProductName,
+        Integer totalItemCount,
+        Integer amount,
+        PaymentStatus paymentStatus,
+        LocalDateTime paymentDate
     ) {
-    return new OrderListItemResponse(
-        id,
-        shopName,
-        shopThumbnailImageUrl,
-        firstProductName,
-        totalItemCount,
-        amount,
-        paymentStatus,
-        paymentDate
-    );
+        return new OrderListItemResponse(
+            id,
+            shopName,
+            shopThumbnailImageUrl,
+            firstProductName,
+            totalItemCount,
+            amount,
+            paymentStatus,
+            paymentDate
+        );
     }
 }

@@ -22,7 +22,6 @@ public record ReservationCreateRequest(
     @Schema(description = "예약 날짜", example = "2026-06-10", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalDate reservationDate,
 
-    // LocalTime 단독으로는 과거 판정이 불가하므로 형식 검증만. 과거 일시 검증은 서비스(RESERVATION_PAST_NOT_ALLOWED)가 담당.
     @NotNull(message = "예약 시간은 필수입니다")
     @Schema(description = "예약 시간 (30분 단위, 10:30~19:30)", example = "13:00", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalTime reservationTime,

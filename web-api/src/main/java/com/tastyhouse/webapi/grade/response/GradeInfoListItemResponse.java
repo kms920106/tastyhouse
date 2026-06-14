@@ -18,16 +18,16 @@ public record GradeInfoListItemResponse(
     Integer maxReviewCount
 ) {
     public static GradeInfoListItemResponse from(
-    MemberGrade grade,
-    String displayName,
-    int minReviewCount,
-    Integer maxReviewCount
+        MemberGrade grade,
+        String displayName,
+        int minReviewCount,
+        Integer maxReviewCount
     ) {
-    return new GradeInfoListItemResponse(
-        grade,
-        displayName,
-        minReviewCount,
-        maxReviewCount
-    );
+        return new GradeInfoListItemResponse(
+            grade,
+            displayName,
+            minReviewCount,
+            maxReviewCount
+        );
     }
 }

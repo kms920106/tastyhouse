@@ -5,9 +5,9 @@ public record MemberReviewListItemResponse(
     String imageUrl
 ) {
     public static MemberReviewListItemResponse from(Long reviewId, String imageUrl) {
-    return new MemberReviewListItemResponse(
-        reviewId,
-        imageUrl
-    );
+        return new MemberReviewListItemResponse(
+            reviewId,
+            imageUrl
+        );
     }
 }

@@ -13,12 +13,12 @@ public record CommentListResponse(
     int totalCount
 ) {
     public static CommentListResponse from(
-    List<CommentResponse> comments,
-    int totalCount
+        List<CommentResponse> comments,
+        int totalCount
     ) {
-    return new CommentListResponse(
-        comments,
-        totalCount
-    );
+        return new CommentListResponse(
+            comments,
+            totalCount
+        );
     }
 }

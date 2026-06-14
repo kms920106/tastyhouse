@@ -21,12 +21,12 @@ public record FollowMemberListItemResponse(
     boolean following
 ) {
     public static FollowMemberListItemResponse of(FollowMemberResult dto, String profileImageUrl) {
-    return new FollowMemberListItemResponse(
-        dto.memberId(),
-        dto.nickname(),
-        dto.memberGrade(),
-        profileImageUrl,
-        dto.isFollowing()
-    );
+        return new FollowMemberListItemResponse(
+            dto.memberId(),
+            dto.nickname(),
+            dto.memberGrade(),
+            profileImageUrl,
+            dto.isFollowing()
+        );
     }
 }

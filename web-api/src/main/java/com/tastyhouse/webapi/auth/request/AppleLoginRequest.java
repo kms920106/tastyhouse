@@ -9,4 +9,5 @@ public record AppleLoginRequest(
     @Schema(description = "Apple 인증 서버로부터 받은 인가 코드", example = "c1234abcd...")
     @NotBlank(message = "인가 코드를 입력해주세요.")
     String code
-) {}
+) {
+}

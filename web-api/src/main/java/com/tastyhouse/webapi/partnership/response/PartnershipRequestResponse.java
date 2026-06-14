@@ -13,24 +13,24 @@ public record PartnershipRequestResponse(
     LocalDateTime createdAt
 ) {
     public static PartnershipRequestResponse from(
-    Long id,
-    String businessName,
-    String address,
-    String addressDetail,
-    String contactName,
-    String contactPhone,
-    LocalDateTime consultationRequestedAt,
-    LocalDateTime createdAt
+        Long id,
+        String businessName,
+        String address,
+        String addressDetail,
+        String contactName,
+        String contactPhone,
+        LocalDateTime consultationRequestedAt,
+        LocalDateTime createdAt
     ) {
-    return new PartnershipRequestResponse(
-        id,
-        businessName,
-        address,
-        addressDetail,
-        contactName,
-        contactPhone,
-        consultationRequestedAt,
-        createdAt
-    );
+        return new PartnershipRequestResponse(
+            id,
+            businessName,
+            address,
+            addressDetail,
+            contactName,
+            contactPhone,
+            consultationRequestedAt,
+            createdAt
+        );
     }
 }

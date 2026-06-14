@@ -7,7 +7,6 @@ import java.util.List;
 
 @Schema(description = "리뷰 상세 정보 (상품 정보 포함)")
 public record ReviewProductResponse(
-    // 상품 정보
     @Schema(description = "상품 ID", example = "1")
     Long productId,
 
@@ -20,14 +19,12 @@ public record ReviewProductResponse(
     @Schema(description = "상품 가격 (할인가가 있으면 할인가, 없으면 원가)", example = "8500")
     Integer productPrice,
 
-    // 리뷰 정보
     @Schema(description = "리뷰 ID", example = "1")
     Long reviewId,
 
     @Schema(description = "리뷰 내용", example = "맛있어요!")
     String content,
 
-    // 평점 정보
     @Schema(description = "총 평점", example = "3.5")
     Double totalRating,
 
@@ -52,7 +49,6 @@ public record ReviewProductResponse(
     @Schema(description = "재방문 의사", example = "true")
     Boolean willRevisit,
 
-    // 유저 정보
     @Schema(description = "회원 ID", example = "1")
     Long memberId,
 
@@ -62,61 +58,58 @@ public record ReviewProductResponse(
     @Schema(description = "회원 프로필 이미지 URL", example = "https://example.com/profile.jpg")
     String memberProfileImageUrl,
 
-    // 작성일
     @Schema(description = "작성일", example = "2020-10-27T00:00:00")
     LocalDateTime createdAt,
 
-    // 리뷰 이미지
     @Schema(description = "리뷰 이미지 URL 목록")
     List<String> imageUrls,
 
-    // 태그
     @Schema(description = "태그 이름 목록", example = "[\"#샌드위치\", \"#아보카도\", \"#브런치\"]")
     List<String> tagNames
 ) {
     public static ReviewProductResponse from(
-    Long productId,
-    String productName,
-    String productImageUrl,
-    Integer productPrice,
-    Long reviewId,
-    String content,
-    Double totalRating,
-    Double tasteRating,
-    Double amountRating,
-    Double priceRating,
-    Double atmosphereRating,
-    Double kindnessRating,
-    Double hygieneRating,
-    Boolean willRevisit,
-    Long memberId,
-    String memberNickname,
-    String memberProfileImageUrl,
-    LocalDateTime createdAt,
-    List<String> imageUrls,
-    List<String> tagNames
+        Long productId,
+        String productName,
+        String productImageUrl,
+        Integer productPrice,
+        Long reviewId,
+        String content,
+        Double totalRating,
+        Double tasteRating,
+        Double amountRating,
+        Double priceRating,
+        Double atmosphereRating,
+        Double kindnessRating,
+        Double hygieneRating,
+        Boolean willRevisit,
+        Long memberId,
+        String memberNickname,
+        String memberProfileImageUrl,
+        LocalDateTime createdAt,
+        List<String> imageUrls,
+        List<String> tagNames
     ) {
-    return new ReviewProductResponse(
-        productId,
-        productName,
-        productImageUrl,
-        productPrice,
-        reviewId,
-        content,
-        totalRating,
-        tasteRating,
-        amountRating,
-        priceRating,
-        atmosphereRating,
-        kindnessRating,
-        hygieneRating,
-        willRevisit,
-        memberId,
-        memberNickname,
-        memberProfileImageUrl,
-        createdAt,
-        imageUrls,
-        tagNames
-    );
+        return new ReviewProductResponse(
+            productId,
+            productName,
+            productImageUrl,
+            productPrice,
+            reviewId,
+            content,
+            totalRating,
+            tasteRating,
+            amountRating,
+            priceRating,
+            atmosphereRating,
+            kindnessRating,
+            hygieneRating,
+            willRevisit,
+            memberId,
+            memberNickname,
+            memberProfileImageUrl,
+            createdAt,
+            imageUrls,
+            tagNames
+        );
     }
 }

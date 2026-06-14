@@ -8,6 +8,6 @@ public record VerifyPasswordResponse(
     String verifyToken
 ) {
     public static VerifyPasswordResponse from(String verifyToken) {
-    return new VerifyPasswordResponse(verifyToken);
+        return new VerifyPasswordResponse(verifyToken);
     }
 }

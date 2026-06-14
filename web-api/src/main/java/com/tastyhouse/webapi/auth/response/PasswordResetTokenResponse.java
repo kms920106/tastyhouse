@@ -8,6 +8,6 @@ public record PasswordResetTokenResponse(
     String passwordResetToken
 ) {
     public static PasswordResetTokenResponse from(String passwordResetToken) {
-    return new PasswordResetTokenResponse(passwordResetToken);
+        return new PasswordResetTokenResponse(passwordResetToken);
     }
 }

@@ -8,6 +8,6 @@ public record NicknameAvailabilityResponse(
     boolean available
 ) {
     public static NicknameAvailabilityResponse from(boolean available) {
-    return new NicknameAvailabilityResponse(available);
+        return new NicknameAvailabilityResponse(available);
     }
 }

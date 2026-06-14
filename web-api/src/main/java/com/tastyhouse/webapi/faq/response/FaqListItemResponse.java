@@ -8,18 +8,18 @@ public record FaqListItemResponse(
     Integer sort
 ) {
     public static FaqListItemResponse from(
-    Long id,
-    Long categoryId,
-    String question,
-    String answer,
-    Integer sort
+        Long id,
+        Long categoryId,
+        String question,
+        String answer,
+        Integer sort
     ) {
-    return new FaqListItemResponse(
-        id,
-        categoryId,
-        question,
-        answer,
-        sort
-    );
+        return new FaqListItemResponse(
+            id,
+            categoryId,
+            question,
+            answer,
+            sort
+        );
     }
 }

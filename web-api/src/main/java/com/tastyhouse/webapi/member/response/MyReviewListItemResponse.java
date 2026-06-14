@@ -5,6 +5,6 @@ public record MyReviewListItemResponse(
     String imageUrl
 ) {
     public static MyReviewListItemResponse from(Long reviewId, String imageUrl) {
-    return new MyReviewListItemResponse(reviewId, imageUrl);
+        return new MyReviewListItemResponse(reviewId, imageUrl);
     }
 }

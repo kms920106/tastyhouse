@@ -35,7 +35,8 @@ public record ProductBatchResponse(
 
         @Schema(description = "요청한 옵션 중 조회에 성공한 옵션 목록 (available=false 면 빈 배열)")
         List<OptionResponse> options
-    ) {}
+    ) {
+    }
 
     @Schema(description = "배치 조회 옵션")
     public record OptionResponse(
@@ -47,5 +48,6 @@ public record ProductBatchResponse(
 
         @Schema(description = "옵션 추가 금액", example = "3000")
         Integer price
-    ) {}
+    ) {
+    }
 }

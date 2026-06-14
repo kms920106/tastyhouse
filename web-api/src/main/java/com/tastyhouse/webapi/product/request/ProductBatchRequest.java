@@ -24,5 +24,6 @@ public record ProductBatchRequest(
 
         @Schema(description = "옵션 ID. 옵션이 없는 항목이면 null 가능", example = "1")
         Long optionId
-    ) {}
+    ) {
+    }
 }

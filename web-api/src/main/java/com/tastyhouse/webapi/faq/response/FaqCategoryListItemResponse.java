@@ -6,14 +6,14 @@ public record FaqCategoryListItemResponse(
     Integer sort
 ) {
     public static FaqCategoryListItemResponse from(
-    Long id,
-    String name,
-    Integer sort
+        Long id,
+        String name,
+        Integer sort
     ) {
-    return new FaqCategoryListItemResponse(
-        id,
-        name,
-        sort
-    );
+        return new FaqCategoryListItemResponse(
+            id,
+            name,
+            sort
+        );
     }
 }

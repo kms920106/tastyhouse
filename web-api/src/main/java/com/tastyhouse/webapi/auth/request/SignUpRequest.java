@@ -13,16 +13,16 @@ public record SignUpRequest(
     @Schema(description = "아이디 (이메일 형식)", example = "user@example.com")
     @NotBlank(message = "아이디를 입력해주세요.")
     @Pattern(
-    regexp = "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
-    message = "유효한 이메일 형식으로 입력해주세요."
+        regexp = "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
+        message = "유효한 이메일 형식으로 입력해주세요."
     )
     String username,
 
     @Schema(description = "비밀번호 (영문, 숫자, 특수문자 포함 8~20자)", example = "Password1!")
     @NotBlank(message = "비밀번호를 입력해주세요.")
     @Pattern(
-    regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,20}$",
-    message = "비밀번호는 영문, 숫자, 특수문자를 포함하여 8~20자로 입력해주세요."
+        regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,20}$",
+        message = "비밀번호는 영문, 숫자, 특수문자를 포함하여 8~20자로 입력해주세요."
     )
     String password,
 
@@ -68,4 +68,5 @@ public record SignUpRequest(
     @Schema(description = "추천인 닉네임 (선택)", example = "맛집탐험가")
     @Size(min = 2, max = 20, message = "추천인 닉네임은 2~20자로 입력해주세요.")
     String referrerNickname
-) {}
+) {
+}
