@@ -6,6 +6,7 @@ import com.tastyhouse.webapi.member.request.UpdateProfileRequest;
 import com.tastyhouse.webapi.member.request.VerifyPasswordRequest;
 import com.tastyhouse.webapi.member.request.WithdrawMemberRequest;
 import com.tastyhouse.webapi.member.response.MemberCouponListItemResponse;
+import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
@@ -61,6 +62,18 @@ public class MemberMeApiController {
     ) {
         memberFacade.updateMyProfile(userDetails.getMemberId(), request.nickname(), request.statusMessage(), request.profileImageFileId());
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @Operation(summary = "내 통계 조회", description = "로그인한 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = MemberStatsResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @GetMapping("/v1/me/stats")
+    public ResponseEntity<ApiResponse<MemberStatsResponse>> getMyStats(
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMemberStats(userDetails.getMemberId())));
     }
 
     @Operation(summary = "비밀번호 인증 (개인정보 수정 진입)", description = "개인정보 수정 화면 진입 전 현재 비밀번호를 검증합니다. 검증 성공 시 5분간 유효한 verifyToken을 반환합니다.")

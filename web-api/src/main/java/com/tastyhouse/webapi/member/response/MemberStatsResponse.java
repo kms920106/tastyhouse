@@ -14,14 +14,14 @@ public record MemberStatsResponse(
     long followerCount
 ) {
     public static MemberStatsResponse from(
-    long reviewCount,
-    long followingCount,
-    long followerCount
+        long reviewCount,
+        long followingCount,
+        long followerCount
     ) {
-    return new MemberStatsResponse(
-        reviewCount,
-        followingCount,
-        followerCount
-    );
+        return new MemberStatsResponse(
+            reviewCount,
+            followingCount,
+            followerCount
+        );
     }
 }
