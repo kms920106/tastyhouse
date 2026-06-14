@@ -327,6 +327,7 @@ public class ShopService {
             imageUrls,
             dto.totalRating(),
             dto.content(),
+            dto.memberId(),
             dto.memberNickname(),
             fileService.getUrlByPath(dto.memberProfileImageUrl()),
             dto.createdAt(),
