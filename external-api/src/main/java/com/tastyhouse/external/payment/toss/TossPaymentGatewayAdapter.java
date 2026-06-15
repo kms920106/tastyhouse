@@ -1,12 +1,10 @@
-package com.tastyhouse.webapi.payment.pg;
+package com.tastyhouse.external.payment.toss;
 
 import com.tastyhouse.core.domain.payment.application.port.PgPaymentGateway;
 import com.tastyhouse.core.domain.payment.application.port.dto.PgCancelResult;
 import com.tastyhouse.core.domain.payment.application.port.dto.PgConfirmResult;
 import com.tastyhouse.core.domain.payment.domain.model.TossPaymentRecord;
 import com.tastyhouse.core.domain.payment.domain.repository.TossPaymentRecordRepository;
-import com.tastyhouse.external.payment.toss.TossPaymentClient;
-import com.tastyhouse.external.payment.toss.TossPaymentUtils;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
