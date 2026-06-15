@@ -20,16 +20,18 @@ import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentRefund;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
+import com.tastyhouse.core.domain.payment.domain.model.TossPaymentRecord;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRefundRepository;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
+import com.tastyhouse.core.domain.payment.domain.repository.TossPaymentRecordRepository;
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentRefundId;
 import com.tastyhouse.core.domain.payment.domain.vo.PgOrderId;
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -49,6 +51,7 @@ public class PaymentCommandService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentRefundRepository paymentRefundRepository;
+    private final TossPaymentRecordRepository tossPaymentRecordRepository;
     private final PgPaymentGateway pgPaymentGateway;
     private final OrderQueryService orderQueryService;
     private final ApplicationEventPublisher eventPublisher;
@@ -133,6 +136,8 @@ public class PaymentCommandService {
             payment.getId(), command.paymentKey(), command.pgOrderId(), command.amount()
         );
 
+        tossPaymentRecordRepository.save(buildTossPaymentRecord(payment.getId(), result.detail()));
+
         if (!result.success()) {
             log.error("PG payment confirm failed. pgOrderId: {}, errorCode: {}, errorMessage: {}",
                 command.pgOrderId(), result.errorCode(), result.errorMessage());
@@ -185,7 +190,7 @@ public class PaymentCommandService {
         }
 
         if (payment.getPgProvider() == PgProvider.TOSS
-                && payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
+            && payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
             try {
                 PgCancelResult cancelResult = pgPaymentGateway.cancelPayment(
                     payment.getPgTid(), command.cancelReason()
@@ -294,6 +299,66 @@ public class PaymentCommandService {
         ));
 
         return PaymentResult.from(payment);
+    }
+
+    private TossPaymentRecord buildTossPaymentRecord(Long paymentId, PgConfirmResult.TossPaymentDetail detail) {
+        return TossPaymentRecord.builder()
+            .paymentId(paymentId)
+            .version(detail.version())
+            .paymentKey(detail.paymentKey())
+            .type(detail.type())
+            .orderId(detail.orderId())
+            .orderName(detail.orderName())
+            .mId(detail.mId())
+            .currency(detail.currency())
+            .method(detail.method())
+            .totalAmount(detail.totalAmount())
+            .balanceAmount(detail.balanceAmount())
+            .status(detail.status())
+            .requestedAt(detail.requestedAt())
+            .approvedAt(detail.approvedAt())
+            .useEscrow(detail.useEscrow())
+            .lastTransactionKey(detail.lastTransactionKey())
+            .suppliedAmount(detail.suppliedAmount())
+            .vat(detail.vat())
+            .cultureExpense(detail.cultureExpense())
+            .taxFreeAmount(detail.taxFreeAmount())
+            .taxExemptionAmount(detail.taxExemptionAmount())
+            .isPartialCancelable(detail.isPartialCancelable())
+            .cardAmount(detail.cardAmount())
+            .cardIssuerCode(detail.cardIssuerCode())
+            .cardAcquirerCode(detail.cardAcquirerCode())
+            .cardNumber(detail.cardNumber())
+            .cardInstallmentPlanMonths(detail.cardInstallmentPlanMonths())
+            .cardApproveNo(detail.cardApproveNo())
+            .cardUseCardPoint(detail.cardUseCardPoint())
+            .cardType(detail.cardType())
+            .cardOwnerType(detail.cardOwnerType())
+            .cardAcquireStatus(detail.cardAcquireStatus())
+            .cardIsInterestFree(detail.cardIsInterestFree())
+            .cardInterestPayer(detail.cardInterestPayer())
+            .virtualAccountType(detail.virtualAccountType())
+            .virtualAccountNumber(detail.virtualAccountNumber())
+            .virtualAccountBankCode(detail.virtualAccountBankCode())
+            .virtualAccountCustomerName(detail.virtualAccountCustomerName())
+            .virtualAccountDueDate(detail.virtualAccountDueDate())
+            .virtualAccountRefundStatus(detail.virtualAccountRefundStatus())
+            .virtualAccountExpired(detail.virtualAccountExpired())
+            .virtualAccountSettlementStatus(detail.virtualAccountSettlementStatus())
+            .mobilePhoneCustomerMobilePhone(detail.mobilePhoneCustomerMobilePhone())
+            .mobilePhoneSettlementStatus(detail.mobilePhoneSettlementStatus())
+            .mobilePhoneReceiptUrl(detail.mobilePhoneReceiptUrl())
+            .transferBankCode(detail.transferBankCode())
+            .transferSettlementStatus(detail.transferSettlementStatus())
+            .easyPayProvider(detail.easyPayProvider())
+            .easyPayAmount(detail.easyPayAmount())
+            .easyPayDiscountAmount(detail.easyPayDiscountAmount())
+            .receiptUrl(detail.receiptUrl())
+            .checkoutUrl(detail.checkoutUrl())
+            .failureCode(detail.failureCode())
+            .failureMessage(detail.failureMessage())
+            .country(detail.country())
+            .build();
     }
 
     private boolean isOnSitePayment(PaymentMethod method) {
