@@ -1,0 +1,16 @@
+package com.tastyhouse.adminapi.notice.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+
+@Schema(description = "공지사항 생성 요청")
+public record NoticeCreateRequest(
+    @NotBlank(message = "제목은 필수입니다.")
+    @Schema(description = "제목", example = "서비스 점검 안내", requiredMode = Schema.RequiredMode.REQUIRED)
+    String title,
+
+    @NotBlank(message = "내용은 필수입니다.")
+    @Schema(description = "공지사항 본문 내용", example = "2026년 1월 1일 00시부터 02시까지 서비스 점검이 진행됩니다.", requiredMode = Schema.RequiredMode.REQUIRED)
+    String content
+) {
+}

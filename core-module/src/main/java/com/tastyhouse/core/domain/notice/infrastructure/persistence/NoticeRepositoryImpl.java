@@ -55,4 +55,14 @@ public class NoticeRepositoryImpl implements NoticeRepository {
         }
         return noticeJpaRepository.findById(id);
     }
+
+    @Override
+    public Notice save(Notice notice) {
+        return noticeJpaRepository.save(notice);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        noticeJpaRepository.deleteById(id);
+    }
 }

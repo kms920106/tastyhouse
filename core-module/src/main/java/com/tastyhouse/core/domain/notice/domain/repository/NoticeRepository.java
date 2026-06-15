@@ -12,4 +12,8 @@ public interface NoticeRepository {
     Page<NoticeListItemDto> findAllWithFilter(Pageable pageable);
 
     Optional<Notice> findById(Long id);
+
+    Notice save(Notice notice);
+
+    void deleteById(Long id);
 }
