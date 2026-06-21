@@ -34,8 +34,8 @@ import java.util.List;
 @Tag(name = "Notice Admin", description = "공지사항 관리자 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/notices")
-public class NoticeAdminApiController {
+@RequestMapping("/api/notices")
+public class NoticeApiController {
 
     private final NoticeCommandService noticeCommandService;
     private final NoticeQueryService noticeQueryService;
@@ -55,8 +55,8 @@ public class NoticeAdminApiController {
         ));
     }
 
-    @Operation(summary = "공지사항 생성", description = "새로운 공지사항을 생성합니다.")
-    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "생성 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
+    @Operation(summary = "공지사항 등록", description = "새로운 공지사항을 등록합니다.")
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "등록 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createNotice(@Valid @RequestBody NoticeCreateRequest request) {
         Long id = noticeCommandService.createNotice(new CreateNoticeCommand(
@@ -66,7 +66,7 @@ public class NoticeAdminApiController {
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
-    @Operation(summary = "공지사항 단건 조회", description = "공지사항 단건을 조회합니다.")
+    @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNotice(@PathVariable Long id) {
