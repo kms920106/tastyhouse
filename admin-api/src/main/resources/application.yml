@@ -16,7 +16,7 @@ cors:
 
 spring:
   application:
-    name: web-api
+    name: admin-api
   config:
     import:
       - classpath:application-core.yml
@@ -26,9 +26,22 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
 jwt:
   secret: ${JWT_SECRET}
   accessTokenExpiration: 3600000 # 1시간 (ms)
   refreshTokenExpiration: 604800000 # 7일 (ms) - 일반 로그인
   rememberMeRefreshTokenExpiration: 2592000000 # 30일 (ms) - 로그인 상태 유지
+
+# 최초 SUPER_ADMIN 시드 (공개 가입이 없으므로 첫 관리자는 부팅 시 주입)
+# password 미설정(__UNSET__) 시 신규 시드를 거부한다. 운영/최초 기동 시 ADMIN_SEED_PASSWORD 필수.
+admin:
+  seed:
+    username: ${ADMIN_SEED_USERNAME:admin}
+    password: ${ADMIN_SEED_PASSWORD:__UNSET__}
+    name: ${ADMIN_SEED_NAME:최고관리자}

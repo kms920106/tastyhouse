@@ -154,6 +154,18 @@ CREATE TABLE MEMBER
     updated_at                DATETIME     NOT NULL              -- 수정 일시
 );
 
+CREATE TABLE ADMIN
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 관리자 ID (PK)
+    username   VARCHAR(50)  NOT NULL UNIQUE,      -- 관리자 아이디 (로그인 ID)
+    password   VARCHAR(255) NOT NULL,             -- 비밀번호 (BCrypt 인코딩)
+    name       VARCHAR(100) NOT NULL,             -- 관리자 이름
+    role       VARCHAR(20)  NOT NULL,             -- 관리자 권한 (SUPER_ADMIN, ADMIN)
+    status     VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE', -- 계정 상태 (ACTIVE, INACTIVE)
+    created_at DATETIME     NOT NULL,             -- 생성 일시
+    updated_at DATETIME     NOT NULL              -- 수정 일시
+);
+
 CREATE TABLE MEMBER_SOCIAL_ACCOUNT
 (
     id                          BIGINT AUTO_INCREMENT PRIMARY KEY,                              -- 소셜 계정 ID (PK)

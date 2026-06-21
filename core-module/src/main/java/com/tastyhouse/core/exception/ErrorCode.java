@@ -65,6 +65,12 @@ public enum ErrorCode {
     MEMBER_COUPON_NOT_FOUND(404, "MEMBER_COUPON_NOT_FOUND", "회원 쿠폰을 찾을 수 없습니다."),
     ALREADY_WITHDRAWN(409, "ALREADY_WITHDRAWN", "이미 탈퇴한 회원입니다."),
 
+    // 관리자
+    ADMIN_NOT_FOUND(404, "ADMIN_NOT_FOUND", "관리자를 찾을 수 없습니다."),
+    ADMIN_USERNAME_DUPLICATED(409, "ADMIN_USERNAME_DUPLICATED", "이미 사용 중인 관리자 아이디입니다."),
+    ADMIN_AUTHENTICATION_FAILED(401, "ADMIN_AUTHENTICATION_FAILED", "아이디 또는 비밀번호가 올바르지 않습니다."),
+    ADMIN_ACCOUNT_INACTIVE(401, "ADMIN_ACCOUNT_INACTIVE", "비활성화된 관리자 계정입니다."),
+
     // 인증 (SMS)
     VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
     VERIFICATION_CODE_EXPIRED(400, "VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
