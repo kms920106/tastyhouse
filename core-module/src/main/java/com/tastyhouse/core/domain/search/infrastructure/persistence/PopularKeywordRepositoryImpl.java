@@ -19,7 +19,7 @@ public class PopularKeywordRepositoryImpl implements PopularKeywordRepository {
 
     @Override
     public List<PopularKeyword> findActiveOrderByRank() {
-        return jpaRepository.findByIsActiveTrueOrderByRankAsc();
+        return jpaRepository.findByIsVisibleTrueOrderByRankAsc();
     }
 
     @Override

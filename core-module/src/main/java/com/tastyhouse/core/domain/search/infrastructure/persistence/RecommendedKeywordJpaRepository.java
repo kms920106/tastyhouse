@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface RecommendedKeywordJpaRepository extends JpaRepository<RecommendedKeyword, Long> {
 
-    List<RecommendedKeyword> findByIsActiveTrueOrderBySortOrderAsc();
+    List<RecommendedKeyword> findByIsVisibleTrueOrderBySortOrderAsc();
 }

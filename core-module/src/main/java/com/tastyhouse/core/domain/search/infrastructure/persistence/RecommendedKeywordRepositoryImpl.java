@@ -15,6 +15,6 @@ public class RecommendedKeywordRepositoryImpl implements RecommendedKeywordRepos
 
     @Override
     public List<RecommendedKeyword> findActiveOrderBySortOrder() {
-        return jpaRepository.findByIsActiveTrueOrderBySortOrderAsc();
+        return jpaRepository.findByIsVisibleTrueOrderBySortOrderAsc();
     }
 }
