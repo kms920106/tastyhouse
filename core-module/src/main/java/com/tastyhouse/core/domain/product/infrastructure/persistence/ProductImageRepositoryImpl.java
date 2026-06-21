@@ -25,7 +25,7 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
     public List<ProductImage> findActiveByProductIdOrderBySort(Long productId) {
         return queryFactory
             .selectFrom(productImage)
-            .where(productImage.productId.eq(productId), productImage.isActive.eq(true))
+            .where(productImage.productId.eq(productId), productImage.isVisible.eq(true))
             .orderBy(productImage.sort.asc())
             .fetch();
     }
@@ -55,13 +55,13 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
             .innerJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
             .where(
                 productImage.productId.in(productIds),
-                productImage.isActive.eq(true),
+                productImage.isVisible.eq(true),
                 productImage.sort.eq(
                     JPAExpressions
                         .select(subProductImage.sort.min())
                         .from(subProductImage)
                         .where(subProductImage.productId.eq(productImage.productId)
-                            .and(subProductImage.isActive.eq(true)))
+                            .and(subProductImage.isVisible.eq(true)))
                 )
             )
             .fetch();

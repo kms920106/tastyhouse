@@ -75,7 +75,7 @@ public class NoticeApiController {
             notice.getId(),
             notice.getTitle(),
             notice.getContent(),
-            notice.getActive(),
+            notice.getVisible(),
             notice.getCreatedAt(),
             notice.getUpdatedAt()
         );

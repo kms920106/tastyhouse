@@ -22,7 +22,7 @@ public class ProductOptionGroupRepositoryImpl implements ProductOptionGroupRepos
     public List<ProductOptionGroup> findActiveByProductIdOrderBySort(Long productId) {
         return queryFactory
             .selectFrom(productOptionGroup)
-            .where(productOptionGroup.productId.eq(productId), productOptionGroup.isActive.eq(true))
+            .where(productOptionGroup.productId.eq(productId), productOptionGroup.isVisible.eq(true))
             .orderBy(productOptionGroup.sort.asc())
             .fetch();
     }

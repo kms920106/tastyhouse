@@ -9,5 +9,5 @@ public record SaveProductOptionGroupCommand(
     Integer minSelect,
     Integer maxSelect,
     Integer sort,
-    Boolean isActive
+    Boolean isVisible
 ) {}

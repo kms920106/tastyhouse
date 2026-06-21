@@ -15,6 +15,6 @@ public record CreateProductCommand(
     Boolean isRepresentative,
     Integer spiciness,
     Boolean isSoldOut,
-    Boolean isActive,
+    Boolean isVisible,
     Integer sort
 ) {}

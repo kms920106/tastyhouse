@@ -57,7 +57,7 @@ public class ProductCommandService {
             cmd.isRepresentative(),
             cmd.spiciness(),
             cmd.isSoldOut(),
-            cmd.isActive(),
+            cmd.isVisible(),
             cmd.sort()
         );
         Product saved = productRepository.save(product);
@@ -75,7 +75,7 @@ public class ProductCommandService {
             cmd.shopId(),
             cmd.name(),
             cmd.sort(),
-            cmd.isActive()
+            cmd.isVisible()
         );
         return productCategoryRepository.save(category);
     }
@@ -86,7 +86,7 @@ public class ProductCommandService {
             cmd.productId(),
             cmd.imageFileId(),
             cmd.sort(),
-            cmd.isActive()
+            cmd.isVisible()
         );
         return productImageRepository.save(image);
     }
@@ -113,7 +113,7 @@ public class ProductCommandService {
             cmd.minSelect(),
             cmd.maxSelect(),
             cmd.sort(),
-            cmd.isActive()
+            cmd.isVisible()
         );
         return productOptionGroupRepository.save(group);
     }
@@ -126,7 +126,7 @@ public class ProductCommandService {
             cmd.additionalPrice(),
             cmd.sort(),
             cmd.isSoldOut(),
-            cmd.isActive()
+            cmd.isVisible()
         );
         return productOptionRepository.save(option);
     }

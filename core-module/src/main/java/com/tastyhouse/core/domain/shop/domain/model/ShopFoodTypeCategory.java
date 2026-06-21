@@ -39,16 +39,16 @@ public class ShopFoodTypeCategory extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort; // 정렬 순서
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive; // 사용 여부 (true: 사용 중)
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible; // 사용 여부 (true: 사용 중)
 
-    private ShopFoodTypeCategory(FoodType foodType, String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, Boolean isActive) {
+    private ShopFoodTypeCategory(FoodType foodType, String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, Boolean isVisible) {
         this.foodType = foodType;
         this.displayName = displayName;
         this.activeImageFileId = activeImageFileId;
         this.inactiveImageFileId = inactiveImageFileId;
         this.sort = sort;
-        this.isActive = isActive;
+        this.isVisible = isVisible;
     }
 
     public static ShopFoodTypeCategory of(
@@ -57,7 +57,7 @@ public class ShopFoodTypeCategory extends BaseEntity {
         Long activeImageFileId,
         Long inactiveImageFileId,
         Integer sort,
-        Boolean isActive
+        Boolean isVisible
     ) {
         return new ShopFoodTypeCategory(
             foodType,
@@ -65,7 +65,7 @@ public class ShopFoodTypeCategory extends BaseEntity {
             activeImageFileId,
             inactiveImageFileId,
             sort,
-            isActive
+            isVisible
         );
     }
 }

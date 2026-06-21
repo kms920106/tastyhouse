@@ -8,11 +8,11 @@ CREATE TABLE BANNER
     start_date       DATETIME,                           -- 노출 시작 일시
     end_date         DATETIME,                           -- 노출 종료 일시
     sort             INT         NOT NULL,               -- 정렬 순서
-    is_active        TINYINT(1)  NOT NULL DEFAULT 1,     -- 활성화 여부 (1: 활성, 0: 비활성)
+    is_visible       TINYINT(1)  NOT NULL DEFAULT 1,     -- 노출 여부 (1: 노출, 0: 숨김)
     created_at       DATETIME    NOT NULL,               -- 생성 일시
     updated_at       DATETIME    NOT NULL,               -- 수정 일시
     INDEX idx_banner_type (type),                        -- 인덱스: 유형별 조회
-    INDEX idx_banner_type_active (type, is_active, sort) -- 인덱스: 유형·활성·정렬 복합 조회
+    INDEX idx_banner_type_active (type, is_visible, sort) -- 인덱스: 유형·노출·정렬 복합 조회
 );
 
 CREATE TABLE BUG_REPORT
@@ -52,10 +52,10 @@ CREATE TABLE COUPON
     issue_end_at       DATETIME     NOT NULL,                     -- 발급 종료 일시
     use_start_at       DATETIME     NOT NULL,                     -- 사용 가능 시작 일시
     use_end_at         DATETIME     NOT NULL,                     -- 사용 가능 종료 일시
-    is_active          TINYINT(1)   NOT NULL DEFAULT 1,           -- 활성화 여부 (1: 활성, 0: 비활성)
+    is_visible         TINYINT(1)   NOT NULL DEFAULT 1,           -- 노출 여부 (1: 노출, 0: 숨김)
     created_at         DATETIME     NOT NULL,                     -- 생성 일시
     updated_at         DATETIME     NOT NULL,                     -- 수정 일시
-    INDEX idx_coupon_active (is_active),                          -- 인덱스: 활성화 여부별 조회
+    INDEX idx_coupon_active (is_visible),                         -- 인덱스: 노출 여부별 조회
     INDEX idx_coupon_issue_period (issue_start_at, issue_end_at), -- 인덱스: 발급 기간 조회
     INDEX idx_coupon_use_period (use_start_at, use_end_at)        -- 인덱스: 사용 기간 조회
 );
@@ -202,14 +202,14 @@ CREATE TABLE PRODUCT
     is_representative   TINYINT(1)    DEFAULT 0,                     -- 대표 상품 여부 (1: 대표)
     spiciness           INT,                                         -- 맵기 단계
     is_sold_out         TINYINT(1)    NOT NULL DEFAULT 0,            -- 품절 여부 (1: 품절)
-    is_active           TINYINT(1)    NOT NULL DEFAULT 1,            -- 활성화 여부 (1: 활성)
+    is_visible          TINYINT(1)    NOT NULL DEFAULT 1,            -- 노출 여부 (1: 노출)
     sort                INT           NOT NULL,                      -- 정렬 순서
     created_at          DATETIME      NOT NULL,                      -- 생성 일시
     updated_at          DATETIME      NOT NULL,                      -- 수정 일시
     INDEX idx_product_shop_id (shop_id),                           -- 인덱스: 장소별 조회
     INDEX idx_product_category (shop_id, product_category_id),      -- 인덱스: 장소·카테고리 복합 조회
     INDEX idx_product_representative (shop_id, is_representative),  -- 인덱스: 장소·대표상품 조회
-    INDEX idx_product_active (shop_id, is_active, sort)             -- 인덱스: 장소·활성·정렬 복합 조회
+    INDEX idx_product_active (shop_id, is_visible, sort)            -- 인덱스: 장소·노출·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_BBQ
@@ -231,12 +231,12 @@ CREATE TABLE PRODUCT_IMAGE
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 상품 이미지 ID (PK)
     product_id       BIGINT       NOT NULL,                            -- 상품 ID (PRODUCT.id 참조)
     sort             INT          NOT NULL,                            -- 정렬 순서
-    is_active        TINYINT(1)   NOT NULL DEFAULT 1,                  -- 활성화 여부 (1: 활성)
+    is_visible       TINYINT(1)   NOT NULL DEFAULT 1,                  -- 노출 여부 (1: 노출)
     image_file_id    BIGINT       NOT NULL,                            -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
     created_at       DATETIME     NOT NULL,                            -- 생성 일시
     updated_at       DATETIME     NOT NULL,                            -- 수정 일시
     INDEX idx_product_image_product_id (product_id),                   -- 인덱스: 상품별 조회
-    INDEX idx_product_image_active (product_id, is_active, sort)       -- 인덱스: 상품·활성·정렬 복합 조회
+    INDEX idx_product_image_active (product_id, is_visible, sort)      -- 인덱스: 상품·노출·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_CATEGORY
@@ -245,11 +245,11 @@ CREATE TABLE PRODUCT_CATEGORY
     shop_id      BIGINT       NOT NULL,                                  -- 장소 ID (SHOP.id 참조)
     name  VARCHAR(100) NOT NULL,                                          -- 카테고리 이름
     sort          INT          NOT NULL,                                  -- 정렬 순서
-    is_active     TINYINT(1)   NOT NULL DEFAULT 1,                        -- 활성화 여부 (1: 활성)
+    is_visible    TINYINT(1)   NOT NULL DEFAULT 1,                        -- 노출 여부 (1: 노출)
     created_at    DATETIME     NOT NULL,                                  -- 생성 일시
     updated_at    DATETIME     NOT NULL,                                  -- 수정 일시
     INDEX idx_product_category_shop_id (shop_id),                       -- 인덱스: 장소별 조회
-    INDEX idx_product_category_active (shop_id, is_active, sort)         -- 인덱스: 장소·활성·정렬 복합 조회
+    INDEX idx_product_category_active (shop_id, is_visible, sort)        -- 인덱스: 장소·노출·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_COMMON_OPTION_GROUP
@@ -263,11 +263,11 @@ CREATE TABLE PRODUCT_COMMON_OPTION_GROUP
     min_select         INT,                                                                -- 최소 선택 수
     max_select         INT,                                                                -- 최대 선택 수
     sort               INT          NOT NULL,                                             -- 정렬 순서
-    is_active          TINYINT(1)   NOT NULL DEFAULT 1,                                   -- 활성화 여부 (1: 활성)
+    is_visible         TINYINT(1)   NOT NULL DEFAULT 1,                                   -- 노출 여부 (1: 노출)
     created_at         DATETIME     NOT NULL,                                             -- 생성 일시
     updated_at         DATETIME     NOT NULL,                                             -- 수정 일시
     INDEX idx_product_common_option_group_product_id (product_id),                        -- 인덱스: 상품별 조회
-    INDEX idx_product_common_option_group_active (product_id, is_active, sort)            -- 인덱스: 상품·활성·정렬 복합 조회
+    INDEX idx_product_common_option_group_active (product_id, is_visible, sort)           -- 인덱스: 상품·노출·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_COMMON_OPTION
@@ -278,11 +278,11 @@ CREATE TABLE PRODUCT_COMMON_OPTION
     additional_price INT          NOT NULL DEFAULT 0,                                -- 추가 금액
     sort             INT          NOT NULL,                                          -- 정렬 순서
     is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,                                -- 품절 여부 (1: 품절)
-    is_active        TINYINT(1)   NOT NULL DEFAULT 1,                                -- 활성화 여부 (1: 활성)
+    is_visible       TINYINT(1)   NOT NULL DEFAULT 1,                                -- 노출 여부 (1: 노출)
     created_at       DATETIME     NOT NULL,                                          -- 생성 일시
     updated_at       DATETIME     NOT NULL,                                          -- 수정 일시
     INDEX idx_product_common_option_group_id (option_group_id),                      -- 인덱스: 옵션 그룹별 조회
-    INDEX idx_product_common_option_active (option_group_id, is_active, sort)        -- 인덱스: 옵션 그룹·활성·정렬 복합 조회
+    INDEX idx_product_common_option_active (option_group_id, is_visible, sort)       -- 인덱스: 옵션 그룹·노출·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_OPTION
@@ -293,11 +293,11 @@ CREATE TABLE PRODUCT_OPTION
     additional_price INT          NOT NULL DEFAULT 0,                           -- 추가 금액
     sort             INT          NOT NULL,                                     -- 정렬 순서
     is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,                           -- 품절 여부 (1: 품절)
-    is_active        TINYINT(1)   NOT NULL DEFAULT 1,                           -- 활성화 여부 (1: 활성)
+    is_visible       TINYINT(1)   NOT NULL DEFAULT 1,                           -- 노출 여부 (1: 노출)
     created_at       DATETIME     NOT NULL,                                     -- 생성 일시
     updated_at       DATETIME     NOT NULL,                                     -- 수정 일시
     INDEX idx_product_option_group_id (option_group_id),                        -- 인덱스: 옵션 그룹별 조회
-    INDEX idx_product_option_active (option_group_id, is_active, sort)          -- 인덱스: 옵션 그룹·활성·정렬 복합 조회
+    INDEX idx_product_option_active (option_group_id, is_visible, sort)         -- 인덱스: 옵션 그룹·노출·정렬 복합 조회
 );
 
 CREATE TABLE PRODUCT_OPTION_GROUP
@@ -311,11 +311,11 @@ CREATE TABLE PRODUCT_OPTION_GROUP
     min_select         INT,                                                            -- 최소 선택 수
     max_select         INT,                                                            -- 최대 선택 수
     sort               INT          NOT NULL,                                         -- 정렬 순서
-    is_active          TINYINT(1)   NOT NULL DEFAULT 1,                               -- 활성화 여부 (1: 활성)
+    is_visible         TINYINT(1)   NOT NULL DEFAULT 1,                               -- 노출 여부 (1: 노출)
     created_at         DATETIME     NOT NULL,                                         -- 생성 일시
     updated_at         DATETIME     NOT NULL,                                         -- 수정 일시
     INDEX idx_product_option_group_product_id (product_id),                           -- 인덱스: 상품별 조회
-    INDEX idx_product_option_group_active (product_id, is_active, sort)               -- 인덱스: 상품·활성·정렬 복합 조회
+    INDEX idx_product_option_group_active (product_id, is_visible, sort)              -- 인덱스: 상품·노출·정렬 복합 조회
 );
 
 CREATE TABLE SHOP
@@ -364,10 +364,10 @@ CREATE TABLE NOTICE
     id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 공지사항 ID (PK)
     title      VARCHAR(200)  NOT NULL,            -- 공지 제목
     content    VARCHAR(1000) NOT NULL,            -- 공지 내용
-    is_active  TINYINT(1)    NOT NULL DEFAULT 1,  -- 활성화 여부 (1: 활성)
+    is_visible TINYINT(1)    NOT NULL DEFAULT 1,  -- 노출 여부 (1: 노출)
     created_at DATETIME      NOT NULL,            -- 생성 일시
     updated_at DATETIME      NOT NULL,            -- 수정 일시
-    INDEX idx_notice_active (is_active),          -- 인덱스: 활성화 여부별 조회
+    INDEX idx_notice_active (is_visible),         -- 인덱스: 노출 여부별 조회
     INDEX idx_notice_created_at (created_at)      -- 인덱스: 생성 일시별 조회
 );
 
@@ -424,10 +424,10 @@ CREATE TABLE SHOP_AMENITY_CATEGORY
     active_image_file_id    BIGINT       NOT NULL,               -- 활성 상태 이미지 파일 ID (UPLOADED_FILE.id 참조)
     inactive_image_file_id  BIGINT       NOT NULL,               -- 비활성 상태 이미지 파일 ID (UPLOADED_FILE.id 참조)
     sort                    INT          NOT NULL,               -- 정렬 순서
-    is_active               TINYINT(1)   NOT NULL DEFAULT 1,     -- 활성화 여부 (1: 활성)
+    is_visible              TINYINT(1)   NOT NULL DEFAULT 1,     -- 노출 여부 (1: 노출)
     created_at              DATETIME     NOT NULL,               -- 생성 일시
     updated_at              DATETIME     NOT NULL,               -- 수정 일시
-    INDEX idx_amenity_category_active (is_active, sort)          -- 인덱스: 활성·정렬 복합 조회
+    INDEX idx_amenity_category_active (is_visible, sort)         -- 인덱스: 노출·정렬 복합 조회
 );
 
 CREATE TABLE SHOP_AMENITY
@@ -511,10 +511,10 @@ CREATE TABLE SHOP_FOOD_TYPE_CATEGORY
     active_image_file_id   BIGINT       NOT NULL,                 -- 활성 상태 이미지 파일 ID (UPLOADED_FILE.id 참조)
     inactive_image_file_id BIGINT       NOT NULL,                 -- 비활성 상태 이미지 파일 ID (UPLOADED_FILE.id 참조)
     sort                   INT          NOT NULL,                 -- 정렬 순서
-    is_active              TINYINT(1)   NOT NULL DEFAULT 1,       -- 활성화 여부 (1: 활성)
+    is_visible             TINYINT(1)   NOT NULL DEFAULT 1,       -- 노출 여부 (1: 노출)
     created_at             DATETIME     NOT NULL,                 -- 생성 일시
     updated_at             DATETIME     NOT NULL,                 -- 수정 일시
-    INDEX idx_food_type_category_active (is_active, sort)         -- 인덱스: 활성·정렬 복합 조회
+    INDEX idx_food_type_category_active (is_visible, sort)        -- 인덱스: 노출·정렬 복합 조회
 );
 
 CREATE TABLE SHOP_FOOD_TYPE
@@ -780,10 +780,10 @@ CREATE TABLE FAQ_CATEGORY
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,              -- FAQ 카테고리 ID (PK)
     name         VARCHAR(100) NOT NULL,                          -- 카테고리 이름
     sort         INT          NOT NULL,                          -- 정렬 순서
-    is_active    TINYINT(1)   NOT NULL DEFAULT 1,                -- 활성화 여부 (1: 활성)
+    is_visible   TINYINT(1)   NOT NULL DEFAULT 1,                -- 노출 여부 (1: 노출)
     created_at   DATETIME     NOT NULL,                          -- 생성 일시
     updated_at   DATETIME     NOT NULL,                          -- 수정 일시
-    INDEX idx_faq_category_active (is_active, sort)              -- 인덱스: 활성·정렬 복합 조회
+    INDEX idx_faq_category_active (is_visible, sort)             -- 인덱스: 노출·정렬 복합 조회
 );
 
 CREATE TABLE FAQ
@@ -793,11 +793,11 @@ CREATE TABLE FAQ
     question        VARCHAR(500)  NOT NULL,                               -- 질문
     answer          TEXT          NOT NULL,                               -- 답변
     sort            INT           NOT NULL,                               -- 정렬 순서
-    is_active       TINYINT(1)    NOT NULL DEFAULT 1,                     -- 활성화 여부 (1: 활성)
+    is_visible      TINYINT(1)    NOT NULL DEFAULT 1,                     -- 노출 여부 (1: 노출)
     created_at      DATETIME      NOT NULL,                               -- 생성 일시
     updated_at      DATETIME      NOT NULL,                               -- 수정 일시
     INDEX idx_faq_category_id (faq_category_id),                          -- 인덱스: 카테고리별 조회
-    INDEX idx_faq_active (faq_category_id, is_active, sort)               -- 인덱스: 카테고리·활성·정렬 복합 조회
+    INDEX idx_faq_active (faq_category_id, is_visible, sort)              -- 인덱스: 카테고리·노출·정렬 복합 조회
 );
 
 CREATE TABLE TOSS_PAYMENT_RECORD
@@ -931,10 +931,10 @@ CREATE TABLE RANK_PERIOD
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 랭킹 기간 ID (PK)
     start_at   DATETIME   NOT NULL,                   -- 랭킹 시작 일시
     end_at     DATETIME   NOT NULL,                   -- 랭킹 종료 일시
-    is_active  TINYINT(1) NOT NULL DEFAULT 1,         -- 활성화 여부 (1: 활성)
+    is_visible TINYINT(1) NOT NULL DEFAULT 1,         -- 노출 여부 (1: 노출)
     created_at DATETIME   NOT NULL,                   -- 생성 일시
     updated_at DATETIME   NOT NULL,                   -- 수정 일시
-    INDEX idx_rank_period_active (is_active),         -- 인덱스: 활성화 여부별 조회
+    INDEX idx_rank_period_active (is_visible),        -- 인덱스: 노출 여부별 조회
     INDEX idx_rank_period_range (start_at, end_at)    -- 인덱스: 기간별 조회
 );
 
@@ -964,17 +964,17 @@ CREATE TABLE POPULAR_KEYWORD (
     keyword    VARCHAR(100) NOT NULL,             -- 검색어
     rank       INT          NOT NULL,             -- 순위
     is_new     BOOLEAN      NOT NULL DEFAULT FALSE, -- 신규 진입 여부 (true: 신규)
-    is_active  BOOLEAN      NOT NULL DEFAULT TRUE,  -- 활성화 여부 (true: 활성)
+    is_visible BOOLEAN      NOT NULL DEFAULT TRUE,  -- 노출 여부 (true: 노출)
     created_at DATETIME     NOT NULL,             -- 생성 일시
     updated_at DATETIME     NOT NULL,             -- 수정 일시
-    INDEX idx_is_active_rank (is_active, rank)    -- 인덱스: 활성·순위 복합 조회
+    INDEX idx_is_visible_rank (is_visible, rank)  -- 인덱스: 노출·순위 복합 조회
 );
 
 CREATE TABLE RECOMMENDED_KEYWORD (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 추천 검색어 ID (PK)
     keyword    VARCHAR(100) NOT NULL,              -- 검색어
     sort_order INT          NOT NULL DEFAULT 0,    -- 정렬 순서
-    is_active  BOOLEAN      NOT NULL DEFAULT TRUE, -- 활성화 여부 (true: 활성)
+    is_visible BOOLEAN      NOT NULL DEFAULT TRUE, -- 노출 여부 (true: 노출)
     created_at DATETIME     NOT NULL,              -- 생성 일시
     updated_at DATETIME     NOT NULL               -- 수정 일시
 );

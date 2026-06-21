@@ -36,8 +36,8 @@ public class ProductCommonOption extends BaseEntity {
     @Column(name = "is_sold_out", nullable = false)
     private Boolean isSoldOut;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible;
 
     private ProductCommonOption(
         Long optionGroupId,
@@ -45,14 +45,14 @@ public class ProductCommonOption extends BaseEntity {
         Integer additionalPrice,
         Integer sort,
         Boolean isSoldOut,
-        Boolean isActive
+        Boolean isVisible
     ) {
         this.optionGroupId = optionGroupId;
         this.name = name;
         this.additionalPrice = additionalPrice != null ? additionalPrice : 0;
         this.sort = sort;
         this.isSoldOut = isSoldOut != null ? isSoldOut : false;
-        this.isActive = isActive != null ? isActive : true;
+        this.isVisible = isVisible != null ? isVisible : true;
     }
 
     public static ProductCommonOption of(
@@ -61,16 +61,16 @@ public class ProductCommonOption extends BaseEntity {
         Integer additionalPrice,
         Integer sort,
         Boolean isSoldOut,
-        Boolean isActive
+        Boolean isVisible
     ) {
-        return new ProductCommonOption(optionGroupId, name, additionalPrice, sort, isSoldOut, isActive);
+        return new ProductCommonOption(optionGroupId, name, additionalPrice, sort, isSoldOut, isVisible);
     }
 
-    public void update(String name, Integer additionalPrice, Integer sort, Boolean isSoldOut, Boolean isActive) {
+    public void update(String name, Integer additionalPrice, Integer sort, Boolean isSoldOut, Boolean isVisible) {
         this.name = name;
         this.additionalPrice = additionalPrice;
         this.sort = sort;
         this.isSoldOut = isSoldOut;
-        this.isActive = isActive;
+        this.isVisible = isVisible;
     }
 }

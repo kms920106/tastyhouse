@@ -51,18 +51,18 @@ public class ProductRepositoryImpl implements ProductRepository {
             .innerJoin(shop).on(product.shopId.eq(shop.id))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
-                    .and(productImage.isActive.eq(true))
+                    .and(productImage.isVisible.eq(true))
                     .and(productImage.sort.eq(
                         JPAExpressions
                             .select(subProductImage.sort.min())
                             .from(subProductImage)
                             .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.isActive.eq(true)))
+                                .and(subProductImage.isVisible.eq(true)))
                     ))
             )
             .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
             .where(product.discountInfo.discountPrice.isNotNull()
-                .and(product.isActive.eq(true)))
+                .and(product.isVisible.eq(true)))
             .orderBy(product.discountInfo.discountRate.desc());
 
         long total = query.fetch().size();
@@ -83,7 +83,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             .innerJoin(shop).on(product.shopId.eq(shop.id))
             .where(
                 product.name.containsIgnoreCase(keyword)
-                    .and(product.isActive.eq(true))
+                    .and(product.isVisible.eq(true))
                     .and(product.isSoldOut.eq(false))
                     .and(shop.permanentlyClosed.eq(false))
             )
@@ -109,18 +109,18 @@ public class ProductRepositoryImpl implements ProductRepository {
             .innerJoin(shop).on(product.shopId.eq(shop.id))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
-                    .and(productImage.isActive.eq(true))
+                    .and(productImage.isVisible.eq(true))
                     .and(productImage.sort.eq(
                         JPAExpressions.select(subProductImage.sort.min())
                             .from(subProductImage)
                             .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.isActive.eq(true)))
+                                .and(subProductImage.isVisible.eq(true)))
                     ))
             )
             .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
             .where(
                 product.name.containsIgnoreCase(keyword)
-                    .and(product.isActive.eq(true))
+                    .and(product.isVisible.eq(true))
                     .and(product.isSoldOut.eq(false))
                     .and(shop.permanentlyClosed.eq(false))
             )
@@ -148,18 +148,18 @@ public class ProductRepositoryImpl implements ProductRepository {
             .innerJoin(shop).on(shop.id.eq(product.shopId))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
-                    .and(productImage.isActive.eq(true))
+                    .and(productImage.isVisible.eq(true))
                     .and(productImage.sort.eq(
                         JPAExpressions
                             .select(subProductImage.sort.min())
                             .from(subProductImage)
                             .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.isActive.eq(true)))
+                                .and(subProductImage.isVisible.eq(true)))
                     ))
             )
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.imageFileId))
             .where(product.shopId.eq(shopId)
-                .and(product.isActive.eq(true)))
+                .and(product.isVisible.eq(true)))
             .fetch();
     }
 
@@ -176,7 +176,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     public List<Product> findActiveByShopIdOrderByRepresentativeAndRating(Long shopId) {
         return queryFactory
             .selectFrom(product)
-            .where(product.shopId.eq(shopId), product.isActive.eq(true))
+            .where(product.shopId.eq(shopId), product.isVisible.eq(true))
             .orderBy(product.isRepresentative.desc(), product.rating.desc(), product.id.asc())
             .fetch();
     }
@@ -201,7 +201,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         }
         return queryFactory
             .selectFrom(product)
-            .where(product.id.in(ids), product.isActive.eq(true))
+            .where(product.id.in(ids), product.isVisible.eq(true))
             .fetch();
     }
 

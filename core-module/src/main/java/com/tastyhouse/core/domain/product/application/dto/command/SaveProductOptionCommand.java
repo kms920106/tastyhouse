@@ -6,5 +6,5 @@ public record SaveProductOptionCommand(
     Integer additionalPrice,
     Integer sort,
     Boolean isSoldOut,
-    Boolean isActive
+    Boolean isVisible
 ) {}

@@ -27,6 +27,6 @@ public class RecommendedKeyword extends BaseEntity {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible;
 }

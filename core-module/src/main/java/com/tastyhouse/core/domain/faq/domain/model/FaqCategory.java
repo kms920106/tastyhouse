@@ -24,6 +24,6 @@ public class FaqCategory extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean active = true;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean visible = true;
 }

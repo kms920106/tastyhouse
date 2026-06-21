@@ -1,5 +1,5 @@
 INSERT INTO SHOP_AMENITY_CATEGORY
-(amenity, display_name, image_url_on, image_url_off, sort, is_active, created_at, updated_at)
+(amenity, display_name, image_url_on, image_url_off, sort, is_visible, created_at, updated_at)
 VALUES ('PARKING', '주차', '/images/shop/icon-parking-on.png', '/images/shop/icon-parking-off.png', 1, 1, NOW(), NOW()),
        ('RESTROOM', '내부화장실', '/images/shop/icon-toilet-on.png', '/images/shop/icon-toilet-off.png', 2, 1, NOW(),
         NOW()),
@@ -15,7 +15,7 @@ VALUES ('PARKING', '주차', '/images/shop/icon-parking-on.png', '/images/shop/i
         NOW());
 
 INSERT INTO SHOP_FOOD_TYPE_CATEGORY
-(food_type, display_name, image_url, sort, is_active, created_at, updated_at)
+(food_type, display_name, image_url, sort, is_visible, created_at, updated_at)
 VALUES ('KOREAN', '한식', '/images/shop/icon-filter-korean.png', 1, 1, NOW(), NOW()),
        ('JAPANESE', '일식', '/images/shop/icon-filter-japanese.png', 2, 1, NOW(), NOW()),
        ('WESTERN', '양식', '/images/shop/icon-filter-western.png', 3, 1, NOW(), NOW()),

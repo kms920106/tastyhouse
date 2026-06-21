@@ -16,22 +16,22 @@ public record BbqProductCategoryResponse(
     @Schema(description = "정렬 순서", example = "1")
     Integer sort,
 
-    @Schema(description = "활성화 여부", example = "true")
-    Boolean isActive
+    @Schema(description = "노출 여부", example = "true")
+    Boolean isVisible
 ) {
     public static BbqProductCategoryResponse from(
         Long id,
         Long shopId,
         String name,
         Integer sort,
-        Boolean isActive
+        Boolean isVisible
     ) {
         return new BbqProductCategoryResponse(
             id,
             shopId,
             name,
             sort,
-            isActive
+            isVisible
         );
     }
 }

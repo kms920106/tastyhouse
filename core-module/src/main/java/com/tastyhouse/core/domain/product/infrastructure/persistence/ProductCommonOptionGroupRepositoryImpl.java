@@ -21,7 +21,7 @@ public class ProductCommonOptionGroupRepositoryImpl implements ProductCommonOpti
     public List<ProductCommonOptionGroup> findActiveByProductIdOrderBySort(Long productId) {
         return queryFactory
             .selectFrom(productCommonOptionGroup)
-            .where(productCommonOptionGroup.productId.eq(productId), productCommonOptionGroup.isActive.eq(true))
+            .where(productCommonOptionGroup.productId.eq(productId), productCommonOptionGroup.isVisible.eq(true))
             .orderBy(productCommonOptionGroup.sort.asc())
             .fetch();
     }

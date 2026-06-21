@@ -58,8 +58,8 @@ public class Product extends BaseEntity {
     @Column(name = "is_sold_out", nullable = false)
     private Boolean isSoldOut;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible;
 
     @Column(name = "sort", nullable = false)
     private Integer sort;
@@ -77,7 +77,7 @@ public class Product extends BaseEntity {
         Boolean isRepresentative,
         Integer spiciness,
         Boolean isSoldOut,
-        Boolean isActive,
+        Boolean isVisible,
         Integer sort
     ) {
         this.shopId = shopId;
@@ -91,7 +91,7 @@ public class Product extends BaseEntity {
         this.isRepresentative = isRepresentative != null ? isRepresentative : false;
         this.spiciness = spiciness;
         this.isSoldOut = isSoldOut != null ? isSoldOut : false;
-        this.isActive = isActive != null ? isActive : true;
+        this.isVisible = isVisible != null ? isVisible : true;
         this.sort = sort;
     }
 
@@ -108,14 +108,14 @@ public class Product extends BaseEntity {
         Boolean isRepresentative,
         Integer spiciness,
         Boolean isSoldOut,
-        Boolean isActive,
+        Boolean isVisible,
         Integer sort
     ) {
         return new Product(
             shopId, productCategoryId, name, description,
             originalPrice, discountPrice, discountRate,
             rating, reviewCount, isRepresentative, spiciness,
-            isSoldOut, isActive, sort
+            isSoldOut, isVisible, sort
         );
     }
 
@@ -137,7 +137,7 @@ public class Product extends BaseEntity {
     }
 
     public void deactivate() {
-        this.isActive = false;
+        this.isVisible = false;
     }
 
     public void update(
@@ -150,7 +150,7 @@ public class Product extends BaseEntity {
         Boolean isRepresentative,
         Integer spiciness,
         Boolean isSoldOut,
-        Boolean isActive,
+        Boolean isVisible,
         Integer sort
     ) {
         this.productCategoryId = productCategoryId;
@@ -161,7 +161,7 @@ public class Product extends BaseEntity {
         this.isRepresentative = isRepresentative;
         this.spiciness = spiciness;
         this.isSoldOut = isSoldOut;
-        this.isActive = isActive;
+        this.isVisible = isVisible;
         this.sort = sort;
     }
 }

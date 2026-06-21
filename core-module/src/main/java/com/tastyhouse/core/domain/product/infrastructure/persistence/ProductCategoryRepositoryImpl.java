@@ -27,7 +27,7 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
     public List<ProductCategory> findActiveCategoriesByShopIdOrderBySort(Long shopId) {
         return queryFactory
             .selectFrom(productCategory)
-            .where(productCategory.shopId.eq(shopId), productCategory.isActive.eq(true))
+            .where(productCategory.shopId.eq(shopId), productCategory.isVisible.eq(true))
             .orderBy(productCategory.sort.asc())
             .fetch();
     }

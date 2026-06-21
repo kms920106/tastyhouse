@@ -35,7 +35,7 @@ public class BannerRepositoryImpl implements BannerRepository {
             .from(banner)
             .where(
                 banner.type.eq(type),
-                banner.active.isTrue(),
+                banner.visible.isTrue(),
                 banner.startDate.loe(now),
                 banner.endDate.goe(now)
             )
@@ -52,7 +52,7 @@ public class BannerRepositoryImpl implements BannerRepository {
             .join(uploadedFile).on(uploadedFile.id.eq(banner.imageFileId))
             .where(
                 banner.type.eq(type),
-                banner.active.isTrue(),
+                banner.visible.isTrue(),
                 banner.startDate.loe(now),
                 banner.endDate.goe(now)
             )

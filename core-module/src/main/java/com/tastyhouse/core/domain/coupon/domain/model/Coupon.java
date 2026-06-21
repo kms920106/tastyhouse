@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Table(
     name = "COUPON",
     indexes = {
-        @Index(name = "idx_coupon_active", columnList = "is_active"),
+        @Index(name = "idx_coupon_active", columnList = "is_visible"),
         @Index(name = "idx_coupon_issue_period", columnList = "issue_start_at, issue_end_at"),
         @Index(name = "idx_coupon_use_period", columnList = "use_start_at, use_end_at")
     }
@@ -69,8 +69,8 @@ public class Coupon extends BaseEntity {
     @Column(name = "use_end_at", nullable = false)
     private LocalDateTime useEndAt;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible = true;
 
     private Coupon(
         String name,
@@ -84,7 +84,7 @@ public class Coupon extends BaseEntity {
         LocalDateTime issueEndAt,
         LocalDateTime useStartAt,
         LocalDateTime useEndAt,
-        Boolean isActive
+        Boolean isVisible
     ) {
         this.name = name;
         this.description = description;
@@ -97,7 +97,7 @@ public class Coupon extends BaseEntity {
         this.issueEndAt = issueEndAt;
         this.useStartAt = useStartAt;
         this.useEndAt = useEndAt;
-        this.isActive = isActive != null ? isActive : true;
+        this.isVisible = isVisible != null ? isVisible : true;
     }
 
     public static Coupon of(
@@ -112,12 +112,12 @@ public class Coupon extends BaseEntity {
         LocalDateTime issueEndAt,
         LocalDateTime useStartAt,
         LocalDateTime useEndAt,
-        Boolean isActive
+        Boolean isVisible
     ) {
         return new Coupon(
             name, description, discountType, discountAmount, maxDiscountAmount,
             minOrderAmount, maxDiscountCount, issueStartAt, issueEndAt,
-            useStartAt, useEndAt, isActive
+            useStartAt, useEndAt, isVisible
         );
     }
 

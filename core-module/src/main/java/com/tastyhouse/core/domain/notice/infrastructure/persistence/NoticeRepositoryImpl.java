@@ -28,7 +28,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
-            .where(notice.active.isTrue())
+            .where(notice.visible.isTrue())
             .fetchOne();
 
         List<NoticeListItemDto> notices = queryFactory
@@ -39,7 +39,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
                 notice.createdAt
             ))
             .from(notice)
-            .where(notice.active.isTrue())
+            .where(notice.visible.isTrue())
             .orderBy(notice.id.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())

@@ -21,7 +21,7 @@ public class ProductCommonOptionRepositoryImpl implements ProductCommonOptionRep
     public List<ProductCommonOption> findActiveByOptionGroupIdsOrderBySort(List<Long> optionGroupIds) {
         return queryFactory
             .selectFrom(productCommonOption)
-            .where(productCommonOption.optionGroupId.in(optionGroupIds), productCommonOption.isActive.eq(true))
+            .where(productCommonOption.optionGroupId.in(optionGroupIds), productCommonOption.isVisible.eq(true))
             .orderBy(productCommonOption.sort.asc())
             .fetch();
     }
@@ -33,7 +33,7 @@ public class ProductCommonOptionRepositoryImpl implements ProductCommonOptionRep
         }
         return queryFactory
             .selectFrom(productCommonOption)
-            .where(productCommonOption.id.in(ids), productCommonOption.isActive.eq(true))
+            .where(productCommonOption.id.in(ids), productCommonOption.isVisible.eq(true))
             .fetch();
     }
 

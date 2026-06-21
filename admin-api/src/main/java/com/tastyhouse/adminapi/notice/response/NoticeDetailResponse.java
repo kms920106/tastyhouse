@@ -15,8 +15,8 @@ public record NoticeDetailResponse(
     @Schema(description = "공지사항 본문 내용", example = "2026년 1월 1일 00시부터 02시까지 서비스 점검이 진행됩니다.")
     String content,
 
-    @Schema(description = "활성화 여부", example = "true")
-    Boolean active,
+    @Schema(description = "노출 여부", example = "true")
+    Boolean visible,
 
     @Schema(description = "생성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt,

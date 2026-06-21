@@ -9,6 +9,6 @@ public record ShopFoodTypeCategoryDto(
     String activeFilePath,
     String inactiveFilePath,
     Integer sort,
-    Boolean isActive
+    Boolean isVisible
 ) {
 }

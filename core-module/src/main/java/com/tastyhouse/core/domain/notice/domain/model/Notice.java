@@ -27,13 +27,13 @@ public class Notice extends BaseEntity {
     @Column(name = "content", nullable = false, length = 1000)
     private String content; // 공지사항 본문 내용
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean active = true; // 활성화 여부 (true: 활성)
+    @Column(name = "is_visible", nullable = false)
+    private Boolean visible = true; // 노출 여부 (true: 노출)
 
-    private Notice(String title, String content, Boolean active) {
+    private Notice(String title, String content, Boolean visible) {
         this.title = title;
         this.content = content;
-        this.active = active;
+        this.visible = visible;
     }
 
     public static Notice of(String title, String content) {
@@ -46,6 +46,6 @@ public class Notice extends BaseEntity {
     }
 
     public void deactivate() {
-        this.active = false;
+        this.visible = false;
     }
 }

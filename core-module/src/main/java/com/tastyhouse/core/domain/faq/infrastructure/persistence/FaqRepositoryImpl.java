@@ -29,7 +29,7 @@ public class FaqRepositoryImpl implements FaqRepository {
                         faqCategory.sort
                 ))
                 .from(faqCategory)
-                .where(faqCategory.active.isTrue())
+                .where(faqCategory.visible.isTrue())
                 .orderBy(faqCategory.sort.asc())
                 .fetch();
     }
@@ -45,7 +45,7 @@ public class FaqRepositoryImpl implements FaqRepository {
                         faq.sort
                 ))
                 .from(faq)
-                .where(faq.active.isTrue())
+                .where(faq.visible.isTrue())
                 .orderBy(faq.faqCategoryId.asc(), faq.sort.asc())
                 .fetch();
     }
@@ -62,7 +62,7 @@ public class FaqRepositoryImpl implements FaqRepository {
                 ))
                 .from(faq)
                 .where(
-                        faq.active.isTrue(),
+                        faq.visible.isTrue(),
                         faq.faqCategoryId.eq(categoryId)
                 )
                 .orderBy(faq.sort.asc())

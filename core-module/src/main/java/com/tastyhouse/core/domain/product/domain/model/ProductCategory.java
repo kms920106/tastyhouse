@@ -30,23 +30,23 @@ public class ProductCategory extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible;
 
-    private ProductCategory(Long shopId, String name, Integer sort, Boolean isActive) {
+    private ProductCategory(Long shopId, String name, Integer sort, Boolean isVisible) {
         this.shopId = shopId;
         this.name = name;
         this.sort = sort;
-        this.isActive = isActive != null ? isActive : true;
+        this.isVisible = isVisible != null ? isVisible : true;
     }
 
-    public static ProductCategory of(Long shopId, String name, Integer sort, Boolean isActive) {
-        return new ProductCategory(shopId, name, sort, isActive);
+    public static ProductCategory of(Long shopId, String name, Integer sort, Boolean isVisible) {
+        return new ProductCategory(shopId, name, sort, isVisible);
     }
 
-    public void update(String displayName, Integer sort, Boolean isActive) {
+    public void update(String displayName, Integer sort, Boolean isVisible) {
         this.name = displayName;
         this.sort = sort;
-        this.isActive = isActive;
+        this.isVisible = isVisible;
     }
 }

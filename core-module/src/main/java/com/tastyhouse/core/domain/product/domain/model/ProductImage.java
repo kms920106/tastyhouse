@@ -27,20 +27,20 @@ public class ProductImage extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible;
 
     @Column(name = "image_file_id", nullable = false)
     private Long imageFileId;
 
-    private ProductImage(Long productId, Long imageFileId, Integer sort, Boolean isActive) {
+    private ProductImage(Long productId, Long imageFileId, Integer sort, Boolean isVisible) {
         this.productId = productId;
         this.imageFileId = imageFileId;
         this.sort = sort;
-        this.isActive = isActive != null ? isActive : true;
+        this.isVisible = isVisible != null ? isVisible : true;
     }
 
-    public static ProductImage of(Long productId, Long imageFileId, Integer sort, Boolean isActive) {
-        return new ProductImage(productId, imageFileId, sort, isActive);
+    public static ProductImage of(Long productId, Long imageFileId, Integer sort, Boolean isVisible) {
+        return new ProductImage(productId, imageFileId, sort, isVisible);
     }
 }

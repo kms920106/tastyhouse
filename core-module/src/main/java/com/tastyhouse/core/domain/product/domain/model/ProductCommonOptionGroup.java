@@ -45,8 +45,8 @@ public class ProductCommonOptionGroup extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible;
 
     private ProductCommonOptionGroup(
         Long productId,
@@ -57,7 +57,7 @@ public class ProductCommonOptionGroup extends BaseEntity {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        Boolean isActive
+        Boolean isVisible
     ) {
         this.productId = productId;
         this.name = name;
@@ -67,7 +67,7 @@ public class ProductCommonOptionGroup extends BaseEntity {
         this.minSelect = minSelect;
         this.maxSelect = maxSelect;
         this.sort = sort;
-        this.isActive = isActive != null ? isActive : true;
+        this.isVisible = isVisible != null ? isVisible : true;
     }
 
     public static ProductCommonOptionGroup of(
@@ -79,11 +79,11 @@ public class ProductCommonOptionGroup extends BaseEntity {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        Boolean isActive
+        Boolean isVisible
     ) {
         return new ProductCommonOptionGroup(
             productId, name, description, isRequired, isMultipleSelect,
-            minSelect, maxSelect, sort, isActive
+            minSelect, maxSelect, sort, isVisible
         );
     }
 
@@ -95,7 +95,7 @@ public class ProductCommonOptionGroup extends BaseEntity {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        Boolean isActive
+        Boolean isVisible
     ) {
         this.name = name;
         this.description = description;
@@ -104,6 +104,6 @@ public class ProductCommonOptionGroup extends BaseEntity {
         this.minSelect = minSelect;
         this.maxSelect = maxSelect;
         this.sort = sort;
-        this.isActive = isActive;
+        this.isVisible = isVisible;
     }
 }

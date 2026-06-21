@@ -72,13 +72,13 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
             .innerJoin(shop).on(shop.id.eq(product.shopId))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
-                    .and(productImage.isActive.eq(true))
+                    .and(productImage.isVisible.eq(true))
                     .and(productImage.sort.eq(
                         JPAExpressions
                             .select(subProductImage.sort.min())
                             .from(subProductImage)
                             .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.isActive.eq(true)))
+                                .and(subProductImage.isVisible.eq(true)))
                     ))
             )
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.imageFileId))
@@ -166,13 +166,13 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
             .innerJoin(shop).on(shop.id.eq(product.shopId))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
-                    .and(productImage.isActive.eq(true))
+                    .and(productImage.isVisible.eq(true))
                     .and(productImage.sort.eq(
                         JPAExpressions
                             .select(subProductImage.sort.min())
                             .from(subProductImage)
                             .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.isActive.eq(true)))
+                                .and(subProductImage.isVisible.eq(true)))
                     ))
             )
             .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))

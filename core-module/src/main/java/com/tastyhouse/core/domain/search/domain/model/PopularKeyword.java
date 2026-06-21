@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "POPULAR_KEYWORD",
-    indexes = @Index(name = "idx_popular_keyword_active_rank", columnList = "is_active, rank"))
+    indexes = @Index(name = "idx_popular_keyword_active_rank", columnList = "is_visible, rank"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class PopularKeyword extends BaseEntity {
@@ -32,14 +32,14 @@ public class PopularKeyword extends BaseEntity {
     @Column(name = "is_new", nullable = false)
     private Boolean isNew;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible;
 
-    private PopularKeyword(String keyword, int rank, Boolean isNew, Boolean isActive) {
+    private PopularKeyword(String keyword, int rank, Boolean isNew, Boolean isVisible) {
         this.keyword = keyword;
         this.rank = rank;
         this.isNew = isNew;
-        this.isActive = isActive;
+        this.isVisible = isVisible;
     }
 
     public static PopularKeyword of(String keyword, int rank, boolean isNew) {

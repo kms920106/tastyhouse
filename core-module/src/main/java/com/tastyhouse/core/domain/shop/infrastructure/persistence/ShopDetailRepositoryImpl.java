@@ -64,12 +64,12 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
                 activeFile.filePath,
                 inactiveFile.filePath,
                 shopFoodTypeCategory.sort,
-                shopFoodTypeCategory.isActive
+                shopFoodTypeCategory.isVisible
             ))
             .from(shopFoodTypeCategory)
             .join(activeFile).on(activeFile.id.eq(shopFoodTypeCategory.activeImageFileId))
             .join(inactiveFile).on(inactiveFile.id.eq(shopFoodTypeCategory.inactiveImageFileId))
-            .where(shopFoodTypeCategory.isActive.eq(true))
+            .where(shopFoodTypeCategory.isVisible.eq(true))
             .orderBy(shopFoodTypeCategory.sort.asc())
             .fetch();
     }
@@ -84,12 +84,12 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
                 activeFile.filePath,
                 inactiveFile.filePath,
                 shopAmenityCategory.sort,
-                shopAmenityCategory.isActive
+                shopAmenityCategory.isVisible
             ))
             .from(shopAmenityCategory)
             .join(activeFile).on(activeFile.id.eq(shopAmenityCategory.activeImageFileId))
             .join(inactiveFile).on(inactiveFile.id.eq(shopAmenityCategory.inactiveImageFileId))
-            .where(shopAmenityCategory.isActive.eq(true))
+            .where(shopAmenityCategory.isVisible.eq(true))
             .orderBy(shopAmenityCategory.sort.asc())
             .fetch();
     }
