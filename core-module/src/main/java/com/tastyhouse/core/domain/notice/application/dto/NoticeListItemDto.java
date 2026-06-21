@@ -8,6 +8,7 @@ public record NoticeListItemDto(
     Long id,
     String title,
     String content,
+    Boolean visible,
     LocalDateTime createdAt
 ) {
     @QueryProjection

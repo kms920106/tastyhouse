@@ -18,7 +18,7 @@ public class NoticeCommandService {
     private final NoticeRepository noticeRepository;
 
     public Long createNotice(CreateNoticeCommand command) {
-        Notice notice = Notice.of(command.title(), command.content());
+        Notice notice = Notice.of(command.title(), command.content(), command.visible());
         Notice saved = noticeRepository.save(notice);
         return saved.getId();
     }
@@ -27,7 +27,14 @@ public class NoticeCommandService {
         Notice notice = noticeRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
 
-        notice.update(command.title(), command.content());
+        notice.update(command.title(), command.content(), command.visible());
+    }
+
+    public void changeVisibility(Long id, Boolean visible) {
+        Notice notice = noticeRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
+
+        notice.changeVisibility(visible);
     }
 
     public void deleteNotice(Long id) {

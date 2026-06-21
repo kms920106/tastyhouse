@@ -36,16 +36,17 @@ public class Notice extends BaseEntity {
         this.visible = visible;
     }
 
-    public static Notice of(String title, String content) {
-        return new Notice(title, content, true);
+    public static Notice of(String title, String content, Boolean visible) {
+        return new Notice(title, content, visible);
     }
 
-    public void update(String title, String content) {
+    public void update(String title, String content, Boolean visible) {
         this.title = title;
         this.content = content;
+        this.visible = visible;
     }
 
-    public void deactivate() {
-        this.visible = false;
+    public void changeVisibility(Boolean visible) {
+        this.visible = visible;
     }
 }

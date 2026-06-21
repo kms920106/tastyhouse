@@ -36,10 +36,35 @@ public class NoticeRepositoryImpl implements NoticeRepository {
                 notice.id,
                 notice.title,
                 notice.content,
+                notice.visible,
                 notice.createdAt
             ))
             .from(notice)
             .where(notice.visible.isTrue())
+            .orderBy(notice.id.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        return new PageImpl<>(notices, pageable, total != null ? total : 0L);
+    }
+
+    @Override
+    public Page<NoticeListItemDto> findAllForAdmin(Pageable pageable) {
+        Long total = queryFactory
+            .select(notice.id.count())
+            .from(notice)
+            .fetchOne();
+
+        List<NoticeListItemDto> notices = queryFactory
+            .select(new QNoticeListItemDto(
+                notice.id,
+                notice.title,
+                notice.content,
+                notice.visible,
+                notice.createdAt
+            ))
+            .from(notice)
             .orderBy(notice.id.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())

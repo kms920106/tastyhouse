@@ -11,6 +11,8 @@ public interface NoticeRepository {
 
     Page<NoticeListItemDto> findAllWithFilter(Pageable pageable);
 
+    Page<NoticeListItemDto> findAllForAdmin(Pageable pageable);
+
     Optional<Notice> findById(Long id);
 
     Notice save(Notice notice);

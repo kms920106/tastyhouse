@@ -2,6 +2,7 @@ package com.tastyhouse.adminapi.notice.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "공지사항 수정 요청")
 public record NoticeUpdateRequest(
@@ -11,6 +12,10 @@ public record NoticeUpdateRequest(
 
     @NotBlank(message = "내용은 필수입니다.")
     @Schema(description = "공지사항 본문 내용", example = "2026년 1월 1일 00시부터 02시까지 서비스 점검이 진행됩니다.", requiredMode = Schema.RequiredMode.REQUIRED)
-    String content
+    String content,
+
+    @NotNull(message = "노출 여부는 필수입니다.")
+    @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
+    Boolean visible
 ) {
 }

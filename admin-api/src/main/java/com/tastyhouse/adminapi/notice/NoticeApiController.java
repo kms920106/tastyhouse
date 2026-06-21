@@ -3,6 +3,7 @@ package com.tastyhouse.adminapi.notice;
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
+import com.tastyhouse.adminapi.notice.request.NoticeVisibilityRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,13 +42,13 @@ public class NoticeApiController {
     private final NoticeCommandService noticeCommandService;
     private final NoticeQueryService noticeQueryService;
 
-    @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다.")
+    @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다. (비노출 공지 포함)")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemDto>>> getNotices(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size) {
-        Page<NoticeListItemDto> notices = noticeQueryService.findAllWithPagination(page, size);
+        Page<NoticeListItemDto> notices = noticeQueryService.findAllForAdmin(page, size);
         return ResponseEntity.ok(ApiResponse.success(
             notices.getContent(),
             notices.getNumber(),
@@ -61,7 +63,8 @@ public class NoticeApiController {
     public ResponseEntity<ApiResponse<Long>> createNotice(@Valid @RequestBody NoticeCreateRequest request) {
         Long id = noticeCommandService.createNotice(new CreateNoticeCommand(
             request.title(),
-            request.content()
+            request.content(),
+            request.visibleOrDefault()
         ));
         return ResponseEntity.ok(ApiResponse.success(id));
     }
@@ -90,8 +93,19 @@ public class NoticeApiController {
         @Valid @RequestBody NoticeUpdateRequest request) {
         noticeCommandService.updateNotice(id, new UpdateNoticeCommand(
             request.title(),
-            request.content()
+            request.content(),
+            request.visible()
         ));
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @Operation(summary = "공지사항 노출 여부 변경", description = "공지사항의 노출 여부를 변경합니다.")
+    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "변경 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
+    @PatchMapping("/v1/{id}/visibility")
+    public ResponseEntity<ApiResponse<Void>> changeNoticeVisibility(
+        @PathVariable Long id,
+        @Valid @RequestBody NoticeVisibilityRequest request) {
+        noticeCommandService.changeVisibility(id, request.visible());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

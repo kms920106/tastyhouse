@@ -22,6 +22,10 @@ public class NoticeQueryService {
         return noticeRepository.findAllWithFilter(PageRequest.of(page, size));
     }
 
+    public Page<NoticeListItemDto> findAllForAdmin(int page, int size) {
+        return noticeRepository.findAllForAdmin(PageRequest.of(page, size));
+    }
+
     public Notice findById(Long id) {
         return noticeRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));

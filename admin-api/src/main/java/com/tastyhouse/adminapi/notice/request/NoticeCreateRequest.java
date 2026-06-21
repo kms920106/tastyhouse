@@ -11,6 +11,12 @@ public record NoticeCreateRequest(
 
     @NotBlank(message = "내용은 필수입니다.")
     @Schema(description = "공지사항 본문 내용", example = "2026년 1월 1일 00시부터 02시까지 서비스 점검이 진행됩니다.", requiredMode = Schema.RequiredMode.REQUIRED)
-    String content
+    String content,
+
+    @Schema(description = "노출 여부 (미지정 시 노출)", example = "true", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    Boolean visible
 ) {
+    public Boolean visibleOrDefault() {
+        return visible != null ? visible : Boolean.TRUE;
+    }
 }
