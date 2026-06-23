@@ -30,8 +30,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private static final String[] PUBLIC_PATHS = {
-        "/api/admin/auth/v1/login",
-        "/api/admin/auth/v1/refresh",
+        "/api/auth/v1/**",
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/v3/api-docs/**"
@@ -77,7 +76,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(PUBLIC_PATHS).permitAll()
                 // 로그아웃은 인증 필요 (임의 토큰 블랙리스트 등록 방지)
-                .requestMatchers("/api/admin/auth/v1/logout").authenticated()
+                .requestMatchers("/api/auth/v1/logout").authenticated()
                 // 나머지 API는 인증 필요
                 .anyRequest().authenticated()
             )

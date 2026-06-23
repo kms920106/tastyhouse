@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Admin Auth", description = "관리자 인증 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/auth")
-public class AdminAuthApiController {
+@RequestMapping("/api/auth")
+public class AuthApiController {
 
     private final AuthService authService;
 
