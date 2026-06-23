@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.notice;
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
-import com.tastyhouse.adminapi.notice.request.NoticeVisibilityRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
@@ -22,7 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -96,16 +94,6 @@ public class NoticeApiController {
             request.content(),
             request.visible()
         ));
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @Operation(summary = "공지사항 노출 여부 변경", description = "공지사항의 노출 여부를 변경합니다.")
-    @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "변경 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
-    @PatchMapping("/v1/{id}/visibility")
-    public ResponseEntity<ApiResponse<Void>> changeNoticeVisibility(
-        @PathVariable Long id,
-        @Valid @RequestBody NoticeVisibilityRequest request) {
-        noticeCommandService.changeVisibility(id, request.visible());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
