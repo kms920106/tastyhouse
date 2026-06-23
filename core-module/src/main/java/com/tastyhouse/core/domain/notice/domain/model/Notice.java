@@ -45,8 +45,4 @@ public class Notice extends BaseEntity {
         this.content = content;
         this.visible = visible;
     }
-
-    public void changeVisibility(Boolean visible) {
-        this.visible = visible;
-    }
 }

@@ -30,13 +30,6 @@ public class NoticeCommandService {
         notice.update(command.title(), command.content(), command.visible());
     }
 
-    public void changeVisibility(Long id, Boolean visible) {
-        Notice notice = noticeRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
-
-        notice.changeVisibility(visible);
-    }
-
     public void deleteNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
