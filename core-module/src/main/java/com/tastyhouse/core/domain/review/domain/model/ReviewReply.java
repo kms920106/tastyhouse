@@ -31,13 +31,9 @@ public class ReviewReply extends BaseEntity {
     private String content;
 
     @Column(name = "is_hidden", nullable = false)
-    private Boolean isHidden = false;
+    private boolean hidden = false;
 
     protected ReviewReply() {
-    }
-
-    public ReviewReply(Long commentId, Long memberId, String content) {
-        this(commentId, memberId, null, content);
     }
 
     public ReviewReply(Long commentId, Long memberId, Long replyToMemberId, String content) {

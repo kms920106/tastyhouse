@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public record UpdatePolicyCommand(
     String title,
     String content,
-    Boolean mandatory,
+    boolean mandatory,
     LocalDateTime effectiveDate,
     String updatedBy
 ) {}

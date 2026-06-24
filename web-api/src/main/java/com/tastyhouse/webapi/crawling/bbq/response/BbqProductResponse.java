@@ -28,16 +28,16 @@ public record BbqProductResponse(
     Integer addPrice,
 
     @Schema(description = "품절 여부", example = "false")
-    Boolean isSoldOut,
+    boolean soldOut,
 
     @Schema(description = "성인 전용 여부", example = "true")
-    Boolean isAdultOnly,
+    boolean adultOnly,
 
     @Schema(description = "배달 가능 여부", example = "true")
-    Boolean canDeliver,
+    boolean canDeliver,
 
     @Schema(description = "포장 가능 여부", example = "true")
-    Boolean canTakeout
+    boolean canTakeout
 ) {
     public static BbqProductResponse from(
         Long id,
@@ -46,10 +46,10 @@ public record BbqProductResponse(
         String imageUrl,
         Integer originalPrice,
         Integer addPrice,
-        Boolean isSoldOut,
-        Boolean isAdultOnly,
-        Boolean canDeliver,
-        Boolean canTakeout
+        boolean soldOut,
+        boolean adultOnly,
+        boolean canDeliver,
+        boolean canTakeout
     ) {
         return new BbqProductResponse(
             id,
@@ -58,8 +58,8 @@ public record BbqProductResponse(
             imageUrl,
             originalPrice,
             addPrice,
-            isSoldOut,
-            isAdultOnly,
+            soldOut,
+            adultOnly,
             canDeliver,
             canTakeout
         );

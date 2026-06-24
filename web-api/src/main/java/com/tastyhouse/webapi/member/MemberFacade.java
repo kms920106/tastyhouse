@@ -61,8 +61,8 @@ public class MemberFacade {
     public void updatePersonalInfo(Long memberId, String verifyToken,
                                    String phoneVerifyToken, String fullName,
                                    String phoneNumber, Integer birthDate, Gender gender,
-                                   Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                                   Boolean eventInfoEnabled) {
+                                   boolean pushNotificationEnabled, boolean marketingInfoEnabled,
+                                   boolean eventInfoEnabled) {
         memberAuthService.verifyPersonalInfoToken(memberId, verifyToken);
         if (phoneNumber != null) {
             memberAuthService.verifyPhoneToken(memberId, phoneVerifyToken, phoneNumber);
@@ -112,7 +112,7 @@ public class MemberFacade {
                 r.id(), r.couponId(), r.name(), r.description(),
                 r.discountType(), r.discountAmount(), r.maxDiscountAmount(),
                 r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
-                r.expiredAt(), r.isUsed(), r.usedAt()
+                r.expiredAt(), r.used(), r.usedAt()
             ))
             .toList();
     }
@@ -123,7 +123,7 @@ public class MemberFacade {
                 r.id(), r.couponId(), r.name(), r.description(),
                 r.discountType(), r.discountAmount(), r.maxDiscountAmount(),
                 r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
-                r.expiredAt(), r.isUsed(), r.usedAt()
+                r.expiredAt(), r.used(), r.usedAt()
             ))
             .toList();
     }

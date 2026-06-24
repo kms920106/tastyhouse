@@ -37,7 +37,7 @@ public class ProductReviewEventListener {
 
     private void updateProductReviewStats(Long productId) {
         productRepository.findById(productId).ifPresent(product -> {
-            Long count = reviewRepository.countByProductIdAndIsHiddenFalse(productId);
+            Long count = reviewRepository.countByProductIdAndHiddenFalse(productId);
             Double rating = calculateAverageRating(productId);
             product.updateReviewStats(rating, count != null ? count.intValue() : 0);
             productRepository.save(product);

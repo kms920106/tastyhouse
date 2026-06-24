@@ -32,20 +32,20 @@ public class ProductBbq extends BaseEntity {
     private Long bbqCategoryId;
 
     @Column(name = "is_options_synced", nullable = false)
-    private Boolean isOptionsSynced;
+    private boolean optionsSynced;
 
-    private ProductBbq(Long productId, Long bbqMenuId, Long bbqCategoryId, Boolean isOptionsSynced) {
+    private ProductBbq(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
         this.productId = productId;
         this.bbqMenuId = bbqMenuId;
         this.bbqCategoryId = bbqCategoryId;
-        this.isOptionsSynced = isOptionsSynced != null ? isOptionsSynced : false;
+        this.optionsSynced = optionsSynced;
     }
 
-    public static ProductBbq of(Long productId, Long bbqMenuId, Long bbqCategoryId, Boolean isOptionsSynced) {
-        return new ProductBbq(productId, bbqMenuId, bbqCategoryId, isOptionsSynced);
+    public static ProductBbq of(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
+        return new ProductBbq(productId, bbqMenuId, bbqCategoryId, optionsSynced);
     }
 
     public void markOptionsSynced() {
-        this.isOptionsSynced = true;
+        this.optionsSynced = true;
     }
 }

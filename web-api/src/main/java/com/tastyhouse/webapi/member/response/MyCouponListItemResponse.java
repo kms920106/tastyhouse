@@ -17,10 +17,10 @@ public record MyCouponListItemResponse(
     LocalDateTime useStartAt,
     LocalDateTime useEndAt,
     LocalDateTime expiredAt,
-    Boolean isUsed,
+    boolean used,
     LocalDateTime usedAt,
     Long daysRemaining,
-    Boolean isExpired
+    boolean expired
 ) {
     public static MyCouponListItemResponse of(
         Long id,
@@ -34,17 +34,17 @@ public record MyCouponListItemResponse(
         LocalDateTime useStartAt,
         LocalDateTime useEndAt,
         LocalDateTime expiredAt,
-        Boolean isUsed,
+        boolean used,
         LocalDateTime usedAt
     ) {
         LocalDateTime now = LocalDateTime.now();
 
         Long daysRemaining = null;
-        if (!isUsed && expiredAt != null && now.isBefore(expiredAt)) {
+        if (!used && expiredAt != null && now.isBefore(expiredAt)) {
             daysRemaining = ChronoUnit.DAYS.between(now, expiredAt);
         }
 
-        boolean isExpired = expiredAt != null && now.isAfter(expiredAt);
+        boolean expired = expiredAt != null && now.isAfter(expiredAt);
 
         return new MyCouponListItemResponse(
             id,
@@ -57,10 +57,10 @@ public record MyCouponListItemResponse(
             useStartAt,
             useEndAt,
             expiredAt,
-            isUsed,
+            used,
             usedAt,
             daysRemaining,
-            isExpired
+            expired
         );
     }
 }

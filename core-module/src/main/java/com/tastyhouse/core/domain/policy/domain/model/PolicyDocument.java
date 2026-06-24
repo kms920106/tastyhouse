@@ -39,10 +39,10 @@ public class PolicyDocument extends BaseEntity {
     private String content;
 
     @Column(name = "is_current", nullable = false)
-    private Boolean current = false;
+    private boolean current = false;
 
     @Column(name = "mandatory", nullable = false)
-    private Boolean mandatory = true;
+    private boolean mandatory = true;
 
     @Column(name = "effective_date", nullable = false)
     private LocalDateTime effectiveDate;
@@ -58,8 +58,8 @@ public class PolicyDocument extends BaseEntity {
         String version,
         String title,
         String content,
-        Boolean current,
-        Boolean mandatory,
+        boolean current,
+        boolean mandatory,
         LocalDateTime effectiveDate,
         String createdBy,
         String updatedBy
@@ -80,7 +80,7 @@ public class PolicyDocument extends BaseEntity {
         String version,
         String title,
         String content,
-        Boolean mandatory,
+        boolean mandatory,
         LocalDateTime effectiveDate,
         String createdBy
     ) {
@@ -95,7 +95,7 @@ public class PolicyDocument extends BaseEntity {
         this.current = false;
     }
 
-    public void update(String title, String content, Boolean mandatory, LocalDateTime effectiveDate, String updatedBy) {
+    public void update(String title, String content, boolean mandatory, LocalDateTime effectiveDate, String updatedBy) {
         this.title = title;
         this.content = content;
         this.mandatory = mandatory;

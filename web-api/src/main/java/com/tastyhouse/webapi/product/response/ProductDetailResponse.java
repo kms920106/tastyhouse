@@ -25,7 +25,7 @@ public record ProductDetailResponse(
     BigDecimal discountRate,
 
     @Schema(description = "품절 여부", example = "false")
-    Boolean isSoldOut
+    boolean soldOut
 ) {
     public static ProductDetailResponse from(
         Long id,
@@ -34,7 +34,7 @@ public record ProductDetailResponse(
         Integer originalPrice,
         Integer discountPrice,
         BigDecimal discountRate,
-        Boolean isSoldOut
+        boolean soldOut
     ) {
         return new ProductDetailResponse(
             id,
@@ -43,7 +43,7 @@ public record ProductDetailResponse(
             originalPrice,
             discountPrice,
             discountRate,
-            isSoldOut
+            soldOut
         );
     }
 }

@@ -31,10 +31,10 @@ public class ProductOptionGroup extends BaseEntity {
     private String description;
 
     @Column(name = "is_required", nullable = false)
-    private Boolean isRequired;
+    private boolean required;
 
     @Column(name = "is_multiple_select", nullable = false)
-    private Boolean isMultipleSelect;
+    private boolean multipleSelect;
 
     @Column(name = "min_select")
     private Integer minSelect;
@@ -46,64 +46,64 @@ public class ProductOptionGroup extends BaseEntity {
     private Integer sort;
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible;
+    private boolean visible;
 
     private ProductOptionGroup(
         Long productId,
         String name,
         String description,
-        Boolean isRequired,
-        Boolean isMultipleSelect,
+        boolean required,
+        boolean multipleSelect,
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        Boolean isVisible
+        boolean visible
     ) {
         this.productId = productId;
         this.name = name;
         this.description = description;
-        this.isRequired = isRequired != null ? isRequired : false;
-        this.isMultipleSelect = isMultipleSelect != null ? isMultipleSelect : false;
+        this.required = required;
+        this.multipleSelect = multipleSelect;
         this.minSelect = minSelect;
         this.maxSelect = maxSelect;
         this.sort = sort;
-        this.isVisible = isVisible != null ? isVisible : true;
+        this.visible = visible;
     }
 
     public static ProductOptionGroup of(
         Long productId,
         String name,
         String description,
-        Boolean isRequired,
-        Boolean isMultipleSelect,
+        boolean required,
+        boolean multipleSelect,
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        Boolean isVisible
+        boolean visible
     ) {
         return new ProductOptionGroup(
-            productId, name, description, isRequired, isMultipleSelect,
-            minSelect, maxSelect, sort, isVisible
+            productId, name, description, required, multipleSelect,
+            minSelect, maxSelect, sort, visible
         );
     }
 
     public void update(
         String name,
         String description,
-        Boolean isRequired,
-        Boolean isMultipleSelect,
+        boolean required,
+        boolean multipleSelect,
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        Boolean isVisible
+        boolean visible
     ) {
         this.name = name;
         this.description = description;
-        this.isRequired = isRequired;
-        this.isMultipleSelect = isMultipleSelect;
+        this.required = required;
+        this.multipleSelect = multipleSelect;
         this.minSelect = minSelect;
         this.maxSelect = maxSelect;
         this.sort = sort;
-        this.isVisible = isVisible;
+        this.visible = visible;
     }
 }

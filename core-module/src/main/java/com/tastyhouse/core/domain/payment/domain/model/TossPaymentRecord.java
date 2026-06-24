@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -67,7 +66,7 @@ public class TossPaymentRecord extends BaseEntity {
     private LocalDateTime approvedAt;
 
     @Column(name = "use_escrow")
-    private Boolean useEscrow;
+    private boolean useEscrow;
 
     @Column(name = "last_transaction_key", length = 64)
     private String lastTransactionKey;
@@ -79,7 +78,7 @@ public class TossPaymentRecord extends BaseEntity {
     private Integer vat;
 
     @Column(name = "culture_expense")
-    private Boolean cultureExpense;
+    private boolean cultureExpense;
 
     @Column(name = "tax_free_amount")
     private Integer taxFreeAmount;
@@ -88,7 +87,7 @@ public class TossPaymentRecord extends BaseEntity {
     private Integer taxExemptionAmount;
 
     @Column(name = "is_partial_cancelable")
-    private Boolean isPartialCancelable;
+    private boolean partialCancelable;
 
     @Column(name = "card_amount")
     private Integer cardAmount;
@@ -109,7 +108,7 @@ public class TossPaymentRecord extends BaseEntity {
     private String cardApproveNo;
 
     @Column(name = "card_use_card_point")
-    private Boolean cardUseCardPoint;
+    private boolean cardUseCardPoint;
 
     @Column(name = "card_type", length = 20)
     private String cardType;
@@ -121,7 +120,7 @@ public class TossPaymentRecord extends BaseEntity {
     private String cardAcquireStatus;
 
     @Column(name = "card_is_interest_free")
-    private Boolean cardIsInterestFree;
+    private boolean cardInterestFree;
 
     @Column(name = "card_interest_payer", length = 20)
     private String cardInterestPayer;
@@ -148,7 +147,7 @@ public class TossPaymentRecord extends BaseEntity {
     private String virtualAccountRefundStatus;
 
     @Column(name = "virtual_account_expired")
-    private Boolean virtualAccountExpired;
+    private boolean virtualAccountExpired;
 
     @Column(name = "virtual_account_settlement_status", length = 30)
     private String virtualAccountSettlementStatus;
@@ -219,30 +218,25 @@ public class TossPaymentRecord extends BaseEntity {
     @Column(name = "discount_amount")
     private Integer discountAmount;
 
-    @Builder
-    public TossPaymentRecord(Long paymentId, String version, String paymentKey, String type,
-                             String orderId, String orderName, String mId, String currency,
-                             String method, Integer totalAmount, Integer balanceAmount, String status,
-                             LocalDateTime requestedAt, LocalDateTime approvedAt, Boolean useEscrow,
-                             String lastTransactionKey, Integer suppliedAmount, Integer vat,
-                             Boolean cultureExpense, Integer taxFreeAmount, Integer taxExemptionAmount,
-                             Boolean isPartialCancelable, Integer cardAmount, String cardIssuerCode,
-                             String cardAcquirerCode, String cardNumber, Integer cardInstallmentPlanMonths,
-                             String cardApproveNo, Boolean cardUseCardPoint, String cardType,
-                             String cardOwnerType, String cardAcquireStatus, Boolean cardIsInterestFree,
-                             String cardInterestPayer, String virtualAccountType, String virtualAccountNumber,
-                             String virtualAccountBankCode, String virtualAccountCustomerName,
-                             String virtualAccountDepositorName, LocalDateTime virtualAccountDueDate,
-                             String virtualAccountRefundStatus, Boolean virtualAccountExpired,
-                             String virtualAccountSettlementStatus, String mobilePhoneCustomerMobilePhone,
-                             String mobilePhoneSettlementStatus, String mobilePhoneReceiptUrl,
-                             String giftCertificateApproveNo, String giftCertificateSettlementStatus,
-                             String transferBankCode, String transferSettlementStatus, String receiptUrl,
-                             String checkoutUrl, String easyPayProvider, Integer easyPayAmount,
-                             Integer easyPayDiscountAmount, String country, String failureCode,
-                             String failureMessage, String cashReceiptType, String cashReceiptKey,
-                             String cashReceiptIssueNumber, String cashReceiptUrl, Integer cashReceiptAmount,
-                             Integer cashReceiptTaxFreeAmount, Integer discountAmount) {
+    private TossPaymentRecord(Long paymentId, String version, String paymentKey, String type,
+                              String orderId, String orderName, String mId, String currency,
+                              String method, Integer totalAmount, Integer balanceAmount, String status,
+                              LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
+                              String lastTransactionKey, Integer suppliedAmount, Integer vat,
+                              boolean cultureExpense, Integer taxFreeAmount, Integer taxExemptionAmount,
+                              boolean partialCancelable, Integer cardAmount, String cardIssuerCode,
+                              String cardAcquirerCode, String cardNumber, Integer cardInstallmentPlanMonths,
+                              String cardApproveNo, boolean cardUseCardPoint, String cardType,
+                              String cardOwnerType, String cardAcquireStatus, boolean cardInterestFree,
+                              String cardInterestPayer, String virtualAccountType, String virtualAccountNumber,
+                              String virtualAccountBankCode, String virtualAccountCustomerName,
+                              LocalDateTime virtualAccountDueDate, String virtualAccountRefundStatus,
+                              boolean virtualAccountExpired, String virtualAccountSettlementStatus,
+                              String mobilePhoneCustomerMobilePhone, String mobilePhoneSettlementStatus,
+                              String mobilePhoneReceiptUrl, String transferBankCode,
+                              String transferSettlementStatus, String easyPayProvider, Integer easyPayAmount,
+                              Integer easyPayDiscountAmount, String receiptUrl, String checkoutUrl,
+                              String failureCode, String failureMessage, String country) {
         this.paymentId = paymentId;
         this.version = version;
         this.paymentKey = paymentKey;
@@ -264,7 +258,7 @@ public class TossPaymentRecord extends BaseEntity {
         this.cultureExpense = cultureExpense;
         this.taxFreeAmount = taxFreeAmount;
         this.taxExemptionAmount = taxExemptionAmount;
-        this.isPartialCancelable = isPartialCancelable;
+        this.partialCancelable = partialCancelable;
         this.cardAmount = cardAmount;
         this.cardIssuerCode = cardIssuerCode;
         this.cardAcquirerCode = cardAcquirerCode;
@@ -275,13 +269,12 @@ public class TossPaymentRecord extends BaseEntity {
         this.cardType = cardType;
         this.cardOwnerType = cardOwnerType;
         this.cardAcquireStatus = cardAcquireStatus;
-        this.cardIsInterestFree = cardIsInterestFree;
+        this.cardInterestFree = cardInterestFree;
         this.cardInterestPayer = cardInterestPayer;
         this.virtualAccountType = virtualAccountType;
         this.virtualAccountNumber = virtualAccountNumber;
         this.virtualAccountBankCode = virtualAccountBankCode;
         this.virtualAccountCustomerName = virtualAccountCustomerName;
-        this.virtualAccountDepositorName = virtualAccountDepositorName;
         this.virtualAccountDueDate = virtualAccountDueDate;
         this.virtualAccountRefundStatus = virtualAccountRefundStatus;
         this.virtualAccountExpired = virtualAccountExpired;
@@ -289,24 +282,46 @@ public class TossPaymentRecord extends BaseEntity {
         this.mobilePhoneCustomerMobilePhone = mobilePhoneCustomerMobilePhone;
         this.mobilePhoneSettlementStatus = mobilePhoneSettlementStatus;
         this.mobilePhoneReceiptUrl = mobilePhoneReceiptUrl;
-        this.giftCertificateApproveNo = giftCertificateApproveNo;
-        this.giftCertificateSettlementStatus = giftCertificateSettlementStatus;
         this.transferBankCode = transferBankCode;
         this.transferSettlementStatus = transferSettlementStatus;
-        this.receiptUrl = receiptUrl;
-        this.checkoutUrl = checkoutUrl;
         this.easyPayProvider = easyPayProvider;
         this.easyPayAmount = easyPayAmount;
         this.easyPayDiscountAmount = easyPayDiscountAmount;
-        this.country = country;
+        this.receiptUrl = receiptUrl;
+        this.checkoutUrl = checkoutUrl;
         this.failureCode = failureCode;
         this.failureMessage = failureMessage;
-        this.cashReceiptType = cashReceiptType;
-        this.cashReceiptKey = cashReceiptKey;
-        this.cashReceiptIssueNumber = cashReceiptIssueNumber;
-        this.cashReceiptUrl = cashReceiptUrl;
-        this.cashReceiptAmount = cashReceiptAmount;
-        this.cashReceiptTaxFreeAmount = cashReceiptTaxFreeAmount;
-        this.discountAmount = discountAmount;
+        this.country = country;
+    }
+
+    public static TossPaymentRecord create(Long paymentId, String version, String paymentKey, String type,
+                                           String orderId, String orderName, String mId, String currency,
+                                           String method, Integer totalAmount, Integer balanceAmount, String status,
+                                           LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
+                                           String lastTransactionKey, Integer suppliedAmount, Integer vat,
+                                           boolean cultureExpense, Integer taxFreeAmount, Integer taxExemptionAmount,
+                                           boolean partialCancelable, Integer cardAmount, String cardIssuerCode,
+                                           String cardAcquirerCode, String cardNumber, Integer cardInstallmentPlanMonths,
+                                           String cardApproveNo, boolean cardUseCardPoint, String cardType,
+                                           String cardOwnerType, String cardAcquireStatus, boolean cardInterestFree,
+                                           String cardInterestPayer, String virtualAccountType, String virtualAccountNumber,
+                                           String virtualAccountBankCode, String virtualAccountCustomerName,
+                                           LocalDateTime virtualAccountDueDate, String virtualAccountRefundStatus,
+                                           boolean virtualAccountExpired, String virtualAccountSettlementStatus,
+                                           String mobilePhoneCustomerMobilePhone, String mobilePhoneSettlementStatus,
+                                           String mobilePhoneReceiptUrl, String transferBankCode,
+                                           String transferSettlementStatus, String easyPayProvider, Integer easyPayAmount,
+                                           Integer easyPayDiscountAmount, String receiptUrl, String checkoutUrl,
+                                           String failureCode, String failureMessage, String country) {
+        return new TossPaymentRecord(paymentId, version, paymentKey, type, orderId, orderName, mId, currency,
+            method, totalAmount, balanceAmount, status, requestedAt, approvedAt, useEscrow, lastTransactionKey,
+            suppliedAmount, vat, cultureExpense, taxFreeAmount, taxExemptionAmount, partialCancelable, cardAmount,
+            cardIssuerCode, cardAcquirerCode, cardNumber, cardInstallmentPlanMonths, cardApproveNo, cardUseCardPoint,
+            cardType, cardOwnerType, cardAcquireStatus, cardInterestFree, cardInterestPayer, virtualAccountType,
+            virtualAccountNumber, virtualAccountBankCode, virtualAccountCustomerName, virtualAccountDueDate,
+            virtualAccountRefundStatus, virtualAccountExpired, virtualAccountSettlementStatus,
+            mobilePhoneCustomerMobilePhone, mobilePhoneSettlementStatus, mobilePhoneReceiptUrl, transferBankCode,
+            transferSettlementStatus, easyPayProvider, easyPayAmount, easyPayDiscountAmount, receiptUrl, checkoutUrl,
+            failureCode, failureMessage, country);
     }
 }

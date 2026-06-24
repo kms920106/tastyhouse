@@ -21,7 +21,7 @@ public record SignUpRequest(
     @Schema(description = "비밀번호 (영문, 숫자, 특수문자 포함 8~20자)", example = "Password1!")
     @NotBlank(message = "비밀번호를 입력해주세요.")
     @Pattern(
-        regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,20}$",
+        regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,20}$",
         message = "비밀번호는 영문, 숫자, 특수문자를 포함하여 8~20자로 입력해주세요."
     )
     String password,
@@ -50,13 +50,13 @@ public record SignUpRequest(
     String phoneNumber,
 
     @Schema(description = "푸시 알림 수신 동의", example = "true")
-    Boolean pushNotificationEnabled,
+    boolean pushNotificationEnabled,
 
     @Schema(description = "마케팅 정보 수신 동의", example = "false")
-    Boolean marketingInfoEnabled,
+    boolean marketingInfoEnabled,
 
     @Schema(description = "이벤트 정보 수신 동의", example = "false")
-    Boolean eventInfoEnabled,
+    boolean eventInfoEnabled,
 
     @Schema(description = "SMS 휴대폰 인증 토큰 (휴대폰번호 입력 시 필수)")
     String phoneVerifyToken,

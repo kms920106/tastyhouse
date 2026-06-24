@@ -28,7 +28,7 @@ public class ReviewComment extends BaseEntity {
     private String content;
 
     @Column(name = "is_hidden", nullable = false)
-    private Boolean isHidden = false;
+    private boolean hidden = false;
 
     protected ReviewComment() {
     }

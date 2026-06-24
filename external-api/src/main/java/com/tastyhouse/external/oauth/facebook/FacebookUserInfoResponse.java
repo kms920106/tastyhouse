@@ -15,12 +15,12 @@ public record FacebookUserInfoResponse(
 
     public record PictureData(
     @JsonProperty("url") String url,
-    @JsonProperty("is_silhouette") Boolean isSilhouette
+    @JsonProperty("is_silhouette") boolean isSilhouette
     ) {}
 
     public String getProfileImageUrl() {
     if (picture == null || picture.data() == null) return null;
-    if (Boolean.TRUE.equals(picture.data().isSilhouette())) return null;
+    if (picture.data().isSilhouette()) return null;
     return picture.data().url();
     }
 }

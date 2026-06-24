@@ -43,7 +43,7 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
                 coupon.useStartAt,
                 coupon.useEndAt,
                 memberCoupon.expiredAt,
-                memberCoupon.isUsed,
+                memberCoupon.used,
                 memberCoupon.usedAt
             ))
             .from(memberCoupon)
@@ -67,14 +67,14 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
                 coupon.useStartAt,
                 coupon.useEndAt,
                 memberCoupon.expiredAt,
-                memberCoupon.isUsed,
+                memberCoupon.used,
                 memberCoupon.usedAt
             ))
             .from(memberCoupon)
             .join(coupon).on(coupon.id.eq(memberCoupon.couponId))
             .where(
                 memberCoupon.memberId.eq(memberId),
-                memberCoupon.isUsed.isFalse(),
+                memberCoupon.used.isFalse(),
                 memberCoupon.expiredAt.gt(now)
             )
             .fetch();

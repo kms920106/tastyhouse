@@ -10,7 +10,6 @@ import com.tastyhouse.core.domain.product.domain.model.ProductBbq;
 import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.core.domain.product.domain.model.ProductCommonOption;
 import com.tastyhouse.core.domain.product.domain.model.ProductCommonOptionGroup;
-import com.tastyhouse.core.domain.product.domain.model.ProductImage;
 import com.tastyhouse.core.domain.product.domain.model.ProductOption;
 import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
 import com.tastyhouse.core.domain.product.domain.repository.ProductBbqRepository;
@@ -52,10 +51,6 @@ public class ProductQueryService {
         return productRepository.findById(productId);
     }
 
-    public Optional<ProductCategory> findProductCategoryById(Long categoryId) {
-        return productCategoryRepository.findById(categoryId);
-    }
-
     public List<Product> findActiveProductsByShopId(Long shopId) {
         return productRepository.findActiveByShopIdOrderByRepresentativeAndRating(shopId);
     }
@@ -68,32 +63,12 @@ public class ProductQueryService {
         return productCategoryRepository.findCategoriesByNameAndShopId(name, shopId);
     }
 
-    public List<ProductOptionGroup> findProductOptionGroupsByProductId(Long productId) {
-        return productOptionGroupRepository.findActiveByProductIdOrderBySort(productId);
-    }
-
     public Optional<ProductOptionGroup> findProductOptionGroupById(Long optionGroupId) {
         return productOptionGroupRepository.findById(optionGroupId);
     }
 
     public Optional<ProductOption> findProductOptionById(Long optionId) {
         return productOptionRepository.findById(optionId);
-    }
-
-    public List<ProductOption> findProductOptionsByOptionGroupIds(List<Long> optionGroupIds) {
-        return productOptionRepository.findActiveByOptionGroupIdsOrderBySort(optionGroupIds);
-    }
-
-    public List<ProductCommonOptionGroup> findProductCommonOptionGroupsByProductId(Long productId) {
-        return productCommonOptionGroupRepository.findActiveByProductIdOrderBySort(productId);
-    }
-
-    public List<ProductCommonOption> findProductCommonOptionsByOptionGroupIds(List<Long> optionGroupIds) {
-        return productCommonOptionRepository.findActiveByOptionGroupIdsOrderBySort(optionGroupIds);
-    }
-
-    public List<ProductImage> findActiveImagesByProductId(Long productId) {
-        return productImageRepository.findActiveByProductIdOrderBySort(productId);
     }
 
     public String getFirstImageFilePath(Long productId) {
@@ -133,11 +108,11 @@ public class ProductQueryService {
                 List<ProductOptionsResult.OptionResult> optionResults = byGroupId
                     .getOrDefault(group.getId(), Collections.emptyList())
                     .stream()
-                    .map(o -> new ProductOptionsResult.OptionResult(o.getId(), o.getName(), o.getAdditionalPrice(), o.getIsSoldOut()))
+                    .map(o -> new ProductOptionsResult.OptionResult(o.getId(), o.getName(), o.getAdditionalPrice(), o.isSoldOut()))
                     .toList();
                 result.add(new ProductOptionsResult.OptionGroupResult(
                     group.getId(), group.getName(), group.getDescription(),
-                    group.getIsRequired(), group.getIsMultipleSelect(),
+                    group.isRequired(), group.isMultipleSelect(),
                     group.getMinSelect(), group.getMaxSelect(), false, optionResults
                 ));
             }
@@ -154,11 +129,11 @@ public class ProductQueryService {
                 List<ProductOptionsResult.OptionResult> optionResults = byCommonGroupId
                     .getOrDefault(group.getId(), Collections.emptyList())
                     .stream()
-                    .map(o -> new ProductOptionsResult.OptionResult(o.getId(), o.getName(), o.getAdditionalPrice(), o.getIsSoldOut()))
+                    .map(o -> new ProductOptionsResult.OptionResult(o.getId(), o.getName(), o.getAdditionalPrice(), o.isSoldOut()))
                     .toList();
                 result.add(new ProductOptionsResult.OptionGroupResult(
                     group.getId(), group.getName(), group.getDescription(),
-                    group.getIsRequired(), group.getIsMultipleSelect(),
+                    group.isRequired(), group.isMultipleSelect(),
                     group.getMinSelect(), group.getMaxSelect(), true, optionResults
                 ));
             }
@@ -253,7 +228,8 @@ public class ProductQueryService {
                 ? commonGroupProductId.get(optionInfo.groupId())
                 : normalGroupProductId.get(optionInfo.groupId());
             // 그룹이 없거나, 옵션이 요청한 상품에 속하지 않으면 제외
-            if (ownerProductId == null || !productId.equals(ownerProductId)) {
+            // (ownerProductId 가 null 이면 productId.equals 가 false 이므로 함께 걸러진다)
+            if (!productId.equals(ownerProductId)) {
                 continue;
             }
             List<ProductBatchResult.BatchOptionResult> bucket = optionsByProductId.get(productId);
@@ -287,10 +263,6 @@ public class ProductQueryService {
     }
 
     private record OptionInfo(Long groupId, String name, Integer additionalPrice, boolean common) {}
-
-    public Optional<ProductBbq> findBbqByProductId(Long productId) {
-        return productBbqRepository.findByProductId(productId);
-    }
 
     public Optional<ProductBbq> findFirstBbqWithOptionsSyncPending() {
         return productBbqRepository.findFirstWithOptionsSyncPending();

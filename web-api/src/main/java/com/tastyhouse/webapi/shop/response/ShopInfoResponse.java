@@ -58,21 +58,21 @@ public record ShopInfoResponse(
         String closeTime,
 
         @Schema(description = "휴무 여부", example = "false")
-        Boolean isClosed
+        boolean closed
     ) {
         public static BusinessHourItem from(
             String dayType,
             String dayTypeDescription,
             String openTime,
             String closeTime,
-            Boolean isClosed
+            boolean closed
         ) {
             return new BusinessHourItem(
                 dayType,
                 dayTypeDescription,
                 openTime,
                 closeTime,
-                isClosed
+                closed
             );
         }
     }

@@ -51,18 +51,18 @@ public class ProductRepositoryImpl implements ProductRepository {
             .innerJoin(shop).on(product.shopId.eq(shop.id))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
-                    .and(productImage.isVisible.eq(true))
+                    .and(productImage.visible.eq(true))
                     .and(productImage.sort.eq(
                         JPAExpressions
                             .select(subProductImage.sort.min())
                             .from(subProductImage)
                             .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.isVisible.eq(true)))
+                                .and(subProductImage.visible.eq(true)))
                     ))
             )
             .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
             .where(product.discountInfo.discountPrice.isNotNull()
-                .and(product.isVisible.eq(true)))
+                .and(product.visible.eq(true)))
             .orderBy(product.discountInfo.discountRate.desc());
 
         long total = query.fetch().size();
@@ -83,8 +83,8 @@ public class ProductRepositoryImpl implements ProductRepository {
             .innerJoin(shop).on(product.shopId.eq(shop.id))
             .where(
                 product.name.containsIgnoreCase(keyword)
-                    .and(product.isVisible.eq(true))
-                    .and(product.isSoldOut.eq(false))
+                    .and(product.visible.eq(true))
+                    .and(product.soldOut.eq(false))
                     .and(shop.permanentlyClosed.eq(false))
             )
             .fetchOne();
@@ -102,29 +102,29 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.discountInfo.discountRate,
                 product.rating,
                 product.reviewCount,
-                product.isRepresentative,
+                product.representative,
                 product.spiciness
             ))
             .from(product)
             .innerJoin(shop).on(product.shopId.eq(shop.id))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
-                    .and(productImage.isVisible.eq(true))
+                    .and(productImage.visible.eq(true))
                     .and(productImage.sort.eq(
                         JPAExpressions.select(subProductImage.sort.min())
                             .from(subProductImage)
                             .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.isVisible.eq(true)))
+                                .and(subProductImage.visible.eq(true)))
                     ))
             )
             .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
             .where(
                 product.name.containsIgnoreCase(keyword)
-                    .and(product.isVisible.eq(true))
-                    .and(product.isSoldOut.eq(false))
+                    .and(product.visible.eq(true))
+                    .and(product.soldOut.eq(false))
                     .and(shop.permanentlyClosed.eq(false))
             )
-            .orderBy(product.isRepresentative.desc().nullsLast(), product.rating.desc().nullsLast())
+            .orderBy(product.representative.desc().nullsLast(), product.rating.desc().nullsLast())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
@@ -148,18 +148,18 @@ public class ProductRepositoryImpl implements ProductRepository {
             .innerJoin(shop).on(shop.id.eq(product.shopId))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
-                    .and(productImage.isVisible.eq(true))
+                    .and(productImage.visible.eq(true))
                     .and(productImage.sort.eq(
                         JPAExpressions
                             .select(subProductImage.sort.min())
                             .from(subProductImage)
                             .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.isVisible.eq(true)))
+                                .and(subProductImage.visible.eq(true)))
                     ))
             )
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.imageFileId))
             .where(product.shopId.eq(shopId)
-                .and(product.isVisible.eq(true)))
+                .and(product.visible.eq(true)))
             .fetch();
     }
 
@@ -168,7 +168,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         return queryFactory
             .selectFrom(product)
             .where(product.shopId.eq(shopId))
-            .orderBy(product.isRepresentative.desc(), product.rating.desc(), product.id.asc())
+            .orderBy(product.representative.desc(), product.rating.desc(), product.id.asc())
             .fetch();
     }
 
@@ -176,8 +176,8 @@ public class ProductRepositoryImpl implements ProductRepository {
     public List<Product> findActiveByShopIdOrderByRepresentativeAndRating(Long shopId) {
         return queryFactory
             .selectFrom(product)
-            .where(product.shopId.eq(shopId), product.isVisible.eq(true))
-            .orderBy(product.isRepresentative.desc(), product.rating.desc(), product.id.asc())
+            .where(product.shopId.eq(shopId), product.visible.eq(true))
+            .orderBy(product.representative.desc(), product.rating.desc(), product.id.asc())
             .fetch();
     }
 
@@ -201,7 +201,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         }
         return queryFactory
             .selectFrom(product)
-            .where(product.id.in(ids), product.isVisible.eq(true))
+            .where(product.id.in(ids), product.visible.eq(true))
             .fetch();
     }
 

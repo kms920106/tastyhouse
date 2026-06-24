@@ -65,7 +65,7 @@ public class ReviewCommandService {
             cmd.tasteRating().doubleValue(),
             cmd.amountRating().doubleValue(),
             cmd.priceRating().doubleValue(),
-            null, null, null, null,
+            null, null, null, false,
             cmd.orderId()
         );
 
@@ -110,7 +110,7 @@ public class ReviewCommandService {
             cmd.tasteRating().doubleValue(),
             cmd.amountRating().doubleValue(),
             cmd.priceRating().doubleValue(),
-            null, null, null, null
+            null, null, null, false
         );
 
         reviewImageRepository.deleteByReviewId(cmd.reviewId());

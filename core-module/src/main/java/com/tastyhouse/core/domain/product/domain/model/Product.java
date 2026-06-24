@@ -50,16 +50,16 @@ public class Product extends BaseEntity {
     private Integer reviewCount;
 
     @Column(name = "is_representative")
-    private Boolean isRepresentative;
+    private boolean representative;
 
     @Column(name = "spiciness")
     private Integer spiciness;
 
     @Column(name = "is_sold_out", nullable = false)
-    private Boolean isSoldOut;
+    private boolean soldOut;
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible;
+    private boolean visible;
 
     @Column(name = "sort", nullable = false)
     private Integer sort;
@@ -74,10 +74,10 @@ public class Product extends BaseEntity {
         BigDecimal discountRate,
         Double rating,
         Integer reviewCount,
-        Boolean isRepresentative,
+        boolean representative,
         Integer spiciness,
-        Boolean isSoldOut,
-        Boolean isVisible,
+        boolean soldOut,
+        boolean visible,
         Integer sort
     ) {
         this.shopId = shopId;
@@ -88,10 +88,10 @@ public class Product extends BaseEntity {
         this.discountInfo = ProductDiscountInfo.of(discountPrice, discountRate);
         this.rating = rating;
         this.reviewCount = reviewCount != null ? reviewCount : 0;
-        this.isRepresentative = isRepresentative != null ? isRepresentative : false;
+        this.representative = representative;
         this.spiciness = spiciness;
-        this.isSoldOut = isSoldOut != null ? isSoldOut : false;
-        this.isVisible = isVisible != null ? isVisible : true;
+        this.soldOut = soldOut;
+        this.visible = visible;
         this.sort = sort;
     }
 
@@ -105,17 +105,17 @@ public class Product extends BaseEntity {
         BigDecimal discountRate,
         Double rating,
         Integer reviewCount,
-        Boolean isRepresentative,
+        boolean representative,
         Integer spiciness,
-        Boolean isSoldOut,
-        Boolean isVisible,
+        boolean soldOut,
+        boolean visible,
         Integer sort
     ) {
         return new Product(
             shopId, productCategoryId, name, description,
             originalPrice, discountPrice, discountRate,
-            rating, reviewCount, isRepresentative, spiciness,
-            isSoldOut, isVisible, sort
+            rating, reviewCount, representative, spiciness,
+            soldOut, visible, sort
         );
     }
 
@@ -133,11 +133,11 @@ public class Product extends BaseEntity {
     }
 
     public void markSoldOut() {
-        this.isSoldOut = true;
+        this.soldOut = true;
     }
 
     public void deactivate() {
-        this.isVisible = false;
+        this.visible = false;
     }
 
     public void update(
@@ -147,10 +147,10 @@ public class Product extends BaseEntity {
         Integer originalPrice,
         Integer discountPrice,
         BigDecimal discountRate,
-        Boolean isRepresentative,
+        boolean representative,
         Integer spiciness,
-        Boolean isSoldOut,
-        Boolean isVisible,
+        boolean soldOut,
+        boolean visible,
         Integer sort
     ) {
         this.productCategoryId = productCategoryId;
@@ -158,10 +158,10 @@ public class Product extends BaseEntity {
         this.description = description;
         this.originalPrice = originalPrice;
         this.discountInfo = ProductDiscountInfo.of(discountPrice, discountRate);
-        this.isRepresentative = isRepresentative;
+        this.representative = representative;
         this.spiciness = spiciness;
-        this.isSoldOut = isSoldOut;
-        this.isVisible = isVisible;
+        this.soldOut = soldOut;
+        this.visible = visible;
         this.sort = sort;
     }
 }

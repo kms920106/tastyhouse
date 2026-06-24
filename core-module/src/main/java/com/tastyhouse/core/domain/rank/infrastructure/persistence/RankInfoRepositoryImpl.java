@@ -29,7 +29,7 @@ public class RankInfoRepositoryImpl implements RankInfoRepository {
                 rankPeriod.endAt
             ))
             .from(rankPeriod)
-            .where(rankPeriod.isVisible.isTrue())
+            .where(rankPeriod.visible.isTrue())
             .orderBy(rankPeriod.startAt.desc())
             .limit(1)
             .fetchOne();
@@ -50,7 +50,7 @@ public class RankInfoRepositoryImpl implements RankInfoRepository {
             .from(rankPeriod)
             .innerJoin(rankPrize).on(rankPrize.rankId.eq(rankPeriod.id))
             .leftJoin(uploadedFile).on(rankPrize.imageFileId.eq(uploadedFile.id))
-            .where(rankPeriod.isVisible.isTrue())
+            .where(rankPeriod.visible.isTrue())
             .orderBy(rankPeriod.startAt.desc(), rankPrize.prizeRank.asc())
             .fetch();
     }

@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.review.response;
 
 public record ReviewLikeStatusResponse(
-    Boolean liked
+    boolean liked
 ) {
-    public static ReviewLikeStatusResponse from(Boolean liked) {
+    public static ReviewLikeStatusResponse from(boolean liked) {
         return new ReviewLikeStatusResponse(liked);
     }
 }

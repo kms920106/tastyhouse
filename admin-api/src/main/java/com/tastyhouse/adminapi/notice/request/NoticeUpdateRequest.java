@@ -16,6 +16,6 @@ public record NoticeUpdateRequest(
 
     @NotNull(message = "노출 여부는 필수입니다.")
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
-    Boolean visible
+    boolean visible
 ) {
 }

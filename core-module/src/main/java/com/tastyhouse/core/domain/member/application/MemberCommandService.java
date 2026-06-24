@@ -40,7 +40,7 @@ public class MemberCommandService {
     private final ReferralCommandService referralCommandService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public Member signUp(
+    public void signUp(
         String username,
         String password,
         String nickname,
@@ -48,9 +48,9 @@ public class MemberCommandService {
         Gender gender,
         Integer birthDate,
         String phoneNumber,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
         String referrerNickname
     ) {
         if (memberRepository.existsByUsername(username)) {
@@ -82,8 +82,6 @@ public class MemberCommandService {
         eventPublisher.publishEvent(new MemberRegisteredEvent(
             member.getMemberId(), member.getUsername(), LocalDateTime.now()
         ));
-
-        return member;
     }
 
     public Member signUpSocial(
@@ -93,14 +91,26 @@ public class MemberCommandService {
         Gender gender,
         Integer birthDate,
         String phoneNumber,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
+        String referrerNickname
     ) {
         Member member = memberRepository.save(Member.ofSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         ));
+
+        if (StringUtils.hasText(referrerNickname)) {
+            if (referrerNickname.equals(nickname)) {
+                throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
+            }
+            Member referrer = memberRepository.findByNickname(referrerNickname)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
+            referralCommandService.register(
+                new RegisterReferralCommand(referrer.getId(), member.getId())
+            );
+        }
 
         eventPublisher.publishEvent(new MemberRegisteredEvent(
             member.getMemberId(), member.getUsername(), LocalDateTime.now()
@@ -113,7 +123,7 @@ public class MemberCommandService {
         Member member = memberRepository.findById(command.memberId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        member.withdraw(command.reason());
+        member.withdraw();
         memberRepository.save(member);
 
         LocalDateTime now = LocalDateTime.now();
@@ -151,7 +161,7 @@ public class MemberCommandService {
         return memberRepository.bulkUpdateGrade(memberIds, grade);
     }
 
-    public MemberSocialAccount saveSocialAccount(MemberSocialAccount socialAccount) {
-        return memberSocialAccountRepository.save(socialAccount);
+    public void saveSocialAccount(MemberSocialAccount socialAccount) {
+        memberSocialAccountRepository.save(socialAccount);
     }
 }

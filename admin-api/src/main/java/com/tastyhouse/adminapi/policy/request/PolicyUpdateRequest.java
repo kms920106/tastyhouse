@@ -18,7 +18,7 @@ public record PolicyUpdateRequest(
 
     @NotNull(message = "필수 동의 여부는 필수입니다.")
     @Schema(description = "필수 동의 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
-    Boolean mandatory,
+    boolean mandatory,
 
     @NotNull(message = "시행일은 필수입니다.")
     @Schema(description = "시행일", example = "2026-06-01T00:00:00", requiredMode = Schema.RequiredMode.REQUIRED)

@@ -10,8 +10,8 @@ public record PolicyDetailResponse(
     String version,
     String title,
     String content,
-    Boolean current,
-    Boolean mandatory,
+    boolean current,
+    boolean mandatory,
     LocalDateTime effectiveDate,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
@@ -22,8 +22,8 @@ public record PolicyDetailResponse(
         String version,
         String title,
         String content,
-        Boolean current,
-        Boolean mandatory,
+        boolean current,
+        boolean mandatory,
         LocalDateTime effectiveDate,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

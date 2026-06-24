@@ -37,12 +37,12 @@ public class RankPeriod extends BaseEntity {
     private LocalDateTime endAt;
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible;
+    private boolean visible;
 
-    private RankPeriod(LocalDateTime startAt, LocalDateTime endAt, Boolean isVisible) {
+    private RankPeriod(LocalDateTime startAt, LocalDateTime endAt, boolean visible) {
         this.startAt = startAt;
         this.endAt = endAt;
-        this.isVisible = isVisible;
+        this.visible = visible;
     }
 
     public static RankPeriod of(LocalDateTime startAt, LocalDateTime endAt) {

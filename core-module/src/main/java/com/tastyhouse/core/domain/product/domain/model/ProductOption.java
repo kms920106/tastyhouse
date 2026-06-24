@@ -34,25 +34,25 @@ public class ProductOption extends BaseEntity {
     private Integer sort;
 
     @Column(name = "is_sold_out", nullable = false)
-    private Boolean isSoldOut;
+    private boolean soldOut;
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible;
+    private boolean visible;
 
     private ProductOption(
         Long optionGroupId,
         String name,
         Integer additionalPrice,
         Integer sort,
-        Boolean isSoldOut,
-        Boolean isVisible
+        boolean soldOut,
+        boolean visible
     ) {
         this.optionGroupId = optionGroupId;
         this.name = name;
         this.additionalPrice = additionalPrice != null ? additionalPrice : 0;
         this.sort = sort;
-        this.isSoldOut = isSoldOut != null ? isSoldOut : false;
-        this.isVisible = isVisible != null ? isVisible : true;
+        this.soldOut = soldOut;
+        this.visible = visible;
     }
 
     public static ProductOption of(
@@ -60,17 +60,17 @@ public class ProductOption extends BaseEntity {
         String name,
         Integer additionalPrice,
         Integer sort,
-        Boolean isSoldOut,
-        Boolean isVisible
+        boolean soldOut,
+        boolean visible
     ) {
-        return new ProductOption(optionGroupId, name, additionalPrice, sort, isSoldOut, isVisible);
+        return new ProductOption(optionGroupId, name, additionalPrice, sort, soldOut, visible);
     }
 
-    public void update(String name, Integer additionalPrice, Integer sort, Boolean isSoldOut, Boolean isVisible) {
+    public void update(String name, Integer additionalPrice, Integer sort, boolean soldOut, boolean visible) {
         this.name = name;
         this.additionalPrice = additionalPrice;
         this.sort = sort;
-        this.isSoldOut = isSoldOut;
-        this.isVisible = isVisible;
+        this.soldOut = soldOut;
+        this.visible = visible;
     }
 }

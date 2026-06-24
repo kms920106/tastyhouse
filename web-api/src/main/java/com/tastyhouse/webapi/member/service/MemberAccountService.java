@@ -44,9 +44,9 @@ public class MemberAccountService {
         Gender gender,
         Integer birthDate,
         String phoneNumber,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
         String referrerNickname
     ) {
         memberCommandService.signUp(
@@ -115,9 +115,9 @@ public class MemberAccountService {
         String phoneNumber,
         Integer birthDate,
         Gender gender,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled
     ) {
         memberCommandService.updatePersonalInfo(
             new UpdatePersonalInfoCommand(

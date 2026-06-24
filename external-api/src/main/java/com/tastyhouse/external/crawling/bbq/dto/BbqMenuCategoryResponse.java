@@ -26,5 +26,5 @@ public class BbqMenuCategoryResponse {
     private Integer priority;
 
     @JsonProperty("isFullSize")
-    private Boolean isFullSize;
+    private Boolean fullSize;
 }

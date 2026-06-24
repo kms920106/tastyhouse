@@ -24,7 +24,7 @@ public class SearchService {
 
     public List<PopularKeywordResponse> getPopularKeywords() {
         return searchKeywordQueryService.findActivePopularKeywords().stream()
-            .map(r -> PopularKeywordResponse.of(r.rank(), r.keyword(), r.isNew()))
+            .map(r -> PopularKeywordResponse.of(r.rank(), r.keyword(), r.newKeyword()))
             .toList();
     }
 
@@ -45,7 +45,7 @@ public class SearchService {
                 dto.discountRate(),
                 dto.rating(),
                 dto.reviewCount(),
-                dto.isRepresentative(),
+                dto.representative(),
                 dto.spiciness()
             ));
     }

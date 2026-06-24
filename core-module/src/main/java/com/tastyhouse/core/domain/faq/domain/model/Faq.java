@@ -31,5 +31,5 @@ public class Faq extends BaseEntity {
     private Integer sort;
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean visible = true;
+    private boolean visible = true;
 }

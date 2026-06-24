@@ -4,5 +4,5 @@ public record SaveProductBbqCommand(
     Long productId,
     Long bbqMenuId,
     Long bbqCategoryId,
-    Boolean isOptionsSynced
+    boolean optionsSynced
 ) {}

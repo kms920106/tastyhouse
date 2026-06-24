@@ -9,7 +9,7 @@ public record CreatePolicyCommand(
     String version,
     String title,
     String content,
-    Boolean mandatory,
+    boolean mandatory,
     LocalDateTime effectiveDate,
     String createdBy
 ) {}

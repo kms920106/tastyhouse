@@ -62,7 +62,7 @@ public class NoticeApiController {
         Long id = noticeCommandService.createNotice(new CreateNoticeCommand(
             request.title(),
             request.content(),
-            request.visibleOrDefault()
+            request.visible()
         ));
         return ResponseEntity.ok(ApiResponse.success(id));
     }
@@ -76,7 +76,7 @@ public class NoticeApiController {
             notice.getId(),
             notice.getTitle(),
             notice.getContent(),
-            notice.getVisible(),
+            notice.isVisible(),
             notice.getCreatedAt(),
             notice.getUpdatedAt()
         );

@@ -12,9 +12,9 @@ public record CreateProductCommand(
     BigDecimal discountRate,
     Double rating,
     Integer reviewCount,
-    Boolean isRepresentative,
+    boolean representative,
     Integer spiciness,
-    Boolean isSoldOut,
-    Boolean isVisible,
+    boolean soldOut,
+    boolean visible,
     Integer sort
 ) {}

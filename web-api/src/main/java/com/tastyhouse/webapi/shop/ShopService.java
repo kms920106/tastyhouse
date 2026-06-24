@@ -296,8 +296,8 @@ public class ShopService {
     }
 
     @Transactional(readOnly = true)
-    public ShopReviewsByRatingWithPagination getShopReviewsByRatingWithPagination(Long shopId, int page, int size) {
-        ReviewsByRatingResult result = reviewQueryService.findShopReviewsByRating(shopId, page, size);
+    public ShopReviewsByRatingWithPagination getShopReviewsByRatingWithPagination(Long shopId, int page, int size, Boolean hasImage) {
+        ReviewsByRatingResult result = reviewQueryService.findShopReviewsByRating(shopId, page, size, hasImage);
 
         Map<Integer, List<ShopReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
                 .collect(Collectors.toMap(
@@ -415,7 +415,7 @@ public class ShopService {
             product.getDiscountRate(),
             product.getRating(),
             product.getReviewCount(),
-            product.getIsRepresentative(),
+            product.isRepresentative(),
             product.getSpiciness()
         );
     }

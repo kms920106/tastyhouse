@@ -22,13 +22,13 @@ public record PersonalInfoResponse(
     Gender gender,
 
     @Schema(description = "푸시 알림 수신 동의", example = "false")
-    Boolean pushNotificationEnabled,
+    boolean pushNotificationEnabled,
 
     @Schema(description = "마케팅 정보 수신 동의", example = "false")
-    Boolean marketingInfoEnabled,
+    boolean marketingInfoEnabled,
 
     @Schema(description = "이벤트 정보 수신 동의", example = "false")
-    Boolean eventInfoEnabled
+    boolean eventInfoEnabled
 ) {
     public static PersonalInfoResponse from(Member member) {
         return new PersonalInfoResponse(
@@ -37,9 +37,9 @@ public record PersonalInfoResponse(
             member.getPhoneNumber().getValue(),
             member.getBirthDate(),
             member.getGender(),
-            member.getPushNotificationEnabled(),
-            member.getMarketingInfoEnabled(),
-            member.getEventInfoEnabled()
+            member.isPushNotificationEnabled(),
+            member.isMarketingInfoEnabled(),
+            member.isEventInfoEnabled()
         );
     }
 }

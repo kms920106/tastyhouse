@@ -31,22 +31,22 @@ public class ProductCategory extends BaseEntity {
     private Integer sort;
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible;
+    private boolean visible;
 
-    private ProductCategory(Long shopId, String name, Integer sort, Boolean isVisible) {
+    private ProductCategory(Long shopId, String name, Integer sort, boolean visible) {
         this.shopId = shopId;
         this.name = name;
         this.sort = sort;
-        this.isVisible = isVisible != null ? isVisible : true;
+        this.visible = visible;
     }
 
-    public static ProductCategory of(Long shopId, String name, Integer sort, Boolean isVisible) {
-        return new ProductCategory(shopId, name, sort, isVisible);
+    public static ProductCategory of(Long shopId, String name, Integer sort, boolean visible) {
+        return new ProductCategory(shopId, name, sort, visible);
     }
 
-    public void update(String displayName, Integer sort, Boolean isVisible) {
+    public void update(String displayName, Integer sort, boolean visible) {
         this.name = displayName;
         this.sort = sort;
-        this.isVisible = isVisible;
+        this.visible = visible;
     }
 }

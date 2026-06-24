@@ -9,7 +9,7 @@ public record PolicyListItemResponse(
     PolicyType type,
     String version,
     String title,
-    Boolean current,
+    boolean current,
     LocalDateTime effectiveDate,
     LocalDateTime createdAt
 ) {
@@ -18,7 +18,7 @@ public record PolicyListItemResponse(
         PolicyType type,
         String version,
         String title,
-        Boolean current,
+        boolean current,
         LocalDateTime effectiveDate,
         LocalDateTime createdAt
     ) {

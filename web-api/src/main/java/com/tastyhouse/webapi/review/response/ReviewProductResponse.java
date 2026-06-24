@@ -47,7 +47,7 @@ public record ReviewProductResponse(
     Double hygieneRating,
 
     @Schema(description = "재방문 의사", example = "true")
-    Boolean willRevisit,
+    boolean willRevisit,
 
     @Schema(description = "회원 ID", example = "1")
     Long memberId,
@@ -81,7 +81,7 @@ public record ReviewProductResponse(
         Double atmosphereRating,
         Double kindnessRating,
         Double hygieneRating,
-        Boolean willRevisit,
+        boolean willRevisit,
         Long memberId,
         String memberNickname,
         String memberProfileImageUrl,

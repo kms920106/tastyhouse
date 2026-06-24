@@ -28,19 +28,19 @@ public class Notice extends BaseEntity {
     private String content; // 공지사항 본문 내용
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean visible = true; // 노출 여부 (true: 노출)
+    private boolean visible = true; // 노출 여부 (true: 노출)
 
-    private Notice(String title, String content, Boolean visible) {
+    private Notice(String title, String content, boolean visible) {
         this.title = title;
         this.content = content;
         this.visible = visible;
     }
 
-    public static Notice of(String title, String content, Boolean visible) {
+    public static Notice of(String title, String content, boolean visible) {
         return new Notice(title, content, visible);
     }
 
-    public void update(String title, String content, Boolean visible) {
+    public void update(String title, String content, boolean visible) {
         this.title = title;
         this.content = content;
         this.visible = visible;

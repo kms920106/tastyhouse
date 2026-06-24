@@ -30,19 +30,19 @@ public class PopularKeyword extends BaseEntity {
     private int rank;
 
     @Column(name = "is_new", nullable = false)
-    private Boolean isNew;
+    private boolean newKeyword;
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible;
+    private boolean visible;
 
-    private PopularKeyword(String keyword, int rank, Boolean isNew, Boolean isVisible) {
+    private PopularKeyword(String keyword, int rank, boolean newKeyword, boolean visible) {
         this.keyword = keyword;
         this.rank = rank;
-        this.isNew = isNew;
-        this.isVisible = isVisible;
+        this.newKeyword = newKeyword;
+        this.visible = visible;
     }
 
-    public static PopularKeyword of(String keyword, int rank, boolean isNew) {
-        return new PopularKeyword(keyword, rank, isNew, true);
+    public static PopularKeyword of(String keyword, int rank, boolean newKeyword) {
+        return new PopularKeyword(keyword, rank, newKeyword, true);
     }
 }

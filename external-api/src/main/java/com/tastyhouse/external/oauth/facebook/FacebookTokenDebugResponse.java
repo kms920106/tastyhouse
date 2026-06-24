@@ -7,25 +7,21 @@ public record FacebookTokenDebugResponse(
     @JsonProperty("data") TokenData data
 ) {
     public record TokenData(
-    @JsonProperty("app_id") String appId,
-    @JsonProperty("type") String type,
-    @JsonProperty("application") String application,
-    @JsonProperty("user_id") String userId,
-    @JsonProperty("is_valid") Boolean isValid,
-    @JsonProperty("expires_at") Long expiresAt
-    ) {}
+        @JsonProperty("app_id") String appId,
+        @JsonProperty("type") String type,
+        @JsonProperty("application") String application,
+        @JsonProperty("user_id") String userId,
+        @JsonProperty("is_valid") boolean isValid,
+        @JsonProperty("expires_at") Long expiresAt
+    ) {
+    }
 
     public boolean isValid() {
-    return data != null && Boolean.TRUE.equals(data.isValid());
+        return data != null && data.isValid();
     }
 
     public String getAppId() {
-    if (data == null) return null;
-    return data.appId();
-    }
-
-    public String getUserId() {
-    if (data == null) return null;
-    return data.userId();
+        if (data == null) return null;
+        return data.appId();
     }
 }

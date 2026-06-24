@@ -4,5 +4,5 @@ public record CreateProductCategoryCommand(
     Long shopId,
     String name,
     Integer sort,
-    Boolean isVisible
+    boolean visible
 ) {}

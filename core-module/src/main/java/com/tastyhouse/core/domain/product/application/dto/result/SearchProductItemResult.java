@@ -14,7 +14,7 @@ public record SearchProductItemResult(
     BigDecimal discountRate,
     Double rating,
     Integer reviewCount,
-    Boolean isRepresentative,
+    boolean representative,
     Integer spiciness
 ) {
     @QueryProjection

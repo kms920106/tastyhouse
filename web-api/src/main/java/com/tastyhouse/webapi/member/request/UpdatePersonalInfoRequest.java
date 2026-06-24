@@ -24,12 +24,12 @@ public record UpdatePersonalInfoRequest(
     Gender gender,
 
     @Schema(description = "푸시 알림 수신 동의", example = "true")
-    Boolean pushNotificationEnabled,
+    boolean pushNotificationEnabled,
 
     @Schema(description = "마케팅 정보 수신 동의", example = "false")
-    Boolean marketingInfoEnabled,
+    boolean marketingInfoEnabled,
 
     @Schema(description = "이벤트 정보 수신 동의", example = "true")
-    Boolean eventInfoEnabled
+    boolean eventInfoEnabled
 ) {
 }

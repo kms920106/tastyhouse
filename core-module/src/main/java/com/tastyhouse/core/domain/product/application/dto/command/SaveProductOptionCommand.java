@@ -5,6 +5,6 @@ public record SaveProductOptionCommand(
     String name,
     Integer additionalPrice,
     Integer sort,
-    Boolean isSoldOut,
-    Boolean isVisible
+    boolean soldOut,
+    boolean visible
 ) {}

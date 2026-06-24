@@ -172,8 +172,10 @@ public class ShopApiController {
     @GetMapping("/v1/{shopId}/reviews")
     public ResponseEntity<ApiResponse<ShopReviewsByRatingResponse>> getShopReviews(
             @PathVariable Long shopId,
-            @Valid @ModelAttribute PageRequest pageRequest) {
-        ShopReviewsByRatingWithPagination result = shopService.getShopReviewsByRatingWithPagination(shopId, pageRequest.page(), pageRequest.size());
+            @Valid @ModelAttribute PageRequest pageRequest,
+            @Parameter(description = "이미지 유무 필터: 미지정=전체, true=이미지 있는 리뷰, false=이미지 없는 리뷰")
+            @RequestParam(required = false) Boolean hasImage) {
+        ShopReviewsByRatingWithPagination result = shopService.getShopReviewsByRatingWithPagination(shopId, pageRequest.page(), pageRequest.size(), hasImage);
         ApiResponse<ShopReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
     }

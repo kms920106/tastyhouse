@@ -70,7 +70,7 @@ public class ProductService {
             product.getOriginalPrice(),
             product.getDiscountPrice(),
             product.getDiscountRate(),
-            product.getIsSoldOut()
+            product.isSoldOut()
         );
     }
 
@@ -132,12 +132,12 @@ public class ProductService {
             .map(group -> {
                 List<ProductOptionGroupsResponse.OptionResponse> options = group.options().stream()
                     .map(o -> ProductOptionGroupsResponse.OptionResponse.from(
-                        o.id(), o.name(), o.additionalPrice(), o.isSoldOut()))
+                        o.id(), o.name(), o.additionalPrice(), o.soldOut()))
                     .toList();
                 return ProductOptionGroupsResponse.OptionGroupResponse.from(
                     group.id(), group.name(), group.description(),
-                    group.isRequired(), group.isMultipleSelect(),
-                    group.minSelect(), group.maxSelect(), group.isCommon(), options
+                    group.required(), group.multipleSelect(),
+                    group.minSelect(), group.maxSelect(), group.common(), options
                 );
             })
             .toList();
@@ -154,8 +154,8 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductReviewsByRatingWithPagination getProductReviewsByRatingWithPagination(Long productId, int page, int size) {
-        ReviewsByRatingResult result = reviewQueryService.findProductReviewsByRating(productId, page, size);
+    public ProductReviewsByRatingWithPagination getProductReviewsByRatingWithPagination(Long productId, int page, int size, Boolean hasImage) {
+        ReviewsByRatingResult result = reviewQueryService.findProductReviewsByRating(productId, page, size, hasImage);
 
         Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
             .collect(Collectors.toMap(

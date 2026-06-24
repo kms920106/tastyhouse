@@ -25,10 +25,10 @@ public record ProductOptionGroupsResponse(
         String description,
 
         @Schema(description = "필수 선택 여부", example = "true")
-        Boolean isRequired,
+        boolean required,
 
         @Schema(description = "복수 선택 가능 여부", example = "false")
-        Boolean isMultipleSelect,
+        boolean multipleSelect,
 
         @Schema(description = "최소 선택 개수", example = "1")
         Integer minSelect,
@@ -37,7 +37,7 @@ public record ProductOptionGroupsResponse(
         Integer maxSelect,
 
         @Schema(description = "공통 옵션 여부", example = "false")
-        Boolean isCommon,
+        boolean common,
 
         @Schema(description = "옵션 목록")
         List<OptionResponse> options
@@ -46,22 +46,22 @@ public record ProductOptionGroupsResponse(
             Long id,
             String name,
             String description,
-            Boolean isRequired,
-            Boolean isMultipleSelect,
+            boolean required,
+            boolean multipleSelect,
             Integer minSelect,
             Integer maxSelect,
-            Boolean isCommon,
+            boolean common,
             List<OptionResponse> options
         ) {
             return new OptionGroupResponse(
                 id,
                 name,
                 description,
-                isRequired,
-                isMultipleSelect,
+                required,
+                multipleSelect,
                 minSelect,
                 maxSelect,
-                isCommon,
+                common,
                 options
             );
         }
@@ -79,15 +79,15 @@ public record ProductOptionGroupsResponse(
         Integer additionalPrice,
 
         @Schema(description = "품절 여부", example = "false")
-        Boolean isSoldOut
+        boolean soldOut
     ) {
         public static OptionResponse from(
             Long id,
             String name,
             Integer additionalPrice,
-            Boolean isSoldOut
+            boolean soldOut
         ) {
-            return new OptionResponse(id, name, additionalPrice, isSoldOut);
+            return new OptionResponse(id, name, additionalPrice, soldOut);
         }
     }
 }

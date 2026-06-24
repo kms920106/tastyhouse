@@ -41,7 +41,7 @@ public interface ReviewRepository {
 
     Page<MyReviewListItemResult> findReviewsByMemberId(Long memberId, Pageable pageable);
 
-    Long countByShopIdAndIsHiddenFalse(Long shopId);
+    Long countByShopIdAndHiddenFalse(Long shopId);
 
     Long countWillRevisit(Long shopId);
 
@@ -61,7 +61,7 @@ public interface ReviewRepository {
 
     Map<Integer, Long> getMonthlyReviewCounts(Long shopId, int year);
 
-    Long countByProductIdAndIsHiddenFalse(Long productId);
+    Long countByProductIdAndHiddenFalse(Long productId);
 
     Double getAverageTasteRatingByProductId(Long productId);
 

@@ -22,7 +22,7 @@ public class ProductOptionRepositoryImpl implements ProductOptionRepository {
     public List<ProductOption> findActiveByOptionGroupIdsOrderBySort(List<Long> optionGroupIds) {
         return queryFactory
             .selectFrom(productOption)
-            .where(productOption.optionGroupId.in(optionGroupIds), productOption.isVisible.eq(true))
+            .where(productOption.optionGroupId.in(optionGroupIds), productOption.visible.eq(true))
             .orderBy(productOption.sort.asc())
             .fetch();
     }
@@ -39,7 +39,7 @@ public class ProductOptionRepositoryImpl implements ProductOptionRepository {
         }
         return queryFactory
             .selectFrom(productOption)
-            .where(productOption.id.in(ids), productOption.isVisible.eq(true))
+            .where(productOption.id.in(ids), productOption.visible.eq(true))
             .fetch();
     }
 

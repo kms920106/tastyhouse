@@ -18,6 +18,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,7 +64,7 @@ public class ShopRepositoryImpl implements ShopRepository {
 
         List<Long> shopIds = pagedShops.stream().map(Shop::getId).collect(Collectors.toList());
 
-        var stationMap = queryFactory.select(shop.id, station.stationName).from(shop).join(station).on(station.id.eq(shop.stationId)).where(shop.id.in(shopIds)).fetch().stream().collect(Collectors.toMap(tuple -> tuple.get(shop.id), tuple -> tuple.get(station.stationName)));
+        var stationMap = queryFactory.select(shop.id, station.stationName).from(shop).join(station).on(station.id.eq(shop.stationId)).where(shop.id.in(shopIds)).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shop.id)), tuple -> Objects.requireNonNull(tuple.get(station.stationName))));
 
         var thumbnailFilePathMap = queryFactory
             .select(shop.id, uploadedFile.filePath)
@@ -73,7 +74,7 @@ public class ShopRepositoryImpl implements ShopRepository {
             .fetch()
             .stream()
             .filter(tuple -> tuple.get(uploadedFile.filePath) != null)
-            .collect(Collectors.toMap(tuple -> tuple.get(shop.id), tuple -> tuple.get(uploadedFile.filePath)));
+            .collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shop.id)), tuple -> Objects.requireNonNull(tuple.get(uploadedFile.filePath))));
 
         var foodTypeMap = queryFactory
             .select(shopFoodType.shopId, shopFoodTypeCategory.foodType)
@@ -83,7 +84,7 @@ public class ShopRepositoryImpl implements ShopRepository {
             .fetch()
             .stream()
             .collect(Collectors.groupingBy(
-                tuple -> tuple.get(shopFoodType.shopId),
+                tuple -> Objects.requireNonNull(tuple.get(shopFoodType.shopId)),
                 Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategory.foodType), Collectors.toList())
             ));
 
@@ -162,7 +163,7 @@ public class ShopRepositoryImpl implements ShopRepository {
 
         List<Long> shopIds = pagedShops.stream().map(Shop::getId).collect(Collectors.toList());
 
-        var stationMap = queryFactory.select(shop.id, station.stationName).from(shop).join(station).on(station.id.eq(shop.stationId)).where(shop.id.in(shopIds)).fetch().stream().collect(Collectors.toMap(tuple -> tuple.get(shop.id), tuple -> tuple.get(station.stationName)));
+        var stationMap = queryFactory.select(shop.id, station.stationName).from(shop).join(station).on(station.id.eq(shop.stationId)).where(shop.id.in(shopIds)).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shop.id)), tuple -> Objects.requireNonNull(tuple.get(station.stationName))));
 
         var thumbnailFilePathMap = queryFactory
             .select(shop.id, uploadedFile.filePath)
@@ -172,11 +173,11 @@ public class ShopRepositoryImpl implements ShopRepository {
             .fetch()
             .stream()
             .filter(tuple -> tuple.get(uploadedFile.filePath) != null)
-            .collect(Collectors.toMap(tuple -> tuple.get(shop.id), tuple -> tuple.get(uploadedFile.filePath)));
+            .collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shop.id)), tuple -> Objects.requireNonNull(tuple.get(uploadedFile.filePath))));
 
-        var reviewCountMap = queryFactory.select(review.shopId, review.count()).from(review).where(review.shopId.in(shopIds).and(review.isHidden.eq(false))).groupBy(review.shopId).fetch().stream().collect(Collectors.toMap(tuple -> tuple.get(review.shopId), tuple -> tuple.get(review.count())));
+        var reviewCountMap = queryFactory.select(review.shopId, review.count()).from(review).where(review.shopId.in(shopIds).and(review.hidden.eq(false))).groupBy(review.shopId).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(review.shopId)), tuple -> Objects.requireNonNull(tuple.get(review.count()))));
 
-        var bookmarkCountMap = queryFactory.select(shopBookmark.shopId, shopBookmark.count()).from(shopBookmark).where(shopBookmark.shopId.in(shopIds)).groupBy(shopBookmark.shopId).fetch().stream().collect(Collectors.toMap(tuple -> tuple.get(shopBookmark.shopId), tuple -> tuple.get(shopBookmark.count())));
+        var bookmarkCountMap = queryFactory.select(shopBookmark.shopId, shopBookmark.count()).from(shopBookmark).where(shopBookmark.shopId.in(shopIds)).groupBy(shopBookmark.shopId).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopBookmark.shopId)), tuple -> Objects.requireNonNull(tuple.get(shopBookmark.count()))));
 
         var foodTypeMap = queryFactory
             .select(shopFoodType.shopId, shopFoodTypeCategory.foodType)
@@ -186,7 +187,7 @@ public class ShopRepositoryImpl implements ShopRepository {
             .fetch()
             .stream()
             .collect(Collectors.groupingBy(
-                tuple -> tuple.get(shopFoodType.shopId),
+                tuple -> Objects.requireNonNull(tuple.get(shopFoodType.shopId)),
                 Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategory.foodType), Collectors.toList())
             ));
 
@@ -228,13 +229,13 @@ public class ShopRepositoryImpl implements ShopRepository {
         var stationMap = queryFactory.select(shop.id, station.stationName)
                 .from(shop).join(station).on(station.id.eq(shop.stationId))
                 .where(shop.id.in(shopIds)).fetch().stream()
-                .collect(Collectors.toMap(t -> t.get(shop.id), t -> t.get(station.stationName)));
+                .collect(Collectors.toMap(t -> Objects.requireNonNull(t.get(shop.id)), t -> Objects.requireNonNull(t.get(station.stationName))));
 
         var thumbnailFilePathMap = queryFactory.select(shop.id, uploadedFile.filePath)
                 .from(shop).leftJoin(uploadedFile).on(uploadedFile.id.eq(shop.thumbnailImageFileId))
                 .where(shop.id.in(shopIds)).fetch().stream()
                 .filter(t -> t.get(uploadedFile.filePath) != null)
-                .collect(Collectors.toMap(t -> t.get(shop.id), t -> t.get(uploadedFile.filePath)));
+                .collect(Collectors.toMap(t -> Objects.requireNonNull(t.get(shop.id)), t -> Objects.requireNonNull(t.get(uploadedFile.filePath))));
 
         Set<Long> bookmarkedShopIds = new HashSet<>();
         if (memberId != null) {

@@ -20,13 +20,15 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("unused") // 스케줄러 활성화(@Scheduled 주석 해제) 전까지 의도적으로 미사용 상태 유지
 public class ProductScheduler {
 
     private final BbqService bbqService;
     private final ProductCommandService productCommandService;
     private final ProductQueryService productQueryService;
 
-    //    @Scheduled(fixedDelay = 10000)
+//    @Scheduled(fixedDelay = 10000)
+    @SuppressWarnings("unused") // @Scheduled 활성화 전까지 의도적으로 미사용 상태 유지
     @Transactional
     public void crawlAndSaveProductOptions() {
         try {
@@ -99,8 +101,8 @@ public class ProductScheduler {
                             itemDetail.itemTitle(),
                             itemDetail.addPrice() != null ? itemDetail.addPrice() : 0,
                             j,
-                            itemDetail.isSoldOut() != null ? itemDetail.isSoldOut() : false,
-                            !(itemDetail.isHidden() != null && itemDetail.isHidden())
+                            itemDetail.soldOut(),
+                            itemDetail.hidden()
                         )
                     );
                 }

@@ -26,7 +26,7 @@ public record FollowMemberListItemResponse(
             dto.nickname(),
             dto.memberGrade(),
             profileImageUrl,
-            dto.isFollowing()
+            dto.following()
         );
     }
 }

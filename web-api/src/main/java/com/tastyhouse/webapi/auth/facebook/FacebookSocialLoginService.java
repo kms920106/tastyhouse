@@ -144,8 +144,8 @@ public class FacebookSocialLoginService {
     @Transactional
     public JwtResponse signUp(String facebookTempToken, String username, String nickname, String fullName,
                               Gender gender, Integer birthDate, String phoneNumber,
-                              Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                              Boolean eventInfoEnabled, String referrerNickname) {
+                              boolean pushNotificationEnabled, boolean marketingInfoEnabled,
+                              boolean eventInfoEnabled, String referrerNickname) {
         String facebookAccessToken = facebookTempTokenRedisRepository.findFacebookAccessToken(facebookTempToken);
         if (facebookAccessToken == null) {
             throw new BusinessException(ErrorCode.FACEBOOK_TEMP_TOKEN_EXPIRED);
@@ -160,7 +160,7 @@ public class FacebookSocialLoginService {
 
         Member savedMember = memberCommandService.signUpSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
         memberCommandService.saveSocialAccount(

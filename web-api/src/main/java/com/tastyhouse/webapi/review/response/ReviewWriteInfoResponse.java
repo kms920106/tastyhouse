@@ -20,7 +20,7 @@ public record ReviewWriteInfoResponse(
     Long orderId,
 
     @Schema(description = "이미 리뷰를 작성했는지 여부", example = "false")
-    Boolean isReviewed
+    boolean reviewed
 ) {
     public static ReviewWriteInfoResponse from(
         Long productId,
@@ -28,7 +28,7 @@ public record ReviewWriteInfoResponse(
         String productImageUrl,
         Integer productPrice,
         Long orderId,
-        Boolean isReviewed
+        boolean reviewed
     ) {
         return new ReviewWriteInfoResponse(
             productId,
@@ -36,7 +36,7 @@ public record ReviewWriteInfoResponse(
             productImageUrl,
             productPrice,
             orderId,
-            isReviewed
+            reviewed
         );
     }
 }

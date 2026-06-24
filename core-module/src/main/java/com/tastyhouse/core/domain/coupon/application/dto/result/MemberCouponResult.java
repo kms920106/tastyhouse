@@ -17,7 +17,7 @@ public record MemberCouponResult(
     LocalDateTime useStartAt,
     LocalDateTime useEndAt,
     LocalDateTime expiredAt,
-    Boolean isUsed,
+    boolean used,
     LocalDateTime usedAt
 ) {
     @QueryProjection

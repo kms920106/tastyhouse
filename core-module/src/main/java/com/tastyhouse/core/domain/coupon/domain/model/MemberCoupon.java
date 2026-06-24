@@ -47,7 +47,7 @@ public class MemberCoupon extends BaseEntity {
     private Long couponId;
 
     @Column(name = "is_used", nullable = false)
-    private Boolean isUsed = false;
+    private boolean used = false;
 
     @Column(name = "used_at")
     private LocalDateTime usedAt;
@@ -58,13 +58,13 @@ public class MemberCoupon extends BaseEntity {
     private MemberCoupon(
         Long memberId,
         Long couponId,
-        Boolean isUsed,
+        boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt
     ) {
         this.memberId = memberId;
         this.couponId = couponId;
-        this.isUsed = isUsed != null ? isUsed : false;
+        this.used = used;
         this.usedAt = usedAt;
         this.expiredAt = expiredAt;
     }
@@ -72,11 +72,11 @@ public class MemberCoupon extends BaseEntity {
     public static MemberCoupon of(
         Long memberId,
         Long couponId,
-        Boolean isUsed,
+        boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt
     ) {
-        return new MemberCoupon(memberId, couponId, isUsed, usedAt, expiredAt);
+        return new MemberCoupon(memberId, couponId, used, usedAt, expiredAt);
     }
 
     public MemberCouponId getMemberCouponId() {
@@ -87,7 +87,7 @@ public class MemberCoupon extends BaseEntity {
         if (!isAvailable()) {
             throw new BusinessException(ErrorCode.COUPON_NOT_AVAILABLE);
         }
-        this.isUsed = true;
+        this.used = true;
         this.usedAt = LocalDateTime.now();
     }
 
@@ -96,6 +96,6 @@ public class MemberCoupon extends BaseEntity {
     }
 
     public boolean isAvailable() {
-        return !isUsed && !isExpired();
+        return !used && !isExpired();
     }
 }

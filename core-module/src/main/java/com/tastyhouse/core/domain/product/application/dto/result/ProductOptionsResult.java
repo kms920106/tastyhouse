@@ -8,11 +8,11 @@ public record ProductOptionsResult(List<OptionGroupResult> optionGroups) {
         Long id,
         String name,
         String description,
-        Boolean isRequired,
-        Boolean isMultipleSelect,
+        boolean required,
+        boolean multipleSelect,
         Integer minSelect,
         Integer maxSelect,
-        boolean isCommon,
+        boolean common,
         List<OptionResult> options
     ) {}
 
@@ -20,6 +20,6 @@ public record ProductOptionsResult(List<OptionGroupResult> optionGroups) {
         Long id,
         String name,
         Integer additionalPrice,
-        Boolean isSoldOut
+        boolean soldOut
     ) {}
 }

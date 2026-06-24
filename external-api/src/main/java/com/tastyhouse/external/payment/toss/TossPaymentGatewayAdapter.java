@@ -79,11 +79,11 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
         String cardNumber = null;
         Integer cardInstallmentPlanMonths = null;
         String cardApproveNo = null;
-        Boolean cardUseCardPoint = null;
+        boolean cardUseCardPoint = false;
         String cardType = null;
         String cardOwnerType = null;
         String cardAcquireStatus = null;
-        Boolean cardIsInterestFree = null;
+        boolean cardInterestFree = false;
         String cardInterestPayer = null;
         if (response.getCard() != null) {
             TossPaymentConfirmResponse.Card card = response.getCard();
@@ -93,11 +93,11 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
             cardNumber = card.getNumber();
             cardInstallmentPlanMonths = card.getInstallmentPlanMonths();
             cardApproveNo = card.getApproveNo();
-            cardUseCardPoint = card.getUseCardPoint();
+            cardUseCardPoint = card.isUseCardPoint();
             cardType = card.getCardType();
             cardOwnerType = card.getOwnerType();
             cardAcquireStatus = card.getAcquireStatus();
-            cardIsInterestFree = card.getIsInterestFree();
+            cardInterestFree = card.isInterestFree();
             cardInterestPayer = card.getInterestPayer();
         }
 
@@ -107,7 +107,7 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
         String virtualAccountCustomerName = null;
         java.time.LocalDateTime virtualAccountDueDate = null;
         String virtualAccountRefundStatus = null;
-        Boolean virtualAccountExpired = null;
+        boolean virtualAccountExpired = false;
         String virtualAccountSettlementStatus = null;
         if (response.getVirtualAccount() != null) {
             TossPaymentConfirmResponse.VirtualAccount va = response.getVirtualAccount();
@@ -117,7 +117,7 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
             virtualAccountCustomerName = va.getCustomerName();
             virtualAccountDueDate = TossPaymentUtils.parseDateTime(va.getDueDate());
             virtualAccountRefundStatus = va.getRefundStatus();
-            virtualAccountExpired = va.getExpired();
+            virtualAccountExpired = va.isExpired();
             virtualAccountSettlementStatus = va.getSettlementStatus();
         }
 
@@ -177,14 +177,14 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
             response.getStatus(),
             TossPaymentUtils.parseDateTime(response.getRequestedAt()),
             TossPaymentUtils.parseDateTime(response.getApprovedAt()),
-            response.getUseEscrow(),
+            response.isUseEscrow(),
             response.getLastTransactionKey(),
             response.getSuppliedAmount(),
             response.getVat(),
-            response.getCultureExpense(),
+            response.isCultureExpense(),
             response.getTaxFreeAmount(),
             response.getTaxExemptionAmount(),
-            response.getIsPartialCancelable(),
+            response.isPartialCancelable(),
             cardAmount,
             cardIssuerCode,
             cardAcquirerCode,
@@ -195,7 +195,7 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
             cardType,
             cardOwnerType,
             cardAcquireStatus,
-            cardIsInterestFree,
+            cardInterestFree,
             cardInterestPayer,
             virtualAccountType,
             virtualAccountNumber,

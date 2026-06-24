@@ -52,24 +52,24 @@ public record BbqProductSubOptionResponse(
         Integer addPrice,
 
         @Schema(description = "품절 여부", example = "false")
-        Boolean isSoldOut,
+        boolean soldOut,
 
         @Schema(description = "숨김 여부", example = "false")
-        Boolean isHidden
+        boolean hidden
     ) {
         public static SubOptionItemDetailResponse from(
             Long id,
             String itemTitle,
             Integer addPrice,
-            Boolean isSoldOut,
-            Boolean isHidden
+            boolean soldOut,
+            boolean hidden
         ) {
             return new SubOptionItemDetailResponse(
                 id,
                 itemTitle,
                 addPrice,
-                isSoldOut,
-                isHidden
+                soldOut,
+                hidden
             );
         }
     }

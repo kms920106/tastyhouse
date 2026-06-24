@@ -6,9 +6,7 @@ import java.util.List;
 
 public interface ReviewReplyRepository {
 
-    List<ReviewReply> findByCommentIdAndIsHiddenFalseOrderByCreatedAtAsc(Long commentId);
-
-    List<ReviewReply> findByCommentIdInAndIsHiddenFalseOrderByCreatedAtAsc(List<Long> commentIds);
+    List<ReviewReply> findByCommentIdInAndHiddenFalseOrderByCreatedAtAsc(List<Long> commentIds);
 
     ReviewReply save(ReviewReply reply);
 }

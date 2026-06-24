@@ -16,7 +16,7 @@ public record NoticeDetailResponse(
     String content,
 
     @Schema(description = "노출 여부", example = "true")
-    Boolean visible,
+    boolean visible,
 
     @Schema(description = "생성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt,

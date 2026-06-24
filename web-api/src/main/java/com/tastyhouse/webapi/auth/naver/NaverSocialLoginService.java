@@ -139,8 +139,8 @@ public class NaverSocialLoginService {
     @Transactional
     public JwtResponse signUp(String naverTempToken, String username, String nickname, String fullName,
                               Gender gender, Integer birthDate, String phoneNumber,
-                              Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                              Boolean eventInfoEnabled, String referrerNickname) {
+                              boolean pushNotificationEnabled, boolean marketingInfoEnabled,
+                              boolean eventInfoEnabled, String referrerNickname) {
         String naverAccessToken = naverTempTokenRedisRepository.findNaverAccessToken(naverTempToken);
         if (naverAccessToken == null) {
             throw new BusinessException(ErrorCode.NAVER_TEMP_TOKEN_EXPIRED);
@@ -155,7 +155,7 @@ public class NaverSocialLoginService {
 
         Member savedMember = memberCommandService.signUpSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
         memberCommandService.saveSocialAccount(

@@ -17,21 +17,21 @@ public record BbqProductCategoryResponse(
     Integer sort,
 
     @Schema(description = "노출 여부", example = "true")
-    Boolean isVisible
+    boolean visible
 ) {
     public static BbqProductCategoryResponse from(
         Long id,
         Long shopId,
         String name,
         Integer sort,
-        Boolean isVisible
+        boolean visible
     ) {
         return new BbqProductCategoryResponse(
             id,
             shopId,
             name,
             sort,
-            isVisible
+            visible
         );
     }
 }

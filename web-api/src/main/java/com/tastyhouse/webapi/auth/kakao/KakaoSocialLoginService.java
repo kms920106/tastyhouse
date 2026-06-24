@@ -145,9 +145,9 @@ public class KakaoSocialLoginService {
         Gender gender,
         Integer birthDate,
         String phoneNumber,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
         String referrerNickname
     ) {
         String kakaoAccessToken = kakaoTempTokenRedisRepository.findKakaoAccessToken(kakaoTempToken);
@@ -164,7 +164,7 @@ public class KakaoSocialLoginService {
 
         Member savedMember = memberCommandService.signUpSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
         memberCommandService.saveSocialAccount(

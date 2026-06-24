@@ -26,7 +26,7 @@ public class ReviewCommentRepositoryImpl implements ReviewCommentRepository {
             .selectFrom(reviewComment)
             .where(
                 reviewComment.reviewId.eq(reviewId),
-                reviewComment.isHidden.eq(false)
+                reviewComment.hidden.eq(false)
             )
             .orderBy(reviewComment.createdAt.desc())
             .fetch();
@@ -39,7 +39,7 @@ public class ReviewCommentRepositoryImpl implements ReviewCommentRepository {
             .from(reviewComment)
             .where(
                 reviewComment.reviewId.in(reviewIds),
-                reviewComment.isHidden.eq(false)
+                reviewComment.hidden.eq(false)
             )
             .groupBy(reviewComment.reviewId)
             .fetch();

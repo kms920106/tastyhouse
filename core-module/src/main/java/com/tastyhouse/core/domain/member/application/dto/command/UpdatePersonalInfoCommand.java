@@ -9,8 +9,8 @@ public record UpdatePersonalInfoCommand(
     String phoneNumber,
     Integer birthDate,
     Gender gender,
-    Boolean pushNotificationEnabled,
-    Boolean marketingInfoEnabled,
-    Boolean eventInfoEnabled
+    boolean pushNotificationEnabled,
+    boolean marketingInfoEnabled,
+    boolean eventInfoEnabled
 ) {
 }

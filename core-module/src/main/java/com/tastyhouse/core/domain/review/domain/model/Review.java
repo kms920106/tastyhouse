@@ -55,13 +55,13 @@ public class Review extends BaseEntity {
     private Double hygieneRating;
 
     @Column(name = "will_revisit")
-    private Boolean willRevisit;
+    private boolean willRevisit;
 
     @Column(name = "order_id")
     private Long orderId;
 
     @Column(name = "is_hidden", nullable = false)
-    private Boolean isHidden = false;
+    private boolean hidden = false;
 
     private Review(
         Long shopId,
@@ -75,7 +75,7 @@ public class Review extends BaseEntity {
         Double atmosphereRating,
         Double kindnessRating,
         Double hygieneRating,
-        Boolean willRevisit,
+        boolean willRevisit,
         Long orderId
     ) {
         this.shopId = shopId;
@@ -91,7 +91,7 @@ public class Review extends BaseEntity {
         this.hygieneRating = hygieneRating;
         this.willRevisit = willRevisit;
         this.orderId = orderId;
-        this.isHidden = false;
+        this.hidden = false;
     }
 
     public static Review of(
@@ -106,7 +106,7 @@ public class Review extends BaseEntity {
         Double atmosphereRating,
         Double kindnessRating,
         Double hygieneRating,
-        Boolean willRevisit,
+        boolean willRevisit,
         Long orderId
     ) {
         return new Review(
@@ -135,7 +135,7 @@ public class Review extends BaseEntity {
         Double atmosphereRating,
         Double kindnessRating,
         Double hygieneRating,
-        Boolean willRevisit
+        boolean willRevisit
     ) {
         this.content = content;
         this.totalRating = totalRating;

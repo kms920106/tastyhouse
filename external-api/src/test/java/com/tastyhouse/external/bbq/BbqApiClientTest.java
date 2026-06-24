@@ -44,7 +44,7 @@ class BbqApiClientTest {
                         category.getId(),
                         category.getCategoryName(),
                         category.getPriority(),
-                        category.getIsFullSize())
+                        category.getFullSize())
         );
     }
 

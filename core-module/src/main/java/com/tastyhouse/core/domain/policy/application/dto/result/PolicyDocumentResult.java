@@ -11,8 +11,8 @@ public record PolicyDocumentResult(
     String version,
     String title,
     String content,
-    Boolean current,
-    Boolean mandatory,
+    boolean current,
+    boolean mandatory,
     LocalDateTime effectiveDate,
     LocalDateTime createdAt,
     LocalDateTime updatedAt

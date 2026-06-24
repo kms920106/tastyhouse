@@ -25,8 +25,8 @@ public class AuthService {
     public void signUp(String username, String password,
                        String nickname, String fullName,
                        Gender gender, Integer birthDate, String phoneNumber,
-                       Boolean pushNotificationEnabled,
-                       Boolean marketingInfoEnabled, Boolean eventInfoEnabled,
+                       boolean pushNotificationEnabled,
+                       boolean marketingInfoEnabled, boolean eventInfoEnabled,
                        String phoneVerifyToken, String emailVerifyToken,
                        String referrerNickname) {
         memberAuthService.verifySignUpTokens(phoneNumber, phoneVerifyToken, username, emailVerifyToken);

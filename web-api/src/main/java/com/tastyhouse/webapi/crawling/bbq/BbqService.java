@@ -86,8 +86,8 @@ public class BbqService {
                 externalResponse.getMenuImageUrl(),
                 externalResponse.getMenuPrice(),
                 externalResponse.getAddPrice(),
-                externalResponse.getIsSoldOut() != null ? externalResponse.getIsSoldOut() : false,
-                externalResponse.getIsAdultOnly() != null ? externalResponse.getIsAdultOnly() : false,
+                externalResponse.getSoldOut() != null ? externalResponse.getSoldOut() : false,
+                externalResponse.getAdultOnly() != null ? externalResponse.getAdultOnly() : false,
                 externalResponse.getCanDeliver() != null ? externalResponse.getCanDeliver() : false,
                 externalResponse.getCanTakeout() != null ? externalResponse.getCanTakeout() : false
         );
@@ -113,8 +113,8 @@ public class BbqService {
                             item.getId(),
                             item.getItemTitle(),
                             item.getAddPrice(),
-                            item.getIsSoldOut() != null ? item.getIsSoldOut() : false,
-                            item.getIsHidden() != null ? item.getIsHidden() : false
+                            item.getSoldOut() != null ? item.getSoldOut() : false,
+                            item.getHidden() != null ? item.getHidden() : false
                     ))
                     .collect(Collectors.toList());
         }
@@ -127,6 +127,7 @@ public class BbqService {
         );
     }
 
+    @SuppressWarnings("unused")
     @Transactional
     public void crawlAndSaveNewMenu(Long shopId) {
         try {
@@ -147,7 +148,9 @@ public class BbqService {
                 }
 
                 if (categoryIndex < menuCategories.size() - 1) {
+                    // 외부 BBQ 서버 부하 방지를 위한 의도적인 요청 간 지연 (busy-wait 아님)
                     log.info("다음 카테고리 처리를 위해 10초 대기...");
+                    //noinspection BusyWait
                     Thread.sleep(10000);
                 }
             }
@@ -166,7 +169,7 @@ public class BbqService {
     private ProductCategory saveOrGetCategory(Long shopId, BbqProductCategoryResponse categoryResponse, int sort) {
         List<ProductCategory> existingCategories = productQueryService.findProductCategoriesByNameAndShopId(categoryResponse.name(), shopId);
         if (!existingCategories.isEmpty()) {
-            return existingCategories.get(0);
+            return existingCategories.getFirst();
         }
         return productCommandService.createProductCategory(new CreateProductCategoryCommand(
             shopId, categoryResponse.name(), sort, true
@@ -179,7 +182,7 @@ public class BbqService {
         Product savedProduct = productCommandService.createProduct(new CreateProductCommand(
             shopId, categoryId, menuDetail.name(), menuDetail.description(),
             menuDetail.originalPrice(), null, null, null, 0, false, null,
-            menuDetail.isSoldOut() != null ? menuDetail.isSoldOut() : false, true, sort
+            menuDetail.soldOut(), true, sort
         ));
 
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {

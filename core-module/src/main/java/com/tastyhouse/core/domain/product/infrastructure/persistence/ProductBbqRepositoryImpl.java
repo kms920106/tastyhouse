@@ -32,7 +32,7 @@ public class ProductBbqRepositoryImpl implements ProductBbqRepository {
         return Optional.ofNullable(
             queryFactory
                 .selectFrom(productBbq)
-                .where(productBbq.isOptionsSynced.eq(false))
+                .where(productBbq.optionsSynced.eq(false))
                 .fetchFirst()
         );
     }

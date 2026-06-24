@@ -90,7 +90,7 @@ public class ReviewQueryService {
         return reviewRepository.findLatestReviewsByFollowing(followingMemberIds, pageRequest);
     }
 
-    public ReviewsByRatingResult findShopReviewsByRating(Long shopId, int page, int size) {
+    public ReviewsByRatingResult findShopReviewsByRating(Long shopId, int page, int size, Boolean hasImage) {
         List<LatestReviewListItemResult> rating1Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 1, 5);
         List<LatestReviewListItemResult> rating2Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 2, 5);
         List<LatestReviewListItemResult> rating3Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 3, 5);
@@ -98,9 +98,9 @@ public class ReviewQueryService {
         List<LatestReviewListItemResult> rating5Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 5, 5);
 
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByShopId(shopId, null, pageRequest, null, "LATEST");
+        Page<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByShopId(shopId, null, pageRequest, hasImage, "LATEST");
 
-        Long totalReviewCount = reviewRepository.countByShopIdAndIsHiddenFalse(shopId);
+        Long totalReviewCount = reviewRepository.countByShopIdAndHiddenFalse(shopId);
 
         Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
         reviewsByRating.put(1, rating1Reviews);
@@ -120,7 +120,7 @@ public class ReviewQueryService {
         );
     }
 
-    public ReviewsByRatingResult findProductReviewsByRating(Long productId, int page, int size) {
+    public ReviewsByRatingResult findProductReviewsByRating(Long productId, int page, int size, Boolean hasImage) {
         List<LatestReviewListItemResult> rating1Reviews = reviewRepository.findReviewsByProductIdAndRating(productId, 1, 5);
         List<LatestReviewListItemResult> rating2Reviews = reviewRepository.findReviewsByProductIdAndRating(productId, 2, 5);
         List<LatestReviewListItemResult> rating3Reviews = reviewRepository.findReviewsByProductIdAndRating(productId, 3, 5);
@@ -128,9 +128,9 @@ public class ReviewQueryService {
         List<LatestReviewListItemResult> rating5Reviews = reviewRepository.findReviewsByProductIdAndRating(productId, 5, 5);
 
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByProductId(productId, null, pageRequest, null, "LATEST");
+        Page<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByProductId(productId, null, pageRequest, hasImage, "LATEST");
 
-        Long totalReviewCount = reviewRepository.countByProductIdAndIsHiddenFalse(productId);
+        Long totalReviewCount = reviewRepository.countByProductIdAndHiddenFalse(productId);
 
         Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
         reviewsByRating.put(1, rating1Reviews);
@@ -151,7 +151,7 @@ public class ReviewQueryService {
     }
 
     public ShopReviewStatisticsResult findShopReviewStatistics(Long shopId) {
-        Long totalCount = reviewRepository.countByShopIdAndIsHiddenFalse(shopId);
+        Long totalCount = reviewRepository.countByShopIdAndHiddenFalse(shopId);
 
         Map<Integer, Long> ratingMap = reviewRepository.getRatingCounts(shopId);
         for (int r = 1; r <= 5; r++) {
@@ -188,7 +188,7 @@ public class ReviewQueryService {
     }
 
     public ProductReviewStatisticsResult findProductReviewStatistics(Long productId) {
-        Long totalCount = reviewRepository.countByProductIdAndIsHiddenFalse(productId);
+        Long totalCount = reviewRepository.countByProductIdAndHiddenFalse(productId);
 
         if (totalCount > 0) {
             return new ProductReviewStatisticsResult(
@@ -218,14 +218,6 @@ public class ReviewQueryService {
         return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
     }
 
-    public boolean existsReviewByOrderProductAndMember(Long orderId, Long productId, Long memberId) {
-        return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
-    }
-
-    public Optional<Review> findReviewByIdAndMemberId(Long reviewId, Long memberId) {
-        return reviewRepository.findByIdAndMemberId(reviewId, memberId);
-    }
-
     public List<ReviewComment> findCommentsByReviewId(Long reviewId) {
         return reviewCommentRepository.findByReviewIdOrderByCreatedAtDesc(reviewId);
     }
@@ -234,7 +226,7 @@ public class ReviewQueryService {
         if (commentIds.isEmpty()) {
             return List.of();
         }
-        return reviewReplyRepository.findByCommentIdInAndIsHiddenFalseOrderByCreatedAtAsc(commentIds);
+        return reviewReplyRepository.findByCommentIdInAndHiddenFalseOrderByCreatedAtAsc(commentIds);
     }
 
     public Map<Long, MemberWithProfileImageResult> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {
@@ -243,13 +235,5 @@ public class ReviewQueryService {
 
     public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return reviewRepository.countReviewsByMemberWithPeriod(startDate, endDate);
-    }
-
-    public Page<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, int page, int size, Boolean hasImage, String sortType) {
-        return reviewRepository.findLatestReviewsByShopId(shopId, rating, PageRequest.of(page, size), hasImage, sortType);
-    }
-
-    public Page<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, int page, int size, Boolean hasImage, String sortType) {
-        return reviewRepository.findLatestReviewsByProductId(productId, rating, PageRequest.of(page, size), hasImage, sortType);
     }
 }

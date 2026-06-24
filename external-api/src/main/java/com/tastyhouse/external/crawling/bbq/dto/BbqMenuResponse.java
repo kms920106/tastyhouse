@@ -52,10 +52,10 @@ public class BbqMenuResponse {
     private Boolean canTakeout;
 
     @JsonProperty("isAdultOnly")
-    private Boolean isAdultOnly;
+    private Boolean adultOnly;
 
     @JsonProperty("isSoldOut")
-    private Boolean isSoldOut;
+    private Boolean soldOut;
 
     @JsonProperty("weightList")
     private List<Weight> weightList;

@@ -14,6 +14,7 @@ import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
 import com.tastyhouse.webapi.product.response.TodayDiscountProductListItemResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -105,8 +107,10 @@ public class ProductApiController {
     @GetMapping("/v1/{productId}/reviews")
     public ResponseEntity<ApiResponse<ProductReviewsByRatingResponse>> getProductReviews(
             @PathVariable Long productId,
-            @Valid @ModelAttribute PageRequest pageRequest) {
-        ProductReviewsByRatingWithPagination result = productService.getProductReviewsByRatingWithPagination(productId, pageRequest.page(), pageRequest.size());
+            @Valid @ModelAttribute PageRequest pageRequest,
+            @Parameter(description = "이미지 유무 필터: 미지정=전체, true=이미지 있는 리뷰, false=이미지 없는 리뷰")
+            @RequestParam(required = false) Boolean hasImage) {
+        ProductReviewsByRatingWithPagination result = productService.getProductReviewsByRatingWithPagination(productId, pageRequest.page(), pageRequest.size(), hasImage);
         ApiResponse<ProductReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
     }

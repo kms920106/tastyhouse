@@ -40,7 +40,7 @@ public class ShopAmenityCategory extends BaseEntity {
     private Integer sort; // 정렬 순서
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible; // 사용 여부 (true: 사용 중)
+    private boolean visible; // 사용 여부 (true: 사용 중)
 
     private ShopAmenityCategory(
         Amenity amenity,
@@ -48,14 +48,14 @@ public class ShopAmenityCategory extends BaseEntity {
         Long activeImageFileId,
         Long inactiveImageFileId,
         Integer sort,
-        Boolean isVisible
+        boolean visible
     ) {
         this.amenity = amenity;
         this.displayName = displayName;
         this.activeImageFileId = activeImageFileId;
         this.inactiveImageFileId = inactiveImageFileId;
         this.sort = sort;
-        this.isVisible = isVisible;
+        this.visible = visible;
     }
 
     public static ShopAmenityCategory of(
@@ -64,7 +64,7 @@ public class ShopAmenityCategory extends BaseEntity {
         Long activeImageFileId,
         Long inactiveImageFileId,
         Integer sort,
-        Boolean isVisible
+        boolean visible
     ) {
         return new ShopAmenityCategory(
             amenity,
@@ -72,15 +72,15 @@ public class ShopAmenityCategory extends BaseEntity {
             activeImageFileId,
             inactiveImageFileId,
             sort,
-            isVisible
+            visible
         );
     }
 
-    public void update(String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, Boolean isVisible) {
+    public void update(String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, boolean visible) {
         this.displayName = displayName;
         this.activeImageFileId = activeImageFileId;
         this.inactiveImageFileId = inactiveImageFileId;
         this.sort = sort;
-        this.isVisible = isVisible;
+        this.visible = visible;
     }
 }

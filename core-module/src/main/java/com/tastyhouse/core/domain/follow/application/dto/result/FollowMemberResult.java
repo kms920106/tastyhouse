@@ -7,6 +7,6 @@ public record FollowMemberResult(
     String nickname,
     MemberGrade memberGrade,
     String profileImageFilePath,
-    boolean isFollowing
+    boolean following
 ) {
 }

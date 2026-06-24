@@ -61,13 +61,13 @@ public class Member extends BaseEntity {
     private String statusMessage;
 
     @Column(name = "push_notification_enabled", nullable = false)
-    private Boolean pushNotificationEnabled = true;
+    private boolean pushNotificationEnabled = true;
 
     @Column(name = "marketing_info_enabled", nullable = false)
-    private Boolean marketingInfoEnabled = false;
+    private boolean marketingInfoEnabled = false;
 
     @Column(name = "event_info_enabled", nullable = false)
-    private Boolean eventInfoEnabled = false;
+    private boolean eventInfoEnabled = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
@@ -81,9 +81,9 @@ public class Member extends BaseEntity {
         Gender gender,
         Integer birthDate,
         String phoneNumber,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled
     ) {
         this.username = username;
         this.password = password;
@@ -92,11 +92,9 @@ public class Member extends BaseEntity {
         this.gender = gender;
         this.birthDate = birthDate;
         this.phoneNumber = phoneNumber != null ? new PhoneNumber(phoneNumber) : null;
-        this.memberGrade = MemberGrade.NEWCOMER;
-        this.memberStatus = MemberStatus.ACTIVE;
-        this.pushNotificationEnabled = pushNotificationEnabled != null ? pushNotificationEnabled : true;
-        this.marketingInfoEnabled = marketingInfoEnabled != null ? marketingInfoEnabled : false;
-        this.eventInfoEnabled = eventInfoEnabled != null ? eventInfoEnabled : false;
+        this.pushNotificationEnabled = pushNotificationEnabled;
+        this.marketingInfoEnabled = marketingInfoEnabled;
+        this.eventInfoEnabled = eventInfoEnabled;
     }
 
     public static Member of(
@@ -107,9 +105,9 @@ public class Member extends BaseEntity {
         Gender gender,
         Integer birthDate,
         String phoneNumber,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled
     ) {
         return new Member(
             username, password, nickname, fullName, gender, birthDate, phoneNumber,
@@ -124,9 +122,9 @@ public class Member extends BaseEntity {
         Gender gender,
         Integer birthDate,
         String phoneNumber,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled
     ) {
         return new Member(
             username, null, nickname, fullName, gender, birthDate, phoneNumber,
@@ -153,20 +151,20 @@ public class Member extends BaseEntity {
         String phoneNumber,
         Integer birthDate,
         Gender gender,
-        Boolean pushNotificationEnabled,
-        Boolean marketingInfoEnabled,
-        Boolean eventInfoEnabled
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled
     ) {
         if (fullName != null) this.fullName = fullName;
         if (phoneNumber != null) this.phoneNumber = new PhoneNumber(phoneNumber);
         if (birthDate != null) this.birthDate = birthDate;
         if (gender != null) this.gender = gender;
-        if (pushNotificationEnabled != null) this.pushNotificationEnabled = pushNotificationEnabled;
-        if (marketingInfoEnabled != null) this.marketingInfoEnabled = marketingInfoEnabled;
-        if (eventInfoEnabled != null) this.eventInfoEnabled = eventInfoEnabled;
+        this.pushNotificationEnabled = pushNotificationEnabled;
+        this.marketingInfoEnabled = marketingInfoEnabled;
+        this.eventInfoEnabled = eventInfoEnabled;
     }
 
-    public void withdraw(WithdrawalReason reason) {
+    public void withdraw() {
         if (this.memberStatus == MemberStatus.DELETED) {
             throw new BusinessException(ErrorCode.ALREADY_WITHDRAWN);
         }

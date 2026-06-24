@@ -31,7 +31,7 @@ public record ProductSummaryResponse(
     Integer reviewCount,
 
     @Schema(description = "대표 상품 여부", example = "true")
-    Boolean isRepresentative,
+    boolean representative,
 
     @Schema(description = "매운맛 정도 (0-5 또는 0-10)", example = "3")
     Integer spiciness
@@ -45,7 +45,7 @@ public record ProductSummaryResponse(
         BigDecimal discountRate,
         Double rating,
         Integer reviewCount,
-        Boolean isRepresentative,
+        boolean representative,
         Integer spiciness
     ) {
         return new ProductSummaryResponse(
@@ -57,7 +57,7 @@ public record ProductSummaryResponse(
             discountRate,
             rating,
             reviewCount,
-            isRepresentative,
+            representative,
             spiciness
         );
     }

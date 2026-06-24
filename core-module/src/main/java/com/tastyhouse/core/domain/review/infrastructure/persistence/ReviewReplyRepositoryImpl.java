@@ -18,24 +18,12 @@ public class ReviewReplyRepositoryImpl implements ReviewReplyRepository {
     private final ReviewReplyJpaRepository reviewReplyJpaRepository;
 
     @Override
-    public List<ReviewReply> findByCommentIdAndIsHiddenFalseOrderByCreatedAtAsc(Long commentId) {
-        return queryFactory
-            .selectFrom(reviewReply)
-            .where(
-                reviewReply.commentId.eq(commentId),
-                reviewReply.isHidden.eq(false)
-            )
-            .orderBy(reviewReply.createdAt.asc())
-            .fetch();
-    }
-
-    @Override
-    public List<ReviewReply> findByCommentIdInAndIsHiddenFalseOrderByCreatedAtAsc(List<Long> commentIds) {
+    public List<ReviewReply> findByCommentIdInAndHiddenFalseOrderByCreatedAtAsc(List<Long> commentIds) {
         return queryFactory
             .selectFrom(reviewReply)
             .where(
                 reviewReply.commentId.in(commentIds),
-                reviewReply.isHidden.eq(false)
+                reviewReply.hidden.eq(false)
             )
             .orderBy(reviewReply.createdAt.asc())
             .fetch();

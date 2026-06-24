@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface PopularKeywordJpaRepository extends JpaRepository<PopularKeyword, Long> {
 
-    List<PopularKeyword> findByIsVisibleTrueOrderByRankAsc();
+    List<PopularKeyword> findByVisibleTrueOrderByRankAsc();
 }

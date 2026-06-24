@@ -46,13 +46,13 @@ public record SocialSignUpRequest(
     String phoneNumber,
 
     @Schema(description = "푸시 알림 수신 동의", example = "true")
-    Boolean pushNotificationEnabled,
+    boolean pushNotificationEnabled,
 
     @Schema(description = "마케팅 정보 수신 동의", example = "false")
-    Boolean marketingInfoEnabled,
+    boolean marketingInfoEnabled,
 
     @Schema(description = "이벤트 정보 수신 동의", example = "false")
-    Boolean eventInfoEnabled,
+    boolean eventInfoEnabled,
 
     @Schema(description = "추천인 닉네임 (선택)", example = "맛집탐험가")
     @Size(min = 2, max = 20, message = "추천인 닉네임은 2~20자로 입력해주세요.")

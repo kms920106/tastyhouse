@@ -1,10 +1,8 @@
 package com.tastyhouse.external.payment.toss;
 
 import com.tastyhouse.external.payment.toss.dto.TossPaymentCancelRequest;
-import com.tastyhouse.external.payment.toss.dto.TossPaymentCancelResult;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmRequest;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
-import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResult;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +13,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Base64;
 
 @Slf4j
@@ -36,11 +33,7 @@ public class TossPaymentClient {
     }
 
     public TossPaymentConfirmResponse confirmPayment(String paymentKey, String pgOrderId, Integer amount) {
-        TossPaymentConfirmRequest request = TossPaymentConfirmRequest.builder()
-            .paymentKey(paymentKey)
-            .orderId(pgOrderId)
-            .amount(amount)
-            .build();
+        TossPaymentConfirmRequest request = new TossPaymentConfirmRequest(paymentKey, amount, pgOrderId);
 
         log.info("토스 결제 승인하기 API 요청. paymentKey: {}, pgOrderId: {}, amount: {}", paymentKey, pgOrderId, amount);
 
@@ -81,20 +74,8 @@ public class TossPaymentClient {
         }
     }
 
-    public TossPaymentConfirmResult confirmPaymentLegacy(String paymentKey, String pgOrderId, Integer amount) {
-        TossPaymentConfirmResponse response = confirmPayment(paymentKey, pgOrderId, amount);
-
-        if (response.isError()) {
-            return createErrorResult(response.getCode(), response.getMessage());
-        }
-
-        return mapToResult(response);
-    }
-
     public TossPaymentConfirmResponse cancelPayment(String paymentKey, String cancelReason) {
-        TossPaymentCancelRequest request = TossPaymentCancelRequest.builder()
-            .cancelReason(cancelReason)
-            .build();
+        TossPaymentCancelRequest request = new TossPaymentCancelRequest(cancelReason);
 
         String cancelUrl = tossPaymentProperties.getCancelPath().replace("{paymentKey}", paymentKey);
 
@@ -136,107 +117,9 @@ public class TossPaymentClient {
         }
     }
 
-    public TossPaymentCancelResult cancelPaymentWithResult(String paymentKey, String cancelReason) {
-        TossPaymentConfirmResponse response = cancelPayment(paymentKey, cancelReason);
-
-        if (response.isError()) {
-            return new TossPaymentCancelResult(
-                false,
-                null, null, null, null, null, null,
-                null, null, null, null, null,
-                response.getCode(),
-                response.getMessage()
-            );
-        }
-
-        return mapToCancelResult(response);
-    }
-
-    private TossPaymentCancelResult mapToCancelResult(TossPaymentConfirmResponse response) {
-        String cancelReason = null;
-        LocalDateTime canceledAt = null;
-        Integer cancelAmount = null;
-        Integer refundableAmount = null;
-        String cancelStatus = null;
-
-        if (response.getCancels() != null && !response.getCancels().isEmpty()) {
-            TossPaymentConfirmResponse.Cancel latestCancel = response.getCancels().get(0);
-            cancelReason = latestCancel.getCancelReason();
-            canceledAt = TossPaymentUtils.parseDateTime(latestCancel.getCanceledAt());
-            cancelAmount = latestCancel.getCancelAmount();
-            refundableAmount = latestCancel.getRefundableAmount();
-            cancelStatus = latestCancel.getCancelStatus();
-        }
-
-        return new TossPaymentCancelResult(
-            true,
-            response.getPaymentKey(),
-            response.getOrderId(),
-            response.getOrderName(),
-            response.getStatus(),
-            response.getTotalAmount(),
-            response.getBalanceAmount(),
-            cancelReason,
-            canceledAt,
-            cancelAmount,
-            refundableAmount,
-            cancelStatus,
-            null,
-            null
-        );
-    }
-
     private String createAuthorizationHeader() {
         String credentials = tossPaymentProperties.getSecretKey() + ":";
         String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
         return "Basic " + encodedCredentials;
-    }
-
-    private TossPaymentConfirmResult mapToResult(TossPaymentConfirmResponse response) {
-        String receiptUrl = response.getReceipt() != null ? response.getReceipt().getUrl() : null;
-
-        String cardCompany = null;
-        String cardNumber = null;
-        Integer installmentPlanMonths = null;
-        Boolean isInterestFree = null;
-        String cardType = null;
-
-        if (response.getCard() != null) {
-            TossPaymentConfirmResponse.Card card = response.getCard();
-            cardCompany = TossPaymentUtils.mapIssuerCodeToCardCompany(card.getIssuerCode());
-            cardNumber = card.getNumber();
-            installmentPlanMonths = card.getInstallmentPlanMonths();
-            isInterestFree = card.getIsInterestFree();
-            cardType = card.getCardType();
-        }
-
-        return new TossPaymentConfirmResult(
-            response.isSuccess(),
-            response.getPaymentKey(),
-            response.getOrderId(),
-            response.getOrderName(),
-            response.getTotalAmount(),
-            response.getStatus(),
-            TossPaymentUtils.parseDateTime(response.getApprovedAt()),
-            receiptUrl,
-            cardCompany,
-            cardNumber,
-            installmentPlanMonths,
-            isInterestFree,
-            cardType,
-            response.getMethod(),
-            null,
-            null
-        );
-    }
-
-    private TossPaymentConfirmResult createErrorResult(String errorCode, String errorMessage) {
-        return new TossPaymentConfirmResult(
-            false,
-            null, null, null, null, null, null, null,
-            null, null, null, null, null, null,
-            errorCode,
-            errorMessage
-        );
     }
 }

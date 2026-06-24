@@ -10,7 +10,7 @@ public record PolicyListItemResult(
     PolicyType type,
     String version,
     String title,
-    Boolean current,
+    boolean current,
     LocalDateTime effectiveDate,
     LocalDateTime createdAt
 ) {

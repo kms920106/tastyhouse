@@ -33,8 +33,8 @@ public class AuthFacade {
     public void signUp(String username, String password,
                        String nickname, String fullName,
                        Gender gender, Integer birthDate, String phoneNumber,
-                       Boolean pushNotificationEnabled,
-                       Boolean marketingInfoEnabled, Boolean eventInfoEnabled,
+                       boolean pushNotificationEnabled,
+                       boolean marketingInfoEnabled, boolean eventInfoEnabled,
                        String phoneVerifyToken, String emailVerifyToken,
                        String referrerNickname) {
         authService.signUp(
@@ -113,8 +113,8 @@ public class AuthFacade {
     // 소셜 소셜 회원가입 후 JWT 발급
     public JwtResponse socialSignUp(SocialProvider provider, String tempToken, String username, String nickname,
                                     String fullName, Gender gender, Integer birthDate, String phoneNumber,
-                                    Boolean pushNotificationEnabled, Boolean marketingInfoEnabled,
-                                    Boolean eventInfoEnabled, String referrerNickname) {
+                                    boolean pushNotificationEnabled, boolean marketingInfoEnabled,
+                                    boolean eventInfoEnabled, String referrerNickname) {
         return switch (provider) {
             case KAKAO -> kakaoSocialLoginService.signUp(
                 tempToken, username, nickname, fullName, gender, birthDate, phoneNumber,

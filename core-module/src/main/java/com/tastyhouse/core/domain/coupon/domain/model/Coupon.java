@@ -70,7 +70,7 @@ public class Coupon extends BaseEntity {
     private LocalDateTime useEndAt;
 
     @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible = true;
+    private boolean visible = true;
 
     private Coupon(
         String name,
@@ -84,7 +84,7 @@ public class Coupon extends BaseEntity {
         LocalDateTime issueEndAt,
         LocalDateTime useStartAt,
         LocalDateTime useEndAt,
-        Boolean isVisible
+        boolean visible
     ) {
         this.name = name;
         this.description = description;
@@ -97,7 +97,7 @@ public class Coupon extends BaseEntity {
         this.issueEndAt = issueEndAt;
         this.useStartAt = useStartAt;
         this.useEndAt = useEndAt;
-        this.isVisible = isVisible != null ? isVisible : true;
+        this.visible = visible;
     }
 
     public static Coupon of(
@@ -112,12 +112,12 @@ public class Coupon extends BaseEntity {
         LocalDateTime issueEndAt,
         LocalDateTime useStartAt,
         LocalDateTime useEndAt,
-        Boolean isVisible
+        boolean visible
     ) {
         return new Coupon(
             name, description, discountType, discountAmount, maxDiscountAmount,
             minOrderAmount, maxDiscountCount, issueStartAt, issueEndAt,
-            useStartAt, useEndAt, isVisible
+            useStartAt, useEndAt, visible
         );
     }
 

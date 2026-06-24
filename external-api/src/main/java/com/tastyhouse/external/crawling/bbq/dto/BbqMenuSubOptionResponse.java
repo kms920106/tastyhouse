@@ -44,9 +44,9 @@ public class BbqMenuSubOptionResponse {
         private Integer addPrice;
 
         @JsonProperty("isSoldOut")
-        private Boolean isSoldOut;
+        private Boolean soldOut;
 
-        @JsonProperty("isHidden")
-        private Boolean isHidden;
+        @JsonProperty("hidden")
+        private Boolean hidden;
     }
 }

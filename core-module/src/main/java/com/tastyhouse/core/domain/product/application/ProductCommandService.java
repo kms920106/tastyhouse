@@ -54,10 +54,10 @@ public class ProductCommandService {
             cmd.discountRate(),
             cmd.rating(),
             cmd.reviewCount(),
-            cmd.isRepresentative(),
+            cmd.representative(),
             cmd.spiciness(),
-            cmd.isSoldOut(),
-            cmd.isVisible(),
+            cmd.soldOut(),
+            cmd.visible(),
             cmd.sort()
         );
         Product saved = productRepository.save(product);
@@ -75,31 +75,31 @@ public class ProductCommandService {
             cmd.shopId(),
             cmd.name(),
             cmd.sort(),
-            cmd.isVisible()
+            cmd.visible()
         );
         return productCategoryRepository.save(category);
     }
 
     @Transactional
-    public ProductImage saveProductImage(SaveProductImageCommand cmd) {
+    public void saveProductImage(SaveProductImageCommand cmd) {
         ProductImage image = ProductImage.of(
             cmd.productId(),
             cmd.imageFileId(),
             cmd.sort(),
-            cmd.isVisible()
+            cmd.visible()
         );
-        return productImageRepository.save(image);
+        productImageRepository.save(image);
     }
 
     @Transactional
-    public ProductBbq saveProductBbq(SaveProductBbqCommand cmd) {
+    public void saveProductBbq(SaveProductBbqCommand cmd) {
         ProductBbq bbq = ProductBbq.of(
             cmd.productId(),
             cmd.bbqMenuId(),
             cmd.bbqCategoryId(),
-            cmd.isOptionsSynced()
+            cmd.optionsSynced()
         );
-        return productBbqRepository.save(bbq);
+        productBbqRepository.save(bbq);
     }
 
     @Transactional
@@ -108,29 +108,30 @@ public class ProductCommandService {
             cmd.productId(),
             cmd.name(),
             cmd.description(),
-            cmd.isRequired(),
-            cmd.isMultipleSelect(),
+            cmd.required(),
+            cmd.multipleSelect(),
             cmd.minSelect(),
             cmd.maxSelect(),
             cmd.sort(),
-            cmd.isVisible()
+            cmd.visible()
         );
         return productOptionGroupRepository.save(group);
     }
 
     @Transactional
-    public ProductOption saveProductOption(SaveProductOptionCommand cmd) {
+    public void saveProductOption(SaveProductOptionCommand cmd) {
         ProductOption option = ProductOption.of(
             cmd.optionGroupId(),
             cmd.name(),
             cmd.additionalPrice(),
             cmd.sort(),
-            cmd.isSoldOut(),
-            cmd.isVisible()
+            cmd.soldOut(),
+            cmd.visible()
         );
-        return productOptionRepository.save(option);
+        productOptionRepository.save(option);
     }
 
+    @SuppressWarnings("unused")
     @Transactional
     public void markSoldOut(Long productId) {
         Product product = productRepository.findById(productId)
@@ -145,6 +146,7 @@ public class ProductCommandService {
         ));
     }
 
+    @SuppressWarnings("unused")
     @Transactional
     public void deactivateProduct(Long productId) {
         Product product = productRepository.findById(productId)

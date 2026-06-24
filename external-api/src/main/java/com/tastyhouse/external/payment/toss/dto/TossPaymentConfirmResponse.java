@@ -1,6 +1,7 @@
 package com.tastyhouse.external.payment.toss.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,8 +21,8 @@ public class TossPaymentConfirmResponse {
     private String orderName;
     private String requestedAt;
     private String approvedAt;
-    private Boolean useEscrow;
-    private Boolean cultureExpense;
+    private boolean useEscrow;
+    private boolean cultureExpense;
     private Card card;
     private VirtualAccount virtualAccount;
     private Transfer transfer;
@@ -29,7 +30,8 @@ public class TossPaymentConfirmResponse {
     private EasyPay easyPay;
     private String country;
     private Failure failure;
-    private Boolean isPartialCancelable;
+    @JsonProperty("isPartialCancelable")
+    private boolean isPartialCancelable;
     private Receipt receipt;
     private Checkout checkout;
     private String currency;
@@ -56,10 +58,11 @@ public class TossPaymentConfirmResponse {
         private String acquirerCode;
         private String number;
         private Integer installmentPlanMonths;
-        private Boolean isInterestFree;
+        @JsonProperty("isInterestFree")
+        private boolean isInterestFree;
         private String interestPayer;
         private String approveNo;
-        private Boolean useCardPoint;
+        private boolean useCardPoint;
         private String cardType;
         private String ownerType;
         private String acquireStatus;
@@ -77,7 +80,7 @@ public class TossPaymentConfirmResponse {
         private String customerName;
         private String dueDate;
         private String refundStatus;
-        private Boolean expired;
+        private boolean expired;
         private String settlementStatus;
     }
 

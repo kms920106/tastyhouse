@@ -4,5 +4,5 @@ public record SaveProductImageCommand(
     Long productId,
     Long imageFileId,
     Integer sort,
-    Boolean isVisible
+    boolean visible
 ) {}

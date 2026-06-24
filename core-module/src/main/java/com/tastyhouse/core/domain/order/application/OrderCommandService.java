@@ -80,7 +80,7 @@ public class OrderCommandService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
                     ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + itemCommand.productId()));
 
-            if (product.getIsSoldOut()) {
+            if (product.isSoldOut()) {
                 throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT,
                     ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }

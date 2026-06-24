@@ -4,10 +4,10 @@ public record SaveProductOptionGroupCommand(
     Long productId,
     String name,
     String description,
-    Boolean isRequired,
-    Boolean isMultipleSelect,
+    boolean required,
+    boolean multipleSelect,
     Integer minSelect,
     Integer maxSelect,
     Integer sort,
-    Boolean isVisible
+    boolean visible
 ) {}
