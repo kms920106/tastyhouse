@@ -30,6 +30,9 @@ public class Notice extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible = true; // 노출 여부 (true: 노출)
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted = false; // 삭제 여부 (true: 삭제됨, Soft Delete)
+
     private Notice(String title, String content, boolean visible) {
         this.title = title;
         this.content = content;
@@ -44,5 +47,9 @@ public class Notice extends BaseEntity {
         this.title = title;
         this.content = content;
         this.visible = visible;
+    }
+
+    public void delete() {
+        this.deleted = true;
     }
 }

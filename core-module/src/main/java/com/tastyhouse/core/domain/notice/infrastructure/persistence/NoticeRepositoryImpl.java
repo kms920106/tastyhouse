@@ -28,7 +28,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
-            .where(notice.visible.isTrue())
+            .where(notice.deleted.isFalse(), notice.visible.isTrue())
             .fetchOne();
 
         List<NoticeListItemDto> notices = queryFactory
@@ -40,7 +40,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
                 notice.createdAt
             ))
             .from(notice)
-            .where(notice.visible.isTrue())
+            .where(notice.deleted.isFalse(), notice.visible.isTrue())
             .orderBy(notice.id.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -54,6 +54,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
+            .where(notice.deleted.isFalse())
             .fetchOne();
 
         List<NoticeListItemDto> notices = queryFactory
@@ -65,6 +66,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
                 notice.createdAt
             ))
             .from(notice)
+            .where(notice.deleted.isFalse())
             .orderBy(notice.id.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -78,16 +80,14 @@ public class NoticeRepositoryImpl implements NoticeRepository {
         if (id == null) {
             return Optional.empty();
         }
-        return noticeJpaRepository.findById(id);
+        return Optional.ofNullable(queryFactory
+            .selectFrom(notice)
+            .where(notice.id.eq(id), notice.deleted.isFalse())
+            .fetchOne());
     }
 
     @Override
     public Notice save(Notice notice) {
         return noticeJpaRepository.save(notice);
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        noticeJpaRepository.deleteById(id);
     }
 }

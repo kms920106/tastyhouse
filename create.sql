@@ -377,9 +377,10 @@ CREATE TABLE NOTICE
     title      VARCHAR(200)  NOT NULL,            -- 공지 제목
     content    VARCHAR(1000) NOT NULL,            -- 공지 내용
     is_visible TINYINT(1)    NOT NULL DEFAULT 1,  -- 노출 여부 (1: 노출)
+    is_deleted TINYINT(1)    NOT NULL DEFAULT 0,  -- 삭제 여부 (1: 삭제, 0: 미삭제, Soft Delete)
     created_at DATETIME      NOT NULL,            -- 생성 일시
     updated_at DATETIME      NOT NULL,            -- 수정 일시
-    INDEX idx_notice_active (is_visible),         -- 인덱스: 노출 여부별 조회
+    INDEX idx_notice_active (is_deleted, is_visible), -- 인덱스: 삭제·노출 여부 복합 조회
     INDEX idx_notice_created_at (created_at)      -- 인덱스: 생성 일시별 조회
 );
 

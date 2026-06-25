@@ -34,6 +34,6 @@ public class NoticeCommandService {
         Notice notice = noticeRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
 
-        noticeRepository.deleteById(notice.getId());
+        notice.delete();
     }
 }

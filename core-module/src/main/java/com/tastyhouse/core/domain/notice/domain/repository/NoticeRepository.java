@@ -16,6 +16,4 @@ public interface NoticeRepository {
     Optional<Notice> findById(Long id);
 
     Notice save(Notice notice);
-
-    void deleteById(Long id);
 }
