@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.logging;
+package com.tastyhouse.logging;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,9 +11,9 @@ import java.util.Set;
 
 /**
  * 로그 출력 전 민감 필드를 마스킹 처리하는 컴포넌트
- *
  * 마스킹 대상: 비밀번호, 토큰, 인증코드, 카드 정보 등
  */
+@SuppressWarnings("unused")
 @Slf4j
 @Component
 @RequiredArgsConstructor

@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.logging;
+package com.tastyhouse.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,13 +21,11 @@ import java.util.UUID;
 
 /**
  * API 요청/응답 메타 정보 로깅 필터
- *
  * 로깅 항목: requestId, Method, Path, Client IP, Status Code, 처리 시간(ms)
  * requestId는 MDC에 등록되어 같은 요청에서 발생하는 모든 로그(p6spy 포함)에 자동 첨부됨
- *
  * Body 로깅: DEBUG 레벨 (개발 환경에서만 활성화)
- * - application-dev.yml: com.tastyhouse.webapi.logging: DEBUG
- * - application-prod.yml: com.tastyhouse.webapi.logging: INFO (기본값 유지)
+ * - application-dev.yml: com.tastyhouse.logging: DEBUG
+ * - application-prod.yml: com.tastyhouse.logging: INFO (기본값 유지)
  */
 @Slf4j
 @Component

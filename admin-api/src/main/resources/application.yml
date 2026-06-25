@@ -8,8 +8,8 @@ logging:
     root: INFO
     # INFO: 메타 정보만 로깅 (운영 환경)
     # DEBUG: Request/Response Body 추가 로깅 (개발 환경)
-    #    com.tastyhouse.webapi.logging: INFO
-    com.tastyhouse.webapi.logging: DEBUG
+    #    com.tastyhouse.logging: INFO
+    com.tastyhouse.logging: DEBUG
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3010}

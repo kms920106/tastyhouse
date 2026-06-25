@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.logging;
+package com.tastyhouse.logging;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,6 @@ import java.util.List;
 
 /**
  * Controller 메서드의 Request Body 및 인증 사용자 정보를 로깅하는 Aspect
- *
  * 로깅 항목: 인증 사용자(username), Request Body (민감 필드 마스킹 적용)
  * Filter 레이어에서 처리되는 401/403 등은 별도 로깅되지 않으며,
  * Controller까지 도달한 요청에 대해서만 동작합니다.
