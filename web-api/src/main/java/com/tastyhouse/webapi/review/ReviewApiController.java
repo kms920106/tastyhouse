@@ -60,8 +60,9 @@ public class ReviewApiController {
     })
     @GetMapping("/v1/write/order-items/{orderProductId}")
     public ResponseEntity<ApiResponse<ReviewWriteInfoResponse>> getReviewWriteInfo(
-            @Parameter(description = "주문 상품 ID", example = "1") @PathVariable Long orderProductId,
-            @CurrentUser CustomUserDetails userDetails) {
+        @Parameter(description = "주문 상품 ID", example = "1") @PathVariable Long orderProductId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         ReviewWriteInfoResponse response = reviewService.getReviewWriteInfo(orderProductId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -75,8 +76,9 @@ public class ReviewApiController {
     })
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(
-            @Valid @RequestBody ReviewCreateRequest request,
-            @CurrentUser CustomUserDetails userDetails) {
+        @Valid @RequestBody ReviewCreateRequest request,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         ReviewResponse response = reviewService.createReview(userDetails.getMemberId(), request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -90,9 +92,10 @@ public class ReviewApiController {
     })
     @PutMapping("/v1/{reviewId}")
     public ResponseEntity<ApiResponse<ReviewResponse>> updateReview(
-            @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-            @Valid @RequestBody ReviewUpdateRequest request,
-            @CurrentUser CustomUserDetails userDetails) {
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @Valid @RequestBody ReviewUpdateRequest request,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         ReviewResponse response = reviewService.updateReview(reviewId, userDetails.getMemberId(), request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -106,8 +109,9 @@ public class ReviewApiController {
     })
     @DeleteMapping("/v1/{reviewId}")
     public ResponseEntity<ApiResponse<Void>> deleteReview(
-            @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-            @CurrentUser CustomUserDetails userDetails) {
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         reviewService.deleteReview(reviewId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -125,9 +129,10 @@ public class ReviewApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/latest")
     public ResponseEntity<ApiResponse<List<LatestReviewListItemResponse>>> getLatestReviewList(
-            @Valid @ModelAttribute PageRequest pageRequest,
-            @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewType type,
-            @CurrentUser CustomUserDetails userDetails) {
+        @Valid @ModelAttribute PageRequest pageRequest,
+        @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewType type,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         PageResponse<LatestReviewListItemResponse> pageResult = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), type, memberId);
         ApiResponse<List<LatestReviewListItemResponse>> response = ApiResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
@@ -155,7 +160,10 @@ public class ReviewApiController {
     @Operation(summary = "리뷰 좋아요 여부 조회", description = "리뷰가 현재 사용자에 의해 좋아요되었는지 여부를 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")})
     @GetMapping("/v1/{reviewId}/like")
-    public ResponseEntity<ApiResponse<ReviewLikeStatusResponse>> isLiked(@PathVariable Long reviewId, @CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<ReviewLikeStatusResponse>> isLiked(
+        @PathVariable Long reviewId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         ReviewLikeStatusResponse liked;
         if (userDetails == null) {
             liked = ReviewLikeStatusResponse.from(false);
@@ -169,7 +177,10 @@ public class ReviewApiController {
     @Operation(summary = "리뷰 좋아요 토글", description = "리뷰에 좋아요를 토글합니다. 이미 좋아요한 경우 취소되고, 아닌 경우 좋아요가 추가됩니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "좋아요 토글 성공", content = @Content(schema = @Schema(implementation = ReviewLikeResponse.class))), @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
     @PostMapping("/v1/{reviewId}/like")
-    public ResponseEntity<ApiResponse<ReviewLikeResponse>> toggleReviewLike(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId, @CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<ReviewLikeResponse>> toggleReviewLike(
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         boolean liked = reviewService.toggleReviewLike(reviewId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(ReviewLikeResponse.from(liked)));
     }
@@ -177,7 +188,11 @@ public class ReviewApiController {
     @Operation(summary = "댓글 등록", description = "리뷰에 댓글을 등록합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "댓글 등록 성공", content = @Content(schema = @Schema(implementation = CommentResponse.class))), @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
     @PostMapping("/v1/{reviewId}/comments")
-    public ResponseEntity<ApiResponse<CommentResponse>> createComment(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId, @Valid @RequestBody CommentCreateRequest request, @CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<CommentResponse>> createComment(
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @Valid @RequestBody CommentCreateRequest request,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         CommentResponse response = reviewService.createComment(reviewId, userDetails.getMemberId(), request.content());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -185,7 +200,11 @@ public class ReviewApiController {
     @Operation(summary = "답글 등록", description = "댓글에 답글을 등록합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "답글 등록 성공", content = @Content(schema = @Schema(implementation = ReplyResponse.class))), @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")})
     @PostMapping("/v1/comments/{commentId}/replies")
-    public ResponseEntity<ApiResponse<ReplyResponse>> createReply(@Parameter(description = "댓글 ID", example = "1") @PathVariable Long commentId, @Valid @RequestBody ReplyCreateRequest request, @CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<ReplyResponse>> createReply(
+        @Parameter(description = "댓글 ID", example = "1") @PathVariable Long commentId,
+        @Valid @RequestBody ReplyCreateRequest request,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         ReplyResponse response = reviewService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -205,8 +224,9 @@ public class ReviewApiController {
     })
     @GetMapping("/v1/members/{memberId}")
     public ResponseEntity<ApiResponse<List<MemberReviewListItemResponse>>> getMemberReviews(
-            @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
-            @Valid @ModelAttribute PageRequest pageRequest) {
+        @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
+        @Valid @ModelAttribute PageRequest pageRequest
+    ) {
         PageResponse<MemberReviewListItemResponse> pageResult = reviewService.findMemberReviews(memberId, pageRequest.page(), pageRequest.size());
         ApiResponse<List<MemberReviewListItemResponse>> response = ApiResponse.success(
             pageResult.getContent(), pageResult.getCurrentPage(), pageResult.getPageSize(), pageResult.getTotalElements()

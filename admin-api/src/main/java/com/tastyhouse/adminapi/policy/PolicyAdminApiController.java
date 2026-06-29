@@ -52,7 +52,8 @@ public class PolicyAdminApiController {
     @PutMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> updatePolicy(
         @PathVariable Long id,
-        @Valid @RequestBody PolicyUpdateRequest request) {
+        @Valid @RequestBody PolicyUpdateRequest request
+    ) {
         policyCommandService.updatePolicy(new PolicyDocumentId(id), new UpdatePolicyCommand(
             request.title(),
             request.content(),

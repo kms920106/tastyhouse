@@ -33,8 +33,7 @@ public class NoticeApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공",
         content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1")
-    public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(
-        @Valid @ModelAttribute PageRequest pageRequest) {
+    public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
 
         PageResponse<NoticeListItemResponse> pageResult = PageResponse
             .from(noticeQueryService.findAllWithPagination(pageRequest.page(), pageRequest.size()))

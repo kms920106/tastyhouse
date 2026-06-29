@@ -45,7 +45,8 @@ public class NoticeApiController {
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemDto>>> getNotices(
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size) {
+        @RequestParam(defaultValue = "10") int size
+    ) {
         Page<NoticeListItemDto> notices = noticeQueryService.findAllForAdmin(page, size);
         return ResponseEntity.ok(ApiResponse.success(
             notices.getContent(),
@@ -88,7 +89,8 @@ public class NoticeApiController {
     @PutMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> updateNotice(
         @PathVariable Long id,
-        @Valid @RequestBody NoticeUpdateRequest request) {
+        @Valid @RequestBody NoticeUpdateRequest request
+    ) {
         noticeCommandService.updateNotice(id, new UpdateNoticeCommand(
             request.title(),
             request.content(),

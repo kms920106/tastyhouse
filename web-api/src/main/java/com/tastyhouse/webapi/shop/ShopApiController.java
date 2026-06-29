@@ -56,8 +56,9 @@ public class ShopApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/map/markers")
     public ResponseEntity<ApiResponse<List<ShopMapMarkerResponse>>> getMapMarkers(
-            @RequestParam @Parameter(description = "위도", example = "37.5013") Double latitude,
-            @RequestParam @Parameter(description = "경도", example = "127.0396") Double longitude) {
+        @RequestParam @Parameter(description = "위도", example = "37.5013") Double latitude,
+        @RequestParam @Parameter(description = "경도", example = "127.0396") Double longitude
+    ) {
         List<ShopMapMarkerResponse> markers = shopService.searchMapMarkers(latitude, longitude);
         ApiResponse<List<ShopMapMarkerResponse>> response = ApiResponse.success(markers);
         return ResponseEntity.ok(response);
@@ -85,10 +86,11 @@ public class ShopApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/latest")
     public ResponseEntity<ApiResponse<List<LatestShopListItemResponse>>> getLatestShops(
-            @Valid @ModelAttribute PageRequest pageRequest,
-            @RequestParam(required = false) Long stationId,
-            @RequestParam(required = false) List<FoodType> foodTypes,
-            @RequestParam(required = false) List<Amenity> amenities) {
+        @Valid @ModelAttribute PageRequest pageRequest,
+        @RequestParam(required = false) Long stationId,
+        @RequestParam(required = false) List<FoodType> foodTypes,
+        @RequestParam(required = false) List<Amenity> amenities
+    ) {
         LatestShopFilterRequest filterRequest = new LatestShopFilterRequest(stationId, foodTypes, amenities);
         PageResponse<LatestShopListItemResponse> pageResult = shopService.searchLatestShops(filterRequest, pageRequest.page(), pageRequest.size());
         ApiResponse<List<LatestShopListItemResponse>> response = ApiResponse.success(pageResult.getContent(), pageRequest.page(), pageRequest.size(), pageResult.getTotalElements());
@@ -171,10 +173,11 @@ public class ShopApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/{shopId}/reviews")
     public ResponseEntity<ApiResponse<ShopReviewsByRatingResponse>> getShopReviews(
-            @PathVariable Long shopId,
-            @Valid @ModelAttribute PageRequest pageRequest,
-            @Parameter(description = "이미지 유무 필터: 미지정=전체, true=이미지 있는 리뷰, false=이미지 없는 리뷰")
-            @RequestParam(required = false) Boolean hasImage) {
+        @PathVariable Long shopId,
+        @Valid @ModelAttribute PageRequest pageRequest,
+        @Parameter(description = "이미지 유무 필터: 미지정=전체, true=이미지 있는 리뷰, false=이미지 없는 리뷰")
+        @RequestParam(required = false) Boolean hasImage
+    ) {
         ShopReviewsByRatingWithPagination result = shopService.getShopReviewsByRatingWithPagination(shopId, pageRequest.page(), pageRequest.size(), hasImage);
         ApiResponse<ShopReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
@@ -192,7 +195,10 @@ public class ShopApiController {
     @Operation(summary = "북마크 여부 조회", description = "가게가 현재 사용자에 의해 북마크되었는지 여부를 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")})
     @GetMapping("/v1/{shopId}/bookmark")
-    public ResponseEntity<ApiResponse<ShopBookmarkResponse>> isBookmarked(@PathVariable Long shopId, @CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<ShopBookmarkResponse>> isBookmarked(
+        @PathVariable Long shopId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         ShopBookmarkResponse bookmarked;
         if (userDetails == null) {
             bookmarked = ShopBookmarkResponse.from(false);
@@ -206,7 +212,10 @@ public class ShopApiController {
     @Operation(summary = "북마크 토글", description = "가게에 대한 북마크를 추가하거나 제거합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "처리 성공")})
     @PostMapping("/v1/{shopId}/bookmark")
-    public ResponseEntity<ApiResponse<ShopBookmarkResponse>> toggleBookmark(@PathVariable Long shopId, @CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<ShopBookmarkResponse>> toggleBookmark(
+        @PathVariable Long shopId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
         if (userDetails == null) {
             return ResponseEntity.status(401).build();
         }

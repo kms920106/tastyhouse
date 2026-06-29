@@ -36,8 +36,7 @@ public class FaqApiController {
     @Operation(summary = "FAQ 목록 조회", description = "카테고리 ID로 필터링하거나 전체 FAQ 목록을 조회합니다. categoryId 미입력 시 전체 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1")
-    public ResponseEntity<ApiResponse<List<FaqListItemResponse>>> getFaqList(
-            @RequestParam(required = false) Long categoryId) {
+    public ResponseEntity<ApiResponse<List<FaqListItemResponse>>> getFaqList(@RequestParam(required = false) Long categoryId) {
         List<FaqListItemResponse> faqs = faqService.searchFaqListItemResponses(categoryId);
         return ResponseEntity.ok(ApiResponse.success(faqs));
     }

@@ -106,10 +106,11 @@ public class ProductApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/{productId}/reviews")
     public ResponseEntity<ApiResponse<ProductReviewsByRatingResponse>> getProductReviews(
-            @PathVariable Long productId,
-            @Valid @ModelAttribute PageRequest pageRequest,
-            @Parameter(description = "이미지 유무 필터: 미지정=전체, true=이미지 있는 리뷰, false=이미지 없는 리뷰")
-            @RequestParam(required = false) Boolean hasImage) {
+        @PathVariable Long productId,
+        @Valid @ModelAttribute PageRequest pageRequest,
+        @Parameter(description = "이미지 유무 필터: 미지정=전체, true=이미지 있는 리뷰, false=이미지 없는 리뷰")
+        @RequestParam(required = false) Boolean hasImage
+    ) {
         ProductReviewsByRatingWithPagination result = productService.getProductReviewsByRatingWithPagination(productId, pageRequest.page(), pageRequest.size(), hasImage);
         ApiResponse<ProductReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
