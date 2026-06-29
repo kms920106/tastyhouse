@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface NoticeRepository {
 
-    Page<NoticeListItemDto> findAllWithFilter(Pageable pageable);
+    Page<NoticeListItemDto> findVisibleNotices(Pageable pageable);
 
-    Page<NoticeListItemDto> findAllForAdmin(Pageable pageable);
+    Page<NoticeListItemDto> findAllNotices(Pageable pageable);
 
     Optional<Notice> findById(Long id);
 

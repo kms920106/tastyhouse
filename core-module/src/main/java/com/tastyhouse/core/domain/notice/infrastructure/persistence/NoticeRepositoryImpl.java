@@ -24,7 +24,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     private final NoticeJpaRepository noticeJpaRepository;
 
     @Override
-    public Page<NoticeListItemDto> findAllWithFilter(Pageable pageable) {
+    public Page<NoticeListItemDto> findVisibleNotices(Pageable pageable) {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
@@ -50,7 +50,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     }
 
     @Override
-    public Page<NoticeListItemDto> findAllForAdmin(Pageable pageable) {
+    public Page<NoticeListItemDto> findAllNotices(Pageable pageable) {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)

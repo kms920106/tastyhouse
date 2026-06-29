@@ -36,7 +36,7 @@ public class NoticeApiController {
     public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
 
         PageResponse<NoticeListItemResponse> pageResult = PageResponse
-            .from(noticeQueryService.findAllWithPagination(pageRequest.page(), pageRequest.size()))
+            .from(noticeQueryService.findVisibleNotices(pageRequest.page(), pageRequest.size()))
             .map(this::toNoticeListItemResponse);
 
         return ResponseEntity.ok(ApiResponse.success(

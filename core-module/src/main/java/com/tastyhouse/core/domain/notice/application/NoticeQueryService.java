@@ -18,12 +18,12 @@ public class NoticeQueryService {
 
     private final NoticeRepository noticeRepository;
 
-    public Page<NoticeListItemDto> findAllWithPagination(int page, int size) {
-        return noticeRepository.findAllWithFilter(PageRequest.of(page, size));
+    public Page<NoticeListItemDto> findVisibleNotices(int page, int size) {
+        return noticeRepository.findVisibleNotices(PageRequest.of(page, size));
     }
 
-    public Page<NoticeListItemDto> findAllForAdmin(int page, int size) {
-        return noticeRepository.findAllForAdmin(PageRequest.of(page, size));
+    public Page<NoticeListItemDto> findAllNotices(int page, int size) {
+        return noticeRepository.findAllNotices(PageRequest.of(page, size));
     }
 
     public Notice findById(Long id) {

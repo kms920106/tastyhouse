@@ -47,7 +47,7 @@ public class NoticeApiController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        Page<NoticeListItemDto> notices = noticeQueryService.findAllForAdmin(page, size);
+        Page<NoticeListItemDto> notices = noticeQueryService.findAllNotices(page, size);
         return ResponseEntity.ok(ApiResponse.success(
             notices.getContent(),
             notices.getNumber(),
