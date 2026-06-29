@@ -3,13 +3,17 @@ plugins {
 }
 
 dependencies {
+    // Spring Boot Starter
     // 공유 모듈이 web/aop/security/jackson을 api로 노출 → 소비 모듈(admin-api)이 aop를 별도 추가할 필요가 없다.
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-aop'
     api 'org.springframework.boot:spring-boot-starter-security'
+
+    // Lombok
     implementation 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
