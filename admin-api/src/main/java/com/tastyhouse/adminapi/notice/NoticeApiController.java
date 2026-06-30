@@ -1,12 +1,14 @@
 package com.tastyhouse.adminapi.notice;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
+import com.tastyhouse.adminapi.common.PageRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
+import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.application.dto.command.CreateNoticeCommand;
 import com.tastyhouse.core.domain.notice.application.dto.command.UpdateNoticeCommand;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,14 +43,17 @@ public class NoticeApiController {
     private final NoticeCommandService noticeCommandService;
     private final NoticeQueryService noticeQueryService;
 
-    @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다. (비노출 공지 포함)")
+    @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다. (비노출 공지 포함) title/content는 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemDto>>> getNotices(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) String content,
+        @RequestParam(required = false) Boolean visible,
+        @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        Page<NoticeListItemDto> notices = noticeQueryService.findAllNotices(page, size);
+        NoticeSearchCondition condition = new NoticeSearchCondition(title, content, visible);
+        Page<NoticeListItemDto> notices = noticeQueryService.findAllNotices(condition, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             notices.getContent(),
             notices.getNumber(),

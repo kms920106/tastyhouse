@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.notice.application;
 
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
+import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -8,6 +9,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +24,9 @@ public class NoticeQueryService {
         return noticeRepository.findVisibleNotices(PageRequest.of(page, size));
     }
 
-    public Page<NoticeListItemDto> findAllNotices(int page, int size) {
-        return noticeRepository.findAllNotices(PageRequest.of(page, size));
+    public Page<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return noticeRepository.findAllNotices(condition, pageable);
     }
 
     public Notice findById(Long id) {

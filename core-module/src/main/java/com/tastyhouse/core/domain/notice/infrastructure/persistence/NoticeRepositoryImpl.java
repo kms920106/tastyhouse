@@ -1,7 +1,9 @@
 package com.tastyhouse.core.domain.notice.infrastructure.persistence;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
+import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.application.dto.QNoticeListItemDto;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
@@ -10,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,11 +53,16 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     }
 
     @Override
-    public Page<NoticeListItemDto> findAllNotices(Pageable pageable) {
+    public Page<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, Pageable pageable) {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
-            .where(notice.deleted.isFalse())
+            .where(
+                titleContains(condition.title()),
+                contentContains(condition.content()),
+                visibleEq(condition.visible()),
+                notice.deleted.isFalse()
+            )
             .fetchOne();
 
         List<NoticeListItemDto> notices = queryFactory
@@ -66,7 +74,12 @@ public class NoticeRepositoryImpl implements NoticeRepository {
                 notice.createdAt
             ))
             .from(notice)
-            .where(notice.deleted.isFalse())
+            .where(
+                titleContains(condition.title()),
+                contentContains(condition.content()),
+                visibleEq(condition.visible()),
+                notice.deleted.isFalse()
+            )
             .orderBy(notice.id.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -89,5 +102,17 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     @Override
     public Notice save(Notice notice) {
         return noticeJpaRepository.save(notice);
+    }
+
+    private BooleanExpression titleContains(String title) {
+        return StringUtils.hasText(title) ? notice.title.containsIgnoreCase(title) : null;
+    }
+
+    private BooleanExpression contentContains(String content) {
+        return StringUtils.hasText(content) ? notice.content.containsIgnoreCase(content) : null;
+    }
+
+    private BooleanExpression visibleEq(Boolean visible) {
+        return visible != null ? notice.visible.eq(visible) : null;
     }
 }
