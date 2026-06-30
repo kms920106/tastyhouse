@@ -21,7 +21,8 @@ public class NoticeQueryService {
     private final NoticeRepository noticeRepository;
 
     public Page<NoticeListItemDto> findVisibleNotices(int page, int size) {
-        return noticeRepository.findVisibleNotices(PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return noticeRepository.findVisibleNotices(pageable);
     }
 
     public Page<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, int page, int size) {

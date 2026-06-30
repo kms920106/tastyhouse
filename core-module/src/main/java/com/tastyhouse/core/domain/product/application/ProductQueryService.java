@@ -23,6 +23,7 @@ import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,11 +88,13 @@ public class ProductQueryService {
     }
 
     public Page<TodayDiscountProductResult> findTodayDiscountProducts(int page, int size) {
-        return productRepository.findTodayDiscountProducts(PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findTodayDiscountProducts(pageable);
     }
 
     public Page<SearchProductItemResult> searchByKeyword(String keyword, int page, int size) {
-        return productRepository.searchByKeyword(keyword, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.searchByKeyword(keyword, pageable);
     }
 
     public ProductOptionsResult findProductOptions(Long productId) {

@@ -9,6 +9,7 @@ import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +24,13 @@ public class EventQueryService {
     private final EventAnnouncementRepository eventAnnouncementRepository;
 
     public Page<EventAnnouncement> findAllEventAnnouncements(int page, int size) {
-        return eventAnnouncementRepository.findAllOrderByAnnouncedAtDesc(PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return eventAnnouncementRepository.findAllOrderByAnnouncedAtDesc(pageable);
     }
 
     public Page<EventListItemDto> findEventListItemsByStatus(EventStatus status, int page, int size) {
-        return eventRepository.findEventListItemsByStatus(status, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return eventRepository.findEventListItemsByStatus(status, pageable);
     }
 
     public Optional<EventDetailDto> findEventDetailById(Long eventId) {

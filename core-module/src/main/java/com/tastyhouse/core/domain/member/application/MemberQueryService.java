@@ -13,6 +13,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,24 +59,17 @@ public class MemberQueryService {
         return memberRepository.findByUsername(username);
     }
 
-    public Optional<Member> findByNickname(String nickname) {
-        return memberRepository.findByNickname(nickname);
-    }
-
     public Optional<Member> findByPhoneNumberAndStatusNot(String phoneNumber, MemberStatus memberStatus) {
         return memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, memberStatus);
     }
 
     public Page<MemberWithProfileImageResult> findByNicknameContaining(String nickname, int page, int size) {
-        return memberRepository.findByNicknameContaining(nickname, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return memberRepository.findByNicknameContaining(nickname, pageable);
     }
 
     public Optional<MemberWithProfileImageResult> findMemberWithProfileImage(MemberId memberId) {
         return memberRepository.findMemberWithProfileImageById(memberId);
-    }
-
-    public Optional<MemberWithProfileImageResult> findMemberWithProfileImage(Long memberId) {
-        return findMemberWithProfileImage(new MemberId(memberId));
     }
 
     public Map<Long, MemberWithProfileImageResult> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {

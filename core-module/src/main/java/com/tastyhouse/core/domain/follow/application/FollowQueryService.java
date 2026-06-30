@@ -7,6 +7,7 @@ import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfil
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,11 +22,13 @@ public class FollowQueryService {
     private final MemberQueryService memberQueryService;
 
     public Page<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
-        return followRepository.findFollowingList(memberId, viewerMemberId, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return followRepository.findFollowingList(memberId, viewerMemberId, pageable);
     }
 
     public Page<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
-        return followRepository.findFollowerList(memberId, viewerMemberId, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return followRepository.findFollowerList(memberId, viewerMemberId, pageable);
     }
 
     public Page<MemberWithProfileImageResult> findMembersByNicknameContaining(String nickname, int page, int size) {

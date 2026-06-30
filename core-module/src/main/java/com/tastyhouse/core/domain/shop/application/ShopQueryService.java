@@ -13,7 +13,6 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryI
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
-import com.tastyhouse.core.domain.shop.domain.model.ShopAmenity;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
 import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
@@ -26,12 +25,12 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopJpaRepository;
-import com.tastyhouse.core.domain.shop.infrastructure.persistence.StationJpaRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +47,6 @@ public class ShopQueryService {
     private final ShopChoiceRepository shopChoiceRepository;
     private final ShopDetailRepository shopDetailRepository;
     private final ShopJpaRepository shopJpaRepository;
-    private final StationJpaRepository stationJpaRepository;
     private final ShopBookmarkRepository shopBookmarkRepository;
     private final FileQueryService fileQueryService;
 
@@ -59,15 +57,18 @@ public class ShopQueryService {
     }
 
     public Page<BestShopItemDto> findBestShops(int page, int size) {
-        return shopRepository.findBestShops(PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return shopRepository.findBestShops(pageable);
     }
 
     public Page<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, int page, int size) {
-        return shopRepository.findLatestShops(stationId, foodTypes, amenities, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return shopRepository.findLatestShops(stationId, foodTypes, amenities, pageable);
     }
 
     public Page<EditorChoiceDto> findEditorChoices(int page, int size) {
-        return shopChoiceRepository.findEditorChoice(PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return shopChoiceRepository.findEditorChoice(pageable);
     }
 
     public List<Station> findAllStations() {
@@ -87,11 +88,6 @@ public class ShopQueryService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
-    public Station findStationById(Long stationId) {
-        return stationJpaRepository.findById(stationId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.STATION_NOT_FOUND));
-    }
-
     public List<ShopBusinessHour> findShopBusinessHours(Long shopId) {
         return shopDetailRepository.findBusinessHoursByShopId(shopId);
     }
@@ -102,10 +98,6 @@ public class ShopQueryService {
 
     public List<ShopClosedDay> findShopClosedDays(Long shopId) {
         return shopDetailRepository.findClosedDaysByShopId(shopId);
-    }
-
-    public List<ShopAmenity> findShopAmenities(Long shopId) {
-        return shopDetailRepository.findAmenitiesByShopId(shopId);
     }
 
     public List<ShopAmenityWithCategoryDto> findShopAmenitiesWithCategory(Long shopId) {
@@ -137,7 +129,8 @@ public class ShopQueryService {
     }
 
     public Page<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, int page, int size) {
-        return shopRepository.findMyBookmarkedShops(memberId, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return shopRepository.findMyBookmarkedShops(memberId, pageable);
     }
 
     public Optional<String> findThumbnailFilePath(Long thumbnailImageFileId) {

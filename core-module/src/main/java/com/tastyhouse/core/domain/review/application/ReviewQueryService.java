@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +53,8 @@ public class ReviewQueryService {
     private final TagRepository tagRepository;
 
     public Page<BestReviewListItemResult> findBestReviewsWithPagination(int page, int size) {
-        return reviewRepository.findBestReviews(PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return reviewRepository.findBestReviews(pageable);
     }
 
     public Review findById(Long id) {
@@ -76,7 +78,8 @@ public class ReviewQueryService {
     }
 
     public Page<LatestReviewListItemResult> findLatestReviewsWithPagination(int page, int size) {
-        return reviewRepository.findLatestReviews(PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return reviewRepository.findLatestReviews(pageable);
     }
 
     public Page<LatestReviewListItemResult> findLatestReviewsByFollowingWithPagination(Long memberId, int page, int size) {
@@ -207,11 +210,13 @@ public class ReviewQueryService {
     }
 
     public Page<MyReviewListItemResult> findMyReviews(Long memberId, int page, int size) {
-        return reviewRepository.findMyReviews(memberId, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return reviewRepository.findMyReviews(memberId, pageable);
     }
 
     public Page<MyReviewListItemResult> findReviewsByMemberId(Long memberId, int page, int size) {
-        return reviewRepository.findReviewsByMemberId(memberId, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return reviewRepository.findReviewsByMemberId(memberId, pageable);
     }
 
     public boolean isReviewedByOrderAndProduct(Long orderId, Long productId, Long memberId) {

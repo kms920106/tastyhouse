@@ -9,6 +9,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +21,13 @@ public class BannerQueryService {
     private final BannerRepository bannerRepository;
 
     public Page<BannerListItemDto> findHomeBanners(int page, int size) {
-        return bannerRepository.findAllByType(BannerType.HOME, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return bannerRepository.findAllByType(BannerType.HOME, pageable);
     }
 
     public Page<BannerListItemDto> findSidebarBanners(int page, int size) {
-        return bannerRepository.findAllByType(BannerType.SIDEBAR, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return bannerRepository.findAllByType(BannerType.SIDEBAR, pageable);
     }
 
     public Banner findById(Long id) {

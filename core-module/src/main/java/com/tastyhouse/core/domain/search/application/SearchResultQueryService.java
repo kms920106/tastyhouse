@@ -9,6 +9,7 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +27,12 @@ public class SearchResultQueryService {
     }
 
     public Page<SearchReviewItemResult> searchReviews(String keyword, int page, int size) {
-        return reviewRepository.searchByKeyword(keyword, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return reviewRepository.searchByKeyword(keyword, pageable);
     }
 
     public Page<ShopBookmarkedItemDto> searchShopsWithBookmark(String keyword, Long memberId, int page, int size) {
-        return shopRepository.searchByKeywordWithBookmark(keyword, memberId, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return shopRepository.searchByKeywordWithBookmark(keyword, memberId, pageable);
     }
 }

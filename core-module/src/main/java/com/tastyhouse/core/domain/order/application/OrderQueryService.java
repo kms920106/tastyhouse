@@ -20,6 +20,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +43,8 @@ public class OrderQueryService {
     }
 
     public Page<OrderListItemResult> findOrderList(Long memberId, int page, int size) {
-        return orderRepository.findOrderListByMemberId(memberId, PageRequest.of(page, size));
+        Pageable pageable = PageRequest.of(page, size);
+        return orderRepository.findOrderListByMemberId(memberId, pageable);
     }
 
     public OrderResult findOrderDetail(Long memberId, Long orderId) {
@@ -89,17 +91,5 @@ public class OrderQueryService {
     public OrderProduct findOrderProductById(Long orderProductId) {
         return orderProductRepository.findById(orderProductId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
-    }
-
-    public List<OrderProduct> findOrderProducts(Long orderId) {
-        return orderProductRepository.findByOrderId(orderId);
-    }
-
-    public List<OrderProductOption> findOrderProductOptions(Long orderProductId) {
-        return orderProductOptionRepository.findByOrderProductId(orderProductId);
-    }
-
-    public Optional<Payment> findPaymentByOrderId(Long orderId) {
-        return paymentRepository.findByOrderId(new OrderId(orderId));
     }
 }
