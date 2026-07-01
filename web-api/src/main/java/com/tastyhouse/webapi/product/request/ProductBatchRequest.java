@@ -1,12 +1,12 @@
 package com.tastyhouse.webapi.product.request;
 
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import java.util.List;
 
 @Schema(description = "상품 배치 조회 요청. (상품ID, 옵션ID) 조합의 목록입니다.")
 public record ProductBatchRequest(

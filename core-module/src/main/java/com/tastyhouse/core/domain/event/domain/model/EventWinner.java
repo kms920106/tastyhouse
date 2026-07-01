@@ -1,7 +1,7 @@
 package com.tastyhouse.core.domain.event.domain.model;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-import com.tastyhouse.core.shared.vo.PhoneNumber;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -14,7 +14,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.core.shared.vo.PhoneNumber;
 
 @Getter
 @Entity

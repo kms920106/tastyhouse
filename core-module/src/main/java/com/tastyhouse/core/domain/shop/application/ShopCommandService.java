@@ -1,11 +1,12 @@
 package com.tastyhouse.core.domain.shop.application;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopBookmark;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopBookmarkRepository;
-import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopBookmarkJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.core.domain.shop.domain.model.ShopBookmark;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopBookmarkRepository;
+import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopBookmarkJpaRepository;
 
 @Service
 @Transactional

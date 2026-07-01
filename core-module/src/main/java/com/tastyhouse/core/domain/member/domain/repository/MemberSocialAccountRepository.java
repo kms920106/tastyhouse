@@ -1,9 +1,9 @@
 package com.tastyhouse.core.domain.member.domain.repository;
 
+import java.util.Optional;
+
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
 import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
-
-import java.util.Optional;
 
 public interface MemberSocialAccountRepository {
 

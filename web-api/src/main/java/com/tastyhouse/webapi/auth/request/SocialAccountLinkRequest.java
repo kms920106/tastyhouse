@@ -1,9 +1,10 @@
 package com.tastyhouse.webapi.auth.request;
 
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 
 @Schema(description = "소셜 계정 연동 요청. 소셜 로그인 응답에서 status=NEEDS_LINKING 또는 status=NEEDS_SIGN_UP을 받은 경우 호출합니다.")
 public record SocialAccountLinkRequest(

@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.review.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "답글 응답")
 public record ReplyResponse(

@@ -1,14 +1,19 @@
 package com.tastyhouse.core.domain.shop.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.file.domain.model.QUploadedFile;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
-import com.tastyhouse.core.domain.shop.domain.model.ShopAmenity;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
 import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
@@ -17,11 +22,6 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopOwnerMessageHistory;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenity.shopAmenity;
@@ -117,14 +117,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
         return queryFactory
             .selectFrom(shopClosedDay)
             .where(shopClosedDay.shopId.eq(shopId))
-            .fetch();
-    }
-
-    @Override
-    public List<ShopAmenity> findAmenitiesByShopId(Long shopId) {
-        return queryFactory
-            .selectFrom(shopAmenity)
-            .where(shopAmenity.shopId.eq(shopId))
             .fetch();
     }
 

@@ -1,20 +1,19 @@
 package com.tastyhouse.core.domain.coupon.application;
 
-import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
-import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
-import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
-import com.tastyhouse.core.domain.coupon.domain.model.MemberCoupon;
-import com.tastyhouse.core.domain.coupon.domain.model.MemberCouponId;
-import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
-import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
+import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
+import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
+import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
+import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
 
 @Service
 @Transactional(readOnly = true)
@@ -35,10 +34,5 @@ public class CouponQueryService {
     public Coupon findById(CouponId id) {
         return couponRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
-    }
-
-    public MemberCoupon findMemberCouponById(MemberCouponId id) {
-        return memberCouponRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
     }
 }

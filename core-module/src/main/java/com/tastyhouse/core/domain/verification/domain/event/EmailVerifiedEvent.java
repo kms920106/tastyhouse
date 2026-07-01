@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.verification.domain.event;
 
-import com.tastyhouse.core.domain.verification.domain.vo.EmailVerificationId;
-
 import java.time.LocalDateTime;
+
+import com.tastyhouse.core.domain.verification.domain.vo.EmailVerificationId;
 
 public record EmailVerifiedEvent(
     EmailVerificationId verificationId,

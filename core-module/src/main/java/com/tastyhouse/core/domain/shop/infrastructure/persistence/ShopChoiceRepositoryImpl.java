@@ -1,29 +1,30 @@
 package com.tastyhouse.core.domain.shop.infrastructure.persistence;
 
-import com.querydsl.core.Tuple;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceDto;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
-import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
-import com.tastyhouse.core.domain.product.application.dto.result.QProductSimpleResult;
-import com.tastyhouse.core.domain.product.domain.model.QProductImage;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
+import com.tastyhouse.core.domain.product.application.dto.result.QProductSimpleResult;
+import com.tastyhouse.core.domain.product.domain.model.QProductImage;
+import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceDto;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
+
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
-import static com.tastyhouse.core.domain.shop.domain.model.QShopChoice.shopChoice;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;
+import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
+import static com.tastyhouse.core.domain.shop.domain.model.QShopChoice.shopChoice;
 
 @Repository
 @RequiredArgsConstructor

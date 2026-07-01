@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.shop.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.math.BigDecimal;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "지도 마커 응답")
 public record ShopMapMarkerResponse(

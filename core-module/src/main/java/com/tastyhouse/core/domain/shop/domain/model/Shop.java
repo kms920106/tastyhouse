@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,7 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
-import java.math.BigDecimal;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
 @Entity

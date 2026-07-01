@@ -1,10 +1,11 @@
 package com.tastyhouse.webapi.member.request;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.core.domain.member.domain.model.Gender;
 
 @Schema(description = "개인정보 수정 요청")
 public record UpdatePersonalInfoRequest(

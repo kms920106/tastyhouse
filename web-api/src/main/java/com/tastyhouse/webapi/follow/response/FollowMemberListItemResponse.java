@@ -1,8 +1,9 @@
 package com.tastyhouse.webapi.follow.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 public record FollowMemberListItemResponse(
     @Schema(description = "회원 ID", example = "1")

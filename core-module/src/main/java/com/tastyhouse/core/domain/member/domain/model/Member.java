@@ -1,10 +1,5 @@
 package com.tastyhouse.core.domain.member.domain.model;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.shared.entity.BaseEntity;
-import com.tastyhouse.core.shared.vo.PhoneNumber;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -17,6 +12,12 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.core.shared.vo.PhoneNumber;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

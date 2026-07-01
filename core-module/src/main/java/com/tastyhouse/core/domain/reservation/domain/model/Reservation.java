@@ -1,9 +1,8 @@
 package com.tastyhouse.core.domain.reservation.domain.model;
 
-import com.tastyhouse.core.exception.AccessDeniedException;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,8 +16,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import com.tastyhouse.core.exception.AccessDeniedException;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -136,12 +137,5 @@ public class Reservation extends BaseEntity {
             throw new BusinessException(ErrorCode.RESERVATION_INVALID_STATUS);
         }
         this.status = ReservationStatus.COMPLETED;
-    }
-
-    /**
-     * 슬롯 정원을 점유하는 활성 상태인지 여부 (PENDING, CONFIRMED).
-     */
-    public boolean isActive() {
-        return this.status == ReservationStatus.PENDING || this.status == ReservationStatus.CONFIRMED;
     }
 }

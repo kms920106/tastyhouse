@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.order.application.dto.command;
 
-import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
-
 import java.util.List;
+
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
 public record CreateOrderCommand(
     Long shopId,

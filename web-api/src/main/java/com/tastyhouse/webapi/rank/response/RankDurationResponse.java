@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.rank.response;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import java.time.LocalDateTime;
 
 @Schema(description = "랭킹 기간 응답")
 public record RankDurationResponse(

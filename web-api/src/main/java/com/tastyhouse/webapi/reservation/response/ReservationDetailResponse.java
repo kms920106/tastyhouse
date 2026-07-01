@@ -1,10 +1,11 @@
 package com.tastyhouse.webapi.reservation.response;
 
-import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
-import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
+import java.time.LocalDateTime;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDateTime;
+import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
+import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
 
 @Schema(description = "예약 상세 조회 응답")
 public record ReservationDetailResponse(

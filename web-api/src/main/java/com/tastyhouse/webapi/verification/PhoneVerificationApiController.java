@@ -1,16 +1,5 @@
 package com.tastyhouse.webapi.verification;
 
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.core.domain.verification.application.PhoneVerificationCommandService;
-import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmPhoneVerificationCommand;
-import com.tastyhouse.core.domain.verification.application.dto.command.SendPhoneVerificationCommand;
-import com.tastyhouse.core.domain.verification.application.dto.result.PhoneVerificationResult;
-import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.webapi.ratelimit.RateLimit;
-import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapi.verification.request.ConfirmVerificationCodeRequest;
-import com.tastyhouse.webapi.verification.request.SendVerificationCodeRequest;
-import com.tastyhouse.webapi.verification.response.PhoneVerifyTokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,6 +12,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.tastyhouse.core.domain.verification.application.PhoneVerificationCommandService;
+import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmPhoneVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.command.SendPhoneVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.result.PhoneVerificationResult;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.webapi.ratelimit.RateLimit;
+import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
+import com.tastyhouse.webapi.verification.request.ConfirmVerificationCodeRequest;
+import com.tastyhouse.webapi.verification.request.SendVerificationCodeRequest;
+import com.tastyhouse.webapi.verification.response.PhoneVerifyTokenResponse;
 
 @RestController
 @RequestMapping("/api/phone-verifications")

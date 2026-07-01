@@ -1,10 +1,10 @@
 package com.tastyhouse.core.domain.product.domain.vo;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-
 import java.math.BigDecimal;
 import java.util.Objects;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 @Embeddable
 public final class ProductDiscountInfo {
@@ -26,20 +26,12 @@ public final class ProductDiscountInfo {
         return new ProductDiscountInfo(discountPrice, discountRate);
     }
 
-    public static ProductDiscountInfo none() {
-        return new ProductDiscountInfo(null, null);
-    }
-
     public Integer discountPrice() {
         return discountPrice;
     }
 
     public BigDecimal discountRate() {
         return discountRate;
-    }
-
-    public boolean hasDiscount() {
-        return discountPrice != null;
     }
 
     @Override

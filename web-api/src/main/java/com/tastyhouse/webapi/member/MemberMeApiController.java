@@ -1,27 +1,7 @@
 package com.tastyhouse.webapi.member;
 
-import com.tastyhouse.webapi.member.request.UpdatePasswordRequest;
-import com.tastyhouse.webapi.member.request.UpdatePersonalInfoRequest;
-import com.tastyhouse.webapi.member.request.UpdateProfileRequest;
-import com.tastyhouse.webapi.member.request.VerifyPasswordRequest;
-import com.tastyhouse.webapi.member.request.WithdrawMemberRequest;
-import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
-import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.MyProfileResponse;
-import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
-import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
-import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
-import com.tastyhouse.webapi.member.response.MyGradeResponse;
-import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
-import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
-import com.tastyhouse.webapi.member.response.PointHistoryResponse;
-import com.tastyhouse.webapi.member.response.PointResponse;
-import com.tastyhouse.webapi.member.response.UsablePointResponse;
-import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.service.CustomUserDetails;
-import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.webapi.common.PageResponse;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -40,7 +20,28 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.member.request.UpdatePasswordRequest;
+import com.tastyhouse.webapi.member.request.UpdatePersonalInfoRequest;
+import com.tastyhouse.webapi.member.request.UpdateProfileRequest;
+import com.tastyhouse.webapi.member.request.VerifyPasswordRequest;
+import com.tastyhouse.webapi.member.request.WithdrawMemberRequest;
+import com.tastyhouse.webapi.member.response.MemberStatsResponse;
+import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
+import com.tastyhouse.webapi.member.response.MyGradeResponse;
+import com.tastyhouse.webapi.member.response.MyProfileResponse;
+import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
+import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
+import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
+import com.tastyhouse.webapi.member.response.PointHistoryResponse;
+import com.tastyhouse.webapi.member.response.PointResponse;
+import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
+import com.tastyhouse.webapi.member.response.UsablePointResponse;
+import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/members")

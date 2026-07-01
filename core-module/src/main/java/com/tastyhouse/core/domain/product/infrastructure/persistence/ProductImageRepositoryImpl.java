@@ -1,15 +1,16 @@
 package com.tastyhouse.core.domain.product.infrastructure.persistence;
 
+import java.util.List;
+
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.product.domain.model.ProductImage;
-import com.tastyhouse.core.domain.product.domain.model.QProductImage;
-import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.tastyhouse.core.domain.product.domain.model.ProductImage;
+import com.tastyhouse.core.domain.product.domain.model.QProductImage;
+import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;

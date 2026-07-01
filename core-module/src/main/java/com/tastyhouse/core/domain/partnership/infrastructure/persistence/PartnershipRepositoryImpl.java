@@ -1,9 +1,10 @@
 package com.tastyhouse.core.domain.partnership.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
-import com.tastyhouse.core.domain.partnership.domain.repository.PartnershipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
+import com.tastyhouse.core.domain.partnership.domain.repository.PartnershipRepository;
 
 @Repository
 @RequiredArgsConstructor

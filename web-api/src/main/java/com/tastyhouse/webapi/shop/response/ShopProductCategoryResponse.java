@@ -1,9 +1,10 @@
 package com.tastyhouse.webapi.shop.response;
 
-import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.List;
+import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 
 @Schema(description = "가게 상품 카테고리 응답")
 public record ShopProductCategoryResponse(

@@ -1,8 +1,9 @@
 package com.tastyhouse.webapi.auth.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tastyhouse.core.domain.member.domain.model.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.core.domain.member.domain.model.Gender;
 
 /**
  * 소셜 로그인 계정 연동 시 회원가입 폼 자동 매핑용 공통 프로필.

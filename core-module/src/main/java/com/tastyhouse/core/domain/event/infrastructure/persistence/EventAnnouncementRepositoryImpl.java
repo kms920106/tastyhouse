@@ -1,15 +1,16 @@
 package com.tastyhouse.core.domain.event.infrastructure.persistence;
 
+import java.util.List;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
 import com.tastyhouse.core.domain.event.domain.repository.EventAnnouncementRepository;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 import static com.tastyhouse.core.domain.event.domain.model.QEventAnnouncement.eventAnnouncement;
 

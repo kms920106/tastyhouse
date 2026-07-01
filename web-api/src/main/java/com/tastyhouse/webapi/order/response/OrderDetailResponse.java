@@ -1,10 +1,10 @@
 package com.tastyhouse.webapi.order.response;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
 public record OrderDetailResponse(
     Long id,

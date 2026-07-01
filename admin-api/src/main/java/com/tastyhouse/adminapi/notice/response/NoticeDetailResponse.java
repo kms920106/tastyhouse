@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.notice.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "공지사항 상세 응답")
 public record NoticeDetailResponse(

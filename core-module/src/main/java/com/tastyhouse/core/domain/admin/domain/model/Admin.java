@@ -1,6 +1,5 @@
 package com.tastyhouse.core.domain.admin.domain.model;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,6 +11,8 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -45,7 +46,6 @@ public class Admin extends BaseEntity {
         this.password = password;
         this.name = name;
         this.role = role;
-        this.status = AdminStatus.ACTIVE;
     }
 
     /**
@@ -53,21 +53,6 @@ public class Admin extends BaseEntity {
      */
     public static Admin create(String username, String encodedPassword, String name, AdminRole role) {
         return new Admin(username, encodedPassword, name, role);
-    }
-
-    /**
-     * 비밀번호 변경. newEncodedPassword는 이미 인코딩된 값이어야 한다.
-     */
-    public void changePassword(String newEncodedPassword) {
-        this.password = newEncodedPassword;
-    }
-
-    public void activate() {
-        this.status = AdminStatus.ACTIVE;
-    }
-
-    public void deactivate() {
-        this.status = AdminStatus.INACTIVE;
     }
 
     public boolean isActive() {

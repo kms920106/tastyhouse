@@ -1,8 +1,7 @@
 package com.tastyhouse.webapi.faq;
 
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
-import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
+import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
 
 @RestController
 @RequestMapping("/api/faqs")

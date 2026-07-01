@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.partnership.application.dto.result;
 
-import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
-
 import java.time.LocalDateTime;
+
+import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
 
 public record PartnershipRequestResult(
     Long id,

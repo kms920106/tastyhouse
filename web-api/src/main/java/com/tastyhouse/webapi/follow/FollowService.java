@@ -1,15 +1,16 @@
 package com.tastyhouse.webapi.follow;
 
-import com.tastyhouse.webapi.common.PageResponse;
-import com.tastyhouse.core.domain.follow.application.FollowCommandService;
-import com.tastyhouse.core.domain.follow.application.FollowQueryService;
-import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
-import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.core.domain.follow.application.FollowCommandService;
+import com.tastyhouse.core.domain.follow.application.FollowQueryService;
+import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
+import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
 
 @Service
 @RequiredArgsConstructor

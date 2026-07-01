@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.referral.domain.event;
 
-import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
-
 import java.time.LocalDateTime;
+
+import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
 
 public record ReferralRegisteredEvent(
     ReferralId referralId,

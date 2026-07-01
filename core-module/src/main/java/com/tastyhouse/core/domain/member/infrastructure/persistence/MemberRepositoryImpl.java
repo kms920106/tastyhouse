@@ -1,7 +1,13 @@
 package com.tastyhouse.core.domain.member.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
@@ -10,11 +16,6 @@ import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.member.domain.model.QMember.member;

@@ -1,12 +1,13 @@
 package com.tastyhouse.core.domain.search.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.search.domain.model.SearchKeywordLog;
-import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.tastyhouse.core.domain.search.domain.model.SearchKeywordLog;
+import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
 
 @Repository
 @RequiredArgsConstructor

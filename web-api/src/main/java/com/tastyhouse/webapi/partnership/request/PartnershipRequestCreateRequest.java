@@ -1,12 +1,12 @@
 package com.tastyhouse.webapi.partnership.request;
 
+import java.time.LocalDateTime;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-
-import java.time.LocalDateTime;
 
 @Schema(description = "광고 및 제휴 신청 요청")
 public record PartnershipRequestCreateRequest(

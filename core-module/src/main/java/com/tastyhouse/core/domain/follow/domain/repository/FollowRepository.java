@@ -1,12 +1,12 @@
 package com.tastyhouse.core.domain.follow.domain.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.domain.follow.domain.model.Follow;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-
-import java.util.List;
-import java.util.Optional;
 
 public interface FollowRepository {
 

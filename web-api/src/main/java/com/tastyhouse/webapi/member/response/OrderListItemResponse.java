@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.member.response;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-
 import java.time.LocalDateTime;
+
+import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 
 public record OrderListItemResponse(
     Long id,

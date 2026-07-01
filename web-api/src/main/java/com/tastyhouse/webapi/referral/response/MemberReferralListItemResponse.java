@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.referral.response;
 
+import java.time.LocalDateTime;
+
 import com.tastyhouse.core.domain.referral.application.dto.result.MemberReferralResult;
 import com.tastyhouse.core.domain.referral.domain.model.ReferralStatus;
-
-import java.time.LocalDateTime;
 
 public record MemberReferralListItemResponse(
     Long id,

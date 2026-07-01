@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.member.response;
 
-import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+
+import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
 
 public record MyCouponListItemResponse(
     Long id,

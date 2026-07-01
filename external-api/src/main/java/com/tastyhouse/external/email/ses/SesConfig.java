@@ -1,7 +1,5 @@
 package com.tastyhouse.external.email.ses;
 
-import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
-import com.tastyhouse.external.email.EmailProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +8,9 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
+
+import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
+import com.tastyhouse.external.email.EmailProperties;
 
 @Configuration
 @ConditionalOnProperty(name = "email.provider", havingValue = "ses")

@@ -1,6 +1,12 @@
 package com.tastyhouse.webapi.config.jwt;
 
-import com.tastyhouse.webapi.service.CustomUserDetails;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.stream.Collectors;
+
+import javax.crypto.SecretKey;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -18,11 +24,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.stream.Collectors;
+import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @Component
 public class JwtTokenProvider {
@@ -119,37 +121,11 @@ public class JwtTokenProvider {
         return false;
     }
 
-    public String createAccessTokenFromRefreshToken(String refreshToken) {
-        if (!validateToken(refreshToken)) {
-            throw new JwtException("Invalid refresh token");
-        }
-        validateTokenType(refreshToken, TokenType.REFRESH);
-        return createAccessToken(getAuthentication(refreshToken));
-    }
-
-    public String createRefreshTokenFromRefreshToken(String refreshToken) {
-        if (!validateToken(refreshToken)) {
-            throw new JwtException("Invalid refresh token");
-        }
-        validateTokenType(refreshToken, TokenType.REFRESH);
-        return createRefreshToken(getAuthentication(refreshToken));
-    }
-
     public void validateTokenType(String token, TokenType expectedType) {
         Claims claims = parseClaims(token);
         String actualType = claims.get("type", String.class);
         if (!expectedType.name().equals(actualType)) {
             throw new JwtException("유효하지 않은 토큰입니다.");
-        }
-    }
-
-    public TokenType getTokenType(String token) {
-        Claims claims = parseClaims(token);
-        String type = claims.get("type", String.class);
-        try {
-            return TokenType.valueOf(type);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new JwtException("알 수 없는 토큰 타입: " + type);
         }
     }
 

@@ -1,5 +1,8 @@
 package com.tastyhouse.webapi.auth;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;
@@ -14,8 +17,6 @@ import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
 import com.tastyhouse.webapi.auth.service.AuthPasswordResetService;
 import com.tastyhouse.webapi.auth.service.AuthService;
 import com.tastyhouse.webapi.auth.service.PhoneLoginService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

@@ -1,5 +1,10 @@
 package com.tastyhouse.webapi.member.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.command.UpdatePersonalInfoCommand;
@@ -19,10 +24,6 @@ import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 
 @Service

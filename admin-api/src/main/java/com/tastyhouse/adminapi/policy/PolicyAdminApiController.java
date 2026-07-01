@@ -1,12 +1,5 @@
 package com.tastyhouse.adminapi.policy;
 
-import com.tastyhouse.adminapi.policy.request.PolicyCreateRequest;
-import com.tastyhouse.adminapi.policy.request.PolicyUpdateRequest;
-import com.tastyhouse.adminapi.common.ApiResponse;
-import com.tastyhouse.core.domain.policy.application.PolicyCommandService;
-import com.tastyhouse.core.domain.policy.application.dto.command.CreatePolicyCommand;
-import com.tastyhouse.core.domain.policy.application.dto.command.UpdatePolicyCommand;
-import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,6 +15,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.tastyhouse.adminapi.common.ApiResponse;
+import com.tastyhouse.adminapi.policy.request.PolicyCreateRequest;
+import com.tastyhouse.adminapi.policy.request.PolicyUpdateRequest;
+import com.tastyhouse.core.domain.policy.application.PolicyCommandService;
+import com.tastyhouse.core.domain.policy.application.dto.command.CreatePolicyCommand;
+import com.tastyhouse.core.domain.policy.application.dto.command.UpdatePolicyCommand;
+import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 
 @Tag(name = "Policy Admin", description = "약관 및 정책 관리자 API")
 @RestController

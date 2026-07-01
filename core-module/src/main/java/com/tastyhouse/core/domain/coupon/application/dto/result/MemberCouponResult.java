@@ -1,9 +1,10 @@
 package com.tastyhouse.core.domain.coupon.application.dto.result;
 
-import com.querydsl.core.annotations.QueryProjection;
-import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
-
 import java.time.LocalDateTime;
+
+import com.querydsl.core.annotations.QueryProjection;
+
+import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
 
 public record MemberCouponResult(
     Long id,

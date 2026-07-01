@@ -1,11 +1,12 @@
 package com.tastyhouse.webapi.reservation.response;
 
-import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
 
 @Schema(description = "날짜별 슬롯 가용성 응답")
 public record SlotAvailabilityResponse(

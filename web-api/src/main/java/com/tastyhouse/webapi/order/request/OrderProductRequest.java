@@ -1,11 +1,11 @@
 package com.tastyhouse.webapi.order.request;
 
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.List;
 
 @Schema(description = "주문 상품 요청")
 public record OrderProductRequest(

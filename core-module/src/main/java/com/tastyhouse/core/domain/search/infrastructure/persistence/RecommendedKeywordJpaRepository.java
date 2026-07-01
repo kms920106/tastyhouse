@@ -1,9 +1,10 @@
 package com.tastyhouse.core.domain.search.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.search.domain.model.RecommendedKeyword;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import com.tastyhouse.core.domain.search.domain.model.RecommendedKeyword;
 
 public interface RecommendedKeywordJpaRepository extends JpaRepository<RecommendedKeyword, Long> {
 

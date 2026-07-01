@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.product.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.math.BigDecimal;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "상품 요약 응답")
 public record ProductSummaryResponse(

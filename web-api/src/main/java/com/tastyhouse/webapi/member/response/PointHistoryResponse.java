@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.member.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "포인트 내역 응답 DTO")
 public record PointHistoryResponse(

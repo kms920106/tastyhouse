@@ -1,15 +1,16 @@
 package com.tastyhouse.core.domain.faq.infrastructure.persistence;
 
+import java.util.List;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
 import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
 import com.tastyhouse.core.domain.faq.application.dto.QFaqCategoryResult;
 import com.tastyhouse.core.domain.faq.application.dto.QFaqResult;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 import static com.tastyhouse.core.domain.faq.domain.model.QFaq.faq;
 import static com.tastyhouse.core.domain.faq.domain.model.QFaqCategory.faqCategory;

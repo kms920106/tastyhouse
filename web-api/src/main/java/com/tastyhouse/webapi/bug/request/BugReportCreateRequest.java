@@ -1,10 +1,10 @@
 package com.tastyhouse.webapi.bug.request;
 
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
-import java.util.List;
 
 @Schema(description = "버그 제보 요청")
 public record BugReportCreateRequest(

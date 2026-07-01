@@ -1,15 +1,11 @@
 package com.tastyhouse.core.domain.review.infrastructure.persistence;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.review.domain.model.ReviewLike;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.tastyhouse.core.domain.review.domain.model.ReviewLike;
+import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
 
 import static com.tastyhouse.core.domain.review.domain.model.QReviewLike.reviewLike;
 
@@ -19,22 +15,6 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewLikeJpaRepository reviewLikeJpaRepository;
-
-    @Override
-    public Map<Long, Long> countByReviewIdIn(List<Long> reviewIds) {
-        List<Tuple> results = queryFactory
-            .select(reviewLike.reviewId, reviewLike.count())
-            .from(reviewLike)
-            .where(reviewLike.reviewId.in(reviewIds))
-            .groupBy(reviewLike.reviewId)
-            .fetch();
-
-        Map<Long, Long> countMap = new HashMap<>();
-        for (Tuple row : results) {
-            countMap.put(row.get(0, Long.class), row.get(1, Long.class));
-        }
-        return countMap;
-    }
 
     @Override
     public boolean existsByReviewIdAndMemberId(Long reviewId, Long memberId) {

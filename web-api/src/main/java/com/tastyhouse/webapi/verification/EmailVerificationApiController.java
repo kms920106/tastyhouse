@@ -1,16 +1,5 @@
 package com.tastyhouse.webapi.verification;
 
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.core.domain.verification.application.EmailVerificationCommandService;
-import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmEmailVerificationCommand;
-import com.tastyhouse.core.domain.verification.application.dto.command.SendEmailVerificationCommand;
-import com.tastyhouse.core.domain.verification.application.dto.result.EmailVerificationResult;
-import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.webapi.ratelimit.RateLimit;
-import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapi.verification.request.ConfirmEmailVerificationCodeRequest;
-import com.tastyhouse.webapi.verification.request.SendEmailVerificationCodeRequest;
-import com.tastyhouse.webapi.verification.response.EmailVerifyTokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,6 +12,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.tastyhouse.core.domain.verification.application.EmailVerificationCommandService;
+import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmEmailVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.command.SendEmailVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.result.EmailVerificationResult;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.webapi.ratelimit.RateLimit;
+import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
+import com.tastyhouse.webapi.verification.request.ConfirmEmailVerificationCodeRequest;
+import com.tastyhouse.webapi.verification.request.SendEmailVerificationCodeRequest;
+import com.tastyhouse.webapi.verification.response.EmailVerifyTokenResponse;
 
 @RestController
 @RequestMapping("/api/email-verifications")

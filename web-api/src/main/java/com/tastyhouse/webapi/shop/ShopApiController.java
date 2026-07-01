@@ -1,10 +1,31 @@
 package com.tastyhouse.webapi.shop;
 
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.webapi.common.PageResponse;
+import java.util.List;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
+import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.service.CustomUserDetails;
 import com.tastyhouse.webapi.shop.request.LatestShopFilterRequest;
 import com.tastyhouse.webapi.shop.response.AmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.BestShopListItemResponse;
@@ -23,26 +44,6 @@ import com.tastyhouse.webapi.shop.response.ShopReviewStatisticsResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewsByRatingResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewsByRatingWithPagination;
 import com.tastyhouse.webapi.shop.response.StationListItemResponse;
-import com.tastyhouse.webapi.service.CustomUserDetails;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import com.tastyhouse.webapi.security.CurrentUser;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/shops")

@@ -35,6 +35,7 @@
 - **커밋/롤백 금지** (`NO_COMMIT_OR_ROLLBACK`): 사용자가 명시적으로 요청하지 않는 한 git 커밋·롤백을 하지 않는다.
 - 네이밍은 명확하고 의미 있는 이름을 선택한다.
 - 변경 전 반드시 `md/CLEAN-ARCHITECTURE.md`의 레이어 의존 규칙을 따른다.
+- **import 순서** (Spring Framework 공식 컨벤션 `SpringImportOrderCheck`와 동일): `java.*` → `javax.*` → 그 외 전부(`jakarta.*` 포함, org/io/lombok/com.* 등 알파벳 혼합) → 자사(`com.tastyhouse.*`) → static import(맨 아래) 순서로 그룹을 나누고, 그룹 사이 빈 줄 1개, 그룹 내부는 알파벳 순 정렬한다. 상세 규칙, 예시, 참고 URL은 [CLAUDE.md](CLAUDE.md#코딩-스타일-import-순서) 참고.
 
 ### Module Dependency Graph
 ```

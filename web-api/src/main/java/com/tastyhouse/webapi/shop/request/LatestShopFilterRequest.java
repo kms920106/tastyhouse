@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.shop.request;
 
+import java.util.List;
+
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
-
-import java.util.List;
 
 public record LatestShopFilterRequest(
     Long stationId,

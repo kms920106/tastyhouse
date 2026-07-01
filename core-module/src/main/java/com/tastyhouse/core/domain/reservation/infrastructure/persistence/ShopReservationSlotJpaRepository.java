@@ -1,12 +1,13 @@
 package com.tastyhouse.core.domain.reservation.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
 
 public interface ShopReservationSlotJpaRepository extends JpaRepository<ShopReservationSlot, Long> {
 

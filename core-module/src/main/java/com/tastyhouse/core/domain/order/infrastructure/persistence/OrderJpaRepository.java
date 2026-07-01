@@ -1,7 +1,8 @@
 package com.tastyhouse.core.domain.order.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.order.domain.model.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.tastyhouse.core.domain.order.domain.model.Order;
 
 public interface OrderJpaRepository extends JpaRepository<Order, Long> {
 }

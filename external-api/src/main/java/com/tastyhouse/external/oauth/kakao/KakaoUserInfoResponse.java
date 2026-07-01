@@ -1,6 +1,7 @@
 package com.tastyhouse.external.oauth.kakao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.tastyhouse.core.domain.member.domain.model.Gender;
 
 public record KakaoUserInfoResponse(

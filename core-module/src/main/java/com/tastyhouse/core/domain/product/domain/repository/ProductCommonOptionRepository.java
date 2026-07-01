@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.product.domain.repository;
 
-import com.tastyhouse.core.domain.product.domain.model.ProductCommonOption;
-
 import java.util.List;
+
+import com.tastyhouse.core.domain.product.domain.model.ProductCommonOption;
 
 public interface ProductCommonOptionRepository {
 

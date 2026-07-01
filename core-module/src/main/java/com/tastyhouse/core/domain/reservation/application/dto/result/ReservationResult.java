@@ -1,11 +1,11 @@
 package com.tastyhouse.core.domain.reservation.application.dto.result;
 
-import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
-import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+
+import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
+import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
 
 public record ReservationResult(
     Long id,

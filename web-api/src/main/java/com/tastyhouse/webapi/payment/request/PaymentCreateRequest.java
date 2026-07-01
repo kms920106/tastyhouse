@@ -1,8 +1,9 @@
 package com.tastyhouse.webapi.payment.request;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 
 @Schema(description = "결제 생성 요청")
 public record PaymentCreateRequest(

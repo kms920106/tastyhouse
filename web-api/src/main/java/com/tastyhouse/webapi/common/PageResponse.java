@@ -1,12 +1,13 @@
 package com.tastyhouse.webapi.common;
 
-import com.tastyhouse.core.shared.page.PageResult;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import com.tastyhouse.core.shared.page.PageResult;
 
 @Getter
 @AllArgsConstructor

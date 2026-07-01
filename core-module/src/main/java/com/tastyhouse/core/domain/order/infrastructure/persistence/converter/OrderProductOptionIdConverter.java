@@ -1,8 +1,9 @@
 package com.tastyhouse.core.domain.order.infrastructure.persistence.converter;
 
-import com.tastyhouse.core.domain.order.domain.vo.OrderProductOptionId;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+
+import com.tastyhouse.core.domain.order.domain.vo.OrderProductOptionId;
 
 @Converter(autoApply = true)
 public class OrderProductOptionIdConverter implements AttributeConverter<OrderProductOptionId, Long> {

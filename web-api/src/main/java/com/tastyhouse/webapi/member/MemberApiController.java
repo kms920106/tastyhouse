@@ -1,10 +1,5 @@
 package com.tastyhouse.webapi.member;
 
-import com.tastyhouse.webapi.member.response.MemberProfileResponse;
-import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
-import com.tastyhouse.webapi.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,6 +15,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.member.response.MemberProfileResponse;
+import com.tastyhouse.webapi.member.response.MemberStatsResponse;
+import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
+import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
 
 @RestController
 @RequestMapping("/api/members")

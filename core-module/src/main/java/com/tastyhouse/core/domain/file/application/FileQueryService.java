@@ -1,14 +1,14 @@
 package com.tastyhouse.core.domain.file.application;
 
-import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
-import com.tastyhouse.core.domain.file.domain.model.UploadedFileId;
-import com.tastyhouse.core.domain.file.domain.repository.UploadedFileRepository;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
+import com.tastyhouse.core.domain.file.domain.model.UploadedFileId;
+import com.tastyhouse.core.domain.file.domain.repository.UploadedFileRepository;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,10 +23,6 @@ public class FileQueryService {
 
     public Optional<UploadedFile> findById(UploadedFileId id) {
         return uploadedFileRepository.findById(id);
-    }
-
-    public List<UploadedFile> findByIds(List<Long> ids) {
-        return uploadedFileRepository.findByIds(ids);
     }
 
     public Optional<String> findFilePath(Long id) {

@@ -1,6 +1,5 @@
 package com.tastyhouse.core.domain.order.domain.model;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +9,8 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

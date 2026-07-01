@@ -1,12 +1,13 @@
 package com.tastyhouse.core.domain.product.infrastructure.persistence;
 
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.product.domain.model.ProductBbq;
-import com.tastyhouse.core.domain.product.domain.repository.ProductBbqRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import com.tastyhouse.core.domain.product.domain.model.ProductBbq;
+import com.tastyhouse.core.domain.product.domain.repository.ProductBbqRepository;
 
 import static com.tastyhouse.core.domain.product.domain.model.QProductBbq.productBbq;
 
@@ -35,15 +36,6 @@ public class ProductBbqRepositoryImpl implements ProductBbqRepository {
                 .where(productBbq.optionsSynced.eq(false))
                 .fetchFirst()
         );
-    }
-
-    @Override
-    public boolean existsByProductId(Long productId) {
-        return queryFactory
-            .selectOne()
-            .from(productBbq)
-            .where(productBbq.productId.eq(productId))
-            .fetchFirst() != null;
     }
 
     @Override

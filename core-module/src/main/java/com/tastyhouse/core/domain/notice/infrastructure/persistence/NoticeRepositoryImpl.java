@@ -1,7 +1,14 @@
 package com.tastyhouse.core.domain.notice.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.application.dto.QNoticeListItemDto;
@@ -9,12 +16,6 @@ import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
-
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.notice.domain.model.QNotice.notice;
 

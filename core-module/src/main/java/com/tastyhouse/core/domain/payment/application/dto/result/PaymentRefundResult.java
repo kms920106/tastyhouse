@@ -1,9 +1,9 @@
 package com.tastyhouse.core.domain.payment.application.dto.result;
 
+import java.time.LocalDateTime;
+
 import com.tastyhouse.core.domain.payment.domain.model.PaymentRefund;
 import com.tastyhouse.core.domain.payment.domain.model.RefundStatus;
-
-import java.time.LocalDateTime;
 
 public record PaymentRefundResult(
     Long id,

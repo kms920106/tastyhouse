@@ -1,9 +1,7 @@
 package com.tastyhouse.core.domain.verification.domain.model;
 
-import com.tastyhouse.core.domain.verification.domain.vo.EmailVerificationId;
-import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -19,7 +17,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import com.tastyhouse.core.domain.verification.domain.vo.EmailVerificationId;
+import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
 
 @Getter
 @Entity
@@ -82,9 +83,5 @@ public class EmailVerification {
         }
         this.status = EmailVerificationStatus.VERIFIED;
         this.verifiedAt = now;
-    }
-
-    public void expire() {
-        this.status = EmailVerificationStatus.EXPIRED;
     }
 }

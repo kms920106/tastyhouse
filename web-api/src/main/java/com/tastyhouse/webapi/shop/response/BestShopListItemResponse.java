@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.shop.response;
 
-import com.tastyhouse.core.domain.shop.domain.model.FoodType;
-
 import java.util.List;
+
+import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 
 public record BestShopListItemResponse(
     Long id,

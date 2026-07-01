@@ -1,10 +1,10 @@
 package com.tastyhouse.core.domain.reservation.domain.repository;
 
-import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 
 public interface ReservationRepository {
 

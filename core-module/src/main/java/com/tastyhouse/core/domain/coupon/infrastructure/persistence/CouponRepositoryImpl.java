@@ -1,12 +1,13 @@
 package com.tastyhouse.core.domain.coupon.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
-import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
-import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
+import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
+import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 
 @Repository
 @RequiredArgsConstructor

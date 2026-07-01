@@ -1,14 +1,14 @@
 package com.tastyhouse.webapi.reservation.request;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Schema(description = "예약 생성 요청")
 public record ReservationCreateRequest(

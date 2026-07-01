@@ -1,9 +1,9 @@
 package com.tastyhouse.core.domain.review.application.dto.result;
 
-import com.querydsl.core.annotations.QueryProjection;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.querydsl.core.annotations.QueryProjection;
 
 public record LatestReviewListItemResult(
     Long id,

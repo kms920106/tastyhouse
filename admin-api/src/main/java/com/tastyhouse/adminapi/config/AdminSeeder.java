@@ -1,16 +1,17 @@
 package com.tastyhouse.adminapi.config;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.tastyhouse.core.domain.admin.application.AdminCommandService;
 import com.tastyhouse.core.domain.admin.application.AdminQueryService;
 import com.tastyhouse.core.domain.admin.application.dto.command.CreateAdminCommand;
 import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * 최초 SUPER_ADMIN 시드.

@@ -1,8 +1,9 @@
 package com.tastyhouse.core.domain.payment.infrastructure.persistence.converter;
 
-import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+
+import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 
 @Converter(autoApply = true)
 public class PaymentIdConverter implements AttributeConverter<PaymentId, Long> {

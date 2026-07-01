@@ -1,10 +1,21 @@
 package com.tastyhouse.core.domain.review.infrastructure.persistence;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.querydsl.core.types.Projections;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.QMemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
@@ -22,25 +33,15 @@ import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
 import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderProduct;
-import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
-import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.review.domain.model.QReview.review;
 import static com.tastyhouse.core.domain.review.domain.model.QReviewImage.reviewImage;
-import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
+import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
+import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
 
 @Repository
 @RequiredArgsConstructor

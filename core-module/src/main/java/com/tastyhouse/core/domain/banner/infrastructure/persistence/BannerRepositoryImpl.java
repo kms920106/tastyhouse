@@ -1,6 +1,13 @@
 package com.tastyhouse.core.domain.banner.infrastructure.persistence;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
 import com.tastyhouse.core.domain.banner.application.dto.QBannerListItemDto;
 import com.tastyhouse.core.domain.banner.domain.model.Banner;
@@ -8,12 +15,6 @@ import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.banner.domain.model.QBanner.banner;
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;

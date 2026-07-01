@@ -1,9 +1,9 @@
 package com.tastyhouse.core.domain.payment.domain.model;
 
-import com.tastyhouse.core.domain.payment.domain.vo.Amount;
-import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,7 +15,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import com.tastyhouse.core.domain.payment.domain.vo.Amount;
+import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.AmountConverter;
+import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.PaymentIdConverter;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -27,9 +31,11 @@ public class PaymentRefund extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = PaymentIdConverter.class)
     @Column(name = "payment_id", nullable = false)
     private PaymentId paymentId;
 
+    @Convert(converter = AmountConverter.class)
     @Column(name = "refund_amount", nullable = false)
     private Amount refundAmount;
 

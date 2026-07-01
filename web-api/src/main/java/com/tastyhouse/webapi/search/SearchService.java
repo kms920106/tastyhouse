@@ -1,18 +1,19 @@
 package com.tastyhouse.webapi.search;
 
-import com.tastyhouse.webapi.common.PageResponse;
-import com.tastyhouse.core.domain.search.application.SearchKeywordQueryService;
-import com.tastyhouse.core.domain.search.application.SearchResultQueryService;
-import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
-import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
-import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
-import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
-import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.tastyhouse.core.domain.search.application.SearchKeywordQueryService;
+import com.tastyhouse.core.domain.search.application.SearchResultQueryService;
+import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
+import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
+import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
+import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
+import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
 
 @Service
 @RequiredArgsConstructor

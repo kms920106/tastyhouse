@@ -1,16 +1,15 @@
 package com.tastyhouse.core.domain.referral.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.referral.domain.model.MemberReferral;
-import com.tastyhouse.core.domain.referral.domain.model.QMemberReferral;
-import com.tastyhouse.core.domain.referral.domain.model.ReferralStatus;
-import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
-import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.tastyhouse.core.domain.referral.domain.model.MemberReferral;
+import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
+import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
 
 import static com.tastyhouse.core.domain.referral.domain.model.QMemberReferral.memberReferral;
 
@@ -36,26 +35,6 @@ public class MemberReferralRepositoryImpl implements MemberReferralRepository {
             .selectFrom(memberReferral)
             .where(memberReferral.referrerId.eq(referrerId))
             .fetch();
-    }
-
-    @Override
-    public List<MemberReferral> findByReferrerIdAndStatus(Long referrerId, ReferralStatus status) {
-        return queryFactory
-            .selectFrom(memberReferral)
-            .where(
-                memberReferral.referrerId.eq(referrerId),
-                memberReferral.status.eq(status)
-            )
-            .fetch();
-    }
-
-    @Override
-    public Optional<MemberReferral> findByRefereeId(Long refereeId) {
-        MemberReferral result = queryFactory
-            .selectFrom(memberReferral)
-            .where(memberReferral.refereeId.eq(refereeId))
-            .fetchOne();
-        return Optional.ofNullable(result);
     }
 
     @Override

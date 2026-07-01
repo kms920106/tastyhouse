@@ -1,31 +1,32 @@
 package com.tastyhouse.webapi.search;
 
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.webapi.common.PageResponse;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.ratelimit.RateLimit;
-import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
-import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
-import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
-import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
-import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
-import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.service.CustomUserDetails;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
+import com.tastyhouse.webapi.ratelimit.RateLimit;
+import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
+import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
+import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
+import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
+import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/search")

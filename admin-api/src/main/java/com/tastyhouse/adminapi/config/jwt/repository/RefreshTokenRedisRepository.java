@@ -1,15 +1,15 @@
 package com.tastyhouse.adminapi.config.jwt.repository;
 
+import java.util.concurrent.TimeUnit;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * 관리자 Refresh Token Redis 저장소
  *
- * Key: "admin:rt:{username}" → refreshToken 값 (TTL: refreshTokenExpiration)
+ * <p>Key: "admin:rt:{username}" → refreshToken 값 (TTL: refreshTokenExpiration)
  */
 @Repository
 @RequiredArgsConstructor

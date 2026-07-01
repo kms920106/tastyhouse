@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.point.domain.repository;
 
-import com.tastyhouse.core.domain.point.domain.model.MemberPointHistory;
-
 import java.util.List;
+
+import com.tastyhouse.core.domain.point.domain.model.MemberPointHistory;
 
 public interface MemberPointHistoryRepository {
 

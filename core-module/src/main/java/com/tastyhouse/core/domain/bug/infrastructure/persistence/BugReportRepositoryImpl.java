@@ -1,9 +1,10 @@
 package com.tastyhouse.core.domain.bug.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReport;
-import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.core.domain.bug.domain.model.BugReport;
+import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 
 @Repository
 @RequiredArgsConstructor

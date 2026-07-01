@@ -1,9 +1,9 @@
 package com.tastyhouse.core.domain.bug.application.dto.result;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReport;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.tastyhouse.core.domain.bug.domain.model.BugReport;
 
 public record BugReportResult(
     Long id,

@@ -1,8 +1,7 @@
 package com.tastyhouse.external.bbq;
 
-import com.tastyhouse.external.crawling.bbq.BbqApiClient;
-import com.tastyhouse.external.crawling.bbq.BbqProperties;
-import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.List;
+import com.tastyhouse.external.crawling.bbq.BbqApiClient;
+import com.tastyhouse.external.crawling.bbq.BbqProperties;
+import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

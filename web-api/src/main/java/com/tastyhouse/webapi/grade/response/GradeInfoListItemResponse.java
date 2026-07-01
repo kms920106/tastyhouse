@@ -1,7 +1,8 @@
 package com.tastyhouse.webapi.grade.response;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 
 @Schema(description = "등급 세부 조건 항목")
 public record GradeInfoListItemResponse(

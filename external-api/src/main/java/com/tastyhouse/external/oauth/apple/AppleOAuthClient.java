@@ -1,5 +1,13 @@
 package com.tastyhouse.external.oauth.apple;
 
+import java.math.BigInteger;
+import java.security.KeyFactory;
+import java.security.interfaces.ECPrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPublicKeySpec;
+import java.util.Base64;
+import java.util.Date;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -13,17 +21,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.math.BigInteger;
-import java.security.KeyFactory;
-import java.security.interfaces.ECPrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPublicKeySpec;
-import java.util.Base64;
-import java.util.Date;
-
 /**
  * Apple OAuth 클라이언트
- *
+ * <p>
  * Apple 로그인은 표준 OAuth 인가 코드 흐름과 달리 두 가지 특이점이 있다:
  * 1. client_secret이 ES256 서명된 JWT 형태여야 한다 (일반 shared secret 미지원)
  * 2. UserInfo 엔드포인트가 없으며, id_token(RS256 JWT)에서 직접 사용자 정보를 추출한다
@@ -113,8 +113,14 @@ public class AppleOAuthClient {
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .block();
+            if (jwks == null) {
+                throw new RuntimeException("Apple JWKS 응답이 비어 있습니다.");
+            }
 
             JsonNode keys = jwks.get("keys");
+            if (keys == null) {
+                throw new RuntimeException("Apple JWKS 응답에 keys 필드가 없습니다.");
+            }
             for (JsonNode key : keys) {
                 if (kid.equals(key.get("kid").asText())) {
                     String n = key.get("n").asText();

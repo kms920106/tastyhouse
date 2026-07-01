@@ -1,10 +1,9 @@
 package com.tastyhouse.core.domain.verification.domain.repository;
 
+import java.util.Optional;
+
 import com.tastyhouse.core.domain.verification.domain.model.EmailVerification;
 import com.tastyhouse.core.domain.verification.domain.model.EmailVerificationStatus;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 public interface EmailVerificationRepository {
 
@@ -13,6 +12,4 @@ public interface EmailVerificationRepository {
     Optional<EmailVerification> findLatestPendingByEmail(String email, EmailVerificationStatus status);
 
     void expireAllPendingByEmail(String email);
-
-    void expireAllOverdue(LocalDateTime now);
 }

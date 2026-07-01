@@ -1,6 +1,5 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +9,8 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 /** Product와 BBQ 메뉴 ID 매핑 엔티티 — BBQ API 외부 메뉴 ID 임시 저장 */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

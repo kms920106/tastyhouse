@@ -1,16 +1,15 @@
 package com.tastyhouse.core.domain.payment.infrastructure.persistence;
 
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.payment.domain.model.Payment;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
-import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.core.domain.payment.domain.model.Payment;
+import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
+import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 
 import static com.tastyhouse.core.domain.payment.domain.model.QPayment.payment;
 
@@ -36,29 +35,12 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public Optional<Payment> findByPgTid(String pgTid) {
-        return Optional.ofNullable(
-            queryFactory.selectFrom(payment)
-                .where(payment.pgTid.eq(pgTid))
-                .fetchOne()
-        );
-    }
-
-    @Override
     public Optional<Payment> findByPgOrderId(String pgOrderId) {
         return Optional.ofNullable(
             queryFactory.selectFrom(payment)
                 .where(payment.pgOrderId.eq(pgOrderId))
                 .fetchOne()
         );
-    }
-
-    @Override
-    public List<Payment> findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus paymentStatus) {
-        return queryFactory.selectFrom(payment)
-            .where(payment.paymentStatus.eq(paymentStatus))
-            .orderBy(payment.createdAt.desc())
-            .fetch();
     }
 
     @Override

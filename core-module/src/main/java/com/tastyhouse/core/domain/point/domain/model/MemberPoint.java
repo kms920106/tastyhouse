@@ -1,9 +1,5 @@
 package com.tastyhouse.core.domain.point.domain.model;
 
-import com.tastyhouse.core.domain.point.domain.vo.MemberPointId;
-import com.tastyhouse.core.shared.entity.BaseEntity;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +10,10 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
 @Entity
@@ -47,10 +47,6 @@ public class MemberPoint extends BaseEntity {
 
     public static MemberPoint of(Long memberId) {
         return new MemberPoint(memberId, 0, 0);
-    }
-
-    public MemberPointId getMemberPointId() {
-        return new MemberPointId(this.id);
     }
 
     public void addPoints(Integer amount) {

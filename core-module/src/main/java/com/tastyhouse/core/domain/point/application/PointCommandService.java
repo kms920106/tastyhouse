@@ -1,10 +1,16 @@
 package com.tastyhouse.core.domain.point.application;
 
+import java.time.LocalDateTime;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.tastyhouse.core.domain.point.application.dto.command.EarnPointCommand;
 import com.tastyhouse.core.domain.point.application.dto.command.ReclaimPointCommand;
 import com.tastyhouse.core.domain.point.application.dto.command.RefundPointCommand;
 import com.tastyhouse.core.domain.point.application.dto.command.UsePointCommand;
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
 import com.tastyhouse.core.domain.point.domain.event.PointEarnedEvent;
 import com.tastyhouse.core.domain.point.domain.event.PointRefundedEvent;
 import com.tastyhouse.core.domain.point.domain.event.PointUsedEvent;
@@ -15,12 +21,6 @@ import com.tastyhouse.core.domain.point.domain.repository.MemberPointHistoryRepo
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -86,9 +86,8 @@ public class PointCommandService {
         eventPublisher.publishEvent(new PointUsedEvent(command.memberId(), deductAmount, LocalDateTime.now()));
     }
 
-    public MemberPointResult getOrCreateMemberPoint(Long memberId) {
-        MemberPoint memberPoint = memberPointRepository.findByMemberId(memberId)
+    public void getOrCreateMemberPoint(Long memberId) {
+        memberPointRepository.findByMemberId(memberId)
             .orElseGet(() -> memberPointRepository.save(MemberPoint.of(memberId)));
-        return MemberPointResult.from(memberPoint);
     }
 }

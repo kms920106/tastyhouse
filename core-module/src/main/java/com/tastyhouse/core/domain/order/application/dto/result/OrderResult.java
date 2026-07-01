@@ -1,13 +1,13 @@
 package com.tastyhouse.core.domain.order.application.dto.result;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 public record OrderResult(
     Long id,

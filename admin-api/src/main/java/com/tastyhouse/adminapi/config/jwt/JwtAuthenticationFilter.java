@@ -1,21 +1,23 @@
 package com.tastyhouse.adminapi.config.jwt;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tastyhouse.adminapi.common.ApiResponse;
-import com.tastyhouse.adminapi.config.jwt.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import com.tastyhouse.adminapi.common.ApiResponse;
+import com.tastyhouse.adminapi.config.jwt.service.TokenService;
 
 /**
  * Access Token을 검증하여 SecurityContext에 인증을 주입하는 필터.
@@ -31,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
 

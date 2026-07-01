@@ -1,10 +1,11 @@
 package com.tastyhouse.webapi.scheduler;
 
-import com.tastyhouse.core.domain.rank.application.RankCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import com.tastyhouse.core.domain.rank.application.RankCommandService;
 
 @Component
 @RequiredArgsConstructor

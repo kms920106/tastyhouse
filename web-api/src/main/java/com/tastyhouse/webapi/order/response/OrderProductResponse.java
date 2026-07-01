@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.order.response;
 
+import java.util.List;
+
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
-
-import java.util.List;
 
 public record OrderProductResponse(
     Long id,

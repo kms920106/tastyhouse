@@ -1,18 +1,5 @@
 package com.tastyhouse.core.domain.rank.application;
 
-import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
-import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
-import com.tastyhouse.core.domain.rank.domain.model.RankType;
-import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
-import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -20,6 +7,20 @@ import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
+import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
+import com.tastyhouse.core.domain.rank.domain.model.RankType;
+import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
 
 @Slf4j
 @Service

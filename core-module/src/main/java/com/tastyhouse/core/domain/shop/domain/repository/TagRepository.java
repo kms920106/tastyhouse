@@ -1,9 +1,9 @@
 package com.tastyhouse.core.domain.shop.domain.repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.Tag;
-
 import java.util.List;
 import java.util.Optional;
+
+import com.tastyhouse.core.domain.shop.domain.model.Tag;
 
 public interface TagRepository {
 

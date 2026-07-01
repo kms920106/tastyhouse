@@ -1,10 +1,11 @@
 package com.tastyhouse.adminapi.admin.request;
 
-import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
 
 @Schema(description = "관리자 계정 생성 요청 (SUPER_ADMIN 전용)")
 public record AdminCreateRequest(

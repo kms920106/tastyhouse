@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.product.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "상품 배치 조회 응답")
 public record ProductBatchResponse(

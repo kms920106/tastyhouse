@@ -1,14 +1,14 @@
 package com.tastyhouse.core.domain.verification.infrastructure.persistence;
 
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.verification.domain.model.EmailVerification;
-import com.tastyhouse.core.domain.verification.domain.model.EmailVerificationStatus;
-import com.tastyhouse.core.domain.verification.domain.repository.EmailVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
+import com.tastyhouse.core.domain.verification.domain.model.EmailVerification;
+import com.tastyhouse.core.domain.verification.domain.model.EmailVerificationStatus;
+import com.tastyhouse.core.domain.verification.domain.repository.EmailVerificationRepository;
 
 import static com.tastyhouse.core.domain.verification.domain.model.QEmailVerification.emailVerification;
 
@@ -46,18 +46,6 @@ public class EmailVerificationRepositoryImpl implements EmailVerificationReposit
             .where(
                 emailVerification.email.eq(email),
                 emailVerification.status.eq(EmailVerificationStatus.PENDING)
-            )
-            .execute();
-    }
-
-    @Override
-    public void expireAllOverdue(LocalDateTime now) {
-        queryFactory
-            .update(emailVerification)
-            .set(emailVerification.status, EmailVerificationStatus.EXPIRED)
-            .where(
-                emailVerification.status.eq(EmailVerificationStatus.PENDING),
-                emailVerification.expiresAt.lt(now)
             )
             .execute();
     }

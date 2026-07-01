@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.policy.request;
 
+import java.time.LocalDateTime;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
-import java.time.LocalDateTime;
 
 @Schema(description = "약관 수정 요청")
 public record PolicyUpdateRequest(

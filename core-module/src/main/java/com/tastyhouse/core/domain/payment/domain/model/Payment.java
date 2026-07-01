@@ -1,12 +1,9 @@
 package com.tastyhouse.core.domain.payment.domain.model;
 
-import com.tastyhouse.core.domain.payment.domain.vo.Amount;
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
-import com.tastyhouse.core.domain.payment.domain.vo.PgOrderId;
-import com.tastyhouse.core.shared.entity.BaseEntity;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -18,7 +15,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.core.domain.order.infrastructure.persistence.converter.OrderIdConverter;
+import com.tastyhouse.core.domain.payment.domain.vo.Amount;
+import com.tastyhouse.core.domain.payment.domain.vo.PgOrderId;
+import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.AmountConverter;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -30,6 +34,7 @@ public class Payment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = OrderIdConverter.class)
     @Column(name = "order_id", nullable = false, unique = true)
     private OrderId orderId;
 
@@ -41,6 +46,7 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private PaymentStatus paymentStatus;
 
+    @Convert(converter = AmountConverter.class)
     @Column(name = "amount", nullable = false)
     private Amount amount;
 
@@ -74,12 +80,6 @@ public class Payment extends BaseEntity {
 
     @Column(name = "receipt_url", length = 500)
     private String receiptUrl;
-
-    @Column(name = "cash_receipt_number", length = 50)
-    private String cashReceiptNumber;
-
-    @Column(name = "cash_receipt_type", length = 20)
-    private String cashReceiptType;
 
     private Payment(
         OrderId orderId,

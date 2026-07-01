@@ -1,11 +1,12 @@
 package com.tastyhouse.core.domain.coupon.application;
 
-import com.tastyhouse.core.domain.coupon.domain.event.MemberCouponIssuedEvent;
-import com.tastyhouse.core.domain.coupon.domain.event.MemberCouponUsedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import com.tastyhouse.core.domain.coupon.domain.event.MemberCouponIssuedEvent;
+import com.tastyhouse.core.domain.coupon.domain.event.MemberCouponUsedEvent;
 
 @Slf4j
 @Component

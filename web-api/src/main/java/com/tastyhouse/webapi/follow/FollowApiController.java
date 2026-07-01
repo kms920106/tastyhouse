@@ -1,12 +1,7 @@
 package com.tastyhouse.webapi.follow;
 
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.webapi.common.PageResponse;
-import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
-import com.tastyhouse.webapi.follow.response.IsFollowingResponse;
-import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
-import com.tastyhouse.webapi.service.CustomUserDetails;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import com.tastyhouse.webapi.security.CurrentUser;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,7 +20,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
+import com.tastyhouse.webapi.follow.response.IsFollowingResponse;
+import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/follows")

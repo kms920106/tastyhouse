@@ -1,12 +1,12 @@
 package com.tastyhouse.webapi.ratelimit;
 
+import java.time.Duration;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +40,7 @@ public class RateLimiterService {
             List.of(key),
             String.valueOf(duration.toMillis())
         );
-        return count != null && count > limit;
+        long currentCount = count == null ? 0L : count;
+        return currentCount > limit;
     }
 }

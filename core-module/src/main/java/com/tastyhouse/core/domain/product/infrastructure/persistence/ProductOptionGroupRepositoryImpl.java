@@ -1,13 +1,14 @@
 package com.tastyhouse.core.domain.product.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
-import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
+import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
 
 import static com.tastyhouse.core.domain.product.domain.model.QProductOptionGroup.productOptionGroup;
 
@@ -41,15 +42,6 @@ public class ProductOptionGroupRepositoryImpl implements ProductOptionGroupRepos
             .selectFrom(productOptionGroup)
             .where(productOptionGroup.id.in(ids))
             .fetch();
-    }
-
-    @Override
-    public boolean existsByProductId(Long productId) {
-        return queryFactory
-            .selectOne()
-            .from(productOptionGroup)
-            .where(productOptionGroup.productId.eq(productId))
-            .fetchFirst() != null;
     }
 
     @Override

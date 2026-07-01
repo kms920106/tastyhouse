@@ -1,12 +1,13 @@
 package com.tastyhouse.core.domain.search.infrastructure.persistence;
 
+import java.util.List;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
-import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
+import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
 
 import static com.tastyhouse.core.domain.search.domain.model.QPopularKeyword.popularKeyword;
 

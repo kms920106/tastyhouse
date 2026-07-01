@@ -1,11 +1,12 @@
 package com.tastyhouse.core.domain.search.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.search.domain.model.RecommendedKeyword;
-import com.tastyhouse.core.domain.search.domain.repository.RecommendedKeywordRepository;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.tastyhouse.core.domain.search.domain.model.RecommendedKeyword;
+import com.tastyhouse.core.domain.search.domain.repository.RecommendedKeywordRepository;
 
 @Repository
 @RequiredArgsConstructor

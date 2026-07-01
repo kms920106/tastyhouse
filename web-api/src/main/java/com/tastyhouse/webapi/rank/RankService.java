@@ -1,9 +1,16 @@
 package com.tastyhouse.webapi.rank;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.rank.application.RankCommandService;
 import com.tastyhouse.core.domain.rank.application.RankQueryService;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
@@ -14,20 +21,12 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class RankService {
 
     private final RankQueryService rankQueryService;
-    private final RankCommandService rankCommandService;
     private final MemberQueryService memberQueryService;
     private final FileService fileService;
 

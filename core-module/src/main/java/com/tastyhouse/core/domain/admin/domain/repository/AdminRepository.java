@@ -1,9 +1,9 @@
 package com.tastyhouse.core.domain.admin.domain.repository;
 
+import java.util.Optional;
+
 import com.tastyhouse.core.domain.admin.domain.model.Admin;
 import com.tastyhouse.core.domain.admin.domain.vo.AdminId;
-
-import java.util.Optional;
 
 public interface AdminRepository {
 

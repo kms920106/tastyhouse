@@ -1,13 +1,14 @@
 package com.tastyhouse.core.domain.search.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.search.domain.model.SearchKeywordLog;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.tastyhouse.core.domain.search.domain.model.SearchKeywordLog;
 
 public interface SearchKeywordLogJpaRepository extends JpaRepository<SearchKeywordLog, Long> {
 

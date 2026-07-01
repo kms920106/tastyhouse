@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.rank.application.dto.result;
 
-import com.querydsl.core.annotations.QueryProjection;
-
 import java.time.LocalDateTime;
+
+import com.querydsl.core.annotations.QueryProjection;
 
 public record MemberReviewCountResult(
     Long memberId,

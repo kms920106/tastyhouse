@@ -1,9 +1,10 @@
 package com.tastyhouse.webapi.member.request;
 
-import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
 
 @Schema(description = "회원 탈퇴 요청")
 public record WithdrawMemberRequest(

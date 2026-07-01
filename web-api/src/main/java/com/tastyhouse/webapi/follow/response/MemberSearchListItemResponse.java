@@ -1,7 +1,8 @@
 package com.tastyhouse.webapi.follow.response;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 
 public record MemberSearchListItemResponse(
     @Schema(description = "회원 ID", example = "1")

@@ -1,7 +1,8 @@
 package com.tastyhouse.webapi.member.response;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 
 public record MemberProfileResponse(
     @Schema(description = "닉네임", example = "맛집탐험가")

@@ -1,9 +1,10 @@
 package com.tastyhouse.core.domain.order.application.dto.result;
 
-import com.querydsl.core.annotations.QueryProjection;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-
 import java.time.LocalDateTime;
+
+import com.querydsl.core.annotations.QueryProjection;
+
+import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 
 public record OrderListItemResult(
     Long id,

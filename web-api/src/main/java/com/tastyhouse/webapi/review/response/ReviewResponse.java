@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.review.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "리뷰 등록/수정 응답")
 public record ReviewResponse(

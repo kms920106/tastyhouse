@@ -1,15 +1,19 @@
 package com.tastyhouse.webapi.member;
 
-import com.tastyhouse.webapi.common.PageResponse;
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
+import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
-import com.tastyhouse.webapi.member.response.MyProfileResponse;
-import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
-import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
+import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
+import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
@@ -17,19 +21,16 @@ import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.PointHistoryResponse;
 import com.tastyhouse.webapi.member.response.PointResponse;
+import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.response.UsablePointResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
 import com.tastyhouse.webapi.member.service.MemberAccountService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 import com.tastyhouse.webapi.member.service.MemberFollowService;
 import com.tastyhouse.webapi.member.service.MemberGradeService;
-import com.tastyhouse.webapi.member.service.MemberShopService;
 import com.tastyhouse.webapi.member.service.MemberPointService;
 import com.tastyhouse.webapi.member.service.MemberReviewService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
+import com.tastyhouse.webapi.member.service.MemberShopService;
 
 @Component
 @RequiredArgsConstructor

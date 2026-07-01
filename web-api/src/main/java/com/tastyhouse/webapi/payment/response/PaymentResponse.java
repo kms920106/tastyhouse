@@ -1,11 +1,11 @@
 package com.tastyhouse.webapi.payment.response;
 
+import java.time.LocalDateTime;
+
 import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
-
-import java.time.LocalDateTime;
 
 public record PaymentResponse(
     Long id,
@@ -23,8 +23,6 @@ public record PaymentResponse(
     LocalDateTime cancelledAt,
     String cancelReason,
     String receiptUrl,
-    String cashReceiptNumber,
-    String cashReceiptType,
     LocalDateTime createdAt
 ) {
     public static PaymentResponse from(PaymentResult result) {
@@ -44,8 +42,6 @@ public record PaymentResponse(
             result.cancelledAt(),
             result.cancelReason(),
             result.receiptUrl(),
-            result.cashReceiptNumber(),
-            result.cashReceiptType(),
             result.createdAt()
         );
     }

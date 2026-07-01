@@ -1,17 +1,18 @@
 package com.tastyhouse.core.domain.coupon.infrastructure.persistence;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
 import com.tastyhouse.core.domain.coupon.application.dto.result.QMemberCouponResult;
 import com.tastyhouse.core.domain.coupon.domain.model.MemberCoupon;
 import com.tastyhouse.core.domain.coupon.domain.model.MemberCouponId;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.coupon.domain.model.QCoupon.coupon;
 import static com.tastyhouse.core.domain.coupon.domain.model.QMemberCoupon.memberCoupon;

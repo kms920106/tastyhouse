@@ -1,17 +1,17 @@
 package com.tastyhouse.webapi.config;
 
 
-import com.tastyhouse.webapi.config.jwt.JwtAuthenticationFilter;
-import com.tastyhouse.webapi.config.security.JwtAccessDeniedHandler;
-import com.tastyhouse.webapi.config.security.JwtAuthenticationEntryPoint;
+import java.util.Arrays;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,8 +23,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.List;
+import com.tastyhouse.webapi.config.jwt.JwtAuthenticationFilter;
+import com.tastyhouse.webapi.config.security.JwtAccessDeniedHandler;
+import com.tastyhouse.webapi.config.security.JwtAuthenticationEntryPoint;
 
 import static com.tastyhouse.webapi.config.PublicPaths.PATTERNS;
 

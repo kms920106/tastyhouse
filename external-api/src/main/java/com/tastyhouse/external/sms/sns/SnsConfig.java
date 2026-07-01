@@ -1,7 +1,5 @@
 package com.tastyhouse.external.sms.sns;
 
-import com.tastyhouse.core.domain.verification.application.port.out.SmsSender;
-import com.tastyhouse.external.sms.SmsProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +8,8 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
+
+import com.tastyhouse.core.domain.verification.application.port.out.SmsSender;
 
 @Configuration
 @ConditionalOnProperty(name = "sms.provider", havingValue = "sns")
@@ -30,7 +30,7 @@ public class SnsConfig {
     }
 
     @Bean
-    public SmsSender awsSnsSmsSender(SnsClient snsClient, SmsProperties smsProperties) {
+    public SmsSender awsSnsSmsSender(SnsClient snsClient) {
         return new AwsSnsSmsSender(snsClient);
     }
 }

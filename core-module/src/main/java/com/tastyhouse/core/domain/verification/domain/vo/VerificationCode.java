@@ -1,13 +1,13 @@
 package com.tastyhouse.core.domain.verification.domain.vo;
 
+import java.security.SecureRandom;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.security.SecureRandom;
 
 @Embeddable
 @Getter

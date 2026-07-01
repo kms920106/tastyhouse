@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.grade;
 
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.webapi.grade.response.GradeInfoListItemResponse;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.grade.response.GradeInfoListItemResponse;
 
 @Tag(name = "Grade", description = "등급 정책 API")
 @RestController

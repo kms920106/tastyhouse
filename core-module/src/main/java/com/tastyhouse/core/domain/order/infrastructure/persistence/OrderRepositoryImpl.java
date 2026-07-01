@@ -1,7 +1,13 @@
 package com.tastyhouse.core.domain.order.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.QOrderListItemResult;
 import com.tastyhouse.core.domain.order.domain.model.Order;
@@ -9,11 +15,6 @@ import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.order.domain.model.QOrder.order;

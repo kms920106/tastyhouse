@@ -1,14 +1,15 @@
 package com.tastyhouse.core.domain.reservation.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
-import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
+import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
 
 @Repository
 @RequiredArgsConstructor

@@ -1,9 +1,15 @@
 package com.tastyhouse.core.domain.product.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.product.application.dto.result.QTodayDiscountProductResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
@@ -12,11 +18,6 @@ import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;

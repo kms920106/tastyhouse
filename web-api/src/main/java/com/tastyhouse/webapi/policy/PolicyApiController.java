@@ -1,14 +1,7 @@
 package com.tastyhouse.webapi.policy;
 
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.webapi.common.PageResponse;
-import com.tastyhouse.core.domain.policy.application.PolicyQueryService;
-import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
-import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
-import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
-import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,7 +16,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.tastyhouse.core.domain.policy.application.PolicyQueryService;
+import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
+import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
+import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
 
 @RestController
 @RequestMapping("/api/policies")

@@ -1,7 +1,8 @@
 package com.tastyhouse.webapi.member.response;
 
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
 
 @Schema(description = "포인트 응답 DTO")
 public record PointResponse(

@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.reservation.domain.model;
 
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,8 +15,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 /**
  * 가게의 특정 (날짜, 시간) 슬롯에 대한 예약 정원/점유 카운터.

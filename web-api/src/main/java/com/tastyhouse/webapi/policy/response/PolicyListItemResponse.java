@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.policy.response;
 
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
-
 import java.time.LocalDateTime;
+
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 
 public record PolicyListItemResponse(
     Long id,

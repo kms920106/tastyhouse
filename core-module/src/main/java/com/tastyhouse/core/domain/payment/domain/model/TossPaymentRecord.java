@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.payment.domain.model;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,7 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -137,9 +138,6 @@ public class TossPaymentRecord extends BaseEntity {
     @Column(name = "virtual_account_customer_name", length = 100)
     private String virtualAccountCustomerName;
 
-    @Column(name = "virtual_account_depositor_name", length = 100)
-    private String virtualAccountDepositorName;
-
     @Column(name = "virtual_account_due_date")
     private LocalDateTime virtualAccountDueDate;
 
@@ -160,12 +158,6 @@ public class TossPaymentRecord extends BaseEntity {
 
     @Column(name = "mobile_phone_receipt_url", length = 500)
     private String mobilePhoneReceiptUrl;
-
-    @Column(name = "gift_certificate_approve_no", length = 8)
-    private String giftCertificateApproveNo;
-
-    @Column(name = "gift_certificate_settlement_status", length = 30)
-    private String giftCertificateSettlementStatus;
 
     @Column(name = "transfer_bank_code", length = 10)
     private String transferBankCode;
@@ -196,27 +188,6 @@ public class TossPaymentRecord extends BaseEntity {
 
     @Column(name = "failure_message", length = 510)
     private String failureMessage;
-
-    @Column(name = "cash_receipt_type", length = 20)
-    private String cashReceiptType;
-
-    @Column(name = "cash_receipt_key", length = 200)
-    private String cashReceiptKey;
-
-    @Column(name = "cash_receipt_issue_number", length = 9)
-    private String cashReceiptIssueNumber;
-
-    @Column(name = "cash_receipt_url", length = 500)
-    private String cashReceiptUrl;
-
-    @Column(name = "cash_receipt_amount")
-    private Integer cashReceiptAmount;
-
-    @Column(name = "cash_receipt_tax_free_amount")
-    private Integer cashReceiptTaxFreeAmount;
-
-    @Column(name = "discount_amount")
-    private Integer discountAmount;
 
     private TossPaymentRecord(Long paymentId, String version, String paymentKey, String type,
                               String orderId, String orderName, String mId, String currency,

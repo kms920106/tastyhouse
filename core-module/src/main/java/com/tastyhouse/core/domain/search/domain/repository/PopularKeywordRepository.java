@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.search.domain.repository;
 
-import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
-
 import java.util.List;
+
+import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
 
 public interface PopularKeywordRepository {
 

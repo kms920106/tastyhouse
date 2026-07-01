@@ -1,9 +1,9 @@
 package com.tastyhouse.core.domain.coupon.domain.repository;
 
+import java.util.Optional;
+
 import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
 import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
-
-import java.util.Optional;
 
 public interface CouponRepository {
 

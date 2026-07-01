@@ -1,10 +1,9 @@
 package com.tastyhouse.core.domain.verification.domain.repository;
 
+import java.util.Optional;
+
 import com.tastyhouse.core.domain.verification.domain.model.PhoneVerification;
 import com.tastyhouse.core.domain.verification.domain.model.PhoneVerificationStatus;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 public interface PhoneVerificationRepository {
 
@@ -13,6 +12,4 @@ public interface PhoneVerificationRepository {
     Optional<PhoneVerification> findLatestPendingByPhoneNumber(String phoneNumber, PhoneVerificationStatus status);
 
     void expireAllPendingByPhoneNumber(String phoneNumber);
-
-    void expireAllOverdue(LocalDateTime now);
 }

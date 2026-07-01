@@ -1,9 +1,10 @@
 package com.tastyhouse.core.domain.policy.application.dto.result;
 
-import com.querydsl.core.annotations.QueryProjection;
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
-
 import java.time.LocalDateTime;
+
+import com.querydsl.core.annotations.QueryProjection;
+
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 
 public record PolicyListItemResult(
     Long id,

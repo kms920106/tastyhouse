@@ -1,20 +1,20 @@
 package com.tastyhouse.core.domain.search.application;
 
-import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
-import com.tastyhouse.core.domain.search.domain.model.SearchKeywordLog;
-import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
-import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
+import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
+import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
 
 @Slf4j
 @Service
@@ -25,10 +25,6 @@ public class SearchKeywordCommandService {
     private final SearchKeywordLogRepository searchKeywordLogRepository;
     private final PopularKeywordRepository popularKeywordRepository;
     private final EntityManager entityManager;
-
-    public void logSearch(String keyword) {
-        searchKeywordLogRepository.save(SearchKeywordLog.of(keyword));
-    }
 
     public void aggregatePopularKeywords() {
         LocalDateTime since = LocalDateTime.now().minusDays(7);

@@ -1,7 +1,13 @@
 package com.tastyhouse.core.domain.event.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.QEventDetailDto;
@@ -10,11 +16,6 @@ import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.event.domain.model.QEvent.event;
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;

@@ -1,7 +1,16 @@
 package com.tastyhouse.core.domain.reservation.application;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.application.dto.command.CreateReservationCommand;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
@@ -13,16 +22,6 @@ import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
 
 /**
  * 예약 생성의 실제 트랜잭션 단위.

@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.order.domain.repository;
 
-import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
-
 import java.util.List;
+
+import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
 
 public interface OrderProductOptionRepository {
 

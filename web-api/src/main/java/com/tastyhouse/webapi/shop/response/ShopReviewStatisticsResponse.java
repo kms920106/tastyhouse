@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.shop.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.util.Map;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "가게 리뷰 통계 응답")
 public record ShopReviewStatisticsResponse(

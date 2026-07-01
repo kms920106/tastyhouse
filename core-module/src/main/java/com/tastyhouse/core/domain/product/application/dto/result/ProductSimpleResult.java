@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.product.application.dto.result;
 
-import com.querydsl.core.annotations.QueryProjection;
-
 import java.math.BigDecimal;
+
+import com.querydsl.core.annotations.QueryProjection;
 
 public record ProductSimpleResult(
     Long id,

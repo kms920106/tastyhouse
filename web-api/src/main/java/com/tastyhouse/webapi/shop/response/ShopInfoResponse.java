@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.shop.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "가게 기본 정보 응답")
 public record ShopInfoResponse(

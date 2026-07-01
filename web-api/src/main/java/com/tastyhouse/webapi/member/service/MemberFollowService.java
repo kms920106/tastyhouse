@@ -1,11 +1,12 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.core.domain.follow.application.FollowQueryService;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
-import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.core.domain.follow.application.FollowQueryService;
+import com.tastyhouse.core.domain.review.application.ReviewQueryService;
+import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 
 @Service
 @RequiredArgsConstructor

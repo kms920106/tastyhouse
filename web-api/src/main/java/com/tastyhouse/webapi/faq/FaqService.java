@@ -1,16 +1,17 @@
 package com.tastyhouse.webapi.faq;
 
-import com.tastyhouse.core.domain.faq.application.FaqQueryService;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
-import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
-import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
-import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.tastyhouse.core.domain.faq.application.FaqQueryService;
+import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
+import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
+import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
 
 @Service
 @RequiredArgsConstructor

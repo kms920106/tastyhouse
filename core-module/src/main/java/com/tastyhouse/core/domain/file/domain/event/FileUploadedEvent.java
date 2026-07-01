@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.file.domain.event;
 
-import com.tastyhouse.core.domain.file.domain.model.UploadedFileId;
-
 import java.time.LocalDateTime;
+
+import com.tastyhouse.core.domain.file.domain.model.UploadedFileId;
 
 public record FileUploadedEvent(
     UploadedFileId fileId,

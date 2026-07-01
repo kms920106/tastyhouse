@@ -1,9 +1,10 @@
 package com.tastyhouse.webapi.shop.response;
 
-import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import java.math.BigDecimal;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.math.BigDecimal;
+import com.tastyhouse.core.domain.shop.domain.model.Shop;
 
 @Schema(description = "가게 상세 정보 응답")
 public record ShopDetailResponse(

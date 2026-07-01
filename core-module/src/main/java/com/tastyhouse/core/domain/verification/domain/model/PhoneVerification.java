@@ -1,10 +1,7 @@
 package com.tastyhouse.core.domain.verification.domain.model;
 
-import com.tastyhouse.core.domain.verification.domain.vo.PhoneVerificationId;
-import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
-import com.tastyhouse.core.shared.vo.PhoneNumber;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -20,7 +17,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import com.tastyhouse.core.domain.verification.domain.vo.PhoneVerificationId;
+import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.vo.PhoneNumber;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -69,10 +70,6 @@ public class PhoneVerification {
         return new PhoneVerification(phoneNumber, VerificationCode.generate());
     }
 
-    public String getPhoneNumberValue() {
-        return this.phoneNumber.getValue();
-    }
-
     public PhoneVerificationId getPhoneVerificationId() {
         return new PhoneVerificationId(this.id);
     }
@@ -87,9 +84,5 @@ public class PhoneVerification {
         }
         this.status = PhoneVerificationStatus.VERIFIED;
         this.verifiedAt = now;
-    }
-
-    public void expire() {
-        this.status = PhoneVerificationStatus.EXPIRED;
     }
 }

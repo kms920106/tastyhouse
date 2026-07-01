@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.order.response;
 
+import java.time.LocalDateTime;
+
 import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-
-import java.time.LocalDateTime;
 
 public record PaymentSummaryResponse(
     Long id,

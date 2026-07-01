@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.event.application.dto;
 
-import com.querydsl.core.annotations.QueryProjection;
-
 import java.time.LocalDateTime;
+
+import com.querydsl.core.annotations.QueryProjection;
 
 public record EventListItemDto(
     Long eventId,

@@ -1,8 +1,8 @@
 package com.tastyhouse.external.sms.solapi.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 public record SolapiMessageRequest(
     List<SolapiMessage> messages

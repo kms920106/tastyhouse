@@ -1,9 +1,5 @@
 package com.tastyhouse.core.domain.product.application;
 
-import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
-import com.tastyhouse.core.domain.review.domain.event.ReviewCreatedEvent;
-import com.tastyhouse.core.domain.review.domain.event.ReviewDeletedEvent;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -11,6 +7,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.domain.review.domain.event.ReviewCreatedEvent;
+import com.tastyhouse.core.domain.review.domain.event.ReviewDeletedEvent;
+import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 
 @Component
 @RequiredArgsConstructor

@@ -1,7 +1,14 @@
 package com.tastyhouse.core.domain.policy.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
 import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
 import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyDocumentResult;
@@ -12,12 +19,6 @@ import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentReposit
 import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 import static com.tastyhouse.core.domain.policy.domain.model.QPolicyDocument.policyDocument;
 

@@ -1,10 +1,12 @@
 package com.tastyhouse.external.file;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStream;
+
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.web.multipart.MultipartFile;
 
 public class ByteArrayMultipartFile implements MultipartFile {
 
@@ -18,12 +20,12 @@ public class ByteArrayMultipartFile implements MultipartFile {
         this.content = content;
     }
 
-    @Override public String getName() { return filename; }
-    @Override public String getOriginalFilename() { return filename; }
-    @Override public String getContentType() { return contentType; }
+    @Override @NonNull public String getName() { return filename; }
+    @Override @Nullable public String getOriginalFilename() { return filename; }
+    @Override @Nullable public String getContentType() { return contentType; }
     @Override public boolean isEmpty() { return content.length == 0; }
     @Override public long getSize() { return content.length; }
-    @Override public byte[] getBytes() throws IOException { return content; }
-    @Override public InputStream getInputStream() throws IOException { return new ByteArrayInputStream(content); }
-    @Override public void transferTo(java.io.File dest) throws IOException { throw new UnsupportedOperationException(); }
+    @Override @NonNull public byte[] getBytes() { return content; }
+    @Override @NonNull public InputStream getInputStream() { return new ByteArrayInputStream(content); }
+    @Override public void transferTo(@NonNull File dest) { throw new UnsupportedOperationException(); }
 }

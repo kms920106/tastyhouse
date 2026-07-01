@@ -1,12 +1,13 @@
 package com.tastyhouse.core.domain.member.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
-import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
 
 @Repository
 @RequiredArgsConstructor

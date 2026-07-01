@@ -1,13 +1,14 @@
 package com.tastyhouse.core.domain.shop.infrastructure.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.shop.domain.model.Tag;
-import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.tastyhouse.core.domain.shop.domain.model.Tag;
+import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 
 import static com.tastyhouse.core.domain.shop.domain.model.QTag.tag;
 

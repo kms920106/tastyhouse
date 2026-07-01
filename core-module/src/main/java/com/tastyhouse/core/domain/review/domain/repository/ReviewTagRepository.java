@@ -1,8 +1,8 @@
 package com.tastyhouse.core.domain.review.domain.repository;
 
-import com.tastyhouse.core.domain.review.domain.model.ReviewTag;
-
 import java.util.List;
+
+import com.tastyhouse.core.domain.review.domain.model.ReviewTag;
 
 public interface ReviewTagRepository {
 

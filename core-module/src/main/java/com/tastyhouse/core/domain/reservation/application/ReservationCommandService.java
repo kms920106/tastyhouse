@@ -1,5 +1,12 @@
 package com.tastyhouse.core.domain.reservation.application;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.tastyhouse.core.domain.reservation.application.dto.command.CreateReservationCommand;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
@@ -10,12 +17,6 @@ import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -35,7 +36,7 @@ public class ReservationCommandService {
      * 비즈니스 예외(SLOT_FULL/DUPLICATE/TERMS 등)는 재시도 없이 즉시 전파한다.
      */
     public ReservationResult create(Long memberId, CreateReservationCommand cmd) {
-        for (int attempt = 0; attempt < MAX_RETRY; attempt++) {
+        for (int attempt = 0; ; attempt++) {
             try {
                 return reservationCreator.createInNewTx(memberId, cmd);
             } catch (ObjectOptimisticLockingFailureException | DataIntegrityViolationException e) {
@@ -47,8 +48,6 @@ public class ReservationCommandService {
                 }
             }
         }
-        // 도달 불가 (위 루프에서 반환 또는 예외)
-        throw new BusinessException(ErrorCode.RESERVATION_SLOT_FULL);
     }
 
     /**

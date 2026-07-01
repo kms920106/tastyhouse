@@ -1,5 +1,7 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
+import java.time.LocalTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,8 +11,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
-
-import java.time.LocalTime;
 
 @Getter
 @Entity

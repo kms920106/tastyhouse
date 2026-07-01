@@ -1,9 +1,5 @@
 package com.tastyhouse.core.domain.order.domain.model;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-import com.tastyhouse.core.exception.AccessDeniedException;
-import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +11,11 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.core.exception.AccessDeniedException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

@@ -1,7 +1,17 @@
 package com.tastyhouse.core.domain.shop.infrastructure.persistence;
 
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemDto;
 import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemDto;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemDto;
@@ -11,17 +21,9 @@ import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.domain.review.domain.model.QReview.review;
 import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenity.shopAmenity;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenityCategory.shopAmenityCategory;
@@ -29,7 +31,6 @@ import static com.tastyhouse.core.domain.shop.domain.model.QShopBookmark.shopBoo
 import static com.tastyhouse.core.domain.shop.domain.model.QShopFoodType.shopFoodType;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopFoodTypeCategory.shopFoodTypeCategory;
 import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
-import static com.tastyhouse.core.domain.review.domain.model.QReview.review;
 
 @Repository
 @RequiredArgsConstructor

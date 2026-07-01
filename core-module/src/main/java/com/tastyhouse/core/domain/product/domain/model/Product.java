@@ -1,7 +1,7 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
-import com.tastyhouse.core.domain.product.domain.vo.ProductDiscountInfo;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -13,7 +13,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+import com.tastyhouse.core.domain.product.domain.vo.ProductDiscountInfo;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

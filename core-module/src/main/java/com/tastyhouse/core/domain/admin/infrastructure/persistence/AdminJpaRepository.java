@@ -1,10 +1,11 @@
 package com.tastyhouse.core.domain.admin.infrastructure.persistence;
 
-import com.tastyhouse.core.domain.admin.domain.model.Admin;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import com.tastyhouse.core.domain.admin.domain.model.Admin;
 
 @Repository
 public interface AdminJpaRepository extends JpaRepository<Admin, Long> {

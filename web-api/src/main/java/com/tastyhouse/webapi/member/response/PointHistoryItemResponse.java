@@ -1,10 +1,11 @@
 package com.tastyhouse.webapi.member.response;
 
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
-import com.tastyhouse.core.domain.point.domain.model.PointType;
+import java.time.LocalDate;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDate;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
+import com.tastyhouse.core.domain.point.domain.model.PointType;
 
 @Schema(description = "포인트 내역 항목")
 public record PointHistoryItemResponse(

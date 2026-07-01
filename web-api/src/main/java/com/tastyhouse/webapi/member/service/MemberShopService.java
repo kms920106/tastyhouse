@@ -1,12 +1,13 @@
 package com.tastyhouse.webapi.member.service;
 
-import com.tastyhouse.webapi.common.PageResponse;
-import com.tastyhouse.core.domain.shop.application.ShopQueryService;
-import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.core.domain.shop.application.ShopQueryService;
+import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 
 @Service
 @RequiredArgsConstructor

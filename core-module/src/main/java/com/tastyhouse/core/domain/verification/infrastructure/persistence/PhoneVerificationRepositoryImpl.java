@@ -1,14 +1,14 @@
 package com.tastyhouse.core.domain.verification.infrastructure.persistence;
 
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.verification.domain.model.PhoneVerification;
-import com.tastyhouse.core.domain.verification.domain.model.PhoneVerificationStatus;
-import com.tastyhouse.core.domain.verification.domain.repository.PhoneVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
+import com.tastyhouse.core.domain.verification.domain.model.PhoneVerification;
+import com.tastyhouse.core.domain.verification.domain.model.PhoneVerificationStatus;
+import com.tastyhouse.core.domain.verification.domain.repository.PhoneVerificationRepository;
 
 import static com.tastyhouse.core.domain.verification.domain.model.QPhoneVerification.phoneVerification;
 
@@ -46,18 +46,6 @@ public class PhoneVerificationRepositoryImpl implements PhoneVerificationReposit
             .where(
                 phoneVerification.phoneNumber.value.eq(phoneNumber),
                 phoneVerification.status.eq(PhoneVerificationStatus.PENDING)
-            )
-            .execute();
-    }
-
-    @Override
-    public void expireAllOverdue(LocalDateTime now) {
-        queryFactory
-            .update(phoneVerification)
-            .set(phoneVerification.status, PhoneVerificationStatus.EXPIRED)
-            .where(
-                phoneVerification.status.eq(PhoneVerificationStatus.PENDING),
-                phoneVerification.expiresAt.lt(now)
             )
             .execute();
     }

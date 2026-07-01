@@ -1,8 +1,5 @@
 package com.tastyhouse.external.email.ses;
 
-import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
-import com.tastyhouse.external.exception.ExternalApiErrorCode;
-import com.tastyhouse.external.exception.ExternalApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.ses.SesClient;
@@ -12,6 +9,10 @@ import software.amazon.awssdk.services.ses.model.Destination;
 import software.amazon.awssdk.services.ses.model.Message;
 import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SesException;
+
+import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
+import com.tastyhouse.external.exception.ExternalApiErrorCode;
+import com.tastyhouse.external.exception.ExternalApiException;
 
 @Slf4j
 @RequiredArgsConstructor
