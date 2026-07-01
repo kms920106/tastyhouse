@@ -5,6 +5,7 @@ import com.tastyhouse.adminapi.common.PageRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
@@ -19,7 +20,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,12 +53,12 @@ public class NoticeApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         NoticeSearchCondition condition = new NoticeSearchCondition(title, content, visible);
-        Page<NoticeListItemDto> notices = noticeQueryService.findAllNotices(condition, pageRequest.page(), pageRequest.size());
+        PageResult<NoticeListItemDto> notices = noticeQueryService.findAllNotices(condition, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            notices.getContent(),
-            notices.getNumber(),
-            notices.getSize(),
-            notices.getTotalElements()
+            notices.content(),
+            notices.page(),
+            notices.size(),
+            notices.totalElements()
         ));
     }
 

@@ -6,10 +6,9 @@ import com.tastyhouse.core.domain.product.application.dto.result.SearchProductIt
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,17 +21,15 @@ public class SearchResultQueryService {
     private final ReviewRepository reviewRepository;
     private final ShopRepository shopRepository;
 
-    public Page<SearchProductItemResult> searchProducts(String keyword, int page, int size) {
+    public PageResult<SearchProductItemResult> searchProducts(String keyword, int page, int size) {
         return productQueryService.searchByKeyword(keyword, page, size);
     }
 
-    public Page<SearchReviewItemResult> searchReviews(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return reviewRepository.searchByKeyword(keyword, pageable);
+    public PageResult<SearchReviewItemResult> searchReviews(String keyword, int page, int size) {
+        return reviewRepository.searchByKeyword(keyword, PageQuery.of(page, size));
     }
 
-    public Page<ShopBookmarkedItemDto> searchShopsWithBookmark(String keyword, Long memberId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return shopRepository.searchByKeywordWithBookmark(keyword, memberId, pageable);
+    public PageResult<ShopBookmarkedItemDto> searchShopsWithBookmark(String keyword, Long memberId, int page, int size) {
+        return shopRepository.searchByKeywordWithBookmark(keyword, memberId, PageQuery.of(page, size));
     }
 }

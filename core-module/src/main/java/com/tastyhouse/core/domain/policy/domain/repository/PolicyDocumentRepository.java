@@ -5,8 +5,8 @@ import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemRe
 import com.tastyhouse.core.domain.policy.domain.model.PolicyDocument;
 import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 
 import java.util.Optional;
 
@@ -20,7 +20,7 @@ public interface PolicyDocumentRepository {
 
     Optional<PolicyDocumentResult> findByTypeAndVersion(PolicyType type, String version);
 
-    Page<PolicyListItemResult> findAllByType(PolicyType type, Pageable pageable);
+    PageResult<PolicyListItemResult> findAllByType(PolicyType type, PageQuery pageQuery);
 
     PolicyDocument save(PolicyDocument policyDocument);
 }

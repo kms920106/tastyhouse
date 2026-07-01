@@ -1,10 +1,10 @@
 package com.tastyhouse.core.domain.event.domain.repository;
 
 import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 
 public interface EventAnnouncementRepository {
 
-    Page<EventAnnouncement> findAllOrderByAnnouncedAtDesc(Pageable pageable);
+    PageResult<EventAnnouncement> findAllOrderByAnnouncedAtDesc(PageQuery pageQuery);
 }

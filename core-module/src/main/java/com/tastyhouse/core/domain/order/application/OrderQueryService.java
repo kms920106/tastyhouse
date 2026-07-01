@@ -17,10 +17,9 @@ import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,9 +41,8 @@ public class OrderQueryService {
         return orderRepository.findById(orderId);
     }
 
-    public Page<OrderListItemResult> findOrderList(Long memberId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return orderRepository.findOrderListByMemberId(memberId, pageable);
+    public PageResult<OrderListItemResult> findOrderList(Long memberId, int page, int size) {
+        return orderRepository.findOrderListByMemberId(memberId, PageQuery.of(page, size));
     }
 
     public OrderResult findOrderDetail(Long memberId, Long orderId) {

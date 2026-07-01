@@ -4,10 +4,9 @@ import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResu
 import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,17 +20,15 @@ public class FollowQueryService {
     private final FollowRepository followRepository;
     private final MemberQueryService memberQueryService;
 
-    public Page<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return followRepository.findFollowingList(memberId, viewerMemberId, pageable);
+    public PageResult<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
+        return followRepository.findFollowingList(memberId, viewerMemberId, PageQuery.of(page, size));
     }
 
-    public Page<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return followRepository.findFollowerList(memberId, viewerMemberId, pageable);
+    public PageResult<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
+        return followRepository.findFollowerList(memberId, viewerMemberId, PageQuery.of(page, size));
     }
 
-    public Page<MemberWithProfileImageResult> findMembersByNicknameContaining(String nickname, int page, int size) {
+    public PageResult<MemberWithProfileImageResult> findMembersByNicknameContaining(String nickname, int page, int size) {
         return memberQueryService.findByNicknameContaining(nickname, page, size);
     }
 

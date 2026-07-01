@@ -10,11 +10,10 @@ import com.tastyhouse.core.domain.policy.domain.model.PolicyDocument;
 import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -103,7 +102,7 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
     }
 
     @Override
-    public Page<PolicyListItemResult> findAllByType(PolicyType type, Pageable pageable) {
+    public PageResult<PolicyListItemResult> findAllByType(PolicyType type, PageQuery pageQuery) {
         JPAQuery<PolicyListItemResult> query = queryFactory
             .select(new QPolicyListItemResult(
                 policyDocument.id,
@@ -121,11 +120,11 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
         long total = query.fetch().size();
 
         List<PolicyListItemResult> policies = query
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        return new PageImpl<>(policies, pageable, total);
+        return PageResult.of(policies, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override

@@ -6,10 +6,9 @@ import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +19,12 @@ public class BannerQueryService {
 
     private final BannerRepository bannerRepository;
 
-    public Page<BannerListItemDto> findHomeBanners(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return bannerRepository.findAllByType(BannerType.HOME, pageable);
+    public PageResult<BannerListItemDto> findHomeBanners(int page, int size) {
+        return bannerRepository.findAllByType(BannerType.HOME, PageQuery.of(page, size));
     }
 
-    public Page<BannerListItemDto> findSidebarBanners(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return bannerRepository.findAllByType(BannerType.SIDEBAR, pageable);
+    public PageResult<BannerListItemDto> findSidebarBanners(int page, int size) {
+        return bannerRepository.findAllByType(BannerType.SIDEBAR, PageQuery.of(page, size));
     }
 
     public Banner findById(Long id) {

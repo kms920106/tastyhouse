@@ -91,7 +91,7 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public List<EditorChoiceResponse> searchEditorChoices(int page, int size) {
-        return shopQueryService.findEditorChoices(page, size).getContent().stream().map(this::convertToEditorChoiceResponse).toList();
+        return shopQueryService.findEditorChoices(page, size).content().stream().map(this::convertToEditorChoiceResponse).toList();
     }
 
     private EditorChoiceResponse convertToEditorChoiceResponse(EditorChoiceDto dto) {

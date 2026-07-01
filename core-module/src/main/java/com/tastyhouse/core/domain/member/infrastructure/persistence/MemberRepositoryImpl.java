@@ -1,7 +1,6 @@
 package com.tastyhouse.core.domain.member.infrastructure.persistence;
 
 import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.member.domain.model.Member;
@@ -9,10 +8,9 @@ import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -31,11 +29,6 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public Optional<Member> findById(MemberId memberId) {
         return memberJpaRepository.findById(memberId.value());
-    }
-
-    @Override
-    public boolean existsById(MemberId memberId) {
-        return memberJpaRepository.existsById(memberId.value());
     }
 
     @Override
@@ -77,7 +70,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Page<MemberWithProfileImageResult> findByNicknameContaining(String nickname, Pageable pageable) {
+    public PageResult<MemberWithProfileImageResult> findByNicknameContaining(String nickname, PageQuery pageQuery) {
         List<MemberWithProfileImageResult> content = queryFactory
             .select(Projections.constructor(MemberWithProfileImageResult.class,
                 member.id,
@@ -90,16 +83,17 @@ public class MemberRepositoryImpl implements MemberRepository {
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(member.nickname.containsIgnoreCase(nickname))
             .orderBy(member.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        JPAQuery<Long> countQuery = queryFactory
+        Long total = queryFactory
             .select(member.count())
             .from(member)
-            .where(member.nickname.containsIgnoreCase(nickname));
+            .where(member.nickname.containsIgnoreCase(nickname))
+            .fetchOne();
 
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override

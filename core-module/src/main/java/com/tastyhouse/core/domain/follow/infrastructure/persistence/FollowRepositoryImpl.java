@@ -3,16 +3,14 @@ package com.tastyhouse.core.domain.follow.infrastructure.persistence;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.domain.follow.domain.model.Follow;
 import com.tastyhouse.core.domain.follow.domain.model.QFollow;
 import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -59,15 +57,6 @@ public class FollowRepositoryImpl implements FollowRepository {
     }
 
     @Override
-    public boolean existsByFollowingId(Long followingId) {
-        return queryFactory
-            .selectOne()
-            .from(follow)
-            .where(follow.followingId.eq(followingId))
-            .fetchFirst() != null;
-    }
-
-    @Override
     public Follow save(Follow follow) {
         return followJpaRepository.save(follow);
     }
@@ -109,7 +98,7 @@ public class FollowRepositoryImpl implements FollowRepository {
     }
 
     @Override
-    public Page<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, Pageable pageable) {
+    public PageResult<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, PageQuery pageQuery) {
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
@@ -133,20 +122,21 @@ public class FollowRepositoryImpl implements FollowRepository {
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(follow.followerId.eq(memberId))
             .orderBy(follow.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        JPAQuery<Long> countQuery = queryFactory
+        Long total = queryFactory
             .select(follow.count())
             .from(follow)
-            .where(follow.followerId.eq(memberId));
+            .where(follow.followerId.eq(memberId))
+            .fetchOne();
 
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, Pageable pageable) {
+    public PageResult<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, PageQuery pageQuery) {
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
@@ -170,15 +160,16 @@ public class FollowRepositoryImpl implements FollowRepository {
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(follow.followingId.eq(memberId))
             .orderBy(follow.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        JPAQuery<Long> countQuery = queryFactory
+        Long total = queryFactory
             .select(follow.count())
             .from(follow)
-            .where(follow.followingId.eq(memberId));
+            .where(follow.followingId.eq(memberId))
+            .fetchOne();
 
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 }

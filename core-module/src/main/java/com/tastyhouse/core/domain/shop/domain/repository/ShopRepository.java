@@ -6,8 +6,8 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItem
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,11 +16,11 @@ public interface ShopRepository {
 
     List<Shop> findNearbyShops(BigDecimal latitude, BigDecimal longitude);
 
-    Page<BestShopItemDto> findBestShops(Pageable pageable);
+    PageResult<BestShopItemDto> findBestShops(PageQuery pageQuery);
 
-    Page<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, Pageable pageable);
+    PageResult<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, PageQuery pageQuery);
 
-    Page<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, Pageable pageable);
+    PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, PageQuery pageQuery);
 
-    Page<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, Pageable pageable);
+    PageResult<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, PageQuery pageQuery);
 }

@@ -7,8 +7,8 @@ import com.tastyhouse.core.domain.review.application.dto.result.MyReviewListItem
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
 import com.tastyhouse.core.domain.review.domain.model.Review;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,19 +17,19 @@ import java.util.Optional;
 
 public interface ReviewRepository {
 
-    Page<BestReviewListItemResult> findBestReviews(Pageable pageable);
+    PageResult<BestReviewListItemResult> findBestReviews(PageQuery pageQuery);
 
-    Page<SearchReviewItemResult> searchByKeyword(String keyword, Pageable pageable);
+    PageResult<SearchReviewItemResult> searchByKeyword(String keyword, PageQuery pageQuery);
 
-    Page<LatestReviewListItemResult> findLatestReviews(Pageable pageable);
+    PageResult<LatestReviewListItemResult> findLatestReviews(PageQuery pageQuery);
 
-    Page<LatestReviewListItemResult> findLatestReviewsByFollowing(List<Long> followingMemberIds, Pageable pageable);
+    PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(List<Long> followingMemberIds, PageQuery pageQuery);
 
-    Page<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, Pageable pageable, Boolean hasImage, String sortType);
+    PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType);
 
     List<LatestReviewListItemResult> findReviewsByShopIdAndRating(Long shopId, Integer rating, int limit);
 
-    Page<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, Pageable pageable, Boolean hasImage, String sortType);
+    PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType);
 
     List<LatestReviewListItemResult> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit);
 
@@ -37,9 +37,9 @@ public interface ReviewRepository {
 
     Optional<ReviewDetailResult> findReviewDetail(Long reviewId);
 
-    Page<MyReviewListItemResult> findMyReviews(Long memberId, Pageable pageable);
+    PageResult<MyReviewListItemResult> findMyReviews(Long memberId, PageQuery pageQuery);
 
-    Page<MyReviewListItemResult> findReviewsByMemberId(Long memberId, Pageable pageable);
+    PageResult<MyReviewListItemResult> findReviewsByMemberId(Long memberId, PageQuery pageQuery);
 
     Long countByShopIdAndHiddenFalse(Long shopId);
 

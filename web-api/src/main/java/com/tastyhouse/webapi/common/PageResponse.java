@@ -1,8 +1,8 @@
 package com.tastyhouse.webapi.common;
 
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.function.Function;
@@ -17,13 +17,13 @@ public class PageResponse<T> {
     private int currentPage;
     private int pageSize;
 
-    public static <T> PageResponse<T> from(Page<T> page) {
+    public static <T> PageResponse<T> from(PageResult<T> pageResult) {
         return new PageResponse<>(
-            page.getContent(),
-            page.getTotalElements(),
-            page.getTotalPages(),
-            page.getNumber(),
-            page.getSize()
+            pageResult.content(),
+            pageResult.totalElements(),
+            pageResult.totalPages(),
+            pageResult.page(),
+            pageResult.size()
         );
     }
 

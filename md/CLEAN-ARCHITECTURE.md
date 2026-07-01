@@ -143,7 +143,24 @@ presentation(web-api, admin-api)
 | **infrastructure**  | `core/domain/<bc>/infrastructure/`         | Repository 구현                           | 다른 BC의 application/infrastructure 참조 금지    |
 | **presentation**    | `web-api/`, `admin-api/`                   | Controller, Request/Response DTO          | application 레이어만 호출                         |
 
-### 5.3 BC 횡단 규칙
+### 5.3 페이징 타입 경계 규칙
+
+```
+✅ domain/application 레이어: PageResult<T> (반환), PageQuery (입력) — core-module/shared/page/
+❌ domain/application 레이어: org.springframework.data.domain.{Page, Pageable, PageRequest, PageImpl} 사용 금지
+
+✅ infrastructure/persistence 레이어: Spring Data 페이징 타입 내부 사용 허용
+   (PageRequest.of(), PageImpl, PageableExecutionUtils → PageResult.of()로 변환 후 반환)
+
+✅ presentation 레이어: PageResult<T>를 PageResponse<T>로 변환하여 응답
+❌ presentation 레이어: Spring Data 페이징 타입 직접 참조 금지
+```
+
+**검증 기준**: `grep -rln "org.springframework.data.domain" core-module/src/main/java` 결과가 `infrastructure/persistence` 경로에만 존재해야 한다.
+
+---
+
+### 5.4 BC 횡단 규칙
 
 ```
 ✅ allowed: domain.member.application → domain.verification.application

@@ -15,7 +15,6 @@ import static com.tastyhouse.core.domain.shop.domain.model.QShopBookmark.shopBoo
 public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
 
     private final JPAQueryFactory queryFactory;
-    private final ShopBookmarkJpaRepository shopBookmarkJpaRepository;
 
     @Override
     public Optional<ShopBookmark> findByShopIdAndMemberId(Long shopId, Long memberId) {

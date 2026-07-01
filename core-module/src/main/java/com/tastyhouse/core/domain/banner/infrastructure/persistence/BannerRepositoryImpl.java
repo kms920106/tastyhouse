@@ -6,10 +6,9 @@ import com.tastyhouse.core.domain.banner.application.dto.QBannerListItemDto;
 import com.tastyhouse.core.domain.banner.domain.model.Banner;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -27,7 +26,7 @@ public class BannerRepositoryImpl implements BannerRepository {
     private final BannerJpaRepository bannerJpaRepository;
 
     @Override
-    public Page<BannerListItemDto> findAllByType(BannerType type, Pageable pageable) {
+    public PageResult<BannerListItemDto> findAllByType(BannerType type, PageQuery pageQuery) {
         LocalDateTime now = LocalDateTime.now();
 
         Long total = queryFactory
@@ -57,11 +56,11 @@ public class BannerRepositoryImpl implements BannerRepository {
                 banner.endDate.goe(now)
             )
             .orderBy(banner.sort.asc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        return new PageImpl<>(banners, pageable, total != null ? total : 0L);
+        return PageResult.of(banners, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override

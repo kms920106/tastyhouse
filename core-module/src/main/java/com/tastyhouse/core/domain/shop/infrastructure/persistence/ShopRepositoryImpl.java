@@ -9,10 +9,9 @@ import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -49,17 +48,17 @@ public class ShopRepositoryImpl implements ShopRepository {
     }
 
     @Override
-    public Page<BestShopItemDto> findBestShops(Pageable pageable) {
+    public PageResult<BestShopItemDto> findBestShops(PageQuery pageQuery) {
         Long total = queryFactory.select(shop.count()).from(shop).where(shop.rating.isNotNull().and(shop.permanentlyClosed.eq(false))).fetchOne();
 
         if (total == null || total == 0) {
-            return new PageImpl<>(List.of(), pageable, 0);
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
-        List<Shop> pagedShops = queryFactory.selectFrom(shop).where(shop.rating.isNotNull().and(shop.permanentlyClosed.eq(false))).orderBy(shop.rating.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
+        List<Shop> pagedShops = queryFactory.selectFrom(shop).where(shop.rating.isNotNull().and(shop.permanentlyClosed.eq(false))).orderBy(shop.rating.desc()).offset((long) pageQuery.page() * pageQuery.size()).limit(pageQuery.size()).fetch();
 
         if (pagedShops.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, total);
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
         List<Long> shopIds = pagedShops.stream().map(Shop::getId).collect(Collectors.toList());
@@ -90,11 +89,11 @@ public class ShopRepositoryImpl implements ShopRepository {
 
         List<BestShopItemDto> content = pagedShops.stream().map(s -> new BestShopItemDto(s.getId(), s.getName(), stationMap.get(s.getId()), s.getRating(), thumbnailFilePathMap.get(s.getId()), foodTypeMap.getOrDefault(s.getId(), List.of()))).collect(Collectors.toList());
 
-        return new PageImpl<>(content, pageable, total);
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, Pageable pageable) {
+    public PageResult<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, PageQuery pageQuery) {
         BooleanBuilder whereClause = new BooleanBuilder();
         whereClause.and(shop.permanentlyClosed.eq(false));
 
@@ -112,7 +111,7 @@ public class ShopRepositoryImpl implements ShopRepository {
                 .fetch());
 
             if (foodTypeShopIds.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
+                return PageResult.empty(pageQuery.page(), pageQuery.size());
             }
         }
 
@@ -128,7 +127,7 @@ public class ShopRepositoryImpl implements ShopRepository {
                 .fetch());
 
             if (amenityShopIds.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
+                return PageResult.empty(pageQuery.page(), pageQuery.size());
             }
         }
 
@@ -137,7 +136,7 @@ public class ShopRepositoryImpl implements ShopRepository {
             filteredShopIds = new HashSet<>(foodTypeShopIds);
             filteredShopIds.retainAll(amenityShopIds);
             if (filteredShopIds.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
+                return PageResult.empty(pageQuery.page(), pageQuery.size());
             }
         } else if (foodTypeShopIds != null) {
             filteredShopIds = foodTypeShopIds;
@@ -152,13 +151,13 @@ public class ShopRepositoryImpl implements ShopRepository {
         Long total = queryFactory.select(shop.count()).from(shop).where(whereClause).fetchOne();
 
         if (total == null || total == 0) {
-            return new PageImpl<>(List.of(), pageable, 0);
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
-        List<Shop> pagedShops = queryFactory.selectFrom(shop).where(whereClause).orderBy(shop.createdAt.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
+        List<Shop> pagedShops = queryFactory.selectFrom(shop).where(whereClause).orderBy(shop.createdAt.desc()).offset((long) pageQuery.page() * pageQuery.size()).limit(pageQuery.size()).fetch();
 
         if (pagedShops.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, total);
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
         List<Long> shopIds = pagedShops.stream().map(Shop::getId).collect(Collectors.toList());
@@ -203,26 +202,26 @@ public class ShopRepositoryImpl implements ShopRepository {
             foodTypeMap.getOrDefault(s.getId(), List.of())
         )).collect(Collectors.toList());
 
-        return new PageImpl<>(content, pageable, total);
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, Pageable pageable) {
+    public PageResult<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, PageQuery pageQuery) {
         BooleanBuilder where = new BooleanBuilder()
                 .and(shop.permanentlyClosed.eq(false))
                 .and(shop.name.containsIgnoreCase(keyword));
 
         Long total = queryFactory.select(shop.count()).from(shop).where(where).fetchOne();
-        if (total == null || total == 0) return new PageImpl<>(List.of(), pageable, 0);
+        if (total == null || total == 0) return PageResult.empty(pageQuery.page(), pageQuery.size());
 
         List<Shop> pagedShops = queryFactory.selectFrom(shop)
                 .where(where)
                 .orderBy(shop.rating.desc().nullsLast())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .offset((long) pageQuery.page() * pageQuery.size())
+                .limit(pageQuery.size())
                 .fetch();
 
-        if (pagedShops.isEmpty()) return new PageImpl<>(List.of(), pageable, total);
+        if (pagedShops.isEmpty()) return PageResult.empty(pageQuery.page(), pageQuery.size());
 
         List<Long> shopIds = pagedShops.stream().map(Shop::getId).collect(Collectors.toList());
 
@@ -260,11 +259,11 @@ public class ShopRepositoryImpl implements ShopRepository {
                         bookmarked.contains(s.getId())
                 )).collect(Collectors.toList());
 
-        return new PageImpl<>(content, pageable, total);
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, Pageable pageable) {
+    public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(shopBookmark.count())
             .from(shopBookmark)
@@ -273,7 +272,7 @@ public class ShopRepositoryImpl implements ShopRepository {
             .fetchOne();
 
         if (total == null || total == 0) {
-            return new PageImpl<>(List.of(), pageable, 0);
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
         var results = queryFactory
@@ -291,8 +290,8 @@ public class ShopRepositoryImpl implements ShopRepository {
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(shop.thumbnailImageFileId))
             .where(shopBookmark.memberId.eq(memberId))
             .orderBy(shopBookmark.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         List<ShopBookmarkedItemDto> content = results.stream()
@@ -307,6 +306,6 @@ public class ShopRepositoryImpl implements ShopRepository {
             ))
             .collect(Collectors.toList());
 
-        return new PageImpl<>(content, pageable, total);
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 }

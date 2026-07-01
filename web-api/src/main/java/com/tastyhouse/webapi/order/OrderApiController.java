@@ -75,16 +75,16 @@ public class OrderApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
-        org.springframework.data.domain.Page<OrderListItemResult> page =
+        com.tastyhouse.core.shared.page.PageResult<OrderListItemResult> page =
             orderQueryService.findOrderList(memberId, pageRequest.page(), pageRequest.size());
-        List<OrderListItemResponse> items = page.getContent().stream()
+        List<OrderListItemResponse> items = page.content().stream()
             .map(this::toOrderListItemResponse)
             .toList();
         ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
             items,
-            page.getNumber(),
-            page.getSize(),
-            page.getTotalElements()
+            page.page(),
+            page.size(),
+            page.totalElements()
         );
         return ResponseEntity.ok(response);
     }

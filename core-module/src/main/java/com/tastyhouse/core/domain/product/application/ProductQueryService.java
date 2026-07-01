@@ -20,10 +20,9 @@ import com.tastyhouse.core.domain.product.domain.repository.ProductImageReposito
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,14 +86,12 @@ public class ProductQueryService {
             .toList();
     }
 
-    public Page<TodayDiscountProductResult> findTodayDiscountProducts(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return productRepository.findTodayDiscountProducts(pageable);
+    public PageResult<TodayDiscountProductResult> findTodayDiscountProducts(int page, int size) {
+        return productRepository.findTodayDiscountProducts(PageQuery.of(page, size));
     }
 
-    public Page<SearchProductItemResult> searchByKeyword(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return productRepository.searchByKeyword(keyword, pageable);
+    public PageResult<SearchProductItemResult> searchByKeyword(String keyword, int page, int size) {
+        return productRepository.searchByKeyword(keyword, PageQuery.of(page, size));
     }
 
     public ProductOptionsResult findProductOptions(Long productId) {

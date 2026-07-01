@@ -4,18 +4,15 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
-import com.tastyhouse.core.domain.product.application.dto.result.QProductSimpleResult;
 import com.tastyhouse.core.domain.product.application.dto.result.QTodayDiscountProductResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,7 +33,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     private final ProductJpaRepository productJpaRepository;
 
     @Override
-    public Page<TodayDiscountProductResult> findTodayDiscountProducts(Pageable pageable) {
+    public PageResult<TodayDiscountProductResult> findTodayDiscountProducts(PageQuery pageQuery) {
         JPAQuery<TodayDiscountProductResult> query = queryFactory
             .select(new QTodayDiscountProductResult(
                 product.id,
@@ -68,15 +65,15 @@ public class ProductRepositoryImpl implements ProductRepository {
         long total = query.fetch().size();
 
         List<TodayDiscountProductResult> products = query
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        return new PageImpl<>(products, pageable, total);
+        return PageResult.of(products, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<SearchProductItemResult> searchByKeyword(String keyword, Pageable pageable) {
+    public PageResult<SearchProductItemResult> searchByKeyword(String keyword, PageQuery pageQuery) {
         Long total = queryFactory
             .select(product.count())
             .from(product)
@@ -89,7 +86,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             )
             .fetchOne();
 
-        if (total == null || total == 0) return new PageImpl<>(List.of(), pageable, 0);
+        if (total == null || total == 0) return PageResult.empty(pageQuery.page(), pageQuery.size());
 
         List<SearchProductItemResult> content = queryFactory
             .select(Projections.constructor(SearchProductItemResult.class,
@@ -125,51 +122,11 @@ public class ProductRepositoryImpl implements ProductRepository {
                     .and(shop.permanentlyClosed.eq(false))
             )
             .orderBy(product.representative.desc().nullsLast(), product.rating.desc().nullsLast())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        return new PageImpl<>(content, pageable, total);
-    }
-
-    @Override
-    public List<ProductSimpleResult> findProductsByShopId(Long shopId) {
-        return queryFactory
-            .select(new QProductSimpleResult(
-                product.id,
-                shop.name,
-                product.name,
-                uploadedFile.filePath,
-                product.originalPrice,
-                product.discountInfo.discountPrice,
-                product.discountInfo.discountRate
-            ))
-            .from(product)
-            .innerJoin(shop).on(shop.id.eq(product.shopId))
-            .leftJoin(productImage).on(
-                productImage.productId.eq(product.id)
-                    .and(productImage.visible.eq(true))
-                    .and(productImage.sort.eq(
-                        JPAExpressions
-                            .select(subProductImage.sort.min())
-                            .from(subProductImage)
-                            .where(subProductImage.productId.eq(product.id)
-                                .and(subProductImage.visible.eq(true)))
-                    ))
-            )
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(productImage.imageFileId))
-            .where(product.shopId.eq(shopId)
-                .and(product.visible.eq(true)))
-            .fetch();
-    }
-
-    @Override
-    public List<Product> findByShopIdOrderByRepresentativeAndRating(Long shopId) {
-        return queryFactory
-            .selectFrom(product)
-            .where(product.shopId.eq(shopId))
-            .orderBy(product.representative.desc(), product.rating.desc(), product.id.asc())
-            .fetch();
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
@@ -178,14 +135,6 @@ public class ProductRepositoryImpl implements ProductRepository {
             .selectFrom(product)
             .where(product.shopId.eq(shopId), product.visible.eq(true))
             .orderBy(product.representative.desc(), product.rating.desc(), product.id.asc())
-            .fetch();
-    }
-
-    @Override
-    public List<Product> findByShopId(Long shopId) {
-        return queryFactory
-            .selectFrom(product)
-            .where(product.shopId.eq(shopId))
             .fetch();
     }
 
@@ -203,11 +152,6 @@ public class ProductRepositoryImpl implements ProductRepository {
             .selectFrom(product)
             .where(product.id.in(ids), product.visible.eq(true))
             .fetch();
-    }
-
-    @Override
-    public boolean existsById(Long id) {
-        return productJpaRepository.existsById(id);
     }
 
     @Override

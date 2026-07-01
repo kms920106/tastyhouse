@@ -10,10 +10,9 @@ import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRe
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,9 +62,8 @@ public class MemberQueryService {
         return memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, memberStatus);
     }
 
-    public Page<MemberWithProfileImageResult> findByNicknameContaining(String nickname, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return memberRepository.findByNicknameContaining(nickname, pageable);
+    public PageResult<MemberWithProfileImageResult> findByNicknameContaining(String nickname, int page, int size) {
+        return memberRepository.findByNicknameContaining(nickname, PageQuery.of(page, size));
     }
 
     public Optional<MemberWithProfileImageResult> findMemberWithProfileImage(MemberId memberId) {

@@ -6,10 +6,9 @@ import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +29,7 @@ public class PolicyQueryService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POLICY_VERSION_NOT_FOUND));
     }
 
-    public Page<PolicyListItemResult> findAllByType(PolicyType type, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return policyDocumentRepository.findAllByType(type, pageable);
+    public PageResult<PolicyListItemResult> findAllByType(PolicyType type, int page, int size) {
+        return policyDocumentRepository.findAllByType(type, PageQuery.of(page, size));
     }
 }

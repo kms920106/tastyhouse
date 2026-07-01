@@ -7,10 +7,9 @@ import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.application.dto.QNoticeListItemDto;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -27,7 +26,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     private final NoticeJpaRepository noticeJpaRepository;
 
     @Override
-    public Page<NoticeListItemDto> findVisibleNotices(Pageable pageable) {
+    public PageResult<NoticeListItemDto> findVisibleNotices(PageQuery pageQuery) {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
@@ -45,15 +44,15 @@ public class NoticeRepositoryImpl implements NoticeRepository {
             .from(notice)
             .where(notice.deleted.isFalse(), notice.visible.isTrue())
             .orderBy(notice.id.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        return new PageImpl<>(notices, pageable, total != null ? total : 0L);
+        return PageResult.of(notices, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, Pageable pageable) {
+    public PageResult<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
@@ -81,11 +80,11 @@ public class NoticeRepositoryImpl implements NoticeRepository {
                 notice.deleted.isFalse()
             )
             .orderBy(notice.id.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        return new PageImpl<>(notices, pageable, total != null ? total : 0L);
+        return PageResult.of(notices, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override

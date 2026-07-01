@@ -27,10 +27,9 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopJpaRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,19 +55,16 @@ public class ShopQueryService {
         return shopRepository.findNearbyShops(lat, lon);
     }
 
-    public Page<BestShopItemDto> findBestShops(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return shopRepository.findBestShops(pageable);
+    public PageResult<BestShopItemDto> findBestShops(int page, int size) {
+        return shopRepository.findBestShops(PageQuery.of(page, size));
     }
 
-    public Page<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return shopRepository.findLatestShops(stationId, foodTypes, amenities, pageable);
+    public PageResult<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, int page, int size) {
+        return shopRepository.findLatestShops(stationId, foodTypes, amenities, PageQuery.of(page, size));
     }
 
-    public Page<EditorChoiceDto> findEditorChoices(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return shopChoiceRepository.findEditorChoice(pageable);
+    public PageResult<EditorChoiceDto> findEditorChoices(int page, int size) {
+        return shopChoiceRepository.findEditorChoice(PageQuery.of(page, size));
     }
 
     public List<Station> findAllStations() {
@@ -128,9 +124,8 @@ public class ShopQueryService {
         return shopDetailRepository.findLatestOwnerMessageByShopId(shopId);
     }
 
-    public Page<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return shopRepository.findMyBookmarkedShops(memberId, pageable);
+    public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, int page, int size) {
+        return shopRepository.findMyBookmarkedShops(memberId, PageQuery.of(page, size));
     }
 
     public Optional<String> findThumbnailFilePath(Long thumbnailImageFileId) {

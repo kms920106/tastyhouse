@@ -6,13 +6,11 @@ import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.QEventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.QEventListItemDto;
-import com.tastyhouse.core.domain.event.domain.model.Event;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,19 +26,7 @@ public class EventRepositoryImpl implements EventRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Optional<Event> findLatestByStatus(EventStatus status) {
-        Event result = queryFactory
-            .selectFrom(event)
-            .where(event.status.eq(status))
-            .orderBy(event.startAt.desc())
-            .limit(1)
-            .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
-
-    @Override
-    public Page<EventListItemDto> findEventListItemsByStatus(EventStatus status, Pageable pageable) {
+    public PageResult<EventListItemDto> findEventListItemsByStatus(EventStatus status, PageQuery pageQuery) {
         List<EventListItemDto> content = queryFactory
             .select(new QEventListItemDto(
                 event.id,
@@ -53,8 +39,8 @@ public class EventRepositoryImpl implements EventRepository {
             .leftJoin(uploadedFile).on(event.thumbnailImageFileId.eq(uploadedFile.id))
             .where(event.status.eq(status))
             .orderBy(event.startAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         JPAQuery<Long> countQuery = queryFactory
@@ -62,7 +48,8 @@ public class EventRepositoryImpl implements EventRepository {
             .from(event)
             .where(event.status.eq(status));
 
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+        Long total = countQuery.fetchOne();
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override

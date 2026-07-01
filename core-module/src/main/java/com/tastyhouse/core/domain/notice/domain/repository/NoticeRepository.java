@@ -3,16 +3,16 @@ package com.tastyhouse.core.domain.notice.domain.repository;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 
 import java.util.Optional;
 
 public interface NoticeRepository {
 
-    Page<NoticeListItemDto> findVisibleNotices(Pageable pageable);
+    PageResult<NoticeListItemDto> findVisibleNotices(PageQuery pageQuery);
 
-    Page<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, Pageable pageable);
+    PageResult<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, PageQuery pageQuery);
 
     Optional<Notice> findById(Long id);
 

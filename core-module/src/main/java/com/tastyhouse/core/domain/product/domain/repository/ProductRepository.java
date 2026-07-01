@@ -1,34 +1,25 @@
 package com.tastyhouse.core.domain.product.domain.repository;
 
-import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
 import com.tastyhouse.core.domain.product.domain.model.Product;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository {
 
-    Page<TodayDiscountProductResult> findTodayDiscountProducts(Pageable pageable);
+    PageResult<TodayDiscountProductResult> findTodayDiscountProducts(PageQuery pageQuery);
 
-    Page<SearchProductItemResult> searchByKeyword(String keyword, Pageable pageable);
-
-    List<ProductSimpleResult> findProductsByShopId(Long shopId);
-
-    List<Product> findByShopIdOrderByRepresentativeAndRating(Long shopId);
+    PageResult<SearchProductItemResult> searchByKeyword(String keyword, PageQuery pageQuery);
 
     List<Product> findActiveByShopIdOrderByRepresentativeAndRating(Long shopId);
-
-    List<Product> findByShopId(Long shopId);
 
     Optional<Product> findById(Long id);
 
     List<Product> findAllByIds(List<Long> ids);
-
-    boolean existsById(Long id);
 
     Product save(Product product);
 }

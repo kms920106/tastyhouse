@@ -20,10 +20,9 @@ import com.tastyhouse.core.domain.review.domain.model.QReviewImage;
 import com.tastyhouse.core.domain.review.domain.model.QReviewLike;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -56,7 +55,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     private final ReviewJpaRepository reviewJpaRepository;
 
     @Override
-    public Page<BestReviewListItemResult> findBestReviews(Pageable pageable) {
+    public PageResult<BestReviewListItemResult> findBestReviews(PageQuery pageQuery) {
         JPAQuery<BestReviewListItemResult> query = queryFactory
             .select(new QBestReviewListItemResult(
                 review.id,
@@ -90,15 +89,15 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         long total = query.fetch().size();
 
         List<BestReviewListItemResult> reviews = query
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        return new PageImpl<>(reviews, pageable, total);
+        return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<LatestReviewListItemResult> findLatestReviews(Pageable pageable) {
+    public PageResult<LatestReviewListItemResult> findLatestReviews(PageQuery pageQuery) {
         JPAQuery<LatestReviewListItemResult> query = queryFactory
             .select(new QLatestReviewListItemResult(
                 review.id,
@@ -131,8 +130,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         long total = query.fetch().size();
 
         List<LatestReviewListItemResult> reviews = query
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         if (!reviews.isEmpty()) {
@@ -143,7 +142,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 .collect(Collectors.toList());
         }
 
-        return new PageImpl<>(reviews, pageable, total);
+        return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
     private Map<Long, List<String>> findImageUrlsByReviewIds(List<Long> reviewIds) {
@@ -167,7 +166,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Page<LatestReviewListItemResult> findLatestReviewsByFollowing(List<Long> followingMemberIds, Pageable pageable) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(List<Long> followingMemberIds, PageQuery pageQuery) {
         JPAQuery<LatestReviewListItemResult> query = queryFactory
             .select(new QLatestReviewListItemResult(
                 review.id,
@@ -203,8 +202,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         long total = query.fetch().size();
 
         List<LatestReviewListItemResult> reviews = query
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         if (!reviews.isEmpty()) {
@@ -215,11 +214,11 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 .collect(Collectors.toList());
         }
 
-        return new PageImpl<>(reviews, pageable, total);
+        return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, Pageable pageable, Boolean hasImage, String sortType) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType) {
         var whereClause = review.shopId.eq(shopId).and(review.hidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
@@ -295,8 +294,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         long total = query.fetch().size();
 
         List<LatestReviewListItemResult> reviews = query
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         if (!reviews.isEmpty()) {
@@ -307,7 +306,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 .collect(Collectors.toList());
         }
 
-        return new PageImpl<>(reviews, pageable, total);
+        return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
@@ -429,7 +428,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Page<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, Pageable pageable, Boolean hasImage, String sortType) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType) {
         var whereClause = review.productId.eq(productId).and(review.hidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
@@ -505,8 +504,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         long total = query.fetch().size();
 
         List<LatestReviewListItemResult> reviews = query
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         if (!reviews.isEmpty()) {
@@ -517,7 +516,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 .collect(Collectors.toList());
         }
 
-        return new PageImpl<>(reviews, pageable, total);
+        return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
@@ -586,7 +585,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Page<MyReviewListItemResult> findMyReviews(Long memberId, Pageable pageable) {
+    public PageResult<MyReviewListItemResult> findMyReviews(Long memberId, PageQuery pageQuery) {
         List<Long> allReviewIds = queryFactory
             .select(review.id)
             .from(review)
@@ -607,8 +606,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.hidden.eq(false)
             )
             .orderBy(review.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         Map<Long, String> imageUrlMap = findFirstImageUrlsByReviewIds(pagedReviewIds);
@@ -617,11 +616,11 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .map(reviewId -> new MyReviewListItemResult(reviewId, imageUrlMap.get(reviewId)))
             .collect(Collectors.toList());
 
-        return new PageImpl<>(reviews, pageable, total);
+        return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public Page<MyReviewListItemResult> findReviewsByMemberId(Long memberId, Pageable pageable) {
+    public PageResult<MyReviewListItemResult> findReviewsByMemberId(Long memberId, PageQuery pageQuery) {
         List<Long> allReviewIds = queryFactory
             .select(review.id)
             .from(review)
@@ -642,8 +641,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.hidden.eq(false)
             )
             .orderBy(review.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         Map<Long, String> imageUrlMap = findFirstImageUrlsByReviewIds(pagedReviewIds);
@@ -652,7 +651,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .map(reviewId -> new MyReviewListItemResult(reviewId, imageUrlMap.get(reviewId)))
             .collect(Collectors.toList());
 
-        return new PageImpl<>(reviews, pageable, total);
+        return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
     private Map<Long, String> findFirstImageUrlsByReviewIds(List<Long> reviewIds) {
@@ -883,7 +882,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Page<SearchReviewItemResult> searchByKeyword(String keyword, Pageable pageable) {
+    public PageResult<SearchReviewItemResult> searchByKeyword(String keyword, PageQuery pageQuery) {
         Long total = queryFactory
             .select(review.countDistinct())
             .from(review)
@@ -894,7 +893,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             )
             .fetchOne();
 
-        if (total == null || total == 0) return new PageImpl<>(List.of(), pageable, 0);
+        if (total == null || total == 0) return PageResult.empty(pageQuery.page(), pageQuery.size());
 
         List<SearchReviewItemResult> content = queryFactory
             .select(Projections.constructor(SearchReviewItemResult.class,
@@ -916,10 +915,10 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 .and(review.hidden.eq(false))
             )
             .orderBy(review.createdAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
-        return new PageImpl<>(content, pageable, total);
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 }

@@ -4,10 +4,9 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
 import com.tastyhouse.core.domain.event.domain.repository.EventAnnouncementRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,18 +20,19 @@ public class EventAnnouncementRepositoryImpl implements EventAnnouncementReposit
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<EventAnnouncement> findAllOrderByAnnouncedAtDesc(Pageable pageable) {
+    public PageResult<EventAnnouncement> findAllOrderByAnnouncedAtDesc(PageQuery pageQuery) {
         List<EventAnnouncement> content = queryFactory
             .selectFrom(eventAnnouncement)
             .orderBy(eventAnnouncement.announcedAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
             .fetch();
 
         JPAQuery<Long> countQuery = queryFactory
             .select(eventAnnouncement.count())
             .from(eventAnnouncement);
 
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+        Long total = countQuery.fetchOne();
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 }
