@@ -56,15 +56,18 @@ public class ShopQueryService {
     }
 
     public PageResult<BestShopItemDto> findBestShops(int page, int size) {
-        return shopRepository.findBestShops(PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return shopRepository.findBestShops(pageQuery);
     }
 
     public PageResult<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, int page, int size) {
-        return shopRepository.findLatestShops(stationId, foodTypes, amenities, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return shopRepository.findLatestShops(stationId, foodTypes, amenities, pageQuery);
     }
 
     public PageResult<EditorChoiceDto> findEditorChoices(int page, int size) {
-        return shopChoiceRepository.findEditorChoice(PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return shopChoiceRepository.findEditorChoice(pageQuery);
     }
 
     public List<Station> findAllStations() {
@@ -125,7 +128,8 @@ public class ShopQueryService {
     }
 
     public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, int page, int size) {
-        return shopRepository.findMyBookmarkedShops(memberId, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return shopRepository.findMyBookmarkedShops(memberId, pageQuery);
     }
 
     public Optional<String> findThumbnailFilePath(Long thumbnailImageFileId) {

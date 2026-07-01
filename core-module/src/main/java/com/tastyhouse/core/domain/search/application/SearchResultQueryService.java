@@ -26,10 +26,12 @@ public class SearchResultQueryService {
     }
 
     public PageResult<SearchReviewItemResult> searchReviews(String keyword, int page, int size) {
-        return reviewRepository.searchByKeyword(keyword, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return reviewRepository.searchByKeyword(keyword, pageQuery);
     }
 
     public PageResult<ShopBookmarkedItemDto> searchShopsWithBookmark(String keyword, Long memberId, int page, int size) {
-        return shopRepository.searchByKeywordWithBookmark(keyword, memberId, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return shopRepository.searchByKeywordWithBookmark(keyword, memberId, pageQuery);
     }
 }

@@ -50,7 +50,8 @@ public class ReviewQueryService {
     private final TagRepository tagRepository;
 
     public PageResult<BestReviewListItemResult> findBestReviewsWithPagination(int page, int size) {
-        return reviewRepository.findBestReviews(PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return reviewRepository.findBestReviews(pageQuery);
     }
 
     public Review findById(Long id) {
@@ -74,7 +75,8 @@ public class ReviewQueryService {
     }
 
     public PageResult<LatestReviewListItemResult> findLatestReviewsWithPagination(int page, int size) {
-        return reviewRepository.findLatestReviews(PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return reviewRepository.findLatestReviews(pageQuery);
     }
 
     public PageResult<LatestReviewListItemResult> findLatestReviewsByFollowingWithPagination(Long memberId, int page, int size) {
@@ -84,7 +86,8 @@ public class ReviewQueryService {
             return PageResult.empty(page, size);
         }
 
-        return reviewRepository.findLatestReviewsByFollowing(followingMemberIds, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return reviewRepository.findLatestReviewsByFollowing(followingMemberIds, pageQuery);
     }
 
     public ReviewsByRatingResult findShopReviewsByRating(Long shopId, int page, int size, Boolean hasImage) {
@@ -94,7 +97,8 @@ public class ReviewQueryService {
         List<LatestReviewListItemResult> rating4Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 4, 5);
         List<LatestReviewListItemResult> rating5Reviews = reviewRepository.findReviewsByShopIdAndRating(shopId, 5, 5);
 
-        PageResult<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByShopId(shopId, null, PageQuery.of(page, size), hasImage, "LATEST");
+        PageQuery pageQuery = PageQuery.of(page, size);
+        PageResult<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByShopId(shopId, null, pageQuery, hasImage, "LATEST");
 
         Long totalReviewCount = reviewRepository.countByShopIdAndHiddenFalse(shopId);
 
@@ -123,7 +127,8 @@ public class ReviewQueryService {
         List<LatestReviewListItemResult> rating4Reviews = reviewRepository.findReviewsByProductIdAndRating(productId, 4, 5);
         List<LatestReviewListItemResult> rating5Reviews = reviewRepository.findReviewsByProductIdAndRating(productId, 5, 5);
 
-        PageResult<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByProductId(productId, null, PageQuery.of(page, size), hasImage, "LATEST");
+        PageQuery pageQuery = PageQuery.of(page, size);
+        PageResult<LatestReviewListItemResult> allReviewsPage = reviewRepository.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, "LATEST");
 
         Long totalReviewCount = reviewRepository.countByProductIdAndHiddenFalse(productId);
 
@@ -202,11 +207,13 @@ public class ReviewQueryService {
     }
 
     public PageResult<MyReviewListItemResult> findMyReviews(Long memberId, int page, int size) {
-        return reviewRepository.findMyReviews(memberId, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return reviewRepository.findMyReviews(memberId, pageQuery);
     }
 
     public PageResult<MyReviewListItemResult> findReviewsByMemberId(Long memberId, int page, int size) {
-        return reviewRepository.findReviewsByMemberId(memberId, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return reviewRepository.findReviewsByMemberId(memberId, pageQuery);
     }
 
     public boolean isReviewedByOrderAndProduct(Long orderId, Long productId, Long memberId) {

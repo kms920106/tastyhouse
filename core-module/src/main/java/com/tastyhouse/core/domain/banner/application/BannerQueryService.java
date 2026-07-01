@@ -20,11 +20,13 @@ public class BannerQueryService {
     private final BannerRepository bannerRepository;
 
     public PageResult<BannerListItemDto> findHomeBanners(int page, int size) {
-        return bannerRepository.findAllByType(BannerType.HOME, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return bannerRepository.findAllByType(BannerType.HOME, pageQuery);
     }
 
     public PageResult<BannerListItemDto> findSidebarBanners(int page, int size) {
-        return bannerRepository.findAllByType(BannerType.SIDEBAR, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return bannerRepository.findAllByType(BannerType.SIDEBAR, pageQuery);
     }
 
     public Banner findById(Long id) {

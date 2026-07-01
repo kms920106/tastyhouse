@@ -30,6 +30,7 @@ public class PolicyQueryService {
     }
 
     public PageResult<PolicyListItemResult> findAllByType(PolicyType type, int page, int size) {
-        return policyDocumentRepository.findAllByType(type, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return policyDocumentRepository.findAllByType(type, pageQuery);
     }
 }

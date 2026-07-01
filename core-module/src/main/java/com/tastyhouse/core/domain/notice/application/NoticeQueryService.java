@@ -20,11 +20,13 @@ public class NoticeQueryService {
     private final NoticeRepository noticeRepository;
 
     public PageResult<NoticeListItemDto> findVisibleNotices(int page, int size) {
-        return noticeRepository.findVisibleNotices(PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return noticeRepository.findVisibleNotices(pageQuery);
     }
 
     public PageResult<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, int page, int size) {
-        return noticeRepository.findAllNotices(condition, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return noticeRepository.findAllNotices(condition, pageQuery);
     }
 
     public Notice findById(Long id) {

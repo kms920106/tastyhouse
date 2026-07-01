@@ -21,11 +21,13 @@ public class FollowQueryService {
     private final MemberQueryService memberQueryService;
 
     public PageResult<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
-        return followRepository.findFollowingList(memberId, viewerMemberId, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return followRepository.findFollowingList(memberId, viewerMemberId, pageQuery);
     }
 
     public PageResult<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
-        return followRepository.findFollowerList(memberId, viewerMemberId, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return followRepository.findFollowerList(memberId, viewerMemberId, pageQuery);
     }
 
     public PageResult<MemberWithProfileImageResult> findMembersByNicknameContaining(String nickname, int page, int size) {

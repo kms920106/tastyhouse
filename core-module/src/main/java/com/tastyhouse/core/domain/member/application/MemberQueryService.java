@@ -63,7 +63,8 @@ public class MemberQueryService {
     }
 
     public PageResult<MemberWithProfileImageResult> findByNicknameContaining(String nickname, int page, int size) {
-        return memberRepository.findByNicknameContaining(nickname, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return memberRepository.findByNicknameContaining(nickname, pageQuery);
     }
 
     public Optional<MemberWithProfileImageResult> findMemberWithProfileImage(MemberId memberId) {

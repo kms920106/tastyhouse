@@ -42,7 +42,8 @@ public class OrderQueryService {
     }
 
     public PageResult<OrderListItemResult> findOrderList(Long memberId, int page, int size) {
-        return orderRepository.findOrderListByMemberId(memberId, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return orderRepository.findOrderListByMemberId(memberId, pageQuery);
     }
 
     public OrderResult findOrderDetail(Long memberId, Long orderId) {

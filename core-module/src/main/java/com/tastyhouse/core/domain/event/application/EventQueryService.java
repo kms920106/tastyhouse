@@ -23,11 +23,13 @@ public class EventQueryService {
     private final EventAnnouncementRepository eventAnnouncementRepository;
 
     public PageResult<EventAnnouncement> findAllEventAnnouncements(int page, int size) {
-        return eventAnnouncementRepository.findAllOrderByAnnouncedAtDesc(PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return eventAnnouncementRepository.findAllOrderByAnnouncedAtDesc(pageQuery);
     }
 
     public PageResult<EventListItemDto> findEventListItemsByStatus(EventStatus status, int page, int size) {
-        return eventRepository.findEventListItemsByStatus(status, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return eventRepository.findEventListItemsByStatus(status, pageQuery);
     }
 
     public Optional<EventDetailDto> findEventDetailById(Long eventId) {

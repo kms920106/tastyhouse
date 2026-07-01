@@ -87,11 +87,13 @@ public class ProductQueryService {
     }
 
     public PageResult<TodayDiscountProductResult> findTodayDiscountProducts(int page, int size) {
-        return productRepository.findTodayDiscountProducts(PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return productRepository.findTodayDiscountProducts(pageQuery);
     }
 
     public PageResult<SearchProductItemResult> searchByKeyword(String keyword, int page, int size) {
-        return productRepository.searchByKeyword(keyword, PageQuery.of(page, size));
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return productRepository.searchByKeyword(keyword, pageQuery);
     }
 
     public ProductOptionsResult findProductOptions(Long productId) {
