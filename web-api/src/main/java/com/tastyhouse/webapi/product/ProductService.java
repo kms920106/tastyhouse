@@ -20,8 +20,8 @@ import com.tastyhouse.core.domain.review.application.dto.result.ProductReviewSta
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.product.request.ProductBatchRequest;
 import com.tastyhouse.webapi.product.response.ProductBatchResponse;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
@@ -43,8 +43,8 @@ public class ProductService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResponse<TodayDiscountProductListItemResponse> searchTodayDiscountProducts(int page, int size) {
-        return PageResponse.from(productQueryService.findTodayDiscountProducts(page, size))
+    public PageResult<TodayDiscountProductListItemResponse> searchTodayDiscountProducts(int page, int size) {
+        return productQueryService.findTodayDiscountProducts(page, size)
             .map(this::convertToTodayDiscountProductListItemResponse);
     }
 

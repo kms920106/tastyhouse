@@ -35,8 +35,8 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
 import com.tastyhouse.core.domain.shop.domain.model.ShopOrderMethod;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.shop.request.LatestShopFilterRequest;
 import com.tastyhouse.webapi.shop.response.AmenityListItemResponse;
@@ -81,13 +81,13 @@ public class ShopService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<BestShopListItemResponse> searchBestShops(int page, int size) {
-        return PageResponse.from(shopQueryService.findBestShops(page, size)).map(this::convertToBestShopListItemResponse);
+    public PageResult<BestShopListItemResponse> searchBestShops(int page, int size) {
+        return shopQueryService.findBestShops(page, size).map(this::convertToBestShopListItemResponse);
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<LatestShopListItemResponse> searchLatestShops(LatestShopFilterRequest filterRequest, int page, int size) {
-        return PageResponse.from(shopQueryService.findLatestShops(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size)).map(this::convertToLatestShopListItemResponse);
+    public PageResult<LatestShopListItemResponse> searchLatestShops(LatestShopFilterRequest filterRequest, int page, int size) {
+        return shopQueryService.findLatestShops(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size).map(this::convertToLatestShopListItemResponse);
     }
 
     @Transactional(readOnly = true)

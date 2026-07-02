@@ -11,8 +11,8 @@ import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
 import com.tastyhouse.webapi.event.response.EventDetailResponse;
 import com.tastyhouse.webapi.event.response.EventListItemResponse;
@@ -25,8 +25,8 @@ public class EventService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResponse<EventListItemResponse> getEventList(EventStatus status, int page, int size) {
-        return PageResponse.from(eventQueryService.findEventListItemsByStatus(status, page, size))
+    public PageResult<EventListItemResponse> getEventList(EventStatus status, int page, int size) {
+        return eventQueryService.findEventListItemsByStatus(status, page, size)
             .map(this::convertToEventListItemResponse);
     }
 
@@ -39,8 +39,8 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
-        return PageResponse.from(eventQueryService.findAllEventAnnouncements(page, size))
+    public PageResult<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
+        return eventQueryService.findAllEventAnnouncements(page, size)
             .map(this::convertToEventAnnouncementListItemResponse);
     }
 

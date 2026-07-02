@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.member.request.UpdatePasswordRequest;
 import com.tastyhouse.webapi.member.request.UpdatePersonalInfoRequest;
 import com.tastyhouse.webapi.member.request.UpdateProfileRequest;
@@ -237,12 +237,12 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResponse<MyReviewListItemResponse> pageResult = memberFacade.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<MyReviewListItemResponse> pageResult = memberFacade.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            pageResult.getContent(),
-            pageResult.getCurrentPage(),
-            pageResult.getPageSize(),
-            pageResult.getTotalElements()
+            pageResult.content(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalElements()
         ));
     }
 
@@ -256,12 +256,12 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResponse<ShopBookmarkListItemResponse> pageResult = memberFacade.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<ShopBookmarkListItemResponse> pageResult = memberFacade.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            pageResult.getContent(),
-            pageResult.getCurrentPage(),
-            pageResult.getPageSize(),
-            pageResult.getTotalElements()
+            pageResult.content(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalElements()
         ));
     }
 

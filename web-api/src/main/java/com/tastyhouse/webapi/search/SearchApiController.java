@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
@@ -56,9 +56,9 @@ public class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         String keyword = validateKeyword(query);
-        PageResponse<ProductSummaryResponse> result = searchService.searchMenus(keyword, pageRequest.page(), pageRequest.size());
+        PageResult<ProductSummaryResponse> result = searchService.searchMenus(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
+            result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
     }
 
@@ -70,9 +70,9 @@ public class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         String keyword = validateKeyword(query);
-        PageResponse<SearchReviewListItemResponse> result = searchService.searchReviews(keyword, pageRequest.page(), pageRequest.size());
+        PageResult<SearchReviewListItemResponse> result = searchService.searchReviews(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
+            result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
     }
 
@@ -85,9 +85,9 @@ public class SearchApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         String keyword = validateKeyword(query);
-        PageResponse<SearchShopListItemResponse> result = searchService.searchShopsPaged(keyword, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<SearchShopListItemResponse> result = searchService.searchShopsPaged(keyword, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
+            result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
     }
 
@@ -99,9 +99,9 @@ public class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         String keyword = validateKeyword(query);
-        PageResponse<SearchShopListItemResponse> result = searchService.searchShopsPublic(keyword, pageRequest.page(), pageRequest.size());
+        PageResult<SearchShopListItemResponse> result = searchService.searchShopsPublic(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            result.getContent(), pageRequest.page(), pageRequest.size(), result.getTotalElements()
+            result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
     }
 

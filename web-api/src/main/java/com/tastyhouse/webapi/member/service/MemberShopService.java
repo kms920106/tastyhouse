@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 
 @Service
@@ -17,8 +17,8 @@ public class MemberShopService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
-        return PageResponse.from(shopQueryService.findMyBookmarkedShops(memberId, page, size))
+    public PageResult<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
+        return shopQueryService.findMyBookmarkedShops(memberId, page, size)
             .map(dto -> ShopBookmarkListItemResponse.from(
                 dto.shopId(),
                 dto.bookmarkId(),

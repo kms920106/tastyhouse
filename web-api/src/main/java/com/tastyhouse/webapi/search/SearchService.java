@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.core.domain.search.application.SearchKeywordQueryService;
 import com.tastyhouse.core.domain.search.application.SearchResultQueryService;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
@@ -35,8 +35,8 @@ public class SearchService {
             .toList();
     }
 
-    public PageResponse<ProductSummaryResponse> searchMenus(String keyword, int page, int size) {
-        return PageResponse.from(searchResultQueryService.searchProducts(keyword, page, size))
+    public PageResult<ProductSummaryResponse> searchMenus(String keyword, int page, int size) {
+        return searchResultQueryService.searchProducts(keyword, page, size)
             .map(dto -> ProductSummaryResponse.from(
                 dto.id(),
                 dto.name(),
@@ -51,13 +51,13 @@ public class SearchService {
             ));
     }
 
-    public PageResponse<SearchReviewListItemResponse> searchReviews(String keyword, int page, int size) {
-        return PageResponse.from(searchResultQueryService.searchReviews(keyword, page, size))
+    public PageResult<SearchReviewListItemResponse> searchReviews(String keyword, int page, int size) {
+        return searchResultQueryService.searchReviews(keyword, page, size)
             .map(dto -> SearchReviewListItemResponse.from(dto, fileService));
     }
 
-    public PageResponse<SearchShopListItemResponse> searchShopsPaged(String keyword, Long memberId, int page, int size) {
-        return PageResponse.from(searchResultQueryService.searchShopsWithBookmark(keyword, memberId, page, size))
+    public PageResult<SearchShopListItemResponse> searchShopsPaged(String keyword, Long memberId, int page, int size) {
+        return searchResultQueryService.searchShopsWithBookmark(keyword, memberId, page, size)
             .map(dto -> SearchShopListItemResponse.from(
                 dto.shopId(),
                 dto.shopName(),
@@ -68,8 +68,8 @@ public class SearchService {
             ));
     }
 
-    public PageResponse<SearchShopListItemResponse> searchShopsPublic(String keyword, int page, int size) {
-        return PageResponse.from(searchResultQueryService.searchShopsWithBookmark(keyword, null, page, size))
+    public PageResult<SearchShopListItemResponse> searchShopsPublic(String keyword, int page, int size) {
+        return searchResultQueryService.searchShopsWithBookmark(keyword, null, page, size)
             .map(dto -> SearchShopListItemResponse.from(
                 dto.shopId(),
                 dto.shopName(),

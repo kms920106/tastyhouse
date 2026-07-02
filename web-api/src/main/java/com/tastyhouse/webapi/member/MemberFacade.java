@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
-import com.tastyhouse.webapi.common.PageResponse;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
@@ -129,7 +129,7 @@ public class MemberFacade {
             .toList();
     }
 
-    public PageResponse<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
+    public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
         return memberReviewService.getMyReviews(memberId, page, size);
     }
 
@@ -137,7 +137,7 @@ public class MemberFacade {
         return memberReviewService.getMyReviewCount(memberId);
     }
 
-    public PageResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
+    public PageResult<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
         return memberShopService.getMyBookmarkedShops(memberId, page, size);
     }
 

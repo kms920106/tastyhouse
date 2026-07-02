@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
 import com.tastyhouse.webapi.follow.response.IsFollowingResponse;
 import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
@@ -108,12 +108,12 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResponse<FollowMemberListItemResponse> pageResult = followService.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<FollowMemberListItemResponse> pageResult = followService.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            pageResult.getContent(),
-            pageResult.getCurrentPage(),
-            pageResult.getPageSize(),
-            pageResult.getTotalElements()
+            pageResult.content(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalElements()
         ));
     }
 
@@ -128,12 +128,12 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResponse<FollowMemberListItemResponse> pageResult = followService.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<FollowMemberListItemResponse> pageResult = followService.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            pageResult.getContent(),
-            pageResult.getCurrentPage(),
-            pageResult.getPageSize(),
-            pageResult.getTotalElements()
+            pageResult.content(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalElements()
         ));
     }
 
@@ -146,12 +146,12 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResponse<FollowMemberListItemResponse> pageResult = followService.getPublicFollowingList(memberId, pageRequest.page(), pageRequest.size());
+        PageResult<FollowMemberListItemResponse> pageResult = followService.getPublicFollowingList(memberId, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            pageResult.getContent(),
-            pageResult.getCurrentPage(),
-            pageResult.getPageSize(),
-            pageResult.getTotalElements()
+            pageResult.content(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalElements()
         ));
     }
 
@@ -164,12 +164,12 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResponse<FollowMemberListItemResponse> pageResult = followService.getPublicFollowerList(memberId, pageRequest.page(), pageRequest.size());
+        PageResult<FollowMemberListItemResponse> pageResult = followService.getPublicFollowerList(memberId, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            pageResult.getContent(),
-            pageResult.getCurrentPage(),
-            pageResult.getPageSize(),
-            pageResult.getTotalElements()
+            pageResult.content(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalElements()
         ));
     }
 
@@ -184,12 +184,12 @@ public class FollowApiController {
         @Parameter(description = "검색할 닉네임", example = "맛집") @RequestParam String nickname,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResponse<MemberSearchListItemResponse> pageResult = followService.searchMembersByNickname(nickname, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PageResult<MemberSearchListItemResponse> pageResult = followService.searchMembersByNickname(nickname, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
-            pageResult.getContent(),
-            pageResult.getCurrentPage(),
-            pageResult.getPageSize(),
-            pageResult.getTotalElements()
+            pageResult.content(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalElements()
         ));
     }
 }

@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
-import com.tastyhouse.adminapi.common.PageResponse;
 import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
@@ -59,13 +58,13 @@ public class NoticeApiController {
         NoticeSearchCondition condition = new NoticeSearchCondition(title, content, visible);
         PageResult<NoticeListItemDto> notices =
             noticeQueryService.findAllNotices(condition, pageRequest.page(), pageRequest.size());
-        PageResponse<NoticeListItemResponse> pageResponse = PageResponse.from(notices)
+        PageResult<NoticeListItemResponse> pageResult = notices
             .map(NoticeListItemResponse::from);
         return ResponseEntity.ok(ApiResponse.success(
-            pageResponse.getContent(),
-            pageResponse.getCurrentPage(),
-            pageResponse.getPageSize(),
-            pageResponse.getTotalElements()
+            pageResult.content(),
+            pageResult.page(),
+            pageResult.size(),
+            pageResult.totalElements()
         ));
     }
 

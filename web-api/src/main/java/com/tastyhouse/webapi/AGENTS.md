@@ -16,7 +16,7 @@
 | `ratelimit/` | 분산 Rate Limiting. RateLimit 애노테이션, RateLimitAspect(AOP), RateLimiterService(Redis 기반), RateLimitKeyType(사용자/IP/전역). |
 | `scheduler/` | 스케줄된 배치 작업. GradeScheduler (회원 등급 계산), RankScheduler (순위 집계), ProductScheduler (상품 동기화), SearchKeywordScheduler (인기 검색어 집계), 각각 Service 클래스 분리. |
 | `security/` | Spring Security 보조 컴포넌트. CurrentUser (메서드 파라미터 주입 애노테이션), JwtAccessDeniedHandler, JwtAuthenticationEntryPoint는 config/security/ 에 위치. |
-| `common/` | 공통 유틸. ApiResponse (모든 응답의 상위 래퍼, success/error/data), PageRequest (페이징 요청), PageResponse (페이징 응답). |
+| `common/` | 공통 유틸. ApiResponse (모든 응답의 상위 래퍼, success/error/data), PageRequest (페이징 요청). 페이징 응답은 core-module의 PageResult<T>를 그대로 사용. |
 | `service/` | Spring Security 통합용 사용자 서비스. CustomUserDetailsService (UserDetailsService 구현), CustomUserDetails (UserDetails 래퍼). |
 
 ## Feature Packages
@@ -66,7 +66,7 @@
 ### Common Patterns
 - **Controller + Request/Response DTO**: `@RestController @RequestMapping("/api/{domain}")` → `Method(@Valid {Domain}Request) → ResponseEntity<ApiResponse<{Domain}Response>>`.
 - **ApiResponse 통일**: `ApiResponse.success(data)`, `ApiResponse.error(message)`, `ApiResponse.error(errorCode, message)` — success/errorCode/message/data 필드. 에러 시 `errorCode`에 ErrorCode.code(예: `DUPLICATE_RESERVATION`)가 실려 프론트 분기에 사용(BusinessException/ExternalApiException/RateLimit 핸들러).
-- **페이징**: PageRequest (size/page) → PageResponse<T> (content/totalElements/totalPages/currentPage/size).
+- **페이징**: PageRequest (size/page) → PageResult<T> (content/totalElements/totalPages/page/size, core-module/shared/page).
 - **@CurrentUser** 커스텀 애노테이션으로 인증된 사용자 주입 — SecurityContextHolder 간접화.
 - **CQS**: 쓰기 메서드는 `@Transactional`, 읽기는 `@Transactional(readOnly = true)` (core-module service 단).
 

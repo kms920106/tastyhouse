@@ -152,7 +152,7 @@ presentation(web-api, admin-api)
 ✅ infrastructure/persistence 레이어: Spring Data 페이징 타입 내부 사용 허용
    (PageRequest.of(), PageImpl, PageableExecutionUtils → PageResult.of()로 변환 후 반환)
 
-✅ presentation 레이어: PageResult<T>를 PageResponse<T>로 변환하여 응답
+✅ presentation 레이어: PageResult<T>를 그대로 사용하여 ApiResponse로 응답 (별도 변환 클래스 없음)
 ❌ presentation 레이어: Spring Data 페이징 타입 직접 참조 금지
 ```
 

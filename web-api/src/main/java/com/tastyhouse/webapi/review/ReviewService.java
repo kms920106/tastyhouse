@@ -33,8 +33,8 @@ import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
 import com.tastyhouse.core.domain.review.domain.model.ReviewType;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.common.PageResponse;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.BestReviewListItemResponse;
@@ -60,8 +60,8 @@ public class ReviewService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResponse<BestReviewListItemResponse> searchBestReviewList(int page, int size) {
-        return PageResponse.from(reviewQueryService.findBestReviewsWithPagination(page, size))
+    public PageResult<BestReviewListItemResponse> searchBestReviewList(int page, int size) {
+        return reviewQueryService.findBestReviewsWithPagination(page, size)
             .map(this::convertToBestReviewListItemResponse);
     }
 
@@ -78,17 +78,17 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<LatestReviewListItemResponse> searchLatestReviewList(
+    public PageResult<LatestReviewListItemResponse> searchLatestReviewList(
         int page,
         int size,
         ReviewType type,
         Long memberId
     ) {
         if (type == ReviewType.FOLLOWING && memberId != null) {
-            return PageResponse.from(reviewQueryService.findLatestReviewsByFollowingWithPagination(memberId, page, size))
+            return reviewQueryService.findLatestReviewsByFollowingWithPagination(memberId, page, size)
                 .map(this::convertToLatestReviewListItemResponse);
         }
-        return PageResponse.from(reviewQueryService.findLatestReviewsWithPagination(page, size))
+        return reviewQueryService.findLatestReviewsWithPagination(page, size)
             .map(this::convertToLatestReviewListItemResponse);
     }
 
@@ -415,8 +415,8 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<MemberReviewListItemResponse> findMemberReviews(Long memberId, int page, int size) {
-        return PageResponse.from(reviewQueryService.findReviewsByMemberId(memberId, page, size))
+    public PageResult<MemberReviewListItemResponse> findMemberReviews(Long memberId, int page, int size) {
+        return reviewQueryService.findReviewsByMemberId(memberId, page, size)
             .map(dto -> MemberReviewListItemResponse.from(
                 dto.id(),
                 fileService.getUrlByPath(dto.imageUrl())
