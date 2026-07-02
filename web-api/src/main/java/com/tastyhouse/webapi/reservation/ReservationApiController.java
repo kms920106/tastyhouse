@@ -26,13 +26,13 @@ import com.tastyhouse.core.domain.reservation.application.dto.command.CreateRese
 import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.reservation.request.ReservationCreateRequest;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
 import com.tastyhouse.webapi.reservation.response.SlotAvailabilityResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/reservations")

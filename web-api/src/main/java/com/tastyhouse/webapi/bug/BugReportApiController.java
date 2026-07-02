@@ -19,8 +19,8 @@ import com.tastyhouse.core.domain.bug.application.dto.result.BugReportResult;
 import com.tastyhouse.webapi.bug.request.BugReportCreateRequest;
 import com.tastyhouse.webapi.bug.response.BugReportResponse;
 import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/bug-reports")

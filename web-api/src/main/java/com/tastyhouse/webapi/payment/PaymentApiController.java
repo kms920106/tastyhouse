@@ -26,6 +26,7 @@ import com.tastyhouse.core.domain.payment.application.dto.result.PaymentCancelRe
 import com.tastyhouse.core.domain.payment.application.dto.result.PaymentRefundResult;
 import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.payment.request.PaymentCancelRequest;
 import com.tastyhouse.webapi.payment.request.PaymentConfirmRequest;
 import com.tastyhouse.webapi.payment.request.PaymentCreateRequest;
@@ -35,7 +36,6 @@ import com.tastyhouse.webapi.payment.response.PaymentCancelResponse;
 import com.tastyhouse.webapi.payment.response.PaymentRefundResponse;
 import com.tastyhouse.webapi.payment.response.PaymentResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/payments")

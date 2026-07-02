@@ -1,4 +1,4 @@
-package com.tastyhouse.adminapi.service;
+package com.tastyhouse.adminapi.config.security;
 
 import java.util.Collections;
 

@@ -24,7 +24,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.webapi.service.CustomUserDetails;
+import com.tastyhouse.webapi.config.security.CustomUserDetails;
 
 @Component
 public class JwtTokenProvider {

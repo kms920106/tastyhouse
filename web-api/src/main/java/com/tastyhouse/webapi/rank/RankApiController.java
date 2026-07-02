@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/ranks")

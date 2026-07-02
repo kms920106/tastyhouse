@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.service;
+package com.tastyhouse.webapi.config.security;
 
 import java.util.Collections;
 

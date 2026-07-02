@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.member.request.UpdatePasswordRequest;
 import com.tastyhouse.webapi.member.request.UpdatePersonalInfoRequest;
 import com.tastyhouse.webapi.member.request.UpdateProfileRequest;
@@ -41,7 +42,6 @@ import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.response.UsablePointResponse;
 import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.service.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/members")
