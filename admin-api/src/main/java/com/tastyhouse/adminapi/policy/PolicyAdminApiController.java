@@ -27,7 +27,7 @@ import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 @Tag(name = "Policy Admin", description = "약관 및 정책 관리자 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/policies")
+@RequestMapping("/api/policies")
 public class PolicyAdminApiController {
 
     private final PolicyCommandService policyCommandService;

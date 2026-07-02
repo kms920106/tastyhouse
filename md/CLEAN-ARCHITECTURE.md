@@ -172,6 +172,32 @@ presentation(web-api, admin-api)
 
 ---
 
+### 5.5 파사드(Facade) 도입 기준
+
+presentation(`web-api`, `admin-api`)의 기본 규칙은 §5.2와 같이 **컨트롤러가 application 레이어
+(`XxxCommandService`/`XxxQueryService`)를 직접 주입**하는 것이다. 다만 아래 조건 중 하나라도
+해당하면 컨트롤러와 application 서비스 사이에 모듈 전용 파사드(예: `web-api`의 `AuthFacade`,
+`MemberFacade`)를 두는 것을 허용한다.
+
+```
+✅ 파사드 도입 조건 (하나 이상 해당 시)
+   1. 하나의 유스케이스가 2개 이상의 application service(또는 BC)를 오케스트레이션해야 함
+      예) MemberFacade가 memberAccountService + memberAuthService + couponQueryService 등을 조율
+   2. 여러 서비스의 결과를 조합하거나 응답 DTO로 변환하는 로직이 필요함
+   3. 컨트롤러가 내부 서비스 분할(Command/Query, 다중 도메인 서비스)을 알 필요가 없도록 캡슐화해야 함
+
+❌ 파사드 불필요 (단일 서비스에 대한 단순 위임)
+   - 하나의 CommandService 또는 QueryService만 호출하고 끝나는 CRUD 유스케이스
+   - 예) PolicyAdminApiController → PolicyCommandService 직접 주입, NoticeApiController → NoticeCommandService/NoticeQueryService 직접 주입
+```
+
+**원칙(Fowler, Service Layer)**: "필요하다면, 가능한 가장 얇은 Service Layer를 두라." 파사드는
+필수 계층이 아니라 위 조건을 만족할 때만 선택적으로 추가하는 계층이다. `admin-api`처럼 단순 CRUD
+위주 모듈은 파사드 없이 컨트롤러가 application 서비스를 직접 주입하는 것이 표준이며, `web-api`의
+`AuthFacade`/`MemberFacade`처럼 다중 서비스 조율이 실제로 필요한 경우에만 파사드를 도입한다.
+
+---
+
 ## 6. DDD 빌딩블록 도입 가이드
 
 ### 6.1 ValueObject (VO)

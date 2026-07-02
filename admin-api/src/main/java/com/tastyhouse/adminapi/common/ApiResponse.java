@@ -34,8 +34,4 @@ public class ApiResponse<T> {
         Pagination pageInfo = new Pagination(page, size, totalElements, totalPages);
         return new ApiResponse<>(true, null, data, pageInfo);
     }
-
-    public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>(false, message, null, null);
-    }
 }

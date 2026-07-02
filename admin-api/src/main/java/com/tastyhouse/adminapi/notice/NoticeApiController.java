@@ -2,12 +2,13 @@ package com.tastyhouse.adminapi.notice;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PageResponse;
 import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
+import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
 import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
@@ -47,19 +50,22 @@ public class NoticeApiController {
     @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다. (비노출 공지 포함) title/content는 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1")
-    public ResponseEntity<ApiResponse<List<NoticeListItemDto>>> getNotices(
+    public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNotices(
         @RequestParam(required = false) String title,
         @RequestParam(required = false) String content,
         @RequestParam(required = false) Boolean visible,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         NoticeSearchCondition condition = new NoticeSearchCondition(title, content, visible);
-        PageResult<NoticeListItemDto> notices = noticeQueryService.findAllNotices(condition, pageRequest.page(), pageRequest.size());
+        PageResult<NoticeListItemDto> notices =
+            noticeQueryService.findAllNotices(condition, pageRequest.page(), pageRequest.size());
+        PageResponse<NoticeListItemResponse> pageResponse = PageResponse.from(notices)
+            .map(NoticeListItemResponse::from);
         return ResponseEntity.ok(ApiResponse.success(
-            notices.content(),
-            notices.page(),
-            notices.size(),
-            notices.totalElements()
+            pageResponse.getContent(),
+            pageResponse.getCurrentPage(),
+            pageResponse.getPageSize(),
+            pageResponse.getTotalElements()
         ));
     }
 
