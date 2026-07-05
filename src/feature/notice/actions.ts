@@ -11,13 +11,13 @@ import { type NoticeFormValues, noticeFormSchema } from "./schema";
 
 const NOTICES_PATH = "/dashboard/notices";
 
-export interface ActionResult {
+interface ActionResult {
   success: boolean;
   message?: string;
   id?: number;
 }
 
-export interface NoticeDetailResult {
+interface NoticeDetailResult {
   success: boolean;
   message?: string;
   data?: NoticeDetail;
@@ -33,22 +33,22 @@ export async function createNoticeAction(values: NoticeFormValues): Promise<Acti
     };
   }
 
-  const res = await noticeRepository.create(parsed.data);
-  if (res.error !== undefined) {
-    return { success: false, message: res.error };
+  const { error, data } = await noticeRepository.create(parsed.data);
+  if (error !== undefined) {
+    return { success: false, message: error };
   }
 
   revalidatePath(NOTICES_PATH);
-  return { success: true, id: res.data };
+  return { success: true, id: data };
 }
 
 // 공지사항 상세 조회
 export async function fetchNoticeAction(id: number): Promise<NoticeDetailResult> {
-  const res = await noticeService.getNotice(id);
-  if (res.error !== undefined) {
-    return { success: false, message: res.error };
+  const { error, data } = await noticeService.getNotice(id);
+  if (error !== undefined) {
+    return { success: false, message: error };
   }
-  return { success: true, data: res.data };
+  return { success: true, data };
 }
 
 // 공지사항 수정
@@ -61,9 +61,9 @@ export async function updateNoticeAction(id: number, values: NoticeFormValues): 
     };
   }
 
-  const res = await noticeRepository.update(id, parsed.data);
-  if (res.error !== undefined) {
-    return { success: false, message: res.error };
+  const { error } = await noticeRepository.update(id, parsed.data);
+  if (error !== undefined) {
+    return { success: false, message: error };
   }
 
   revalidatePath(NOTICES_PATH);
@@ -72,9 +72,9 @@ export async function updateNoticeAction(id: number, values: NoticeFormValues): 
 
 // 공지사항 삭제
 export async function deleteNoticeAction(id: number): Promise<ActionResult> {
-  const res = await noticeRepository.remove(id);
-  if (res.error !== undefined) {
-    return { success: false, message: res.error };
+  const { error } = await noticeRepository.remove(id);
+  if (error !== undefined) {
+    return { success: false, message: error };
   }
 
   revalidatePath(NOTICES_PATH);
