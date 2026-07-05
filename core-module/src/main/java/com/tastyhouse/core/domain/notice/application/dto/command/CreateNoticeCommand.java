@@ -4,4 +4,9 @@ public record CreateNoticeCommand(
     String title,
     String content,
     boolean visible
-) {}
+) {
+
+    public static CreateNoticeCommand of(String title, String content, boolean visible) {
+        return new CreateNoticeCommand(title, content, visible);
+    }
+}

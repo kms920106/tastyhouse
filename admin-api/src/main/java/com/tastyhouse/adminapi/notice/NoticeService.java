@@ -3,8 +3,6 @@ package com.tastyhouse.adminapi.notice;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
-import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
 import com.tastyhouse.adminapi.notice.response.NoticePageResponse;
@@ -24,15 +22,14 @@ public class NoticeService {
     private final NoticeQueryService noticeQueryService;
 
     public NoticePageResponse getNotices(String title, String content, Boolean visible, int page, int size) {
-        NoticeSearchCondition condition = new NoticeSearchCondition(title, content, visible);
+        NoticeSearchCondition condition = NoticeSearchCondition.of(title, content, visible);
         PageResult<NoticeListItemResponse> pageResult = noticeQueryService.findAllNotices(condition, page, size)
             .map(NoticeListItemResponse::from);
-        return new NoticePageResponse(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements());
+        return NoticePageResponse.from(pageResult);
     }
 
-    public Long createNotice(NoticeCreateRequest request) {
-        CreateNoticeCommand command = new CreateNoticeCommand(request.title(), request.content(), request.visible());
-        return noticeCommandService.createNotice(command);
+    public Long createNotice(String title, String content, boolean visible) {
+        return noticeCommandService.createNotice(CreateNoticeCommand.of(title, content, visible));
     }
 
     public NoticeDetailResponse getNotice(Long id) {
@@ -40,9 +37,8 @@ public class NoticeService {
         return NoticeDetailResponse.from(noticeDetail);
     }
 
-    public void updateNotice(Long id, NoticeUpdateRequest request) {
-        NoticeUpdateCommand command = new NoticeUpdateCommand(request.title(), request.content(), request.visible());
-        noticeCommandService.updateNotice(id, command);
+    public void updateNotice(Long id, String title, String content, boolean visible) {
+        noticeCommandService.updateNotice(id, NoticeUpdateCommand.of(title, content, visible));
     }
 
     public void deleteNotice(Long id) {

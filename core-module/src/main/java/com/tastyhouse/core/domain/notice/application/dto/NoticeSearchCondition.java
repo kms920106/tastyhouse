@@ -5,4 +5,8 @@ public record NoticeSearchCondition(
     String content,
     Boolean visible
 ) {
+
+    public static NoticeSearchCondition of(String title, String content, Boolean visible) {
+        return new NoticeSearchCondition(title, content, visible);
+    }
 }

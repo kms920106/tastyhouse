@@ -55,7 +55,7 @@ public class NoticeApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "등록 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createNotice(@Valid @RequestBody NoticeCreateRequest request) {
-        Long id = noticeService.createNotice(request);
+        Long id = noticeService.createNotice(request.title(), request.content(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
@@ -74,7 +74,7 @@ public class NoticeApiController {
         @PathVariable Long id,
         @Valid @RequestBody NoticeUpdateRequest request
     ) {
-        noticeService.updateNotice(id, request);
+        noticeService.updateNotice(id, request.title(), request.content(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
