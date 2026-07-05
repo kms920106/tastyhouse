@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import com.tastyhouse.core.domain.notice.application.dto.NoticeDetailDto;
+
 @Schema(description = "공지사항 상세 응답")
 public record NoticeDetailResponse(
     @Schema(description = "공지사항 ID", example = "1")
@@ -24,4 +26,14 @@ public record NoticeDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
+    public static NoticeDetailResponse from(NoticeDetailDto dto) {
+        return new NoticeDetailResponse(
+            dto.id(),
+            dto.title(),
+            dto.content(),
+            dto.visible(),
+            dto.createdAt(),
+            dto.updatedAt()
+        );
+    }
 }

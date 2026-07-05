@@ -30,11 +30,9 @@ import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
 import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
-import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.application.dto.command.CreateNoticeCommand;
 import com.tastyhouse.core.domain.notice.application.dto.command.UpdateNoticeCommand;
-import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.shared.page.PageResult;
 
 @Tag(name = "Notice Admin", description = "공지사항 관리자 API")
@@ -56,16 +54,10 @@ public class NoticeApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         NoticeSearchCondition condition = new NoticeSearchCondition(title, content, visible);
-        PageResult<NoticeListItemDto> notices =
-            noticeQueryService.findAllNotices(condition, pageRequest.page(), pageRequest.size());
-        PageResult<NoticeListItemResponse> pageResult = notices
+        PageResult<NoticeListItemResponse> pageResult = noticeQueryService
+            .findAllNotices(condition, pageRequest.page(), pageRequest.size())
             .map(NoticeListItemResponse::from);
-        return ResponseEntity.ok(ApiResponse.success(
-            pageResult.content(),
-            pageResult.page(),
-            pageResult.size(),
-            pageResult.totalElements()
-        ));
+        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 
     @Operation(summary = "공지사항 등록", description = "새로운 공지사항을 등록합니다.")
@@ -84,15 +76,7 @@ public class NoticeApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNotice(@PathVariable Long id) {
-        Notice notice = noticeQueryService.findById(id);
-        NoticeDetailResponse response = new NoticeDetailResponse(
-            notice.getId(),
-            notice.getTitle(),
-            notice.getContent(),
-            notice.isVisible(),
-            notice.getCreatedAt(),
-            notice.getUpdatedAt()
-        );
+        NoticeDetailResponse response = NoticeDetailResponse.from(noticeQueryService.findDetailById(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

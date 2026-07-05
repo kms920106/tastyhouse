@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
-import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
@@ -38,17 +37,13 @@ public class NoticeApiController {
 
         PageResult<NoticeListItemResponse> pageResult = noticeQueryService
             .findVisibleNotices(pageRequest.page(), pageRequest.size())
-            .map(this::toNoticeListItemResponse);
+            .map(NoticeListItemResponse::from);
 
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
-            pageRequest.page(),
-            pageRequest.size(),
+            pageResult.page(),
+            pageResult.size(),
             pageResult.totalElements()
         ));
-    }
-
-    private NoticeListItemResponse toNoticeListItemResponse(NoticeListItemDto dto) {
-        return NoticeListItemResponse.from(dto.id(), dto.title(), dto.content(), dto.createdAt());
     }
 }

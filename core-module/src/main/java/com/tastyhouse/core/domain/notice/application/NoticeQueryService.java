@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.notice.application.dto.NoticeDetailDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
@@ -30,8 +31,16 @@ public class NoticeQueryService {
         return noticeRepository.findAllNotices(condition, pageQuery);
     }
 
-    public Notice findById(Long id) {
-        return noticeRepository.findById(id)
+    public NoticeDetailDto findDetailById(Long id) {
+        Notice notice = noticeRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
+        return NoticeDetailDto.from(
+            notice.getId(),
+            notice.getTitle(),
+            notice.getContent(),
+            notice.isVisible(),
+            notice.getCreatedAt(),
+            notice.getUpdatedAt()
+        );
     }
 }
