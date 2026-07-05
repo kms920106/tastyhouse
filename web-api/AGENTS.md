@@ -25,6 +25,7 @@
   - web-api도 admin-api와 동일하게 도메인별 Facade를 통해 core를 호출한다(reference: `admin-api/notice/NoticeService`, `order/OrderService`). Facade가 core 서비스 호출과 core DTO↔Request/Response 변환을 전담하며, 컨트롤러는 `com.tastyhouse.core.*`를 import하지 않는다.
 - 도메인별 폴더(`member/`, `order/`, `shop/` …) 안에 `request/`·`response/` DTO를 둔다.
 - **DTO 조립 시 `new` 직접 호출 지양**: 컨트롤러에서 command/condition/response를 `new`로 조립하지 않고, 대상 record 자신의 정적 팩토리 `of(...)`/`from(...)`로 위임한다. Request DTO에는 `toCommand()` 같은 변환 메서드를 두지 않는다 — 단순 매핑은 컨트롤러가 Request를 원시 필드로 언패킹해 `Command.of(...)`를 직접 호출하고, 복잡한 중첩 요청은 private 변환 헬퍼로 분리할 수 있다(reference: `order/OrderApiController#toCreateOrderCommand`). 상세는 루트 [CLAUDE.md](../CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
+- **`record`는 별도 파일로 분리**: 서비스(Facade)/컨트롤러 본문 안에 응답·결과 record를 중첩 선언하지 않고 도메인 폴더의 `response/`에 `public record`로 둔다(reference: `notice/response/NoticeListPageResult`, `order/response/OrderListPageResult`). 상세는 루트 [CLAUDE.md](../CLAUDE.md#record-파일-분리-규칙-중첩-record-선언-지양) 참고.
 - 401 처리는 web-api의 `UnauthorizedException`을, 비즈니스 예외는 `core-module`의 `BusinessException` 계열을 사용 — 전역 처리는 `exception/GlobalExceptionHandler`.
 
 ### Testing Requirements

@@ -50,6 +50,7 @@
 ### Working In This Directory
 - **요청/응답 DTO는 feature 폴더 내 request/, response/ 서브폴더에 저장** — 도메인별 응집도 향상.
 - **DTO 조립은 `new` 직접 호출 지양** — 컨트롤러에서 command/condition/response를 `new`로 조립하지 않고, 대상 record 자신의 정적 팩토리 `of(...)`/`from(...)`로 위임한다. Request DTO에는 `toCommand()` 변환 메서드를 두지 않고, 컨트롤러가 Request를 원시 필드로 언패킹해 `Command.of(...)`를 호출한다(복잡한 중첩 요청은 `order/OrderApiController#toCreateOrderCommand`처럼 private 헬퍼 허용). 상세는 루트 [CLAUDE.md](../../../../../../../CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
+- **`record`는 별도 파일로 분리** — 서비스(Facade)/컨트롤러 본문에 응답·결과 record를 중첩 선언하지 않고 feature 폴더의 `response/`에 `public record`로 둔다(reference: `notice/response/NoticeListPageResult`, `policy/response/PolicyListPageResult`, `order/response/OrderListPageResult`). 상세는 루트 [CLAUDE.md](../../../../../../../CLAUDE.md#record-파일-분리-규칙-중첩-record-선언-지양) 참고.
 - **컨트롤러는 도메인별 Facade(`{도메인}Service`)만 호출** — core-module application 서비스를 직접 호출하지 않고 Facade를 경유한다(reference: `order/OrderService`, `payment/PaymentService`). repository/JPA도 직접 접근하지 않음.
 - **외부 API 호출은 external-api 모듈 어댑터로 위임** — OAuth, 결제, 파일 업로드, 크롤링 등.
 - **Spring Security + JWT 인증 흐름**: JwtAuthenticationFilter → JwtTokenProvider.validateToken() → CustomUserDetailsService → SecurityContext 설정.

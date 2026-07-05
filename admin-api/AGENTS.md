@@ -28,6 +28,7 @@
 - 비즈니스 로직은 `core-module` application 서비스에 위임 — admin 전용 로직이라도 가능하면 core에 둔다. Facade는 위임·변환 계층일 뿐 비즈니스 로직을 담지 않는다.
 - core의 `PageResult`도 컨트롤러에 노출하지 않는다 — Facade가 admin-api 페이지 응답 타입(예: `notice/response/NoticePageResponse`)으로 변환해 반환한다.
 - **DTO 조립 시 `new` 직접 호출 지양**: Facade에서도 command/condition/response를 `new`로 조립하지 않는다. Facade는 Request 타입이 아니라 개별 원시 파라미터(예: `String title, String content, boolean visible`)를 받고, 내부에서 대상 record의 정적 팩토리 `of(...)`/`from(...)`로 위임한다(reference: `NoticeService#createNotice(String, String, boolean)` → `CreateNoticeCommand.of(...)`, `NoticeSearchCondition.of(...)`, `NoticePageResponse.from(...)`). Request DTO에는 `toCommand()` 같은 변환 메서드를 두지 않는다 — 컨트롤러가 Request를 원시 필드로 언패킹해 Facade에 전달한다. 상세는 루트 [CLAUDE.md](../CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
+- **`record`는 별도 파일로 분리**: Facade·컨트롤러 본문 안에 응답·결과 record를 중첩 선언하지 않고 도메인 폴더의 `response/`에 `public record`로 둔다(reference: `notice/response/NoticePageResponse`). 상세는 루트 [CLAUDE.md](../CLAUDE.md#record-파일-분리-규칙-중첩-record-선언-지양) 참고.
 
 ### Testing Requirements
 - `@SpringBootTest` 기반 컨트롤러 검증.
