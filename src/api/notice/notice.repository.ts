@@ -5,8 +5,8 @@ import type { ApiPageRequest, ApiResponse } from "@/api/shared/types";
 
 import type {
   NoticeCreateRequest,
-  NoticeDetail,
-  NoticeListItem,
+  NoticeDetailResponse,
+  NoticeListItemResponse,
   NoticeListQueryRequest,
   NoticeUpdateRequest,
 } from "./notice.dto";
@@ -19,8 +19,8 @@ const ENDPOINT = "/api/notices";
 
 export const noticeRepository = {
   // 공지사항 목록 조회
-  getList(query: NoticeListQueryRequest, pageRequest: ApiPageRequest): Promise<ApiResponse<NoticeListItem[]>> {
-    return api.get<NoticeListItem[]>(`${ENDPOINT}/v1`, {
+  getList(query: NoticeListQueryRequest, pageRequest: ApiPageRequest): Promise<ApiResponse<NoticeListItemResponse[]>> {
+    return api.get<NoticeListItemResponse[]>(`${ENDPOINT}/v1`, {
       params: { ...query, ...pageRequest },
     });
   },
@@ -31,8 +31,8 @@ export const noticeRepository = {
   },
 
   // 공지사항 상세 조회
-  getDetail(id: number): Promise<ApiResponse<NoticeDetail>> {
-    return api.get<NoticeDetail>(`${ENDPOINT}/v1/${id}`);
+  getDetail(id: number): Promise<ApiResponse<NoticeDetailResponse>> {
+    return api.get<NoticeDetailResponse>(`${ENDPOINT}/v1/${id}`);
   },
 
   // 공지사항 수정

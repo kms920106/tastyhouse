@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 
-import type { NoticeDetail } from "@/api/notice/notice.dto";
 import { noticeRepository } from "@/api/notice/notice.repository";
+import { noticeService } from "@/api/notice/notice.service";
+import type { NoticeDetail } from "@/feature/notice/domain";
 
 import { NOTICE_MESSAGE } from "./message";
-import { noticeFormSchema, type NoticeFormValues } from "./schema";
+import { type NoticeFormValues, noticeFormSchema } from "./schema";
 
 const NOTICES_PATH = "/dashboard/notices";
 
@@ -22,21 +23,8 @@ export interface NoticeDetailResult {
   data?: NoticeDetail;
 }
 
-// 공지사항 상세 조회
-export async function fetchNoticeAction(
-  id: number,
-): Promise<NoticeDetailResult> {
-  const res = await noticeRepository.getDetail(id);
-  if (res.error !== undefined) {
-    return { success: false, message: res.error };
-  }
-  return { success: true, data: res.data };
-}
-
 // 공지사항 등록
-export async function createNoticeAction(
-  values: NoticeFormValues,
-): Promise<ActionResult> {
+export async function createNoticeAction(values: NoticeFormValues): Promise<ActionResult> {
   const parsed = noticeFormSchema.safeParse(values);
   if (!parsed.success) {
     return {
@@ -54,11 +42,17 @@ export async function createNoticeAction(
   return { success: true, id: res.data };
 }
 
+// 공지사항 상세 조회
+export async function fetchNoticeAction(id: number): Promise<NoticeDetailResult> {
+  const res = await noticeService.getNotice(id);
+  if (res.error !== undefined) {
+    return { success: false, message: res.error };
+  }
+  return { success: true, data: res.data };
+}
+
 // 공지사항 수정
-export async function updateNoticeAction(
-  id: number,
-  values: NoticeFormValues,
-): Promise<ActionResult> {
+export async function updateNoticeAction(id: number, values: NoticeFormValues): Promise<ActionResult> {
   const parsed = noticeFormSchema.safeParse(values);
   if (!parsed.success) {
     return {

@@ -8,12 +8,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getCoreRowModel, type PaginationState, useReactTable } from "@tanstack/react-table";
 import { Plus, Search, X } from "lucide-react";
 
-import type { NoticeListItem } from "@/api/notice/notice.dto";
 import type { ApiPagination } from "@/api/shared/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { NoticeListItem } from "@/feature/notice/domain";
 
 import { DeleteNoticeDialog } from "./delete-notice-dialog";
 import { NoticeDetailSheet } from "./notice-detail-sheet";

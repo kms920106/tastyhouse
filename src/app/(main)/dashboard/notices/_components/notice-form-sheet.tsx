@@ -7,14 +7,8 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import {
   Sheet,
   SheetClose,
@@ -24,19 +18,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import type { NoticeListItem } from "@/api/notice/notice.dto";
-import {
-  createNoticeAction,
-  updateNoticeAction,
-} from "@/feature/notice/actions";
+import { createNoticeAction, updateNoticeAction } from "@/feature/notice/actions";
+import type { NoticeListItem } from "@/feature/notice/domain";
 import { NOTICE_MESSAGE } from "@/feature/notice/message";
-import {
-  NOTICE_CONTENT_MAX,
-  NOTICE_TITLE_MAX,
-  noticeFormSchema,
-  type NoticeFormValues,
-} from "@/feature/notice/schema";
+import { NOTICE_CONTENT_MAX, NOTICE_TITLE_MAX, type NoticeFormValues, noticeFormSchema } from "@/feature/notice/schema";
 
 interface NoticeFormSheetProps {
   open: boolean;
@@ -45,11 +32,7 @@ interface NoticeFormSheetProps {
   notice?: Pick<NoticeListItem, "id" | "title" | "content" | "visible"> | null;
 }
 
-export function NoticeFormSheet({
-  open,
-  onOpenChange,
-  notice,
-}: NoticeFormSheetProps) {
+export function NoticeFormSheet({ open, onOpenChange, notice }: NoticeFormSheetProps) {
   const isEdit = Boolean(notice);
   const [isPending, startTransition] = React.useTransition();
 
@@ -71,16 +54,10 @@ export function NoticeFormSheet({
 
   const onSubmit = (values: NoticeFormValues) => {
     startTransition(async () => {
-      const result = notice
-        ? await updateNoticeAction(notice.id, values)
-        : await createNoticeAction(values);
+      const result = notice ? await updateNoticeAction(notice.id, values) : await createNoticeAction(values);
 
       if (result.success) {
-        toast.success(
-          isEdit
-            ? NOTICE_MESSAGE.UPDATE_SUCCESS
-            : NOTICE_MESSAGE.CREATE_SUCCESS,
-        );
+        toast.success(isEdit ? NOTICE_MESSAGE.UPDATE_SUCCESS : NOTICE_MESSAGE.CREATE_SUCCESS);
         onOpenChange(false);
       } else {
         toast.error(result.message ?? NOTICE_MESSAGE.CREATE_UPDATE_FAILED);
@@ -94,9 +71,7 @@ export function NoticeFormSheet({
         <SheetHeader>
           <SheetTitle>{isEdit ? "공지사항 수정" : "공지사항 등록"}</SheetTitle>
           <SheetDescription>
-            {isEdit
-              ? "공지사항의 제목과 내용을 수정합니다."
-              : "새로운 공지사항을 등록합니다."}
+            {isEdit ? "공지사항의 제목과 내용을 수정합니다." : "새로운 공지사항을 등록합니다."}
           </SheetDescription>
         </SheetHeader>
 
@@ -120,9 +95,7 @@ export function NoticeFormSheet({
                     maxLength={NOTICE_TITLE_MAX}
                     aria-invalid={fieldState.invalid}
                   />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
             />
@@ -140,9 +113,7 @@ export function NoticeFormSheet({
                     rows={10}
                     aria-invalid={fieldState.invalid}
                   />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
             />
@@ -152,11 +123,7 @@ export function NoticeFormSheet({
               render={({ field }) => (
                 <Field orientation="horizontal">
                   <FieldLabel htmlFor="notice-visible">노출 여부</FieldLabel>
-                  <Switch
-                    id="notice-visible"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch id="notice-visible" checked={field.value} onCheckedChange={field.onChange} />
                 </Field>
               )}
             />
