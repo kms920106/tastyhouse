@@ -7,4 +7,8 @@ public record IssueCouponCommand(
     Long couponId,
     LocalDateTime expiredAt
 ) {
+
+    public static IssueCouponCommand of(Long memberId, Long couponId, LocalDateTime expiredAt) {
+        return new IssueCouponCommand(memberId, couponId, expiredAt);
+    }
 }

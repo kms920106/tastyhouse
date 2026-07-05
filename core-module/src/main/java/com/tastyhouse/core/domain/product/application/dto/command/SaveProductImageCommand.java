@@ -5,4 +5,9 @@ public record SaveProductImageCommand(
     Long imageFileId,
     Integer sort,
     boolean visible
-) {}
+) {
+
+    public static SaveProductImageCommand of(Long productId, Long imageFileId, Integer sort, boolean visible) {
+        return new SaveProductImageCommand(productId, imageFileId, sort, visible);
+    }
+}

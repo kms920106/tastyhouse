@@ -6,4 +6,13 @@ public record CreateReviewReplyCommand(
     Long replyToMemberId,
     String content
 ) {
+
+    public static CreateReviewReplyCommand of(
+        Long commentId,
+        Long memberId,
+        Long replyToMemberId,
+        String content
+    ) {
+        return new CreateReviewReplyCommand(commentId, memberId, replyToMemberId, content);
+    }
 }

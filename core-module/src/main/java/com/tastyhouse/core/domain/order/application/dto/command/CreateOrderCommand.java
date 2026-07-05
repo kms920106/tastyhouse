@@ -16,4 +16,30 @@ public record CreateOrderCommand(
     Integer couponDiscountAmount,
     Integer finalAmount
 ) {
+
+    public static CreateOrderCommand of(
+        Long shopId,
+        OrderMethod orderMethod,
+        List<CreateOrderProductCommand> orderProducts,
+        Long memberCouponId,
+        Integer usePoint,
+        Integer totalProductAmount,
+        Integer totalDiscountAmount,
+        Integer productDiscountAmount,
+        Integer couponDiscountAmount,
+        Integer finalAmount
+    ) {
+        return new CreateOrderCommand(
+            shopId,
+            orderMethod,
+            orderProducts,
+            memberCouponId,
+            usePoint,
+            totalProductAmount,
+            totalDiscountAmount,
+            productDiscountAmount,
+            couponDiscountAmount,
+            finalAmount
+        );
+    }
 }

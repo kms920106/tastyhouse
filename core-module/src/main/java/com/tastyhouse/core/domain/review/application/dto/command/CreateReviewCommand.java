@@ -15,4 +15,23 @@ public record CreateReviewCommand(
     List<Long> uploadedFileIds,
     List<String> tags
 ) {
+
+    public static CreateReviewCommand of(
+        Long shopId,
+        Long productId,
+        Long memberId,
+        Long orderProductId,
+        Long orderId,
+        Integer tasteRating,
+        Integer amountRating,
+        Integer priceRating,
+        String content,
+        List<Long> uploadedFileIds,
+        List<String> tags
+    ) {
+        return new CreateReviewCommand(
+            shopId, productId, memberId, orderProductId, orderId,
+            tasteRating, amountRating, priceRating, content, uploadedFileIds, tags
+        );
+    }
 }

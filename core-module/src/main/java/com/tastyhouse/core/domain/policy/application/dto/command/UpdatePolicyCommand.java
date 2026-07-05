@@ -8,4 +8,15 @@ public record UpdatePolicyCommand(
     boolean mandatory,
     LocalDateTime effectiveDate,
     String updatedBy
-) {}
+) {
+
+    public static UpdatePolicyCommand of(
+        String title,
+        String content,
+        boolean mandatory,
+        LocalDateTime effectiveDate,
+        String updatedBy
+    ) {
+        return new UpdatePolicyCommand(title, content, mandatory, effectiveDate, updatedBy);
+    }
+}

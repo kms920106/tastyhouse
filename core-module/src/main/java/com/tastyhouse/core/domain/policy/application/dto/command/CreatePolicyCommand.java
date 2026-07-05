@@ -12,4 +12,17 @@ public record CreatePolicyCommand(
     boolean mandatory,
     LocalDateTime effectiveDate,
     String createdBy
-) {}
+) {
+
+    public static CreatePolicyCommand of(
+        PolicyType type,
+        String version,
+        String title,
+        String content,
+        boolean mandatory,
+        LocalDateTime effectiveDate,
+        String createdBy
+    ) {
+        return new CreatePolicyCommand(type, version, title, content, mandatory, effectiveDate, createdBy);
+    }
+}

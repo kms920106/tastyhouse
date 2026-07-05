@@ -11,4 +11,15 @@ public record CreateReservationCommand(
     String request,
     boolean agreedRequiredTerms
 ) {
+
+    public static CreateReservationCommand of(
+        Long shopId,
+        LocalDate date,
+        LocalTime time,
+        Integer partySize,
+        String request,
+        boolean agreedRequiredTerms
+    ) {
+        return new CreateReservationCommand(shopId, date, time, partySize, request, agreedRequiredTerms);
+    }
 }

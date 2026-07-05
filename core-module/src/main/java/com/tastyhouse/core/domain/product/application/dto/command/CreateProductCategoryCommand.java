@@ -5,4 +5,9 @@ public record CreateProductCategoryCommand(
     String name,
     Integer sort,
     boolean visible
-) {}
+) {
+
+    public static CreateProductCategoryCommand of(Long shopId, String name, Integer sort, boolean visible) {
+        return new CreateProductCategoryCommand(shopId, name, sort, visible);
+    }
+}

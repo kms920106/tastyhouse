@@ -5,4 +5,12 @@ public record UseCouponCommand(
     Long memberId,
     int orderAmountAfterProductDiscount
 ) {
+
+    public static UseCouponCommand of(
+        Long memberCouponId,
+        Long memberId,
+        int orderAmountAfterProductDiscount
+    ) {
+        return new UseCouponCommand(memberCouponId, memberId, orderAmountAfterProductDiscount);
+    }
 }

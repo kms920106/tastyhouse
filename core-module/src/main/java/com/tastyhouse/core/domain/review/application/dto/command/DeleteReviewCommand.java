@@ -5,4 +5,8 @@ public record DeleteReviewCommand(
     Long memberId,
     Long productId
 ) {
+
+    public static DeleteReviewCommand of(Long reviewId, Long memberId, Long productId) {
+        return new DeleteReviewCommand(reviewId, memberId, productId);
+    }
 }

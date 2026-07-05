@@ -7,4 +7,12 @@ public record CreateOrderProductCommand(
     Integer quantity,
     List<CreateOrderProductOptionCommand> selectedOptions
 ) {
+
+    public static CreateOrderProductCommand of(
+        Long productId,
+        Integer quantity,
+        List<CreateOrderProductOptionCommand> selectedOptions
+    ) {
+        return new CreateOrderProductCommand(productId, quantity, selectedOptions);
+    }
 }

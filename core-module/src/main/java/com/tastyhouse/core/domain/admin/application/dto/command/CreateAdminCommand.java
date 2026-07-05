@@ -12,4 +12,8 @@ public record CreateAdminCommand(
     String name,
     AdminRole role
 ) {
+
+    public static CreateAdminCommand of(String username, String encodedPassword, String name, AdminRole role) {
+        return new CreateAdminCommand(username, encodedPassword, name, role);
+    }
 }

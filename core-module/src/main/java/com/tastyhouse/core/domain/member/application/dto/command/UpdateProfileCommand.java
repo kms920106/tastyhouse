@@ -8,4 +8,13 @@ public record UpdateProfileCommand(
     String statusMessage,
     Long profileImageFileId
 ) {
+
+    public static UpdateProfileCommand of(
+        MemberId memberId,
+        String nickname,
+        String statusMessage,
+        Long profileImageFileId
+    ) {
+        return new UpdateProfileCommand(memberId, nickname, statusMessage, profileImageFileId);
+    }
 }

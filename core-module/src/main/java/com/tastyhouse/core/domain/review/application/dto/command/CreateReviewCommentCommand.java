@@ -5,4 +5,8 @@ public record CreateReviewCommentCommand(
     Long memberId,
     String content
 ) {
+
+    public static CreateReviewCommentCommand of(Long reviewId, Long memberId, String content) {
+        return new CreateReviewCommentCommand(reviewId, memberId, content);
+    }
 }

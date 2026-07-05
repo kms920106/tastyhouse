@@ -6,4 +6,8 @@ public record CreatePaymentCommand(
     Long orderId,
     PaymentMethod paymentMethod
 ) {
+
+    public static CreatePaymentCommand of(Long orderId, PaymentMethod paymentMethod) {
+        return new CreatePaymentCommand(orderId, paymentMethod);
+    }
 }

@@ -8,4 +8,8 @@ public record WithdrawMemberCommand(
     WithdrawalReason reason,
     String reasonDetail
 ) {
+
+    public static WithdrawMemberCommand of(MemberId memberId, WithdrawalReason reason, String reasonDetail) {
+        return new WithdrawMemberCommand(memberId, reason, reasonDetail);
+    }
 }
