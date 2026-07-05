@@ -1,16 +1,25 @@
 package com.tastyhouse.webapi.reservation;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.reservation.application.ReservationCommandService;
 import com.tastyhouse.core.domain.reservation.application.ReservationQueryService;
+import com.tastyhouse.core.domain.reservation.application.dto.command.CreateReservationCommand;
+import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
+import com.tastyhouse.webapi.reservation.response.ReservationResponse;
+import com.tastyhouse.webapi.reservation.response.SlotAvailabilityResponse;
 
 /**
  * 예약 조회 응답 가공 전용 web-api 서비스.
@@ -21,9 +30,38 @@ import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 @RequiredArgsConstructor
 public class ReservationService {
 
+    private final ReservationCommandService reservationCommandService;
     private final ReservationQueryService reservationQueryService;
     private final MemberQueryService memberQueryService;
     private final FileService fileService;
+
+    @Transactional(readOnly = true)
+    public SlotAvailabilityResponse getAvailability(Long shopId, LocalDate date, Long memberId) {
+        DailySlotAvailabilityResult result = reservationQueryService.findSlotAvailability(shopId, date, memberId);
+        return SlotAvailabilityResponse.from(result);
+    }
+
+    public ReservationResponse create(
+        Long memberId,
+        Long shopId,
+        LocalDate reservationDate,
+        LocalTime reservationTime,
+        Integer partySize,
+        String request,
+        boolean agreedRequiredTerms
+    ) {
+        CreateReservationCommand command = CreateReservationCommand.of(
+            shopId, reservationDate, reservationTime, partySize, request, agreedRequiredTerms);
+        ReservationResult result = reservationCommandService.create(memberId, command);
+        return ReservationResponse.from(result);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getMyReservations(Long memberId) {
+        return reservationQueryService.findMyReservations(memberId).stream()
+            .map(ReservationResponse::from)
+            .toList();
+    }
 
     @Transactional(readOnly = true)
     public ReservationCompleteDetailResponse getDetail(Long memberId, Long reservationId) {
@@ -43,5 +81,31 @@ public class ReservationService {
             phoneNumber,
             reserver.getUsername()
         );
+    }
+
+    public void cancel(Long reservationId, Long memberId) {
+        reservationCommandService.cancel(reservationId, memberId);
+    }
+
+    public ReservationResponse confirm(Long reservationId) {
+        ReservationResult result = reservationCommandService.confirm(reservationId);
+        return ReservationResponse.from(result);
+    }
+
+    public ReservationResponse reject(Long reservationId) {
+        ReservationResult result = reservationCommandService.reject(reservationId);
+        return ReservationResponse.from(result);
+    }
+
+    public ReservationResponse complete(Long reservationId) {
+        ReservationResult result = reservationCommandService.complete(reservationId);
+        return ReservationResponse.from(result);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getShopReservations(Long shopId) {
+        return reservationQueryService.findShopReservations(shopId).stream()
+            .map(ReservationResponse::from)
+            .toList();
     }
 }

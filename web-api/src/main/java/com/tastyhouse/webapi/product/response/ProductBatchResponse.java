@@ -36,6 +36,17 @@ public record ProductBatchResponse(
         @Schema(description = "요청한 옵션 중 조회에 성공한 옵션 목록 (available=false 면 빈 배열)")
         List<OptionResponse> options
     ) {
+        public static ProductResponse from(
+            Long id,
+            boolean available,
+            String name,
+            String imageUrl,
+            Integer originalPrice,
+            Integer discountPrice,
+            List<OptionResponse> options
+        ) {
+            return new ProductResponse(id, available, name, imageUrl, originalPrice, discountPrice, options);
+        }
     }
 
     @Schema(description = "배치 조회 옵션")
@@ -49,5 +60,8 @@ public record ProductBatchResponse(
         @Schema(description = "옵션 추가 금액", example = "3000")
         Integer price
     ) {
+        public static OptionResponse from(Long id, String name, Integer price) {
+            return new OptionResponse(id, name, price);
+        }
     }
 }

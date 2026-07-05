@@ -63,11 +63,11 @@ public class ProductScheduler {
                 .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다: productId=" + productId));
 
             ProductOptionGroup savedOptionGroup = productCommandService.saveProductOptionGroup(
-                new SaveProductOptionGroupCommand(productId, "기본 선택", null, false, false, 0, 1, 0, true)
+                SaveProductOptionGroupCommand.of(productId, "기본 선택", null, false, false, 0, 1, 0, true)
             );
 
             productCommandService.saveProductOption(
-                new SaveProductOptionCommand(savedOptionGroup.getId(), product.getName(), 0, 0, false, true)
+                SaveProductOptionCommand.of(savedOptionGroup.getId(), product.getName(), 0, 0, false, true)
             );
 
             log.info("서브 옵션이 없어 기본 옵션 그룹 및 옵션 저장: productId={}, 상품명={}", productId, product.getName());
@@ -78,7 +78,7 @@ public class ProductScheduler {
             BbqProductSubOptionResponse subOption = subOptions.get(i);
 
             ProductOptionGroup savedOptionGroup = productCommandService.saveProductOptionGroup(
-                new SaveProductOptionGroupCommand(
+                SaveProductOptionGroupCommand.of(
                     productId,
                     subOption.subOptionTitle(),
                     null,
@@ -97,7 +97,7 @@ public class ProductScheduler {
                         subOption.subOptionItemDetailResponseList().get(j);
 
                     productCommandService.saveProductOption(
-                        new SaveProductOptionCommand(
+                        SaveProductOptionCommand.of(
                             savedOptionGroup.getId(),
                             itemDetail.itemTitle(),
                             itemDetail.addPrice() != null ? itemDetail.addPrice() : 0,

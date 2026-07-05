@@ -31,7 +31,7 @@ public class SearchService {
 
     public List<RecommendedKeywordResponse> getRecommendedKeywords() {
         return searchKeywordQueryService.findActiveRecommendedKeywords().stream()
-            .map(r -> new RecommendedKeywordResponse(r.keyword()))
+            .map(r -> RecommendedKeywordResponse.of(r.keyword()))
             .toList();
     }
 

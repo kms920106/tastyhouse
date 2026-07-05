@@ -172,7 +172,7 @@ public class BbqService {
         if (!existingCategories.isEmpty()) {
             return existingCategories.getFirst();
         }
-        return productCommandService.createProductCategory(new CreateProductCategoryCommand(
+        return productCommandService.createProductCategory(CreateProductCategoryCommand.of(
             shopId, categoryResponse.name(), sort, true
         ));
     }
@@ -180,7 +180,7 @@ public class BbqService {
     private void saveProductWithImage(Long shopId, Long categoryId, BbqProductResponse menuResponse, Long bbqCategoryId, int sort) {
         BbqProductResponse menuDetail = getMenuDetail(menuResponse.id());
 
-        Product savedProduct = productCommandService.createProduct(new CreateProductCommand(
+        Product savedProduct = productCommandService.createProduct(CreateProductCommand.of(
             shopId, categoryId, menuDetail.name(), menuDetail.description(),
             menuDetail.originalPrice(), null, null, null, 0, false, null,
             menuDetail.soldOut(), true, sort
@@ -188,12 +188,12 @@ public class BbqService {
 
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {
             Long uploadedFileId = fileService.uploadFromUrl(menuDetail.imageUrl());
-            productCommandService.saveProductImage(new SaveProductImageCommand(
+            productCommandService.saveProductImage(SaveProductImageCommand.of(
                 savedProduct.getId(), uploadedFileId, 0, true
             ));
         }
 
-        productCommandService.saveProductBbq(new SaveProductBbqCommand(
+        productCommandService.saveProductBbq(SaveProductBbqCommand.of(
             savedProduct.getId(), menuResponse.id(), bbqCategoryId, false
         ));
 

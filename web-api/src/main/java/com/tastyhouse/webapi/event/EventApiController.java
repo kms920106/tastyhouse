@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
-import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
@@ -44,7 +43,7 @@ public class EventApiController {
         @RequestParam EventStatus status,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<EventListItemResponse> pageResult = eventService.getEventList(status, pageRequest.page(), pageRequest.size());
+        var pageResult = eventService.getEventList(status, pageRequest.page(), pageRequest.size());
         ApiResponse<List<EventListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -71,7 +70,7 @@ public class EventApiController {
     public ResponseEntity<ApiResponse<List<EventAnnouncementListItemResponse>>> getEventAnnouncementList(
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<EventAnnouncementListItemResponse> pageResult = eventService.getEventAnnouncementList(pageRequest.page(), pageRequest.size());
+        var pageResult = eventService.getEventAnnouncementList(pageRequest.page(), pageRequest.size());
         ApiResponse<List<EventAnnouncementListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }

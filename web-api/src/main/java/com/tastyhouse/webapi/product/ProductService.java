@@ -33,6 +33,7 @@ import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
 import com.tastyhouse.webapi.product.response.TodayDiscountProductListItemResponse;
+import com.tastyhouse.webapi.product.response.TodayDiscountProductPageResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -43,9 +44,10 @@ public class ProductService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResult<TodayDiscountProductListItemResponse> searchTodayDiscountProducts(int page, int size) {
-        return productQueryService.findTodayDiscountProducts(page, size)
+    public TodayDiscountProductPageResponse searchTodayDiscountProducts(int page, int size) {
+        PageResult<TodayDiscountProductListItemResponse> pageResult = productQueryService.findTodayDiscountProducts(page, size)
             .map(this::convertToTodayDiscountProductListItemResponse);
+        return TodayDiscountProductPageResponse.from(pageResult);
     }
 
     private TodayDiscountProductListItemResponse convertToTodayDiscountProductListItemResponse(TodayDiscountProductResult dto) {
@@ -99,10 +101,10 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductBatchResponse findProductsBatch(ProductBatchRequest request) {
         List<ProductBatchQuery.BatchItem> items = request.items().stream()
-            .map(item -> new ProductBatchQuery.BatchItem(item.productId(), item.optionId()))
+            .map(item -> ProductBatchQuery.BatchItem.of(item.productId(), item.optionId()))
             .toList();
 
-        List<ProductBatchResult> results = productQueryService.findProductsBatch(new ProductBatchQuery(items));
+        List<ProductBatchResult> results = productQueryService.findProductsBatch(ProductBatchQuery.of(items));
 
         List<ProductBatchResponse.ProductResponse> products = results.stream()
             .map(this::convertToProductBatchResponse)
@@ -113,11 +115,11 @@ public class ProductService {
 
     private ProductBatchResponse.ProductResponse convertToProductBatchResponse(ProductBatchResult result) {
         List<ProductBatchResponse.OptionResponse> options = result.options().stream()
-            .map(option -> new ProductBatchResponse.OptionResponse(
+            .map(option -> ProductBatchResponse.OptionResponse.from(
                 option.id(), option.name(), option.price()
             ))
             .toList();
-        return new ProductBatchResponse.ProductResponse(
+        return ProductBatchResponse.ProductResponse.from(
             result.id(),
             result.available(),
             result.name(),

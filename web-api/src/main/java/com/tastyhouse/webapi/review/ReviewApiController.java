@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.core.domain.review.domain.model.ReviewType;
-import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
@@ -32,10 +30,13 @@ import com.tastyhouse.webapi.review.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.BestReviewListItemResponse;
+import com.tastyhouse.webapi.review.response.BestReviewPageResponse;
 import com.tastyhouse.webapi.review.response.CommentListResponse;
 import com.tastyhouse.webapi.review.response.CommentResponse;
 import com.tastyhouse.webapi.review.response.LatestReviewListItemResponse;
+import com.tastyhouse.webapi.review.response.LatestReviewPageResponse;
 import com.tastyhouse.webapi.review.response.MemberReviewListItemResponse;
+import com.tastyhouse.webapi.review.response.MemberReviewPageResponse;
 import com.tastyhouse.webapi.review.response.ReplyResponse;
 import com.tastyhouse.webapi.review.response.ReviewDetailResponse;
 import com.tastyhouse.webapi.review.response.ReviewLikeResponse;
@@ -121,8 +122,8 @@ public class ReviewApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/best")
     public ResponseEntity<ApiResponse<List<BestReviewListItemResponse>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BestReviewListItemResponse> pageResult = reviewService.searchBestReviewList(pageRequest.page(), pageRequest.size());
-        ApiResponse<List<BestReviewListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
+        BestReviewPageResponse pageResponse = reviewService.searchBestReviewList(pageRequest.page(), pageRequest.size());
+        ApiResponse<List<BestReviewListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }
 
@@ -131,12 +132,12 @@ public class ReviewApiController {
     @GetMapping("/v1/latest")
     public ResponseEntity<ApiResponse<List<LatestReviewListItemResponse>>> getLatestReviewList(
         @Valid @ModelAttribute PageRequest pageRequest,
-        @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewType type,
+        @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewListType type,
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        PageResult<LatestReviewListItemResponse> pageResult = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), type, memberId);
-        ApiResponse<List<LatestReviewListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
+        LatestReviewPageResponse pageResponse = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), type, memberId);
+        ApiResponse<List<LatestReviewListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }
 
@@ -228,9 +229,9 @@ public class ReviewApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MemberReviewListItemResponse> pageResult = reviewService.findMemberReviews(memberId, pageRequest.page(), pageRequest.size());
+        MemberReviewPageResponse pageResponse = reviewService.findMemberReviews(memberId, pageRequest.page(), pageRequest.size());
         ApiResponse<List<MemberReviewListItemResponse>> response = ApiResponse.success(
-            pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()
+            pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         );
         return ResponseEntity.ok(response);
     }

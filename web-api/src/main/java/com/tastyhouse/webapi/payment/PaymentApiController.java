@@ -15,16 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.core.domain.payment.application.PaymentCommandService;
-import com.tastyhouse.core.domain.payment.application.PaymentQueryService;
-import com.tastyhouse.core.domain.payment.application.dto.command.CancelPaymentCommand;
-import com.tastyhouse.core.domain.payment.application.dto.command.ConfirmPaymentCommand;
-import com.tastyhouse.core.domain.payment.application.dto.command.CreatePaymentCommand;
-import com.tastyhouse.core.domain.payment.application.dto.command.RequestRefundCommand;
-import com.tastyhouse.core.domain.payment.application.dto.command.TossConfirmCommand;
-import com.tastyhouse.core.domain.payment.application.dto.result.PaymentCancelResult;
-import com.tastyhouse.core.domain.payment.application.dto.result.PaymentRefundResult;
-import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.payment.request.PaymentCancelRequest;
@@ -43,8 +33,7 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @Tag(name = "Payment", description = "결제 API")
 public class PaymentApiController {
 
-    private final PaymentCommandService paymentCommandService;
-    private final PaymentQueryService paymentQueryService;
+    private final PaymentService paymentService;
 
     @Operation(summary = "결제 생성", description = "주문에 대한 결제를 생성합니다.")
     @ApiResponses({
@@ -58,11 +47,9 @@ public class PaymentApiController {
         @Valid @RequestBody PaymentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResult result = paymentCommandService.createPayment(
-            userDetails.getMemberId(),
-            new CreatePaymentCommand(request.orderId(), request.paymentMethod())
-        );
-        return ResponseEntity.ok(ApiResponse.success(PaymentResponse.from(result)));
+        PaymentResponse response = paymentService.createPayment(
+            userDetails.getMemberId(), request.orderId(), request.paymentMethod());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "결제 승인 (PG 콜백)", description = "PG사로부터 결제 승인을 처리합니다.")
@@ -74,19 +61,17 @@ public class PaymentApiController {
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(
         @Valid @RequestBody PaymentConfirmRequest request
     ) {
-        PaymentResult result = paymentCommandService.confirmPayment(
-            new ConfirmPaymentCommand(
-                request.paymentId(),
-                request.pgProvider(),
-                request.pgTid(),
-                request.pgOrderId(),
-                request.cardCompany(),
-                request.cardNumber(),
-                request.installmentMonths(),
-                request.receiptUrl()
-            )
+        PaymentResponse response = paymentService.confirmPayment(
+            request.paymentId(),
+            request.pgProvider(),
+            request.pgTid(),
+            request.pgOrderId(),
+            request.cardCompany(),
+            request.cardNumber(),
+            request.installmentMonths(),
+            request.receiptUrl()
         );
-        return ResponseEntity.ok(ApiResponse.success(PaymentResponse.from(result)));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "토스 결제 승인", description = "토스페이먼츠 결제를 승인합니다. 프론트엔드에서 /success 리다이렉트 후 호출합니다.")
@@ -102,11 +87,9 @@ public class PaymentApiController {
         @Valid @RequestBody TossPaymentConfirmApiRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResult result = paymentCommandService.confirmTossPayment(
-            userDetails.getMemberId(),
-            new TossConfirmCommand(request.paymentKey(), request.pgOrderId(), request.amount())
-        );
-        return ResponseEntity.ok(ApiResponse.success(PaymentResponse.from(result)));
+        PaymentResponse response = paymentService.confirmTossPayment(
+            userDetails.getMemberId(), request.paymentKey(), request.pgOrderId(), request.amount());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "주문별 결제 조회", description = "주문에 대한 결제 정보를 조회합니다.")
@@ -121,8 +104,8 @@ public class PaymentApiController {
         @PathVariable Long orderId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResult result = paymentQueryService.getPaymentByOrderId(userDetails.getMemberId(), orderId);
-        return ResponseEntity.ok(ApiResponse.success(PaymentResponse.from(result)));
+        PaymentResponse response = paymentService.getPaymentByOrderId(userDetails.getMemberId(), orderId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "결제 취소", description = "결제를 취소합니다.")
@@ -138,10 +121,9 @@ public class PaymentApiController {
         @Valid @RequestBody PaymentCancelRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentCancelResult result = paymentCommandService.cancelPayment(
-            userDetails.getMemberId(), paymentId, new CancelPaymentCommand(request.cancelReason())
-        );
-        return ResponseEntity.ok(ApiResponse.success(PaymentCancelResponse.of(result)));
+        PaymentCancelResponse response = paymentService.cancelPayment(
+            userDetails.getMemberId(), paymentId, request.cancelReason());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "현장결제 완료", description = "현장결제를 완료 처리합니다. 구매자가 직접 호출합니다.")
@@ -157,8 +139,8 @@ public class PaymentApiController {
         @PathVariable Long paymentId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResult result = paymentCommandService.completeOnSitePayment(userDetails.getMemberId(), paymentId);
-        return ResponseEntity.ok(ApiResponse.success(PaymentResponse.from(result)));
+        PaymentResponse response = paymentService.completeOnSitePayment(userDetails.getMemberId(), paymentId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "환불 요청", description = "결제에 대한 환불을 요청합니다.")
@@ -175,9 +157,8 @@ public class PaymentApiController {
         @Valid @RequestBody RefundRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentRefundResult result = paymentCommandService.requestRefund(
-            userDetails.getMemberId(), paymentId, new RequestRefundCommand(request.refundAmount(), request.refundReason())
-        );
-        return ResponseEntity.ok(ApiResponse.success(PaymentRefundResponse.from(result)));
+        PaymentRefundResponse response = paymentService.requestRefund(
+            userDetails.getMemberId(), paymentId, request.refundAmount(), request.refundReason());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

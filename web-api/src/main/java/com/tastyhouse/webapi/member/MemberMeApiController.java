@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
@@ -237,7 +236,7 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MyReviewListItemResponse> pageResult = memberFacade.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var pageResult = memberFacade.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -256,7 +255,7 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopBookmarkListItemResponse> pageResult = memberFacade.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var pageResult = memberFacade.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),

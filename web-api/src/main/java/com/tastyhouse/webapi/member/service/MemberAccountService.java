@@ -90,7 +90,7 @@ public class MemberAccountService {
         String reasonDetail
     ) {
         memberCommandService.withdraw(
-            new WithdrawMemberCommand(new MemberId(memberId), reason, reasonDetail)
+            WithdrawMemberCommand.of(new MemberId(memberId), reason, reasonDetail)
         );
     }
 
@@ -121,7 +121,7 @@ public class MemberAccountService {
         boolean eventInfoEnabled
     ) {
         memberCommandService.updatePersonalInfo(
-            new UpdatePersonalInfoCommand(
+            UpdatePersonalInfoCommand.of(
                 new MemberId(memberId),
                 fullName,
                 phoneNumber,
@@ -172,7 +172,7 @@ public class MemberAccountService {
         Long profileImageFileId
     ) {
         memberCommandService.updateProfile(
-            new UpdateProfileCommand(
+            UpdateProfileCommand.of(
                 new MemberId(memberId),
                 nickname,
                 statusMessage,

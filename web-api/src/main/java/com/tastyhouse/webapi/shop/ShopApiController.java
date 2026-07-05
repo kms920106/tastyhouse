@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
-import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
@@ -69,7 +68,7 @@ public class ShopApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/best")
     public ResponseEntity<ApiResponse<List<BestShopListItemResponse>>> getBestShops(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<BestShopListItemResponse> pageResult = shopService.searchBestShops(pageRequest.page(), pageRequest.size());
+        var pageResult = shopService.searchBestShops(pageRequest.page(), pageRequest.size());
         ApiResponse<List<BestShopListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -93,7 +92,7 @@ public class ShopApiController {
         @RequestParam(required = false) List<Amenity> amenities
     ) {
         LatestShopFilterRequest filterRequest = new LatestShopFilterRequest(stationId, foodTypes, amenities);
-        PageResult<LatestShopListItemResponse> pageResult = shopService.searchLatestShops(filterRequest, pageRequest.page(), pageRequest.size());
+        var pageResult = shopService.searchLatestShops(filterRequest, pageRequest.page(), pageRequest.size());
         ApiResponse<List<LatestShopListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }

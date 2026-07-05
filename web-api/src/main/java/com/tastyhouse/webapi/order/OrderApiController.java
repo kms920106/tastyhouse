@@ -18,15 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.core.domain.order.application.OrderCommandService;
-import com.tastyhouse.core.domain.order.application.OrderQueryService;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderCommand;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderProductCommand;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderProductOptionCommand;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
-import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
@@ -34,8 +25,6 @@ import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
 import com.tastyhouse.webapi.order.response.OrderCreateResponse;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
-import com.tastyhouse.webapi.order.response.OrderProductResponse;
-import com.tastyhouse.webapi.order.response.PaymentSummaryResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -44,10 +33,7 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @Tag(name = "Order", description = "주문 API")
 public class OrderApiController {
 
-    private final OrderCommandService orderCommandService;
-    private final OrderQueryService orderQueryService;
-    private final ReviewQueryService reviewQueryService;
-    private final FileService fileService;
+    private final OrderService orderService;
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
     @ApiResponses({
@@ -60,9 +46,20 @@ public class OrderApiController {
         @Valid @RequestBody OrderCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        CreateOrderCommand command = toCreateOrderCommand(request);
-        OrderResult result = orderCommandService.createOrder(userDetails.getMemberId(), command);
-        return ResponseEntity.ok(ApiResponse.success(OrderCreateResponse.from(result.id())));
+        Long orderId = orderService.createOrder(
+            userDetails.getMemberId(),
+            request.shopId(),
+            request.orderMethod(),
+            request.orderProducts(),
+            request.memberCouponId(),
+            request.usePoint(),
+            request.totalProductAmount(),
+            request.totalDiscountAmount(),
+            request.productDiscountAmount(),
+            request.couponDiscountAmount(),
+            request.finalAmount()
+        );
+        return ResponseEntity.ok(ApiResponse.success(OrderCreateResponse.from(orderId)));
     }
 
     @Operation(summary = "주문 목록 조회", description = "회원의 주문 목록을 조회합니다.")
@@ -76,13 +73,9 @@ public class OrderApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
-        com.tastyhouse.core.shared.page.PageResult<OrderListItemResult> page =
-            orderQueryService.findOrderList(memberId, pageRequest.page(), pageRequest.size());
-        List<OrderListItemResponse> items = page.content().stream()
-            .map(this::toOrderListItemResponse)
-            .toList();
+        OrderService.OrderListPageResult page = orderService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
         ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
-            items,
+            page.content(),
             page.page(),
             page.size(),
             page.totalElements()
@@ -103,96 +96,7 @@ public class OrderApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
-        OrderResult result = orderQueryService.findOrderDetail(memberId, orderId);
-        return ResponseEntity.ok(ApiResponse.success(toOrderResponse(result, memberId)));
-    }
-
-    private OrderListItemResponse toOrderListItemResponse(OrderListItemResult dto) {
-        return OrderListItemResponse.from(
-            dto.id(),
-            dto.shopName(),
-            fileService.getUrlByPath(dto.shopThumbnailImageFilePath()),
-            dto.firstProductName(),
-            dto.totalItemCount(),
-            dto.amount(),
-            dto.paymentStatus(),
-            dto.paymentDate()
-        );
-    }
-
-    private CreateOrderCommand toCreateOrderCommand(OrderCreateRequest request) {
-        List<CreateOrderProductCommand> itemCommands = request.orderProducts().stream()
-            .map(product -> {
-                List<CreateOrderProductOptionCommand> optionCommands = product.options() == null ? null :
-                    product.options().stream()
-                        .map(opt -> new CreateOrderProductOptionCommand(opt.groupId(), opt.optionId()))
-                        .toList();
-                return new CreateOrderProductCommand(product.productId(), product.quantity(), optionCommands);
-            })
-            .toList();
-        return new CreateOrderCommand(
-            request.shopId(),
-            request.orderMethod(),
-            itemCommands,
-            request.memberCouponId(),
-            request.usePoint(),
-            request.totalProductAmount(),
-            request.totalDiscountAmount(),
-            request.productDiscountAmount(),
-            request.couponDiscountAmount(),
-            request.finalAmount()
-        );
-    }
-
-    private OrderDetailResponse toOrderResponse(OrderResult result, Long memberId) {
-        List<OrderProductResponse> orderProductsResponse = result.orderProducts().stream()
-            .map(orderProduct -> {
-                boolean reviewed = reviewQueryService.isReviewedByOrderAndProduct(
-                    result.id(),
-                    orderProduct.productId(),
-                    memberId
-                );
-                String imageUrl = fileService.getUrlByPath(orderProduct.imageUrl());
-                return OrderProductResponse.from(orderProduct, imageUrl, reviewed);
-            })
-            .toList();
-
-        PaymentSummaryResponse paymentSummary = null;
-        if (result.payment() != null) {
-            paymentSummary = PaymentSummaryResponse.from(
-                result.payment().id(),
-                result.payment().paymentMethod(),
-                result.payment().paymentStatus(),
-                result.payment().amount(),
-                result.payment().cardCompany(),
-                result.payment().cardNumber(),
-                result.payment().approvedAt(),
-                result.payment().receiptUrl()
-            );
-        }
-
-        return OrderDetailResponse.from(
-            result.id(),
-            result.orderNumber(),
-            result.orderMethod(),
-            result.paymentStatus(),
-            result.shopName(),
-            result.shopPhoneNumber(),
-            result.ordererName(),
-            result.ordererPhone(),
-            result.ordererEmail(),
-            result.totalProductAmount(),
-            result.productDiscountAmount(),
-            result.couponDiscountAmount(),
-            result.pointDiscountAmount(),
-            result.totalDiscountAmount(),
-            result.finalAmount(),
-            result.usedPoint(),
-            result.earnedPoint(),
-            orderProductsResponse,
-            paymentSummary,
-            result.approvedAt(),
-            result.createdAt()
-        );
+        OrderDetailResponse response = orderService.getOrderDetail(memberId, orderId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

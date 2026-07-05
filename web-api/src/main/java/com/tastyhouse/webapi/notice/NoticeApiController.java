@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
-import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
@@ -27,7 +25,7 @@ import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 @Tag(name = "Notice", description = "공지사항 관리 API")
 public class NoticeApiController {
 
-    private final NoticeQueryService noticeQueryService;
+    private final NoticeService noticeService;
 
     @Operation(summary = "공지사항 목록 조회", description = "페이징된 공지사항 목록을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공",
@@ -35,9 +33,7 @@ public class NoticeApiController {
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
 
-        PageResult<NoticeListItemResponse> pageResult = noticeQueryService
-            .findVisibleNotices(pageRequest.page(), pageRequest.size())
-            .map(NoticeListItemResponse::from);
+        var pageResult = noticeService.getNoticeList(pageRequest.page(), pageRequest.size());
 
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),

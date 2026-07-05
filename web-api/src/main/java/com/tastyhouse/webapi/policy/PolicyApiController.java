@@ -16,11 +16,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.core.domain.policy.application.PolicyQueryService;
-import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
-import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
-import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
@@ -32,124 +27,93 @@ import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
 @Tag(name = "Policy", description = "약관 및 정책 관리 API")
 public class PolicyApiController {
 
-    private final PolicyQueryService policyQueryService;
+    private final PolicyService policyService;
 
     @Operation(summary = "최신 이용약관 조회", description = "현재 유효한 최신 이용약관을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/terms-of-service/latest")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getLatestTermsOfService() {
-        return ResponseEntity.ok(ApiResponse.success(toDetailResponse(policyQueryService.findCurrentByType(PolicyType.TERMS_OF_SERVICE))));
+        return ResponseEntity.ok(ApiResponse.success(policyService.getLatestTermsOfService()));
     }
 
     @Operation(summary = "최신 개인정보처리방침 조회", description = "현재 유효한 최신 개인정보처리방침을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/privacy-policy/latest")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getLatestPrivacyPolicy() {
-        return ResponseEntity.ok(ApiResponse.success(toDetailResponse(policyQueryService.findCurrentByType(PolicyType.PRIVACY_POLICY))));
+        return ResponseEntity.ok(ApiResponse.success(policyService.getLatestPrivacyPolicy()));
     }
 
     @Operation(summary = "최신 전자금융거래 약관 조회", description = "현재 유효한 최신 전자금융거래 약관을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/electronic-financial-transactions/latest")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getLatestElectronicFinancialTransactions() {
-        return ResponseEntity.ok(ApiResponse.success(toDetailResponse(policyQueryService.findCurrentByType(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS))));
+        return ResponseEntity.ok(ApiResponse.success(policyService.getLatestElectronicFinancialTransactions()));
     }
 
     @Operation(summary = "최신 만 14세 이상 동의 약관 조회", description = "현재 유효한 최신 만 14세 이상 동의 약관을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/age-verification/latest")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getLatestAgeVerification() {
-        return ResponseEntity.ok(ApiResponse.success(toDetailResponse(policyQueryService.findCurrentByType(PolicyType.AGE_VERIFICATION))));
+        return ResponseEntity.ok(ApiResponse.success(policyService.getLatestAgeVerification()));
     }
 
     @Operation(summary = "특정 버전 이용약관 조회", description = "지정된 버전의 이용약관을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/terms-of-service/version/{version}")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getTermsOfServiceByVersion(@PathVariable String version) {
-        return ResponseEntity.ok(ApiResponse.success(toDetailResponse(policyQueryService.findByTypeAndVersion(PolicyType.TERMS_OF_SERVICE, version))));
+        return ResponseEntity.ok(ApiResponse.success(policyService.getTermsOfServiceByVersion(version)));
     }
 
     @Operation(summary = "특정 버전 개인정보처리방침 조회", description = "지정된 버전의 개인정보처리방침을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/privacy-policy/version/{version}")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getPrivacyPolicyByVersion(@PathVariable String version) {
-        return ResponseEntity.ok(ApiResponse.success(toDetailResponse(policyQueryService.findByTypeAndVersion(PolicyType.PRIVACY_POLICY, version))));
+        return ResponseEntity.ok(ApiResponse.success(policyService.getPrivacyPolicyByVersion(version)));
     }
 
     @Operation(summary = "특정 버전 전자금융거래 약관 조회", description = "지정된 버전의 전자금융거래 약관을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/electronic-financial-transactions/version/{version}")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getElectronicFinancialTransactionsByVersion(@PathVariable String version) {
-        return ResponseEntity.ok(ApiResponse.success(toDetailResponse(policyQueryService.findByTypeAndVersion(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS, version))));
+        return ResponseEntity.ok(ApiResponse.success(policyService.getElectronicFinancialTransactionsByVersion(version)));
     }
 
     @Operation(summary = "특정 버전 만 14세 이상 동의 약관 조회", description = "지정된 버전의 만 14세 이상 동의 약관을 조회합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/age-verification/version/{version}")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getAgeVerificationByVersion(@PathVariable String version) {
-        return ResponseEntity.ok(ApiResponse.success(toDetailResponse(policyQueryService.findByTypeAndVersion(PolicyType.AGE_VERIFICATION, version))));
+        return ResponseEntity.ok(ApiResponse.success(policyService.getAgeVerificationByVersion(version)));
     }
 
     @Operation(summary = "이용약관 목록 조회", description = "모든 버전의 이용약관 목록을 조회합니다. (관리자용)")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/terms-of-service")
     public ResponseEntity<ApiResponse<List<PolicyListItemResponse>>> getTermsOfServiceList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<PolicyListItemResponse> pageResult = policyQueryService.findAllByType(PolicyType.TERMS_OF_SERVICE, pageRequest.page(), pageRequest.size())
-            .map(this::toListItemResponse);
-        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements()));
+        var pageResult = policyService.getTermsOfServiceList(pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 
     @Operation(summary = "개인정보처리방침 목록 조회", description = "모든 버전의 개인정보처리방침 목록을 조회합니다. (관리자용)")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/privacy-policy")
     public ResponseEntity<ApiResponse<List<PolicyListItemResponse>>> getPrivacyPolicyList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<PolicyListItemResponse> pageResult = policyQueryService.findAllByType(PolicyType.PRIVACY_POLICY, pageRequest.page(), pageRequest.size())
-            .map(this::toListItemResponse);
-        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements()));
+        var pageResult = policyService.getPrivacyPolicyList(pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 
     @Operation(summary = "전자금융거래 약관 목록 조회", description = "모든 버전의 전자금융거래 약관 목록을 조회합니다. (관리자용)")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/electronic-financial-transactions")
     public ResponseEntity<ApiResponse<List<PolicyListItemResponse>>> getElectronicFinancialTransactionsList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<PolicyListItemResponse> pageResult = policyQueryService.findAllByType(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS, pageRequest.page(), pageRequest.size())
-            .map(this::toListItemResponse);
-        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements()));
+        var pageResult = policyService.getElectronicFinancialTransactionsList(pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 
     @Operation(summary = "만 14세 이상 동의 약관 목록 조회", description = "모든 버전의 만 14세 이상 동의 약관 목록을 조회합니다. (관리자용)")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/age-verification")
     public ResponseEntity<ApiResponse<List<PolicyListItemResponse>>> getAgeVerificationList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<PolicyListItemResponse> pageResult = policyQueryService.findAllByType(PolicyType.AGE_VERIFICATION, pageRequest.page(), pageRequest.size())
-            .map(this::toListItemResponse);
-        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements()));
-    }
-
-    private PolicyDetailResponse toDetailResponse(PolicyDocumentResult result) {
-        return PolicyDetailResponse.from(
-            result.id(),
-            result.type(),
-            result.version(),
-            result.title(),
-            result.content(),
-            result.current(),
-            result.mandatory(),
-            result.effectiveDate(),
-            result.createdAt(),
-            result.updatedAt()
-        );
-    }
-
-    private PolicyListItemResponse toListItemResponse(PolicyListItemResult result) {
-        return PolicyListItemResponse.from(
-            result.id(),
-            result.type(),
-            result.version(),
-            result.title(),
-            result.current(),
-            result.effectiveDate(),
-            result.createdAt()
-        );
+        var pageResult = policyService.getAgeVerificationList(pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 }
