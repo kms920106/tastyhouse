@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.product.application.dto.command.ProductBatchQuery;
+import com.tastyhouse.core.domain.product.application.dto.result.OptionInfo;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductBatchResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
@@ -264,8 +265,6 @@ public class ProductQueryService {
             })
             .toList();
     }
-
-    private record OptionInfo(Long groupId, String name, Integer additionalPrice, boolean common) {}
 
     public Optional<ProductBbq> findFirstBbqWithOptionsSyncPending() {
         return productBbqRepository.findFirstWithOptionsSyncPending();

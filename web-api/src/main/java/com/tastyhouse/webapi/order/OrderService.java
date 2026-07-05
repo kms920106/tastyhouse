@@ -19,6 +19,7 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderProductRequest;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
+import com.tastyhouse.webapi.order.response.OrderListPageResult;
 import com.tastyhouse.webapi.order.response.OrderProductResponse;
 import com.tastyhouse.webapi.order.response.PaymentSummaryResponse;
 
@@ -169,8 +170,5 @@ public class OrderService {
             result.approvedAt(),
             result.createdAt()
         );
-    }
-
-    public record OrderListPageResult(List<OrderListItemResponse> content, int page, int size, long totalElements) {
     }
 }

@@ -1,7 +1,5 @@
 package com.tastyhouse.webapi.policy;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +10,7 @@ import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
 import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
+import com.tastyhouse.webapi.policy.response.PolicyListPageResult;
 
 @Service
 @RequiredArgsConstructor
@@ -97,11 +96,5 @@ public class PolicyService {
             result.effectiveDate(),
             result.createdAt()
         );
-    }
-
-    public record PolicyListPageResult(List<PolicyListItemResponse> content, int page, int size, long totalElements) {
-        public static PolicyListPageResult of(List<PolicyListItemResponse> content, int page, int size, long totalElements) {
-            return new PolicyListPageResult(content, page, size, totalElements);
-        }
     }
 }
