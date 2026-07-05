@@ -1,6 +1,6 @@
 package com.tastyhouse.core.domain.notice.application.dto.command;
 
-public record UpdateNoticeCommand(
+public record NoticeUpdateCommand(
     String title,
     String content,
     boolean visible

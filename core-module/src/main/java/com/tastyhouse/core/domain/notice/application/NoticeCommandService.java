@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.notice.application.dto.command.CreateNoticeCommand;
-import com.tastyhouse.core.domain.notice.application.dto.command.UpdateNoticeCommand;
+import com.tastyhouse.core.domain.notice.application.dto.command.NoticeUpdateCommand;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -24,7 +24,7 @@ public class NoticeCommandService {
         return saved.getId();
     }
 
-    public void updateNotice(Long id, UpdateNoticeCommand command) {
+    public void updateNotice(Long id, NoticeUpdateCommand command) {
         Notice notice = noticeRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
 

@@ -28,12 +28,7 @@ import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
-import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
-import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
-import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
-import com.tastyhouse.core.domain.notice.application.dto.command.CreateNoticeCommand;
-import com.tastyhouse.core.domain.notice.application.dto.command.UpdateNoticeCommand;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.adminapi.notice.response.NoticePageResponse;
 
 @Tag(name = "Notice Admin", description = "공지사항 관리자 API")
 @RestController
@@ -41,8 +36,7 @@ import com.tastyhouse.core.shared.page.PageResult;
 @RequestMapping("/api/notices")
 public class NoticeApiController {
 
-    private final NoticeCommandService noticeCommandService;
-    private final NoticeQueryService noticeQueryService;
+    private final NoticeService noticeService;
 
     @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다. (비노출 공지 포함) title/content는 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
@@ -53,22 +47,15 @@ public class NoticeApiController {
         @RequestParam(required = false) Boolean visible,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        NoticeSearchCondition condition = new NoticeSearchCondition(title, content, visible);
-        PageResult<NoticeListItemResponse> pageResult = noticeQueryService
-            .findAllNotices(condition, pageRequest.page(), pageRequest.size())
-            .map(NoticeListItemResponse::from);
-        return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
+        NoticePageResponse pageResponse = noticeService.getNotices(title, content, visible, pageRequest.page(), pageRequest.size());
+        return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "공지사항 등록", description = "새로운 공지사항을 등록합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "등록 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createNotice(@Valid @RequestBody NoticeCreateRequest request) {
-        Long id = noticeCommandService.createNotice(new CreateNoticeCommand(
-            request.title(),
-            request.content(),
-            request.visible()
-        ));
+        Long id = noticeService.createNotice(request);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
@@ -76,7 +63,7 @@ public class NoticeApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNotice(@PathVariable Long id) {
-        NoticeDetailResponse response = NoticeDetailResponse.from(noticeQueryService.findDetailById(id));
+        NoticeDetailResponse response = noticeService.getNotice(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -87,11 +74,7 @@ public class NoticeApiController {
         @PathVariable Long id,
         @Valid @RequestBody NoticeUpdateRequest request
     ) {
-        noticeCommandService.updateNotice(id, new UpdateNoticeCommand(
-            request.title(),
-            request.content(),
-            request.visible()
-        ));
+        noticeService.updateNotice(id, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -99,7 +82,7 @@ public class NoticeApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "삭제 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteNotice(@PathVariable Long id) {
-        noticeCommandService.deleteNotice(id);
+        noticeService.deleteNotice(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
