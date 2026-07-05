@@ -1,9 +1,15 @@
 import "server-only";
 
 import { api } from "@/api/shared/client";
+import type { ApiPageRequest, ApiResponse } from "@/api/shared/types";
 
-import { ApiResponse } from "@/api/shared/types";
-import type { NoticeDetail, NoticeListItem, NoticeRequest } from "./notice.dto";
+import type {
+  NoticeCreateRequest,
+  NoticeDetail,
+  NoticeListItem,
+  NoticeListQueryRequest,
+  NoticeUpdateRequest,
+} from "./notice.dto";
 
 /**
  * 공지사항 관리자 API
@@ -13,15 +19,14 @@ const ENDPOINT = "/api/notices";
 
 export const noticeRepository = {
   // 공지사항 목록 조회
-  getList(params: {
-    page?: number;
-    size?: number;
-  }): Promise<ApiResponse<NoticeListItem[]>> {
-    return api.get<NoticeListItem[]>(`${ENDPOINT}/v1`, { params });
+  getList(query: NoticeListQueryRequest, pageRequest: ApiPageRequest): Promise<ApiResponse<NoticeListItem[]>> {
+    return api.get<NoticeListItem[]>(`${ENDPOINT}/v1`, {
+      params: { ...query, ...pageRequest },
+    });
   },
 
   // 공지사항 등록
-  create(body: NoticeRequest): Promise<ApiResponse<number>> {
+  create(body: NoticeCreateRequest): Promise<ApiResponse<number>> {
     return api.post<number>(`${ENDPOINT}/v1`, body);
   },
 
@@ -31,7 +36,7 @@ export const noticeRepository = {
   },
 
   // 공지사항 수정
-  update(id: number, body: NoticeRequest): Promise<ApiResponse<null>> {
+  update(id: number, body: NoticeUpdateRequest): Promise<ApiResponse<null>> {
     return api.put<null>(`${ENDPOINT}/v1/${id}`, body);
   },
 

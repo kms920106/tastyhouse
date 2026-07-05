@@ -21,6 +21,21 @@ export function parseNonNegativeInt(value: string | string[] | undefined, fallba
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
+/** searchParams 문자열을 trim 후 비어있지 않으면 반환, 아니면 undefined. (검색어용) */
+export function parseSearchString(value: string | string[] | undefined): string | undefined {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const trimmed = raw?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+/** "true"/"false" 만 boolean 으로, 그 외(생략 포함)는 undefined. (선택 필터용) */
+export function parseOptionalBoolean(value: string | string[] | undefined): boolean | undefined {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (raw === "true") return true;
+  if (raw === "false") return false;
+  return undefined;
+}
+
 export const getInitials = (str: string): string => {
   if (typeof str !== "string" || !str.trim()) return "?";
 

@@ -13,3 +13,8 @@ export interface ApiPagination {
   totalElements: number;
   totalPages: number;
 }
+
+export interface ApiPageRequest {
+  page: number;
+  size: number;
+}

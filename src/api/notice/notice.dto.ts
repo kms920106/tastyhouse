@@ -15,7 +15,19 @@ export interface NoticeDetail {
   updatedAt: string;
 }
 
-export interface NoticeRequest {
+export interface NoticeListQueryRequest {
+  title?: string;
+  content?: string;
+  visible?: boolean;
+}
+
+export interface NoticeCreateRequest {
+  title: string;
+  content: string;
+  visible: boolean;
+}
+
+export interface NoticeUpdateRequest {
   title: string;
   content: string;
   visible: boolean;
