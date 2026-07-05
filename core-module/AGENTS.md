@@ -24,6 +24,7 @@
 - **Spring Web import 금지**: `org.springframework.web.*`, `HttpStatus` 사용 불가. HTTP 상태는 `ErrorCode.httpStatusCode`(int)로만 표현.
 - `@Entity`는 과도기적으로 domain 레이어에 허용되나, `@OneToMany`/`@ManyToOne`/`@ElementCollection` 연관관계 매핑은 **금지** — 외부 참조는 ID VO(`MemberId` 등)로 처리하고 자식 엔티티도 별도 Repository로 분리한다.
 - 새 도메인 추가 시 `domain` / `application` / `infrastructure` 3-레이어 구조를 따른다.
+- **command/condition record는 원시 파라미터 정적 팩토리 `of(...)`를 둔다**: presentation의 Request 타입을 인자로 받는 팩토리는 두지 않는다(레이어 역전 방지). command 생성 책임은 command record 자신이 지고, presentation(Facade/컨트롤러)은 Request를 원시 필드로 언패킹해 `Command.of(...)`를 호출한다. Request DTO에는 `toCommand()` 같은 변환 메서드를 두지 않는다. DTO 조립 규칙 전반은 루트 [CLAUDE.md](../CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
 
 ### Testing Requirements
 - `@DataJpaTest` 또는 Testcontainers 기반 통합 테스트.

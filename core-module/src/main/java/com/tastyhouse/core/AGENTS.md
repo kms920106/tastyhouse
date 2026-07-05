@@ -76,6 +76,10 @@ presentation(web-api, admin-api)
 - CommandService: write 작업 (@Transactional)
 - QueryService: read 작업 (@Transactional(readOnly = true))
 
+**DTO 조립 규칙**:
+- command/condition record에 원시 파라미터용 정적 팩토리 `of(...)`를 둔다. presentation(web-api/admin-api)의 Request 타입을 인자로 받는 팩토리는 금지(레이어 역전 방지). command 생성은 command record 자신의 `of(...)`가 담당하고, presentation의 Facade/컨트롤러는 Request를 원시 필드로 언패킹해 넘긴다 — Request DTO에 `toCommand()` 같은 변환 메서드를 두지 않는다.
+- 호출부는 `new`로 DTO를 직접 조립하지 않고 정적 팩토리로 위임한다. 상세는 루트 [CLAUDE.md](../../../../../../../CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
+
 ### Testing Requirements
 
 - `hibernate.ddl-auto=validate` 적용하여 스키마 무변경 확인

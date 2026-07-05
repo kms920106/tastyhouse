@@ -35,6 +35,8 @@
 - **커밋/롤백 금지** (`NO_COMMIT_OR_ROLLBACK`): 사용자가 명시적으로 요청하지 않는 한 git 커밋·롤백을 하지 않는다.
 - 네이밍은 명확하고 의미 있는 이름을 선택한다.
 - 변경 전 반드시 `md/CLEAN-ARCHITECTURE.md`의 레이어 의존 규칙을 따른다.
+- **DTO 조립은 `new` 직접 호출을 지양**한다: 컨트롤러·Facade·서비스 등 호출부에서 command/condition/response record를 `new`로 조립하지 않고, 대상 record 자신의 정적 팩토리 `of(...)`/`from(...)`로 위임한다. Request DTO는 command 생성 책임을 지지 않는 순수 데이터 홀더로 유지하며, 컨트롤러가 Request를 원시 필드로 언패킹해 Facade/서비스에 전달한다. `new`는 팩토리 메서드 내부에만 남긴다. 상세 규칙과 reference 구현(admin-api notice)은 [CLAUDE.md](CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
+- **presentation의 core 결합 격리**: admin-api·web-api 모두 컨트롤러가 `core-module`에 직접 결합되는 것을 막기 위해 도메인별 Facade(`{도메인}Service`)를 두어 컨트롤러 ↔ core 사이를 중개한다(reference: `admin-api/notice/NoticeService`). Facade가 core 서비스 호출과 core DTO↔Request/Response 변환을 전담하며, 컨트롤러는 `com.tastyhouse.core.*`를 import하지 않는다(각 모듈 `AGENTS.md` 참조).
 - **import 순서** (Spring Framework 공식 컨벤션 `SpringImportOrderCheck`와 동일): `java.*` → `javax.*` → 그 외 전부(`jakarta.*` 포함, org/io/lombok/com.* 등 알파벳 혼합) → 자사(`com.tastyhouse.*`) → static import(맨 아래) 순서로 그룹을 나누고, 그룹 사이 빈 줄 1개, 그룹 내부는 알파벳 순 정렬한다. 상세 규칙, 예시, 참고 URL은 [CLAUDE.md](CLAUDE.md#코딩-스타일-import-순서) 참고.
 
 ### Module Dependency Graph
