@@ -22,7 +22,7 @@ public class AdminAccountService {
 
     public Long create(AdminCreateRequest request) {
         String encodedPassword = passwordEncoder.encode(request.password());
-        return adminCommandService.createAdmin(new CreateAdminCommand(
+        return adminCommandService.createAdmin(CreateAdminCommand.of(
             request.username(),
             encodedPassword,
             request.name(),

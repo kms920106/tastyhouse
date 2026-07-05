@@ -19,10 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.policy.request.PolicyCreateRequest;
 import com.tastyhouse.adminapi.policy.request.PolicyUpdateRequest;
-import com.tastyhouse.core.domain.policy.application.PolicyCommandService;
-import com.tastyhouse.core.domain.policy.application.dto.command.CreatePolicyCommand;
-import com.tastyhouse.core.domain.policy.application.dto.command.UpdatePolicyCommand;
-import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 
 @Tag(name = "Policy Admin", description = "약관 및 정책 관리자 API")
 @RestController
@@ -30,13 +26,13 @@ import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 @RequestMapping("/api/policies")
 public class PolicyAdminApiController {
 
-    private final PolicyCommandService policyCommandService;
+    private final PolicyService policyService;
 
     @Operation(summary = "약관 생성", description = "새로운 약관을 생성합니다.")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "생성 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createPolicy(@Valid @RequestBody PolicyCreateRequest request) {
-        PolicyDocumentId id = policyCommandService.createPolicy(new CreatePolicyCommand(
+        Long id = policyService.createPolicy(
             request.type(),
             request.version(),
             request.title(),
@@ -44,8 +40,8 @@ public class PolicyAdminApiController {
             request.mandatory(),
             request.effectiveDate(),
             request.createdBy()
-        ));
-        return ResponseEntity.ok(ApiResponse.success(id.value()));
+        );
+        return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "약관 수정", description = "기존 약관을 수정합니다.")
@@ -55,13 +51,14 @@ public class PolicyAdminApiController {
         @PathVariable Long id,
         @Valid @RequestBody PolicyUpdateRequest request
     ) {
-        policyCommandService.updatePolicy(new PolicyDocumentId(id), new UpdatePolicyCommand(
+        policyService.updatePolicy(
+            id,
             request.title(),
             request.content(),
             request.mandatory(),
             request.effectiveDate(),
             request.updatedBy()
-        ));
+        );
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -69,7 +66,7 @@ public class PolicyAdminApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "변경 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @PatchMapping("/v1/{id}/current")
     public ResponseEntity<ApiResponse<Void>> updateCurrentPolicy(@PathVariable Long id) {
-        policyCommandService.activatePolicy(new PolicyDocumentId(id));
+        policyService.activateCurrentPolicy(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

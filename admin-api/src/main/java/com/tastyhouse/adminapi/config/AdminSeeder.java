@@ -41,7 +41,7 @@ public class AdminSeeder {
                 throw new IllegalStateException(
                     "최초 SUPER_ADMIN을 생성하려면 ADMIN_SEED_PASSWORD 환경변수로 안전한 비밀번호를 지정해야 합니다.");
             }
-            adminCommandService.createAdmin(new CreateAdminCommand(
+            adminCommandService.createAdmin(CreateAdminCommand.of(
                 username,
                 passwordEncoder.encode(seedProperties.getPassword()),
                 seedProperties.getName(),
