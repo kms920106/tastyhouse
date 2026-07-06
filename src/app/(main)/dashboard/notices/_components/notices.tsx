@@ -14,6 +14,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { NoticeListItem } from "@/feature/notice/domain";
+import { NOTICE_PAGE_COPY } from "@/feature/notice/message";
 
 import { DeleteNoticeDialog } from "./delete-notice-dialog";
 import { NoticeDetailSheet } from "./notice-detail-sheet";
@@ -115,8 +116,8 @@ export function Notices({ notices, pagination, initialTitle, initialContent, ini
   return (
     <Card>
       <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-        <CardTitle className="text-xl leading-none">공지사항</CardTitle>
-        <CardDescription className="max-w-sm leading-snug">서비스 공지사항을 등록하고 관리합니다.</CardDescription>
+        <CardTitle className="text-xl leading-none">{NOTICE_PAGE_COPY.TITLE}</CardTitle>
+        <CardDescription className="max-w-sm leading-snug">{NOTICE_PAGE_COPY.DESCRIPTION}</CardDescription>
         <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
           <Button size="sm" onClick={openCreate}>
             <Plus /> 공지 등록

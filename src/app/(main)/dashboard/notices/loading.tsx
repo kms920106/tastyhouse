@@ -1,21 +1,8 @@
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { NOTICE_PAGE_COPY } from "@/feature/notice/message";
 
 const SKELETON_ROW_COUNT = 10;
 
@@ -32,11 +19,8 @@ export default function NoticesLoading() {
   return (
     <Card>
       <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-        <CardTitle className="text-xl leading-none">공지사항</CardTitle>
-        <CardDescription className="max-w-sm leading-snug">
-          서비스 공지사항을 등록하고 관리합니다. 활성화된 공지만 목록에
-          표시됩니다.
-        </CardDescription>
+        <CardTitle className="text-xl leading-none">{NOTICE_PAGE_COPY.TITLE}</CardTitle>
+        <CardDescription className="max-w-sm leading-snug">{NOTICE_PAGE_COPY.DESCRIPTION}</CardDescription>
         <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
           <Skeleton className="h-8 w-24" />
         </CardAction>
@@ -59,17 +43,10 @@ export default function NoticesLoading() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Array.from(
-                  { length: SKELETON_ROW_COUNT },
-                  (_, index) => `notice-row-skeleton-${index}`,
-                ).map((key) => (
+                {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => `notice-row-skeleton-${index}`).map((key) => (
                   <TableRow key={key} className="border-border/60">
                     {SKELETON_COLUMNS.map((column) => (
-                      <TableCell
-                        key={column.id}
-                        className="px-3 py-4 align-middle"
-                        style={{ width: column.width }}
-                      >
+                      <TableCell key={column.id} className="px-3 py-4 align-middle" style={{ width: column.width }}>
                         <div className="flex h-8 items-center">
                           <Skeleton className="h-5 w-full" />
                         </div>
