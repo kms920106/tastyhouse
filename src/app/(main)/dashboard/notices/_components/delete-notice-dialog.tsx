@@ -29,12 +29,12 @@ export function DeleteNoticeDialog({ notice, onOpenChange }: DeleteNoticeDialogP
   function handleDelete() {
     if (!notice) return;
     startTransition(async () => {
-      const result = await deleteNoticeAction(notice.id);
-      if (result.success) {
+      const { success, message } = await deleteNoticeAction(notice.id);
+      if (success) {
         toast.success(NOTICE_MESSAGE.DELETE_SUCCESS);
         onOpenChange(false);
       } else {
-        toast.error(result.message ?? NOTICE_MESSAGE.DELETE_FAILED);
+        toast.error(message ?? NOTICE_MESSAGE.DELETE_FAILED);
       }
     });
   }

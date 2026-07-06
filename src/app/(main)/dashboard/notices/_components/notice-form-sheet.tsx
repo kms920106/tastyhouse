@@ -28,7 +28,6 @@ import { NOTICE_CONTENT_MAX, NOTICE_TITLE_MAX, type NoticeFormValues, noticeForm
 interface NoticeFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** 수정 대상. 없으면 생성 모드. */
   notice?: Pick<NoticeListItem, "id" | "title" | "content" | "visible"> | null;
 }
 
@@ -54,13 +53,15 @@ export function NoticeFormSheet({ open, onOpenChange, notice }: NoticeFormSheetP
 
   const onSubmit = (values: NoticeFormValues) => {
     startTransition(async () => {
-      const result = notice ? await updateNoticeAction(notice.id, values) : await createNoticeAction(values);
+      const { success, message } = notice
+        ? await updateNoticeAction(notice.id, values)
+        : await createNoticeAction(values);
 
-      if (result.success) {
+      if (success) {
         toast.success(isEdit ? NOTICE_MESSAGE.UPDATE_SUCCESS : NOTICE_MESSAGE.CREATE_SUCCESS);
         onOpenChange(false);
       } else {
-        toast.error(result.message ?? NOTICE_MESSAGE.CREATE_UPDATE_FAILED);
+        toast.error(message ?? NOTICE_MESSAGE.CREATE_UPDATE_FAILED);
       }
     });
   };

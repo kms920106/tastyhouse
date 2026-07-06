@@ -42,11 +42,13 @@ export function NoticeDetailSheet({ noticeId, onOpenChange }: NoticeDetailSheetP
     setDetail(null);
 
     void fetchNoticeAction(noticeId).then((result) => {
+      const { success, message, data } = result;
+
       if (!active) return;
-      if (result.success && result.data) {
-        setDetail(result.data);
+      if (success && data) {
+        setDetail(data);
       } else {
-        setError(result.message ?? NOTICE_MESSAGE.DETAIL_LOAD_FAILED);
+        setError(message ?? NOTICE_MESSAGE.DETAIL_LOAD_FAILED);
       }
       setIsLoading(false);
     });
