@@ -11,17 +11,17 @@ import { type NoticeFormValues, noticeFormSchema } from "./schema";
 
 const NOTICES_PATH = "/dashboard/notices";
 
-interface ActionResult {
+type ActionResult = {
   success: boolean;
   message?: string;
   id?: number;
-}
+};
 
-interface NoticeDetailResult {
+type NoticeDetailResult = {
   success: boolean;
   message?: string;
   data?: NoticeDetail;
-}
+};
 
 // 공지사항 등록
 export async function createNoticeAction(values: NoticeFormValues): Promise<ActionResult> {
