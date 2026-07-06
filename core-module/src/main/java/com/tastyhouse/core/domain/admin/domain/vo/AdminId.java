@@ -7,4 +7,8 @@ public record AdminId(Long value) {
             throw new IllegalArgumentException("AdminId는 양수여야 합니다: " + value);
         }
     }
+
+    public static AdminId of(Long value) {
+        return new AdminId(value);
+    }
 }

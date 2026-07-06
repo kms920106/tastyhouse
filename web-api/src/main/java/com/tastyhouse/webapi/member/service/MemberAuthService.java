@@ -27,7 +27,7 @@ public class MemberAuthService {
     // 입력한 비밀번호가 저장된 비밀번호와 일치하는지 검증
     @Transactional(readOnly = true)
     public void verifyPassword(Long memberId, String rawPassword) {
-        Member member = memberQueryService.getById(new MemberId(memberId));
+        Member member = memberQueryService.getById(MemberId.of(memberId));
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_MISMATCH);
@@ -96,7 +96,7 @@ public class MemberAuthService {
     // 새 비밀번호가 기존 비밀번호와 동일한 경우 예외 처리
     @Transactional(readOnly = true)
     public void verifyNotSamePassword(Long memberId, String newPassword) {
-        Member member = memberQueryService.getById(new MemberId(memberId));
+        Member member = memberQueryService.getById(MemberId.of(memberId));
         if (passwordEncoder.matches(newPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
         }

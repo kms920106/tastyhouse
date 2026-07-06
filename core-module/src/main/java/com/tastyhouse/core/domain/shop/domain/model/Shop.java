@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -50,4 +51,8 @@ public class Shop extends BaseEntity {
 
     @Column(name = "is_permanently_closed", nullable = false)
     private boolean permanentlyClosed; // 폐업 여부 (true: 폐업)
+
+    public ShopId getShopId() {
+        return ShopId.of(this.id);
+    }
 }

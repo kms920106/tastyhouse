@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -58,7 +59,7 @@ public class UploadedFile extends BaseEntity {
     }
 
     public UploadedFileId getUploadedFileId() {
-        return new UploadedFileId(this.id);
+        return UploadedFileId.of(this.id);
     }
 
     public static UploadedFile of(

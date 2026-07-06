@@ -2,8 +2,10 @@ package com.tastyhouse.core.domain.notice.application.dto;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
+
 public record NoticeDetailDto(
-    Long id,
+    NoticeId noticeId,
     String title,
     String content,
     boolean visible,
@@ -11,13 +13,13 @@ public record NoticeDetailDto(
     LocalDateTime updatedAt
 ) {
     public static NoticeDetailDto from(
-        Long id,
+        NoticeId noticeId,
         String title,
         String content,
         boolean visible,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        return new NoticeDetailDto(id, title, content, visible, createdAt, updatedAt);
+        return new NoticeDetailDto(noticeId, title, content, visible, createdAt, updatedAt);
     }
 }

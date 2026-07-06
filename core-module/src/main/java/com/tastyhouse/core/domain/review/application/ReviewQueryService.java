@@ -30,6 +30,8 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewTagRepository;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -55,14 +57,14 @@ public class ReviewQueryService {
         return reviewRepository.findBestReviews(pageQuery);
     }
 
-    public Review findById(Long id) {
+    public Review findById(ReviewId id) {
         return reviewRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
     }
 
-    public Optional<ReviewDetailResult> findReviewDetail(Long reviewId) {
+    public Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId) {
         return reviewRepository.findReviewDetail(reviewId).map(result -> {
-            List<Long> tagIds = reviewTagRepository.findTagIdsByReviewId(reviewId);
+            List<Long> tagIds = reviewTagRepository.findTagIdsByReviewId(reviewId.value());
             if (!tagIds.isEmpty()) {
                 List<String> tagNames = tagRepository.findTagNamesByIds(tagIds);
                 return result.withTagNames(tagNames);
@@ -71,7 +73,7 @@ public class ReviewQueryService {
         });
     }
 
-    public boolean isLikedByMember(Long reviewId, Long memberId) {
+    public boolean isLikedByMember(ReviewId reviewId, Long memberId) {
         return reviewLikeRepository.existsByReviewIdAndMemberId(reviewId, memberId);
     }
 
@@ -221,11 +223,11 @@ public class ReviewQueryService {
         return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
     }
 
-    public List<ReviewComment> findCommentsByReviewId(Long reviewId) {
+    public List<ReviewComment> findCommentsByReviewId(ReviewId reviewId) {
         return reviewCommentRepository.findByReviewIdOrderByCreatedAtDesc(reviewId);
     }
 
-    public List<ReviewReply> findRepliesByCommentIds(List<Long> commentIds) {
+    public List<ReviewReply> findRepliesByCommentIds(List<ReviewCommentId> commentIds) {
         if (commentIds.isEmpty()) {
             return List.of();
         }

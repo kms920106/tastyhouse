@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
+import com.tastyhouse.core.domain.faq.domain.vo.FaqId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -33,4 +34,8 @@ public class Faq extends BaseEntity {
 
     @Column(name = "is_visible", nullable = false)
     private boolean visible = true;
+
+    public FaqId getFaqId() {
+        return FaqId.of(this.id);
+    }
 }

@@ -20,6 +20,7 @@ import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepos
 import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -61,8 +62,8 @@ public class ReservationCreator {
         }
 
         // 4. 가게/회원 검증 (가게 이름 확보)
-        Shop shop = shopQueryService.findShopById(cmd.shopId());
-        memberQueryService.getById(new MemberId(memberId));
+        Shop shop = shopQueryService.findShopById(ShopId.of(cmd.shopId()));
+        memberQueryService.getById(MemberId.of(memberId));
 
         // 5. 본인 중복 차단 (같은 가게 + 같은 날짜에 재예약 차단 예약 1건 제한)
         if (reservationRepository.existsBlockingByMemberShopDate(memberId, cmd.shopId(), cmd.date())) {

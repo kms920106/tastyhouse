@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -125,6 +126,10 @@ public class Review extends BaseEntity {
             willRevisit,
             orderId
         );
+    }
+
+    public ReviewId getReviewId() {
+        return ReviewId.of(this.id);
     }
 
     public void updateContent(

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.review.domain.model.ReviewLike;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 
 import static com.tastyhouse.core.domain.review.domain.model.QReviewLike.reviewLike;
 
@@ -17,23 +18,23 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
     private final ReviewLikeJpaRepository reviewLikeJpaRepository;
 
     @Override
-    public boolean existsByReviewIdAndMemberId(Long reviewId, Long memberId) {
+    public boolean existsByReviewIdAndMemberId(ReviewId reviewId, Long memberId) {
         return queryFactory
             .selectOne()
             .from(reviewLike)
             .where(
-                reviewLike.reviewId.eq(reviewId),
+                reviewLike.reviewId.eq(reviewId.value()),
                 reviewLike.memberId.eq(memberId)
             )
             .fetchFirst() != null;
     }
 
     @Override
-    public void deleteByReviewIdAndMemberId(Long reviewId, Long memberId) {
+    public void deleteByReviewIdAndMemberId(ReviewId reviewId, Long memberId) {
         queryFactory
             .delete(reviewLike)
             .where(
-                reviewLike.reviewId.eq(reviewId),
+                reviewLike.reviewId.eq(reviewId.value()),
                 reviewLike.memberId.eq(memberId)
             )
             .execute();

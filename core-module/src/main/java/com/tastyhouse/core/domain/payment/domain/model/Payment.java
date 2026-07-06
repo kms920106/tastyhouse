@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.order.infrastructure.persistence.converter.OrderIdConverter;
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
+import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.core.domain.payment.domain.vo.PgOrderId;
 import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.AmountConverter;
 import com.tastyhouse.core.exception.BusinessException;
@@ -96,6 +97,10 @@ public class Payment extends BaseEntity {
 
     public static Payment create(OrderId orderId, PaymentMethod paymentMethod, Amount amount, PgOrderId pgOrderId) {
         return new Payment(orderId, paymentMethod, amount, pgOrderId);
+    }
+
+    public PaymentId getPaymentId() {
+        return PaymentId.of(this.id);
     }
 
     public void complete(String pgTid, LocalDateTime approvedAt, String receiptUrl) {

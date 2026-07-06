@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepository;
+import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 
 import static com.tastyhouse.core.domain.order.domain.model.QOrderProductOption.orderProductOption;
 
@@ -19,9 +20,9 @@ public class OrderProductOptionRepositoryImpl implements OrderProductOptionRepos
     private final OrderProductOptionJpaRepository orderProductOptionJpaRepository;
 
     @Override
-    public List<OrderProductOption> findByOrderProductId(Long orderProductId) {
+    public List<OrderProductOption> findByOrderProductId(OrderProductId orderProductId) {
         return queryFactory.selectFrom(orderProductOption)
-            .where(orderProductOption.orderProductId.eq(orderProductId))
+            .where(orderProductOption.orderProductId.eq(orderProductId.value()))
             .fetch();
     }
 

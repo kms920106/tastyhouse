@@ -134,7 +134,7 @@ public class Member extends BaseEntity {
     }
 
     public MemberId getMemberId() {
-        return new MemberId(this.id);
+        return MemberId.of(this.id);
     }
 
     public void updatePassword(String encodedPassword) {

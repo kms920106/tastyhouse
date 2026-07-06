@@ -68,7 +68,7 @@ public class RankService {
 
         MemberRankResult dto = rankQueryService.findMemberRank(memberId, type, baseDate);
         if (dto == null) {
-            MemberWithProfileImageResult member = memberQueryService.findMemberWithProfileImage(new MemberId(memberId))
+            MemberWithProfileImageResult member = memberQueryService.findMemberWithProfileImage(MemberId.of(memberId))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
             return MemberRankListItemResponse.of(
                 memberId,

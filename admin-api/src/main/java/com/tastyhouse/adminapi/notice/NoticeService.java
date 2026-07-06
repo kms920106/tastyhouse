@@ -12,6 +12,7 @@ import com.tastyhouse.core.domain.notice.application.dto.NoticeDetailDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.application.dto.command.CreateNoticeCommand;
 import com.tastyhouse.core.domain.notice.application.dto.command.NoticeUpdateCommand;
+import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
 import com.tastyhouse.core.shared.page.PageResult;
 
 @Service
@@ -29,19 +30,20 @@ public class NoticeService {
     }
 
     public Long createNotice(String title, String content, boolean visible) {
-        return noticeCommandService.createNotice(CreateNoticeCommand.of(title, content, visible));
+        NoticeId noticeId = noticeCommandService.createNotice(CreateNoticeCommand.of(title, content, visible));
+        return noticeId.value();
     }
 
     public NoticeDetailResponse getNotice(Long id) {
-        NoticeDetailDto noticeDetail = noticeQueryService.findDetailById(id);
+        NoticeDetailDto noticeDetail = noticeQueryService.findDetailById(NoticeId.of(id));
         return NoticeDetailResponse.from(noticeDetail);
     }
 
     public void updateNotice(Long id, String title, String content, boolean visible) {
-        noticeCommandService.updateNotice(id, NoticeUpdateCommand.of(title, content, visible));
+        noticeCommandService.updateNotice(NoticeId.of(id), NoticeUpdateCommand.of(title, content, visible));
     }
 
     public void deleteNotice(Long id) {
-        noticeCommandService.deleteNotice(id);
+        noticeCommandService.deleteNotice(NoticeId.of(id));
     }
 }

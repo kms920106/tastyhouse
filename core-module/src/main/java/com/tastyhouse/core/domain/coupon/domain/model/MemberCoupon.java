@@ -14,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -81,7 +82,7 @@ public class MemberCoupon extends BaseEntity {
     }
 
     public MemberCouponId getMemberCouponId() {
-        return new MemberCouponId(this.id);
+        return MemberCouponId.of(this.id);
     }
 
     public void use() {

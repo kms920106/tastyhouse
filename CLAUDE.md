@@ -34,6 +34,44 @@ reference 구현: `admin-api`의 `notice` 도메인 — `CreateNoticeCommand.of(
 
 reference 구현: `web-api`의 `NoticeListPageResult`(`notice/response/`), `PolicyListPageResult`(`policy/response/`), `OrderListPageResult`(`order/response/`)와 `core-module`의 `OptionInfo`(`product/application/dto/result/`, `private` → `public` 격상).
 
+## ID VO(식별자 값 객체) 경계 규칙
+
+도메인 식별자는 계층에 따라 `Long`과 `XxxId`(record VO)를 구분해서 사용합니다. 같은 코드베이스에서 도메인마다 이 규칙이 갈리면(예: `getMemberId()`가 도메인에 따라 `MemberId`를 반환하기도, `Long` FK를 반환하기도 하는 것처럼) 같은 메서드 이름이 다른 타입을 의미하게 되어 혼동과 버그를 유발합니다. 아래 표의 경계선을 기준으로 전 도메인에 동일하게 적용합니다.
+
+| 계층 | ID 타입 | 비고 |
+|---|---|---|
+| HTTP 경계 (컨트롤러 `@PathVariable`/요청·응답 필드) | `Long` | `XxxId`는 web-api/admin-api 밖으로 노출하지 않습니다 |
+| web-api/admin-api Service | 입력은 `Long`, 여기서 `XxxId`로 승격 | `XxxId.of(long)` 정적 팩토리로 승격(`new` 직접 호출 금지) |
+| core-module application 서비스 public 시그니처 | `XxxId` | Command/Condition DTO 필드도 동일 |
+| Repository 인터페이스 (`findById` 등) | `XxxId` | |
+| 도메인 모델 내부 / 도메인 이벤트 | `XxxId` | |
+| 엔티티 `@Id` 필드 | `Long` + `@GeneratedValue(IDENTITY)` | 유지 — VO로 바꾸지 않습니다 |
+| 엔티티 자기 ID getter | `getXxxId(): XxxId` | 내부 `Long id`를 VO로 래핑해 노출 |
+| 엔티티 FK 필드(다른 애그리거트 참조) | 가능하면 `@Convert`로 `XxxId` | 일괄 강제 아님, 점진적으로 전환 |
+| 결과 DTO(result record)에서 id 추출 | `entity.getXxxId()` | `getId()`(Long)를 응답에 직접 노출하지 않습니다 |
+
+**`XxxId` VO 표준 형태** (`core-module/.../<domain>/domain/vo/XxxId.java`):
+
+```java
+public record XxxId(Long value) {
+
+    public XxxId {
+        if (value == null || value <= 0) {
+            throw new IllegalArgumentException("XxxId는 양수여야 합니다: " + value);
+        }
+    }
+
+    public static XxxId of(Long value) {
+        return new XxxId(value);
+    }
+}
+```
+
+- `Long → XxxId` 승격도 위 DTO 조립 규칙과 동일하게 `new XxxId(id)` 대신 `XxxId.of(id)`를 사용합니다. `new`는 `of()` 팩토리 내부에만 남습니다.
+- FK를 VO로 매핑할 때는 `AttributeConverter<XxxId, Long>` 컨버터를 두고 엔티티 필드에 `@Convert`를 적용합니다.
+
+reference 구현: `policy` 도메인 — `PolicyDocumentId`, `PolicyCommandService`(파라미터/반환이 `PolicyDocumentId`), `PolicyDocumentRepository.findById(PolicyDocumentId)`, `PolicyService`(admin-api, `Long↔VO` 승격 담당). FK `@Convert` 레퍼런스: `payment` 도메인의 `Payment.orderId : OrderId`.
+
 ## 코딩 스타일 (import 순서)
 
 Spring Framework가 자기 코드베이스에 강제하는 공식 컨벤션(`spring-javaformat`의 `SpringImportOrderCheck`)과 동일한 규칙을 따릅니다. 모든 Java 파일의 import는 아래 4개 그룹 순서로 배치합니다. **그룹 사이에는 빈 줄 1개**, 그룹 내부는 **알파벳(ASCII) 오름차순** 정렬, 그룹 내부에는 빈 줄을 넣지 않습니다.

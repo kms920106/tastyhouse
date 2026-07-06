@@ -77,7 +77,7 @@ public class MemberAccountService {
         }
 
         memberCommandService.updatePassword(
-            new MemberId(memberId),
+            MemberId.of(memberId),
             passwordEncoder.encode(newPassword)
         );
     }
@@ -90,7 +90,7 @@ public class MemberAccountService {
         String reasonDetail
     ) {
         memberCommandService.withdraw(
-            WithdrawMemberCommand.of(new MemberId(memberId), reason, reasonDetail)
+            WithdrawMemberCommand.of(MemberId.of(memberId), reason, reasonDetail)
         );
     }
 
@@ -122,7 +122,7 @@ public class MemberAccountService {
     ) {
         memberCommandService.updatePersonalInfo(
             UpdatePersonalInfoCommand.of(
-                new MemberId(memberId),
+                MemberId.of(memberId),
                 fullName,
                 phoneNumber,
                 birthDate,
@@ -137,7 +137,7 @@ public class MemberAccountService {
     // 회원의 프로필 조회
     @Transactional(readOnly = true)
     public MemberProfileResponse getMemberProfile(Long targetMemberId) {
-        MemberWithProfileImageResult result = memberQueryService.findMemberWithProfileImage(new MemberId(targetMemberId))
+        MemberWithProfileImageResult result = memberQueryService.findMemberWithProfileImage(MemberId.of(targetMemberId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return MemberProfileResponse.from(
@@ -151,7 +151,7 @@ public class MemberAccountService {
     // 로그인한 회원 본인의 프로필 조회 (소유권 비교용 식별자 id 포함)
     @Transactional(readOnly = true)
     public MyProfileResponse getMyProfile(Long memberId) {
-        MemberWithProfileImageResult result = memberQueryService.findMemberWithProfileImage(new MemberId(memberId))
+        MemberWithProfileImageResult result = memberQueryService.findMemberWithProfileImage(MemberId.of(memberId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return MyProfileResponse.from(
@@ -173,7 +173,7 @@ public class MemberAccountService {
     ) {
         memberCommandService.updateProfile(
             UpdateProfileCommand.of(
-                new MemberId(memberId),
+                MemberId.of(memberId),
                 nickname,
                 statusMessage,
                 profileImageFileId
@@ -184,7 +184,7 @@ public class MemberAccountService {
     // 회원의 개인정보를 조회하여 반환
     @Transactional(readOnly = true)
     public PersonalInfoResponse getPersonalInfo(Long memberId) {
-        Member member = memberQueryService.getById(new MemberId(memberId));
+        Member member = memberQueryService.getById(MemberId.of(memberId));
         return PersonalInfoResponse.from(member);
     }
 }

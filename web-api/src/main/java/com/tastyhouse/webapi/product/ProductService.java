@@ -14,6 +14,7 @@ import com.tastyhouse.core.domain.product.application.dto.result.ProductBatchRes
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
 import com.tastyhouse.core.domain.product.domain.model.Product;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ProductReviewStatisticsResult;
@@ -64,7 +65,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductDetailResponse findProductById(Long productId) {
-        Product product = productQueryService.findProductById(productId)
+        Product product = productQueryService.findProductById(ProductId.of(productId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         return ProductDetailResponse.from(
             product.getId(),
@@ -79,7 +80,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductReviewCountResponse findProductReviewCount(Long productId) {
-        productQueryService.findProductById(productId)
+        productQueryService.findProductById(ProductId.of(productId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         ProductReviewStatisticsResult statistics = reviewQueryService.findProductReviewStatistics(productId);
         Long total = statistics.totalReviewCount();
@@ -88,7 +89,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductOptionGroupsResponse findProductOptions(Long productId) {
-        productQueryService.findProductById(productId)
+        productQueryService.findProductById(ProductId.of(productId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         ProductOptionsResult result = productQueryService.findProductOptions(productId);
         return ProductOptionGroupsResponse.from(convertToOptionGroupResponses(result));
@@ -148,7 +149,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductImagesResponse findProductImages(Long productId) {
-        productQueryService.findProductById(productId)
+        productQueryService.findProductById(ProductId.of(productId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         List<String> imageUrls = productQueryService.getAllImageFilePaths(productId).stream()
             .map(fileService::getUrlByPath)
@@ -198,7 +199,7 @@ public class ProductService {
     public ProductReviewStatisticsResponse getProductReviewStatistics(Long productId) {
         ProductReviewStatisticsResult statistics = reviewQueryService.findProductReviewStatistics(productId);
 
-        Product product = productQueryService.findProductById(productId)
+        Product product = productQueryService.findProductById(ProductId.of(productId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
         return ProductReviewStatisticsResponse.from(

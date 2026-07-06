@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.product.domain.vo.ProductDiscountInfo;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -118,6 +119,10 @@ public class Product extends BaseEntity {
             rating, reviewCount, representative, spiciness,
             soldOut, visible, sort
         );
+    }
+
+    public ProductId getProductId() {
+        return ProductId.of(this.id);
     }
 
     public Integer getDiscountPrice() {

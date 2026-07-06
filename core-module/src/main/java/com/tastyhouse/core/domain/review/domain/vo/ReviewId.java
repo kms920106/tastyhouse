@@ -7,4 +7,8 @@ public record ReviewId(Long value) {
             throw new IllegalArgumentException("ReviewId는 양수여야 합니다: " + value);
         }
     }
+
+    public static ReviewId of(Long value) {
+        return new ReviewId(value);
+    }
 }

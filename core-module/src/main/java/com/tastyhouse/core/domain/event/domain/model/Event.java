@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.event.domain.vo.EventId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -105,5 +106,9 @@ public class Event extends BaseEntity {
             startAt,
             endAt
         );
+    }
+
+    public EventId getEventId() {
+        return EventId.of(this.id);
     }
 }

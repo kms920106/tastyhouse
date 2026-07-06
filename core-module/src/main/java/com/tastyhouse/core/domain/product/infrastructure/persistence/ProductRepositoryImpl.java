@@ -16,6 +16,7 @@ import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountPr
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -140,8 +141,8 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public Optional<Product> findById(Long id) {
-        return productJpaRepository.findById(id);
+    public Optional<Product> findById(ProductId id) {
+        return productJpaRepository.findById(id.value());
     }
 
     @Override

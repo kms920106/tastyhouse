@@ -15,6 +15,7 @@ import com.tastyhouse.core.domain.reservation.application.ReservationQueryServic
 import com.tastyhouse.core.domain.reservation.application.dto.command.CreateReservationCommand;
 import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
+import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
@@ -65,13 +66,13 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public ReservationCompleteDetailResponse getDetail(Long memberId, Long reservationId) {
-        ReservationResult result = reservationQueryService.findDetail(memberId, reservationId);
+        ReservationResult result = reservationQueryService.findDetail(memberId, ReservationId.of(reservationId));
         return ReservationCompleteDetailResponse.from(result, fileService.getUrlByPath(result.shopImageUrl()));
     }
 
     @Transactional(readOnly = true)
     public ReservationDetailResponse getReservationDetail(Long memberId, Long reservationId) {
-        ReservationResult result = reservationQueryService.findDetail(memberId, reservationId);
+        ReservationResult result = reservationQueryService.findDetail(memberId, ReservationId.of(reservationId));
         Member reserver = memberQueryService.getById(result.memberId());
         String phoneNumber = reserver.getPhoneNumber() != null ? reserver.getPhoneNumber().getValue() : null;
         return ReservationDetailResponse.from(
@@ -84,21 +85,21 @@ public class ReservationService {
     }
 
     public void cancel(Long reservationId, Long memberId) {
-        reservationCommandService.cancel(reservationId, memberId);
+        reservationCommandService.cancel(ReservationId.of(reservationId), memberId);
     }
 
     public ReservationResponse confirm(Long reservationId) {
-        ReservationResult result = reservationCommandService.confirm(reservationId);
+        ReservationResult result = reservationCommandService.confirm(ReservationId.of(reservationId));
         return ReservationResponse.from(result);
     }
 
     public ReservationResponse reject(Long reservationId) {
-        ReservationResult result = reservationCommandService.reject(reservationId);
+        ReservationResult result = reservationCommandService.reject(ReservationId.of(reservationId));
         return ReservationResponse.from(result);
     }
 
     public ReservationResponse complete(Long reservationId) {
-        ReservationResult result = reservationCommandService.complete(reservationId);
+        ReservationResult result = reservationCommandService.complete(ReservationId.of(reservationId));
         return ReservationResponse.from(result);
     }
 

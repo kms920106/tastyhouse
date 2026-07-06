@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.product.domain.vo.ProductOptionId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -65,6 +66,10 @@ public class ProductOption extends BaseEntity {
         boolean visible
     ) {
         return new ProductOption(optionGroupId, name, additionalPrice, sort, soldOut, visible);
+    }
+
+    public ProductOptionId getProductOptionId() {
+        return ProductOptionId.of(this.id);
     }
 
     public void update(String name, Integer additionalPrice, Integer sort, boolean soldOut, boolean visible) {

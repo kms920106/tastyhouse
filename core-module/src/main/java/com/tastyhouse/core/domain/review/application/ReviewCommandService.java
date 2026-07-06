@@ -31,7 +31,6 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewTagRepository;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.shop.domain.model.Tag;
 import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.core.exception.AccessDeniedException;
@@ -76,7 +75,7 @@ public class ReviewCommandService {
         List<String> savedTags = saveReviewTags(saved.getId(), cmd.tags());
 
         eventPublisher.publishEvent(new ReviewCreatedEvent(
-            new ReviewId(saved.getId()),
+            saved.getReviewId(),
             cmd.memberId(),
             cmd.shopId(),
             cmd.productId(),
@@ -84,7 +83,7 @@ public class ReviewCommandService {
         ));
 
         return new ReviewResult(
-            saved.getId(),
+            saved.getReviewId(),
             saved.getProductId(),
             saved.getTasteRating(),
             saved.getAmountRating(),
@@ -114,14 +113,14 @@ public class ReviewCommandService {
             null, null, null, false
         );
 
-        reviewImageRepository.deleteByReviewId(cmd.reviewId());
-        reviewTagRepository.deleteByReviewId(cmd.reviewId());
+        reviewImageRepository.deleteByReviewId(cmd.reviewId().value());
+        reviewTagRepository.deleteByReviewId(cmd.reviewId().value());
 
-        List<Long> savedFileIds = saveReviewImages(cmd.reviewId(), cmd.uploadedFileIds());
-        List<String> savedTags = saveReviewTags(cmd.reviewId(), cmd.tags());
+        List<Long> savedFileIds = saveReviewImages(cmd.reviewId().value(), cmd.uploadedFileIds());
+        List<String> savedTags = saveReviewTags(cmd.reviewId().value(), cmd.tags());
 
         return new ReviewResult(
-            review.getId(),
+            review.getReviewId(),
             review.getProductId(),
             review.getTasteRating(),
             review.getAmountRating(),
@@ -138,12 +137,12 @@ public class ReviewCommandService {
         reviewRepository.findByIdAndMemberId(cmd.reviewId(), cmd.memberId())
             .orElseThrow(() -> new AccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED));
 
-        reviewImageRepository.deleteByReviewId(cmd.reviewId());
-        reviewTagRepository.deleteByReviewId(cmd.reviewId());
+        reviewImageRepository.deleteByReviewId(cmd.reviewId().value());
+        reviewTagRepository.deleteByReviewId(cmd.reviewId().value());
         reviewRepository.deleteById(cmd.reviewId());
 
         eventPublisher.publishEvent(new ReviewDeletedEvent(
-            new ReviewId(cmd.reviewId()),
+            cmd.reviewId(),
             cmd.memberId(),
             cmd.productId(),
             LocalDateTime.now()
@@ -156,16 +155,16 @@ public class ReviewCommandService {
         if (alreadyLiked) {
             reviewLikeRepository.deleteByReviewIdAndMemberId(cmd.reviewId(), cmd.memberId());
             eventPublisher.publishEvent(new ReviewLikedEvent(
-                new ReviewId(cmd.reviewId()),
+                cmd.reviewId(),
                 cmd.memberId(),
                 false,
                 LocalDateTime.now()
             ));
             return false;
         } else {
-            reviewLikeRepository.save(new ReviewLike(cmd.reviewId(), cmd.memberId()));
+            reviewLikeRepository.save(new ReviewLike(cmd.reviewId().value(), cmd.memberId()));
             eventPublisher.publishEvent(new ReviewLikedEvent(
-                new ReviewId(cmd.reviewId()),
+                cmd.reviewId(),
                 cmd.memberId(),
                 true,
                 LocalDateTime.now()
@@ -175,11 +174,11 @@ public class ReviewCommandService {
     }
 
     public ReviewComment createComment(CreateReviewCommentCommand cmd) {
-        return reviewCommentRepository.save(new ReviewComment(cmd.reviewId(), cmd.memberId(), cmd.content()));
+        return reviewCommentRepository.save(new ReviewComment(cmd.reviewId().value(), cmd.memberId(), cmd.content()));
     }
 
     public ReviewReply createReply(CreateReviewReplyCommand cmd) {
-        return reviewReplyRepository.save(new ReviewReply(cmd.commentId(), cmd.memberId(), cmd.replyToMemberId(), cmd.content()));
+        return reviewReplyRepository.save(new ReviewReply(cmd.commentId().value(), cmd.memberId(), cmd.replyToMemberId(), cmd.content()));
     }
 
     private List<Long> saveReviewImages(Long reviewId, List<Long> uploadedFileIds) {

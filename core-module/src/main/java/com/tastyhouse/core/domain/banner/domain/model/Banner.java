@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
+import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -47,4 +48,8 @@ public class Banner extends BaseEntity {
 
     @Column(name = "is_visible", nullable = false)
     private boolean visible = true;
+
+    public BannerId getBannerId() {
+        return BannerId.of(this.id);
+    }
 }

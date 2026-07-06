@@ -12,6 +12,7 @@ import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.repository.EventAnnouncementRepository;
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
+import com.tastyhouse.core.domain.event.domain.vo.EventId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -33,7 +34,7 @@ public class EventQueryService {
         return eventRepository.findEventListItemsByStatus(status, pageQuery);
     }
 
-    public Optional<EventDetailDto> findEventDetailById(Long eventId) {
+    public Optional<EventDetailDto> findEventDetailById(EventId eventId) {
         return eventRepository.findEventDetailById(eventId);
     }
 }

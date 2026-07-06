@@ -43,7 +43,7 @@ public record ReservationResponse(
 ) {
     public static ReservationResponse from(ReservationResult result) {
         return new ReservationResponse(
-            result.id(),
+            result.id().value(),
             result.shopId(),
             result.shopName(),
             result.memberId(),

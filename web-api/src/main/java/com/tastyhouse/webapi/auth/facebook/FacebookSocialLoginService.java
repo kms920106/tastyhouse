@@ -63,7 +63,7 @@ public class FacebookSocialLoginService {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl());
 
-            Member member = memberQueryService.getById(new MemberId(socialAccount.getMemberId()));
+            Member member = memberQueryService.getById(MemberId.of(socialAccount.getMemberId()));
             return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 

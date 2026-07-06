@@ -13,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
+import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.domain.model.Product;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.review.application.ReviewCommandService;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewCommand;
@@ -30,6 +32,8 @@ import com.tastyhouse.core.domain.review.application.dto.result.ReviewResult;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
 import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -114,7 +118,7 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public Optional<ReviewDetailResponse> findReviewDetail(Long reviewId) {
-        return reviewQueryService.findReviewDetail(reviewId)
+        return reviewQueryService.findReviewDetail(ReviewId.of(reviewId))
             .map(this::convertToReviewDetailResponse);
     }
 
@@ -149,19 +153,19 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public ReviewLikeStatusResponse isLiked(Long reviewId, Long memberId) {
-        boolean isLiked = reviewQueryService.isLikedByMember(reviewId, memberId);
+        boolean isLiked = reviewQueryService.isLikedByMember(ReviewId.of(reviewId), memberId);
         return ReviewLikeStatusResponse.from(isLiked);
     }
 
     @Transactional
     public boolean toggleReviewLike(Long reviewId, Long memberId) {
-        return reviewCommandService.toggleReviewLike(ToggleReviewLikeCommand.of(reviewId, memberId));
+        return reviewCommandService.toggleReviewLike(ToggleReviewLikeCommand.of(ReviewId.of(reviewId), memberId));
     }
 
     @Transactional
     public CommentResponse createComment(Long reviewId, Long memberId, String content) {
         ReviewComment comment = reviewCommandService.createComment(
-            CreateReviewCommentCommand.of(reviewId, memberId, content)
+            CreateReviewCommentCommand.of(ReviewId.of(reviewId), memberId, content)
         );
         MemberWithProfileImageResult member = reviewQueryService.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
         return convertToCommentResponse(comment, member, List.of());
@@ -170,7 +174,7 @@ public class ReviewService {
     @Transactional
     public ReplyResponse createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
         ReviewReply reply = reviewCommandService.createReply(
-            CreateReviewReplyCommand.of(commentId, memberId, replyToMemberId, content)
+            CreateReviewReplyCommand.of(ReviewCommentId.of(commentId), memberId, replyToMemberId, content)
         );
         List<Long> ids = replyToMemberId != null ? List.of(memberId, replyToMemberId) : List.of(memberId);
         Map<Long, MemberWithProfileImageResult> memberMap = reviewQueryService.findMemberWithProfileImagesByIds(ids);
@@ -179,14 +183,14 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public CommentListResponse searchCommentsWithReplies(Long reviewId) {
-        List<ReviewComment> comments = reviewQueryService.findCommentsByReviewId(reviewId);
+        List<ReviewComment> comments = reviewQueryService.findCommentsByReviewId(ReviewId.of(reviewId));
 
         if (comments.isEmpty()) {
             return CommentListResponse.from(List.of(), 0);
         }
 
-        List<Long> commentIds = comments.stream()
-            .map(ReviewComment::getId)
+        List<ReviewCommentId> commentIds = comments.stream()
+            .map(ReviewComment::getReviewCommentId)
             .toList();
 
         List<ReviewReply> allReplies = reviewQueryService.findRepliesByCommentIds(commentIds);
@@ -253,13 +257,13 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public Optional<ReviewProductResponse> findReviewProduct(Long reviewId) {
-        Optional<ReviewDetailResult> reviewDetailOpt = reviewQueryService.findReviewDetail(reviewId);
+        Optional<ReviewDetailResult> reviewDetailOpt = reviewQueryService.findReviewDetail(ReviewId.of(reviewId));
         if (reviewDetailOpt.isEmpty()) {
             return Optional.empty();
         }
 
         ReviewDetailResult reviewDetail = reviewDetailOpt.get();
-        Review review = reviewQueryService.findById(reviewId);
+        Review review = reviewQueryService.findById(ReviewId.of(reviewId));
 
         List<String> reviewImageUrls = reviewDetail.imageUrls() == null ? List.of() :
             reviewDetail.imageUrls().stream()
@@ -267,7 +271,7 @@ public class ReviewService {
                 .toList();
         String reviewMemberProfileImageUrl = fileService.getUrlByPath(reviewDetail.memberProfileImageUrl());
 
-        return productQueryService.findProductById(review.getProductId())
+        return productQueryService.findProductById(ProductId.of(review.getProductId()))
             .map(product -> {
                 Integer price = product.getDiscountPrice() != null
                     ? product.getDiscountPrice()
@@ -325,9 +329,9 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderProductId, Long memberId) {
-        OrderProduct orderProduct = orderQueryService.findOrderProductById(orderProductId);
+        OrderProduct orderProduct = orderQueryService.findOrderProductById(OrderProductId.of(orderProductId));
 
-        Product product = productQueryService.findProductById(orderProduct.getProductId())
+        Product product = productQueryService.findProductById(ProductId.of(orderProduct.getProductId()))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         Integer price = product.getDiscountPrice() != null
@@ -352,11 +356,11 @@ public class ReviewService {
     public ReviewResponse createReview(Long memberId, ReviewCreateRequest request) {
         Long orderId = null;
         if (request.orderProductId() != null) {
-            OrderProduct orderProduct = orderQueryService.findOrderProductById(request.orderProductId());
+            OrderProduct orderProduct = orderQueryService.findOrderProductById(OrderProductId.of(request.orderProductId()));
             orderId = orderProduct.getOrderId();
         }
 
-        Product product = productQueryService.findProductById(request.productId())
+        Product product = productQueryService.findProductById(ProductId.of(request.productId()))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewResult result = reviewCommandService.createReview(CreateReviewCommand.of(
@@ -374,7 +378,7 @@ public class ReviewService {
         ));
 
         return ReviewResponse.from(
-            result.id(),
+            result.id().value(),
             result.productId(),
             result.tasteRating(),
             result.amountRating(),
@@ -390,7 +394,7 @@ public class ReviewService {
     @Transactional
     public ReviewResponse updateReview(Long reviewId, Long memberId, ReviewUpdateRequest request) {
         ReviewResult result = reviewCommandService.updateReview(UpdateReviewCommand.of(
-            reviewId,
+            ReviewId.of(reviewId),
             memberId,
             request.tasteRating(),
             request.amountRating(),
@@ -401,7 +405,7 @@ public class ReviewService {
         ));
 
         return ReviewResponse.from(
-            result.id(),
+            result.id().value(),
             result.productId(),
             result.tasteRating(),
             result.amountRating(),
@@ -416,8 +420,8 @@ public class ReviewService {
 
     @Transactional
     public void deleteReview(Long reviewId, Long memberId) {
-        Review review = reviewQueryService.findById(reviewId);
-        reviewCommandService.deleteReview(DeleteReviewCommand.of(reviewId, memberId, review.getProductId()));
+        Review review = reviewQueryService.findById(ReviewId.of(reviewId));
+        reviewCommandService.deleteReview(DeleteReviewCommand.of(ReviewId.of(reviewId), memberId, review.getProductId()));
     }
 
     @Transactional(readOnly = true)

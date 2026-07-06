@@ -40,7 +40,7 @@ public class MemberQueryService {
     }
 
     public Member getById(Long memberId) {
-        return getById(new MemberId(memberId));
+        return getById(MemberId.of(memberId));
     }
 
     public boolean existsByUsername(String username) {
@@ -74,7 +74,7 @@ public class MemberQueryService {
 
     public Map<Long, MemberWithProfileImageResult> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {
         return memberIds.stream()
-            .map(id -> memberRepository.findMemberWithProfileImageById(new MemberId(id)))
+            .map(id -> memberRepository.findMemberWithProfileImageById(MemberId.of(id)))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(Collectors.toMap(MemberWithProfileImageResult::id, result -> result));

@@ -2,8 +2,10 @@ package com.tastyhouse.core.domain.order.application.dto.result;
 
 import java.util.List;
 
+import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
+
 public record OrderProductResult(
-    Long id,
+    OrderProductId orderProductId,
     Long productId,
     String name,
     String imageUrl,

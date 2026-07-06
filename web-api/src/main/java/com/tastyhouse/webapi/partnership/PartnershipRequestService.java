@@ -29,7 +29,7 @@ public class PartnershipRequestService {
         );
 
         return PartnershipRequestResponse.from(
-            result.id(),
+            result.id().value(),
             result.businessName(),
             result.address(),
             result.addressDetail(),

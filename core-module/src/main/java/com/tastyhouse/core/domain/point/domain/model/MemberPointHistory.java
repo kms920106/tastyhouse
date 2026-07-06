@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.point.domain.vo.MemberPointHistoryId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -53,5 +54,9 @@ public class MemberPointHistory extends BaseEntity {
 
     public static MemberPointHistory of(Long memberId, PointType pointType, Integer pointAmount, String reason) {
         return new MemberPointHistory(memberId, pointType, pointAmount, reason);
+    }
+
+    public MemberPointHistoryId getMemberPointHistoryId() {
+        return MemberPointHistoryId.of(id);
     }
 }

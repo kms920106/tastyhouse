@@ -23,14 +23,15 @@ public class PaymentQueryService {
 
     @Transactional(readOnly = true)
     public PaymentResult getPaymentByOrderId(Long memberId, Long orderIdValue) {
-        Order order = orderQueryService.findById(orderIdValue)
+        OrderId orderId = OrderId.of(orderIdValue);
+        Order order = orderQueryService.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
             throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
-        Payment payment = paymentRepository.findByOrderId(new OrderId(orderIdValue))
+        Payment payment = paymentRepository.findByOrderId(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
 
         return PaymentResult.from(payment);

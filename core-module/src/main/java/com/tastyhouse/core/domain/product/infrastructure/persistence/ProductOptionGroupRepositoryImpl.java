@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
+import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
 
 import static com.tastyhouse.core.domain.product.domain.model.QProductOptionGroup.productOptionGroup;
 
@@ -29,8 +30,8 @@ public class ProductOptionGroupRepositoryImpl implements ProductOptionGroupRepos
     }
 
     @Override
-    public Optional<ProductOptionGroup> findById(Long id) {
-        return productOptionGroupJpaRepository.findById(id);
+    public Optional<ProductOptionGroup> findById(ProductOptionGroupId id) {
+        return productOptionGroupJpaRepository.findById(id.value());
     }
 
     @Override

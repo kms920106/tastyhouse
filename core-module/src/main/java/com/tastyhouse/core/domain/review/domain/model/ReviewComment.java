@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
+import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -38,5 +39,9 @@ public class ReviewComment extends BaseEntity {
         this.reviewId = reviewId;
         this.memberId = memberId;
         this.content = content;
+    }
+
+    public ReviewCommentId getReviewCommentId() {
+        return ReviewCommentId.of(this.id);
     }
 }

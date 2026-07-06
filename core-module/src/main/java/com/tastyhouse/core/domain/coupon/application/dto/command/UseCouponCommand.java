@@ -1,7 +1,9 @@
 package com.tastyhouse.core.domain.coupon.application.dto.command;
 
+import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
+
 public record UseCouponCommand(
-    Long memberCouponId,
+    MemberCouponId memberCouponId,
     Long memberId,
     int orderAmountAfterProductDiscount
 ) {
@@ -11,6 +13,6 @@ public record UseCouponCommand(
         Long memberId,
         int orderAmountAfterProductDiscount
     ) {
-        return new UseCouponCommand(memberCouponId, memberId, orderAmountAfterProductDiscount);
+        return new UseCouponCommand(MemberCouponId.of(memberCouponId), memberId, orderAmountAfterProductDiscount);
     }
 }

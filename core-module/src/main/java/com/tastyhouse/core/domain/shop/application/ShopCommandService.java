@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.shop.domain.model.ShopBookmark;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopBookmarkRepository;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopBookmarkJpaRepository;
 
 @Service
@@ -22,7 +23,7 @@ public class ShopCommandService {
             shopBookmarkRepository.deleteByShopIdAndMemberId(shopId, memberId);
             return false;
         } else {
-            shopQueryService.findShopById(shopId);
+            shopQueryService.findShopById(ShopId.of(shopId));
             shopBookmarkJpaRepository.save(new ShopBookmark(shopId, memberId));
             return true;
         }

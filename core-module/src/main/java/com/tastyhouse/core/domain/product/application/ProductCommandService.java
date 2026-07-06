@@ -28,6 +28,7 @@ import com.tastyhouse.core.domain.product.domain.repository.ProductImageReposito
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -134,7 +135,7 @@ public class ProductCommandService {
 
     @SuppressWarnings("unused")
     @Transactional
-    public void markSoldOut(Long productId) {
+    public void markSoldOut(ProductId productId) {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         product.markSoldOut();
@@ -149,7 +150,7 @@ public class ProductCommandService {
 
     @SuppressWarnings("unused")
     @Transactional
-    public void deactivateProduct(Long productId) {
+    public void deactivateProduct(ProductId productId) {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         product.deactivate();
@@ -162,8 +163,8 @@ public class ProductCommandService {
     }
 
     @Transactional
-    public void markBbqOptionsSynced(Long productId) {
-        ProductBbq bbq = productBbqRepository.findByProductId(productId)
+    public void markBbqOptionsSynced(ProductId productId) {
+        ProductBbq bbq = productBbqRepository.findByProductId(productId.value())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         bbq.markOptionsSynced();
         productBbqRepository.save(bbq);

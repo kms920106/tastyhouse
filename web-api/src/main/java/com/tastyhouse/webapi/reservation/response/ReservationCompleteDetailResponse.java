@@ -25,7 +25,7 @@ public record ReservationCompleteDetailResponse(
 ) {
     public static ReservationCompleteDetailResponse from(ReservationResult result, String shopImageUrl) {
         return new ReservationCompleteDetailResponse(
-            result.id(),
+            result.id().value(),
             result.shopName(),
             shopImageUrl,
             LocalDateTime.of(result.reservationDate(), result.reservationTime()),

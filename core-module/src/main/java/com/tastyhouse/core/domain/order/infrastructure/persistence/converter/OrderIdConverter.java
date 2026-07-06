@@ -15,6 +15,6 @@ public class OrderIdConverter implements AttributeConverter<OrderId, Long> {
 
     @Override
     public OrderId convertToEntityAttribute(Long dbData) {
-        return dbData == null ? null : new OrderId(dbData);
+        return dbData == null ? null : OrderId.of(dbData);
     }
 }

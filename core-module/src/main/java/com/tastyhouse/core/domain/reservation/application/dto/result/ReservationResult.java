@@ -6,9 +6,10 @@ import java.time.LocalTime;
 
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
+import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 
 public record ReservationResult(
-    Long id,
+    ReservationId id,
     Long shopId,
     String shopName,
     String shopImageUrl,
@@ -30,7 +31,7 @@ public record ReservationResult(
         String shopLotAddress
     ) {
         return new ReservationResult(
-            reservation.getId(),
+            reservation.getReservationId(),
             reservation.getShopId(),
             shopName,
             shopImageUrl,

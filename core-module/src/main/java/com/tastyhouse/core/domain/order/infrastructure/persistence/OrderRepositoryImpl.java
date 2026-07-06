@@ -12,6 +12,7 @@ import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResu
 import com.tastyhouse.core.domain.order.application.dto.result.QOrderListItemResult;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -30,8 +31,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     private final OrderJpaRepository orderJpaRepository;
 
     @Override
-    public Optional<Order> findById(Long orderId) {
-        return orderJpaRepository.findById(orderId);
+    public Optional<Order> findById(OrderId orderId) {
+        return orderJpaRepository.findById(orderId.value());
     }
 
     @Override

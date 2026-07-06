@@ -2,8 +2,8 @@ package com.tastyhouse.core.domain.coupon.domain.event;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
-import com.tastyhouse.core.domain.coupon.domain.model.MemberCouponId;
+import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
+import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
 
 public record MemberCouponUsedEvent(
     MemberCouponId memberCouponId,

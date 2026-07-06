@@ -5,6 +5,7 @@ import java.util.Optional;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
+import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -14,7 +15,7 @@ public interface NoticeRepository {
 
     PageResult<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, PageQuery pageQuery);
 
-    Optional<Notice> findById(Long id);
+    Optional<Notice> findById(NoticeId noticeId);
 
     Notice save(Notice notice);
 }

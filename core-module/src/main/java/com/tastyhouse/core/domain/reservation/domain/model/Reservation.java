@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -85,6 +86,10 @@ public class Reservation extends BaseEntity {
         String request
     ) {
         return new Reservation(memberId, shopId, reservationDate, reservationTime, partySize, request);
+    }
+
+    public ReservationId getReservationId() {
+        return ReservationId.of(this.id);
     }
 
     /**

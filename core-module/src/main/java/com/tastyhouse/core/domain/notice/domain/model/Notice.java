@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -42,6 +43,10 @@ public class Notice extends BaseEntity {
 
     public static Notice of(String title, String content, boolean visible) {
         return new Notice(title, content, visible);
+    }
+
+    public NoticeId getNoticeId() {
+        return NoticeId.of(this.id);
     }
 
     public void update(String title, String content, boolean visible) {

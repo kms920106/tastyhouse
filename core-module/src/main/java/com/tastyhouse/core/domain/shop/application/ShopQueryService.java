@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.file.application.FileQueryService;
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemDto;
 import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceDto;
 import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemDto;
@@ -32,6 +33,7 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopBookmarkRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopJpaRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -83,8 +85,8 @@ public class ShopQueryService {
         return shopDetailRepository.findAllActiveAmenityCategories();
     }
 
-    public Shop findShopById(Long shopId) {
-        return shopJpaRepository.findById(shopId)
+    public Shop findShopById(ShopId shopId) {
+        return shopJpaRepository.findById(shopId.value())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
@@ -134,6 +136,9 @@ public class ShopQueryService {
     }
 
     public Optional<String> findThumbnailFilePath(Long thumbnailImageFileId) {
-        return fileQueryService.findFilePath(thumbnailImageFileId);
+        if (thumbnailImageFileId == null) {
+            return Optional.empty();
+        }
+        return fileQueryService.findFilePath(UploadedFileId.of(thumbnailImageFileId));
     }
 }

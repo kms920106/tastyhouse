@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
-import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
 import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
+import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 
 @Repository
 @RequiredArgsConstructor

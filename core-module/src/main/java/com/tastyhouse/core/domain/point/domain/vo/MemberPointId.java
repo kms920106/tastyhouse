@@ -7,4 +7,8 @@ public record MemberPointId(Long value) {
             throw new IllegalArgumentException("MemberPointId는 양수여야 합니다: " + value);
         }
     }
+
+    public static MemberPointId of(Long value) {
+        return new MemberPointId(value);
+    }
 }

@@ -7,4 +7,8 @@ public record PaymentRefundId(Long value) {
             throw new IllegalArgumentException("PaymentRefundId는 양수여야 합니다: " + value);
         }
     }
+
+    public static PaymentRefundId of(Long value) {
+        return new PaymentRefundId(value);
+    }
 }

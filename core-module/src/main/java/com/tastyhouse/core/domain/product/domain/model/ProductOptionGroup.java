@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -86,6 +87,10 @@ public class ProductOptionGroup extends BaseEntity {
             productId, name, description, required, multipleSelect,
             minSelect, maxSelect, sort, visible
         );
+    }
+
+    public ProductOptionGroupId getProductOptionGroupId() {
+        return ProductOptionGroupId.of(this.id);
     }
 
     public void update(

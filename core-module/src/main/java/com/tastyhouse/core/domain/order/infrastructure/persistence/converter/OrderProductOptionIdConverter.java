@@ -15,6 +15,6 @@ public class OrderProductOptionIdConverter implements AttributeConverter<OrderPr
 
     @Override
     public OrderProductOptionId convertToEntityAttribute(Long dbData) {
-        return dbData == null ? null : new OrderProductOptionId(dbData);
+        return dbData == null ? null : OrderProductOptionId.of(dbData);
     }
 }

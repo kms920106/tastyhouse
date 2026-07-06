@@ -4,13 +4,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.tastyhouse.core.domain.order.domain.model.Order;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
 public record OrderResult(
-    Long id,
+    OrderId orderId,
     String orderNumber,
     OrderMethod orderMethod,
     PaymentStatus paymentStatus,
@@ -65,7 +66,7 @@ public record OrderResult(
     ) {
         PaymentResult paymentResult = payment != null ? PaymentResult.from(payment) : null;
         return new OrderResult(
-            order.getId(),
+            order.getOrderId(),
             order.getOrderNumber(),
             order.getOrderMethod(),
             payment != null ? payment.getPaymentStatus() : null,

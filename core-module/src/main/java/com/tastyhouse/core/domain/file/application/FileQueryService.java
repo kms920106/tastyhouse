@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
-import com.tastyhouse.core.domain.file.domain.model.UploadedFileId;
 import com.tastyhouse.core.domain.file.domain.repository.UploadedFileRepository;
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 
 @Service
 @Transactional(readOnly = true)
@@ -17,15 +17,11 @@ public class FileQueryService {
 
     private final UploadedFileRepository uploadedFileRepository;
 
-    public Optional<UploadedFile> findById(Long id) {
-        return uploadedFileRepository.findById(id);
-    }
-
     public Optional<UploadedFile> findById(UploadedFileId id) {
         return uploadedFileRepository.findById(id);
     }
 
-    public Optional<String> findFilePath(Long id) {
+    public Optional<String> findFilePath(UploadedFileId id) {
         if (id == null) {
             return Optional.empty();
         }

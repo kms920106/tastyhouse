@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
 import com.tastyhouse.core.domain.coupon.domain.model.MemberCoupon;
-import com.tastyhouse.core.domain.coupon.domain.model.MemberCouponId;
+import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
 
 public interface MemberCouponRepository {
 

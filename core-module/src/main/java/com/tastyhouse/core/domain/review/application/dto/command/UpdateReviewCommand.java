@@ -2,8 +2,10 @@ package com.tastyhouse.core.domain.review.application.dto.command;
 
 import java.util.List;
 
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
+
 public record UpdateReviewCommand(
-    Long reviewId,
+    ReviewId reviewId,
     Long memberId,
     Integer tasteRating,
     Integer amountRating,
@@ -14,7 +16,7 @@ public record UpdateReviewCommand(
 ) {
 
     public static UpdateReviewCommand of(
-        Long reviewId,
+        ReviewId reviewId,
         Long memberId,
         Integer tasteRating,
         Integer amountRating,

@@ -4,9 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.tastyhouse.core.domain.bug.domain.model.BugReport;
+import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
 
 public record BugReportResult(
-    Long id,
+    BugReportId id,
     String device,
     String title,
     String content,
@@ -15,7 +16,7 @@ public record BugReportResult(
 ) {
     public static BugReportResult from(BugReport bugReport, List<Long> uploadedFileIds) {
         return new BugReportResult(
-            bugReport.getId(),
+            bugReport.getBugReportId(),
             bugReport.getDevice(),
             bugReport.getTitle(),
             bugReport.getContent(),

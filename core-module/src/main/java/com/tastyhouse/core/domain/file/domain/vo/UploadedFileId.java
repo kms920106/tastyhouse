@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.file.domain.model;
+package com.tastyhouse.core.domain.file.domain.vo;
 
 public record UploadedFileId(Long value) {
 
@@ -6,5 +6,9 @@ public record UploadedFileId(Long value) {
         if (value == null || value <= 0) {
             throw new IllegalArgumentException("UploadedFileId는 양수여야 합니다: " + value);
         }
+    }
+
+    public static UploadedFileId of(Long value) {
+        return new UploadedFileId(value);
     }
 }

@@ -21,8 +21,10 @@ import com.tastyhouse.core.domain.reservation.domain.model.ReservationSlot;
 import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
 import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
+import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -43,7 +45,7 @@ public class ReservationQueryService {
             .toList();
     }
 
-    public ReservationResult findDetail(Long memberId, Long reservationId) {
+    public ReservationResult findDetail(Long memberId, ReservationId reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         reservation.validateOwnership(memberId);
@@ -62,7 +64,7 @@ public class ReservationQueryService {
      */
     public DailySlotAvailabilityResult findSlotAvailability(Long shopId, LocalDate date, Long memberId) {
         // 가게 존재 검증
-        shopQueryService.findShopById(shopId);
+        shopQueryService.findShopById(ShopId.of(shopId));
 
         Map<LocalTime, ShopReservationSlot> slotByTime = slotRepository.findByShopAndDate(shopId, date).stream()
             .collect(Collectors.toMap(ShopReservationSlot::getSlotTime, Function.identity()));
@@ -87,7 +89,7 @@ public class ReservationQueryService {
     }
 
     private ReservationResult toResult(Reservation reservation) {
-        Shop shop = shopQueryService.findShopById(reservation.getShopId());
+        Shop shop = shopQueryService.findShopById(ShopId.of(reservation.getShopId()));
         String shopImageUrl = shopQueryService.findThumbnailFilePath(shop.getThumbnailImageFileId())
             .orElse(null);
         return ReservationResult.from(

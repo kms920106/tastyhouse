@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.core.domain.payment.domain.vo.PaymentRefundId;
 import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.AmountConverter;
 import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.PaymentIdConverter;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -61,5 +62,9 @@ public class PaymentRefund extends BaseEntity {
 
     public static PaymentRefund create(PaymentId paymentId, Amount refundAmount, String refundReason) {
         return new PaymentRefund(paymentId, refundAmount, refundReason);
+    }
+
+    public PaymentRefundId getPaymentRefundId() {
+        return PaymentRefundId.of(this.id);
     }
 }

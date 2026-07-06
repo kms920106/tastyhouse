@@ -1,12 +1,14 @@
 package com.tastyhouse.core.domain.review.application.dto.command;
 
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
+
 public record DeleteReviewCommand(
-    Long reviewId,
+    ReviewId reviewId,
     Long memberId,
     Long productId
 ) {
 
-    public static DeleteReviewCommand of(Long reviewId, Long memberId, Long productId) {
+    public static DeleteReviewCommand of(ReviewId reviewId, Long memberId, Long productId) {
         return new DeleteReviewCommand(reviewId, memberId, productId);
     }
 }

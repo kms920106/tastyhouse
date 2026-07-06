@@ -25,7 +25,7 @@ public class FollowCommandService {
             throw new BusinessException(ErrorCode.FOLLOW_SELF_NOT_ALLOWED);
         }
 
-        if (memberQueryService.findById(new MemberId(followingId)).isEmpty()) {
+        if (memberQueryService.findById(MemberId.of(followingId)).isEmpty()) {
             throw new EntityNotFoundException(ErrorCode.FOLLOW_TARGET_NOT_FOUND);
         }
 

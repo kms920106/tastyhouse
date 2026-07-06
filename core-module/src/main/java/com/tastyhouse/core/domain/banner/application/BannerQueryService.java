@@ -8,6 +8,7 @@ import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
 import com.tastyhouse.core.domain.banner.domain.model.Banner;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
+import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -30,7 +31,7 @@ public class BannerQueryService {
         return bannerRepository.findAllByType(BannerType.SIDEBAR, pageQuery);
     }
 
-    public Banner findById(Long id) {
+    public Banner findById(BannerId id) {
         return bannerRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BANNER_NOT_FOUND));
     }

@@ -35,7 +35,7 @@ public class PolicyCommandService {
             command.createdBy()
         );
         PolicyDocument saved = policyDocumentRepository.save(policyDocument);
-        return new PolicyDocumentId(saved.getId());
+        return PolicyDocumentId.of(saved.getId());
     }
 
     public void activatePolicy(PolicyDocumentId id) {
@@ -48,7 +48,7 @@ public class PolicyCommandService {
         newPolicy.activate();
         policyDocumentRepository.save(newPolicy);
         eventPublisher.publishEvent(new PolicyActivatedEvent(
-            new PolicyDocumentId(newPolicy.getId()), newPolicy.getType(), newPolicy.getVersion(), LocalDateTime.now()
+            PolicyDocumentId.of(newPolicy.getId()), newPolicy.getType(), newPolicy.getVersion(), LocalDateTime.now()
         ));
     }
 

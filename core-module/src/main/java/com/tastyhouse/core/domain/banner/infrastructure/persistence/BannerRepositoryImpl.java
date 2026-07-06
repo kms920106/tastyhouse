@@ -13,6 +13,7 @@ import com.tastyhouse.core.domain.banner.application.dto.QBannerListItemDto;
 import com.tastyhouse.core.domain.banner.domain.model.Banner;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
+import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -65,10 +66,10 @@ public class BannerRepositoryImpl implements BannerRepository {
     }
 
     @Override
-    public Optional<Banner> findById(Long id) {
+    public Optional<Banner> findById(BannerId id) {
         if (id == null) {
             return Optional.empty();
         }
-        return bannerJpaRepository.findById(id);
+        return bannerJpaRepository.findById(id.value());
     }
 }

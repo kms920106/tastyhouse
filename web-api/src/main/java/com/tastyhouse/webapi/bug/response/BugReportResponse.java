@@ -15,7 +15,7 @@ public record BugReportResponse(
 ) {
     public static BugReportResponse from(BugReportResult result) {
         return new BugReportResponse(
-            result.id(),
+            result.id().value(),
             result.device(),
             result.title(),
             result.content(),

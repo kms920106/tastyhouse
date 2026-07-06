@@ -14,6 +14,7 @@ import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.application.dto.QNoticeListItemDto;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
+import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -89,13 +90,13 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     }
 
     @Override
-    public Optional<Notice> findById(Long id) {
-        if (id == null) {
+    public Optional<Notice> findById(NoticeId noticeId) {
+        if (noticeId == null) {
             return Optional.empty();
         }
         return Optional.ofNullable(queryFactory
             .selectFrom(notice)
-            .where(notice.id.eq(id), notice.deleted.isFalse())
+            .where(notice.id.eq(noticeId.value()), notice.deleted.isFalse())
             .fetchOne());
     }
 

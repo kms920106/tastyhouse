@@ -13,11 +13,11 @@ import com.tastyhouse.core.domain.coupon.application.dto.result.UseCouponResult;
 import com.tastyhouse.core.domain.coupon.domain.event.MemberCouponIssuedEvent;
 import com.tastyhouse.core.domain.coupon.domain.event.MemberCouponUsedEvent;
 import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
-import com.tastyhouse.core.domain.coupon.domain.model.CouponId;
 import com.tastyhouse.core.domain.coupon.domain.model.MemberCoupon;
-import com.tastyhouse.core.domain.coupon.domain.model.MemberCouponId;
 import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
+import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
+import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -35,7 +35,7 @@ public class CouponCommandService {
         MemberCoupon issued = memberCouponRepository.save(
             MemberCoupon.of(
                 command.memberId(),
-                command.couponId(),
+                command.couponId().value(),
                 false,
                 null,
                 command.expiredAt()
@@ -45,21 +45,21 @@ public class CouponCommandService {
         eventPublisher.publishEvent(new MemberCouponIssuedEvent(
             memberCouponId,
             command.memberId(),
-            new CouponId(command.couponId()),
+            command.couponId(),
             LocalDateTime.now()
         ));
         return memberCouponId;
     }
 
     public UseCouponResult useCoupon(UseCouponCommand command) {
-        MemberCoupon memberCoupon = memberCouponRepository.findById(new MemberCouponId(command.memberCouponId()))
+        MemberCoupon memberCoupon = memberCouponRepository.findById(command.memberCouponId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
 
         if (!memberCoupon.getMemberId().equals(command.memberId())) {
             throw new AccessDeniedException(ErrorCode.COUPON_ACCESS_DENIED);
         }
 
-        Coupon coupon = couponRepository.findById(new CouponId(memberCoupon.getCouponId()))
+        Coupon coupon = couponRepository.findById(CouponId.of(memberCoupon.getCouponId()))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
 
         coupon.validateMinOrderAmount(command.orderAmountAfterProductDiscount());

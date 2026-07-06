@@ -9,6 +9,7 @@ import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
+import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -31,11 +32,11 @@ public class NoticeQueryService {
         return noticeRepository.findAllNotices(condition, pageQuery);
     }
 
-    public NoticeDetailDto findDetailById(Long id) {
-        Notice notice = noticeRepository.findById(id)
+    public NoticeDetailDto findDetailById(NoticeId noticeId) {
+        Notice notice = noticeRepository.findById(noticeId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
         return NoticeDetailDto.from(
-            notice.getId(),
+            notice.getNoticeId(),
             notice.getTitle(),
             notice.getContent(),
             notice.isVisible(),

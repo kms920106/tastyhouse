@@ -3,9 +3,10 @@ package com.tastyhouse.core.domain.partnership.application.dto.result;
 import java.time.LocalDateTime;
 
 import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
+import com.tastyhouse.core.domain.partnership.domain.vo.PartnershipRequestId;
 
 public record PartnershipRequestResult(
-    Long id,
+    PartnershipRequestId id,
     String businessName,
     String address,
     String addressDetail,
@@ -16,7 +17,7 @@ public record PartnershipRequestResult(
 ) {
     public static PartnershipRequestResult from(PartnershipRequest partnershipRequest) {
         return new PartnershipRequestResult(
-            partnershipRequest.getId(),
+            partnershipRequest.getPartnershipRequestId(),
             partnershipRequest.getBusinessName(),
             partnershipRequest.getAddress(),
             partnershipRequest.getAddressDetail(),

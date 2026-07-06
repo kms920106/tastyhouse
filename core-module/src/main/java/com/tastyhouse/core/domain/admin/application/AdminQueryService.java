@@ -28,10 +28,6 @@ public class AdminQueryService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ADMIN_NOT_FOUND));
     }
 
-    public Admin getById(Long adminId) {
-        return getById(new AdminId(adminId));
-    }
-
     public boolean existsByUsername(String username) {
         return adminRepository.existsByUsername(username);
     }

@@ -9,6 +9,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.review.domain.event.ReviewCreatedEvent;
 import com.tastyhouse.core.domain.review.domain.event.ReviewDeletedEvent;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
@@ -37,7 +38,7 @@ public class ProductReviewEventListener {
     }
 
     private void updateProductReviewStats(Long productId) {
-        productRepository.findById(productId).ifPresent(product -> {
+        productRepository.findById(ProductId.of(productId)).ifPresent(product -> {
             Long count = reviewRepository.countByProductIdAndHiddenFalse(productId);
             Double rating = calculateAverageRating(productId);
             product.updateReviewStats(rating, count != null ? count.intValue() : 0);

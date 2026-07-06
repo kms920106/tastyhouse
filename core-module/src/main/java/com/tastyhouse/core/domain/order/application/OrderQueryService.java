@@ -18,10 +18,12 @@ import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepo
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -38,7 +40,7 @@ public class OrderQueryService {
     private final PaymentRepository paymentRepository;
     private final ShopQueryService shopQueryService;
 
-    public Optional<Order> findById(Long orderId) {
+    public Optional<Order> findById(OrderId orderId) {
         return orderRepository.findById(orderId);
     }
 
@@ -47,23 +49,23 @@ public class OrderQueryService {
         return orderRepository.findOrderListByMemberId(memberId, pageQuery);
     }
 
-    public OrderResult findOrderDetail(Long memberId, Long orderId) {
+    public OrderResult findOrderDetail(Long memberId, OrderId orderId) {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         order.validateOwnership(memberId);
 
-        Shop shop = shopQueryService.findShopById(order.getShopId());
+        Shop shop = shopQueryService.findShopById(ShopId.of(order.getShopId()));
 
         List<OrderProduct> items = orderProductRepository.findByOrderId(orderId);
         List<OrderProductResult> itemResults = items.stream()
             .map(item -> {
-                List<OrderProductOption> options = orderProductOptionRepository.findByOrderProductId(item.getId());
+                List<OrderProductOption> options = orderProductOptionRepository.findByOrderProductId(item.getOrderProductId());
                 List<OrderProductOptionResult> optionResults = options.stream()
                     .map(OrderProductOptionResult::from)
                     .toList();
                 return new OrderProductResult(
-                    item.getId(),
+                    item.getOrderProductId(),
                     item.getProductId(),
                     item.getName(),
                     item.getImageUrl(),
@@ -77,7 +79,7 @@ public class OrderQueryService {
             })
             .toList();
 
-        Payment payment = paymentRepository.findByOrderId(new OrderId(orderId)).orElse(null);
+        Payment payment = paymentRepository.findByOrderId(orderId).orElse(null);
 
         return OrderResult.from(
             order,
@@ -88,7 +90,7 @@ public class OrderQueryService {
         );
     }
 
-    public OrderProduct findOrderProductById(Long orderProductId) {
+    public OrderProduct findOrderProductById(OrderProductId orderProductId) {
         return orderProductRepository.findById(orderProductId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
     }

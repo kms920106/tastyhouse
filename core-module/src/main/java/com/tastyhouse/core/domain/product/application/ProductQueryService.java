@@ -32,6 +32,9 @@ import com.tastyhouse.core.domain.product.domain.repository.ProductImageReposito
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
+import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
+import com.tastyhouse.core.domain.product.domain.vo.ProductOptionId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -49,7 +52,7 @@ public class ProductQueryService {
     private final ProductImageRepository productImageRepository;
     private final ProductBbqRepository productBbqRepository;
 
-    public Optional<Product> findProductById(Long productId) {
+    public Optional<Product> findProductById(ProductId productId) {
         return productRepository.findById(productId);
     }
 
@@ -65,11 +68,11 @@ public class ProductQueryService {
         return productCategoryRepository.findCategoriesByNameAndShopId(name, shopId);
     }
 
-    public Optional<ProductOptionGroup> findProductOptionGroupById(Long optionGroupId) {
+    public Optional<ProductOptionGroup> findProductOptionGroupById(ProductOptionGroupId optionGroupId) {
         return productOptionGroupRepository.findById(optionGroupId);
     }
 
-    public Optional<ProductOption> findProductOptionById(Long optionId) {
+    public Optional<ProductOption> findProductOptionById(ProductOptionId optionId) {
         return productOptionRepository.findById(optionId);
     }
 

@@ -9,6 +9,7 @@ import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
 import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
+import com.tastyhouse.core.domain.event.domain.vo.EventId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -32,7 +33,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventDetailResponse getEventDetail(Long eventId) {
-        EventDetailDto dto = eventQueryService.findEventDetailById(eventId)
+        EventDetailDto dto = eventQueryService.findEventDetailById(EventId.of(eventId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "이벤트를 찾을 수 없습니다."));
 
         return EventDetailResponse.from(fileService.getUrlByPath(dto.bannerFilePath()));

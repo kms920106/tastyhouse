@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.partnership.domain.vo.PartnershipRequestId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -55,5 +56,9 @@ public class PartnershipRequest extends BaseEntity {
     public static PartnershipRequest of(String businessName, String address, String addressDetail,
                                         String contactName, String contactPhone, LocalDateTime consultationRequestedAt) {
         return new PartnershipRequest(businessName, address, addressDetail, contactName, contactPhone, consultationRequestedAt);
+    }
+
+    public PartnershipRequestId getPartnershipRequestId() {
+        return PartnershipRequestId.of(this.id);
     }
 }

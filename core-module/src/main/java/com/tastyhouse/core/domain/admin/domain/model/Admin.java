@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.admin.domain.vo.AdminId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -53,6 +54,10 @@ public class Admin extends BaseEntity {
      */
     public static Admin create(String username, String encodedPassword, String name, AdminRole role) {
         return new Admin(username, encodedPassword, name, role);
+    }
+
+    public AdminId getAdminId() {
+        return AdminId.of(this.id);
     }
 
     public boolean isActive() {

@@ -15,6 +15,6 @@ public class PaymentRefundIdConverter implements AttributeConverter<PaymentRefun
 
     @Override
     public PaymentRefundId convertToEntityAttribute(Long dbData) {
-        return dbData == null ? null : new PaymentRefundId(dbData);
+        return dbData == null ? null : PaymentRefundId.of(dbData);
     }
 }

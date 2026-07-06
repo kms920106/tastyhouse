@@ -7,4 +7,8 @@ public record OrderProductOptionId(Long value) {
             throw new IllegalArgumentException("OrderProductOptionId는 양수여야 합니다: " + value);
         }
     }
+
+    public static OrderProductOptionId of(Long value) {
+        return new OrderProductOptionId(value);
+    }
 }

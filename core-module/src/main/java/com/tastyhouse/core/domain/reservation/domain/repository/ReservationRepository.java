@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
+import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 
 public interface ReservationRepository {
 
-    Optional<Reservation> findById(Long id);
+    Optional<Reservation> findById(ReservationId id);
 
     List<Reservation> findByMemberId(Long memberId);
 

@@ -13,8 +13,10 @@ import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
 import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
+import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -55,7 +57,7 @@ public class ReservationCommandService {
      * TODO(보안): Shop-owner 연결 후 점주 본인 검증(shop.getOwnerId() == currentMemberId) 추가 필요.
      */
     @Transactional
-    public ReservationResult confirm(Long reservationId) {
+    public ReservationResult confirm(ReservationId reservationId) {
         Reservation reservation = getReservation(reservationId);
         reservation.confirm();
         return toResult(reservation);
@@ -66,7 +68,7 @@ public class ReservationCommandService {
      * TODO(보안): 점주 본인 검증 필요.
      */
     @Transactional
-    public ReservationResult reject(Long reservationId) {
+    public ReservationResult reject(ReservationId reservationId) {
         Reservation reservation = getReservation(reservationId);
         reservation.reject();
         releaseSlot(reservation);
@@ -78,7 +80,7 @@ public class ReservationCommandService {
      * TODO(보안): 점주 본인 검증 필요.
      */
     @Transactional
-    public ReservationResult complete(Long reservationId) {
+    public ReservationResult complete(ReservationId reservationId) {
         Reservation reservation = getReservation(reservationId);
         reservation.complete();
         return toResult(reservation);
@@ -88,7 +90,7 @@ public class ReservationCommandService {
      * 사용자 취소: PENDING|CONFIRMED -> CANCELED (슬롯 정원 반납)
      */
     @Transactional
-    public ReservationResult cancel(Long reservationId, Long memberId) {
+    public ReservationResult cancel(ReservationId reservationId, Long memberId) {
         Reservation reservation = getReservation(reservationId);
         reservation.validateOwnership(memberId);
         reservation.cancel();
@@ -96,7 +98,7 @@ public class ReservationCommandService {
         return toResult(reservation);
     }
 
-    private Reservation getReservation(Long reservationId) {
+    private Reservation getReservation(ReservationId reservationId) {
         return reservationRepository.findById(reservationId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
     }
@@ -111,7 +113,7 @@ public class ReservationCommandService {
     }
 
     private ReservationResult toResult(Reservation reservation) {
-        Shop shop = shopQueryService.findShopById(reservation.getShopId());
+        Shop shop = shopQueryService.findShopById(ShopId.of(reservation.getShopId()));
         String shopImageUrl = shopQueryService.findThumbnailFilePath(shop.getThumbnailImageFileId())
             .orElse(null);
         return ReservationResult.from(

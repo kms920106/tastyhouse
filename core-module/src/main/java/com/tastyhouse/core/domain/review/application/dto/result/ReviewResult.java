@@ -3,8 +3,10 @@ package com.tastyhouse.core.domain.review.application.dto.result;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
+
 public record ReviewResult(
-    Long id,
+    ReviewId id,
     Long productId,
     Double tasteRating,
     Double amountRating,

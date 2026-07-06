@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
+import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 
 import static com.tastyhouse.core.domain.reservation.domain.model.QReservation.reservation;
 
@@ -22,8 +23,8 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     private final ReservationJpaRepository reservationJpaRepository;
 
     @Override
-    public Optional<Reservation> findById(Long id) {
-        return reservationJpaRepository.findById(id);
+    public Optional<Reservation> findById(ReservationId id) {
+        return reservationJpaRepository.findById(id.value());
     }
 
     @Override

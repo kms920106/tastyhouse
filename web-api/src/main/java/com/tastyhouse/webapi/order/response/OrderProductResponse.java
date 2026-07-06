@@ -6,7 +6,7 @@ import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptio
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
 
 public record OrderProductResponse(
-    Long id,
+    Long orderProductId,
     Long productId,
     String name,
     String imageUrl,
@@ -26,7 +26,7 @@ public record OrderProductResponse(
     ) {
         public static OrderProductOptionResponse from(OrderProductOptionResult option) {
             return new OrderProductOptionResponse(
-                option.id(),
+                option.orderProductOptionId().value(),
                 option.optionGroupName(),
                 option.optionName(),
                 option.additionalPrice()
@@ -40,7 +40,7 @@ public record OrderProductResponse(
                 .map(OrderProductOptionResponse::from)
                 .toList();
         return new OrderProductResponse(
-            result.id(),
+            result.orderProductId().value(),
             result.productId(),
             result.name(),
             imageUrl,

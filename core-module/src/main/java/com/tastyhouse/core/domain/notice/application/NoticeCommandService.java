@@ -8,6 +8,7 @@ import com.tastyhouse.core.domain.notice.application.dto.command.CreateNoticeCom
 import com.tastyhouse.core.domain.notice.application.dto.command.NoticeUpdateCommand;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
+import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -18,21 +19,21 @@ public class NoticeCommandService {
 
     private final NoticeRepository noticeRepository;
 
-    public Long createNotice(CreateNoticeCommand command) {
+    public NoticeId createNotice(CreateNoticeCommand command) {
         Notice notice = Notice.of(command.title(), command.content(), command.visible());
         Notice saved = noticeRepository.save(notice);
-        return saved.getId();
+        return saved.getNoticeId();
     }
 
-    public void updateNotice(Long id, NoticeUpdateCommand command) {
-        Notice notice = noticeRepository.findById(id)
+    public void updateNotice(NoticeId noticeId, NoticeUpdateCommand command) {
+        Notice notice = noticeRepository.findById(noticeId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
 
         notice.update(command.title(), command.content(), command.visible());
     }
 
-    public void deleteNotice(Long id) {
-        Notice notice = noticeRepository.findById(id)
+    public void deleteNotice(NoticeId noticeId) {
+        Notice notice = noticeRepository.findById(noticeId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
 
         notice.delete();

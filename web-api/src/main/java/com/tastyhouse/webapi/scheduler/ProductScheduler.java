@@ -15,6 +15,7 @@ import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOpt
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.ProductBbq;
 import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.webapi.crawling.bbq.BbqService;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductSubOptionResponse;
 
@@ -47,7 +48,7 @@ public class ProductScheduler {
 
             saveProductOptions(productId, bbqMenuId);
 
-            productCommandService.markBbqOptionsSynced(productId);
+            productCommandService.markBbqOptionsSynced(ProductId.of(productId));
 
             log.info("상품 옵션 저장 완료: productId={}", productId);
         } catch (Exception e) {
@@ -59,7 +60,7 @@ public class ProductScheduler {
         List<BbqProductSubOptionResponse> subOptions = bbqService.getMenuSubOptions(bbqMenuId);
 
         if (subOptions.isEmpty()) {
-            Product product = productQueryService.findProductById(productId)
+            Product product = productQueryService.findProductById(ProductId.of(productId))
                 .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다: productId=" + productId));
 
             ProductOptionGroup savedOptionGroup = productCommandService.saveProductOptionGroup(

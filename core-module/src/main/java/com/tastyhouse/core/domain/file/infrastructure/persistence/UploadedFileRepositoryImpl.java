@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
-import com.tastyhouse.core.domain.file.domain.model.UploadedFileId;
 import com.tastyhouse.core.domain.file.domain.repository.UploadedFileRepository;
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 
 @Repository
 @RequiredArgsConstructor
@@ -18,11 +18,6 @@ public class UploadedFileRepositoryImpl implements UploadedFileRepository {
     @Override
     public UploadedFile save(UploadedFile file) {
         return uploadedFileJpaRepository.save(file);
-    }
-
-    @Override
-    public Optional<UploadedFile> findById(Long id) {
-        return uploadedFileJpaRepository.findById(id);
     }
 
     @Override

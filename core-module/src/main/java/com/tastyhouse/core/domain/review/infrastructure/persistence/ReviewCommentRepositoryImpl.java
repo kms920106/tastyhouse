@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewCommentRepository;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 
 import static com.tastyhouse.core.domain.review.domain.model.QReviewComment.reviewComment;
 
@@ -19,11 +20,11 @@ public class ReviewCommentRepositoryImpl implements ReviewCommentRepository {
     private final ReviewCommentJpaRepository reviewCommentJpaRepository;
 
     @Override
-    public List<ReviewComment> findByReviewIdOrderByCreatedAtDesc(Long reviewId) {
+    public List<ReviewComment> findByReviewIdOrderByCreatedAtDesc(ReviewId reviewId) {
         return queryFactory
             .selectFrom(reviewComment)
             .where(
-                reviewComment.reviewId.eq(reviewId),
+                reviewComment.reviewId.eq(reviewId.value()),
                 reviewComment.hidden.eq(false)
             )
             .orderBy(reviewComment.createdAt.desc())

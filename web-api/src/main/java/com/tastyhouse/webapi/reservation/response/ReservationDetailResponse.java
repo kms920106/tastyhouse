@@ -62,7 +62,7 @@ public record ReservationDetailResponse(
         String reserverEmail
     ) {
         return new ReservationDetailResponse(
-            result.id(),
+            result.id().value(),
             result.shopId(),
             result.shopName(),
             shopImageUrl,

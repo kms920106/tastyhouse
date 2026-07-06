@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.point.domain.vo.MemberPointId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -47,6 +48,10 @@ public class MemberPoint extends BaseEntity {
 
     public static MemberPoint of(Long memberId) {
         return new MemberPoint(memberId, 0, 0);
+    }
+
+    public MemberPointId getMemberPointId() {
+        return MemberPointId.of(id);
     }
 
     public void addPoints(Integer amount) {

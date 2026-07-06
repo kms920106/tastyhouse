@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -49,5 +50,9 @@ public class BugReport extends BaseEntity {
 
     public static BugReport create(Long memberId, String device, String title, String content) {
         return new BugReport(memberId, device, title, content);
+    }
+
+    public BugReportId getBugReportId() {
+        return BugReportId.of(id);
     }
 }

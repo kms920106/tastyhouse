@@ -12,6 +12,7 @@ import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderProdu
 import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderProductOptionCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -58,7 +59,7 @@ public class OrderService {
             finalAmount
         );
         OrderResult result = orderCommandService.createOrder(memberId, command);
-        return result.id();
+        return result.orderId().value();
     }
 
     public OrderListPageResult getOrderList(Long memberId, int page, int size) {
@@ -68,7 +69,7 @@ public class OrderService {
     }
 
     public OrderDetailResponse getOrderDetail(Long memberId, Long orderId) {
-        OrderResult result = orderQueryService.findOrderDetail(memberId, orderId);
+        OrderResult result = orderQueryService.findOrderDetail(memberId, OrderId.of(orderId));
         return toOrderResponse(result, memberId);
     }
 
@@ -124,7 +125,7 @@ public class OrderService {
         List<OrderProductResponse> orderProductsResponse = result.orderProducts().stream()
             .map(orderProduct -> {
                 boolean reviewed = reviewQueryService.isReviewedByOrderAndProduct(
-                    result.id(),
+                    result.orderId().value(),
                     orderProduct.productId(),
                     memberId
                 );
@@ -148,7 +149,7 @@ public class OrderService {
         }
 
         return OrderDetailResponse.from(
-            result.id(),
+            result.orderId().value(),
             result.orderNumber(),
             result.orderMethod(),
             result.paymentStatus(),

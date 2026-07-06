@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
 import com.tastyhouse.core.domain.product.domain.model.Product;
+import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -17,7 +18,7 @@ public interface ProductRepository {
 
     List<Product> findActiveByShopIdOrderByRepresentativeAndRating(Long shopId);
 
-    Optional<Product> findById(Long id);
+    Optional<Product> findById(ProductId id);
 
     List<Product> findAllByIds(List<Long> ids);
 

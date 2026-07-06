@@ -27,6 +27,6 @@ public class AdminAccountService {
             encodedPassword,
             request.name(),
             request.role()
-        ));
+        )).value();
     }
 }

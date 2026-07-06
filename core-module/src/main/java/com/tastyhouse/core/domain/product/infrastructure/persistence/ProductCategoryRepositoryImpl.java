@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.core.domain.product.domain.repository.ProductCategoryRepository;
+import com.tastyhouse.core.domain.product.domain.vo.ProductCategoryId;
 
 import static com.tastyhouse.core.domain.product.domain.model.QProductCategory.productCategory;
 
@@ -20,8 +21,8 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
     private final ProductCategoryJpaRepository productCategoryJpaRepository;
 
     @Override
-    public Optional<ProductCategory> findById(Long id) {
-        return productCategoryJpaRepository.findById(id);
+    public Optional<ProductCategory> findById(ProductCategoryId id) {
+        return productCategoryJpaRepository.findById(id.value());
     }
 
     @Override

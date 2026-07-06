@@ -31,6 +31,7 @@ import com.tastyhouse.core.domain.review.domain.model.QReviewImage;
 import com.tastyhouse.core.domain.review.domain.model.QReviewLike;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -333,7 +334,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Optional<ReviewDetailResult> findReviewDetail(Long reviewId) {
+    public Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId) {
         ReviewDetailResult result = queryFactory
             .select(new QReviewDetailResult(
                 review.id,
@@ -360,13 +361,13 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .innerJoin(member).on(review.memberId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(
-                review.id.eq(reviewId),
+                review.id.eq(reviewId.value()),
                 review.hidden.eq(false)
             )
             .fetchOne();
 
         if (result != null) {
-            List<String> imageUrls = findImageUrlsByReviewId(reviewId);
+            List<String> imageUrls = findImageUrlsByReviewId(reviewId.value());
             result = result.withImageUrls(imageUrls);
         }
 
@@ -833,11 +834,11 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Optional<Review> findByIdAndMemberId(Long reviewId, Long memberId) {
+    public Optional<Review> findByIdAndMemberId(ReviewId reviewId, Long memberId) {
         Review result = queryFactory
             .selectFrom(review)
             .where(
-                review.id.eq(reviewId),
+                review.id.eq(reviewId.value()),
                 review.memberId.eq(memberId)
             )
             .fetchOne();
@@ -868,8 +869,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public Optional<Review> findById(Long reviewId) {
-        return reviewJpaRepository.findById(reviewId);
+    public Optional<Review> findById(ReviewId reviewId) {
+        return reviewJpaRepository.findById(reviewId.value());
     }
 
     @Override
@@ -878,8 +879,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public void deleteById(Long reviewId) {
-        reviewJpaRepository.deleteById(reviewId);
+    public void deleteById(ReviewId reviewId) {
+        reviewJpaRepository.deleteById(reviewId.value());
     }
 
     @Override

@@ -35,6 +35,7 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
 import com.tastyhouse.core.domain.shop.domain.model.ShopOrderMethod;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
@@ -196,13 +197,13 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public ShopDetailResponse getShopDetail(Long shopId) {
-        Shop shop = shopQueryService.findShopById(shopId);
+        Shop shop = shopQueryService.findShopById(ShopId.of(shopId));
         return ShopDetailResponse.from(shop);
     }
 
     @Transactional(readOnly = true)
     public ShopInfoResponse getShopInfo(Long shopId) {
-        shopQueryService.findShopById(shopId);
+        shopQueryService.findShopById(ShopId.of(shopId));
         List<ShopBusinessHour> businessHours = shopQueryService.findShopBusinessHours(shopId);
         List<ShopBreakTime> breakTimes = shopQueryService.findShopBreakTimes(shopId);
         List<ShopClosedDay> closedDays = shopQueryService.findShopClosedDays(shopId);
@@ -341,7 +342,7 @@ public class ShopService {
     public ShopReviewStatisticsResponse getShopReviewStatistics(Long shopId) {
         ShopReviewStatisticsResult statistics = reviewQueryService.findShopReviewStatistics(shopId);
 
-        Shop shop = shopQueryService.findShopById(shopId);
+        Shop shop = shopQueryService.findShopById(ShopId.of(shopId));
 
         return ShopReviewStatisticsResponse.from(
             shop.getRating(),
@@ -438,7 +439,7 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public ShopOrderMethodResponse getShopOrderMethods(Long shopId) {
-        shopQueryService.findShopById(shopId);
+        shopQueryService.findShopById(ShopId.of(shopId));
         List<ShopOrderMethod> shopOrderMethods = shopQueryService.findShopOrderMethods(shopId);
 
         List<ShopOrderMethodResponse.OrderMethodItem> orderMethodItems =

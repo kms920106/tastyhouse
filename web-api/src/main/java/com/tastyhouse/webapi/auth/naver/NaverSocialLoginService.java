@@ -58,7 +58,7 @@ public class NaverSocialLoginService {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl());
 
-            Member member = memberQueryService.getById(new MemberId(socialAccount.getMemberId()));
+            Member member = memberQueryService.getById(MemberId.of(socialAccount.getMemberId()));
             return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 

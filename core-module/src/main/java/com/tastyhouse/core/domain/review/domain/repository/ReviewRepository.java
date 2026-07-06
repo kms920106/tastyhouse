@@ -12,6 +12,7 @@ import com.tastyhouse.core.domain.review.application.dto.result.MyReviewListItem
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
 import com.tastyhouse.core.domain.review.domain.model.Review;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -35,7 +36,7 @@ public interface ReviewRepository {
 
     List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate);
 
-    Optional<ReviewDetailResult> findReviewDetail(Long reviewId);
+    Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId);
 
     PageResult<MyReviewListItemResult> findMyReviews(Long memberId, PageQuery pageQuery);
 
@@ -69,9 +70,9 @@ public interface ReviewRepository {
 
     Double getAveragePriceRatingByProductId(Long productId);
 
-    Optional<Review> findById(Long reviewId);
+    Optional<Review> findById(ReviewId reviewId);
 
-    Optional<Review> findByIdAndMemberId(Long reviewId, Long memberId);
+    Optional<Review> findByIdAndMemberId(ReviewId reviewId, Long memberId);
 
     long countVisibleReviewsByMemberId(Long memberId);
 
@@ -79,5 +80,5 @@ public interface ReviewRepository {
 
     Review save(Review review);
 
-    void deleteById(Long reviewId);
+    void deleteById(ReviewId reviewId);
 }

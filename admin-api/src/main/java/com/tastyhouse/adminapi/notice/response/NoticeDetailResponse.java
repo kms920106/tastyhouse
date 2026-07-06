@@ -28,7 +28,7 @@ public record NoticeDetailResponse(
 ) {
     public static NoticeDetailResponse from(NoticeDetailDto dto) {
         return new NoticeDetailResponse(
-            dto.id(),
+            dto.noticeId().value(),
             dto.title(),
             dto.content(),
             dto.visible(),

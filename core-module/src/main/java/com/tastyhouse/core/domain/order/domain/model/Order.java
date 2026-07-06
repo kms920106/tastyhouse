@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -156,6 +157,10 @@ public class Order extends BaseEntity {
             usedPoint,
             earnedPoint
         );
+    }
+
+    public OrderId getOrderId() {
+        return OrderId.of(this.id);
     }
 
     public void validateOwnership(Long memberId) {

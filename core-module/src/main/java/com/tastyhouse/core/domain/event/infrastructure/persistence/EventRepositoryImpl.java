@@ -14,6 +14,7 @@ import com.tastyhouse.core.domain.event.application.dto.QEventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.QEventListItemDto;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
+import com.tastyhouse.core.domain.event.domain.vo.EventId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -54,14 +55,14 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public Optional<EventDetailDto> findEventDetailById(Long eventId) {
+    public Optional<EventDetailDto> findEventDetailById(EventId eventId) {
         EventDetailDto result = queryFactory
             .select(new QEventDetailDto(
                 uploadedFile.filePath
             ))
             .from(event)
             .leftJoin(uploadedFile).on(event.bannerImageFileId.eq(uploadedFile.id))
-            .where(event.id.eq(eventId))
+            .where(event.id.eq(eventId.value()))
             .fetchOne();
 
         return Optional.ofNullable(result);
