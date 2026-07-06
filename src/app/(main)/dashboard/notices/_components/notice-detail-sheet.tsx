@@ -79,7 +79,7 @@ export function NoticeDetailSheet({ noticeId, onOpenChange }: NoticeDetailSheetP
             <>
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-semibold text-lg leading-snug">{detail.title}</h3>
-                <Badge variant={detail.visible ? "default" : "secondary"}>{detail.visible ? "노출" : "비노출"}</Badge>
+                <Badge variant={detail.visible ? "default" : "secondary"}>{detail.visible ? "노출" : "미노출"}</Badge>
               </div>
 
               <Separator />
