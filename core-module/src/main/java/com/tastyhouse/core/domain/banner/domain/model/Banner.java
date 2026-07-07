@@ -10,7 +10,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -18,6 +20,7 @@ import com.tastyhouse.core.shared.entity.BaseEntity;
 @Getter
 @Entity
 @Table(name = "BANNER")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Banner extends BaseEntity {
 
     @Id
@@ -49,7 +52,60 @@ public class Banner extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible = true;
 
+    private Banner(
+        BannerType type,
+        String title,
+        Long imageFileId,
+        String linkUrl,
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        Integer sort,
+        boolean visible
+    ) {
+        this.type = type;
+        this.title = title;
+        this.imageFileId = imageFileId;
+        this.linkUrl = linkUrl;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.sort = sort;
+        this.visible = visible;
+    }
+
+    public static Banner of(
+        BannerType type,
+        String title,
+        Long imageFileId,
+        String linkUrl,
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        Integer sort,
+        boolean visible
+    ) {
+        return new Banner(type, title, imageFileId, linkUrl, startDate, endDate, sort, visible);
+    }
+
     public BannerId getBannerId() {
         return BannerId.of(this.id);
+    }
+
+    public void update(
+        BannerType type,
+        String title,
+        Long imageFileId,
+        String linkUrl,
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        Integer sort,
+        boolean visible
+    ) {
+        this.type = type;
+        this.title = title;
+        this.imageFileId = imageFileId;
+        this.linkUrl = linkUrl;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.sort = sort;
+        this.visible = visible;
     }
 }

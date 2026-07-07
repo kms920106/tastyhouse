@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.banner.application.dto.BannerAdminListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
 import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
 import com.tastyhouse.core.domain.banner.domain.model.Banner;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
@@ -34,5 +36,14 @@ public class BannerQueryService {
     public Banner findById(BannerId id) {
         return bannerRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BANNER_NOT_FOUND));
+    }
+
+    public PageResult<BannerAdminListItemDto> findAllForAdmin(BannerType type, int page, int size) {
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return bannerRepository.findAllForAdmin(type, pageQuery);
+    }
+
+    public BannerDetailDto findDetailById(BannerId id) {
+        return BannerDetailDto.from(findById(id));
     }
 }
