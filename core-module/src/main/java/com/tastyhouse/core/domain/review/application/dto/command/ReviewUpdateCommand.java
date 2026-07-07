@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 
-public record UpdateReviewCommand(
+public record ReviewUpdateCommand(
     ReviewId reviewId,
     Long memberId,
     Integer tasteRating,
@@ -15,7 +15,7 @@ public record UpdateReviewCommand(
     List<String> tags
 ) {
 
-    public static UpdateReviewCommand of(
+    public static ReviewUpdateCommand of(
         ReviewId reviewId,
         Long memberId,
         Integer tasteRating,
@@ -25,7 +25,7 @@ public record UpdateReviewCommand(
         List<Long> uploadedFileIds,
         List<String> tags
     ) {
-        return new UpdateReviewCommand(
+        return new ReviewUpdateCommand(
             reviewId, memberId, tasteRating, amountRating, priceRating, content, uploadedFileIds, tags
         );
     }

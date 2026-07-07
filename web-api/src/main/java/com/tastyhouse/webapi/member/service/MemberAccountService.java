@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
-import com.tastyhouse.core.domain.member.application.dto.command.UpdatePersonalInfoCommand;
-import com.tastyhouse.core.domain.member.application.dto.command.UpdateProfileCommand;
+import com.tastyhouse.core.domain.member.application.dto.command.PersonalInfoUpdateCommand;
+import com.tastyhouse.core.domain.member.application.dto.command.ProfileUpdateCommand;
 import com.tastyhouse.core.domain.member.application.dto.command.WithdrawMemberCommand;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.member.domain.model.Gender;
@@ -121,7 +121,7 @@ public class MemberAccountService {
         boolean eventInfoEnabled
     ) {
         memberCommandService.updatePersonalInfo(
-            UpdatePersonalInfoCommand.of(
+            PersonalInfoUpdateCommand.of(
                 MemberId.of(memberId),
                 fullName,
                 phoneNumber,
@@ -172,7 +172,7 @@ public class MemberAccountService {
         Long profileImageFileId
     ) {
         memberCommandService.updateProfile(
-            UpdateProfileCommand.of(
+            ProfileUpdateCommand.of(
                 MemberId.of(memberId),
                 nickname,
                 statusMessage,

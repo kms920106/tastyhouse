@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.reservation.application.dto.command.CreateReservationCommand;
+import com.tastyhouse.core.domain.reservation.application.dto.command.ReservationCreateCommand;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ReservationSlot;
@@ -44,7 +44,7 @@ public class ReservationCreator {
     private EntityManager entityManager;
 
     @Transactional
-    public ReservationResult createInNewTx(Long memberId, CreateReservationCommand cmd) {
+    public ReservationResult createInNewTx(Long memberId, ReservationCreateCommand cmd) {
         // 1. 필수 약관 동의 검증
         if (!cmd.agreedRequiredTerms()) {
             throw new BusinessException(ErrorCode.RESERVATION_TERMS_NOT_AGREED);

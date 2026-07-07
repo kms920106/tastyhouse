@@ -2,7 +2,7 @@ package com.tastyhouse.core.domain.policy.application.dto.command;
 
 import java.time.LocalDateTime;
 
-public record UpdatePolicyCommand(
+public record PolicyUpdateCommand(
     String title,
     String content,
     boolean mandatory,
@@ -10,13 +10,13 @@ public record UpdatePolicyCommand(
     String updatedBy
 ) {
 
-    public static UpdatePolicyCommand of(
+    public static PolicyUpdateCommand of(
         String title,
         String content,
         boolean mandatory,
         LocalDateTime effectiveDate,
         String updatedBy
     ) {
-        return new UpdatePolicyCommand(title, content, mandatory, effectiveDate, updatedBy);
+        return new PolicyUpdateCommand(title, content, mandatory, effectiveDate, updatedBy);
     }
 }

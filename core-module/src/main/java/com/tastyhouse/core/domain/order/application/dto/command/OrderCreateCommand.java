@@ -4,10 +4,10 @@ import java.util.List;
 
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
-public record CreateOrderCommand(
+public record OrderCreateCommand(
     Long shopId,
     OrderMethod orderMethod,
-    List<CreateOrderProductCommand> orderProducts,
+    List<OrderProductCreateCommand> orderProducts,
     Long memberCouponId,
     Integer usePoint,
     Integer totalProductAmount,
@@ -17,10 +17,10 @@ public record CreateOrderCommand(
     Integer finalAmount
 ) {
 
-    public static CreateOrderCommand of(
+    public static OrderCreateCommand of(
         Long shopId,
         OrderMethod orderMethod,
-        List<CreateOrderProductCommand> orderProducts,
+        List<OrderProductCreateCommand> orderProducts,
         Long memberCouponId,
         Integer usePoint,
         Integer totalProductAmount,
@@ -29,7 +29,7 @@ public record CreateOrderCommand(
         Integer couponDiscountAmount,
         Integer finalAmount
     ) {
-        return new CreateOrderCommand(
+        return new OrderCreateCommand(
             shopId,
             orderMethod,
             orderProducts,

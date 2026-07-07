@@ -14,7 +14,7 @@ import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.application.dto.command.CancelPaymentCommand;
 import com.tastyhouse.core.domain.payment.application.dto.command.ConfirmPaymentCommand;
-import com.tastyhouse.core.domain.payment.application.dto.command.CreatePaymentCommand;
+import com.tastyhouse.core.domain.payment.application.dto.command.PaymentCreateCommand;
 import com.tastyhouse.core.domain.payment.application.dto.command.RequestRefundCommand;
 import com.tastyhouse.core.domain.payment.application.dto.command.TossConfirmCommand;
 import com.tastyhouse.core.domain.payment.application.dto.result.PaymentCancelResult;
@@ -59,7 +59,7 @@ public class PaymentCommandService {
     private static final int CASH_POINT_EARN_RATE = 10;
 
     @Transactional
-    public PaymentResult createPayment(Long memberId, CreatePaymentCommand command) {
+    public PaymentResult createPayment(Long memberId, PaymentCreateCommand command) {
         OrderId orderId = OrderId.of(command.orderId());
         Order order = orderQueryService.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));

@@ -3,7 +3,7 @@ package com.tastyhouse.core.domain.member.application.dto.command;
 import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 
-public record UpdatePersonalInfoCommand(
+public record PersonalInfoUpdateCommand(
     MemberId memberId,
     String fullName,
     String phoneNumber,
@@ -14,7 +14,7 @@ public record UpdatePersonalInfoCommand(
     boolean eventInfoEnabled
 ) {
 
-    public static UpdatePersonalInfoCommand of(
+    public static PersonalInfoUpdateCommand of(
         MemberId memberId,
         String fullName,
         String phoneNumber,
@@ -24,7 +24,7 @@ public record UpdatePersonalInfoCommand(
         boolean marketingInfoEnabled,
         boolean eventInfoEnabled
     ) {
-        return new UpdatePersonalInfoCommand(
+        return new PersonalInfoUpdateCommand(
             memberId, fullName, phoneNumber, birthDate, gender,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         );

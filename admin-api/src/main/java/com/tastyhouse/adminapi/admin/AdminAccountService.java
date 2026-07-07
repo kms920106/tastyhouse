@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.adminapi.admin.request.AdminCreateRequest;
 import com.tastyhouse.core.domain.admin.application.AdminCommandService;
-import com.tastyhouse.core.domain.admin.application.dto.command.CreateAdminCommand;
+import com.tastyhouse.core.domain.admin.application.dto.command.AdminCreateCommand;
 
 /**
  * 관리자 계정 생성 서비스.
@@ -22,7 +22,7 @@ public class AdminAccountService {
 
     public Long create(AdminCreateRequest request) {
         String encodedPassword = passwordEncoder.encode(request.password());
-        return adminCommandService.createAdmin(CreateAdminCommand.of(
+        return adminCommandService.createAdmin(AdminCreateCommand.of(
             request.username(),
             encodedPassword,
             request.name(),

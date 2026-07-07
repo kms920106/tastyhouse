@@ -17,8 +17,8 @@ import com.tastyhouse.core.domain.coupon.application.dto.result.UseCouponResult;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderCommand;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderProductOptionCommand;
+import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateCommand;
+import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.order.domain.event.OrderCreatedEvent;
 import com.tastyhouse.core.domain.order.domain.model.Order;
@@ -60,7 +60,7 @@ public class OrderCommandService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public OrderResult createOrder(Long memberId, CreateOrderCommand command) {
+    public OrderResult createOrder(Long memberId, OrderCreateCommand command) {
         Shop shop = shopQueryService.findShopById(ShopId.of(command.shopId()));
         Member member = memberQueryService.getById(MemberId.of(memberId));
 
@@ -108,7 +108,7 @@ public class OrderCommandService {
             OrderProduct savedOrderProduct = orderProductRepository.save(orderProduct);
 
             if (itemCommand.selectedOptions() != null) {
-                for (CreateOrderProductOptionCommand optionCommand : itemCommand.selectedOptions()) {
+                for (OrderProductOptionCreateCommand optionCommand : itemCommand.selectedOptions()) {
                     ProductOptionGroup optionGroup = productQueryService
                         .findProductOptionGroupById(ProductOptionGroupId.of(optionCommand.groupId()))
                         .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
@@ -208,7 +208,7 @@ public class OrderCommandService {
             .toList();
     }
 
-    private void validateOrderAmounts(CreateOrderCommand command, int totalProductAmount, int totalDiscountAmount,
+    private void validateOrderAmounts(OrderCreateCommand command, int totalProductAmount, int totalDiscountAmount,
                                       int productDiscountAmount, int couponDiscountAmount,
                                       int pointDiscountAmount, int finalAmount) {
         if (!command.totalProductAmount().equals(totalProductAmount)) {

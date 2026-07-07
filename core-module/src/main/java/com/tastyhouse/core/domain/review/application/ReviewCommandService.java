@@ -9,12 +9,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewCommand;
-import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewCommentCommand;
-import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewReplyCommand;
-import com.tastyhouse.core.domain.review.application.dto.command.DeleteReviewCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewCommentCreateCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewCreateCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewDeleteCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewReplyCreateCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewUpdateCommand;
 import com.tastyhouse.core.domain.review.application.dto.command.ToggleReviewLikeCommand;
-import com.tastyhouse.core.domain.review.application.dto.command.UpdateReviewCommand;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewResult;
 import com.tastyhouse.core.domain.review.domain.event.ReviewCreatedEvent;
 import com.tastyhouse.core.domain.review.domain.event.ReviewDeletedEvent;
@@ -51,7 +51,7 @@ public class ReviewCommandService {
     private final TagRepository tagRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public ReviewResult createReview(CreateReviewCommand cmd) {
+    public ReviewResult createReview(ReviewCreateCommand cmd) {
         double totalRating = Math.round(
             (cmd.tasteRating() + cmd.amountRating() + cmd.priceRating()) / 3.0 * 10.0
         ) / 10.0;
@@ -96,7 +96,7 @@ public class ReviewCommandService {
         );
     }
 
-    public ReviewResult updateReview(UpdateReviewCommand cmd) {
+    public ReviewResult updateReview(ReviewUpdateCommand cmd) {
         Review review = reviewRepository.findByIdAndMemberId(cmd.reviewId(), cmd.memberId())
             .orElseThrow(() -> new AccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED));
 
@@ -133,7 +133,7 @@ public class ReviewCommandService {
         );
     }
 
-    public void deleteReview(DeleteReviewCommand cmd) {
+    public void deleteReview(ReviewDeleteCommand cmd) {
         reviewRepository.findByIdAndMemberId(cmd.reviewId(), cmd.memberId())
             .orElseThrow(() -> new AccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED));
 
@@ -173,11 +173,11 @@ public class ReviewCommandService {
         }
     }
 
-    public ReviewComment createComment(CreateReviewCommentCommand cmd) {
+    public ReviewComment createComment(ReviewCommentCreateCommand cmd) {
         return reviewCommentRepository.save(new ReviewComment(cmd.reviewId().value(), cmd.memberId(), cmd.content()));
     }
 
-    public ReviewReply createReply(CreateReviewReplyCommand cmd) {
+    public ReviewReply createReply(ReviewReplyCreateCommand cmd) {
         return reviewReplyRepository.save(new ReviewReply(cmd.commentId().value(), cmd.memberId(), cmd.replyToMemberId(), cmd.content()));
     }
 

@@ -7,8 +7,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.policy.application.dto.command.CreatePolicyCommand;
-import com.tastyhouse.core.domain.policy.application.dto.command.UpdatePolicyCommand;
+import com.tastyhouse.core.domain.policy.application.dto.command.PolicyCreateCommand;
+import com.tastyhouse.core.domain.policy.application.dto.command.PolicyUpdateCommand;
 import com.tastyhouse.core.domain.policy.domain.event.PolicyActivatedEvent;
 import com.tastyhouse.core.domain.policy.domain.model.PolicyDocument;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
@@ -24,7 +24,7 @@ public class PolicyCommandService {
     private final PolicyDocumentRepository policyDocumentRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public PolicyDocumentId createPolicy(CreatePolicyCommand command) {
+    public PolicyDocumentId createPolicy(PolicyCreateCommand command) {
         PolicyDocument policyDocument = PolicyDocument.of(
             command.type(),
             command.version(),
@@ -52,7 +52,7 @@ public class PolicyCommandService {
         ));
     }
 
-    public void updatePolicy(PolicyDocumentId id, UpdatePolicyCommand command) {
+    public void updatePolicy(PolicyDocumentId id, PolicyUpdateCommand command) {
         PolicyDocument policyDocument = policyDocumentRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POLICY_NOT_FOUND));
 

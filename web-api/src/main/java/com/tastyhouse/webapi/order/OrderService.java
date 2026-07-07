@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.core.domain.order.application.OrderCommandService;
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderCommand;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderProductCommand;
-import com.tastyhouse.core.domain.order.application.dto.command.CreateOrderProductOptionCommand;
+import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateCommand;
+import com.tastyhouse.core.domain.order.application.dto.command.OrderProductCreateCommand;
+import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
@@ -46,7 +46,7 @@ public class OrderService {
         Integer couponDiscountAmount,
         Integer finalAmount
     ) {
-        CreateOrderCommand command = toCreateOrderCommand(
+        OrderCreateCommand command = toCreateOrderCommand(
             shopId,
             orderMethod,
             orderProducts,
@@ -86,7 +86,7 @@ public class OrderService {
         );
     }
 
-    private CreateOrderCommand toCreateOrderCommand(
+    private OrderCreateCommand toCreateOrderCommand(
         Long shopId,
         OrderMethod orderMethod,
         List<OrderProductRequest> orderProducts,
@@ -98,16 +98,16 @@ public class OrderService {
         Integer couponDiscountAmount,
         Integer finalAmount
     ) {
-        List<CreateOrderProductCommand> itemCommands = orderProducts.stream()
+        List<OrderProductCreateCommand> itemCommands = orderProducts.stream()
             .map(product -> {
-                List<CreateOrderProductOptionCommand> optionCommands = product.options() == null ? null :
+                List<OrderProductOptionCreateCommand> optionCommands = product.options() == null ? null :
                     product.options().stream()
-                        .map(opt -> CreateOrderProductOptionCommand.of(opt.groupId(), opt.optionId()))
+                        .map(opt -> OrderProductOptionCreateCommand.of(opt.groupId(), opt.optionId()))
                         .toList();
-                return CreateOrderProductCommand.of(product.productId(), product.quantity(), optionCommands);
+                return OrderProductCreateCommand.of(product.productId(), product.quantity(), optionCommands);
             })
             .toList();
-        return CreateOrderCommand.of(
+        return OrderCreateCommand.of(
             shopId,
             orderMethod,
             itemCommands,

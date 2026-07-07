@@ -7,8 +7,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.product.application.dto.command.CreateProductCategoryCommand;
-import com.tastyhouse.core.domain.product.application.dto.command.CreateProductCommand;
+import com.tastyhouse.core.domain.product.application.dto.command.ProductCategoryCreateCommand;
+import com.tastyhouse.core.domain.product.application.dto.command.ProductCreateCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductBbqCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductImageCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOptionCommand;
@@ -45,7 +45,7 @@ public class ProductCommandService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public Product createProduct(CreateProductCommand cmd) {
+    public Product createProduct(ProductCreateCommand cmd) {
         Product product = Product.of(
             cmd.shopId(),
             cmd.productCategoryId(),
@@ -72,7 +72,7 @@ public class ProductCommandService {
     }
 
     @Transactional
-    public ProductCategory createProductCategory(CreateProductCategoryCommand cmd) {
+    public ProductCategory createProductCategory(ProductCategoryCreateCommand cmd) {
         ProductCategory category = ProductCategory.of(
             cmd.shopId(),
             cmd.name(),

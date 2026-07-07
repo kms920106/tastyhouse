@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.product.application.ProductCommandService;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
-import com.tastyhouse.core.domain.product.application.dto.command.CreateProductCategoryCommand;
-import com.tastyhouse.core.domain.product.application.dto.command.CreateProductCommand;
+import com.tastyhouse.core.domain.product.application.dto.command.ProductCategoryCreateCommand;
+import com.tastyhouse.core.domain.product.application.dto.command.ProductCreateCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductBbqCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductImageCommand;
 import com.tastyhouse.core.domain.product.domain.model.Product;
@@ -172,7 +172,7 @@ public class BbqService {
         if (!existingCategories.isEmpty()) {
             return existingCategories.getFirst();
         }
-        return productCommandService.createProductCategory(CreateProductCategoryCommand.of(
+        return productCommandService.createProductCategory(ProductCategoryCreateCommand.of(
             shopId, categoryResponse.name(), sort, true
         ));
     }
@@ -180,7 +180,7 @@ public class BbqService {
     private void saveProductWithImage(Long shopId, Long categoryId, BbqProductResponse menuResponse, Long bbqCategoryId, int sort) {
         BbqProductResponse menuDetail = getMenuDetail(menuResponse.id());
 
-        Product savedProduct = productCommandService.createProduct(CreateProductCommand.of(
+        Product savedProduct = productCommandService.createProduct(ProductCreateCommand.of(
             shopId, categoryId, menuDetail.name(), menuDetail.description(),
             menuDetail.originalPrice(), null, null, null, 0, false, null,
             menuDetail.soldOut(), true, sort

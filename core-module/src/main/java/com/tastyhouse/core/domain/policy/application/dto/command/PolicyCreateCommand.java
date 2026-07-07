@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 
-public record CreatePolicyCommand(
+public record PolicyCreateCommand(
     PolicyType type,
     String version,
     String title,
@@ -14,7 +14,7 @@ public record CreatePolicyCommand(
     String createdBy
 ) {
 
-    public static CreatePolicyCommand of(
+    public static PolicyCreateCommand of(
         PolicyType type,
         String version,
         String title,
@@ -23,6 +23,6 @@ public record CreatePolicyCommand(
         LocalDateTime effectiveDate,
         String createdBy
     ) {
-        return new CreatePolicyCommand(type, version, title, content, mandatory, effectiveDate, createdBy);
+        return new PolicyCreateCommand(type, version, title, content, mandatory, effectiveDate, createdBy);
     }
 }

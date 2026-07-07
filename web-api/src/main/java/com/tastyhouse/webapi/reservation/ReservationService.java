@@ -12,7 +12,7 @@ import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.reservation.application.ReservationCommandService;
 import com.tastyhouse.core.domain.reservation.application.ReservationQueryService;
-import com.tastyhouse.core.domain.reservation.application.dto.command.CreateReservationCommand;
+import com.tastyhouse.core.domain.reservation.application.dto.command.ReservationCreateCommand;
 import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
@@ -51,7 +51,7 @@ public class ReservationService {
         String request,
         boolean agreedRequiredTerms
     ) {
-        CreateReservationCommand command = CreateReservationCommand.of(
+        ReservationCreateCommand command = ReservationCreateCommand.of(
             shopId, reservationDate, reservationTime, partySize, request, agreedRequiredTerms);
         ReservationResult result = reservationCommandService.create(memberId, command);
         return ReservationResponse.from(result);

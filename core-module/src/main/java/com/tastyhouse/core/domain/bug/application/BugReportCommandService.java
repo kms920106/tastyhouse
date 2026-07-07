@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.bug.application.dto.command.CreateBugReportCommand;
+import com.tastyhouse.core.domain.bug.application.dto.command.BugReportCreateCommand;
 import com.tastyhouse.core.domain.bug.application.dto.result.BugReportResult;
 import com.tastyhouse.core.domain.bug.domain.model.BugReport;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportImage;
@@ -21,7 +21,7 @@ public class BugReportCommandService {
     private final BugReportRepository bugReportRepository;
     private final BugReportImageRepository bugReportImageRepository;
 
-    public BugReportResult create(CreateBugReportCommand command) {
+    public BugReportResult create(BugReportCreateCommand command) {
         BugReport bugReport = BugReport.create(
             command.memberId(),
             command.device(),

@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.core.domain.member.application.dto.command.UpdatePersonalInfoCommand;
-import com.tastyhouse.core.domain.member.application.dto.command.UpdateProfileCommand;
+import com.tastyhouse.core.domain.member.application.dto.command.PersonalInfoUpdateCommand;
+import com.tastyhouse.core.domain.member.application.dto.command.ProfileUpdateCommand;
 import com.tastyhouse.core.domain.member.application.dto.command.WithdrawMemberCommand;
 import com.tastyhouse.core.domain.member.domain.event.MemberRegisteredEvent;
 import com.tastyhouse.core.domain.member.domain.event.MemberWithdrawnEvent;
@@ -137,13 +137,13 @@ public class MemberCommandService {
         );
     }
 
-    public void updateProfile(UpdateProfileCommand command) {
+    public void updateProfile(ProfileUpdateCommand command) {
         Member member = memberRepository.findById(command.memberId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         member.updateProfile(command.nickname(), command.statusMessage(), command.profileImageFileId());
     }
 
-    public void updatePersonalInfo(UpdatePersonalInfoCommand command) {
+    public void updatePersonalInfo(PersonalInfoUpdateCommand command) {
         Member member = memberRepository.findById(command.memberId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         member.updatePersonalInfo(

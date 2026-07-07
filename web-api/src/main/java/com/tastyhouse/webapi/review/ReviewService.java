@@ -19,12 +19,12 @@ import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.review.application.ReviewCommandService;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
-import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewCommand;
-import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewCommentCommand;
-import com.tastyhouse.core.domain.review.application.dto.command.CreateReviewReplyCommand;
-import com.tastyhouse.core.domain.review.application.dto.command.DeleteReviewCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewCommentCreateCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewCreateCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewDeleteCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewReplyCreateCommand;
+import com.tastyhouse.core.domain.review.application.dto.command.ReviewUpdateCommand;
 import com.tastyhouse.core.domain.review.application.dto.command.ToggleReviewLikeCommand;
-import com.tastyhouse.core.domain.review.application.dto.command.UpdateReviewCommand;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
@@ -165,7 +165,7 @@ public class ReviewService {
     @Transactional
     public CommentResponse createComment(Long reviewId, Long memberId, String content) {
         ReviewComment comment = reviewCommandService.createComment(
-            CreateReviewCommentCommand.of(ReviewId.of(reviewId), memberId, content)
+            ReviewCommentCreateCommand.of(ReviewId.of(reviewId), memberId, content)
         );
         MemberWithProfileImageResult member = reviewQueryService.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
         return convertToCommentResponse(comment, member, List.of());
@@ -174,7 +174,7 @@ public class ReviewService {
     @Transactional
     public ReplyResponse createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
         ReviewReply reply = reviewCommandService.createReply(
-            CreateReviewReplyCommand.of(ReviewCommentId.of(commentId), memberId, replyToMemberId, content)
+            ReviewReplyCreateCommand.of(ReviewCommentId.of(commentId), memberId, replyToMemberId, content)
         );
         List<Long> ids = replyToMemberId != null ? List.of(memberId, replyToMemberId) : List.of(memberId);
         Map<Long, MemberWithProfileImageResult> memberMap = reviewQueryService.findMemberWithProfileImagesByIds(ids);
@@ -363,7 +363,7 @@ public class ReviewService {
         Product product = productQueryService.findProductById(ProductId.of(request.productId()))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
-        ReviewResult result = reviewCommandService.createReview(CreateReviewCommand.of(
+        ReviewResult result = reviewCommandService.createReview(ReviewCreateCommand.of(
             product.getShopId(),
             product.getId(),
             memberId,
@@ -393,7 +393,7 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse updateReview(Long reviewId, Long memberId, ReviewUpdateRequest request) {
-        ReviewResult result = reviewCommandService.updateReview(UpdateReviewCommand.of(
+        ReviewResult result = reviewCommandService.updateReview(ReviewUpdateCommand.of(
             ReviewId.of(reviewId),
             memberId,
             request.tasteRating(),
@@ -421,7 +421,7 @@ public class ReviewService {
     @Transactional
     public void deleteReview(Long reviewId, Long memberId) {
         Review review = reviewQueryService.findById(ReviewId.of(reviewId));
-        reviewCommandService.deleteReview(DeleteReviewCommand.of(ReviewId.of(reviewId), memberId, review.getProductId()));
+        reviewCommandService.deleteReview(ReviewDeleteCommand.of(ReviewId.of(reviewId), memberId, review.getProductId()));
     }
 
     @Transactional(readOnly = true)

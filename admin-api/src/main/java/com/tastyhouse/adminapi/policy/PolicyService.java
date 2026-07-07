@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.core.domain.policy.application.PolicyCommandService;
-import com.tastyhouse.core.domain.policy.application.dto.command.CreatePolicyCommand;
-import com.tastyhouse.core.domain.policy.application.dto.command.UpdatePolicyCommand;
+import com.tastyhouse.core.domain.policy.application.dto.command.PolicyCreateCommand;
+import com.tastyhouse.core.domain.policy.application.dto.command.PolicyUpdateCommand;
 import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
 
@@ -27,7 +27,7 @@ public class PolicyService {
         String createdBy
     ) {
         PolicyDocumentId id = policyCommandService.createPolicy(
-            CreatePolicyCommand.of(type, version, title, content, mandatory, effectiveDate, createdBy));
+            PolicyCreateCommand.of(type, version, title, content, mandatory, effectiveDate, createdBy));
         return id.value();
     }
 
@@ -40,7 +40,7 @@ public class PolicyService {
         String updatedBy
     ) {
         policyCommandService.updatePolicy(PolicyDocumentId.of(id),
-            UpdatePolicyCommand.of(title, content, mandatory, effectiveDate, updatedBy));
+            PolicyUpdateCommand.of(title, content, mandatory, effectiveDate, updatedBy));
     }
 
     public void activateCurrentPolicy(Long id) {

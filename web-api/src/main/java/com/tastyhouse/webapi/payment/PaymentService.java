@@ -7,7 +7,7 @@ import com.tastyhouse.core.domain.payment.application.PaymentCommandService;
 import com.tastyhouse.core.domain.payment.application.PaymentQueryService;
 import com.tastyhouse.core.domain.payment.application.dto.command.CancelPaymentCommand;
 import com.tastyhouse.core.domain.payment.application.dto.command.ConfirmPaymentCommand;
-import com.tastyhouse.core.domain.payment.application.dto.command.CreatePaymentCommand;
+import com.tastyhouse.core.domain.payment.application.dto.command.PaymentCreateCommand;
 import com.tastyhouse.core.domain.payment.application.dto.command.RequestRefundCommand;
 import com.tastyhouse.core.domain.payment.application.dto.command.TossConfirmCommand;
 import com.tastyhouse.core.domain.payment.application.dto.result.PaymentCancelResult;
@@ -28,7 +28,7 @@ public class PaymentService {
 
     public PaymentResponse createPayment(Long memberId, Long orderId, PaymentMethod paymentMethod) {
         PaymentResult result = paymentCommandService.createPayment(
-            memberId, CreatePaymentCommand.of(orderId, paymentMethod));
+            memberId, PaymentCreateCommand.of(orderId, paymentMethod));
         return PaymentResponse.from(result);
     }
 

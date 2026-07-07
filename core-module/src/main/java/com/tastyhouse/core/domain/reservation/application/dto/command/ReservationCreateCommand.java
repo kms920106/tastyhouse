@@ -3,7 +3,7 @@ package com.tastyhouse.core.domain.reservation.application.dto.command;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public record CreateReservationCommand(
+public record ReservationCreateCommand(
     Long shopId,
     LocalDate date,
     LocalTime time,
@@ -12,7 +12,7 @@ public record CreateReservationCommand(
     boolean agreedRequiredTerms
 ) {
 
-    public static CreateReservationCommand of(
+    public static ReservationCreateCommand of(
         Long shopId,
         LocalDate date,
         LocalTime time,
@@ -20,6 +20,6 @@ public record CreateReservationCommand(
         String request,
         boolean agreedRequiredTerms
     ) {
-        return new CreateReservationCommand(shopId, date, time, partySize, request, agreedRequiredTerms);
+        return new ReservationCreateCommand(shopId, date, time, partySize, request, agreedRequiredTerms);
     }
 }

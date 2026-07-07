@@ -2,7 +2,7 @@ package com.tastyhouse.core.domain.bug.application.dto.command;
 
 import java.util.List;
 
-public record CreateBugReportCommand(
+public record BugReportCreateCommand(
     Long memberId,
     String device,
     String title,
@@ -10,13 +10,13 @@ public record CreateBugReportCommand(
     List<Long> uploadedFileIds
 ) {
 
-    public static CreateBugReportCommand of(
+    public static BugReportCreateCommand of(
         Long memberId,
         String device,
         String title,
         String content,
         List<Long> uploadedFileIds
     ) {
-        return new CreateBugReportCommand(memberId, device, title, content, uploadedFileIds);
+        return new BugReportCreateCommand(memberId, device, title, content, uploadedFileIds);
     }
 }

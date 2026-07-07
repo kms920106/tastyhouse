@@ -2,7 +2,7 @@ package com.tastyhouse.core.domain.product.application.dto.command;
 
 import java.math.BigDecimal;
 
-public record CreateProductCommand(
+public record ProductCreateCommand(
     Long shopId,
     Long productCategoryId,
     String name,
@@ -19,7 +19,7 @@ public record CreateProductCommand(
     Integer sort
 ) {
 
-    public static CreateProductCommand of(
+    public static ProductCreateCommand of(
         Long shopId,
         Long productCategoryId,
         String name,
@@ -35,7 +35,7 @@ public record CreateProductCommand(
         boolean visible,
         Integer sort
     ) {
-        return new CreateProductCommand(
+        return new ProductCreateCommand(
             shopId, productCategoryId, name, description, originalPrice, discountPrice, discountRate,
             rating, reviewCount, representative, spiciness, soldOut, visible, sort
         );
