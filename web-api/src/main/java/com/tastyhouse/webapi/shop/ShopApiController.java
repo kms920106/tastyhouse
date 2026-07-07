@@ -23,6 +23,7 @@ import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.shop.request.ShopSearchRequest;
 import com.tastyhouse.webapi.shop.response.AmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.BestShopListItemResponse;
 import com.tastyhouse.webapi.shop.response.EditorChoiceResponse;
@@ -83,14 +84,10 @@ public class ShopApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/latest")
     public ResponseEntity<ApiResponse<List<LatestShopListItemResponse>>> getLatestShops(
-        @Valid @ModelAttribute PageRequest pageRequest,
-        @RequestParam(required = false) Long stationId,
-        @Parameter(schema = @Schema(allowableValues = {"KOREAN", "JAPANESE", "WESTERN", "CHINESE", "WORLD", "SNACK", "BAR", "CAFE"}))
-        @RequestParam(required = false) List<String> foodTypes,
-        @Parameter(schema = @Schema(allowableValues = {"PARKING", "RESTROOM", "RESERVATION", "BABY_CHAIR", "PET_FRIENDLY", "OUTLET", "TAKEOUT", "DELIVERY"}))
-        @RequestParam(required = false) List<String> amenities
+        @Valid @ModelAttribute ShopSearchRequest search,
+        @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = shopService.searchLatestShops(stationId, foodTypes, amenities, pageRequest.page(), pageRequest.size());
+        var pageResult = shopService.searchLatestShops(search.stationId(), search.foodTypes(), search.amenities(), pageRequest.page(), pageRequest.size());
         ApiResponse<List<LatestShopListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }

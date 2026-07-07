@@ -3,20 +3,21 @@ package com.tastyhouse.webapi.rank;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
+import com.tastyhouse.webapi.rank.request.RankSearchRequest;
 import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
@@ -58,10 +59,9 @@ public class RankApiController {
     })
     @GetMapping("/v1/members")
     public ResponseEntity<ApiResponse<List<MemberRankListItemResponse>>> getMemberRankList(
-        @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type,
-        @Parameter(description = "조회할 랭킹 개수", example = "100") @RequestParam(defaultValue = "100") int limit
+        @Valid @ModelAttribute RankSearchRequest search
     ) {
-        List<MemberRankListItemResponse> ranks = rankService.getMemberRankList(type, limit);
+        List<MemberRankListItemResponse> ranks = rankService.getMemberRankList(search.type(), search.limit());
         return ResponseEntity.ok(ApiResponse.success(ranks));
     }
 
@@ -72,9 +72,9 @@ public class RankApiController {
     @GetMapping("/v1/members/me")
     public ResponseEntity<ApiResponse<MemberRankListItemResponse>> getMyMemberRank(
         @CurrentUser CustomUserDetails userDetails,
-        @Parameter(description = "랭킹 타입 (ALL, MONTHLY, WEEKLY)", example = "MONTHLY") @RequestParam(defaultValue = "ALL") String type
+        @Valid @ModelAttribute RankSearchRequest search
     ) {
-        MemberRankListItemResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), type);
+        MemberRankListItemResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), search.type());
         return ResponseEntity.ok(ApiResponse.success(myRank));
     }
 }

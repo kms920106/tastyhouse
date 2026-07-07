@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
+import com.tastyhouse.adminapi.notice.request.NoticeSearchRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
@@ -41,12 +41,10 @@ public class NoticeApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNotices(
-        @RequestParam(required = false) String title,
-        @RequestParam(required = false) String content,
-        @RequestParam(required = false) Boolean visible,
+        @Valid @ModelAttribute NoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        NoticePageResponse pageResponse = noticeService.getNotices(title, content, visible, pageRequest.page(), pageRequest.size());
+        NoticePageResponse pageResponse = noticeService.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 

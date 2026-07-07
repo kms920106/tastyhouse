@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.core.exception.BusinessException;
@@ -21,6 +20,7 @@ import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
+import com.tastyhouse.webapi.search.request.SearchKeywordRequest;
 import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
@@ -51,10 +51,10 @@ public class SearchApiController {
     @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:menus")
     @GetMapping("/v1/menus")
     public ResponseEntity<ApiResponse<List<ProductSummaryResponse>>> searchMenus(
-        @RequestParam String query,
+        @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        String keyword = validateKeyword(query);
+        String keyword = validateKeyword(search.query());
         var result = searchService.searchMenus(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
@@ -65,10 +65,10 @@ public class SearchApiController {
     @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:reviews")
     @GetMapping("/v1/reviews")
     public ResponseEntity<ApiResponse<List<SearchReviewListItemResponse>>> searchReviews(
-        @RequestParam String query,
+        @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        String keyword = validateKeyword(query);
+        String keyword = validateKeyword(search.query());
         var result = searchService.searchReviews(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
@@ -79,11 +79,11 @@ public class SearchApiController {
     @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:shops")
     @GetMapping("/v1/shops")
     public ResponseEntity<ApiResponse<List<SearchShopListItemResponse>>> searchShopsPaged(
-        @RequestParam String query,
+        @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        String keyword = validateKeyword(query);
+        String keyword = validateKeyword(search.query());
         var result = searchService.searchShopsPaged(keyword, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
@@ -94,10 +94,10 @@ public class SearchApiController {
     @RateLimit(limit = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:search:shops:public")
     @GetMapping("/v1/shops/public")
     public ResponseEntity<ApiResponse<List<SearchShopListItemResponse>>> searchShopsPublic(
-        @RequestParam String query,
+        @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        String keyword = validateKeyword(query);
+        String keyword = validateKeyword(search.query());
         var result = searchService.searchShopsPublic(keyword, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
