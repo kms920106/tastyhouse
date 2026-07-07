@@ -9,11 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.file.domain.model.QUploadedFile;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
 import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
@@ -22,6 +17,11 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopOwnerMessageHistory;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenity.shopAmenity;

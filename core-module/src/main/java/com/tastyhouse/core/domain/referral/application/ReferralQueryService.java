@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.referral.application.dto.result.MemberReferralResult;
 import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
+import com.tastyhouse.core.domain.referral.application.dto.result.MemberReferralResult;
 
 @Service
 @Transactional(readOnly = true)

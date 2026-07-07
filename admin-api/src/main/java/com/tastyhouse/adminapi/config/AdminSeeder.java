@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
 import com.tastyhouse.core.domain.admin.application.AdminCommandService;
 import com.tastyhouse.core.domain.admin.application.AdminQueryService;
 import com.tastyhouse.core.domain.admin.application.dto.command.AdminCreateCommand;
-import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
 
 /**
  * 최초 SUPER_ADMIN 시드.

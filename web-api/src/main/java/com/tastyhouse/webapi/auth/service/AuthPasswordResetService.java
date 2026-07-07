@@ -8,13 +8,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.domain.model.Member;
-import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
 import com.tastyhouse.core.domain.verification.domain.model.EmailVerification;
 import com.tastyhouse.core.domain.verification.domain.model.EmailVerificationStatus;
 import com.tastyhouse.core.domain.verification.domain.repository.EmailVerificationRepository;
 import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;

@@ -4,8 +4,8 @@ import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
 import com.tastyhouse.core.domain.point.domain.model.PointType;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
 
 @Schema(description = "포인트 내역 항목")
 public record PointHistoryItemResponse(

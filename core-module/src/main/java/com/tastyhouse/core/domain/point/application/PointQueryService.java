@@ -8,10 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointHistoryRepository;
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointRepository;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
 
 @Service
 @Transactional(readOnly = true)

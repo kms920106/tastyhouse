@@ -11,8 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 

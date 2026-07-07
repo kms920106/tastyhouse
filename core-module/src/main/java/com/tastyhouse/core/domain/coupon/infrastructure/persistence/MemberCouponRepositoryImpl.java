@@ -8,11 +8,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
-import com.tastyhouse.core.domain.coupon.application.dto.result.QMemberCouponResult;
 import com.tastyhouse.core.domain.coupon.domain.model.MemberCoupon;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
+import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
+import com.tastyhouse.core.domain.coupon.application.dto.result.QMemberCouponResult;
 
 import static com.tastyhouse.core.domain.coupon.domain.model.QCoupon.coupon;
 import static com.tastyhouse.core.domain.coupon.domain.model.QMemberCoupon.memberCoupon;

@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
 import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
-import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 
 @Service
 @Transactional(readOnly = true)

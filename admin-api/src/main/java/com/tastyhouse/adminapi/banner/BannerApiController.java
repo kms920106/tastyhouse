@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.adminapi.banner.request.BannerCreateRequest;
 import com.tastyhouse.adminapi.banner.request.BannerUpdateRequest;
 import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
@@ -28,7 +29,6 @@ import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
 import com.tastyhouse.adminapi.banner.response.BannerPageResponse;
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
-import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 
 @Tag(name = "Banner Admin", description = "배너 관리자 API")
 @RestController

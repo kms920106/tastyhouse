@@ -3,10 +3,10 @@ package com.tastyhouse.webapi.policy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.domain.policy.application.PolicyQueryService;
 import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
 import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
 import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;

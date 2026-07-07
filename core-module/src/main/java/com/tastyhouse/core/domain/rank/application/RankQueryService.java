@@ -8,13 +8,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
-import com.tastyhouse.core.domain.rank.application.dto.result.RankDurationResult;
-import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
 import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
 import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
 import com.tastyhouse.core.domain.rank.domain.repository.RankInfoRepository;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.RankDurationResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
 
 @Service
 @Transactional(readOnly = true)

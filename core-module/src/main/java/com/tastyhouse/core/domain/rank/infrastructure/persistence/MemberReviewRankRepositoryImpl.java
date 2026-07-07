@@ -8,11 +8,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
-import com.tastyhouse.core.domain.rank.application.dto.result.QMemberRankResult;
 import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
 import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
+import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.QMemberRankResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.member.domain.model.QMember.member;

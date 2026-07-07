@@ -8,15 +8,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
-import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmEmailVerificationCommand;
-import com.tastyhouse.core.domain.verification.application.dto.command.SendEmailVerificationCommand;
-import com.tastyhouse.core.domain.verification.application.dto.result.EmailVerificationResult;
 import com.tastyhouse.core.domain.verification.domain.event.EmailVerifiedEvent;
 import com.tastyhouse.core.domain.verification.domain.model.EmailVerification;
 import com.tastyhouse.core.domain.verification.domain.model.EmailVerificationStatus;
 import com.tastyhouse.core.domain.verification.domain.repository.EmailVerificationRepository;
 import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
+import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.verification.application.dto.command.ConfirmEmailVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.command.SendEmailVerificationCommand;
+import com.tastyhouse.core.domain.verification.application.dto.result.EmailVerificationResult;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 

@@ -7,11 +7,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.file.application.dto.command.UploadFileCommand;
 import com.tastyhouse.core.domain.file.domain.event.FileUploadedEvent;
 import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
 import com.tastyhouse.core.domain.file.domain.repository.UploadedFileRepository;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.core.domain.file.application.dto.command.UploadFileCommand;
 
 @Service
 @Transactional

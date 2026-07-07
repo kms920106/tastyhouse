@@ -9,14 +9,14 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
-import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
-import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyDocumentResult;
-import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyListItemResult;
 import com.tastyhouse.core.domain.policy.domain.model.PolicyDocument;
 import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
+import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
+import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
+import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyDocumentResult;
+import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyListItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 

@@ -2,10 +2,10 @@ package com.tastyhouse.webapi.payment.response;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
+import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 
 public record PaymentResponse(
     Long id,

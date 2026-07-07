@@ -3,11 +3,6 @@ package com.tastyhouse.core.domain.shop.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
 import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
@@ -15,6 +10,11 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopOrderMethod;
 import com.tastyhouse.core.domain.shop.domain.model.ShopOwnerMessageHistory;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
 
 public interface ShopDetailRepository {
 

@@ -16,6 +16,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.review.domain.model.QReviewComment;
+import com.tastyhouse.core.domain.review.domain.model.QReviewImage;
+import com.tastyhouse.core.domain.review.domain.model.QReviewLike;
+import com.tastyhouse.core.domain.review.domain.model.Review;
+import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.QMemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
@@ -26,12 +32,6 @@ import com.tastyhouse.core.domain.review.application.dto.result.QLatestReviewLis
 import com.tastyhouse.core.domain.review.application.dto.result.QReviewDetailResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
-import com.tastyhouse.core.domain.review.domain.model.QReviewComment;
-import com.tastyhouse.core.domain.review.domain.model.QReviewImage;
-import com.tastyhouse.core.domain.review.domain.model.QReviewLike;
-import com.tastyhouse.core.domain.review.domain.model.Review;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 

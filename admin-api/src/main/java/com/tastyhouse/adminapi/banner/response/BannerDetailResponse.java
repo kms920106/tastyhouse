@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
+import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
 
 @Schema(description = "배너 상세 응답")
 public record BannerDetailResponse(

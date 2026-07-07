@@ -6,11 +6,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
 import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
 import com.tastyhouse.core.domain.faq.application.dto.QFaqCategoryResult;
 import com.tastyhouse.core.domain.faq.application.dto.QFaqResult;
-import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 
 import static com.tastyhouse.core.domain.faq.domain.model.QFaq.faq;
 import static com.tastyhouse.core.domain.faq.domain.model.QFaqCategory.faqCategory;

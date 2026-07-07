@@ -7,16 +7,16 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.reservation.application.dto.command.ReservationCreateCommand;
-import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
 import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
 import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
-import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.core.domain.reservation.application.dto.command.ReservationCreateCommand;
+import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
+import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 
