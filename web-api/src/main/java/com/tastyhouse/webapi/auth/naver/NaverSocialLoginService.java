@@ -21,13 +21,13 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.external.oauth.naver.NaverOAuthClient;
 import com.tastyhouse.external.oauth.naver.NaverTokenResponse;
 import com.tastyhouse.external.oauth.naver.NaverUserInfoResponse;
+import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.webapi.config.jwt.repository.NaverTempTokenRedisRepository;
+import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
 import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
 import com.tastyhouse.webapi.auth.response.SocialProfile;
-import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.webapi.config.jwt.repository.NaverTempTokenRedisRepository;
-import com.tastyhouse.webapi.config.jwt.service.TokenService;
 
 @Service
 @RequiredArgsConstructor

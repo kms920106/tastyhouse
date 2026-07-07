@@ -11,10 +11,10 @@ import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.webapi.auth.response.JwtResponse;
-import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
+import com.tastyhouse.webapi.auth.response.JwtResponse;
+import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
 
 @Service
 @RequiredArgsConstructor

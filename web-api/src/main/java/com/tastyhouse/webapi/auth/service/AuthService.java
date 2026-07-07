@@ -8,8 +8,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.core.domain.member.domain.model.Gender;
-import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
+import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.member.service.MemberAccountService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 

@@ -22,13 +22,13 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.external.oauth.facebook.FacebookOAuthClient;
 import com.tastyhouse.external.oauth.facebook.FacebookTokenDebugResponse;
 import com.tastyhouse.external.oauth.facebook.FacebookUserInfoResponse;
+import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.webapi.config.jwt.repository.FacebookTempTokenRedisRepository;
+import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
 import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
 import com.tastyhouse.webapi.auth.response.SocialProfile;
-import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.webapi.config.jwt.repository.FacebookTempTokenRedisRepository;
-import com.tastyhouse.webapi.config.jwt.service.TokenService;
 
 @Service
 @RequiredArgsConstructor

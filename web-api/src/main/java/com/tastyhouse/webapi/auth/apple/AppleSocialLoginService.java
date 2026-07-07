@@ -21,13 +21,13 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.external.oauth.apple.AppleIdTokenPayload;
 import com.tastyhouse.external.oauth.apple.AppleOAuthClient;
 import com.tastyhouse.external.oauth.apple.AppleTokenResponse;
+import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.webapi.config.jwt.repository.AppleTempTokenRedisRepository;
+import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
 import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
 import com.tastyhouse.webapi.auth.response.SocialProfile;
-import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.webapi.config.jwt.repository.AppleTempTokenRedisRepository;
-import com.tastyhouse.webapi.config.jwt.service.TokenService;
 
 @Service
 @RequiredArgsConstructor

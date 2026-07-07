@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.admin.request.AdminCreateRequest;
 import com.tastyhouse.adminapi.admin.response.AdminCreateResponse;
-import com.tastyhouse.adminapi.common.ApiResponse;
 
 @Tag(name = "Admin", description = "관리자 계정 관리 API")
 @RestController

@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.ratelimit.RateLimit;
+import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapi.auth.request.AppleLoginRequest;
 import com.tastyhouse.webapi.auth.request.FacebookLoginRequest;
 import com.tastyhouse.webapi.auth.request.KakaoLoginRequest;
@@ -33,9 +36,6 @@ import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
 import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
 import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
 import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
-import com.tastyhouse.webapi.common.ApiResponse;
-import com.tastyhouse.webapi.ratelimit.RateLimit;
-import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 
 @RestController
 @RequestMapping("/api/auth")

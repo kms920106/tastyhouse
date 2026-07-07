@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
-import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.BlacklistRedisRepository;
 import com.tastyhouse.webapi.config.jwt.repository.RefreshTokenRedisRepository;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.exception.UnauthorizedException;
+import com.tastyhouse.webapi.auth.response.JwtResponse;
 
 /**
  * 토큰 발급·갱신·무효화 비즈니스 로직을 담당하는 서비스

@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
+import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.review.request.CommentCreateRequest;
 import com.tastyhouse.webapi.review.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
@@ -44,7 +45,6 @@ import com.tastyhouse.webapi.review.response.ReviewLikeStatusResponse;
 import com.tastyhouse.webapi.review.response.ReviewProductResponse;
 import com.tastyhouse.webapi.review.response.ReviewResponse;
 import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
-import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/reviews")
