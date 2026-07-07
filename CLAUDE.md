@@ -180,7 +180,7 @@ import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderP
 | 2 | **application** | `...application`, `...application.dto.command`, `...application.dto.result`, `...application.dto` |
 | 3 | **infrastructure** | `...infrastructure.persistence`(`.converter`) |
 | 4 | **external / shared** (어댑터·횡단 공용) | `com.tastyhouse.external.*`, `com.tastyhouse.core.shared.*`, `com.tastyhouse.core.config.*`, `com.tastyhouse.core.exception.*` |
-| 5 | **presentation** (가장 바깥) | `com.tastyhouse.webapi.*`, `com.tastyhouse.adminapi.*` |
+| 5 | **presentation** (가장 바깥) | `com.tastyhouse.webapi.*`, `com.tastyhouse.adminapi.*` — 내부는 아래 "presentation 내부 서브정렬"로 5-a → 5-b 세분 |
 
 - **같은 계층 순위 내부는 기존대로 알파벳(ASCII) 오름차순**으로 정렬합니다.
 - **그룹4 내부에는 여전히 빈 줄을 넣지 않습니다** — 계층 사이도 빈 줄로 구분하지 않고 순서만 바꿉니다(상위 그룹 간 빈 줄 규칙은 그대로 유지).
@@ -226,7 +226,38 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 ```
 
-**신규 작성·기존 파일 수정 시 수동 적용**하며, 기존 코드를 이 규칙만을 위해 일괄 재정렬하지 않습니다.
+#### presentation(5순위) 내부 서브정렬 (공용 인프라 위 → 도메인 전용 아래)
+
+presentation 계층(`com.tastyhouse.webapi.*` / `adminapi.*`)은 한 계층 안에 성격이 다른 두 종류가 섞여 있습니다. 이를 **위 계층 정렬과 같은 안정 의존성 원칙**으로 한 단계 더 세분합니다. 여러 도메인이 공유하는 **공용 인프라**(비도메인 프레임워크 유틸)는 특정 도메인 전용 어댑터 DTO보다 안정적이므로 **위(5-a)**, 도메인 전용은 **아래(5-b)** 에 둡니다. 이는 4순위에서 `core.shared.*`를 presentation보다 위에 두는 방향("공용은 도메인 전용보다 위")과 대칭입니다.
+
+| 서브순위 | 대상 | 매칭 패키지 세그먼트 |
+|---|---|---|
+| **5-a** (공용 인프라, 위) | 여러 도메인이 공유하는 비도메인 프레임워크 유틸 | `com.tastyhouse.{webapi\|adminapi}.common.*` · `.config.*` · `.security.*` · `.ratelimit.*` · `.exception.*` |
+| **5-b** (도메인 전용, 아래) | 특정 도메인 전용 컨트롤러 협력 타입 | `com.tastyhouse.{webapi\|adminapi}.<도메인>.request.*` · `.response.*` (및 도메인 하위 기타) |
+
+- **판별 기준**: "여러 도메인이 공유하는 비도메인(=`request`/`response` 같은 도메인 DTO가 아닌) 프레임워크·횡단 유틸"이면 5-a입니다. 위 세그먼트 목록에 없는 새 공용 패키지가 생겨도 이 기준으로 5-a에 편입합니다. 특정 도메인 패키지(`banner`·`notice`·`order` 등) 하위는 5-b입니다.
+- **같은 서브순위 내부는 알파벳(ASCII) 오름차순** — 5-a 내부(`common` → `config` → `exception` → `ratelimit` → `security`)도, 5-b 내부(도메인 이름순)도 알파벳순입니다.
+- **5-a/5-b 사이에도 빈 줄을 넣지 않습니다** — 그룹4 내부 무(無)빈줄 규칙 그대로, 순서만 구분합니다.
+
+**Before (`common`이 도메인 request/response 아래로 빠짐 — 알파벳순의 우연):**
+```java
+import com.tastyhouse.adminapi.banner.request.BannerCreateRequest;
+import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
+import com.tastyhouse.adminapi.common.ApiResponse;
+import com.tastyhouse.adminapi.common.PageRequest;
+```
+
+**After (공용 인프라 5-a 먼저 → 도메인 전용 5-b):**
+```java
+import com.tastyhouse.adminapi.common.ApiResponse;
+import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.banner.request.BannerCreateRequest;
+import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
+```
+
+> 이 서브규칙 도입 전에도 `common`이 도메인보다 위에 오던 파일(예: `NoticeApiController` — `common` < `notice`)은 알파벳순의 우연으로 이미 부합 상태였고, 규칙화로 전 도메인에서 위치가 일관됩니다.
+
+**신규 작성·기존 파일 수정 시 수동 적용**하며, 기존 코드를 이 규칙(및 위 5-a/5-b 서브규칙)만을 위해 일괄 재정렬하지 않습니다.
 
 자동 강제 도구(spotless 등)는 도입하지 않으며, 신규/수정 코드 작성 시 이 규칙을 수동으로 따릅니다.
 
