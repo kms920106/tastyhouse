@@ -83,6 +83,40 @@ public record XxxId(Long value) {
 
 reference 구현: `policy` 도메인 — `PolicyDocumentId`, `PolicyCommandService`(파라미터/반환이 `PolicyDocumentId`), `PolicyDocumentRepository.findById(PolicyDocumentId)`, `PolicyService`(admin-api, `Long↔VO` 승격 담당). FK `@Convert` 레퍼런스: `payment` 도메인의 `Payment.orderId : OrderId`.
 
+## 도메인 enum 경계 규칙
+
+도메인 enum(`core.domain.<도메인>.domain.model`의 `BannerType`·`EventStatus`·`FoodType` 등)은 **ID VO와 동일한 경계 원칙**을 따릅니다. HTTP 경계(컨트롤러 `@RequestParam`/Request 필드)는 `String`(다중값은 `List<String>`)으로 받고, web-api/admin-api Service(Facade)에서 core enum으로 **승격**합니다. 이는 ID를 `Long`으로 받아 `XxxId.of()`로 승격하는 것과 대칭이며, "컨트롤러·Request record는 `com.tastyhouse.core.*`를 import하지 않는다"는 상위 규칙(각 모듈 `AGENTS.md`)의 enum 케이스 구체화입니다. 컨트롤러가 도메인 enum을 직접 노출하면 API 계약이 도메인 모델에 결합되어, enum 상수 추가가 곧 공개 스키마 변경이 되고 어댑터가 도메인을 알게 되는 레이어 위반이 발생합니다.
+
+| 계층 | enum 타입 | 비고 |
+|---|---|---|
+| HTTP 경계 (컨트롤러 `@RequestParam`/요청 필드) | `String` / `List<String>` | 도메인 enum을 web-api/admin-api 밖(HTTP)으로 노출하지 않습니다 |
+| web-api/admin-api Service(Facade) | 입력은 `String`, 여기서 core enum으로 승격 | `Enum.from(String)` 정적 팩토리로 승격(`valueOf` 산재·`new` 금지) |
+| core-module application 서비스 public 시그니처 | core enum | Command/Condition DTO 필드도 동일. String이 core로 내려가지 않습니다 |
+| 도메인 모델 내부 / 도메인 이벤트 | core enum | |
+
+- **변환 팩토리 위치**: core enum 자신에 `static Xxx from(String code)`를 두고, 실패 시 프로젝트 공통 `BusinessException(ErrorCode.XXX_TYPE_UNKNOWN)`(400)으로 변환합니다. 생짜 `IllegalArgumentException`(`No enum constant …`)을 노출하지 않습니다. 이는 DTO 조립 규칙("변환 책임을 대상 타입에 위임")과 일관됩니다.
+
+```java
+public enum BannerType {
+
+    HOME, SIDEBAR;
+
+    public static BannerType from(String code) {
+        try {
+            return valueOf(code);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.BANNER_TYPE_UNKNOWN,
+                ErrorCode.BANNER_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+        }
+    }
+}
+```
+
+- **null 허용 파라미터**(`required = false`)는 Service에서 `s == null ? null : Xxx.from(s)`로 승격해 기존 동작을 보존합니다.
+- **Swagger**: String 파라미터는 자동 enum 스키마가 생성되지 않으므로 후보값을 수동 명시합니다 — Request 필드는 `@Schema(allowableValues = {...})`, `@RequestParam`은 `@Parameter(schema = @Schema(allowableValues = {...}))`. 필수 enum 필드의 `@NotNull`은 String 전환 시 `@NotBlank`로 바꿉니다.
+
+reference 구현: `banner` 도메인 — `BannerType.from(String)`, `BannerService`(admin-api, `String` 수신 후 승격 담당), `BannerApiController`/`BannerCreateRequest`/`BannerUpdateRequest`(`String type` + `allowableValues`). 변환 실패 `BusinessException` 선례: `rank` 도메인의 `ErrorCode.RANK_TYPE_UNKNOWN`.
+
 ## 코딩 스타일 (import 순서)
 
 Spring Framework가 자기 코드베이스에 강제하는 공식 컨벤션(`spring-javaformat`의 `SpringImportOrderCheck`)과 동일한 규칙을 따릅니다. 모든 Java 파일의 import는 아래 4개 그룹 순서로 배치합니다. **그룹 사이에는 빈 줄 1개**, 그룹 내부는 **알파벳(ASCII) 오름차순** 정렬, 그룹 내부에는 빈 줄을 넣지 않습니다.

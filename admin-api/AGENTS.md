@@ -25,6 +25,7 @@
 ### Working In This Directory
 - 새 관리 기능 추가 시 web-api와 동일한 도메인-폴더 + `request/`·`response/` 컨벤션을 따른다.
 - 도메인별로 admin-api 소속 Facade(`{도메인}Service`)를 두고, 컨트롤러는 Facade만 주입한다 — 컨트롤러에서 `com.tastyhouse.core.*`(core service/DTO/command)를 직접 import하지 않는다. core 호출과 DTO↔Request/Response 변환은 Facade가 전담한다.
+- **도메인 enum도 컨트롤러/Request에 core 타입으로 노출하지 않는다** — HTTP 경계는 `String`(다중값 `List<String>`)으로 받고, Facade에서 core enum의 `Enum.from(String)` 정적 팩토리로 승격한다(ID를 `Long`으로 받아 `XxxId.of()`로 승격하는 것과 대칭). String 파라미터에는 `@Schema(allowableValues={...})`/`@Parameter(...)`로 Swagger 후보값을 명시하고, 변환 실패는 core enum `from()` 내부에서 `BusinessException(ErrorCode.XXX_TYPE_UNKNOWN)`으로 처리한다(reference: `banner/BannerService`, `BannerType.from`). 상세는 루트 [CLAUDE.md](../CLAUDE.md#도메인-enum-경계-규칙) 참고.
 - 비즈니스 로직은 `core-module` application 서비스에 위임 — admin 전용 로직이라도 가능하면 core에 둔다. Facade는 위임·변환 계층일 뿐 비즈니스 로직을 담지 않는다.
 - core의 `PageResult`도 컨트롤러에 노출하지 않는다 — Facade가 admin-api 페이지 응답 타입(예: `notice/response/NoticePageResponse`)으로 변환해 반환한다.
 - **DTO 조립 시 `new` 직접 호출 지양**: Facade에서도 command/condition/response를 `new`로 조립하지 않는다. Facade는 Request 타입이 아니라 개별 원시 파라미터(예: `String title, String content, boolean visible`)를 받고, 내부에서 대상 record의 정적 팩토리 `of(...)`/`from(...)`로 위임한다(reference: `NoticeService#createNotice(String, String, boolean)` → `CreateNoticeCommand.of(...)`, `NoticeSearchCondition.of(...)`, `NoticePageResponse.from(...)`). Request DTO에는 `toCommand()` 같은 변환 메서드를 두지 않는다 — 컨트롤러가 Request를 원시 필드로 언패킹해 Facade에 전달한다. 상세는 루트 [CLAUDE.md](../CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
