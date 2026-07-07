@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
@@ -39,8 +38,8 @@ public class EventApiController {
     })
     @GetMapping("/v1/list")
     public ResponseEntity<ApiResponse<List<EventListItemResponse>>> getEventList(
-        @Parameter(description = "이벤트 상태 (ACTIVE: 진행중, ENDED: 종료)", example = "ACTIVE")
-        @RequestParam EventStatus status,
+        @Parameter(description = "이벤트 상태 (ACTIVE: 진행중, ENDED: 종료)", example = "ACTIVE", schema = @Schema(allowableValues = {"SCHEDULED", "ACTIVE", "ENDED"}))
+        @RequestParam String status,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var pageResult = eventService.getEventList(status, pageRequest.page(), pageRequest.size());

@@ -24,14 +24,15 @@ public class BannerService {
     private final BannerCommandService bannerCommandService;
     private final BannerQueryService bannerQueryService;
 
-    public BannerPageResponse getBanners(BannerType type, int page, int size) {
-        PageResult<BannerListItemResponse> pageResult = bannerQueryService.findAllForAdmin(type, page, size)
+    public BannerPageResponse getBanners(String type, int page, int size) {
+        BannerType bannerType = type == null ? null : BannerType.from(type);
+        PageResult<BannerListItemResponse> pageResult = bannerQueryService.findAllForAdmin(bannerType, page, size)
             .map(BannerListItemResponse::from);
         return BannerPageResponse.from(pageResult);
     }
 
     public Long createBanner(
-        BannerType type,
+        String type,
         String title,
         Long imageFileId,
         String linkUrl,
@@ -41,7 +42,7 @@ public class BannerService {
         boolean visible
     ) {
         BannerId bannerId = bannerCommandService.createBanner(
-            BannerCreateCommand.of(type, title, imageFileId, linkUrl, startDate, endDate, sort, visible)
+            BannerCreateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible)
         );
         return bannerId.value();
     }
@@ -53,7 +54,7 @@ public class BannerService {
 
     public void updateBanner(
         Long id,
-        BannerType type,
+        String type,
         String title,
         Long imageFileId,
         String linkUrl,
@@ -64,7 +65,7 @@ public class BannerService {
     ) {
         bannerCommandService.updateBanner(
             BannerId.of(id),
-            BannerUpdateCommand.of(type, title, imageFileId, linkUrl, startDate, endDate, sort, visible)
+            BannerUpdateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible)
         );
     }
 

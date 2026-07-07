@@ -3,16 +3,15 @@ package com.tastyhouse.adminapi.banner.request;
 import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.core.domain.banner.domain.model.BannerType;
-
 @Schema(description = "배너 수정 요청")
 public record BannerUpdateRequest(
-    @NotNull(message = "배너 유형은 필수입니다.")
-    @Schema(description = "배너 유형", example = "HOME", requiredMode = Schema.RequiredMode.REQUIRED)
-    BannerType type,
+    @NotBlank(message = "배너 유형은 필수입니다.")
+    @Schema(description = "배너 유형", example = "HOME", requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {"HOME", "SIDEBAR"})
+    String type,
 
     @Size(max = 100, message = "제목은 100자를 초과할 수 없습니다.")
     @Schema(description = "제목", example = "여름 프로모션 배너")

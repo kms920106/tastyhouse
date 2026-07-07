@@ -125,6 +125,16 @@ public enum ErrorCode {
     // 랭크
     RANK_TYPE_UNKNOWN(400, "RANK_TYPE_UNKNOWN", "알 수 없는 랭크 타입입니다."),
 
+    // 배너
+    BANNER_TYPE_UNKNOWN(400, "BANNER_TYPE_UNKNOWN", "알 수 없는 배너 유형입니다."),
+
+    // 이벤트
+    EVENT_STATUS_UNKNOWN(400, "EVENT_STATUS_UNKNOWN", "알 수 없는 이벤트 상태입니다."),
+
+    // 가게
+    FOOD_TYPE_UNKNOWN(400, "FOOD_TYPE_UNKNOWN", "알 수 없는 음식 종류입니다."),
+    AMENITY_UNKNOWN(400, "AMENITY_UNKNOWN", "알 수 없는 편의시설입니다."),
+
     // 추천인
     REFERRAL_NOT_FOUND(404, "REFERRAL_NOT_FOUND", "추천 이력을 찾을 수 없습니다."),
     REFERRAL_REFERRER_NOT_FOUND(400, "REFERRAL_REFERRER_NOT_FOUND", "존재하지 않는 추천인 닉네임입니다."),

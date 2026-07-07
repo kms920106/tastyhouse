@@ -19,13 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.core.domain.shop.domain.model.Amenity;
-import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.shop.request.LatestShopFilterRequest;
 import com.tastyhouse.webapi.shop.response.AmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.BestShopListItemResponse;
 import com.tastyhouse.webapi.shop.response.EditorChoiceResponse;
@@ -88,11 +85,12 @@ public class ShopApiController {
     public ResponseEntity<ApiResponse<List<LatestShopListItemResponse>>> getLatestShops(
         @Valid @ModelAttribute PageRequest pageRequest,
         @RequestParam(required = false) Long stationId,
-        @RequestParam(required = false) List<FoodType> foodTypes,
-        @RequestParam(required = false) List<Amenity> amenities
+        @Parameter(schema = @Schema(allowableValues = {"KOREAN", "JAPANESE", "WESTERN", "CHINESE", "WORLD", "SNACK", "BAR", "CAFE"}))
+        @RequestParam(required = false) List<String> foodTypes,
+        @Parameter(schema = @Schema(allowableValues = {"PARKING", "RESTROOM", "RESERVATION", "BABY_CHAIR", "PET_FRIENDLY", "OUTLET", "TAKEOUT", "DELIVERY"}))
+        @RequestParam(required = false) List<String> amenities
     ) {
-        LatestShopFilterRequest filterRequest = new LatestShopFilterRequest(stationId, foodTypes, amenities);
-        var pageResult = shopService.searchLatestShops(filterRequest, pageRequest.page(), pageRequest.size());
+        var pageResult = shopService.searchLatestShops(stationId, foodTypes, amenities, pageRequest.page(), pageRequest.size());
         ApiResponse<List<LatestShopListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }

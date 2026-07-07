@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
+import com.tastyhouse.core.domain.shop.domain.model.Amenity;
+import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
@@ -39,7 +41,6 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryI
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
-import com.tastyhouse.webapi.shop.request.LatestShopFilterRequest;
 import com.tastyhouse.webapi.shop.response.AmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.BestShopListItemResponse;
 import com.tastyhouse.webapi.shop.response.EditorChoiceProductItem;
@@ -87,8 +88,10 @@ public class ShopService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestShopListItemResponse> searchLatestShops(LatestShopFilterRequest filterRequest, int page, int size) {
-        return shopQueryService.findLatestShops(filterRequest.stationId(), filterRequest.foodTypes(), filterRequest.amenities(), page, size).map(this::convertToLatestShopListItemResponse);
+    public PageResult<LatestShopListItemResponse> searchLatestShops(Long stationId, List<String> foodTypes, List<String> amenities, int page, int size) {
+        List<FoodType> foodTypeFilters = foodTypes == null ? null : foodTypes.stream().map(FoodType::from).toList();
+        List<Amenity> amenityFilters = amenities == null ? null : amenities.stream().map(Amenity::from).toList();
+        return shopQueryService.findLatestShops(stationId, foodTypeFilters, amenityFilters, page, size).map(this::convertToLatestShopListItemResponse);
     }
 
     @Transactional(readOnly = true)

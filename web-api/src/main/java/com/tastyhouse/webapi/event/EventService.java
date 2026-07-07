@@ -26,8 +26,8 @@ public class EventService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public PageResult<EventListItemResponse> getEventList(EventStatus status, int page, int size) {
-        return eventQueryService.findEventListItemsByStatus(status, page, size)
+    public PageResult<EventListItemResponse> getEventList(String status, int page, int size) {
+        return eventQueryService.findEventListItemsByStatus(EventStatus.from(status), page, size)
             .map(this::convertToEventListItemResponse);
     }
 

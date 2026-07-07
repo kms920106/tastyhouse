@@ -3,6 +3,9 @@ package com.tastyhouse.core.domain.shop.domain.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+
 @Getter
 @RequiredArgsConstructor
 public enum FoodType {
@@ -17,4 +20,13 @@ public enum FoodType {
     CAFE("카페");
 
     private final String displayName;
+
+    public static FoodType from(String code) {
+        try {
+            return valueOf(code);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.FOOD_TYPE_UNKNOWN,
+                ErrorCode.FOOD_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+        }
+    }
 }
