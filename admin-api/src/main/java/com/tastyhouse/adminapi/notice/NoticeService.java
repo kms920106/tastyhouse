@@ -10,7 +10,7 @@ import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeDetailDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
-import com.tastyhouse.core.domain.notice.application.dto.command.CreateNoticeCommand;
+import com.tastyhouse.core.domain.notice.application.dto.command.NoticeCreateCommand;
 import com.tastyhouse.core.domain.notice.application.dto.command.NoticeUpdateCommand;
 import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -30,7 +30,7 @@ public class NoticeService {
     }
 
     public Long createNotice(String title, String content, boolean visible) {
-        NoticeId noticeId = noticeCommandService.createNotice(CreateNoticeCommand.of(title, content, visible));
+        NoticeId noticeId = noticeCommandService.createNotice(NoticeCreateCommand.of(title, content, visible));
         return noticeId.value();
     }
 

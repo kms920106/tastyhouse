@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.notice.application.dto.command.CreateNoticeCommand;
+import com.tastyhouse.core.domain.notice.application.dto.command.NoticeCreateCommand;
 import com.tastyhouse.core.domain.notice.application.dto.command.NoticeUpdateCommand;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
@@ -19,7 +19,7 @@ public class NoticeCommandService {
 
     private final NoticeRepository noticeRepository;
 
-    public NoticeId createNotice(CreateNoticeCommand command) {
+    public NoticeId createNotice(NoticeCreateCommand command) {
         Notice notice = Notice.of(command.title(), command.content(), command.visible());
         Notice saved = noticeRepository.save(notice);
         return saved.getNoticeId();
