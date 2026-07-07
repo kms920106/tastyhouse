@@ -114,6 +114,64 @@ import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderP
 
 **자사 코드(`com.tastyhouse.*`)만 맨 뒤로 분리하는 이유**: DDD 레이어드 아키텍처에서 "내 도메인 코드"와 "외부 프레임워크 의존"을 한눈에 구분하기 위함입니다. 특히 `core-module`은 Spring Web 의존이 금지되어 있으므로, import 그룹 분리가 레이어 위반을 리뷰 시점에 즉시 드러내는 역할을 합니다.
 
+### 자사 코드 그룹 내부 계층 정렬 (헥사고날 안→밖: domain이 위)
+
+**이 규칙은 공식 표준이 아니라 프로젝트 커스텀 컨벤션입니다.** Spring `spring-javaformat`(`SpringImportOrderCheck`), Google Java Style, Checkstyle `ImportOrder` 등 어떤 공식 컨벤션도 "자사 패키지 그룹 **내부**를 계층 순으로 정렬"하지 않습니다(공식은 그룹 내부 순수 알파벳순). 이 프로젝트는 헥사고날/클린 아키텍처의 **"의존성은 항상 안쪽(domain)을 향한다"는 안정 의존성 원칙**을 근거로, 위 그룹4(`com.tastyhouse.*`) 내부의 정렬 순서를 **`(계층 순위, 알파벳)` 복합 키**로 세분합니다. 가장 안정적·핵심인 domain을 맨 위에, 가장 바깥·휘발적인 presentation을 맨 아래에 둡니다.
+
+| 계층 순위 | 계층 | 매칭 패키지 세그먼트 |
+|---|---|---|
+| 1 | **domain** (가장 안쪽·핵심) | `...domain.model` / `.vo` / `.event` / `.repository` |
+| 2 | **application** | `...application`, `...application.dto.command`, `...application.dto.result`, `...application.dto` |
+| 3 | **infrastructure** | `...infrastructure.persistence`(`.converter`) |
+| 4 | **external / shared** (어댑터·횡단 공용) | `com.tastyhouse.external.*`, `com.tastyhouse.core.shared.*`, `com.tastyhouse.core.config.*`, `com.tastyhouse.core.exception.*` |
+| 5 | **presentation** (가장 바깥) | `com.tastyhouse.webapi.*`, `com.tastyhouse.adminapi.*` |
+
+- **같은 계층 순위 내부는 기존대로 알파벳(ASCII) 오름차순**으로 정렬합니다.
+- **그룹4 내부에는 여전히 빈 줄을 넣지 않습니다** — 계층 사이도 빈 줄로 구분하지 않고 순서만 바꿉니다(상위 그룹 간 빈 줄 규칙은 그대로 유지).
+- static import는 이 규칙과 무관하게 맨 아래 블록 그대로입니다.
+
+**Before (단일 알파벳순 — 계층 혼재)**:
+```java
+import com.tastyhouse.core.domain.order.application.OrderCommandService;
+import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateCommand;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.member.response.OrderListItemResponse;
+import com.tastyhouse.webapi.order.request.OrderProductRequest;
+import com.tastyhouse.webapi.order.response.OrderDetailResponse;
+```
+
+**After (domain → application → infrastructure → external/shared → presentation, 계층 내부는 알파벳순)**:
+```java
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.core.domain.order.application.OrderCommandService;
+import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateCommand;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
+import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.member.response.OrderListItemResponse;
+import com.tastyhouse.webapi.order.request.OrderProductRequest;
+import com.tastyhouse.webapi.order.response.OrderDetailResponse;
+```
+
+**core-module 전용 파일 예시** (presentation·external 없이 domain → application → shared만 존재):
+```java
+import com.tastyhouse.core.domain.order.domain.model.Order;
+import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.QOrderListItemResult;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
+```
+
+**신규 작성·기존 파일 수정 시 수동 적용**하며, 기존 코드를 이 규칙만을 위해 일괄 재정렬하지 않습니다.
+
 자동 강제 도구(spotless 등)는 도입하지 않으며, 신규/수정 코드 작성 시 이 규칙을 수동으로 따릅니다.
 
 **참고 자료 (Spring 공식 소스)**:
