@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 
+@Schema(description = "회원 프로필")
 public record MemberProfileResponse(
     @Schema(description = "닉네임", example = "맛집탐험가")
     String nickname,

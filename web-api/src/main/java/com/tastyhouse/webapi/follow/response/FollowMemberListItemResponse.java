@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
 
+@Schema(description = "팔로우 회원 목록 아이템 응답")
 public record FollowMemberListItemResponse(
     @Schema(description = "회원 ID", example = "1")
     Long memberId,

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 
+@Schema(description = "회원 검색 목록 아이템 응답")
 public record MemberSearchListItemResponse(
     @Schema(description = "회원 ID", example = "1")
     Long memberId,

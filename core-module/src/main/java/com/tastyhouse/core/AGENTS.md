@@ -78,8 +78,8 @@ presentation(web-api, admin-api)
 
 **DTO 조립 규칙**:
 - command/condition record에 원시 파라미터용 정적 팩토리 `of(...)`를 둔다. presentation(web-api/admin-api)의 Request 타입을 인자로 받는 팩토리는 금지(레이어 역전 방지). command 생성은 command record 자신의 `of(...)`가 담당하고, presentation의 Facade/컨트롤러는 Request를 원시 필드로 언패킹해 넘긴다 — Request DTO에 `toCommand()` 같은 변환 메서드를 두지 않는다.
-- 호출부는 `new`로 DTO를 직접 조립하지 않고 정적 팩토리로 위임한다. 상세는 루트 [CLAUDE.md](../../../../../../../CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
-- `record`는 application 서비스 본문 안에 중첩 선언하지 않고 `application/dto/result`(command는 `application/dto/command`)에 `public record`로 분리한다. 서비스 내부 전용 `private` 헬퍼 record도 분리 시 `public`으로 격상한다(reference: `product/application/dto/result/OptionInfo`). 상세는 루트 [CLAUDE.md](../../../../../../../CLAUDE.md#record-파일-분리-규칙-중첩-record-선언-지양) 참고.
+- 호출부는 `new`로 DTO를 직접 조립하지 않고 정적 팩토리로 위임한다. 상세는 루트 CLAUDE.md 참고.
+- `record`는 application 서비스 본문 안에 중첩 선언하지 않고 `application/dto/result`(command는 `application/dto/command`)에 `public record`로 분리한다. 서비스 내부 전용 `private` 헬퍼 record도 분리 시 `public`으로 격상한다(reference: `product/application/dto/result/OptionInfo`). 상세는 루트 CLAUDE.md 참고.
 
 ### Testing Requirements
 
@@ -143,7 +143,7 @@ public class MemberCommandService {
     private final ApplicationEventPublisher eventPublisher;
     
     public void register(RegisterCommand cmd) {
-        Member member = Member.create(...);
+        Member member = Member.create(cmd);
         memberRepository.save(member);
         eventPublisher.publishEvent(
             new MemberRegisteredEvent(member.getId(), LocalDateTime.now())

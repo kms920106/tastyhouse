@@ -2,6 +2,7 @@ package com.tastyhouse.webapi.rank.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "랭킹 조회 요청")
 public record RankSearchRequest(
     @Schema(description = "랭킹 타입", allowableValues = {"ALL", "MONTHLY", "WEEKLY"}, example = "MONTHLY")
     String type,
