@@ -4,6 +4,7 @@ import {
   ChartBar,
   Fingerprint,
   Forklift,
+  GalleryHorizontal,
   Gauge,
   GraduationCap,
   Kanban,
@@ -127,6 +128,11 @@ export const sidebarItems: NavGroup[] = [
         title: "공지사항",
         url: "/dashboard/notices",
         icon: Megaphone,
+      },
+      {
+        title: "배너",
+        url: "/dashboard/banners",
+        icon: GalleryHorizontal,
       },
       {
         title: "Users",
