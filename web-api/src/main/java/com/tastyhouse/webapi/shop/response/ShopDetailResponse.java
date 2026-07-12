@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.shop.domain.model.Shop;
-
 @Schema(description = "가게 상세 정보 응답")
 public record ShopDetailResponse(
     @Schema(description = "가게 ID", example = "1")
@@ -32,16 +30,25 @@ public record ShopDetailResponse(
     @Schema(description = "전화번호", example = "02-1234-5678")
     String phoneNumber
 ) {
-    public static ShopDetailResponse from(Shop shop) {
+    public static ShopDetailResponse of(
+        Long id,
+        String name,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        Double rating,
+        String roadAddress,
+        String lotAddress,
+        String phoneNumber
+    ) {
         return new ShopDetailResponse(
-            shop.getId(),
-            shop.getName(),
-            shop.getLatitude(),
-            shop.getLongitude(),
-            shop.getRating(),
-            shop.getRoadAddress(),
-            shop.getLotAddress(),
-            shop.getPhoneNumber()
+            id,
+            name,
+            latitude,
+            longitude,
+            rating,
+            roadAddress,
+            lotAddress,
+            phoneNumber
         );
     }
 }

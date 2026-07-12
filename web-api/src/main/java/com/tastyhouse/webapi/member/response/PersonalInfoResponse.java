@@ -2,9 +2,6 @@ package com.tastyhouse.webapi.member.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
-import com.tastyhouse.core.domain.member.domain.model.Member;
-
 @Schema(description = "개인정보 조회 응답")
 public record PersonalInfoResponse(
     @Schema(description = "아이디 (이메일)", example = "kimcs1234@naver.com")
@@ -20,7 +17,7 @@ public record PersonalInfoResponse(
     Integer birthDate,
 
     @Schema(description = "성별 (MALE / FEMALE)", example = "FEMALE")
-    Gender gender,
+    String gender,
 
     @Schema(description = "푸시 알림 수신 동의", example = "false")
     boolean pushNotificationEnabled,
@@ -31,16 +28,25 @@ public record PersonalInfoResponse(
     @Schema(description = "이벤트 정보 수신 동의", example = "false")
     boolean eventInfoEnabled
 ) {
-    public static PersonalInfoResponse from(Member member) {
+    public static PersonalInfoResponse of(
+        String email,
+        String fullName,
+        String phoneNumber,
+        Integer birthDate,
+        String gender,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled
+    ) {
         return new PersonalInfoResponse(
-            member.getUsername(),
-            member.getFullName(),
-            member.getPhoneNumber().getValue(),
-            member.getBirthDate(),
-            member.getGender(),
-            member.isPushNotificationEnabled(),
-            member.isMarketingInfoEnabled(),
-            member.isEventInfoEnabled()
+            email,
+            fullName,
+            phoneNumber,
+            birthDate,
+            gender,
+            pushNotificationEnabled,
+            marketingInfoEnabled,
+            eventInfoEnabled
         );
     }
 }
