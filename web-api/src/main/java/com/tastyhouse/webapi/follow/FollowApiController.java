@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.follow.request.FollowSearchRequest;
 import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
 import com.tastyhouse.webapi.follow.response.IsFollowingResponse;
 import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
@@ -180,10 +180,10 @@ public class FollowApiController {
     @GetMapping("/v1/search")
     public ResponseEntity<ApiResponse<List<MemberSearchListItemResponse>>> searchMembers(
         @CurrentUser CustomUserDetails userDetails,
-        @Parameter(description = "검색할 닉네임", example = "맛집") @RequestParam String nickname,
+        @Valid @ModelAttribute FollowSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followService.searchMembersByNickname(nickname, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var pageResult = followService.searchMembersByNickname(search.nickname(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),

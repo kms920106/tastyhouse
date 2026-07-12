@@ -6,17 +6,18 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.webapi.member.request.NicknameAvailabilityRequest;
+import com.tastyhouse.webapi.member.request.PhoneAvailabilityRequest;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
@@ -61,11 +62,9 @@ public class MemberApiController {
     })
     @GetMapping("/v1/phone/availability")
     public ResponseEntity<ApiResponse<PhoneAvailabilityResponse>> checkPhoneAvailability(
-        @Parameter(description = "확인할 휴대폰번호", example = "01099841511")
-        @NotBlank(message = "휴대폰번호를 입력해주세요.")
-        @RequestParam String phoneNumber
+        @Valid @ModelAttribute PhoneAvailabilityRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.checkPhoneAvailability(phoneNumber)));
+        return ResponseEntity.ok(ApiResponse.success(memberFacade.checkPhoneAvailability(request.phoneNumber())));
     }
 
     @Operation(summary = "닉네임 중복확인", description = "사용하려는 닉네임의 사용 가능 여부를 확인합니다. 인증 없이 호출 가능합니다.")
@@ -75,11 +74,8 @@ public class MemberApiController {
     })
     @GetMapping("/v1/nickname/availability")
     public ResponseEntity<ApiResponse<NicknameAvailabilityResponse>> checkNicknameAvailability(
-        @Parameter(description = "확인할 닉네임 (1~20자)", example = "맛있는탐험가")
-        @NotBlank(message = "닉네임을 입력해주세요.")
-        @Size(min = 1, max = 20, message = "닉네임은 1자 이상 20자 이하여야 합니다.")
-        @RequestParam String nickname
+        @Valid @ModelAttribute NicknameAvailabilityRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.checkNicknameAvailability(nickname)));
+        return ResponseEntity.ok(ApiResponse.success(memberFacade.checkNicknameAvailability(request.nickname())));
     }
 }

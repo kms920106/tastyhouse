@@ -88,11 +88,11 @@ public class ReviewService {
     public LatestReviewPageResponse searchLatestReviewList(
         int page,
         int size,
-        ReviewListType type,
+        String type,
         Long memberId
     ) {
         PageResult<LatestReviewListItemResponse> pageResult;
-        if (type == ReviewListType.FOLLOWING && memberId != null) {
+        if (ReviewListType.from(type) == ReviewListType.FOLLOWING && memberId != null) {
             pageResult = reviewQueryService.findLatestReviewsByFollowingWithPagination(memberId, page, size)
                 .map(this::convertToLatestReviewListItemResponse);
         } else {

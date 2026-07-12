@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
@@ -29,6 +28,7 @@ import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.review.request.CommentCreateRequest;
 import com.tastyhouse.webapi.review.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
+import com.tastyhouse.webapi.review.request.ReviewSearchRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.BestReviewListItemResponse;
 import com.tastyhouse.webapi.review.response.BestReviewPageResponse;
@@ -132,11 +132,11 @@ public class ReviewApiController {
     @GetMapping("/v1/latest")
     public ResponseEntity<ApiResponse<List<LatestReviewListItemResponse>>> getLatestReviewList(
         @Valid @ModelAttribute PageRequest pageRequest,
-        @Parameter(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL") @RequestParam(defaultValue = "ALL") ReviewListType type,
+        @Valid @ModelAttribute ReviewSearchRequest search,
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        LatestReviewPageResponse pageResponse = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), type, memberId);
+        LatestReviewPageResponse pageResponse = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), search.type(), memberId);
         ApiResponse<List<LatestReviewListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }

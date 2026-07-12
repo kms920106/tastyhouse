@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.reservation;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,22 +7,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.reservation.request.ReservationCreateRequest;
+import com.tastyhouse.webapi.reservation.request.ReservationSearchRequest;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
@@ -40,11 +39,10 @@ public class ReservationApiController {
     @Operation(summary = "슬롯 가용성 조회", description = "가게의 특정 날짜 슬롯별 잔여/가용 정보를 조회합니다. 로그인 필수 — 내 예약 슬롯은 available=false로 반환.")
     @GetMapping("/v1/availability")
     public ResponseEntity<ApiResponse<SlotAvailabilityResponse>> getAvailability(
-        @RequestParam Long shopId,
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+        @Valid @ModelAttribute ReservationSearchRequest search,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        SlotAvailabilityResponse response = reservationService.getAvailability(shopId, date, userDetails.getMemberId());
+        SlotAvailabilityResponse response = reservationService.getAvailability(search.shopId(), search.date(), userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.shop;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -16,13 +15,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.shop.request.ShopMapMarkerSearchRequest;
+import com.tastyhouse.webapi.shop.request.ShopReviewSearchRequest;
 import com.tastyhouse.webapi.shop.request.ShopSearchRequest;
 import com.tastyhouse.webapi.shop.response.AmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.BestShopListItemResponse;
@@ -54,10 +54,9 @@ public class ShopApiController {
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1/map/markers")
     public ResponseEntity<ApiResponse<List<ShopMapMarkerResponse>>> getMapMarkers(
-        @RequestParam @Parameter(description = "위도", example = "37.5013") Double latitude,
-        @RequestParam @Parameter(description = "경도", example = "127.0396") Double longitude
+        @Valid @ModelAttribute ShopMapMarkerSearchRequest search
     ) {
-        List<ShopMapMarkerResponse> markers = shopService.searchMapMarkers(latitude, longitude);
+        List<ShopMapMarkerResponse> markers = shopService.searchMapMarkers(search.latitude(), search.longitude());
         ApiResponse<List<ShopMapMarkerResponse>> response = ApiResponse.success(markers);
         return ResponseEntity.ok(response);
     }
@@ -169,11 +168,10 @@ public class ShopApiController {
     @GetMapping("/v1/{shopId}/reviews")
     public ResponseEntity<ApiResponse<ShopReviewsByRatingResponse>> getShopReviews(
         @PathVariable Long shopId,
-        @Valid @ModelAttribute PageRequest pageRequest,
-        @Parameter(description = "이미지 유무 필터: 미지정=전체, true=이미지 있는 리뷰, false=이미지 없는 리뷰")
-        @RequestParam(required = false) Boolean hasImage
+        @Valid @ModelAttribute ShopReviewSearchRequest search,
+        @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        ShopReviewsByRatingWithPagination result = shopService.getShopReviewsByRatingWithPagination(shopId, pageRequest.page(), pageRequest.size(), hasImage);
+        ShopReviewsByRatingWithPagination result = shopService.getShopReviewsByRatingWithPagination(shopId, pageRequest.page(), pageRequest.size(), search.hasImage());
         ApiResponse<ShopReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
     }
