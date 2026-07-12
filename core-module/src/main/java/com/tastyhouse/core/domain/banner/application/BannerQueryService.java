@@ -9,6 +9,7 @@ import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
 import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.domain.banner.application.dto.BannerAdminListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerAdminSearchCondition;
 import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
 import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -38,9 +39,9 @@ public class BannerQueryService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BANNER_NOT_FOUND));
     }
 
-    public PageResult<BannerAdminListItemDto> findAllForAdmin(BannerType type, int page, int size) {
+    public PageResult<BannerAdminListItemDto> findAllForAdmin(BannerAdminSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return bannerRepository.findAllForAdmin(type, pageQuery);
+        return bannerRepository.findAllForAdmin(condition, pageQuery);
     }
 
     public BannerDetailDto findDetailById(BannerId id) {

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.application.dto.BannerAdminListItemDto;
+import com.tastyhouse.adminapi.common.FileResponse;
 
 @Schema(description = "배너 목록 항목 응답")
 public record BannerListItemResponse(
@@ -18,8 +19,8 @@ public record BannerListItemResponse(
     @Schema(description = "제목", example = "여름 프로모션 배너")
     String title,
 
-    @Schema(description = "이미지 URL", example = "https://cdn.example.com/banner/1.png")
-    String imageUrl,
+    @Schema(description = "배너 이미지 파일 정보 (미등록 시 null)")
+    FileResponse file,
 
     @Schema(description = "클릭 시 이동할 링크 URL", example = "https://example.com/event")
     String linkUrl,
@@ -36,12 +37,12 @@ public record BannerListItemResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
-    public static BannerListItemResponse from(BannerAdminListItemDto dto) {
+    public static BannerListItemResponse from(BannerAdminListItemDto dto, FileResponse file) {
         return new BannerListItemResponse(
             dto.id(),
             dto.type(),
             dto.title(),
-            dto.filePath(),
+            file,
             dto.linkUrl(),
             dto.startDate(),
             dto.endDate(),

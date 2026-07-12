@@ -10,6 +10,8 @@ import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.banner.application.BannerCommandService;
 import com.tastyhouse.core.domain.banner.application.BannerQueryService;
+import com.tastyhouse.core.domain.banner.application.dto.BannerAdminListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerAdminSearchCondition;
 import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
 import com.tastyhouse.core.domain.banner.application.dto.command.BannerCreateCommand;
 import com.tastyhouse.core.domain.banner.application.dto.command.BannerUpdateCommand;
@@ -30,11 +32,23 @@ public class BannerService {
     private final FileQueryService fileQueryService;
     private final FileService fileService;
 
-    public BannerPageResponse getBanners(String type, int page, int size) {
+    public BannerPageResponse getBanners(String type, String title, Boolean visible, int page, int size) {
         BannerType bannerType = type == null ? null : BannerType.from(type);
-        PageResult<BannerListItemResponse> pageResult = bannerQueryService.findAllForAdmin(bannerType, page, size)
-            .map(BannerListItemResponse::from);
+        BannerAdminSearchCondition condition = BannerAdminSearchCondition.of(bannerType, title, visible);
+        PageResult<BannerListItemResponse> pageResult = bannerQueryService.findAllForAdmin(condition, page, size)
+            .map(this::toListItemResponse);
         return BannerPageResponse.from(pageResult);
+    }
+
+    private BannerListItemResponse toListItemResponse(BannerAdminListItemDto dto) {
+        return BannerListItemResponse.from(dto, toFileResponse(dto));
+    }
+
+    private FileResponse toFileResponse(BannerAdminListItemDto dto) {
+        if (dto.imageFileId() == null) {
+            return null;
+        }
+        return FileResponse.of(dto.imageFileId(), dto.imageFileName(), fileService.getUrlByPath(dto.imageFilePath()));
     }
 
     public Long createBanner(

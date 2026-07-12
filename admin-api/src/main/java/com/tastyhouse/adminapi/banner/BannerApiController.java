@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.banner;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -19,12 +18,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
 import com.tastyhouse.adminapi.banner.request.BannerCreateRequest;
+import com.tastyhouse.adminapi.banner.request.BannerSearchRequest;
 import com.tastyhouse.adminapi.banner.request.BannerUpdateRequest;
 import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
@@ -38,15 +37,14 @@ public class BannerApiController {
 
     private final BannerService bannerService;
 
-    @Operation(summary = "배너 목록 조회", description = "배너 목록을 페이징 조회합니다. (비노출·노출기간 만료 배너 포함) type 미지정 시 전체 유형 조회")
+    @Operation(summary = "배너 목록 조회", description = "배너 목록을 페이징 조회합니다. (비노출·노출기간 만료 배너 포함) type 미지정 시 전체 유형 조회, title은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @ApiResponses({@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResponse.class)))})
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<BannerListItemResponse>>> getBanners(
-        @Parameter(schema = @Schema(allowableValues = {"HOME", "SIDEBAR"}))
-        @RequestParam(required = false) String type,
+        @Valid @ModelAttribute BannerSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        BannerPageResponse pageResponse = bannerService.getBanners(type, pageRequest.page(), pageRequest.size());
+        BannerPageResponse pageResponse = bannerService.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 

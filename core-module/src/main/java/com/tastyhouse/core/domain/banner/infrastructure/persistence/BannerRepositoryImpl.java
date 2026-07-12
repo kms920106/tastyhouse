@@ -4,15 +4,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.banner.domain.model.Banner;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
 import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.domain.banner.application.dto.BannerAdminListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerAdminSearchCondition;
 import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
 import com.tastyhouse.core.domain.banner.application.dto.QBannerAdminListItemDto;
 import com.tastyhouse.core.domain.banner.application.dto.QBannerListItemDto;
@@ -68,11 +71,15 @@ public class BannerRepositoryImpl implements BannerRepository {
     }
 
     @Override
-    public PageResult<BannerAdminListItemDto> findAllForAdmin(BannerType type, PageQuery pageQuery) {
+    public PageResult<BannerAdminListItemDto> findAllForAdmin(BannerAdminSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(banner.id.count())
             .from(banner)
-            .where(type != null ? banner.type.eq(type) : null)
+            .where(
+                typeEq(condition.type()),
+                titleContains(condition.title()),
+                visibleEq(condition.visible())
+            )
             .fetchOne();
 
         List<BannerAdminListItemDto> banners = queryFactory
@@ -80,6 +87,8 @@ public class BannerRepositoryImpl implements BannerRepository {
                 banner.id,
                 banner.type,
                 banner.title,
+                uploadedFile.id,
+                uploadedFile.originalFilename,
                 uploadedFile.filePath,
                 banner.linkUrl,
                 banner.startDate,
@@ -88,8 +97,12 @@ public class BannerRepositoryImpl implements BannerRepository {
                 banner.visible
             ))
             .from(banner)
-            .join(uploadedFile).on(uploadedFile.id.eq(banner.imageFileId))
-            .where(type != null ? banner.type.eq(type) : null)
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(banner.imageFileId))
+            .where(
+                typeEq(condition.type()),
+                titleContains(condition.title()),
+                visibleEq(condition.visible())
+            )
             .orderBy(banner.sort.asc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -114,5 +127,17 @@ public class BannerRepositoryImpl implements BannerRepository {
     @Override
     public void delete(Banner entity) {
         bannerJpaRepository.delete(entity);
+    }
+
+    private BooleanExpression typeEq(BannerType type) {
+        return type != null ? banner.type.eq(type) : null;
+    }
+
+    private BooleanExpression titleContains(String title) {
+        return StringUtils.hasText(title) ? banner.title.containsIgnoreCase(title) : null;
+    }
+
+    private BooleanExpression visibleEq(Boolean visible) {
+        return visible != null ? banner.visible.eq(visible) : null;
     }
 }
