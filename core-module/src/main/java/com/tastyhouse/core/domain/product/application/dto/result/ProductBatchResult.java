@@ -20,9 +20,4 @@ public record ProductBatchResult(
     BigDecimal discountRate,
     List<BatchOptionResult> options
 ) {
-    public record BatchOptionResult(
-        Long id,
-        String name,
-        Integer price
-    ) {}
 }

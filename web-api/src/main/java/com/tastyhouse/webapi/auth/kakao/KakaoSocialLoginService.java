@@ -113,7 +113,7 @@ public class KakaoSocialLoginService {
                     kakaoUser.getProfileImageUrl(),
                     kakaoUser.getName(),
                     kakaoUser.getPhoneNumber(),
-                    kakaoUser.getGender(),
+                    kakaoUser.getGender() != null ? kakaoUser.getGender().name() : null,
                     null,
                     null,
                     null

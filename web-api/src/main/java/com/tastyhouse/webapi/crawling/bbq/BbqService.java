@@ -24,6 +24,7 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductCategoryResponse;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductResponse;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductSubOptionResponse;
+import com.tastyhouse.webapi.crawling.bbq.response.SubOptionItemDetailResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -107,10 +108,10 @@ public class BbqService {
     }
 
     private BbqProductSubOptionResponse convertToProductSubOptionResponse(BbqMenuSubOptionResponse externalResponse) {
-        List<BbqProductSubOptionResponse.SubOptionItemDetailResponse> itemDetails = null;
+        List<SubOptionItemDetailResponse> itemDetails = null;
         if (externalResponse.getSubOptionItemDetailResponseList() != null) {
             itemDetails = externalResponse.getSubOptionItemDetailResponseList().stream()
-                    .map(item -> BbqProductSubOptionResponse.SubOptionItemDetailResponse.from(
+                    .map(item -> SubOptionItemDetailResponse.from(
                             item.getId(),
                             item.getItemTitle(),
                             item.getAddPrice(),

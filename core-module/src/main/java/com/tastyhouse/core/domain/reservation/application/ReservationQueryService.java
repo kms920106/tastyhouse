@@ -22,7 +22,7 @@ import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
-import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult.SlotAvailability;
+import com.tastyhouse.core.domain.reservation.application.dto.result.SlotAvailability;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.exception.BusinessException;

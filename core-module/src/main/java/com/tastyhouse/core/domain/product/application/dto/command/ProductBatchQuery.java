@@ -13,14 +13,4 @@ public record ProductBatchQuery(
     public static ProductBatchQuery of(List<BatchItem> items) {
         return new ProductBatchQuery(items);
     }
-
-    public record BatchItem(
-        Long productId,
-        Long optionId
-    ) {
-
-        public static BatchItem of(Long productId, Long optionId) {
-            return new BatchItem(productId, optionId);
-        }
-    }
 }

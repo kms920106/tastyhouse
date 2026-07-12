@@ -6,7 +6,6 @@ import java.util.List;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
@@ -29,34 +28,10 @@ public record OrderResult(
     Integer usedPoint,
     Integer earnedPoint,
     List<OrderProductResult> orderProducts,
-    PaymentResult payment,
+    OrderPaymentResult payment,
     LocalDateTime approvedAt,
     LocalDateTime createdAt
 ) {
-    public record PaymentResult(
-        Long id,
-        PaymentMethod paymentMethod,
-        PaymentStatus paymentStatus,
-        Integer amount,
-        String cardCompany,
-        String cardNumber,
-        LocalDateTime approvedAt,
-        String receiptUrl
-    ) {
-        public static PaymentResult from(Payment payment) {
-            return new PaymentResult(
-                payment.getId(),
-                payment.getPaymentMethod(),
-                payment.getPaymentStatus(),
-                payment.getAmount() != null ? payment.getAmount().value() : null,
-                payment.getCardCompany(),
-                payment.getCardNumber(),
-                payment.getApprovedAt(),
-                payment.getReceiptUrl()
-            );
-        }
-    }
-
     public static OrderResult from(
         Order order,
         String shopName,
@@ -64,7 +39,7 @@ public record OrderResult(
         List<OrderProductResult> orderProducts,
         Payment payment
     ) {
-        PaymentResult paymentResult = payment != null ? PaymentResult.from(payment) : null;
+        OrderPaymentResult paymentResult = payment != null ? OrderPaymentResult.from(payment) : null;
         return new OrderResult(
             order.getOrderId(),
             order.getOrderNumber(),

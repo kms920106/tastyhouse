@@ -17,6 +17,4 @@ public interface ProductImageRepository {
     List<ProductRepresentativeImage> findRepresentativeImagePathsByProductIds(List<Long> productIds);
 
     ProductImage save(ProductImage productImage);
-
-    record ProductRepresentativeImage(Long productId, String filePath) {}
 }

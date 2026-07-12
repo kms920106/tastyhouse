@@ -26,11 +26,16 @@ import com.tastyhouse.core.domain.product.domain.repository.ProductImageReposito
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductRepresentativeImage;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionId;
+import com.tastyhouse.core.domain.product.application.dto.command.BatchItem;
 import com.tastyhouse.core.domain.product.application.dto.command.ProductBatchQuery;
+import com.tastyhouse.core.domain.product.application.dto.result.BatchOptionResult;
+import com.tastyhouse.core.domain.product.application.dto.result.OptionGroupResult;
 import com.tastyhouse.core.domain.product.application.dto.result.OptionInfo;
+import com.tastyhouse.core.domain.product.application.dto.result.OptionResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductBatchResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
@@ -102,7 +107,7 @@ public class ProductQueryService {
     }
 
     public ProductOptionsResult findProductOptions(Long productId) {
-        List<ProductOptionsResult.OptionGroupResult> result = new ArrayList<>();
+        List<OptionGroupResult> result = new ArrayList<>();
 
         List<ProductOptionGroup> optionGroups = productOptionGroupRepository.findActiveByProductIdOrderBySort(productId);
         if (!optionGroups.isEmpty()) {
@@ -112,12 +117,12 @@ public class ProductQueryService {
                 .collect(Collectors.groupingBy(ProductOption::getOptionGroupId));
 
             for (ProductOptionGroup group : optionGroups) {
-                List<ProductOptionsResult.OptionResult> optionResults = byGroupId
+                List<OptionResult> optionResults = byGroupId
                     .getOrDefault(group.getId(), Collections.emptyList())
                     .stream()
-                    .map(o -> new ProductOptionsResult.OptionResult(o.getId(), o.getName(), o.getAdditionalPrice(), o.isSoldOut()))
+                    .map(o -> new OptionResult(o.getId(), o.getName(), o.getAdditionalPrice(), o.isSoldOut()))
                     .toList();
-                result.add(new ProductOptionsResult.OptionGroupResult(
+                result.add(new OptionGroupResult(
                     group.getId(), group.getName(), group.getDescription(),
                     group.isRequired(), group.isMultipleSelect(),
                     group.getMinSelect(), group.getMaxSelect(), false, optionResults
@@ -133,12 +138,12 @@ public class ProductQueryService {
                 .collect(Collectors.groupingBy(ProductCommonOption::getOptionGroupId));
 
             for (ProductCommonOptionGroup group : commonGroups) {
-                List<ProductOptionsResult.OptionResult> optionResults = byCommonGroupId
+                List<OptionResult> optionResults = byCommonGroupId
                     .getOrDefault(group.getId(), Collections.emptyList())
                     .stream()
-                    .map(o -> new ProductOptionsResult.OptionResult(o.getId(), o.getName(), o.getAdditionalPrice(), o.isSoldOut()))
+                    .map(o -> new OptionResult(o.getId(), o.getName(), o.getAdditionalPrice(), o.isSoldOut()))
                     .toList();
-                result.add(new ProductOptionsResult.OptionGroupResult(
+                result.add(new OptionGroupResult(
                     group.getId(), group.getName(), group.getDescription(),
                     group.isRequired(), group.isMultipleSelect(),
                     group.getMinSelect(), group.getMaxSelect(), true, optionResults
@@ -158,18 +163,18 @@ public class ProductQueryService {
      * 상품/옵션/그룹을 각각 배치(in) 조회하여 N+1 을 방지합니다.
      */
     public List<ProductBatchResult> findProductsBatch(ProductBatchQuery query) {
-        List<ProductBatchQuery.BatchItem> items = query.items();
+        List<BatchItem> items = query.items();
         if (items == null || items.isEmpty()) {
             return List.of();
         }
 
         List<Long> productIds = items.stream()
-            .map(ProductBatchQuery.BatchItem::productId)
+            .map(BatchItem::productId)
             .filter(java.util.Objects::nonNull)
             .distinct()
             .toList();
         List<Long> optionIds = items.stream()
-            .map(ProductBatchQuery.BatchItem::optionId)
+            .map(BatchItem::optionId)
             .filter(java.util.Objects::nonNull)
             .distinct()
             .toList();
@@ -181,8 +186,8 @@ public class ProductQueryService {
         Map<Long, String> imagePathByProductId = productImageRepository
             .findRepresentativeImagePathsByProductIds(productIds).stream()
             .collect(Collectors.toMap(
-                ProductImageRepository.ProductRepresentativeImage::productId,
-                ProductImageRepository.ProductRepresentativeImage::filePath,
+                ProductRepresentativeImage::productId,
+                ProductRepresentativeImage::filePath,
                 (existing, ignored) -> existing
             ));
 
@@ -210,8 +215,8 @@ public class ProductQueryService {
 
         // 요청 순서(productId 최초 등장순)를 유지하며 상품별로 옵션을 그룹핑.
         // 미존재 상품도 available=false 로 남기기 위해 모든 요청 productId 를 키로 등록한다.
-        Map<Long, List<ProductBatchResult.BatchOptionResult>> optionsByProductId = new java.util.LinkedHashMap<>();
-        for (ProductBatchQuery.BatchItem item : items) {
+        Map<Long, List<BatchOptionResult>> optionsByProductId = new java.util.LinkedHashMap<>();
+        for (BatchItem item : items) {
             Long productId = item.productId();
             if (productId == null) {
                 continue;
@@ -239,10 +244,10 @@ public class ProductQueryService {
             if (!productId.equals(ownerProductId)) {
                 continue;
             }
-            List<ProductBatchResult.BatchOptionResult> bucket = optionsByProductId.get(productId);
+            List<BatchOptionResult> bucket = optionsByProductId.get(productId);
             boolean alreadyAdded = bucket.stream().anyMatch(o -> o.id().equals(optionId));
             if (!alreadyAdded) {
-                bucket.add(new ProductBatchResult.BatchOptionResult(
+                bucket.add(new BatchOptionResult(
                     optionId, optionInfo.name(), optionInfo.additionalPrice()
                 ));
             }

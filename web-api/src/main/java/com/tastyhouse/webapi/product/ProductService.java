@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
+import com.tastyhouse.core.domain.product.application.dto.command.BatchItem;
 import com.tastyhouse.core.domain.product.application.dto.command.ProductBatchQuery;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductBatchResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
@@ -24,10 +25,14 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.request.ProductBatchRequest;
+import com.tastyhouse.webapi.product.response.OptionGroupResponse;
+import com.tastyhouse.webapi.product.response.OptionResponse;
+import com.tastyhouse.webapi.product.response.ProductBatchOptionResponse;
 import com.tastyhouse.webapi.product.response.ProductBatchResponse;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
+import com.tastyhouse.webapi.product.response.ProductResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewCountResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewListItemResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
@@ -101,26 +106,26 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public ProductBatchResponse findProductsBatch(ProductBatchRequest request) {
-        List<ProductBatchQuery.BatchItem> items = request.items().stream()
-            .map(item -> ProductBatchQuery.BatchItem.of(item.productId(), item.optionId()))
+        List<BatchItem> items = request.items().stream()
+            .map(item -> BatchItem.of(item.productId(), item.optionId()))
             .toList();
 
         List<ProductBatchResult> results = productQueryService.findProductsBatch(ProductBatchQuery.of(items));
 
-        List<ProductBatchResponse.ProductResponse> products = results.stream()
+        List<ProductResponse> products = results.stream()
             .map(this::convertToProductBatchResponse)
             .toList();
 
         return ProductBatchResponse.from(products);
     }
 
-    private ProductBatchResponse.ProductResponse convertToProductBatchResponse(ProductBatchResult result) {
-        List<ProductBatchResponse.OptionResponse> options = result.options().stream()
-            .map(option -> ProductBatchResponse.OptionResponse.from(
+    private ProductResponse convertToProductBatchResponse(ProductBatchResult result) {
+        List<ProductBatchOptionResponse> options = result.options().stream()
+            .map(option -> ProductBatchOptionResponse.from(
                 option.id(), option.name(), option.price()
             ))
             .toList();
-        return ProductBatchResponse.ProductResponse.from(
+        return ProductResponse.from(
             result.id(),
             result.available(),
             result.name(),
@@ -131,14 +136,14 @@ public class ProductService {
         );
     }
 
-    private List<ProductOptionGroupsResponse.OptionGroupResponse> convertToOptionGroupResponses(ProductOptionsResult result) {
+    private List<OptionGroupResponse> convertToOptionGroupResponses(ProductOptionsResult result) {
         return result.optionGroups().stream()
             .map(group -> {
-                List<ProductOptionGroupsResponse.OptionResponse> options = group.options().stream()
-                    .map(o -> ProductOptionGroupsResponse.OptionResponse.from(
+                List<OptionResponse> options = group.options().stream()
+                    .map(o -> OptionResponse.from(
                         o.id(), o.name(), o.additionalPrice(), o.soldOut()))
                     .toList();
-                return ProductOptionGroupsResponse.OptionGroupResponse.from(
+                return OptionGroupResponse.from(
                     group.id(), group.name(), group.description(),
                     group.required(), group.multipleSelect(),
                     group.minSelect(), group.maxSelect(), group.common(), options

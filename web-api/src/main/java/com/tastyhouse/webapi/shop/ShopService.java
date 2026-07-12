@@ -42,11 +42,16 @@ import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.shop.response.AmenityListItemResponse;
+import com.tastyhouse.webapi.shop.response.AmenityItem;
 import com.tastyhouse.webapi.shop.response.BestShopListItemResponse;
+import com.tastyhouse.webapi.shop.response.BreakTimeItem;
+import com.tastyhouse.webapi.shop.response.BusinessHourItem;
+import com.tastyhouse.webapi.shop.response.ClosedDayItem;
 import com.tastyhouse.webapi.shop.response.EditorChoiceProductItem;
 import com.tastyhouse.webapi.shop.response.EditorChoiceResponse;
 import com.tastyhouse.webapi.shop.response.FoodTypeListItemResponse;
 import com.tastyhouse.webapi.shop.response.LatestShopListItemResponse;
+import com.tastyhouse.webapi.shop.response.OrderMethodItem;
 import com.tastyhouse.webapi.shop.response.ShopBannerResponse;
 import com.tastyhouse.webapi.shop.response.ShopBookmarkResponse;
 import com.tastyhouse.webapi.shop.response.ShopDetailResponse;
@@ -121,7 +126,7 @@ public class ShopService {
             dto.stationName(),
             dto.rating(),
             fileService.getUrlByPath(dto.imageUrl()),
-            dto.foodTypes()
+            dto.foodTypes().stream().map(Enum::name).toList()
         );
     }
 
@@ -135,7 +140,7 @@ public class ShopService {
             dto.createdAt(),
             dto.reviewCount(),
             dto.bookmarkCount(),
-            dto.foodTypes()
+            dto.foodTypes().stream().map(Enum::name).toList()
         );
     }
 
@@ -201,7 +206,16 @@ public class ShopService {
     @Transactional(readOnly = true)
     public ShopDetailResponse getShopDetail(Long shopId) {
         Shop shop = shopQueryService.findShopById(ShopId.of(shopId));
-        return ShopDetailResponse.from(shop);
+        return ShopDetailResponse.of(
+            shop.getId(),
+            shop.getName(),
+            shop.getLatitude(),
+            shop.getLongitude(),
+            shop.getRating(),
+            shop.getRoadAddress(),
+            shop.getLotAddress(),
+            shop.getPhoneNumber()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -212,19 +226,19 @@ public class ShopService {
         List<ShopClosedDay> closedDays = shopQueryService.findShopClosedDays(shopId);
         List<ShopAmenityWithCategoryDto> shopAmenities = shopQueryService.findShopAmenitiesWithCategory(shopId);
 
-        List<ShopInfoResponse.BusinessHourItem> businessHourItems = businessHours.stream()
+        List<BusinessHourItem> businessHourItems = businessHours.stream()
                 .map(this::convertToBusinessHourItem)
                 .toList();
 
-        List<ShopInfoResponse.BreakTimeItem> breakTimeItems = breakTimes.stream()
+        List<BreakTimeItem> breakTimeItems = breakTimes.stream()
                 .map(this::convertToBreakTimeItem)
                 .toList();
 
-        List<ShopInfoResponse.ClosedDayItem> closedDayItems = closedDays.stream()
+        List<ClosedDayItem> closedDayItems = closedDays.stream()
                 .map(this::convertToClosedDayItem)
                 .toList();
 
-        List<ShopInfoResponse.AmenityItem> amenityItems = shopAmenities.stream()
+        List<AmenityItem> amenityItems = shopAmenities.stream()
                 .map(this::convertToAmenityItem)
                 .toList();
 
@@ -362,10 +376,10 @@ public class ShopService {
         );
     }
 
-    private ShopInfoResponse.BusinessHourItem convertToBusinessHourItem(ShopBusinessHour businessHour) {
+    private BusinessHourItem convertToBusinessHourItem(ShopBusinessHour businessHour) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        return ShopInfoResponse.BusinessHourItem.from(
+        return BusinessHourItem.from(
             businessHour.getDayType().name(),
             businessHour.getDayType().getDescription(),
             businessHour.getOpenTime() != null ? businessHour.getOpenTime().format(formatter) : null,
@@ -374,10 +388,10 @@ public class ShopService {
         );
     }
 
-    private ShopInfoResponse.BreakTimeItem convertToBreakTimeItem(ShopBreakTime breakTime) {
+    private BreakTimeItem convertToBreakTimeItem(ShopBreakTime breakTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        return ShopInfoResponse.BreakTimeItem.from(
+        return BreakTimeItem.from(
             breakTime.getDayType().name(),
             breakTime.getDayType().getDescription(),
             breakTime.getStartTime() != null ? breakTime.getStartTime().format(formatter) : null,
@@ -385,15 +399,15 @@ public class ShopService {
         );
     }
 
-    private ShopInfoResponse.ClosedDayItem convertToClosedDayItem(ShopClosedDay closedDay) {
-        return ShopInfoResponse.ClosedDayItem.from(
+    private ClosedDayItem convertToClosedDayItem(ShopClosedDay closedDay) {
+        return ClosedDayItem.from(
             closedDay.getClosedDayType().name(),
             closedDay.getClosedDayType().getDescription()
         );
     }
 
-    private ShopInfoResponse.AmenityItem convertToAmenityItem(ShopAmenityWithCategoryDto dto) {
-        return ShopInfoResponse.AmenityItem.from(
+    private AmenityItem convertToAmenityItem(ShopAmenityWithCategoryDto dto) {
+        return AmenityItem.from(
             dto.amenity().name(),
             dto.displayName(),
             fileService.getUrlByPath(dto.activeFilePath())
@@ -445,9 +459,9 @@ public class ShopService {
         shopQueryService.findShopById(ShopId.of(shopId));
         List<ShopOrderMethod> shopOrderMethods = shopQueryService.findShopOrderMethods(shopId);
 
-        List<ShopOrderMethodResponse.OrderMethodItem> orderMethodItems =
+        List<OrderMethodItem> orderMethodItems =
             shopOrderMethods.stream()
-                .map(som -> ShopOrderMethodResponse.OrderMethodItem.from(
+                .map(som -> OrderMethodItem.from(
                     som.getOrderMethod().name(),
                     som.getOrderMethod().getDisplayName()))
                 .toList();

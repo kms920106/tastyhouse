@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "상품 배치 조회 요청. (상품ID, 옵션ID) 조합의 목록입니다.")
@@ -16,14 +15,4 @@ public record ProductBatchRequest(
     @Valid
     List<BatchItemRequest> items
 ) {
-    @Schema(description = "조회 항목 (상품ID + 옵션ID)")
-    public record BatchItemRequest(
-        @Schema(description = "상품 ID", example = "1")
-        @NotNull(message = "상품 ID는 필수입니다.")
-        Long productId,
-
-        @Schema(description = "옵션 ID. 옵션이 없는 항목이면 null 가능", example = "1")
-        Long optionId
-    ) {
-    }
 }

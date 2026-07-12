@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.core.domain.payment.application.port.PgPaymentGateway;
 import com.tastyhouse.core.domain.payment.application.port.dto.PgCancelResult;
 import com.tastyhouse.core.domain.payment.application.port.dto.PgConfirmResult;
+import com.tastyhouse.core.domain.payment.application.port.dto.TossPaymentDetail;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
 
 @Slf4j
@@ -20,7 +21,7 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
     public PgConfirmResult confirmPayment(Long paymentId, String paymentKey, String pgOrderId, int amount) {
         TossPaymentConfirmResponse response = tossPaymentClient.confirmPayment(paymentKey, pgOrderId, amount);
 
-        PgConfirmResult.TossPaymentDetail detail = buildTossPaymentDetail(response);
+        TossPaymentDetail detail = buildTossPaymentDetail(response);
 
         if (response.isError()) {
             log.error("Toss confirm failed. pgOrderId: {}, errorCode: {}, msg: {}",
@@ -73,7 +74,7 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
         return new PgCancelResult(true, null, null);
     }
 
-    private PgConfirmResult.TossPaymentDetail buildTossPaymentDetail(TossPaymentConfirmResponse response) {
+    private TossPaymentDetail buildTossPaymentDetail(TossPaymentConfirmResponse response) {
         Integer cardAmount = null;
         String cardIssuerCode = null;
         String cardAcquirerCode = null;
@@ -164,7 +165,7 @@ public class TossPaymentGatewayAdapter implements PgPaymentGateway {
             failureMessage = response.getMessage();
         }
 
-        return new PgConfirmResult.TossPaymentDetail(
+        return new TossPaymentDetail(
             response.getVersion(),
             response.getPaymentKey(),
             response.getType(),

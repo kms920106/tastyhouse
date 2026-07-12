@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.product.domain.model.ProductImage;
 import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductRepresentativeImage;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;

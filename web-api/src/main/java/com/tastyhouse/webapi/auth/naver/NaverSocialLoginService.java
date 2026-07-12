@@ -113,7 +113,7 @@ public class NaverSocialLoginService {
                     naverUser.getProfileImageUrl(),
                     naverUser.getName(),
                     naverUser.getMobile(),
-                    naverUser.getGender(),
+                    naverUser.getGender() != null ? naverUser.getGender().name() : null,
                     naverUser.getBirthYear(),
                     naverUser.getBirthMonth(),
                     naverUser.getBirthDay()

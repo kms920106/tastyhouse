@@ -39,6 +39,7 @@ import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 import com.tastyhouse.core.domain.payment.application.port.PgPaymentGateway;
 import com.tastyhouse.core.domain.payment.application.port.dto.PgCancelResult;
 import com.tastyhouse.core.domain.payment.application.port.dto.PgConfirmResult;
+import com.tastyhouse.core.domain.payment.application.port.dto.TossPaymentDetail;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -301,7 +302,7 @@ public class PaymentCommandService {
         return PaymentResult.from(payment);
     }
 
-    private TossPaymentRecord buildTossPaymentRecord(Long paymentId, PgConfirmResult.TossPaymentDetail detail) {
+    private TossPaymentRecord buildTossPaymentRecord(Long paymentId, TossPaymentDetail detail) {
         return TossPaymentRecord.create(
             paymentId,
             detail.version(),

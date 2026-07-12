@@ -18,6 +18,7 @@ import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOpt
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOptionGroupCommand;
 import com.tastyhouse.webapi.crawling.bbq.BbqService;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductSubOptionResponse;
+import com.tastyhouse.webapi.crawling.bbq.response.SubOptionItemDetailResponse;
 
 @Component
 @RequiredArgsConstructor
@@ -94,7 +95,7 @@ public class ProductScheduler {
 
             if (subOption.subOptionItemDetailResponseList() != null) {
                 for (int j = 0; j < subOption.subOptionItemDetailResponseList().size(); j++) {
-                    BbqProductSubOptionResponse.SubOptionItemDetailResponse itemDetail =
+                    SubOptionItemDetailResponse itemDetail =
                         subOption.subOptionItemDetailResponseList().get(j);
 
                     productCommandService.saveProductOption(

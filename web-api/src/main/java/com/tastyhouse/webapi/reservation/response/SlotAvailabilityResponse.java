@@ -1,7 +1,6 @@
 package com.tastyhouse.webapi.reservation.response;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,19 +18,6 @@ public record SlotAvailabilityResponse(
     @Schema(description = "슬롯별 가용 정보")
     List<Slot> slots
 ) {
-    @Schema(description = "슬롯 가용 정보")
-    public record Slot(
-        @Schema(description = "슬롯 시간", example = "13:00")
-        LocalTime time,
-
-        @Schema(description = "잔여 예약 가능 수", example = "7")
-        int remaining,
-
-        @Schema(description = "예약 가능 여부 (잔여>0 && 미과거)", example = "true")
-        boolean available
-    ) {
-    }
-
     public static SlotAvailabilityResponse from(DailySlotAvailabilityResult result) {
         List<Slot> slots = result.slots().stream()
             .map(s -> new Slot(s.time(), s.remaining(), s.available()))
