@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { bannerRepository } from "@/api/banner/banner.repository";
 import { bannerService } from "@/api/banner/banner.service";
-import { imageRepository } from "@/api/banner/image.repository";
-import type { BannerDetail, BannerImage } from "@/feature/banner/domain";
+import { fileRepository } from "@/api/file/file.repository";
+import type { BannerDetail } from "@/feature/banner/domain";
 
 import { BANNER_MESSAGE } from "./message";
 import { type BannerFormValues, bannerFormSchema } from "./schema";
@@ -27,7 +27,8 @@ type BannerDetailResult = {
 type ImageUploadResult = {
   success: boolean;
   message?: string;
-  data?: BannerImage;
+  /** 업로드된 파일의 ID(fileId) */
+  fileId?: number;
 };
 
 /** "YYYY-MM-DDTHH:mm" (datetime-local) -> "YYYY-MM-DDTHH:mm:ss" (LocalDateTime) */
@@ -56,12 +57,12 @@ export async function uploadBannerImageAction(formData: FormData): Promise<Image
     return { success: false, message: BANNER_MESSAGE.IMAGE_UPLOAD_FAILED };
   }
 
-  const { error, data } = await imageRepository.upload(file);
-  if (error !== undefined || !data) {
+  const { error, data } = await fileRepository.uploadImage(file);
+  if (error !== undefined || data == null) {
     return { success: false, message: error ?? BANNER_MESSAGE.IMAGE_UPLOAD_FAILED };
   }
 
-  return { success: true, data };
+  return { success: true, fileId: data };
 }
 
 // 배너 등록

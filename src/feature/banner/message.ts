@@ -18,6 +18,8 @@ export const BANNER_MESSAGE = {
   LIST_LOAD_FAILED: "배너 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
   DETAIL_LOAD_FAILED: "배너 상세를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
   IMAGE_UPLOAD_FAILED: "이미지 업로드 중 오류가 발생했습니다.",
+  IMAGE_TYPE_INVALID: "jpg, png, gif, webp 형식의 이미지만 업로드할 수 있습니다.",
+  IMAGE_SIZE_EXCEEDED: "이미지 크기는 최대 10MB까지 업로드할 수 있습니다.",
 } as const;
 
 export const BANNER_TYPE_LABEL = {

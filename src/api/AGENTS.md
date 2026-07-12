@@ -15,6 +15,8 @@ Data-access layer for the app. Repositories, DTOs, and shared HTTP plumbing live
 | `notice/notice.repository.ts` | Notice resource repository — pure HTTP, returns DTOs (`*Response`), no transformation |
 | `notice/notice.dto.ts` | Notice request/response DTOs (`*Response`/`*Request`), internal to this layer |
 | `notice/notice.service.ts` | Notice read service — calls repository and maps DTO → domain (`@/feature/notice/domain`) for queries that need it |
+| `file/file.repository.ts` | File Admin upload repository — `POST /api/files/v1/upload` (multipart), returns the uploaded fileId (`number`) |
+| `file/file.dto.ts` | File upload DTOs — `FileUploadResponse` (= fileId `number`), `ALLOWED_IMAGE_TYPES`, `MAX_IMAGE_SIZE_BYTES` |
 
 ## For AI Agents
 
