@@ -10,7 +10,7 @@ export const memberService = {
     const response = await memberRepository.getMyProfile()
     if (!response.data) return { ...response, data: undefined }
 
-    const grade = response.data.memberGrade
+    const grade = response.data.grade
     return {
       ...response,
       data: {

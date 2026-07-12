@@ -43,7 +43,7 @@ export interface MemberPersonalInfo {
 export interface SocialMember {
   memberId: number
   nickname: string
-  memberGrade: MemberGradeCode
+  grade: MemberGradeCode
   profileImageUrl: string | null
   following: boolean
 }

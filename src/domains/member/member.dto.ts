@@ -34,7 +34,7 @@ export interface OtherMemberProfileResponse {
 export interface MemberProfileResponse {
   id: number
   nickname: string
-  memberGrade: MemberGradeCode
+  grade: MemberGradeCode
   statusMessage: string | null
   profileImageUrl: string | null
 }
@@ -42,7 +42,7 @@ export interface MemberProfileResponse {
 export interface MyProfileResponse {
   id: number
   nickname: string
-  memberGrade: MemberGradeCode
+  grade: MemberGradeCode
   statusMessage: string | null
   profileImageUrl: string | null
 }

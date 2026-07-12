@@ -30,7 +30,7 @@ export default function MemberDetailProfile({ memberId }: Props) {
       memberId={memberId}
       nickname={profileData?.nickname}
       profileImageUrl={profileData?.profileImageUrl}
-      memberGrade={profileData?.memberGrade}
+      memberGrade={profileData?.grade}
       statusMessage={profileData?.statusMessage}
       reviewCount={statsData?.reviewCount}
       followingCount={statsData?.followingCount}

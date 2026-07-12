@@ -15,7 +15,7 @@ export default function MemberSearchResultItem({ member, onFollowToggle }: Props
     <div className="flex items-center justify-between">
       <MemberProfileCell
         nickname={member.nickname}
-        memberGrade={member.memberGrade}
+        memberGrade={member.grade}
         profileImageUrl={member.profileImageUrl}
         href={PAGE_PATHS.MEMBER_DETAIL(member.memberId)}
       />
