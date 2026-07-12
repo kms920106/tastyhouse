@@ -81,7 +81,7 @@ export const bannersColumns: ColumnDef<BannerListItem>[] = [
   },
   {
     accessorKey: "sort",
-    header: "정렬",
+    header: "순서",
     cell: ({ row }) => <span className="tabular-nums">{row.original.sort}</span>,
     size: 70,
     minSize: 70,
