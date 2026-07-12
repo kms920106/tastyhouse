@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.reservation;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,12 +46,6 @@ public class ReservationApiController {
     }
 
     @Operation(summary = "예약 생성", description = "가게 시간 슬롯에 예약을 신청합니다. (PENDING)")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "예약 생성 성공"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 / 약관 미동의 / 과거 일시"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "슬롯 마감 / 중복 예약")
-    })
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<ReservationResponse>> create(
         @Valid @RequestBody ReservationCreateRequest request,
@@ -91,12 +84,6 @@ public class ReservationApiController {
     }
 
     @Operation(summary = "예약 상세 조회", description = "본인의 예약 단건 상세 정보를 조회합니다.")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "예약 상세 조회 성공"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인의 예약이 아님"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "예약을 찾을 수 없음")
-    })
     @GetMapping("/v1/{reservationId}")
     public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservationDetail(
         @PathVariable Long reservationId,
@@ -107,13 +94,6 @@ public class ReservationApiController {
     }
 
     @Operation(summary = "예약 취소", description = "본인의 예약을 취소합니다. (PENDING|CONFIRMED -> CANCELED)")
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "예약 취소 성공"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인의 예약이 아님"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "예약을 찾을 수 없음"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "취소 불가 상태 (이미 취소/거절/방문완료된 예약)")
-    })
     @PatchMapping("/v1/{reservationId}/cancel")
     public ResponseEntity<ApiResponse<Void>> cancel(
         @PathVariable Long reservationId,

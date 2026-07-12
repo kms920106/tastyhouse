@@ -1,9 +1,6 @@
 package com.tastyhouse.webapi.verification;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,11 +31,6 @@ public class EmailVerificationApiController {
         summary = "인증번호 발송",
         description = "입력한 이메일로 6자리 인증번호를 발송합니다. 기존 미완료 인증은 자동 만료됩니다."
     )
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "인증번호 발송 성공"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 이메일 형식"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "요청 횟수 초과 (이메일당 일 5회)")
-    })
     @RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.FIELD, keyField = "email", keyPrefix = "rate_limit:email_verification")
     @PostMapping("/v1/send")
     public ResponseEntity<ApiResponse<Void>> sendVerificationCode(
@@ -53,11 +45,6 @@ public class EmailVerificationApiController {
         description = "발송된 인증번호를 검증합니다. 인증 성공 시 10분간 유효한 emailVerifyToken을 반환합니다. " +
                       "회원가입 시 emailVerifyToken을 포함하여 사용합니다."
     )
-    @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "인증 성공 - emailVerifyToken 반환",
-            content = @Content(schema = @Schema(implementation = EmailVerifyTokenResponse.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "인증번호 불일치 또는 만료")
-    })
     @PostMapping("/v1/confirm")
     public ResponseEntity<ApiResponse<EmailVerifyTokenResponse>> confirmVerificationCode(
         @Valid @RequestBody ConfirmEmailVerificationCodeRequest request
