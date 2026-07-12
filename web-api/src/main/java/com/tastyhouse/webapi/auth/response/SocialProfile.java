@@ -3,8 +3,6 @@ package com.tastyhouse.webapi.auth.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
-
 /**
  * 소셜 로그인 계정 연동 시 회원가입 폼 자동 매핑용 공통 프로필.
  * 소셜 플랫폼마다 제공 가능한 필드가 다르므로 미제공 항목은 null로 반환된다.
@@ -37,7 +35,7 @@ public record SocialProfile(
     String phoneNumber,
 
     @Schema(description = "성별. MALE 또는 FEMALE. 카카오(동의 시)·네이버에서 제공")
-    Gender gender,
+    String gender,
 
     @Schema(description = "출생 연도 (예: \"1990\"). 네이버에서 제공")
     String birthYear,

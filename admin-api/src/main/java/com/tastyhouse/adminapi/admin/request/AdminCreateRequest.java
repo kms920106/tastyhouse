@@ -2,10 +2,7 @@ package com.tastyhouse.adminapi.admin.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
 
 @Schema(description = "관리자 계정 생성 요청 (SUPER_ADMIN 전용)")
 public record AdminCreateRequest(
@@ -24,8 +21,8 @@ public record AdminCreateRequest(
     @Schema(description = "관리자 이름", example = "홍길동")
     String name,
 
-    @NotNull(message = "권한을 선택해주세요.")
-    @Schema(description = "관리자 권한", example = "ADMIN")
-    AdminRole role
+    @NotBlank(message = "권한을 선택해주세요.")
+    @Schema(description = "관리자 권한", example = "ADMIN", allowableValues = {"SUPER_ADMIN", "ADMIN"}, requiredMode = Schema.RequiredMode.REQUIRED)
+    String role
 ) {
 }

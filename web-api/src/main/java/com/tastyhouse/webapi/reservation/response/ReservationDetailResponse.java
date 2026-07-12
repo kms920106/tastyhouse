@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 
 @Schema(description = "예약 상세 조회 응답")
@@ -46,7 +45,7 @@ public record ReservationDetailResponse(
     Integer partySize,
 
     @Schema(description = "예약 상태", example = "CONFIRMED")
-    ReservationStatus status,
+    String status,
 
     @Schema(description = "요청사항", example = "창가 자리 부탁드립니다")
     String request,
@@ -74,7 +73,7 @@ public record ReservationDetailResponse(
             reserverEmail,
             LocalDateTime.of(result.reservationDate(), result.reservationTime()),
             result.partySize(),
-            result.status(),
+            result.status().name(),
             result.request(),
             result.createdAt()
         );

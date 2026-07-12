@@ -24,6 +24,7 @@ public enum ErrorCode {
     ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH(400, "ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH", "할인 금액이 일치하지 않습니다."),
     ORDER_FINAL_AMOUNT_MISMATCH(400, "ORDER_FINAL_AMOUNT_MISMATCH", "결제 금액이 일치하지 않습니다."),
     ORDER_MINIMUM_AMOUNT_NOT_MET(400, "ORDER_MINIMUM_AMOUNT_NOT_MET", "최소 주문 금액을 충족하지 않습니다."),
+    ORDER_METHOD_UNKNOWN(400, "ORDER_METHOD_UNKNOWN", "알 수 없는 주문 방법입니다."),
 
     // 쿠폰
     COUPON_NOT_FOUND(404, "COUPON_NOT_FOUND", "쿠폰을 찾을 수 없습니다."),
@@ -43,6 +44,8 @@ public enum ErrorCode {
     PAYMENT_NOT_COMPLETED(400, "PAYMENT_NOT_COMPLETED", "완료된 결제만 환불할 수 있습니다."),
     PAYMENT_NOT_PENDING(400, "PAYMENT_NOT_PENDING", "대기 중인 결제만 완료 처리할 수 있습니다."),
     PAYMENT_NOT_ON_SITE(400, "PAYMENT_NOT_ON_SITE", "현장결제만 완료 처리할 수 있습니다."),
+    PAYMENT_METHOD_UNKNOWN(400, "PAYMENT_METHOD_UNKNOWN", "알 수 없는 결제 방법입니다."),
+    PG_PROVIDER_UNKNOWN(400, "PG_PROVIDER_UNKNOWN", "알 수 없는 PG사입니다."),
 
     // 회원
     MEMBER_NOT_FOUND(404, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
@@ -70,6 +73,7 @@ public enum ErrorCode {
     ADMIN_USERNAME_DUPLICATED(409, "ADMIN_USERNAME_DUPLICATED", "이미 사용 중인 관리자 아이디입니다."),
     ADMIN_AUTHENTICATION_FAILED(401, "ADMIN_AUTHENTICATION_FAILED", "아이디 또는 비밀번호가 올바르지 않습니다."),
     ADMIN_ACCOUNT_INACTIVE(401, "ADMIN_ACCOUNT_INACTIVE", "비활성화된 관리자 계정입니다."),
+    ADMIN_ROLE_UNKNOWN(400, "ADMIN_ROLE_UNKNOWN", "알 수 없는 관리자 권한입니다."),
 
     // 인증 (SMS)
     VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
@@ -101,6 +105,7 @@ public enum ErrorCode {
     REVIEW_ALREADY_EXISTS(400, "REVIEW_ALREADY_EXISTS", "이미 리뷰를 작성한 상품입니다."),
     REVIEW_ORDER_PRODUCT_NOT_FOUND(404, "REVIEW_ORDER_PRODUCT_NOT_FOUND", "주문 상품을 찾을 수 없습니다."),
     REVIEW_ORDER_ACCESS_DENIED(403, "REVIEW_ORDER_ACCESS_DENIED", "본인의 주문에 대해서만 리뷰를 작성할 수 있습니다."),
+    REVIEW_LIST_TYPE_UNKNOWN(400, "REVIEW_LIST_TYPE_UNKNOWN", "알 수 없는 리뷰 목록 조회 타입입니다."),
 
     // 가게
     SHOP_NOT_FOUND(404, "SHOP_NOT_FOUND", "존재하지 않는 가게입니다."),
@@ -112,6 +117,7 @@ public enum ErrorCode {
     POLICY_NOT_FOUND(404, "POLICY_NOT_FOUND", "정책 문서를 찾을 수 없습니다."),
     POLICY_CURRENT_NOT_FOUND(404, "POLICY_CURRENT_NOT_FOUND", "현재 유효한 정책을 찾을 수 없습니다."),
     POLICY_VERSION_NOT_FOUND(404, "POLICY_VERSION_NOT_FOUND", "해당 버전의 정책을 찾을 수 없습니다."),
+    POLICY_TYPE_UNKNOWN(400, "POLICY_TYPE_UNKNOWN", "알 수 없는 정책 타입입니다."),
 
     // 상품
     PRODUCT_NOT_FOUND(404, "PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다."),
@@ -148,6 +154,11 @@ public enum ErrorCode {
     FOLLOW_NOT_FOUND(400, "FOLLOW_NOT_FOUND", "팔로우 관계가 존재하지 않습니다."),
     FOLLOW_TARGET_NOT_FOUND(404, "FOLLOW_TARGET_NOT_FOUND", "팔로우 대상 회원을 찾을 수 없습니다."),
     FOLLOWER_REMOVE_ACCESS_DENIED(403, "FOLLOWER_REMOVE_ACCESS_DENIED", "본인의 팔로워만 삭제할 수 있습니다."),
+
+    // 회원 enum
+    GENDER_TYPE_UNKNOWN(400, "GENDER_TYPE_UNKNOWN", "알 수 없는 성별입니다."),
+    SOCIAL_PROVIDER_TYPE_UNKNOWN(400, "SOCIAL_PROVIDER_TYPE_UNKNOWN", "알 수 없는 소셜 로그인 제공자입니다."),
+    WITHDRAWAL_REASON_TYPE_UNKNOWN(400, "WITHDRAWAL_REASON_TYPE_UNKNOWN", "알 수 없는 탈퇴 사유입니다."),
 
     // 소셜 로그인
     SOCIAL_ACCOUNT_ALREADY_REGISTERED(409, "SOCIAL_ACCOUNT_ALREADY_REGISTERED", "이미 가입된 소셜 계정입니다."),

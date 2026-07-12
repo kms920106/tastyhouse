@@ -74,7 +74,7 @@ public class PolicyService {
     private PolicyDetailResponse toDetailResponse(PolicyDocumentResult result) {
         return PolicyDetailResponse.from(
             result.id(),
-            result.type(),
+            result.type().name(),
             result.version(),
             result.title(),
             result.content(),
@@ -89,7 +89,7 @@ public class PolicyService {
     private PolicyListItemResponse toListItemResponse(PolicyListItemResult result) {
         return PolicyListItemResponse.from(
             result.id(),
-            result.type(),
+            result.type().name(),
             result.version(),
             result.title(),
             result.current(),

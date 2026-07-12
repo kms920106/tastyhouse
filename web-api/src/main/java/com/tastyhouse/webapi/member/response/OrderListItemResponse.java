@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-
 @Schema(description = "주문 목록 아이템")
 public record OrderListItemResponse(
     @Schema(description = "주문 ID(PK)", example = "1")
@@ -27,7 +25,7 @@ public record OrderListItemResponse(
     Integer amount,
 
     @Schema(description = "결제 상태", example = "PAID")
-    PaymentStatus paymentStatus,
+    String paymentStatus,
 
     @Schema(description = "결제 일시", example = "2026-01-01T00:00:00")
     LocalDateTime paymentDate
@@ -39,7 +37,7 @@ public record OrderListItemResponse(
         String firstProductName,
         Integer totalItemCount,
         Integer amount,
-        PaymentStatus paymentStatus,
+        String paymentStatus,
         LocalDateTime paymentDate
     ) {
         return new OrderListItemResponse(

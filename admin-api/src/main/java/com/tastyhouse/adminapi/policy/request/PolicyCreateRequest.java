@@ -6,13 +6,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
-
 @Schema(description = "약관 생성 요청")
 public record PolicyCreateRequest(
-    @NotNull(message = "정책 타입은 필수입니다.")
-    @Schema(description = "정책 타입 (TERMS_OF_SERVICE / PRIVACY_POLICY)", example = "TERMS_OF_SERVICE", requiredMode = Schema.RequiredMode.REQUIRED)
-    PolicyType type,
+    @NotBlank(message = "정책 타입은 필수입니다.")
+    @Schema(description = "정책 타입", example = "TERMS_OF_SERVICE", allowableValues = {"TERMS_OF_SERVICE", "PRIVACY_POLICY", "ELECTRONIC_FINANCIAL_TRANSACTIONS", "AGE_VERIFICATION"}, requiredMode = Schema.RequiredMode.REQUIRED)
+    String type,
 
     @NotBlank(message = "버전은 필수입니다.")
     @Schema(description = "버전", example = "1.0.0", requiredMode = Schema.RequiredMode.REQUIRED)

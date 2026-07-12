@@ -2,8 +2,6 @@ package com.tastyhouse.webapi.follow.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-
 @Schema(description = "회원 검색 목록 아이템 응답")
 public record MemberSearchListItemResponse(
     @Schema(description = "회원 ID", example = "1")
@@ -13,7 +11,7 @@ public record MemberSearchListItemResponse(
     String nickname,
 
     @Schema(description = "회원 등급", example = "NEWCOMER")
-    MemberGrade memberGrade,
+    String grade,
 
     @Schema(description = "프로필 이미지 URL")
     String profileImageUrl,
@@ -24,14 +22,14 @@ public record MemberSearchListItemResponse(
     public static MemberSearchListItemResponse of(
         Long memberId,
         String nickname,
-        MemberGrade memberGrade,
+        String grade,
         String profileImageUrl,
         boolean isFollowing
     ) {
         return new MemberSearchListItemResponse(
             memberId,
             nickname,
-            memberGrade,
+            grade,
             profileImageUrl,
             isFollowing
         );

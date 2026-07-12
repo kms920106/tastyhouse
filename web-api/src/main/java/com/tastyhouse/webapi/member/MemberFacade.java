@@ -61,14 +61,15 @@ public class MemberFacade {
 
     public void updatePersonalInfo(Long memberId, String verifyToken,
                                    String phoneVerifyToken, String fullName,
-                                   String phoneNumber, Integer birthDate, Gender gender,
+                                   String phoneNumber, Integer birthDate, String gender,
                                    boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                                    boolean eventInfoEnabled) {
         memberAuthService.verifyPersonalInfoToken(memberId, verifyToken);
         if (phoneNumber != null) {
             memberAuthService.verifyPhoneToken(memberId, phoneVerifyToken, phoneNumber);
         }
-        memberAccountService.updatePersonalInfo(memberId, fullName, phoneNumber, birthDate, gender,
+        memberAccountService.updatePersonalInfo(memberId, fullName, phoneNumber, birthDate,
+            gender == null ? null : Gender.from(gender),
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
     }
 
@@ -78,8 +79,8 @@ public class MemberFacade {
         memberAccountService.updatePassword(memberId, newPassword, newPasswordConfirm);
     }
 
-    public void withdrawMember(Long memberId, WithdrawalReason reason, String reasonDetail, String bearerToken) {
-        memberAccountService.withdrawMember(memberId, reason, reasonDetail);
+    public void withdrawMember(Long memberId, String reason, String reasonDetail, String bearerToken) {
+        memberAccountService.withdrawMember(memberId, WithdrawalReason.from(reason), reasonDetail);
         memberAuthService.invalidateAccessToken(bearerToken);
     }
 
@@ -111,7 +112,7 @@ public class MemberFacade {
         return couponQueryService.findMemberCoupons(memberId).stream()
             .map(r -> MyCouponListItemResponse.of(
                 r.id(), r.couponId(), r.name(), r.description(),
-                r.discountType(), r.discountAmount(), r.maxDiscountAmount(),
+                r.discountType().name(), r.discountAmount(), r.maxDiscountAmount(),
                 r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
                 r.expiredAt(), r.used(), r.usedAt()
             ))
@@ -122,7 +123,7 @@ public class MemberFacade {
         return couponQueryService.findAvailableMemberCoupons(memberId).stream()
             .map(r -> MyCouponListItemResponse.of(
                 r.id(), r.couponId(), r.name(), r.description(),
-                r.discountType(), r.discountAmount(), r.maxDiscountAmount(),
+                r.discountType().name(), r.discountAmount(), r.maxDiscountAmount(),
                 r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
                 r.expiredAt(), r.used(), r.usedAt()
             ))

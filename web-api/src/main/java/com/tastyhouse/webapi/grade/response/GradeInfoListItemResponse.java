@@ -2,12 +2,10 @@ package com.tastyhouse.webapi.grade.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-
 @Schema(description = "등급 세부 조건 항목")
 public record GradeInfoListItemResponse(
     @Schema(description = "등급 코드", example = "INSIDER")
-    MemberGrade grade,
+    String grade,
 
     @Schema(description = "등급 이름", example = "인싸멤버")
     String displayName,
@@ -19,7 +17,7 @@ public record GradeInfoListItemResponse(
     Integer maxReviewCount
 ) {
     public static GradeInfoListItemResponse from(
-        MemberGrade grade,
+        String grade,
         String displayName,
         int minReviewCount,
         Integer maxReviewCount

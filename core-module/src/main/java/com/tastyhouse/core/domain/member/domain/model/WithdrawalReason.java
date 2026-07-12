@@ -3,6 +3,9 @@ package com.tastyhouse.core.domain.member.domain.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+
 @Getter
 @RequiredArgsConstructor
 public enum WithdrawalReason {
@@ -14,4 +17,13 @@ public enum WithdrawalReason {
     OTHER("기타");
 
     private final String description;
+
+    public static WithdrawalReason from(String code) {
+        try {
+            return valueOf(code);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.WITHDRAWAL_REASON_TYPE_UNKNOWN,
+                ErrorCode.WITHDRAWAL_REASON_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+        }
+    }
 }

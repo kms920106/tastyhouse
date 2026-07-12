@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.payment.domain.model.RefundStatus;
 import com.tastyhouse.core.domain.payment.application.dto.result.PaymentRefundResult;
 
 @Schema(description = "결제 환불 응답")
@@ -22,7 +21,7 @@ public record PaymentRefundResponse(
     String refundReason,
 
     @Schema(description = "환불 상태", example = "COMPLETED")
-    RefundStatus refundStatus,
+    String refundStatus,
 
     @Schema(description = "PG 환불 ID", example = "refund_20260101000001")
     String pgRefundId,
@@ -39,7 +38,7 @@ public record PaymentRefundResponse(
             result.paymentId(),
             result.refundAmount(),
             result.refundReason(),
-            result.refundStatus(),
+            result.refundStatus().name(),
             result.pgRefundId(),
             result.refundedAt(),
             result.createdAt()

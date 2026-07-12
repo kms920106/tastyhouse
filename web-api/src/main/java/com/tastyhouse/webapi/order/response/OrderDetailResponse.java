@@ -5,9 +5,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
-
 @Schema(description = "주문 상세 조회 응답")
 public record OrderDetailResponse(
     @Schema(description = "주문 ID", example = "1")
@@ -17,10 +14,10 @@ public record OrderDetailResponse(
     String orderNumber,
 
     @Schema(description = "주문 방법", example = "TABLE")
-    OrderMethod orderMethod,
+    String orderMethod,
 
     @Schema(description = "결제 상태", example = "APPROVED")
-    PaymentStatus paymentStatus,
+    String paymentStatus,
 
     @Schema(description = "가게명", example = "BBQ치킨 성내점")
     String shopName,
@@ -76,8 +73,8 @@ public record OrderDetailResponse(
     public static OrderDetailResponse from(
         Long id,
         String orderNumber,
-        OrderMethod orderMethod,
-        PaymentStatus paymentStatus,
+        String orderMethod,
+        String paymentStatus,
         String shopName,
         String shopPhoneNumber,
         String ordererName,

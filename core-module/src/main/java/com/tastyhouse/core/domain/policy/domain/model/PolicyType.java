@@ -3,6 +3,9 @@ package com.tastyhouse.core.domain.policy.domain.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+
 @Getter
 @RequiredArgsConstructor
 public enum PolicyType {
@@ -13,4 +16,13 @@ public enum PolicyType {
     AGE_VERIFICATION("만 14세 이상");
 
     private final String description;
+
+    public static PolicyType from(String code) {
+        try {
+            return valueOf(code);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.POLICY_TYPE_UNKNOWN,
+                ErrorCode.POLICY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+        }
+    }
 }

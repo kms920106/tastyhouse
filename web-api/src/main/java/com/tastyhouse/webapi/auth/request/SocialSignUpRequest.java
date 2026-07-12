@@ -6,15 +6,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
-
 @Schema(description = "소셜 회원가입 요청")
 public record SocialSignUpRequest(
 
-    @Schema(description = "소셜 로그인 제공자 (KAKAO, NAVER, FACEBOOK, APPLE)", example = "KAKAO")
-    @NotNull(message = "소셜 로그인 제공자를 입력해주세요.")
-    SocialProvider provider,
+    @Schema(description = "소셜 로그인 제공자", example = "KAKAO", allowableValues = {"KAKAO", "NAVER", "FACEBOOK", "GOOGLE", "APPLE"})
+    @NotBlank(message = "소셜 로그인 제공자를 입력해주세요.")
+    String provider,
 
     @Schema(description = "소셜 로그인 응답에서 발급된 임시 토큰 (10분 유효)", example = "550e8400-e29b-41d4-a716-446655440000")
     @NotBlank(message = "소셜 임시 토큰을 입력해주세요.")
@@ -34,9 +31,9 @@ public record SocialSignUpRequest(
     @Size(max = 100, message = "이름은 100자 이하로 입력해주세요.")
     String fullName,
 
-    @Schema(description = "성별", example = "MALE")
-    @NotNull(message = "성별을 선택해주세요.")
-    Gender gender,
+    @Schema(description = "성별", example = "MALE", allowableValues = {"MALE", "FEMALE"})
+    @NotBlank(message = "성별을 선택해주세요.")
+    String gender,
 
     @Schema(description = "생년월일 (YYYYMMDD 형식)", example = "19900101")
     @NotNull(message = "생년월일을 입력해주세요.")

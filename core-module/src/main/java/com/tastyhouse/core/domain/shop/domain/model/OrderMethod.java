@@ -3,6 +3,9 @@ package com.tastyhouse.core.domain.shop.domain.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+
 @Getter
 @RequiredArgsConstructor
 public enum OrderMethod {
@@ -13,4 +16,13 @@ public enum OrderMethod {
     TAKEOUT("포장");
 
     private final String displayName;
+
+    public static OrderMethod from(String code) {
+        try {
+            return valueOf(code);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.ORDER_METHOD_UNKNOWN,
+                ErrorCode.ORDER_METHOD_UNKNOWN.getDefaultMessage() + ": " + code);
+        }
+    }
 }

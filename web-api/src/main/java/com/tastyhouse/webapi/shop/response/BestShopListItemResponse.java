@@ -4,8 +4,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.shop.domain.model.FoodType;
-
 @Schema(description = "베스트 가게 목록 항목 응답")
 public record BestShopListItemResponse(
     @Schema(description = "가게 ID", example = "1")
@@ -24,7 +22,7 @@ public record BestShopListItemResponse(
     String imageUrl,
 
     @Schema(description = "음식 종류 목록")
-    List<FoodType> foodTypes
+    List<String> foodTypes
 ) {
     public static BestShopListItemResponse from(
         Long id,
@@ -32,7 +30,7 @@ public record BestShopListItemResponse(
         String stationName,
         Double rating,
         String imageUrl,
-        List<FoodType> foodTypes
+        List<String> foodTypes
     ) {
         return new BestShopListItemResponse(
             id,

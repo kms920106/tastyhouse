@@ -20,7 +20,7 @@ public class GradeService {
     public List<GradeInfoListItemResponse> getGradeInfoList() {
         return Arrays.stream(MemberGrade.values())
             .map(grade -> GradeInfoListItemResponse.from(
-                grade,
+                grade.name(),
                 grade.getDisplayName(),
                 grade.getMinReviewCount(),
                 grade.getMaxReviewCount()))

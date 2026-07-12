@@ -142,7 +142,7 @@ public class MemberAccountService {
 
         return MemberProfileResponse.from(
             result.nickname(),
-            result.memberGrade(),
+            result.memberGrade().name(),
             result.statusMessage(),
             fileService.getUrlByPath(result.profileImageFilePath())
         );
@@ -157,7 +157,7 @@ public class MemberAccountService {
         return MyProfileResponse.from(
             memberId,
             result.nickname(),
-            result.memberGrade(),
+            result.memberGrade().name(),
             result.statusMessage(),
             fileService.getUrlByPath(result.profileImageFilePath())
         );
@@ -185,6 +185,15 @@ public class MemberAccountService {
     @Transactional(readOnly = true)
     public PersonalInfoResponse getPersonalInfo(Long memberId) {
         Member member = memberQueryService.getById(MemberId.of(memberId));
-        return PersonalInfoResponse.from(member);
+        return PersonalInfoResponse.of(
+            member.getUsername(),
+            member.getFullName(),
+            member.getPhoneNumber().getValue(),
+            member.getBirthDate(),
+            member.getGender().name(),
+            member.isPushNotificationEnabled(),
+            member.isMarketingInfoEnabled(),
+            member.isEventInfoEnabled()
+        );
     }
 }

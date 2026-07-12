@@ -36,7 +36,7 @@ public class OrderService {
     public Long createOrder(
         Long memberId,
         Long shopId,
-        OrderMethod orderMethod,
+        String orderMethod,
         List<OrderProductRequest> orderProducts,
         Long memberCouponId,
         Integer usePoint,
@@ -48,7 +48,7 @@ public class OrderService {
     ) {
         OrderCreateCommand command = toCreateOrderCommand(
             shopId,
-            orderMethod,
+            OrderMethod.from(orderMethod),
             orderProducts,
             memberCouponId,
             usePoint,
@@ -81,7 +81,7 @@ public class OrderService {
             dto.firstProductName(),
             dto.totalItemCount(),
             dto.amount(),
-            dto.paymentStatus(),
+            dto.paymentStatus().name(),
             dto.paymentDate()
         );
     }
@@ -138,8 +138,8 @@ public class OrderService {
         if (result.payment() != null) {
             paymentSummary = PaymentSummaryResponse.from(
                 result.payment().id(),
-                result.payment().paymentMethod(),
-                result.payment().paymentStatus(),
+                result.payment().paymentMethod().name(),
+                result.payment().paymentStatus().name(),
                 result.payment().amount(),
                 result.payment().cardCompany(),
                 result.payment().cardNumber(),
@@ -151,8 +151,8 @@ public class OrderService {
         return OrderDetailResponse.from(
             result.orderId().value(),
             result.orderNumber(),
-            result.orderMethod(),
-            result.paymentStatus(),
+            result.orderMethod().name(),
+            result.paymentStatus() == null ? null : result.paymentStatus().name(),
             result.shopName(),
             result.shopPhoneNumber(),
             result.ordererName(),

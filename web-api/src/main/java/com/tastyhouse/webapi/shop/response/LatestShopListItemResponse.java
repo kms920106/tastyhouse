@@ -5,8 +5,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.shop.domain.model.FoodType;
-
 @Schema(description = "최신 매장 목록 아이템 응답")
 public record LatestShopListItemResponse(
     @Schema(description = "매장 ID", example = "1")
@@ -26,7 +24,7 @@ public record LatestShopListItemResponse(
     @Schema(description = "북마크 개수", example = "5")
     Long bookmarkCount,
     @Schema(description = "음식 타입 목록")
-    List<FoodType> foodTypes
+    List<String> foodTypes
 ) {
     public static LatestShopListItemResponse from(
         Long id,
@@ -37,7 +35,7 @@ public record LatestShopListItemResponse(
         LocalDateTime createdAt,
         Long reviewCount,
         Long bookmarkCount,
-        List<FoodType> foodTypes
+        List<String> foodTypes
     ) {
         return new LatestShopListItemResponse(
             id,

@@ -4,15 +4,13 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
-
 @Schema(description = "정책 상세 조회 응답")
 public record PolicyDetailResponse(
     @Schema(description = "정책 문서 ID", example = "1")
     Long id,
 
     @Schema(description = "정책 유형", example = "TERMS_OF_SERVICE")
-    PolicyType type,
+    String type,
 
     @Schema(description = "버전", example = "1.0.0")
     String version,
@@ -40,7 +38,7 @@ public record PolicyDetailResponse(
 ) {
     public static PolicyDetailResponse from(
         Long id,
-        PolicyType type,
+        String type,
         String version,
         String title,
         String content,

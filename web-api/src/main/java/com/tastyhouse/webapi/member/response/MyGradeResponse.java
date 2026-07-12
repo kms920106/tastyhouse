@@ -2,18 +2,16 @@ package com.tastyhouse.webapi.member.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-
 @Schema(description = "내 등급 정보 응답")
 public record MyGradeResponse(
     @Schema(description = "현재 등급 코드", example = "INSIDER")
-    MemberGrade currentGrade,
+    String currentGrade,
 
     @Schema(description = "현재 등급 이름", example = "인싸멤버")
     String currentGradeDisplayName,
 
     @Schema(description = "다음 등급 코드 (최고 등급이면 null)", example = "GOURMET")
-    MemberGrade nextGrade,
+    String nextGrade,
 
     @Schema(description = "다음 등급 이름 (최고 등급이면 null)", example = "미식멤버")
     String nextGradeDisplayName,
@@ -25,9 +23,9 @@ public record MyGradeResponse(
     int reviewsNeededForNextGrade
 ) {
     public static MyGradeResponse from(
-        MemberGrade currentGrade,
+        String currentGrade,
         String currentGradeDisplayName,
-        MemberGrade nextGrade,
+        String nextGrade,
         String nextGradeDisplayName,
         int currentReviewCount,
         int reviewsNeededForNextGrade

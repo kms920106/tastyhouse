@@ -57,7 +57,7 @@ public class RankService {
                 fileService.getUrlByPath(dto.profileImageUrl()),
                 dto.reviewCount(),
                 dto.rankNo(),
-                dto.grade()))
+                dto.grade().name()))
             .toList();
     }
 
@@ -76,7 +76,7 @@ public class RankService {
                 fileService.getUrlByPath(member.profileImageFilePath()),
                 0,
                 null,
-                member.memberGrade()
+                member.memberGrade().name()
             );
         }
         return MemberRankListItemResponse.of(
@@ -85,7 +85,7 @@ public class RankService {
             fileService.getUrlByPath(dto.profileImageUrl()),
             dto.reviewCount(),
             dto.rankNo(),
-            dto.grade()
+            dto.grade().name()
         );
     }
 

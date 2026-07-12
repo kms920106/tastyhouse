@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.referral.domain.model.ReferralStatus;
 import com.tastyhouse.core.domain.referral.application.dto.result.MemberReferralResult;
 
 @Schema(description = "회원 추천(레퍼럴) 목록 아이템 응답")
@@ -16,7 +15,7 @@ public record MemberReferralListItemResponse(
     Long refereeId,
 
     @Schema(description = "추천 상태", example = "COMPLETED")
-    ReferralStatus status,
+    String status,
 
     @Schema(description = "추천 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
@@ -25,7 +24,7 @@ public record MemberReferralListItemResponse(
         return new MemberReferralListItemResponse(
             result.id(),
             result.refereeId(),
-            result.status(),
+            result.status().name(),
             result.createdAt()
         );
     }

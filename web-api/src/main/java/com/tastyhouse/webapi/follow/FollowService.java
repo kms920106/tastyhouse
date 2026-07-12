@@ -74,7 +74,7 @@ public class FollowService {
                 return MemberSearchListItemResponse.of(
                     dto.id(),
                     dto.nickname(),
-                    dto.memberGrade(),
+                    dto.memberGrade().name(),
                     profileImageUrl,
                     isFollowing
                 );

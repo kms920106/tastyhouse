@@ -26,15 +26,15 @@ public class PaymentService {
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
 
-    public PaymentResponse createPayment(Long memberId, Long orderId, PaymentMethod paymentMethod) {
+    public PaymentResponse createPayment(Long memberId, Long orderId, String paymentMethod) {
         PaymentResult result = paymentCommandService.createPayment(
-            memberId, PaymentCreateCommand.of(orderId, paymentMethod));
+            memberId, PaymentCreateCommand.of(orderId, PaymentMethod.from(paymentMethod)));
         return PaymentResponse.from(result);
     }
 
     public PaymentResponse confirmPayment(
         Long paymentId,
-        PgProvider pgProvider,
+        String pgProvider,
         String pgTid,
         String pgOrderId,
         String cardCompany,
@@ -43,7 +43,7 @@ public class PaymentService {
         String receiptUrl
     ) {
         PaymentResult result = paymentCommandService.confirmPayment(
-            ConfirmPaymentCommand.of(paymentId, pgProvider, pgTid, pgOrderId, cardCompany, cardNumber, installmentMonths, receiptUrl)
+            ConfirmPaymentCommand.of(paymentId, PgProvider.from(pgProvider), pgTid, pgOrderId, cardCompany, cardNumber, installmentMonths, receiptUrl)
         );
         return PaymentResponse.from(result);
     }

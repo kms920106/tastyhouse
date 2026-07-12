@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
-
 @Schema(description = "회원가입 요청")
 public record SignUpRequest(
 
@@ -37,9 +35,9 @@ public record SignUpRequest(
     @Size(max = 100, message = "이름은 100자 이하로 입력해주세요.")
     String fullName,
 
-    @Schema(description = "성별", example = "MALE")
-    @NotNull(message = "성별을 선택해주세요.")
-    Gender gender,
+    @Schema(description = "성별", example = "MALE", allowableValues = {"MALE", "FEMALE"})
+    @NotBlank(message = "성별을 선택해주세요.")
+    String gender,
 
     @NotNull(message = "생년월일을 입력해주세요.")
     @Schema(description = "생년월일 (YYYYMMDD 형식)", example = "19900101")

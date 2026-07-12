@@ -18,7 +18,7 @@ public class PolicyService {
     private final PolicyCommandService policyCommandService;
 
     public Long createPolicy(
-        PolicyType type,
+        String type,
         String version,
         String title,
         String content,
@@ -27,7 +27,7 @@ public class PolicyService {
         String createdBy
     ) {
         PolicyDocumentId id = policyCommandService.createPolicy(
-            PolicyCreateCommand.of(type, version, title, content, mandatory, effectiveDate, createdBy));
+            PolicyCreateCommand.of(PolicyType.from(type), version, title, content, mandatory, effectiveDate, createdBy));
         return id.value();
     }
 

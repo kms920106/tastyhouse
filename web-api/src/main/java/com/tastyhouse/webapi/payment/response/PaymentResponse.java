@@ -4,9 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
 import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 
 @Schema(description = "결제 상세 응답")
@@ -18,16 +15,16 @@ public record PaymentResponse(
     Long orderId,
 
     @Schema(description = "결제 수단", example = "CARD")
-    PaymentMethod paymentMethod,
+    String paymentMethod,
 
     @Schema(description = "결제 상태", example = "APPROVED")
-    PaymentStatus paymentStatus,
+    String paymentStatus,
 
     @Schema(description = "결제 금액", example = "21000")
     Integer amount,
 
     @Schema(description = "PG사", example = "TOSS")
-    PgProvider pgProvider,
+    String pgProvider,
 
     @Schema(description = "PG 거래 ID", example = "tid_2026010100000001")
     String pgTid,
@@ -63,10 +60,10 @@ public record PaymentResponse(
         return new PaymentResponse(
             result.id(),
             result.orderId(),
-            result.paymentMethod(),
-            result.paymentStatus(),
+            result.paymentMethod().name(),
+            result.paymentStatus().name(),
             result.amount(),
-            result.pgProvider(),
+            result.pgProvider() == null ? null : result.pgProvider().name(),
             result.pgTid(),
             result.pgOrderId(),
             result.cardCompany(),

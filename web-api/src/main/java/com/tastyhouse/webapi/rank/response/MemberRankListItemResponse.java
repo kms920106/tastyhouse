@@ -2,8 +2,6 @@ package com.tastyhouse.webapi.rank.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-
 @Schema(description = "회원 랭킹 목록 항목 응답")
 public record MemberRankListItemResponse(
     @Schema(description = "회원 ID", example = "1")
@@ -22,7 +20,7 @@ public record MemberRankListItemResponse(
     Integer rankNo,
 
     @Schema(description = "회원 등급")
-    MemberGrade grade
+    String grade
 ) {
     public static MemberRankListItemResponse of(
         Long memberId,
@@ -30,7 +28,7 @@ public record MemberRankListItemResponse(
         String profileImageUrl,
         Integer reviewCount,
         Integer rankNo,
-        MemberGrade grade
+        String grade
     ) {
         return new MemberRankListItemResponse(
             memberId,

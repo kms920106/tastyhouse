@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
 import com.tastyhouse.core.domain.admin.application.AdminCommandService;
 import com.tastyhouse.core.domain.admin.application.dto.command.AdminCreateCommand;
 import com.tastyhouse.adminapi.admin.request.AdminCreateRequest;
@@ -26,7 +27,7 @@ public class AdminAccountService {
             request.username(),
             encodedPassword,
             request.name(),
-            request.role()
+            AdminRole.from(request.role())
         )).value();
     }
 }

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
 import com.tastyhouse.adminapi.common.FileResponse;
 
@@ -14,7 +13,7 @@ public record BannerDetailResponse(
     Long id,
 
     @Schema(description = "배너 유형", example = "HOME")
-    BannerType type,
+    String type,
 
     @Schema(description = "제목", example = "여름 프로모션 배너")
     String title,
@@ -46,7 +45,7 @@ public record BannerDetailResponse(
     public static BannerDetailResponse from(BannerDetailDto dto, FileResponse image) {
         return new BannerDetailResponse(
             dto.bannerId().value(),
-            dto.type(),
+            dto.type().name(),
             dto.title(),
             image,
             dto.linkUrl(),

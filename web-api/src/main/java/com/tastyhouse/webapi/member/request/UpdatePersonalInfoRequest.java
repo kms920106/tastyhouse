@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
-
 @Schema(description = "개인정보 수정 요청")
 public record UpdatePersonalInfoRequest(
     @NotNull(message = "이름은 필수입니다.")
@@ -21,8 +19,8 @@ public record UpdatePersonalInfoRequest(
     @Schema(description = "생년월일 (YYYYMMDD)", example = "19900101")
     Integer birthDate,
 
-    @Schema(description = "성별 (MALE / FEMALE)", example = "MALE")
-    Gender gender,
+    @Schema(description = "성별", example = "MALE", allowableValues = {"MALE", "FEMALE"})
+    String gender,
 
     @Schema(description = "푸시 알림 수신 동의", example = "true")
     boolean pushNotificationEnabled,

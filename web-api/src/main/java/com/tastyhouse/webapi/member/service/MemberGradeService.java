@@ -29,9 +29,9 @@ public class MemberGradeService {
         }
 
         return MyGradeResponse.from(
-            currentGrade,
+            currentGrade.name(),
             currentGrade.getDisplayName(),
-            nextGrade,
+            nextGrade != null ? nextGrade.name() : null,
             nextGrade != null ? nextGrade.getDisplayName() : null,
             currentReviewCount,
             reviewsNeeded

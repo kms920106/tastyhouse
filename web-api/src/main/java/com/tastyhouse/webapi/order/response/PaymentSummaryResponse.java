@@ -4,19 +4,16 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-
 @Schema(description = "결제 요약 정보")
 public record PaymentSummaryResponse(
     @Schema(description = "결제 ID", example = "1")
     Long id,
 
     @Schema(description = "결제 수단", example = "CARD")
-    PaymentMethod paymentMethod,
+    String paymentMethod,
 
     @Schema(description = "결제 상태", example = "APPROVED")
-    PaymentStatus paymentStatus,
+    String paymentStatus,
 
     @Schema(description = "결제 금액", example = "21000")
     Integer amount,
@@ -35,8 +32,8 @@ public record PaymentSummaryResponse(
 ) {
     public static PaymentSummaryResponse from(
         Long id,
-        PaymentMethod paymentMethod,
-        PaymentStatus paymentStatus,
+        String paymentMethod,
+        String paymentStatus,
         Integer amount,
         String cardCompany,
         String cardNumber,

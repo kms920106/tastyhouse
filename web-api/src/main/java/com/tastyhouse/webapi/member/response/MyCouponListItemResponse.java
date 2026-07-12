@@ -5,8 +5,6 @@ import java.time.temporal.ChronoUnit;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
-
 @Schema(description = "내 쿠폰 목록 아이템")
 public record MyCouponListItemResponse(
     @Schema(description = "회원 쿠폰 ID(PK)", example = "1")
@@ -22,7 +20,7 @@ public record MyCouponListItemResponse(
     String description,
 
     @Schema(description = "할인 유형", example = "FIXED_AMOUNT")
-    DiscountType discountType,
+    String discountType,
 
     @Schema(description = "할인 금액(또는 할인율)", example = "5000")
     Integer discountAmount,
@@ -59,7 +57,7 @@ public record MyCouponListItemResponse(
         Long couponId,
         String name,
         String description,
-        DiscountType discountType,
+        String discountType,
         Integer discountAmount,
         Integer maxDiscountAmount,
         Integer minOrderAmount,
