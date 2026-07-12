@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from "@/api/file/file.dto";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -113,9 +114,31 @@ export function BannerFormSheet({ open, onOpenChange, banner }: BannerFormSheetP
     };
   }, [open, banner, form.reset, onOpenChange]);
 
+  // 로컬 미리보기용 objectURL 을 언마운트 시 해제해 메모리 누수를 방지한다.
+  React.useEffect(() => {
+    return () => {
+      setPreviewUrl((prev) => {
+        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+        return undefined;
+      });
+    };
+  }, []);
+
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // 업로드 전 클라이언트에서 형식/크기를 검증해 불필요한 요청과 서버 400 을 방지한다.
+    if (!(ALLOWED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
+      toast.error(BANNER_MESSAGE.IMAGE_TYPE_INVALID);
+      event.target.value = "";
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error(BANNER_MESSAGE.IMAGE_SIZE_EXCEEDED);
+      event.target.value = "";
+      return;
+    }
 
     setIsUploading(true);
     const formData = new FormData();
@@ -124,13 +147,17 @@ export function BannerFormSheet({ open, onOpenChange, banner }: BannerFormSheetP
     const result = await uploadBannerImageAction(formData);
     setIsUploading(false);
 
-    if (!result.success || !result.data) {
+    if (!result.success || result.fileId === undefined) {
       toast.error(result.message ?? BANNER_MESSAGE.IMAGE_UPLOAD_FAILED);
       return;
     }
 
-    form.setValue("imageFileId", result.data.id, { shouldValidate: true });
-    setPreviewUrl(result.data.url);
+    // 업로드 API 는 fileId 만 반환하므로, 미리보기는 선택한 파일의 로컬 objectURL 로 표시한다.
+    form.setValue("imageFileId", result.fileId, { shouldValidate: true });
+    setPreviewUrl((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
   }
 
   const onSubmit = (values: BannerFormValues) => {
