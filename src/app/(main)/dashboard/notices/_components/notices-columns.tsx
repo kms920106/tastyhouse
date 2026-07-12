@@ -41,13 +41,6 @@ export const noticesColumns: ColumnDef<NoticeListItem>[] = [
     maxSize: 360,
   },
   {
-    accessorKey: "content",
-    header: "내용",
-    cell: ({ row }) => <span className="line-clamp-1 text-muted-foreground">{row.original.content}</span>,
-    size: 480,
-    minSize: 280,
-  },
-  {
     accessorKey: "visible",
     header: "노출 여부",
     cell: ({ row }) => (
