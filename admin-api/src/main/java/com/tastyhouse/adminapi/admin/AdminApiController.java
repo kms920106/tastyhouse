@@ -39,6 +39,6 @@ public class AdminApiController {
     public ResponseEntity<ApiResponse<AdminCreateResponse>> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
         Long id = adminAccountService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(new AdminCreateResponse(id)));
+            .body(ApiResponse.success(AdminCreateResponse.from(id)));
     }
 }
