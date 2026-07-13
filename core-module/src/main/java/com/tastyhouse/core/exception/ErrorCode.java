@@ -125,6 +125,14 @@ public enum ErrorCode {
     // 공지사항
     NOTICE_NOT_FOUND(404, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
 
+    // 버그 제보
+    BUG_REPORT_NOT_FOUND(404, "BUG_REPORT_NOT_FOUND", "버그 제보를 찾을 수 없습니다."),
+    BUG_REPORT_INVALID_STATUS(400, "BUG_REPORT_INVALID_STATUS", "현재 상태에서는 해당 처리를 할 수 없습니다."),
+    BUG_REPORT_STATUS_UNKNOWN(400, "BUG_REPORT_STATUS_UNKNOWN", "알 수 없는 버그 제보 상태입니다."),
+    BUG_REPORT_CATEGORY_UNKNOWN(400, "BUG_REPORT_CATEGORY_UNKNOWN", "알 수 없는 버그 제보 분류입니다."),
+    BUG_REPORT_PRIORITY_UNKNOWN(400, "BUG_REPORT_PRIORITY_UNKNOWN", "알 수 없는 버그 제보 우선순위입니다."),
+    BUG_REPORT_PLATFORM_UNKNOWN(400, "BUG_REPORT_PLATFORM_UNKNOWN", "알 수 없는 버그 제보 플랫폼입니다."),
+
     // 배너
     BANNER_NOT_FOUND(404, "BANNER_NOT_FOUND", "배너를 찾을 수 없습니다."),
 

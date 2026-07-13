@@ -17,14 +17,24 @@ CREATE TABLE BANNER
 
 CREATE TABLE BUG_REPORT
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 버그 신고 ID (PK)
-    member_id  BIGINT       NOT NULL,             -- 신고한 회원 ID (MEMBER.id 참조)
-    device     VARCHAR(100) NOT NULL,             -- 기기 정보
-    title      VARCHAR(200) NOT NULL,             -- 신고 제목
-    content    TEXT         NOT NULL,             -- 신고 내용
-    created_at DATETIME     NOT NULL,             -- 생성 일시
-    updated_at DATETIME     NOT NULL,             -- 수정 일시
-    INDEX idx_bug_report_member_id (member_id)    -- 인덱스: 회원별 조회
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,         -- 버그 신고 ID (PK)
+    member_id        BIGINT       NOT NULL,                     -- 신고한 회원 ID (MEMBER.id 참조)
+    device           VARCHAR(100) NOT NULL,                     -- 기기 정보 (제보자 원문)
+    title            VARCHAR(200) NOT NULL,                     -- 신고 제목
+    content          TEXT         NOT NULL,                     -- 신고 내용
+    status           VARCHAR(20)  NOT NULL DEFAULT 'RECEIVED',  -- 처리 상태 (RECEIVED, IN_PROGRESS, RESOLVED, REJECTED, ON_HOLD)
+    category         VARCHAR(20),                               -- 분류 (PAYMENT, LOGIN, ORDER, RESERVATION, UI, PERFORMANCE, ETC / 미분류 시 NULL)
+    priority         VARCHAR(20),                               -- 우선순위 (LOW, MEDIUM, HIGH, CRITICAL / 미지정 시 NULL)
+    assignee_admin_id BIGINT,                                   -- 담당 관리자 ID (ADMIN.id 참조 / 미배정 시 NULL)
+    admin_answer     TEXT,                                      -- 처리 결과/반려 사유 (미처리 시 NULL)
+    resolved_at      DATETIME,                                  -- 처리 완료 일시 (RESOLVED/REJECTED 시 기록)
+    app_version      VARCHAR(30),                               -- 앱 버전 (제보자 입력, 선택)
+    platform         VARCHAR(20),                               -- 플랫폼 (IOS, ANDROID / 선택)
+    os_version       VARCHAR(30),                               -- OS 버전 (제보자 입력, 선택)
+    created_at       DATETIME     NOT NULL,                     -- 생성 일시
+    updated_at       DATETIME     NOT NULL,                     -- 수정 일시
+    INDEX idx_bug_report_member_id (member_id),                 -- 인덱스: 회원별 조회
+    INDEX idx_bug_report_status (status)                        -- 인덱스: 처리 상태별 조회
 );
 
 CREATE TABLE BUG_REPORT_IMAGE
@@ -975,12 +985,12 @@ CREATE TABLE SEARCH_KEYWORD_LOG (
 CREATE TABLE POPULAR_KEYWORD (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 인기 검색어 ID (PK)
     keyword    VARCHAR(100) NOT NULL,             -- 검색어
-    rank       INT          NOT NULL,             -- 순위
+    `rank`     INT          NOT NULL,             -- 순위
     is_new     BOOLEAN      NOT NULL DEFAULT FALSE, -- 신규 진입 여부 (true: 신규)
     is_visible BOOLEAN      NOT NULL DEFAULT TRUE,  -- 노출 여부 (true: 노출)
     created_at DATETIME     NOT NULL,             -- 생성 일시
     updated_at DATETIME     NOT NULL,             -- 수정 일시
-    INDEX idx_is_visible_rank (is_visible, rank)  -- 인덱스: 노출·순위 복합 조회
+    INDEX idx_is_visible_rank (is_visible, `rank`)  -- 인덱스: 노출·순위 복합 조회
 );
 
 CREATE TABLE RECOMMENDED_KEYWORD (

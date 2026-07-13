@@ -35,6 +35,9 @@ public class BugReportApiController {
             request.device(),
             request.title(),
             request.content(),
+            request.appVersion(),
+            request.platform(),
+            request.osVersion(),
             request.uploadedFileIds()
         );
         return ResponseEntity.ok(ApiResponse.success(response));

@@ -30,10 +30,12 @@
 ### Testing Requirements
 - `@DataJpaTest` 또는 Testcontainers 기반 통합 테스트.
 - 엔티티 매핑 변경 시 루트 `create.sql`과의 정합성 확인 (`ddl-auto=validate`).
+- **enum 필드 추가/변경 시 `@Column(columnDefinition = "VARCHAR(n)")` 병기 + `create.sql`/`alter.sql` 정합성 필수 확인**: 누락 시 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 부팅이 `SchemaManagementException`(`wrong column type ... expecting [enum ...]`)으로 실패한다(선례: `BUG_REPORT`가 `columnDefinition`을 빠뜨려 발생).
 
 ### Common Patterns
 - Repository: `domain/repository/XxxRepository`(인터페이스) ← `infrastructure/persistence/XxxRepositoryImpl`(구현, JpaRepository + QueryDSL 위임).
 - ID 강타입: `record XxxId(Long value)` + `infrastructure/persistence/converter/XxxIdConverter`(AttributeConverter).
+- **엔티티 enum 매핑**: 항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`으로 기대해 `validate` 실패. `EnumType.ORDINAL` 금지. DDL은 `VARCHAR(n)` + 허용값 주석. 선례: `Order.order_status`. 상세: 루트 `CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
 - DomainEvent는 `domain/event/`에 record로 정의, application 서비스가 `ApplicationEventPublisher`로 발행.
 
 ## Dependencies

@@ -15,7 +15,7 @@ import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Entity
 @Table(name = "POPULAR_KEYWORD",
-    indexes = @Index(name = "idx_popular_keyword_active_rank", columnList = "is_visible, rank"))
+    indexes = @Index(name = "idx_popular_keyword_active_rank", columnList = "is_visible, `rank`"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class PopularKeyword extends BaseEntity {
@@ -27,7 +27,7 @@ public class PopularKeyword extends BaseEntity {
     @Column(name = "keyword", nullable = false)
     private String keyword;
 
-    @Column(name = "rank", nullable = false)
+    @Column(name = "`rank`", nullable = false)
     private int rank;
 
     @Column(name = "is_new", nullable = false)

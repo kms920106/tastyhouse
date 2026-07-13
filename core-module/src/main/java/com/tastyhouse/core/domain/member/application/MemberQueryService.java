@@ -74,10 +74,11 @@ public class MemberQueryService {
 
     public Map<Long, MemberWithProfileImageResult> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {
         return memberIds.stream()
+            .distinct()
             .map(id -> memberRepository.findMemberWithProfileImageById(MemberId.of(id)))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .collect(Collectors.toMap(MemberWithProfileImageResult::id, result -> result));
+            .collect(Collectors.toMap(MemberWithProfileImageResult::id, result -> result, (existing, replacement) -> existing));
     }
 
     public Optional<MemberSocialAccount> findSocialAccount(SocialProvider provider, String providerId) {

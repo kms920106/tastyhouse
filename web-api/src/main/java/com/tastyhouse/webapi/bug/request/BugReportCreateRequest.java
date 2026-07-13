@@ -22,6 +22,17 @@ public record BugReportCreateRequest(
     @Schema(description = "상세 내용", example = "결제 승인 버튼을 누르면 앱이 꺼집니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     String content,
 
+    @Size(max = 30, message = "앱 버전은 30자 이내로 입력해주세요")
+    @Schema(description = "앱 버전 (선택)", example = "3.2.0")
+    String appVersion,
+
+    @Schema(description = "플랫폼 (선택)", example = "IOS", allowableValues = {"IOS", "ANDROID"})
+    String platform,
+
+    @Size(max = 30, message = "OS 버전은 30자 이내로 입력해주세요")
+    @Schema(description = "OS 버전 (선택)", example = "17.4")
+    String osVersion,
+
     @Size(max = 5, message = "사진은 최대 5장까지 첨부할 수 있습니다")
     @Schema(description = "첨부 이미지 파일 ID 목록 (최대 5장)", example = "[1, 2, 3]")
     List<Long> uploadedFileIds

@@ -21,6 +21,18 @@ public record BugReportResponse(
     @Schema(description = "내용", example = "결제하기 버튼을 누르면 앱이 강제 종료됩니다.")
     String content,
 
+    @Schema(description = "앱 버전", example = "3.2.0")
+    String appVersion,
+
+    @Schema(description = "플랫폼 (IOS/ANDROID)", example = "IOS")
+    String platform,
+
+    @Schema(description = "OS 버전", example = "17.4")
+    String osVersion,
+
+    @Schema(description = "처리 상태", example = "RECEIVED")
+    String status,
+
     @Schema(description = "첨부 파일 ID 목록")
     List<Long> uploadedFileIds,
 
@@ -33,6 +45,10 @@ public record BugReportResponse(
             result.device(),
             result.title(),
             result.content(),
+            result.appVersion(),
+            result.platform() != null ? result.platform().name() : null,
+            result.osVersion(),
+            result.status() != null ? result.status().name() : null,
             result.uploadedFileIds(),
             result.createdAt()
         );
