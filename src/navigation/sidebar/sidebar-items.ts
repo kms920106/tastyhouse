@@ -1,5 +1,6 @@
 import {
   Banknote,
+  Bug,
   Calendar,
   ChartBar,
   Fingerprint,
@@ -133,6 +134,11 @@ export const sidebarItems: NavGroup[] = [
         title: "배너",
         url: "/dashboard/banners",
         icon: GalleryHorizontal,
+      },
+      {
+        title: "버그 제보",
+        url: "/dashboard/bug-reports",
+        icon: Bug,
       },
       {
         title: "Users",
