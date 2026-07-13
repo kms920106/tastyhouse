@@ -54,6 +54,6 @@ public class BannerCommandService {
         Banner banner = bannerRepository.findById(bannerId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BANNER_NOT_FOUND));
 
-        bannerRepository.delete(banner);
+        banner.delete();
     }
 }

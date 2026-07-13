@@ -31,3 +31,10 @@ ALTER TABLE BUG_REPORT
 -- 5) 처리 상태별 조회 인덱스 추가
 ALTER TABLE BUG_REPORT
     ADD INDEX idx_bug_report_status (status);
+
+-- =====================================================================
+-- 배너(BANNER) Soft Delete 컬럼 추가 마이그레이션
+-- NOT NULL + 기본값 0 이므로 기존 row 백필 불필요(모두 정상 상태로 설정됨).
+-- =====================================================================
+ALTER TABLE BANNER
+    ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0 COMMENT '삭제 여부 (1: 삭제됨, 0: 정상 / Soft Delete)' AFTER is_visible;

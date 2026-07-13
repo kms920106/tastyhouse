@@ -9,6 +9,7 @@ CREATE TABLE BANNER
     end_date         DATETIME,                           -- 노출 종료 일시
     sort             INT         NOT NULL,               -- 정렬 순서
     is_visible       TINYINT(1)  NOT NULL DEFAULT 1,     -- 노출 여부 (1: 노출, 0: 숨김)
+    is_deleted       TINYINT(1)  NOT NULL DEFAULT 0,     -- 삭제 여부 (1: 삭제됨, 0: 정상 / Soft Delete)
     created_at       DATETIME    NOT NULL,               -- 생성 일시
     updated_at       DATETIME    NOT NULL,               -- 수정 일시
     INDEX idx_banner_type (type),                        -- 인덱스: 유형별 조회

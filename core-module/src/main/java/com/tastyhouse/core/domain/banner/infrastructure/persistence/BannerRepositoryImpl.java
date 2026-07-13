@@ -41,6 +41,7 @@ public class BannerRepositoryImpl implements BannerRepository {
             .from(banner)
             .where(
                 banner.type.eq(type),
+                banner.deleted.isFalse(),
                 banner.visible.isTrue(),
                 banner.startDate.loe(now),
                 banner.endDate.goe(now)
@@ -58,6 +59,7 @@ public class BannerRepositoryImpl implements BannerRepository {
             .join(uploadedFile).on(uploadedFile.id.eq(banner.imageFileId))
             .where(
                 banner.type.eq(type),
+                banner.deleted.isFalse(),
                 banner.visible.isTrue(),
                 banner.startDate.loe(now),
                 banner.endDate.goe(now)
@@ -76,6 +78,7 @@ public class BannerRepositoryImpl implements BannerRepository {
             .select(banner.id.count())
             .from(banner)
             .where(
+                banner.deleted.isFalse(),
                 typeEq(condition.type()),
                 titleContains(condition.title()),
                 visibleEq(condition.visible())
@@ -99,6 +102,7 @@ public class BannerRepositoryImpl implements BannerRepository {
             .from(banner)
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(banner.imageFileId))
             .where(
+                banner.deleted.isFalse(),
                 typeEq(condition.type()),
                 titleContains(condition.title()),
                 visibleEq(condition.visible())
@@ -116,17 +120,12 @@ public class BannerRepositoryImpl implements BannerRepository {
         if (id == null) {
             return Optional.empty();
         }
-        return bannerJpaRepository.findById(id.value());
+        return bannerJpaRepository.findByIdAndDeletedFalse(id.value());
     }
 
     @Override
     public Banner save(Banner entity) {
         return bannerJpaRepository.save(entity);
-    }
-
-    @Override
-    public void delete(Banner entity) {
-        bannerJpaRepository.delete(entity);
     }
 
     private BooleanExpression typeEq(BannerType type) {

@@ -52,6 +52,9 @@ public class Banner extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible = true;
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted = false; // 삭제 여부 (true: 삭제됨, Soft Delete)
+
     private Banner(
         BannerType type,
         String title,
@@ -107,5 +110,9 @@ public class Banner extends BaseEntity {
         this.endDate = endDate;
         this.sort = sort;
         this.visible = visible;
+    }
+
+    public void delete() {
+        this.deleted = true;
     }
 }

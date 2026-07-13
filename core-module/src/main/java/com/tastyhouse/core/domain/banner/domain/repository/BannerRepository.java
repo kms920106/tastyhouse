@@ -20,6 +20,4 @@ public interface BannerRepository {
     Optional<Banner> findById(BannerId id);
 
     Banner save(Banner banner);
-
-    void delete(Banner banner);
 }
