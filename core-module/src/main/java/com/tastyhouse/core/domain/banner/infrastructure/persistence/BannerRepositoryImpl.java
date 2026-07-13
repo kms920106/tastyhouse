@@ -73,7 +73,7 @@ public class BannerRepositoryImpl implements BannerRepository {
     }
 
     @Override
-    public PageResult<BannerAdminListItemDto> findAllForAdmin(BannerAdminSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<BannerAdminListItemDto> findAllBanners(BannerAdminSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(banner.id.count())
             .from(banner)

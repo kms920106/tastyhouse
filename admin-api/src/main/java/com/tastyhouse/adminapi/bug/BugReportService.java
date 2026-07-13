@@ -61,7 +61,7 @@ public class BugReportService {
             category == null ? null : BugReportCategory.from(category),
             priority == null ? null : BugReportPriority.from(priority)
         );
-        PageResult<BugReportAdminListItemDto> pageResult = bugReportQueryService.findAllForAdmin(condition, page, size);
+        PageResult<BugReportAdminListItemDto> pageResult = bugReportQueryService.findAllBugReports(condition, page, size);
 
         Map<Long, MemberWithProfileImageResult> membersById = memberQueryService.findMemberWithProfileImagesByIds(
             pageResult.content().stream().map(BugReportAdminListItemDto::memberId).toList()

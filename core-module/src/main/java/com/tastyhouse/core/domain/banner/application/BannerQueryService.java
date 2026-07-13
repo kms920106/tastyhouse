@@ -39,9 +39,9 @@ public class BannerQueryService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BANNER_NOT_FOUND));
     }
 
-    public PageResult<BannerAdminListItemDto> findAllForAdmin(BannerAdminSearchCondition condition, int page, int size) {
+    public PageResult<BannerAdminListItemDto> findAllBanners(BannerAdminSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return bannerRepository.findAllForAdmin(condition, pageQuery);
+        return bannerRepository.findAllBanners(condition, pageQuery);
     }
 
     public BannerDetailDto findDetailById(BannerId id) {

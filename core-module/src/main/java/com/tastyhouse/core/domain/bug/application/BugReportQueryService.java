@@ -27,9 +27,9 @@ public class BugReportQueryService {
     private final BugReportRepository bugReportRepository;
     private final BugReportImageRepository bugReportImageRepository;
 
-    public PageResult<BugReportAdminListItemDto> findAllForAdmin(BugReportAdminSearchCondition condition, int page, int size) {
+    public PageResult<BugReportAdminListItemDto> findAllBugReports(BugReportAdminSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return bugReportRepository.findAllForAdmin(condition, pageQuery);
+        return bugReportRepository.findAllBugReports(condition, pageQuery);
     }
 
     public BugReportDetailDto findDetailById(BugReportId bugReportId) {

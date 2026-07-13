@@ -33,7 +33,7 @@ public class BugReportRepositoryImpl implements BugReportRepository {
     private final BugReportJpaRepository bugReportJpaRepository;
 
     @Override
-    public PageResult<BugReportAdminListItemDto> findAllForAdmin(BugReportAdminSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<BugReportAdminListItemDto> findAllBugReports(BugReportAdminSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(bugReport.id.count())
             .from(bugReport)

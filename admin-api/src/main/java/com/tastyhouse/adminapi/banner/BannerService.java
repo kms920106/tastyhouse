@@ -35,7 +35,7 @@ public class BannerService {
     public BannerPageResponse getBanners(String type, String title, Boolean visible, int page, int size) {
         BannerType bannerType = type == null ? null : BannerType.from(type);
         BannerAdminSearchCondition condition = BannerAdminSearchCondition.of(bannerType, title, visible);
-        PageResult<BannerListItemResponse> pageResult = bannerQueryService.findAllForAdmin(condition, page, size)
+        PageResult<BannerListItemResponse> pageResult = bannerQueryService.findAllBanners(condition, page, size)
             .map(this::toListItemResponse);
         return BannerPageResponse.from(pageResult);
     }

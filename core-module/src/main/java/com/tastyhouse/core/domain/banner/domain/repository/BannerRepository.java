@@ -15,7 +15,7 @@ public interface BannerRepository {
 
     PageResult<BannerListItemDto> findAllByType(BannerType type, PageQuery pageQuery);
 
-    PageResult<BannerAdminListItemDto> findAllForAdmin(BannerAdminSearchCondition condition, PageQuery pageQuery);
+    PageResult<BannerAdminListItemDto> findAllBanners(BannerAdminSearchCondition condition, PageQuery pageQuery);
 
     Optional<Banner> findById(BannerId id);
 

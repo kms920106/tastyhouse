@@ -11,7 +11,7 @@ import com.tastyhouse.core.shared.page.PageResult;
 
 public interface BugReportRepository {
 
-    PageResult<BugReportAdminListItemDto> findAllForAdmin(BugReportAdminSearchCondition condition, PageQuery pageQuery);
+    PageResult<BugReportAdminListItemDto> findAllBugReports(BugReportAdminSearchCondition condition, PageQuery pageQuery);
 
     Optional<BugReport> findById(BugReportId bugReportId);
 
