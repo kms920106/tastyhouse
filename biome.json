@@ -31,7 +31,19 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!.github", "!.husky", "!node_modules", "!.next", "!dist", "!out", "!src/components/ui", "!e2e", "!playwright-report", "!test-results"]
+    "includes": [
+      "**",
+      "!.github",
+      "!.husky",
+      "!node_modules",
+      "!.next",
+      "!dist",
+      "!out",
+      "!src/components/ui",
+      "!e2e",
+      "!playwright-report",
+      "!test-results"
+    ]
   },
   "formatter": {
     "enabled": true,
