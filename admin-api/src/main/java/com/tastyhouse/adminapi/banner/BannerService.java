@@ -61,9 +61,10 @@ public class BannerService {
         Integer sort,
         boolean visible
     ) {
-        BannerId bannerId = bannerCommandService.createBanner(
-            BannerCreateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible)
+        BannerCreateCommand command = BannerCreateCommand.of(
+            BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible
         );
+        BannerId bannerId = bannerCommandService.createBanner(command);
         return bannerId.value();
     }
 
@@ -92,10 +93,10 @@ public class BannerService {
         Integer sort,
         boolean visible
     ) {
-        bannerCommandService.updateBanner(
-            BannerId.of(id),
-            BannerUpdateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible)
+        BannerUpdateCommand command = BannerUpdateCommand.of(
+            BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible
         );
+        bannerCommandService.updateBanner(BannerId.of(id), command);
     }
 
     public void deleteBanner(Long id) {

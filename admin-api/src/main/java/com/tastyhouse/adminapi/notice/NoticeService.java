@@ -30,7 +30,8 @@ public class NoticeService {
     }
 
     public Long createNotice(String title, String content, boolean visible) {
-        NoticeId noticeId = noticeCommandService.createNotice(NoticeCreateCommand.of(title, content, visible));
+        NoticeCreateCommand command = NoticeCreateCommand.of(title, content, visible);
+        NoticeId noticeId = noticeCommandService.createNotice(command);
         return noticeId.value();
     }
 
@@ -40,7 +41,8 @@ public class NoticeService {
     }
 
     public void updateNotice(Long id, String title, String content, boolean visible) {
-        noticeCommandService.updateNotice(NoticeId.of(id), NoticeUpdateCommand.of(title, content, visible));
+        NoticeUpdateCommand command = NoticeUpdateCommand.of(title, content, visible);
+        noticeCommandService.updateNotice(NoticeId.of(id), command);
     }
 
     public void deleteNotice(Long id) {

@@ -26,8 +26,9 @@ public class PolicyService {
         LocalDateTime effectiveDate,
         String createdBy
     ) {
-        PolicyDocumentId id = policyCommandService.createPolicy(
-            PolicyCreateCommand.of(PolicyType.from(type), version, title, content, mandatory, effectiveDate, createdBy));
+        PolicyCreateCommand command = PolicyCreateCommand.of(
+            PolicyType.from(type), version, title, content, mandatory, effectiveDate, createdBy);
+        PolicyDocumentId id = policyCommandService.createPolicy(command);
         return id.value();
     }
 
@@ -39,8 +40,8 @@ public class PolicyService {
         LocalDateTime effectiveDate,
         String updatedBy
     ) {
-        policyCommandService.updatePolicy(PolicyDocumentId.of(id),
-            PolicyUpdateCommand.of(title, content, mandatory, effectiveDate, updatedBy));
+        PolicyUpdateCommand command = PolicyUpdateCommand.of(title, content, mandatory, effectiveDate, updatedBy);
+        policyCommandService.updatePolicy(PolicyDocumentId.of(id), command);
     }
 
     public void activateCurrentPolicy(Long id) {

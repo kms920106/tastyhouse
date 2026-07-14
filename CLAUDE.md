@@ -34,6 +34,37 @@ reference 구현: `notice` 도메인 — `NoticeCreateCommand`, `NoticeUpdateCom
 
 reference 구현: `admin-api`의 `notice` 도메인 — `CreateNoticeCommand.of(...)`, `NoticeUpdateCommand.of(...)`, `NoticeSearchCondition.of(...)`, `NoticePageResponse.from(...)`, `NoticeService#createNotice(String, String, boolean)`.
 
+## command/DTO 지역 변수 추출 규칙 (호출 인자로 인라인 조립 지양)
+
+위 [DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)으로 `Xxx.of(...)` 팩토리를 쓰더라도, **그 팩토리 호출 결과를 다른 메서드(주로 core application command 서비스)의 인자 자리에 인라인으로 바로 넘기지 않고, 먼저 지역 변수(`command`)로 추출한 뒤 그 변수를 전달합니다.** `of(...)`로 조립하는 것과 조립 결과를 어떻게 넘기는지는 별개이며, 이 규칙은 후자를 다룹니다.
+
+- **왜 지역 변수로 추출하는가**: (1) 조립(무엇을 만드는가)과 호출(어디에 넘기는가)이 한 줄에 겹쳐 있으면, 인자가 많은 command일수록 한 줄이 길어지고 어떤 값이 어느 필드로 가는지 읽기 어렵습니다. 이름 붙은 지역 변수로 분리하면 "이 줄은 command를 만든다 / 이 줄은 그것을 서비스에 넘긴다"가 문장 단위로 드러납니다. (2) 디버깅 시 조립된 command에 중단점·로그를 걸거나 값을 들여다보기 쉽습니다. (3) 호출부 형태가 도메인 간 동일해져(항상 `Xxx command = Xxx.of(...); service.method(id, command);`) 리뷰·검색·패턴 일치가 단순해집니다.
+- **적용 대상**: command 서비스 호출에 넘기는 **command DTO**가 주 대상입니다. 변수명은 `command`로 통일합니다(한 메서드에 command가 하나인 것이 일반적).
+- **적용 예외**: 이미 지역 변수로 조립되고 있던 **`SearchCondition`은 그대로 둡니다**(조회 메서드에서 관례적으로 `XxxSearchCondition condition = ...of(...)`로 이미 분리되어 있음 — reference: `NoticeService#getNotices`의 `condition`). `XxxId.of(id)`처럼 **식별자 승격 한 줄**은 인자 자리에 인라인으로 두어도 됩니다(짧고 의미가 자명하며, command와 나란히 `service.method(XxxId.of(id), command)` 형태가 관례). 응답 변환 `XxxResponse.from(...)`도 대상이 아닙니다(반환식에 바로 쓰는 것이 자연스러움).
+- **죽은 코드 금지**: 추출로 대체된 기존 인라인 한 줄을 `//` 주석으로 남기지 않습니다. 추출한 형태만 남깁니다.
+
+```java
+// 지양 — 팩토리 결과를 호출 인자 자리에 인라인 조립
+BannerId bannerId = bannerCommandService.createBanner(
+    BannerCreateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible)
+);
+
+// 권장 — command 지역 변수로 추출 후 전달
+BannerCreateCommand command = BannerCreateCommand.of(
+    BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible
+);
+BannerId bannerId = bannerCommandService.createBanner(command);
+```
+
+update 계열처럼 식별자와 command를 함께 넘길 때도 command만 추출하고 `XxxId.of(id)`는 인자 자리에 둡니다:
+
+```java
+BannerUpdateCommand command = BannerUpdateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible);
+bannerCommandService.updateBanner(BannerId.of(id), command);
+```
+
+reference 구현: `admin-api`의 `notice` 도메인 — `NoticeService#createNotice`·`#updateNotice`(`NoticeCreateCommand command = ...; noticeCommandService.createNotice(command);`). 동일 적용: `admin`(`AdminAccountService#create`), `banner`(`createBanner`·`updateBanner`), `bug`(`changeStatus`·`classify`·`assign`), `coupon`(`createCoupon`·`updateCoupon`), `policy`(`createPolicy`·`updatePolicy`).
+
 ## record 파일 분리 규칙 (중첩 record 선언 지양)
 
 **`record`는 서비스·컨트롤러·Facade 등 다른 클래스 본문 안에 중첩 선언하지 않고, 각 도메인의 관례 위치에 독립된 `.java` 파일로 둡니다.** 클래스 안에 DTO record를 함께 두면 파일 응집도가 떨어지고, 다른 클래스에서 참조할 때 `Outer.Inner` 접두사가 붙어 결합도가 커지며, DTO 조립 규칙(정적 팩토리 위임)을 적용하기도 불리합니다.
@@ -178,6 +209,17 @@ reference 구현: `order` 도메인 — `Order`(`@Enumerated(EnumType.STRING)` +
 reference 구현(전환 예정): `web-api`의 `ShopSearchRequest`(`shop/request/`, `getLatestShops`), `admin-api`의 `NoticeSearchRequest`(`notice/request/`, `getNotices`). 이미 정착된 `@ModelAttribute` record 선례: 공통 `PageRequest`(`web-api`/`admin-api`의 `common/PageRequest`).
 
 **참고 자료 (Spring 공식)**: Spring Framework Reference — `@ModelAttribute` method arguments: https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-methods/modelattrib-method-args.html ("binds request parameters ... onto a model object"; 보안상 web 바인딩 전용 객체/생성자 바인딩 권장 — setter 없는 record가 이에 부합). 단일 값 `@RequestParam` 대신 record로 통일하는 것은 위 공식 최소 요건을 넘어서는 이 프로젝트의 일관성 우선 컨벤션입니다.
+
+## 컨트롤러 `@PathVariable` 식별자 명명 규칙 (`{id}`로 통일)
+
+**한 컨트롤러 안에서 그 컨트롤러의 주(主) 리소스를 가리키는 `@PathVariable` 식별자는 경로상의 위치·핸들러 종류와 무관하게 bare `id`로 통일합니다.** 단건 CRUD(`GET/PUT/DELETE /coupons/v1/{id}`)든 그 리소스에 속한 중첩 하위 경로(`POST /coupons/v1/{id}/issues`)든, 결국 "쿠폰"을 가리키는 경로 변수는 모두 `id` 하나로 씁니다. 같은 대상을 어떤 메서드에서는 `id`, 어떤 메서드에서는 `{도메인}Id`로 **혼재하는 것을 금지**합니다.
+
+- **왜 `{id}`인가**: `@RequestMapping("/api/coupons")`로 컨트롤러 전체가 이미 쿠폰 리소스에 스코프되어 있으므로, 경로 변수 `id`는 문맥상 "이 컨트롤러가 다루는 쿠폰의 id"임이 자명합니다. `couponId`처럼 도메인 접두어를 반복하면 클래스 스코프와 중복되어 장황하고, 오히려 한 파일 안에서 `id`/`couponId`가 섞이는 혼재를 부릅니다. 짧고 일관된 `id`가 REST 관례(리소스 컬렉션 `/coupons/{id}`)에도 부합합니다.
+- **경계 타입은 그대로**: 타입은 [ID VO 경계 규칙](#id-vo식별자-값-객체-경계-규칙)대로 HTTP 경계에서 `Long`을 유지합니다(`@PathVariable Long id`). Facade/Service에서 `XxxId.of(id)`로 승격하는 흐름은 변경하지 않습니다.
+- **다른 애그리거트를 참조하는 경우는 예외**: 어떤 컨트롤러가 **자기 주 리소스가 아닌 다른 도메인의 식별자**를 경로로 받는 경우(예: 회원 컨트롤러가 `/members/{memberId}/orders/{orderId}`처럼 두 종류 이상의 식별자를 동시에 받는 경우)에는 각 식별자를 `{도메인}Id`로 구분해 모호함을 없앱니다. 즉 "그 컨트롤러의 주 리소스 = `id`, 그 외 참조 식별자 = `{도메인}Id`"가 기준입니다.
+- **적용 대상**: 신규 컨트롤러는 이 규칙을 따르고, 기존에 주 리소스를 `{도메인}Id`로 받던 컨트롤러는 **해당 파일을 수정할 때 함께 `id`로 전환**합니다. 이 규칙만을 위해 전 컨트롤러를 일괄 재작성하지는 않습니다.
+
+reference 구현: `admin-api/coupon/CouponApiController` — 단건 CRUD·중첩 발급/현황 API 모두 주 리소스인 쿠폰을 `@PathVariable Long id`로 받음(`/v1/{id}`, `/v1/{id}/issues`).
 
 ## Request/Response record `@Schema` 문서화 규칙
 

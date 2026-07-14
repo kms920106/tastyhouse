@@ -86,21 +86,22 @@ public class BugReportService {
     }
 
     public void changeStatus(Long id, String status, String answer) {
-        bugReportCommandService.changeStatus(
-            BugReportStatusUpdateCommand.of(BugReportId.of(id), BugReportStatus.from(status), answer)
+        BugReportStatusUpdateCommand command = BugReportStatusUpdateCommand.of(
+            BugReportId.of(id), BugReportStatus.from(status), answer
         );
+        bugReportCommandService.changeStatus(command);
     }
 
     public void classify(Long id, String category, String priority) {
-        bugReportCommandService.classify(
-            BugReportClassifyCommand.of(BugReportId.of(id), BugReportCategory.from(category), BugReportPriority.from(priority))
+        BugReportClassifyCommand command = BugReportClassifyCommand.of(
+            BugReportId.of(id), BugReportCategory.from(category), BugReportPriority.from(priority)
         );
+        bugReportCommandService.classify(command);
     }
 
     public void assign(Long id, Long assigneeAdminId) {
-        bugReportCommandService.assign(
-            BugReportAssignCommand.of(BugReportId.of(id), assigneeAdminId)
-        );
+        BugReportAssignCommand command = BugReportAssignCommand.of(BugReportId.of(id), assigneeAdminId);
+        bugReportCommandService.assign(command);
     }
 
     private List<FileResponse> toFileResponses(List<Long> imageFileIds) {

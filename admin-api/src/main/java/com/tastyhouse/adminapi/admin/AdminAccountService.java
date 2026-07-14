@@ -23,11 +23,12 @@ public class AdminAccountService {
 
     public Long create(AdminCreateRequest request) {
         String encodedPassword = passwordEncoder.encode(request.password());
-        return adminCommandService.createAdmin(AdminCreateCommand.of(
+        AdminCreateCommand command = AdminCreateCommand.of(
             request.username(),
             encodedPassword,
             request.name(),
             AdminRole.from(request.role())
-        )).value();
+        );
+        return adminCommandService.createAdmin(command).value();
     }
 }
