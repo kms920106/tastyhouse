@@ -29,21 +29,13 @@ class ApiClient {
   private baseURL: string;
   private withAuth: boolean;
 
-  constructor(
-    baseURL: string = process.env.NEXT_PUBLIC_API_URL ?? "",
-    withAuth = true,
-  ) {
+  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL ?? "", withAuth = true) {
     this.baseURL = baseURL;
     this.withAuth = withAuth;
   }
 
-  private async getRequestHeaders(
-    headers?: HeadersInit,
-    isFormData?: boolean,
-  ): Promise<Record<string, string>> {
-    const requestHeaders: Record<string, string> = isFormData
-      ? {}
-      : { "Content-Type": "application/json" };
+  private async getRequestHeaders(headers?: HeadersInit, isFormData?: boolean): Promise<Record<string, string>> {
+    const requestHeaders: Record<string, string> = isFormData ? {} : { "Content-Type": "application/json" };
 
     if (this.withAuth) {
       const cookieStore = await cookies();
@@ -61,10 +53,7 @@ class ApiClient {
     return requestHeaders;
   }
 
-  private async request<T, P extends object>(
-    endpoint: string,
-    config: RequestConfig<P> = {},
-  ): Promise<ApiResponse<T>> {
+  private async request<T, P extends object>(endpoint: string, config: RequestConfig<P> = {}): Promise<ApiResponse<T>> {
     const result = await this.executeRequest<T, P>(endpoint, config);
 
     // 인증 클라이언트의 401(인증 실패/만료)은 로그인 페이지로 리다이렉트한다.
@@ -81,13 +70,7 @@ class ApiClient {
     endpoint: string,
     config: RequestConfig<P> = {},
   ): Promise<ApiResponse<T>> {
-    const {
-      params,
-      headers,
-      isFormData,
-      timeout = 30000,
-      ...restConfig
-    } = config;
+    const { params, headers, isFormData, timeout = 30000, ...restConfig } = config;
     const method = restConfig.method ?? "GET";
     const correlationId = crypto.randomUUID().slice(0, 8);
     const requestLogger = logger.child({
@@ -137,8 +120,10 @@ class ApiClient {
       const json = await response.json().catch(() => null);
 
       if (!response.ok) {
-        const message = json?.message || response.statusText;
-        const logPayload = { status, durationMs, message };
+        // 성공/비즈니스 에러(ApiResponse)는 message, RFC7807 ProblemDetail(4xx/5xx)은 detail 에
+        // 문구가 담기므로 두 필드를 모두 확인한다. (예: 409 COUPON_ALREADY_ISSUED)
+        const errorMessage = json?.message || json?.detail;
+        const logPayload = { status, durationMs, message: errorMessage || response.statusText };
 
         if (status >= 500) {
           requestLogger.error(logPayload, "[API RESPONSE]");
@@ -149,9 +134,9 @@ class ApiClient {
         // 백엔드 errorCode/message 를 보존해 호출부가 코드 기반으로 분기하고
         // 사용자에게 노출 가능한 한국어 메시지를 그대로 쓸 수 있게 한다.
         return {
-          error: json?.message || "오류가 발생했습니다. 다시 시도해 주세요.",
+          error: errorMessage || "오류가 발생했습니다. 다시 시도해 주세요.",
           ...(json?.errorCode ? { errorCode: json.errorCode } : {}),
-          ...(json?.message ? { message: json.message } : {}),
+          ...(errorMessage ? { message: errorMessage } : {}),
           status,
         };
       }
@@ -159,10 +144,7 @@ class ApiClient {
       // 백엔드 응답 { success, errorCode, data, message, pagination } 구조를 자동 언래핑
       if (json && typeof json === "object" && "success" in json) {
         if (!json.success) {
-          requestLogger.warn(
-            { status, durationMs, message: json.message },
-            "[API RESPONSE]",
-          );
+          requestLogger.warn({ status, durationMs, message: json.message }, "[API RESPONSE]");
           // HTTP 는 2xx 지만 success:false 인 비즈니스 에러 — errorCode/message 보존
           return {
             error: json.message || "오류가 발생했습니다. 다시 시도해 주세요.",
