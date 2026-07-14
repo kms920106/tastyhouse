@@ -74,6 +74,9 @@ public class Coupon extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible = true;
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted = false;
+
     private Coupon(
         String name,
         String description,
@@ -125,6 +128,38 @@ public class Coupon extends BaseEntity {
 
     public CouponId getCouponId() {
         return CouponId.of(this.id);
+    }
+
+    public void update(
+        String name,
+        String description,
+        DiscountType discountType,
+        Integer discountAmount,
+        Integer maxDiscountAmount,
+        Integer minOrderAmount,
+        Integer maxDiscountCount,
+        LocalDateTime issueStartAt,
+        LocalDateTime issueEndAt,
+        LocalDateTime useStartAt,
+        LocalDateTime useEndAt,
+        boolean visible
+    ) {
+        this.name = name;
+        this.description = description;
+        this.discountType = discountType != null ? discountType : DiscountType.AMOUNT;
+        this.discountAmount = discountAmount;
+        this.maxDiscountAmount = maxDiscountAmount;
+        this.minOrderAmount = minOrderAmount != null ? minOrderAmount : 0;
+        this.maxDiscountCount = maxDiscountCount;
+        this.issueStartAt = issueStartAt;
+        this.issueEndAt = issueEndAt;
+        this.useStartAt = useStartAt;
+        this.useEndAt = useEndAt;
+        this.visible = visible;
+    }
+
+    public void delete() {
+        this.deleted = true;
     }
 
     public int calculateDiscount(int orderAmount) {

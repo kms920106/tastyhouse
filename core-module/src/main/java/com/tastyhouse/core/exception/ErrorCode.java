@@ -31,6 +31,8 @@ public enum ErrorCode {
     COUPON_ACCESS_DENIED(403, "COUPON_ACCESS_DENIED", "본인의 쿠폰만 사용할 수 있습니다."),
     COUPON_INFO_NOT_FOUND(404, "COUPON_INFO_NOT_FOUND", "쿠폰 정보를 찾을 수 없습니다."),
     COUPON_NOT_AVAILABLE(400, "COUPON_NOT_AVAILABLE", "사용할 수 없는 쿠폰입니다."),
+    COUPON_DISCOUNT_TYPE_UNKNOWN(400, "COUPON_DISCOUNT_TYPE_UNKNOWN", "알 수 없는 할인 유형입니다."),
+    COUPON_ALREADY_ISSUED(409, "COUPON_ALREADY_ISSUED", "이미 발급된 쿠폰입니다."),
 
     // 결제
     PAYMENT_ORDER_ACCESS_DENIED(403, "PAYMENT_ORDER_ACCESS_DENIED", "본인의 주문만 결제할 수 있습니다."),

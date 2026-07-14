@@ -15,10 +15,13 @@ import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
+import com.tastyhouse.core.domain.coupon.application.dto.command.CouponCreateCommand;
+import com.tastyhouse.core.domain.coupon.application.dto.command.CouponUpdateCommand;
 import com.tastyhouse.core.domain.coupon.application.dto.command.IssueCouponCommand;
 import com.tastyhouse.core.domain.coupon.application.dto.command.UseCouponCommand;
 import com.tastyhouse.core.domain.coupon.application.dto.result.UseCouponResult;
 import com.tastyhouse.core.exception.AccessDeniedException;
+import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -30,6 +33,63 @@ public class CouponCommandService {
     private final CouponRepository couponRepository;
     private final MemberCouponRepository memberCouponRepository;
     private final ApplicationEventPublisher eventPublisher;
+
+    public CouponId createCoupon(CouponCreateCommand command) {
+        Coupon coupon = Coupon.of(
+            command.name(),
+            command.description(),
+            command.discountType(),
+            command.discountAmount(),
+            command.maxDiscountAmount(),
+            command.minOrderAmount(),
+            command.maxDiscountCount(),
+            command.issueStartAt(),
+            command.issueEndAt(),
+            command.useStartAt(),
+            command.useEndAt(),
+            command.visible()
+        );
+        Coupon saved = couponRepository.save(coupon);
+        return saved.getCouponId();
+    }
+
+    public void updateCoupon(CouponId couponId, CouponUpdateCommand command) {
+        Coupon coupon = couponRepository.findById(couponId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+
+        coupon.update(
+            command.name(),
+            command.description(),
+            command.discountType(),
+            command.discountAmount(),
+            command.maxDiscountAmount(),
+            command.minOrderAmount(),
+            command.maxDiscountCount(),
+            command.issueStartAt(),
+            command.issueEndAt(),
+            command.useStartAt(),
+            command.useEndAt(),
+            command.visible()
+        );
+    }
+
+    public void deleteCoupon(CouponId couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+
+        coupon.delete();
+    }
+
+    public MemberCouponId issueCouponByAdmin(CouponId couponId, Long memberId) {
+        Coupon coupon = couponRepository.findById(couponId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+
+        if (memberCouponRepository.existsByMemberIdAndCouponId(memberId, couponId)) {
+            throw new BusinessException(ErrorCode.COUPON_ALREADY_ISSUED);
+        }
+
+        return issueCoupon(IssueCouponCommand.of(memberId, couponId.value(), coupon.getUseEndAt()));
+    }
 
     public MemberCouponId issueCoupon(IssueCouponCommand command) {
         MemberCoupon issued = memberCouponRepository.save(

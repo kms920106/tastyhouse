@@ -10,9 +10,14 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.coupon.domain.model.MemberCoupon;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
+import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
+import com.tastyhouse.core.domain.coupon.application.dto.MemberCouponAdminItemDto;
+import com.tastyhouse.core.domain.coupon.application.dto.QMemberCouponAdminItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
 import com.tastyhouse.core.domain.coupon.application.dto.result.QMemberCouponResult;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.coupon.domain.model.QCoupon.coupon;
 import static com.tastyhouse.core.domain.coupon.domain.model.QMemberCoupon.memberCoupon;
@@ -79,6 +84,46 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
                 memberCoupon.expiredAt.gt(now)
             )
             .fetch();
+    }
+
+    @Override
+    public PageResult<MemberCouponAdminItemDto> findByCouponId(CouponId couponId, PageQuery pageQuery) {
+        Long total = queryFactory
+            .select(memberCoupon.id.count())
+            .from(memberCoupon)
+            .where(memberCoupon.couponId.eq(couponId.value()))
+            .fetchOne();
+
+        List<MemberCouponAdminItemDto> items = queryFactory
+            .select(new QMemberCouponAdminItemDto(
+                memberCoupon.id,
+                memberCoupon.memberId,
+                memberCoupon.used,
+                memberCoupon.usedAt,
+                memberCoupon.expiredAt,
+                memberCoupon.createdAt
+            ))
+            .from(memberCoupon)
+            .where(memberCoupon.couponId.eq(couponId.value()))
+            .orderBy(memberCoupon.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        return PageResult.of(items, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public boolean existsByMemberIdAndCouponId(Long memberId, CouponId couponId) {
+        Integer found = queryFactory
+            .selectOne()
+            .from(memberCoupon)
+            .where(
+                memberCoupon.memberId.eq(memberId),
+                memberCoupon.couponId.eq(couponId.value())
+            )
+            .fetchFirst();
+        return found != null;
     }
 
     @Override
