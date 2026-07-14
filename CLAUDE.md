@@ -39,8 +39,9 @@ reference 구현: `admin-api`의 `notice` 도메인 — `CreateNoticeCommand.of(
 위 [DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)으로 `Xxx.of(...)` 팩토리를 쓰더라도, **그 팩토리 호출 결과를 다른 메서드(주로 core application command 서비스)의 인자 자리에 인라인으로 바로 넘기지 않고, 먼저 지역 변수(`command`)로 추출한 뒤 그 변수를 전달합니다.** `of(...)`로 조립하는 것과 조립 결과를 어떻게 넘기는지는 별개이며, 이 규칙은 후자를 다룹니다.
 
 - **왜 지역 변수로 추출하는가**: (1) 조립(무엇을 만드는가)과 호출(어디에 넘기는가)이 한 줄에 겹쳐 있으면, 인자가 많은 command일수록 한 줄이 길어지고 어떤 값이 어느 필드로 가는지 읽기 어렵습니다. 이름 붙은 지역 변수로 분리하면 "이 줄은 command를 만든다 / 이 줄은 그것을 서비스에 넘긴다"가 문장 단위로 드러납니다. (2) 디버깅 시 조립된 command에 중단점·로그를 걸거나 값을 들여다보기 쉽습니다. (3) 호출부 형태가 도메인 간 동일해져(항상 `Xxx command = Xxx.of(...); service.method(id, command);`) 리뷰·검색·패턴 일치가 단순해집니다.
-- **적용 대상**: command 서비스 호출에 넘기는 **command DTO**가 주 대상입니다. 변수명은 `command`로 통일합니다(한 메서드에 command가 하나인 것이 일반적).
-- **적용 예외**: 이미 지역 변수로 조립되고 있던 **`SearchCondition`은 그대로 둡니다**(조회 메서드에서 관례적으로 `XxxSearchCondition condition = ...of(...)`로 이미 분리되어 있음 — reference: `NoticeService#getNotices`의 `condition`). `XxxId.of(id)`처럼 **식별자 승격 한 줄**은 인자 자리에 인라인으로 두어도 됩니다(짧고 의미가 자명하며, command와 나란히 `service.method(XxxId.of(id), command)` 형태가 관례). 응답 변환 `XxxResponse.from(...)`도 대상이 아닙니다(반환식에 바로 쓰는 것이 자연스러움).
+- **적용 대상**: command 서비스 호출에 넘기는 **command DTO**와, 그 **command 서비스 호출의 인자로 넘기는 `XxxId.of(id)` 식별자 승격**이 대상입니다. command 변수명은 `command`로 통일하고(한 메서드에 command가 하나인 것이 일반적), 식별자 VO는 `XxxId xxxId = XxxId.of(id);`로 추출합니다.
+- **식별자(`XxxId.of(id)`)도 지역 변수로 추출합니다**: command 서비스에 넘기는 식별자 승격은, command와 함께 넘기는 경우(`update`/`delete`)든 식별자만 단독으로 넘기는 경우(`deleteNotice`·`activatePolicy`·`cancel` 등)든 모두 먼저 지역 변수로 추출한 뒤 전달합니다(`XxxId xxxId = XxxId.of(id); service.method(xxxId, command);`). "짧으니 인자 자리에 인라인으로 둔다"는 이전 예외를 폐지하고, command 서비스 호출부 형태를 `XxxId xxxId = XxxId.of(id); XxxCommand command = XxxCommand.of(...); service.method(xxxId, command);`로 전 도메인 통일합니다 — 호출부에 `.of(` 호출이 인자 자리에 남지 않는 것을 목표로 합니다. (메서드 파라미터명과 VO 변수명이 겹치면 VO 쪽을 `id`/`targetXxxId` 등으로 구분합니다.)
+- **적용 예외 (인라인 유지)**: (1) 이미 지역 변수로 조립되고 있던 **`SearchCondition`은 그대로 둡니다**(조회 메서드에서 관례적으로 `XxxSearchCondition condition = ...of(...)`로 이미 분리 — reference: `NoticeService#getNotices`의 `condition`). (2) **query(조회) 서비스 호출**에 넘기는 `XxxId.of(id)`는 인라인으로 둡니다(`queryService.findDetailById(XxxId.of(id))` — reference: `NoticeService#getNotice`). 이 규칙은 command 서비스 호출부에만 적용합니다. (3) **command 팩토리 내부로 들어가는 식별자**(`XxxCommand.of(XxxId.of(id), ...)`처럼 `Command.of(...)`의 인자로 중첩된 `Id.of`)는 command 조립의 일부이므로 그대로 둡니다 — 이때는 command 자체를 지역 변수로 추출하는 것이 규칙이며 내부 `Id.of`는 건드리지 않습니다(reference: `ReviewService`의 `ReviewDeleteCommand.of(ReviewId.of(reviewId), ...)`). (4) 응답 변환 `XxxResponse.from(...)`도 대상이 아닙니다(반환식에 바로 쓰는 것이 자연스러움).
 - **죽은 코드 금지**: 추출로 대체된 기존 인라인 한 줄을 `//` 주석으로 남기지 않습니다. 추출한 형태만 남깁니다.
 
 ```java
@@ -56,14 +57,31 @@ BannerCreateCommand command = BannerCreateCommand.of(
 BannerId bannerId = bannerCommandService.createBanner(command);
 ```
 
-update 계열처럼 식별자와 command를 함께 넘길 때도 command만 추출하고 `XxxId.of(id)`는 인자 자리에 둡니다:
+update 계열처럼 식별자와 command를 함께 넘길 때는 **식별자 VO와 command를 각각 지역 변수로 추출**한 뒤 전달합니다(`XxxId.of(id)`를 인자 자리에 인라인하지 않습니다):
 
 ```java
+// 지양 — 식별자 승격을 인자 자리에 인라인
 BannerUpdateCommand command = BannerUpdateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible);
 bannerCommandService.updateBanner(BannerId.of(id), command);
+
+// 권장 — 식별자 VO도 지역 변수로 추출
+BannerId bannerId = BannerId.of(id);
+BannerUpdateCommand command = BannerUpdateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible);
+bannerCommandService.updateBanner(bannerId, command);
 ```
 
-reference 구현: `admin-api`의 `notice` 도메인 — `NoticeService#createNotice`·`#updateNotice`(`NoticeCreateCommand command = ...; noticeCommandService.createNotice(command);`). 동일 적용: `admin`(`AdminAccountService#create`), `banner`(`createBanner`·`updateBanner`), `bug`(`changeStatus`·`classify`·`assign`), `coupon`(`createCoupon`·`updateCoupon`), `policy`(`createPolicy`·`updatePolicy`).
+식별자만 단독으로 넘기는 `delete`·상태전이 계열도 동일하게 추출합니다:
+
+```java
+// 지양
+bannerCommandService.deleteBanner(BannerId.of(id));
+
+// 권장
+BannerId bannerId = BannerId.of(id);
+bannerCommandService.deleteBanner(bannerId);
+```
+
+reference 구현: `admin-api`의 `notice` 도메인 — `NoticeService#updateNotice`·`#deleteNotice`(`NoticeId noticeId = NoticeId.of(id); ... noticeCommandService.updateNotice(noticeId, command);` / `deleteNotice(noticeId)`)로 command·식별자 모두 지역 변수 추출을 확정. 식별자 추출 동일 적용: `banner`(`updateBanner`·`deleteBanner`), `coupon`(`updateCoupon`·`deleteCoupon`·`issueCoupon`), `policy`(`updatePolicy`·`activateCurrentPolicy`), `web-api`의 `reservation`(`cancel`·`confirm`·`reject`·`complete`), `scheduler`(`ProductScheduler#markBbqOptionsSynced`). command 추출 동일 적용: `admin`(`AdminAccountService#create`), `bug`(`changeStatus`·`classify`·`assign`), `createBanner`·`createCoupon`·`createPolicy`.
 
 ## record 파일 분리 규칙 (중첩 record 선언 지양)
 
