@@ -41,11 +41,13 @@ public class NoticeService {
     }
 
     public void updateNotice(Long id, String title, String content, boolean visible) {
+        NoticeId noticeId = NoticeId.of(id);
         NoticeUpdateCommand command = NoticeUpdateCommand.of(title, content, visible);
-        noticeCommandService.updateNotice(NoticeId.of(id), command);
+        noticeCommandService.updateNotice(noticeId, command);
     }
 
     public void deleteNotice(Long id) {
-        noticeCommandService.deleteNotice(NoticeId.of(id));
+        NoticeId noticeId = NoticeId.of(id);
+        noticeCommandService.deleteNotice(noticeId);
     }
 }

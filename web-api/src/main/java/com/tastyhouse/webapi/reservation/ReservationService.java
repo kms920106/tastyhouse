@@ -85,21 +85,25 @@ public class ReservationService {
     }
 
     public void cancel(Long reservationId, Long memberId) {
-        reservationCommandService.cancel(ReservationId.of(reservationId), memberId);
+        ReservationId id = ReservationId.of(reservationId);
+        reservationCommandService.cancel(id, memberId);
     }
 
     public ReservationResponse confirm(Long reservationId) {
-        ReservationResult result = reservationCommandService.confirm(ReservationId.of(reservationId));
+        ReservationId id = ReservationId.of(reservationId);
+        ReservationResult result = reservationCommandService.confirm(id);
         return ReservationResponse.from(result);
     }
 
     public ReservationResponse reject(Long reservationId) {
-        ReservationResult result = reservationCommandService.reject(ReservationId.of(reservationId));
+        ReservationId id = ReservationId.of(reservationId);
+        ReservationResult result = reservationCommandService.reject(id);
         return ReservationResponse.from(result);
     }
 
     public ReservationResponse complete(Long reservationId) {
-        ReservationResult result = reservationCommandService.complete(ReservationId.of(reservationId));
+        ReservationId id = ReservationId.of(reservationId);
+        ReservationResult result = reservationCommandService.complete(id);
         return ReservationResponse.from(result);
     }
 

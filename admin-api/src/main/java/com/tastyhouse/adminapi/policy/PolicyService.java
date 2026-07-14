@@ -40,11 +40,13 @@ public class PolicyService {
         LocalDateTime effectiveDate,
         String updatedBy
     ) {
+        PolicyDocumentId policyDocumentId = PolicyDocumentId.of(id);
         PolicyUpdateCommand command = PolicyUpdateCommand.of(title, content, mandatory, effectiveDate, updatedBy);
-        policyCommandService.updatePolicy(PolicyDocumentId.of(id), command);
+        policyCommandService.updatePolicy(policyDocumentId, command);
     }
 
     public void activateCurrentPolicy(Long id) {
-        policyCommandService.activatePolicy(PolicyDocumentId.of(id));
+        PolicyDocumentId policyDocumentId = PolicyDocumentId.of(id);
+        policyCommandService.activatePolicy(policyDocumentId);
     }
 }

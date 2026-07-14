@@ -49,7 +49,8 @@ public class ProductScheduler {
 
             saveProductOptions(productId, bbqMenuId);
 
-            productCommandService.markBbqOptionsSynced(ProductId.of(productId));
+            ProductId targetProductId = ProductId.of(productId);
+            productCommandService.markBbqOptionsSynced(targetProductId);
 
             log.info("상품 옵션 저장 완료: productId={}", productId);
         } catch (Exception e) {

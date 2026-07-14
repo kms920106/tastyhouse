@@ -93,13 +93,15 @@ public class BannerService {
         Integer sort,
         boolean visible
     ) {
+        BannerId bannerId = BannerId.of(id);
         BannerUpdateCommand command = BannerUpdateCommand.of(
             BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible
         );
-        bannerCommandService.updateBanner(BannerId.of(id), command);
+        bannerCommandService.updateBanner(bannerId, command);
     }
 
     public void deleteBanner(Long id) {
-        bannerCommandService.deleteBanner(BannerId.of(id));
+        BannerId bannerId = BannerId.of(id);
+        bannerCommandService.deleteBanner(bannerId);
     }
 }
