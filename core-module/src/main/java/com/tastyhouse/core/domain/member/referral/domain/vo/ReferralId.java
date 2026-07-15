@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.referral.domain.vo;
+package com.tastyhouse.core.domain.member.referral.domain.vo;
 
 public record ReferralId(Long value) {
 

@@ -31,7 +31,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | faq | FAQ 관리 | - | - | - | 조회 전용 도메인 |
 | file | 파일 업로드/관리 | - | ✓ | - | CDN 추상화, 파일 삭제 이벤트 |
 | follow | 사용자 팔로우 관계 | ✓ | - | - | 팔로우 상태 관리 |
-| member | 회원 관리 | ✓ | ✓ | - | 가장 핵심 도메인. 다른 모든 BC가 MemberId로 참조 |
+| member | 회원 관리 (하위 서브패키지 `referral`: 추천인, 추천 보상 이벤트 포함) | ✓ | ✓ | - | 가장 핵심 도메인. 다른 모든 BC가 MemberId로 참조 |
 | notice | 공지사항 | - | - | - | 조회 전용 도메인 |
 | order | 주문 관리 | ✓ | ✓ | ✓ | OrderId, OrderItemId VO. 시간대 슬롯 예약 지원 |
 | partnership | 제휴사 관리 | - | - | - | B2B 파트너십 계약 정보 |
@@ -40,7 +40,6 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | policy | 정책/약관 | ✓ | ✓ | - | 약관 버전 관리, 정책 변경 이벤트 |
 | product | 상품 | ✓ | ✓ | - | 상품/옵션 그룹 정보 |
 | rank | 등급 시스템 | - | - | - | 회원 등급 계산 |
-| referral | 추천인 | ✓ | ✓ | - | 추천 보상 이벤트 |
 | reservation | 시간대 예약 | - | - | - | 최신 추가 도메인. 낙관적 락 기반 정원 관리 |
 | review | 리뷰/평점 | ✓ | ✓ | - | 리뷰 작성/수정/삭제 이벤트 |
 | search | 검색 | - | - | - | 검색어 입력/조회 |

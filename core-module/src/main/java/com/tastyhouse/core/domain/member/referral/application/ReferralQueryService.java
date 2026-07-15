@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.referral.application;
+package com.tastyhouse.core.domain.member.referral.application;
 
 import java.util.List;
 
@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
-import com.tastyhouse.core.domain.referral.application.dto.result.MemberReferralResult;
+import com.tastyhouse.core.domain.member.referral.domain.repository.MemberReferralRepository;
+import com.tastyhouse.core.domain.member.referral.application.dto.result.MemberReferralResult;
 
 @Service
 @Transactional(readOnly = true)

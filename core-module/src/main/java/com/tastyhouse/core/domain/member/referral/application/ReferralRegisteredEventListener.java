@@ -1,11 +1,11 @@
-package com.tastyhouse.core.domain.referral.application;
+package com.tastyhouse.core.domain.member.referral.application;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.core.domain.referral.domain.event.ReferralRegisteredEvent;
+import com.tastyhouse.core.domain.member.referral.domain.event.ReferralRegisteredEvent;
 
 @Slf4j
 @Component

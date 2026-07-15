@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.referral.application.dto.result.MemberReferralResult;
+import com.tastyhouse.core.domain.member.referral.application.dto.result.MemberReferralResult;
 
 @Schema(description = "회원 추천(레퍼럴) 목록 아이템 응답")
 public record MemberReferralListItemResponse(

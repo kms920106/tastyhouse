@@ -1,11 +1,11 @@
-package com.tastyhouse.core.domain.referral.domain.repository;
+package com.tastyhouse.core.domain.member.referral.domain.repository;
 
 import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.referral.domain.model.MemberReferral;
-import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
+import com.tastyhouse.core.domain.member.referral.domain.model.MemberReferral;
+import com.tastyhouse.core.domain.member.referral.domain.vo.ReferralId;
 
 public interface MemberReferralRepository {
 

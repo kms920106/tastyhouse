@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.referral.domain.model;
+package com.tastyhouse.core.domain.member.referral.domain.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -16,7 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
+import com.tastyhouse.core.domain.member.referral.domain.vo.ReferralId;
 import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;

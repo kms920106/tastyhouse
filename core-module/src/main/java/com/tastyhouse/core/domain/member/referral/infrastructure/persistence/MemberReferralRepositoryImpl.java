@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.referral.infrastructure.persistence;
+package com.tastyhouse.core.domain.member.referral.infrastructure.persistence;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,11 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.referral.domain.model.MemberReferral;
-import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
-import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
+import com.tastyhouse.core.domain.member.referral.domain.model.MemberReferral;
+import com.tastyhouse.core.domain.member.referral.domain.repository.MemberReferralRepository;
+import com.tastyhouse.core.domain.member.referral.domain.vo.ReferralId;
 
-import static com.tastyhouse.core.domain.referral.domain.model.QMemberReferral.memberReferral;
+import static com.tastyhouse.core.domain.member.referral.domain.model.QMemberReferral.memberReferral;
 
 @Repository
 @RequiredArgsConstructor

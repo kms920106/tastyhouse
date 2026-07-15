@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.referral.domain.model;
+package com.tastyhouse.core.domain.member.referral.domain.model;
 
 public enum ReferralStatus {
     PENDING,    // 가입 완료, 보상 지급 대기

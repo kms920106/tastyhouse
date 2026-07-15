@@ -1,10 +1,10 @@
-package com.tastyhouse.core.domain.referral.application.dto.result;
+package com.tastyhouse.core.domain.member.referral.application.dto.result;
 
 import java.time.LocalDateTime;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.referral.domain.model.MemberReferral;
-import com.tastyhouse.core.domain.referral.domain.model.ReferralStatus;
+import com.tastyhouse.core.domain.member.referral.domain.model.MemberReferral;
+import com.tastyhouse.core.domain.member.referral.domain.model.ReferralStatus;
 
 public record MemberReferralResult(
     Long id,

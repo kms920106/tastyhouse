@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.referral.application.dto.command;
+package com.tastyhouse.core.domain.member.referral.application.dto.command;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 

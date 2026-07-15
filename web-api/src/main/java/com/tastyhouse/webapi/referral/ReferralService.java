@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.referral.application.ReferralQueryService;
+import com.tastyhouse.core.domain.member.referral.application.ReferralQueryService;
 import com.tastyhouse.webapi.referral.response.MemberReferralListItemResponse;
 
 @Slf4j
