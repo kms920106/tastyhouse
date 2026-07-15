@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.event.infrastructure.persistence;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
 import com.tastyhouse.core.domain.event.domain.repository.EventAnnouncementRepository;
+import com.tastyhouse.core.domain.event.domain.vo.EventId;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -19,6 +21,7 @@ import static com.tastyhouse.core.domain.event.domain.model.QEventAnnouncement.e
 public class EventAnnouncementRepositoryImpl implements EventAnnouncementRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final EventAnnouncementJpaRepository eventAnnouncementJpaRepository;
 
     @Override
     public PageResult<EventAnnouncement> findAllOrderByAnnouncedAtDesc(PageQuery pageQuery) {
@@ -35,5 +38,28 @@ public class EventAnnouncementRepositoryImpl implements EventAnnouncementReposit
 
         Long total = countQuery.fetchOne();
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public Optional<EventAnnouncement> findByEventId(EventId eventId) {
+        return Optional.ofNullable(queryFactory
+            .selectFrom(eventAnnouncement)
+            .where(eventAnnouncement.eventId.eq(eventId.value()))
+            .fetchOne());
+    }
+
+    @Override
+    public boolean existsByEventId(EventId eventId) {
+        Integer result = queryFactory
+            .selectOne()
+            .from(eventAnnouncement)
+            .where(eventAnnouncement.eventId.eq(eventId.value()))
+            .fetchFirst();
+        return result != null;
+    }
+
+    @Override
+    public EventAnnouncement save(EventAnnouncement newEventAnnouncement) {
+        return eventAnnouncementJpaRepository.save(newEventAnnouncement);
     }
 }

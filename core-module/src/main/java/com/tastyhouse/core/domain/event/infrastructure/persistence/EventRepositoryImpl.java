@@ -3,18 +3,24 @@ package com.tastyhouse.core.domain.event.infrastructure.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
-import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
-import com.tastyhouse.core.domain.event.application.dto.QEventDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.QEventListItemDto;
+import com.tastyhouse.core.domain.event.domain.model.Event;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
 import com.tastyhouse.core.domain.event.domain.vo.EventId;
+import com.tastyhouse.core.domain.event.application.dto.EventAdminListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
+import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.EventSearchCondition;
+import com.tastyhouse.core.domain.event.application.dto.QEventAdminListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.QEventDetailDto;
+import com.tastyhouse.core.domain.event.application.dto.QEventListItemDto;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -26,6 +32,7 @@ import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploade
 public class EventRepositoryImpl implements EventRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final EventJpaRepository eventJpaRepository;
 
     @Override
     public PageResult<EventListItemDto> findEventListItemsByStatus(EventStatus status, PageQuery pageQuery) {
@@ -66,5 +73,64 @@ public class EventRepositoryImpl implements EventRepository {
             .fetchOne();
 
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<Event> findById(EventId eventId) {
+        return Optional.ofNullable(queryFactory
+            .selectFrom(event)
+            .where(event.id.eq(eventId.value()), event.deleted.isFalse())
+            .fetchOne());
+    }
+
+    @Override
+    public PageResult<EventAdminListItemDto> findAllEvents(EventSearchCondition condition, PageQuery pageQuery) {
+        Long total = queryFactory
+            .select(event.id.count())
+            .from(event)
+            .where(
+                event.deleted.isFalse(),
+                nameContains(condition.name()),
+                statusEq(condition.status())
+            )
+            .fetchOne();
+
+        List<EventAdminListItemDto> events = queryFactory
+            .select(new QEventAdminListItemDto(
+                event.id,
+                event.name,
+                event.status,
+                event.thumbnailImageFileId,
+                uploadedFile.originalFilename,
+                uploadedFile.filePath,
+                event.startAt,
+                event.endAt
+            ))
+            .from(event)
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(event.thumbnailImageFileId))
+            .where(
+                event.deleted.isFalse(),
+                nameContains(condition.name()),
+                statusEq(condition.status())
+            )
+            .orderBy(event.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        return PageResult.of(events, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public Event save(Event newEvent) {
+        return eventJpaRepository.save(newEvent);
+    }
+
+    private BooleanExpression nameContains(String name) {
+        return StringUtils.hasText(name) ? event.name.containsIgnoreCase(name) : null;
+    }
+
+    private BooleanExpression statusEq(EventStatus status) {
+        return status != null ? event.status.eq(status) : null;
     }
 }

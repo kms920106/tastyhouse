@@ -146,6 +146,10 @@ public enum ErrorCode {
 
     // 이벤트
     EVENT_STATUS_UNKNOWN(400, "EVENT_STATUS_UNKNOWN", "알 수 없는 이벤트 상태입니다."),
+    EVENT_NOT_FOUND(404, "EVENT_NOT_FOUND", "이벤트를 찾을 수 없습니다."),
+    EVENT_ANNOUNCEMENT_NOT_FOUND(404, "EVENT_ANNOUNCEMENT_NOT_FOUND", "당첨자 발표 공지를 찾을 수 없습니다."),
+    EVENT_ANNOUNCEMENT_ALREADY_EXISTS(409, "EVENT_ANNOUNCEMENT_ALREADY_EXISTS", "이미 당첨자 발표 공지가 등록된 이벤트입니다."),
+    EVENT_WINNER_NOT_FOUND(404, "EVENT_WINNER_NOT_FOUND", "당첨자를 찾을 수 없습니다."),
 
     // 가게
     FOOD_TYPE_UNKNOWN(400, "FOOD_TYPE_UNKNOWN", "알 수 없는 음식 종류입니다."),

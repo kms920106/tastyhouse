@@ -23,7 +23,7 @@ import com.tastyhouse.core.shared.entity.BaseEntity;
 @Table(
     name = "EVENT",
     indexes = {
-        @Index(name = "idx_event_status", columnList = "status"),
+        @Index(name = "idx_event_active", columnList = "is_deleted, status"),
         @Index(name = "idx_event_period", columnList = "start_at, end_at")
     }
 )
@@ -61,6 +61,9 @@ public class Event extends BaseEntity {
 
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt; // 이벤트 종료 일시
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted = false; // 삭제 여부 (Soft Delete)
 
     private Event(
         String name,
@@ -106,6 +109,32 @@ public class Event extends BaseEntity {
             startAt,
             endAt
         );
+    }
+
+    public void update(
+        String name,
+        String description,
+        String subtitle,
+        Long thumbnailImageFileId,
+        Long bannerImageFileId,
+        String contentHtml,
+        EventStatus status,
+        LocalDateTime startAt,
+        LocalDateTime endAt
+    ) {
+        this.name = name;
+        this.description = description;
+        this.subtitle = subtitle;
+        this.thumbnailImageFileId = thumbnailImageFileId;
+        this.bannerImageFileId = bannerImageFileId;
+        this.contentHtml = contentHtml;
+        this.status = status;
+        this.startAt = startAt;
+        this.endAt = endAt;
+    }
+
+    public void delete() {
+        this.deleted = true;
     }
 
     public EventId getEventId() {
