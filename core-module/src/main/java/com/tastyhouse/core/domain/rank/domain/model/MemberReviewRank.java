@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,6 +18,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -41,8 +44,9 @@ public class MemberReviewRank extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private MemberId memberId;
 
     @Column(name = "review_count", nullable = false)
     private Integer reviewCount;
@@ -61,7 +65,7 @@ public class MemberReviewRank extends BaseEntity {
     private LocalDateTime lastReviewAt;
 
     private MemberReviewRank(
-        Long memberId,
+        MemberId memberId,
         Integer reviewCount,
         Integer rankNo,
         RankType rankType,
@@ -77,7 +81,7 @@ public class MemberReviewRank extends BaseEntity {
     }
 
     public static MemberReviewRank of(
-        Long memberId,
+        MemberId memberId,
         Integer reviewCount,
         Integer rankNo,
         RankType rankType,

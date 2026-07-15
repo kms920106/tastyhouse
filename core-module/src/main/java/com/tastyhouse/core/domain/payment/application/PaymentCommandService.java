@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
@@ -60,7 +61,7 @@ public class PaymentCommandService {
     private static final int CASH_POINT_EARN_RATE = 10;
 
     @Transactional
-    public PaymentResult createPayment(Long memberId, PaymentCreateCommand command) {
+    public PaymentResult createPayment(MemberId memberId, PaymentCreateCommand command) {
         OrderId orderId = OrderId.of(command.orderId());
         Order order = orderQueryService.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
@@ -114,7 +115,7 @@ public class PaymentCommandService {
     }
 
     @Transactional
-    public PaymentResult confirmTossPayment(Long memberId, TossConfirmCommand command) {
+    public PaymentResult confirmTossPayment(MemberId memberId, TossConfirmCommand command) {
         Payment payment = paymentRepository.findByPgOrderId(command.pgOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
@@ -173,7 +174,7 @@ public class PaymentCommandService {
     }
 
     @Transactional
-    public PaymentCancelResult cancelPayment(Long memberId, Long paymentIdValue, CancelPaymentCommand command) {
+    public PaymentCancelResult cancelPayment(MemberId memberId, Long paymentIdValue, CancelPaymentCommand command) {
         PaymentId paymentId = PaymentId.of(paymentIdValue);
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
@@ -225,7 +226,7 @@ public class PaymentCommandService {
     }
 
     @Transactional
-    public PaymentRefundResult requestRefund(Long memberId, Long paymentIdValue, RequestRefundCommand command) {
+    public PaymentRefundResult requestRefund(MemberId memberId, Long paymentIdValue, RequestRefundCommand command) {
         PaymentId paymentId = PaymentId.of(paymentIdValue);
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
@@ -262,7 +263,7 @@ public class PaymentCommandService {
     }
 
     @Transactional
-    public PaymentResult completeOnSitePayment(Long memberId, Long paymentIdValue) {
+    public PaymentResult completeOnSitePayment(MemberId memberId, Long paymentIdValue) {
         PaymentId paymentId = PaymentId.of(paymentIdValue);
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));

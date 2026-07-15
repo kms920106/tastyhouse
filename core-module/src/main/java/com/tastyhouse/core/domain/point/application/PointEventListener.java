@@ -16,18 +16,18 @@ public class PointEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(PointEarnedEvent event) {
         log.info("포인트 적립 완료 — memberId={}, pointAmount={}, reason={}, earnedAt={}",
-            event.memberId(), event.pointAmount(), event.reason(), event.earnedAt());
+            event.memberId().value(), event.pointAmount(), event.reason(), event.earnedAt());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(PointUsedEvent event) {
         log.info("포인트 사용 완료 — memberId={}, pointAmount={}, usedAt={}",
-            event.memberId(), event.pointAmount(), event.usedAt());
+            event.memberId().value(), event.pointAmount(), event.usedAt());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(PointRefundedEvent event) {
         log.info("포인트 환불 완료 — memberId={}, pointAmount={}, refundedAt={}",
-            event.memberId(), event.pointAmount(), event.refundedAt());
+            event.memberId().value(), event.pointAmount(), event.refundedAt());
     }
 }

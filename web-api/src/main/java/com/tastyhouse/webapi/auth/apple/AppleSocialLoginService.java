@@ -13,7 +13,6 @@ import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -69,7 +68,7 @@ public class AppleSocialLoginService {
             // Apple은 이메일 외 nickname/profileImageUrl 미제공 → email만 업데이트
             socialAccount.updateProviderInfo(appleUser.email(), null, null);
 
-            Member member = memberQueryService.getById(MemberId.of(socialAccount.getMemberId()));
+            Member member = memberQueryService.getById(socialAccount.getMemberId());
             return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 
@@ -142,7 +141,7 @@ public class AppleSocialLoginService {
 
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                member.getId(),
+                member.getMemberId(),
                 SocialProvider.APPLE,
                 providerId,
                 appleUser.email(),
@@ -198,7 +197,7 @@ public class AppleSocialLoginService {
 
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                savedMember.getId(),
+                savedMember.getMemberId(),
                 SocialProvider.APPLE,
                 providerId,
                 appleUser.email(),

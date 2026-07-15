@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
@@ -31,7 +32,7 @@ public class SearchResultQueryService {
         return reviewRepository.searchByKeyword(keyword, pageQuery);
     }
 
-    public PageResult<ShopBookmarkedItemDto> searchShopsWithBookmark(String keyword, Long memberId, int page, int size) {
+    public PageResult<ShopBookmarkedItemDto> searchShopsWithBookmark(String keyword, MemberId memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return shopRepository.searchByKeywordWithBookmark(keyword, memberId, pageQuery);
     }

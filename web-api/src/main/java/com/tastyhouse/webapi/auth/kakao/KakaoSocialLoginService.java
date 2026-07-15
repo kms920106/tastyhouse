@@ -13,7 +13,6 @@ import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -58,7 +57,7 @@ public class KakaoSocialLoginService {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl());
 
-            Member member = memberQueryService.getById(MemberId.of(socialAccount.getMemberId()));
+            Member member = memberQueryService.getById(socialAccount.getMemberId());
             return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 
@@ -124,7 +123,7 @@ public class KakaoSocialLoginService {
         Member member = memberOpt.get();
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                member.getId(), SocialProvider.KAKAO, providerId,
+                member.getMemberId(), SocialProvider.KAKAO, providerId,
                 kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl()
             )
         );
@@ -170,7 +169,7 @@ public class KakaoSocialLoginService {
 
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                savedMember.getId(),
+                savedMember.getMemberId(),
                 SocialProvider.KAKAO,
                 providerId,
                 kakaoUser.getEmail(),

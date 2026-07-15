@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.model.ReviewLike;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
@@ -18,7 +19,7 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
     private final ReviewLikeJpaRepository reviewLikeJpaRepository;
 
     @Override
-    public boolean existsByReviewIdAndMemberId(ReviewId reviewId, Long memberId) {
+    public boolean existsByReviewIdAndMemberId(ReviewId reviewId, MemberId memberId) {
         return queryFactory
             .selectOne()
             .from(reviewLike)
@@ -30,7 +31,7 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
     }
 
     @Override
-    public void deleteByReviewIdAndMemberId(ReviewId reviewId, Long memberId) {
+    public void deleteByReviewIdAndMemberId(ReviewId reviewId, MemberId memberId) {
         queryFactory
             .delete(reviewLike)
             .where(

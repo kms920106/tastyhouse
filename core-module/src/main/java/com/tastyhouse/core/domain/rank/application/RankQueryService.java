@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
 import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
@@ -36,11 +37,11 @@ public class RankQueryService {
         return memberReviewRankRepository.findMemberRankList(rankType, baseDate, limit);
     }
 
-    public MemberRankResult findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
+    public MemberRankResult findMemberRank(MemberId memberId, RankType rankType, LocalDate baseDate) {
         return memberReviewRankRepository.findMemberRank(memberId, rankType, baseDate);
     }
 
-    public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(Long memberId, RankType rankType) {
+    public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType) {
         return memberReviewRankRepository.findLatestByMemberIdAndRankType(memberId, rankType);
     }
 }

@@ -3,6 +3,7 @@ package com.tastyhouse.core.domain.shop.domain.repository;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
@@ -20,7 +21,7 @@ public interface ShopRepository {
 
     PageResult<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, PageQuery pageQuery);
 
-    PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, PageQuery pageQuery);
+    PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(MemberId memberId, PageQuery pageQuery);
 
-    PageResult<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, PageQuery pageQuery);
+    PageResult<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, MemberId memberId, PageQuery pageQuery);
 }

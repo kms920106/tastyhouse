@@ -8,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
@@ -28,7 +29,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public List<Reservation> findByMemberId(Long memberId) {
+    public List<Reservation> findByMemberId(MemberId memberId) {
         return queryFactory.selectFrom(reservation)
             .where(reservation.memberId.eq(memberId))
             .orderBy(reservation.reservationDate.desc(), reservation.reservationTime.desc())
@@ -44,7 +45,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public boolean existsBlockingByMemberShopDate(Long memberId, Long shopId, LocalDate date) {
+    public boolean existsBlockingByMemberShopDate(MemberId memberId, Long shopId, LocalDate date) {
         return queryFactory.selectOne()
             .from(reservation)
             .where(
@@ -57,7 +58,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public Optional<Reservation> findBlockingByMemberShopDate(Long memberId, Long shopId, LocalDate date) {
+    public Optional<Reservation> findBlockingByMemberShopDate(MemberId memberId, Long shopId, LocalDate date) {
         return Optional.ofNullable(
             queryFactory.selectFrom(reservation)
                 .where(

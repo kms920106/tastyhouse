@@ -3,6 +3,7 @@ package com.tastyhouse.webapi.payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
 import com.tastyhouse.core.domain.payment.application.PaymentCommandService;
@@ -27,8 +28,9 @@ public class PaymentService {
     private final PaymentQueryService paymentQueryService;
 
     public PaymentResponse createPayment(Long memberId, Long orderId, String paymentMethod) {
+        MemberId targetMemberId = MemberId.of(memberId);
         PaymentResult result = paymentCommandService.createPayment(
-            memberId, PaymentCreateCommand.of(orderId, PaymentMethod.from(paymentMethod)));
+            targetMemberId, PaymentCreateCommand.of(orderId, PaymentMethod.from(paymentMethod)));
         return PaymentResponse.from(result);
     }
 
@@ -49,30 +51,34 @@ public class PaymentService {
     }
 
     public PaymentResponse confirmTossPayment(Long memberId, String paymentKey, String pgOrderId, Integer amount) {
+        MemberId targetMemberId = MemberId.of(memberId);
         PaymentResult result = paymentCommandService.confirmTossPayment(
-            memberId, TossConfirmCommand.of(paymentKey, pgOrderId, amount));
+            targetMemberId, TossConfirmCommand.of(paymentKey, pgOrderId, amount));
         return PaymentResponse.from(result);
     }
 
     public PaymentResponse getPaymentByOrderId(Long memberId, Long orderId) {
-        PaymentResult result = paymentQueryService.getPaymentByOrderId(memberId, orderId);
+        PaymentResult result = paymentQueryService.getPaymentByOrderId(MemberId.of(memberId), orderId);
         return PaymentResponse.from(result);
     }
 
     public PaymentCancelResponse cancelPayment(Long memberId, Long paymentId, String cancelReason) {
+        MemberId targetMemberId = MemberId.of(memberId);
         PaymentCancelResult result = paymentCommandService.cancelPayment(
-            memberId, paymentId, CancelPaymentCommand.of(cancelReason));
+            targetMemberId, paymentId, CancelPaymentCommand.of(cancelReason));
         return PaymentCancelResponse.of(result);
     }
 
     public PaymentResponse completeOnSitePayment(Long memberId, Long paymentId) {
-        PaymentResult result = paymentCommandService.completeOnSitePayment(memberId, paymentId);
+        MemberId targetMemberId = MemberId.of(memberId);
+        PaymentResult result = paymentCommandService.completeOnSitePayment(targetMemberId, paymentId);
         return PaymentResponse.from(result);
     }
 
     public PaymentRefundResponse requestRefund(Long memberId, Long paymentId, Integer refundAmount, String refundReason) {
+        MemberId targetMemberId = MemberId.of(memberId);
         PaymentRefundResult result = paymentCommandService.requestRefund(
-            memberId, paymentId, RequestRefundCommand.of(refundAmount, refundReason));
+            targetMemberId, paymentId, RequestRefundCommand.of(refundAmount, refundReason));
         return PaymentRefundResponse.from(result);
     }
 }

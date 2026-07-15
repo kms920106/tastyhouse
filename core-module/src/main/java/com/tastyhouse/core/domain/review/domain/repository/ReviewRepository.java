@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
@@ -38,9 +39,9 @@ public interface ReviewRepository {
 
     Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId);
 
-    PageResult<MyReviewListItemResult> findMyReviews(Long memberId, PageQuery pageQuery);
+    PageResult<MyReviewListItemResult> findMyReviews(MemberId memberId, PageQuery pageQuery);
 
-    PageResult<MyReviewListItemResult> findReviewsByMemberId(Long memberId, PageQuery pageQuery);
+    PageResult<MyReviewListItemResult> findReviewsByMemberId(MemberId memberId, PageQuery pageQuery);
 
     Long countByShopIdAndHiddenFalse(Long shopId);
 
@@ -72,11 +73,11 @@ public interface ReviewRepository {
 
     Optional<Review> findById(ReviewId reviewId);
 
-    Optional<Review> findByIdAndMemberId(ReviewId reviewId, Long memberId);
+    Optional<Review> findByIdAndMemberId(ReviewId reviewId, MemberId memberId);
 
-    long countVisibleReviewsByMemberId(Long memberId);
+    long countVisibleReviewsByMemberId(MemberId memberId);
 
-    boolean existsByOrderIdAndProductIdAndMemberId(Long orderId, Long productId, Long memberId);
+    boolean existsByOrderIdAndProductIdAndMemberId(Long orderId, Long productId, MemberId memberId);
 
     Review save(Review review);
 

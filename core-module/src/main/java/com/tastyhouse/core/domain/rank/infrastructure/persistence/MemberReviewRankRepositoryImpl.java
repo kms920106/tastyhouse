@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
 import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
@@ -37,7 +39,7 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
                 member.memberGrade
             ))
             .from(memberReviewRank)
-            .innerJoin(member).on(memberReviewRank.memberId.eq(member.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRank, "memberId").eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(
                 memberReviewRank.rankType.eq(rankType),
@@ -49,7 +51,7 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
     }
 
     @Override
-    public MemberRankResult findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
+    public MemberRankResult findMemberRank(MemberId memberId, RankType rankType, LocalDate baseDate) {
         return queryFactory
             .select(new QMemberRankResult(
                 memberReviewRank.memberId,
@@ -60,7 +62,7 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
                 member.memberGrade
             ))
             .from(memberReviewRank)
-            .innerJoin(member).on(memberReviewRank.memberId.eq(member.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRank, "memberId").eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
             .where(
                 memberReviewRank.memberId.eq(memberId),
@@ -71,7 +73,7 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
     }
 
     @Override
-    public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(Long memberId, RankType rankType) {
+    public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType) {
         return Optional.ofNullable(queryFactory
             .selectFrom(memberReviewRank)
             .where(

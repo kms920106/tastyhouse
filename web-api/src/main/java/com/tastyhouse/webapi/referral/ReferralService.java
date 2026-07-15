@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.referral.application.ReferralQueryService;
 import com.tastyhouse.webapi.referral.response.MemberReferralListItemResponse;
 
@@ -19,7 +20,8 @@ public class ReferralService {
 
     @Transactional(readOnly = true)
     public List<MemberReferralListItemResponse> getMyReferrals(Long referrerId) {
-        return referralQueryService.findByReferrerId(referrerId)
+        MemberId memberId = MemberId.of(referrerId);
+        return referralQueryService.findByReferrerId(memberId)
             .stream()
             .map(MemberReferralListItemResponse::from)
             .toList();

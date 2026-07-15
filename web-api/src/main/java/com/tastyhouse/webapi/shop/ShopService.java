@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
@@ -346,7 +347,7 @@ public class ShopService {
             imageUrls,
             dto.totalRating(),
             dto.content(),
-            dto.memberId(),
+            dto.memberId().value(),
             dto.memberNickname(),
             fileService.getUrlByPath(dto.memberProfileImageUrl()),
             dto.createdAt(),
@@ -445,13 +446,14 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public ShopBookmarkResponse isBookmarked(Long shopId, Long memberId) {
-        boolean isBookmarked = shopQueryService.isBookmarked(shopId, memberId);
+        boolean isBookmarked = shopQueryService.isBookmarked(shopId, MemberId.of(memberId));
         return ShopBookmarkResponse.from(isBookmarked);
     }
 
     @Transactional
     public boolean toggleBookmark(Long shopId, Long memberId) {
-        return shopCommandService.toggleBookmark(shopId, memberId);
+        MemberId targetMemberId = MemberId.of(memberId);
+        return shopCommandService.toggleBookmark(shopId, targetMemberId);
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.referral.domain.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,7 +15,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -39,23 +42,25 @@ public class MemberReferral extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "referrer_id", nullable = false)
-    private Long referrerId;
+    private MemberId referrerId;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "referee_id", nullable = false)
-    private Long refereeId;
+    private MemberId refereeId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private ReferralStatus status;
 
-    private MemberReferral(Long referrerId, Long refereeId) {
+    private MemberReferral(MemberId referrerId, MemberId refereeId) {
         this.referrerId = referrerId;
         this.refereeId = refereeId;
         this.status = ReferralStatus.PENDING;
     }
 
-    public static MemberReferral register(Long referrerId, Long refereeId) {
+    public static MemberReferral register(MemberId referrerId, MemberId refereeId) {
         return new MemberReferral(referrerId, refereeId);
     }
 

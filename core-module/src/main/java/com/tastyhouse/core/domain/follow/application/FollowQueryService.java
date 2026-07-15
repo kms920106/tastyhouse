@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
@@ -21,12 +22,12 @@ public class FollowQueryService {
     private final FollowRepository followRepository;
     private final MemberQueryService memberQueryService;
 
-    public PageResult<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
+    public PageResult<FollowMemberResult> findFollowingList(MemberId memberId, MemberId viewerMemberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return followRepository.findFollowingList(memberId, viewerMemberId, pageQuery);
     }
 
-    public PageResult<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
+    public PageResult<FollowMemberResult> findFollowerList(MemberId memberId, MemberId viewerMemberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return followRepository.findFollowerList(memberId, viewerMemberId, pageQuery);
     }
@@ -39,15 +40,15 @@ public class FollowQueryService {
         return followRepository.existsByFollowerIdAndFollowingId(followerId, followingId);
     }
 
-    public long countFollowing(Long memberId) {
-        return followRepository.countByFollowerId(memberId);
+    public long countFollowing(MemberId memberId) {
+        return followRepository.countByFollowerId(memberId.value());
     }
 
-    public long countFollower(Long memberId) {
-        return followRepository.countByFollowingId(memberId);
+    public long countFollower(MemberId memberId) {
+        return followRepository.countByFollowingId(memberId.value());
     }
 
-    public List<Long> findFollowingIds(Long memberId) {
-        return followRepository.findFollowingIdsByFollowerId(memberId);
+    public List<Long> findFollowingIds(MemberId memberId) {
+        return followRepository.findFollowingIdsByFollowerId(memberId.value());
     }
 }

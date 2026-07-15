@@ -44,7 +44,7 @@ public class ReservationCreator {
     private EntityManager entityManager;
 
     @Transactional
-    public ReservationResult createInNewTx(Long memberId, ReservationCreateCommand cmd) {
+    public ReservationResult createInNewTx(MemberId memberId, ReservationCreateCommand cmd) {
         // 1. 필수 약관 동의 검증
         if (!cmd.agreedRequiredTerms()) {
             throw new BusinessException(ErrorCode.RESERVATION_TERMS_NOT_AGREED);
@@ -63,7 +63,7 @@ public class ReservationCreator {
 
         // 4. 가게/회원 검증 (가게 이름 확보)
         Shop shop = shopQueryService.findShopById(ShopId.of(cmd.shopId()));
-        memberQueryService.getById(MemberId.of(memberId));
+        memberQueryService.getById(memberId);
 
         // 5. 본인 중복 차단 (같은 가게 + 같은 날짜에 재예약 차단 예약 1건 제한)
         if (reservationRepository.existsBlockingByMemberShopDate(memberId, cmd.shopId(), cmd.date())) {

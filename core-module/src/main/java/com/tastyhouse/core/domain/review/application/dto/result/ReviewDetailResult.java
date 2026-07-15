@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+
 public record ReviewDetailResult(
     Long id,
     Long shopId,
@@ -19,7 +21,7 @@ public record ReviewDetailResult(
     Double kindnessRating,
     Double hygieneRating,
     boolean willRevisit,
-    Long memberId,
+    MemberId memberId,
     String memberNickname,
     String memberProfileImageUrl,
     LocalDateTime createdAt,
@@ -41,7 +43,7 @@ public record ReviewDetailResult(
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        Long memberId,
+        MemberId memberId,
         String memberNickname,
         String memberProfileImageUrl,
         LocalDateTime createdAt

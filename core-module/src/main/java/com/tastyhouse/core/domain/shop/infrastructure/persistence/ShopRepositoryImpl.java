@@ -12,6 +12,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
@@ -207,7 +208,7 @@ public class ShopRepositoryImpl implements ShopRepository {
     }
 
     @Override
-    public PageResult<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, Long memberId, PageQuery pageQuery) {
+    public PageResult<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, MemberId memberId, PageQuery pageQuery) {
         BooleanBuilder where = new BooleanBuilder()
                 .and(shop.permanentlyClosed.eq(false))
                 .and(shop.name.containsIgnoreCase(keyword));
@@ -264,7 +265,7 @@ public class ShopRepositoryImpl implements ShopRepository {
     }
 
     @Override
-    public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, PageQuery pageQuery) {
+    public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(MemberId memberId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(shopBookmark.count())
             .from(shopBookmark)

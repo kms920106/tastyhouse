@@ -60,9 +60,9 @@ public class OrderCommandService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public OrderResult createOrder(Long memberId, OrderCreateCommand command) {
+    public OrderResult createOrder(MemberId memberId, OrderCreateCommand command) {
         Shop shop = shopQueryService.findShopById(ShopId.of(command.shopId()));
-        Member member = memberQueryService.getById(MemberId.of(memberId));
+        Member member = memberQueryService.getById(memberId);
 
         Order order = Order.of(
             memberId,

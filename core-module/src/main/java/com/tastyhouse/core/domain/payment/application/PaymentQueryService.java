@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
@@ -22,7 +23,7 @@ public class PaymentQueryService {
     private final OrderQueryService orderQueryService;
 
     @Transactional(readOnly = true)
-    public PaymentResult getPaymentByOrderId(Long memberId, Long orderIdValue) {
+    public PaymentResult getPaymentByOrderId(MemberId memberId, Long orderIdValue) {
         OrderId orderId = OrderId.of(orderIdValue);
         Order order = orderQueryService.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));

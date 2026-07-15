@@ -52,7 +52,7 @@ public class RankService {
 
         return ranks.stream()
             .map(dto -> MemberRankListItemResponse.of(
-                dto.memberId(),
+                dto.memberId().value(),
                 dto.nickname(),
                 fileService.getUrlByPath(dto.profileImageUrl()),
                 dto.reviewCount(),
@@ -66,7 +66,7 @@ public class RankService {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
-        MemberRankResult dto = rankQueryService.findMemberRank(memberId, type, baseDate);
+        MemberRankResult dto = rankQueryService.findMemberRank(MemberId.of(memberId), type, baseDate);
         if (dto == null) {
             MemberWithProfileImageResult member = memberQueryService.findMemberWithProfileImage(MemberId.of(memberId))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -80,7 +80,7 @@ public class RankService {
             );
         }
         return MemberRankListItemResponse.of(
-            dto.memberId(),
+            dto.memberId().value(),
             dto.nickname(),
             fileService.getUrlByPath(dto.profileImageUrl()),
             dto.reviewCount(),

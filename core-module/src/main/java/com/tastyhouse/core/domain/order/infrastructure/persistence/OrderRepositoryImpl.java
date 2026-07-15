@@ -8,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
@@ -36,7 +37,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public PageResult<OrderListItemResult> findOrderListByMemberId(Long memberId, PageQuery pageQuery) {
+    public PageResult<OrderListItemResult> findOrderListByMemberId(MemberId memberId, PageQuery pageQuery) {
         var paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId")
             .eq(order.id)
             .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED));

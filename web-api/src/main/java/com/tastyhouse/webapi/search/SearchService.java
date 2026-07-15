@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.search.application.SearchKeywordQueryService;
 import com.tastyhouse.core.domain.search.application.SearchResultQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -57,7 +58,7 @@ public class SearchService {
     }
 
     public PageResult<SearchShopListItemResponse> searchShopsPaged(String keyword, Long memberId, int page, int size) {
-        return searchResultQueryService.searchShopsWithBookmark(keyword, memberId, page, size)
+        return searchResultQueryService.searchShopsWithBookmark(keyword, MemberId.of(memberId), page, size)
             .map(dto -> SearchShopListItemResponse.from(
                 dto.shopId(),
                 dto.shopName(),

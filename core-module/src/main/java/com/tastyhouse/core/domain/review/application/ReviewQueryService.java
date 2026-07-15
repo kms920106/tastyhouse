@@ -19,6 +19,7 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewTagRepository;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
@@ -73,7 +74,7 @@ public class ReviewQueryService {
         });
     }
 
-    public boolean isLikedByMember(ReviewId reviewId, Long memberId) {
+    public boolean isLikedByMember(ReviewId reviewId, MemberId memberId) {
         return reviewLikeRepository.existsByReviewIdAndMemberId(reviewId, memberId);
     }
 
@@ -82,7 +83,7 @@ public class ReviewQueryService {
         return reviewRepository.findLatestReviews(pageQuery);
     }
 
-    public PageResult<LatestReviewListItemResult> findLatestReviewsByFollowingWithPagination(Long memberId, int page, int size) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByFollowingWithPagination(MemberId memberId, int page, int size) {
         List<Long> followingMemberIds = followQueryService.findFollowingIds(memberId);
 
         if (followingMemberIds.isEmpty()) {
@@ -205,21 +206,21 @@ public class ReviewQueryService {
         return new ProductReviewStatisticsResult(totalCount, null, null, null);
     }
 
-    public long countVisibleReviewsByMemberId(Long memberId) {
+    public long countVisibleReviewsByMemberId(MemberId memberId) {
         return reviewRepository.countVisibleReviewsByMemberId(memberId);
     }
 
-    public PageResult<MyReviewListItemResult> findMyReviews(Long memberId, int page, int size) {
+    public PageResult<MyReviewListItemResult> findMyReviews(MemberId memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return reviewRepository.findMyReviews(memberId, pageQuery);
     }
 
-    public PageResult<MyReviewListItemResult> findReviewsByMemberId(Long memberId, int page, int size) {
+    public PageResult<MyReviewListItemResult> findReviewsByMemberId(MemberId memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return reviewRepository.findReviewsByMemberId(memberId, pageQuery);
     }
 
-    public boolean isReviewedByOrderAndProduct(Long orderId, Long productId, Long memberId) {
+    public boolean isReviewedByOrderAndProduct(Long orderId, Long productId, MemberId memberId) {
         return reviewRepository.existsByOrderIdAndProductIdAndMemberId(orderId, productId, memberId);
     }
 

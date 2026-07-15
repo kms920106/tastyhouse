@@ -7,6 +7,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
@@ -37,7 +38,7 @@ public class ReservationCommandService {
      * 일시적 경합(슬롯 동시 insert/낙관적 락 충돌)만 재시도하고,
      * 비즈니스 예외(SLOT_FULL/DUPLICATE/TERMS 등)는 재시도 없이 즉시 전파한다.
      */
-    public ReservationResult create(Long memberId, ReservationCreateCommand cmd) {
+    public ReservationResult create(MemberId memberId, ReservationCreateCommand cmd) {
         for (int attempt = 0; ; attempt++) {
             try {
                 return reservationCreator.createInNewTx(memberId, cmd);
@@ -90,7 +91,7 @@ public class ReservationCommandService {
      * 사용자 취소: PENDING|CONFIRMED -> CANCELED (슬롯 정원 반납)
      */
     @Transactional
-    public ReservationResult cancel(ReservationId reservationId, Long memberId) {
+    public ReservationResult cancel(ReservationId reservationId, MemberId memberId) {
         Reservation reservation = getReservation(reservationId);
         reservation.validateOwnership(memberId);
         reservation.cancel();

@@ -1,9 +1,10 @@
 package com.tastyhouse.core.domain.point.application.dto.result;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.domain.model.MemberPoint;
 
 public record MemberPointResult(
-    Long memberId,
+    MemberId memberId,
     Integer availablePoints,
     Integer expiredThisMonth
 ) {

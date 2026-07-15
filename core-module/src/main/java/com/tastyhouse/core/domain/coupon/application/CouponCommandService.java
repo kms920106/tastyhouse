@@ -15,6 +15,7 @@ import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.coupon.application.dto.command.CouponCreateCommand;
 import com.tastyhouse.core.domain.coupon.application.dto.command.CouponUpdateCommand;
 import com.tastyhouse.core.domain.coupon.application.dto.command.IssueCouponCommand;
@@ -80,7 +81,7 @@ public class CouponCommandService {
         coupon.delete();
     }
 
-    public MemberCouponId issueCouponByAdmin(CouponId couponId, Long memberId) {
+    public MemberCouponId issueCouponByAdmin(CouponId couponId, MemberId memberId) {
         Coupon coupon = couponRepository.findById(couponId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
 
@@ -88,7 +89,8 @@ public class CouponCommandService {
             throw new BusinessException(ErrorCode.COUPON_ALREADY_ISSUED);
         }
 
-        return issueCoupon(IssueCouponCommand.of(memberId, couponId.value(), coupon.getUseEndAt()));
+        IssueCouponCommand command = IssueCouponCommand.of(memberId, couponId.value(), coupon.getUseEndAt());
+        return issueCoupon(command);
     }
 
     public MemberCouponId issueCoupon(IssueCouponCommand command) {

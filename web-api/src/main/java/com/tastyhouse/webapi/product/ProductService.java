@@ -191,7 +191,7 @@ public class ProductService {
             dto.imageUrls().stream().map(fileService::getUrlByPath).toList(),
             dto.totalRating(),
             dto.content(),
-            dto.memberId(),
+            dto.memberId().value(),
             dto.memberNickname(),
             fileService.getUrlByPath(dto.memberProfileImageUrl()),
             dto.createdAt(),

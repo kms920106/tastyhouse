@@ -3,6 +3,7 @@ package com.tastyhouse.core.domain.bug.domain.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,6 +17,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -36,8 +39,9 @@ public class BugReport extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private MemberId memberId;
 
     @Column(name = "device", nullable = false, length = 100)
     private String device;
@@ -80,7 +84,7 @@ public class BugReport extends BaseEntity {
     private String osVersion;
 
     private BugReport(
-        Long memberId,
+        MemberId memberId,
         String device,
         String title,
         String content,
@@ -99,7 +103,7 @@ public class BugReport extends BaseEntity {
     }
 
     public static BugReport create(
-        Long memberId,
+        MemberId memberId,
         String device,
         String title,
         String content,

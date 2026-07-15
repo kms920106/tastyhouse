@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.point.domain.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,7 +14,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.point.domain.vo.MemberPointHistoryId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -32,8 +34,9 @@ public class MemberPointHistory extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private MemberId memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "point_type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
@@ -45,18 +48,14 @@ public class MemberPointHistory extends BaseEntity {
     @Column(name = "reason", nullable = false, length = 200)
     private String reason;
 
-    private MemberPointHistory(Long memberId, PointType pointType, Integer pointAmount, String reason) {
+    private MemberPointHistory(MemberId memberId, PointType pointType, Integer pointAmount, String reason) {
         this.memberId = memberId;
         this.pointType = pointType;
         this.pointAmount = pointAmount;
         this.reason = reason;
     }
 
-    public static MemberPointHistory of(Long memberId, PointType pointType, Integer pointAmount, String reason) {
+    public static MemberPointHistory of(MemberId memberId, PointType pointType, Integer pointAmount, String reason) {
         return new MemberPointHistory(memberId, pointType, pointAmount, reason);
-    }
-
-    public MemberPointHistoryId getMemberPointHistoryId() {
-        return MemberPointHistoryId.of(id);
     }
 }

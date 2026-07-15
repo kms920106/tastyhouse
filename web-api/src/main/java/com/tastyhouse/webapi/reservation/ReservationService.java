@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.reservation.application.ReservationCommandService;
@@ -38,7 +39,7 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public SlotAvailabilityResponse getAvailability(Long shopId, LocalDate date, Long memberId) {
-        DailySlotAvailabilityResult result = reservationQueryService.findSlotAvailability(shopId, date, memberId);
+        DailySlotAvailabilityResult result = reservationQueryService.findSlotAvailability(shopId, date, MemberId.of(memberId));
         return SlotAvailabilityResponse.from(result);
     }
 
@@ -51,28 +52,29 @@ public class ReservationService {
         String request,
         boolean agreedRequiredTerms
     ) {
+        MemberId memberIdVo = MemberId.of(memberId);
         ReservationCreateCommand command = ReservationCreateCommand.of(
             shopId, reservationDate, reservationTime, partySize, request, agreedRequiredTerms);
-        ReservationResult result = reservationCommandService.create(memberId, command);
+        ReservationResult result = reservationCommandService.create(memberIdVo, command);
         return ReservationResponse.from(result);
     }
 
     @Transactional(readOnly = true)
     public List<ReservationResponse> getMyReservations(Long memberId) {
-        return reservationQueryService.findMyReservations(memberId).stream()
+        return reservationQueryService.findMyReservations(MemberId.of(memberId)).stream()
             .map(ReservationResponse::from)
             .toList();
     }
 
     @Transactional(readOnly = true)
     public ReservationCompleteDetailResponse getDetail(Long memberId, Long reservationId) {
-        ReservationResult result = reservationQueryService.findDetail(memberId, ReservationId.of(reservationId));
+        ReservationResult result = reservationQueryService.findDetail(MemberId.of(memberId), ReservationId.of(reservationId));
         return ReservationCompleteDetailResponse.from(result, fileService.getUrlByPath(result.shopImageUrl()));
     }
 
     @Transactional(readOnly = true)
     public ReservationDetailResponse getReservationDetail(Long memberId, Long reservationId) {
-        ReservationResult result = reservationQueryService.findDetail(memberId, ReservationId.of(reservationId));
+        ReservationResult result = reservationQueryService.findDetail(MemberId.of(memberId), ReservationId.of(reservationId));
         Member reserver = memberQueryService.getById(result.memberId());
         String phoneNumber = reserver.getPhoneNumber() != null ? reserver.getPhoneNumber().getValue() : null;
         return ReservationDetailResponse.from(
@@ -86,7 +88,8 @@ public class ReservationService {
 
     public void cancel(Long reservationId, Long memberId) {
         ReservationId id = ReservationId.of(reservationId);
-        reservationCommandService.cancel(id, memberId);
+        MemberId memberIdVo = MemberId.of(memberId);
+        reservationCommandService.cancel(id, memberIdVo);
     }
 
     public ReservationResponse confirm(Long reservationId) {

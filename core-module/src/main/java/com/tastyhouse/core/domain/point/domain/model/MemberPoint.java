@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.point.domain.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,7 +12,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.point.domain.vo.MemberPointId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -31,8 +33,9 @@ public class MemberPoint extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false, unique = true)
-    private Long memberId;
+    private MemberId memberId;
 
     @Column(name = "available_points", nullable = false)
     private Integer availablePoints = 0;
@@ -40,18 +43,14 @@ public class MemberPoint extends BaseEntity {
     @Column(name = "expired_this_month", nullable = false)
     private Integer expiredThisMonth = 0;
 
-    private MemberPoint(Long memberId, Integer availablePoints, Integer expiredThisMonth) {
+    private MemberPoint(MemberId memberId, Integer availablePoints, Integer expiredThisMonth) {
         this.memberId = memberId;
         this.availablePoints = availablePoints != null ? availablePoints : 0;
         this.expiredThisMonth = expiredThisMonth != null ? expiredThisMonth : 0;
     }
 
-    public static MemberPoint of(Long memberId) {
+    public static MemberPoint of(MemberId memberId) {
         return new MemberPoint(memberId, 0, 0);
-    }
-
-    public MemberPointId getMemberPointId() {
-        return MemberPointId.of(id);
     }
 
     public void addPoints(Integer amount) {

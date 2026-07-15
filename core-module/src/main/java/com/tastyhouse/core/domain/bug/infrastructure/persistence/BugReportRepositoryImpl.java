@@ -16,6 +16,7 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.bug.application.dto.BugReportAdminListItemDto;
 import com.tastyhouse.core.domain.bug.application.dto.BugReportAdminSearchCondition;
 import com.tastyhouse.core.domain.bug.application.dto.QBugReportAdminListItemDto;
@@ -100,7 +101,7 @@ public class BugReportRepositoryImpl implements BugReportRepository {
         return StringUtils.hasText(content) ? bugReport.content.containsIgnoreCase(content) : null;
     }
 
-    private BooleanExpression memberIdEq(Long memberId) {
+    private BooleanExpression memberIdEq(MemberId memberId) {
         return memberId != null ? bugReport.memberId.eq(memberId) : null;
     }
 

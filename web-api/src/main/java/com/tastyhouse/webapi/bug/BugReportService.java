@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.core.domain.bug.domain.model.BugReportPlatform;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.bug.application.BugReportCommandService;
 import com.tastyhouse.core.domain.bug.application.dto.command.BugReportCreateCommand;
 import com.tastyhouse.core.domain.bug.application.dto.result.BugReportResult;
@@ -28,7 +29,7 @@ public class BugReportService {
         List<Long> uploadedFileIds
     ) {
         BugReportCreateCommand command = BugReportCreateCommand.of(
-            memberId,
+            MemberId.of(memberId),
             device,
             title,
             content,

@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.domain.event.PointEarnedEvent;
 import com.tastyhouse.core.domain.point.domain.event.PointRefundedEvent;
 import com.tastyhouse.core.domain.point.domain.event.PointUsedEvent;
@@ -86,7 +87,7 @@ public class PointCommandService {
         eventPublisher.publishEvent(new PointUsedEvent(command.memberId(), deductAmount, LocalDateTime.now()));
     }
 
-    public void getOrCreateMemberPoint(Long memberId) {
+    public void getOrCreateMemberPoint(MemberId memberId) {
         memberPointRepository.findByMemberId(memberId)
             .orElseGet(() -> memberPointRepository.save(MemberPoint.of(memberId)));
     }

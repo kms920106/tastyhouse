@@ -3,6 +3,7 @@ package com.tastyhouse.core.domain.member.domain.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,6 +16,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -33,8 +36,9 @@ public class MemberSocialAccount extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private MemberId memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "provider", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
@@ -56,7 +60,7 @@ public class MemberSocialAccount extends BaseEntity {
     private LocalDateTime lastLoginAt;
 
     private MemberSocialAccount(
-        Long memberId,
+        MemberId memberId,
         SocialProvider provider,
         String providerId,
         String providerEmail,
@@ -73,7 +77,7 @@ public class MemberSocialAccount extends BaseEntity {
     }
 
     public static MemberSocialAccount of(
-        Long memberId,
+        MemberId memberId,
         SocialProvider provider,
         String providerId,
         String providerEmail,

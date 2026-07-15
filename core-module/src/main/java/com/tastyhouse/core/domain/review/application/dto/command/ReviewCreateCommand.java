@@ -2,10 +2,12 @@ package com.tastyhouse.core.domain.review.application.dto.command;
 
 import java.util.List;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+
 public record ReviewCreateCommand(
     Long shopId,
     Long productId,
-    Long memberId,
+    MemberId memberId,
     Long orderProductId,
     Long orderId,
     Integer tasteRating,
@@ -19,7 +21,7 @@ public record ReviewCreateCommand(
     public static ReviewCreateCommand of(
         Long shopId,
         Long productId,
-        Long memberId,
+        MemberId memberId,
         Long orderProductId,
         Long orderId,
         Integer tasteRating,

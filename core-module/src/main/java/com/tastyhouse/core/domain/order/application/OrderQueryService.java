@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
@@ -44,12 +45,12 @@ public class OrderQueryService {
         return orderRepository.findById(orderId);
     }
 
-    public PageResult<OrderListItemResult> findOrderList(Long memberId, int page, int size) {
+    public PageResult<OrderListItemResult> findOrderList(MemberId memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return orderRepository.findOrderListByMemberId(memberId, pageQuery);
     }
 
-    public OrderResult findOrderDetail(Long memberId, OrderId orderId) {
+    public OrderResult findOrderDetail(MemberId memberId, OrderId orderId) {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 

@@ -38,7 +38,7 @@ public class PaymentEventListener {
             "현장 현금 결제 적립 (" + CASH_POINT_EARN_RATE + "%)"
         ));
 
-        log.info("Point earned. memberId: {}, earnedPoint: {}", event.memberId(), earnedPoint);
+        log.info("Point earned. memberId: {}, earnedPoint: {}", event.memberId().value(), earnedPoint);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -46,12 +46,12 @@ public class PaymentEventListener {
     public void on(PaymentCancelledEvent event) {
         if (event.usedPoint() > 0) {
             pointCommandService.refundPoints(new RefundPointCommand(event.memberId(), event.usedPoint()));
-            log.info("Point refunded. memberId: {}, usedPoint: {}", event.memberId(), event.usedPoint());
+            log.info("Point refunded. memberId: {}, usedPoint: {}", event.memberId().value(), event.usedPoint());
         }
 
         if (event.earnedPoint() > 0) {
             pointCommandService.reclaimEarnedPoints(new ReclaimPointCommand(event.memberId(), event.earnedPoint()));
-            log.info("Earned point reclaimed. memberId: {}, earnedPoint: {}", event.memberId(), event.earnedPoint());
+            log.info("Earned point reclaimed. memberId: {}, earnedPoint: {}", event.memberId().value(), event.earnedPoint());
         }
     }
 }

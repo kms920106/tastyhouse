@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
 import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
@@ -15,7 +16,7 @@ public record ReservationResult(
     String shopImageUrl,
     String shopRoadAddress,
     String shopLotAddress,
-    Long memberId,
+    MemberId memberId,
     LocalDate reservationDate,
     LocalTime reservationTime,
     Integer partySize,

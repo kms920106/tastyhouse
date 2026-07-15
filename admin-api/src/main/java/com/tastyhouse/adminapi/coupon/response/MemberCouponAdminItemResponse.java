@@ -29,7 +29,7 @@ public record MemberCouponAdminItemResponse(
     public static MemberCouponAdminItemResponse from(MemberCouponAdminItemDto dto) {
         return new MemberCouponAdminItemResponse(
             dto.id(),
-            dto.memberId(),
+            dto.memberId().value(),
             dto.used(),
             dto.usedAt(),
             dto.expiredAt(),

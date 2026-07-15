@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
@@ -122,7 +123,7 @@ public class ShopQueryService {
         return shopDetailRepository.findAllPhotoCategoryImages();
     }
 
-    public boolean isBookmarked(Long shopId, Long memberId) {
+    public boolean isBookmarked(Long shopId, MemberId memberId) {
         return shopBookmarkRepository.existsByShopIdAndMemberId(shopId, memberId);
     }
 
@@ -130,7 +131,7 @@ public class ShopQueryService {
         return shopDetailRepository.findLatestOwnerMessageByShopId(shopId);
     }
 
-    public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(Long memberId, int page, int size) {
+    public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(MemberId memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return shopRepository.findMyBookmarkedShops(memberId, pageQuery);
     }

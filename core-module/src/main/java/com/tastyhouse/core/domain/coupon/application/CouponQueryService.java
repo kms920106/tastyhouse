@@ -11,6 +11,7 @@ import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
 import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.coupon.application.dto.CouponAdminListItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.CouponDetailDto;
 import com.tastyhouse.core.domain.coupon.application.dto.CouponSearchCondition;
@@ -29,11 +30,11 @@ public class CouponQueryService {
     private final CouponRepository couponRepository;
     private final MemberCouponRepository memberCouponRepository;
 
-    public List<MemberCouponResult> findMemberCoupons(Long memberId) {
+    public List<MemberCouponResult> findMemberCoupons(MemberId memberId) {
         return memberCouponRepository.findWithCouponByMemberId(memberId);
     }
 
-    public List<MemberCouponResult> findAvailableMemberCoupons(Long memberId) {
+    public List<MemberCouponResult> findAvailableMemberCoupons(MemberId memberId) {
         return memberCouponRepository.findAvailableWithCouponByMemberId(memberId, LocalDateTime.now());
     }
 

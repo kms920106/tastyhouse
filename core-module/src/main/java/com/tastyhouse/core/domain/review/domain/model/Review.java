@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.review.domain.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,7 +11,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -29,8 +32,9 @@ public class Review extends BaseEntity {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private MemberId memberId;
 
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content;
@@ -68,7 +72,7 @@ public class Review extends BaseEntity {
     private Review(
         Long shopId,
         Long productId,
-        Long memberId,
+        MemberId memberId,
         String content,
         Double totalRating,
         Double tasteRating,
@@ -99,7 +103,7 @@ public class Review extends BaseEntity {
     public static Review of(
         Long shopId,
         Long productId,
-        Long memberId,
+        MemberId memberId,
         String content,
         Double totalRating,
         Double tasteRating,

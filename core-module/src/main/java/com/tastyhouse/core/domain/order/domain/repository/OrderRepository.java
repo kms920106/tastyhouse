@@ -2,6 +2,7 @@ package com.tastyhouse.core.domain.order.domain.repository;
 
 import java.util.Optional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
@@ -12,7 +13,7 @@ public interface OrderRepository {
 
     Optional<Order> findById(OrderId orderId);
 
-    PageResult<OrderListItemResult> findOrderListByMemberId(Long memberId, PageQuery pageQuery);
+    PageResult<OrderListItemResult> findOrderListByMemberId(MemberId memberId, PageQuery pageQuery);
 
     Order save(Order order);
 }

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointHistoryRepository;
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointRepository;
 import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
@@ -21,12 +22,12 @@ public class PointQueryService {
     private final MemberPointRepository memberPointRepository;
     private final MemberPointHistoryRepository memberPointHistoryRepository;
 
-    public Optional<MemberPointResult> findMemberPoint(Long memberId) {
+    public Optional<MemberPointResult> findMemberPoint(MemberId memberId) {
         return memberPointRepository.findByMemberId(memberId)
             .map(MemberPointResult::from);
     }
 
-    public List<MemberPointHistoryResult> findPointHistory(Long memberId) {
+    public List<MemberPointHistoryResult> findPointHistory(MemberId memberId) {
         return memberPointHistoryRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
             .stream()
             .map(MemberPointHistoryResult::from)

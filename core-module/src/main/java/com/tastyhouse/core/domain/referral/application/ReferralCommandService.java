@@ -30,7 +30,7 @@ public class ReferralCommandService {
     private final PointCommandService pointCommandService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public ReferralId register(RegisterReferralCommand command) {
+    public void register(RegisterReferralCommand command) {
         if (command.referrerId().equals(command.refereeId())) {
             throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
         }
@@ -43,10 +43,10 @@ public class ReferralCommandService {
         memberReferralRepository.save(referral);
 
         pointCommandService.getOrCreateMemberPoint(command.referrerId());
-        pointCommandService.earnPoints(new EarnPointCommand(command.referrerId(), REFERRAL_REWARD_POINT, "추천인 보상"));
+        pointCommandService.earnPoints(EarnPointCommand.of(command.referrerId(), REFERRAL_REWARD_POINT, "추천인 보상"));
 
         pointCommandService.getOrCreateMemberPoint(command.refereeId());
-        pointCommandService.earnPoints(new EarnPointCommand(command.refereeId(), REFEREE_REWARD_POINT, "추천받기 보상"));
+        pointCommandService.earnPoints(EarnPointCommand.of(command.refereeId(), REFEREE_REWARD_POINT, "추천받기 보상"));
 
         referral.reward();
         memberReferralRepository.save(referral);
@@ -57,8 +57,6 @@ public class ReferralCommandService {
             referral.getRefereeId(),
             LocalDateTime.now()
         ));
-
-        return referral.getReferralId();
     }
 
     public void cancel(ReferralId referralId) {

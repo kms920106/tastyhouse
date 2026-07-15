@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
@@ -109,7 +110,7 @@ public class MemberFacade {
     }
 
     public List<MyCouponListItemResponse> getMyCoupons(Long memberId) {
-        return couponQueryService.findMemberCoupons(memberId).stream()
+        return couponQueryService.findMemberCoupons(MemberId.of(memberId)).stream()
             .map(r -> MyCouponListItemResponse.of(
                 r.id(), r.couponId(), r.name(), r.description(),
                 r.discountType().name(), r.discountAmount(), r.maxDiscountAmount(),
@@ -120,7 +121,7 @@ public class MemberFacade {
     }
 
     public List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
-        return couponQueryService.findAvailableMemberCoupons(memberId).stream()
+        return couponQueryService.findAvailableMemberCoupons(MemberId.of(memberId)).stream()
             .map(r -> MyCouponListItemResponse.of(
                 r.id(), r.couponId(), r.name(), r.description(),
                 r.discountType().name(), r.discountAmount(), r.maxDiscountAmount(),

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,7 +17,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -38,8 +41,9 @@ public class Reservation extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private MemberId memberId;
 
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
@@ -61,7 +65,7 @@ public class Reservation extends BaseEntity {
     private String request;
 
     private Reservation(
-        Long memberId,
+        MemberId memberId,
         Long shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
@@ -78,7 +82,7 @@ public class Reservation extends BaseEntity {
     }
 
     public static Reservation of(
-        Long memberId,
+        MemberId memberId,
         Long shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
@@ -95,7 +99,7 @@ public class Reservation extends BaseEntity {
     /**
      * 예약자 본인 검증. 본인이 아니면 접근 거부.
      */
-    public void validateOwnership(Long memberId) {
+    public void validateOwnership(MemberId memberId) {
         if (!this.memberId.equals(memberId)) {
             throw new AccessDeniedException(ErrorCode.RESERVATION_ACCESS_DENIED);
         }

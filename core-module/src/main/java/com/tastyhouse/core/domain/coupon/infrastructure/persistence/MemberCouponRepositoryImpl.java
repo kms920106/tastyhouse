@@ -12,6 +12,7 @@ import com.tastyhouse.core.domain.coupon.domain.model.MemberCoupon;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.coupon.application.dto.MemberCouponAdminItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.QMemberCouponAdminItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
@@ -35,7 +36,7 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
     }
 
     @Override
-    public List<MemberCouponResult> findWithCouponByMemberId(Long memberId) {
+    public List<MemberCouponResult> findWithCouponByMemberId(MemberId memberId) {
         return queryFactory
             .select(new QMemberCouponResult(
                 memberCoupon.id,
@@ -59,7 +60,7 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
     }
 
     @Override
-    public List<MemberCouponResult> findAvailableWithCouponByMemberId(Long memberId, LocalDateTime now) {
+    public List<MemberCouponResult> findAvailableWithCouponByMemberId(MemberId memberId, LocalDateTime now) {
         return queryFactory
             .select(new QMemberCouponResult(
                 memberCoupon.id,
@@ -114,7 +115,7 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
     }
 
     @Override
-    public boolean existsByMemberIdAndCouponId(Long memberId, CouponId couponId) {
+    public boolean existsByMemberIdAndCouponId(MemberId memberId, CouponId couponId) {
         Integer found = queryFactory
             .selectOne()
             .from(memberCoupon)

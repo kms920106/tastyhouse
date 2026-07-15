@@ -23,7 +23,7 @@ public record MemberReferralListItemResponse(
     public static MemberReferralListItemResponse from(MemberReferralResult result) {
         return new MemberReferralListItemResponse(
             result.id(),
-            result.refereeId(),
+            result.refereeId().value(),
             result.status().name(),
             result.createdAt()
         );

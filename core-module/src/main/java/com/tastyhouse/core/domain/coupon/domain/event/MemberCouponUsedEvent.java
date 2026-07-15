@@ -4,10 +4,11 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 
 public record MemberCouponUsedEvent(
     MemberCouponId memberCouponId,
-    Long memberId,
+    MemberId memberId,
     CouponId couponId,
     LocalDateTime usedAt
 ) {

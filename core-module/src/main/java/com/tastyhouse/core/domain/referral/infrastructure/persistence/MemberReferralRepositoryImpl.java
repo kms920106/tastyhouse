@@ -7,6 +7,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.referral.domain.model.MemberReferral;
 import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
 import com.tastyhouse.core.domain.referral.domain.vo.ReferralId;
@@ -21,7 +22,7 @@ public class MemberReferralRepositoryImpl implements MemberReferralRepository {
     private final MemberReferralJpaRepository memberReferralJpaRepository;
 
     @Override
-    public boolean existsByRefereeId(Long refereeId) {
+    public boolean existsByRefereeId(MemberId refereeId) {
         return queryFactory
             .selectOne()
             .from(memberReferral)
@@ -30,7 +31,7 @@ public class MemberReferralRepositoryImpl implements MemberReferralRepository {
     }
 
     @Override
-    public List<MemberReferral> findByReferrerId(Long referrerId) {
+    public List<MemberReferral> findByReferrerId(MemberId referrerId) {
         return queryFactory
             .selectFrom(memberReferral)
             .where(memberReferral.referrerId.eq(referrerId))

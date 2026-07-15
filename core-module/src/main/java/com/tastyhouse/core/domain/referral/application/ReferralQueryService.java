@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.referral.domain.repository.MemberReferralRepository;
 import com.tastyhouse.core.domain.referral.application.dto.result.MemberReferralResult;
 
@@ -16,7 +17,7 @@ public class ReferralQueryService {
 
     private final MemberReferralRepository memberReferralRepository;
 
-    public List<MemberReferralResult> findByReferrerId(Long referrerId) {
+    public List<MemberReferralResult> findByReferrerId(MemberId referrerId) {
         return memberReferralRepository.findByReferrerId(referrerId)
             .stream()
             .map(MemberReferralResult::from)

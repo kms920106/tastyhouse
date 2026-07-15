@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ReservationSlot;
 import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
@@ -39,13 +40,13 @@ public class ReservationQueryService {
     private final ShopReservationSlotRepository slotRepository;
     private final ShopQueryService shopQueryService;
 
-    public List<ReservationResult> findMyReservations(Long memberId) {
+    public List<ReservationResult> findMyReservations(MemberId memberId) {
         return reservationRepository.findByMemberId(memberId).stream()
             .map(this::toResult)
             .toList();
     }
 
-    public ReservationResult findDetail(Long memberId, ReservationId reservationId) {
+    public ReservationResult findDetail(MemberId memberId, ReservationId reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         reservation.validateOwnership(memberId);
@@ -62,7 +63,7 @@ public class ReservationQueryService {
      * 특정 가게·날짜의 슬롯별 가용성.
      * 슬롯 행이 없으면 예약 0건이므로 전부 가용으로 간주한다.
      */
-    public DailySlotAvailabilityResult findSlotAvailability(Long shopId, LocalDate date, Long memberId) {
+    public DailySlotAvailabilityResult findSlotAvailability(Long shopId, LocalDate date, MemberId memberId) {
         // 가게 존재 검증
         shopQueryService.findShopById(ShopId.of(shopId));
 

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.follow.domain.model.Follow;
 import com.tastyhouse.core.domain.follow.domain.model.QFollow;
 import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -99,12 +100,12 @@ public class FollowRepositoryImpl implements FollowRepository {
     }
 
     @Override
-    public PageResult<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, PageQuery pageQuery) {
+    public PageResult<FollowMemberResult> findFollowingList(MemberId memberId, MemberId viewerMemberId, PageQuery pageQuery) {
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
                 .where(
-                    viewerFollow.followerId.eq(viewerMemberId),
+                    viewerFollow.followerId.eq(viewerMemberId.value()),
                     viewerFollow.followingId.eq(member.id)
                 )
                 .exists()
@@ -121,7 +122,7 @@ public class FollowRepositoryImpl implements FollowRepository {
             .from(follow)
             .join(member).on(follow.followingId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
-            .where(follow.followerId.eq(memberId))
+            .where(follow.followerId.eq(memberId.value()))
             .orderBy(follow.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -130,19 +131,19 @@ public class FollowRepositoryImpl implements FollowRepository {
         Long total = queryFactory
             .select(follow.count())
             .from(follow)
-            .where(follow.followerId.eq(memberId))
+            .where(follow.followerId.eq(memberId.value()))
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public PageResult<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, PageQuery pageQuery) {
+    public PageResult<FollowMemberResult> findFollowerList(MemberId memberId, MemberId viewerMemberId, PageQuery pageQuery) {
         BooleanExpression isFollowing = viewerMemberId != null
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
                 .where(
-                    viewerFollow.followerId.eq(viewerMemberId),
+                    viewerFollow.followerId.eq(viewerMemberId.value()),
                     viewerFollow.followingId.eq(member.id)
                 )
                 .exists()
@@ -159,7 +160,7 @@ public class FollowRepositoryImpl implements FollowRepository {
             .from(follow)
             .join(member).on(follow.followerId.eq(member.id))
             .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
-            .where(follow.followingId.eq(memberId))
+            .where(follow.followingId.eq(memberId.value()))
             .orderBy(follow.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -168,7 +169,7 @@ public class FollowRepositoryImpl implements FollowRepository {
         Long total = queryFactory
             .select(follow.count())
             .from(follow)
-            .where(follow.followingId.eq(memberId))
+            .where(follow.followingId.eq(memberId.value()))
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());

@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.domain.model.MemberPoint;
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointRepository;
 
@@ -19,7 +20,7 @@ public class MemberPointRepositoryImpl implements MemberPointRepository {
     private final MemberPointJpaRepository memberPointJpaRepository;
 
     @Override
-    public Optional<MemberPoint> findByMemberId(Long memberId) {
+    public Optional<MemberPoint> findByMemberId(MemberId memberId) {
         MemberPoint result = queryFactory
             .selectFrom(memberPoint)
             .where(memberPoint.memberId.eq(memberId))

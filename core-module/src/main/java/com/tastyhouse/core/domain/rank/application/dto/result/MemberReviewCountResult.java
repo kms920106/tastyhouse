@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+
 public record MemberReviewCountResult(
-    Long memberId,
+    MemberId memberId,
     Long reviewCount,
     LocalDateTime lastReviewAt
 ) {

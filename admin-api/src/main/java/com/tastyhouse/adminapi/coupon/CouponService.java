@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.coupon.application.CouponCommandService;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.core.domain.coupon.application.dto.CouponDetailDto;
@@ -93,7 +94,8 @@ public class CouponService {
 
     public Long issueCoupon(Long couponId, Long memberId) {
         CouponId targetCouponId = CouponId.of(couponId);
-        return couponCommandService.issueCouponByAdmin(targetCouponId, memberId).value();
+        MemberId targetMemberId = MemberId.of(memberId);
+        return couponCommandService.issueCouponByAdmin(targetCouponId, targetMemberId).value();
     }
 
     public MemberCouponPageResponse getIssuedCoupons(Long couponId, int page, int size) {

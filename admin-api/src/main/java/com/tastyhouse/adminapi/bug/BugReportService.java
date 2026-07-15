@@ -56,7 +56,7 @@ public class BugReportService {
         BugReportAdminSearchCondition condition = BugReportAdminSearchCondition.of(
             title,
             content,
-            memberId,
+            memberId == null ? null : MemberId.of(memberId),
             status == null ? null : BugReportStatus.from(status),
             category == null ? null : BugReportCategory.from(category),
             priority == null ? null : BugReportPriority.from(priority)
@@ -64,11 +64,11 @@ public class BugReportService {
         PageResult<BugReportAdminListItemDto> pageResult = bugReportQueryService.findAllBugReports(condition, page, size);
 
         Map<Long, MemberWithProfileImageResult> membersById = memberQueryService.findMemberWithProfileImagesByIds(
-            pageResult.content().stream().map(BugReportAdminListItemDto::memberId).toList()
+            pageResult.content().stream().map(dto -> dto.memberId().value()).toList()
         );
 
         PageResult<BugReportListItemResponse> responsePage = pageResult.map(
-            dto -> BugReportListItemResponse.from(dto, MemberSummaryResponse.from(membersById.get(dto.memberId())))
+            dto -> BugReportListItemResponse.from(dto, MemberSummaryResponse.from(membersById.get(dto.memberId().value())))
         );
         return BugReportPageResponse.from(responsePage);
     }
@@ -76,7 +76,7 @@ public class BugReportService {
     public BugReportDetailResponse getBugReport(Long id) {
         BugReportDetailDto detail = bugReportQueryService.findDetailById(BugReportId.of(id));
 
-        MemberSummaryResponse member = memberQueryService.findMemberWithProfileImage(MemberId.of(detail.memberId()))
+        MemberSummaryResponse member = memberQueryService.findMemberWithProfileImage(detail.memberId())
             .map(MemberSummaryResponse::from)
             .orElse(null);
 

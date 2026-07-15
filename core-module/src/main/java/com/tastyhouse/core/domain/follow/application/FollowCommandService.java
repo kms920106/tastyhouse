@@ -43,8 +43,8 @@ public class FollowCommandService {
         followRepository.delete(follow);
     }
 
-    public void removeFollower(Long memberId, Long followerId) {
-        Follow follow = followRepository.findByFollowerIdAndFollowingId(followerId, memberId)
+    public void removeFollower(MemberId memberId, MemberId followerId) {
+        Follow follow = followRepository.findByFollowerIdAndFollowingId(followerId.value(), memberId.value())
             .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
 
         followRepository.delete(follow);

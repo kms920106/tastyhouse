@@ -67,7 +67,7 @@ public record ReservationDetailResponse(
             shopImageUrl,
             result.shopRoadAddress(),
             result.shopLotAddress(),
-            result.memberId(),
+            result.memberId().value(),
             reserverName,
             reserverPhoneNumber,
             reserverEmail,

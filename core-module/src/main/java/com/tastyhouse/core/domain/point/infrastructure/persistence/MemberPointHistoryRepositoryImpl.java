@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.domain.model.MemberPointHistory;
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointHistoryRepository;
 
@@ -19,7 +20,7 @@ public class MemberPointHistoryRepositoryImpl implements MemberPointHistoryRepos
     private final MemberPointHistoryJpaRepository memberPointHistoryJpaRepository;
 
     @Override
-    public List<MemberPointHistory> findByMemberIdOrderByCreatedAtDesc(Long memberId) {
+    public List<MemberPointHistory> findByMemberIdOrderByCreatedAtDesc(MemberId memberId) {
         return queryFactory
             .selectFrom(memberPointHistory)
             .where(memberPointHistory.memberId.eq(memberId))

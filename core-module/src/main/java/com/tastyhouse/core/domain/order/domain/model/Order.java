@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.order.domain.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -12,8 +13,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -28,8 +31,9 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private MemberId memberId;
 
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
@@ -82,7 +86,7 @@ public class Order extends BaseEntity {
     private Integer earnedPoint;
 
     private Order(
-        Long memberId,
+        MemberId memberId,
         Long shopId,
         String orderNumber,
         OrderMethod orderMethod,
@@ -120,7 +124,7 @@ public class Order extends BaseEntity {
     }
 
     public static Order of(
-        Long memberId,
+        MemberId memberId,
         Long shopId,
         String orderNumber,
         OrderMethod orderMethod,
@@ -163,7 +167,7 @@ public class Order extends BaseEntity {
         return OrderId.of(this.id);
     }
 
-    public void validateOwnership(Long memberId) {
+    public void validateOwnership(MemberId memberId) {
         if (!this.memberId.equals(memberId)) {
             throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);
         }

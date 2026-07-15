@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.application.PointQueryService;
 import com.tastyhouse.webapi.member.response.PointHistoryItemResponse;
 import com.tastyhouse.webapi.member.response.PointHistoryResponse;
@@ -21,7 +22,7 @@ public class MemberPointService {
 
     @Transactional(readOnly = true)
     public PointResponse getMemberPoint(Long memberId) {
-        return pointQueryService.findMemberPoint(memberId)
+        return pointQueryService.findMemberPoint(MemberId.of(memberId))
             .map(PointResponse::from)
             .orElseGet(() -> PointResponse.of(0, 0));
     }
@@ -30,7 +31,7 @@ public class MemberPointService {
     public PointHistoryResponse getPointHistory(Long memberId) {
         PointResponse pointResponse = getMemberPoint(memberId);
 
-        List<PointHistoryItemResponse> histories = pointQueryService.findPointHistory(memberId)
+        List<PointHistoryItemResponse> histories = pointQueryService.findPointHistory(MemberId.of(memberId))
             .stream()
             .map(PointHistoryItemResponse::from)
             .collect(Collectors.toList());
@@ -44,7 +45,7 @@ public class MemberPointService {
 
     @Transactional(readOnly = true)
     public UsablePointResponse getUsablePoint(Long memberId) {
-        return pointQueryService.findMemberPoint(memberId)
+        return pointQueryService.findMemberPoint(MemberId.of(memberId))
             .map(UsablePointResponse::from)
             .orElseGet(() -> UsablePointResponse.of(0));
     }

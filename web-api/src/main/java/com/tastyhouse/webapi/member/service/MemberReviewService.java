@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
@@ -19,7 +20,7 @@ public class MemberReviewService {
 
     @Transactional(readOnly = true)
     public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
-        return reviewQueryService.findMyReviews(memberId, page, size)
+        return reviewQueryService.findMyReviews(MemberId.of(memberId), page, size)
             .map(dto -> MyReviewListItemResponse.from(
                 dto.id(),
                 fileService.getUrlByPath(dto.imageUrl())
@@ -28,7 +29,7 @@ public class MemberReviewService {
 
     @Transactional(readOnly = true)
     public MyReviewCountResponse getMyReviewCount(Long memberId) {
-        long count = reviewQueryService.countVisibleReviewsByMemberId(memberId);
+        long count = reviewQueryService.countVisibleReviewsByMemberId(MemberId.of(memberId));
         return MyReviewCountResponse.from(count);
     }
 }

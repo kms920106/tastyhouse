@@ -3,6 +3,7 @@ package com.tastyhouse.core.domain.coupon.domain.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.entity.BaseEntity;
@@ -42,8 +45,9 @@ public class MemberCoupon extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    private MemberId memberId;
 
     @Column(name = "coupon_id", nullable = false)
     private Long couponId;
@@ -58,7 +62,7 @@ public class MemberCoupon extends BaseEntity {
     private LocalDateTime expiredAt;
 
     private MemberCoupon(
-        Long memberId,
+        MemberId memberId,
         Long couponId,
         boolean used,
         LocalDateTime usedAt,
@@ -72,7 +76,7 @@ public class MemberCoupon extends BaseEntity {
     }
 
     public static MemberCoupon of(
-        Long memberId,
+        MemberId memberId,
         Long couponId,
         boolean used,
         LocalDateTime usedAt,

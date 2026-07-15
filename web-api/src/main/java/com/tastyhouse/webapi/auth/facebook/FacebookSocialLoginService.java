@@ -14,7 +14,6 @@ import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -63,7 +62,7 @@ public class FacebookSocialLoginService {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl());
 
-            Member member = memberQueryService.getById(MemberId.of(socialAccount.getMemberId()));
+            Member member = memberQueryService.getById(socialAccount.getMemberId());
             return SocialLoginResponse.ofLogin(issueJwt(member));
         }
 
@@ -129,7 +128,7 @@ public class FacebookSocialLoginService {
         Member member = memberOpt.get();
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                member.getId(), SocialProvider.FACEBOOK, providerId,
+                member.getMemberId(), SocialProvider.FACEBOOK, providerId,
                 facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
             )
         );
@@ -166,7 +165,7 @@ public class FacebookSocialLoginService {
 
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                savedMember.getId(), SocialProvider.FACEBOOK, providerId,
+                savedMember.getMemberId(), SocialProvider.FACEBOOK, providerId,
                 facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
             )
         );

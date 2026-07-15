@@ -75,9 +75,8 @@ public class MemberCommandService {
             }
             Member referrer = memberRepository.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
-            referralCommandService.register(
-                new RegisterReferralCommand(referrer.getId(), member.getId())
-            );
+            RegisterReferralCommand command = RegisterReferralCommand.of(referrer.getMemberId(), member.getMemberId());
+            referralCommandService.register(command);
         }
 
         eventPublisher.publishEvent(new MemberRegisteredEvent(
@@ -108,9 +107,8 @@ public class MemberCommandService {
             }
             Member referrer = memberRepository.findByNickname(referrerNickname)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
-            referralCommandService.register(
-                new RegisterReferralCommand(referrer.getId(), member.getId())
-            );
+            RegisterReferralCommand command = RegisterReferralCommand.of(referrer.getMemberId(), member.getMemberId());
+            referralCommandService.register(command);
         }
 
         eventPublisher.publishEvent(new MemberRegisteredEvent(
@@ -129,7 +127,7 @@ public class MemberCommandService {
 
         LocalDateTime now = LocalDateTime.now();
         memberWithdrawalRepository.save(
-            MemberWithdrawal.of(command.memberId().value(), command.reason(), command.reasonDetail())
+            MemberWithdrawal.of(command.memberId(), command.reason(), command.reasonDetail())
         );
 
         eventPublisher.publishEvent(

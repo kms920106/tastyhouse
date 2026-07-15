@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.core.domain.order.application.OrderCommandService;
@@ -58,18 +59,19 @@ public class OrderService {
             couponDiscountAmount,
             finalAmount
         );
-        OrderResult result = orderCommandService.createOrder(memberId, command);
+        MemberId memberIdVo = MemberId.of(memberId);
+        OrderResult result = orderCommandService.createOrder(memberIdVo, command);
         return result.orderId().value();
     }
 
     public OrderListPageResult getOrderList(Long memberId, int page, int size) {
-        PageResult<OrderListItemResponse> pageResult = orderQueryService.findOrderList(memberId, page, size)
+        PageResult<OrderListItemResponse> pageResult = orderQueryService.findOrderList(MemberId.of(memberId), page, size)
             .map(this::toOrderListItemResponse);
         return new OrderListPageResult(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements());
     }
 
     public OrderDetailResponse getOrderDetail(Long memberId, Long orderId) {
-        OrderResult result = orderQueryService.findOrderDetail(memberId, OrderId.of(orderId));
+        OrderResult result = orderQueryService.findOrderDetail(MemberId.of(memberId), OrderId.of(orderId));
         return toOrderResponse(result, memberId);
     }
 
@@ -127,7 +129,7 @@ public class OrderService {
                 boolean reviewed = reviewQueryService.isReviewedByOrderAndProduct(
                     result.orderId().value(),
                     orderProduct.productId(),
-                    memberId
+                    MemberId.of(memberId)
                 );
                 String imageUrl = fileService.getUrlByPath(orderProduct.imageUrl());
                 return OrderProductResponse.from(orderProduct, imageUrl, reviewed);

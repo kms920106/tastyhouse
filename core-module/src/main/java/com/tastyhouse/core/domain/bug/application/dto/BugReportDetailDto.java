@@ -8,10 +8,11 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportPlatform;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 
 public record BugReportDetailDto(
     BugReportId id,
-    Long memberId,
+    MemberId memberId,
     String device,
     String title,
     String content,
@@ -31,7 +32,7 @@ public record BugReportDetailDto(
 
     public static BugReportDetailDto from(
         BugReportId id,
-        Long memberId,
+        MemberId memberId,
         String device,
         String title,
         String content,

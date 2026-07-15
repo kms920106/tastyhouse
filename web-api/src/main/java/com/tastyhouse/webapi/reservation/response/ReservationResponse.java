@@ -45,7 +45,7 @@ public record ReservationResponse(
             result.id().value(),
             result.shopId(),
             result.shopName(),
-            result.memberId(),
+            result.memberId().value(),
             result.reservationDate(),
             result.reservationTime(),
             result.partySize(),
