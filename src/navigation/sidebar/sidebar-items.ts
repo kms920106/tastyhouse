@@ -2,6 +2,7 @@ import {
   Banknote,
   Bug,
   Calendar,
+  CalendarDays,
   ChartBar,
   Fingerprint,
   Forklift,
@@ -140,6 +141,11 @@ export const sidebarItems: NavGroup[] = [
         title: "쿠폰",
         url: "/dashboard/coupons",
         icon: TicketPercent,
+      },
+      {
+        title: "이벤트",
+        url: "/dashboard/events",
+        icon: CalendarDays,
       },
       {
         title: "버그 제보",
