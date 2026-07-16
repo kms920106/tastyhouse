@@ -808,9 +808,10 @@ CREATE TABLE FAQ_CATEGORY
     name         VARCHAR(100) NOT NULL,                          -- 카테고리 이름
     sort         INT          NOT NULL,                          -- 정렬 순서
     is_visible   TINYINT(1)   NOT NULL DEFAULT 1,                -- 노출 여부 (1: 노출)
+    is_deleted   TINYINT(1)   NOT NULL DEFAULT 0,                -- 삭제 여부 (1: 삭제됨, Soft Delete)
     created_at   DATETIME     NOT NULL,                          -- 생성 일시
     updated_at   DATETIME     NOT NULL,                          -- 수정 일시
-    INDEX idx_faq_category_active (is_visible, sort)             -- 인덱스: 노출·정렬 복합 조회
+    INDEX idx_faq_category_active (is_deleted, is_visible, sort) -- 인덱스: 삭제·노출·정렬 복합 조회
 );
 
 CREATE TABLE FAQ
@@ -821,10 +822,11 @@ CREATE TABLE FAQ
     answer          TEXT          NOT NULL,                               -- 답변
     sort            INT           NOT NULL,                               -- 정렬 순서
     is_visible      TINYINT(1)    NOT NULL DEFAULT 1,                     -- 노출 여부 (1: 노출)
+    is_deleted      TINYINT(1)    NOT NULL DEFAULT 0,                     -- 삭제 여부 (1: 삭제됨, Soft Delete)
     created_at      DATETIME      NOT NULL,                               -- 생성 일시
     updated_at      DATETIME      NOT NULL,                               -- 수정 일시
     INDEX idx_faq_category_id (faq_category_id),                          -- 인덱스: 카테고리별 조회
-    INDEX idx_faq_active (faq_category_id, is_visible, sort)              -- 인덱스: 카테고리·노출·정렬 복합 조회
+    INDEX idx_faq_active (faq_category_id, is_deleted, is_visible, sort)  -- 인덱스: 카테고리·삭제·노출·정렬 복합 조회
 );
 
 CREATE TABLE TOSS_PAYMENT_RECORD

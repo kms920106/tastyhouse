@@ -6,9 +6,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.faq.domain.model.Faq;
+import com.tastyhouse.core.domain.faq.domain.model.FaqCategory;
+import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
+import com.tastyhouse.core.domain.faq.domain.vo.FaqCategoryId;
+import com.tastyhouse.core.domain.faq.domain.vo.FaqId;
+import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryAdminDto;
 import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.FaqDetailDto;
+import com.tastyhouse.core.domain.faq.application.dto.FaqListItemDto;
 import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
+import com.tastyhouse.core.domain.faq.application.dto.FaqSearchCondition;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
@@ -16,9 +29,10 @@ import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
 public class FaqQueryService {
 
     private final FaqRepository faqRepository;
+    private final FaqCategoryRepository faqCategoryRepository;
 
     public List<FaqCategoryResult> findAllActiveCategories() {
-        return faqRepository.findAllActiveCategories();
+        return faqCategoryRepository.findAllActiveCategories();
     }
 
     public List<FaqResult> findFaqItems(Long categoryId) {
@@ -26,5 +40,41 @@ public class FaqQueryService {
             return faqRepository.findAllActiveItems();
         }
         return faqRepository.findActiveItemsByCategoryId(categoryId);
+    }
+
+    public List<FaqCategoryAdminDto> findCategoriesForAdmin() {
+        return faqCategoryRepository.findAllForAdmin();
+    }
+
+    public FaqCategoryAdminDto findCategoryDetail(FaqCategoryId faqCategoryId) {
+        FaqCategory faqCategory = faqCategoryRepository.findById(faqCategoryId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
+        return new FaqCategoryAdminDto(
+            faqCategory.getId(),
+            faqCategory.getName(),
+            faqCategory.getSort(),
+            faqCategory.isVisible(),
+            faqCategory.getCreatedAt()
+        );
+    }
+
+    public PageResult<FaqListItemDto> findFaqPage(FaqSearchCondition condition, int page, int size) {
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return faqRepository.findPageForAdmin(condition, pageQuery);
+    }
+
+    public FaqDetailDto findFaqDetail(FaqId faqId) {
+        Faq faq = faqRepository.findById(faqId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_NOT_FOUND));
+        return FaqDetailDto.from(
+            faq.getFaqId(),
+            faq.getFaqCategoryId(),
+            faq.getQuestion(),
+            faq.getAnswer(),
+            faq.getSort(),
+            faq.isVisible(),
+            faq.getCreatedAt(),
+            faq.getUpdatedAt()
+        );
     }
 }

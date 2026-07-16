@@ -127,6 +127,11 @@ public enum ErrorCode {
     // 공지사항
     NOTICE_NOT_FOUND(404, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
 
+    // FAQ
+    FAQ_NOT_FOUND(404, "FAQ_NOT_FOUND", "FAQ를 찾을 수 없습니다."),
+    FAQ_CATEGORY_NOT_FOUND(404, "FAQ_CATEGORY_NOT_FOUND", "FAQ 카테고리를 찾을 수 없습니다."),
+    FAQ_CATEGORY_HAS_ITEMS(400, "FAQ_CATEGORY_HAS_ITEMS", "소속된 FAQ가 있어 카테고리를 삭제할 수 없습니다."),
+
     // 버그 제보
     BUG_REPORT_NOT_FOUND(404, "BUG_REPORT_NOT_FOUND", "버그 제보를 찾을 수 없습니다."),
     BUG_REPORT_INVALID_STATUS(400, "BUG_REPORT_INVALID_STATUS", "현재 상태에서는 해당 처리를 할 수 없습니다."),
