@@ -146,11 +146,8 @@ public class EventApiController {
     }
 
     @Operation(summary = "당첨자 삭제", description = "이벤트의 당첨자를 삭제합니다.")
-    @DeleteMapping("/v1/{id}/winners/{winnerId}")
-    public ResponseEntity<ApiResponse<Void>> deleteWinner(
-        @PathVariable Long id,
-        @PathVariable Long winnerId
-    ) {
+    @DeleteMapping("/v1/winners/{winnerId}")
+    public ResponseEntity<ApiResponse<Void>> deleteWinner(@PathVariable Long winnerId) {
         eventService.deleteWinner(winnerId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
