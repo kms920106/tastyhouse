@@ -9,6 +9,7 @@ import {
   GalleryHorizontal,
   Gauge,
   GraduationCap,
+  HelpCircle,
   Kanban,
   LayoutDashboard,
   ListTodo,
@@ -131,6 +132,11 @@ export const sidebarItems: NavGroup[] = [
         title: "공지사항",
         url: "/dashboard/notices",
         icon: Megaphone,
+      },
+      {
+        title: "FAQ",
+        url: "/dashboard/faqs",
+        icon: HelpCircle,
       },
       {
         title: "배너",
