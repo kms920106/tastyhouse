@@ -104,7 +104,7 @@ export function EventWinnersSheet({ event, onOpenChange }: EventWinnersSheetProp
   function handleDelete(winnerId: number) {
     if (eventId == null) return;
     setDeletingId(winnerId);
-    void deleteEventWinnerAction(eventId, winnerId).then((result) => {
+    void deleteEventWinnerAction(winnerId).then((result) => {
       setDeletingId(null);
       if (result.success) {
         toast.success(EVENT_MESSAGE.WINNER_DELETE_SUCCESS);

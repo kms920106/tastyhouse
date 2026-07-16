@@ -74,8 +74,8 @@ export const eventRepository = {
     return api.post<number>(`${ENDPOINT}/v1/${id}/winners`, body);
   },
 
-  // 당첨자 삭제 (Hard Delete)
-  removeWinner(id: number, winnerId: number): Promise<ApiResponse<null>> {
-    return api.delete<null>(`${ENDPOINT}/v1/${id}/winners/${winnerId}`);
+  // 당첨자 삭제
+  removeWinner(winnerId: number): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/winners/${winnerId}`);
   },
 };

@@ -231,8 +231,8 @@ export async function createEventWinnerAction(eventId: number, values: WinnerFor
 }
 
 // 당첨자 삭제 (Hard Delete, 없으면 404 EVENT_WINNER_NOT_FOUND)
-export async function deleteEventWinnerAction(eventId: number, winnerId: number): Promise<ActionResult> {
-  const { error } = await eventRepository.removeWinner(eventId, winnerId);
+export async function deleteEventWinnerAction(winnerId: number): Promise<ActionResult> {
+  const { error } = await eventRepository.removeWinner(winnerId);
   if (error !== undefined) {
     return { success: false, message: error };
   }
