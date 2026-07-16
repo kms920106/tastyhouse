@@ -114,9 +114,9 @@ public class EventCommandService {
     }
 
     public void deleteWinner(Long winnerId) {
-        eventWinnerRepository.findById(winnerId)
+        EventWinner winner = eventWinnerRepository.findById(winnerId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_WINNER_NOT_FOUND));
 
-        eventWinnerRepository.deleteById(winnerId);
+        winner.delete();
     }
 }

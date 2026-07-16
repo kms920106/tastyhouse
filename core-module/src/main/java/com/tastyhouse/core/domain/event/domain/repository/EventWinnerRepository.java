@@ -13,6 +13,4 @@ public interface EventWinnerRepository {
     Optional<EventWinner> findById(Long id);
 
     EventWinner save(EventWinner eventWinner);
-
-    void deleteById(Long id);
 }

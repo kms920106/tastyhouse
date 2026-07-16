@@ -96,9 +96,10 @@ CREATE TABLE EVENT_WINNER
     winner_name  VARCHAR(50) NOT NULL,                               -- 당첨자 이름
     phone_number VARCHAR(11) NOT NULL,                               -- 당첨자 휴대폰 번호
     announced_at DATETIME    NOT NULL,                               -- 당첨 발표 일시
+    is_deleted   TINYINT(1)  NOT NULL DEFAULT 0,                     -- 삭제 여부 (1: 삭제, 0: 미삭제, Soft Delete)
     created_at   DATETIME    NOT NULL,                               -- 생성 일시
     updated_at   DATETIME    NOT NULL,                               -- 수정 일시
-    INDEX idx_event_winner_event_id (event_id),                      -- 인덱스: 이벤트별 조회
+    INDEX idx_event_winner_event_id (event_id, is_deleted),          -- 인덱스: 이벤트·삭제여부 복합 조회
     INDEX idx_event_winner_announced_at (announced_at)               -- 인덱스: 발표 일시별 조회
 );
 

@@ -22,7 +22,7 @@ import com.tastyhouse.core.shared.vo.PhoneNumber;
 @Table(
     name = "EVENT_WINNER",
     indexes = {
-        @Index(name = "idx_event_winner_event_id", columnList = "event_id"),
+        @Index(name = "idx_event_winner_event_id", columnList = "event_id, is_deleted"),
         @Index(name = "idx_event_winner_announced_at", columnList = "announced_at")
     }
 )
@@ -47,6 +47,9 @@ public class EventWinner extends BaseEntity {
 
     @Column(name = "announced_at", nullable = false)
     private LocalDateTime announcedAt; // 당첨 발표 일시
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted = false; // 삭제 여부 (Soft Delete)
 
     private EventWinner(
         Long eventId,
@@ -76,5 +79,9 @@ public class EventWinner extends BaseEntity {
             phoneNumber,
             announcedAt
         );
+    }
+
+    public void delete() {
+        this.deleted = true;
     }
 }

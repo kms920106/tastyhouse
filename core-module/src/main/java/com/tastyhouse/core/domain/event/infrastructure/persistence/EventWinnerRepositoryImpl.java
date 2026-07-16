@@ -24,23 +24,21 @@ public class EventWinnerRepositoryImpl implements EventWinnerRepository {
     public List<EventWinner> findByEventIdOrderByRankNo(EventId eventId) {
         return queryFactory
             .selectFrom(eventWinner)
-            .where(eventWinner.eventId.eq(eventId.value()))
+            .where(eventWinner.eventId.eq(eventId.value()), eventWinner.deleted.isFalse())
             .orderBy(eventWinner.rankNo.asc())
             .fetch();
     }
 
     @Override
     public Optional<EventWinner> findById(Long id) {
-        return eventWinnerJpaRepository.findById(id);
+        return Optional.ofNullable(queryFactory
+            .selectFrom(eventWinner)
+            .where(eventWinner.id.eq(id), eventWinner.deleted.isFalse())
+            .fetchOne());
     }
 
     @Override
     public EventWinner save(EventWinner newEventWinner) {
         return eventWinnerJpaRepository.save(newEventWinner);
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        eventWinnerJpaRepository.deleteById(id);
     }
 }
