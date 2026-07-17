@@ -38,10 +38,10 @@ public class MemberPoint extends BaseEntity {
     private MemberId memberId;
 
     @Column(name = "available_points", nullable = false)
-    private Integer availablePoints = 0;
+    private Integer availablePoints;
 
     @Column(name = "expired_this_month", nullable = false)
-    private Integer expiredThisMonth = 0;
+    private Integer expiredThisMonth;
 
     private MemberPoint(MemberId memberId, Integer availablePoints, Integer expiredThisMonth) {
         this.memberId = memberId;

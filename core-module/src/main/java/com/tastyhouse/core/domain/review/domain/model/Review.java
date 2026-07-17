@@ -67,7 +67,7 @@ public class Review extends BaseEntity {
     private Long orderId;
 
     @Column(name = "is_hidden", nullable = false)
-    private boolean hidden = false;
+    private boolean hidden;
 
     private Review(
         Long shopId,

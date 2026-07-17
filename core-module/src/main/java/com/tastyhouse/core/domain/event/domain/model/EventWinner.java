@@ -49,7 +49,7 @@ public class EventWinner extends BaseEntity {
     private LocalDateTime announcedAt; // 당첨 발표 일시
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false; // 삭제 여부 (Soft Delete)
+    private boolean deleted; // 삭제 여부 (Soft Delete)
 
     private EventWinner(
         Long eventId,
@@ -63,6 +63,7 @@ public class EventWinner extends BaseEntity {
         this.winnerName = winnerName;
         this.phoneNumber = new PhoneNumber(phoneNumber);
         this.announcedAt = announcedAt;
+        this.deleted = false;
     }
 
     public static EventWinner of(

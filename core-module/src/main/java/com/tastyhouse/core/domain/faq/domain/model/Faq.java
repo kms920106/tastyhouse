@@ -36,10 +36,10 @@ public class Faq extends BaseEntity {
     private Integer sort;
 
     @Column(name = "is_visible", nullable = false)
-    private boolean visible = true;
+    private boolean visible;
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false;
+    private boolean deleted;
 
     private Faq(Long faqCategoryId, String question, String answer, Integer sort, boolean visible) {
         this.faqCategoryId = faqCategoryId;
@@ -47,6 +47,7 @@ public class Faq extends BaseEntity {
         this.answer = answer;
         this.sort = sort;
         this.visible = visible;
+        this.deleted = false;
     }
 
     public static Faq of(Long faqCategoryId, String question, String answer, Integer sort, boolean visible) {

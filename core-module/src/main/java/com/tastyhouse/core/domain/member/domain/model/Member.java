@@ -53,7 +53,7 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_grade", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberGrade memberGrade = MemberGrade.NEWCOMER;
+    private MemberGrade memberGrade;
 
     @Column(name = "profile_image_file_id")
     private Long profileImageFileId;
@@ -62,17 +62,17 @@ public class Member extends BaseEntity {
     private String statusMessage;
 
     @Column(name = "push_notification_enabled", nullable = false)
-    private boolean pushNotificationEnabled = true;
+    private boolean pushNotificationEnabled;
 
     @Column(name = "marketing_info_enabled", nullable = false)
-    private boolean marketingInfoEnabled = false;
+    private boolean marketingInfoEnabled;
 
     @Column(name = "event_info_enabled", nullable = false)
-    private boolean eventInfoEnabled = false;
+    private boolean eventInfoEnabled;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberStatus memberStatus = MemberStatus.ACTIVE;
+    private MemberStatus memberStatus;
 
     private Member(
         String username,
@@ -96,6 +96,8 @@ public class Member extends BaseEntity {
         this.pushNotificationEnabled = pushNotificationEnabled;
         this.marketingInfoEnabled = marketingInfoEnabled;
         this.eventInfoEnabled = eventInfoEnabled;
+        this.memberGrade = MemberGrade.NEWCOMER;
+        this.memberStatus = MemberStatus.ACTIVE;
     }
 
     public static Member of(

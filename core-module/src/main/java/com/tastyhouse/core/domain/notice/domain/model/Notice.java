@@ -30,15 +30,16 @@ public class Notice extends BaseEntity {
     private String content; // 공지사항 본문 내용
 
     @Column(name = "is_visible", nullable = false)
-    private boolean visible = true; // 노출 여부 (true: 노출)
+    private boolean visible; // 노출 여부 (true: 노출)
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false; // 삭제 여부 (true: 삭제됨, Soft Delete)
+    private boolean deleted; // 삭제 여부 (true: 삭제됨, Soft Delete)
 
     private Notice(String title, String content, boolean visible) {
         this.title = title;
         this.content = content;
         this.visible = visible;
+        this.deleted = false;
     }
 
     public static Notice of(String title, String content, boolean visible) {

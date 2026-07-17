@@ -53,7 +53,7 @@ public class MemberCoupon extends BaseEntity {
     private Long couponId;
 
     @Column(name = "is_used", nullable = false)
-    private boolean used = false;
+    private boolean used;
 
     @Column(name = "used_at")
     private LocalDateTime usedAt;

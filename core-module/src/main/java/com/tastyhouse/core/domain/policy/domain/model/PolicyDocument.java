@@ -40,10 +40,10 @@ public class PolicyDocument extends BaseEntity {
     private String content;
 
     @Column(name = "is_current", nullable = false)
-    private boolean current = false;
+    private boolean current;
 
     @Column(name = "mandatory", nullable = false)
-    private boolean mandatory = true;
+    private boolean mandatory;
 
     @Column(name = "effective_date", nullable = false)
     private LocalDateTime effectiveDate;

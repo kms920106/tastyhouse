@@ -30,15 +30,16 @@ public class FaqCategory extends BaseEntity {
     private Integer sort;
 
     @Column(name = "is_visible", nullable = false)
-    private boolean visible = true;
+    private boolean visible;
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false;
+    private boolean deleted;
 
     private FaqCategory(String name, Integer sort, boolean visible) {
         this.name = name;
         this.sort = sort;
         this.visible = visible;
+        this.deleted = false;
     }
 
     public static FaqCategory of(String name, Integer sort, boolean visible) {

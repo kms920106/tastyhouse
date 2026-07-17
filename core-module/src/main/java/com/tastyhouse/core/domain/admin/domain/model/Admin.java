@@ -40,13 +40,14 @@ public class Admin extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private AdminStatus status = AdminStatus.ACTIVE;
+    private AdminStatus status;
 
     private Admin(String username, String password, String name, AdminRole role) {
         this.username = username;
         this.password = password;
         this.name = name;
         this.role = role;
+        this.status = AdminStatus.ACTIVE;
     }
 
     /**

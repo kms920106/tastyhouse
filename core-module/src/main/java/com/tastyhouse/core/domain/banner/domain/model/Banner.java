@@ -50,10 +50,10 @@ public class Banner extends BaseEntity {
     private Integer sort;
 
     @Column(name = "is_visible", nullable = false)
-    private boolean visible = true;
+    private boolean visible;
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false; // 삭제 여부 (true: 삭제됨, Soft Delete)
+    private boolean deleted; // 삭제 여부 (true: 삭제됨, Soft Delete)
 
     private Banner(
         BannerType type,
@@ -73,6 +73,7 @@ public class Banner extends BaseEntity {
         this.endDate = endDate;
         this.sort = sort;
         this.visible = visible;
+        this.deleted = false;
     }
 
     public static Banner of(

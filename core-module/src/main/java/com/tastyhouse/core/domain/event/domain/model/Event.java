@@ -63,7 +63,7 @@ public class Event extends BaseEntity {
     private LocalDateTime endAt; // 이벤트 종료 일시
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false; // 삭제 여부 (Soft Delete)
+    private boolean deleted; // 삭제 여부 (Soft Delete)
 
     private Event(
         String name,
@@ -85,6 +85,7 @@ public class Event extends BaseEntity {
         this.status = status;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.deleted = false;
     }
 
     public static Event of(
