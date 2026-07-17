@@ -9,6 +9,7 @@ import {
   GalleryHorizontal,
   Gauge,
   GraduationCap,
+  Handshake,
   HelpCircle,
   Kanban,
   LayoutDashboard,
@@ -164,6 +165,11 @@ export const sidebarItems: NavGroup[] = [
         title: "주문",
         url: "/dashboard/orders",
         icon: Package,
+      },
+      {
+        title: "제휴 신청",
+        url: "/dashboard/partnership-requests",
+        icon: Handshake,
       },
       {
         title: "버그 제보",
