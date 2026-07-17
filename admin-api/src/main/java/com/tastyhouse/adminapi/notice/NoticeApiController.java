@@ -19,12 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.notice.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeSearchRequest;
 import com.tastyhouse.adminapi.notice.request.NoticeUpdateRequest;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
-import com.tastyhouse.adminapi.notice.response.NoticePageResponse;
 
 @Tag(name = "Notice Admin", description = "공지사항 관리자 API")
 @RestController
@@ -40,7 +40,7 @@ public class NoticeApiController {
         @Valid @ModelAttribute NoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        NoticePageResponse pageResponse = noticeService.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<NoticeListItemResponse> pageResponse = noticeService.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 

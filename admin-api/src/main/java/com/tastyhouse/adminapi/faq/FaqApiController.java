@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.faq.request.FaqCategoryCreateRequest;
 import com.tastyhouse.adminapi.faq.request.FaqCategoryUpdateRequest;
 import com.tastyhouse.adminapi.faq.request.FaqCreateRequest;
@@ -27,7 +28,6 @@ import com.tastyhouse.adminapi.faq.request.FaqUpdateRequest;
 import com.tastyhouse.adminapi.faq.response.FaqCategoryResponse;
 import com.tastyhouse.adminapi.faq.response.FaqDetailResponse;
 import com.tastyhouse.adminapi.faq.response.FaqListItemResponse;
-import com.tastyhouse.adminapi.faq.response.FaqPageResponse;
 
 @Tag(name = "FAQ Admin", description = "FAQ 관리자 API")
 @RestController
@@ -88,7 +88,7 @@ public class FaqApiController {
         @Valid @ModelAttribute FaqSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        FaqPageResponse pageResponse = faqService.getFaqs(search.categoryId(), search.question(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<FaqListItemResponse> pageResponse = faqService.getFaqs(search.categoryId(), search.question(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 

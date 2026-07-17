@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.bug.request.BugReportAssignRequest;
 import com.tastyhouse.adminapi.bug.request.BugReportClassifyRequest;
 import com.tastyhouse.adminapi.bug.request.BugReportSearchRequest;
 import com.tastyhouse.adminapi.bug.request.BugReportStatusUpdateRequest;
 import com.tastyhouse.adminapi.bug.response.BugReportDetailResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportListItemResponse;
-import com.tastyhouse.adminapi.bug.response.BugReportPageResponse;
 
 @Tag(name = "BugReport Admin", description = "버그 제보 관리자 API")
 @RestController
@@ -39,7 +39,7 @@ public class BugReportApiController {
         @Valid @ModelAttribute BugReportSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        BugReportPageResponse pageResponse = bugReportService.getBugReports(
+        PaginationResponse<BugReportListItemResponse> pageResponse = bugReportService.getBugReports(
             search.title(), search.content(), search.memberId(),
             search.status(), search.category(), search.priority(),
             pageRequest.page(), pageRequest.size()

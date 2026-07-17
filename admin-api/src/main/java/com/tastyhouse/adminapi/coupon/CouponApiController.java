@@ -19,15 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.coupon.request.CouponCreateRequest;
 import com.tastyhouse.adminapi.coupon.request.CouponIssueRequest;
 import com.tastyhouse.adminapi.coupon.request.CouponSearchRequest;
 import com.tastyhouse.adminapi.coupon.request.CouponUpdateRequest;
 import com.tastyhouse.adminapi.coupon.response.CouponDetailResponse;
 import com.tastyhouse.adminapi.coupon.response.CouponListItemResponse;
-import com.tastyhouse.adminapi.coupon.response.CouponPageResponse;
 import com.tastyhouse.adminapi.coupon.response.MemberCouponAdminItemResponse;
-import com.tastyhouse.adminapi.coupon.response.MemberCouponPageResponse;
 
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController
@@ -43,7 +42,7 @@ public class CouponApiController {
         @Valid @ModelAttribute CouponSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        CouponPageResponse pageResponse = couponService.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<CouponListItemResponse> pageResponse = couponService.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -121,7 +120,7 @@ public class CouponApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        MemberCouponPageResponse pageResponse = couponService.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
+        PaginationResponse<MemberCouponAdminItemResponse> pageResponse = couponService.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 }

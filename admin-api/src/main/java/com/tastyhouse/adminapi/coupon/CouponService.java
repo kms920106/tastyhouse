@@ -17,11 +17,10 @@ import com.tastyhouse.core.domain.coupon.application.dto.result.CouponDetailResu
 import com.tastyhouse.core.domain.coupon.application.dto.result.CouponListItemResult;
 import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.coupon.response.CouponDetailResponse;
 import com.tastyhouse.adminapi.coupon.response.CouponListItemResponse;
-import com.tastyhouse.adminapi.coupon.response.CouponPageResponse;
 import com.tastyhouse.adminapi.coupon.response.MemberCouponAdminItemResponse;
-import com.tastyhouse.adminapi.coupon.response.MemberCouponPageResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -30,12 +29,12 @@ public class CouponService {
     private final CouponCommandService couponCommandService;
     private final CouponQueryService couponQueryService;
 
-    public CouponPageResponse getCoupons(String name, String discountType, Boolean visible, int page, int size) {
+    public PaginationResponse<CouponListItemResponse> getCoupons(String name, String discountType, Boolean visible, int page, int size) {
         DiscountType type = discountType == null ? null : DiscountType.from(discountType);
         CouponSearchCondition condition = CouponSearchCondition.of(name, type, visible);
         PageResult<CouponListItemResponse> pageResult = couponQueryService.findAllCoupons(condition, page, size)
             .map(this::toCouponListItemResponse);
-        return CouponPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     public Long createCoupon(
@@ -100,10 +99,10 @@ public class CouponService {
         return couponCommandService.issueCouponByAdmin(targetCouponId, targetMemberId).value();
     }
 
-    public MemberCouponPageResponse getIssuedCoupons(Long couponId, int page, int size) {
+    public PaginationResponse<MemberCouponAdminItemResponse> getIssuedCoupons(Long couponId, int page, int size) {
         PageResult<MemberCouponAdminItemResponse> pageResult = couponQueryService.findIssuedByCoupon(CouponId.of(couponId), page, size)
             .map(this::toMemberCouponAdminItemResponse);
-        return MemberCouponPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     private CouponListItemResponse toCouponListItemResponse(CouponListItemResult dto) {

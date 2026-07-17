@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.product.request.ProductBatchRequest;
 import com.tastyhouse.webapi.product.request.ProductSearchRequest;
 import com.tastyhouse.webapi.product.response.ProductBatchResponse;
@@ -28,7 +29,6 @@ import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemResponse;
-import com.tastyhouse.webapi.product.response.ProductTodayDiscountPageResponse;
 
 @RestController
 @RequestMapping("/api/products")
@@ -41,7 +41,7 @@ public class ProductApiController {
     @Operation(summary = "상품 목록 조회 (오늘의 할인)", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @GetMapping("/v1/today-discounts")
     public ResponseEntity<ApiResponse<List<ProductTodayDiscountListItemResponse>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
-        ProductTodayDiscountPageResponse pageResponse = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
+        PaginationResponse<ProductTodayDiscountListItemResponse> pageResponse = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
         ApiResponse<List<ProductTodayDiscountListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }

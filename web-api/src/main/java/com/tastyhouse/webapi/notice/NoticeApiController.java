@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 
 @RestController
@@ -28,7 +29,7 @@ public class NoticeApiController {
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
 
-        var pageResult = noticeService.getNoticeList(pageRequest.page(), pageRequest.size());
+        PaginationResponse<NoticeListItemResponse> pageResult = noticeService.getNoticeList(pageRequest.page(), pageRequest.size());
 
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),

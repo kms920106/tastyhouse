@@ -19,9 +19,9 @@ import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptio
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.order.response.OrderDetailResponse;
 import com.tastyhouse.adminapi.order.response.OrderListItemResponse;
-import com.tastyhouse.adminapi.order.response.OrderPageResponse;
 import com.tastyhouse.adminapi.order.response.OrderProductOptionResponse;
 import com.tastyhouse.adminapi.order.response.OrderProductResponse;
 import com.tastyhouse.adminapi.order.response.PaymentSummaryResponse;
@@ -33,7 +33,7 @@ public class OrderService {
     private final OrderCommandService orderCommandService;
     private final OrderQueryService orderQueryService;
 
-    public OrderPageResponse getOrders(Long shopId, String orderStatus, String orderMethod, String paymentStatus,
+    public PaginationResponse<OrderListItemResponse> getOrders(Long shopId, String orderStatus, String orderMethod, String paymentStatus,
                                        String orderNumber, String ordererName,
                                        LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
         OrderStatus status = orderStatus == null ? null : OrderStatus.from(orderStatus);
@@ -42,7 +42,7 @@ public class OrderService {
         OrderSearchCondition condition = OrderSearchCondition.of(shopId, status, method, payment, orderNumber, ordererName, startDate, endDate);
         PageResult<OrderListItemResponse> pageResult = orderQueryService.findOrders(condition, page, size)
             .map(this::toOrderListItemResponse);
-        return OrderPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     public OrderDetailResponse getOrder(Long id) {

@@ -19,12 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.request.BannerCreateRequest;
 import com.tastyhouse.adminapi.banner.request.BannerSearchRequest;
 import com.tastyhouse.adminapi.banner.request.BannerUpdateRequest;
 import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
-import com.tastyhouse.adminapi.banner.response.BannerPageResponse;
 
 @Tag(name = "Banner Admin", description = "배너 관리자 API")
 @RestController
@@ -40,7 +40,7 @@ public class BannerApiController {
         @Valid @ModelAttribute BannerSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        BannerPageResponse pageResponse = bannerService.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<BannerListItemResponse> pageResponse = bannerService.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 

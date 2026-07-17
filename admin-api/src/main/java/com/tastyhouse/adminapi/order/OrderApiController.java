@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.order.request.OrderSearchRequest;
 import com.tastyhouse.adminapi.order.request.OrderStatusUpdateRequest;
 import com.tastyhouse.adminapi.order.response.OrderDetailResponse;
 import com.tastyhouse.adminapi.order.response.OrderListItemResponse;
-import com.tastyhouse.adminapi.order.response.OrderPageResponse;
 
 @Tag(name = "Order Admin", description = "주문 관리자 API")
 @RestController
@@ -38,7 +38,7 @@ public class OrderApiController {
         @Valid @ModelAttribute OrderSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        OrderPageResponse pageResponse = orderService.getOrders(
+        PaginationResponse<OrderListItemResponse> pageResponse = orderService.getOrders(
             search.shopId(), search.orderStatus(), search.orderMethod(), search.paymentStatus(),
             search.orderNumber(), search.ordererName(), search.startDate(), search.endDate(),
             pageRequest.page(), pageRequest.size());

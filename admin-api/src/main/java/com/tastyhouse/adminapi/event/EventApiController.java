@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.event.request.EventAnnouncementCreateRequest;
 import com.tastyhouse.adminapi.event.request.EventAnnouncementUpdateRequest;
 import com.tastyhouse.adminapi.event.request.EventCreateRequest;
@@ -28,7 +29,6 @@ import com.tastyhouse.adminapi.event.request.EventWinnerCreateRequest;
 import com.tastyhouse.adminapi.event.response.EventAnnouncementResponse;
 import com.tastyhouse.adminapi.event.response.EventDetailResponse;
 import com.tastyhouse.adminapi.event.response.EventListItemResponse;
-import com.tastyhouse.adminapi.event.response.EventPageResponse;
 import com.tastyhouse.adminapi.event.response.EventWinnerResponse;
 
 @Tag(name = "Event Admin", description = "이벤트 관리자 API")
@@ -45,7 +45,7 @@ public class EventApiController {
         @Valid @ModelAttribute EventSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        EventPageResponse pageResponse = eventService.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<EventListItemResponse> pageResponse = eventService.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 

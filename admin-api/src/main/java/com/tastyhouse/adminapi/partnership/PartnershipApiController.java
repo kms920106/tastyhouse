@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.partnership.request.PartnershipSearchRequest;
 import com.tastyhouse.adminapi.partnership.request.PartnershipStatusUpdateRequest;
 import com.tastyhouse.adminapi.partnership.response.PartnershipRequestDetailResponse;
 import com.tastyhouse.adminapi.partnership.response.PartnershipRequestListItemResponse;
-import com.tastyhouse.adminapi.partnership.response.PartnershipRequestPageResponse;
 
 @Tag(name = "Partnership Admin", description = "제휴 신청 관리자 API")
 @RestController
@@ -38,7 +38,7 @@ public class PartnershipApiController {
         @Valid @ModelAttribute PartnershipSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PartnershipRequestPageResponse pageResponse = partnershipService.getPartnershipRequests(
+        PaginationResponse<PartnershipRequestListItemResponse> pageResponse = partnershipService.getPartnershipRequests(
             search.businessName(), search.contactName(), search.contactPhone(), search.status(),
             search.startDate(), search.endDate(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));

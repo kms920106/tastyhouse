@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.member.request.MemberSearchRequest;
 import com.tastyhouse.adminapi.member.request.MemberWithdrawRequest;
 import com.tastyhouse.adminapi.member.response.MemberDetailResponse;
 import com.tastyhouse.adminapi.member.response.MemberListItemResponse;
-import com.tastyhouse.adminapi.member.response.MemberPageResponse;
 
 @Tag(name = "Member Admin", description = "회원 관리자 API")
 @RestController
@@ -38,7 +38,7 @@ public class MemberApiController {
         @Valid @ModelAttribute MemberSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        MemberPageResponse pageResponse = memberService.getMembers(
+        PaginationResponse<MemberListItemResponse> pageResponse = memberService.getMembers(
             search.nickname(), search.username(), search.phone(), search.status(), search.grade(),
             pageRequest.page(), pageRequest.size()
         );

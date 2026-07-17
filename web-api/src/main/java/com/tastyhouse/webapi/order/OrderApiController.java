@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.common.PageRequest;
+import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
 import com.tastyhouse.webapi.order.response.OrderCreateResponse;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
-import com.tastyhouse.webapi.order.response.OrderPageResponse;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -62,7 +62,7 @@ public class OrderApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
-        OrderPageResponse page = orderService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
+        PaginationResponse<OrderListItemResponse> page = orderService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
         ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
             page.content(),
             page.page(),

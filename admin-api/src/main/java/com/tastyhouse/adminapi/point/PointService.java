@@ -13,8 +13,8 @@ import com.tastyhouse.core.domain.point.application.dto.command.PointEarnCommand
 import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
 import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.point.response.PointBalanceResponse;
-import com.tastyhouse.adminapi.point.response.PointHistoryPageResponse;
 import com.tastyhouse.adminapi.point.response.PointHistoryResponse;
 
 @Service
@@ -30,12 +30,12 @@ public class PointService {
             .orElseGet(() -> PointBalanceResponse.zero(memberId));
     }
 
-    public PointHistoryPageResponse getPointHistories(Long memberId, String type, int page, int size) {
+    public PaginationResponse<PointHistoryResponse> getPointHistories(Long memberId, String type, int page, int size) {
         PointType pointType = type == null ? null : PointType.from(type);
         PointSearchCondition condition = PointSearchCondition.of(MemberId.of(memberId), pointType);
         PageResult<PointHistoryResponse> pageResult = pointQueryService.findPointHistory(condition, page, size)
             .map(this::toPointHistoryResponse);
-        return PointHistoryPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     public void earnPoint(Long memberId, int amount, String reason) {

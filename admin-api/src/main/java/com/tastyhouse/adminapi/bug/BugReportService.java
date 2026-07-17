@@ -27,11 +27,11 @@ import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.common.FileResponse;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportDetailResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportListItemResponse;
-import com.tastyhouse.adminapi.bug.response.BugReportPageResponse;
 import com.tastyhouse.adminapi.bug.response.MemberSummaryResponse;
-import com.tastyhouse.adminapi.common.FileResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +43,7 @@ public class BugReportService {
     private final FileQueryService fileQueryService;
     private final FileService fileService;
 
-    public BugReportPageResponse getBugReports(
+    public PaginationResponse<BugReportListItemResponse> getBugReports(
         String title,
         String content,
         Long memberId,
@@ -70,7 +70,7 @@ public class BugReportService {
         PageResult<BugReportListItemResponse> responsePage = pageResult.map(
             dto -> toBugReportListItemResponse(dto, toMemberSummaryResponse(membersById.get(dto.memberId().value())))
         );
-        return BugReportPageResponse.from(responsePage);
+        return PaginationResponse.from(responsePage);
     }
 
     public BugReportDetailResponse getBugReport(Long id) {

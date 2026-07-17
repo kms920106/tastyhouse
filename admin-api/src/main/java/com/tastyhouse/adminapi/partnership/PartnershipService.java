@@ -13,9 +13,9 @@ import com.tastyhouse.core.domain.partnership.application.dto.PartnershipSearchC
 import com.tastyhouse.core.domain.partnership.application.dto.result.PartnershipRequestListItemResult;
 import com.tastyhouse.core.domain.partnership.application.dto.result.PartnershipRequestResult;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.partnership.response.PartnershipRequestDetailResponse;
 import com.tastyhouse.adminapi.partnership.response.PartnershipRequestListItemResponse;
-import com.tastyhouse.adminapi.partnership.response.PartnershipRequestPageResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -24,14 +24,14 @@ public class PartnershipService {
     private final PartnershipCommandService partnershipCommandService;
     private final PartnershipQueryService partnershipQueryService;
 
-    public PartnershipRequestPageResponse getPartnershipRequests(String businessName, String contactName, String contactPhone,
+    public PaginationResponse<PartnershipRequestListItemResponse> getPartnershipRequests(String businessName, String contactName, String contactPhone,
                                                                  String status, LocalDateTime startDate, LocalDateTime endDate,
                                                                  int page, int size) {
         PartnershipStatus partnershipStatus = status == null ? null : PartnershipStatus.from(status);
         PartnershipSearchCondition condition = PartnershipSearchCondition.of(businessName, contactName, contactPhone, partnershipStatus, startDate, endDate);
         PageResult<PartnershipRequestListItemResponse> pageResult = partnershipQueryService.findPartnershipRequests(condition, page, size)
             .map(this::toPartnershipRequestListItemResponse);
-        return PartnershipRequestPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     public PartnershipRequestDetailResponse getPartnershipRequest(Long id) {

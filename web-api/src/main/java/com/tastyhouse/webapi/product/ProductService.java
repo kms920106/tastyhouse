@@ -24,6 +24,7 @@ import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.product.request.ProductBatchRequest;
 import com.tastyhouse.webapi.product.response.ProductBatchOptionResponse;
 import com.tastyhouse.webapi.product.response.ProductBatchResponse;
@@ -39,7 +40,6 @@ import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemResponse;
-import com.tastyhouse.webapi.product.response.ProductTodayDiscountPageResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -50,10 +50,10 @@ public class ProductService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public ProductTodayDiscountPageResponse searchTodayDiscountProducts(int page, int size) {
+    public PaginationResponse<ProductTodayDiscountListItemResponse> searchTodayDiscountProducts(int page, int size) {
         PageResult<ProductTodayDiscountListItemResponse> pageResult = productQueryService.findTodayDiscountProducts(page, size)
             .map(this::convertToTodayDiscountProductListItemResponse);
-        return ProductTodayDiscountPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     private ProductTodayDiscountListItemResponse convertToTodayDiscountProductListItemResponse(TodayDiscountProductResult dto) {

@@ -19,10 +19,10 @@ import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryManageme
 import com.tastyhouse.core.domain.faq.application.dto.result.FaqDetailResult;
 import com.tastyhouse.core.domain.faq.application.dto.result.FaqListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.faq.response.FaqCategoryResponse;
 import com.tastyhouse.adminapi.faq.response.FaqDetailResponse;
 import com.tastyhouse.adminapi.faq.response.FaqListItemResponse;
-import com.tastyhouse.adminapi.faq.response.FaqPageResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -66,11 +66,11 @@ public class FaqService {
         return faqId.value();
     }
 
-    public FaqPageResponse getFaqs(Long categoryId, String question, Boolean visible, int page, int size) {
+    public PaginationResponse<FaqListItemResponse> getFaqs(Long categoryId, String question, Boolean visible, int page, int size) {
         FaqSearchCondition condition = FaqSearchCondition.of(categoryId, question, visible);
         PageResult<FaqListItemResponse> pageResult = faqQueryService.findFaqPage(condition, page, size)
             .map(this::toFaqListItemResponse);
-        return FaqPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     public FaqDetailResponse getFaq(Long id) {

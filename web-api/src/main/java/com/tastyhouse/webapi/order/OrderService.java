@@ -20,10 +20,10 @@ import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderProductRequest;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
-import com.tastyhouse.webapi.order.response.OrderPageResponse;
 import com.tastyhouse.webapi.order.response.OrderProductOptionResponse;
 import com.tastyhouse.webapi.order.response.OrderProductResponse;
 import com.tastyhouse.webapi.order.response.PaymentSummaryResponse;
@@ -67,10 +67,10 @@ public class OrderService {
         return result.orderId().value();
     }
 
-    public OrderPageResponse getOrderList(Long memberId, int page, int size) {
+    public PaginationResponse<OrderListItemResponse> getOrderList(Long memberId, int page, int size) {
         PageResult<OrderListItemResponse> pageResult = orderQueryService.findOrderList(MemberId.of(memberId), page, size)
             .map(this::toOrderListItemResponse);
-        return OrderPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     public OrderDetailResponse getOrderDetail(Long memberId, Long orderId) {

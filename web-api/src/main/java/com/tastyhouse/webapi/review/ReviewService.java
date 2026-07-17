@@ -39,18 +39,16 @@ import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.ReviewBestListItemResponse;
-import com.tastyhouse.webapi.review.response.ReviewBestPageResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentListResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentResponse;
 import com.tastyhouse.webapi.review.response.ReviewDetailResponse;
 import com.tastyhouse.webapi.review.response.ReviewLatestListItemResponse;
-import com.tastyhouse.webapi.review.response.ReviewLatestPageResponse;
 import com.tastyhouse.webapi.review.response.ReviewLikeStatusResponse;
 import com.tastyhouse.webapi.review.response.ReviewMemberListItemResponse;
-import com.tastyhouse.webapi.review.response.ReviewMemberPageResponse;
 import com.tastyhouse.webapi.review.response.ReviewProductResponse;
 import com.tastyhouse.webapi.review.response.ReviewReplyResponse;
 import com.tastyhouse.webapi.review.response.ReviewResponse;
@@ -67,10 +65,10 @@ public class ReviewService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public ReviewBestPageResponse searchBestReviewList(int page, int size) {
+    public PaginationResponse<ReviewBestListItemResponse> searchBestReviewList(int page, int size) {
         PageResult<ReviewBestListItemResponse> pageResult = reviewQueryService.findBestReviewsWithPagination(page, size)
             .map(this::convertToBestReviewListItemResponse);
-        return ReviewBestPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     private ReviewBestListItemResponse convertToBestReviewListItemResponse(BestReviewListItemResult dto) {
@@ -86,7 +84,7 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public ReviewLatestPageResponse searchLatestReviewList(
+    public PaginationResponse<ReviewLatestListItemResponse> searchLatestReviewList(
         int page,
         int size,
         String type,
@@ -100,7 +98,7 @@ public class ReviewService {
             pageResult = reviewQueryService.findLatestReviewsWithPagination(page, size)
                 .map(this::convertToLatestReviewListItemResponse);
         }
-        return ReviewLatestPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     private ReviewLatestListItemResponse convertToLatestReviewListItemResponse(LatestReviewListItemResult dto) {
@@ -433,12 +431,12 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public ReviewMemberPageResponse findMemberReviews(Long memberId, int page, int size) {
+    public PaginationResponse<ReviewMemberListItemResponse> findMemberReviews(Long memberId, int page, int size) {
         PageResult<ReviewMemberListItemResponse> pageResult = reviewQueryService.findReviewsByMemberId(MemberId.of(memberId), page, size)
             .map(dto -> ReviewMemberListItemResponse.from(
                 dto.id(),
                 fileService.getUrlByPath(dto.imageUrl())
             ));
-        return ReviewMemberPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 }

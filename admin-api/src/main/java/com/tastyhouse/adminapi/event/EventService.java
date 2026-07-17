@@ -29,10 +29,10 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.adminapi.common.FileResponse;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.event.response.EventAnnouncementResponse;
 import com.tastyhouse.adminapi.event.response.EventDetailResponse;
 import com.tastyhouse.adminapi.event.response.EventListItemResponse;
-import com.tastyhouse.adminapi.event.response.EventPageResponse;
 import com.tastyhouse.adminapi.event.response.EventWinnerResponse;
 
 @Service
@@ -44,12 +44,12 @@ public class EventService {
     private final FileQueryService fileQueryService;
     private final FileService fileService;
 
-    public EventPageResponse getEvents(String name, String status, int page, int size) {
+    public PaginationResponse<EventListItemResponse> getEvents(String name, String status, int page, int size) {
         EventStatus eventStatus = status == null ? null : EventStatus.from(status);
         EventSearchCondition condition = EventSearchCondition.of(name, eventStatus);
         PageResult<EventListItemResponse> pageResult = eventQueryService.findAllEvents(condition, page, size)
             .map(this::toListItemResponse);
-        return EventPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     private EventListItemResponse toListItemResponse(EventManagementListItemResult dto) {

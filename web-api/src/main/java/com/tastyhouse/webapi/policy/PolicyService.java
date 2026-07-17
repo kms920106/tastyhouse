@@ -8,9 +8,9 @@ import com.tastyhouse.core.domain.policy.application.PolicyQueryService;
 import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
 import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
 import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
-import com.tastyhouse.webapi.policy.response.PolicyPageResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -50,24 +50,24 @@ public class PolicyService {
         return toDetailResponse(policyQueryService.findByTypeAndVersion(PolicyType.AGE_VERIFICATION, version));
     }
 
-    public PolicyPageResponse getTermsOfServiceList(int page, int size) {
+    public PaginationResponse<PolicyListItemResponse> getTermsOfServiceList(int page, int size) {
         return toPageResponse(policyQueryService.findAllByType(PolicyType.TERMS_OF_SERVICE, page, size));
     }
 
-    public PolicyPageResponse getPrivacyPolicyList(int page, int size) {
+    public PaginationResponse<PolicyListItemResponse> getPrivacyPolicyList(int page, int size) {
         return toPageResponse(policyQueryService.findAllByType(PolicyType.PRIVACY_POLICY, page, size));
     }
 
-    public PolicyPageResponse getElectronicFinancialTransactionsList(int page, int size) {
+    public PaginationResponse<PolicyListItemResponse> getElectronicFinancialTransactionsList(int page, int size) {
         return toPageResponse(policyQueryService.findAllByType(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS, page, size));
     }
 
-    public PolicyPageResponse getAgeVerificationList(int page, int size) {
+    public PaginationResponse<PolicyListItemResponse> getAgeVerificationList(int page, int size) {
         return toPageResponse(policyQueryService.findAllByType(PolicyType.AGE_VERIFICATION, page, size));
     }
 
-    private PolicyPageResponse toPageResponse(PageResult<PolicyListItemResult> pageResult) {
-        return PolicyPageResponse.from(pageResult.map(this::toListItemResponse));
+    private PaginationResponse<PolicyListItemResponse> toPageResponse(PageResult<PolicyListItemResult> pageResult) {
+        return PaginationResponse.from(pageResult.map(this::toListItemResponse));
     }
 
     private PolicyDetailResponse toDetailResponse(PolicyDocumentResult result) {

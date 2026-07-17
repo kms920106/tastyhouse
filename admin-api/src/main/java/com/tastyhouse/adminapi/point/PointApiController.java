@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.common.PageRequest;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.point.request.PointDeductRequest;
 import com.tastyhouse.adminapi.point.request.PointEarnRequest;
 import com.tastyhouse.adminapi.point.request.PointSearchRequest;
 import com.tastyhouse.adminapi.point.response.PointBalanceResponse;
-import com.tastyhouse.adminapi.point.response.PointHistoryPageResponse;
 import com.tastyhouse.adminapi.point.response.PointHistoryResponse;
 
 @Tag(name = "Point Admin", description = "포인트 관리자 API")
@@ -46,7 +46,7 @@ public class PointApiController {
         @Valid @ModelAttribute PointSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PointHistoryPageResponse pageResponse = pointService.getPointHistories(memberId, search.type(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<PointHistoryResponse> pageResponse = pointService.getPointHistories(memberId, search.type(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 

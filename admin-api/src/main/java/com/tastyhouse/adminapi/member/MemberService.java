@@ -17,9 +17,9 @@ import com.tastyhouse.core.domain.member.application.dto.command.WithdrawMemberC
 import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.member.response.MemberDetailResponse;
 import com.tastyhouse.adminapi.member.response.MemberListItemResponse;
-import com.tastyhouse.adminapi.member.response.MemberPageResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class MemberService {
     private final FileQueryService fileQueryService;
     private final FileService fileService;
 
-    public MemberPageResponse getMembers(
+    public PaginationResponse<MemberListItemResponse> getMembers(
         String nickname,
         String username,
         String phone,
@@ -48,7 +48,7 @@ public class MemberService {
         );
         PageResult<MemberListItemResponse> pageResult = memberQueryService.findMembers(condition, page, size)
             .map(this::toMemberListItemResponse);
-        return MemberPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     public MemberDetailResponse getMember(Long id) {

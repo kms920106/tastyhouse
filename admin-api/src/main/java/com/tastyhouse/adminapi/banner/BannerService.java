@@ -18,10 +18,10 @@ import com.tastyhouse.core.domain.banner.application.dto.result.BannerManagement
 import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.common.FileResponse;
+import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
-import com.tastyhouse.adminapi.banner.response.BannerPageResponse;
-import com.tastyhouse.adminapi.common.FileResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -32,12 +32,12 @@ public class BannerService {
     private final FileQueryService fileQueryService;
     private final FileService fileService;
 
-    public BannerPageResponse getBanners(String type, String title, Boolean visible, int page, int size) {
+    public PaginationResponse<BannerListItemResponse> getBanners(String type, String title, Boolean visible, int page, int size) {
         BannerType bannerType = type == null ? null : BannerType.from(type);
         BannerSearchCondition condition = BannerSearchCondition.of(bannerType, title, visible);
         PageResult<BannerListItemResponse> pageResult = bannerQueryService.findAllBanners(condition, page, size)
             .map(this::toListItemResponse);
-        return BannerPageResponse.from(pageResult);
+        return PaginationResponse.from(pageResult);
     }
 
     private BannerListItemResponse toListItemResponse(BannerManagementListItemResult dto) {
