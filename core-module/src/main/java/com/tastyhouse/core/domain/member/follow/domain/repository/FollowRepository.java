@@ -1,11 +1,11 @@
-package com.tastyhouse.core.domain.follow.domain.repository;
+package com.tastyhouse.core.domain.member.follow.domain.repository;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.core.domain.follow.domain.model.Follow;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
+import com.tastyhouse.core.domain.member.follow.domain.model.Follow;
+import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 

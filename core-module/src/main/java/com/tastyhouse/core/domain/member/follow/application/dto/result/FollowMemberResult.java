@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.follow.application.dto.result;
+package com.tastyhouse.core.domain.member.follow.application.dto.result;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 

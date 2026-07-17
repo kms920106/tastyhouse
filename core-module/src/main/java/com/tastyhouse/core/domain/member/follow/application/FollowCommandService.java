@@ -1,12 +1,12 @@
-package com.tastyhouse.core.domain.follow.application;
+package com.tastyhouse.core.domain.member.follow.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.follow.domain.model.Follow;
-import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.follow.domain.model.Follow;
+import com.tastyhouse.core.domain.member.follow.domain.repository.FollowRepository;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;

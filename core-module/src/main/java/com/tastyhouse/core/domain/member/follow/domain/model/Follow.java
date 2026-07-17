@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.follow.domain.model;
+package com.tastyhouse.core.domain.member.follow.domain.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

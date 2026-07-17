@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.follow.application;
+package com.tastyhouse.core.domain.member.follow.application;
 
 import java.util.List;
 
@@ -6,11 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
+import com.tastyhouse.core.domain.member.follow.domain.repository.FollowRepository;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 

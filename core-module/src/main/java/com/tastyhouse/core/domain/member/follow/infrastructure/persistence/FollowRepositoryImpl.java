@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.follow.infrastructure.persistence;
+package com.tastyhouse.core.domain.member.follow.infrastructure.persistence;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,17 +10,17 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.follow.domain.model.Follow;
-import com.tastyhouse.core.domain.follow.domain.model.QFollow;
-import com.tastyhouse.core.domain.follow.domain.repository.FollowRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
+import com.tastyhouse.core.domain.member.follow.domain.model.Follow;
+import com.tastyhouse.core.domain.member.follow.domain.model.QFollow;
+import com.tastyhouse.core.domain.member.follow.domain.repository.FollowRepository;
+import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.follow.domain.model.QFollow.follow;
 import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
+import static com.tastyhouse.core.domain.member.follow.domain.model.QFollow.follow;
 
 @Repository
 @RequiredArgsConstructor

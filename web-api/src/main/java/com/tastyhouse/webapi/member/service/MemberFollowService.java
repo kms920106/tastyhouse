@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.follow.application.FollowQueryService;
+import com.tastyhouse.core.domain.member.follow.application.FollowQueryService;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
 

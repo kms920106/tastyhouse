@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.follow.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.follow.application.dto.result.FollowMemberResult;
+import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 
 @Schema(description = "팔로우 회원 목록 아이템 응답")
 public record FollowMemberListItemResponse(
