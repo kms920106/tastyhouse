@@ -18,6 +18,7 @@ import {
   Mail,
   Megaphone,
   MessageSquare,
+  Package,
   ReceiptText,
   ShoppingBag,
   SquareArrowUpRight,
@@ -158,6 +159,11 @@ export const sidebarItems: NavGroup[] = [
         title: "회원",
         url: "/dashboard/members",
         icon: UserRound,
+      },
+      {
+        title: "주문",
+        url: "/dashboard/orders",
+        icon: Package,
       },
       {
         title: "버그 제보",
