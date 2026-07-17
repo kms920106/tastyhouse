@@ -8,6 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 명령된 로직을 구현 후, gradle build 테스트는 진행하지 않도록 합니다.
 
+브라우저 동작 확인이 필요한 작업(화면/폼/플로우 구현 및 수정)을 완료했을 때는, 코드 구현 → 빌드/린트 → 코드리뷰만으로 끝내지 말고 **직접 개발 서버를 기동해 MCP Playwright로 실제 화면 동작까지 검증**합니다. `npm run build`/`npm run check` 통과는 "테스트 스위트가 없으니 빌드가 최소 게이트"라는 의미일 뿐, 브라우저 검증을 생략해도 된다는 뜻이 아닙니다. 절차:
+
+1. 개발 서버가 떠 있는지 확인하고, 없으면 `npm run dev`(3010 포트)를 백그라운드로 기동합니다.
+2. 로그인이 필요하면 `.env.local`의 `E2E_USERNAME`/`E2E_PASSWORD`로 로그인합니다.
+3. MCP Playwright 도구(`mcp__playwright__*`)로 변경된 화면의 정상 플로우(생성/수정/조회 등)와 주요 예외 케이스를 실제로 조작해 확인합니다.
+4. 검증 결과(성공/실패, 스크린샷 필요 시)를 작업 완료 보고에 함께 명시합니다.
+
+플랜(계획서)에 e2e 검증 단계가 명시되어 있다면 반드시 끝까지 수행하고, 시간이 부족하거나 서버 기동이 불가능한 등의 이유로 생략할 경우에는 반드시 그 사실과 이유를 명확히 알립니다.
+
 ## GIT 규칙
 
 NO_COMMIT_OR_ROLLBACK
