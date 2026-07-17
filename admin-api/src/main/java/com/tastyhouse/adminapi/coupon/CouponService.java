@@ -10,10 +10,10 @@ import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.coupon.application.CouponCommandService;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
-import com.tastyhouse.core.domain.coupon.application.dto.CouponDetailDto;
 import com.tastyhouse.core.domain.coupon.application.dto.CouponSearchCondition;
 import com.tastyhouse.core.domain.coupon.application.dto.command.CouponCreateCommand;
 import com.tastyhouse.core.domain.coupon.application.dto.command.CouponUpdateCommand;
+import com.tastyhouse.core.domain.coupon.application.dto.result.CouponDetailResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.adminapi.coupon.response.CouponDetailResponse;
 import com.tastyhouse.adminapi.coupon.response.CouponListItemResponse;
@@ -60,7 +60,7 @@ public class CouponService {
 
     public CouponDetailResponse getCoupon(Long id) {
         CouponId couponId = CouponId.of(id);
-        CouponDetailDto couponDetail = couponQueryService.findDetailById(couponId);
+        CouponDetailResult couponDetail = couponQueryService.findDetailById(couponId);
         return CouponDetailResponse.from(couponDetail);
     }
 

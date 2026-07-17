@@ -14,11 +14,11 @@ import com.tastyhouse.core.domain.banner.domain.model.Banner;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
 import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
-import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
-import com.tastyhouse.core.domain.banner.application.dto.BannerManagementListItemDto;
 import com.tastyhouse.core.domain.banner.application.dto.BannerSearchCondition;
-import com.tastyhouse.core.domain.banner.application.dto.QBannerListItemDto;
-import com.tastyhouse.core.domain.banner.application.dto.QBannerManagementListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.result.BannerListItemResult;
+import com.tastyhouse.core.domain.banner.application.dto.result.BannerManagementListItemResult;
+import com.tastyhouse.core.domain.banner.application.dto.result.QBannerListItemResult;
+import com.tastyhouse.core.domain.banner.application.dto.result.QBannerManagementListItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -33,7 +33,7 @@ public class BannerRepositoryImpl implements BannerRepository {
     private final BannerJpaRepository bannerJpaRepository;
 
     @Override
-    public PageResult<BannerListItemDto> findAllByType(BannerType type, PageQuery pageQuery) {
+    public PageResult<BannerListItemResult> findAllByType(BannerType type, PageQuery pageQuery) {
         LocalDateTime now = LocalDateTime.now();
 
         Long total = queryFactory
@@ -48,8 +48,8 @@ public class BannerRepositoryImpl implements BannerRepository {
             )
             .fetchOne();
 
-        List<BannerListItemDto> banners = queryFactory
-            .select(new QBannerListItemDto(
+        List<BannerListItemResult> banners = queryFactory
+            .select(new QBannerListItemResult(
                 banner.id,
                 banner.title,
                 uploadedFile.filePath,
@@ -73,7 +73,7 @@ public class BannerRepositoryImpl implements BannerRepository {
     }
 
     @Override
-    public PageResult<BannerManagementListItemDto> findAllBanners(BannerSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<BannerManagementListItemResult> findAllBanners(BannerSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(banner.id.count())
             .from(banner)
@@ -85,8 +85,8 @@ public class BannerRepositoryImpl implements BannerRepository {
             )
             .fetchOne();
 
-        List<BannerManagementListItemDto> banners = queryFactory
-            .select(new QBannerManagementListItemDto(
+        List<BannerManagementListItemResult> banners = queryFactory
+            .select(new QBannerManagementListItemResult(
                 banner.id,
                 banner.type,
                 banner.title,

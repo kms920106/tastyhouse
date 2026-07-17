@@ -5,14 +5,14 @@ import java.util.Optional;
 
 import com.tastyhouse.core.domain.faq.domain.model.FaqCategory;
 import com.tastyhouse.core.domain.faq.domain.vo.FaqCategoryId;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryDto;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryManagementResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryResult;
 
 public interface FaqCategoryRepository {
 
     List<FaqCategoryResult> findAllActiveCategories();
 
-    List<FaqCategoryDto> findAllCategories();
+    List<FaqCategoryManagementResult> findAllCategories();
 
     Optional<FaqCategory> findById(FaqCategoryId faqCategoryId);
 

@@ -16,7 +16,7 @@ import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
 import com.tastyhouse.core.domain.product.application.dto.result.QProductSimpleResult;
-import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -35,7 +35,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public PageResult<EditorChoiceDto> findEditorChoice(PageQuery pageQuery) {
+    public PageResult<EditorChoiceResult> findEditorChoice(PageQuery pageQuery) {
         Long totalCount = queryFactory
             .select(shopChoice.count())
             .from(shopChoice)
@@ -111,11 +111,11 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                 entry -> entry.getValue().stream().limit(2).toList()
             ));
 
-        List<EditorChoiceDto> content = shopChoices.stream()
+        List<EditorChoiceResult> content = shopChoices.stream()
             .map(tuple -> {
                 Long shopIdValue = tuple.get(shopChoice.shopId);
                 List<ProductSimpleResult> products = productsByShopId.getOrDefault(shopIdValue, new ArrayList<>());
-                return new EditorChoiceDto(
+                return new EditorChoiceResult(
                     tuple.get(shopChoice.id),
                     shopIdValue,
                     tuple.get(shop.name),

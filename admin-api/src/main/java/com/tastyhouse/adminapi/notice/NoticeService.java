@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
 import com.tastyhouse.core.domain.notice.application.NoticeCommandService;
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
-import com.tastyhouse.core.domain.notice.application.dto.NoticeDetailDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
+import com.tastyhouse.core.domain.notice.application.dto.result.NoticeDetailResult;
 import com.tastyhouse.core.domain.notice.application.dto.command.NoticeCreateCommand;
 import com.tastyhouse.core.domain.notice.application.dto.command.NoticeUpdateCommand;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -36,7 +36,7 @@ public class NoticeService {
     }
 
     public NoticeDetailResponse getNotice(Long id) {
-        NoticeDetailDto noticeDetail = noticeQueryService.findDetailById(NoticeId.of(id));
+        NoticeDetailResult noticeDetail = noticeQueryService.findDetailById(NoticeId.of(id));
         return NoticeDetailResponse.from(noticeDetail);
     }
 

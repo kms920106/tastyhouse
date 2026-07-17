@@ -10,11 +10,11 @@ import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.banner.application.BannerCommandService;
 import com.tastyhouse.core.domain.banner.application.BannerQueryService;
-import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
-import com.tastyhouse.core.domain.banner.application.dto.BannerManagementListItemDto;
 import com.tastyhouse.core.domain.banner.application.dto.BannerSearchCondition;
 import com.tastyhouse.core.domain.banner.application.dto.command.BannerCreateCommand;
 import com.tastyhouse.core.domain.banner.application.dto.command.BannerUpdateCommand;
+import com.tastyhouse.core.domain.banner.application.dto.result.BannerDetailResult;
+import com.tastyhouse.core.domain.banner.application.dto.result.BannerManagementListItemResult;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
@@ -40,11 +40,11 @@ public class BannerService {
         return BannerPageResponse.from(pageResult);
     }
 
-    private BannerListItemResponse toListItemResponse(BannerManagementListItemDto dto) {
+    private BannerListItemResponse toListItemResponse(BannerManagementListItemResult dto) {
         return BannerListItemResponse.from(dto, toFileResponse(dto));
     }
 
-    private FileResponse toFileResponse(BannerManagementListItemDto dto) {
+    private FileResponse toFileResponse(BannerManagementListItemResult dto) {
         if (dto.imageFileId() == null) {
             return null;
         }
@@ -69,7 +69,7 @@ public class BannerService {
     }
 
     public BannerDetailResponse getBanner(Long id) {
-        BannerDetailDto bannerDetail = bannerQueryService.findDetailById(BannerId.of(id));
+        BannerDetailResult bannerDetail = bannerQueryService.findDetailById(BannerId.of(id));
         return BannerDetailResponse.from(bannerDetail, toFileResponse(bannerDetail.imageFileId()));
     }
 

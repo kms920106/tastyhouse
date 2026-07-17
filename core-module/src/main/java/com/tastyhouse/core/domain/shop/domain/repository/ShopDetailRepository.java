@@ -10,19 +10,19 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopOrderMethod;
 import com.tastyhouse.core.domain.shop.domain.model.ShopOwnerMessageHistory;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
 
 public interface ShopDetailRepository {
 
     List<Station> findAllStationsOrderByName();
 
-    List<ShopFoodTypeCategoryDto> findAllActiveFoodTypeCategories();
+    List<ShopFoodTypeCategoryResult> findAllActiveFoodTypeCategories();
 
-    List<ShopAmenityCategoryDto> findAllActiveAmenityCategories();
+    List<ShopAmenityCategoryResult> findAllActiveAmenityCategories();
 
     List<ShopBusinessHour> findBusinessHoursByShopId(Long shopId);
 
@@ -30,15 +30,15 @@ public interface ShopDetailRepository {
 
     List<ShopClosedDay> findClosedDaysByShopId(Long shopId);
 
-    List<ShopAmenityWithCategoryDto> findAmenitiesWithCategoryByShopId(Long shopId);
+    List<ShopAmenityWithCategoryResult> findAmenitiesWithCategoryByShopId(Long shopId);
 
     List<ShopOrderMethod> findOrderMethodsByShopId(Long shopId);
 
-    List<ShopBannerImageDto> findBannerImagesByShopId(Long shopId);
+    List<ShopBannerImageResult> findBannerImagesByShopId(Long shopId);
 
     List<ShopPhotoCategory> findPhotoCategoriesByShopId(Long shopId);
 
-    List<ShopPhotoCategoryImageDto> findAllPhotoCategoryImages();
+    List<ShopPhotoCategoryImageResult> findAllPhotoCategoryImages();
 
     Optional<ShopOwnerMessageHistory> findLatestOwnerMessageByShopId(Long shopId);
 }

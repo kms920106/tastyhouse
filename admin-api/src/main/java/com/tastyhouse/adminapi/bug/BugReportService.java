@@ -16,9 +16,9 @@ import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.bug.application.BugReportCommandService;
 import com.tastyhouse.core.domain.bug.application.BugReportQueryService;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportDetailDto;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportListItemDto;
 import com.tastyhouse.core.domain.bug.application.dto.BugReportSearchCondition;
+import com.tastyhouse.core.domain.bug.application.dto.result.BugReportDetailResult;
+import com.tastyhouse.core.domain.bug.application.dto.result.BugReportListItemResult;
 import com.tastyhouse.core.domain.bug.application.dto.command.BugReportAssignCommand;
 import com.tastyhouse.core.domain.bug.application.dto.command.BugReportClassifyCommand;
 import com.tastyhouse.core.domain.bug.application.dto.command.BugReportStatusUpdateCommand;
@@ -61,7 +61,7 @@ public class BugReportService {
             category == null ? null : BugReportCategory.from(category),
             priority == null ? null : BugReportPriority.from(priority)
         );
-        PageResult<BugReportListItemDto> pageResult = bugReportQueryService.findAllBugReports(condition, page, size);
+        PageResult<BugReportListItemResult> pageResult = bugReportQueryService.findAllBugReports(condition, page, size);
 
         Map<Long, MemberWithProfileImageResult> membersById = memberQueryService.findMemberWithProfileImagesByIds(
             pageResult.content().stream().map(dto -> dto.memberId().value()).toList()
@@ -74,7 +74,7 @@ public class BugReportService {
     }
 
     public BugReportDetailResponse getBugReport(Long id) {
-        BugReportDetailDto detail = bugReportQueryService.findDetailById(BugReportId.of(id));
+        BugReportDetailResult detail = bugReportQueryService.findDetailById(BugReportId.of(id));
 
         MemberSummaryResponse member = memberQueryService.findMemberWithProfileImage(detail.memberId())
             .map(MemberSummaryResponse::from)

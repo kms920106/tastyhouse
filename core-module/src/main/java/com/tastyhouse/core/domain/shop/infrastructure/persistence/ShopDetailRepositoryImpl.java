@@ -17,11 +17,11 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopOwnerMessageHistory;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenity.shopAmenity;
@@ -55,9 +55,9 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     }
 
     @Override
-    public List<ShopFoodTypeCategoryDto> findAllActiveFoodTypeCategories() {
+    public List<ShopFoodTypeCategoryResult> findAllActiveFoodTypeCategories() {
         return queryFactory
-            .select(Projections.constructor(ShopFoodTypeCategoryDto.class,
+            .select(Projections.constructor(ShopFoodTypeCategoryResult.class,
                 shopFoodTypeCategory.id,
                 shopFoodTypeCategory.foodType,
                 shopFoodTypeCategory.displayName,
@@ -75,9 +75,9 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     }
 
     @Override
-    public List<ShopAmenityCategoryDto> findAllActiveAmenityCategories() {
+    public List<ShopAmenityCategoryResult> findAllActiveAmenityCategories() {
         return queryFactory
-            .select(Projections.constructor(ShopAmenityCategoryDto.class,
+            .select(Projections.constructor(ShopAmenityCategoryResult.class,
                 shopAmenityCategory.id,
                 shopAmenityCategory.amenity,
                 shopAmenityCategory.displayName,
@@ -121,9 +121,9 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     }
 
     @Override
-    public List<ShopAmenityWithCategoryDto> findAmenitiesWithCategoryByShopId(Long shopId) {
+    public List<ShopAmenityWithCategoryResult> findAmenitiesWithCategoryByShopId(Long shopId) {
         return queryFactory
-            .select(Projections.constructor(ShopAmenityWithCategoryDto.class,
+            .select(Projections.constructor(ShopAmenityWithCategoryResult.class,
                 shopAmenityCategory.amenity,
                 shopAmenityCategory.displayName,
                 activeFile.filePath
@@ -144,9 +144,9 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     }
 
     @Override
-    public List<ShopBannerImageDto> findBannerImagesByShopId(Long shopId) {
+    public List<ShopBannerImageResult> findBannerImagesByShopId(Long shopId) {
         return queryFactory
-            .select(Projections.constructor(ShopBannerImageDto.class,
+            .select(Projections.constructor(ShopBannerImageResult.class,
                 shopBannerImage.id,
                 uploadedFile.filePath,
                 shopBannerImage.sort
@@ -167,9 +167,9 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     }
 
     @Override
-    public List<ShopPhotoCategoryImageDto> findAllPhotoCategoryImages() {
+    public List<ShopPhotoCategoryImageResult> findAllPhotoCategoryImages() {
         return queryFactory
-            .select(Projections.constructor(ShopPhotoCategoryImageDto.class,
+            .select(Projections.constructor(ShopPhotoCategoryImageResult.class,
                 shopPhotoCategoryImage.id,
                 shopPhotoCategoryImage.shopPhotoCategoryId,
                 uploadedFile.filePath,

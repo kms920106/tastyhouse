@@ -12,9 +12,9 @@ import org.springframework.util.StringUtils;
 import com.tastyhouse.core.domain.notice.domain.model.Notice;
 import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
 import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
-import com.tastyhouse.core.domain.notice.application.dto.NoticeListItemDto;
 import com.tastyhouse.core.domain.notice.application.dto.NoticeSearchCondition;
-import com.tastyhouse.core.domain.notice.application.dto.QNoticeListItemDto;
+import com.tastyhouse.core.domain.notice.application.dto.result.NoticeListItemResult;
+import com.tastyhouse.core.domain.notice.application.dto.result.QNoticeListItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -28,15 +28,15 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     private final NoticeJpaRepository noticeJpaRepository;
 
     @Override
-    public PageResult<NoticeListItemDto> findVisibleNotices(PageQuery pageQuery) {
+    public PageResult<NoticeListItemResult> findVisibleNotices(PageQuery pageQuery) {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
             .where(notice.deleted.isFalse(), notice.visible.isTrue())
             .fetchOne();
 
-        List<NoticeListItemDto> notices = queryFactory
-            .select(new QNoticeListItemDto(
+        List<NoticeListItemResult> notices = queryFactory
+            .select(new QNoticeListItemResult(
                 notice.id,
                 notice.title,
                 notice.content,
@@ -54,7 +54,7 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     }
 
     @Override
-    public PageResult<NoticeListItemDto> findAllNotices(NoticeSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<NoticeListItemResult> findAllNotices(NoticeSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(notice.id.count())
             .from(notice)
@@ -66,8 +66,8 @@ public class NoticeRepositoryImpl implements NoticeRepository {
             )
             .fetchOne();
 
-        List<NoticeListItemDto> notices = queryFactory
-            .select(new QNoticeListItemDto(
+        List<NoticeListItemResult> notices = queryFactory
+            .select(new QNoticeListItemResult(
                 notice.id,
                 notice.title,
                 notice.content,

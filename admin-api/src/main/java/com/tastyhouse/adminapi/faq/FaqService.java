@@ -10,13 +10,13 @@ import com.tastyhouse.core.domain.faq.domain.vo.FaqId;
 import com.tastyhouse.core.domain.faq.application.FaqCategoryCommandService;
 import com.tastyhouse.core.domain.faq.application.FaqCommandService;
 import com.tastyhouse.core.domain.faq.application.FaqQueryService;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryDto;
-import com.tastyhouse.core.domain.faq.application.dto.FaqDetailDto;
 import com.tastyhouse.core.domain.faq.application.dto.FaqSearchCondition;
 import com.tastyhouse.core.domain.faq.application.dto.command.FaqCategoryCreateCommand;
 import com.tastyhouse.core.domain.faq.application.dto.command.FaqCategoryUpdateCommand;
 import com.tastyhouse.core.domain.faq.application.dto.command.FaqCreateCommand;
 import com.tastyhouse.core.domain.faq.application.dto.command.FaqUpdateCommand;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryManagementResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqDetailResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.adminapi.faq.response.FaqCategoryResponse;
 import com.tastyhouse.adminapi.faq.response.FaqDetailResponse;
@@ -44,8 +44,8 @@ public class FaqService {
     }
 
     public FaqCategoryResponse getCategory(Long categoryId) {
-        FaqCategoryDto dto = faqQueryService.findCategoryDetail(FaqCategoryId.of(categoryId));
-        return FaqCategoryResponse.from(dto);
+        FaqCategoryManagementResult result = faqQueryService.findCategoryDetail(FaqCategoryId.of(categoryId));
+        return FaqCategoryResponse.from(result);
     }
 
     public void updateCategory(Long categoryId, String name, Integer sort, boolean visible) {
@@ -73,7 +73,7 @@ public class FaqService {
     }
 
     public FaqDetailResponse getFaq(Long id) {
-        FaqDetailDto faqDetail = faqQueryService.findFaqDetail(FaqId.of(id));
+        FaqDetailResult faqDetail = faqQueryService.findFaqDetail(FaqId.of(id));
         return FaqDetailResponse.from(faqDetail);
     }
 

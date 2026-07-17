@@ -79,6 +79,7 @@ presentation(web-api, admin-api)
 - command/condition record에 원시 파라미터용 정적 팩토리 `of(...)`를 둔다. presentation(web-api/admin-api)의 Request 타입을 인자로 받는 팩토리는 금지(레이어 역전 방지). command 생성은 command record 자신의 `of(...)`가 담당하고, presentation의 Facade/컨트롤러는 Request를 원시 필드로 언패킹해 넘긴다 — Request DTO에 `toCommand()` 같은 변환 메서드를 두지 않는다.
 - 호출부는 `new`로 DTO를 직접 조립하지 않고 정적 팩토리로 위임한다. 상세는 루트 CLAUDE.md 참고.
 - `record`는 application 서비스 본문 안에 중첩 선언하지 않고 `application/dto/result`(command는 `application/dto/command`)에 `public record`로 분리한다. 서비스 내부 전용 `private` 헬퍼 record도 분리 시 `public`으로 격상한다(reference: `product/application/dto/result/OptionInfo`). 상세는 루트 CLAUDE.md 참고.
+- **결과 record 접미어는 `Result`로 통일, `Dto` 금지**: `application/dto/result/`의 조회 결과 record는 접미어를 `Result`로 쓴다(`Command`/`Condition`/web-api·admin-api의 `Request`/`Response`는 대상 아님). admin 전용 결과 record가 비-admin 형제와 충돌하면 위 admin 네이밍 규칙과 동일하게 `Management` 한정어로 구별한다(reference: `faq/application/dto/result/FaqCategoryManagementResult`). 상세는 루트 CLAUDE.md "결과 DTO 접미어 규칙" 참고.
 
 ### Testing Requirements
 

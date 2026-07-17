@@ -15,11 +15,11 @@ import com.tastyhouse.core.domain.event.domain.repository.EventAnnouncementRepos
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
 import com.tastyhouse.core.domain.event.domain.repository.EventWinnerRepository;
 import com.tastyhouse.core.domain.event.domain.vo.EventId;
-import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
-import com.tastyhouse.core.domain.event.application.dto.EventManagementDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.EventManagementListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventSearchCondition;
+import com.tastyhouse.core.domain.event.application.dto.result.EventDetailResult;
+import com.tastyhouse.core.domain.event.application.dto.result.EventListItemResult;
+import com.tastyhouse.core.domain.event.application.dto.result.EventManagementDetailResult;
+import com.tastyhouse.core.domain.event.application.dto.result.EventManagementListItemResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -39,24 +39,24 @@ public class EventQueryService {
         return eventAnnouncementRepository.findAllOrderByAnnouncedAtDesc(pageQuery);
     }
 
-    public PageResult<EventListItemDto> findEventListItemsByStatus(EventStatus status, int page, int size) {
+    public PageResult<EventListItemResult> findEventListItemsByStatus(EventStatus status, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return eventRepository.findEventListItemsByStatus(status, pageQuery);
     }
 
-    public Optional<EventDetailDto> findEventDetailById(EventId eventId) {
+    public Optional<EventDetailResult> findEventDetailById(EventId eventId) {
         return eventRepository.findEventDetailById(eventId);
     }
 
-    public PageResult<EventManagementListItemDto> findAllEvents(EventSearchCondition condition, int page, int size) {
+    public PageResult<EventManagementListItemResult> findAllEvents(EventSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return eventRepository.findAllEvents(condition, pageQuery);
     }
 
-    public EventManagementDetailDto findAdminDetailById(EventId eventId) {
+    public EventManagementDetailResult findAdminDetailById(EventId eventId) {
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_NOT_FOUND));
-        return EventManagementDetailDto.from(event);
+        return EventManagementDetailResult.from(event);
     }
 
     public Optional<EventAnnouncement> findAnnouncementByEventId(EventId eventId) {

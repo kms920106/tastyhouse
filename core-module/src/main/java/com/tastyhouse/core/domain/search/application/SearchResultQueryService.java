@@ -10,7 +10,7 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -32,7 +32,7 @@ public class SearchResultQueryService {
         return reviewRepository.searchByKeyword(keyword, pageQuery);
     }
 
-    public PageResult<ShopBookmarkedItemDto> searchShopsWithBookmark(String keyword, MemberId memberId, int page, int size) {
+    public PageResult<ShopBookmarkedItemResult> searchShopsWithBookmark(String keyword, MemberId memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return shopRepository.searchByKeywordWithBookmark(keyword, memberId, pageQuery);
     }

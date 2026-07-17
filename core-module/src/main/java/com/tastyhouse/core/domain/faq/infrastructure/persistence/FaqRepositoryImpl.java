@@ -12,11 +12,11 @@ import org.springframework.util.StringUtils;
 import com.tastyhouse.core.domain.faq.domain.model.Faq;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 import com.tastyhouse.core.domain.faq.domain.vo.FaqId;
-import com.tastyhouse.core.domain.faq.application.dto.FaqListItemDto;
-import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
 import com.tastyhouse.core.domain.faq.application.dto.FaqSearchCondition;
-import com.tastyhouse.core.domain.faq.application.dto.QFaqListItemDto;
-import com.tastyhouse.core.domain.faq.application.dto.QFaqResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqListItemResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.QFaqListItemResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.QFaqResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -66,7 +66,7 @@ public class FaqRepositoryImpl implements FaqRepository {
     }
 
     @Override
-    public PageResult<FaqListItemDto> findFaqPage(FaqSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<FaqListItemResult> findFaqPage(FaqSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
                 .select(faq.id.count())
                 .from(faq)
@@ -78,8 +78,8 @@ public class FaqRepositoryImpl implements FaqRepository {
                 )
                 .fetchOne();
 
-        List<FaqListItemDto> items = queryFactory
-                .select(new QFaqListItemDto(
+        List<FaqListItemResult> items = queryFactory
+                .select(new QFaqListItemResult(
                         faq.id,
                         faq.faqCategoryId,
                         faq.question,

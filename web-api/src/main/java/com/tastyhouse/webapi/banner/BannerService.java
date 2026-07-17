@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.core.domain.banner.application.BannerQueryService;
-import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.result.BannerListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
@@ -24,7 +24,7 @@ public class BannerService {
         return bannerQueryService.findSidebarBanners(page, size).map(this::toBannerListItemResponse);
     }
 
-    private BannerListItemResponse toBannerListItemResponse(BannerListItemDto dto) {
+    private BannerListItemResponse toBannerListItemResponse(BannerListItemResult dto) {
         return BannerListItemResponse.from(
             dto.id(),
             dto.title(),

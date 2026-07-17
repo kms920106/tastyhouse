@@ -26,7 +26,8 @@
 - 새 도메인 추가 시 `domain` / `application` / `infrastructure` 3-레이어 구조를 따른다.
 - **command/condition record는 원시 파라미터 정적 팩토리 `of(...)`를 둔다**: presentation의 Request 타입을 인자로 받는 팩토리는 두지 않는다(레이어 역전 방지). command 생성 책임은 command record 자신이 지고, presentation(Facade/컨트롤러)은 Request를 원시 필드로 언패킹해 `Command.of(...)`를 호출한다. Request DTO에는 `toCommand()` 같은 변환 메서드를 두지 않는다. DTO 조립 규칙 전반은 루트 CLAUDE.md 참고.
 - **`record`는 별도 파일로 분리**: application 서비스 본문 안에 결과·중간 헬퍼 record를 중첩 선언하지 않고 `application/dto/result`(command는 `application/dto/command`)에 `public record`로 둔다. 서비스 내부 전용 `private` 헬퍼 record도 분리 시 `public`으로 격상한다(reference: `product/application/dto/result/OptionInfo`). 상세는 루트 CLAUDE.md 참고.
-- **admin-flavor DTO/Result/Condition 타입명에 `Admin` 마커 금지**: admin 전용 조회 결과 타입도 타입명에 `Admin`을 붙이지 않는다. 비-admin 형제가 없으면 순수명(`MemberListItemResult` 등), 형제와 충돌하면 관리 화면 용도를 나타내는 `Management` 한정어로 구별한다(`OrderManagementListItemResult` 등). 단 `admin` 도메인 자체 타입(`Admin`, `AdminId`, `AdminRepository` 등)은 애그리거트 이름이므로 예외. 상세는 루트 CLAUDE.md "admin 전용 네이밍 규칙" 참고.
+- **admin-flavor Result/Condition 타입명에 `Admin` 마커 금지**: admin 전용 조회 결과 타입도 타입명에 `Admin`을 붙이지 않는다. 비-admin 형제가 없으면 순수명(`MemberListItemResult` 등), 형제와 충돌하면 관리 화면 용도를 나타내는 `Management` 한정어로 구별한다(`OrderManagementListItemResult` 등). 단 `admin` 도메인 자체 타입(`Admin`, `AdminId`, `AdminRepository` 등)은 애그리거트 이름이므로 예외. 상세는 루트 CLAUDE.md "admin 전용 네이밍 규칙" 참고.
+- **결과 record 접미어는 `Result`로 통일, `Dto` 금지**: application 조회 결과 record는 접미어를 `Result`로 쓰고 `Dto`는 사용하지 않는다(`Command`/`Condition`은 대상 아님). `application/dto/result/`에 둔다. 상세는 루트 CLAUDE.md "결과 DTO 접미어 규칙" 참고.
 
 ### Testing Requirements
 - `@DataJpaTest` 또는 Testcontainers 기반 통합 테스트.

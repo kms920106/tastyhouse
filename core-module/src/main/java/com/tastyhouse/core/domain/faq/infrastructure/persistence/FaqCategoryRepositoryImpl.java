@@ -10,10 +10,10 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.faq.domain.model.FaqCategory;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.faq.domain.vo.FaqCategoryId;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryDto;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
-import com.tastyhouse.core.domain.faq.application.dto.QFaqCategoryDto;
-import com.tastyhouse.core.domain.faq.application.dto.QFaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryManagementResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.QFaqCategoryManagementResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.QFaqCategoryResult;
 
 import static com.tastyhouse.core.domain.faq.domain.model.QFaq.faq;
 import static com.tastyhouse.core.domain.faq.domain.model.QFaqCategory.faqCategory;
@@ -40,9 +40,9 @@ public class FaqCategoryRepositoryImpl implements FaqCategoryRepository {
     }
 
     @Override
-    public List<FaqCategoryDto> findAllCategories() {
+    public List<FaqCategoryManagementResult> findAllCategories() {
         return queryFactory
-                .select(new QFaqCategoryDto(
+                .select(new QFaqCategoryManagementResult(
                         faqCategory.id,
                         faqCategory.name,
                         faqCategory.sort,

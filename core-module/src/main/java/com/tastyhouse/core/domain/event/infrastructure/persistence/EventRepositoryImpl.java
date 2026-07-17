@@ -14,13 +14,13 @@ import com.tastyhouse.core.domain.event.domain.model.Event;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
 import com.tastyhouse.core.domain.event.domain.vo.EventId;
-import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
-import com.tastyhouse.core.domain.event.application.dto.EventManagementListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventSearchCondition;
-import com.tastyhouse.core.domain.event.application.dto.QEventDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.QEventListItemDto;
-import com.tastyhouse.core.domain.event.application.dto.QEventManagementListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.result.EventDetailResult;
+import com.tastyhouse.core.domain.event.application.dto.result.EventListItemResult;
+import com.tastyhouse.core.domain.event.application.dto.result.EventManagementListItemResult;
+import com.tastyhouse.core.domain.event.application.dto.result.QEventDetailResult;
+import com.tastyhouse.core.domain.event.application.dto.result.QEventListItemResult;
+import com.tastyhouse.core.domain.event.application.dto.result.QEventManagementListItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -35,9 +35,9 @@ public class EventRepositoryImpl implements EventRepository {
     private final EventJpaRepository eventJpaRepository;
 
     @Override
-    public PageResult<EventListItemDto> findEventListItemsByStatus(EventStatus status, PageQuery pageQuery) {
-        List<EventListItemDto> content = queryFactory
-            .select(new QEventListItemDto(
+    public PageResult<EventListItemResult> findEventListItemsByStatus(EventStatus status, PageQuery pageQuery) {
+        List<EventListItemResult> content = queryFactory
+            .select(new QEventListItemResult(
                 event.id,
                 event.name,
                 uploadedFile.filePath,
@@ -62,9 +62,9 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public Optional<EventDetailDto> findEventDetailById(EventId eventId) {
-        EventDetailDto result = queryFactory
-            .select(new QEventDetailDto(
+    public Optional<EventDetailResult> findEventDetailById(EventId eventId) {
+        EventDetailResult result = queryFactory
+            .select(new QEventDetailResult(
                 uploadedFile.filePath
             ))
             .from(event)
@@ -84,7 +84,7 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public PageResult<EventManagementListItemDto> findAllEvents(EventSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<EventManagementListItemResult> findAllEvents(EventSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(event.id.count())
             .from(event)
@@ -95,8 +95,8 @@ public class EventRepositoryImpl implements EventRepository {
             )
             .fetchOne();
 
-        List<EventManagementListItemDto> events = queryFactory
-            .select(new QEventManagementListItemDto(
+        List<EventManagementListItemResult> events = queryFactory
+            .select(new QEventManagementListItemResult(
                 event.id,
                 event.name,
                 event.status,

@@ -26,15 +26,15 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
-import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
 import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopJpaRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -59,17 +59,17 @@ public class ShopQueryService {
         return shopRepository.findNearbyShops(lat, lon);
     }
 
-    public PageResult<BestShopItemDto> findBestShops(int page, int size) {
+    public PageResult<BestShopItemResult> findBestShops(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return shopRepository.findBestShops(pageQuery);
     }
 
-    public PageResult<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, int page, int size) {
+    public PageResult<LatestShopItemResult> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return shopRepository.findLatestShops(stationId, foodTypes, amenities, pageQuery);
     }
 
-    public PageResult<EditorChoiceDto> findEditorChoices(int page, int size) {
+    public PageResult<EditorChoiceResult> findEditorChoices(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return shopChoiceRepository.findEditorChoice(pageQuery);
     }
@@ -78,11 +78,11 @@ public class ShopQueryService {
         return shopDetailRepository.findAllStationsOrderByName();
     }
 
-    public List<ShopFoodTypeCategoryDto> findAllFoodTypeCategories() {
+    public List<ShopFoodTypeCategoryResult> findAllFoodTypeCategories() {
         return shopDetailRepository.findAllActiveFoodTypeCategories();
     }
 
-    public List<ShopAmenityCategoryDto> findAllAmenityCategories() {
+    public List<ShopAmenityCategoryResult> findAllAmenityCategories() {
         return shopDetailRepository.findAllActiveAmenityCategories();
     }
 
@@ -103,7 +103,7 @@ public class ShopQueryService {
         return shopDetailRepository.findClosedDaysByShopId(shopId);
     }
 
-    public List<ShopAmenityWithCategoryDto> findShopAmenitiesWithCategory(Long shopId) {
+    public List<ShopAmenityWithCategoryResult> findShopAmenitiesWithCategory(Long shopId) {
         return shopDetailRepository.findAmenitiesWithCategoryByShopId(shopId);
     }
 
@@ -111,7 +111,7 @@ public class ShopQueryService {
         return shopDetailRepository.findOrderMethodsByShopId(shopId);
     }
 
-    public List<ShopBannerImageDto> findShopBannerImages(Long shopId) {
+    public List<ShopBannerImageResult> findShopBannerImages(Long shopId) {
         return shopDetailRepository.findBannerImagesByShopId(shopId);
     }
 
@@ -119,7 +119,7 @@ public class ShopQueryService {
         return shopDetailRepository.findPhotoCategoriesByShopId(shopId);
     }
 
-    public List<ShopPhotoCategoryImageDto> findAllShopPhotoCategoryImages() {
+    public List<ShopPhotoCategoryImageResult> findAllShopPhotoCategoryImages() {
         return shopDetailRepository.findAllPhotoCategoryImages();
     }
 
@@ -131,7 +131,7 @@ public class ShopQueryService {
         return shopDetailRepository.findLatestOwnerMessageByShopId(shopId);
     }
 
-    public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(MemberId memberId, int page, int size) {
+    public PageResult<ShopBookmarkedItemResult> findMyBookmarkedShops(MemberId memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return shopRepository.findMyBookmarkedShops(memberId, pageQuery);
     }

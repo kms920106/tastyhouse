@@ -12,12 +12,12 @@ import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 import com.tastyhouse.core.domain.faq.domain.vo.FaqCategoryId;
 import com.tastyhouse.core.domain.faq.domain.vo.FaqId;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryDto;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
-import com.tastyhouse.core.domain.faq.application.dto.FaqDetailDto;
-import com.tastyhouse.core.domain.faq.application.dto.FaqListItemDto;
-import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
 import com.tastyhouse.core.domain.faq.application.dto.FaqSearchCondition;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryManagementResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqDetailResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqListItemResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -42,14 +42,14 @@ public class FaqQueryService {
         return faqRepository.findActiveItemsByCategoryId(categoryId);
     }
 
-    public List<FaqCategoryDto> findAllCategories() {
+    public List<FaqCategoryManagementResult> findAllCategories() {
         return faqCategoryRepository.findAllCategories();
     }
 
-    public FaqCategoryDto findCategoryDetail(FaqCategoryId faqCategoryId) {
+    public FaqCategoryManagementResult findCategoryDetail(FaqCategoryId faqCategoryId) {
         FaqCategory faqCategory = faqCategoryRepository.findById(faqCategoryId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
-        return new FaqCategoryDto(
+        return new FaqCategoryManagementResult(
             faqCategory.getId(),
             faqCategory.getName(),
             faqCategory.getSort(),
@@ -58,15 +58,15 @@ public class FaqQueryService {
         );
     }
 
-    public PageResult<FaqListItemDto> findFaqPage(FaqSearchCondition condition, int page, int size) {
+    public PageResult<FaqListItemResult> findFaqPage(FaqSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return faqRepository.findFaqPage(condition, pageQuery);
     }
 
-    public FaqDetailDto findFaqDetail(FaqId faqId) {
+    public FaqDetailResult findFaqDetail(FaqId faqId) {
         Faq faq = faqRepository.findById(faqId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_NOT_FOUND));
-        return FaqDetailDto.from(
+        return FaqDetailResult.from(
             faq.getFaqId(),
             faq.getFaqCategoryId(),
             faq.getQuestion(),

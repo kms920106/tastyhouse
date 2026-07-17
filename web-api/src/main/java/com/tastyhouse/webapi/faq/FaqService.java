@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.faq.application.FaqQueryService;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
-import com.tastyhouse.core.domain.faq.application.dto.FaqResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqCategoryResult;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqResult;
 import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
 import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
 

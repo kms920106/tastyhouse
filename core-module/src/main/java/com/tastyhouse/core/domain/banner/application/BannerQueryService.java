@@ -8,10 +8,10 @@ import com.tastyhouse.core.domain.banner.domain.model.Banner;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
 import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
-import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
-import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
-import com.tastyhouse.core.domain.banner.application.dto.BannerManagementListItemDto;
 import com.tastyhouse.core.domain.banner.application.dto.BannerSearchCondition;
+import com.tastyhouse.core.domain.banner.application.dto.result.BannerDetailResult;
+import com.tastyhouse.core.domain.banner.application.dto.result.BannerListItemResult;
+import com.tastyhouse.core.domain.banner.application.dto.result.BannerManagementListItemResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -24,12 +24,12 @@ public class BannerQueryService {
 
     private final BannerRepository bannerRepository;
 
-    public PageResult<BannerListItemDto> findHomeBanners(int page, int size) {
+    public PageResult<BannerListItemResult> findHomeBanners(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return bannerRepository.findAllByType(BannerType.HOME, pageQuery);
     }
 
-    public PageResult<BannerListItemDto> findSidebarBanners(int page, int size) {
+    public PageResult<BannerListItemResult> findSidebarBanners(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return bannerRepository.findAllByType(BannerType.SIDEBAR, pageQuery);
     }
@@ -39,12 +39,12 @@ public class BannerQueryService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BANNER_NOT_FOUND));
     }
 
-    public PageResult<BannerManagementListItemDto> findAllBanners(BannerSearchCondition condition, int page, int size) {
+    public PageResult<BannerManagementListItemResult> findAllBanners(BannerSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return bannerRepository.findAllBanners(condition, pageQuery);
     }
 
-    public BannerDetailDto findDetailById(BannerId id) {
-        return BannerDetailDto.from(findById(id));
+    public BannerDetailResult findDetailById(BannerId id) {
+        return BannerDetailResult.from(findById(id));
     }
 }

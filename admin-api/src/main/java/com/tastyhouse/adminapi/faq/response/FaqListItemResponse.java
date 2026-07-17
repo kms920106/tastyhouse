@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.faq.application.dto.FaqListItemDto;
+import com.tastyhouse.core.domain.faq.application.dto.result.FaqListItemResult;
 
 @Schema(description = "FAQ 항목 목록 응답")
 public record FaqListItemResponse(
@@ -26,14 +26,14 @@ public record FaqListItemResponse(
     @Schema(description = "생성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static FaqListItemResponse from(FaqListItemDto dto) {
+    public static FaqListItemResponse from(FaqListItemResult result) {
         return new FaqListItemResponse(
-            dto.id(),
-            dto.faqCategoryId(),
-            dto.question(),
-            dto.sort(),
-            dto.visible(),
-            dto.createdAt()
+            result.id(),
+            result.faqCategoryId(),
+            result.question(),
+            result.sort(),
+            result.visible(),
+            result.createdAt()
         );
     }
 }

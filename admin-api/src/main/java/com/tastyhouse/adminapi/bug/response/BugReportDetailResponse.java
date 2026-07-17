@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.bug.application.dto.BugReportDetailDto;
+import com.tastyhouse.core.domain.bug.application.dto.result.BugReportDetailResult;
 import com.tastyhouse.adminapi.common.FileResponse;
 
 @Schema(description = "버그 제보 상세 응답")
@@ -62,7 +62,7 @@ public record BugReportDetailResponse(
     LocalDateTime updatedAt
 ) {
 
-    public static BugReportDetailResponse from(BugReportDetailDto dto, MemberSummaryResponse member, List<FileResponse> images) {
+    public static BugReportDetailResponse from(BugReportDetailResult dto, MemberSummaryResponse member, List<FileResponse> images) {
         return new BugReportDetailResponse(
             dto.id().value(),
             member,

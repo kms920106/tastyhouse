@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.bug.application.dto.BugReportListItemDto;
+import com.tastyhouse.core.domain.bug.application.dto.result.BugReportListItemResult;
 
 @Schema(description = "버그 제보 목록 항목 응답")
 public record BugReportListItemResponse(
@@ -36,7 +36,7 @@ public record BugReportListItemResponse(
     LocalDateTime createdAt
 ) {
 
-    public static BugReportListItemResponse from(BugReportListItemDto dto, MemberSummaryResponse member) {
+    public static BugReportListItemResponse from(BugReportListItemResult dto, MemberSummaryResponse member) {
         return new BugReportListItemResponse(
             dto.id(),
             member,

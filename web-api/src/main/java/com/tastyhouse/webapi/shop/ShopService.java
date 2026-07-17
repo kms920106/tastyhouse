@@ -31,14 +31,14 @@ import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingR
 import com.tastyhouse.core.domain.review.application.dto.result.ShopReviewStatisticsResult;
 import com.tastyhouse.core.domain.shop.application.ShopCommandService;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
-import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
@@ -105,7 +105,7 @@ public class ShopService {
         return shopQueryService.findEditorChoices(page, size).content().stream().map(this::convertToEditorChoiceResponse).toList();
     }
 
-    private EditorChoiceResponse convertToEditorChoiceResponse(EditorChoiceDto dto) {
+    private EditorChoiceResponse convertToEditorChoiceResponse(EditorChoiceResult dto) {
         List<EditorChoiceProductItem> productItems = dto.products() != null
             ? dto.products().stream().map(this::convertToEditorChoiceProductItem).toList()
             : new ArrayList<>();
@@ -120,7 +120,7 @@ public class ShopService {
         );
     }
 
-    private BestShopListItemResponse convertToBestShopListItemResponse(BestShopItemDto dto) {
+    private BestShopListItemResponse convertToBestShopListItemResponse(BestShopItemResult dto) {
         return BestShopListItemResponse.from(
             dto.id(),
             dto.name(),
@@ -131,7 +131,7 @@ public class ShopService {
         );
     }
 
-    private LatestShopListItemResponse convertToLatestShopListItemResponse(LatestShopItemDto dto) {
+    private LatestShopListItemResponse convertToLatestShopListItemResponse(LatestShopItemResult dto) {
         return LatestShopListItemResponse.from(
             dto.id(),
             dto.name(),
@@ -165,7 +165,7 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public List<FoodTypeListItemResponse> searchAllFoodTypes() {
-        List<ShopFoodTypeCategoryDto> categories = shopQueryService.findAllFoodTypeCategories();
+        List<ShopFoodTypeCategoryResult> categories = shopQueryService.findAllFoodTypeCategories();
         return categories.stream()
                 .map(this::convertToFoodTypeListItemResponse)
                 .toList();
@@ -173,7 +173,7 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public List<AmenityListItemResponse> searchAllAmenities() {
-        List<ShopAmenityCategoryDto> categories = shopQueryService.findAllAmenityCategories();
+        List<ShopAmenityCategoryResult> categories = shopQueryService.findAllAmenityCategories();
         return categories.stream()
                 .map(this::convertToAmenityListItemResponse)
                 .toList();
@@ -186,7 +186,7 @@ public class ShopService {
         );
     }
 
-    private FoodTypeListItemResponse convertToFoodTypeListItemResponse(ShopFoodTypeCategoryDto category) {
+    private FoodTypeListItemResponse convertToFoodTypeListItemResponse(ShopFoodTypeCategoryResult category) {
         return FoodTypeListItemResponse.from(
             category.foodType().name(),
             category.displayName(),
@@ -195,7 +195,7 @@ public class ShopService {
         );
     }
 
-    private AmenityListItemResponse convertToAmenityListItemResponse(ShopAmenityCategoryDto category) {
+    private AmenityListItemResponse convertToAmenityListItemResponse(ShopAmenityCategoryResult category) {
         return AmenityListItemResponse.from(
             category.amenity().name(),
             category.displayName(),
@@ -225,7 +225,7 @@ public class ShopService {
         List<ShopBusinessHour> businessHours = shopQueryService.findShopBusinessHours(shopId);
         List<ShopBreakTime> breakTimes = shopQueryService.findShopBreakTimes(shopId);
         List<ShopClosedDay> closedDays = shopQueryService.findShopClosedDays(shopId);
-        List<ShopAmenityWithCategoryDto> shopAmenities = shopQueryService.findShopAmenitiesWithCategory(shopId);
+        List<ShopAmenityWithCategoryResult> shopAmenities = shopQueryService.findShopAmenitiesWithCategory(shopId);
 
         List<BusinessHourItem> businessHourItems = businessHours.stream()
                 .map(this::convertToBusinessHourItem)
@@ -263,7 +263,7 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public List<ShopBannerResponse> getShopBanners(Long shopId) {
-        List<ShopBannerImageDto> banners = shopQueryService.findShopBannerImages(shopId);
+        List<ShopBannerImageResult> banners = shopQueryService.findShopBannerImages(shopId);
         return banners.stream()
                 .map(this::convertToShopBannerResponse)
                 .toList();
@@ -295,15 +295,15 @@ public class ShopService {
     @Transactional(readOnly = true)
     public List<ShopPhotoCategoryResponse> getShopPhotos(Long shopId) {
         List<ShopPhotoCategory> categories = shopQueryService.findShopPhotoCategoriesByShopId(shopId);
-        List<ShopPhotoCategoryImageDto> images = shopQueryService.findAllShopPhotoCategoryImages();
+        List<ShopPhotoCategoryImageResult> images = shopQueryService.findAllShopPhotoCategoryImages();
 
-        Map<Long, List<ShopPhotoCategoryImageDto>> imagesByCategory = images.stream()
+        Map<Long, List<ShopPhotoCategoryImageResult>> imagesByCategory = images.stream()
                 .filter(image -> image.shopPhotoCategoryId() != null)
-                .collect(Collectors.groupingBy(ShopPhotoCategoryImageDto::shopPhotoCategoryId));
+                .collect(Collectors.groupingBy(ShopPhotoCategoryImageResult::shopPhotoCategoryId));
 
         return categories.stream()
                 .map(category -> {
-                    List<ShopPhotoCategoryImageDto> categoryImages = imagesByCategory.getOrDefault(category.getId(), new ArrayList<>());
+                    List<ShopPhotoCategoryImageResult> categoryImages = imagesByCategory.getOrDefault(category.getId(), new ArrayList<>());
                     List<String> imageUrls = categoryImages.stream()
                             .map(image -> fileService.getUrlByPath(image.filePath()))
                             .toList();
@@ -407,7 +407,7 @@ public class ShopService {
         );
     }
 
-    private AmenityItem convertToAmenityItem(ShopAmenityWithCategoryDto dto) {
+    private AmenityItem convertToAmenityItem(ShopAmenityWithCategoryResult dto) {
         return AmenityItem.from(
             dto.amenity().name(),
             dto.displayName(),
@@ -415,7 +415,7 @@ public class ShopService {
         );
     }
 
-    private ShopBannerResponse convertToShopBannerResponse(ShopBannerImageDto image) {
+    private ShopBannerResponse convertToShopBannerResponse(ShopBannerImageResult image) {
         return ShopBannerResponse.from(
             image.id(),
             fileService.getUrlByPath(image.filePath()),

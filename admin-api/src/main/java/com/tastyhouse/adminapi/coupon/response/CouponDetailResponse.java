@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.coupon.application.dto.CouponDetailDto;
+import com.tastyhouse.core.domain.coupon.application.dto.result.CouponDetailResult;
 
 @Schema(description = "쿠폰 상세 응답")
 public record CouponDetailResponse(
@@ -53,7 +53,7 @@ public record CouponDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
-    public static CouponDetailResponse from(CouponDetailDto dto) {
+    public static CouponDetailResponse from(CouponDetailResult dto) {
         return new CouponDetailResponse(
             dto.couponId().value(),
             dto.name(),

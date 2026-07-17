@@ -11,9 +11,9 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportImage;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportImageRepository;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportListItemDto;
 import com.tastyhouse.core.domain.bug.application.dto.BugReportSearchCondition;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportDetailDto;
+import com.tastyhouse.core.domain.bug.application.dto.result.BugReportDetailResult;
+import com.tastyhouse.core.domain.bug.application.dto.result.BugReportListItemResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -27,12 +27,12 @@ public class BugReportQueryService {
     private final BugReportRepository bugReportRepository;
     private final BugReportImageRepository bugReportImageRepository;
 
-    public PageResult<BugReportListItemDto> findAllBugReports(BugReportSearchCondition condition, int page, int size) {
+    public PageResult<BugReportListItemResult> findAllBugReports(BugReportSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return bugReportRepository.findAllBugReports(condition, pageQuery);
     }
 
-    public BugReportDetailDto findDetailById(BugReportId bugReportId) {
+    public BugReportDetailResult findDetailById(BugReportId bugReportId) {
         BugReport bugReport = bugReportRepository.findById(bugReportId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
 
@@ -40,7 +40,7 @@ public class BugReportQueryService {
             .map(BugReportImage::getImageFileId)
             .toList();
 
-        return BugReportDetailDto.from(
+        return BugReportDetailResult.from(
             bugReport.getBugReportId(),
             bugReport.getMemberId(),
             bugReport.getDevice(),

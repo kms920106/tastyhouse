@@ -17,9 +17,9 @@ import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
-import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemDto;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemDto;
+import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -50,7 +50,7 @@ public class ShopRepositoryImpl implements ShopRepository {
     }
 
     @Override
-    public PageResult<BestShopItemDto> findBestShops(PageQuery pageQuery) {
+    public PageResult<BestShopItemResult> findBestShops(PageQuery pageQuery) {
         Long total = queryFactory.select(shop.count()).from(shop).where(shop.rating.isNotNull().and(shop.permanentlyClosed.eq(false))).fetchOne();
 
         if (total == null || total == 0) {
@@ -89,13 +89,13 @@ public class ShopRepositoryImpl implements ShopRepository {
                 Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategory.foodType), Collectors.toList())
             ));
 
-        List<BestShopItemDto> content = pagedShops.stream().map(s -> new BestShopItemDto(s.getId(), s.getName(), stationMap.get(s.getId()), s.getRating(), thumbnailFilePathMap.get(s.getId()), foodTypeMap.getOrDefault(s.getId(), List.of()))).collect(Collectors.toList());
+        List<BestShopItemResult> content = pagedShops.stream().map(s -> new BestShopItemResult(s.getId(), s.getName(), stationMap.get(s.getId()), s.getRating(), thumbnailFilePathMap.get(s.getId()), foodTypeMap.getOrDefault(s.getId(), List.of()))).collect(Collectors.toList());
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public PageResult<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, PageQuery pageQuery) {
+    public PageResult<LatestShopItemResult> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, PageQuery pageQuery) {
         Set<Long> foodTypeShopIds = null;
         if (foodTypes != null && !foodTypes.isEmpty()) {
             foodTypeShopIds = new HashSet<>(queryFactory
@@ -185,7 +185,7 @@ public class ShopRepositoryImpl implements ShopRepository {
                 Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategory.foodType), Collectors.toList())
             ));
 
-        List<LatestShopItemDto> content = pagedShops.stream().map(s -> new LatestShopItemDto(
+        List<LatestShopItemResult> content = pagedShops.stream().map(s -> new LatestShopItemResult(
             s.getId(),
             s.getName(),
             stationMap.get(s.getId()),
@@ -201,7 +201,7 @@ public class ShopRepositoryImpl implements ShopRepository {
     }
 
     @Override
-    public PageResult<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, MemberId memberId, PageQuery pageQuery) {
+    public PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(String keyword, MemberId memberId, PageQuery pageQuery) {
         Long total = queryFactory.select(shop.count()).from(shop)
                 .where(shop.permanentlyClosed.eq(false), shop.name.containsIgnoreCase(keyword))
                 .fetchOne();
@@ -241,8 +241,8 @@ public class ShopRepositoryImpl implements ShopRepository {
         }
 
         final Set<Long> bookmarked = bookmarkedShopIds;
-        List<ShopBookmarkedItemDto> content = pagedShops.stream()
-                .map(s -> new ShopBookmarkedItemDto(
+        List<ShopBookmarkedItemResult> content = pagedShops.stream()
+                .map(s -> new ShopBookmarkedItemResult(
                         s.getId(),
                         null,
                         s.getName(),
@@ -256,7 +256,7 @@ public class ShopRepositoryImpl implements ShopRepository {
     }
 
     @Override
-    public PageResult<ShopBookmarkedItemDto> findMyBookmarkedShops(MemberId memberId, PageQuery pageQuery) {
+    public PageResult<ShopBookmarkedItemResult> findMyBookmarkedShops(MemberId memberId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(shopBookmark.count())
             .from(shopBookmark)
@@ -287,8 +287,8 @@ public class ShopRepositoryImpl implements ShopRepository {
             .limit(pageQuery.size())
             .fetch();
 
-        List<ShopBookmarkedItemDto> content = results.stream()
-            .map(tuple -> new ShopBookmarkedItemDto(
+        List<ShopBookmarkedItemResult> content = results.stream()
+            .map(tuple -> new ShopBookmarkedItemResult(
                 tuple.get(shop.id),
                 tuple.get(shopBookmark.id),
                 tuple.get(shop.name),

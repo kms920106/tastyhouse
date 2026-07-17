@@ -14,10 +14,10 @@ import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.event.application.EventCommandService;
 import com.tastyhouse.core.domain.event.application.EventQueryService;
-import com.tastyhouse.core.domain.event.application.dto.EventManagementDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.EventManagementListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventSearchCondition;
-import com.tastyhouse.core.domain.event.application.dto.EventWinnerDto;
+import com.tastyhouse.core.domain.event.application.dto.result.EventManagementDetailResult;
+import com.tastyhouse.core.domain.event.application.dto.result.EventManagementListItemResult;
+import com.tastyhouse.core.domain.event.application.dto.result.EventWinnerResult;
 import com.tastyhouse.core.domain.event.application.dto.command.EventAnnouncementCreateCommand;
 import com.tastyhouse.core.domain.event.application.dto.command.EventAnnouncementUpdateCommand;
 import com.tastyhouse.core.domain.event.application.dto.command.EventCreateCommand;
@@ -52,7 +52,7 @@ public class EventService {
         return EventPageResponse.from(pageResult);
     }
 
-    private EventListItemResponse toListItemResponse(EventManagementListItemDto dto) {
+    private EventListItemResponse toListItemResponse(EventManagementListItemResult dto) {
         return EventListItemResponse.from(dto, toFileResponse(dto.thumbnailImageFileId(), dto.thumbnailFileName(), dto.thumbnailFilePath()));
     }
 
@@ -77,7 +77,7 @@ public class EventService {
 
     public EventDetailResponse getEvent(Long id) {
         EventId eventId = EventId.of(id);
-        EventManagementDetailDto detail = eventQueryService.findAdminDetailById(eventId);
+        EventManagementDetailResult detail = eventQueryService.findAdminDetailById(eventId);
         FileResponse thumbnailFile = toFileResponse(detail.thumbnailImageFileId());
         FileResponse bannerFile = toFileResponse(detail.bannerImageFileId());
         return EventDetailResponse.from(detail, thumbnailFile, bannerFile);
@@ -137,7 +137,7 @@ public class EventService {
         EventId eventId = EventId.of(id);
         List<EventWinner> winners = eventQueryService.findWinnersByEventId(eventId);
         return winners.stream()
-            .map(EventWinnerDto::from)
+            .map(EventWinnerResult::from)
             .map(EventWinnerResponse::from)
             .toList();
     }
