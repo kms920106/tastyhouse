@@ -110,6 +110,39 @@ public class OrderRepositoryImpl implements OrderRepository {
 }
 ```
 
+**QueryDSL 동적 where 조건 조립 규칙**:
+
+동적 검색(필터가 null이면 조건 무시)을 하는 리포지토리는 `BooleanBuilder` + `if`문이 아니라, **`private BooleanExpression xxxEq(arg)` 헬퍼(arg가 null이면 null 반환) + `.where(가변인자)`**로 조립한다. QueryDSL은 `.where(...)`에 전달된 null 인자를 자동으로 무시하므로 이것으로 동적 쿼리가 된다. 정적 고정 조건(필터링 대상이 아닌 조건)은 헬퍼 없이 인라인으로 둔다.
+
+```java
+// 권장 — BooleanExpression 헬퍼 + varargs where
+.where(
+    notice.deleted.isFalse(),          // 정적 고정 조건은 인라인
+    titleContains(condition.title()),  // 동적 조건은 헬퍼로
+    visibleEq(condition.visible())
+)
+...
+private BooleanExpression titleContains(String title) {
+    return StringUtils.hasText(title) ? notice.title.containsIgnoreCase(title) : null;
+}
+
+private BooleanExpression visibleEq(Boolean visible) {
+    return visible != null ? notice.visible.eq(visible) : null;
+}
+```
+
+```java
+// 지양 — BooleanBuilder + if
+BooleanBuilder where = new BooleanBuilder();
+if (condition.title() != null) { where.and(notice.title.containsIgnoreCase(condition.title())); }
+if (condition.visible() != null) { where.and(notice.visible.eq(condition.visible())); }
+```
+
+- `BooleanBuilder`는 OR 조합·복잡한 그룹핑처럼 varargs `.where(...)`(AND만 지원)로 표현 불가능한 경우에만 예외적으로 쓰고, 그 이유를 주석으로 남긴다.
+- 서브쿼리로 ID 집합을 먼저 계산해 교집합하는 등 **where 조립이 아닌 선행 데이터 계산**은 이 규칙 대상이 아니다(예: `ShopRepositoryImpl#findLatestShops`의 foodType/amenity 서브쿼리 집합 계산 — 계산된 집합을 최종 where에 넣을 때는 `shopIdIn(Set<Long>)` 헬퍼를 그대로 사용).
+
+reference 구현: `notice` 도메인 `NoticeRepositoryImpl`(다수 도메인이 이미 이 패턴), `order` 도메인 `OrderRepositoryImpl#findOrders`, `shop` 도메인 `ShopRepositoryImpl#findLatestShops`/`#searchByKeywordWithBookmark`(과거 `BooleanBuilder`였다가 통일).
+
 **ID VO + Converter 패턴**:
 ```java
 // domain/vo/OrderId.java

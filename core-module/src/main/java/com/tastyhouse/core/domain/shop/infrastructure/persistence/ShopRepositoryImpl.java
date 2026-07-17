@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -96,13 +96,6 @@ public class ShopRepositoryImpl implements ShopRepository {
 
     @Override
     public PageResult<LatestShopItemDto> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, PageQuery pageQuery) {
-        BooleanBuilder whereClause = new BooleanBuilder();
-        whereClause.and(shop.permanentlyClosed.eq(false));
-
-        if (stationId != null) {
-            whereClause.and(shop.stationId.eq(stationId));
-        }
-
         Set<Long> foodTypeShopIds = null;
         if (foodTypes != null && !foodTypes.isEmpty()) {
             foodTypeShopIds = new HashSet<>(queryFactory
@@ -146,17 +139,17 @@ public class ShopRepositoryImpl implements ShopRepository {
             filteredShopIds = amenityShopIds;
         }
 
-        if (filteredShopIds != null) {
-            whereClause.and(shop.id.in(filteredShopIds));
-        }
-
-        Long total = queryFactory.select(shop.count()).from(shop).where(whereClause).fetchOne();
+        Long total = queryFactory.select(shop.count()).from(shop)
+            .where(shop.permanentlyClosed.eq(false), stationIdEq(stationId), shopIdIn(filteredShopIds))
+            .fetchOne();
 
         if (total == null || total == 0) {
             return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
-        List<Shop> pagedShops = queryFactory.selectFrom(shop).where(whereClause).orderBy(shop.createdAt.desc()).offset((long) pageQuery.page() * pageQuery.size()).limit(pageQuery.size()).fetch();
+        List<Shop> pagedShops = queryFactory.selectFrom(shop)
+            .where(shop.permanentlyClosed.eq(false), stationIdEq(stationId), shopIdIn(filteredShopIds))
+            .orderBy(shop.createdAt.desc()).offset((long) pageQuery.page() * pageQuery.size()).limit(pageQuery.size()).fetch();
 
         if (pagedShops.isEmpty()) {
             return PageResult.empty(pageQuery.page(), pageQuery.size());
@@ -209,15 +202,13 @@ public class ShopRepositoryImpl implements ShopRepository {
 
     @Override
     public PageResult<ShopBookmarkedItemDto> searchByKeywordWithBookmark(String keyword, MemberId memberId, PageQuery pageQuery) {
-        BooleanBuilder where = new BooleanBuilder()
-                .and(shop.permanentlyClosed.eq(false))
-                .and(shop.name.containsIgnoreCase(keyword));
-
-        Long total = queryFactory.select(shop.count()).from(shop).where(where).fetchOne();
+        Long total = queryFactory.select(shop.count()).from(shop)
+                .where(shop.permanentlyClosed.eq(false), shop.name.containsIgnoreCase(keyword))
+                .fetchOne();
         if (total == null || total == 0) return PageResult.empty(pageQuery.page(), pageQuery.size());
 
         List<Shop> pagedShops = queryFactory.selectFrom(shop)
-                .where(where)
+                .where(shop.permanentlyClosed.eq(false), shop.name.containsIgnoreCase(keyword))
                 .orderBy(shop.rating.desc().nullsLast())
                 .offset((long) pageQuery.page() * pageQuery.size())
                 .limit(pageQuery.size())
@@ -309,5 +300,13 @@ public class ShopRepositoryImpl implements ShopRepository {
             .collect(Collectors.toList());
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    private BooleanExpression stationIdEq(Long stationId) {
+        return stationId != null ? shop.stationId.eq(stationId) : null;
+    }
+
+    private BooleanExpression shopIdIn(Set<Long> shopIds) {
+        return shopIds != null ? shop.id.in(shopIds) : null;
     }
 }

@@ -1,9 +1,10 @@
 package com.tastyhouse.core.domain.order.infrastructure.persistence;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +12,11 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
+import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
+import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.core.domain.order.application.dto.OrderSearchCondition;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderAdminListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
@@ -81,30 +84,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public PageResult<OrderAdminListItemResult> findOrders(OrderSearchCondition condition, PageQuery pageQuery) {
-        BooleanBuilder where = new BooleanBuilder();
-        where.and(order.deleted.isFalse());
-        if (condition.shopId() != null) {
-            where.and(order.shopId.eq(condition.shopId()));
-        }
-        if (condition.orderStatus() != null) {
-            where.and(order.orderStatus.eq(condition.orderStatus()));
-        }
-        if (condition.orderMethod() != null) {
-            where.and(order.orderMethod.eq(condition.orderMethod()));
-        }
-        if (condition.orderNumber() != null) {
-            where.and(order.orderNumber.containsIgnoreCase(condition.orderNumber()));
-        }
-        if (condition.ordererName() != null) {
-            where.and(order.ordererName.containsIgnoreCase(condition.ordererName()));
-        }
-        if (condition.startDate() != null) {
-            where.and(order.createdAt.goe(condition.startDate()));
-        }
-        if (condition.endDate() != null) {
-            where.and(order.createdAt.loe(condition.endDate()));
-        }
-
         var paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId").eq(order.id);
         if (condition.paymentStatus() != null) {
             paymentJoinCondition = paymentJoinCondition.and(payment.paymentStatus.eq(condition.paymentStatus()));
@@ -127,7 +106,16 @@ public class OrderRepositoryImpl implements OrderRepository {
             .leftJoin(payment).on(paymentJoinCondition)
             .leftJoin(shop).on(shop.id.eq(order.shopId))
             .leftJoin(orderProduct).on(orderProduct.orderId.eq(order.id))
-            .where(where)
+            .where(
+                order.deleted.isFalse(),
+                shopIdEq(condition.shopId()),
+                orderStatusEq(condition.orderStatus()),
+                orderMethodEq(condition.orderMethod()),
+                orderNumberContains(condition.orderNumber()),
+                ordererNameContains(condition.ordererName()),
+                createdAtGoe(condition.startDate()),
+                createdAtLoe(condition.endDate())
+            )
             .groupBy(order.id, order.orderNumber, shop.name, order.ordererName, order.orderMethod, order.orderStatus, payment.paymentStatus, order.finalAmount, order.createdAt)
             .orderBy(order.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -138,7 +126,16 @@ public class OrderRepositoryImpl implements OrderRepository {
             .select(order.countDistinct())
             .from(order)
             .leftJoin(payment).on(paymentJoinCondition)
-            .where(where)
+            .where(
+                order.deleted.isFalse(),
+                shopIdEq(condition.shopId()),
+                orderStatusEq(condition.orderStatus()),
+                orderMethodEq(condition.orderMethod()),
+                orderNumberContains(condition.orderNumber()),
+                ordererNameContains(condition.ordererName()),
+                createdAtGoe(condition.startDate()),
+                createdAtLoe(condition.endDate())
+            )
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
@@ -147,5 +144,33 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public Order save(Order order) {
         return orderJpaRepository.save(order);
+    }
+
+    private BooleanExpression shopIdEq(Long shopId) {
+        return shopId != null ? order.shopId.eq(shopId) : null;
+    }
+
+    private BooleanExpression orderStatusEq(OrderStatus orderStatus) {
+        return orderStatus != null ? order.orderStatus.eq(orderStatus) : null;
+    }
+
+    private BooleanExpression orderMethodEq(OrderMethod orderMethod) {
+        return orderMethod != null ? order.orderMethod.eq(orderMethod) : null;
+    }
+
+    private BooleanExpression orderNumberContains(String orderNumber) {
+        return orderNumber != null ? order.orderNumber.containsIgnoreCase(orderNumber) : null;
+    }
+
+    private BooleanExpression ordererNameContains(String ordererName) {
+        return ordererName != null ? order.ordererName.containsIgnoreCase(ordererName) : null;
+    }
+
+    private BooleanExpression createdAtGoe(LocalDateTime startDate) {
+        return startDate != null ? order.createdAt.goe(startDate) : null;
+    }
+
+    private BooleanExpression createdAtLoe(LocalDateTime endDate) {
+        return endDate != null ? order.createdAt.loe(endDate) : null;
     }
 }

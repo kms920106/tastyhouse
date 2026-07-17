@@ -415,3 +415,33 @@ import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 - Spring Java Format `SpringImportOrderCheck` 구현: https://github.com/spring-io/spring-javaformat/blob/main/spring-javaformat/spring-javaformat-checkstyle/src/main/java/io/spring/javaformat/checkstyle/check/SpringImportOrderCheck.java
 - Spring Java Format checkstyle 설정: https://github.com/spring-io/spring-javaformat/blob/main/spring-javaformat/spring-javaformat-checkstyle/src/main/resources/io/spring/javaformat/checkstyle/spring-checkstyle.xml
 - Checkstyle `ImportOrder` 규칙 문서: https://checkstyle.sourceforge.io/checks/imports/importorder.html
+
+## QueryDSL 동적 where 조건 조립 규칙 (`BooleanBuilder` 대신 `BooleanExpression` varargs 헬퍼)
+
+`core-module`의 `*RepositoryImpl.java`에서 **동적 검색(필터가 null이면 조건 무시)을 하는 where 조건은 `BooleanBuilder` + `if`문이 아니라, `private BooleanExpression xxxEq(arg)` 헬퍼(arg가 null이면 null 반환) + `.where(가변인자)`로 조립합니다.** QueryDSL이 `.where(...)`에 전달된 null 인자를 자동으로 무시하는 것을 이용한 동적 쿼리 관용구입니다.
+
+- **왜 통일하는가**: 전수 조사 결과 동적 검색 리포지토리 11개 중 9개가 이미 `BooleanExpression` varargs 헬퍼 패턴이었고, `OrderRepositoryImpl`·`ShopRepositoryImpl` 2개만 `BooleanBuilder` + `if`문(명령형·장황)을 쓰고 있었습니다. 같은 목적(동적 where)을 서로 다른 스타일로 구현하면 파일마다 읽는 방식이 달라지므로, 다수파 패턴으로 통일합니다.
+- **정적 고정 조건**(필터링 대상이 아닌 조건, 예: `deleted.isFalse()`)은 헬퍼 없이 `.where(...)`에 인라인으로 둡니다.
+- **`BooleanBuilder` 예외 허용 범위**: OR 조합·복잡한 그룹핑처럼 varargs `.where(...)`(AND만 지원)로 표현 불가능한 경우에만 예외적으로 쓰고, 이유를 주석으로 남깁니다.
+- **선행 데이터 계산은 대상 아님**: 서브쿼리로 ID 집합을 먼저 계산해 교집합하는 등 where 조립이 아닌 로직은 이 규칙과 무관합니다. 계산된 집합을 최종 where에 넣을 때만 `xxxIn(Set<Long>)` 헬퍼를 씁니다.
+
+```java
+// 권장 — BooleanExpression 헬퍼 + varargs where
+.where(
+    notice.deleted.isFalse(),          // 정적 고정 조건은 인라인
+    titleContains(condition.title()),  // 동적 조건은 헬퍼로
+    visibleEq(condition.visible())
+)
+...
+private BooleanExpression titleContains(String title) {
+    return StringUtils.hasText(title) ? notice.title.containsIgnoreCase(title) : null;
+}
+```
+
+```java
+// 지양 — BooleanBuilder + if
+BooleanBuilder where = new BooleanBuilder();
+if (condition.title() != null) { where.and(notice.title.containsIgnoreCase(condition.title())); }
+```
+
+reference 구현: `notice` 도메인 `NoticeRepositoryImpl`, `order` 도메인 `OrderRepositoryImpl#findOrders`, `shop` 도메인 `ShopRepositoryImpl#findLatestShops`/`#searchByKeywordWithBookmark`(과거 `BooleanBuilder`였다가 통일). 상세 예시는 `core-module/src/main/java/com/tastyhouse/core/AGENTS.md` 참고.
