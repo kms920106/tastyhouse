@@ -94,6 +94,7 @@ public enum ErrorCode {
     // 포인트
     POINT_NOT_FOUND(404, "POINT_NOT_FOUND", "포인트 정보를 찾을 수 없습니다."),
     POINT_INSUFFICIENT(400, "POINT_INSUFFICIENT", "포인트가 부족합니다."),
+    POINT_TYPE_UNKNOWN(400, "POINT_TYPE_UNKNOWN", "알 수 없는 포인트 유형입니다."),
 
     // 파일
     FILE_EMPTY(400, "FILE_EMPTY", "파일이 비어있습니다."),

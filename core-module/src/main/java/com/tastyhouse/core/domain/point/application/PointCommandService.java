@@ -7,7 +7,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.domain.event.PointEarnedEvent;
 import com.tastyhouse.core.domain.point.domain.event.PointRefundedEvent;
 import com.tastyhouse.core.domain.point.domain.event.PointUsedEvent;
@@ -16,10 +15,11 @@ import com.tastyhouse.core.domain.point.domain.model.MemberPointHistory;
 import com.tastyhouse.core.domain.point.domain.model.PointType;
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointHistoryRepository;
 import com.tastyhouse.core.domain.point.domain.repository.MemberPointRepository;
-import com.tastyhouse.core.domain.point.application.dto.command.EarnPointCommand;
-import com.tastyhouse.core.domain.point.application.dto.command.ReclaimPointCommand;
-import com.tastyhouse.core.domain.point.application.dto.command.RefundPointCommand;
-import com.tastyhouse.core.domain.point.application.dto.command.UsePointCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointDeductCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointEarnCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointReclaimCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointRefundCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointUseCommand;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -32,7 +32,7 @@ public class PointCommandService {
     private final MemberPointHistoryRepository memberPointHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public void usePoints(UsePointCommand command) {
+    public void usePoints(PointUseCommand command) {
         MemberPoint memberPoint = memberPointRepository.findByMemberId(command.memberId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND));
 
@@ -45,9 +45,9 @@ public class PointCommandService {
         eventPublisher.publishEvent(new PointUsedEvent(command.memberId(), command.pointAmount(), LocalDateTime.now()));
     }
 
-    public void earnPoints(EarnPointCommand command) {
+    public void earnPoints(PointEarnCommand command) {
         MemberPoint memberPoint = memberPointRepository.findByMemberId(command.memberId())
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND));
+            .orElseGet(() -> memberPointRepository.save(MemberPoint.of(command.memberId())));
 
         memberPoint.addPoints(command.pointAmount());
 
@@ -58,7 +58,7 @@ public class PointCommandService {
         eventPublisher.publishEvent(new PointEarnedEvent(command.memberId(), command.pointAmount(), command.reason(), LocalDateTime.now()));
     }
 
-    public void refundPoints(RefundPointCommand command) {
+    public void refundPoints(PointRefundCommand command) {
         MemberPoint memberPoint = memberPointRepository.findByMemberId(command.memberId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
                 "포인트 정보를 찾을 수 없습니다. memberId=" + command.memberId()));
@@ -72,7 +72,7 @@ public class PointCommandService {
         eventPublisher.publishEvent(new PointRefundedEvent(command.memberId(), command.pointAmount(), LocalDateTime.now()));
     }
 
-    public void reclaimEarnedPoints(ReclaimPointCommand command) {
+    public void reclaimEarnedPoints(PointReclaimCommand command) {
         MemberPoint memberPoint = memberPointRepository.findByMemberId(command.memberId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
                 "포인트 정보를 찾을 수 없습니다. memberId=" + command.memberId()));
@@ -87,8 +87,17 @@ public class PointCommandService {
         eventPublisher.publishEvent(new PointUsedEvent(command.memberId(), deductAmount, LocalDateTime.now()));
     }
 
-    public void getOrCreateMemberPoint(MemberId memberId) {
-        memberPointRepository.findByMemberId(memberId)
-            .orElseGet(() -> memberPointRepository.save(MemberPoint.of(memberId)));
+    public void deductPoints(PointDeductCommand command) {
+        MemberPoint memberPoint = memberPointRepository.findByMemberId(command.memberId())
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
+                "포인트 정보를 찾을 수 없습니다. memberId=" + command.memberId()));
+
+        memberPoint.deductPoints(command.pointAmount());
+
+        memberPointHistoryRepository.save(
+            MemberPointHistory.of(command.memberId(), PointType.USE, -command.pointAmount(), command.reason())
+        );
+
+        eventPublisher.publishEvent(new PointUsedEvent(command.memberId(), command.pointAmount(), LocalDateTime.now()));
     }
 }

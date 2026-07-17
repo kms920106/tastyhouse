@@ -10,9 +10,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.tastyhouse.core.domain.payment.domain.event.PaymentCancelledEvent;
 import com.tastyhouse.core.domain.payment.domain.event.PaymentCompletedEvent;
 import com.tastyhouse.core.domain.point.application.PointCommandService;
-import com.tastyhouse.core.domain.point.application.dto.command.EarnPointCommand;
-import com.tastyhouse.core.domain.point.application.dto.command.ReclaimPointCommand;
-import com.tastyhouse.core.domain.point.application.dto.command.RefundPointCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointEarnCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointReclaimCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointRefundCommand;
 
 @Slf4j
 @Component
@@ -31,8 +31,7 @@ public class PaymentEventListener {
         }
 
         int earnedPoint = (int) (event.amount().value() * CASH_POINT_EARN_RATE / 100.0);
-        pointCommandService.getOrCreateMemberPoint(event.memberId());
-        pointCommandService.earnPoints(new EarnPointCommand(
+        pointCommandService.earnPoints(new PointEarnCommand(
             event.memberId(),
             earnedPoint,
             "현장 현금 결제 적립 (" + CASH_POINT_EARN_RATE + "%)"
@@ -45,12 +44,12 @@ public class PaymentEventListener {
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void on(PaymentCancelledEvent event) {
         if (event.usedPoint() > 0) {
-            pointCommandService.refundPoints(new RefundPointCommand(event.memberId(), event.usedPoint()));
+            pointCommandService.refundPoints(new PointRefundCommand(event.memberId(), event.usedPoint()));
             log.info("Point refunded. memberId: {}, usedPoint: {}", event.memberId().value(), event.usedPoint());
         }
 
         if (event.earnedPoint() > 0) {
-            pointCommandService.reclaimEarnedPoints(new ReclaimPointCommand(event.memberId(), event.earnedPoint()));
+            pointCommandService.reclaimEarnedPoints(new PointReclaimCommand(event.memberId(), event.earnedPoint()));
             log.info("Earned point reclaimed. memberId: {}, earnedPoint: {}", event.memberId().value(), event.earnedPoint());
         }
     }

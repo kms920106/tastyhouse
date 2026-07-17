@@ -12,7 +12,7 @@ import com.tastyhouse.core.domain.member.referral.domain.model.MemberReferral;
 import com.tastyhouse.core.domain.member.referral.domain.repository.MemberReferralRepository;
 import com.tastyhouse.core.domain.member.referral.domain.vo.ReferralId;
 import com.tastyhouse.core.domain.point.application.PointCommandService;
-import com.tastyhouse.core.domain.point.application.dto.command.EarnPointCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointEarnCommand;
 import com.tastyhouse.core.domain.member.referral.application.dto.command.RegisterReferralCommand;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -42,11 +42,8 @@ public class ReferralCommandService {
         MemberReferral referral = MemberReferral.register(command.referrerId(), command.refereeId());
         memberReferralRepository.save(referral);
 
-        pointCommandService.getOrCreateMemberPoint(command.referrerId());
-        pointCommandService.earnPoints(EarnPointCommand.of(command.referrerId(), REFERRAL_REWARD_POINT, "추천인 보상"));
-
-        pointCommandService.getOrCreateMemberPoint(command.refereeId());
-        pointCommandService.earnPoints(EarnPointCommand.of(command.refereeId(), REFEREE_REWARD_POINT, "추천받기 보상"));
+        pointCommandService.earnPoints(PointEarnCommand.of(command.referrerId(), REFERRAL_REWARD_POINT, "추천인 보상"));
+        pointCommandService.earnPoints(PointEarnCommand.of(command.refereeId(), REFEREE_REWARD_POINT, "추천받기 보상"));
 
         referral.reward();
         memberReferralRepository.save(referral);

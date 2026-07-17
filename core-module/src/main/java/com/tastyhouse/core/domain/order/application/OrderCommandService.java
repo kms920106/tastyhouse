@@ -38,7 +38,7 @@ import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateComma
 import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.point.application.PointCommandService;
-import com.tastyhouse.core.domain.point.application.dto.command.UsePointCommand;
+import com.tastyhouse.core.domain.point.application.dto.command.PointUseCommand;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -155,7 +155,7 @@ public class OrderCommandService {
         int pointDiscountAmount = 0;
         if (command.usePoint() > 0) {
             pointDiscountAmount = command.usePoint();
-            pointCommandService.usePoints(new UsePointCommand(memberId, pointDiscountAmount));
+            pointCommandService.usePoints(new PointUseCommand(memberId, pointDiscountAmount));
         }
 
         int totalDiscountAmount = productDiscountAmount + couponDiscountAmount + pointDiscountAmount;
