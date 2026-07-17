@@ -66,7 +66,7 @@ public class FaqRepositoryImpl implements FaqRepository {
     }
 
     @Override
-    public PageResult<FaqListItemDto> findPageForAdmin(FaqSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<FaqListItemDto> findFaqPage(FaqSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
                 .select(faq.id.count())
                 .from(faq)

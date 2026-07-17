@@ -17,7 +17,7 @@ public interface FaqRepository {
 
     List<FaqResult> findActiveItemsByCategoryId(Long categoryId);
 
-    PageResult<FaqListItemDto> findPageForAdmin(FaqSearchCondition condition, PageQuery pageQuery);
+    PageResult<FaqListItemDto> findFaqPage(FaqSearchCondition condition, PageQuery pageQuery);
 
     Optional<Faq> findById(FaqId faqId);
 

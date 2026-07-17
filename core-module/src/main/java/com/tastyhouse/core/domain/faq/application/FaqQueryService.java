@@ -42,8 +42,8 @@ public class FaqQueryService {
         return faqRepository.findActiveItemsByCategoryId(categoryId);
     }
 
-    public List<FaqCategoryAdminDto> findCategoriesForAdmin() {
-        return faqCategoryRepository.findAllForAdmin();
+    public List<FaqCategoryAdminDto> findAllCategories() {
+        return faqCategoryRepository.findAllCategories();
     }
 
     public FaqCategoryAdminDto findCategoryDetail(FaqCategoryId faqCategoryId) {
@@ -60,7 +60,7 @@ public class FaqQueryService {
 
     public PageResult<FaqListItemDto> findFaqPage(FaqSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return faqRepository.findPageForAdmin(condition, pageQuery);
+        return faqRepository.findFaqPage(condition, pageQuery);
     }
 
     public FaqDetailDto findFaqDetail(FaqId faqId) {

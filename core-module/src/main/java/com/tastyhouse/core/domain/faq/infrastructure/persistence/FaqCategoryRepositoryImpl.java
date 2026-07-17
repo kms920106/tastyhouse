@@ -40,7 +40,7 @@ public class FaqCategoryRepositoryImpl implements FaqCategoryRepository {
     }
 
     @Override
-    public List<FaqCategoryAdminDto> findAllForAdmin() {
+    public List<FaqCategoryAdminDto> findAllCategories() {
         return queryFactory
                 .select(new QFaqCategoryAdminDto(
                         faqCategory.id,

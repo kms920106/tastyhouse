@@ -39,7 +39,7 @@ public class OrderService {
 
     public OrderDetailResponse getOrder(Long id) {
         OrderId orderId = OrderId.of(id);
-        OrderResult result = orderQueryService.findOrderDetailForAdmin(orderId);
+        OrderResult result = orderQueryService.findOrderDetailById(orderId);
         return OrderDetailResponse.from(result);
     }
 

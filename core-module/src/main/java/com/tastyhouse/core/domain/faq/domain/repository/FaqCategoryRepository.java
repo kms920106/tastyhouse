@@ -12,7 +12,7 @@ public interface FaqCategoryRepository {
 
     List<FaqCategoryResult> findAllActiveCategories();
 
-    List<FaqCategoryAdminDto> findAllForAdmin();
+    List<FaqCategoryAdminDto> findAllCategories();
 
     Optional<FaqCategory> findById(FaqCategoryId faqCategoryId);
 

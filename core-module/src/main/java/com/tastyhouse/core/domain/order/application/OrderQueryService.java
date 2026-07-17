@@ -78,7 +78,7 @@ public class OrderQueryService {
         );
     }
 
-    public OrderResult findOrderDetailForAdmin(OrderId orderId) {
+    public OrderResult findOrderDetailById(OrderId orderId) {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 

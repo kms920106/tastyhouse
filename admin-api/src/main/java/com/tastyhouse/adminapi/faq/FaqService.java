@@ -38,7 +38,7 @@ public class FaqService {
     }
 
     public List<FaqCategoryResponse> getCategories() {
-        return faqQueryService.findCategoriesForAdmin().stream()
+        return faqQueryService.findAllCategories().stream()
             .map(FaqCategoryResponse::from)
             .toList();
     }
