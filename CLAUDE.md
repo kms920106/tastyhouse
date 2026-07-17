@@ -16,6 +16,16 @@ NO_COMMIT_OR_ROLLBACK
 
 파일명, 변수명, 함수명 등 모든 네이밍은 최적의 이름을 선택하도록 합니다. 명확하고 의미 있는 이름을 사용하여 코드의 가독성과 유지보수성을 높입니다.
 
+## admin 전용 메서드 네이밍 규칙 (`ForAdmin`/`Admin` 접미·접두 금지)
+
+**admin 전용 조회·명령 메서드도 `ForAdmin`/`Admin` 접미어·접두어 없이 순수 도메인 동작명만 씁니다.** 같은 도메인 안에서 admin 전용 메서드만 이런 접미·접두를 붙이면, 일반 메서드(`findOrders`, `findAllEvents`, `findAllNotices` 등)와 이름 짓는 방식이 갈려 일관성이 깨집니다.
+
+- **admin/일반 구분 방법**: 메서드명이 아니라 **반환 DTO 이름**(`XxxAdminDto`, `XxxAdminListItemResult` 등)으로 admin 성격을 표현합니다. 시그니처(파라미터 차이: `memberId` 유무·소유권 검증 유무 등)로도 구분됩니다.
+- **비-admin 형제와 이름이 충돌할 때만** `ById`처럼 의미 있는 한정어로 구분합니다(예: `findOrderDetail(memberId, orderId)` vs `findOrderDetailById(orderId)`).
+- 이미 존재하던 `ForAdmin` 접미어(`findOrderDetailForAdmin`, `findCategoriesForAdmin`, `findAllForAdmin`, `findPageForAdmin`)는 각각 `findOrderDetailById`, `findAllCategories`, `findAllCategories`, `findFaqPage`로 리네이밍하여 정리했습니다.
+
+reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(비-admin `findOrderDetail`과 시그니처로 구분), `faq` 도메인의 `FaqQueryService#findAllCategories`/`FaqRepository#findFaqPage`(반환 DTO `FaqCategoryAdminDto`/`FaqListItemDto`가 admin 성격 표현), `event` 도메인의 `findAllEvents`/`OrderAdminListItemResult`.
+
 ## Command/DTO 네이밍 순서 규칙 (`{도메인}{동작}` 형태)
 
 command·result 등 도메인 DTO의 이름은 **`{도메인}` 접두어 + `{동작}` + 접미어** 순서로 짓습니다. 동작(Create/Update/Delete 등)을 접두어로 두는 `{동작}{도메인}` 형태(예: `CreateBannerCommand`)는 사용하지 않습니다. 도메인명을 앞에 두면 같은 애그리거트의 DTO들이 IDE·파일 탐색기·import 목록에서 이름순으로 인접하게 모여 응집도가 드러나고, 도메인 단위로 일괄 검색·정렬하기 쉽습니다.
