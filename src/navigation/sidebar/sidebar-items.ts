@@ -22,6 +22,7 @@ import {
   ShoppingBag,
   SquareArrowUpRight,
   TicketPercent,
+  UserRound,
   Users,
 } from "lucide-react";
 
@@ -152,6 +153,11 @@ export const sidebarItems: NavGroup[] = [
         title: "이벤트",
         url: "/dashboard/events",
         icon: CalendarDays,
+      },
+      {
+        title: "회원",
+        url: "/dashboard/members",
+        icon: UserRound,
       },
       {
         title: "버그 제보",
