@@ -25,6 +25,7 @@ public enum ErrorCode {
     ORDER_FINAL_AMOUNT_MISMATCH(400, "ORDER_FINAL_AMOUNT_MISMATCH", "결제 금액이 일치하지 않습니다."),
     ORDER_MINIMUM_AMOUNT_NOT_MET(400, "ORDER_MINIMUM_AMOUNT_NOT_MET", "최소 주문 금액을 충족하지 않습니다."),
     ORDER_METHOD_UNKNOWN(400, "ORDER_METHOD_UNKNOWN", "알 수 없는 주문 방법입니다."),
+    ORDER_STATUS_UNKNOWN(400, "ORDER_STATUS_UNKNOWN", "알 수 없는 주문 상태입니다."),
 
     // 쿠폰
     COUPON_NOT_FOUND(404, "COUPON_NOT_FOUND", "쿠폰을 찾을 수 없습니다."),

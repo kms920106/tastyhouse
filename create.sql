@@ -709,6 +709,7 @@ CREATE TABLE ORDERS
     earned_point            INT          NOT NULL DEFAULT 0,     -- 적립 포인트
     created_at              DATETIME     NOT NULL,               -- 생성 일시
     updated_at              DATETIME     NOT NULL,               -- 수정 일시
+    is_deleted              BOOLEAN      NOT NULL DEFAULT FALSE,  -- 삭제 여부 (Soft Delete)
     INDEX idx_orders_member_id (member_id),                      -- 인덱스: 회원별 조회
     INDEX idx_orders_shop_id (shop_id),                        -- 인덱스: 장소별 조회
     INDEX idx_orders_order_status (order_status),                -- 인덱스: 주문 상태별 조회

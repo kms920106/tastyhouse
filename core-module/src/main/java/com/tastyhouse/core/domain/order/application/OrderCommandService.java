@@ -21,6 +21,7 @@ import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepository;
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
+import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.ProductOption;
 import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
@@ -182,6 +183,20 @@ public class OrderCommandService {
             itemResults,
             null
         );
+    }
+
+    @Transactional
+    public void changeOrderStatus(OrderId orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+        order.changeStatus(status);
+    }
+
+    @Transactional
+    public void deleteOrder(OrderId orderId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+        order.delete();
     }
 
     private List<com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult> buildOrderProductResults(List<OrderProduct> items) {

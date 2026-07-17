@@ -85,6 +85,9 @@ public class Order extends BaseEntity {
     @Column(name = "earned_point", nullable = false)
     private Integer earnedPoint;
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
+
     private Order(
         MemberId memberId,
         Long shopId,
@@ -121,6 +124,7 @@ public class Order extends BaseEntity {
         this.memberCouponId = memberCouponId;
         this.usedPoint = usedPoint != null ? usedPoint : 0;
         this.earnedPoint = earnedPoint != null ? earnedPoint : 0;
+        this.deleted = false;
     }
 
     public static Order of(
@@ -179,6 +183,14 @@ public class Order extends BaseEntity {
 
     public void cancel() {
         this.orderStatus = OrderStatus.CANCELLED;
+    }
+
+    public void changeStatus(OrderStatus status) {
+        this.orderStatus = status;
+    }
+
+    public void delete() {
+        this.deleted = true;
     }
 
     public void updateAmounts(

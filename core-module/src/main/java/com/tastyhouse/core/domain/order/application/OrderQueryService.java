@@ -20,6 +20,8 @@ import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.core.domain.order.application.dto.OrderSearchCondition;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderAdminListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
@@ -50,6 +52,11 @@ public class OrderQueryService {
         return orderRepository.findOrderListByMemberId(memberId, pageQuery);
     }
 
+    public PageResult<OrderAdminListItemResult> findOrders(OrderSearchCondition condition, int page, int size) {
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return orderRepository.findOrders(condition, pageQuery);
+    }
+
     public OrderResult findOrderDetail(MemberId memberId, OrderId orderId) {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
@@ -58,8 +65,41 @@ public class OrderQueryService {
 
         Shop shop = shopQueryService.findShopById(ShopId.of(order.getShopId()));
 
+        List<OrderProductResult> itemResults = buildOrderProductResults(orderId);
+
+        Payment payment = paymentRepository.findByOrderId(orderId).orElse(null);
+
+        return OrderResult.from(
+            order,
+            shop != null ? shop.getName() : null,
+            shop != null ? shop.getPhoneNumber() : null,
+            itemResults,
+            payment
+        );
+    }
+
+    public OrderResult findOrderDetailForAdmin(OrderId orderId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+
+        Shop shop = shopQueryService.findShopById(ShopId.of(order.getShopId()));
+
+        List<OrderProductResult> itemResults = buildOrderProductResults(orderId);
+
+        Payment payment = paymentRepository.findByOrderId(orderId).orElse(null);
+
+        return OrderResult.from(
+            order,
+            shop != null ? shop.getName() : null,
+            shop != null ? shop.getPhoneNumber() : null,
+            itemResults,
+            payment
+        );
+    }
+
+    private List<OrderProductResult> buildOrderProductResults(OrderId orderId) {
         List<OrderProduct> items = orderProductRepository.findByOrderId(orderId);
-        List<OrderProductResult> itemResults = items.stream()
+        return items.stream()
             .map(item -> {
                 List<OrderProductOption> options = orderProductOptionRepository.findByOrderProductId(item.getOrderProductId());
                 List<OrderProductOptionResult> optionResults = options.stream()
@@ -79,16 +119,6 @@ public class OrderQueryService {
                 );
             })
             .toList();
-
-        Payment payment = paymentRepository.findByOrderId(orderId).orElse(null);
-
-        return OrderResult.from(
-            order,
-            shop != null ? shop.getName() : null,
-            shop != null ? shop.getPhoneNumber() : null,
-            itemResults,
-            payment
-        );
     }
 
     public OrderProduct findOrderProductById(OrderProductId orderProductId) {
