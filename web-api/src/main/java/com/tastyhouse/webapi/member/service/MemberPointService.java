@@ -11,10 +11,10 @@ import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.application.PointQueryService;
 import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
 import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
-import com.tastyhouse.webapi.member.response.PointHistoryItemResponse;
-import com.tastyhouse.webapi.member.response.PointHistoryResponse;
-import com.tastyhouse.webapi.member.response.PointResponse;
-import com.tastyhouse.webapi.member.response.UsablePointResponse;
+import com.tastyhouse.webapi.member.response.MemberPointHistoryItemResponse;
+import com.tastyhouse.webapi.member.response.MemberPointHistoryResponse;
+import com.tastyhouse.webapi.member.response.MemberPointResponse;
+import com.tastyhouse.webapi.member.response.MemberUsablePointResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -23,22 +23,22 @@ public class MemberPointService {
     private final PointQueryService pointQueryService;
 
     @Transactional(readOnly = true)
-    public PointResponse getMemberPoint(Long memberId) {
+    public MemberPointResponse getMemberPoint(Long memberId) {
         return pointQueryService.findMemberPoint(MemberId.of(memberId))
             .map(this::toPointResponse)
-            .orElseGet(() -> PointResponse.of(0, 0));
+            .orElseGet(() -> MemberPointResponse.of(0, 0));
     }
 
     @Transactional(readOnly = true)
-    public PointHistoryResponse getPointHistory(Long memberId) {
-        PointResponse pointResponse = getMemberPoint(memberId);
+    public MemberPointHistoryResponse getPointHistory(Long memberId) {
+        MemberPointResponse pointResponse = getMemberPoint(memberId);
 
-        List<PointHistoryItemResponse> histories = pointQueryService.findPointHistory(MemberId.of(memberId))
+        List<MemberPointHistoryItemResponse> histories = pointQueryService.findPointHistory(MemberId.of(memberId))
             .stream()
             .map(this::toPointHistoryItemResponse)
             .collect(Collectors.toList());
 
-        return PointHistoryResponse.from(
+        return MemberPointHistoryResponse.from(
             pointResponse.availablePoints(),
             pointResponse.expiredThisMonth(),
             histories
@@ -46,20 +46,20 @@ public class MemberPointService {
     }
 
     @Transactional(readOnly = true)
-    public UsablePointResponse getUsablePoint(Long memberId) {
+    public MemberUsablePointResponse getUsablePoint(Long memberId) {
         return pointQueryService.findMemberPoint(MemberId.of(memberId))
-            .map(result -> UsablePointResponse.of(result.availablePoints()))
-            .orElseGet(() -> UsablePointResponse.of(0));
+            .map(result -> MemberUsablePointResponse.of(result.availablePoints()))
+            .orElseGet(() -> MemberUsablePointResponse.of(0));
     }
 
-    private PointResponse toPointResponse(MemberPointResult result) {
-        return PointResponse.of(result.availablePoints(), result.expiredThisMonth());
+    private MemberPointResponse toPointResponse(MemberPointResult result) {
+        return MemberPointResponse.of(result.availablePoints(), result.expiredThisMonth());
     }
 
-    private PointHistoryItemResponse toPointHistoryItemResponse(MemberPointHistoryResult history) {
+    private MemberPointHistoryItemResponse toPointHistoryItemResponse(MemberPointHistoryResult history) {
         String pointType = history.pointType().name();
         Integer pointAmount = "USE".equals(pointType) ? -history.pointAmount() : history.pointAmount();
-        return PointHistoryItemResponse.from(
+        return MemberPointHistoryItemResponse.from(
             history.reason(),
             history.createdAt().toLocalDate(),
             pointAmount,

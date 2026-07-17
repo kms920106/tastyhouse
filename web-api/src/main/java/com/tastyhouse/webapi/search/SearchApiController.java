@@ -22,8 +22,8 @@ import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.request.SearchKeywordRequest;
-import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
-import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
+import com.tastyhouse.webapi.search.response.SearchPopularKeywordResponse;
+import com.tastyhouse.webapi.search.response.SearchRecommendedKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
 import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
 
@@ -37,13 +37,13 @@ public class SearchApiController {
 
     @Operation(summary = "인기 검색어 조회", description = "1~10위 인기 검색어 반환. 신규 진입 키워드는 isNew=true.")
     @GetMapping("/v1/popular-keywords")
-    public ResponseEntity<ApiResponse<List<PopularKeywordResponse>>> getPopularKeywords() {
+    public ResponseEntity<ApiResponse<List<SearchPopularKeywordResponse>>> getPopularKeywords() {
         return ResponseEntity.ok(ApiResponse.success(searchService.getPopularKeywords()));
     }
 
     @Operation(summary = "추천 검색어 조회", description = "운영 관리 추천 검색어 태그 목록 반환.")
     @GetMapping("/v1/recommended-keywords")
-    public ResponseEntity<ApiResponse<List<RecommendedKeywordResponse>>> getRecommendedKeywords() {
+    public ResponseEntity<ApiResponse<List<SearchRecommendedKeywordResponse>>> getRecommendedKeywords() {
         return ResponseEntity.ok(ApiResponse.success(searchService.getRecommendedKeywords()));
     }
 

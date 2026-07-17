@@ -16,7 +16,7 @@ import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapi.verification.request.ConfirmVerificationCodeRequest;
 import com.tastyhouse.webapi.verification.request.SendVerificationCodeRequest;
-import com.tastyhouse.webapi.verification.response.PhoneVerifyTokenResponse;
+import com.tastyhouse.webapi.verification.response.VerificationPhoneTokenResponse;
 
 @RestController
 @RequestMapping("/api/phone-verifications")
@@ -46,13 +46,13 @@ public class PhoneVerificationApiController {
                       "개인정보 수정(휴대폰번호 변경) 시 X-Phone-Verify-Token 헤더에 포함하여 사용합니다."
     )
     @PostMapping("/v1/confirm")
-    public ResponseEntity<ApiResponse<PhoneVerifyTokenResponse>> confirmVerificationCode(
+    public ResponseEntity<ApiResponse<VerificationPhoneTokenResponse>> confirmVerificationCode(
         @Valid @RequestBody ConfirmVerificationCodeRequest request
     ) {
         String phoneNumber = phoneVerificationService.confirmVerificationCode(request.phoneNumber(), request.verificationCode());
         String phoneVerifyToken = jwtTokenProvider.createPhoneVerifyToken(phoneNumber);
         return ResponseEntity.ok(ApiResponse.success(
-            PhoneVerifyTokenResponse.from(phoneVerifyToken)
+            VerificationPhoneTokenResponse.from(phoneVerifyToken)
         ));
     }
 }

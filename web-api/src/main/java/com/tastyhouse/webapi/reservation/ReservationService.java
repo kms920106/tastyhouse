@@ -22,8 +22,8 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
-import com.tastyhouse.webapi.reservation.response.Slot;
-import com.tastyhouse.webapi.reservation.response.SlotAvailabilityResponse;
+import com.tastyhouse.webapi.reservation.response.ReservationSlot;
+import com.tastyhouse.webapi.reservation.response.ReservationSlotAvailabilityResponse;
 
 /**
  * 예약 조회 응답 가공 전용 web-api 서비스.
@@ -40,7 +40,7 @@ public class ReservationService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public SlotAvailabilityResponse getAvailability(Long shopId, LocalDate date, Long memberId) {
+    public ReservationSlotAvailabilityResponse getAvailability(Long shopId, LocalDate date, Long memberId) {
         DailySlotAvailabilityResult result = reservationQueryService.findSlotAvailability(shopId, date, MemberId.of(memberId));
         return toSlotAvailabilityResponse(result);
     }
@@ -150,10 +150,10 @@ public class ReservationService {
         );
     }
 
-    private SlotAvailabilityResponse toSlotAvailabilityResponse(DailySlotAvailabilityResult result) {
-        List<Slot> slots = result.slots().stream()
-            .map(s -> new Slot(s.time(), s.remaining(), s.available()))
+    private ReservationSlotAvailabilityResponse toSlotAvailabilityResponse(DailySlotAvailabilityResult result) {
+        List<ReservationSlot> slots = result.slots().stream()
+            .map(s -> new ReservationSlot(s.time(), s.remaining(), s.available()))
             .toList();
-        return SlotAvailabilityResponse.from(result.date(), result.hasMyReservation(), slots);
+        return ReservationSlotAvailabilityResponse.from(result.date(), result.hasMyReservation(), slots);
     }
 }

@@ -25,7 +25,7 @@ import com.tastyhouse.webapi.reservation.request.ReservationSearchRequest;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
-import com.tastyhouse.webapi.reservation.response.SlotAvailabilityResponse;
+import com.tastyhouse.webapi.reservation.response.ReservationSlotAvailabilityResponse;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -37,11 +37,11 @@ public class ReservationApiController {
 
     @Operation(summary = "슬롯 가용성 조회", description = "가게의 특정 날짜 슬롯별 잔여/가용 정보를 조회합니다. 로그인 필수 — 내 예약 슬롯은 available=false로 반환.")
     @GetMapping("/v1/availability")
-    public ResponseEntity<ApiResponse<SlotAvailabilityResponse>> getAvailability(
+    public ResponseEntity<ApiResponse<ReservationSlotAvailabilityResponse>> getAvailability(
         @Valid @ModelAttribute ReservationSearchRequest search,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        SlotAvailabilityResponse response = reservationService.getAvailability(search.shopId(), search.date(), userDetails.getMemberId());
+        ReservationSlotAvailabilityResponse response = reservationService.getAvailability(search.shopId(), search.date(), userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

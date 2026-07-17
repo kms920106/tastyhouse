@@ -21,9 +21,9 @@ import com.tastyhouse.webapi.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.follow.request.FollowSearchRequest;
+import com.tastyhouse.webapi.follow.response.FollowIsFollowingResponse;
 import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
-import com.tastyhouse.webapi.follow.response.IsFollowingResponse;
-import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
+import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
 
 @RestController
 @RequestMapping("/api/follows")
@@ -65,12 +65,12 @@ public class FollowApiController {
 
     @Operation(summary = "팔로우 여부 조회", description = "내가 특정 회원을 팔로우 중인지 여부를 조회합니다.")
     @GetMapping("/v1/{memberId}/is-following")
-    public ResponseEntity<ApiResponse<IsFollowingResponse>> isFollowing(
+    public ResponseEntity<ApiResponse<FollowIsFollowingResponse>> isFollowing(
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "팔로우 여부를 확인할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
         boolean isFollowing = followService.isFollowing(userDetails.getMemberId(), memberId);
-        return ResponseEntity.ok(ApiResponse.success(IsFollowingResponse.of(memberId, isFollowing)));
+        return ResponseEntity.ok(ApiResponse.success(FollowIsFollowingResponse.of(memberId, isFollowing)));
     }
 
     @Operation(summary = "팔로잉 목록 조회", description = "특정 회원의 팔로잉 목록을 페이징하여 조회합니다. 본인 조회 시 각 팔로잉 회원에 대한 내 팔로우 여부가 포함됩니다.")
@@ -137,7 +137,7 @@ public class FollowApiController {
 
     @Operation(summary = "회원 검색 (닉네임)", description = "닉네임으로 회원을 검색합니다. 각 회원에 대한 내 팔로우 여부가 포함됩니다.")
     @GetMapping("/v1/search")
-    public ResponseEntity<ApiResponse<List<MemberSearchListItemResponse>>> searchMembers(
+    public ResponseEntity<ApiResponse<List<FollowMemberSearchListItemResponse>>> searchMembers(
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute FollowSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest

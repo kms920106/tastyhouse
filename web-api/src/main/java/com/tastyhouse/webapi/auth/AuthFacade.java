@@ -11,11 +11,11 @@ import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;
 import com.tastyhouse.webapi.auth.facebook.FacebookSocialLoginService;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;
 import com.tastyhouse.webapi.auth.naver.NaverSocialLoginService;
-import com.tastyhouse.webapi.auth.response.JwtResponse;
-import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
-import com.tastyhouse.webapi.auth.response.PhoneLoginResponse;
-import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
-import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
+import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
+import com.tastyhouse.webapi.auth.response.AuthPasswordResetTokenResponse;
+import com.tastyhouse.webapi.auth.response.AuthPhoneLoginResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLinkResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
 import com.tastyhouse.webapi.auth.service.AuthPasswordResetService;
 import com.tastyhouse.webapi.auth.service.AuthService;
 import com.tastyhouse.webapi.auth.service.PhoneLoginService;
@@ -48,12 +48,12 @@ public class AuthFacade {
     }
 
     // 로그인
-    public JwtResponse login(String username, String password, boolean rememberMe) {
+    public AuthJwtResponse login(String username, String password, boolean rememberMe) {
         return authService.login(username, password, rememberMe);
     }
 
     // 토큰 갱신
-    public JwtResponse refresh(String refreshToken) {
+    public AuthJwtResponse refresh(String refreshToken) {
         return authService.refresh(refreshToken);
     }
 
@@ -68,7 +68,7 @@ public class AuthFacade {
     }
 
     // 비밀번호 찾기 - 인증코드 확인
-    public PasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
+    public AuthPasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
         return authPasswordResetService.verifyPasswordResetCode(username, verificationCode);
     }
 
@@ -78,17 +78,17 @@ public class AuthFacade {
     }
 
     // 카카오 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
-    public SocialLoginResponse kakaoLogin(String authorizationCode) {
+    public AuthSocialLoginResponse kakaoLogin(String authorizationCode) {
         return kakaoSocialLoginService.login(authorizationCode);
     }
 
     // 휴대폰 인증 토큰으로 로그인 (기존 회원이면 JWT 발급, 신규이면 needsSignUp=true)
-    public PhoneLoginResponse phoneLogin(String phoneVerifyToken) {
+    public AuthPhoneLoginResponse phoneLogin(String phoneVerifyToken) {
         return phoneLoginService.login(phoneVerifyToken);
     }
 
     // 소셜 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public SocialLinkResponse linkAccount(String provider, String tempToken, String phoneVerifyToken) {
+    public AuthSocialLinkResponse linkAccount(String provider, String tempToken, String phoneVerifyToken) {
         return switch (MemberSocialProvider.from(provider)) {
             case KAKAO -> kakaoSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
             case NAVER -> naverSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
@@ -100,22 +100,22 @@ public class AuthFacade {
     }
 
     // 네이버 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
-    public SocialLoginResponse naverLogin(String authorizationCode, String state) {
+    public AuthSocialLoginResponse naverLogin(String authorizationCode, String state) {
         return naverSocialLoginService.login(authorizationCode, state);
     }
 
     // 페이스북 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
-    public SocialLoginResponse facebookLogin(String accessToken) {
+    public AuthSocialLoginResponse facebookLogin(String accessToken) {
         return facebookSocialLoginService.login(accessToken);
     }
 
     // 애플 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
-    public SocialLoginResponse appleLogin(String authorizationCode) {
+    public AuthSocialLoginResponse appleLogin(String authorizationCode) {
         return appleSocialLoginService.login(authorizationCode);
     }
 
     // 소셜 소셜 회원가입 후 JWT 발급
-    public JwtResponse socialSignUp(String provider, String tempToken, String username, String nickname,
+    public AuthJwtResponse socialSignUp(String provider, String tempToken, String username, String nickname,
                                     String fullName, String gender, Integer birthDate, String phoneNumber,
                                     boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                                     boolean eventInfoEnabled, String referrerNickname) {

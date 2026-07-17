@@ -27,19 +27,19 @@ import com.tastyhouse.webapi.review.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewSearchRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
-import com.tastyhouse.webapi.review.response.BestReviewListItemResponse;
-import com.tastyhouse.webapi.review.response.BestReviewPageResponse;
-import com.tastyhouse.webapi.review.response.CommentListResponse;
-import com.tastyhouse.webapi.review.response.CommentResponse;
-import com.tastyhouse.webapi.review.response.LatestReviewListItemResponse;
-import com.tastyhouse.webapi.review.response.LatestReviewPageResponse;
-import com.tastyhouse.webapi.review.response.MemberReviewListItemResponse;
-import com.tastyhouse.webapi.review.response.MemberReviewPageResponse;
-import com.tastyhouse.webapi.review.response.ReplyResponse;
+import com.tastyhouse.webapi.review.response.ReviewBestListItemResponse;
+import com.tastyhouse.webapi.review.response.ReviewBestPageResponse;
+import com.tastyhouse.webapi.review.response.ReviewCommentListResponse;
+import com.tastyhouse.webapi.review.response.ReviewCommentResponse;
 import com.tastyhouse.webapi.review.response.ReviewDetailResponse;
+import com.tastyhouse.webapi.review.response.ReviewLatestListItemResponse;
+import com.tastyhouse.webapi.review.response.ReviewLatestPageResponse;
 import com.tastyhouse.webapi.review.response.ReviewLikeResponse;
 import com.tastyhouse.webapi.review.response.ReviewLikeStatusResponse;
+import com.tastyhouse.webapi.review.response.ReviewMemberListItemResponse;
+import com.tastyhouse.webapi.review.response.ReviewMemberPageResponse;
 import com.tastyhouse.webapi.review.response.ReviewProductResponse;
+import com.tastyhouse.webapi.review.response.ReviewReplyResponse;
 import com.tastyhouse.webapi.review.response.ReviewResponse;
 import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
 
@@ -94,22 +94,22 @@ public class ReviewApiController {
 
     @Operation(summary = "베스트 리뷰 목록 조회", description = "평점이 높은 순으로 정렬된 베스트 리뷰 목록을 페이징하여 조회합니다.")
     @GetMapping("/v1/best")
-    public ResponseEntity<ApiResponse<List<BestReviewListItemResponse>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
-        BestReviewPageResponse pageResponse = reviewService.searchBestReviewList(pageRequest.page(), pageRequest.size());
-        ApiResponse<List<BestReviewListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
+    public ResponseEntity<ApiResponse<List<ReviewBestListItemResponse>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
+        ReviewBestPageResponse pageResponse = reviewService.searchBestReviewList(pageRequest.page(), pageRequest.size());
+        ApiResponse<List<ReviewBestListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "최신 리뷰 목록 조회", description = "최신 리뷰 목록을 페이징하여 조회합니다. type이 ALL이면 전체, FOLLOWING이면 팔로잉한 사용자의 리뷰만 조회합니다.")
     @GetMapping("/v1/latest")
-    public ResponseEntity<ApiResponse<List<LatestReviewListItemResponse>>> getLatestReviewList(
+    public ResponseEntity<ApiResponse<List<ReviewLatestListItemResponse>>> getLatestReviewList(
         @Valid @ModelAttribute PageRequest pageRequest,
         @Valid @ModelAttribute ReviewSearchRequest search,
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        LatestReviewPageResponse pageResponse = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), search.type(), memberId);
-        ApiResponse<List<LatestReviewListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
+        ReviewLatestPageResponse pageResponse = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), search.type(), memberId);
+        ApiResponse<List<ReviewLatestListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }
 
@@ -157,41 +157,41 @@ public class ReviewApiController {
 
     @Operation(summary = "댓글 등록", description = "리뷰에 댓글을 등록합니다.")
     @PostMapping("/v1/{reviewId}/comments")
-    public ResponseEntity<ApiResponse<CommentResponse>> createComment(
+    public ResponseEntity<ApiResponse<ReviewCommentResponse>> createComment(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
         @Valid @RequestBody CommentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        CommentResponse response = reviewService.createComment(reviewId, userDetails.getMemberId(), request.content());
+        ReviewCommentResponse response = reviewService.createComment(reviewId, userDetails.getMemberId(), request.content());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "답글 등록", description = "댓글에 답글을 등록합니다.")
     @PostMapping("/v1/comments/{commentId}/replies")
-    public ResponseEntity<ApiResponse<ReplyResponse>> createReply(
+    public ResponseEntity<ApiResponse<ReviewReplyResponse>> createReply(
         @Parameter(description = "댓글 ID", example = "1") @PathVariable Long commentId,
         @Valid @RequestBody ReplyCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReplyResponse response = reviewService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
+        ReviewReplyResponse response = reviewService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "댓글 및 답글 조회", description = "리뷰의 모든 댓글과 답글을 조회합니다.")
     @GetMapping("/v1/{reviewId}/comments")
-    public ResponseEntity<ApiResponse<CommentListResponse>> getComments(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId) {
-        CommentListResponse response = reviewService.searchCommentsWithReplies(reviewId);
+    public ResponseEntity<ApiResponse<ReviewCommentListResponse>> getComments(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId) {
+        ReviewCommentListResponse response = reviewService.searchCommentsWithReplies(reviewId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "특정 회원의 리뷰 목록 조회", description = "특정 회원이 작성한 리뷰 목록을 페이징하여 조회합니다.")
     @GetMapping("/v1/members/{memberId}")
-    public ResponseEntity<ApiResponse<List<MemberReviewListItemResponse>>> getMemberReviews(
+    public ResponseEntity<ApiResponse<List<ReviewMemberListItemResponse>>> getMemberReviews(
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        MemberReviewPageResponse pageResponse = reviewService.findMemberReviews(memberId, pageRequest.page(), pageRequest.size());
-        ApiResponse<List<MemberReviewListItemResponse>> response = ApiResponse.success(
+        ReviewMemberPageResponse pageResponse = reviewService.findMemberReviews(memberId, pageRequest.page(), pageRequest.size());
+        ApiResponse<List<ReviewMemberListItemResponse>> response = ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         );
         return ResponseEntity.ok(response);

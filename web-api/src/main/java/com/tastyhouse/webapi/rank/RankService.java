@@ -18,8 +18,8 @@ import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
+import com.tastyhouse.webapi.rank.response.RankMemberListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
 
 @Service
@@ -44,14 +44,14 @@ public class RankService {
     }
 
     @Transactional(readOnly = true)
-    public List<MemberRankListItemResponse> getMemberRankList(String rankType, int limit) {
+    public List<RankMemberListItemResponse> getMemberRankList(String rankType, int limit) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
         List<MemberRankResult> ranks = rankQueryService.searchMemberRankList(type, baseDate, limit);
 
         return ranks.stream()
-            .map(dto -> MemberRankListItemResponse.of(
+            .map(dto -> RankMemberListItemResponse.of(
                 dto.memberId().value(),
                 dto.nickname(),
                 fileService.getUrlByPath(dto.profileImageUrl()),
@@ -62,7 +62,7 @@ public class RankService {
     }
 
     @Transactional(readOnly = true)
-    public MemberRankListItemResponse getMyMemberRank(Long memberId, String rankType) {
+    public RankMemberListItemResponse getMyMemberRank(Long memberId, String rankType) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
@@ -70,7 +70,7 @@ public class RankService {
         if (dto == null) {
             MemberWithProfileImageResult member = memberQueryService.findMemberWithProfileImage(MemberId.of(memberId))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-            return MemberRankListItemResponse.of(
+            return RankMemberListItemResponse.of(
                 memberId,
                 member.nickname(),
                 fileService.getUrlByPath(member.profileImageFilePath()),
@@ -79,7 +79,7 @@ public class RankService {
                 member.memberGrade().name()
             );
         }
-        return MemberRankListItemResponse.of(
+        return RankMemberListItemResponse.of(
             dto.memberId().value(),
             dto.nickname(),
             fileService.getUrlByPath(dto.profileImageUrl()),

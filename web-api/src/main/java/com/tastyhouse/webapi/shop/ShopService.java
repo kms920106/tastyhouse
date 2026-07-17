@@ -42,30 +42,30 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryI
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
-import com.tastyhouse.webapi.shop.response.AmenityListItemResponse;
-import com.tastyhouse.webapi.shop.response.AmenityItem;
-import com.tastyhouse.webapi.shop.response.BestShopListItemResponse;
-import com.tastyhouse.webapi.shop.response.BreakTimeItem;
-import com.tastyhouse.webapi.shop.response.BusinessHourItem;
-import com.tastyhouse.webapi.shop.response.ClosedDayItem;
-import com.tastyhouse.webapi.shop.response.EditorChoiceProductItem;
-import com.tastyhouse.webapi.shop.response.EditorChoiceResponse;
-import com.tastyhouse.webapi.shop.response.FoodTypeListItemResponse;
-import com.tastyhouse.webapi.shop.response.LatestShopListItemResponse;
-import com.tastyhouse.webapi.shop.response.OrderMethodItem;
+import com.tastyhouse.webapi.shop.response.ShopAmenityItem;
+import com.tastyhouse.webapi.shop.response.ShopAmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopBannerResponse;
+import com.tastyhouse.webapi.shop.response.ShopBestListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopBookmarkResponse;
+import com.tastyhouse.webapi.shop.response.ShopBreakTimeItem;
+import com.tastyhouse.webapi.shop.response.ShopBusinessHourItem;
+import com.tastyhouse.webapi.shop.response.ShopClosedDayItem;
 import com.tastyhouse.webapi.shop.response.ShopDetailResponse;
+import com.tastyhouse.webapi.shop.response.ShopEditorChoiceProductItem;
+import com.tastyhouse.webapi.shop.response.ShopEditorChoiceResponse;
+import com.tastyhouse.webapi.shop.response.ShopFoodTypeListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopInfoResponse;
+import com.tastyhouse.webapi.shop.response.ShopLatestListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopMapMarkerResponse;
+import com.tastyhouse.webapi.shop.response.ShopOrderMethodItem;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodResponse;
 import com.tastyhouse.webapi.shop.response.ShopPhotoCategoryResponse;
 import com.tastyhouse.webapi.shop.response.ShopProductCategoryResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewStatisticsResponse;
+import com.tastyhouse.webapi.shop.response.ShopReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewsByRatingResponse;
-import com.tastyhouse.webapi.shop.response.ShopReviewsByRatingWithPagination;
-import com.tastyhouse.webapi.shop.response.StationListItemResponse;
+import com.tastyhouse.webapi.shop.response.ShopStationListItemResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -89,28 +89,28 @@ public class ShopService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<BestShopListItemResponse> searchBestShops(int page, int size) {
+    public PageResult<ShopBestListItemResponse> searchBestShops(int page, int size) {
         return shopQueryService.findBestShops(page, size).map(this::convertToBestShopListItemResponse);
     }
 
     @Transactional(readOnly = true)
-    public PageResult<LatestShopListItemResponse> searchLatestShops(Long stationId, List<String> foodTypes, List<String> amenities, int page, int size) {
+    public PageResult<ShopLatestListItemResponse> searchLatestShops(Long stationId, List<String> foodTypes, List<String> amenities, int page, int size) {
         List<FoodType> foodTypeFilters = foodTypes == null ? null : foodTypes.stream().map(FoodType::from).toList();
         List<Amenity> amenityFilters = amenities == null ? null : amenities.stream().map(Amenity::from).toList();
         return shopQueryService.findLatestShops(stationId, foodTypeFilters, amenityFilters, page, size).map(this::convertToLatestShopListItemResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<EditorChoiceResponse> searchEditorChoices(int page, int size) {
+    public List<ShopEditorChoiceResponse> searchEditorChoices(int page, int size) {
         return shopQueryService.findEditorChoices(page, size).content().stream().map(this::convertToEditorChoiceResponse).toList();
     }
 
-    private EditorChoiceResponse convertToEditorChoiceResponse(EditorChoiceResult dto) {
-        List<EditorChoiceProductItem> productItems = dto.products() != null
+    private ShopEditorChoiceResponse convertToEditorChoiceResponse(EditorChoiceResult dto) {
+        List<ShopEditorChoiceProductItem> productItems = dto.products() != null
             ? dto.products().stream().map(this::convertToEditorChoiceProductItem).toList()
             : new ArrayList<>();
 
-        return EditorChoiceResponse.from(
+        return ShopEditorChoiceResponse.from(
             dto.id(),
             dto.name(),
             fileService.getUrlByPath(dto.shopImageUrl()),
@@ -120,8 +120,8 @@ public class ShopService {
         );
     }
 
-    private BestShopListItemResponse convertToBestShopListItemResponse(BestShopItemResult dto) {
-        return BestShopListItemResponse.from(
+    private ShopBestListItemResponse convertToBestShopListItemResponse(BestShopItemResult dto) {
+        return ShopBestListItemResponse.from(
             dto.id(),
             dto.name(),
             dto.stationName(),
@@ -131,8 +131,8 @@ public class ShopService {
         );
     }
 
-    private LatestShopListItemResponse convertToLatestShopListItemResponse(LatestShopItemResult dto) {
-        return LatestShopListItemResponse.from(
+    private ShopLatestListItemResponse convertToLatestShopListItemResponse(LatestShopItemResult dto) {
+        return ShopLatestListItemResponse.from(
             dto.id(),
             dto.name(),
             dto.stationName(),
@@ -145,8 +145,8 @@ public class ShopService {
         );
     }
 
-    private EditorChoiceProductItem convertToEditorChoiceProductItem(ProductSimpleResult dto) {
-        return EditorChoiceProductItem.from(
+    private ShopEditorChoiceProductItem convertToEditorChoiceProductItem(ProductSimpleResult dto) {
+        return ShopEditorChoiceProductItem.from(
             dto.id(),
             dto.shopName(),
             dto.name(),
@@ -158,13 +158,13 @@ public class ShopService {
     }
 
     @Transactional(readOnly = true)
-    public List<StationListItemResponse> searchAllStations() {
+    public List<ShopStationListItemResponse> searchAllStations() {
         List<Station> stations = shopQueryService.findAllStations();
         return stations.stream().map(this::convertToStationListItemResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<FoodTypeListItemResponse> searchAllFoodTypes() {
+    public List<ShopFoodTypeListItemResponse> searchAllFoodTypes() {
         List<ShopFoodTypeCategoryResult> categories = shopQueryService.findAllFoodTypeCategories();
         return categories.stream()
                 .map(this::convertToFoodTypeListItemResponse)
@@ -172,22 +172,22 @@ public class ShopService {
     }
 
     @Transactional(readOnly = true)
-    public List<AmenityListItemResponse> searchAllAmenities() {
+    public List<ShopAmenityListItemResponse> searchAllAmenities() {
         List<ShopAmenityCategoryResult> categories = shopQueryService.findAllAmenityCategories();
         return categories.stream()
                 .map(this::convertToAmenityListItemResponse)
                 .toList();
     }
 
-    private StationListItemResponse convertToStationListItemResponse(Station station) {
-        return StationListItemResponse.from(
+    private ShopStationListItemResponse convertToStationListItemResponse(Station station) {
+        return ShopStationListItemResponse.from(
             station.getId(),
             station.getStationName()
         );
     }
 
-    private FoodTypeListItemResponse convertToFoodTypeListItemResponse(ShopFoodTypeCategoryResult category) {
-        return FoodTypeListItemResponse.from(
+    private ShopFoodTypeListItemResponse convertToFoodTypeListItemResponse(ShopFoodTypeCategoryResult category) {
+        return ShopFoodTypeListItemResponse.from(
             category.foodType().name(),
             category.displayName(),
             fileService.getUrlByPath(category.activeFilePath()),
@@ -195,8 +195,8 @@ public class ShopService {
         );
     }
 
-    private AmenityListItemResponse convertToAmenityListItemResponse(ShopAmenityCategoryResult category) {
-        return AmenityListItemResponse.from(
+    private ShopAmenityListItemResponse convertToAmenityListItemResponse(ShopAmenityCategoryResult category) {
+        return ShopAmenityListItemResponse.from(
             category.amenity().name(),
             category.displayName(),
             fileService.getUrlByPath(category.activeFilePath()),
@@ -227,19 +227,19 @@ public class ShopService {
         List<ShopClosedDay> closedDays = shopQueryService.findShopClosedDays(shopId);
         List<ShopAmenityWithCategoryResult> shopAmenities = shopQueryService.findShopAmenitiesWithCategory(shopId);
 
-        List<BusinessHourItem> businessHourItems = businessHours.stream()
+        List<ShopBusinessHourItem> businessHourItems = businessHours.stream()
                 .map(this::convertToBusinessHourItem)
                 .toList();
 
-        List<BreakTimeItem> breakTimeItems = breakTimes.stream()
+        List<ShopBreakTimeItem> breakTimeItems = breakTimes.stream()
                 .map(this::convertToBreakTimeItem)
                 .toList();
 
-        List<ClosedDayItem> closedDayItems = closedDays.stream()
+        List<ShopClosedDayItem> closedDayItems = closedDays.stream()
                 .map(this::convertToClosedDayItem)
                 .toList();
 
-        List<AmenityItem> amenityItems = shopAmenities.stream()
+        List<ShopAmenityItem> amenityItems = shopAmenities.stream()
                 .map(this::convertToAmenityItem)
                 .toList();
 
@@ -316,7 +316,7 @@ public class ShopService {
     }
 
     @Transactional(readOnly = true)
-    public ShopReviewsByRatingWithPagination getShopReviewsByRatingWithPagination(Long shopId, int page, int size, Boolean hasImage) {
+    public ShopReviewsByRatingPageResponse getShopReviewsByRatingWithPagination(Long shopId, int page, int size, Boolean hasImage) {
         ReviewsByRatingResult result = reviewQueryService.findShopReviewsByRating(shopId, page, size, hasImage);
 
         Map<Integer, List<ShopReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
@@ -336,7 +336,7 @@ public class ShopService {
             result.getTotalReviewCount()
         );
 
-        return new ShopReviewsByRatingWithPagination(response, result.getTotalElements());
+        return new ShopReviewsByRatingPageResponse(response, result.getTotalElements());
     }
 
     private ShopReviewListItemResponse convertToShopReviewListItemResponse(LatestReviewListItemResult dto) {
@@ -377,10 +377,10 @@ public class ShopService {
         );
     }
 
-    private BusinessHourItem convertToBusinessHourItem(ShopBusinessHour businessHour) {
+    private ShopBusinessHourItem convertToBusinessHourItem(ShopBusinessHour businessHour) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        return BusinessHourItem.from(
+        return ShopBusinessHourItem.from(
             businessHour.getDayType().name(),
             businessHour.getDayType().getDescription(),
             businessHour.getOpenTime() != null ? businessHour.getOpenTime().format(formatter) : null,
@@ -389,10 +389,10 @@ public class ShopService {
         );
     }
 
-    private BreakTimeItem convertToBreakTimeItem(ShopBreakTime breakTime) {
+    private ShopBreakTimeItem convertToBreakTimeItem(ShopBreakTime breakTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        return BreakTimeItem.from(
+        return ShopBreakTimeItem.from(
             breakTime.getDayType().name(),
             breakTime.getDayType().getDescription(),
             breakTime.getStartTime() != null ? breakTime.getStartTime().format(formatter) : null,
@@ -400,15 +400,15 @@ public class ShopService {
         );
     }
 
-    private ClosedDayItem convertToClosedDayItem(ShopClosedDay closedDay) {
-        return ClosedDayItem.from(
+    private ShopClosedDayItem convertToClosedDayItem(ShopClosedDay closedDay) {
+        return ShopClosedDayItem.from(
             closedDay.getClosedDayType().name(),
             closedDay.getClosedDayType().getDescription()
         );
     }
 
-    private AmenityItem convertToAmenityItem(ShopAmenityWithCategoryResult dto) {
-        return AmenityItem.from(
+    private ShopAmenityItem convertToAmenityItem(ShopAmenityWithCategoryResult dto) {
+        return ShopAmenityItem.from(
             dto.amenity().name(),
             dto.displayName(),
             fileService.getUrlByPath(dto.activeFilePath())
@@ -461,9 +461,9 @@ public class ShopService {
         shopQueryService.findShopById(ShopId.of(shopId));
         List<ShopOrderMethod> shopOrderMethods = shopQueryService.findShopOrderMethods(shopId);
 
-        List<OrderMethodItem> orderMethodItems =
+        List<ShopOrderMethodItem> orderMethodItems =
             shopOrderMethods.stream()
-                .map(som -> OrderMethodItem.from(
+                .map(som -> ShopOrderMethodItem.from(
                     som.getOrderMethod().name(),
                     som.getOrderMethod().getDisplayName()))
                 .toList();

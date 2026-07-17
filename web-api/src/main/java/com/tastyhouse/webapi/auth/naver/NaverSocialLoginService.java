@@ -23,10 +23,10 @@ import com.tastyhouse.external.oauth.naver.NaverUserInfoResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.NaverTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
-import com.tastyhouse.webapi.auth.response.JwtResponse;
-import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
-import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
-import com.tastyhouse.webapi.auth.response.SocialProfile;
+import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLinkResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class NaverSocialLoginService {
     // - 신규 사용자: naverTempToken 반환 (NEEDS_SIGN_UP)
     // - 동일 이메일 일반가입 계정 존재: naverTempToken 반환 (NEEDS_LINKING)
     @Transactional
-    public SocialLoginResponse login(String authorizationCode, String state) {
+    public AuthSocialLoginResponse login(String authorizationCode, String state) {
         NaverTokenResponse naverToken = naverOAuthClient.fetchToken(authorizationCode, state);
         NaverUserInfoResponse naverUser = naverOAuthClient.fetchUserInfo(naverToken.accessToken());
 
@@ -58,7 +58,7 @@ public class NaverSocialLoginService {
             socialAccount.updateProviderInfo(naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl());
 
             Member member = memberQueryService.getById(socialAccount.getMemberId());
-            return SocialLoginResponse.ofLogin(issueJwt(member));
+            return AuthSocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
@@ -66,11 +66,11 @@ public class NaverSocialLoginService {
         String naverEmail = naverUser.getEmail();
         if (StringUtils.hasText(naverEmail) && memberQueryService.existsByUsername(naverEmail)) {
             String naverTempToken = issueTempToken(naverToken.accessToken());
-            return SocialLoginResponse.ofLinkingRequired(naverTempToken);
+            return AuthSocialLoginResponse.ofLinkingRequired(naverTempToken);
         }
 
         String naverTempToken = issueTempToken(naverToken.accessToken());
-        return SocialLoginResponse.ofSignUpRequired(naverTempToken);
+        return AuthSocialLoginResponse.ofSignUpRequired(naverTempToken);
     }
 
     // 네이버 계정을 기존 일반가입 계정에 연동하고 JWT 발급
@@ -79,7 +79,7 @@ public class NaverSocialLoginService {
     // - 전화번호로 가입된 회원이 없으면 NEEDS_SIGN_UP 반환 (naverTempToken 유지)
     // - MEMBER_SOCIAL_ACCOUNT INSERT 후 JWT 발급 (naverTempToken 삭제)
     @Transactional
-    public SocialLinkResponse linkAccount(String naverTempToken, String phoneVerifyToken) {
+    public AuthSocialLinkResponse linkAccount(String naverTempToken, String phoneVerifyToken) {
         if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
@@ -103,9 +103,9 @@ public class NaverSocialLoginService {
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // naverTempToken은 /signup/naver에서 재사용해야 하므로 삭제하지 않는다.
         if (memberOpt.isEmpty()) {
-            return SocialLinkResponse.ofSignUpRequired(
+            return AuthSocialLinkResponse.ofSignUpRequired(
                 naverTempToken,
-                new SocialProfile(
+                new AuthSocialProfileResponse(
                     providerId,
                     naverUser.getEmail(),
                     naverUser.getNickname(),
@@ -130,14 +130,14 @@ public class NaverSocialLoginService {
 
         naverTempTokenRedisRepository.delete(naverTempToken);
 
-        return SocialLinkResponse.ofLogin(issueJwt(member));
+        return AuthSocialLinkResponse.ofLogin(issueJwt(member));
     }
 
     // 네이버 소셜 회원가입 처리 후 JWT 발급
     // - naverTempToken으로 Redis에서 naverAccessToken 조회
     // - 회원가입 완료 후 naverTempToken 삭제 (1회용)
     @Transactional
-    public JwtResponse signUp(String naverTempToken, String username, String nickname, String fullName,
+    public AuthJwtResponse signUp(String naverTempToken, String username, String nickname, String fullName,
                               MemberGender gender, Integer birthDate, String phoneNumber,
                               boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                               boolean eventInfoEnabled, String referrerNickname) {
@@ -176,7 +176,7 @@ public class NaverSocialLoginService {
         return naverTempToken;
     }
 
-    private JwtResponse issueJwt(Member member) {
+    private AuthJwtResponse issueJwt(Member member) {
         return tokenService.issue(member, false);
     }
 }

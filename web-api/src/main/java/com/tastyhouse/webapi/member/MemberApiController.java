@@ -17,8 +17,8 @@ import com.tastyhouse.webapi.member.request.NicknameAvailabilityRequest;
 import com.tastyhouse.webapi.member.request.PhoneAvailabilityRequest;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
+import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
+import com.tastyhouse.webapi.member.response.MemberPhoneAvailabilityResponse;
 
 @RestController
 @RequestMapping("/api/members")
@@ -46,7 +46,7 @@ public class MemberApiController {
 
     @Operation(summary = "휴대폰번호 가입 가능 여부 확인", description = "입력한 휴대폰번호로 이미 가입된 활성 회원이 있는지 확인합니다. 인증번호 발송 전에 호출합니다. 인증 없이 호출 가능합니다.")
     @GetMapping("/v1/phone/availability")
-    public ResponseEntity<ApiResponse<PhoneAvailabilityResponse>> checkPhoneAvailability(
+    public ResponseEntity<ApiResponse<MemberPhoneAvailabilityResponse>> checkPhoneAvailability(
         @Valid @ModelAttribute PhoneAvailabilityRequest request
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.checkPhoneAvailability(request.phoneNumber())));
@@ -54,7 +54,7 @@ public class MemberApiController {
 
     @Operation(summary = "닉네임 중복확인", description = "사용하려는 닉네임의 사용 가능 여부를 확인합니다. 인증 없이 호출 가능합니다.")
     @GetMapping("/v1/nickname/availability")
-    public ResponseEntity<ApiResponse<NicknameAvailabilityResponse>> checkNicknameAvailability(
+    public ResponseEntity<ApiResponse<MemberNicknameAvailabilityResponse>> checkNicknameAvailability(
         @Valid @ModelAttribute NicknameAvailabilityRequest request
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.checkNicknameAvailability(request.nickname())));

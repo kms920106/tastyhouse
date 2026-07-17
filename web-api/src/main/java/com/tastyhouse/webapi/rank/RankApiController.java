@@ -16,8 +16,8 @@ import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.rank.request.RankSearchRequest;
-import com.tastyhouse.webapi.rank.response.MemberRankListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
+import com.tastyhouse.webapi.rank.response.RankMemberListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
 
 @RestController
@@ -45,20 +45,20 @@ public class RankApiController {
 
     @Operation(summary = "멤버 리뷰 랭킹 조회", description = "유저별 리뷰 작성 개수 기준 랭킹을 조회합니다. (전체/월간/주간)")
     @GetMapping("/v1/members")
-    public ResponseEntity<ApiResponse<List<MemberRankListItemResponse>>> getMemberRankList(
+    public ResponseEntity<ApiResponse<List<RankMemberListItemResponse>>> getMemberRankList(
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        List<MemberRankListItemResponse> ranks = rankService.getMemberRankList(search.type(), search.limit());
+        List<RankMemberListItemResponse> ranks = rankService.getMemberRankList(search.type(), search.limit());
         return ResponseEntity.ok(ApiResponse.success(ranks));
     }
 
     @Operation(summary = "내 리뷰 랭킹 조회", description = "현재 로그인한 유저의 리뷰 작성 개수 기준 랭킹을 조회합니다. (전체/월간/주간)")
     @GetMapping("/v1/members/me")
-    public ResponseEntity<ApiResponse<MemberRankListItemResponse>> getMyMemberRank(
+    public ResponseEntity<ApiResponse<RankMemberListItemResponse>> getMyMemberRank(
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        MemberRankListItemResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), search.type());
+        RankMemberListItemResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), search.type());
         return ResponseEntity.ok(ApiResponse.success(myRank));
     }
 }

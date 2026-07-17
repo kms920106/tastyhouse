@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.referral.response.MemberReferralListItemResponse;
+import com.tastyhouse.webapi.referral.response.ReferralMemberListItemResponse;
 
 @RestController
 @RequestMapping("/api/referrals")
@@ -25,10 +25,10 @@ public class ReferralApiController {
 
     @Operation(summary = "내 추천 이력 조회", description = "내가 추천한 회원 목록과 보상 상태를 조회합니다.")
     @GetMapping("/v1/my")
-    public ResponseEntity<ApiResponse<List<MemberReferralListItemResponse>>> getMyReferrals(
+    public ResponseEntity<ApiResponse<List<ReferralMemberListItemResponse>>> getMyReferrals(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        List<MemberReferralListItemResponse> referrals = referralService.getMyReferrals(userDetails.getMemberId());
+        List<ReferralMemberListItemResponse> referrals = referralService.getMyReferrals(userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(referrals));
     }
 }

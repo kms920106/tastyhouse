@@ -23,10 +23,10 @@ import com.tastyhouse.external.oauth.kakao.KakaoUserInfoResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.KakaoTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
-import com.tastyhouse.webapi.auth.response.JwtResponse;
-import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
-import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
-import com.tastyhouse.webapi.auth.response.SocialProfile;
+import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLinkResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class KakaoSocialLoginService {
     // - 신규 사용자: kakaoTempToken 반환 (NEEDS_SIGN_UP)
     // - 동일 이메일 일반가입 계정 존재: kakaoTempToken 반환 (NEEDS_LINKING)
     @Transactional
-    public SocialLoginResponse login(String authorizationCode) {
+    public AuthSocialLoginResponse login(String authorizationCode) {
         KakaoTokenResponse kakaoToken = kakaoOAuthClient.fetchToken(authorizationCode);
         KakaoUserInfoResponse kakaoUser = kakaoOAuthClient.fetchUserInfo(kakaoToken.accessToken());
 
@@ -58,7 +58,7 @@ public class KakaoSocialLoginService {
             socialAccount.updateProviderInfo(kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl());
 
             Member member = memberQueryService.getById(socialAccount.getMemberId());
-            return SocialLoginResponse.ofLogin(issueJwt(member));
+            return AuthSocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
@@ -66,11 +66,11 @@ public class KakaoSocialLoginService {
         String kakaoEmail = kakaoUser.getEmail();
         if (StringUtils.hasText(kakaoEmail) && memberQueryService.existsByUsername(kakaoEmail)) {
             String kakaoTempToken = issueTempToken(kakaoToken.accessToken());
-            return SocialLoginResponse.ofLinkingRequired(kakaoTempToken);
+            return AuthSocialLoginResponse.ofLinkingRequired(kakaoTempToken);
         }
 
         String kakaoTempToken = issueTempToken(kakaoToken.accessToken());
-        return SocialLoginResponse.ofSignUpRequired(kakaoTempToken);
+        return AuthSocialLoginResponse.ofSignUpRequired(kakaoTempToken);
     }
 
     // 카카오 계정을 기존 일반가입 계정에 연동하고 JWT 발급
@@ -79,7 +79,7 @@ public class KakaoSocialLoginService {
     // - 전화번호로 가입된 회원이 없으면 NEEDS_SIGN_UP 반환 (kakaoTempToken 유지)
     // - MEMBER_SOCIAL_ACCOUNT INSERT 후 JWT 발급 (kakaoTempToken 삭제)
     @Transactional
-    public SocialLinkResponse linkAccount(String kakaoTempToken, String phoneVerifyToken) {
+    public AuthSocialLinkResponse linkAccount(String kakaoTempToken, String phoneVerifyToken) {
         if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
@@ -103,9 +103,9 @@ public class KakaoSocialLoginService {
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // kakaoTempToken은 /signup/kakao에서 재사용해야 하므로 삭제하지 않는다.
         if (memberOpt.isEmpty()) {
-            return SocialLinkResponse.ofSignUpRequired(
+            return AuthSocialLinkResponse.ofSignUpRequired(
                 kakaoTempToken,
-                new SocialProfile(
+                new AuthSocialProfileResponse(
                     providerId,
                     kakaoUser.getEmail(),
                     kakaoUser.getNickname(),
@@ -130,14 +130,14 @@ public class KakaoSocialLoginService {
 
         kakaoTempTokenRedisRepository.delete(kakaoTempToken);
 
-        return SocialLinkResponse.ofLogin(issueJwt(member));
+        return AuthSocialLinkResponse.ofLogin(issueJwt(member));
     }
 
     // 카카오 소셜 회원가입 처리 후 JWT 발급
     // - kakaoTempToken으로 Redis에서 kakaoAccessToken 조회
     // - 회원가입 완료 후 kakaoTempToken 삭제 (1회용)
     @Transactional
-    public JwtResponse signUp(
+    public AuthJwtResponse signUp(
         String kakaoTempToken,
         String username,
         String nickname,
@@ -189,7 +189,7 @@ public class KakaoSocialLoginService {
         return kakaoTempToken;
     }
 
-    private JwtResponse issueJwt(Member member) {
+    private AuthJwtResponse issueJwt(Member member) {
         return tokenService.issue(member, false);
     }
 }

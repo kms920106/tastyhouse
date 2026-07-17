@@ -25,21 +25,21 @@ import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.request.ProductBatchRequest;
-import com.tastyhouse.webapi.product.response.OptionGroupResponse;
-import com.tastyhouse.webapi.product.response.OptionResponse;
 import com.tastyhouse.webapi.product.response.ProductBatchOptionResponse;
 import com.tastyhouse.webapi.product.response.ProductBatchResponse;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
 import com.tastyhouse.webapi.product.response.ProductImagesResponse;
+import com.tastyhouse.webapi.product.response.ProductOptionGroupResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
+import com.tastyhouse.webapi.product.response.ProductOptionResponse;
 import com.tastyhouse.webapi.product.response.ProductResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewCountResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewListItemResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
+import com.tastyhouse.webapi.product.response.ProductReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
-import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
-import com.tastyhouse.webapi.product.response.TodayDiscountProductListItemResponse;
-import com.tastyhouse.webapi.product.response.TodayDiscountProductPageResponse;
+import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemResponse;
+import com.tastyhouse.webapi.product.response.ProductTodayDiscountPageResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -50,14 +50,14 @@ public class ProductService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public TodayDiscountProductPageResponse searchTodayDiscountProducts(int page, int size) {
-        PageResult<TodayDiscountProductListItemResponse> pageResult = productQueryService.findTodayDiscountProducts(page, size)
+    public ProductTodayDiscountPageResponse searchTodayDiscountProducts(int page, int size) {
+        PageResult<ProductTodayDiscountListItemResponse> pageResult = productQueryService.findTodayDiscountProducts(page, size)
             .map(this::convertToTodayDiscountProductListItemResponse);
-        return TodayDiscountProductPageResponse.from(pageResult);
+        return ProductTodayDiscountPageResponse.from(pageResult);
     }
 
-    private TodayDiscountProductListItemResponse convertToTodayDiscountProductListItemResponse(TodayDiscountProductResult dto) {
-        return TodayDiscountProductListItemResponse.from(
+    private ProductTodayDiscountListItemResponse convertToTodayDiscountProductListItemResponse(TodayDiscountProductResult dto) {
+        return ProductTodayDiscountListItemResponse.from(
             dto.id(),
             dto.shopName(),
             dto.name(),
@@ -136,14 +136,14 @@ public class ProductService {
         );
     }
 
-    private List<OptionGroupResponse> convertToOptionGroupResponses(ProductOptionsResult result) {
+    private List<ProductOptionGroupResponse> convertToOptionGroupResponses(ProductOptionsResult result) {
         return result.optionGroups().stream()
             .map(group -> {
-                List<OptionResponse> options = group.options().stream()
-                    .map(o -> OptionResponse.from(
+                List<ProductOptionResponse> options = group.options().stream()
+                    .map(o -> ProductOptionResponse.from(
                         o.id(), o.name(), o.additionalPrice(), o.soldOut()))
                     .toList();
-                return OptionGroupResponse.from(
+                return ProductOptionGroupResponse.from(
                     group.id(), group.name(), group.description(),
                     group.required(), group.multipleSelect(),
                     group.minSelect(), group.maxSelect(), group.common(), options
@@ -163,7 +163,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductReviewsByRatingWithPagination getProductReviewsByRatingWithPagination(Long productId, int page, int size, Boolean hasImage) {
+    public ProductReviewsByRatingPageResponse getProductReviewsByRatingWithPagination(Long productId, int page, int size, Boolean hasImage) {
         ReviewsByRatingResult result = reviewQueryService.findProductReviewsByRating(productId, page, size, hasImage);
 
         Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
@@ -182,7 +182,7 @@ public class ProductService {
             reviewsByRating, allReviews, result.getTotalReviewCount()
         );
 
-        return new ProductReviewsByRatingWithPagination(response, result.getTotalElements());
+        return new ProductReviewsByRatingPageResponse(response, result.getTotalElements());
     }
 
     private ProductReviewListItemResponse convertToProductReviewListItemResponse(LatestReviewListItemResult dto) {

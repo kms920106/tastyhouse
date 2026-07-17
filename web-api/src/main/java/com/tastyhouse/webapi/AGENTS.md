@@ -49,6 +49,7 @@
 
 ### Working In This Directory
 - **요청/응답 DTO는 feature 폴더 내 request/, response/ 서브폴더에 저장** — 도메인별 응집도 향상. 모든 Request/Response record는 타입 레벨 `@Schema(description = ...)`와 필드별 `@Schema(description = ..., example = ...)`를 갖춰 Swagger 문서를 완전하게 유지한다(컬렉션·중첩 record 필드는 example 생략 가능, description은 필수). 상세는 루트 CLAUDE.md 참고.
+- **response/ 폴더의 모든 응답 record는 소속 도메인명 접두어로 시작한다** — 중첩·보조 요소 record도 예외 없음(`OptionResponse`가 아니라 `ProductOptionResponse`). 접미어는 `Response`로 통일(`WithPagination` 등 임의 접미어 금지). 실제로 다른 도메인 대상을 담는 응답은 그 대상 도메인명을 따른다(예: `member/response/OrderListItemResponse`). 상세는 루트 CLAUDE.md 참고.
 - **DTO 조립은 `new` 직접 호출 지양** — 컨트롤러에서 command/condition/response를 `new`로 조립하지 않고, 대상 record 자신의 정적 팩토리 `of(...)`/`from(...)`로 위임한다. Request DTO에는 `toCommand()` 변환 메서드를 두지 않고, 컨트롤러가 Request를 원시 필드로 언패킹해 `Command.of(...)`를 호출한다(복잡한 중첩 요청은 `order/OrderApiController#toCreateOrderCommand`처럼 private 헬퍼 허용). 상세는 루트 CLAUDE.md 참고.
 - **`record`는 별도 파일로 분리** — 서비스(Facade)/컨트롤러 본문에 응답·결과 record를 중첩 선언하지 않고 feature 폴더의 `response/`에 `public record`로 둔다(reference: `notice/response/NoticeListPageResult`, `policy/response/PolicyListPageResult`, `order/response/OrderListPageResult`). 상세는 루트 CLAUDE.md 참고.
 - **컨트롤러는 도메인별 Facade(`{도메인}Service`)만 호출** — core-module application 서비스를 직접 호출하지 않고 Facade를 경유한다(reference: `order/OrderService`, `payment/PaymentService`). repository/JPA도 직접 접근하지 않음.

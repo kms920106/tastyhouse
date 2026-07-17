@@ -23,10 +23,10 @@ import com.tastyhouse.external.oauth.apple.AppleTokenResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.AppleTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
-import com.tastyhouse.webapi.auth.response.JwtResponse;
-import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
-import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
-import com.tastyhouse.webapi.auth.response.SocialProfile;
+import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLinkResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +48,7 @@ public class AppleSocialLoginService {
     // [Apple 특이점] 사용자 이름(name)은 최초 동의 시에만 form_post로 전달되며 id_token에 포함되지 않는다.
     // 따라서 Apple 프로필에는 sub/email만 저장하고, 회원가입 시 사용자가 직접 이름을 입력한다.
     @Transactional
-    public SocialLoginResponse login(String authorizationCode) {
+    public AuthSocialLoginResponse login(String authorizationCode) {
         AppleTokenResponse appleToken = appleOAuthClient.fetchToken(authorizationCode);
 
         AppleIdTokenPayload appleUser;
@@ -69,7 +69,7 @@ public class AppleSocialLoginService {
             socialAccount.updateProviderInfo(appleUser.email(), null, null);
 
             Member member = memberQueryService.getById(socialAccount.getMemberId());
-            return SocialLoginResponse.ofLogin(issueJwt(member));
+            return AuthSocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
@@ -77,11 +77,11 @@ public class AppleSocialLoginService {
         String appleEmail = appleUser.email();
         if (StringUtils.hasText(appleEmail) && memberQueryService.existsByUsername(appleEmail)) {
             String appleTempToken = issueTempToken(appleToken.idToken());
-            return SocialLoginResponse.ofLinkingRequired(appleTempToken);
+            return AuthSocialLoginResponse.ofLinkingRequired(appleTempToken);
         }
 
         String appleTempToken = issueTempToken(appleToken.idToken());
-        return SocialLoginResponse.ofSignUpRequired(appleTempToken);
+        return AuthSocialLoginResponse.ofSignUpRequired(appleTempToken);
     }
 
     // Apple 계정을 기존 일반가입 계정에 연동하고 JWT 발급
@@ -90,7 +90,7 @@ public class AppleSocialLoginService {
     // - 전화번호로 가입된 회원이 없으면 NEEDS_SIGN_UP 반환 (appleTempToken 유지)
     // - MEMBER_SOCIAL_ACCOUNT INSERT 후 JWT 발급 (appleTempToken 삭제)
     @Transactional
-    public SocialLinkResponse linkAccount(String appleTempToken, String phoneVerifyToken) {
+    public AuthSocialLinkResponse linkAccount(String appleTempToken, String phoneVerifyToken) {
         if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
@@ -120,9 +120,9 @@ public class AppleSocialLoginService {
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // appleTempToken은 /signup/apple에서 재사용해야 하므로 삭제하지 않는다.
         if (findMember.isEmpty()) {
-            return SocialLinkResponse.ofSignUpRequired(
+            return AuthSocialLinkResponse.ofSignUpRequired(
                 appleTempToken,
-                new SocialProfile(
+                new AuthSocialProfileResponse(
                     providerId,
                     appleUser.email(),
                     null,
@@ -152,14 +152,14 @@ public class AppleSocialLoginService {
 
         appleTempTokenRedisRepository.delete(appleTempToken);
 
-        return SocialLinkResponse.ofLogin(issueJwt(member));
+        return AuthSocialLinkResponse.ofLogin(issueJwt(member));
     }
 
     // Apple 소셜 회원가입 처리 후 JWT 발급
     // - appleTempToken으로 Redis에서 appleIdToken 조회
     // - 회원가입 완료 후 appleTempToken 삭제 (1회용)
     @Transactional
-    public JwtResponse signUp(
+    public AuthJwtResponse signUp(
         String appleTempToken,
         String username,
         String nickname,
@@ -217,7 +217,7 @@ public class AppleSocialLoginService {
         return appleTempToken;
     }
 
-    private JwtResponse issueJwt(Member member) {
+    private AuthJwtResponse issueJwt(Member member) {
         return tokenService.issue(member, false);
     }
 }

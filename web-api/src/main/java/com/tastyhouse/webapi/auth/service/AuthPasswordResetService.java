@@ -18,7 +18,7 @@ import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.webapi.auth.response.PasswordResetTokenResponse;
+import com.tastyhouse.webapi.auth.response.AuthPasswordResetTokenResponse;
 import com.tastyhouse.webapi.member.service.MemberAccountService;
 
 @Service
@@ -55,7 +55,7 @@ public class AuthPasswordResetService {
     }
 
     @Transactional
-    public PasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
+    public AuthPasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
         EmailVerification verification = emailVerificationRepository
             .findLatestPendingByEmail(username, EmailVerificationStatus.PENDING)
             .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
@@ -64,7 +64,7 @@ public class AuthPasswordResetService {
 
         String passwordResetToken = jwtTokenProvider.createPasswordResetToken(username);
 
-        return PasswordResetTokenResponse.from(passwordResetToken);
+        return AuthPasswordResetTokenResponse.from(passwordResetToken);
     }
 
     @Transactional

@@ -10,21 +10,21 @@ import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
+import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
+import com.tastyhouse.webapi.member.response.MemberPhoneAvailabilityResponse;
+import com.tastyhouse.webapi.member.response.MemberPointHistoryResponse;
+import com.tastyhouse.webapi.member.response.MemberPointResponse;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
+import com.tastyhouse.webapi.member.response.MemberUsablePointResponse;
+import com.tastyhouse.webapi.member.response.MemberVerifyPasswordResponse;
 import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
-import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
-import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.PointHistoryResponse;
-import com.tastyhouse.webapi.member.response.PointResponse;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
-import com.tastyhouse.webapi.member.response.UsablePointResponse;
-import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
 import com.tastyhouse.webapi.member.service.MemberAccountService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 import com.tastyhouse.webapi.member.service.MemberFollowService;
@@ -50,13 +50,13 @@ public class MemberFacade {
         memberAccountService.updateMemberProfile(memberId, nickname, statusMessage, profileImageFileId);
     }
 
-    public VerifyPasswordResponse verifyPasswordAndIssueToken(Long memberId, String password) {
+    public MemberVerifyPasswordResponse verifyPasswordAndIssueToken(Long memberId, String password) {
         memberAuthService.verifyPassword(memberId, password);
         String verifyToken = memberAuthService.createPersonalInfoVerifyToken(memberId);
-        return VerifyPasswordResponse.from(verifyToken);
+        return MemberVerifyPasswordResponse.from(verifyToken);
     }
 
-    public PersonalInfoResponse getPersonalInfo(Long memberId) {
+    public MemberPersonalInfoResponse getPersonalInfo(Long memberId) {
         return memberAccountService.getPersonalInfo(memberId);
     }
 
@@ -85,11 +85,11 @@ public class MemberFacade {
         memberAuthService.invalidateAccessToken(bearerToken);
     }
 
-    public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
+    public MemberNicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
         return memberAccountService.checkNicknameAvailability(nickname);
     }
 
-    public PhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
+    public MemberPhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
         return memberAccountService.checkPhoneAvailability(phoneNumber);
     }
 
@@ -97,15 +97,15 @@ public class MemberFacade {
         return memberGradeService.getMyGrade(memberId);
     }
 
-    public PointResponse getMyPoint(Long memberId) {
+    public MemberPointResponse getMyPoint(Long memberId) {
         return memberPointService.getMemberPoint(memberId);
     }
 
-    public PointHistoryResponse getMyPointHistory(Long memberId) {
+    public MemberPointHistoryResponse getMyPointHistory(Long memberId) {
         return memberPointService.getPointHistory(memberId);
     }
 
-    public UsablePointResponse getMyUsablePoint(Long memberId) {
+    public MemberUsablePointResponse getMyUsablePoint(Long memberId) {
         return memberPointService.getUsablePoint(memberId);
     }
 

@@ -24,10 +24,10 @@ import com.tastyhouse.external.oauth.facebook.FacebookUserInfoResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.repository.FacebookTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
-import com.tastyhouse.webapi.auth.response.JwtResponse;
-import com.tastyhouse.webapi.auth.response.SocialLinkResponse;
-import com.tastyhouse.webapi.auth.response.SocialLoginResponse;
-import com.tastyhouse.webapi.auth.response.SocialProfile;
+import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLinkResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
+import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +49,7 @@ public class FacebookSocialLoginService {
     // - 신규 사용자: facebookTempToken 반환 (NEEDS_SIGN_UP)
     // - 동일 이메일 일반가입 계정 존재: facebookTempToken 반환 (NEEDS_LINKING)
     @Transactional
-    public SocialLoginResponse login(String facebookAccessToken) {
+    public AuthSocialLoginResponse login(String facebookAccessToken) {
         validateToken(facebookAccessToken);
 
         FacebookUserInfoResponse facebookUser = facebookOAuthClient.fetchUserInfo(facebookAccessToken);
@@ -63,7 +63,7 @@ public class FacebookSocialLoginService {
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl());
 
             Member member = memberQueryService.getById(socialAccount.getMemberId());
-            return SocialLoginResponse.ofLogin(issueJwt(member));
+            return AuthSocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
@@ -71,11 +71,11 @@ public class FacebookSocialLoginService {
         String facebookEmail = facebookUser.email();
         if (StringUtils.hasText(facebookEmail) && memberQueryService.existsByUsername(facebookEmail)) {
             String facebookTempToken = issueTempToken(facebookAccessToken);
-            return SocialLoginResponse.ofLinkingRequired(facebookTempToken);
+            return AuthSocialLoginResponse.ofLinkingRequired(facebookTempToken);
         }
 
         String facebookTempToken = issueTempToken(facebookAccessToken);
-        return SocialLoginResponse.ofSignUpRequired(facebookTempToken);
+        return AuthSocialLoginResponse.ofSignUpRequired(facebookTempToken);
     }
 
     // 페이스북 계정을 기존 일반가입 계정에 연동하고 JWT 발급
@@ -84,7 +84,7 @@ public class FacebookSocialLoginService {
     // - 전화번호로 가입된 회원이 없으면 NEEDS_SIGN_UP 반환 (facebookTempToken 유지)
     // - MEMBER_SOCIAL_ACCOUNT INSERT 후 JWT 발급 (facebookTempToken 삭제)
     @Transactional
-    public SocialLinkResponse linkAccount(String facebookTempToken, String phoneVerifyToken) {
+    public AuthSocialLinkResponse linkAccount(String facebookTempToken, String phoneVerifyToken) {
         if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
@@ -108,9 +108,9 @@ public class FacebookSocialLoginService {
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // facebookTempToken은 /signup/facebook에서 재사용해야 하므로 삭제하지 않는다.
         if (memberOpt.isEmpty()) {
-            return SocialLinkResponse.ofSignUpRequired(
+            return AuthSocialLinkResponse.ofSignUpRequired(
                 facebookTempToken,
-                new SocialProfile(
+                new AuthSocialProfileResponse(
                     providerId,
                     facebookUser.email(),
                     null,
@@ -135,14 +135,14 @@ public class FacebookSocialLoginService {
 
         facebookTempTokenRedisRepository.delete(facebookTempToken);
 
-        return SocialLinkResponse.ofLogin(issueJwt(member));
+        return AuthSocialLinkResponse.ofLogin(issueJwt(member));
     }
 
     // 페이스북 소셜 회원가입 처리 후 JWT 발급
     // - facebookTempToken으로 Redis에서 facebookAccessToken 조회
     // - 회원가입 완료 후 facebookTempToken 삭제 (1회용)
     @Transactional
-    public JwtResponse signUp(String facebookTempToken, String username, String nickname, String fullName,
+    public AuthJwtResponse signUp(String facebookTempToken, String username, String nickname, String fullName,
                               MemberGender gender, Integer birthDate, String phoneNumber,
                               boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                               boolean eventInfoEnabled, String referrerNickname) {
@@ -189,7 +189,7 @@ public class FacebookSocialLoginService {
         return facebookTempToken;
     }
 
-    private JwtResponse issueJwt(Member member) {
+    private AuthJwtResponse issueJwt(Member member) {
         return tokenService.issue(member, false);
     }
 }

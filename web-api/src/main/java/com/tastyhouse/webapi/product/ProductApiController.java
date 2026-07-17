@@ -25,10 +25,10 @@ import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewCountResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
+import com.tastyhouse.webapi.product.response.ProductReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
-import com.tastyhouse.webapi.product.response.ProductReviewsByRatingWithPagination;
-import com.tastyhouse.webapi.product.response.TodayDiscountProductListItemResponse;
-import com.tastyhouse.webapi.product.response.TodayDiscountProductPageResponse;
+import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemResponse;
+import com.tastyhouse.webapi.product.response.ProductTodayDiscountPageResponse;
 
 @RestController
 @RequestMapping("/api/products")
@@ -40,9 +40,9 @@ public class ProductApiController {
 
     @Operation(summary = "상품 목록 조회 (오늘의 할인)", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @GetMapping("/v1/today-discounts")
-    public ResponseEntity<ApiResponse<List<TodayDiscountProductListItemResponse>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
-        TodayDiscountProductPageResponse pageResponse = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
-        ApiResponse<List<TodayDiscountProductListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
+    public ResponseEntity<ApiResponse<List<ProductTodayDiscountListItemResponse>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
+        ProductTodayDiscountPageResponse pageResponse = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
+        ApiResponse<List<ProductTodayDiscountListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }
 
@@ -88,7 +88,7 @@ public class ProductApiController {
         @Valid @ModelAttribute ProductSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        ProductReviewsByRatingWithPagination result = productService.getProductReviewsByRatingWithPagination(productId, pageRequest.page(), pageRequest.size(), search.hasImage());
+        ProductReviewsByRatingPageResponse result = productService.getProductReviewsByRatingWithPagination(productId, pageRequest.page(), pageRequest.size(), search.hasImage());
         ApiResponse<ProductReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
     }

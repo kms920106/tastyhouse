@@ -32,12 +32,12 @@ import com.tastyhouse.webapi.member.response.MyGradeResponse;
 import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
-import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
-import com.tastyhouse.webapi.member.response.PointHistoryResponse;
-import com.tastyhouse.webapi.member.response.PointResponse;
+import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
+import com.tastyhouse.webapi.member.response.MemberPointHistoryResponse;
+import com.tastyhouse.webapi.member.response.MemberPointResponse;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
-import com.tastyhouse.webapi.member.response.UsablePointResponse;
-import com.tastyhouse.webapi.member.response.VerifyPasswordResponse;
+import com.tastyhouse.webapi.member.response.MemberUsablePointResponse;
+import com.tastyhouse.webapi.member.response.MemberVerifyPasswordResponse;
 
 @RestController
 @RequestMapping("/api/members")
@@ -75,17 +75,17 @@ public class MemberMeApiController {
 
     @Operation(summary = "비밀번호 인증 (개인정보 수정 진입)", description = "개인정보 수정 화면 진입 전 현재 비밀번호를 검증합니다. 검증 성공 시 5분간 유효한 verifyToken을 반환합니다.")
     @PostMapping("/v1/me/verify-password")
-    public ResponseEntity<ApiResponse<VerifyPasswordResponse>> verifyPassword(
+    public ResponseEntity<ApiResponse<MemberVerifyPasswordResponse>> verifyPassword(
         @CurrentUser CustomUserDetails userDetails,
         @Valid @RequestBody VerifyPasswordRequest request
     ) {
-        VerifyPasswordResponse response = memberFacade.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password());
+        MemberVerifyPasswordResponse response = memberFacade.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "개인정보 조회", description = "개인정보 수정 화면에 표시할 현재 개인정보를 조회합니다.")
     @GetMapping("/v1/me/personal-info")
-    public ResponseEntity<ApiResponse<PersonalInfoResponse>> getMyPersonalInfo(
+    public ResponseEntity<ApiResponse<MemberPersonalInfoResponse>> getMyPersonalInfo(
         @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.getPersonalInfo(userDetails.getMemberId())));
@@ -122,7 +122,7 @@ public class MemberMeApiController {
 
     @Operation(summary = "보유 포인트 조회", description = "현재 로그인한 회원의 사용 가능한 포인트와 이번달 소멸 예정 포인트를 조회합니다.")
     @GetMapping("/v1/me/point")
-    public ResponseEntity<ApiResponse<PointResponse>> getMyPoint(
+    public ResponseEntity<ApiResponse<MemberPointResponse>> getMyPoint(
         @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyPoint(userDetails.getMemberId())));
@@ -146,7 +146,7 @@ public class MemberMeApiController {
 
     @Operation(summary = "포인트 내역 조회", description = "사용 가능 포인트, 이번달 소멸 예정 포인트, 포인트 적립/사용 내역 목록을 조회합니다.")
     @GetMapping("/v1/me/point/history")
-    public ResponseEntity<ApiResponse<PointHistoryResponse>> getMyPointHistory(
+    public ResponseEntity<ApiResponse<MemberPointHistoryResponse>> getMyPointHistory(
         @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyPointHistory(userDetails.getMemberId())));
@@ -154,7 +154,7 @@ public class MemberMeApiController {
 
     @Operation(summary = "사용 가능 포인트 조회 (주문용)", description = "주문 시 사용 가능한 포인트를 조회합니다.")
     @GetMapping("/v1/me/point/usable")
-    public ResponseEntity<ApiResponse<UsablePointResponse>> getMyUsablePoint(
+    public ResponseEntity<ApiResponse<MemberUsablePointResponse>> getMyUsablePoint(
         @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyUsablePoint(userDetails.getMemberId())));

@@ -12,7 +12,7 @@ import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMem
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
-import com.tastyhouse.webapi.follow.response.MemberSearchListItemResponse;
+import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -70,12 +70,12 @@ public class FollowService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<MemberSearchListItemResponse> searchMembersByNickname(String nickname, Long viewerMemberId, int page, int size) {
+    public PageResult<FollowMemberSearchListItemResponse> searchMembersByNickname(String nickname, Long viewerMemberId, int page, int size) {
         return followQueryService.findMembersByNicknameContaining(nickname, page, size)
             .map(dto -> {
                 String profileImageUrl = fileService.getUrlByPath(dto.profileImageFilePath());
                 boolean isFollowing = viewerMemberId != null && followQueryService.isFollowing(viewerMemberId, dto.id());
-                return MemberSearchListItemResponse.of(
+                return FollowMemberSearchListItemResponse.of(
                     dto.id(),
                     dto.nickname(),
                     dto.memberGrade().name(),

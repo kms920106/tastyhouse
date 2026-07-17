@@ -19,11 +19,11 @@ import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfil
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
+import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
+import com.tastyhouse.webapi.member.response.MemberPhoneAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MyProfileResponse;
-import com.tastyhouse.webapi.member.response.NicknameAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.PersonalInfoResponse;
-import com.tastyhouse.webapi.member.response.PhoneAvailabilityResponse;
 
 
 @Service
@@ -96,16 +96,16 @@ public class MemberAccountService {
 
     // 닉네임 중복 여부를 확인하여 사용 가능 여부를 반환
     @Transactional(readOnly = true)
-    public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
+    public MemberNicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
         boolean available = !memberQueryService.existsByNickname(nickname);
-        return NicknameAvailabilityResponse.from(available);
+        return MemberNicknameAvailabilityResponse.from(available);
     }
 
     // 휴대폰번호로 활성 회원 존재 여부를 확인하여 가입 가능 여부를 반환
     @Transactional(readOnly = true)
-    public PhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
+    public MemberPhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
         boolean available = !memberQueryService.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
-        return PhoneAvailabilityResponse.from(available);
+        return MemberPhoneAvailabilityResponse.from(available);
     }
 
     // 회원의 이름, 휴대폰, 생년월일, 성별, 알림 수신 설정을 수정
@@ -183,9 +183,9 @@ public class MemberAccountService {
 
     // 회원의 개인정보를 조회하여 반환
     @Transactional(readOnly = true)
-    public PersonalInfoResponse getPersonalInfo(Long memberId) {
+    public MemberPersonalInfoResponse getPersonalInfo(Long memberId) {
         Member member = memberQueryService.getById(MemberId.of(memberId));
-        return PersonalInfoResponse.of(
+        return MemberPersonalInfoResponse.of(
             member.getUsername(),
             member.getFullName(),
             member.getPhoneNumber().getValue(),

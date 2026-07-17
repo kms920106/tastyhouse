@@ -16,7 +16,7 @@ import com.tastyhouse.webapi.ratelimit.RateLimit;
 import com.tastyhouse.webapi.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapi.verification.request.ConfirmEmailVerificationCodeRequest;
 import com.tastyhouse.webapi.verification.request.SendEmailVerificationCodeRequest;
-import com.tastyhouse.webapi.verification.response.EmailVerifyTokenResponse;
+import com.tastyhouse.webapi.verification.response.VerificationEmailTokenResponse;
 
 @RestController
 @RequestMapping("/api/email-verifications")
@@ -46,11 +46,11 @@ public class EmailVerificationApiController {
                       "회원가입 시 emailVerifyToken을 포함하여 사용합니다."
     )
     @PostMapping("/v1/confirm")
-    public ResponseEntity<ApiResponse<EmailVerifyTokenResponse>> confirmVerificationCode(
+    public ResponseEntity<ApiResponse<VerificationEmailTokenResponse>> confirmVerificationCode(
         @Valid @RequestBody ConfirmEmailVerificationCodeRequest request
     ) {
         String email = emailVerificationService.confirmVerificationCode(request.email(), request.verificationCode());
         String emailVerifyToken = jwtTokenProvider.createEmailVerifyToken(email);
-        return ResponseEntity.ok(ApiResponse.success(EmailVerifyTokenResponse.from(emailVerifyToken)));
+        return ResponseEntity.ok(ApiResponse.success(VerificationEmailTokenResponse.from(emailVerifyToken)));
     }
 }

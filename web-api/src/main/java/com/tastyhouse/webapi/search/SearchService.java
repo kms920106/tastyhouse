@@ -11,8 +11,8 @@ import com.tastyhouse.core.domain.search.application.SearchResultQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
-import com.tastyhouse.webapi.search.response.PopularKeywordResponse;
-import com.tastyhouse.webapi.search.response.RecommendedKeywordResponse;
+import com.tastyhouse.webapi.search.response.SearchPopularKeywordResponse;
+import com.tastyhouse.webapi.search.response.SearchRecommendedKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
 import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
 
@@ -24,15 +24,15 @@ public class SearchService {
     private final SearchResultQueryService searchResultQueryService;
     private final FileService fileService;
 
-    public List<PopularKeywordResponse> getPopularKeywords() {
+    public List<SearchPopularKeywordResponse> getPopularKeywords() {
         return searchKeywordQueryService.findActivePopularKeywords().stream()
-            .map(r -> PopularKeywordResponse.of(r.rank(), r.keyword(), r.newKeyword()))
+            .map(r -> SearchPopularKeywordResponse.of(r.rank(), r.keyword(), r.newKeyword()))
             .toList();
     }
 
-    public List<RecommendedKeywordResponse> getRecommendedKeywords() {
+    public List<SearchRecommendedKeywordResponse> getRecommendedKeywords() {
         return searchKeywordQueryService.findActiveRecommendedKeywords().stream()
-            .map(r -> RecommendedKeywordResponse.of(r.keyword()))
+            .map(r -> SearchRecommendedKeywordResponse.of(r.keyword()))
             .toList();
     }
 
