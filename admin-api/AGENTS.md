@@ -1,10 +1,10 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-02 | Updated: 2026-07-05 -->
+<!-- Generated: 2026-06-02 | Updated: 2026-07-17 -->
 
 # admin-api
 
 ## Purpose
-관리자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). 현재는 최소 구현 상태로 정책(policy)·공지(notice) 도메인 위주이며, `core-module`의 동일한 application 서비스를 재사용한다. 사용자 API(web-api)와 application 서비스를 공유하므로 command/query 시그니처 변경 시 동시 수정이 필요하다.
+관리자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). `admin`(관리자 계정)·`auth`(로그인/JWT)·`banner`·`bug`(버그 제보)·`coupon`·`event`·`faq`·`member`(회원 관리)·`notice`·`policy` 등 다수 도메인 관리 API를 제공하며, `core-module`의 동일한 application 서비스를 재사용한다. 사용자 API(web-api)와 application 서비스를 공유하므로 command/query 시그니처 변경 시 동시 수정이 필요하다.
 
 컨트롤러가 `core-module`에 직접 결합되는 것을 막기 위해, 도메인별로 admin-api 소속 **Facade(`{도메인}Service`)** 를 두어 컨트롤러와 core 사이를 중개하는 패턴을 도입한다(reference 구현: `notice/NoticeService`). Facade가 core application 서비스 호출과 core DTO↔admin-api Request/Response 변환을 전담하므로, 컨트롤러는 `com.tastyhouse.core.*`를 import하지 않고 admin-api 타입(Facade·Request·Response)에만 의존한다. 신규 도메인은 이 패턴을 따르고, 기존 컨트롤러(policy 등)도 수정 시 점진적으로 전환한다.
 
@@ -17,7 +17,7 @@
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `src/main/java/com/tastyhouse/adminapi/` | 관리자 컨트롤러 루트 — `common/`, `policy/`(+`request/`), `notice/`(+`request/`·`response/`, Facade `NoticeService`) |
+| `src/main/java/com/tastyhouse/adminapi/` | 관리자 컨트롤러 루트 — `common/`(공용 인프라: `ApiResponse`·`PageRequest` 등), `config/`(JWT·Security), `admin/`·`auth/`·`banner/`·`bug/`·`coupon/`·`event/`·`faq/`·`file/`·`member/`·`notice/`·`policy/`(각 도메인 폴더는 컨트롤러 + Facade `{도메인}Service` + `request/`·`response/`) |
 | `src/test/` | 관리자 API 테스트 |
 
 ## For AI Agents

@@ -1,4 +1,4 @@
-<!-- Generated: 2026-06-02 | Updated: 2026-06-02 -->
+<!-- Generated: 2026-06-02 | Updated: 2026-07-17 -->
 
 # tastyhouse-api
 
@@ -22,7 +22,7 @@
 | `core-module/` | DDD 도메인 핵심 — 엔티티/VO/이벤트/레포지토리/application 서비스 (Spring Web 의존 없음). 가장 큰 모듈 (see `core-module/AGENTS.md`) |
 | `web-api/` | 사용자용 REST API — 컨트롤러, 인증(JWT/OAuth), 보안, 스케줄러 (see `web-api/AGENTS.md`) |
 | `external-api/` | 외부 연동 어댑터 — OAuth, 결제(Toss), 이메일/SMS, 파일(S3/Firebase), 크롤링 (see `external-api/AGENTS.md`) |
-| `admin-api/` | 관리자용 REST API (현재 최소 구현, 정책 도메인 위주) (see `admin-api/AGENTS.md`) |
+| `admin-api/` | 관리자용 REST API — 관리자 계정/인증, banner·bug·coupon·event·faq·member·notice·policy 등 도메인 관리 (see `admin-api/AGENTS.md`) |
 | `md/` | 설계 문서 — `CLEAN-ARCHITECTURE.md`(전환 가이드, 정전), 소셜 로그인 가이드, 리팩토링 노트 |
 | `gradle/` | Gradle Wrapper 바이너리/설정 |
 | `json/` | 외부 자격 증명 JSON (예: Firebase 서비스 계정) |
