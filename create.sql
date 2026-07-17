@@ -427,10 +427,13 @@ CREATE TABLE PARTNERSHIP_REQUEST
     contact_name               VARCHAR(100) NOT NULL,                                                -- 담당자 이름
     contact_phone              VARCHAR(20)  NOT NULL,                                                -- 담당자 연락처
     consultation_requested_at  DATETIME     NOT NULL,                                                -- 상담 희망 일시
+    status                     VARCHAR(20)  NOT NULL,                                                -- 처리 상태 (PENDING, IN_PROGRESS, COMPLETED)
+    is_deleted                 TINYINT(1)   NOT NULL DEFAULT 0,                                      -- 삭제 여부 (1: 삭제, 0: 미삭제, Soft Delete)
     created_at                 DATETIME     NOT NULL,                                                -- 생성 일시
     updated_at                 DATETIME     NOT NULL,                                                -- 수정 일시
     INDEX idx_partnership_request_business_name (business_name),                                     -- 인덱스: 사업체명별 조회
-    INDEX idx_partnership_request_consultation_date (consultation_requested_at)                      -- 인덱스: 상담 희망 일시별 조회
+    INDEX idx_partnership_request_consultation_date (consultation_requested_at),                     -- 인덱스: 상담 희망 일시별 조회
+    INDEX idx_partnership_request_status (is_deleted, status)                                        -- 인덱스: 삭제·처리상태 복합 조회
 );
 
 CREATE TABLE SHOP_OWNER_MESSAGE_HISTORY

@@ -7,8 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
+import com.tastyhouse.core.domain.partnership.domain.model.PartnershipStatus;
 import com.tastyhouse.core.domain.partnership.domain.repository.PartnershipRepository;
+import com.tastyhouse.core.domain.partnership.domain.vo.PartnershipRequestId;
 import com.tastyhouse.core.domain.partnership.application.dto.result.PartnershipRequestResult;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
 
 @Service
 @Transactional
@@ -24,5 +28,17 @@ public class PartnershipCommandService {
             PartnershipRequest.of(businessName, address, addressDetail, contactName, contactPhone, consultationRequestedAt)
         );
         return PartnershipRequestResult.from(saved);
+    }
+
+    public void changeStatus(PartnershipRequestId partnershipRequestId, PartnershipStatus status) {
+        PartnershipRequest partnershipRequest = partnershipRepository.findById(partnershipRequestId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
+        partnershipRequest.changeStatus(status);
+    }
+
+    public void delete(PartnershipRequestId partnershipRequestId) {
+        PartnershipRequest partnershipRequest = partnershipRepository.findById(partnershipRequestId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
+        partnershipRequest.delete();
     }
 }

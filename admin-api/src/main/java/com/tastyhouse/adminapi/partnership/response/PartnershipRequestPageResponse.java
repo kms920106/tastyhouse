@@ -1,0 +1,27 @@
+package com.tastyhouse.adminapi.partnership.response;
+
+import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.core.shared.page.PageResult;
+
+@Schema(description = "제휴 신청 목록 페이지 응답")
+public record PartnershipRequestPageResponse(
+    @Schema(description = "제휴 신청 목록")
+    List<PartnershipRequestListItemResponse> content,
+
+    @Schema(description = "현재 페이지 번호", example = "0")
+    int page,
+
+    @Schema(description = "페이지 크기", example = "10")
+    int size,
+
+    @Schema(description = "전체 항목 수", example = "42")
+    long totalElements
+) {
+
+    public static PartnershipRequestPageResponse from(PageResult<PartnershipRequestListItemResponse> pageResult) {
+        return new PartnershipRequestPageResponse(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements());
+    }
+}

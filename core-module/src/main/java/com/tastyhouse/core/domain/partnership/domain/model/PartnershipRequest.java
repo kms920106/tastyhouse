@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -43,6 +45,13 @@ public class PartnershipRequest extends BaseEntity {
     @Column(name = "consultation_requested_at", nullable = false)
     private LocalDateTime consultationRequestedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+    private PartnershipStatus status;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
+
     public PartnershipRequest(String businessName, String address, String addressDetail,
                               String contactName, String contactPhone, LocalDateTime consultationRequestedAt) {
         this.businessName = businessName;
@@ -51,6 +60,8 @@ public class PartnershipRequest extends BaseEntity {
         this.contactName = contactName;
         this.contactPhone = contactPhone;
         this.consultationRequestedAt = consultationRequestedAt;
+        this.status = PartnershipStatus.PENDING;
+        this.deleted = false;
     }
 
     public static PartnershipRequest of(String businessName, String address, String addressDetail,
@@ -60,5 +71,13 @@ public class PartnershipRequest extends BaseEntity {
 
     public PartnershipRequestId getPartnershipRequestId() {
         return PartnershipRequestId.of(this.id);
+    }
+
+    public void changeStatus(PartnershipStatus status) {
+        this.status = status;
+    }
+
+    public void delete() {
+        this.deleted = true;
     }
 }
