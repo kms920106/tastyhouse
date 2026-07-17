@@ -13,9 +13,9 @@ import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
 import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
 import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
-import com.tastyhouse.core.domain.coupon.application.dto.CouponAdminListItemDto;
+import com.tastyhouse.core.domain.coupon.application.dto.CouponListItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.CouponSearchCondition;
-import com.tastyhouse.core.domain.coupon.application.dto.QCouponAdminListItemDto;
+import com.tastyhouse.core.domain.coupon.application.dto.QCouponListItemDto;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -40,7 +40,7 @@ public class CouponRepositoryImpl implements CouponRepository {
     }
 
     @Override
-    public PageResult<CouponAdminListItemDto> findAllCoupons(CouponSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<CouponListItemDto> findAllCoupons(CouponSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(coupon.id.count())
             .from(coupon)
@@ -52,8 +52,8 @@ public class CouponRepositoryImpl implements CouponRepository {
             )
             .fetchOne();
 
-        List<CouponAdminListItemDto> coupons = queryFactory
-            .select(new QCouponAdminListItemDto(
+        List<CouponListItemDto> coupons = queryFactory
+            .select(new QCouponListItemDto(
                 coupon.id,
                 coupon.name,
                 coupon.discountType,

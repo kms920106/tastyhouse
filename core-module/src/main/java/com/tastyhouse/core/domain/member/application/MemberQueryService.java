@@ -17,7 +17,7 @@ import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.application.dto.MemberSearchCondition;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberAdminListItemResult;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -91,7 +91,7 @@ public class MemberQueryService {
         return memberSocialAccountRepository.existsByProviderAndProviderId(provider, providerId);
     }
 
-    public PageResult<MemberAdminListItemResult> findMembers(MemberSearchCondition condition, int page, int size) {
+    public PageResult<MemberListItemResult> findMembers(MemberSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return memberRepository.findMembers(condition, pageQuery);
     }

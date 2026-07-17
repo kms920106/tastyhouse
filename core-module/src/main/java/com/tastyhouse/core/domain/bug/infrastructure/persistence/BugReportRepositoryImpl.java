@@ -17,9 +17,9 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportAdminListItemDto;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportAdminSearchCondition;
-import com.tastyhouse.core.domain.bug.application.dto.QBugReportAdminListItemDto;
+import com.tastyhouse.core.domain.bug.application.dto.BugReportListItemDto;
+import com.tastyhouse.core.domain.bug.application.dto.BugReportSearchCondition;
+import com.tastyhouse.core.domain.bug.application.dto.QBugReportListItemDto;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -34,7 +34,7 @@ public class BugReportRepositoryImpl implements BugReportRepository {
     private final BugReportJpaRepository bugReportJpaRepository;
 
     @Override
-    public PageResult<BugReportAdminListItemDto> findAllBugReports(BugReportAdminSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<BugReportListItemDto> findAllBugReports(BugReportSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(bugReport.id.count())
             .from(bugReport)
@@ -48,8 +48,8 @@ public class BugReportRepositoryImpl implements BugReportRepository {
             )
             .fetchOne();
 
-        List<BugReportAdminListItemDto> bugReports = queryFactory
-            .select(new QBugReportAdminListItemDto(
+        List<BugReportListItemDto> bugReports = queryFactory
+            .select(new QBugReportListItemDto(
                 bugReport.id,
                 bugReport.memberId,
                 bugReport.device,

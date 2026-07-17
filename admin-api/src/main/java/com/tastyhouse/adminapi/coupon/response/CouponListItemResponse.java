@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.coupon.application.dto.CouponAdminListItemDto;
+import com.tastyhouse.core.domain.coupon.application.dto.CouponListItemDto;
 
 @Schema(description = "쿠폰 목록 항목 응답")
 public record CouponListItemResponse(
@@ -44,7 +44,7 @@ public record CouponListItemResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
-    public static CouponListItemResponse from(CouponAdminListItemDto dto) {
+    public static CouponListItemResponse from(CouponListItemDto dto) {
         return new CouponListItemResponse(
             dto.id(),
             dto.name(),

@@ -5,7 +5,7 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 
-public record BugReportAdminSearchCondition(
+public record BugReportSearchCondition(
     String title,
     String content,
     MemberId memberId,
@@ -14,7 +14,7 @@ public record BugReportAdminSearchCondition(
     BugReportPriority priority
 ) {
 
-    public static BugReportAdminSearchCondition of(
+    public static BugReportSearchCondition of(
         String title,
         String content,
         MemberId memberId,
@@ -22,6 +22,6 @@ public record BugReportAdminSearchCondition(
         BugReportCategory category,
         BugReportPriority priority
     ) {
-        return new BugReportAdminSearchCondition(title, content, memberId, status, category, priority);
+        return new BugReportSearchCondition(title, content, memberId, status, category, priority);
     }
 }

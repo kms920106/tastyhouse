@@ -8,7 +8,7 @@ import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
-public record OrderAdminListItemResult(
+public record OrderManagementListItemResult(
     Long id,
     String orderNumber,
     String shopName,
@@ -21,6 +21,6 @@ public record OrderAdminListItemResult(
     LocalDateTime createdAt
 ) {
     @QueryProjection
-    public OrderAdminListItemResult {
+    public OrderManagementListItemResult {
     }
 }

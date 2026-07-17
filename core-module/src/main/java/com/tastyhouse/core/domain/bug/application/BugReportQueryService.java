@@ -11,8 +11,8 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportImage;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportImageRepository;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportAdminListItemDto;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportAdminSearchCondition;
+import com.tastyhouse.core.domain.bug.application.dto.BugReportListItemDto;
+import com.tastyhouse.core.domain.bug.application.dto.BugReportSearchCondition;
 import com.tastyhouse.core.domain.bug.application.dto.BugReportDetailDto;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -27,7 +27,7 @@ public class BugReportQueryService {
     private final BugReportRepository bugReportRepository;
     private final BugReportImageRepository bugReportImageRepository;
 
-    public PageResult<BugReportAdminListItemDto> findAllBugReports(BugReportAdminSearchCondition condition, int page, int size) {
+    public PageResult<BugReportListItemDto> findAllBugReports(BugReportSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return bugReportRepository.findAllBugReports(condition, pageQuery);
     }

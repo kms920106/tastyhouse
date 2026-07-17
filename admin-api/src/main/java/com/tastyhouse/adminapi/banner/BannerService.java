@@ -10,9 +10,9 @@ import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.banner.application.BannerCommandService;
 import com.tastyhouse.core.domain.banner.application.BannerQueryService;
-import com.tastyhouse.core.domain.banner.application.dto.BannerAdminListItemDto;
-import com.tastyhouse.core.domain.banner.application.dto.BannerAdminSearchCondition;
 import com.tastyhouse.core.domain.banner.application.dto.BannerDetailDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerManagementListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerSearchCondition;
 import com.tastyhouse.core.domain.banner.application.dto.command.BannerCreateCommand;
 import com.tastyhouse.core.domain.banner.application.dto.command.BannerUpdateCommand;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
@@ -34,17 +34,17 @@ public class BannerService {
 
     public BannerPageResponse getBanners(String type, String title, Boolean visible, int page, int size) {
         BannerType bannerType = type == null ? null : BannerType.from(type);
-        BannerAdminSearchCondition condition = BannerAdminSearchCondition.of(bannerType, title, visible);
+        BannerSearchCondition condition = BannerSearchCondition.of(bannerType, title, visible);
         PageResult<BannerListItemResponse> pageResult = bannerQueryService.findAllBanners(condition, page, size)
             .map(this::toListItemResponse);
         return BannerPageResponse.from(pageResult);
     }
 
-    private BannerListItemResponse toListItemResponse(BannerAdminListItemDto dto) {
+    private BannerListItemResponse toListItemResponse(BannerManagementListItemDto dto) {
         return BannerListItemResponse.from(dto, toFileResponse(dto));
     }
 
-    private FileResponse toFileResponse(BannerAdminListItemDto dto) {
+    private FileResponse toFileResponse(BannerManagementListItemDto dto) {
         if (dto.imageFileId() == null) {
             return null;
         }

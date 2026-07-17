@@ -6,7 +6,7 @@ import com.tastyhouse.core.domain.event.domain.model.Event;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.vo.EventId;
 
-public record EventAdminDetailDto(
+public record EventManagementDetailDto(
     EventId eventId,
     String name,
     String description,
@@ -21,8 +21,8 @@ public record EventAdminDetailDto(
     LocalDateTime updatedAt
 ) {
 
-    public static EventAdminDetailDto from(Event event) {
-        return new EventAdminDetailDto(
+    public static EventManagementDetailDto from(Event event) {
+        return new EventManagementDetailDto(
             event.getEventId(),
             event.getName(),
             event.getDescription(),

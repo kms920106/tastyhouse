@@ -6,7 +6,7 @@ import com.querydsl.core.annotations.QueryProjection;
 
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 
-public record EventAdminListItemDto(
+public record EventManagementListItemDto(
     Long id,
     String name,
     EventStatus status,
@@ -17,6 +17,6 @@ public record EventAdminListItemDto(
     LocalDateTime endAt
 ) {
     @QueryProjection
-    public EventAdminListItemDto {
+    public EventManagementListItemDto {
     }
 }

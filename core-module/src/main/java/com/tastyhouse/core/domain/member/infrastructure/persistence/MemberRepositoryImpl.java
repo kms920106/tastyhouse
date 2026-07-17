@@ -16,7 +16,7 @@ import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.application.dto.MemberSearchCondition;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberAdminListItemResult;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -153,9 +153,9 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public PageResult<MemberAdminListItemResult> findMembers(MemberSearchCondition condition, PageQuery pageQuery) {
-        List<MemberAdminListItemResult> content = queryFactory
-            .select(Projections.constructor(MemberAdminListItemResult.class,
+    public PageResult<MemberListItemResult> findMembers(MemberSearchCondition condition, PageQuery pageQuery) {
+        List<MemberListItemResult> content = queryFactory
+            .select(Projections.constructor(MemberListItemResult.class,
                 member.id,
                 member.username,
                 member.nickname,

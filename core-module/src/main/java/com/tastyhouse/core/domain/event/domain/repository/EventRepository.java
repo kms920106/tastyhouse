@@ -2,9 +2,9 @@ package com.tastyhouse.core.domain.event.domain.repository;
 
 import java.util.Optional;
 
-import com.tastyhouse.core.domain.event.application.dto.EventAdminListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.EventManagementListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventSearchCondition;
 import com.tastyhouse.core.domain.event.domain.model.Event;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
@@ -20,7 +20,7 @@ public interface EventRepository {
 
     Optional<Event> findById(EventId eventId);
 
-    PageResult<EventAdminListItemDto> findAllEvents(EventSearchCondition condition, PageQuery pageQuery);
+    PageResult<EventManagementListItemDto> findAllEvents(EventSearchCondition condition, PageQuery pageQuery);
 
     Event save(Event event);
 }

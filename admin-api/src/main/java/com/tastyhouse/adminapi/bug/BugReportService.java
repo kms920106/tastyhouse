@@ -16,9 +16,9 @@ import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.bug.application.BugReportCommandService;
 import com.tastyhouse.core.domain.bug.application.BugReportQueryService;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportAdminListItemDto;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportAdminSearchCondition;
 import com.tastyhouse.core.domain.bug.application.dto.BugReportDetailDto;
+import com.tastyhouse.core.domain.bug.application.dto.BugReportListItemDto;
+import com.tastyhouse.core.domain.bug.application.dto.BugReportSearchCondition;
 import com.tastyhouse.core.domain.bug.application.dto.command.BugReportAssignCommand;
 import com.tastyhouse.core.domain.bug.application.dto.command.BugReportClassifyCommand;
 import com.tastyhouse.core.domain.bug.application.dto.command.BugReportStatusUpdateCommand;
@@ -53,7 +53,7 @@ public class BugReportService {
         int page,
         int size
     ) {
-        BugReportAdminSearchCondition condition = BugReportAdminSearchCondition.of(
+        BugReportSearchCondition condition = BugReportSearchCondition.of(
             title,
             content,
             memberId == null ? null : MemberId.of(memberId),
@@ -61,7 +61,7 @@ public class BugReportService {
             category == null ? null : BugReportCategory.from(category),
             priority == null ? null : BugReportPriority.from(priority)
         );
-        PageResult<BugReportAdminListItemDto> pageResult = bugReportQueryService.findAllBugReports(condition, page, size);
+        PageResult<BugReportListItemDto> pageResult = bugReportQueryService.findAllBugReports(condition, page, size);
 
         Map<Long, MemberWithProfileImageResult> membersById = memberQueryService.findMemberWithProfileImagesByIds(
             pageResult.content().stream().map(dto -> dto.memberId().value()).toList()

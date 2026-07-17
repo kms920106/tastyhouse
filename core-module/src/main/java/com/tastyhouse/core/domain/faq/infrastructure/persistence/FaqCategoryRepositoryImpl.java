@@ -10,9 +10,9 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.faq.domain.model.FaqCategory;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.faq.domain.vo.FaqCategoryId;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryAdminDto;
+import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryDto;
 import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
-import com.tastyhouse.core.domain.faq.application.dto.QFaqCategoryAdminDto;
+import com.tastyhouse.core.domain.faq.application.dto.QFaqCategoryDto;
 import com.tastyhouse.core.domain.faq.application.dto.QFaqCategoryResult;
 
 import static com.tastyhouse.core.domain.faq.domain.model.QFaq.faq;
@@ -40,9 +40,9 @@ public class FaqCategoryRepositoryImpl implements FaqCategoryRepository {
     }
 
     @Override
-    public List<FaqCategoryAdminDto> findAllCategories() {
+    public List<FaqCategoryDto> findAllCategories() {
         return queryFactory
-                .select(new QFaqCategoryAdminDto(
+                .select(new QFaqCategoryDto(
                         faqCategory.id,
                         faqCategory.name,
                         faqCategory.sort,

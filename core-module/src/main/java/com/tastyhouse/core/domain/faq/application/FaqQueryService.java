@@ -12,7 +12,7 @@ import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
 import com.tastyhouse.core.domain.faq.domain.vo.FaqCategoryId;
 import com.tastyhouse.core.domain.faq.domain.vo.FaqId;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryAdminDto;
+import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryDto;
 import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryResult;
 import com.tastyhouse.core.domain.faq.application.dto.FaqDetailDto;
 import com.tastyhouse.core.domain.faq.application.dto.FaqListItemDto;
@@ -42,14 +42,14 @@ public class FaqQueryService {
         return faqRepository.findActiveItemsByCategoryId(categoryId);
     }
 
-    public List<FaqCategoryAdminDto> findAllCategories() {
+    public List<FaqCategoryDto> findAllCategories() {
         return faqCategoryRepository.findAllCategories();
     }
 
-    public FaqCategoryAdminDto findCategoryDetail(FaqCategoryId faqCategoryId) {
+    public FaqCategoryDto findCategoryDetail(FaqCategoryId faqCategoryId) {
         FaqCategory faqCategory = faqCategoryRepository.findById(faqCategoryId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
-        return new FaqCategoryAdminDto(
+        return new FaqCategoryDto(
             faqCategory.getId(),
             faqCategory.getName(),
             faqCategory.getSort(),

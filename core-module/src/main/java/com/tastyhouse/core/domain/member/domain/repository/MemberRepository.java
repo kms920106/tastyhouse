@@ -8,7 +8,7 @@ import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.application.dto.MemberSearchCondition;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberAdminListItemResult;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -35,7 +35,7 @@ public interface MemberRepository {
 
     Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(MemberId memberId);
 
-    PageResult<MemberAdminListItemResult> findMembers(MemberSearchCondition condition, PageQuery pageQuery);
+    PageResult<MemberListItemResult> findMembers(MemberSearchCondition condition, PageQuery pageQuery);
 
     Member save(Member member);
 }

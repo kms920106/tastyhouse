@@ -14,8 +14,8 @@ import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.event.application.EventCommandService;
 import com.tastyhouse.core.domain.event.application.EventQueryService;
-import com.tastyhouse.core.domain.event.application.dto.EventAdminDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.EventAdminListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.EventManagementDetailDto;
+import com.tastyhouse.core.domain.event.application.dto.EventManagementListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventSearchCondition;
 import com.tastyhouse.core.domain.event.application.dto.EventWinnerDto;
 import com.tastyhouse.core.domain.event.application.dto.command.EventAnnouncementCreateCommand;
@@ -52,7 +52,7 @@ public class EventService {
         return EventPageResponse.from(pageResult);
     }
 
-    private EventListItemResponse toListItemResponse(EventAdminListItemDto dto) {
+    private EventListItemResponse toListItemResponse(EventManagementListItemDto dto) {
         return EventListItemResponse.from(dto, toFileResponse(dto.thumbnailImageFileId(), dto.thumbnailFileName(), dto.thumbnailFilePath()));
     }
 
@@ -77,7 +77,7 @@ public class EventService {
 
     public EventDetailResponse getEvent(Long id) {
         EventId eventId = EventId.of(id);
-        EventAdminDetailDto detail = eventQueryService.findAdminDetailById(eventId);
+        EventManagementDetailDto detail = eventQueryService.findAdminDetailById(eventId);
         FileResponse thumbnailFile = toFileResponse(detail.thumbnailImageFileId());
         FileResponse bannerFile = toFileResponse(detail.bannerImageFileId());
         return EventDetailResponse.from(detail, thumbnailFile, bannerFile);

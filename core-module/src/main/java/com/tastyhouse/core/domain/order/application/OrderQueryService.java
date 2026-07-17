@@ -21,8 +21,8 @@ import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.order.application.dto.OrderSearchCondition;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderAdminListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderManagementListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
@@ -52,7 +52,7 @@ public class OrderQueryService {
         return orderRepository.findOrderListByMemberId(memberId, pageQuery);
     }
 
-    public PageResult<OrderAdminListItemResult> findOrders(OrderSearchCondition condition, int page, int size) {
+    public PageResult<OrderManagementListItemResult> findOrders(OrderSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return orderRepository.findOrders(condition, pageQuery);
     }

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.order.application.dto.result.OrderAdminListItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderManagementListItemResult;
 
 @Schema(description = "주문 목록 항목 응답")
 public record OrderListItemResponse(
@@ -38,7 +38,7 @@ public record OrderListItemResponse(
     @Schema(description = "주문 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static OrderListItemResponse from(OrderAdminListItemResult result) {
+    public static OrderListItemResponse from(OrderManagementListItemResult result) {
         return new OrderListItemResponse(
             result.id(),
             result.orderNumber(),

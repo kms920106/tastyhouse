@@ -18,10 +18,10 @@ import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.core.domain.order.application.dto.OrderSearchCondition;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderAdminListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
-import com.tastyhouse.core.domain.order.application.dto.result.QOrderAdminListItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderManagementListItemResult;
 import com.tastyhouse.core.domain.order.application.dto.result.QOrderListItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.QOrderManagementListItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -83,14 +83,14 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public PageResult<OrderAdminListItemResult> findOrders(OrderSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<OrderManagementListItemResult> findOrders(OrderSearchCondition condition, PageQuery pageQuery) {
         var paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId").eq(order.id);
         if (condition.paymentStatus() != null) {
             paymentJoinCondition = paymentJoinCondition.and(payment.paymentStatus.eq(condition.paymentStatus()));
         }
 
-        List<OrderAdminListItemResult> content = queryFactory
-            .select(new QOrderAdminListItemResult(
+        List<OrderManagementListItemResult> content = queryFactory
+            .select(new QOrderManagementListItemResult(
                 order.id,
                 order.orderNumber,
                 shop.name,

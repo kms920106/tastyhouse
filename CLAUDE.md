@@ -16,15 +16,17 @@ NO_COMMIT_OR_ROLLBACK
 
 파일명, 변수명, 함수명 등 모든 네이밍은 최적의 이름을 선택하도록 합니다. 명확하고 의미 있는 이름을 사용하여 코드의 가독성과 유지보수성을 높입니다.
 
-## admin 전용 메서드 네이밍 규칙 (`ForAdmin`/`Admin` 접미·접두 금지)
+## admin 전용 네이밍 규칙 (메서드·타입명에 admin-flavor `Admin` 접두·접미·중간어 금지)
 
-**admin 전용 조회·명령 메서드도 `ForAdmin`/`Admin` 접미어·접두어 없이 순수 도메인 동작명만 씁니다.** 같은 도메인 안에서 admin 전용 메서드만 이런 접미·접두를 붙이면, 일반 메서드(`findOrders`, `findAllEvents`, `findAllNotices` 등)와 이름 짓는 방식이 갈려 일관성이 깨집니다.
+**admin 전용 조회·명령 메서드도 `ForAdmin`/`Admin` 접미어·접두어 없이 순수 도메인 동작명만 씁니다.** 같은 도메인 안에서 admin 전용 메서드만 이런 접미·접두를 붙이면, 일반 메서드(`findOrders`, `findAllEvents`, `findAllNotices` 등)와 이름 짓는 방식이 갈려 일관성이 깨집니다. **이 원칙은 메서드명뿐 아니라 반환 DTO/Result/Condition 등 타입명에도 동일하게 적용합니다** — admin 전용 타입이라고 해서 타입명에 역할 마커 `Admin`을 붙이지 않습니다.
 
-- **admin/일반 구분 방법**: 메서드명이 아니라 **반환 DTO 이름**(`XxxAdminDto`, `XxxAdminListItemResult` 등)으로 admin 성격을 표현합니다. 시그니처(파라미터 차이: `memberId` 유무·소유권 검증 유무 등)로도 구분됩니다.
-- **비-admin 형제와 이름이 충돌할 때만** `ById`처럼 의미 있는 한정어로 구분합니다(예: `findOrderDetail(memberId, orderId)` vs `findOrderDetailById(orderId)`).
-- 이미 존재하던 `ForAdmin` 접미어(`findOrderDetailForAdmin`, `findCategoriesForAdmin`, `findAllForAdmin`, `findPageForAdmin`)는 각각 `findOrderDetailById`, `findAllCategories`, `findAllCategories`, `findFaqPage`로 리네이밍하여 정리했습니다.
+- **admin/일반 구분 방법**: 메서드명·타입명의 `Admin` 마커가 아니라 아래 기준으로 구분합니다.
+  - **메서드**: 시그니처(파라미터 차이: `memberId` 유무·소유권 검증 유무 등)로 구분하고, **비-admin 형제와 이름이 충돌할 때만** `ById`처럼 의미 있는 한정어를 붙입니다(예: `findOrderDetail(memberId, orderId)` vs `findOrderDetailById(orderId)`).
+  - **타입(DTO/Result/Condition)**: 비-admin 형제가 없으면 `Admin`을 뗀 순수명을 쓰고(예: `MemberListItemResult`, `BugReportListItemDto`, `FaqCategoryDto`), **비-admin 형제와 타입명이 충돌할 때만** 관리 화면 용도를 나타내는 한정어 `Management`를 붙여 구별합니다(`{도메인}Management{용도}{Result|Dto}`, 예: `OrderManagementListItemResult` vs `OrderListItemResult`). `Management`는 "누가(관리자)"가 아니라 "무엇을 위한 것인가(관리 화면 목록/상세)"를 표현하므로 역할 기반 마커를 쓰지 않으면서도 admin 성격을 이름에 담을 수 있습니다.
+- 이미 존재하던 `ForAdmin` 접미어(`findOrderDetailForAdmin`, `findCategoriesForAdmin`, `findAllForAdmin`, `findPageForAdmin`)는 각각 `findOrderDetailById`, `findAllCategories`, `findAllCategories`, `findFaqPage`로 리네이밍하여 정리했습니다. 이후 타입명에 남아 있던 `XxxAdminDto`/`XxxAdminListItemResult`류(`OrderAdminListItemResult`, `EventAdminListItemDto`, `EventAdminDetailDto`, `BannerAdminListItemDto`, `BannerAdminSearchCondition`, `MemberAdminListItemResult`, `BugReportAdminListItemDto`, `BugReportAdminSearchCondition`, `CouponAdminListItemDto`, `MemberCouponAdminItemDto`, `FaqCategoryAdminDto`)도 위 기준으로 전부 리네이밍했습니다.
+- **예외**: `admin` 도메인 자체의 타입(`Admin` 엔티티, `AdminId`, `AdminRepository`, `AdminCreateCommand`, `AdminCommandService`/`AdminQueryService`, `AdminJpaRepository` 등)은 이 규칙의 대상이 아닙니다. 여기서 `Admin`은 역할 마커가 아니라 "관리자 계정"이라는 애그리거트 본래 이름입니다.
 
-reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(비-admin `findOrderDetail`과 시그니처로 구분), `faq` 도메인의 `FaqQueryService#findAllCategories`/`FaqRepository#findFaqPage`(반환 DTO `FaqCategoryAdminDto`/`FaqListItemDto`가 admin 성격 표현), `event` 도메인의 `findAllEvents`/`OrderAdminListItemResult`.
+reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(비-admin `findOrderDetail`과 시그니처로 구분)·`OrderManagementListItemResult`(비-admin `OrderListItemResult`와 충돌 → `Management` 한정어로 구별), `faq` 도메인의 `FaqQueryService#findAllCategories`/`FaqRepository#findFaqPage`(반환 DTO `FaqCategoryDto`/`FaqListItemDto`), `event` 도메인의 `findAllEvents`/`EventManagementListItemDto`/`EventManagementDetailDto`(비-admin `EventListItemDto`/`EventDetailDto`와 충돌 → `Management` 한정어), `member`/`bug`/`coupon` 도메인의 `MemberListItemResult`/`BugReportListItemDto`/`CouponListItemDto`(형제 없어 순수 strip).
 
 ## Command/DTO 네이밍 순서 규칙 (`{도메인}{동작}` 형태)
 

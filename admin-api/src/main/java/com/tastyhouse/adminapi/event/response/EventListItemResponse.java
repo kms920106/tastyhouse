@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.event.application.dto.EventAdminListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.EventManagementListItemDto;
 import com.tastyhouse.adminapi.common.FileResponse;
 
 @Schema(description = "이벤트 목록 항목 응답")
@@ -27,7 +27,7 @@ public record EventListItemResponse(
     @Schema(description = "종료 일시", example = "2026-01-31T23:59:59")
     LocalDateTime endAt
 ) {
-    public static EventListItemResponse from(EventAdminListItemDto dto, FileResponse file) {
+    public static EventListItemResponse from(EventManagementListItemDto dto, FileResponse file) {
         return new EventListItemResponse(
             dto.id(),
             dto.name(),

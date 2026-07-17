@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-public record FaqCategoryAdminDto(
+public record FaqCategoryDto(
     Long id,
     String name,
     Integer sort,
@@ -12,6 +12,6 @@ public record FaqCategoryAdminDto(
     LocalDateTime createdAt
 ) {
     @QueryProjection
-    public FaqCategoryAdminDto {
+    public FaqCategoryDto {
     }
 }

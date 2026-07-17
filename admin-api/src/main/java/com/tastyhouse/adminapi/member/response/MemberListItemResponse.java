@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.application.dto.result.MemberAdminListItemResult;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
 
 @Schema(description = "회원 목록 항목 응답")
 public record MemberListItemResponse(
@@ -39,7 +39,7 @@ public record MemberListItemResponse(
     LocalDateTime createdAt
 ) {
 
-    public static MemberListItemResponse from(MemberAdminListItemResult result) {
+    public static MemberListItemResponse from(MemberListItemResult result) {
         return new MemberListItemResponse(
             result.id(),
             result.username(),

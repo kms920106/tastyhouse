@@ -12,10 +12,10 @@ import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.coupon.application.dto.CouponAdminListItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.CouponDetailDto;
+import com.tastyhouse.core.domain.coupon.application.dto.CouponListItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.CouponSearchCondition;
-import com.tastyhouse.core.domain.coupon.application.dto.MemberCouponAdminItemDto;
+import com.tastyhouse.core.domain.coupon.application.dto.MemberCouponItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -43,7 +43,7 @@ public class CouponQueryService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
     }
 
-    public PageResult<CouponAdminListItemDto> findAllCoupons(CouponSearchCondition condition, int page, int size) {
+    public PageResult<CouponListItemDto> findAllCoupons(CouponSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return couponRepository.findAllCoupons(condition, pageQuery);
     }
@@ -52,7 +52,7 @@ public class CouponQueryService {
         return CouponDetailDto.from(findById(id));
     }
 
-    public PageResult<MemberCouponAdminItemDto> findIssuedByCoupon(CouponId couponId, int page, int size) {
+    public PageResult<MemberCouponItemDto> findIssuedByCoupon(CouponId couponId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return memberCouponRepository.findByCouponId(couponId, pageQuery);
     }

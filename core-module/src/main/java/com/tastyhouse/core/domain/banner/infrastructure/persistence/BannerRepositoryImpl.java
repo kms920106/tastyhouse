@@ -14,11 +14,11 @@ import com.tastyhouse.core.domain.banner.domain.model.Banner;
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
 import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
-import com.tastyhouse.core.domain.banner.application.dto.BannerAdminListItemDto;
-import com.tastyhouse.core.domain.banner.application.dto.BannerAdminSearchCondition;
 import com.tastyhouse.core.domain.banner.application.dto.BannerListItemDto;
-import com.tastyhouse.core.domain.banner.application.dto.QBannerAdminListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerManagementListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerSearchCondition;
 import com.tastyhouse.core.domain.banner.application.dto.QBannerListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.QBannerManagementListItemDto;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -73,7 +73,7 @@ public class BannerRepositoryImpl implements BannerRepository {
     }
 
     @Override
-    public PageResult<BannerAdminListItemDto> findAllBanners(BannerAdminSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<BannerManagementListItemDto> findAllBanners(BannerSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(banner.id.count())
             .from(banner)
@@ -85,8 +85,8 @@ public class BannerRepositoryImpl implements BannerRepository {
             )
             .fetchOne();
 
-        List<BannerAdminListItemDto> banners = queryFactory
-            .select(new QBannerAdminListItemDto(
+        List<BannerManagementListItemDto> banners = queryFactory
+            .select(new QBannerManagementListItemDto(
                 banner.id,
                 banner.type,
                 banner.title,

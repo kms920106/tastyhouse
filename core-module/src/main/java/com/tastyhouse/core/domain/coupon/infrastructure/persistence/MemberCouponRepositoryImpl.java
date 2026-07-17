@@ -13,8 +13,8 @@ import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepositor
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.coupon.application.dto.MemberCouponAdminItemDto;
-import com.tastyhouse.core.domain.coupon.application.dto.QMemberCouponAdminItemDto;
+import com.tastyhouse.core.domain.coupon.application.dto.MemberCouponItemDto;
+import com.tastyhouse.core.domain.coupon.application.dto.QMemberCouponItemDto;
 import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponResult;
 import com.tastyhouse.core.domain.coupon.application.dto.result.QMemberCouponResult;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -88,15 +88,15 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
     }
 
     @Override
-    public PageResult<MemberCouponAdminItemDto> findByCouponId(CouponId couponId, PageQuery pageQuery) {
+    public PageResult<MemberCouponItemDto> findByCouponId(CouponId couponId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(memberCoupon.id.count())
             .from(memberCoupon)
             .where(memberCoupon.couponId.eq(couponId.value()))
             .fetchOne();
 
-        List<MemberCouponAdminItemDto> items = queryFactory
-            .select(new QMemberCouponAdminItemDto(
+        List<MemberCouponItemDto> items = queryFactory
+            .select(new QMemberCouponItemDto(
                 memberCoupon.id,
                 memberCoupon.memberId,
                 memberCoupon.used,

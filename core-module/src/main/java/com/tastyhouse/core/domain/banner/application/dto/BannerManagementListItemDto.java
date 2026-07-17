@@ -6,7 +6,7 @@ import com.querydsl.core.annotations.QueryProjection;
 
 import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 
-public record BannerAdminListItemDto(
+public record BannerManagementListItemDto(
     Long id,
     BannerType type,
     String title,
@@ -20,6 +20,6 @@ public record BannerAdminListItemDto(
     boolean visible
 ) {
     @QueryProjection
-    public BannerAdminListItemDto {
+    public BannerManagementListItemDto {
     }
 }

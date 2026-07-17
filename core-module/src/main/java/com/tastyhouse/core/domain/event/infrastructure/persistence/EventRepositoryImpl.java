@@ -14,13 +14,13 @@ import com.tastyhouse.core.domain.event.domain.model.Event;
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
 import com.tastyhouse.core.domain.event.domain.vo.EventId;
-import com.tastyhouse.core.domain.event.application.dto.EventAdminListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.EventManagementListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventSearchCondition;
-import com.tastyhouse.core.domain.event.application.dto.QEventAdminListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.QEventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.QEventListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.QEventManagementListItemDto;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -84,7 +84,7 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public PageResult<EventAdminListItemDto> findAllEvents(EventSearchCondition condition, PageQuery pageQuery) {
+    public PageResult<EventManagementListItemDto> findAllEvents(EventSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(event.id.count())
             .from(event)
@@ -95,8 +95,8 @@ public class EventRepositoryImpl implements EventRepository {
             )
             .fetchOne();
 
-        List<EventAdminListItemDto> events = queryFactory
-            .select(new QEventAdminListItemDto(
+        List<EventManagementListItemDto> events = queryFactory
+            .select(new QEventManagementListItemDto(
                 event.id,
                 event.name,
                 event.status,

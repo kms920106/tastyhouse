@@ -6,7 +6,7 @@ import com.querydsl.core.annotations.QueryProjection;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 
-public record MemberCouponAdminItemDto(
+public record MemberCouponItemDto(
     Long id,
     MemberId memberId,
     boolean used,
@@ -15,6 +15,6 @@ public record MemberCouponAdminItemDto(
     LocalDateTime createdAt
 ) {
     @QueryProjection
-    public MemberCouponAdminItemDto {
+    public MemberCouponItemDto {
     }
 }

@@ -6,7 +6,7 @@ import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 
-public record MemberAdminListItemResult(
+public record MemberListItemResult(
     Long id,
     String username,
     String nickname,

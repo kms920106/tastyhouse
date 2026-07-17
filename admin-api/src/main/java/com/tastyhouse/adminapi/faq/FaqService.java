@@ -10,7 +10,7 @@ import com.tastyhouse.core.domain.faq.domain.vo.FaqId;
 import com.tastyhouse.core.domain.faq.application.FaqCategoryCommandService;
 import com.tastyhouse.core.domain.faq.application.FaqCommandService;
 import com.tastyhouse.core.domain.faq.application.FaqQueryService;
-import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryAdminDto;
+import com.tastyhouse.core.domain.faq.application.dto.FaqCategoryDto;
 import com.tastyhouse.core.domain.faq.application.dto.FaqDetailDto;
 import com.tastyhouse.core.domain.faq.application.dto.FaqSearchCondition;
 import com.tastyhouse.core.domain.faq.application.dto.command.FaqCategoryCreateCommand;
@@ -44,7 +44,7 @@ public class FaqService {
     }
 
     public FaqCategoryResponse getCategory(Long categoryId) {
-        FaqCategoryAdminDto dto = faqQueryService.findCategoryDetail(FaqCategoryId.of(categoryId));
+        FaqCategoryDto dto = faqQueryService.findCategoryDetail(FaqCategoryId.of(categoryId));
         return FaqCategoryResponse.from(dto);
     }
 

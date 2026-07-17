@@ -9,7 +9,7 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 
-public record BugReportAdminListItemDto(
+public record BugReportListItemDto(
     Long id,
     MemberId memberId,
     String device,
@@ -21,6 +21,6 @@ public record BugReportAdminListItemDto(
     LocalDateTime createdAt
 ) {
     @QueryProjection
-    public BugReportAdminListItemDto {
+    public BugReportListItemDto {
     }
 }

@@ -15,10 +15,10 @@ import com.tastyhouse.core.domain.event.domain.repository.EventAnnouncementRepos
 import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
 import com.tastyhouse.core.domain.event.domain.repository.EventWinnerRepository;
 import com.tastyhouse.core.domain.event.domain.vo.EventId;
-import com.tastyhouse.core.domain.event.application.dto.EventAdminDetailDto;
-import com.tastyhouse.core.domain.event.application.dto.EventAdminListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventDetailDto;
 import com.tastyhouse.core.domain.event.application.dto.EventListItemDto;
+import com.tastyhouse.core.domain.event.application.dto.EventManagementDetailDto;
+import com.tastyhouse.core.domain.event.application.dto.EventManagementListItemDto;
 import com.tastyhouse.core.domain.event.application.dto.EventSearchCondition;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -48,15 +48,15 @@ public class EventQueryService {
         return eventRepository.findEventDetailById(eventId);
     }
 
-    public PageResult<EventAdminListItemDto> findAllEvents(EventSearchCondition condition, int page, int size) {
+    public PageResult<EventManagementListItemDto> findAllEvents(EventSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return eventRepository.findAllEvents(condition, pageQuery);
     }
 
-    public EventAdminDetailDto findAdminDetailById(EventId eventId) {
+    public EventManagementDetailDto findAdminDetailById(EventId eventId) {
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_NOT_FOUND));
-        return EventAdminDetailDto.from(event);
+        return EventManagementDetailDto.from(event);
     }
 
     public Optional<EventAnnouncement> findAnnouncementByEventId(EventId eventId) {

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.banner.application.dto.BannerAdminListItemDto;
+import com.tastyhouse.core.domain.banner.application.dto.BannerManagementListItemDto;
 import com.tastyhouse.adminapi.common.FileResponse;
 
 @Schema(description = "배너 목록 항목 응답")
@@ -36,7 +36,7 @@ public record BannerListItemResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
-    public static BannerListItemResponse from(BannerAdminListItemDto dto, FileResponse file) {
+    public static BannerListItemResponse from(BannerManagementListItemDto dto, FileResponse file) {
         return new BannerListItemResponse(
             dto.id(),
             dto.type().name(),

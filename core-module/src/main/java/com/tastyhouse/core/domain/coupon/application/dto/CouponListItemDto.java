@@ -6,7 +6,7 @@ import com.querydsl.core.annotations.QueryProjection;
 
 import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
 
-public record CouponAdminListItemDto(
+public record CouponListItemDto(
     Long id,
     String name,
     DiscountType discountType,
@@ -21,6 +21,6 @@ public record CouponAdminListItemDto(
     boolean visible
 ) {
     @QueryProjection
-    public CouponAdminListItemDto {
+    public CouponListItemDto {
     }
 }
