@@ -6,6 +6,9 @@ import java.util.Comparator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+
 @Getter
 @RequiredArgsConstructor
 public enum MemberGrade {
@@ -18,6 +21,15 @@ public enum MemberGrade {
     private final int level;
     private final String displayName;
     private final int minReviewCount;
+
+    public static MemberGrade from(String code) {
+        try {
+            return valueOf(code);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.MEMBER_GRADE_TYPE_UNKNOWN,
+                ErrorCode.MEMBER_GRADE_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+        }
+    }
 
     public static MemberGrade fromReviewCount(int reviewCount) {
         return Arrays.stream(values())

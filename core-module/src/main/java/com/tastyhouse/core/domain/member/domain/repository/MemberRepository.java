@@ -7,6 +7,8 @@ import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.application.dto.MemberSearchCondition;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberAdminListItemResult;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -32,6 +34,8 @@ public interface MemberRepository {
     long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade);
 
     Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(MemberId memberId);
+
+    PageResult<MemberAdminListItemResult> findMembers(MemberSearchCondition condition, PageQuery pageQuery);
 
     Member save(Member member);
 }

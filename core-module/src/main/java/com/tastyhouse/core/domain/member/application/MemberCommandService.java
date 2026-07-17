@@ -156,6 +156,18 @@ public class MemberCommandService {
         member.updatePassword(encodedPassword);
     }
 
+    public void suspend(MemberId memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.suspend();
+    }
+
+    public void activate(MemberId memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.activate();
+    }
+
     public long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade) {
         return memberRepository.bulkUpdateGrade(memberIds, grade);
     }

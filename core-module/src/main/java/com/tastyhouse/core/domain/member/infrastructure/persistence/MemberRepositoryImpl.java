@@ -4,15 +4,19 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.application.dto.MemberSearchCondition;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberAdminListItemResult;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -149,7 +153,71 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
+    public PageResult<MemberAdminListItemResult> findMembers(MemberSearchCondition condition, PageQuery pageQuery) {
+        List<MemberAdminListItemResult> content = queryFactory
+            .select(Projections.constructor(MemberAdminListItemResult.class,
+                member.id,
+                member.username,
+                member.nickname,
+                member.fullName,
+                member.phoneNumber.value,
+                member.gender,
+                member.memberGrade,
+                member.memberStatus,
+                uploadedFile.filePath,
+                member.createdAt
+            ))
+            .from(member)
+            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .where(
+                nicknameContains(condition.nickname()),
+                usernameContains(condition.username()),
+                phoneContains(condition.phone()),
+                statusEq(condition.status()),
+                gradeEq(condition.grade())
+            )
+            .orderBy(member.createdAt.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        Long total = queryFactory
+            .select(member.count())
+            .from(member)
+            .where(
+                nicknameContains(condition.nickname()),
+                usernameContains(condition.username()),
+                phoneContains(condition.phone()),
+                statusEq(condition.status()),
+                gradeEq(condition.grade())
+            )
+            .fetchOne();
+
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
     public Member save(Member member) {
         return memberJpaRepository.save(member);
+    }
+
+    private BooleanExpression nicknameContains(String nickname) {
+        return StringUtils.hasText(nickname) ? member.nickname.containsIgnoreCase(nickname) : null;
+    }
+
+    private BooleanExpression usernameContains(String username) {
+        return StringUtils.hasText(username) ? member.username.containsIgnoreCase(username) : null;
+    }
+
+    private BooleanExpression phoneContains(String phone) {
+        return StringUtils.hasText(phone) ? member.phoneNumber.value.containsIgnoreCase(phone) : null;
+    }
+
+    private BooleanExpression statusEq(MemberStatus status) {
+        return status != null ? member.memberStatus.eq(status) : null;
+    }
+
+    private BooleanExpression gradeEq(MemberGrade grade) {
+        return grade != null ? member.memberGrade.eq(grade) : null;
     }
 }

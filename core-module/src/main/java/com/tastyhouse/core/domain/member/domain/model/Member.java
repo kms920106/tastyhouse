@@ -171,4 +171,24 @@ public class Member extends BaseEntity {
         }
         this.memberStatus = MemberStatus.DELETED;
     }
+
+    public void suspend() {
+        if (this.memberStatus == MemberStatus.DELETED) {
+            throw new BusinessException(ErrorCode.MEMBER_STATUS_CHANGE_NOT_ALLOWED);
+        }
+        if (this.memberStatus == MemberStatus.SUSPENDED) {
+            throw new BusinessException(ErrorCode.MEMBER_ALREADY_SUSPENDED);
+        }
+        this.memberStatus = MemberStatus.SUSPENDED;
+    }
+
+    public void activate() {
+        if (this.memberStatus == MemberStatus.DELETED) {
+            throw new BusinessException(ErrorCode.MEMBER_STATUS_CHANGE_NOT_ALLOWED);
+        }
+        if (this.memberStatus == MemberStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.MEMBER_ALREADY_ACTIVE);
+        }
+        this.memberStatus = MemberStatus.ACTIVE;
+    }
 }
