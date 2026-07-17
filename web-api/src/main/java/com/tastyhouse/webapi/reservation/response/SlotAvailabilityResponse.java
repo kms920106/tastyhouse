@@ -16,7 +16,11 @@ public record SlotAvailabilityResponse(
     @Schema(description = "슬롯별 가용 정보")
     List<Slot> slots
 ) {
-    public static SlotAvailabilityResponse from(LocalDate date, boolean hasMyReservation, List<Slot> slots) {
+    public static SlotAvailabilityResponse from(
+        LocalDate date,
+        boolean hasMyReservation,
+        List<Slot> slots
+    ) {
         return new SlotAvailabilityResponse(date, hasMyReservation, slots);
     }
 }

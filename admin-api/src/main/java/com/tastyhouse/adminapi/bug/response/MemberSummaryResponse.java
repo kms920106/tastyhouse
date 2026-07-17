@@ -11,7 +11,10 @@ public record MemberSummaryResponse(
     String nickname
 ) {
 
-    public static MemberSummaryResponse from(Long id, String nickname) {
+    public static MemberSummaryResponse from(
+        Long id,
+        String nickname
+    ) {
         return new MemberSummaryResponse(id, nickname);
     }
 }

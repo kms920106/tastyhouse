@@ -13,7 +13,11 @@ public record ProductBatchOptionResponse(
     @Schema(description = "옵션 추가 금액", example = "3000")
     Integer price
 ) {
-    public static ProductBatchOptionResponse from(Long id, String name, Integer price) {
+    public static ProductBatchOptionResponse from(
+        Long id,
+        String name,
+        Integer price
+    ) {
         return new ProductBatchOptionResponse(id, name, price);
     }
 }

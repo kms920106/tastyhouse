@@ -16,7 +16,12 @@ public record OrderProductOptionResponse(
     @Schema(description = "추가 금액", example = "1000")
     Integer additionalPrice
 ) {
-    public static OrderProductOptionResponse from(Long id, String optionGroupName, String optionName, Integer additionalPrice) {
+    public static OrderProductOptionResponse from(
+        Long id,
+        String optionGroupName,
+        String optionName,
+        Integer additionalPrice
+    ) {
         return new OrderProductOptionResponse(id, optionGroupName, optionName, additionalPrice);
     }
 }

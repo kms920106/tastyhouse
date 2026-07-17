@@ -304,6 +304,38 @@ public record NoticeUpdateRequest(
 
 reference 구현: `admin-api`의 `notice/request/NoticeUpdateRequest`(Bean Validation 다음 줄 `@Schema` + `requiredMode`), `web-api`의 `order/request/OrderCreateRequest`(선택 필드는 `requiredMode` 생략, 컬렉션 필드 `orderProducts`는 example 생략), `web-api`의 `reservation/response/ReservationDetailResponse`(응답 record 필드 전수 `description`+`example`), `admin-api`의 `banner/response/BannerListItemResponse`(타입 레벨 `@Schema(description = ...)` + 모든 필드 문서화).
 
+## Response record 정적 팩토리 시그니처 줄바꿈 규칙
+
+`*Response.java`의 정적 팩토리 메서드(`from(...)` / `of(...)`)는 **파라미터가 2개 이상이면 여는 괄호 다음 줄부터 한 줄에 하나씩 줄바꿈**하고, **파라미터가 0~1개면 한 줄로 유지**합니다. 전수 조사 결과 이미 다수(92개)가 줄바꿈된 형태였고 소수(24개)만 한 줄에 여러 파라미터를 몰아 쓰고 있어, 같은 목적(응답 DTO 생성)의 메서드가 파일마다 다른 포매팅이 되어 있었습니다. 다수파 형태로 통일해 리뷰·검색·패턴 일치를 쉽게 합니다. 단일 파라미터까지 강제로 줄바꿈하면 오히려 장황해지므로 그 경우는 예외로 둡니다.
+
+- **적용 대상**: `from`/`of` 등 정적 팩토리 메서드의 **시그니처 파라미터**만 대상입니다.
+- **적용 제외**: `return new Xxx(...)` 본문의 인자 조립, record 컴포넌트 선언부(생성자 파라미터 목록)는 이 규칙과 무관하며 기존 형태(대부분 이미 한 줄에 하나씩)를 그대로 둡니다.
+
+```java
+// Before (파라미터 2개 이상을 한 줄에)
+public static JwtResponse of(String accessToken, String refreshToken, String tokenType) {
+    return new JwtResponse(accessToken, refreshToken, tokenType);
+}
+
+// After
+public static JwtResponse of(
+    String accessToken,
+    String refreshToken,
+    String tokenType
+) {
+    return new JwtResponse(accessToken, refreshToken, tokenType);
+}
+
+// 파라미터 0~1개는 한 줄 유지 (그대로)
+public static EmailVerifyTokenResponse from(String emailVerifyToken) {
+    return new EmailVerifyTokenResponse(emailVerifyToken);
+}
+```
+
+자동 강제 도구(spotless 등)는 도입하지 않으며, 신규 작성·기존 파일 수정 시 이 규칙을 수동으로 따릅니다.
+
+reference 구현: `admin-api`의 `auth/response/JwtResponse`, `event/response/EventWinnerResponse`(파라미터 6개), `web-api`의 `notice/response/NoticeListItemResponse`(이미 줄바꿈된 다수파 예시), `member/response/MyReviewListItemResponse`(파라미터 2개로 줄바꿈 전환).
+
 ## 코딩 스타일 (import 순서)
 
 Spring Framework가 자기 코드베이스에 강제하는 공식 컨벤션(`spring-javaformat`의 `SpringImportOrderCheck`)과 동일한 규칙을 따릅니다. 모든 Java 파일의 import는 아래 4개 그룹 순서로 배치합니다. **그룹 사이에는 빈 줄 1개**, 그룹 내부는 **알파벳(ASCII) 오름차순** 정렬, 그룹 내부에는 빈 줄을 넣지 않습니다.

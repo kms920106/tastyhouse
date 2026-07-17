@@ -15,7 +15,10 @@ public record RankDurationResponse(
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     LocalDateTime endAt
 ) {
-    public static RankDurationResponse from(LocalDateTime startAt, LocalDateTime endAt) {
+    public static RankDurationResponse from(
+        LocalDateTime startAt,
+        LocalDateTime endAt
+    ) {
         return new RankDurationResponse(startAt, endAt);
     }
 }

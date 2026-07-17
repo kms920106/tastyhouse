@@ -18,7 +18,12 @@ public record PointHistoryResponse(
     @Schema(description = "발생 일시", example = "2026-07-10T14:30:00")
     LocalDateTime createdAt
 ) {
-    public static PointHistoryResponse from(String pointType, Integer pointAmount, String reason, LocalDateTime createdAt) {
+    public static PointHistoryResponse from(
+        String pointType,
+        Integer pointAmount,
+        String reason,
+        LocalDateTime createdAt
+    ) {
         return new PointHistoryResponse(pointType, pointAmount, reason, createdAt);
     }
 }

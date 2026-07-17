@@ -13,7 +13,11 @@ public record FileResponse(
     @Schema(description = "파일 접근 URL", example = "https://cdn.tastyhouse.com/banner/1.png")
     String url
 ) {
-    public static FileResponse of(Long id, String name, String url) {
+    public static FileResponse of(
+        Long id,
+        String name,
+        String url
+    ) {
         return new FileResponse(id, name, url);
     }
 }

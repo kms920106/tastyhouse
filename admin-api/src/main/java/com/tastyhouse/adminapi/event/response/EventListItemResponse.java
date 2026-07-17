@@ -26,7 +26,14 @@ public record EventListItemResponse(
     @Schema(description = "종료 일시", example = "2026-01-31T23:59:59")
     LocalDateTime endAt
 ) {
-    public static EventListItemResponse from(Long id, String name, String status, FileResponse file, LocalDateTime startAt, LocalDateTime endAt) {
+    public static EventListItemResponse from(
+        Long id,
+        String name,
+        String status,
+        FileResponse file,
+        LocalDateTime startAt,
+        LocalDateTime endAt
+    ) {
         return new EventListItemResponse(id, name, status, file, startAt, endAt);
     }
 }

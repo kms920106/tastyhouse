@@ -8,7 +8,11 @@ public record JwtResponse(
     @Schema(description = "Refresh Token") String refreshToken,
     @Schema(description = "토큰 타입", example = "Bearer") String tokenType
 ) {
-    public static JwtResponse of(String accessToken, String refreshToken, String tokenType) {
+    public static JwtResponse of(
+        String accessToken,
+        String refreshToken,
+        String tokenType
+    ) {
         return new JwtResponse(accessToken, refreshToken, tokenType);
     }
 }

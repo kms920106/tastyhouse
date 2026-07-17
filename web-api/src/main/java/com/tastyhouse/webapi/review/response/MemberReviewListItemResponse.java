@@ -10,7 +10,10 @@ public record MemberReviewListItemResponse(
     @Schema(description = "리뷰 이미지 URL", example = "https://cdn.tastyhouse.com/review/1/image.jpg")
     String imageUrl
 ) {
-    public static MemberReviewListItemResponse from(Long reviewId, String imageUrl) {
+    public static MemberReviewListItemResponse from(
+        Long reviewId,
+        String imageUrl
+    ) {
         return new MemberReviewListItemResponse(
             reviewId,
             imageUrl

@@ -21,7 +21,13 @@ public record EventAnnouncementResponse(
     @Schema(description = "발표 일시", example = "2026-02-01T10:00:00")
     LocalDateTime announcedAt
 ) {
-    public static EventAnnouncementResponse from(Long id, Long eventId, String name, String content, LocalDateTime announcedAt) {
+    public static EventAnnouncementResponse from(
+        Long id,
+        Long eventId,
+        String name,
+        String content,
+        LocalDateTime announcedAt
+    ) {
         return new EventAnnouncementResponse(id, eventId, name, content, announcedAt);
     }
 }

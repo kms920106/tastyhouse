@@ -10,7 +10,10 @@ public record IsFollowingResponse(
     @Schema(description = "내가 해당 회원을 팔로우 중인지 여부", example = "true")
     boolean following
 ) {
-    public static IsFollowingResponse of(Long memberId, boolean following) {
+    public static IsFollowingResponse of(
+        Long memberId,
+        boolean following
+    ) {
         return new IsFollowingResponse(memberId, following);
     }
 }

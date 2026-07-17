@@ -21,7 +21,13 @@ public record FaqCategoryResponse(
     @Schema(description = "생성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static FaqCategoryResponse from(Long id, String name, Integer sort, boolean visible, LocalDateTime createdAt) {
+    public static FaqCategoryResponse from(
+        Long id,
+        String name,
+        Integer sort,
+        boolean visible,
+        LocalDateTime createdAt
+    ) {
         return new FaqCategoryResponse(id, name, sort, visible, createdAt);
     }
 }

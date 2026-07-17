@@ -19,7 +19,13 @@ public record RankPrizeListItemResponse(
     @Schema(description = "경품 이미지 URL", example = "https://example.com/prize.jpg")
     String imageUrl
 ) {
-    public static RankPrizeListItemResponse from(Long id, Integer prizeRank, String name, String brand, String imageUrl) {
+    public static RankPrizeListItemResponse from(
+        Long id,
+        Integer prizeRank,
+        String name,
+        String brand,
+        String imageUrl
+    ) {
         return new RankPrizeListItemResponse(id, prizeRank, name, brand, imageUrl);
     }
 }

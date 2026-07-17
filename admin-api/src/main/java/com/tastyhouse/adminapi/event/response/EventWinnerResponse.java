@@ -24,7 +24,14 @@ public record EventWinnerResponse(
     @Schema(description = "발표 일시", example = "2026-02-01T10:00:00")
     LocalDateTime announcedAt
 ) {
-    public static EventWinnerResponse from(Long id, Long eventId, Integer rankNo, String winnerName, String phoneNumber, LocalDateTime announcedAt) {
+    public static EventWinnerResponse from(
+        Long id,
+        Long eventId,
+        Integer rankNo,
+        String winnerName,
+        String phoneNumber,
+        LocalDateTime announcedAt
+    ) {
         return new EventWinnerResponse(id, eventId, rankNo, winnerName, phoneNumber, announcedAt);
     }
 }
