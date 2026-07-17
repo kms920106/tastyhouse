@@ -19,6 +19,7 @@ import { MEMBER_PAGE_COPY } from "@/feature/member/message";
 
 import { ActivateMemberDialog } from "./activate-member-dialog";
 import { MemberDetailSheet } from "./member-detail-sheet";
+import { MemberPointSheet } from "./member-point-sheet";
 import { type MembersTableMeta, membersColumns } from "./members-columns";
 import { MembersTable } from "./members-table";
 import { SuspendMemberDialog } from "./suspend-member-dialog";
@@ -48,6 +49,7 @@ export function Members({
   const searchParams = useSearchParams();
 
   const [detailId, setDetailId] = React.useState<number | null>(null);
+  const [managingPoints, setManagingPoints] = React.useState<MemberListItem | null>(null);
   const [suspending, setSuspending] = React.useState<MemberListItem | null>(null);
   const [activating, setActivating] = React.useState<MemberListItem | null>(null);
   const [withdrawing, setWithdrawing] = React.useState<MemberListItem | null>(null);
@@ -128,6 +130,7 @@ export function Members({
     meta: {
       totalElements: pagination.totalElements,
       onView: (member) => setDetailId(member.id),
+      onManagePoints: (member) => setManagingPoints(member),
       onSuspend: (member) => setSuspending(member),
       onActivate: (member) => setActivating(member),
       onWithdraw: (member) => setWithdrawing(member),
@@ -227,6 +230,7 @@ export function Members({
         <MembersTable table={table} isPending={isPending} />
       </CardContent>
       <MemberDetailSheet memberId={detailId} onOpenChange={(open) => !open && setDetailId(null)} />
+      <MemberPointSheet member={managingPoints} onOpenChange={(open) => !open && setManagingPoints(null)} />
       <SuspendMemberDialog member={suspending} onOpenChange={(open) => !open && setSuspending(null)} />
       <ActivateMemberDialog member={activating} onOpenChange={(open) => !open && setActivating(null)} />
       <WithdrawMemberDialog member={withdrawing} onOpenChange={(open) => !open && setWithdrawing(null)} />

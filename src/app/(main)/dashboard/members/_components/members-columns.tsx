@@ -20,6 +20,7 @@ import { formatDateTime } from "@/lib/date";
 export interface MembersTableMeta {
   totalElements: number;
   onView: (member: MemberListItem) => void;
+  onManagePoints: (member: MemberListItem) => void;
   onSuspend: (member: MemberListItem) => void;
   onActivate: (member: MemberListItem) => void;
   onWithdraw: (member: MemberListItem) => void;
@@ -126,6 +127,7 @@ export const membersColumns: ColumnDef<MemberListItem>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => meta.onView(member)}>상세 보기</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => meta.onManagePoints(member)}>포인트 관리</DropdownMenuItem>
               {status === "ACTIVE" || status === "SUSPENDED" ? <DropdownMenuSeparator /> : null}
               {status === "ACTIVE" ? (
                 <DropdownMenuItem onSelect={() => meta.onSuspend(member)}>정지</DropdownMenuItem>
