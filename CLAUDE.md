@@ -47,7 +47,7 @@ command·result 등 도메인 DTO의 이름은 **`{도메인}` 접두어 + `{동
 
 - **command record**: `{도메인}Create Command` / `{도메인}Update Command` / `{도메인}Delete Command` → 예: `NoticeCreateCommand`, `NoticeUpdateCommand`, `BannerCreateCommand`, `BannerUpdateCommand` (공백은 표기상 구분일 뿐 실제 타입명은 붙여 씀).
 - **condition record**: `{도메인}SearchCondition` → 예: `NoticeSearchCondition`.
-- **response/result record**: `{도메인}{용도}Response` / `{도메인}{용도}Result` → 예: `NoticePageResponse`, `NoticeListPageResult`.
+- **response/result record**: `{도메인}{용도}Response` / `{도메인}{용도}Result` → 예: `NoticePageResponse`, `OrderPageResponse`.
 - 한 도메인 안에서 일부만 이 규칙을 따르고 나머지는 `{동작}{도메인}` 형태로 남기는 **혼재 상태를 금지**합니다(예: `BannerUpdateCommand`와 `CreateBannerCommand`가 공존하는 것). 신규 작성·기존 수정 모두 이 순서로 통일합니다.
 
 reference 구현: `notice` 도메인 — `NoticeCreateCommand`, `NoticeUpdateCommand`, `NoticeSearchCondition`, `NoticePageResponse`. (과거 `CreateNoticeCommand`였다가 `NoticeCreateCommand`로 리네이밍하여 이 순서로 확정한 전례가 있습니다.)
@@ -135,7 +135,7 @@ reference 구현: `admin-api`의 `notice` 도메인 — `NoticeService#updateNot
 - **적용 대상**: 응답/결과 DTO뿐 아니라 서비스 내부 전용 헬퍼 record(예: 조회 중간 계산용)도 동일하게 분리합니다.
 - 이미 자기 파일 하나에 정의된 최상위 record(도메인 이벤트, ID VO 등)는 그대로 두며, 이 규칙은 "다른 클래스 본문 안에 중첩된 record"를 제거하는 것을 목표로 합니다.
 
-reference 구현: `web-api`의 `NoticeListPageResult`(`notice/response/`), `PolicyListPageResult`(`policy/response/`), `OrderListPageResult`(`order/response/`)와 `core-module`의 `OptionInfo`(`product/application/dto/result/`, `private` → `public` 격상).
+reference 구현: `web-api`의 `NoticePageResponse`(`notice/response/`), `PolicyPageResponse`(`policy/response/`), `OrderPageResponse`(`order/response/`)와 `core-module`의 `OptionInfo`(`product/application/dto/result/`, `private` → `public` 격상).
 
 ## ID VO(식별자 값 객체) 경계 규칙
 

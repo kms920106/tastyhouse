@@ -23,7 +23,7 @@ import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
 import com.tastyhouse.webapi.order.response.OrderCreateResponse;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
-import com.tastyhouse.webapi.order.response.OrderListPageResult;
+import com.tastyhouse.webapi.order.response.OrderPageResponse;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -62,7 +62,7 @@ public class OrderApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
-        OrderListPageResult page = orderService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
+        OrderPageResponse page = orderService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
         ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
             page.content(),
             page.page(),

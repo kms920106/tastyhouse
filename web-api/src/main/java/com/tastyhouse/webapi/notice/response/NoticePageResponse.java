@@ -4,8 +4,10 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import com.tastyhouse.core.shared.page.PageResult;
+
 @Schema(description = "공지사항 목록 페이지 응답")
-public record NoticeListPageResult(
+public record NoticePageResponse(
     @Schema(description = "공지사항 목록")
     List<NoticeListItemResponse> content,
 
@@ -18,7 +20,8 @@ public record NoticeListPageResult(
     @Schema(description = "전체 항목 수", example = "42")
     long totalElements
 ) {
-    public static NoticeListPageResult of(List<NoticeListItemResponse> content, int page, int size, long totalElements) {
-        return new NoticeListPageResult(content, page, size, totalElements);
+
+    public static NoticePageResponse from(PageResult<NoticeListItemResponse> pageResult) {
+        return new NoticePageResponse(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements());
     }
 }
