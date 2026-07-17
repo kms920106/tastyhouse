@@ -11,8 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
@@ -81,11 +81,11 @@ public class MemberQueryService {
             .collect(Collectors.toMap(MemberWithProfileImageResult::id, result -> result, (existing, replacement) -> existing));
     }
 
-    public Optional<MemberSocialAccount> findSocialAccount(SocialProvider provider, String providerId) {
+    public Optional<MemberSocialAccount> findSocialAccount(MemberSocialProvider provider, String providerId) {
         return memberSocialAccountRepository.findByProviderAndProviderId(provider, providerId);
     }
 
-    public boolean existsSocialAccount(SocialProvider provider, String providerId) {
+    public boolean existsSocialAccount(MemberSocialProvider provider, String providerId) {
         return memberSocialAccountRepository.existsByProviderAndProviderId(provider, providerId);
     }
 }

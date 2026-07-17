@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
 
 @Repository
@@ -16,12 +16,12 @@ public class MemberSocialAccountRepositoryImpl implements MemberSocialAccountRep
     private final MemberSocialAccountJpaRepository memberSocialAccountJpaRepository;
 
     @Override
-    public Optional<MemberSocialAccount> findByProviderAndProviderId(SocialProvider provider, String providerId) {
+    public Optional<MemberSocialAccount> findByProviderAndProviderId(MemberSocialProvider provider, String providerId) {
         return memberSocialAccountJpaRepository.findByProviderAndProviderId(provider, providerId);
     }
 
     @Override
-    public boolean existsByProviderAndProviderId(SocialProvider provider, String providerId) {
+    public boolean existsByProviderAndProviderId(MemberSocialProvider provider, String providerId) {
         return memberSocialAccountJpaRepository.existsByProviderAndProviderId(provider, providerId);
     }
 

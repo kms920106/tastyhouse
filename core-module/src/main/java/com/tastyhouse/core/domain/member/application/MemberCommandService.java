@@ -11,8 +11,8 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.member.domain.event.MemberRegisteredEvent;
 import com.tastyhouse.core.domain.member.domain.event.MemberWithdrawnEvent;
-import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
@@ -46,7 +46,7 @@ public class MemberCommandService {
         String password,
         String nickname,
         String fullName,
-        Gender gender,
+        MemberGender gender,
         Integer birthDate,
         String phoneNumber,
         boolean pushNotificationEnabled,
@@ -88,7 +88,7 @@ public class MemberCommandService {
         String username,
         String nickname,
         String fullName,
-        Gender gender,
+        MemberGender gender,
         Integer birthDate,
         String phoneNumber,
         boolean pushNotificationEnabled,

@@ -33,18 +33,18 @@ public class MemberWithdrawal extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reason", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private WithdrawalReason reason;
+    private MemberWithdrawalReason reason;
 
     @Column(name = "reason_detail", length = 500)
     private String reasonDetail;
 
-    private MemberWithdrawal(MemberId memberId, WithdrawalReason reason, String reasonDetail) {
+    private MemberWithdrawal(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
         this.memberId = memberId;
         this.reason = reason;
         this.reasonDetail = reasonDetail;
     }
 
-    public static MemberWithdrawal of(MemberId memberId, WithdrawalReason reason, String reasonDetail) {
+    public static MemberWithdrawal of(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
         return new MemberWithdrawal(memberId, reason, reasonDetail);
     }
 }

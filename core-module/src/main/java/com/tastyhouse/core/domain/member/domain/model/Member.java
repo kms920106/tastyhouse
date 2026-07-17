@@ -46,7 +46,7 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false, length = 10, columnDefinition = "VARCHAR(10)")
-    private Gender gender;
+    private MemberGender gender;
 
     @Embedded
     private PhoneNumber phoneNumber;
@@ -79,7 +79,7 @@ public class Member extends BaseEntity {
         String password,
         String nickname,
         String fullName,
-        Gender gender,
+        MemberGender gender,
         Integer birthDate,
         String phoneNumber,
         boolean pushNotificationEnabled,
@@ -103,7 +103,7 @@ public class Member extends BaseEntity {
         String password,
         String nickname,
         String fullName,
-        Gender gender,
+        MemberGender gender,
         Integer birthDate,
         String phoneNumber,
         boolean pushNotificationEnabled,
@@ -120,7 +120,7 @@ public class Member extends BaseEntity {
         String username,
         String nickname,
         String fullName,
-        Gender gender,
+        MemberGender gender,
         Integer birthDate,
         String phoneNumber,
         boolean pushNotificationEnabled,
@@ -151,7 +151,7 @@ public class Member extends BaseEntity {
         String fullName,
         String phoneNumber,
         Integer birthDate,
-        Gender gender,
+        MemberGender gender,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
         boolean eventInfoEnabled

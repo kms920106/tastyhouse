@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -61,7 +61,7 @@ public class AppleSocialLoginService {
         String providerId = appleUser.sub();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberQueryService.findSocialAccount(SocialProvider.APPLE, providerId);
+            memberQueryService.findSocialAccount(MemberSocialProvider.APPLE, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
@@ -110,7 +110,7 @@ public class AppleSocialLoginService {
         String providerId = appleUser.sub();
 
         // 이미 Apple 소셜 계정이 연동된 경우 중복 연동을 방지한다.
-        if (memberQueryService.existsSocialAccount(SocialProvider.APPLE, providerId)) {
+        if (memberQueryService.existsSocialAccount(MemberSocialProvider.APPLE, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -142,7 +142,7 @@ public class AppleSocialLoginService {
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
                 member.getMemberId(),
-                SocialProvider.APPLE,
+                MemberSocialProvider.APPLE,
                 providerId,
                 appleUser.email(),
                 null,
@@ -164,7 +164,7 @@ public class AppleSocialLoginService {
         String username,
         String nickname,
         String fullName,
-        Gender gender,
+        MemberGender gender,
         Integer birthDate,
         String phoneNumber,
         boolean pushNotificationEnabled,
@@ -186,7 +186,7 @@ public class AppleSocialLoginService {
 
         String providerId = appleUser.sub();
 
-        if (memberQueryService.existsSocialAccount(SocialProvider.APPLE, providerId)) {
+        if (memberQueryService.existsSocialAccount(MemberSocialProvider.APPLE, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -198,7 +198,7 @@ public class AppleSocialLoginService {
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
                 savedMember.getMemberId(),
-                SocialProvider.APPLE,
+                MemberSocialProvider.APPLE,
                 providerId,
                 appleUser.email(),
                 null,

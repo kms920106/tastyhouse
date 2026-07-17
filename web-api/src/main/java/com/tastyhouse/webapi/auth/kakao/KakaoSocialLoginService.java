@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -51,7 +51,7 @@ public class KakaoSocialLoginService {
         String providerId = String.valueOf(kakaoUser.id());
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberQueryService.findSocialAccount(SocialProvider.KAKAO, providerId);
+            memberQueryService.findSocialAccount(MemberSocialProvider.KAKAO, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
@@ -93,7 +93,7 @@ public class KakaoSocialLoginService {
         String providerId = String.valueOf(kakaoUser.id());
 
         // 이미 카카오 소셜 계정이 연동된 경우 중복 연동을 방지한다.
-        if (memberQueryService.existsSocialAccount(SocialProvider.KAKAO, providerId)) {
+        if (memberQueryService.existsSocialAccount(MemberSocialProvider.KAKAO, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -123,7 +123,7 @@ public class KakaoSocialLoginService {
         Member member = memberOpt.get();
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                member.getMemberId(), SocialProvider.KAKAO, providerId,
+                member.getMemberId(), MemberSocialProvider.KAKAO, providerId,
                 kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl()
             )
         );
@@ -142,7 +142,7 @@ public class KakaoSocialLoginService {
         String username,
         String nickname,
         String fullName,
-        Gender gender,
+        MemberGender gender,
         Integer birthDate,
         String phoneNumber,
         boolean pushNotificationEnabled,
@@ -158,7 +158,7 @@ public class KakaoSocialLoginService {
         KakaoUserInfoResponse kakaoUser = kakaoOAuthClient.fetchUserInfo(kakaoAccessToken);
         String providerId = String.valueOf(kakaoUser.id());
 
-        if (memberQueryService.existsSocialAccount(SocialProvider.KAKAO, providerId)) {
+        if (memberQueryService.existsSocialAccount(MemberSocialProvider.KAKAO, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -170,7 +170,7 @@ public class KakaoSocialLoginService {
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
                 savedMember.getMemberId(),
-                SocialProvider.KAKAO,
+                MemberSocialProvider.KAKAO,
                 providerId,
                 kakaoUser.getEmail(),
                 kakaoUser.getNickname(),

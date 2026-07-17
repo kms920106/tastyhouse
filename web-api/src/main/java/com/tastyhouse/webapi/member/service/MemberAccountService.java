@@ -5,10 +5,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
+import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
@@ -42,7 +42,7 @@ public class MemberAccountService {
         String password,
         String nickname,
         String fullName,
-        Gender gender,
+        MemberGender gender,
         Integer birthDate,
         String phoneNumber,
         boolean pushNotificationEnabled,
@@ -86,7 +86,7 @@ public class MemberAccountService {
     @Transactional
     public void withdrawMember(
         Long memberId,
-        WithdrawalReason reason,
+        MemberWithdrawalReason reason,
         String reasonDetail
     ) {
         memberCommandService.withdraw(
@@ -115,7 +115,7 @@ public class MemberAccountService {
         String fullName,
         String phoneNumber,
         Integer birthDate,
-        Gender gender,
+        MemberGender gender,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
         boolean eventInfoEnabled

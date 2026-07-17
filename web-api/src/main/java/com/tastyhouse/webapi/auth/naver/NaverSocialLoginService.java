@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -51,7 +51,7 @@ public class NaverSocialLoginService {
         String providerId = naverUser.getProviderId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberQueryService.findSocialAccount(SocialProvider.NAVER, providerId);
+            memberQueryService.findSocialAccount(MemberSocialProvider.NAVER, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
@@ -93,7 +93,7 @@ public class NaverSocialLoginService {
         String providerId = naverUser.getProviderId();
 
         // 이미 네이버 소셜 계정이 연동된 경우 중복 연동을 방지한다.
-        if (memberQueryService.existsSocialAccount(SocialProvider.NAVER, providerId)) {
+        if (memberQueryService.existsSocialAccount(MemberSocialProvider.NAVER, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -123,7 +123,7 @@ public class NaverSocialLoginService {
         Member member = memberOpt.get();
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                member.getMemberId(), SocialProvider.NAVER, providerId,
+                member.getMemberId(), MemberSocialProvider.NAVER, providerId,
                 naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
             )
         );
@@ -138,7 +138,7 @@ public class NaverSocialLoginService {
     // - 회원가입 완료 후 naverTempToken 삭제 (1회용)
     @Transactional
     public JwtResponse signUp(String naverTempToken, String username, String nickname, String fullName,
-                              Gender gender, Integer birthDate, String phoneNumber,
+                              MemberGender gender, Integer birthDate, String phoneNumber,
                               boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                               boolean eventInfoEnabled, String referrerNickname) {
         String naverAccessToken = naverTempTokenRedisRepository.findNaverAccessToken(naverTempToken);
@@ -149,7 +149,7 @@ public class NaverSocialLoginService {
         NaverUserInfoResponse naverUser = naverOAuthClient.fetchUserInfo(naverAccessToken);
         String providerId = naverUser.getProviderId();
 
-        if (memberQueryService.existsSocialAccount(SocialProvider.NAVER, providerId)) {
+        if (memberQueryService.existsSocialAccount(MemberSocialProvider.NAVER, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -160,7 +160,7 @@ public class NaverSocialLoginService {
 
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                savedMember.getMemberId(), SocialProvider.NAVER, providerId,
+                savedMember.getMemberId(), MemberSocialProvider.NAVER, providerId,
                 naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
             )
         );

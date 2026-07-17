@@ -8,7 +8,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 
 @Getter
 @RequiredArgsConstructor
-public enum WithdrawalReason {
+public enum MemberWithdrawalReason {
 
     LOW_USAGE_FREQUENCY("서비스 이용 빈도가 낮아서"),
     INSUFFICIENT_CONTENT("콘텐츠가 부족해서"),
@@ -18,7 +18,7 @@ public enum WithdrawalReason {
 
     private final String description;
 
-    public static WithdrawalReason from(String code) {
+    public static MemberWithdrawalReason from(String code) {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {

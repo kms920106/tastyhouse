@@ -3,8 +3,8 @@ package com.tastyhouse.webapi.auth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;
@@ -41,7 +41,7 @@ public class AuthFacade {
                        String phoneVerifyToken, String emailVerifyToken,
                        String referrerNickname) {
         authService.signUp(
-            username, password, nickname, fullName, Gender.from(gender), birthDate, phoneNumber,
+            username, password, nickname, fullName, MemberGender.from(gender), birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
             phoneVerifyToken, emailVerifyToken, referrerNickname
         );
@@ -89,7 +89,7 @@ public class AuthFacade {
 
     // 소셜 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
     public SocialLinkResponse linkAccount(String provider, String tempToken, String phoneVerifyToken) {
-        return switch (SocialProvider.from(provider)) {
+        return switch (MemberSocialProvider.from(provider)) {
             case KAKAO -> kakaoSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
             case NAVER -> naverSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
             case FACEBOOK -> facebookSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
@@ -119,8 +119,8 @@ public class AuthFacade {
                                     String fullName, String gender, Integer birthDate, String phoneNumber,
                                     boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                                     boolean eventInfoEnabled, String referrerNickname) {
-        Gender genderType = Gender.from(gender);
-        return switch (SocialProvider.from(provider)) {
+        MemberGender genderType = MemberGender.from(gender);
+        return switch (MemberSocialProvider.from(provider)) {
             case KAKAO -> kakaoSocialLoginService.signUp(
                 tempToken, username, nickname, fullName, genderType, birthDate, phoneNumber,
                 pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname

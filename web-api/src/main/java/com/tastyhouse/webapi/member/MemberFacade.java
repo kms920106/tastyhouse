@@ -5,8 +5,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
-import com.tastyhouse.core.domain.member.domain.model.WithdrawalReason;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
+import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -70,7 +70,7 @@ public class MemberFacade {
             memberAuthService.verifyPhoneToken(memberId, phoneVerifyToken, phoneNumber);
         }
         memberAccountService.updatePersonalInfo(memberId, fullName, phoneNumber, birthDate,
-            gender == null ? null : Gender.from(gender),
+            gender == null ? null : MemberGender.from(gender),
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
     }
 
@@ -81,7 +81,7 @@ public class MemberFacade {
     }
 
     public void withdrawMember(Long memberId, String reason, String reasonDetail, String bearerToken) {
-        memberAccountService.withdrawMember(memberId, WithdrawalReason.from(reason), reasonDetail);
+        memberAccountService.withdrawMember(memberId, MemberWithdrawalReason.from(reason), reasonDetail);
         memberAuthService.invalidateAccessToken(bearerToken);
     }
 

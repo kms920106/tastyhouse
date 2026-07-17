@@ -3,7 +3,7 @@ package com.tastyhouse.core.domain.member.domain.model;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 
-public enum SocialProvider {
+public enum MemberSocialProvider {
 
     KAKAO,
     NAVER,
@@ -11,7 +11,7 @@ public enum SocialProvider {
     GOOGLE,
     APPLE;
 
-    public static SocialProvider from(String code) {
+    public static MemberSocialProvider from(String code) {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {

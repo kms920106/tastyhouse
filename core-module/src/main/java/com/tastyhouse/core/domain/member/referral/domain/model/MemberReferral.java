@@ -52,12 +52,12 @@ public class MemberReferral extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ReferralStatus status;
+    private MemberReferralStatus status;
 
     private MemberReferral(MemberId referrerId, MemberId refereeId) {
         this.referrerId = referrerId;
         this.refereeId = refereeId;
-        this.status = ReferralStatus.PENDING;
+        this.status = MemberReferralStatus.PENDING;
     }
 
     public static MemberReferral register(MemberId referrerId, MemberId refereeId) {
@@ -69,16 +69,16 @@ public class MemberReferral extends BaseEntity {
     }
 
     public void reward() {
-        if (this.status != ReferralStatus.PENDING) {
+        if (this.status != MemberReferralStatus.PENDING) {
             throw new BusinessException(ErrorCode.REFERRAL_INVALID_STATUS);
         }
-        this.status = ReferralStatus.REWARDED;
+        this.status = MemberReferralStatus.REWARDED;
     }
 
     public void cancel() {
-        if (this.status != ReferralStatus.PENDING) {
+        if (this.status != MemberReferralStatus.PENDING) {
             throw new BusinessException(ErrorCode.REFERRAL_INVALID_STATUS);
         }
-        this.status = ReferralStatus.CANCELLED;
+        this.status = MemberReferralStatus.CANCELLED;
     }
 }

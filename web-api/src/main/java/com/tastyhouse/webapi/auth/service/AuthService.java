@@ -7,7 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.auth.response.JwtResponse;
 import com.tastyhouse.webapi.member.service.MemberAccountService;
@@ -25,7 +25,7 @@ public class AuthService {
     // 회원가입 토큰 검증 후 신규 회원을 등록
     public void signUp(String username, String password,
                        String nickname, String fullName,
-                       Gender gender, Integer birthDate, String phoneNumber,
+                       MemberGender gender, Integer birthDate, String phoneNumber,
                        boolean pushNotificationEnabled,
                        boolean marketingInfoEnabled, boolean eventInfoEnabled,
                        String phoneVerifyToken, String emailVerifyToken,

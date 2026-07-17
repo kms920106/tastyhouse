@@ -42,7 +42,7 @@ public class MemberSocialAccount extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "provider", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private SocialProvider provider;
+    private MemberSocialProvider provider;
 
     @Column(name = "provider_id", nullable = false, length = 100)
     private String providerId;
@@ -61,7 +61,7 @@ public class MemberSocialAccount extends BaseEntity {
 
     private MemberSocialAccount(
         MemberId memberId,
-        SocialProvider provider,
+        MemberSocialProvider provider,
         String providerId,
         String providerEmail,
         String providerNickname,
@@ -78,7 +78,7 @@ public class MemberSocialAccount extends BaseEntity {
 
     public static MemberSocialAccount of(
         MemberId memberId,
-        SocialProvider provider,
+        MemberSocialProvider provider,
         String providerId,
         String providerEmail,
         String providerNickname,

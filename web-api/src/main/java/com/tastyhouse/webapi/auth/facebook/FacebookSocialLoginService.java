@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.domain.model.SocialProvider;
 import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -56,7 +56,7 @@ public class FacebookSocialLoginService {
         String providerId = facebookUser.id();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberQueryService.findSocialAccount(SocialProvider.FACEBOOK, providerId);
+            memberQueryService.findSocialAccount(MemberSocialProvider.FACEBOOK, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
@@ -98,7 +98,7 @@ public class FacebookSocialLoginService {
         String providerId = facebookUser.id();
 
         // 이미 페이스북 소셜 계정이 연동된 경우 중복 연동을 방지한다.
-        if (memberQueryService.existsSocialAccount(SocialProvider.FACEBOOK, providerId)) {
+        if (memberQueryService.existsSocialAccount(MemberSocialProvider.FACEBOOK, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -128,7 +128,7 @@ public class FacebookSocialLoginService {
         Member member = memberOpt.get();
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                member.getMemberId(), SocialProvider.FACEBOOK, providerId,
+                member.getMemberId(), MemberSocialProvider.FACEBOOK, providerId,
                 facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
             )
         );
@@ -143,7 +143,7 @@ public class FacebookSocialLoginService {
     // - 회원가입 완료 후 facebookTempToken 삭제 (1회용)
     @Transactional
     public JwtResponse signUp(String facebookTempToken, String username, String nickname, String fullName,
-                              Gender gender, Integer birthDate, String phoneNumber,
+                              MemberGender gender, Integer birthDate, String phoneNumber,
                               boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                               boolean eventInfoEnabled, String referrerNickname) {
         String facebookAccessToken = facebookTempTokenRedisRepository.findFacebookAccessToken(facebookTempToken);
@@ -154,7 +154,7 @@ public class FacebookSocialLoginService {
         FacebookUserInfoResponse facebookUser = facebookOAuthClient.fetchUserInfo(facebookAccessToken);
         String providerId = facebookUser.id();
 
-        if (memberQueryService.existsSocialAccount(SocialProvider.FACEBOOK, providerId)) {
+        if (memberQueryService.existsSocialAccount(MemberSocialProvider.FACEBOOK, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -165,7 +165,7 @@ public class FacebookSocialLoginService {
 
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
-                savedMember.getMemberId(), SocialProvider.FACEBOOK, providerId,
+                savedMember.getMemberId(), MemberSocialProvider.FACEBOOK, providerId,
                 facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
             )
         );

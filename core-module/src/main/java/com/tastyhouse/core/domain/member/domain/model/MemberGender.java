@@ -3,12 +3,12 @@ package com.tastyhouse.core.domain.member.domain.model;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 
-public enum Gender {
+public enum MemberGender {
 
     MALE,
     FEMALE;
 
-    public static Gender from(String code) {
+    public static MemberGender from(String code) {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {

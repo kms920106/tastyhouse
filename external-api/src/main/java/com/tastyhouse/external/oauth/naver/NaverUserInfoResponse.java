@@ -2,7 +2,7 @@ package com.tastyhouse.external.oauth.naver;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.tastyhouse.core.domain.member.domain.model.Gender;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 
 // 네이버 프로필 API 응답 (GET https://openapi.naver.com/v1/nid/me)
 // 사용자 정보는 최상위 "response" 객체 안에 중첩된다.
@@ -55,11 +55,11 @@ public record NaverUserInfoResponse(
     }
 
     // 네이버 gender: "M" → MALE, "F" → FEMALE, 그 외 → null
-    public Gender getGender() {
+    public MemberGender getGender() {
     if (response == null) return null;
     return switch (response.gender()) {
-        case "M" -> Gender.MALE;
-        case "F" -> Gender.FEMALE;
+        case "M" -> MemberGender.MALE;
+        case "F" -> MemberGender.FEMALE;
         default -> null;
     };
     }
