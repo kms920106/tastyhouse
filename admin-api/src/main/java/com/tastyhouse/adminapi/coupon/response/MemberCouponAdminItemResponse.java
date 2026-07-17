@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.coupon.application.dto.result.MemberCouponItemResult;
-
 @Schema(description = "쿠폰 발급 현황 항목 응답")
 public record MemberCouponAdminItemResponse(
     @Schema(description = "회원 쿠폰 ID", example = "1")
@@ -26,14 +24,21 @@ public record MemberCouponAdminItemResponse(
     @Schema(description = "발급 일시", example = "2026-01-01T00:00:00")
     LocalDateTime issuedAt
 ) {
-    public static MemberCouponAdminItemResponse from(MemberCouponItemResult dto) {
+    public static MemberCouponAdminItemResponse from(
+        Long id,
+        Long memberId,
+        boolean used,
+        LocalDateTime usedAt,
+        LocalDateTime expiredAt,
+        LocalDateTime issuedAt
+    ) {
         return new MemberCouponAdminItemResponse(
-            dto.id(),
-            dto.memberId().value(),
-            dto.used(),
-            dto.usedAt(),
-            dto.expiredAt(),
-            dto.createdAt()
+            id,
+            memberId,
+            used,
+            usedAt,
+            expiredAt,
+            issuedAt
         );
     }
 }

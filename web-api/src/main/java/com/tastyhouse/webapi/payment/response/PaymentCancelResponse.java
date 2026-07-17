@@ -2,8 +2,6 @@ package com.tastyhouse.webapi.payment.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.payment.application.dto.result.PaymentCancelResult;
-
 @Schema(description = "결제 취소 응답")
 public record PaymentCancelResponse(
     @Schema(description = "결제 취소 결과 코드", example = "SUCCESS")
@@ -12,7 +10,7 @@ public record PaymentCancelResponse(
     @Schema(description = "결제 취소 결과 메시지", example = "결제가 정상적으로 취소되었습니다")
     String message
 ) {
-    public static PaymentCancelResponse of(PaymentCancelResult result) {
-        return new PaymentCancelResponse(result.code().name(), result.message());
+    public static PaymentCancelResponse of(String code, String message) {
+        return new PaymentCancelResponse(code, message);
     }
 }

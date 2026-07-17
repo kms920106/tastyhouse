@@ -31,7 +31,7 @@ public class PaymentService {
         MemberId targetMemberId = MemberId.of(memberId);
         PaymentResult result = paymentCommandService.createPayment(
             targetMemberId, PaymentCreateCommand.of(orderId, PaymentMethod.from(paymentMethod)));
-        return PaymentResponse.from(result);
+        return toPaymentResponse(result);
     }
 
     public PaymentResponse confirmPayment(
@@ -47,38 +47,76 @@ public class PaymentService {
         PaymentResult result = paymentCommandService.confirmPayment(
             ConfirmPaymentCommand.of(paymentId, PgProvider.from(pgProvider), pgTid, pgOrderId, cardCompany, cardNumber, installmentMonths, receiptUrl)
         );
-        return PaymentResponse.from(result);
+        return toPaymentResponse(result);
     }
 
     public PaymentResponse confirmTossPayment(Long memberId, String paymentKey, String pgOrderId, Integer amount) {
         MemberId targetMemberId = MemberId.of(memberId);
         PaymentResult result = paymentCommandService.confirmTossPayment(
             targetMemberId, TossConfirmCommand.of(paymentKey, pgOrderId, amount));
-        return PaymentResponse.from(result);
+        return toPaymentResponse(result);
     }
 
     public PaymentResponse getPaymentByOrderId(Long memberId, Long orderId) {
         PaymentResult result = paymentQueryService.getPaymentByOrderId(MemberId.of(memberId), orderId);
-        return PaymentResponse.from(result);
+        return toPaymentResponse(result);
     }
 
     public PaymentCancelResponse cancelPayment(Long memberId, Long paymentId, String cancelReason) {
         MemberId targetMemberId = MemberId.of(memberId);
         PaymentCancelResult result = paymentCommandService.cancelPayment(
             targetMemberId, paymentId, CancelPaymentCommand.of(cancelReason));
-        return PaymentCancelResponse.of(result);
+        return toPaymentCancelResponse(result);
     }
 
     public PaymentResponse completeOnSitePayment(Long memberId, Long paymentId) {
         MemberId targetMemberId = MemberId.of(memberId);
         PaymentResult result = paymentCommandService.completeOnSitePayment(targetMemberId, paymentId);
-        return PaymentResponse.from(result);
+        return toPaymentResponse(result);
     }
 
     public PaymentRefundResponse requestRefund(Long memberId, Long paymentId, Integer refundAmount, String refundReason) {
         MemberId targetMemberId = MemberId.of(memberId);
         PaymentRefundResult result = paymentCommandService.requestRefund(
             targetMemberId, paymentId, RequestRefundCommand.of(refundAmount, refundReason));
-        return PaymentRefundResponse.from(result);
+        return toPaymentRefundResponse(result);
+    }
+
+    private PaymentResponse toPaymentResponse(PaymentResult result) {
+        return PaymentResponse.from(
+            result.id(),
+            result.orderId(),
+            result.paymentMethod().name(),
+            result.paymentStatus().name(),
+            result.amount(),
+            result.pgProvider() == null ? null : result.pgProvider().name(),
+            result.pgTid(),
+            result.pgOrderId(),
+            result.cardCompany(),
+            result.cardNumber(),
+            result.installmentMonths(),
+            result.approvedAt(),
+            result.cancelledAt(),
+            result.cancelReason(),
+            result.receiptUrl(),
+            result.createdAt()
+        );
+    }
+
+    private PaymentCancelResponse toPaymentCancelResponse(PaymentCancelResult result) {
+        return PaymentCancelResponse.of(result.code().name(), result.message());
+    }
+
+    private PaymentRefundResponse toPaymentRefundResponse(PaymentRefundResult result) {
+        return PaymentRefundResponse.from(
+            result.id(),
+            result.paymentId(),
+            result.refundAmount(),
+            result.refundReason(),
+            result.refundStatus().name(),
+            result.pgRefundId(),
+            result.refundedAt(),
+            result.createdAt()
+        );
     }
 }

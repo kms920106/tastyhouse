@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.reservation;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
+import com.tastyhouse.webapi.reservation.response.Slot;
 import com.tastyhouse.webapi.reservation.response.SlotAvailabilityResponse;
 
 /**
@@ -40,7 +42,7 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public SlotAvailabilityResponse getAvailability(Long shopId, LocalDate date, Long memberId) {
         DailySlotAvailabilityResult result = reservationQueryService.findSlotAvailability(shopId, date, MemberId.of(memberId));
-        return SlotAvailabilityResponse.from(result);
+        return toSlotAvailabilityResponse(result);
     }
 
     public ReservationResponse create(
@@ -56,20 +58,26 @@ public class ReservationService {
         ReservationCreateCommand command = ReservationCreateCommand.of(
             shopId, reservationDate, reservationTime, partySize, request, agreedRequiredTerms);
         ReservationResult result = reservationCommandService.create(memberIdVo, command);
-        return ReservationResponse.from(result);
+        return toReservationResponse(result);
     }
 
     @Transactional(readOnly = true)
     public List<ReservationResponse> getMyReservations(Long memberId) {
         return reservationQueryService.findMyReservations(MemberId.of(memberId)).stream()
-            .map(ReservationResponse::from)
+            .map(this::toReservationResponse)
             .toList();
     }
 
     @Transactional(readOnly = true)
     public ReservationCompleteDetailResponse getDetail(Long memberId, Long reservationId) {
         ReservationResult result = reservationQueryService.findDetail(MemberId.of(memberId), ReservationId.of(reservationId));
-        return ReservationCompleteDetailResponse.from(result, fileService.getUrlByPath(result.shopImageUrl()));
+        return ReservationCompleteDetailResponse.from(
+            result.id().value(),
+            result.shopName(),
+            fileService.getUrlByPath(result.shopImageUrl()),
+            LocalDateTime.of(result.reservationDate(), result.reservationTime()),
+            result.partySize()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -78,11 +86,21 @@ public class ReservationService {
         Member reserver = memberQueryService.getById(result.memberId());
         String phoneNumber = reserver.getPhoneNumber() != null ? reserver.getPhoneNumber().getValue() : null;
         return ReservationDetailResponse.from(
-            result,
+            result.id().value(),
+            result.shopId(),
+            result.shopName(),
             fileService.getUrlByPath(result.shopImageUrl()),
+            result.shopRoadAddress(),
+            result.shopLotAddress(),
+            result.memberId().value(),
             reserver.getFullName(),
             phoneNumber,
-            reserver.getUsername()
+            reserver.getUsername(),
+            LocalDateTime.of(result.reservationDate(), result.reservationTime()),
+            result.partySize(),
+            result.status().name(),
+            result.request(),
+            result.createdAt()
         );
     }
 
@@ -95,25 +113,47 @@ public class ReservationService {
     public ReservationResponse confirm(Long reservationId) {
         ReservationId id = ReservationId.of(reservationId);
         ReservationResult result = reservationCommandService.confirm(id);
-        return ReservationResponse.from(result);
+        return toReservationResponse(result);
     }
 
     public ReservationResponse reject(Long reservationId) {
         ReservationId id = ReservationId.of(reservationId);
         ReservationResult result = reservationCommandService.reject(id);
-        return ReservationResponse.from(result);
+        return toReservationResponse(result);
     }
 
     public ReservationResponse complete(Long reservationId) {
         ReservationId id = ReservationId.of(reservationId);
         ReservationResult result = reservationCommandService.complete(id);
-        return ReservationResponse.from(result);
+        return toReservationResponse(result);
     }
 
     @Transactional(readOnly = true)
     public List<ReservationResponse> getShopReservations(Long shopId) {
         return reservationQueryService.findShopReservations(shopId).stream()
-            .map(ReservationResponse::from)
+            .map(this::toReservationResponse)
             .toList();
+    }
+
+    private ReservationResponse toReservationResponse(ReservationResult result) {
+        return ReservationResponse.from(
+            result.id().value(),
+            result.shopId(),
+            result.shopName(),
+            result.memberId().value(),
+            result.reservationDate(),
+            result.reservationTime(),
+            result.partySize(),
+            result.status().name(),
+            result.request(),
+            result.createdAt()
+        );
+    }
+
+    private SlotAvailabilityResponse toSlotAvailabilityResponse(DailySlotAvailabilityResult result) {
+        List<Slot> slots = result.slots().stream()
+            .map(s -> new Slot(s.time(), s.remaining(), s.available()))
+            .toList();
+        return SlotAvailabilityResponse.from(result.date(), result.hasMyReservation(), slots);
     }
 }

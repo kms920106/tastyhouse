@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.domain.model.Member;
-
 @Schema(description = "회원 상세 응답")
 public record MemberDetailResponse(
     @Schema(description = "회원 ID", example = "1")
@@ -54,23 +52,39 @@ public record MemberDetailResponse(
     LocalDateTime createdAt
 ) {
 
-    public static MemberDetailResponse from(Member member, String profileImageUrl) {
+    public static MemberDetailResponse from(
+        Long id,
+        String username,
+        String nickname,
+        String fullName,
+        String phoneNumber,
+        String gender,
+        Integer birthDate,
+        String memberGrade,
+        String memberStatus,
+        String statusMessage,
+        String profileImageUrl,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
+        LocalDateTime createdAt
+    ) {
         return new MemberDetailResponse(
-            member.getId(),
-            member.getUsername(),
-            member.getNickname(),
-            member.getFullName(),
-            member.getPhoneNumber() != null ? member.getPhoneNumber().toString() : null,
-            member.getGender().name(),
-            member.getBirthDate(),
-            member.getMemberGrade().name(),
-            member.getMemberStatus().name(),
-            member.getStatusMessage(),
+            id,
+            username,
+            nickname,
+            fullName,
+            phoneNumber,
+            gender,
+            birthDate,
+            memberGrade,
+            memberStatus,
+            statusMessage,
             profileImageUrl,
-            member.isPushNotificationEnabled(),
-            member.isMarketingInfoEnabled(),
-            member.isEventInfoEnabled(),
-            member.getCreatedAt()
+            pushNotificationEnabled,
+            marketingInfoEnabled,
+            eventInfoEnabled,
+            createdAt
         );
     }
 }

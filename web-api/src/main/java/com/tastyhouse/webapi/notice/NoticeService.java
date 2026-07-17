@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.core.domain.notice.application.NoticeQueryService;
+import com.tastyhouse.core.domain.notice.application.dto.result.NoticeListItemResult;
 import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 import com.tastyhouse.webapi.notice.response.NoticeListPageResult;
 
@@ -15,7 +16,11 @@ public class NoticeService {
 
     public NoticeListPageResult getNoticeList(int page, int size) {
         var pageResult = noticeQueryService.findVisibleNotices(page, size)
-            .map(NoticeListItemResponse::from);
+            .map(this::toNoticeListItemResponse);
         return NoticeListPageResult.of(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements());
+    }
+
+    private NoticeListItemResponse toNoticeListItemResponse(NoticeListItemResult dto) {
+        return NoticeListItemResponse.from(dto.id(), dto.title(), dto.content(), dto.createdAt());
     }
 }

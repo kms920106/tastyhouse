@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
-
 @Schema(description = "예약 상세 조회 응답")
 public record ReservationDetailResponse(
     @Schema(description = "예약 ID", example = "1")
@@ -54,28 +52,38 @@ public record ReservationDetailResponse(
     LocalDateTime createdAt
 ) {
     public static ReservationDetailResponse from(
-        ReservationResult result,
+        Long id,
+        Long shopId,
+        String shopName,
         String shopImageUrl,
+        String shopRoadAddress,
+        String shopLotAddress,
+        Long memberId,
         String reserverName,
         String reserverPhoneNumber,
-        String reserverEmail
+        String reserverEmail,
+        LocalDateTime reservationAt,
+        Integer partySize,
+        String status,
+        String request,
+        LocalDateTime createdAt
     ) {
         return new ReservationDetailResponse(
-            result.id().value(),
-            result.shopId(),
-            result.shopName(),
+            id,
+            shopId,
+            shopName,
             shopImageUrl,
-            result.shopRoadAddress(),
-            result.shopLotAddress(),
-            result.memberId().value(),
+            shopRoadAddress,
+            shopLotAddress,
+            memberId,
             reserverName,
             reserverPhoneNumber,
             reserverEmail,
-            LocalDateTime.of(result.reservationDate(), result.reservationTime()),
-            result.partySize(),
-            result.status().name(),
-            result.request(),
-            result.createdAt()
+            reservationAt,
+            partySize,
+            status,
+            request,
+            createdAt
         );
     }
 }

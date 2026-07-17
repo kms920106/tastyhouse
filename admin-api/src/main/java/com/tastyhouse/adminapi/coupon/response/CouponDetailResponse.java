@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.coupon.application.dto.result.CouponDetailResult;
-
 @Schema(description = "쿠폰 상세 응답")
 public record CouponDetailResponse(
     @Schema(description = "쿠폰 ID", example = "1")
@@ -53,23 +51,39 @@ public record CouponDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
-    public static CouponDetailResponse from(CouponDetailResult dto) {
+    public static CouponDetailResponse from(
+        Long id,
+        String name,
+        String description,
+        String discountType,
+        Integer discountAmount,
+        Integer maxDiscountAmount,
+        Integer minOrderAmount,
+        Integer maxDiscountCount,
+        LocalDateTime issueStartAt,
+        LocalDateTime issueEndAt,
+        LocalDateTime useStartAt,
+        LocalDateTime useEndAt,
+        boolean visible,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
         return new CouponDetailResponse(
-            dto.couponId().value(),
-            dto.name(),
-            dto.description(),
-            dto.discountType().name(),
-            dto.discountAmount(),
-            dto.maxDiscountAmount(),
-            dto.minOrderAmount(),
-            dto.maxDiscountCount(),
-            dto.issueStartAt(),
-            dto.issueEndAt(),
-            dto.useStartAt(),
-            dto.useEndAt(),
-            dto.visible(),
-            dto.createdAt(),
-            dto.updatedAt()
+            id,
+            name,
+            description,
+            discountType,
+            discountAmount,
+            maxDiscountAmount,
+            minOrderAmount,
+            maxDiscountCount,
+            issueStartAt,
+            issueEndAt,
+            useStartAt,
+            useEndAt,
+            visible,
+            createdAt,
+            updatedAt
         );
     }
 }

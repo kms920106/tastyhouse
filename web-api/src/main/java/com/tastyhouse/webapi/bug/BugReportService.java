@@ -39,6 +39,21 @@ public class BugReportService {
             uploadedFileIds
         );
         BugReportResult result = bugReportCommandService.create(command);
-        return BugReportResponse.from(result);
+        return toBugReportResponse(result);
+    }
+
+    private BugReportResponse toBugReportResponse(BugReportResult result) {
+        return BugReportResponse.from(
+            result.id().value(),
+            result.device(),
+            result.title(),
+            result.content(),
+            result.appVersion(),
+            result.platform() != null ? result.platform().name() : null,
+            result.osVersion(),
+            result.status() != null ? result.status().name() : null,
+            result.uploadedFileIds(),
+            result.createdAt()
+        );
     }
 }

@@ -14,6 +14,7 @@ import com.tastyhouse.core.domain.member.application.MemberCommandService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.MemberSearchCondition;
 import com.tastyhouse.core.domain.member.application.dto.command.WithdrawMemberCommand;
+import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.adminapi.member.response.MemberDetailResponse;
@@ -46,14 +47,30 @@ public class MemberService {
             grade == null ? null : MemberGrade.from(grade)
         );
         PageResult<MemberListItemResponse> pageResult = memberQueryService.findMembers(condition, page, size)
-            .map(MemberListItemResponse::from);
+            .map(this::toMemberListItemResponse);
         return MemberPageResponse.from(pageResult);
     }
 
     public MemberDetailResponse getMember(Long id) {
         Member member = memberQueryService.getById(id);
         String profileImageUrl = resolveProfileImageUrl(member);
-        return MemberDetailResponse.from(member, profileImageUrl);
+        return MemberDetailResponse.from(
+            member.getId(),
+            member.getUsername(),
+            member.getNickname(),
+            member.getFullName(),
+            member.getPhoneNumber() != null ? member.getPhoneNumber().toString() : null,
+            member.getGender().name(),
+            member.getBirthDate(),
+            member.getMemberGrade().name(),
+            member.getMemberStatus().name(),
+            member.getStatusMessage(),
+            profileImageUrl,
+            member.isPushNotificationEnabled(),
+            member.isMarketingInfoEnabled(),
+            member.isEventInfoEnabled(),
+            member.getCreatedAt()
+        );
     }
 
     public void suspend(Long id) {
@@ -79,5 +96,20 @@ public class MemberService {
         return fileQueryService.findFilePath(UploadedFileId.of(member.getProfileImageFileId()))
             .map(fileService::getUrlByPath)
             .orElse(null);
+    }
+
+    private MemberListItemResponse toMemberListItemResponse(MemberListItemResult result) {
+        return MemberListItemResponse.from(
+            result.id(),
+            result.username(),
+            result.nickname(),
+            result.fullName(),
+            result.phoneNumber(),
+            result.gender().name(),
+            result.memberGrade().name(),
+            result.memberStatus().name(),
+            result.profileImageFilePath(),
+            result.createdAt()
+        );
     }
 }

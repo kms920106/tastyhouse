@@ -5,7 +5,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.bug.application.dto.result.BugReportDetailResult;
 import com.tastyhouse.adminapi.common.FileResponse;
 
 @Schema(description = "버그 제보 상세 응답")
@@ -62,25 +61,30 @@ public record BugReportDetailResponse(
     LocalDateTime updatedAt
 ) {
 
-    public static BugReportDetailResponse from(BugReportDetailResult dto, MemberSummaryResponse member, List<FileResponse> images) {
+    public static BugReportDetailResponse from(
+        Long id,
+        MemberSummaryResponse member,
+        String device,
+        String title,
+        String content,
+        String status,
+        String category,
+        String priority,
+        Long assigneeAdminId,
+        String adminAnswer,
+        LocalDateTime resolvedAt,
+        String appVersion,
+        String platform,
+        String osVersion,
+        List<FileResponse> images,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
         return new BugReportDetailResponse(
-            dto.id().value(),
-            member,
-            dto.device(),
-            dto.title(),
-            dto.content(),
-            dto.status() != null ? dto.status().name() : null,
-            dto.category() != null ? dto.category().name() : null,
-            dto.priority() != null ? dto.priority().name() : null,
-            dto.assigneeAdminId(),
-            dto.adminAnswer(),
-            dto.resolvedAt(),
-            dto.appVersion(),
-            dto.platform() != null ? dto.platform().name() : null,
-            dto.osVersion(),
-            images,
-            dto.createdAt(),
-            dto.updatedAt()
+            id, member, device, title, content,
+            status, category, priority, assigneeAdminId, adminAnswer, resolvedAt,
+            appVersion, platform, osVersion,
+            images, createdAt, updatedAt
         );
     }
 }

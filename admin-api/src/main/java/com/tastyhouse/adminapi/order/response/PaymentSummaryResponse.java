@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.order.application.dto.result.OrderPaymentResult;
-
 @Schema(description = "결제 요약 정보")
 public record PaymentSummaryResponse(
     @Schema(description = "결제 ID", example = "1")
@@ -32,16 +30,16 @@ public record PaymentSummaryResponse(
     @Schema(description = "결제 영수증 URL", example = "https://cdn.tastyhouse.com/receipt/1.jpg")
     String receiptUrl
 ) {
-    public static PaymentSummaryResponse from(OrderPaymentResult result) {
-        return new PaymentSummaryResponse(
-            result.id(),
-            result.paymentMethod() != null ? result.paymentMethod().name() : null,
-            result.paymentStatus() != null ? result.paymentStatus().name() : null,
-            result.amount(),
-            result.cardCompany(),
-            result.cardNumber(),
-            result.approvedAt(),
-            result.receiptUrl()
-        );
+    public static PaymentSummaryResponse from(
+        Long id,
+        String paymentMethod,
+        String paymentStatus,
+        Integer amount,
+        String cardCompany,
+        String cardNumber,
+        LocalDateTime approvedAt,
+        String receiptUrl
+    ) {
+        return new PaymentSummaryResponse(id, paymentMethod, paymentStatus, amount, cardCompany, cardNumber, approvedAt, receiptUrl);
     }
 }

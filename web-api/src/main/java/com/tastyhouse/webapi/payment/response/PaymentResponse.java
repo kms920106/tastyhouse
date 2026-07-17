@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
-
 @Schema(description = "결제 상세 응답")
 public record PaymentResponse(
     @Schema(description = "결제 ID", example = "1")
@@ -56,24 +54,41 @@ public record PaymentResponse(
     @Schema(description = "결제 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static PaymentResponse from(PaymentResult result) {
+    public static PaymentResponse from(
+        Long id,
+        Long orderId,
+        String paymentMethod,
+        String paymentStatus,
+        Integer amount,
+        String pgProvider,
+        String pgTid,
+        String pgOrderId,
+        String cardCompany,
+        String cardNumber,
+        Integer installmentMonths,
+        LocalDateTime approvedAt,
+        LocalDateTime cancelledAt,
+        String cancelReason,
+        String receiptUrl,
+        LocalDateTime createdAt
+    ) {
         return new PaymentResponse(
-            result.id(),
-            result.orderId(),
-            result.paymentMethod().name(),
-            result.paymentStatus().name(),
-            result.amount(),
-            result.pgProvider() == null ? null : result.pgProvider().name(),
-            result.pgTid(),
-            result.pgOrderId(),
-            result.cardCompany(),
-            result.cardNumber(),
-            result.installmentMonths(),
-            result.approvedAt(),
-            result.cancelledAt(),
-            result.cancelReason(),
-            result.receiptUrl(),
-            result.createdAt()
+            id,
+            orderId,
+            paymentMethod,
+            paymentStatus,
+            amount,
+            pgProvider,
+            pgTid,
+            pgOrderId,
+            cardCompany,
+            cardNumber,
+            installmentMonths,
+            approvedAt,
+            cancelledAt,
+            cancelReason,
+            receiptUrl,
+            createdAt
         );
     }
 }

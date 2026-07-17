@@ -68,7 +68,7 @@ public class BugReportService {
         );
 
         PageResult<BugReportListItemResponse> responsePage = pageResult.map(
-            dto -> BugReportListItemResponse.from(dto, MemberSummaryResponse.from(membersById.get(dto.memberId().value())))
+            dto -> toBugReportListItemResponse(dto, toMemberSummaryResponse(membersById.get(dto.memberId().value())))
         );
         return BugReportPageResponse.from(responsePage);
     }
@@ -77,12 +77,12 @@ public class BugReportService {
         BugReportDetailResult detail = bugReportQueryService.findDetailById(BugReportId.of(id));
 
         MemberSummaryResponse member = memberQueryService.findMemberWithProfileImage(detail.memberId())
-            .map(MemberSummaryResponse::from)
+            .map(this::toMemberSummaryResponse)
             .orElse(null);
 
         List<FileResponse> images = toFileResponses(detail.imageFileIds());
 
-        return BugReportDetailResponse.from(detail, member, images);
+        return toBugReportDetailResponse(detail, member, images);
     }
 
     public void changeStatus(Long id, String status, String answer) {
@@ -102,6 +102,49 @@ public class BugReportService {
     public void assign(Long id, Long assigneeAdminId) {
         BugReportAssignCommand command = BugReportAssignCommand.of(BugReportId.of(id), assigneeAdminId);
         bugReportCommandService.assign(command);
+    }
+
+    private MemberSummaryResponse toMemberSummaryResponse(MemberWithProfileImageResult result) {
+        if (result == null) {
+            return null;
+        }
+        return MemberSummaryResponse.from(result.id(), result.nickname());
+    }
+
+    private BugReportListItemResponse toBugReportListItemResponse(BugReportListItemResult dto, MemberSummaryResponse member) {
+        return BugReportListItemResponse.from(
+            dto.id(),
+            member,
+            dto.device(),
+            dto.title(),
+            dto.status() != null ? dto.status().name() : null,
+            dto.category() != null ? dto.category().name() : null,
+            dto.priority() != null ? dto.priority().name() : null,
+            dto.imageCount(),
+            dto.createdAt()
+        );
+    }
+
+    private BugReportDetailResponse toBugReportDetailResponse(BugReportDetailResult dto, MemberSummaryResponse member, List<FileResponse> images) {
+        return BugReportDetailResponse.from(
+            dto.id().value(),
+            member,
+            dto.device(),
+            dto.title(),
+            dto.content(),
+            dto.status() != null ? dto.status().name() : null,
+            dto.category() != null ? dto.category().name() : null,
+            dto.priority() != null ? dto.priority().name() : null,
+            dto.assigneeAdminId(),
+            dto.adminAnswer(),
+            dto.resolvedAt(),
+            dto.appVersion(),
+            dto.platform() != null ? dto.platform().name() : null,
+            dto.osVersion(),
+            images,
+            dto.createdAt(),
+            dto.updatedAt()
+        );
     }
 
     private List<FileResponse> toFileResponses(List<Long> imageFileIds) {

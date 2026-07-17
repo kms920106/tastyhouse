@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.payment.application.dto.result.PaymentRefundResult;
-
 @Schema(description = "결제 환불 응답")
 public record PaymentRefundResponse(
     @Schema(description = "환불 ID", example = "1")
@@ -32,16 +30,25 @@ public record PaymentRefundResponse(
     @Schema(description = "환불 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static PaymentRefundResponse from(PaymentRefundResult result) {
+    public static PaymentRefundResponse from(
+        Long id,
+        Long paymentId,
+        Integer refundAmount,
+        String refundReason,
+        String refundStatus,
+        String pgRefundId,
+        LocalDateTime refundedAt,
+        LocalDateTime createdAt
+    ) {
         return new PaymentRefundResponse(
-            result.id(),
-            result.paymentId(),
-            result.refundAmount(),
-            result.refundReason(),
-            result.refundStatus().name(),
-            result.pgRefundId(),
-            result.refundedAt(),
-            result.createdAt()
+            id,
+            paymentId,
+            refundAmount,
+            refundReason,
+            refundStatus,
+            pgRefundId,
+            refundedAt,
+            createdAt
         );
     }
 }

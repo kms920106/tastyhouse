@@ -54,7 +54,7 @@ public class SearchService {
 
     public PageResult<SearchReviewListItemResponse> searchReviews(String keyword, int page, int size) {
         return searchResultQueryService.searchReviews(keyword, page, size)
-            .map(dto -> SearchReviewListItemResponse.from(dto, fileService));
+            .map(dto -> SearchReviewListItemResponse.from(dto.id(), fileService.getUrlByPath(dto.imageFilePath())));
     }
 
     public PageResult<SearchShopListItemResponse> searchShopsPaged(String keyword, Long memberId, int page, int size) {

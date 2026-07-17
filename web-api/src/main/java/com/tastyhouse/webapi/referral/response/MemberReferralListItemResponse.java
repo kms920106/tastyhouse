@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.referral.application.dto.result.MemberReferralResult;
-
 @Schema(description = "회원 추천(레퍼럴) 목록 아이템 응답")
 public record MemberReferralListItemResponse(
     @Schema(description = "추천 ID", example = "1")
@@ -20,12 +18,7 @@ public record MemberReferralListItemResponse(
     @Schema(description = "추천 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static MemberReferralListItemResponse from(MemberReferralResult result) {
-        return new MemberReferralListItemResponse(
-            result.id(),
-            result.refereeId().value(),
-            result.status().name(),
-            result.createdAt()
-        );
+    public static MemberReferralListItemResponse from(Long id, Long refereeId, String status, LocalDateTime createdAt) {
+        return new MemberReferralListItemResponse(id, refereeId, status, createdAt);
     }
 }

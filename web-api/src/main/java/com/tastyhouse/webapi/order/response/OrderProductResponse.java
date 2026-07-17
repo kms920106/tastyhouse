@@ -4,8 +4,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
-
 @Schema(description = "주문 상품 응답")
 public record OrderProductResponse(
     @Schema(description = "주문 상품 ID", example = "1")
@@ -41,22 +39,30 @@ public record OrderProductResponse(
     @Schema(description = "리뷰 작성 여부", example = "false")
     boolean reviewed
 ) {
-    public static OrderProductResponse from(OrderProductResult result, String imageUrl, boolean reviewed) {
-        List<OrderProductOptionResponse> optionResponses = result.options() == null ? List.of() :
-            result.options().stream()
-                .map(OrderProductOptionResponse::from)
-                .toList();
+    public static OrderProductResponse from(
+        Long orderProductId,
+        Long productId,
+        String name,
+        String imageUrl,
+        Integer quantity,
+        Integer originalPrice,
+        Integer discountPrice,
+        Integer totalOptionPrice,
+        Integer totalPrice,
+        List<OrderProductOptionResponse> options,
+        boolean reviewed
+    ) {
         return new OrderProductResponse(
-            result.orderProductId().value(),
-            result.productId(),
-            result.name(),
+            orderProductId,
+            productId,
+            name,
             imageUrl,
-            result.quantity(),
-            result.originalPrice(),
-            result.discountPrice(),
-            result.totalOptionPrice(),
-            result.totalPrice(),
-            optionResponses,
+            quantity,
+            originalPrice,
+            discountPrice,
+            totalOptionPrice,
+            totalPrice,
+            options,
             reviewed
         );
     }

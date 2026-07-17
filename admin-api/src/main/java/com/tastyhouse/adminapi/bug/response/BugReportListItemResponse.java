@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.bug.application.dto.result.BugReportListItemResult;
-
 @Schema(description = "버그 제보 목록 항목 응답")
 public record BugReportListItemResponse(
     @Schema(description = "버그 제보 ID", example = "1")
@@ -36,17 +34,17 @@ public record BugReportListItemResponse(
     LocalDateTime createdAt
 ) {
 
-    public static BugReportListItemResponse from(BugReportListItemResult dto, MemberSummaryResponse member) {
-        return new BugReportListItemResponse(
-            dto.id(),
-            member,
-            dto.device(),
-            dto.title(),
-            dto.status() != null ? dto.status().name() : null,
-            dto.category() != null ? dto.category().name() : null,
-            dto.priority() != null ? dto.priority().name() : null,
-            dto.imageCount(),
-            dto.createdAt()
-        );
+    public static BugReportListItemResponse from(
+        Long id,
+        MemberSummaryResponse member,
+        String device,
+        String title,
+        String status,
+        String category,
+        String priority,
+        long imageCount,
+        LocalDateTime createdAt
+    ) {
+        return new BugReportListItemResponse(id, member, device, title, status, category, priority, imageCount, createdAt);
     }
 }

@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
-
 @Schema(description = "회원 목록 항목 응답")
 public record MemberListItemResponse(
     @Schema(description = "회원 ID", example = "1")
@@ -39,18 +37,29 @@ public record MemberListItemResponse(
     LocalDateTime createdAt
 ) {
 
-    public static MemberListItemResponse from(MemberListItemResult result) {
+    public static MemberListItemResponse from(
+        Long id,
+        String username,
+        String nickname,
+        String fullName,
+        String phoneNumber,
+        String gender,
+        String memberGrade,
+        String memberStatus,
+        String profileImageFilePath,
+        LocalDateTime createdAt
+    ) {
         return new MemberListItemResponse(
-            result.id(),
-            result.username(),
-            result.nickname(),
-            result.fullName(),
-            result.phoneNumber(),
-            result.gender().name(),
-            result.memberGrade().name(),
-            result.memberStatus().name(),
-            result.profileImageFilePath(),
-            result.createdAt()
+            id,
+            username,
+            nickname,
+            fullName,
+            phoneNumber,
+            gender,
+            memberGrade,
+            memberStatus,
+            profileImageFilePath,
+            createdAt
         );
     }
 }

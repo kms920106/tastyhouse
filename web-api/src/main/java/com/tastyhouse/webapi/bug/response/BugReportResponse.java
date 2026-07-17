@@ -5,8 +5,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.bug.application.dto.result.BugReportResult;
-
 @Schema(description = "버그 신고 응답")
 public record BugReportResponse(
     @Schema(description = "버그 신고 ID", example = "1")
@@ -39,18 +37,29 @@ public record BugReportResponse(
     @Schema(description = "신고 등록 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static BugReportResponse from(BugReportResult result) {
+    public static BugReportResponse from(
+        Long id,
+        String device,
+        String title,
+        String content,
+        String appVersion,
+        String platform,
+        String osVersion,
+        String status,
+        List<Long> uploadedFileIds,
+        LocalDateTime createdAt
+    ) {
         return new BugReportResponse(
-            result.id().value(),
-            result.device(),
-            result.title(),
-            result.content(),
-            result.appVersion(),
-            result.platform() != null ? result.platform().name() : null,
-            result.osVersion(),
-            result.status() != null ? result.status().name() : null,
-            result.uploadedFileIds(),
-            result.createdAt()
+            id,
+            device,
+            title,
+            content,
+            appVersion,
+            platform,
+            osVersion,
+            status,
+            uploadedFileIds,
+            createdAt
         );
     }
 }

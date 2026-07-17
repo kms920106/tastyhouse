@@ -2,8 +2,6 @@ package com.tastyhouse.webapi.order.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
-
 @Schema(description = "주문 상품 옵션 응답")
 public record OrderProductOptionResponse(
     @Schema(description = "주문 상품 옵션 ID", example = "1")
@@ -18,12 +16,12 @@ public record OrderProductOptionResponse(
     @Schema(description = "추가 금액", example = "1000")
     Integer additionalPrice
 ) {
-    public static OrderProductOptionResponse from(OrderProductOptionResult option) {
-        return new OrderProductOptionResponse(
-            option.orderProductOptionId().value(),
-            option.optionGroupName(),
-            option.optionName(),
-            option.additionalPrice()
-        );
+    public static OrderProductOptionResponse from(
+        Long id,
+        String optionGroupName,
+        String optionName,
+        Integer additionalPrice
+    ) {
+        return new OrderProductOptionResponse(id, optionGroupName, optionName, additionalPrice);
     }
 }

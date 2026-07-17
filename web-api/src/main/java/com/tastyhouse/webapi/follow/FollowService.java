@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.follow.application.FollowCommandService;
 import com.tastyhouse.core.domain.member.follow.application.FollowQueryService;
+import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
@@ -47,25 +48,25 @@ public class FollowService {
     @Transactional(readOnly = true)
     public PageResult<FollowMemberListItemResponse> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
         return followQueryService.findFollowingList(MemberId.of(memberId), MemberId.of(viewerMemberId), page, size)
-            .map(dto -> FollowMemberListItemResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
+            .map(this::toFollowMemberListItemResponse);
     }
 
     @Transactional(readOnly = true)
     public PageResult<FollowMemberListItemResponse> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
         return followQueryService.findFollowerList(MemberId.of(memberId), MemberId.of(viewerMemberId), page, size)
-            .map(dto -> FollowMemberListItemResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
+            .map(this::toFollowMemberListItemResponse);
     }
 
     @Transactional(readOnly = true)
     public PageResult<FollowMemberListItemResponse> getPublicFollowingList(Long memberId, int page, int size) {
         return followQueryService.findFollowingList(MemberId.of(memberId), null, page, size)
-            .map(dto -> FollowMemberListItemResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
+            .map(this::toFollowMemberListItemResponse);
     }
 
     @Transactional(readOnly = true)
     public PageResult<FollowMemberListItemResponse> getPublicFollowerList(Long memberId, int page, int size) {
         return followQueryService.findFollowerList(MemberId.of(memberId), null, page, size)
-            .map(dto -> FollowMemberListItemResponse.of(dto, fileService.getUrlByPath(dto.profileImageFilePath())));
+            .map(this::toFollowMemberListItemResponse);
     }
 
     @Transactional(readOnly = true)
@@ -82,5 +83,16 @@ public class FollowService {
                     isFollowing
                 );
             });
+    }
+
+    private FollowMemberListItemResponse toFollowMemberListItemResponse(FollowMemberResult dto) {
+        String profileImageUrl = fileService.getUrlByPath(dto.profileImageFilePath());
+        return FollowMemberListItemResponse.of(
+            dto.memberId(),
+            dto.nickname(),
+            dto.memberGrade().name(),
+            profileImageUrl,
+            dto.following()
+        );
     }
 }

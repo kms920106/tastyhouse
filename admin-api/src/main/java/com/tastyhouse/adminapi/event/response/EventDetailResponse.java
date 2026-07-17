@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.event.application.dto.result.EventManagementDetailResult;
 import com.tastyhouse.adminapi.common.FileResponse;
 
 @Schema(description = "이벤트 상세 응답")
@@ -45,20 +44,33 @@ public record EventDetailResponse(
     @Schema(description = "수정일시", example = "2025-12-25T14:00:00")
     LocalDateTime updatedAt
 ) {
-    public static EventDetailResponse from(EventManagementDetailResult dto, FileResponse thumbnailFile, FileResponse bannerFile) {
+    public static EventDetailResponse from(
+        Long id,
+        String name,
+        String description,
+        String subtitle,
+        FileResponse thumbnailFile,
+        FileResponse bannerFile,
+        String contentHtml,
+        String status,
+        LocalDateTime startAt,
+        LocalDateTime endAt,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
         return new EventDetailResponse(
-            dto.eventId().value(),
-            dto.name(),
-            dto.description(),
-            dto.subtitle(),
+            id,
+            name,
+            description,
+            subtitle,
             thumbnailFile,
             bannerFile,
-            dto.contentHtml(),
-            dto.status().name(),
-            dto.startAt(),
-            dto.endAt(),
-            dto.createdAt(),
-            dto.updatedAt()
+            contentHtml,
+            status,
+            startAt,
+            endAt,
+            createdAt,
+            updatedAt
         );
     }
 }

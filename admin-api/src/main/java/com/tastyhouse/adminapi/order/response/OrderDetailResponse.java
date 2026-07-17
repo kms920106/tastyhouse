@@ -5,8 +5,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
-
 @Schema(description = "주문 상세 조회 응답")
 public record OrderDetailResponse(
     @Schema(description = "주문 ID", example = "1")
@@ -72,34 +70,51 @@ public record OrderDetailResponse(
     @Schema(description = "주문 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static OrderDetailResponse from(OrderResult result) {
-        List<OrderProductResponse> orderProducts = result.orderProducts() == null ? List.of() :
-            result.orderProducts().stream()
-                .map(OrderProductResponse::from)
-                .toList();
-        PaymentSummaryResponse payment = result.payment() != null ? PaymentSummaryResponse.from(result.payment()) : null;
+    public static OrderDetailResponse from(
+        Long id,
+        String orderNumber,
+        String orderMethod,
+        String paymentStatus,
+        String shopName,
+        String shopPhoneNumber,
+        String ordererName,
+        String ordererPhone,
+        String ordererEmail,
+        Integer totalProductAmount,
+        Integer productDiscountAmount,
+        Integer couponDiscountAmount,
+        Integer pointDiscountAmount,
+        Integer totalDiscountAmount,
+        Integer finalAmount,
+        Integer usedPoint,
+        Integer earnedPoint,
+        List<OrderProductResponse> orderProducts,
+        PaymentSummaryResponse payment,
+        LocalDateTime approvedAt,
+        LocalDateTime createdAt
+    ) {
         return new OrderDetailResponse(
-            result.orderId().value(),
-            result.orderNumber(),
-            result.orderMethod() != null ? result.orderMethod().name() : null,
-            result.paymentStatus() != null ? result.paymentStatus().name() : null,
-            result.shopName(),
-            result.shopPhoneNumber(),
-            result.ordererName(),
-            result.ordererPhone(),
-            result.ordererEmail(),
-            result.totalProductAmount(),
-            result.productDiscountAmount(),
-            result.couponDiscountAmount(),
-            result.pointDiscountAmount(),
-            result.totalDiscountAmount(),
-            result.finalAmount(),
-            result.usedPoint(),
-            result.earnedPoint(),
+            id,
+            orderNumber,
+            orderMethod,
+            paymentStatus,
+            shopName,
+            shopPhoneNumber,
+            ordererName,
+            ordererPhone,
+            ordererEmail,
+            totalProductAmount,
+            productDiscountAmount,
+            couponDiscountAmount,
+            pointDiscountAmount,
+            totalDiscountAmount,
+            finalAmount,
+            usedPoint,
+            earnedPoint,
             orderProducts,
             payment,
-            result.approvedAt(),
-            result.createdAt()
+            approvedAt,
+            createdAt
         );
     }
 }

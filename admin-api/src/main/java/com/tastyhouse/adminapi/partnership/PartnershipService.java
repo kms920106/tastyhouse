@@ -10,6 +10,7 @@ import com.tastyhouse.core.domain.partnership.domain.vo.PartnershipRequestId;
 import com.tastyhouse.core.domain.partnership.application.PartnershipCommandService;
 import com.tastyhouse.core.domain.partnership.application.PartnershipQueryService;
 import com.tastyhouse.core.domain.partnership.application.dto.PartnershipSearchCondition;
+import com.tastyhouse.core.domain.partnership.application.dto.result.PartnershipRequestListItemResult;
 import com.tastyhouse.core.domain.partnership.application.dto.result.PartnershipRequestResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.adminapi.partnership.response.PartnershipRequestDetailResponse;
@@ -29,14 +30,25 @@ public class PartnershipService {
         PartnershipStatus partnershipStatus = status == null ? null : PartnershipStatus.from(status);
         PartnershipSearchCondition condition = PartnershipSearchCondition.of(businessName, contactName, contactPhone, partnershipStatus, startDate, endDate);
         PageResult<PartnershipRequestListItemResponse> pageResult = partnershipQueryService.findPartnershipRequests(condition, page, size)
-            .map(PartnershipRequestListItemResponse::from);
+            .map(this::toPartnershipRequestListItemResponse);
         return PartnershipRequestPageResponse.from(pageResult);
     }
 
     public PartnershipRequestDetailResponse getPartnershipRequest(Long id) {
         PartnershipRequestId partnershipRequestId = PartnershipRequestId.of(id);
         PartnershipRequestResult result = partnershipQueryService.findPartnershipRequestById(partnershipRequestId);
-        return PartnershipRequestDetailResponse.from(result);
+        return PartnershipRequestDetailResponse.from(
+            result.id().value(),
+            result.businessName(),
+            result.address(),
+            result.addressDetail(),
+            result.contactName(),
+            result.contactPhone(),
+            result.status() != null ? result.status().name() : null,
+            result.consultationRequestedAt(),
+            result.createdAt(),
+            result.updatedAt()
+        );
     }
 
     public void changeStatus(Long id, String status) {
@@ -48,5 +60,17 @@ public class PartnershipService {
     public void deletePartnershipRequest(Long id) {
         PartnershipRequestId partnershipRequestId = PartnershipRequestId.of(id);
         partnershipCommandService.delete(partnershipRequestId);
+    }
+
+    private PartnershipRequestListItemResponse toPartnershipRequestListItemResponse(PartnershipRequestListItemResult result) {
+        return PartnershipRequestListItemResponse.from(
+            result.id(),
+            result.businessName(),
+            result.contactName(),
+            result.contactPhone(),
+            result.status() != null ? result.status().name() : null,
+            result.consultationRequestedAt(),
+            result.createdAt()
+        );
     }
 }

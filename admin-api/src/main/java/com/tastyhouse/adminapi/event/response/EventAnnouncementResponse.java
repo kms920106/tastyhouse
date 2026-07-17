@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
-
 @Schema(description = "당첨자 발표 공지 응답")
 public record EventAnnouncementResponse(
     @Schema(description = "공지 ID", example = "5")
@@ -23,13 +21,7 @@ public record EventAnnouncementResponse(
     @Schema(description = "발표 일시", example = "2026-02-01T10:00:00")
     LocalDateTime announcedAt
 ) {
-    public static EventAnnouncementResponse from(EventAnnouncement announcement) {
-        return new EventAnnouncementResponse(
-            announcement.getId(),
-            announcement.getEventId(),
-            announcement.getName(),
-            announcement.getContent(),
-            announcement.getAnnouncedAt()
-        );
+    public static EventAnnouncementResponse from(Long id, Long eventId, String name, String content, LocalDateTime announcedAt) {
+        return new EventAnnouncementResponse(id, eventId, name, content, announcedAt);
     }
 }

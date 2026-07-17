@@ -14,6 +14,8 @@ import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateComma
 import com.tastyhouse.core.domain.order.application.dto.command.OrderProductCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
+import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -22,6 +24,7 @@ import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderProductRequest;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
 import com.tastyhouse.webapi.order.response.OrderListPageResult;
+import com.tastyhouse.webapi.order.response.OrderProductOptionResponse;
 import com.tastyhouse.webapi.order.response.OrderProductResponse;
 import com.tastyhouse.webapi.order.response.PaymentSummaryResponse;
 
@@ -132,7 +135,7 @@ public class OrderService {
                     MemberId.of(memberId)
                 );
                 String imageUrl = fileService.getUrlByPath(orderProduct.imageUrl());
-                return OrderProductResponse.from(orderProduct, imageUrl, reviewed);
+                return toOrderProductResponse(orderProduct, imageUrl, reviewed);
             })
             .toList();
 
@@ -172,6 +175,35 @@ public class OrderService {
             paymentSummary,
             result.approvedAt(),
             result.createdAt()
+        );
+    }
+
+    private OrderProductResponse toOrderProductResponse(OrderProductResult result, String imageUrl, boolean reviewed) {
+        List<OrderProductOptionResponse> optionResponses = result.options() == null ? List.of() :
+            result.options().stream()
+                .map(this::toOrderProductOptionResponse)
+                .toList();
+        return OrderProductResponse.from(
+            result.orderProductId().value(),
+            result.productId(),
+            result.name(),
+            imageUrl,
+            result.quantity(),
+            result.originalPrice(),
+            result.discountPrice(),
+            result.totalOptionPrice(),
+            result.totalPrice(),
+            optionResponses,
+            reviewed
+        );
+    }
+
+    private OrderProductOptionResponse toOrderProductOptionResponse(OrderProductOptionResult option) {
+        return OrderProductOptionResponse.from(
+            option.orderProductOptionId().value(),
+            option.optionGroupName(),
+            option.optionName(),
+            option.additionalPrice()
         );
     }
 }

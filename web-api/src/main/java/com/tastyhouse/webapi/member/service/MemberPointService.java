@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.point.application.PointQueryService;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
 import com.tastyhouse.webapi.member.response.PointHistoryItemResponse;
 import com.tastyhouse.webapi.member.response.PointHistoryResponse;
 import com.tastyhouse.webapi.member.response.PointResponse;
@@ -23,7 +25,7 @@ public class MemberPointService {
     @Transactional(readOnly = true)
     public PointResponse getMemberPoint(Long memberId) {
         return pointQueryService.findMemberPoint(MemberId.of(memberId))
-            .map(PointResponse::from)
+            .map(this::toPointResponse)
             .orElseGet(() -> PointResponse.of(0, 0));
     }
 
@@ -33,7 +35,7 @@ public class MemberPointService {
 
         List<PointHistoryItemResponse> histories = pointQueryService.findPointHistory(MemberId.of(memberId))
             .stream()
-            .map(PointHistoryItemResponse::from)
+            .map(this::toPointHistoryItemResponse)
             .collect(Collectors.toList());
 
         return PointHistoryResponse.from(
@@ -46,7 +48,22 @@ public class MemberPointService {
     @Transactional(readOnly = true)
     public UsablePointResponse getUsablePoint(Long memberId) {
         return pointQueryService.findMemberPoint(MemberId.of(memberId))
-            .map(UsablePointResponse::from)
+            .map(result -> UsablePointResponse.of(result.availablePoints()))
             .orElseGet(() -> UsablePointResponse.of(0));
+    }
+
+    private PointResponse toPointResponse(MemberPointResult result) {
+        return PointResponse.of(result.availablePoints(), result.expiredThisMonth());
+    }
+
+    private PointHistoryItemResponse toPointHistoryItemResponse(MemberPointHistoryResult history) {
+        String pointType = history.pointType().name();
+        Integer pointAmount = "USE".equals(pointType) ? -history.pointAmount() : history.pointAmount();
+        return PointHistoryItemResponse.from(
+            history.reason(),
+            history.createdAt().toLocalDate(),
+            pointAmount,
+            pointType
+        );
     }
 }

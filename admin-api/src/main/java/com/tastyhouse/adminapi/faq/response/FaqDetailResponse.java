@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.faq.application.dto.result.FaqDetailResult;
-
 @Schema(description = "FAQ 항목 상세 응답")
 public record FaqDetailResponse(
     @Schema(description = "FAQ ID", example = "1")
@@ -32,16 +30,16 @@ public record FaqDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
-    public static FaqDetailResponse from(FaqDetailResult result) {
-        return new FaqDetailResponse(
-            result.faqId().value(),
-            result.faqCategoryId(),
-            result.question(),
-            result.answer(),
-            result.sort(),
-            result.visible(),
-            result.createdAt(),
-            result.updatedAt()
-        );
+    public static FaqDetailResponse from(
+        Long id,
+        Long faqCategoryId,
+        String question,
+        String answer,
+        Integer sort,
+        boolean visible,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        return new FaqDetailResponse(id, faqCategoryId, question, answer, sort, visible, createdAt, updatedAt);
     }
 }

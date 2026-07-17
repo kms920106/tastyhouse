@@ -4,8 +4,6 @@ import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
-
 @Schema(description = "포인트 내역 항목")
 public record PointHistoryItemResponse(
     @Schema(description = "포인트 사용/적립 사유", example = "포토 리뷰 적립금")
@@ -20,14 +18,11 @@ public record PointHistoryItemResponse(
     @Schema(description = "포인트 유형 (EARNED: 적립, USE: 사용, REFUND: 환불)", example = "EARNED")
     String pointType
 ) {
-    public static PointHistoryItemResponse from(MemberPointHistoryResult history) {
-        String pointType = history.pointType().name();
+    public static PointHistoryItemResponse from(String reason, LocalDate date, Integer pointAmount, String pointType) {
         return new PointHistoryItemResponse(
-            history.reason(),
-            history.createdAt().toLocalDate(),
-            "USE".equals(pointType)
-                ? -history.pointAmount()
-                : history.pointAmount(),
+            reason,
+            date,
+            pointAmount,
             pointType
         );
     }

@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.order.application.dto.result.OrderManagementListItemResult;
-
 @Schema(description = "주문 목록 항목 응답")
 public record OrderListItemResponse(
     @Schema(description = "주문 ID", example = "1")
@@ -38,18 +36,20 @@ public record OrderListItemResponse(
     @Schema(description = "주문 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-    public static OrderListItemResponse from(OrderManagementListItemResult result) {
+    public static OrderListItemResponse from(
+        Long id,
+        String orderNumber,
+        String shopName,
+        String ordererName,
+        String orderMethod,
+        String orderStatus,
+        String paymentStatus,
+        Integer finalAmount,
+        Integer totalItemCount,
+        LocalDateTime createdAt
+    ) {
         return new OrderListItemResponse(
-            result.id(),
-            result.orderNumber(),
-            result.shopName(),
-            result.ordererName(),
-            result.orderMethod() != null ? result.orderMethod().name() : null,
-            result.orderStatus() != null ? result.orderStatus().name() : null,
-            result.paymentStatus() != null ? result.paymentStatus().name() : null,
-            result.finalAmount(),
-            result.totalItemCount(),
-            result.createdAt()
+            id, orderNumber, shopName, ordererName, orderMethod, orderStatus, paymentStatus, finalAmount, totalItemCount, createdAt
         );
     }
 }

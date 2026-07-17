@@ -10,6 +10,8 @@ import com.tastyhouse.core.domain.point.application.PointQueryService;
 import com.tastyhouse.core.domain.point.application.dto.PointSearchCondition;
 import com.tastyhouse.core.domain.point.application.dto.command.PointDeductCommand;
 import com.tastyhouse.core.domain.point.application.dto.command.PointEarnCommand;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
+import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.adminapi.point.response.PointBalanceResponse;
 import com.tastyhouse.adminapi.point.response.PointHistoryPageResponse;
@@ -24,7 +26,7 @@ public class PointService {
 
     public PointBalanceResponse getPointBalance(Long memberId) {
         return pointQueryService.findMemberPoint(MemberId.of(memberId))
-            .map(PointBalanceResponse::from)
+            .map(this::toPointBalanceResponse)
             .orElseGet(() -> PointBalanceResponse.zero(memberId));
     }
 
@@ -32,7 +34,7 @@ public class PointService {
         PointType pointType = type == null ? null : PointType.from(type);
         PointSearchCondition condition = PointSearchCondition.of(MemberId.of(memberId), pointType);
         PageResult<PointHistoryResponse> pageResult = pointQueryService.findPointHistory(condition, page, size)
-            .map(PointHistoryResponse::from);
+            .map(this::toPointHistoryResponse);
         return PointHistoryPageResponse.from(pageResult);
     }
 
@@ -46,5 +48,13 @@ public class PointService {
         MemberId targetMemberId = MemberId.of(memberId);
         PointDeductCommand command = PointDeductCommand.of(targetMemberId, amount, reason);
         pointCommandService.deductPoints(command);
+    }
+
+    private PointBalanceResponse toPointBalanceResponse(MemberPointResult result) {
+        return PointBalanceResponse.from(result.memberId().value(), result.availablePoints(), result.expiredThisMonth());
+    }
+
+    private PointHistoryResponse toPointHistoryResponse(MemberPointHistoryResult result) {
+        return PointHistoryResponse.from(result.pointType().name(), result.pointAmount(), result.reason(), result.createdAt());
     }
 }

@@ -41,7 +41,17 @@ public class BannerService {
     }
 
     private BannerListItemResponse toListItemResponse(BannerManagementListItemResult dto) {
-        return BannerListItemResponse.from(dto, toFileResponse(dto));
+        return BannerListItemResponse.from(
+            dto.id(),
+            dto.type().name(),
+            dto.title(),
+            toFileResponse(dto),
+            dto.linkUrl(),
+            dto.startDate(),
+            dto.endDate(),
+            dto.sort(),
+            dto.visible()
+        );
     }
 
     private FileResponse toFileResponse(BannerManagementListItemResult dto) {
@@ -70,7 +80,19 @@ public class BannerService {
 
     public BannerDetailResponse getBanner(Long id) {
         BannerDetailResult bannerDetail = bannerQueryService.findDetailById(BannerId.of(id));
-        return BannerDetailResponse.from(bannerDetail, toFileResponse(bannerDetail.imageFileId()));
+        return BannerDetailResponse.from(
+            bannerDetail.bannerId().value(),
+            bannerDetail.type().name(),
+            bannerDetail.title(),
+            toFileResponse(bannerDetail.imageFileId()),
+            bannerDetail.linkUrl(),
+            bannerDetail.startDate(),
+            bannerDetail.endDate(),
+            bannerDetail.sort(),
+            bannerDetail.visible(),
+            bannerDetail.createdAt(),
+            bannerDetail.updatedAt()
+        );
     }
 
     private FileResponse toFileResponse(Long imageFileId) {

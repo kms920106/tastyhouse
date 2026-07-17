@@ -53,7 +53,8 @@ public class EventService {
     }
 
     private EventListItemResponse toListItemResponse(EventManagementListItemResult dto) {
-        return EventListItemResponse.from(dto, toFileResponse(dto.thumbnailImageFileId(), dto.thumbnailFileName(), dto.thumbnailFilePath()));
+        FileResponse file = toFileResponse(dto.thumbnailImageFileId(), dto.thumbnailFileName(), dto.thumbnailFilePath());
+        return EventListItemResponse.from(dto.id(), dto.name(), dto.status().name(), file, dto.startAt(), dto.endAt());
     }
 
     public Long createEvent(
@@ -80,7 +81,20 @@ public class EventService {
         EventManagementDetailResult detail = eventQueryService.findAdminDetailById(eventId);
         FileResponse thumbnailFile = toFileResponse(detail.thumbnailImageFileId());
         FileResponse bannerFile = toFileResponse(detail.bannerImageFileId());
-        return EventDetailResponse.from(detail, thumbnailFile, bannerFile);
+        return EventDetailResponse.from(
+            detail.eventId().value(),
+            detail.name(),
+            detail.description(),
+            detail.subtitle(),
+            thumbnailFile,
+            bannerFile,
+            detail.contentHtml(),
+            detail.status().name(),
+            detail.startAt(),
+            detail.endAt(),
+            detail.createdAt(),
+            detail.updatedAt()
+        );
     }
 
     public void updateEvent(
@@ -124,7 +138,13 @@ public class EventService {
         EventId eventId = EventId.of(id);
         EventAnnouncement announcement = eventQueryService.findAnnouncementByEventId(eventId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
-        return EventAnnouncementResponse.from(announcement);
+        return EventAnnouncementResponse.from(
+            announcement.getId(),
+            announcement.getEventId(),
+            announcement.getName(),
+            announcement.getContent(),
+            announcement.getAnnouncedAt()
+        );
     }
 
     public Long createWinner(Long id, Integer rankNo, String winnerName, String phoneNumber, LocalDateTime announcedAt) {
@@ -138,8 +158,12 @@ public class EventService {
         List<EventWinner> winners = eventQueryService.findWinnersByEventId(eventId);
         return winners.stream()
             .map(EventWinnerResult::from)
-            .map(EventWinnerResponse::from)
+            .map(this::toWinnerResponse)
             .toList();
+    }
+
+    private EventWinnerResponse toWinnerResponse(EventWinnerResult dto) {
+        return EventWinnerResponse.from(dto.id(), dto.eventId(), dto.rankNo(), dto.winnerName(), dto.phoneNumber(), dto.announcedAt());
     }
 
     public void deleteWinner(Long winnerId) {

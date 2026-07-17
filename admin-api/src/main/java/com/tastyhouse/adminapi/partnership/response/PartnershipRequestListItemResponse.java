@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.domain.partnership.application.dto.result.PartnershipRequestListItemResult;
-
 @Schema(description = "제휴 신청 목록 항목 응답")
 public record PartnershipRequestListItemResponse(
     @Schema(description = "제휴 신청 ID", example = "1")
@@ -29,15 +27,17 @@ public record PartnershipRequestListItemResponse(
     @Schema(description = "접수 일시", example = "2026-02-20T10:15:00")
     LocalDateTime createdAt
 ) {
-    public static PartnershipRequestListItemResponse from(PartnershipRequestListItemResult result) {
+    public static PartnershipRequestListItemResponse from(Long id, String businessName, String contactName, String contactPhone,
+                                                            String status, LocalDateTime consultationRequestedAt,
+                                                            LocalDateTime createdAt) {
         return new PartnershipRequestListItemResponse(
-            result.id(),
-            result.businessName(),
-            result.contactName(),
-            result.contactPhone(),
-            result.status() != null ? result.status().name() : null,
-            result.consultationRequestedAt(),
-            result.createdAt()
+            id,
+            businessName,
+            contactName,
+            contactPhone,
+            status,
+            consultationRequestedAt,
+            createdAt
         );
     }
 }

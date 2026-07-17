@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.referral.application.ReferralQueryService;
+import com.tastyhouse.core.domain.member.referral.application.dto.result.MemberReferralResult;
 import com.tastyhouse.webapi.referral.response.MemberReferralListItemResponse;
 
 @Slf4j
@@ -23,7 +24,16 @@ public class ReferralService {
         MemberId memberId = MemberId.of(referrerId);
         return referralQueryService.findByReferrerId(memberId)
             .stream()
-            .map(MemberReferralListItemResponse::from)
+            .map(this::toMemberReferralListItemResponse)
             .toList();
+    }
+
+    private MemberReferralListItemResponse toMemberReferralListItemResponse(MemberReferralResult result) {
+        return MemberReferralListItemResponse.from(
+            result.id(),
+            result.refereeId().value(),
+            result.status().name(),
+            result.createdAt()
+        );
     }
 }
