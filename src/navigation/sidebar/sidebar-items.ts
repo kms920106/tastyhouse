@@ -22,6 +22,7 @@ import {
   Package,
   ReceiptText,
   ShoppingBag,
+  Soup,
   SquareArrowUpRight,
   TicketPercent,
   UserRound,
@@ -165,6 +166,11 @@ export const sidebarItems: NavGroup[] = [
         title: "주문",
         url: "/dashboard/orders",
         icon: Package,
+      },
+      {
+        title: "상품",
+        url: "/dashboard/products",
+        icon: Soup,
       },
       {
         title: "제휴 신청",
