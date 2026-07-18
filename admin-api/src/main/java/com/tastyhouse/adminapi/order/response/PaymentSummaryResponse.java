@@ -40,6 +40,15 @@ public record PaymentSummaryResponse(
         LocalDateTime approvedAt,
         String receiptUrl
     ) {
-        return new PaymentSummaryResponse(id, paymentMethod, paymentStatus, amount, cardCompany, cardNumber, approvedAt, receiptUrl);
+        return new PaymentSummaryResponse(
+            id,
+            paymentMethod,
+            paymentStatus,
+            amount,
+            cardCompany,
+            cardNumber,
+            approvedAt,
+            receiptUrl
+        );
     }
 }

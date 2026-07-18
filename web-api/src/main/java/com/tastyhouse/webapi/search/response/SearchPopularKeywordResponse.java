@@ -19,6 +19,10 @@ public record SearchPopularKeywordResponse(
         String keyword,
         boolean newKeyword
     ) {
-        return new SearchPopularKeywordResponse(rank, keyword, newKeyword);
+        return new SearchPopularKeywordResponse(
+            rank,
+            keyword,
+            newKeyword
+        );
     }
 }

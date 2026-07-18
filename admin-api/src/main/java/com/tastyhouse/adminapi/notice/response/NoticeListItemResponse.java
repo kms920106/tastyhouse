@@ -28,6 +28,12 @@ public record NoticeListItemResponse(
         boolean visible,
         LocalDateTime createdAt
     ) {
-        return new NoticeListItemResponse(id, title, content, visible, createdAt);
+        return new NoticeListItemResponse(
+            id,
+            title,
+            content,
+            visible,
+            createdAt
+        );
     }
 }

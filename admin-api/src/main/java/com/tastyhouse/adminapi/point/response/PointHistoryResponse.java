@@ -24,6 +24,11 @@ public record PointHistoryResponse(
         String reason,
         LocalDateTime createdAt
     ) {
-        return new PointHistoryResponse(pointType, pointAmount, reason, createdAt);
+        return new PointHistoryResponse(
+            pointType,
+            pointAmount,
+            reason,
+            createdAt
+        );
     }
 }

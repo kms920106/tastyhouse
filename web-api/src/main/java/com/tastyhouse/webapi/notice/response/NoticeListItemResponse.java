@@ -24,6 +24,11 @@ public record NoticeListItemResponse(
         String content,
         LocalDateTime createdAt
     ) {
-        return new NoticeListItemResponse(id, title, content, createdAt);
+        return new NoticeListItemResponse(
+            id,
+            title,
+            content,
+            createdAt
+        );
     }
 }

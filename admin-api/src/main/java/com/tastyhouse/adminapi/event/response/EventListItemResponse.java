@@ -34,6 +34,13 @@ public record EventListItemResponse(
         LocalDateTime startAt,
         LocalDateTime endAt
     ) {
-        return new EventListItemResponse(id, name, status, file, startAt, endAt);
+        return new EventListItemResponse(
+            id,
+            name,
+            status,
+            file,
+            startAt,
+            endAt
+        );
     }
 }

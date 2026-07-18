@@ -19,6 +19,9 @@ public record RankDurationResponse(
         LocalDateTime startAt,
         LocalDateTime endAt
     ) {
-        return new RankDurationResponse(startAt, endAt);
+        return new RankDurationResponse(
+            startAt,
+            endAt
+        );
     }
 }

@@ -49,8 +49,16 @@ public record ProductListItemResponse(
         Integer sort
     ) {
         return new ProductListItemResponse(
-            id, shopName, name, originalPrice, discountPrice, discountRate,
-            representative, soldOut, visible, sort
+            id,
+            shopName,
+            name,
+            originalPrice,
+            discountPrice,
+            discountRate,
+            representative,
+            soldOut,
+            visible,
+            sort
         );
     }
 }

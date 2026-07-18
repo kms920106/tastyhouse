@@ -78,10 +78,23 @@ public record ProductDetailResponse(
         LocalDateTime updatedAt
     ) {
         return new ProductDetailResponse(
-            id, shopId, productCategoryId, name, description,
-            originalPrice, discountPrice, discountRate,
-            rating, reviewCount, representative, spiciness,
-            soldOut, visible, sort, createdAt, updatedAt
+            id,
+            shopId,
+            productCategoryId,
+            name,
+            description,
+            originalPrice,
+            discountPrice,
+            discountRate,
+            rating,
+            reviewCount,
+            representative,
+            spiciness,
+            soldOut,
+            visible,
+            sort,
+            createdAt,
+            updatedAt
         );
     }
 }

@@ -14,6 +14,9 @@ public record FollowIsFollowingResponse(
         Long memberId,
         boolean following
     ) {
-        return new FollowIsFollowingResponse(memberId, following);
+        return new FollowIsFollowingResponse(
+            memberId,
+            following
+        );
     }
 }

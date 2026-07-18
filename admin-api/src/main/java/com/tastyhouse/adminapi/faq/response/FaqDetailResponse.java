@@ -40,6 +40,15 @@ public record FaqDetailResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        return new FaqDetailResponse(id, faqCategoryId, question, answer, sort, visible, createdAt, updatedAt);
+        return new FaqDetailResponse(
+            id,
+            faqCategoryId,
+            question,
+            answer,
+            sort,
+            visible,
+            createdAt,
+            updatedAt
+        );
     }
 }

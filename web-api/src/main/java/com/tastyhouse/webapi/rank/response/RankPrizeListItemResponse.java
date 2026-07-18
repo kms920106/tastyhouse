@@ -26,6 +26,12 @@ public record RankPrizeListItemResponse(
         String brand,
         String imageUrl
     ) {
-        return new RankPrizeListItemResponse(id, prizeRank, name, brand, imageUrl);
+        return new RankPrizeListItemResponse(
+            id,
+            prizeRank,
+            name,
+            brand,
+            imageUrl
+        );
     }
 }

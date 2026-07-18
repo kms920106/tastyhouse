@@ -18,6 +18,10 @@ public record FileResponse(
         String name,
         String url
     ) {
-        return new FileResponse(id, name, url);
+        return new FileResponse(
+            id,
+            name,
+            url
+        );
     }
 }

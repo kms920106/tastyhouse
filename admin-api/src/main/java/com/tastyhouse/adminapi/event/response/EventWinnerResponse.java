@@ -32,6 +32,13 @@ public record EventWinnerResponse(
         String phoneNumber,
         LocalDateTime announcedAt
     ) {
-        return new EventWinnerResponse(id, eventId, rankNo, winnerName, phoneNumber, announcedAt);
+        return new EventWinnerResponse(
+            id,
+            eventId,
+            rankNo,
+            winnerName,
+            phoneNumber,
+            announcedAt
+        );
     }
 }

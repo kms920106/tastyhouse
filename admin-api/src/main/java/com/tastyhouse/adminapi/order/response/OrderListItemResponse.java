@@ -49,7 +49,16 @@ public record OrderListItemResponse(
         LocalDateTime createdAt
     ) {
         return new OrderListItemResponse(
-            id, orderNumber, shopName, ordererName, orderMethod, orderStatus, paymentStatus, finalAmount, totalItemCount, createdAt
+            id,
+            orderNumber,
+            shopName,
+            ordererName,
+            orderMethod,
+            orderStatus,
+            paymentStatus,
+            finalAmount,
+            totalItemCount,
+            createdAt
         );
     }
 }

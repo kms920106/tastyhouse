@@ -81,10 +81,23 @@ public record BugReportDetailResponse(
         LocalDateTime updatedAt
     ) {
         return new BugReportDetailResponse(
-            id, member, device, title, content,
-            status, category, priority, assigneeAdminId, adminAnswer, resolvedAt,
-            appVersion, platform, osVersion,
-            images, createdAt, updatedAt
+            id,
+            member,
+            device,
+            title,
+            content,
+            status,
+            category,
+            priority,
+            assigneeAdminId,
+            adminAnswer,
+            resolvedAt,
+            appVersion,
+            platform,
+            osVersion,
+            images,
+            createdAt,
+            updatedAt
         );
     }
 }

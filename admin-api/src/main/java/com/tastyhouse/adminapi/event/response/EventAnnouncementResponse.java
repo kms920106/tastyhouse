@@ -28,6 +28,12 @@ public record EventAnnouncementResponse(
         String content,
         LocalDateTime announcedAt
     ) {
-        return new EventAnnouncementResponse(id, eventId, name, content, announcedAt);
+        return new EventAnnouncementResponse(
+            id,
+            eventId,
+            name,
+            content,
+            announcedAt
+        );
     }
 }

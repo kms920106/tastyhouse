@@ -45,8 +45,15 @@ public record ProductOptionGroupResponse(
         List<ProductOptionResponse> options
     ) {
         return new ProductOptionGroupResponse(
-            id, name, description, required, multipleSelect,
-            minSelect, maxSelect, common, options
+            id,
+            name,
+            description,
+            required,
+            multipleSelect,
+            minSelect,
+            maxSelect,
+            common,
+            options
         );
     }
 }

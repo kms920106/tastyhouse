@@ -15,6 +15,9 @@ public record MemberSummaryResponse(
         Long id,
         String nickname
     ) {
-        return new MemberSummaryResponse(id, nickname);
+        return new MemberSummaryResponse(
+            id,
+            nickname
+        );
     }
 }

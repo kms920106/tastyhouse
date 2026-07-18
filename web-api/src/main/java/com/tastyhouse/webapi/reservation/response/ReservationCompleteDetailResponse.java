@@ -28,6 +28,12 @@ public record ReservationCompleteDetailResponse(
         LocalDateTime reservationAt,
         Integer partySize
     ) {
-        return new ReservationCompleteDetailResponse(id, shopName, shopImageUrl, reservationAt, partySize);
+        return new ReservationCompleteDetailResponse(
+            id,
+            shopName,
+            shopImageUrl,
+            reservationAt,
+            partySize
+        );
     }
 }

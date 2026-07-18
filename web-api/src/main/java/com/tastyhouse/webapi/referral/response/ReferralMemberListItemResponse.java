@@ -24,6 +24,11 @@ public record ReferralMemberListItemResponse(
         String status,
         LocalDateTime createdAt
     ) {
-        return new ReferralMemberListItemResponse(id, refereeId, status, createdAt);
+        return new ReferralMemberListItemResponse(
+            id,
+            refereeId,
+            status,
+            createdAt
+        );
     }
 }

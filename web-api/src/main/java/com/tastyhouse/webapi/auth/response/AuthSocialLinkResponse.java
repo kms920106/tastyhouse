@@ -22,10 +22,20 @@ public record AuthSocialLinkResponse(
     public enum Status {LOGIN, NEEDS_SIGN_UP}
 
     public static AuthSocialLinkResponse ofLogin(AuthJwtResponse jwt) {
-        return new AuthSocialLinkResponse(Status.LOGIN, null, jwt, null);
+        return new AuthSocialLinkResponse(
+            Status.LOGIN,
+            null,
+            jwt,
+            null
+        );
     }
 
     public static AuthSocialLinkResponse ofSignUpRequired(String tempToken, AuthSocialProfileResponse socialProfile) {
-        return new AuthSocialLinkResponse(Status.NEEDS_SIGN_UP, tempToken, null, socialProfile);
+        return new AuthSocialLinkResponse(
+            Status.NEEDS_SIGN_UP,
+            tempToken,
+            null,
+            socialProfile
+        );
     }
 }

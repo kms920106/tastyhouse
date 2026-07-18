@@ -12,10 +12,16 @@ public record AuthPhoneLoginResponse(
     AuthJwtResponse jwt
 ) {
     public static AuthPhoneLoginResponse ofLogin(AuthJwtResponse jwt) {
-        return new AuthPhoneLoginResponse(false, jwt);
+        return new AuthPhoneLoginResponse(
+            false,
+            jwt
+        );
     }
 
     public static AuthPhoneLoginResponse ofSignUpRequired() {
-        return new AuthPhoneLoginResponse(true, null);
+        return new AuthPhoneLoginResponse(
+            true,
+            null
+        );
     }
 }

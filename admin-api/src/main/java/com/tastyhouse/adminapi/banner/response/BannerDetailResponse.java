@@ -54,6 +54,18 @@ public record BannerDetailResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        return new BannerDetailResponse(id, type, title, image, linkUrl, startDate, endDate, sort, visible, createdAt, updatedAt);
+        return new BannerDetailResponse(
+            id,
+            type,
+            title,
+            image,
+            linkUrl,
+            startDate,
+            endDate,
+            sort,
+            visible,
+            createdAt,
+            updatedAt
+        );
     }
 }

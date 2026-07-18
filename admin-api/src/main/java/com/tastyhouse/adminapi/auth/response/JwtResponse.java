@@ -13,6 +13,10 @@ public record JwtResponse(
         String refreshToken,
         String tokenType
     ) {
-        return new JwtResponse(accessToken, refreshToken, tokenType);
+        return new JwtResponse(
+            accessToken,
+            refreshToken,
+            tokenType
+        );
     }
 }

@@ -18,10 +18,18 @@ public record PointBalanceResponse(
         Integer availablePoints,
         Integer expiredThisMonth
     ) {
-        return new PointBalanceResponse(memberId, availablePoints, expiredThisMonth);
+        return new PointBalanceResponse(
+            memberId,
+            availablePoints,
+            expiredThisMonth
+        );
     }
 
     public static PointBalanceResponse zero(Long memberId) {
-        return new PointBalanceResponse(memberId, 0, 0);
+        return new PointBalanceResponse(
+            memberId,
+            0,
+            0
+        );
     }
 }

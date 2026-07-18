@@ -32,6 +32,13 @@ public record FaqListItemResponse(
         boolean visible,
         LocalDateTime createdAt
     ) {
-        return new FaqListItemResponse(id, faqCategoryId, question, sort, visible, createdAt);
+        return new FaqListItemResponse(
+            id,
+            faqCategoryId,
+            question,
+            sort,
+            visible,
+            createdAt
+        );
     }
 }

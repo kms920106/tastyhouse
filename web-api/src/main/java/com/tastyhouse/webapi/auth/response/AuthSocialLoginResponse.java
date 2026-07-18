@@ -19,14 +19,26 @@ public record AuthSocialLoginResponse(
     public enum Status {LOGIN, NEEDS_SIGN_UP, NEEDS_LINKING}
 
     public static AuthSocialLoginResponse ofLogin(AuthJwtResponse jwt) {
-        return new AuthSocialLoginResponse(Status.LOGIN, null, jwt);
+        return new AuthSocialLoginResponse(
+            Status.LOGIN,
+            null,
+            jwt
+        );
     }
 
     public static AuthSocialLoginResponse ofSignUpRequired(String tempToken) {
-        return new AuthSocialLoginResponse(Status.NEEDS_SIGN_UP, tempToken, null);
+        return new AuthSocialLoginResponse(
+            Status.NEEDS_SIGN_UP,
+            tempToken,
+            null
+        );
     }
 
     public static AuthSocialLoginResponse ofLinkingRequired(String tempToken) {
-        return new AuthSocialLoginResponse(Status.NEEDS_LINKING, tempToken, null);
+        return new AuthSocialLoginResponse(
+            Status.NEEDS_LINKING,
+            tempToken,
+            null
+        );
     }
 }

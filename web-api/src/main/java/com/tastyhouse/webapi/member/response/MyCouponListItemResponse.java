@@ -79,7 +79,8 @@ public record MyCouponListItemResponse(
         return new MyCouponListItemResponse(
             id,
             couponId,
-            name, description,
+            name,
+            description,
             discountType,
             discountAmount,
             maxDiscountAmount,

@@ -36,6 +36,14 @@ public record ProductResponse(
         Integer discountPrice,
         List<ProductBatchOptionResponse> options
     ) {
-        return new ProductResponse(id, available, name, imageUrl, originalPrice, discountPrice, options);
+        return new ProductResponse(
+            id,
+            available,
+            name,
+            imageUrl,
+            originalPrice,
+            discountPrice,
+            options
+        );
     }
 }

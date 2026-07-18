@@ -22,6 +22,11 @@ public record OrderProductOptionResponse(
         String optionName,
         Integer additionalPrice
     ) {
-        return new OrderProductOptionResponse(id, optionGroupName, optionName, additionalPrice);
+        return new OrderProductOptionResponse(
+            id,
+            optionGroupName,
+            optionName,
+            additionalPrice
+        );
     }
 }

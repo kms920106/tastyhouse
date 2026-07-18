@@ -22,6 +22,11 @@ public record ProductOptionResponse(
         Integer additionalPrice,
         boolean soldOut
     ) {
-        return new ProductOptionResponse(id, name, additionalPrice, soldOut);
+        return new ProductOptionResponse(
+            id,
+            name,
+            additionalPrice,
+            soldOut
+        );
     }
 }

@@ -18,6 +18,10 @@ public record ProductBatchOptionResponse(
         String name,
         Integer price
     ) {
-        return new ProductBatchOptionResponse(id, name, price);
+        return new ProductBatchOptionResponse(
+            id,
+            name,
+            price
+        );
     }
 }

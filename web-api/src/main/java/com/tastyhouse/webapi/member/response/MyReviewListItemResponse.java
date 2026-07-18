@@ -14,6 +14,9 @@ public record MyReviewListItemResponse(
         Long reviewId,
         String imageUrl
     ) {
-        return new MyReviewListItemResponse(reviewId, imageUrl);
+        return new MyReviewListItemResponse(
+            reviewId,
+            imageUrl
+        );
     }
 }

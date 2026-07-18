@@ -46,6 +46,16 @@ public record BannerListItemResponse(
         Integer sort,
         boolean visible
     ) {
-        return new BannerListItemResponse(id, type, title, file, linkUrl, startDate, endDate, sort, visible);
+        return new BannerListItemResponse(
+            id,
+            type,
+            title,
+            file,
+            linkUrl,
+            startDate,
+            endDate,
+            sort,
+            visible
+        );
     }
 }

@@ -14,6 +14,9 @@ public record PaymentCancelResponse(
         String code,
         String message
     ) {
-        return new PaymentCancelResponse(code, message);
+        return new PaymentCancelResponse(
+            code,
+            message
+        );
     }
 }

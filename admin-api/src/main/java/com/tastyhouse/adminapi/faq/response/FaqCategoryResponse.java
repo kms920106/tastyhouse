@@ -28,6 +28,12 @@ public record FaqCategoryResponse(
         boolean visible,
         LocalDateTime createdAt
     ) {
-        return new FaqCategoryResponse(id, name, sort, visible, createdAt);
+        return new FaqCategoryResponse(
+            id,
+            name,
+            sort,
+            visible,
+            createdAt
+        );
     }
 }

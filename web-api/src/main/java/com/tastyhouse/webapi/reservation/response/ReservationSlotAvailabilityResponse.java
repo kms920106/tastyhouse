@@ -21,6 +21,10 @@ public record ReservationSlotAvailabilityResponse(
         boolean hasMyReservation,
         List<ReservationSlot> slots
     ) {
-        return new ReservationSlotAvailabilityResponse(date, hasMyReservation, slots);
+        return new ReservationSlotAvailabilityResponse(
+            date,
+            hasMyReservation,
+            slots
+        );
     }
 }

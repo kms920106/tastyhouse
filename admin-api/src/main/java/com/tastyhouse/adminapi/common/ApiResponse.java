@@ -26,12 +26,22 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, null, data, null);
+        return new ApiResponse<>(
+            true,
+            null,
+            data,
+            null
+        );
     }
 
     public static <T> ApiResponse<List<T>> success(List<T> data, int page, int size, long totalElements) {
         int totalPages = (int) Math.ceil((double) totalElements / size);
         Pagination pageInfo = new Pagination(page, size, totalElements, totalPages);
-        return new ApiResponse<>(true, null, data, pageInfo);
+        return new ApiResponse<>(
+            true,
+            null,
+            data,
+            pageInfo
+        );
     }
 }

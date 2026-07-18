@@ -361,13 +361,13 @@ reference 구현: `admin-api`의 `notice/request/NoticeUpdateRequest`(Bean Valid
 
 ## Response record 정적 팩토리 시그니처 줄바꿈 규칙
 
-`*Response.java`의 정적 팩토리 메서드(`from(...)` / `of(...)`)는 **파라미터가 2개 이상이면 여는 괄호 다음 줄부터 한 줄에 하나씩 줄바꿈**하고, **파라미터가 0~1개면 한 줄로 유지**합니다. 전수 조사 결과 이미 다수(92개)가 줄바꿈된 형태였고 소수(24개)만 한 줄에 여러 파라미터를 몰아 쓰고 있어, 같은 목적(응답 DTO 생성)의 메서드가 파일마다 다른 포매팅이 되어 있었습니다. 다수파 형태로 통일해 리뷰·검색·패턴 일치를 쉽게 합니다. 단일 파라미터까지 강제로 줄바꿈하면 오히려 장황해지므로 그 경우는 예외로 둡니다.
+`*Response.java`의 정적 팩토리 메서드(`from(...)` / `of(...)` 등, `ofLogin`류 변형·`zero`·`success` 등 이름과 무관한 모든 정적 팩토리 포함)는 **시그니처 파라미터와 `return new Xxx(...)` 생성자 호출 인자 모두, 2개 이상이면 여는 괄호 다음 줄부터 한 줄에 하나씩 줄바꿈**하고, **0~1개면 한 줄로 유지**합니다. 처음에는 시그니처 파라미터만 이 규칙 대상이고 `return new` 본문은 적용 제외였으나, 전수 조사 결과 시그니처는 이미 통일됐음에도 `return new` 본문만 파일마다 한 줄에 몰리거나(예: 과거 `JwtResponse`) 여러 개씩 묶여(예: 과거 `BugReportDetailResponse`) 있어 같은 목적(응답 DTO 생성)의 코드가 반쪽만 통일된 상태였습니다. 시그니처와 동일한 임계값(2개 이상 줄바꿈, 0~1개 한 줄)을 `return new` 본문에도 적용해 완전히 통일합니다.
 
-- **적용 대상**: `from`/`of` 등 정적 팩토리 메서드의 **시그니처 파라미터**만 대상입니다.
-- **적용 제외**: `return new Xxx(...)` 본문의 인자 조립, record 컴포넌트 선언부(생성자 파라미터 목록)는 이 규칙과 무관하며 기존 형태(대부분 이미 한 줄에 하나씩)를 그대로 둡니다.
+- **적용 대상**: 정적 팩토리 메서드의 **시그니처 파라미터**와 그 본문의 **`return new Xxx(...)` / `return new Xxx<>(...)` 생성자 호출 인자** 둘 다.
+- **적용 제외**: record 컴포넌트 선언부(생성자 파라미터 목록), `@Schema` 등은 이 규칙과 무관하며 기존 형태를 그대로 둡니다. 제네릭 `<>`(예: `new ApiResponse<>(`)는 그대로 보존합니다.
 
 ```java
-// Before (파라미터 2개 이상을 한 줄에)
+// Before (파라미터 2개 이상을 한 줄에, return new도 한 줄)
 public static JwtResponse of(String accessToken, String refreshToken, String tokenType) {
     return new JwtResponse(accessToken, refreshToken, tokenType);
 }
@@ -378,7 +378,11 @@ public static JwtResponse of(
     String refreshToken,
     String tokenType
 ) {
-    return new JwtResponse(accessToken, refreshToken, tokenType);
+    return new JwtResponse(
+        accessToken,
+        refreshToken,
+        tokenType
+    );
 }
 
 // 파라미터 0~1개는 한 줄 유지 (그대로)
@@ -389,7 +393,7 @@ public static EmailVerifyTokenResponse from(String emailVerifyToken) {
 
 자동 강제 도구(spotless 등)는 도입하지 않으며, 신규 작성·기존 파일 수정 시 이 규칙을 수동으로 따릅니다.
 
-reference 구현: `admin-api`의 `auth/response/JwtResponse`, `event/response/EventWinnerResponse`(파라미터 6개), `web-api`의 `notice/response/NoticeListItemResponse`(이미 줄바꿈된 다수파 예시), `member/response/MyReviewListItemResponse`(파라미터 2개로 줄바꿈 전환).
+reference 구현: `admin-api`의 `auth/response/JwtResponse`, `coupon/response/CouponDetailResponse`(파라미터 15개, `return new`도 한 줄에 하나씩 — 시그니처·본문 통일의 기준 예시), `event/response/EventWinnerResponse`(파라미터 6개), `bug/response/BugReportDetailResponse`(과거 `return new` 인자가 여러 개씩 묶여 있던 것을 전환), `common/ApiResponse`(제네릭 `ApiResponse<>`도 동일 적용), `web-api`의 `notice/response/NoticeListItemResponse`(이미 줄바꿈된 다수파 예시), `member/response/MyReviewListItemResponse`(파라미터 2개로 줄바꿈 전환).
 
 ## 코딩 스타일 (import 순서)
 

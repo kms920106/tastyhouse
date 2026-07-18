@@ -32,6 +32,13 @@ public record NoticeDetailResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
-        return new NoticeDetailResponse(id, title, content, visible, createdAt, updatedAt);
+        return new NoticeDetailResponse(
+            id,
+            title,
+            content,
+            visible,
+            createdAt,
+            updatedAt
+        );
     }
 }

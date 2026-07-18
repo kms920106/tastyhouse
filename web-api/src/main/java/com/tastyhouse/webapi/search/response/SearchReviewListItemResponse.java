@@ -14,6 +14,9 @@ public record SearchReviewListItemResponse(
         Long id,
         String imageUrl
     ) {
-        return new SearchReviewListItemResponse(id, imageUrl);
+        return new SearchReviewListItemResponse(
+            id,
+            imageUrl
+        );
     }
 }

@@ -26,6 +26,12 @@ public record ProductCategoryResponse(
         Integer sort,
         boolean visible
     ) {
-        return new ProductCategoryResponse(id, shopId, name, sort, visible);
+        return new ProductCategoryResponse(
+            id,
+            shopId,
+            name,
+            sort,
+            visible
+        );
     }
 }

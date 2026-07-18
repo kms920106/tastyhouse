@@ -45,6 +45,16 @@ public record BugReportListItemResponse(
         long imageCount,
         LocalDateTime createdAt
     ) {
-        return new BugReportListItemResponse(id, member, device, title, status, category, priority, imageCount, createdAt);
+        return new BugReportListItemResponse(
+            id,
+            member,
+            device,
+            title,
+            status,
+            category,
+            priority,
+            imageCount,
+            createdAt
+        );
     }
 }
