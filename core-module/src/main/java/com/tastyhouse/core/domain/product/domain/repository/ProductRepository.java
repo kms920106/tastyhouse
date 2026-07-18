@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
+import com.tastyhouse.core.domain.product.application.dto.ProductSearchCondition;
+import com.tastyhouse.core.domain.product.application.dto.result.ProductListItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -15,6 +17,8 @@ public interface ProductRepository {
     PageResult<TodayDiscountProductResult> findTodayDiscountProducts(PageQuery pageQuery);
 
     PageResult<SearchProductItemResult> searchByKeyword(String keyword, PageQuery pageQuery);
+
+    PageResult<ProductListItemResult> findProducts(ProductSearchCondition condition, PageQuery pageQuery);
 
     List<Product> findActiveByShopIdOrderByRepresentativeAndRating(Long shopId);
 

@@ -30,6 +30,7 @@ import com.tastyhouse.core.domain.product.domain.repository.ProductRepresentativ
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionId;
+import com.tastyhouse.core.domain.product.application.dto.ProductSearchCondition;
 import com.tastyhouse.core.domain.product.application.dto.command.BatchItem;
 import com.tastyhouse.core.domain.product.application.dto.command.ProductBatchQuery;
 import com.tastyhouse.core.domain.product.application.dto.result.BatchOptionResult;
@@ -37,6 +38,7 @@ import com.tastyhouse.core.domain.product.application.dto.result.OptionGroupResu
 import com.tastyhouse.core.domain.product.application.dto.result.OptionInfo;
 import com.tastyhouse.core.domain.product.application.dto.result.OptionResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductBatchResult;
+import com.tastyhouse.core.domain.product.application.dto.result.ProductListItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
@@ -104,6 +106,11 @@ public class ProductQueryService {
     public PageResult<SearchProductItemResult> searchByKeyword(String keyword, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return productRepository.searchByKeyword(keyword, pageQuery);
+    }
+
+    public PageResult<ProductListItemResult> findProducts(ProductSearchCondition condition, int page, int size) {
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return productRepository.findProducts(condition, pageQuery);
     }
 
     public ProductOptionsResult findProductOptions(Long productId) {

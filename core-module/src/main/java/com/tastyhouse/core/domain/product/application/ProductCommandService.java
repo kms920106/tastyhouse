@@ -25,6 +25,7 @@ import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.product.application.dto.command.ProductCategoryCreateCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.ProductCreateCommand;
+import com.tastyhouse.core.domain.product.application.dto.command.ProductUpdateCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductBbqCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductImageCommand;
 import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOptionCommand;
@@ -131,6 +132,26 @@ public class ProductCommandService {
             cmd.visible()
         );
         productOptionRepository.save(option);
+    }
+
+    @Transactional
+    public void updateProduct(ProductId productId, ProductUpdateCommand cmd) {
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+        product.update(
+            cmd.productCategoryId(),
+            cmd.name(),
+            cmd.description(),
+            cmd.originalPrice(),
+            cmd.discountPrice(),
+            cmd.discountRate(),
+            cmd.representative(),
+            cmd.spiciness(),
+            cmd.soldOut(),
+            cmd.visible(),
+            cmd.sort()
+        );
+        productRepository.save(product);
     }
 
     @SuppressWarnings("unused")

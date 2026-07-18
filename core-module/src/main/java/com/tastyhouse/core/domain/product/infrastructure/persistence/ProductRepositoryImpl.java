@@ -4,16 +4,21 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
+import com.tastyhouse.core.domain.product.application.dto.ProductSearchCondition;
+import com.tastyhouse.core.domain.product.application.dto.result.ProductListItemResult;
+import com.tastyhouse.core.domain.product.application.dto.result.QProductListItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.QTodayDiscountProductResult;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
@@ -129,6 +134,72 @@ public class ProductRepositoryImpl implements ProductRepository {
             .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public PageResult<ProductListItemResult> findProducts(ProductSearchCondition condition, PageQuery pageQuery) {
+        Long total = queryFactory
+            .select(product.count())
+            .from(product)
+            .where(
+                shopIdEq(condition.shopId()),
+                categoryIdEq(condition.productCategoryId()),
+                nameContains(condition.name()),
+                visibleEq(condition.visible()),
+                soldOutEq(condition.soldOut())
+            )
+            .fetchOne();
+
+        if (total == null || total == 0) return PageResult.empty(pageQuery.page(), pageQuery.size());
+
+        List<ProductListItemResult> content = queryFactory
+            .select(new QProductListItemResult(
+                product.id,
+                shop.name,
+                product.name,
+                product.originalPrice,
+                product.discountInfo.discountPrice,
+                product.discountInfo.discountRate,
+                product.representative,
+                product.soldOut,
+                product.visible,
+                product.sort
+            ))
+            .from(product)
+            .innerJoin(shop).on(product.shopId.eq(shop.id))
+            .where(
+                shopIdEq(condition.shopId()),
+                categoryIdEq(condition.productCategoryId()),
+                nameContains(condition.name()),
+                visibleEq(condition.visible()),
+                soldOutEq(condition.soldOut())
+            )
+            .orderBy(product.sort.asc(), product.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    private BooleanExpression shopIdEq(Long shopId) {
+        return shopId != null ? product.shopId.eq(shopId) : null;
+    }
+
+    private BooleanExpression categoryIdEq(Long productCategoryId) {
+        return productCategoryId != null ? product.productCategoryId.eq(productCategoryId) : null;
+    }
+
+    private BooleanExpression nameContains(String name) {
+        return StringUtils.hasText(name) ? product.name.containsIgnoreCase(name) : null;
+    }
+
+    private BooleanExpression visibleEq(Boolean visible) {
+        return visible != null ? product.visible.eq(visible) : null;
+    }
+
+    private BooleanExpression soldOutEq(Boolean soldOut) {
+        return soldOut != null ? product.soldOut.eq(soldOut) : null;
     }
 
     @Override
