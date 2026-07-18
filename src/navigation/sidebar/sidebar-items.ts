@@ -24,6 +24,7 @@ import {
   ShoppingBag,
   Soup,
   SquareArrowUpRight,
+  Star,
   TicketPercent,
   Trophy,
   UserRound,
@@ -177,6 +178,11 @@ export const sidebarItems: NavGroup[] = [
         title: "랭킹",
         url: "/dashboard/ranks",
         icon: Trophy,
+      },
+      {
+        title: "리뷰",
+        url: "/dashboard/reviews",
+        icon: Star,
       },
       {
         title: "제휴 신청",
