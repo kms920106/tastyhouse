@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.rank.domain.vo.RankPrizeId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -57,5 +58,16 @@ public class RankPrize extends BaseEntity {
 
     public static RankPrize of(Long rankId, Integer prizeRank, String name, String brand, Long imageFileId) {
         return new RankPrize(rankId, prizeRank, name, brand, imageFileId);
+    }
+
+    public RankPrizeId getRankPrizeId() {
+        return RankPrizeId.of(this.id);
+    }
+
+    public void update(Integer prizeRank, String name, String brand, Long imageFileId) {
+        this.prizeRank = prizeRank;
+        this.name = name;
+        this.brand = brand;
+        this.imageFileId = imageFileId;
     }
 }

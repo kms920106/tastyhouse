@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.core.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
@@ -48,5 +49,19 @@ public class RankPeriod extends BaseEntity {
 
     public static RankPeriod of(LocalDateTime startAt, LocalDateTime endAt) {
         return new RankPeriod(startAt, endAt, true);
+    }
+
+    public static RankPeriod of(LocalDateTime startAt, LocalDateTime endAt, boolean visible) {
+        return new RankPeriod(startAt, endAt, visible);
+    }
+
+    public RankPeriodId getRankPeriodId() {
+        return RankPeriodId.of(this.id);
+    }
+
+    public void update(LocalDateTime startAt, LocalDateTime endAt, boolean visible) {
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.visible = visible;
     }
 }

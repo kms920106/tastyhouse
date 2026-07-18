@@ -13,9 +13,17 @@ import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
 import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
 import com.tastyhouse.core.domain.rank.domain.repository.RankInfoRepository;
+import com.tastyhouse.core.domain.rank.domain.repository.RankPeriodRepository;
+import com.tastyhouse.core.domain.rank.domain.repository.RankPrizeRepository;
+import com.tastyhouse.core.domain.rank.domain.vo.RankPeriodId;
+import com.tastyhouse.core.domain.rank.domain.vo.RankPrizeId;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankDurationResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.RankPeriodResult;
+import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeManagementResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
 
 @Service
 @Transactional(readOnly = true)
@@ -24,6 +32,8 @@ public class RankQueryService {
 
     private final RankInfoRepository rankInfoRepository;
     private final MemberReviewRankRepository memberReviewRankRepository;
+    private final RankPeriodRepository rankPeriodRepository;
+    private final RankPrizeRepository rankPrizeRepository;
 
     public Optional<RankDurationResult> findActiveDuration() {
         return rankInfoRepository.findActiveDuration();
@@ -43,5 +53,23 @@ public class RankQueryService {
 
     public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType) {
         return memberReviewRankRepository.findLatestByMemberIdAndRankType(memberId, rankType);
+    }
+
+    public List<RankPeriodResult> findAllPeriods() {
+        return rankPeriodRepository.findAllPeriods();
+    }
+
+    public RankPeriodResult findPeriod(RankPeriodId id) {
+        return rankPeriodRepository.findPeriodById(id)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
+    }
+
+    public List<RankPrizeManagementResult> findPrizesByPeriod(RankPeriodId periodId) {
+        return rankPrizeRepository.findByPeriodId(periodId);
+    }
+
+    public RankPrizeManagementResult findPrize(RankPrizeId id) {
+        return rankPrizeRepository.findPrizeById(id)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
     }
 }

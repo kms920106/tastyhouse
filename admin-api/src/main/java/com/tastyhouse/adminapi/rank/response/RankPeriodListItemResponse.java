@@ -1,0 +1,30 @@
+package com.tastyhouse.adminapi.rank.response;
+
+import java.time.LocalDateTime;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "랭킹 기간 목록 항목 응답")
+public record RankPeriodListItemResponse(
+    @Schema(description = "기간 ID", example = "1")
+    Long id,
+
+    @Schema(description = "시작일시", example = "2026-08-01T00:00:00")
+    LocalDateTime startAt,
+
+    @Schema(description = "종료일시", example = "2026-08-31T23:59:59")
+    LocalDateTime endAt,
+
+    @Schema(description = "노출 여부", example = "true")
+    boolean visible
+) {
+
+    public static RankPeriodListItemResponse from(
+        Long id,
+        LocalDateTime startAt,
+        LocalDateTime endAt,
+        boolean visible
+    ) {
+        return new RankPeriodListItemResponse(id, startAt, endAt, visible);
+    }
+}

@@ -150,6 +150,8 @@ public enum ErrorCode {
 
     // 랭크
     RANK_TYPE_UNKNOWN(400, "RANK_TYPE_UNKNOWN", "알 수 없는 랭크 타입입니다."),
+    RANK_PERIOD_NOT_FOUND(404, "RANK_PERIOD_NOT_FOUND", "랭킹 기간을 찾을 수 없습니다."),
+    RANK_PRIZE_NOT_FOUND(404, "RANK_PRIZE_NOT_FOUND", "랭킹 경품을 찾을 수 없습니다."),
 
     // 배너
     BANNER_TYPE_UNKNOWN(400, "BANNER_TYPE_UNKNOWN", "알 수 없는 배너 유형입니다."),
