@@ -1,0 +1,33 @@
+package com.tastyhouse.core.domain.review.application.dto.result;
+
+import java.time.LocalDateTime;
+
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+
+public record ReviewCommentListItemResult(
+    Long id,
+    MemberId memberId,
+    String memberNickname,
+    String content,
+    boolean hidden,
+    LocalDateTime createdAt
+) {
+
+    public static ReviewCommentListItemResult of(
+        Long id,
+        MemberId memberId,
+        String memberNickname,
+        String content,
+        boolean hidden,
+        LocalDateTime createdAt
+    ) {
+        return new ReviewCommentListItemResult(
+            id,
+            memberId,
+            memberNickname,
+            content,
+            hidden,
+            createdAt
+        );
+    }
+}

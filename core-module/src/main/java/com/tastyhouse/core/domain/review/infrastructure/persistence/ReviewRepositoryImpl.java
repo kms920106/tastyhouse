@@ -10,12 +10,14 @@ import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.model.QReviewComment;
@@ -26,13 +28,18 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.QMemberReviewCountResult;
+import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.MyReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.QBestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.QLatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.QReviewDetailResult;
+import com.tastyhouse.core.domain.review.application.dto.result.QReviewListItemResult;
+import com.tastyhouse.core.domain.review.application.dto.result.QReviewManagementDetailResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewListItemResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewManagementDetailResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -885,6 +892,114 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     @Override
     public void deleteById(ReviewId reviewId) {
         reviewJpaRepository.deleteById(reviewId.value());
+    }
+
+    @Override
+    public PageResult<ReviewListItemResult> findReviews(ReviewSearchCondition condition, PageQuery pageQuery) {
+        JPAQuery<ReviewListItemResult> query = queryFactory
+            .select(new QReviewListItemResult(
+                review.id,
+                review.shopId,
+                review.productId,
+                review.memberId,
+                member.nickname,
+                review.totalRating,
+                review.content,
+                review.hidden,
+                review.createdAt
+            ))
+            .from(review)
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
+            .where(
+                shopIdEq(condition.shopId()),
+                productIdEq(condition.productId()),
+                memberIdEq(condition.memberId()),
+                hiddenEq(condition.hidden()),
+                contentContains(condition.content()),
+                ratingBetween(condition.minRating(), condition.maxRating())
+            )
+            .orderBy(review.createdAt.desc());
+
+        long total = query.fetch().size();
+
+        List<ReviewListItemResult> reviews = query
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
+    }
+
+    private BooleanExpression shopIdEq(Long shopId) {
+        return shopId != null ? review.shopId.eq(shopId) : null;
+    }
+
+    private BooleanExpression productIdEq(Long productId) {
+        return productId != null ? review.productId.eq(productId) : null;
+    }
+
+    private BooleanExpression memberIdEq(Long memberId) {
+        return memberId != null ? Expressions.numberPath(Long.class, review, "memberId").eq(memberId) : null;
+    }
+
+    private BooleanExpression hiddenEq(Boolean hidden) {
+        return hidden != null ? review.hidden.eq(hidden) : null;
+    }
+
+    private BooleanExpression contentContains(String content) {
+        return StringUtils.hasText(content) ? review.content.containsIgnoreCase(content) : null;
+    }
+
+    private BooleanExpression ratingBetween(Double minRating, Double maxRating) {
+        if (minRating != null && maxRating != null) {
+            return review.totalRating.between(minRating, maxRating);
+        }
+        if (minRating != null) {
+            return review.totalRating.goe(minRating);
+        }
+        if (maxRating != null) {
+            return review.totalRating.loe(maxRating);
+        }
+        return null;
+    }
+
+    @Override
+    public Optional<ReviewManagementDetailResult> findReviewManagementDetail(ReviewId reviewId) {
+        ReviewManagementDetailResult result = queryFactory
+            .select(new QReviewManagementDetailResult(
+                review.id,
+                shop.id,
+                shop.name,
+                station.stationName,
+                review.content,
+                review.totalRating,
+                review.tasteRating,
+                review.amountRating,
+                review.priceRating,
+                review.atmosphereRating,
+                review.kindnessRating,
+                review.hygieneRating,
+                review.willRevisit,
+                review.hidden,
+                review.memberId,
+                member.nickname,
+                uploadedFile.filePath,
+                review.createdAt
+            ))
+            .from(review)
+            .innerJoin(shop).on(review.shopId.eq(shop.id))
+            .innerJoin(station).on(shop.stationId.eq(station.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
+            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .where(review.id.eq(reviewId.value()))
+            .fetchOne();
+
+        if (result != null) {
+            List<String> imageUrls = findImageUrlsByReviewId(reviewId.value());
+            result = result.withImageUrls(imageUrls);
+        }
+
+        return Optional.ofNullable(result);
     }
 
     @Override

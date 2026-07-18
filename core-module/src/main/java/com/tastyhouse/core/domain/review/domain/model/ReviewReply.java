@@ -37,7 +37,7 @@ public class ReviewReply extends BaseEntity {
     private String content;
 
     @Column(name = "is_hidden", nullable = false)
-    private final boolean hidden = false;
+    private boolean hidden;
 
     protected ReviewReply() {
     }
@@ -47,5 +47,13 @@ public class ReviewReply extends BaseEntity {
         this.memberId = memberId;
         this.replyToMemberId = replyToMemberId;
         this.content = content;
+    }
+
+    public void hide() {
+        this.hidden = true;
+    }
+
+    public void unhide() {
+        this.hidden = false;
     }
 }

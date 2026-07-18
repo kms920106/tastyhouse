@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.review.application;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -27,11 +28,16 @@ import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.follow.application.FollowQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
+import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.MyReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ProductReviewStatisticsResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewCommentListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewListItemResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewManagementDetailResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewReplyListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ShopReviewStatisticsResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -241,5 +247,74 @@ public class ReviewQueryService {
 
     public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return reviewRepository.countReviewsByMemberWithPeriod(startDate, endDate);
+    }
+
+    public PageResult<ReviewListItemResult> findReviews(ReviewSearchCondition condition, int page, int size) {
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return reviewRepository.findReviews(condition, pageQuery);
+    }
+
+    public Optional<ReviewManagementDetailResult> findReviewManagementDetail(ReviewId reviewId) {
+        return reviewRepository.findReviewManagementDetail(reviewId).map(result -> {
+            List<Long> tagIds = reviewTagRepository.findTagIdsByReviewId(reviewId.value());
+            if (!tagIds.isEmpty()) {
+                List<String> tagNames = tagRepository.findTagNamesByIds(tagIds);
+                return result.withTagNames(tagNames);
+            }
+            return result;
+        });
+    }
+
+    public List<ReviewCommentListItemResult> findCommentsIncludingHidden(ReviewId reviewId) {
+        List<ReviewComment> comments = reviewCommentRepository.findByReviewIdOrderByCreatedAtDesc(reviewId);
+        Map<Long, MemberWithProfileImageResult> memberMap = findMemberWithProfileImagesByIds(
+            comments.stream().map(comment -> comment.getMemberId().value()).toList()
+        );
+
+        return comments.stream()
+            .map(comment -> ReviewCommentListItemResult.of(
+                comment.getId(),
+                comment.getMemberId(),
+                nicknameOf(memberMap, comment.getMemberId().value()),
+                comment.getContent(),
+                comment.isHidden(),
+                comment.getCreatedAt()
+            ))
+            .toList();
+    }
+
+    public List<ReviewReplyListItemResult> findRepliesIncludingHidden(List<ReviewCommentId> commentIds) {
+        if (commentIds.isEmpty()) {
+            return List.of();
+        }
+        List<ReviewReply> replies = reviewReplyRepository.findByCommentIdInOrderByCreatedAtAsc(commentIds);
+
+        List<Long> memberIds = new ArrayList<>();
+        for (ReviewReply reply : replies) {
+            memberIds.add(reply.getMemberId().value());
+            if (reply.getReplyToMemberId() != null) {
+                memberIds.add(reply.getReplyToMemberId().value());
+            }
+        }
+        Map<Long, MemberWithProfileImageResult> memberMap = findMemberWithProfileImagesByIds(memberIds);
+
+        return replies.stream()
+            .map(reply -> ReviewReplyListItemResult.of(
+                reply.getId(),
+                reply.getCommentId(),
+                reply.getMemberId(),
+                nicknameOf(memberMap, reply.getMemberId().value()),
+                reply.getReplyToMemberId(),
+                reply.getReplyToMemberId() != null ? nicknameOf(memberMap, reply.getReplyToMemberId().value()) : null,
+                reply.getContent(),
+                reply.isHidden(),
+                reply.getCreatedAt()
+            ))
+            .toList();
+    }
+
+    private String nicknameOf(Map<Long, MemberWithProfileImageResult> memberMap, Long memberId) {
+        MemberWithProfileImageResult member = memberMap.get(memberId);
+        return member != null ? member.nickname() : null;
     }
 }

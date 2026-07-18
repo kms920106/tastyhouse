@@ -1,0 +1,24 @@
+package com.tastyhouse.core.domain.review.application.dto.result;
+
+import java.time.LocalDateTime;
+
+import com.querydsl.core.annotations.QueryProjection;
+
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+
+public record ReviewListItemResult(
+    Long id,
+    Long shopId,
+    Long productId,
+    MemberId memberId,
+    String memberNickname,
+    Double totalRating,
+    String content,
+    boolean hidden,
+    LocalDateTime createdAt
+) {
+
+    @QueryProjection
+    public ReviewListItemResult {
+    }
+}

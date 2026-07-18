@@ -607,7 +607,7 @@ CREATE TABLE REVIEW
     atmosphere_rating DOUBLE,                            -- 분위기 평점
     kindness_rating   DOUBLE,                            -- 친절 평점
     hygiene_rating    DOUBLE,                            -- 위생 평점
-    will_revisit      TINYINT(1),                        -- 재방문 의향 (1: 있음)
+    will_revisit      TINYINT(1) NOT NULL DEFAULT 0,     -- 재방문 의향 (1: 있음)
     is_hidden         TINYINT(1) NOT NULL DEFAULT 0,     -- 숨김 여부 (1: 숨김)
     created_at        DATETIME   NOT NULL,               -- 생성 일시
     updated_at        DATETIME   NOT NULL,               -- 수정 일시

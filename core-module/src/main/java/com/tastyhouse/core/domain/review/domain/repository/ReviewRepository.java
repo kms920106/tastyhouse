@@ -9,10 +9,13 @@ import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
+import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.MyReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewListItemResult;
+import com.tastyhouse.core.domain.review.application.dto.result.ReviewManagementDetailResult;
 import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -74,6 +77,10 @@ public interface ReviewRepository {
     Optional<Review> findById(ReviewId reviewId);
 
     Optional<Review> findByIdAndMemberId(ReviewId reviewId, MemberId memberId);
+
+    PageResult<ReviewListItemResult> findReviews(ReviewSearchCondition condition, PageQuery pageQuery);
+
+    Optional<ReviewManagementDetailResult> findReviewManagementDetail(ReviewId reviewId);
 
     long countVisibleReviewsByMemberId(MemberId memberId);
 

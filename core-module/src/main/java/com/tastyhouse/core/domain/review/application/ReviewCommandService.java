@@ -33,7 +33,11 @@ import com.tastyhouse.core.domain.review.application.dto.command.ReviewReplyCrea
 import com.tastyhouse.core.domain.review.application.dto.command.ReviewUpdateCommand;
 import com.tastyhouse.core.domain.review.application.dto.command.ToggleReviewLikeCommand;
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewResult;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.core.domain.review.domain.vo.ReviewReplyId;
 import com.tastyhouse.core.exception.AccessDeniedException;
+import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 
 @Service
@@ -171,6 +175,69 @@ public class ReviewCommandService {
             ));
             return true;
         }
+    }
+
+    public void changeReviewHidden(ReviewId reviewId, boolean hidden) {
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        if (hidden) {
+            review.hide();
+        } else {
+            review.unhide();
+        }
+    }
+
+    public void deleteReview(ReviewId reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        reviewImageRepository.deleteByReviewId(reviewId.value());
+        reviewTagRepository.deleteByReviewId(reviewId.value());
+        reviewRepository.deleteById(reviewId);
+
+        eventPublisher.publishEvent(new ReviewDeletedEvent(
+            reviewId,
+            review.getMemberId(),
+            review.getProductId(),
+            LocalDateTime.now()
+        ));
+    }
+
+    public void changeCommentHidden(ReviewCommentId commentId, boolean hidden) {
+        ReviewComment comment = reviewCommentRepository.findById(commentId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND));
+
+        if (hidden) {
+            comment.hide();
+        } else {
+            comment.unhide();
+        }
+    }
+
+    public void deleteComment(ReviewCommentId commentId) {
+        reviewCommentRepository.findById(commentId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND));
+
+        reviewCommentRepository.deleteById(commentId);
+    }
+
+    public void changeReplyHidden(ReviewReplyId replyId, boolean hidden) {
+        ReviewReply reply = reviewReplyRepository.findById(replyId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_REPLY_NOT_FOUND));
+
+        if (hidden) {
+            reply.hide();
+        } else {
+            reply.unhide();
+        }
+    }
+
+    public void deleteReply(ReviewReplyId replyId) {
+        reviewReplyRepository.findById(replyId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_REPLY_NOT_FOUND));
+
+        reviewReplyRepository.deleteById(replyId);
     }
 
     public ReviewComment createComment(ReviewCommentCreateCommand cmd) {

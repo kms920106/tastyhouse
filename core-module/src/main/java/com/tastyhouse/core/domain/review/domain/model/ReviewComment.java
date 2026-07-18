@@ -34,7 +34,7 @@ public class ReviewComment extends BaseEntity {
     private String content;
 
     @Column(name = "is_hidden", nullable = false)
-    private final boolean hidden = false;
+    private boolean hidden;
 
     protected ReviewComment() {
     }
@@ -47,5 +47,13 @@ public class ReviewComment extends BaseEntity {
 
     public ReviewCommentId getReviewCommentId() {
         return ReviewCommentId.of(this.id);
+    }
+
+    public void hide() {
+        this.hidden = true;
+    }
+
+    public void unhide() {
+        this.hidden = false;
     }
 }

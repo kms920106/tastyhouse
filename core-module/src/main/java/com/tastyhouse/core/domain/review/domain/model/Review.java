@@ -60,7 +60,7 @@ public class Review extends BaseEntity {
     @Column(name = "hygiene_rating")
     private Double hygieneRating;
 
-    @Column(name = "will_revisit")
+    @Column(name = "will_revisit", nullable = false)
     private boolean willRevisit;
 
     @Column(name = "order_id")
@@ -134,6 +134,14 @@ public class Review extends BaseEntity {
 
     public ReviewId getReviewId() {
         return ReviewId.of(this.id);
+    }
+
+    public void hide() {
+        this.hidden = true;
+    }
+
+    public void unhide() {
+        this.hidden = false;
     }
 
     public void updateContent(
