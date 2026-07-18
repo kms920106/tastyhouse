@@ -25,6 +25,7 @@ import {
   Soup,
   SquareArrowUpRight,
   TicketPercent,
+  Trophy,
   UserRound,
   Users,
 } from "lucide-react";
@@ -171,6 +172,11 @@ export const sidebarItems: NavGroup[] = [
         title: "상품",
         url: "/dashboard/products",
         icon: Soup,
+      },
+      {
+        title: "랭킹",
+        url: "/dashboard/ranks",
+        icon: Trophy,
       },
       {
         title: "제휴 신청",
