@@ -9,6 +9,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanPath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -30,7 +33,6 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.review.domain.model.QReview.review;
 import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenity.shopAmenity;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenityCategory.shopAmenityCategory;
@@ -42,6 +44,14 @@ import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
 @Repository
 @RequiredArgsConstructor
 public class ShopRepositoryImpl implements ShopRepository {
+
+    // review는 infrastructure-module로 이동한 ReviewJpaEntity를 가리킨다. core-module은
+    // infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core) 생성된 Q타입을
+    // import할 수 없으므로, PathBuilder로 JPA 엔티티명("ReviewJpaEntity")을 문자열 참조해
+    // 필요한 컬럼만 타입 세이프하게 노출한다(ReviewRepositoryImpl의 member 참조와 동일한 우회).
+    private static final PathBuilder<Object> review = new PathBuilder<>(Object.class, "ReviewJpaEntity");
+    private static final NumberPath<Long> reviewShopIdCol = review.getNumber("shopId", Long.class);
+    private static final BooleanPath reviewHiddenCol = review.getBoolean("hidden");
 
     private final JPAQueryFactory queryFactory;
     private final ShopJpaRepository shopJpaRepository;
@@ -176,7 +186,7 @@ public class ShopRepositoryImpl implements ShopRepository {
             .filter(tuple -> tuple.get(uploadedFile.filePath) != null)
             .collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shop.id)), tuple -> Objects.requireNonNull(tuple.get(uploadedFile.filePath))));
 
-        var reviewCountMap = queryFactory.select(review.shopId, review.count()).from(review).where(review.shopId.in(shopIds).and(review.hidden.eq(false))).groupBy(review.shopId).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(review.shopId)), tuple -> Objects.requireNonNull(tuple.get(review.count()))));
+        var reviewCountMap = queryFactory.select(reviewShopIdCol, review.count()).from(review).where(reviewShopIdCol.in(shopIds).and(reviewHiddenCol.eq(false))).groupBy(reviewShopIdCol).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(reviewShopIdCol)), tuple -> Objects.requireNonNull(tuple.get(review.count()))));
 
         var bookmarkCountMap = queryFactory.select(shopBookmark.shopId, shopBookmark.count()).from(shopBookmark).where(shopBookmark.shopId.in(shopIds)).groupBy(shopBookmark.shopId).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopBookmark.shopId)), tuple -> Objects.requireNonNull(tuple.get(shopBookmark.count()))));
 

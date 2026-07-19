@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료, rank 전환 완료(하드→소프트 삭제 전환 포함), reservation 전환 완료(@Version 낙관적 락 애그리거트 분리 최초 사례), search 전환 완료(3개 애그리거트, 읽기 전용 애그리거트 reconstitute-only 최초 사례)** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료, rank 전환 완료(하드→소프트 삭제 전환 포함), reservation 전환 완료(@Version 낙관적 락 애그리거트 분리 최초 사례), search 전환 완료(3개 애그리거트, 읽기 전용 애그리거트 reconstitute-only 최초 사례), review 전환 완료(6개 애그리거트 + 죽은 코드 애그리거트 ReviewProduct 삭제)** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -829,3 +829,12 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - 명시적 save: **대상 없음** — `SearchKeywordCommandService`가 `deleteAll`+`saveAll`(신규 insert)과 `deleteOlderThan`만 수행해 더티 체킹 의존 지점이 0건이다(admin 선례와 동일한 무-대상 사례).
 - **범위 제외**: `SearchResultQueryService`는 자체 애그리거트 없이 product/review/shop 도메인에 위임하는 순수 오케스트레이션이라 이번 전환 대상이 아니다.
 - 순수 단위 테스트: `core-module/src/test/.../search/domain/model/PopularKeywordTest`·`RecommendedKeywordTest`·`SearchKeywordLogTest`
+
+### review 전환 결과물 (reference — 6개 애그리거트 + 죽은 코드 애그리거트 삭제 + 크로스 도메인 QueryDSL 3중 사례)
+
+- 순수 모델: `core-module/.../review/domain/model/Review`·`ReviewComment`·`ReviewReply`·`ReviewImage`·`ReviewLike`·`ReviewTag`(`of`/`reconstitute`, 전부 JPA 연관관계 없이 raw FK(`Long reviewId`/`commentId` 등)와 `@Convert` FK VO(`memberId`, `ReviewReply`는 `memberId`+`replyToMemberId` 2개)로만 연결). 감사 시각 소비 여부로 셋씩 갈리는 사례 — `Review`/`ReviewComment`/`ReviewReply`는 `createdAt` 보유(각각 `ReviewCommandService`의 생성/수정 응답, `ReviewQueryService`의 `findCommentsIncludingHidden`/`findRepliesIncludingHidden`이 소비), `ReviewImage`/`ReviewLike`/`ReviewTag`는 불변 애그리거트라 감사 필드 생략. `updatedAt`은 여섯 애그리거트 모두 어떤 result도 소비하지 않아 전부 미보유.
+- **죽은 코드 애그리거트 삭제**: 조사 결과 `ReviewProduct`(원래 7번째 애그리거트)는 전 코드베이스에 실제 호출부가 없는 죽은 코드였다. 분리 대상에서 제외하는 대신 이번 PR에서 **완전 삭제**했다 — `domain/model/ReviewProduct.java`, `domain/repository/ReviewProductRepository.java`, 및 core-module `infrastructure/persistence`의 `ReviewProductJpaRepository`·`ReviewProductRepositoryImpl` 전부 제거. (web-api의 `ReviewProductResponse`는 이름이 비슷할 뿐 리뷰+상품 조회용 별개 응답 DTO로, 이 삭제와 무관하게 그대로 유지.)
+- 어댑터: `infrastructure-module/.../review/persistence/`(6개 애그리거트 × `JpaEntity`/`Mapper`/`JpaRepository`/`RepositoryImpl`, 총 24개 파일). `ReviewRepositoryImpl`이 자신의 서브쿼리 Q타입(`QReviewImageJpaEntity`/`QReviewLikeJpaEntity`/`QReviewCommentJpaEntity`, 별칭 인스턴스 `subReviewImage`/`subReviewLike`/`subReviewComment`/`sortReviewLike` 포함)을 모두 infra Q타입으로 치환하면서, 미분리 도메인의 `QUploadedFile`/`QOrderProduct`/`QProduct`/`QShop`/`QStation`과 `member` 도메인의 `MemberJpaEntity` `PathBuilder` 문자열 참조는 그대로 유지(banner/event 선례와 동일).
+- **크로스 도메인 참조 파급(신규 관찰 지점)**: `review.domain.model.QReview`가 core-module에서 더 이상 생성되지 않게 되면서, 아직 미분리인 `shop` 도메인의 `ShopRepositoryImpl`이 리뷰 개수 집계에 `QReview`를 직접 조인하던 지점이 함께 깨졌다. `member`/`follow`/`rank` 선례와 동일하게 `PathBuilder<Object>`로 `"ReviewJpaEntity"`를 문자열 참조해 필요한 컬럼(`shopId`, `hidden`)만 노출하도록 전환했다(신규 패턴이 아니라 기존 크로스 도메인 참조 패턴의 반복 적용이며, `review` 도메인 자신의 분리 범위 밖인 `shop` 도메인 파일을 함께 고쳐야 했던 첫 사례).
+- 더티 체킹에 의존하던 `Review`/`ReviewComment`/`ReviewReply`의 `hide`/`unhide`/`updateContent`에 명시적 save 추가: `ReviewCommandService#changeReviewHidden`·`#changeCommentHidden`·`#changeReplyHidden`·`#updateReview`. `ReviewImage`/`ReviewLike`/`ReviewTag`는 update 경로 자체가 없어(insert-only) load-copy-save 불필요(search 선례와 동형).
+- 순수 단위 테스트: `core-module/src/test/.../review/domain/model/ReviewTest`·`ReviewCommentTest`·`ReviewReplyTest`·`ReviewImageTest`·`ReviewLikeTest`·`ReviewTagTest`

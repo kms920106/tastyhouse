@@ -1,49 +1,40 @@
 package com.tastyhouse.core.domain.review.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 리뷰 이미지 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ReviewImageJpaEntity} + {@code ReviewImageMapper}가 담당한다. 불변 애그리거트로
+ * 상태전이가 없어 감사 시각을 소비하지 않는다.
+ */
 @Getter
-@Entity
-@Table(
-    name = "REVIEW_IMAGE",
-    indexes = {
-        @Index(name = "idx_review_image_review_id", columnList = "review_id")
-    }
-)
-public class ReviewImage extends BaseEntity {
+public class ReviewImage {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final Long reviewId;
+    private final Long imageFileId;
+    private final Integer sort;
 
-    @Column(name = "review_id", nullable = false)
-    private Long reviewId;
-
-    @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
-
-    @Column(name = "sort", nullable = false)
-    private Integer sort;
-
-    private ReviewImage(Long reviewId, Long imageFileId, Integer sort) {
+    private ReviewImage(Long id, Long reviewId, Long imageFileId, Integer sort) {
+        this.id = id;
         this.reviewId = reviewId;
         this.imageFileId = imageFileId;
         this.sort = sort;
     }
 
+    /**
+     * 신규 리뷰 이미지를 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
+     */
     public static ReviewImage of(Long reviewId, Long imageFileId, Integer sort) {
-        return new ReviewImage(reviewId, imageFileId, sort);
+        return new ReviewImage(null, reviewId, imageFileId, sort);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ReviewImage reconstitute(Long id, Long reviewId, Long imageFileId, Integer sort) {
+        return new ReviewImage(id, reviewId, imageFileId, sort);
     }
 }

@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.review.infrastructure.persistence;
+package com.tastyhouse.infrastructure.review.persistence;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.review.domain.model.ReviewTag;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewTagRepository;
 
-import static com.tastyhouse.core.domain.review.domain.model.QReviewTag.reviewTag;
+import static com.tastyhouse.infrastructure.review.persistence.QReviewTagJpaEntity.reviewTagJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,22 +21,25 @@ public class ReviewTagRepositoryImpl implements ReviewTagRepository {
     @Override
     public List<Long> findTagIdsByReviewId(Long reviewId) {
         return queryFactory
-            .select(reviewTag.tagId)
-            .from(reviewTag)
-            .where(reviewTag.reviewId.eq(reviewId))
+            .select(reviewTagJpaEntity.tagId)
+            .from(reviewTagJpaEntity)
+            .where(reviewTagJpaEntity.reviewId.eq(reviewId))
             .fetch();
     }
 
     @Override
     public void saveAll(List<ReviewTag> tags) {
-        reviewTagJpaRepository.saveAll(tags);
+        List<ReviewTagJpaEntity> entities = tags.stream()
+            .map(ReviewTagMapper::toEntity)
+            .toList();
+        reviewTagJpaRepository.saveAll(entities);
     }
 
     @Override
     public void deleteByReviewId(Long reviewId) {
         queryFactory
-            .delete(reviewTag)
-            .where(reviewTag.reviewId.eq(reviewId))
+            .delete(reviewTagJpaEntity)
+            .where(reviewTagJpaEntity.reviewId.eq(reviewId))
             .execute();
     }
 }

@@ -117,6 +117,8 @@ public class ReviewCommandService {
             null, null, null, false
         );
 
+        reviewRepository.save(review);
+
         reviewImageRepository.deleteByReviewId(cmd.reviewId().value());
         reviewTagRepository.deleteByReviewId(cmd.reviewId().value());
 
@@ -166,7 +168,7 @@ public class ReviewCommandService {
             ));
             return false;
         } else {
-            reviewLikeRepository.save(new ReviewLike(cmd.reviewId().value(), cmd.memberId()));
+            reviewLikeRepository.save(ReviewLike.of(cmd.reviewId().value(), cmd.memberId()));
             eventPublisher.publishEvent(new ReviewLikedEvent(
                 cmd.reviewId(),
                 cmd.memberId(),
@@ -186,6 +188,8 @@ public class ReviewCommandService {
         } else {
             review.unhide();
         }
+
+        reviewRepository.save(review);
     }
 
     public void deleteReview(ReviewId reviewId) {
@@ -213,6 +217,8 @@ public class ReviewCommandService {
         } else {
             comment.unhide();
         }
+
+        reviewCommentRepository.save(comment);
     }
 
     public void deleteComment(ReviewCommentId commentId) {
@@ -231,6 +237,8 @@ public class ReviewCommandService {
         } else {
             reply.unhide();
         }
+
+        reviewReplyRepository.save(reply);
     }
 
     public void deleteReply(ReviewReplyId replyId) {
@@ -241,11 +249,11 @@ public class ReviewCommandService {
     }
 
     public ReviewComment createComment(ReviewCommentCreateCommand cmd) {
-        return reviewCommentRepository.save(new ReviewComment(cmd.reviewId().value(), cmd.memberId(), cmd.content()));
+        return reviewCommentRepository.save(ReviewComment.of(cmd.reviewId().value(), cmd.memberId(), cmd.content()));
     }
 
     public ReviewReply createReply(ReviewReplyCreateCommand cmd) {
-        return reviewReplyRepository.save(new ReviewReply(cmd.commentId().value(), cmd.memberId(), cmd.replyToMemberId(), cmd.content()));
+        return reviewReplyRepository.save(ReviewReply.of(cmd.commentId().value(), cmd.memberId(), cmd.replyToMemberId(), cmd.content()));
     }
 
     private List<Long> saveReviewImages(Long reviewId, List<Long> uploadedFileIds) {
@@ -268,7 +276,7 @@ public class ReviewCommandService {
             .map(tagName -> {
                 Tag tag = tagRepository.findByTagName(tagName)
                     .orElseGet(() -> tagRepository.save(Tag.of(tagName)));
-                return new ReviewTag(reviewId, tag.getId());
+                return ReviewTag.of(reviewId, tag.getId());
             })
             .toList();
         reviewTagRepository.saveAll(reviewTags);

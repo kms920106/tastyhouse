@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.review.infrastructure.persistence;
+package com.tastyhouse.infrastructure.review.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,7 @@ import com.tastyhouse.core.domain.review.domain.model.ReviewLike;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 
-import static com.tastyhouse.core.domain.review.domain.model.QReviewLike.reviewLike;
+import static com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEntity.reviewLikeJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,10 +22,10 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
     public boolean existsByReviewIdAndMemberId(ReviewId reviewId, MemberId memberId) {
         return queryFactory
             .selectOne()
-            .from(reviewLike)
+            .from(reviewLikeJpaEntity)
             .where(
-                reviewLike.reviewId.eq(reviewId.value()),
-                reviewLike.memberId.eq(memberId)
+                reviewLikeJpaEntity.reviewId.eq(reviewId.value()),
+                reviewLikeJpaEntity.memberId.eq(memberId)
             )
             .fetchFirst() != null;
     }
@@ -33,16 +33,17 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
     @Override
     public void deleteByReviewIdAndMemberId(ReviewId reviewId, MemberId memberId) {
         queryFactory
-            .delete(reviewLike)
+            .delete(reviewLikeJpaEntity)
             .where(
-                reviewLike.reviewId.eq(reviewId.value()),
-                reviewLike.memberId.eq(memberId)
+                reviewLikeJpaEntity.reviewId.eq(reviewId.value()),
+                reviewLikeJpaEntity.memberId.eq(memberId)
             )
             .execute();
     }
 
     @Override
     public ReviewLike save(ReviewLike reviewLike) {
-        return reviewLikeJpaRepository.save(reviewLike);
+        ReviewLikeJpaEntity saved = reviewLikeJpaRepository.save(ReviewLikeMapper.toEntity(reviewLike));
+        return ReviewLikeMapper.toDomain(saved);
     }
 }

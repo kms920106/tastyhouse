@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.review.infrastructure.persistence;
+package com.tastyhouse.infrastructure.review.persistence;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.review.domain.model.ReviewImage;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewImageRepository;
 
-import static com.tastyhouse.core.domain.review.domain.model.QReviewImage.reviewImage;
+import static com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity.reviewImageJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,14 +20,17 @@ public class ReviewImageRepositoryImpl implements ReviewImageRepository {
 
     @Override
     public void saveAll(List<ReviewImage> images) {
-        reviewImageJpaRepository.saveAll(images);
+        List<ReviewImageJpaEntity> entities = images.stream()
+            .map(ReviewImageMapper::toEntity)
+            .toList();
+        reviewImageJpaRepository.saveAll(entities);
     }
 
     @Override
     public void deleteByReviewId(Long reviewId) {
         queryFactory
-            .delete(reviewImage)
-            .where(reviewImage.reviewId.eq(reviewId))
+            .delete(reviewImageJpaEntity)
+            .where(reviewImageJpaEntity.reviewId.eq(reviewId))
             .execute();
     }
 }
