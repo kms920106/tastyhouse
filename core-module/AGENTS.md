@@ -9,7 +9,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + JPA + QueryDSL(jakarta) + Lombok. `bootJar` 비활성, 일반 `jar` 생성. Q클래스 생성 경로 설정 포함 |
+| `build.gradle` | `java-library` + JPA + QueryDSL(OpenFeign 포크 6.11) + Lombok. `bootJar` 비활성, 일반 `jar` 생성. Q클래스 생성 경로 설정 포함 |
 | `src/main/resources/` | 모듈 공용 리소스 |
 
 ## Subdirectories
@@ -23,6 +23,10 @@
 ### Working In This Directory
 - **Spring Web import 금지**: `org.springframework.web.*`, `HttpStatus` 사용 불가. HTTP 상태는 `ErrorCode.httpStatusCode`(int)로만 표현.
 - `@Entity`는 과도기적으로 domain 레이어에 허용되나, `@OneToMany`/`@ManyToOne`/`@ElementCollection` 연관관계 매핑은 **금지** — 외부 참조는 ID VO(`MemberId` 등)로 처리하고 자식 엔티티도 별도 Repository로 분리한다.
+- **도메인/JPA 엔티티 분리 패턴 (선별 적용, reference: `notice`)**: 상태전이·불변식이 실재하는 도메인은 도메인 모델을 `jakarta` 무의존 순수 POJO로 두고, JPA 엔티티(`XxxJpaEntity`)·매퍼(`XxxMapper`)·`RepositoryImpl`을 별도 `infrastructure-module`(`com.tastyhouse.infrastructure.<도메인>.persistence`)로 분리한다. 단순 CRUD 도메인은 현행(도메인 모델 = `@Entity`) 유지가 허용되며 전환은 강제가 아니다.
+  - **순수 도메인 모델**: 신규 생성 `of(...)`와 DB 재구성 전용 `reconstitute(id, ..., createdAt, updatedAt)` 두 팩토리만 공개한다. `reconstitute`는 인프라만 호출(불변식 우회 방지, Javadoc 명시). `id`는 미영속이면 null.
+  - **명시적 save 규칙 (더티 체킹 상실 보완)**: 분리된 도메인의 command 서비스는 도메인을 변경한 뒤 **반드시 `repository.save(domain)`를 호출**한다(`@Entity`처럼 트랜잭션 종료 시 자동 flush되지 않는다). 누락 시 변경이 조용히 유실된다 — reference: `NoticeCommandService#updateNotice`·`#deleteNotice`.
+  - **저장 시맨틱은 load-copy-save**: `RepositoryImpl.save`는 id null이면 신규 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges`로 필드 복사(동일 트랜잭션 1차 캐시 히트). detached `save()`(merge)는 `@CreatedDate(updatable=false)` 감사 필드 파손 위험이 있어 금지.
 - 새 도메인 추가 시 `domain` / `application` / `infrastructure` 3-레이어 구조를 따른다.
 - **command/condition record는 원시 파라미터 정적 팩토리 `of(...)`를 둔다**: presentation의 Request 타입을 인자로 받는 팩토리는 두지 않는다(레이어 역전 방지). command 생성 책임은 command record 자신이 지고, presentation(Facade/컨트롤러)은 Request를 원시 필드로 언패킹해 `Command.of(...)`를 호출한다. Request DTO에는 `toCommand()` 같은 변환 메서드를 두지 않는다. DTO 조립 규칙 전반은 루트 CLAUDE.md 참고.
 - **`record`는 별도 파일로 분리**: application 서비스 본문 안에 결과·중간 헬퍼 record를 중첩 선언하지 않고 `application/dto/result`(command는 `application/dto/command`)에 `public record`로 둔다. 서비스 내부 전용 `private` 헬퍼 record도 분리 시 `public`으로 격상한다(reference: `product/application/dto/result/OptionInfo`). 상세는 루트 CLAUDE.md 참고.
@@ -47,7 +51,7 @@
 
 ### External
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`
-- QueryDSL 5.0.0:jakarta (api) — Q클래스는 `build/generated/sources/annotationProcessor/java/main`
+- QueryDSL `io.github.openfeign.querydsl:querydsl-jpa:6.11` (api, OpenFeign 포크 — CVE-2024-49203 대응. 원 `com.querydsl:5.0.0`은 패치 없음. 패키지명은 `com.querydsl.*` 그대로라 소스 무수정. 6.x부터 `:jakarta` classifier 없이 jakarta가 기본이며 apt만 `:jakarta` classifier 유지) — Q클래스는 `build/generated/sources/annotationProcessor/java/main`
 - Lombok
 
 <!-- MANUAL: -->

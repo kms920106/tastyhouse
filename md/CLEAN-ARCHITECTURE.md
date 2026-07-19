@@ -688,3 +688,45 @@ public class MemberSignupEventListener {
 정리:
 - [ ] 기존 `EmailVerificationCoreService`, `PhoneVerificationCoreService` 삭제
 - [ ] 기존 `entity/verification/`, `repository/verification/` 빈 디렉토리 정리
+
+---
+
+## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
+
+> 추가일: 2026-07-19
+> 상태: **notice 파일럿 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+
+### 배경
+
+당초 이 문서는 "도메인 모델 = JPA 엔티티(`@Entity`가 domain 레이어에 잔류)"를 과도기적으로 허용했다. 상태전이·불변식이 실재하는 도메인에서는 JPA 제약(`protected` 기본 생성자, 프록시, 더티 체킹 암묵 저장)이 도메인에 새고 순수 단위 테스트가 불가하므로, **순수 도메인 모델(POJO)과 JPA 엔티티를 분리하고 JPA 어댑터를 별도 `infrastructure-module`로 옮기는 패턴**을 도입했다. 단순 CRUD 도메인은 현행 유지가 허용되며 전환은 강제가 아니다(클래스·모듈 모두 Strangler Fig).
+
+### 모듈 의존 구조
+
+```
+web-api / admin-api ──implementation──→ core-module          (도메인 POJO + application + Repository 인터페이스)
+        └──runtimeOnly──→ infrastructure-module (com.tastyhouse.infrastructure.*)
+                              └──implementation──→ core-module
+```
+
+- 분리된 도메인: 도메인 모델·application·Repository 인터페이스는 core-module에 유지, `XxxJpaEntity`/`XxxMapper`/`XxxJpaRepository`/`XxxRepositoryImpl`은 `infrastructure-module`.
+- 미분리 도메인: persistence가 core-module 내부에 잔류(현행).
+
+### 핵심 규칙 (상세는 루트 `CLAUDE.md` "도메인 모델 / JPA 엔티티 분리 규칙", `infrastructure-module/AGENTS.md`)
+
+- 순수 도메인 모델: `of(...)`(신규) + `reconstitute(...)`(DB 재구성 전용) 두 팩토리, `id` 미영속 시 null, `jakarta` 무의존.
+- 저장: **load-copy-save** (id null=insert, id 존재=managed 조회 후 `applyChanges` 복사, merge 금지).
+- command 서비스는 변경 후 **명시적 `repository.save`** 호출(더티 체킹 상실 보완).
+- DDL·`ddl-auto=validate` 무변경. Q타입은 엔티티=infra / result DTO=core 각각 생성.
+
+### 도메인별 롤아웃 절차
+
+1. 대상 선정: 상태전이/불변식이 코드에 실재하는 도메인 우선 (order·payment·coupon·point·reservation)
+2. 도메인 모델 POJO화 (`of`/`reconstitute`) → `XxxJpaEntity`/`XxxMapper` 신설 → persistence를 `infrastructure-module`로 이동 → command 서비스 명시적 save → 순수 단위 테스트 → 문서 reference 갱신
+3. 전 도메인 이동 완료 시: core-module에서 `spring-boot-starter-data-jpa`·mysql 의존 제거(QueryDSL 어노테이션은 result DTO Q타입용 잔류), `DatabaseConfig` 이관 검토
+
+### notice 파일럿 결과물 (reference)
+
+- 순수 모델: `core-module/.../notice/domain/model/Notice`
+- 어댑터: `infrastructure-module/.../notice/persistence/{NoticeJpaEntity, NoticeMapper, NoticeJpaRepository, NoticeRepositoryImpl}`
+- 명시적 save: `NoticeCommandService#updateNotice`·`#deleteNotice`
+- 순수 단위 테스트: `core-module/src/test/.../notice/domain/model/NoticeTest`

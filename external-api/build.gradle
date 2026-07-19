@@ -16,11 +16,11 @@ dependencies {
     implementation 'software.amazon.awssdk:ses'
     implementation 'software.amazon.awssdk:sns'
     implementation 'io.awspring.cloud:spring-cloud-aws-s3'
-    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    implementation 'com.google.firebase:firebase-admin:9.10.0'
     // Apple 로그인: client_secret JWT 생성(ES256) + id_token 검증(RS256)
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
     // Lombok
     implementation 'org.projectlombok:lombok'

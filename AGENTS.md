@@ -69,7 +69,7 @@ core-module → (no Spring Web; JPA + QueryDSL only)
 - QueryDSL 5.0.0 (jakarta) — 동적 쿼리
 - MySQL (`mysql-connector-j`), Redis
 - JJWT 0.12.3 — JWT 발급/검증
-- AWS SDK (SES, SNS, S3), Firebase Admin 9.2.0
+- AWS SDK (SES, SNS, S3), Firebase Admin 9.10.0
 - springdoc-openapi 2.3.0 — Swagger UI
 - Lombok, p6spy (SQL 로깅)
 

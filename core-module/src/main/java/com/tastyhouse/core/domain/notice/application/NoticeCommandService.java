@@ -30,6 +30,7 @@ public class NoticeCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
 
         notice.update(command.title(), command.content(), command.visible());
+        noticeRepository.save(notice);
     }
 
     public void deleteNotice(NoticeId noticeId) {
@@ -37,5 +38,6 @@ public class NoticeCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
 
         notice.delete();
+        noticeRepository.save(notice);
     }
 }

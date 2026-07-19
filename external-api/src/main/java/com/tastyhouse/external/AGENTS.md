@@ -45,7 +45,7 @@
 
 ### External
 - **AWS SDK**: `software.amazon.awssdk:ses`, `software.amazon.awssdk:sns`, `io.awspring.cloud:spring-cloud-aws-s3`
-- **Firebase**: `com.google.firebase:firebase-admin:9.2.0`
+- **Firebase**: `com.google.firebase:firebase-admin:9.10.0`
 - **Spring Boot Starters**: `spring-boot-starter-mail`, `spring-boot-starter-web`, `spring-boot-starter-webflux`
 - **JWT**: `io.jsonwebtoken:jjwt-api:0.12.3`, `jjwt-impl`, `jjwt-jackson` (Apple 로그인용 ES256/RS256)
 - **Utilities**: `org.projectlombok:lombok`

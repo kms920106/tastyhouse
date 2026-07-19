@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.notice.infrastructure.persistence;
+package com.tastyhouse.infrastructure.notice.persistence;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +18,7 @@ import com.tastyhouse.core.domain.notice.application.dto.result.QNoticeListItemR
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.core.domain.notice.domain.model.QNotice.notice;
+import static com.tastyhouse.infrastructure.notice.persistence.QNoticeJpaEntity.noticeJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -30,22 +30,22 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     @Override
     public PageResult<NoticeListItemResult> findVisibleNotices(PageQuery pageQuery) {
         Long total = queryFactory
-            .select(notice.id.count())
-            .from(notice)
-            .where(notice.deleted.isFalse(), notice.visible.isTrue())
+            .select(noticeJpaEntity.id.count())
+            .from(noticeJpaEntity)
+            .where(noticeJpaEntity.deleted.isFalse(), noticeJpaEntity.visible.isTrue())
             .fetchOne();
 
         List<NoticeListItemResult> notices = queryFactory
             .select(new QNoticeListItemResult(
-                notice.id,
-                notice.title,
-                notice.content,
-                notice.visible,
-                notice.createdAt
+                noticeJpaEntity.id,
+                noticeJpaEntity.title,
+                noticeJpaEntity.content,
+                noticeJpaEntity.visible,
+                noticeJpaEntity.createdAt
             ))
-            .from(notice)
-            .where(notice.deleted.isFalse(), notice.visible.isTrue())
-            .orderBy(notice.id.desc())
+            .from(noticeJpaEntity)
+            .where(noticeJpaEntity.deleted.isFalse(), noticeJpaEntity.visible.isTrue())
+            .orderBy(noticeJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -56,32 +56,32 @@ public class NoticeRepositoryImpl implements NoticeRepository {
     @Override
     public PageResult<NoticeListItemResult> findAllNotices(NoticeSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
-            .select(notice.id.count())
-            .from(notice)
+            .select(noticeJpaEntity.id.count())
+            .from(noticeJpaEntity)
             .where(
                 titleContains(condition.title()),
                 contentContains(condition.content()),
                 visibleEq(condition.visible()),
-                notice.deleted.isFalse()
+                noticeJpaEntity.deleted.isFalse()
             )
             .fetchOne();
 
         List<NoticeListItemResult> notices = queryFactory
             .select(new QNoticeListItemResult(
-                notice.id,
-                notice.title,
-                notice.content,
-                notice.visible,
-                notice.createdAt
+                noticeJpaEntity.id,
+                noticeJpaEntity.title,
+                noticeJpaEntity.content,
+                noticeJpaEntity.visible,
+                noticeJpaEntity.createdAt
             ))
-            .from(notice)
+            .from(noticeJpaEntity)
             .where(
                 titleContains(condition.title()),
                 contentContains(condition.content()),
                 visibleEq(condition.visible()),
-                notice.deleted.isFalse()
+                noticeJpaEntity.deleted.isFalse()
             )
-            .orderBy(notice.id.desc())
+            .orderBy(noticeJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -94,26 +94,37 @@ public class NoticeRepositoryImpl implements NoticeRepository {
         if (noticeId == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(queryFactory
-            .selectFrom(notice)
-            .where(notice.id.eq(noticeId.value()), notice.deleted.isFalse())
-            .fetchOne());
+        NoticeJpaEntity entity = queryFactory
+            .selectFrom(noticeJpaEntity)
+            .where(noticeJpaEntity.id.eq(noticeId.value()), noticeJpaEntity.deleted.isFalse())
+            .fetchOne();
+        return Optional.ofNullable(entity).map(NoticeMapper::toDomain);
     }
 
     @Override
     public Notice save(Notice notice) {
-        return noticeJpaRepository.save(notice);
+        if (notice.getId() == null) {
+            NoticeJpaEntity saved = noticeJpaRepository.save(NoticeMapper.toEntity(notice));
+            return NoticeMapper.toDomain(saved);
+        }
+
+        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
+        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
+        NoticeJpaEntity entity = noticeJpaRepository.findById(notice.getId())
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 공지사항입니다: " + notice.getId()));
+        NoticeMapper.applyChanges(entity, notice);
+        return NoticeMapper.toDomain(entity);
     }
 
     private BooleanExpression titleContains(String title) {
-        return StringUtils.hasText(title) ? notice.title.containsIgnoreCase(title) : null;
+        return StringUtils.hasText(title) ? noticeJpaEntity.title.containsIgnoreCase(title) : null;
     }
 
     private BooleanExpression contentContains(String content) {
-        return StringUtils.hasText(content) ? notice.content.containsIgnoreCase(content) : null;
+        return StringUtils.hasText(content) ? noticeJpaEntity.content.containsIgnoreCase(content) : null;
     }
 
     private BooleanExpression visibleEq(Boolean visible) {
-        return visible != null ? notice.visible.eq(visible) : null;
+        return visible != null ? noticeJpaEntity.visible.eq(visible) : null;
     }
 }

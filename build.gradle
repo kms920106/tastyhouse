@@ -32,6 +32,10 @@ subprojects {
         mavenCentral()
     }
 
+    // Spring Boot 3.2.4 BOM이 고정하는 commons-lang3 3.13.0(CVE-2025-48924)을
+    // 패치 버전 3.18.0으로 오버라이드 (BOM 관리 프로퍼티 재정의)
+    ext['commons-lang3.version'] = '3.18.0'
+
     dependencyManagement {
         imports {
             mavenBom 'io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1'

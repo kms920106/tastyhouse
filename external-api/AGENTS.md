@@ -38,7 +38,7 @@
 - `core-module` — port 인터페이스 및 도메인 타입
 
 ### External
-- AWS SDK (SES, SNS), spring-cloud-aws-s3, Firebase Admin 9.2.0
+- AWS SDK (SES, SNS), spring-cloud-aws-s3, Firebase Admin 9.10.0
 - spring-boot-starter-mail, webflux(WebClient), JJWT 0.12.3
 
 <!-- MANUAL: -->
