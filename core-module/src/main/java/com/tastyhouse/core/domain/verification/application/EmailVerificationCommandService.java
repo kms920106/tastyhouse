@@ -50,6 +50,7 @@ public class EmailVerificationCommandService {
 
         LocalDateTime now = LocalDateTime.now();
         verification.verify(VerificationCode.of(command.verificationCode()), now);
+        emailVerificationRepository.save(verification);
 
         eventPublisher.publishEvent(new EmailVerifiedEvent(
             verification.getEmailVerificationId(),

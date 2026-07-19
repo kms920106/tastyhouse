@@ -44,6 +44,7 @@ public class PhoneVerificationCommandService {
 
         LocalDateTime now = LocalDateTime.now();
         verification.verify(VerificationCode.of(command.verificationCode()), now);
+        phoneVerificationRepository.save(verification);
 
         eventPublisher.publishEvent(new PhoneVerifiedEvent(
             verification.getPhoneVerificationId(),

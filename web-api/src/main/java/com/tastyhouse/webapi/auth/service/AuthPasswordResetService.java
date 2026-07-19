@@ -61,6 +61,7 @@ public class AuthPasswordResetService {
             .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
 
         verification.verify(VerificationCode.of(verificationCode), LocalDateTime.now());
+        emailVerificationRepository.save(verification);
 
         String passwordResetToken = jwtTokenProvider.createPasswordResetToken(username);
 
