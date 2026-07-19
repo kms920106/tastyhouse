@@ -1,49 +1,33 @@
 package com.tastyhouse.core.domain.bug.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
 @Getter
-@Entity
-@Table(
-    name = "BUG_REPORT_IMAGE",
-    indexes = {
-        @Index(name = "idx_bug_report_image_bug_report_id", columnList = "bug_report_id")
-    }
-)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class BugReportImage extends BaseEntity {
+public class BugReportImage {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final Long bugReportId; // 버그 신고 ID (BugReport 참조)
+    private final Long imageFileId; // 이미지 파일 ID (UploadedFile 참조)
+    private final Integer sort; // 정렬 순서
 
-    @Column(name = "bug_report_id", nullable = false)
-    private Long bugReportId;
-
-    @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
-
-    @Column(name = "sort", nullable = false)
-    private Integer sort;
-
-    private BugReportImage(Long bugReportId, Long imageFileId, Integer sort) {
+    private BugReportImage(Long id, Long bugReportId, Long imageFileId, Integer sort) {
+        this.id = id;
         this.bugReportId = bugReportId;
         this.imageFileId = imageFileId;
         this.sort = sort;
     }
 
-    public static BugReportImage create(Long bugReportId, Long imageFileId, Integer sort) {
-        return new BugReportImage(bugReportId, imageFileId, sort);
+    /**
+     * 신규 버그 신고 이미지를 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
+     */
+    public static BugReportImage of(Long bugReportId, Long imageFileId, Integer sort) {
+        return new BugReportImage(null, bugReportId, imageFileId, sort);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static BugReportImage reconstitute(Long id, Long bugReportId, Long imageFileId, Integer sort) {
+        return new BugReportImage(id, bugReportId, imageFileId, sort);
     }
 }

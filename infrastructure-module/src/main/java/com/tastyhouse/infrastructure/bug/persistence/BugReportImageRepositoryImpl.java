@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.bug.infrastructure.persistence;
+package com.tastyhouse.infrastructure.bug.persistence;
 
 import java.util.List;
 
@@ -16,11 +16,14 @@ public class BugReportImageRepositoryImpl implements BugReportImageRepository {
 
     @Override
     public List<BugReportImage> findByBugReportId(Long bugReportId) {
-        return bugReportImageJpaRepository.findByBugReportIdOrderBySortAsc(bugReportId);
+        return bugReportImageJpaRepository.findByBugReportIdOrderBySortAsc(bugReportId).stream()
+            .map(BugReportImageMapper::toDomain)
+            .toList();
     }
 
     @Override
     public BugReportImage save(BugReportImage bugReportImage) {
-        return bugReportImageJpaRepository.save(bugReportImage);
+        BugReportImageJpaEntity saved = bugReportImageJpaRepository.save(BugReportImageMapper.toEntity(bugReportImage));
+        return BugReportImageMapper.toDomain(saved);
     }
 }

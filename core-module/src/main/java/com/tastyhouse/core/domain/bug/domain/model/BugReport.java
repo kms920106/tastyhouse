@@ -2,107 +2,81 @@ package com.tastyhouse.core.domain.bug.domain.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
+/**
+ * 버그 신고 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code BugReportJpaEntity} + {@code BugReportMapper}가 담당한다. 도메인이 프레임워크-프리이므로
+ * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code BugReportRepository#save}를
+ * 호출해야 한다.
+ */
 @Getter
-@Entity
-@Table(
-    name = "BUG_REPORT",
-    indexes = {
-        @Index(name = "idx_bug_report_member_id", columnList = "member_id"),
-        @Index(name = "idx_bug_report_status", columnList = "status")
-    }
-)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class BugReport extends BaseEntity {
+public class BugReport {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Convert(converter = MemberIdConverter.class)
-    @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
-
-    @Column(name = "device", nullable = false, length = 100)
-    private String device;
-
-    @Column(name = "title", nullable = false, length = 200)
-    private String title;
-
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
-    private String content;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private BugReportStatus status;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "category", length = 20, columnDefinition = "VARCHAR(20)")
-    private BugReportCategory category;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "priority", length = 20, columnDefinition = "VARCHAR(20)")
-    private BugReportPriority priority;
-
-    @Column(name = "assignee_admin_id")
-    private Long assigneeAdminId;
-
-    @Column(name = "admin_answer", columnDefinition = "TEXT")
-    private String adminAnswer;
-
-    @Column(name = "resolved_at")
-    private LocalDateTime resolvedAt;
-
-    @Column(name = "app_version", length = 30)
-    private String appVersion;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "platform", length = 20, columnDefinition = "VARCHAR(20)")
-    private BugReportPlatform platform;
-
-    @Column(name = "os_version", length = 30)
-    private String osVersion;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final MemberId memberId; // 신고한 회원 ID
+    private final String device; // 기기 정보 (제보자 원문)
+    private final String title; // 신고 제목
+    private final String content; // 신고 내용
+    private BugReportStatus status; // 처리 상태
+    private BugReportCategory category; // 분류 (미분류 시 null)
+    private BugReportPriority priority; // 우선순위 (미지정 시 null)
+    private Long assigneeAdminId; // 담당 관리자 ID (미배정 시 null)
+    private String adminAnswer; // 처리 결과/반려 사유 (미처리 시 null)
+    private LocalDateTime resolvedAt; // 처리 완료 일시 (RESOLVED/REJECTED 시 기록)
+    private final String appVersion; // 앱 버전 (제보자 입력, 선택)
+    private final BugReportPlatform platform; // 플랫폼 (선택)
+    private final String osVersion; // OS 버전 (제보자 입력, 선택)
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
+    private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private BugReport(
+        Long id,
         MemberId memberId,
         String device,
         String title,
         String content,
+        BugReportStatus status,
+        BugReportCategory category,
+        BugReportPriority priority,
+        Long assigneeAdminId,
+        String adminAnswer,
+        LocalDateTime resolvedAt,
         String appVersion,
         BugReportPlatform platform,
-        String osVersion
+        String osVersion,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
+        this.id = id;
         this.memberId = memberId;
         this.device = device;
         this.title = title;
         this.content = content;
+        this.status = status;
+        this.category = category;
+        this.priority = priority;
+        this.assigneeAdminId = assigneeAdminId;
+        this.adminAnswer = adminAnswer;
+        this.resolvedAt = resolvedAt;
         this.appVersion = appVersion;
         this.platform = platform;
         this.osVersion = osVersion;
-        this.status = BugReportStatus.RECEIVED;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
-    public static BugReport create(
+    /**
+     * 신규 버그 신고를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다. 초기 상태는 RECEIVED다.
+     */
+    public static BugReport of(
         MemberId memberId,
         String device,
         String title,
@@ -111,7 +85,40 @@ public class BugReport extends BaseEntity {
         BugReportPlatform platform,
         String osVersion
     ) {
-        return new BugReport(memberId, device, title, content, appVersion, platform, osVersion);
+        return new BugReport(
+            null, memberId, device, title, content,
+            BugReportStatus.RECEIVED, null, null, null, null, null,
+            appVersion, platform, osVersion, null, null
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static BugReport reconstitute(
+        Long id,
+        MemberId memberId,
+        String device,
+        String title,
+        String content,
+        BugReportStatus status,
+        BugReportCategory category,
+        BugReportPriority priority,
+        Long assigneeAdminId,
+        String adminAnswer,
+        LocalDateTime resolvedAt,
+        String appVersion,
+        BugReportPlatform platform,
+        String osVersion,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        return new BugReport(
+            id, memberId, device, title, content,
+            status, category, priority, assigneeAdminId, adminAnswer, resolvedAt,
+            appVersion, platform, osVersion, createdAt, updatedAt
+        );
     }
 
     public BugReportId getBugReportId() {

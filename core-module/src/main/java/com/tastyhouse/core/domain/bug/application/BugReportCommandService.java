@@ -29,7 +29,7 @@ public class BugReportCommandService {
     private final BugReportImageRepository bugReportImageRepository;
 
     public BugReportResult create(BugReportCreateCommand command) {
-        BugReport bugReport = BugReport.create(
+        BugReport bugReport = BugReport.of(
             command.memberId(),
             command.device(),
             command.title(),
@@ -44,7 +44,7 @@ public class BugReportCommandService {
         if (uploadedFileIds != null && !uploadedFileIds.isEmpty()) {
             for (int i = 0; i < uploadedFileIds.size(); i++) {
                 bugReportImageRepository.save(
-                    BugReportImage.create(saved.getId(), uploadedFileIds.get(i), i)
+                    BugReportImage.of(saved.getId(), uploadedFileIds.get(i), i)
                 );
             }
         }
@@ -62,16 +62,20 @@ public class BugReportCommandService {
             case ON_HOLD -> bugReport.hold();
             case RECEIVED -> throw new BusinessException(ErrorCode.BUG_REPORT_INVALID_STATUS);
         }
+
+        bugReportRepository.save(bugReport);
     }
 
     public void classify(BugReportClassifyCommand command) {
         BugReport bugReport = findById(command.id());
         bugReport.classify(command.category(), command.priority());
+        bugReportRepository.save(bugReport);
     }
 
     public void assign(BugReportAssignCommand command) {
         BugReport bugReport = findById(command.id());
         bugReport.assignTo(command.assigneeAdminId());
+        bugReportRepository.save(bugReport);
     }
 
     private BugReport findById(BugReportId id) {
