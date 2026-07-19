@@ -34,11 +34,13 @@ public class PartnershipCommandService {
         PartnershipRequest partnershipRequest = partnershipRepository.findById(partnershipRequestId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
         partnershipRequest.changeStatus(status);
+        partnershipRepository.save(partnershipRequest);
     }
 
     public void delete(PartnershipRequestId partnershipRequestId) {
         PartnershipRequest partnershipRequest = partnershipRepository.findById(partnershipRequestId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
         partnershipRequest.delete();
+        partnershipRepository.save(partnershipRequest);
     }
 }

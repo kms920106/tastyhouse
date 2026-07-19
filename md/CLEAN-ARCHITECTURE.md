@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외)** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -774,3 +774,11 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - **크로스 도메인 참조 신규 패턴 — `PathBuilder`**: `Member`가 POJO로 전환되며 core-module에는 더 이상 `QMember`(도메인 모델 Q타입)가 생성되지 않는다. 그런데 아직 미분리 상태로 core-module에 남아 있는 `follow`(`FollowRepositoryImpl`)·`review`(`ReviewRepositoryImpl`)·`rank`(`MemberReviewRankRepositoryImpl`) 세 리포지토리가 `QMember`를 join해 `nickname`/`memberGrade`/`profileImageFileId`를 읽고 있었다. core-module은 `infrastructure-module`을 의존할 수 없어(의존 방향: infrastructure → core) 이동한 `QMemberJpaEntity`를 import할 수 없으므로, 세 파일 모두 `com.querydsl.core.types.dsl.PathBuilder<Object>`로 JPA 엔티티명 문자열(`"MemberJpaEntity"`, `@Entity(name=...)` 미지정 시 기본값인 단순 클래스명)을 참조해 필요한 컬럼(`id`/`nickname`/`memberGrade`/`profileImageFileId`)만 `NumberPath`/`StringPath`/`EnumPath`로 타입 세이프하게 노출하는 방식으로 전환했다. 이는 이 프로젝트에서 "이미 분리된 도메인의 엔티티를, 아직 미분리인 다른 도메인이 Q타입 없이 참조"하는 첫 사례이며, 이후 다른 미분리 도메인이 이미 분리된 엔티티를 참조해야 할 때도 동일 패턴(`PathBuilder` + 엔티티명 문자열)을 재사용한다.
 - 명시적 save: `MemberCommandService#updateProfile`·`#updatePersonalInfo`·`#updatePassword`·`#suspend`·`#activate`에 추가(`signUp`/`signUpSocial`/`withdraw`는 기존에 이미 `save` 호출 중이라 추가 불필요). 더불어 `web-api`의 `KakaoSocialLoginService`·`NaverSocialLoginService`·`FacebookSocialLoginService`·`AppleSocialLoginService`가 기존 소셜 계정 로그인 시 `socialAccount.updateProviderInfo(...)`만 호출하고 `save`를 부르지 않은 채 더티 체킹에 의존하고 있던 지점을 발견해 `memberCommandService.saveSocialAccount(socialAccount)` 호출을 추가했다(도메인 분리로 이 네 서비스가 즉시 깨졌을 실제 회귀 지점).
 - 순수 단위 테스트: `core-module/src/test/.../member/domain/model/MemberTest`·`MemberSocialAccountTest`·`MemberWithdrawalTest`
+
+### partnership 전환 결과물 (reference — 단일 애그리거트, enum 1개, detached merge 교정 사례)
+
+- 순수 모델: `core-module/.../partnership/domain/model/PartnershipRequest` (`of`/`reconstitute`; JPA 연관관계 없이 단일 애그리거트, enum 필드 `PartnershipStatus` 1개, `createdAt`/`updatedAt` 둘 다 포함 — `PartnershipRequestResult.from`이 둘 다 소비). 재대입되지 않는 필드(`businessName`/`address`/`addressDetail`/`contactName`/`contactPhone`/`consultationRequestedAt`)는 `final`로 선언.
+- 어댑터: `infrastructure-module/.../partnership/persistence/{PartnershipRequestJpaEntity, PartnershipRequestMapper, PartnershipRequestJpaRepository, PartnershipRepositoryImpl}` — `QPartnershipRequestJpaEntity`(infra 생성)만 치환, result projection(`QPartnershipRequestListItemResult`, core 생성)은 무변경.
+- **detached merge → load-copy-save 교정**: 전환 전 `PartnershipRepositoryImpl#save`가 `partnershipRequestJpaRepository.save(request)`로 detached 엔티티를 통째 저장(merge)하고 있었다. 감사 필드 파손 위험을 없애기 위해 다른 도메인과 동일하게 신규는 insert, 기존은 필터 없는 PK 조회 → `applyChanges` → 반환으로 교정했다.
+- 명시적 save: `PartnershipCommandService#changeStatus`·`#delete`에 추가(`create`는 기존에 이미 `save` 호출 중이라 추가 불필요).
+- 순수 단위 테스트: `core-module/src/test/.../partnership/domain/model/PartnershipRequestTest`
