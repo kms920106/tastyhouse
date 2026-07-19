@@ -25,6 +25,7 @@
 - `@Entity`는 과도기적으로 domain 레이어에 허용되나, `@OneToMany`/`@ManyToOne`/`@ElementCollection` 연관관계 매핑은 **금지** — 외부 참조는 ID VO(`MemberId` 등)로 처리하고 자식 엔티티도 별도 Repository로 분리한다.
 - **도메인/JPA 엔티티 분리 패턴 (선별 적용, reference: `notice`)**: 상태전이·불변식이 실재하는 도메인은 도메인 모델을 `jakarta` 무의존 순수 POJO로 두고, JPA 엔티티(`XxxJpaEntity`)·매퍼(`XxxMapper`)·`RepositoryImpl`을 별도 `infrastructure-module`(`com.tastyhouse.infrastructure.<도메인>.persistence`)로 분리한다. 단순 CRUD 도메인은 현행(도메인 모델 = `@Entity`) 유지가 허용되며 전환은 강제가 아니다.
   - **순수 도메인 모델**: 신규 생성 `of(...)`와 DB 재구성 전용 `reconstitute(id, ..., createdAt, updatedAt)` 두 팩토리만 공개한다. `reconstitute`는 인프라만 호출(불변식 우회 방지, Javadoc 명시). `id`는 미영속이면 null.
+  - **재대입되지 않는 필드는 `final`로 선언**: `@Entity`와 달리 순수 POJO는 JPA 프록시/리플렉션 제약이 없으므로, 생성자(팩토리) 이후 상태전이로 바뀌지 않는 필드는 `id`뿐 아니라 상태 필드까지 모두 `final`로 둔다(전이되는 필드만 non-final). 불변성을 컴파일러가 강제하고 IntelliJ `may be 'final'` 경고를 차단한다. reference: `admin`의 `Admin`(update 경로 없어 전 필드 `final`). 상세는 루트 CLAUDE.md "도메인 모델 / JPA 엔티티 분리 규칙" 참고.
   - **명시적 save 규칙 (더티 체킹 상실 보완)**: 분리된 도메인의 command 서비스는 도메인을 변경한 뒤 **반드시 `repository.save(domain)`를 호출**한다(`@Entity`처럼 트랜잭션 종료 시 자동 flush되지 않는다). 누락 시 변경이 조용히 유실된다 — reference: `NoticeCommandService#updateNotice`·`#deleteNotice`.
   - **저장 시맨틱은 load-copy-save**: `RepositoryImpl.save`는 id null이면 신규 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges`로 필드 복사(동일 트랜잭션 1차 캐시 히트). detached `save()`(merge)는 `@CreatedDate(updatable=false)` 감사 필드 파손 위험이 있어 금지.
 - 새 도메인 추가 시 `domain` / `application` / `infrastructure` 3-레이어 구조를 따른다.

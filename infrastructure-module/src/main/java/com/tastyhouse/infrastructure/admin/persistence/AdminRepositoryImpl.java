@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.admin.infrastructure.persistence;
+package com.tastyhouse.infrastructure.admin.persistence;
 
 import java.util.Optional;
 
@@ -17,12 +17,12 @@ public class AdminRepositoryImpl implements AdminRepository {
 
     @Override
     public Optional<Admin> findById(AdminId adminId) {
-        return adminJpaRepository.findById(adminId.value());
+        return adminJpaRepository.findById(adminId.value()).map(AdminMapper::toDomain);
     }
 
     @Override
     public Optional<Admin> findByUsername(String username) {
-        return adminJpaRepository.findByUsername(username);
+        return adminJpaRepository.findByUsername(username).map(AdminMapper::toDomain);
     }
 
     @Override
@@ -32,6 +32,7 @@ public class AdminRepositoryImpl implements AdminRepository {
 
     @Override
     public Admin save(Admin admin) {
-        return adminJpaRepository.save(admin);
+        AdminJpaEntity saved = adminJpaRepository.save(AdminMapper.toEntity(admin));
+        return AdminMapper.toDomain(saved);
     }
 }

@@ -20,3 +20,4 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan(basePackageClasses = InfrastructurePersistenceConfig.class)
 public class InfrastructurePersistenceConfig {
 }
+

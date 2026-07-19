@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -730,3 +730,10 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - 어댑터: `infrastructure-module/.../notice/persistence/{NoticeJpaEntity, NoticeMapper, NoticeJpaRepository, NoticeRepositoryImpl}`
 - 명시적 save: `NoticeCommandService#updateNotice`·`#deleteNotice`
 - 순수 단위 테스트: `core-module/src/test/.../notice/domain/model/NoticeTest`
+
+### admin 전환 결과물 (reference — 연관관계·QueryDSL·update 없는 최소 CRUD 변형)
+
+- 순수 모델: `core-module/.../admin/domain/model/Admin` (`create`/`reconstitute`; 감사 필드 미소비로 `createdAt`/`updatedAt` 생략)
+- 어댑터: `infrastructure-module/.../admin/persistence/{AdminJpaEntity, AdminMapper, AdminJpaRepository, AdminRepositoryImpl}` — QueryDSL 없이 순수 pass-through, `applyChanges`/load-copy-save 분기 없음(update 경로 자체가 없어 `save`는 insert 전용)
+- 명시적 save: 대상 없음 — `AdminCommandService#createAdmin`이 이미 저장 시 `save` 호출(더티 체킹 의존 지점 0건)
+- 순수 단위 테스트: `core-module/src/test/.../admin/domain/model/AdminTest`
