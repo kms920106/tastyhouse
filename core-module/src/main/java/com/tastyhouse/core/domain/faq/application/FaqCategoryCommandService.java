@@ -31,6 +31,7 @@ public class FaqCategoryCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
 
         faqCategory.update(command.name(), command.sort(), command.visible());
+        faqCategoryRepository.save(faqCategory);
     }
 
     public void deleteCategory(FaqCategoryId faqCategoryId) {
@@ -42,5 +43,6 @@ public class FaqCategoryCommandService {
         }
 
         faqCategory.delete();
+        faqCategoryRepository.save(faqCategory);
     }
 }

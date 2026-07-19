@@ -37,6 +37,7 @@ public class FaqCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_NOT_FOUND));
 
         faq.update(command.faqCategoryId().value(), command.question(), command.answer(), command.sort(), command.visible());
+        faqRepository.save(faq);
     }
 
     public void deleteFaq(FaqId faqId) {
@@ -44,6 +45,7 @@ public class FaqCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_NOT_FOUND));
 
         faq.delete();
+        faqRepository.save(faq);
     }
 
     private void validateCategoryExists(FaqCategoryId faqCategoryId) {
