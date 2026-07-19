@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -791,3 +791,11 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - **더티 체킹 의존 2곳(한 메서드 안에 공존)**: `updatePolicy`는 `policyDocument.update(...)` 후 `save` 미호출, `activatePolicy`는 신규 정책(`newPolicy.activate()` 후 `save`)은 이미 저장하면서도 `findCurrentEntityByType(...).ifPresent(PolicyDocument::deactivate)`로 비활성화되는 **기존** 정책은 save 없이 더티 체킹에만 의존하고 있었다. 두 지점 모두 명시적 save를 추가했다.
 - 명시적 save: `PolicyCommandService#updatePolicy`·`#activatePolicy`(비활성화되는 기존 정책도 별도 save)에 추가(`createPolicy`는 기존에 이미 `save` 호출 중이라 추가 불필요).
 - 순수 단위 테스트: `core-module/src/test/.../policy/domain/model/PolicyDocumentTest`
+
+### point 전환 결과물 (reference — 2개 애그리거트, coupon과 동형: 상태전이+감사 생략 / insert 전용+createdAt만)
+
+- 순수 모델: `core-module/.../point/domain/model/MemberPoint`·`MemberPointHistory` (`of`/`reconstitute`; 둘 다 JPA 연관관계 없이 `@Convert` FK VO `MemberId memberId`로만 연결). `MemberPoint`는 `addPoints`/`deductPoints` 상태전이가 있으나 어떤 result도 감사 시각을 소비하지 않아 감사 필드 생략, `MemberPointHistory`는 insert 전용(변경 없음)이며 `MemberPointHistoryResult.from`이 `createdAt`만 소비해 `createdAt`만 포함(`updatedAt`은 둘 다 미소비) — coupon(`Coupon`/`MemberCoupon`)과 동일한 감사 필드 비대칭 구조.
+- 어댑터: `infrastructure-module/.../point/persistence/{MemberPointJpaEntity, MemberPointHistoryJpaEntity, MemberPointMapper, MemberPointHistoryMapper, MemberPointJpaRepository, MemberPointHistoryJpaRepository, MemberPointRepositoryImpl, MemberPointHistoryRepositoryImpl}` — `QMemberPointJpaEntity`/`QMemberPointHistoryJpaEntity`(infra 생성)만 치환. `MemberPointRepositoryImpl#save`는 load-copy-save, `MemberPointHistoryRepositoryImpl#save`는 insert 전용.
+- **더티 체킹 의존 5곳**: `PointCommandService`의 `usePoints`/`earnPoints`/`refundPoints`/`reclaimEarnedPoints`/`deductPoints` 전부 `MemberPoint.addPoints`/`deductPoints` 변경 후 `save` 미호출 상태였다(`earnPoints`는 신규 생성 경로만 저장하고 `addPoints` 이후 재저장이 없었음). 5곳 모두 명시적 save를 추가했다.
+- 명시적 save: `PointCommandService#usePoints`·`#earnPoints`·`#refundPoints`·`#reclaimEarnedPoints`·`#deductPoints`.
+- 순수 단위 테스트: `core-module/src/test/.../point/domain/model/MemberPointTest`·`MemberPointHistoryTest`

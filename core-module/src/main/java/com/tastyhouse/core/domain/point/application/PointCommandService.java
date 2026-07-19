@@ -37,6 +37,7 @@ public class PointCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND));
 
         memberPoint.deductPoints(command.pointAmount());
+        memberPointRepository.save(memberPoint);
 
         memberPointHistoryRepository.save(
             MemberPointHistory.of(command.memberId(), PointType.USE, -command.pointAmount(), "주문 결제 사용")
@@ -50,6 +51,7 @@ public class PointCommandService {
             .orElseGet(() -> memberPointRepository.save(MemberPoint.of(command.memberId())));
 
         memberPoint.addPoints(command.pointAmount());
+        memberPointRepository.save(memberPoint);
 
         memberPointHistoryRepository.save(
             MemberPointHistory.of(command.memberId(), PointType.EARNED, command.pointAmount(), command.reason())
@@ -64,6 +66,7 @@ public class PointCommandService {
                 "포인트 정보를 찾을 수 없습니다. memberId=" + command.memberId()));
 
         memberPoint.addPoints(command.pointAmount());
+        memberPointRepository.save(memberPoint);
 
         memberPointHistoryRepository.save(
             MemberPointHistory.of(command.memberId(), PointType.REFUND, command.pointAmount(), "결제 취소 환불")
@@ -79,6 +82,7 @@ public class PointCommandService {
 
         int deductAmount = Math.min(memberPoint.getAvailablePoints(), command.pointAmount());
         memberPoint.deductPoints(deductAmount);
+        memberPointRepository.save(memberPoint);
 
         memberPointHistoryRepository.save(
             MemberPointHistory.of(command.memberId(), PointType.USE, -deductAmount, "결제 취소 적립금 회수")
@@ -93,6 +97,7 @@ public class PointCommandService {
                 "포인트 정보를 찾을 수 없습니다. memberId=" + command.memberId()));
 
         memberPoint.deductPoints(command.pointAmount());
+        memberPointRepository.save(memberPoint);
 
         memberPointHistoryRepository.save(
             MemberPointHistory.of(command.memberId(), PointType.USE, -command.pointAmount(), command.reason())
