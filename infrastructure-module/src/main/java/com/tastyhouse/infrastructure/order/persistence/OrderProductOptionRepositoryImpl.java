@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.order.infrastructure.persistence;
+package com.tastyhouse.infrastructure.order.persistence;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 
-import static com.tastyhouse.core.domain.order.domain.model.QOrderProductOption.orderProductOption;
+import static com.tastyhouse.infrastructure.order.persistence.QOrderProductOptionJpaEntity.orderProductOptionJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,13 +21,17 @@ public class OrderProductOptionRepositoryImpl implements OrderProductOptionRepos
 
     @Override
     public List<OrderProductOption> findByOrderProductId(OrderProductId orderProductId) {
-        return queryFactory.selectFrom(orderProductOption)
-            .where(orderProductOption.orderProductId.eq(orderProductId.value()))
-            .fetch();
+        return queryFactory.selectFrom(orderProductOptionJpaEntity)
+            .where(orderProductOptionJpaEntity.orderProductId.eq(orderProductId.value()))
+            .fetch()
+            .stream()
+            .map(OrderProductOptionMapper::toDomain)
+            .toList();
     }
 
     @Override
     public void save(OrderProductOption orderProductOption) {
-        orderProductOptionJpaRepository.save(orderProductOption);
+        // 옵션은 update 행위가 없어 신규 저장(insert) 전용이다.
+        orderProductOptionJpaRepository.save(OrderProductOptionMapper.toEntity(orderProductOption));
     }
 }

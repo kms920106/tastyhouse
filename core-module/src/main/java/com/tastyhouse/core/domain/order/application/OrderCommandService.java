@@ -136,6 +136,7 @@ public class OrderCommandService {
             int itemDiscount = discountPrice != null ? (originalPrice - discountPrice) * itemCommand.quantity() : 0;
 
             savedOrderProduct.updatePrices(totalOptionPrice, itemTotal);
+            orderProductRepository.save(savedOrderProduct);
 
             totalProductAmount += originalPrice * itemCommand.quantity() + totalOptionPrice * itemCommand.quantity();
             productDiscountAmount += itemDiscount;
@@ -164,6 +165,7 @@ public class OrderCommandService {
         validateOrderAmounts(command, totalProductAmount, totalDiscountAmount, productDiscountAmount, couponDiscountAmount, pointDiscountAmount, finalAmount);
 
         savedOrder.updateAmounts(totalProductAmount, productDiscountAmount, couponDiscountAmount, pointDiscountAmount, totalDiscountAmount, finalAmount, memberCouponId, pointDiscountAmount);
+        orderRepository.save(savedOrder);
 
         List<OrderProduct> items = orderProductRepository.findByOrderId(savedOrder.getOrderId());
         List<com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult> itemResults = buildOrderProductResults(items);
@@ -190,6 +192,7 @@ public class OrderCommandService {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
         order.changeStatus(status);
+        orderRepository.save(order);
     }
 
     @Transactional
@@ -197,6 +200,7 @@ public class OrderCommandService {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
         order.delete();
+        orderRepository.save(order);
     }
 
     private List<com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult> buildOrderProductResults(List<OrderProduct> items) {

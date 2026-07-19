@@ -1,47 +1,28 @@
 package com.tastyhouse.core.domain.order.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.order.domain.vo.OrderProductOptionId;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 주문 상품 옵션 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code OrderProductOptionJpaEntity} + {@code OrderProductOptionMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "ORDER_PRODUCT_OPTION")
-public class OrderProductOption extends BaseEntity {
+public class OrderProductOption {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "order_product_id", nullable = false)
-    private Long orderProductId;
-
-    @Column(name = "option_group_id")
-    private Long optionGroupId;
-
-    @Column(name = "option_group_name", nullable = false, length = 100)
-    private String optionGroupName;
-
-    @Column(name = "option_id")
-    private Long optionId;
-
-    @Column(name = "option_name", nullable = false, length = 100)
-    private String optionName;
-
-    @Column(name = "additional_price", nullable = false)
-    private Integer additionalPrice;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final Long orderProductId; // 주문 상품 ID (ORDER_PRODUCT.id 참조)
+    private final Long optionGroupId; // 옵션 그룹 ID (스냅샷, NULL 가능)
+    private final String optionGroupName; // 주문 시점 옵션 그룹 이름 (스냅샷)
+    private final Long optionId; // 옵션 ID (스냅샷, NULL 가능)
+    private final String optionName; // 주문 시점 옵션 이름 (스냅샷)
+    private final Integer additionalPrice; // 옵션 추가 금액
 
     private OrderProductOption(
+        Long id,
         Long orderProductId,
         Long optionGroupId,
         String optionGroupName,
@@ -49,14 +30,18 @@ public class OrderProductOption extends BaseEntity {
         String optionName,
         Integer additionalPrice
     ) {
+        this.id = id;
         this.orderProductId = orderProductId;
         this.optionGroupId = optionGroupId;
         this.optionGroupName = optionGroupName;
         this.optionId = optionId;
         this.optionName = optionName;
-        this.additionalPrice = additionalPrice != null ? additionalPrice : 0;
+        this.additionalPrice = additionalPrice;
     }
 
+    /**
+     * 신규 주문 상품 옵션을 생성한다. 아직 영속되지 않았으므로 식별자가 없다.
+     */
     public static OrderProductOption of(
         Long orderProductId,
         Long optionGroupId,
@@ -66,6 +51,31 @@ public class OrderProductOption extends BaseEntity {
         Integer additionalPrice
     ) {
         return new OrderProductOption(
+            null,
+            orderProductId,
+            optionGroupId,
+            optionGroupName,
+            optionId,
+            optionName,
+            additionalPrice != null ? additionalPrice : 0
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자를 주입한다.
+     */
+    public static OrderProductOption reconstitute(
+        Long id,
+        Long orderProductId,
+        Long optionGroupId,
+        String optionGroupName,
+        Long optionId,
+        String optionName,
+        Integer additionalPrice
+    ) {
+        return new OrderProductOption(
+            id,
             orderProductId,
             optionGroupId,
             optionGroupName,

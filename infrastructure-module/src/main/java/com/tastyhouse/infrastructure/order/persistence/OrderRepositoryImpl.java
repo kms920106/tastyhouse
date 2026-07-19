@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.order.infrastructure.persistence;
+package com.tastyhouse.infrastructure.order.persistence;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -6,9 +6,6 @@ import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.PathBuilder;
-import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -29,67 +26,62 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.order.domain.model.QOrder.order;
-import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderProduct;
 import static com.tastyhouse.core.domain.payment.domain.model.QPayment.payment;
+import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
+import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEntity.orderProductJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 /**
- * {@code shop}은 infrastructure-module로 이동한 {@code ShopJpaEntity}를 가리킨다.
- * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
- * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("ShopJpaEntity")을
- * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
+ * {@code payment}는 미전환 도메인(core-module)이라 {@code QPayment}를 그대로 조인한다.
+ * {@code payment.orderId}는 {@link OrderId} VO를 {@code @Convert}로 매핑한 필드라 QueryDSL이
+ * VO 타입 path를 생성하므로, {@link Expressions#numberPath}로 raw {@code Long} 컬럼 비교를 우회한다.
  */
 @Repository
 @RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
-
-    private static final PathBuilder<Object> shop = new PathBuilder<>(Object.class, "ShopJpaEntity");
-    private static final NumberPath<Long> shopIdCol = shop.getNumber("id", Long.class);
-    private static final StringPath shopNameCol = shop.getString("name");
-    private static final NumberPath<Long> shopThumbnailImageFileIdCol = shop.getNumber("thumbnailImageFileId", Long.class);
 
     private final JPAQueryFactory queryFactory;
     private final OrderJpaRepository orderJpaRepository;
 
     @Override
     public Optional<Order> findById(OrderId orderId) {
-        return orderJpaRepository.findById(orderId.value());
+        return orderJpaRepository.findById(orderId.value()).map(OrderMapper::toDomain);
     }
 
     @Override
     public PageResult<OrderListItemResult> findOrderListByMemberId(MemberId memberId, PageQuery pageQuery) {
         var paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId")
-            .eq(order.id)
+            .eq(orderJpaEntity.id)
             .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED));
 
         List<OrderListItemResult> content = queryFactory
             .select(new QOrderListItemResult(
-                order.id,
-                shopNameCol,
+                orderJpaEntity.id,
+                shopJpaEntity.name,
                 uploadedFile.filePath,
-                orderProduct.name.min(),
-                orderProduct.id.count().castToNum(Integer.class),
-                order.finalAmount,
+                orderProductJpaEntity.name.min(),
+                orderProductJpaEntity.id.count().castToNum(Integer.class),
+                orderJpaEntity.finalAmount,
                 payment.paymentStatus,
                 payment.approvedAt
             ))
-            .from(order)
+            .from(orderJpaEntity)
             .innerJoin(payment).on(paymentJoinCondition)
-            .leftJoin(shop).on(shopIdCol.eq(order.shopId))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopThumbnailImageFileIdCol))
-            .leftJoin(orderProduct).on(orderProduct.orderId.eq(order.id))
-            .where(order.memberId.eq(memberId))
-            .groupBy(order.id, shopNameCol, uploadedFile.filePath, order.finalAmount, payment.paymentStatus, payment.approvedAt)
-            .orderBy(order.createdAt.desc())
+            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopJpaEntity.thumbnailImageFileId))
+            .leftJoin(orderProductJpaEntity).on(orderProductJpaEntity.orderId.eq(orderJpaEntity.id))
+            .where(orderJpaEntity.memberId.eq(memberId))
+            .groupBy(orderJpaEntity.id, shopJpaEntity.name, uploadedFile.filePath, orderJpaEntity.finalAmount, payment.paymentStatus, payment.approvedAt)
+            .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
 
         Long total = queryFactory
-            .select(order.count())
-            .from(order)
+            .select(orderJpaEntity.count())
+            .from(orderJpaEntity)
             .innerJoin(payment).on(paymentJoinCondition)
-            .where(order.memberId.eq(memberId))
+            .where(orderJpaEntity.memberId.eq(memberId))
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
@@ -97,30 +89,30 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public PageResult<OrderManagementListItemResult> findOrders(OrderSearchCondition condition, PageQuery pageQuery) {
-        var paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId").eq(order.id);
+        var paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId").eq(orderJpaEntity.id);
         if (condition.paymentStatus() != null) {
             paymentJoinCondition = paymentJoinCondition.and(payment.paymentStatus.eq(condition.paymentStatus()));
         }
 
         List<OrderManagementListItemResult> content = queryFactory
             .select(new QOrderManagementListItemResult(
-                order.id,
-                order.orderNumber,
-                shopNameCol,
-                order.ordererName,
-                order.orderMethod,
-                order.orderStatus,
+                orderJpaEntity.id,
+                orderJpaEntity.orderNumber,
+                shopJpaEntity.name,
+                orderJpaEntity.ordererName,
+                orderJpaEntity.orderMethod,
+                orderJpaEntity.orderStatus,
                 payment.paymentStatus,
-                order.finalAmount,
-                orderProduct.id.count().castToNum(Integer.class),
-                order.createdAt
+                orderJpaEntity.finalAmount,
+                orderProductJpaEntity.id.count().castToNum(Integer.class),
+                orderJpaEntity.createdAt
             ))
-            .from(order)
+            .from(orderJpaEntity)
             .leftJoin(payment).on(paymentJoinCondition)
-            .leftJoin(shop).on(shopIdCol.eq(order.shopId))
-            .leftJoin(orderProduct).on(orderProduct.orderId.eq(order.id))
+            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
+            .leftJoin(orderProductJpaEntity).on(orderProductJpaEntity.orderId.eq(orderJpaEntity.id))
             .where(
-                order.deleted.isFalse(),
+                orderJpaEntity.deleted.isFalse(),
                 shopIdEq(condition.shopId()),
                 orderStatusEq(condition.orderStatus()),
                 orderMethodEq(condition.orderMethod()),
@@ -129,18 +121,18 @@ public class OrderRepositoryImpl implements OrderRepository {
                 createdAtGoe(condition.startDate()),
                 createdAtLoe(condition.endDate())
             )
-            .groupBy(order.id, order.orderNumber, shopNameCol, order.ordererName, order.orderMethod, order.orderStatus, payment.paymentStatus, order.finalAmount, order.createdAt)
-            .orderBy(order.createdAt.desc())
+            .groupBy(orderJpaEntity.id, orderJpaEntity.orderNumber, shopJpaEntity.name, orderJpaEntity.ordererName, orderJpaEntity.orderMethod, orderJpaEntity.orderStatus, payment.paymentStatus, orderJpaEntity.finalAmount, orderJpaEntity.createdAt)
+            .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
 
         Long total = queryFactory
-            .select(order.countDistinct())
-            .from(order)
+            .select(orderJpaEntity.countDistinct())
+            .from(orderJpaEntity)
             .leftJoin(payment).on(paymentJoinCondition)
             .where(
-                order.deleted.isFalse(),
+                orderJpaEntity.deleted.isFalse(),
                 shopIdEq(condition.shopId()),
                 orderStatusEq(condition.orderStatus()),
                 orderMethodEq(condition.orderMethod()),
@@ -156,34 +148,44 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Order save(Order order) {
-        return orderJpaRepository.save(order);
+        if (order.getId() == null) {
+            OrderJpaEntity saved = orderJpaRepository.save(OrderMapper.toEntity(order));
+            return OrderMapper.toDomain(saved);
+        }
+
+        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
+        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
+        OrderJpaEntity entity = orderJpaRepository.findById(order.getId())
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 주문입니다: " + order.getId()));
+        OrderMapper.applyChanges(entity, order);
+        return OrderMapper.toDomain(entity);
     }
 
     private BooleanExpression shopIdEq(Long shopId) {
-        return shopId != null ? order.shopId.eq(shopId) : null;
+        return shopId != null ? orderJpaEntity.shopId.eq(shopId) : null;
     }
 
     private BooleanExpression orderStatusEq(OrderStatus orderStatus) {
-        return orderStatus != null ? order.orderStatus.eq(orderStatus) : null;
+        return orderStatus != null ? orderJpaEntity.orderStatus.eq(orderStatus) : null;
     }
 
     private BooleanExpression orderMethodEq(OrderMethod orderMethod) {
-        return orderMethod != null ? order.orderMethod.eq(orderMethod) : null;
+        return orderMethod != null ? orderJpaEntity.orderMethod.eq(orderMethod) : null;
     }
 
     private BooleanExpression orderNumberContains(String orderNumber) {
-        return orderNumber != null ? order.orderNumber.containsIgnoreCase(orderNumber) : null;
+        return orderNumber != null ? orderJpaEntity.orderNumber.containsIgnoreCase(orderNumber) : null;
     }
 
     private BooleanExpression ordererNameContains(String ordererName) {
-        return ordererName != null ? order.ordererName.containsIgnoreCase(ordererName) : null;
+        return ordererName != null ? orderJpaEntity.ordererName.containsIgnoreCase(ordererName) : null;
     }
 
     private BooleanExpression createdAtGoe(LocalDateTime startDate) {
-        return startDate != null ? order.createdAt.goe(startDate) : null;
+        return startDate != null ? orderJpaEntity.createdAt.goe(startDate) : null;
     }
 
     private BooleanExpression createdAtLoe(LocalDateTime endDate) {
-        return endDate != null ? order.createdAt.loe(endDate) : null;
+        return endDate != null ? orderJpaEntity.createdAt.loe(endDate) : null;
     }
 }

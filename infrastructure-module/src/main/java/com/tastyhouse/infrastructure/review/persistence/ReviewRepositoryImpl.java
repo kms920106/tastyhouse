@@ -45,9 +45,9 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderProduct;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
+import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEntity.orderProductJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity.reviewImageJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 
@@ -87,16 +87,16 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 uploadedFile.filePath,
                 station.stationName,
                 shopNameCol,
-                orderProduct.name,
+                orderProductJpaEntity.name,
                 reviewJpaEntity.totalRating,
                 reviewJpaEntity.content
             ))
             .from(reviewJpaEntity)
             .innerJoin(shop).on(reviewJpaEntity.shopId.eq(shopIdCol))
             .innerJoin(station).on(shopStationIdCol.eq(station.id))
-            .leftJoin(orderProduct).on(
-                orderProduct.orderId.eq(reviewJpaEntity.orderId)
-                .and(orderProduct.productId.eq(reviewJpaEntity.productId))
+            .leftJoin(orderProductJpaEntity).on(
+                orderProductJpaEntity.orderId.eq(reviewJpaEntity.orderId)
+                .and(orderProductJpaEntity.productId.eq(reviewJpaEntity.productId))
             )
             .leftJoin(reviewImageJpaEntity).on(
                 reviewImageJpaEntity.reviewId.eq(reviewJpaEntity.id)
