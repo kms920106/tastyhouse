@@ -1015,18 +1015,18 @@ CREATE TABLE RECOMMENDED_KEYWORD (
     updated_at DATETIME     NOT NULL               -- 수정 일시
 );
 
-CREATE TABLE SHOP_RESERVATION_SLOT
+CREATE TABLE RESERVATION_SLOT
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,                   -- 슬롯 ID (PK)
-    shop_id        BIGINT   NOT NULL,                                   -- 장소 ID (SHOP.id 참조)
-    slot_date      DATE     NOT NULL,                                   -- 슬롯 날짜
-    slot_time      TIME     NOT NULL,                                   -- 슬롯 시간 (30분 단위)
-    capacity       INT      NOT NULL,                                   -- 슬롯당 정원 (팀 수)
-    reserved_count INT      NOT NULL DEFAULT 0,                         -- 현재 점유 팀 수
-    version        BIGINT,                                              -- 낙관적 락 버전 (@Version)
-    created_at     DATETIME NOT NULL,                                   -- 생성 일시
-    updated_at     DATETIME NOT NULL,                                   -- 수정 일시
-    UNIQUE KEY uk_shop_reservation_slot (shop_id, slot_date, slot_time) -- 유니크: 가게·날짜·시간 슬롯 중복 방지
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,               -- 슬롯 ID (PK)
+    shop_id        BIGINT   NOT NULL,                               -- 장소 ID (SHOP.id 참조)
+    slot_date      DATE     NOT NULL,                               -- 슬롯 날짜
+    slot_time      TIME     NOT NULL,                               -- 슬롯 시간 (30분 단위)
+    capacity       INT      NOT NULL,                               -- 슬롯당 정원 (팀 수)
+    reserved_count INT      NOT NULL DEFAULT 0,                     -- 현재 점유 팀 수
+    version        BIGINT,                                          -- 낙관적 락 버전 (@Version)
+    created_at     DATETIME NOT NULL,                               -- 생성 일시
+    updated_at     DATETIME NOT NULL,                               -- 수정 일시
+    UNIQUE KEY uk_reservation_slot (shop_id, slot_date, slot_time) -- 유니크: 가게·날짜·시간 슬롯 중복 방지
 );
 
 CREATE TABLE RESERVATION

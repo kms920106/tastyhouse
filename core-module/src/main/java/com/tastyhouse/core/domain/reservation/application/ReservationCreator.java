@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.core.domain.reservation.domain.model.ReservationSlot;
-import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
+import com.tastyhouse.core.domain.reservation.domain.model.SlotPolicy;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
-import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
+import com.tastyhouse.core.domain.reservation.domain.repository.ReservationSlotRepository;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
@@ -36,7 +36,7 @@ public class ReservationCreator {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ReservationRepository reservationRepository;
-    private final ShopReservationSlotRepository slotRepository;
+    private final ReservationSlotRepository slotRepository;
     private final ShopQueryService shopQueryService;
     private final MemberQueryService memberQueryService;
 
@@ -51,7 +51,7 @@ public class ReservationCreator {
         }
 
         // 2. 슬롯 시간 유효성 검증
-        if (!ReservationSlot.isValidSlot(cmd.time())) {
+        if (!SlotPolicy.isValidSlot(cmd.time())) {
             throw new BusinessException(ErrorCode.RESERVATION_INVALID_TIME);
         }
 
@@ -71,9 +71,9 @@ public class ReservationCreator {
         }
 
         // 6. 슬롯 get-or-create
-        ShopReservationSlot slot = slotRepository
+        ReservationSlot slot = slotRepository
             .findByShopAndDateAndTime(cmd.shopId(), cmd.date(), cmd.time())
-            .orElseGet(() -> ShopReservationSlot.of(cmd.shopId(), cmd.date(), cmd.time(), ReservationSlot.CAPACITY_PER_SLOT));
+            .orElseGet(() -> ReservationSlot.of(cmd.shopId(), cmd.date(), cmd.time(), SlotPolicy.CAPACITY_PER_SLOT));
 
         // 7. 정원 차감 + 명시적 flush
         //    - reserve()가 마감이면 RESERVATION_SLOT_FULL 즉시 전파(재시도 대상 아님)

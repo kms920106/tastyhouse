@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료, rank 전환 완료(하드→소프트 삭제 전환 포함)** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료, rank 전환 완료(하드→소프트 삭제 전환 포함), reservation 전환 완료(@Version 낙관적 락 애그리거트 분리 최초 사례)** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -809,3 +809,14 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - **더티 체킹 의존 2곳**: `RankCommandService`의 `updatePeriod`/`updatePrize`가 각각 `RankPeriod.update`/`RankPrize.update` 변경 후 `save` 미호출 상태였다. 2곳 모두 명시적 save를 추가했다. `deletePeriod`/`deletePrize`는 기존대로 `repository.delete(도메인)` 호출을 유지한다(소프트 삭제 로직은 `RepositoryImpl` 내부로 캡슐화).
 - 명시적 save: `RankCommandService#updatePeriod`·`#updatePrize`.
 - 순수 단위 테스트: `core-module/src/test/.../rank/domain/model/RankPeriodTest`·`RankPrizeTest`·`MemberReviewRankTest`
+
+### reservation 전환 결과물 (reference — 2개 애그리거트, `@Version` 낙관적 락 애그리거트 분리 최초 사례)
+
+- 순수 모델: `core-module/.../reservation/domain/model/Reservation`·`ReservationSlot` (`of`/`reconstitute`; 둘 다 JPA 연관관계 없음). `Reservation`은 `@Convert` FK VO `MemberId memberId` + raw FK `Long shopId` + enum `ReservationStatus`(`EnumType.STRING`+`columnDefinition`)를 갖고 `confirm`/`reject`/`cancel`/`complete` 상태전이가 있다. `ReservationSlot`은 raw FK `Long shopId`로만 연결되며 `reserve`/`release`로 점유수(`reservedCount`)를 증감하는 정원 카운터 애그리거트다. (네이밍 정리: 이 애그리거트는 원래 `ShopReservationSlot`이었으나 `Shop-` 접두어를 제거해 `ReservationSlot`으로 개명했고, 같은 패키지의 슬롯 시간·정원 상수 유틸은 이름 충돌을 피해 `SlotPolicy`로 개명했다. DB 테이블도 `SHOP_RESERVATION_SLOT` → `RESERVATION_SLOT`으로 함께 변경.)
+- **`@Version` 낙관적 락 보존(신규 패턴)**: `ReservationSlot`은 이 프로젝트에서 분리한 첫 `@Version` 애그리거트다. POJO에 `private final Long version` 필드를 두어 `reconstitute` 시 마지막으로 읽은 버전을 보관하되, 도메인이 직접 증가시키지 않는다. `ReservationSlotJpaEntity`의 `@Version` 필드가 flush 시 JPA에 의해 자동 검증·증가되며, `ReservationSlotRepositoryImpl#save`의 load-copy-save(managed 엔티티 조회 → `applyChanges(reservedCount)` → 반환)가 이 메커니즘을 그대로 통과시키므로 기존 낙관적 락 동작이 100% 보존된다. `applyChanges`는 `version`을 인자로 받지 않고 건드리지도 않는다.
+- **동시성 계약 보존 확인**: `ReservationCreator#createInNewTx`(별도 트랜잭션, self-invocation 회피용 분리 빈)가 슬롯 get-or-create → `slot.reserve()` → `slotRepository.save(slot)` → `entityManager.flush()` 순으로 명시 호출해, 신규 슬롯 동시 insert는 유니크 제약 위반(`DataIntegrityViolationException`)을, 기존 슬롯 동시 update는 `@Version` 충돌(`ObjectOptimisticLockingFailureException`)을 flush 시점에 유발한다. 두 예외는 호출자 `ReservationCommandService#create`의 최대 3회 재시도 루프가 처리하며, 분리 전후로 이 흐름은 변경되지 않았다(코드 리뷰 + 순수 단위테스트로만 검증; 동시성 통합테스트는 신설하지 않음 — 사용자 결정).
+- 감사 필드 비대칭: `Reservation`만 조회 결과(`ReservationResult.from`)가 `createdAt`을 직접 소비해 감사 필드를 보유하고(`updatedAt`은 미사용이라 생략), `ReservationSlot`은 어떤 result도 감사 시각을 소비하지 않아 감사 필드가 전혀 없다 — coupon/point와 동형의 비대칭 구조.
+- 어댑터: `infrastructure-module/.../reservation/persistence/{ReservationJpaEntity, ReservationSlotJpaEntity, ReservationMapper, ReservationSlotMapper, ReservationJpaRepository, ReservationSlotJpaRepository, ReservationRepositoryImpl, ReservationSlotRepositoryImpl}` — `QReservationJpaEntity`/`QReservationSlotJpaEntity`(infra 생성)만 치환. `ReservationSlotJpaRepository`의 파생 쿼리(`findByShopIdAndSlotDateAndSlotTime`/`findByShopIdAndSlotDate`)는 `ReservationSlotJpaEntity`를 반환하고 `RepositoryImpl`이 매퍼로 도메인 변환한다.
+- **더티 체킹 의존 5곳**: `ReservationCommandService`의 `confirm`/`reject`/`complete`/`cancel`이 각각 상태전이 후 `save` 미호출 상태였고, `reject`/`cancel`이 호출하는 `releaseSlot`도 `slot.release()`만 하고 `save` 미호출 상태였다(더티 체킹 의존). 5곳 모두 명시적 save를 추가했다(`create`가 호출하는 `ReservationCreator#createInNewTx`는 기존에 이미 `save`+`flush`를 명시 호출 중이라 추가 불필요).
+- 명시적 save: `ReservationCommandService#confirm`·`#reject`·`#complete`·`#cancel`·`#releaseSlot`(private).
+- 순수 단위 테스트: `core-module/src/test/.../reservation/domain/model/ReservationTest`·`ReservationSlotTest`

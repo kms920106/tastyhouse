@@ -9,9 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
-import com.tastyhouse.core.domain.reservation.domain.model.ShopReservationSlot;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
-import com.tastyhouse.core.domain.reservation.domain.repository.ShopReservationSlotRepository;
+import com.tastyhouse.core.domain.reservation.domain.repository.ReservationSlotRepository;
 import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
@@ -30,7 +29,7 @@ public class ReservationCommandService {
 
     private final ReservationCreator reservationCreator;
     private final ReservationRepository reservationRepository;
-    private final ShopReservationSlotRepository slotRepository;
+    private final ReservationSlotRepository slotRepository;
     private final ShopQueryService shopQueryService;
 
     /**
@@ -61,6 +60,7 @@ public class ReservationCommandService {
     public ReservationResult confirm(ReservationId reservationId) {
         Reservation reservation = getReservation(reservationId);
         reservation.confirm();
+        reservationRepository.save(reservation);
         return toResult(reservation);
     }
 
@@ -72,6 +72,7 @@ public class ReservationCommandService {
     public ReservationResult reject(ReservationId reservationId) {
         Reservation reservation = getReservation(reservationId);
         reservation.reject();
+        reservationRepository.save(reservation);
         releaseSlot(reservation);
         return toResult(reservation);
     }
@@ -84,6 +85,7 @@ public class ReservationCommandService {
     public ReservationResult complete(ReservationId reservationId) {
         Reservation reservation = getReservation(reservationId);
         reservation.complete();
+        reservationRepository.save(reservation);
         return toResult(reservation);
     }
 
@@ -95,6 +97,7 @@ public class ReservationCommandService {
         Reservation reservation = getReservation(reservationId);
         reservation.validateOwnership(memberId);
         reservation.cancel();
+        reservationRepository.save(reservation);
         releaseSlot(reservation);
         return toResult(reservation);
     }
@@ -110,7 +113,10 @@ public class ReservationCommandService {
     private void releaseSlot(Reservation reservation) {
         slotRepository
             .findByShopAndDateAndTime(reservation.getShopId(), reservation.getReservationDate(), reservation.getReservationTime())
-            .ifPresent(ShopReservationSlot::release);
+            .ifPresent(slot -> {
+                slot.release();
+                slotRepository.save(slot);
+            });
     }
 
     private ReservationResult toResult(Reservation reservation) {

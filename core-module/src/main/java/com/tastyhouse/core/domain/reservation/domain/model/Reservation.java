@@ -1,86 +1,63 @@
 package com.tastyhouse.core.domain.reservation.domain.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 예약 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ReservationJpaEntity} + {@code ReservationMapper}가 담당한다. 도메인이 프레임워크-프리이므로
+ * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code ReservationRepository#save}를
+ * 호출해야 한다.
+ */
 @Getter
-@Entity
-@Table(
-    name = "RESERVATION",
-    indexes = {
-        @Index(name = "idx_reservation_shop_slot", columnList = "shop_id, reservation_date, reservation_time"),
-        @Index(name = "idx_reservation_member", columnList = "member_id")
-    }
-)
-public class Reservation extends BaseEntity {
+public class Reservation {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Convert(converter = MemberIdConverter.class)
-    @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
-
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId;
-
-    @Column(name = "reservation_date", nullable = false)
-    private LocalDate reservationDate;
-
-    @Column(name = "reservation_time", nullable = false)
-    private LocalTime reservationTime;
-
-    @Column(name = "party_size", nullable = false)
-    private Integer partySize;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ReservationStatus status;
-
-    @Column(name = "request", columnDefinition = "TEXT")
-    private String request;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final MemberId memberId; // 예약자 회원 ID
+    private final Long shopId; // 장소 ID
+    private final LocalDate reservationDate; // 예약 날짜
+    private final LocalTime reservationTime; // 예약 시간
+    private final Integer partySize; // 방문 인원수
+    private ReservationStatus status; // 예약 상태 (상태전이로 재대입됨)
+    private final String request; // 요청사항
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private Reservation(
+        Long id,
         MemberId memberId,
         Long shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,
-        String request
+        ReservationStatus status,
+        String request,
+        LocalDateTime createdAt
     ) {
+        this.id = id;
         this.memberId = memberId;
         this.shopId = shopId;
         this.reservationDate = reservationDate;
         this.reservationTime = reservationTime;
         this.partySize = partySize;
+        this.status = status;
         this.request = request;
-        this.status = ReservationStatus.PENDING;
+        this.createdAt = createdAt;
     }
 
+    /**
+     * 신규 예약을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다. 초기 상태는 PENDING이다.
+     */
     public static Reservation of(
         MemberId memberId,
         Long shopId,
@@ -89,7 +66,26 @@ public class Reservation extends BaseEntity {
         Integer partySize,
         String request
     ) {
-        return new Reservation(memberId, shopId, reservationDate, reservationTime, partySize, request);
+        return new Reservation(null, memberId, shopId, reservationDate, reservationTime, partySize,
+            ReservationStatus.PENDING, request, null);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static Reservation reconstitute(
+        Long id,
+        MemberId memberId,
+        Long shopId,
+        LocalDate reservationDate,
+        LocalTime reservationTime,
+        Integer partySize,
+        ReservationStatus status,
+        String request,
+        LocalDateTime createdAt
+    ) {
+        return new Reservation(id, memberId, shopId, reservationDate, reservationTime, partySize, status, request, createdAt);
     }
 
     public ReservationId getReservationId() {
