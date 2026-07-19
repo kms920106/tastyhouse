@@ -5,6 +5,10 @@ import java.util.Optional;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanPath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -28,13 +32,23 @@ import com.tastyhouse.core.shared.page.PageResult;
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;
-import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 
+/**
+ * {@code shop}은 infrastructure-module로 이동한 {@code ShopJpaEntity}를 가리킨다.
+ * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
+ * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("ShopJpaEntity")을
+ * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
 
     private static final QProductImage subProductImage = new QProductImage("subProductImage");
+
+    private static final PathBuilder<Object> shop = new PathBuilder<>(Object.class, "ShopJpaEntity");
+    private static final NumberPath<Long> shopIdCol = shop.getNumber("id", Long.class);
+    private static final StringPath shopNameCol = shop.getString("name");
+    private static final BooleanPath shopPermanentlyClosedCol = shop.getBoolean("permanentlyClosed");
 
     private final JPAQueryFactory queryFactory;
     private final ProductJpaRepository productJpaRepository;
@@ -44,7 +58,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         JPAQuery<TodayDiscountProductResult> query = queryFactory
             .select(new QTodayDiscountProductResult(
                 product.id,
-                shop.name,
+                shopNameCol,
                 product.name,
                 uploadedFile.filePath,
                 product.originalPrice,
@@ -52,7 +66,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.discountInfo.discountRate
             ))
             .from(product)
-            .innerJoin(shop).on(product.shopId.eq(shop.id))
+            .innerJoin(shop).on(product.shopId.eq(shopIdCol))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
                     .and(productImage.visible.eq(true))
@@ -84,12 +98,12 @@ public class ProductRepositoryImpl implements ProductRepository {
         Long total = queryFactory
             .select(product.count())
             .from(product)
-            .innerJoin(shop).on(product.shopId.eq(shop.id))
+            .innerJoin(shop).on(product.shopId.eq(shopIdCol))
             .where(
                 product.name.containsIgnoreCase(keyword)
                     .and(product.visible.eq(true))
                     .and(product.soldOut.eq(false))
-                    .and(shop.permanentlyClosed.eq(false))
+                    .and(shopPermanentlyClosedCol.eq(false))
             )
             .fetchOne();
 
@@ -98,7 +112,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         List<SearchProductItemResult> content = queryFactory
             .select(Projections.constructor(SearchProductItemResult.class,
                 product.id,
-                shop.name,
+                shopNameCol,
                 product.name,
                 uploadedFile.filePath,
                 product.originalPrice,
@@ -110,7 +124,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.spiciness
             ))
             .from(product)
-            .innerJoin(shop).on(product.shopId.eq(shop.id))
+            .innerJoin(shop).on(product.shopId.eq(shopIdCol))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
                     .and(productImage.visible.eq(true))
@@ -126,7 +140,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.name.containsIgnoreCase(keyword)
                     .and(product.visible.eq(true))
                     .and(product.soldOut.eq(false))
-                    .and(shop.permanentlyClosed.eq(false))
+                    .and(shopPermanentlyClosedCol.eq(false))
             )
             .orderBy(product.representative.desc().nullsLast(), product.rating.desc().nullsLast())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -155,7 +169,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         List<ProductListItemResult> content = queryFactory
             .select(new QProductListItemResult(
                 product.id,
-                shop.name,
+                shopNameCol,
                 product.name,
                 product.originalPrice,
                 product.discountInfo.discountPrice,
@@ -166,7 +180,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 product.sort
             ))
             .from(product)
-            .innerJoin(shop).on(product.shopId.eq(shop.id))
+            .innerJoin(shop).on(product.shopId.eq(shopIdCol))
             .where(
                 shopIdEq(condition.shopId()),
                 categoryIdEq(condition.productCategoryId()),

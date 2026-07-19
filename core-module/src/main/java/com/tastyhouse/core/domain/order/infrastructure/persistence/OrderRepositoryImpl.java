@@ -6,6 +6,9 @@ import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -29,11 +32,21 @@ import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploade
 import static com.tastyhouse.core.domain.order.domain.model.QOrder.order;
 import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderProduct;
 import static com.tastyhouse.core.domain.payment.domain.model.QPayment.payment;
-import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 
+/**
+ * {@code shop}은 infrastructure-module로 이동한 {@code ShopJpaEntity}를 가리킨다.
+ * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
+ * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("ShopJpaEntity")을
+ * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
+
+    private static final PathBuilder<Object> shop = new PathBuilder<>(Object.class, "ShopJpaEntity");
+    private static final NumberPath<Long> shopIdCol = shop.getNumber("id", Long.class);
+    private static final StringPath shopNameCol = shop.getString("name");
+    private static final NumberPath<Long> shopThumbnailImageFileIdCol = shop.getNumber("thumbnailImageFileId", Long.class);
 
     private final JPAQueryFactory queryFactory;
     private final OrderJpaRepository orderJpaRepository;
@@ -52,7 +65,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         List<OrderListItemResult> content = queryFactory
             .select(new QOrderListItemResult(
                 order.id,
-                shop.name,
+                shopNameCol,
                 uploadedFile.filePath,
                 orderProduct.name.min(),
                 orderProduct.id.count().castToNum(Integer.class),
@@ -62,11 +75,11 @@ public class OrderRepositoryImpl implements OrderRepository {
             ))
             .from(order)
             .innerJoin(payment).on(paymentJoinCondition)
-            .leftJoin(shop).on(shop.id.eq(order.shopId))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shop.thumbnailImageFileId))
+            .leftJoin(shop).on(shopIdCol.eq(order.shopId))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopThumbnailImageFileIdCol))
             .leftJoin(orderProduct).on(orderProduct.orderId.eq(order.id))
             .where(order.memberId.eq(memberId))
-            .groupBy(order.id, shop.name, uploadedFile.filePath, order.finalAmount, payment.paymentStatus, payment.approvedAt)
+            .groupBy(order.id, shopNameCol, uploadedFile.filePath, order.finalAmount, payment.paymentStatus, payment.approvedAt)
             .orderBy(order.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -93,7 +106,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             .select(new QOrderManagementListItemResult(
                 order.id,
                 order.orderNumber,
-                shop.name,
+                shopNameCol,
                 order.ordererName,
                 order.orderMethod,
                 order.orderStatus,
@@ -104,7 +117,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             ))
             .from(order)
             .leftJoin(payment).on(paymentJoinCondition)
-            .leftJoin(shop).on(shop.id.eq(order.shopId))
+            .leftJoin(shop).on(shopIdCol.eq(order.shopId))
             .leftJoin(orderProduct).on(orderProduct.orderId.eq(order.id))
             .where(
                 order.deleted.isFalse(),
@@ -116,7 +129,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 createdAtGoe(condition.startDate()),
                 createdAtLoe(condition.endDate())
             )
-            .groupBy(order.id, order.orderNumber, shop.name, order.ordererName, order.orderMethod, order.orderStatus, payment.paymentStatus, order.finalAmount, order.createdAt)
+            .groupBy(order.id, order.orderNumber, shopNameCol, order.ordererName, order.orderMethod, order.orderStatus, payment.paymentStatus, order.finalAmount, order.createdAt)
             .orderBy(order.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())

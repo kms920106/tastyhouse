@@ -8,6 +8,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.BooleanPath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +29,25 @@ import com.tastyhouse.core.shared.page.PageResult;
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;
-import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 import static com.tastyhouse.core.domain.shop.domain.model.QShopChoice.shopChoice;
 
+/**
+ * {@code shop}은 infrastructure-module로 이동한 {@code ShopJpaEntity}를 가리킨다.
+ * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
+ * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("ShopJpaEntity")을
+ * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
 
     private static final QProductImage subProductImage = new QProductImage("subProductImage");
+
+    private static final PathBuilder<Object> shop = new PathBuilder<>(Object.class, "ShopJpaEntity");
+    private static final NumberPath<Long> shopIdCol = shop.getNumber("id", Long.class);
+    private static final StringPath shopNameCol = shop.getString("name");
+    private static final NumberPath<Long> shopThumbnailImageFileIdCol = shop.getNumber("thumbnailImageFileId", Long.class);
+    private static final BooleanPath shopPermanentlyClosedCol = shop.getBoolean("permanentlyClosed");
 
     private final JPAQueryFactory queryFactory;
     private final ShopChoiceJpaRepository shopChoiceJpaRepository;
@@ -52,14 +67,14 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
             .select(
                 shopChoice.id,
                 shopChoice.shopId,
-                shop.name,
+                shopNameCol,
                 shopChoice.title,
                 shopChoice.content,
                 uploadedFile.filePath
             )
             .from(shopChoice)
-            .innerJoin(shop).on(shop.id.eq(shopChoice.shopId).and(shop.permanentlyClosed.eq(false)))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shop.thumbnailImageFileId))
+            .innerJoin(shop).on(shopIdCol.eq(shopChoice.shopId).and(shopPermanentlyClosedCol.eq(false)))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopThumbnailImageFileIdCol))
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -74,7 +89,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                 product.shopId,
                 new QProductSimpleResult(
                     product.id,
-                    shop.name,
+                    shopNameCol,
                     product.name,
                     uploadedFile.filePath,
                     product.originalPrice,
@@ -83,7 +98,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                 )
             )
             .from(product)
-            .innerJoin(shop).on(shop.id.eq(product.shopId))
+            .innerJoin(shop).on(shopIdCol.eq(product.shopId))
             .leftJoin(productImage).on(
                 productImage.productId.eq(product.id)
                     .and(productImage.visible.eq(true))
@@ -121,7 +136,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                 return new EditorChoiceResult(
                     tuple.get(shopChoice.id),
                     shopIdValue,
-                    tuple.get(shop.name),
+                    tuple.get(shopNameCol),
                     tuple.get(shopChoice.title),
                     tuple.get(shopChoice.content),
                     tuple.get(uploadedFile.filePath),

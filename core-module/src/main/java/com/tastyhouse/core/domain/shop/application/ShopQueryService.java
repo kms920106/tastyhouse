@@ -46,7 +46,6 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeAssign
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopListItemResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
-import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopJpaRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -60,7 +59,6 @@ public class ShopQueryService {
     private final ShopRepository shopRepository;
     private final ShopChoiceRepository shopChoiceRepository;
     private final ShopDetailRepository shopDetailRepository;
-    private final ShopJpaRepository shopJpaRepository;
     private final ShopBookmarkRepository shopBookmarkRepository;
     private final TagRepository tagRepository;
     private final FileQueryService fileQueryService;
@@ -99,7 +97,7 @@ public class ShopQueryService {
     }
 
     public Shop findShopById(ShopId shopId) {
-        return shopJpaRepository.findById(shopId.value())
+        return shopRepository.findById(shopId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 

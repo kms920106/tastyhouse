@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료, rank 전환 완료(하드→소프트 삭제 전환 포함), reservation 전환 완료(@Version 낙관적 락 애그리거트 분리 최초 사례), search 전환 완료(3개 애그리거트, 읽기 전용 애그리거트 reconstitute-only 최초 사례), review 전환 완료(6개 애그리거트 + 죽은 코드 애그리거트 ReviewProduct 삭제)** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료, rank 전환 완료(하드→소프트 삭제 전환 포함), reservation 전환 완료(@Version 낙관적 락 애그리거트 분리 최초 사례), search 전환 완료(3개 애그리거트, 읽기 전용 애그리거트 reconstitute-only 최초 사례), review 전환 완료(6개 애그리거트 + 죽은 코드 애그리거트 ReviewProduct 삭제), shop 전환 완료(@Entity 17개 중 핵심 `Shop` 애그리거트 1개만 우선 전환 — 최초의 부분 전환 사례, 나머지 16개 자식 엔티티는 core 잔류; `QShop` 소멸로 `order`/`product`/`shop`(`ShopChoiceRepositoryImpl`) 및 이미 이동한 `review`까지 4개 파일이 함께 깨져 `PathBuilder`로 전환한 이번 프로젝트 최대 팬아웃 사례)** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
