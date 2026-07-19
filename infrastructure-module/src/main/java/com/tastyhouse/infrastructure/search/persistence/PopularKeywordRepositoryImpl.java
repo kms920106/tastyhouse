@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.search.infrastructure.persistence;
+package com.tastyhouse.infrastructure.search.persistence;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
 import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
 
-import static com.tastyhouse.core.domain.search.domain.model.QPopularKeyword.popularKeyword;
+import static com.tastyhouse.infrastructure.search.persistence.QPopularKeywordJpaEntity.popularKeywordJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,16 +20,23 @@ public class PopularKeywordRepositoryImpl implements PopularKeywordRepository {
 
     @Override
     public List<PopularKeyword> findActiveOrderByRank() {
-        return jpaRepository.findByVisibleTrueOrderByRankAsc();
+        return jpaRepository.findByVisibleTrueOrderByRankAsc().stream()
+            .map(PopularKeywordMapper::toDomain)
+            .toList();
     }
 
     @Override
     public List<PopularKeyword> saveAll(List<PopularKeyword> keywords) {
-        return jpaRepository.saveAll(keywords);
+        List<PopularKeywordJpaEntity> entities = keywords.stream()
+            .map(PopularKeywordMapper::toEntity)
+            .toList();
+        return jpaRepository.saveAll(entities).stream()
+            .map(PopularKeywordMapper::toDomain)
+            .toList();
     }
 
     @Override
     public void deleteAll() {
-        queryFactory.delete(popularKeyword).execute();
+        queryFactory.delete(popularKeywordJpaEntity).execute();
     }
 }

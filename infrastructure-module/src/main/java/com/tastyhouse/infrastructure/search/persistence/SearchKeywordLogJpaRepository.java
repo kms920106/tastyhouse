@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.search.infrastructure.persistence;
+package com.tastyhouse.infrastructure.search.persistence;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,9 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.tastyhouse.core.domain.search.domain.model.SearchKeywordLog;
-
-public interface SearchKeywordLogJpaRepository extends JpaRepository<SearchKeywordLog, Long> {
+public interface SearchKeywordLogJpaRepository extends JpaRepository<SearchKeywordLogJpaEntity, Long> {
 
     @Query(value = """
             SELECT keyword, COUNT(*) as cnt
@@ -23,6 +21,6 @@ public interface SearchKeywordLogJpaRepository extends JpaRepository<SearchKeywo
     List<Object[]> findTop10KeywordsSince(@Param("since") LocalDateTime since);
 
     @Modifying
-    @Query("DELETE FROM SearchKeywordLog s WHERE s.searchedAt < :before")
+    @Query("DELETE FROM SearchKeywordLogJpaEntity s WHERE s.searchedAt < :before")
     void deleteOlderThan(@Param("before") LocalDateTime before);
 }

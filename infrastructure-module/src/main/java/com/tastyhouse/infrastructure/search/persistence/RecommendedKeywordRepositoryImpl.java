@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.search.infrastructure.persistence;
+package com.tastyhouse.infrastructure.search.persistence;
 
 import java.util.List;
 
@@ -16,6 +16,8 @@ public class RecommendedKeywordRepositoryImpl implements RecommendedKeywordRepos
 
     @Override
     public List<RecommendedKeyword> findActiveOrderBySortOrder() {
-        return jpaRepository.findByVisibleTrueOrderBySortOrderAsc();
+        return jpaRepository.findByVisibleTrueOrderBySortOrderAsc().stream()
+            .map(RecommendedKeywordMapper::toDomain)
+            .toList();
     }
 }

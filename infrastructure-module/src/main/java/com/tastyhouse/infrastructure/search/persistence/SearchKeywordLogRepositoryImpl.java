@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.search.infrastructure.persistence;
+package com.tastyhouse.infrastructure.search.persistence;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,7 +17,8 @@ public class SearchKeywordLogRepositoryImpl implements SearchKeywordLogRepositor
 
     @Override
     public SearchKeywordLog save(SearchKeywordLog log) {
-        return jpaRepository.save(log);
+        SearchKeywordLogJpaEntity saved = jpaRepository.save(SearchKeywordLogMapper.toEntity(log));
+        return SearchKeywordLogMapper.toDomain(saved);
     }
 
     @Override
