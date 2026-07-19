@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -737,3 +737,10 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - 어댑터: `infrastructure-module/.../admin/persistence/{AdminJpaEntity, AdminMapper, AdminJpaRepository, AdminRepositoryImpl}` — QueryDSL 없이 순수 pass-through, `applyChanges`/load-copy-save 분기 없음(update 경로 자체가 없어 `save`는 insert 전용)
 - 명시적 save: 대상 없음 — `AdminCommandService#createAdmin`이 이미 저장 시 `save` 호출(더티 체킹 의존 지점 0건)
 - 순수 단위 테스트: `core-module/src/test/.../admin/domain/model/AdminTest`
+
+### banner 전환 결과물 (reference — enum 필드 + 크로스 도메인 QueryDSL 조인 변형)
+
+- 순수 모델: `core-module/.../banner/domain/model/Banner` (`of`/`reconstitute`; `BannerType` enum, `createdAt`/`updatedAt` 포함 — `BannerDetailResult`가 둘 다 소비)
+- 어댑터: `infrastructure-module/.../banner/persistence/{BannerJpaEntity, BannerMapper, BannerJpaRepository, BannerRepositoryImpl}` — `BannerJpaEntity.type`은 `@Enumerated(EnumType.STRING)`+`columnDefinition="VARCHAR(20)"` 원본 유지. `BannerRepositoryImpl`은 미분리 `file` 도메인의 `QUploadedFile`(core-module 생성)을 그대로 조인 — `QBannerJpaEntity`(infra 생성)만 치환하고 크로스 도메인 Q타입 import는 변경하지 않음
+- 명시적 save: `BannerCommandService#updateBanner`·`#deleteBanner`
+- 순수 단위 테스트: `core-module/src/test/.../banner/domain/model/BannerTest`

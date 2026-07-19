@@ -48,6 +48,7 @@ public class BannerCommandService {
             command.sort(),
             command.visible()
         );
+        bannerRepository.save(banner);
     }
 
     public void deleteBanner(BannerId bannerId) {
@@ -55,5 +56,6 @@ public class BannerCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BANNER_NOT_FOUND));
 
         banner.delete();
+        bannerRepository.save(banner);
     }
 }

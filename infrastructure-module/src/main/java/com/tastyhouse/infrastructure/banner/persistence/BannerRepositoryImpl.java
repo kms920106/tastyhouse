@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.banner.infrastructure.persistence;
+package com.tastyhouse.infrastructure.banner.persistence;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +22,7 @@ import com.tastyhouse.core.domain.banner.application.dto.result.QBannerManagemen
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.core.domain.banner.domain.model.QBanner.banner;
+import static com.tastyhouse.infrastructure.banner.persistence.QBannerJpaEntity.bannerJpaEntity;
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 
 @Repository
@@ -37,34 +37,34 @@ public class BannerRepositoryImpl implements BannerRepository {
         LocalDateTime now = LocalDateTime.now();
 
         Long total = queryFactory
-            .select(banner.id.count())
-            .from(banner)
+            .select(bannerJpaEntity.id.count())
+            .from(bannerJpaEntity)
             .where(
-                banner.type.eq(type),
-                banner.deleted.isFalse(),
-                banner.visible.isTrue(),
-                banner.startDate.loe(now),
-                banner.endDate.goe(now)
+                bannerJpaEntity.type.eq(type),
+                bannerJpaEntity.deleted.isFalse(),
+                bannerJpaEntity.visible.isTrue(),
+                bannerJpaEntity.startDate.loe(now),
+                bannerJpaEntity.endDate.goe(now)
             )
             .fetchOne();
 
         List<BannerListItemResult> banners = queryFactory
             .select(new QBannerListItemResult(
-                banner.id,
-                banner.title,
+                bannerJpaEntity.id,
+                bannerJpaEntity.title,
                 uploadedFile.filePath,
-                banner.linkUrl
+                bannerJpaEntity.linkUrl
             ))
-            .from(banner)
-            .join(uploadedFile).on(uploadedFile.id.eq(banner.imageFileId))
+            .from(bannerJpaEntity)
+            .join(uploadedFile).on(uploadedFile.id.eq(bannerJpaEntity.imageFileId))
             .where(
-                banner.type.eq(type),
-                banner.deleted.isFalse(),
-                banner.visible.isTrue(),
-                banner.startDate.loe(now),
-                banner.endDate.goe(now)
+                bannerJpaEntity.type.eq(type),
+                bannerJpaEntity.deleted.isFalse(),
+                bannerJpaEntity.visible.isTrue(),
+                bannerJpaEntity.startDate.loe(now),
+                bannerJpaEntity.endDate.goe(now)
             )
-            .orderBy(banner.sort.asc())
+            .orderBy(bannerJpaEntity.sort.asc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -75,10 +75,10 @@ public class BannerRepositoryImpl implements BannerRepository {
     @Override
     public PageResult<BannerManagementListItemResult> findAllBanners(BannerSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
-            .select(banner.id.count())
-            .from(banner)
+            .select(bannerJpaEntity.id.count())
+            .from(bannerJpaEntity)
             .where(
-                banner.deleted.isFalse(),
+                bannerJpaEntity.deleted.isFalse(),
                 typeEq(condition.type()),
                 titleContains(condition.title()),
                 visibleEq(condition.visible())
@@ -87,27 +87,27 @@ public class BannerRepositoryImpl implements BannerRepository {
 
         List<BannerManagementListItemResult> banners = queryFactory
             .select(new QBannerManagementListItemResult(
-                banner.id,
-                banner.type,
-                banner.title,
+                bannerJpaEntity.id,
+                bannerJpaEntity.type,
+                bannerJpaEntity.title,
                 uploadedFile.id,
                 uploadedFile.originalFilename,
                 uploadedFile.filePath,
-                banner.linkUrl,
-                banner.startDate,
-                banner.endDate,
-                banner.sort,
-                banner.visible
+                bannerJpaEntity.linkUrl,
+                bannerJpaEntity.startDate,
+                bannerJpaEntity.endDate,
+                bannerJpaEntity.sort,
+                bannerJpaEntity.visible
             ))
-            .from(banner)
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(banner.imageFileId))
+            .from(bannerJpaEntity)
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(bannerJpaEntity.imageFileId))
             .where(
-                banner.deleted.isFalse(),
+                bannerJpaEntity.deleted.isFalse(),
                 typeEq(condition.type()),
                 titleContains(condition.title()),
                 visibleEq(condition.visible())
             )
-            .orderBy(banner.sort.asc())
+            .orderBy(bannerJpaEntity.sort.asc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -120,23 +120,34 @@ public class BannerRepositoryImpl implements BannerRepository {
         if (id == null) {
             return Optional.empty();
         }
-        return bannerJpaRepository.findByIdAndDeletedFalse(id.value());
+        return bannerJpaRepository.findByIdAndDeletedFalse(id.value())
+            .map(BannerMapper::toDomain);
     }
 
     @Override
-    public Banner save(Banner entity) {
-        return bannerJpaRepository.save(entity);
+    public Banner save(Banner banner) {
+        if (banner.getId() == null) {
+            BannerJpaEntity saved = bannerJpaRepository.save(BannerMapper.toEntity(banner));
+            return BannerMapper.toDomain(saved);
+        }
+
+        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
+        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
+        BannerJpaEntity entity = bannerJpaRepository.findById(banner.getId())
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 배너입니다: " + banner.getId()));
+        BannerMapper.applyChanges(entity, banner);
+        return BannerMapper.toDomain(entity);
     }
 
     private BooleanExpression typeEq(BannerType type) {
-        return type != null ? banner.type.eq(type) : null;
+        return type != null ? bannerJpaEntity.type.eq(type) : null;
     }
 
     private BooleanExpression titleContains(String title) {
-        return StringUtils.hasText(title) ? banner.title.containsIgnoreCase(title) : null;
+        return StringUtils.hasText(title) ? bannerJpaEntity.title.containsIgnoreCase(title) : null;
     }
 
     private BooleanExpression visibleEq(Boolean visible) {
-        return visible != null ? banner.visible.eq(visible) : null;
+        return visible != null ? bannerJpaEntity.visible.eq(visible) : null;
     }
 }
