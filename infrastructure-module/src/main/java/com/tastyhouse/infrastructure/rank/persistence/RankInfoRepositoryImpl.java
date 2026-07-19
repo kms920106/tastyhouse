@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.rank.infrastructure.persistence;
+package com.tastyhouse.infrastructure.rank.persistence;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,8 +13,8 @@ import com.tastyhouse.core.domain.rank.application.dto.result.RankDurationResult
 import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.rank.domain.model.QRankPeriod.rankPeriod;
-import static com.tastyhouse.core.domain.rank.domain.model.QRankPrize.rankPrize;
+import static com.tastyhouse.infrastructure.rank.persistence.QRankPeriodJpaEntity.rankPeriodJpaEntity;
+import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,12 +26,12 @@ public class RankInfoRepositoryImpl implements RankInfoRepository {
     public Optional<RankDurationResult> findActiveDuration() {
         RankDurationResult result = queryFactory
             .select(Projections.constructor(RankDurationResult.class,
-                rankPeriod.startAt,
-                rankPeriod.endAt
+                rankPeriodJpaEntity.startAt,
+                rankPeriodJpaEntity.endAt
             ))
-            .from(rankPeriod)
-            .where(rankPeriod.visible.isTrue())
-            .orderBy(rankPeriod.startAt.desc())
+            .from(rankPeriodJpaEntity)
+            .where(rankPeriodJpaEntity.visible.isTrue(), rankPeriodJpaEntity.deleted.isFalse())
+            .orderBy(rankPeriodJpaEntity.startAt.desc())
             .limit(1)
             .fetchOne();
 
@@ -42,17 +42,21 @@ public class RankInfoRepositoryImpl implements RankInfoRepository {
     public List<RankPrizeResult> findActivePrizes() {
         return queryFactory
             .select(Projections.constructor(RankPrizeResult.class,
-                rankPrize.id,
-                rankPrize.prizeRank,
-                rankPrize.name,
-                rankPrize.brand,
+                rankPrizeJpaEntity.id,
+                rankPrizeJpaEntity.prizeRank,
+                rankPrizeJpaEntity.name,
+                rankPrizeJpaEntity.brand,
                 uploadedFile.filePath
             ))
-            .from(rankPeriod)
-            .innerJoin(rankPrize).on(rankPrize.rankId.eq(rankPeriod.id))
-            .leftJoin(uploadedFile).on(rankPrize.imageFileId.eq(uploadedFile.id))
-            .where(rankPeriod.visible.isTrue())
-            .orderBy(rankPeriod.startAt.desc(), rankPrize.prizeRank.asc())
+            .from(rankPeriodJpaEntity)
+            .innerJoin(rankPrizeJpaEntity).on(rankPrizeJpaEntity.rankId.eq(rankPeriodJpaEntity.id))
+            .leftJoin(uploadedFile).on(rankPrizeJpaEntity.imageFileId.eq(uploadedFile.id))
+            .where(
+                rankPeriodJpaEntity.visible.isTrue(),
+                rankPeriodJpaEntity.deleted.isFalse(),
+                rankPrizeJpaEntity.deleted.isFalse()
+            )
+            .orderBy(rankPeriodJpaEntity.startAt.desc(), rankPrizeJpaEntity.prizeRank.asc())
             .fetch();
     }
 }

@@ -154,6 +154,7 @@ public class RankCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
 
         period.update(command.startAt(), command.endAt(), command.visible());
+        rankPeriodRepository.save(period);
     }
 
     public void deletePeriod(RankPeriodId periodId) {
@@ -174,6 +175,7 @@ public class RankCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
 
         prize.update(command.prizeRank(), command.name(), command.brand(), command.imageFileId());
+        rankPrizeRepository.save(prize);
     }
 
     public void deletePrize(RankPrizeId prizeId) {

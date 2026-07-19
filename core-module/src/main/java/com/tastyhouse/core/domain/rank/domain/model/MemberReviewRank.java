@@ -3,83 +3,56 @@ package com.tastyhouse.core.domain.rank.domain.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
+/**
+ * 회원 리뷰 랭킹 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code MemberReviewRankJpaEntity} + {@code MemberReviewRankMapper}가 담당한다. 상태전이·삭제가 없는
+ * insert-only 애그리거트로, 배치 집계 시 매번 새로 생성되고 {@code deleteByRankTypeAndBaseDate}로
+ * 일괄 정리된다.
+ */
 @Getter
-@Entity
-@Table(
-    name = "MEMBER_REVIEW_RANK",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_member_rank",
-            columnNames = {"member_id", "rank_type", "base_date"}
-        )
-    },
-    indexes = {
-        @Index(name = "idx_rank_query", columnList = "rank_type, base_date, rank_no"),
-        @Index(name = "idx_member_rank", columnList = "member_id, rank_type")
-    }
-)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberReviewRank extends BaseEntity {
+public class MemberReviewRank {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Convert(converter = MemberIdConverter.class)
-    @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
-
-    @Column(name = "review_count", nullable = false)
-    private Integer reviewCount;
-
-    @Column(name = "rank_no", nullable = false)
-    private Integer rankNo;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "rank_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RankType rankType;
-
-    @Column(name = "base_date", nullable = false)
-    private LocalDate baseDate;
-
-    @Column(name = "last_review_at")
-    private LocalDateTime lastReviewAt;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final MemberId memberId; // 회원 ID
+    private final Integer reviewCount; // 리뷰 수
+    private final Integer rankNo; // 순위
+    private final RankType rankType; // 랭킹 유형 (ALL/MONTHLY/WEEKLY)
+    private final LocalDate baseDate; // 집계 기준일
+    private final LocalDateTime lastReviewAt; // 마지막 리뷰 작성 일시
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
+    private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private MemberReviewRank(
+        Long id,
         MemberId memberId,
         Integer reviewCount,
         Integer rankNo,
         RankType rankType,
         LocalDate baseDate,
-        LocalDateTime lastReviewAt
+        LocalDateTime lastReviewAt,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
+        this.id = id;
         this.memberId = memberId;
         this.reviewCount = reviewCount;
         this.rankNo = rankNo;
         this.rankType = rankType;
         this.baseDate = baseDate;
         this.lastReviewAt = lastReviewAt;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
+    /**
+     * 신규 회원 리뷰 랭킹을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     */
     public static MemberReviewRank of(
         MemberId memberId,
         Integer reviewCount,
@@ -88,6 +61,24 @@ public class MemberReviewRank extends BaseEntity {
         LocalDate baseDate,
         LocalDateTime lastReviewAt
     ) {
-        return new MemberReviewRank(memberId, reviewCount, rankNo, rankType, baseDate, lastReviewAt);
+        return new MemberReviewRank(null, memberId, reviewCount, rankNo, rankType, baseDate, lastReviewAt, null, null);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static MemberReviewRank reconstitute(
+        Long id,
+        MemberId memberId,
+        Integer reviewCount,
+        Integer rankNo,
+        RankType rankType,
+        LocalDate baseDate,
+        LocalDateTime lastReviewAt,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        return new MemberReviewRank(id, memberId, reviewCount, rankNo, rankType, baseDate, lastReviewAt, createdAt, updatedAt);
     }
 }

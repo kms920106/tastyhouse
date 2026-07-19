@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.rank.infrastructure.persistence;
+package com.tastyhouse.infrastructure.rank.persistence;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,7 +22,7 @@ import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.QMemberRankResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.rank.domain.model.QMemberReviewRank.memberReviewRank;
+import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJpaEntity.memberReviewRankJpaEntity;
 
 /**
  * {@code member}는 infrastructure-module로 이동한 {@code MemberJpaEntity}를 가리킨다.
@@ -47,21 +47,21 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
     public List<MemberRankResult> findMemberRankList(RankType rankType, LocalDate baseDate, int limit) {
         return queryFactory
             .select(new QMemberRankResult(
-                memberReviewRank.memberId,
+                memberReviewRankJpaEntity.memberId,
                 memberNicknameCol,
                 uploadedFile.filePath,
-                memberReviewRank.reviewCount,
-                memberReviewRank.rankNo,
+                memberReviewRankJpaEntity.reviewCount,
+                memberReviewRankJpaEntity.rankNo,
                 memberGradeCol
             ))
-            .from(memberReviewRank)
-            .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRank, "memberId").eq(memberIdCol))
+            .from(memberReviewRankJpaEntity)
+            .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberIdCol))
             .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .where(
-                memberReviewRank.rankType.eq(rankType),
-                memberReviewRank.baseDate.eq(baseDate)
+                memberReviewRankJpaEntity.rankType.eq(rankType),
+                memberReviewRankJpaEntity.baseDate.eq(baseDate)
             )
-            .orderBy(memberReviewRank.rankNo.asc())
+            .orderBy(memberReviewRankJpaEntity.rankNo.asc())
             .limit(limit)
             .fetch();
     }
@@ -70,48 +70,52 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
     public MemberRankResult findMemberRank(MemberId memberId, RankType rankType, LocalDate baseDate) {
         return queryFactory
             .select(new QMemberRankResult(
-                memberReviewRank.memberId,
+                memberReviewRankJpaEntity.memberId,
                 memberNicknameCol,
                 uploadedFile.filePath,
-                memberReviewRank.reviewCount,
-                memberReviewRank.rankNo,
+                memberReviewRankJpaEntity.reviewCount,
+                memberReviewRankJpaEntity.rankNo,
                 memberGradeCol
             ))
-            .from(memberReviewRank)
-            .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRank, "memberId").eq(memberIdCol))
+            .from(memberReviewRankJpaEntity)
+            .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberIdCol))
             .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .where(
-                memberReviewRank.memberId.eq(memberId),
-                memberReviewRank.rankType.eq(rankType),
-                memberReviewRank.baseDate.eq(baseDate)
+                memberReviewRankJpaEntity.memberId.eq(memberId),
+                memberReviewRankJpaEntity.rankType.eq(rankType),
+                memberReviewRankJpaEntity.baseDate.eq(baseDate)
             )
             .fetchOne();
     }
 
     @Override
     public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType) {
-        return Optional.ofNullable(queryFactory
-            .selectFrom(memberReviewRank)
+        MemberReviewRankJpaEntity entity = queryFactory
+            .selectFrom(memberReviewRankJpaEntity)
             .where(
-                memberReviewRank.memberId.eq(memberId),
-                memberReviewRank.rankType.eq(rankType)
+                memberReviewRankJpaEntity.memberId.eq(memberId),
+                memberReviewRankJpaEntity.rankType.eq(rankType)
             )
-            .orderBy(memberReviewRank.baseDate.desc())
-            .fetchFirst());
+            .orderBy(memberReviewRankJpaEntity.baseDate.desc())
+            .fetchFirst();
+        return Optional.ofNullable(entity).map(MemberReviewRankMapper::toDomain);
     }
 
     @Override
     public void saveAll(List<MemberReviewRank> ranks) {
-        memberReviewRankJpaRepository.saveAll(ranks);
+        List<MemberReviewRankJpaEntity> entities = ranks.stream()
+            .map(MemberReviewRankMapper::toEntity)
+            .toList();
+        memberReviewRankJpaRepository.saveAll(entities);
     }
 
     @Override
     public void deleteByRankTypeAndBaseDate(RankType rankType, LocalDate baseDate) {
         queryFactory
-            .delete(memberReviewRank)
+            .delete(memberReviewRankJpaEntity)
             .where(
-                memberReviewRank.rankType.eq(rankType),
-                memberReviewRank.baseDate.eq(baseDate)
+                memberReviewRankJpaEntity.rankType.eq(rankType),
+                memberReviewRankJpaEntity.baseDate.eq(baseDate)
             )
             .execute();
     }

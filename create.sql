@@ -966,6 +966,7 @@ CREATE TABLE RANK_PERIOD
     start_at   DATETIME   NOT NULL,                   -- 랭킹 시작 일시
     end_at     DATETIME   NOT NULL,                   -- 랭킹 종료 일시
     is_visible TINYINT(1) NOT NULL DEFAULT 1,         -- 노출 여부 (1: 노출)
+    is_deleted TINYINT(1) NOT NULL DEFAULT 0,         -- 삭제 여부 (1: 삭제, 0: 미삭제, Soft Delete)
     created_at DATETIME   NOT NULL,                   -- 생성 일시
     updated_at DATETIME   NOT NULL,                   -- 수정 일시
     INDEX idx_rank_period_active (is_visible),        -- 인덱스: 노출 여부별 조회
@@ -980,6 +981,7 @@ CREATE TABLE RANK_PRIZE
     name          VARCHAR(200) NOT NULL,                            -- 경품 이름
     brand         VARCHAR(100) NOT NULL,                            -- 경품 브랜드
     image_file_id BIGINT,                                           -- 경품 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    is_deleted    TINYINT(1)   NOT NULL DEFAULT 0,                  -- 삭제 여부 (1: 삭제, 0: 미삭제, Soft Delete)
     created_at    DATETIME     NOT NULL,                            -- 생성 일시
     updated_at    DATETIME     NOT NULL,                            -- 수정 일시
     UNIQUE KEY uk_rank_prize_rank (rank_id, prize_rank),            -- 유니크: 랭킹·순위 중복 방지

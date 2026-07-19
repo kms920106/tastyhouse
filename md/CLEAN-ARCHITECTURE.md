@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료, point 전환 완료, rank 전환 완료(하드→소프트 삭제 전환 포함)** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -799,3 +799,13 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - **더티 체킹 의존 5곳**: `PointCommandService`의 `usePoints`/`earnPoints`/`refundPoints`/`reclaimEarnedPoints`/`deductPoints` 전부 `MemberPoint.addPoints`/`deductPoints` 변경 후 `save` 미호출 상태였다(`earnPoints`는 신규 생성 경로만 저장하고 `addPoints` 이후 재저장이 없었음). 5곳 모두 명시적 save를 추가했다.
 - 명시적 save: `PointCommandService#usePoints`·`#earnPoints`·`#refundPoints`·`#reclaimEarnedPoints`·`#deductPoints`.
 - 순수 단위 테스트: `core-module/src/test/.../point/domain/model/MemberPointTest`·`MemberPointHistoryTest`
+
+### rank 전환 결과물 (reference — 3개 애그리거트, 분리와 별개로 하드→소프트 삭제 전환을 함께 수행한 사례)
+
+- 순수 모델: `core-module/.../rank/domain/model/RankPeriod`·`RankPrize`·`MemberReviewRank` (`of`/`reconstitute`; 셋 다 JPA 연관관계 없음). `RankPrize`는 raw FK `Long rankId`로 `RankPeriod`를 참조하고, `MemberReviewRank`는 `@Convert` FK VO `MemberId memberId` + enum `RankType`(`EnumType.STRING`+`columnDefinition`)을 갖되 상태전이·삭제가 없는 insert-only 애그리거트다.
+- **스코프 확대(사용자 결정)**: 원 가이드 원칙("DB 스키마·API 동작 무변경")과 별개로, `RankPeriod`/`RankPrize`의 기존 하드 삭제(`jpaRepository.delete(entity)`)를 소프트 삭제로 전환했다. `create.sql`의 `RANK_PERIOD`/`RANK_PRIZE`에 `is_deleted TINYINT(1) NOT NULL DEFAULT 0` 컬럼을 추가하고, `alter.sql`에 동일 컬럼을 추가하는 마이그레이션을 작성했다(부팅 전 DB에 먼저 적용해야 `ddl-auto=validate` 통과). 도메인 모델에 `deleted` 필드·`delete()` 메서드를 추가하고, `RankPeriodRepositoryImpl`/`RankPrizeRepositoryImpl`의 `delete(도메인)`은 **인터페이스 시그니처를 그대로 유지**하되 내부적으로 필터 없는 순수 PK 조회(managed) 후 `deleted` 플래그만 갱신하도록 재구현했다. `findAllPeriods`/`findPeriodById`/`findByPeriodId`/`findPrizeById`/`RankInfoRepositoryImpl`의 모든 조회 경로에 `deleted.isFalse()` 필터를 추가했다.
+- 어댑터: `infrastructure-module/.../rank/persistence/{RankPeriodJpaEntity, RankPrizeJpaEntity, MemberReviewRankJpaEntity, RankPeriodMapper, RankPrizeMapper, MemberReviewRankMapper, RankPeriodJpaRepository, RankPrizeJpaRepository, MemberReviewRankJpaRepository, RankPeriodRepositoryImpl, RankPrizeRepositoryImpl, MemberReviewRankRepositoryImpl, RankInfoRepositoryImpl}` — `RankInfoRepositoryImpl`은 `RankPeriodJpaRepository`/`RankPrizeJpaRepository` 같은 JPA 리포지토리 없이 순수 QueryDSL 조회(`findActiveDuration`/`findActivePrizes`)만 담당하는 사례.
+- **크로스 도메인 참조(기존 패턴 반복 적용)**: `MemberReviewRankRepositoryImpl`이 조회에 회원 정보(닉네임·프로필 이미지·등급)를 조인하는데, `member` 도메인이 이미 POJO로 전환되어 core-module에 `QMember`가 더 이상 생성되지 않는다. `follow`/`review` 도메인 전환 시 확립된 패턴과 동일하게 `com.querydsl.core.types.dsl.PathBuilder<Object>`로 JPA 엔티티명 문자열(`"MemberJpaEntity"`)을 참조해 `id`/`nickname`/`profileImageFileId`/`memberGrade`만 `NumberPath`/`StringPath`/`EnumPath`로 타입 세이프하게 노출했다(신규 패턴이 아니라 기존 재사용 패턴의 반복 적용).
+- **더티 체킹 의존 2곳**: `RankCommandService`의 `updatePeriod`/`updatePrize`가 각각 `RankPeriod.update`/`RankPrize.update` 변경 후 `save` 미호출 상태였다. 2곳 모두 명시적 save를 추가했다. `deletePeriod`/`deletePrize`는 기존대로 `repository.delete(도메인)` 호출을 유지한다(소프트 삭제 로직은 `RepositoryImpl` 내부로 캡슐화).
+- 명시적 save: `RankCommandService#updatePeriod`·`#updatePrize`.
+- 순수 단위 테스트: `core-module/src/test/.../rank/domain/model/RankPeriodTest`·`RankPrizeTest`·`MemberReviewRankTest`
