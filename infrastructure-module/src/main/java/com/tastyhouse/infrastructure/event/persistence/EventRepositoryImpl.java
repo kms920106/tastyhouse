@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.event.infrastructure.persistence;
+package com.tastyhouse.infrastructure.event.persistence;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +24,8 @@ import com.tastyhouse.core.domain.event.application.dto.result.QEventManagementL
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.core.domain.event.domain.model.QEvent.event;
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.event.persistence.QEventJpaEntity.eventJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -38,24 +38,24 @@ public class EventRepositoryImpl implements EventRepository {
     public PageResult<EventListItemResult> findEventListItemsByStatus(EventStatus status, PageQuery pageQuery) {
         List<EventListItemResult> content = queryFactory
             .select(new QEventListItemResult(
-                event.id,
-                event.name,
+                eventJpaEntity.id,
+                eventJpaEntity.name,
                 uploadedFile.filePath,
-                event.startAt,
-                event.endAt
+                eventJpaEntity.startAt,
+                eventJpaEntity.endAt
             ))
-            .from(event)
-            .leftJoin(uploadedFile).on(event.thumbnailImageFileId.eq(uploadedFile.id))
-            .where(event.status.eq(status))
-            .orderBy(event.startAt.desc())
+            .from(eventJpaEntity)
+            .leftJoin(uploadedFile).on(eventJpaEntity.thumbnailImageFileId.eq(uploadedFile.id))
+            .where(eventJpaEntity.status.eq(status))
+            .orderBy(eventJpaEntity.startAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
 
         JPAQuery<Long> countQuery = queryFactory
-            .select(event.count())
-            .from(event)
-            .where(event.status.eq(status));
+            .select(eventJpaEntity.count())
+            .from(eventJpaEntity)
+            .where(eventJpaEntity.status.eq(status));
 
         Long total = countQuery.fetchOne();
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
@@ -67,9 +67,9 @@ public class EventRepositoryImpl implements EventRepository {
             .select(new QEventDetailResult(
                 uploadedFile.filePath
             ))
-            .from(event)
-            .leftJoin(uploadedFile).on(event.bannerImageFileId.eq(uploadedFile.id))
-            .where(event.id.eq(eventId.value()))
+            .from(eventJpaEntity)
+            .leftJoin(uploadedFile).on(eventJpaEntity.bannerImageFileId.eq(uploadedFile.id))
+            .where(eventJpaEntity.id.eq(eventId.value()))
             .fetchOne();
 
         return Optional.ofNullable(result);
@@ -77,19 +77,20 @@ public class EventRepositoryImpl implements EventRepository {
 
     @Override
     public Optional<Event> findById(EventId eventId) {
-        return Optional.ofNullable(queryFactory
-            .selectFrom(event)
-            .where(event.id.eq(eventId.value()), event.deleted.isFalse())
-            .fetchOne());
+        EventJpaEntity entity = queryFactory
+            .selectFrom(eventJpaEntity)
+            .where(eventJpaEntity.id.eq(eventId.value()), eventJpaEntity.deleted.isFalse())
+            .fetchOne();
+        return Optional.ofNullable(entity).map(EventMapper::toDomain);
     }
 
     @Override
     public PageResult<EventManagementListItemResult> findAllEvents(EventSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
-            .select(event.id.count())
-            .from(event)
+            .select(eventJpaEntity.id.count())
+            .from(eventJpaEntity)
             .where(
-                event.deleted.isFalse(),
+                eventJpaEntity.deleted.isFalse(),
                 nameContains(condition.name()),
                 statusEq(condition.status())
             )
@@ -97,23 +98,23 @@ public class EventRepositoryImpl implements EventRepository {
 
         List<EventManagementListItemResult> events = queryFactory
             .select(new QEventManagementListItemResult(
-                event.id,
-                event.name,
-                event.status,
-                event.thumbnailImageFileId,
+                eventJpaEntity.id,
+                eventJpaEntity.name,
+                eventJpaEntity.status,
+                eventJpaEntity.thumbnailImageFileId,
                 uploadedFile.originalFilename,
                 uploadedFile.filePath,
-                event.startAt,
-                event.endAt
+                eventJpaEntity.startAt,
+                eventJpaEntity.endAt
             ))
-            .from(event)
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(event.thumbnailImageFileId))
+            .from(eventJpaEntity)
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(eventJpaEntity.thumbnailImageFileId))
             .where(
-                event.deleted.isFalse(),
+                eventJpaEntity.deleted.isFalse(),
                 nameContains(condition.name()),
                 statusEq(condition.status())
             )
-            .orderBy(event.id.desc())
+            .orderBy(eventJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -122,15 +123,25 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public Event save(Event newEvent) {
-        return eventJpaRepository.save(newEvent);
+    public Event save(Event event) {
+        if (event.getId() == null) {
+            EventJpaEntity saved = eventJpaRepository.save(EventMapper.toEntity(event));
+            return EventMapper.toDomain(saved);
+        }
+
+        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
+        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
+        EventJpaEntity entity = eventJpaRepository.findById(event.getId())
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 이벤트입니다: " + event.getId()));
+        EventMapper.applyChanges(entity, event);
+        return EventMapper.toDomain(entity);
     }
 
     private BooleanExpression nameContains(String name) {
-        return StringUtils.hasText(name) ? event.name.containsIgnoreCase(name) : null;
+        return StringUtils.hasText(name) ? eventJpaEntity.name.containsIgnoreCase(name) : null;
     }
 
     private BooleanExpression statusEq(EventStatus status) {
-        return status != null ? event.status.eq(status) : null;
+        return status != null ? eventJpaEntity.status.eq(status) : null;
     }
 }

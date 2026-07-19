@@ -1,38 +1,77 @@
-package com.tastyhouse.core.domain.event.domain.model;
+package com.tastyhouse.infrastructure.event.persistence;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.event.domain.vo.EventId;
+import com.tastyhouse.core.domain.event.domain.model.EventStatus;
+import com.tastyhouse.core.shared.entity.BaseEntity;
 
 /**
- * 이벤트 순수 도메인 모델.
+ * 이벤트 JPA 영속 모델.
  *
- * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
- * {@code EventJpaEntity} + {@code EventMapper}가 담당한다. 도메인이 프레임워크-프리이므로
- * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code EventRepository#save}를
- * 호출해야 한다.
+ * <p>순수 도메인 모델 {@code Event}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
+ * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code EventMapper}가 수행한다.
  */
 @Getter
-public class Event {
+@Entity
+@Table(
+    name = "EVENT",
+    indexes = {
+        @Index(name = "idx_event_active", columnList = "is_deleted, status"),
+        @Index(name = "idx_event_period", columnList = "start_at, end_at")
+    }
+)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class EventJpaEntity extends BaseEntity {
 
-    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // PK
+
+    @Column(name = "name", nullable = false, length = 200)
     private String name; // 이벤트명
-    private String description; // 이벤트 설명
-    private String subtitle; // 이벤트 부제목
-    private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
-    private Long bannerImageFileId; // 배너 이미지 파일 ID (FILE.id 참조)
-    private String contentHtml; // 이벤트 본문 HTML
-    private EventStatus status; // 이벤트 상태 (예: SCHEDULED, ACTIVE, ENDED)
-    private LocalDateTime startAt; // 이벤트 시작 일시
-    private LocalDateTime endAt; // 이벤트 종료 일시
-    private boolean deleted; // 삭제 여부 (Soft Delete)
-    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
-    private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
-    private Event(
-        Long id,
+    @Column(name = "description", length = 1000)
+    private String description; // 이벤트 설명
+
+    @Column(name = "subtitle", length = 200)
+    private String subtitle; // 이벤트 부제목
+
+    @Column(name = "thumbnail_image_file_id")
+    private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
+
+    @Column(name = "banner_image_file_id")
+    private Long bannerImageFileId; // 배너 이미지 파일 ID (FILE.id 참조)
+
+    @Column(name = "content_html", columnDefinition = "TEXT")
+    private String contentHtml; // 이벤트 본문 HTML
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+    private EventStatus status; // 이벤트 상태 (예: SCHEDULED, ACTIVE, ENDED)
+
+    @Column(name = "start_at", nullable = false)
+    private LocalDateTime startAt; // 이벤트 시작 일시
+
+    @Column(name = "end_at", nullable = false)
+    private LocalDateTime endAt; // 이벤트 종료 일시
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted; // 삭제 여부 (Soft Delete)
+
+    private EventJpaEntity(
         String name,
         String description,
         String subtitle,
@@ -42,11 +81,8 @@ public class Event {
         EventStatus status,
         LocalDateTime startAt,
         LocalDateTime endAt,
-        boolean deleted,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        boolean deleted
     ) {
-        this.id = id;
         this.name = name;
         this.description = description;
         this.subtitle = subtitle;
@@ -57,47 +93,12 @@ public class Event {
         this.startAt = startAt;
         this.endAt = endAt;
         this.deleted = deleted;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     /**
-     * 신규 이벤트를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code EventMapper#toEntity}에서만 호출한다.
      */
-    public static Event of(
-        String name,
-        String description,
-        String subtitle,
-        Long thumbnailImageFileId,
-        Long bannerImageFileId,
-        String contentHtml,
-        EventStatus status,
-        LocalDateTime startAt,
-        LocalDateTime endAt
-    ) {
-        return new Event(
-            null,
-            name,
-            description,
-            subtitle,
-            thumbnailImageFileId,
-            bannerImageFileId,
-            contentHtml,
-            status,
-            startAt,
-            endAt,
-            false,
-            null,
-            null
-        );
-    }
-
-    /**
-     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
-     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
-     */
-    public static Event reconstitute(
-        Long id,
+    static EventJpaEntity create(
         String name,
         String description,
         String subtitle,
@@ -107,12 +108,9 @@ public class Event {
         EventStatus status,
         LocalDateTime startAt,
         LocalDateTime endAt,
-        boolean deleted,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        boolean deleted
     ) {
-        return new Event(
-            id,
+        return new EventJpaEntity(
             name,
             description,
             subtitle,
@@ -122,17 +120,14 @@ public class Event {
             status,
             startAt,
             endAt,
-            deleted,
-            createdAt,
-            updatedAt
+            deleted
         );
     }
 
-    public EventId getEventId() {
-        return EventId.of(this.id);
-    }
-
-    public void update(
+    /**
+     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자는 건드리지 않는다.
+     */
+    void applyChanges(
         String name,
         String description,
         String subtitle,
@@ -141,7 +136,8 @@ public class Event {
         String contentHtml,
         EventStatus status,
         LocalDateTime startAt,
-        LocalDateTime endAt
+        LocalDateTime endAt,
+        boolean deleted
     ) {
         this.name = name;
         this.description = description;
@@ -152,9 +148,6 @@ public class Event {
         this.status = status;
         this.startAt = startAt;
         this.endAt = endAt;
-    }
-
-    public void delete() {
-        this.deleted = true;
+        this.deleted = deleted;
     }
 }

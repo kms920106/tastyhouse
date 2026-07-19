@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -758,3 +758,10 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - 어댑터: `infrastructure-module/.../coupon/persistence/{CouponJpaEntity, MemberCouponJpaEntity, CouponMapper, MemberCouponMapper, CouponJpaRepository, MemberCouponJpaRepository, CouponRepositoryImpl, MemberCouponRepositoryImpl}` — `MemberCouponRepositoryImpl`이 `QCouponJpaEntity`+`QMemberCouponJpaEntity` 두 엔티티를 join하는 크로스 엔티티 QueryDSL 사례
 - 명시적 save: `CouponCommandService#updateCoupon`·`#deleteCoupon` (`useCoupon`은 기존에 이미 `memberCouponRepository.save` 호출 중이라 추가 불필요)
 - 순수 단위 테스트: `core-module/src/test/.../coupon/domain/model/CouponTest`·`MemberCouponTest`
+
+### event 전환 결과물 (reference — 3개 애그리거트, 감사 필드 보유 여부가 갈리는 변형 + 공유 `@Embeddable` VO)
+
+- 순수 모델: `core-module/.../event/domain/model/Event`·`EventWinner`·`EventAnnouncement` (`of`/`reconstitute`; 셋 다 JPA 연관관계 없이 raw FK `Long eventId`로만 연결). `Event`만 `createdAt`/`updatedAt` 포함(`EventManagementDetailResult.from`이 둘 다 소비), `EventWinner`/`EventAnnouncement`는 감사 필드 생략(어떤 result도 도메인 경유로 감사 시각을 쓰지 않음). `EventWinner`는 공유 `@Embeddable` VO `PhoneNumber`를 도메인 모델 필드로 그대로 유지(`EventWinnerResult.from`의 `getPhoneNumber().getValue()` 호출·검증 로직 무변경)
+- 어댑터: `infrastructure-module/.../event/persistence/{EventJpaEntity, EventWinnerJpaEntity, EventAnnouncementJpaEntity, EventMapper, EventWinnerMapper, EventAnnouncementMapper, EventJpaRepository, EventWinnerJpaRepository, EventAnnouncementJpaRepository, EventRepositoryImpl, EventWinnerRepositoryImpl, EventAnnouncementRepositoryImpl}` — `EventRepositoryImpl`이 미분리 `file` 도메인의 `QUploadedFile`(core-module 생성)을 그대로 조인 — `QEventJpaEntity`(infra 생성)만 치환하고 크로스 도메인 Q타입 import는 변경하지 않음
+- 명시적 save: `EventCommandService#updateEvent`·`#deleteEvent`·`#updateAnnouncement`·`#deleteWinner` (`createEvent`/`createAnnouncement`/`createWinner`는 기존에 이미 `save` 호출 중이라 추가 불필요)
+- 순수 단위 테스트: `core-module/src/test/.../event/domain/model/EventTest`·`EventWinnerTest`·`EventAnnouncementTest`

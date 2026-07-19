@@ -60,6 +60,7 @@ public class EventCommandService {
             command.startAt(),
             command.endAt()
         );
+        eventRepository.save(event);
     }
 
     public void deleteEvent(EventId eventId) {
@@ -67,6 +68,7 @@ public class EventCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_NOT_FOUND));
 
         event.delete();
+        eventRepository.save(event);
     }
 
     public Long createAnnouncement(EventId eventId, EventAnnouncementCreateCommand command) {
@@ -96,6 +98,7 @@ public class EventCommandService {
             command.content(),
             command.announcedAt()
         );
+        eventAnnouncementRepository.save(announcement);
     }
 
     public Long createWinner(EventId eventId, EventWinnerCreateCommand command) {
@@ -118,5 +121,6 @@ public class EventCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_WINNER_NOT_FOUND));
 
         winner.delete();
+        eventWinnerRepository.save(winner);
     }
 }

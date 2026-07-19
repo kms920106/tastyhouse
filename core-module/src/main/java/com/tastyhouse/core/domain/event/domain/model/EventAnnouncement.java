@@ -2,71 +2,63 @@ package com.tastyhouse.core.domain.event.domain.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
+/**
+ * 이벤트 당첨자 발표 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code EventAnnouncementJpaEntity} + {@code EventAnnouncementMapper}가 담당한다. 도메인이
+ * 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로
+ * {@code EventAnnouncementRepository#save}를 호출해야 한다.
+ */
 @Getter
-@Entity
-@Table(
-    name = "EVENT_ANNOUNCEMENT",
-    indexes = {
-        @Index(name = "idx_event_announcement_event_id", columnList = "event_id"),
-        @Index(name = "idx_event_announcement_announced_at", columnList = "announced_at")
-    }
-)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class EventAnnouncement extends BaseEntity {
+public class EventAnnouncement {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
-
-    @Column(name = "event_id", nullable = false, unique = true)
-    private Long eventId; // 이벤트 ID (EVENT.id 참조)
-
-    @Column(name = "name", nullable = false, length = 200)
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final Long eventId; // 이벤트 ID (EVENT.id 참조)
     private String name; // 당첨자 발표 제목
-
-    @Column(name = "content", nullable = false, length = 1000)
     private String content; // 당첨자 발표 내용
-
-    @Column(name = "announced_at", nullable = false)
     private LocalDateTime announcedAt; // 당첨자 발표 일시
 
     private EventAnnouncement(
+        Long id,
         Long eventId,
         String name,
         String content,
         LocalDateTime announcedAt
     ) {
+        this.id = id;
         this.eventId = eventId;
         this.name = name;
         this.content = content;
         this.announcedAt = announcedAt;
     }
 
+    /**
+     * 신규 발표를 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
+     */
     public static EventAnnouncement of(
         Long eventId,
         String name,
         String content,
         LocalDateTime announcedAt
     ) {
-        return new EventAnnouncement(
-            eventId,
-            name,
-            content,
-            announcedAt
-        );
+        return new EventAnnouncement(null, eventId, name, content, announcedAt);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자를 주입한다.
+     */
+    public static EventAnnouncement reconstitute(
+        Long id,
+        Long eventId,
+        String name,
+        String content,
+        LocalDateTime announcedAt
+    ) {
+        return new EventAnnouncement(id, eventId, name, content, announcedAt);
     }
 
     public void update(
