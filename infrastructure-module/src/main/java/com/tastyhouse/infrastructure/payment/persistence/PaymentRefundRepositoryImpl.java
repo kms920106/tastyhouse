@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.payment.infrastructure.persistence;
+package com.tastyhouse.infrastructure.payment.persistence;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,6 +14,7 @@ public class PaymentRefundRepositoryImpl implements PaymentRefundRepository {
 
     @Override
     public PaymentRefund save(PaymentRefund paymentRefund) {
-        return paymentRefundJpaRepository.save(paymentRefund);
+        PaymentRefundJpaEntity saved = paymentRefundJpaRepository.save(PaymentRefundMapper.toEntity(paymentRefund));
+        return PaymentRefundMapper.toDomain(saved);
     }
 }

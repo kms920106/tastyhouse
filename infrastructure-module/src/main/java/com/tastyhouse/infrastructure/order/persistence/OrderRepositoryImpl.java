@@ -26,14 +26,14 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.payment.domain.model.QPayment.payment;
 import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
 import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEntity.orderProductJpaEntity;
+import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 /**
- * {@code payment}는 미전환 도메인(core-module)이라 {@code QPayment}를 그대로 조인한다.
- * {@code payment.orderId}는 {@link OrderId} VO를 {@code @Convert}로 매핑한 필드라 QueryDSL이
+ * payment 전환 완료 — {@code QPaymentJpaEntity}를 조인한다.
+ * {@code paymentJpaEntity.orderId}는 {@link OrderId} VO를 {@code @Convert}로 매핑한 필드라 QueryDSL이
  * VO 타입 path를 생성하므로, {@link Expressions#numberPath}로 raw {@code Long} 컬럼 비교를 우회한다.
  */
 @Repository
@@ -50,9 +50,9 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public PageResult<OrderListItemResult> findOrderListByMemberId(MemberId memberId, PageQuery pageQuery) {
-        var paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId")
+        var paymentJoinCondition = Expressions.numberPath(Long.class, paymentJpaEntity, "orderId")
             .eq(orderJpaEntity.id)
-            .and(payment.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED));
+            .and(paymentJpaEntity.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED));
 
         List<OrderListItemResult> content = queryFactory
             .select(new QOrderListItemResult(
@@ -62,16 +62,16 @@ public class OrderRepositoryImpl implements OrderRepository {
                 orderProductJpaEntity.name.min(),
                 orderProductJpaEntity.id.count().castToNum(Integer.class),
                 orderJpaEntity.finalAmount,
-                payment.paymentStatus,
-                payment.approvedAt
+                paymentJpaEntity.paymentStatus,
+                paymentJpaEntity.approvedAt
             ))
             .from(orderJpaEntity)
-            .innerJoin(payment).on(paymentJoinCondition)
+            .innerJoin(paymentJpaEntity).on(paymentJoinCondition)
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopJpaEntity.thumbnailImageFileId))
             .leftJoin(orderProductJpaEntity).on(orderProductJpaEntity.orderId.eq(orderJpaEntity.id))
             .where(orderJpaEntity.memberId.eq(memberId))
-            .groupBy(orderJpaEntity.id, shopJpaEntity.name, uploadedFile.filePath, orderJpaEntity.finalAmount, payment.paymentStatus, payment.approvedAt)
+            .groupBy(orderJpaEntity.id, shopJpaEntity.name, uploadedFile.filePath, orderJpaEntity.finalAmount, paymentJpaEntity.paymentStatus, paymentJpaEntity.approvedAt)
             .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -80,7 +80,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         Long total = queryFactory
             .select(orderJpaEntity.count())
             .from(orderJpaEntity)
-            .innerJoin(payment).on(paymentJoinCondition)
+            .innerJoin(paymentJpaEntity).on(paymentJoinCondition)
             .where(orderJpaEntity.memberId.eq(memberId))
             .fetchOne();
 
@@ -89,9 +89,9 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public PageResult<OrderManagementListItemResult> findOrders(OrderSearchCondition condition, PageQuery pageQuery) {
-        var paymentJoinCondition = Expressions.numberPath(Long.class, payment, "orderId").eq(orderJpaEntity.id);
+        var paymentJoinCondition = Expressions.numberPath(Long.class, paymentJpaEntity, "orderId").eq(orderJpaEntity.id);
         if (condition.paymentStatus() != null) {
-            paymentJoinCondition = paymentJoinCondition.and(payment.paymentStatus.eq(condition.paymentStatus()));
+            paymentJoinCondition = paymentJoinCondition.and(paymentJpaEntity.paymentStatus.eq(condition.paymentStatus()));
         }
 
         List<OrderManagementListItemResult> content = queryFactory
@@ -102,13 +102,13 @@ public class OrderRepositoryImpl implements OrderRepository {
                 orderJpaEntity.ordererName,
                 orderJpaEntity.orderMethod,
                 orderJpaEntity.orderStatus,
-                payment.paymentStatus,
+                paymentJpaEntity.paymentStatus,
                 orderJpaEntity.finalAmount,
                 orderProductJpaEntity.id.count().castToNum(Integer.class),
                 orderJpaEntity.createdAt
             ))
             .from(orderJpaEntity)
-            .leftJoin(payment).on(paymentJoinCondition)
+            .leftJoin(paymentJpaEntity).on(paymentJoinCondition)
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
             .leftJoin(orderProductJpaEntity).on(orderProductJpaEntity.orderId.eq(orderJpaEntity.id))
             .where(
@@ -121,7 +121,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 createdAtGoe(condition.startDate()),
                 createdAtLoe(condition.endDate())
             )
-            .groupBy(orderJpaEntity.id, orderJpaEntity.orderNumber, shopJpaEntity.name, orderJpaEntity.ordererName, orderJpaEntity.orderMethod, orderJpaEntity.orderStatus, payment.paymentStatus, orderJpaEntity.finalAmount, orderJpaEntity.createdAt)
+            .groupBy(orderJpaEntity.id, orderJpaEntity.orderNumber, shopJpaEntity.name, orderJpaEntity.ordererName, orderJpaEntity.orderMethod, orderJpaEntity.orderStatus, paymentJpaEntity.paymentStatus, orderJpaEntity.finalAmount, orderJpaEntity.createdAt)
             .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -130,7 +130,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         Long total = queryFactory
             .select(orderJpaEntity.countDistinct())
             .from(orderJpaEntity)
-            .leftJoin(payment).on(paymentJoinCondition)
+            .leftJoin(paymentJpaEntity).on(paymentJoinCondition)
             .where(
                 orderJpaEntity.deleted.isFalse(),
                 shopIdEq(condition.shopId()),

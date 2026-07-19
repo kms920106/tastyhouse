@@ -2,212 +2,99 @@ package com.tastyhouse.core.domain.payment.domain.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 토스페이먼츠 결제 원장(raw) 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code TossPaymentRecordJpaEntity} + {@code TossPaymentRecordMapper}가 담당한다. 상태전이
+ * 메서드가 없는 insert 전용 레코드이므로 신규 생성 시에도 감사 시각을 요구하지 않는다.
+ */
 @Getter
-@Entity
-@Table(name = "TOSS_PAYMENT_RECORD")
-public class TossPaymentRecord extends BaseEntity {
+public class TossPaymentRecord {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final Long paymentId;
+    private final String version;
+    private final String paymentKey;
+    private final String type;
+    private final String orderId;
+    private final String orderName;
+    private final String mId;
+    private final String currency;
+    private final String method;
+    private final Integer totalAmount;
+    private final Integer balanceAmount;
+    private final String status;
+    private final LocalDateTime requestedAt;
+    private final LocalDateTime approvedAt;
+    private final boolean useEscrow;
+    private final String lastTransactionKey;
+    private final Integer suppliedAmount;
+    private final Integer vat;
+    private final boolean cultureExpense;
+    private final Integer taxFreeAmount;
+    private final Integer taxExemptionAmount;
+    private final boolean partialCancelable;
+    private final Integer cardAmount;
+    private final String cardIssuerCode;
+    private final String cardAcquirerCode;
+    private final String cardNumber;
+    private final Integer cardInstallmentPlanMonths;
+    private final String cardApproveNo;
+    private final boolean cardUseCardPoint;
+    private final String cardType;
+    private final String cardOwnerType;
+    private final String cardAcquireStatus;
+    private final boolean cardInterestFree;
+    private final String cardInterestPayer;
+    private final String virtualAccountType;
+    private final String virtualAccountNumber;
+    private final String virtualAccountBankCode;
+    private final String virtualAccountCustomerName;
+    private final LocalDateTime virtualAccountDueDate;
+    private final String virtualAccountRefundStatus;
+    private final boolean virtualAccountExpired;
+    private final String virtualAccountSettlementStatus;
+    private final String mobilePhoneCustomerMobilePhone;
+    private final String mobilePhoneSettlementStatus;
+    private final String mobilePhoneReceiptUrl;
+    private final String transferBankCode;
+    private final String transferSettlementStatus;
+    private final String receiptUrl;
+    private final String checkoutUrl;
+    private final String easyPayProvider;
+    private final Integer easyPayAmount;
+    private final Integer easyPayDiscountAmount;
+    private final String country;
+    private final String failureCode;
+    private final String failureMessage;
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
-    @Column(name = "payment_id", nullable = false)
-    private Long paymentId;
-
-    @Column(name = "version", length = 20)
-    private String version;
-
-    @Column(name = "payment_key", length = 200)
-    private String paymentKey;
-
-    @Column(name = "type", length = 20)
-    private String type;
-
-    @Column(name = "order_id", length = 64)
-    private String orderId;
-
-    @Column(name = "order_name", length = 100)
-    private String orderName;
-
-    @Column(name = "m_id", length = 14)
-    private String mId;
-
-    @Column(name = "currency", length = 10)
-    private String currency;
-
-    @Column(name = "method", length = 30)
-    private String method;
-
-    @Column(name = "total_amount")
-    private Integer totalAmount;
-
-    @Column(name = "balance_amount")
-    private Integer balanceAmount;
-
-    @Column(name = "status", length = 30)
-    private String status;
-
-    @Column(name = "requested_at")
-    private LocalDateTime requestedAt;
-
-    @Column(name = "approved_at")
-    private LocalDateTime approvedAt;
-
-    @Column(name = "use_escrow")
-    private boolean useEscrow;
-
-    @Column(name = "last_transaction_key", length = 64)
-    private String lastTransactionKey;
-
-    @Column(name = "supplied_amount")
-    private Integer suppliedAmount;
-
-    @Column(name = "vat")
-    private Integer vat;
-
-    @Column(name = "culture_expense")
-    private boolean cultureExpense;
-
-    @Column(name = "tax_free_amount")
-    private Integer taxFreeAmount;
-
-    @Column(name = "tax_exemption_amount")
-    private Integer taxExemptionAmount;
-
-    @Column(name = "is_partial_cancelable")
-    private boolean partialCancelable;
-
-    @Column(name = "card_amount")
-    private Integer cardAmount;
-
-    @Column(name = "card_issuer_code", length = 10)
-    private String cardIssuerCode;
-
-    @Column(name = "card_acquirer_code", length = 10)
-    private String cardAcquirerCode;
-
-    @Column(name = "card_number", length = 20)
-    private String cardNumber;
-
-    @Column(name = "card_installment_plan_months")
-    private Integer cardInstallmentPlanMonths;
-
-    @Column(name = "card_approve_no", length = 8)
-    private String cardApproveNo;
-
-    @Column(name = "card_use_card_point")
-    private boolean cardUseCardPoint;
-
-    @Column(name = "card_type", length = 20)
-    private String cardType;
-
-    @Column(name = "card_owner_type", length = 20)
-    private String cardOwnerType;
-
-    @Column(name = "card_acquire_status", length = 30)
-    private String cardAcquireStatus;
-
-    @Column(name = "card_is_interest_free")
-    private boolean cardInterestFree;
-
-    @Column(name = "card_interest_payer", length = 20)
-    private String cardInterestPayer;
-
-    @Column(name = "virtual_account_type", length = 20)
-    private String virtualAccountType;
-
-    @Column(name = "virtual_account_number", length = 20)
-    private String virtualAccountNumber;
-
-    @Column(name = "virtual_account_bank_code", length = 10)
-    private String virtualAccountBankCode;
-
-    @Column(name = "virtual_account_customer_name", length = 100)
-    private String virtualAccountCustomerName;
-
-    @Column(name = "virtual_account_due_date")
-    private LocalDateTime virtualAccountDueDate;
-
-    @Column(name = "virtual_account_refund_status", length = 30)
-    private String virtualAccountRefundStatus;
-
-    @Column(name = "virtual_account_expired")
-    private boolean virtualAccountExpired;
-
-    @Column(name = "virtual_account_settlement_status", length = 30)
-    private String virtualAccountSettlementStatus;
-
-    @Column(name = "mobile_phone_customer_mobile_phone", length = 15)
-    private String mobilePhoneCustomerMobilePhone;
-
-    @Column(name = "mobile_phone_settlement_status", length = 30)
-    private String mobilePhoneSettlementStatus;
-
-    @Column(name = "mobile_phone_receipt_url", length = 500)
-    private String mobilePhoneReceiptUrl;
-
-    @Column(name = "transfer_bank_code", length = 10)
-    private String transferBankCode;
-
-    @Column(name = "transfer_settlement_status", length = 30)
-    private String transferSettlementStatus;
-
-    @Column(name = "receipt_url", length = 500)
-    private String receiptUrl;
-
-    @Column(name = "checkout_url", length = 500)
-    private String checkoutUrl;
-
-    @Column(name = "easy_pay_provider", length = 30)
-    private String easyPayProvider;
-
-    @Column(name = "easy_pay_amount")
-    private Integer easyPayAmount;
-
-    @Column(name = "easy_pay_discount_amount")
-    private Integer easyPayDiscountAmount;
-
-    @Column(name = "country", length = 2)
-    private String country;
-
-    @Column(name = "failure_code", length = 50)
-    private String failureCode;
-
-    @Column(name = "failure_message", length = 510)
-    private String failureMessage;
-
-    private TossPaymentRecord(Long paymentId, String version, String paymentKey, String type,
-                              String orderId, String orderName, String mId, String currency,
-                              String method, Integer totalAmount, Integer balanceAmount, String status,
-                              LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
-                              String lastTransactionKey, Integer suppliedAmount, Integer vat,
-                              boolean cultureExpense, Integer taxFreeAmount, Integer taxExemptionAmount,
-                              boolean partialCancelable, Integer cardAmount, String cardIssuerCode,
-                              String cardAcquirerCode, String cardNumber, Integer cardInstallmentPlanMonths,
-                              String cardApproveNo, boolean cardUseCardPoint, String cardType,
-                              String cardOwnerType, String cardAcquireStatus, boolean cardInterestFree,
-                              String cardInterestPayer, String virtualAccountType, String virtualAccountNumber,
-                              String virtualAccountBankCode, String virtualAccountCustomerName,
-                              LocalDateTime virtualAccountDueDate, String virtualAccountRefundStatus,
-                              boolean virtualAccountExpired, String virtualAccountSettlementStatus,
-                              String mobilePhoneCustomerMobilePhone, String mobilePhoneSettlementStatus,
-                              String mobilePhoneReceiptUrl, String transferBankCode,
-                              String transferSettlementStatus, String easyPayProvider, Integer easyPayAmount,
-                              Integer easyPayDiscountAmount, String receiptUrl, String checkoutUrl,
-                              String failureCode, String failureMessage, String country) {
+    private TossPaymentRecord(
+        Long id, Long paymentId, String version, String paymentKey, String type,
+        String orderId, String orderName, String mId, String currency,
+        String method, Integer totalAmount, Integer balanceAmount, String status,
+        LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
+        String lastTransactionKey, Integer suppliedAmount, Integer vat,
+        boolean cultureExpense, Integer taxFreeAmount, Integer taxExemptionAmount,
+        boolean partialCancelable, Integer cardAmount, String cardIssuerCode,
+        String cardAcquirerCode, String cardNumber, Integer cardInstallmentPlanMonths,
+        String cardApproveNo, boolean cardUseCardPoint, String cardType,
+        String cardOwnerType, String cardAcquireStatus, boolean cardInterestFree,
+        String cardInterestPayer, String virtualAccountType, String virtualAccountNumber,
+        String virtualAccountBankCode, String virtualAccountCustomerName,
+        LocalDateTime virtualAccountDueDate, String virtualAccountRefundStatus,
+        boolean virtualAccountExpired, String virtualAccountSettlementStatus,
+        String mobilePhoneCustomerMobilePhone, String mobilePhoneSettlementStatus,
+        String mobilePhoneReceiptUrl, String transferBankCode,
+        String transferSettlementStatus, String easyPayProvider, Integer easyPayAmount,
+        Integer easyPayDiscountAmount, String receiptUrl, String checkoutUrl,
+        String failureCode, String failureMessage, String country,
+        LocalDateTime createdAt
+    ) {
+        this.id = id;
         this.paymentId = paymentId;
         this.version = version;
         this.paymentKey = paymentKey;
@@ -263,28 +150,35 @@ public class TossPaymentRecord extends BaseEntity {
         this.failureCode = failureCode;
         this.failureMessage = failureMessage;
         this.country = country;
+        this.createdAt = createdAt;
     }
 
-    public static TossPaymentRecord create(Long paymentId, String version, String paymentKey, String type,
-                                           String orderId, String orderName, String mId, String currency,
-                                           String method, Integer totalAmount, Integer balanceAmount, String status,
-                                           LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
-                                           String lastTransactionKey, Integer suppliedAmount, Integer vat,
-                                           boolean cultureExpense, Integer taxFreeAmount, Integer taxExemptionAmount,
-                                           boolean partialCancelable, Integer cardAmount, String cardIssuerCode,
-                                           String cardAcquirerCode, String cardNumber, Integer cardInstallmentPlanMonths,
-                                           String cardApproveNo, boolean cardUseCardPoint, String cardType,
-                                           String cardOwnerType, String cardAcquireStatus, boolean cardInterestFree,
-                                           String cardInterestPayer, String virtualAccountType, String virtualAccountNumber,
-                                           String virtualAccountBankCode, String virtualAccountCustomerName,
-                                           LocalDateTime virtualAccountDueDate, String virtualAccountRefundStatus,
-                                           boolean virtualAccountExpired, String virtualAccountSettlementStatus,
-                                           String mobilePhoneCustomerMobilePhone, String mobilePhoneSettlementStatus,
-                                           String mobilePhoneReceiptUrl, String transferBankCode,
-                                           String transferSettlementStatus, String easyPayProvider, Integer easyPayAmount,
-                                           Integer easyPayDiscountAmount, String receiptUrl, String checkoutUrl,
-                                           String failureCode, String failureMessage, String country) {
-        return new TossPaymentRecord(paymentId, version, paymentKey, type, orderId, orderName, mId, currency,
+    /**
+     * 신규 토스 결제 원장을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     */
+    public static TossPaymentRecord create(
+        Long paymentId, String version, String paymentKey, String type,
+        String orderId, String orderName, String mId, String currency,
+        String method, Integer totalAmount, Integer balanceAmount, String status,
+        LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
+        String lastTransactionKey, Integer suppliedAmount, Integer vat,
+        boolean cultureExpense, Integer taxFreeAmount, Integer taxExemptionAmount,
+        boolean partialCancelable, Integer cardAmount, String cardIssuerCode,
+        String cardAcquirerCode, String cardNumber, Integer cardInstallmentPlanMonths,
+        String cardApproveNo, boolean cardUseCardPoint, String cardType,
+        String cardOwnerType, String cardAcquireStatus, boolean cardInterestFree,
+        String cardInterestPayer, String virtualAccountType, String virtualAccountNumber,
+        String virtualAccountBankCode, String virtualAccountCustomerName,
+        LocalDateTime virtualAccountDueDate, String virtualAccountRefundStatus,
+        boolean virtualAccountExpired, String virtualAccountSettlementStatus,
+        String mobilePhoneCustomerMobilePhone, String mobilePhoneSettlementStatus,
+        String mobilePhoneReceiptUrl, String transferBankCode,
+        String transferSettlementStatus, String easyPayProvider, Integer easyPayAmount,
+        Integer easyPayDiscountAmount, String receiptUrl, String checkoutUrl,
+        String failureCode, String failureMessage, String country
+    ) {
+        return new TossPaymentRecord(
+            null, paymentId, version, paymentKey, type, orderId, orderName, mId, currency,
             method, totalAmount, balanceAmount, status, requestedAt, approvedAt, useEscrow, lastTransactionKey,
             suppliedAmount, vat, cultureExpense, taxFreeAmount, taxExemptionAmount, partialCancelable, cardAmount,
             cardIssuerCode, cardAcquirerCode, cardNumber, cardInstallmentPlanMonths, cardApproveNo, cardUseCardPoint,
@@ -293,6 +187,47 @@ public class TossPaymentRecord extends BaseEntity {
             virtualAccountRefundStatus, virtualAccountExpired, virtualAccountSettlementStatus,
             mobilePhoneCustomerMobilePhone, mobilePhoneSettlementStatus, mobilePhoneReceiptUrl, transferBankCode,
             transferSettlementStatus, easyPayProvider, easyPayAmount, easyPayDiscountAmount, receiptUrl, checkoutUrl,
-            failureCode, failureMessage, country);
+            failureCode, failureMessage, country, null
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static TossPaymentRecord reconstitute(
+        Long id, Long paymentId, String version, String paymentKey, String type,
+        String orderId, String orderName, String mId, String currency,
+        String method, Integer totalAmount, Integer balanceAmount, String status,
+        LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
+        String lastTransactionKey, Integer suppliedAmount, Integer vat,
+        boolean cultureExpense, Integer taxFreeAmount, Integer taxExemptionAmount,
+        boolean partialCancelable, Integer cardAmount, String cardIssuerCode,
+        String cardAcquirerCode, String cardNumber, Integer cardInstallmentPlanMonths,
+        String cardApproveNo, boolean cardUseCardPoint, String cardType,
+        String cardOwnerType, String cardAcquireStatus, boolean cardInterestFree,
+        String cardInterestPayer, String virtualAccountType, String virtualAccountNumber,
+        String virtualAccountBankCode, String virtualAccountCustomerName,
+        LocalDateTime virtualAccountDueDate, String virtualAccountRefundStatus,
+        boolean virtualAccountExpired, String virtualAccountSettlementStatus,
+        String mobilePhoneCustomerMobilePhone, String mobilePhoneSettlementStatus,
+        String mobilePhoneReceiptUrl, String transferBankCode,
+        String transferSettlementStatus, String easyPayProvider, Integer easyPayAmount,
+        Integer easyPayDiscountAmount, String receiptUrl, String checkoutUrl,
+        String failureCode, String failureMessage, String country,
+        LocalDateTime createdAt
+    ) {
+        return new TossPaymentRecord(
+            id, paymentId, version, paymentKey, type, orderId, orderName, mId, currency,
+            method, totalAmount, balanceAmount, status, requestedAt, approvedAt, useEscrow, lastTransactionKey,
+            suppliedAmount, vat, cultureExpense, taxFreeAmount, taxExemptionAmount, partialCancelable, cardAmount,
+            cardIssuerCode, cardAcquirerCode, cardNumber, cardInstallmentPlanMonths, cardApproveNo, cardUseCardPoint,
+            cardType, cardOwnerType, cardAcquireStatus, cardInterestFree, cardInterestPayer, virtualAccountType,
+            virtualAccountNumber, virtualAccountBankCode, virtualAccountCustomerName, virtualAccountDueDate,
+            virtualAccountRefundStatus, virtualAccountExpired, virtualAccountSettlementStatus,
+            mobilePhoneCustomerMobilePhone, mobilePhoneSettlementStatus, mobilePhoneReceiptUrl, transferBankCode,
+            transferSettlementStatus, easyPayProvider, easyPayAmount, easyPayDiscountAmount, receiptUrl, checkoutUrl,
+            failureCode, failureMessage, country, createdAt
+        );
     }
 }

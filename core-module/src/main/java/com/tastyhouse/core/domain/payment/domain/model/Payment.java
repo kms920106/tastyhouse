@@ -2,101 +2,143 @@ package com.tastyhouse.core.domain.payment.domain.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.core.domain.payment.domain.vo.PgOrderId;
-import com.tastyhouse.core.domain.order.infrastructure.persistence.converter.OrderIdConverter;
-import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.AmountConverter;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 결제 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code PaymentJpaEntity} + {@code PaymentMapper}가 담당한다. 도메인이 프레임워크-프리이므로
+ * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code PaymentRepository#save}를
+ * 호출해야 한다.
+ */
 @Getter
-@Entity
-@Table(name = "PAYMENT")
-public class Payment extends BaseEntity {
+public class Payment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Convert(converter = OrderIdConverter.class)
-    @Column(name = "order_id", nullable = false, unique = true)
-    private OrderId orderId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
-    private PaymentMethod paymentMethod;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private PaymentStatus paymentStatus;
-
-    @Convert(converter = AmountConverter.class)
-    @Column(name = "amount", nullable = false)
-    private Amount amount;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "pg_provider", length = 30, columnDefinition = "VARCHAR(30)")
-    private PgProvider pgProvider;
-
-    @Column(name = "pg_tid", length = 100)
-    private String pgTid;
-
-    @Column(name = "pg_order_id", length = 100)
-    private String pgOrderId;
-
-    @Column(name = "card_company", length = 50)
-    private String cardCompany;
-
-    @Column(name = "card_number", length = 30)
-    private String cardNumber;
-
-    @Column(name = "installment_months")
-    private Integer installmentMonths;
-
-    @Column(name = "approved_at")
-    private LocalDateTime approvedAt;
-
-    @Column(name = "cancelled_at")
-    private LocalDateTime cancelledAt;
-
-    @Column(name = "cancel_reason", length = 500)
-    private String cancelReason;
-
-    @Column(name = "receipt_url", length = 500)
-    private String receiptUrl;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final OrderId orderId; // 결제 대상 주문 ID
+    private final PaymentMethod paymentMethod; // 결제 수단
+    private PaymentStatus paymentStatus; // 결제 상태
+    private final Amount amount; // 결제 금액
+    private PgProvider pgProvider; // PG사
+    private String pgTid; // PG 거래 ID
+    private String pgOrderId; // PG 주문 ID
+    private String cardCompany; // 카드사
+    private String cardNumber; // 카드 번호(마스킹)
+    private Integer installmentMonths; // 할부 개월 수
+    private LocalDateTime approvedAt; // 승인 시각
+    private LocalDateTime cancelledAt; // 취소 시각
+    private String cancelReason; // 취소 사유
+    private String receiptUrl; // 영수증 URL
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private Payment(
+        Long id,
         OrderId orderId,
         PaymentMethod paymentMethod,
+        PaymentStatus paymentStatus,
         Amount amount,
-        PgOrderId pgOrderId
+        PgProvider pgProvider,
+        String pgTid,
+        String pgOrderId,
+        String cardCompany,
+        String cardNumber,
+        Integer installmentMonths,
+        LocalDateTime approvedAt,
+        LocalDateTime cancelledAt,
+        String cancelReason,
+        String receiptUrl,
+        LocalDateTime createdAt
     ) {
+        this.id = id;
         this.orderId = orderId;
         this.paymentMethod = paymentMethod;
-        this.paymentStatus = PaymentStatus.PENDING;
+        this.paymentStatus = paymentStatus;
         this.amount = amount;
-        this.pgOrderId = pgOrderId.value();
+        this.pgProvider = pgProvider;
+        this.pgTid = pgTid;
+        this.pgOrderId = pgOrderId;
+        this.cardCompany = cardCompany;
+        this.cardNumber = cardNumber;
+        this.installmentMonths = installmentMonths;
+        this.approvedAt = approvedAt;
+        this.cancelledAt = cancelledAt;
+        this.cancelReason = cancelReason;
+        this.receiptUrl = receiptUrl;
+        this.createdAt = createdAt;
     }
 
+    /**
+     * 신규 결제를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     */
     public static Payment create(OrderId orderId, PaymentMethod paymentMethod, Amount amount, PgOrderId pgOrderId) {
-        return new Payment(orderId, paymentMethod, amount, pgOrderId);
+        return new Payment(
+            null,
+            orderId,
+            paymentMethod,
+            PaymentStatus.PENDING,
+            amount,
+            null,
+            null,
+            pgOrderId.value(),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static Payment reconstitute(
+        Long id,
+        OrderId orderId,
+        PaymentMethod paymentMethod,
+        PaymentStatus paymentStatus,
+        Amount amount,
+        PgProvider pgProvider,
+        String pgTid,
+        String pgOrderId,
+        String cardCompany,
+        String cardNumber,
+        Integer installmentMonths,
+        LocalDateTime approvedAt,
+        LocalDateTime cancelledAt,
+        String cancelReason,
+        String receiptUrl,
+        LocalDateTime createdAt
+    ) {
+        return new Payment(
+            id,
+            orderId,
+            paymentMethod,
+            paymentStatus,
+            amount,
+            pgProvider,
+            pgTid,
+            pgOrderId,
+            cardCompany,
+            cardNumber,
+            installmentMonths,
+            approvedAt,
+            cancelledAt,
+            cancelReason,
+            receiptUrl,
+            createdAt
+        );
     }
 
     public PaymentId getPaymentId() {

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
+import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.event.PaymentCancelledEvent;
 import com.tastyhouse.core.domain.payment.domain.event.PaymentCompletedEvent;
@@ -56,6 +57,7 @@ public class PaymentCommandService {
     private final TossPaymentRecordRepository tossPaymentRecordRepository;
     private final PgPaymentGateway pgPaymentGateway;
     private final OrderQueryService orderQueryService;
+    private final OrderRepository orderRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     private static final int CASH_POINT_EARN_RATE = 10;
@@ -111,7 +113,10 @@ public class PaymentCommandService {
         payment.complete(command.pgTid(), LocalDateTime.now(), command.receiptUrl());
         order.confirm();
 
-        return PaymentResult.from(payment);
+        Payment savedPayment = paymentRepository.save(payment);
+        orderRepository.save(order);
+
+        return PaymentResult.from(savedPayment);
     }
 
     @Transactional
@@ -157,20 +162,23 @@ public class PaymentCommandService {
         payment.complete(result.paymentKey(), result.approvedAt(), result.receiptUrl());
         order.confirm();
 
+        Payment savedPayment = paymentRepository.save(payment);
+        orderRepository.save(order);
+
         log.info("Toss payment confirmed. paymentId: {}, orderId: {}, amount: {}",
-            payment.getId(), payment.getOrderId().value(), command.amount());
+            savedPayment.getId(), savedPayment.getOrderId().value(), command.amount());
 
         eventPublisher.publishEvent(new PaymentCompletedEvent(
-            payment.getPaymentId(),
-            payment.getOrderId(),
+            savedPayment.getPaymentId(),
+            savedPayment.getOrderId(),
             memberId,
-            payment.getAmount(),
-            payment.getPaymentMethod(),
+            savedPayment.getAmount(),
+            savedPayment.getPaymentMethod(),
             false,
-            payment.getApprovedAt()
+            savedPayment.getApprovedAt()
         ));
 
-        return PaymentResult.from(payment);
+        return PaymentResult.from(savedPayment);
     }
 
     @Transactional
@@ -211,6 +219,9 @@ public class PaymentCommandService {
         LocalDateTime now = LocalDateTime.now();
         payment.cancel(command.cancelReason(), now);
         order.cancel();
+
+        paymentRepository.save(payment);
+        orderRepository.save(order);
 
         eventPublisher.publishEvent(new PaymentCancelledEvent(
             paymentId,
@@ -290,17 +301,20 @@ public class PaymentCommandService {
         int earnedPoint = (int) (payment.getAmount().value() * CASH_POINT_EARN_RATE / 100.0);
         order.updateEarnedPoint(earnedPoint);
 
+        Payment savedPayment = paymentRepository.save(payment);
+        orderRepository.save(order);
+
         eventPublisher.publishEvent(new PaymentCompletedEvent(
             paymentId,
-            payment.getOrderId(),
+            savedPayment.getOrderId(),
             memberId,
-            payment.getAmount(),
-            payment.getPaymentMethod(),
+            savedPayment.getAmount(),
+            savedPayment.getPaymentMethod(),
             true,
             now
         ));
 
-        return PaymentResult.from(payment);
+        return PaymentResult.from(savedPayment);
     }
 
     private TossPaymentRecord buildTossPaymentRecord(Long paymentId, TossPaymentDetail detail) {
