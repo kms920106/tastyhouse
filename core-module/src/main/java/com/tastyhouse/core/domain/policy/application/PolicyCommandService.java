@@ -43,7 +43,10 @@ public class PolicyCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POLICY_NOT_FOUND));
 
         policyDocumentRepository.findCurrentEntityByType(newPolicy.getType())
-            .ifPresent(PolicyDocument::deactivate);
+            .ifPresent(current -> {
+                current.deactivate();
+                policyDocumentRepository.save(current);
+            });
 
         newPolicy.activate();
         policyDocumentRepository.save(newPolicy);
@@ -63,5 +66,6 @@ public class PolicyCommandService {
             command.effectiveDate(),
             command.updatedBy()
         );
+        policyDocumentRepository.save(policyDocument);
     }
 }

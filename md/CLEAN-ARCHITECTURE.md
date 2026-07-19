@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료, event 전환 완료, member 전환 완료(코어 3개 애그리거트만; follow/referral 제외), partnership 전환 완료, policy 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -782,3 +782,12 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - **detached merge → load-copy-save 교정**: 전환 전 `PartnershipRepositoryImpl#save`가 `partnershipRequestJpaRepository.save(request)`로 detached 엔티티를 통째 저장(merge)하고 있었다. 감사 필드 파손 위험을 없애기 위해 다른 도메인과 동일하게 신규는 insert, 기존은 필터 없는 PK 조회 → `applyChanges` → 반환으로 교정했다.
 - 명시적 save: `PartnershipCommandService#changeStatus`·`#delete`에 추가(`create`는 기존에 이미 `save` 호출 중이라 추가 불필요).
 - 순수 단위 테스트: `core-module/src/test/.../partnership/domain/model/PartnershipRequestTest`
+
+### policy 전환 결과물 (reference — 단일 애그리거트, enum 1개, detached merge 교정 + 한 커맨드 메서드 내 더티 체킹 의존 2곳)
+
+- 순수 모델: `core-module/.../policy/domain/model/PolicyDocument` (`of`/`reconstitute`; JPA 연관관계 없이 단일 애그리거트, enum 필드 `PolicyType` 1개, `createdAt`/`updatedAt` 둘 다 포함 — `PolicyDocumentResult.from`이 둘 다 소비, `PolicyListItemResult`는 `createdAt`만 소비). 재대입되지 않는 필드(`type`/`version`/`createdBy`)는 `final`로 선언.
+- 어댑터: `infrastructure-module/.../policy/persistence/{PolicyDocumentJpaEntity, PolicyDocumentMapper, PolicyDocumentJpaRepository, PolicyDocumentRepositoryImpl}` — `QPolicyDocumentJpaEntity`(infra 생성)만 치환, result projection(`QPolicyDocumentResult`/`QPolicyListItemResult`, core 생성)은 무변경.
+- **detached merge → load-copy-save 교정**: 전환 전 `PolicyDocumentRepositoryImpl#save`가 `entityManager.merge(policyDocument)`로 detached 엔티티를 통째 저장(merge)하고 있었다. 다른 도메인과 동일하게 신규는 insert, 기존은 필터 없는 PK 조회 → `applyChanges` → 반환으로 교정했다.
+- **더티 체킹 의존 2곳(한 메서드 안에 공존)**: `updatePolicy`는 `policyDocument.update(...)` 후 `save` 미호출, `activatePolicy`는 신규 정책(`newPolicy.activate()` 후 `save`)은 이미 저장하면서도 `findCurrentEntityByType(...).ifPresent(PolicyDocument::deactivate)`로 비활성화되는 **기존** 정책은 save 없이 더티 체킹에만 의존하고 있었다. 두 지점 모두 명시적 save를 추가했다.
+- 명시적 save: `PolicyCommandService#updatePolicy`·`#activatePolicy`(비활성화되는 기존 정책도 별도 save)에 추가(`createPolicy`는 기존에 이미 `save` 호출 중이라 추가 불필요).
+- 순수 단위 테스트: `core-module/src/test/.../policy/domain/model/PolicyDocumentTest`
