@@ -694,7 +694,7 @@ public class MemberSignupEventListener {
 ## 11. 도메인 모델 / JPA 엔티티 분리 (선별 적용, `infrastructure-module`)
 
 > 추가일: 2026-07-19
-> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
+> 상태: **notice 파일럿 완료, admin 전환 완료, banner 전환 완료, bug 전환 완료, faq 전환 완료, coupon 전환 완료** — 이후 도메인은 아래 롤아웃 절차로 점진 적용
 
 ### 배경
 
@@ -751,3 +751,10 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 - 어댑터: `infrastructure-module/.../faq/persistence/{FaqJpaEntity, FaqCategoryJpaEntity, FaqMapper, FaqCategoryMapper, FaqJpaRepository, FaqCategoryJpaRepository, FaqRepositoryImpl, FaqCategoryRepositoryImpl}` — `FaqCategoryRepositoryImpl#existsActiveItemsByCategoryId`가 자신의 Q타입이 아닌 `QFaqJpaEntity`(다른 애그리거트의 infra Q타입)를 직접 조회하는 크로스 엔티티 QueryDSL 사례
 - 명시적 save: `FaqCommandService#updateFaq`·`#deleteFaq`, `FaqCategoryCommandService#updateCategory`·`#deleteCategory`
 - 순수 단위 테스트: `core-module/src/test/.../faq/domain/model/FaqTest`·`FaqCategoryTest`
+
+### coupon 전환 결과물 (reference — 2개 애그리거트, 감사 필드 보유 여부가 갈리는 변형)
+
+- 순수 모델: `core-module/.../coupon/domain/model/Coupon`·`MemberCoupon` (`of`/`reconstitute`; 둘 다 JPA 연관관계 없이 `Coupon`은 raw FK 없음, `MemberCoupon`은 raw FK `Long couponId` + `@Convert` VO `MemberId memberId`로만 연결). `Coupon`은 `createdAt`/`updatedAt` 포함(`CouponDetailResult.from`이 둘 다 소비), `MemberCoupon`은 감사 필드 생략(어떤 result도 도메인 경유로 감사 시각을 쓰지 않고 QueryDSL이 엔티티에서 직접 투영)
+- 어댑터: `infrastructure-module/.../coupon/persistence/{CouponJpaEntity, MemberCouponJpaEntity, CouponMapper, MemberCouponMapper, CouponJpaRepository, MemberCouponJpaRepository, CouponRepositoryImpl, MemberCouponRepositoryImpl}` — `MemberCouponRepositoryImpl`이 `QCouponJpaEntity`+`QMemberCouponJpaEntity` 두 엔티티를 join하는 크로스 엔티티 QueryDSL 사례
+- 명시적 save: `CouponCommandService#updateCoupon`·`#deleteCoupon` (`useCoupon`은 기존에 이미 `memberCouponRepository.save` 호출 중이라 추가 불필요)
+- 순수 단위 테스트: `core-module/src/test/.../coupon/domain/model/CouponTest`·`MemberCouponTest`

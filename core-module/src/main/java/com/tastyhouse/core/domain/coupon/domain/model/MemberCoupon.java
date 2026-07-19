@@ -2,72 +2,40 @@ package com.tastyhouse.core.domain.coupon.domain.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
+/**
+ * 회원 쿠폰 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code MemberCouponJpaEntity} + {@code MemberCouponMapper}가 담당한다. 도메인이
+ * 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로
+ * {@code MemberCouponRepository#save}를 호출해야 한다.
+ */
 @Getter
-@Entity
-@Table(
-    name = "MEMBER_COUPON",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_member_coupon",
-            columnNames = {"member_id", "coupon_id"}
-        )
-    },
-    indexes = {
-        @Index(name = "idx_member_coupon_member_id", columnList = "member_id"),
-        @Index(name = "idx_member_coupon_coupon_id", columnList = "coupon_id"),
-        @Index(name = "idx_member_coupon_used", columnList = "member_id, is_used")
-    }
-)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberCoupon extends BaseEntity {
+public class MemberCoupon {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Convert(converter = MemberIdConverter.class)
-    @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
-
-    @Column(name = "coupon_id", nullable = false)
-    private Long couponId;
-
-    @Column(name = "is_used", nullable = false)
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final MemberId memberId;
+    private final Long couponId;
     private boolean used;
-
-    @Column(name = "used_at")
     private LocalDateTime usedAt;
-
-    @Column(name = "expired_at", nullable = false)
-    private LocalDateTime expiredAt;
+    private final LocalDateTime expiredAt;
 
     private MemberCoupon(
+        Long id,
         MemberId memberId,
         Long couponId,
         boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt
     ) {
+        this.id = id;
         this.memberId = memberId;
         this.couponId = couponId;
         this.used = used;
@@ -75,6 +43,9 @@ public class MemberCoupon extends BaseEntity {
         this.expiredAt = expiredAt;
     }
 
+    /**
+     * 신규 회원 쿠폰을 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
+     */
     public static MemberCoupon of(
         MemberId memberId,
         Long couponId,
@@ -82,7 +53,22 @@ public class MemberCoupon extends BaseEntity {
         LocalDateTime usedAt,
         LocalDateTime expiredAt
     ) {
-        return new MemberCoupon(memberId, couponId, used, usedAt, expiredAt);
+        return new MemberCoupon(null, memberId, couponId, used, usedAt, expiredAt);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자를 주입한다.
+     */
+    public static MemberCoupon reconstitute(
+        Long id,
+        MemberId memberId,
+        Long couponId,
+        boolean used,
+        LocalDateTime usedAt,
+        LocalDateTime expiredAt
+    ) {
+        return new MemberCoupon(id, memberId, couponId, used, usedAt, expiredAt);
     }
 
     public MemberCouponId getMemberCouponId() {

@@ -72,6 +72,7 @@ public class CouponCommandService {
             command.useEndAt(),
             command.visible()
         );
+        couponRepository.save(coupon);
     }
 
     public void deleteCoupon(CouponId couponId) {
@@ -79,6 +80,7 @@ public class CouponCommandService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
 
         coupon.delete();
+        couponRepository.save(coupon);
     }
 
     public MemberCouponId issueCouponByAdmin(CouponId couponId, MemberId memberId) {
