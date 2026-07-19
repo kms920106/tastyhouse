@@ -2,80 +2,59 @@ package com.tastyhouse.core.domain.member.domain.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 회원 소셜 계정 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code MemberSocialAccountJpaEntity} + {@code MemberSocialAccountMapper}가 담당한다.
+ * 도메인이 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 호출부가 명시적으로
+ * {@code MemberSocialAccountRepository#save}를 호출해야 한다.
+ */
 @Getter
-@Entity
-@Table(
-    name = "MEMBER_SOCIAL_ACCOUNT",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uk_member_social_account_provider_provider_id",
-        columnNames = {"provider", "provider_id"}
-    )
-)
-public class MemberSocialAccount extends BaseEntity {
+public class MemberSocialAccount {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Convert(converter = MemberIdConverter.class)
-    @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "provider", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberSocialProvider provider;
-
-    @Column(name = "provider_id", nullable = false, length = 100)
-    private String providerId;
-
-    @Column(name = "provider_email", length = 200)
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final MemberId memberId;
+    private final MemberSocialProvider provider;
+    private final String providerId;
     private String providerEmail;
-
-    @Column(name = "provider_nickname", length = 100)
     private String providerNickname;
-
-    @Column(name = "provider_profile_image_url", length = 500)
     private String providerProfileImageUrl;
-
-    @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
+    private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private MemberSocialAccount(
+        Long id,
         MemberId memberId,
         MemberSocialProvider provider,
         String providerId,
         String providerEmail,
         String providerNickname,
-        String providerProfileImageUrl
+        String providerProfileImageUrl,
+        LocalDateTime lastLoginAt,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
+        this.id = id;
         this.memberId = memberId;
         this.provider = provider;
         this.providerId = providerId;
         this.providerEmail = providerEmail;
         this.providerNickname = providerNickname;
         this.providerProfileImageUrl = providerProfileImageUrl;
-        this.lastLoginAt = LocalDateTime.now();
+        this.lastLoginAt = lastLoginAt;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
+    /**
+     * 신규 소셜 계정을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     */
     public static MemberSocialAccount of(
         MemberId memberId,
         MemberSocialProvider provider,
@@ -85,7 +64,30 @@ public class MemberSocialAccount extends BaseEntity {
         String providerProfileImageUrl
     ) {
         return new MemberSocialAccount(
-            memberId, provider, providerId, providerEmail, providerNickname, providerProfileImageUrl
+            null, memberId, provider, providerId, providerEmail, providerNickname, providerProfileImageUrl,
+            LocalDateTime.now(), null, null
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static MemberSocialAccount reconstitute(
+        Long id,
+        MemberId memberId,
+        MemberSocialProvider provider,
+        String providerId,
+        String providerEmail,
+        String providerNickname,
+        String providerProfileImageUrl,
+        LocalDateTime lastLoginAt,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        return new MemberSocialAccount(
+            id, memberId, provider, providerId, providerEmail, providerNickname, providerProfileImageUrl,
+            lastLoginAt, createdAt, updatedAt
         );
     }
 

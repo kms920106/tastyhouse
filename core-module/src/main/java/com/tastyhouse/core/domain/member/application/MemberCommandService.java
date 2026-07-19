@@ -139,6 +139,7 @@ public class MemberCommandService {
         Member member = memberRepository.findById(command.memberId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         member.updateProfile(command.nickname(), command.statusMessage(), command.profileImageFileId());
+        memberRepository.save(member);
     }
 
     public void updatePersonalInfo(PersonalInfoUpdateCommand command) {
@@ -148,24 +149,28 @@ public class MemberCommandService {
             command.fullName(), command.phoneNumber(), command.birthDate(), command.gender(),
             command.pushNotificationEnabled(), command.marketingInfoEnabled(), command.eventInfoEnabled()
         );
+        memberRepository.save(member);
     }
 
     public void updatePassword(MemberId memberId, String encodedPassword) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         member.updatePassword(encodedPassword);
+        memberRepository.save(member);
     }
 
     public void suspend(MemberId memberId) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         member.suspend();
+        memberRepository.save(member);
     }
 
     public void activate(MemberId memberId) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         member.activate();
+        memberRepository.save(member);
     }
 
     public long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade) {

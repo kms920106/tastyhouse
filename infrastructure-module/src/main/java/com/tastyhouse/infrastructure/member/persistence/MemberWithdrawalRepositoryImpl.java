@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.member.infrastructure.persistence;
+package com.tastyhouse.infrastructure.member.persistence;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,6 +14,7 @@ public class MemberWithdrawalRepositoryImpl implements MemberWithdrawalRepositor
 
     @Override
     public MemberWithdrawal save(MemberWithdrawal memberWithdrawal) {
-        return memberWithdrawalJpaRepository.save(memberWithdrawal);
+        MemberWithdrawalJpaEntity saved = memberWithdrawalJpaRepository.save(MemberWithdrawalMapper.toEntity(memberWithdrawal));
+        return MemberWithdrawalMapper.toDomain(saved);
     }
 }

@@ -1,50 +1,62 @@
 package com.tastyhouse.core.domain.member.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
+import java.time.LocalDateTime;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
+/**
+ * 회원 탈퇴 이력 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code MemberWithdrawalJpaEntity} + {@code MemberWithdrawalMapper}가 담당한다.
+ */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
-@Table(name = "MEMBER_WITHDRAWAL")
-public class MemberWithdrawal extends BaseEntity {
+public class MemberWithdrawal {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final MemberId memberId;
+    private final MemberWithdrawalReason reason;
+    private final String reasonDetail;
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
+    private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
-    @Convert(converter = MemberIdConverter.class)
-    @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "reason", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private MemberWithdrawalReason reason;
-
-    @Column(name = "reason_detail", length = 500)
-    private String reasonDetail;
-
-    private MemberWithdrawal(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
+    private MemberWithdrawal(
+        Long id,
+        MemberId memberId,
+        MemberWithdrawalReason reason,
+        String reasonDetail,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this.id = id;
         this.memberId = memberId;
         this.reason = reason;
         this.reasonDetail = reasonDetail;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
+    /**
+     * 신규 탈퇴 이력을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     */
     public static MemberWithdrawal of(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
-        return new MemberWithdrawal(memberId, reason, reasonDetail);
+        return new MemberWithdrawal(null, memberId, reason, reasonDetail, null, null);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static MemberWithdrawal reconstitute(
+        Long id,
+        MemberId memberId,
+        MemberWithdrawalReason reason,
+        String reasonDetail,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        return new MemberWithdrawal(id, memberId, reason, reasonDetail, createdAt, updatedAt);
     }
 }

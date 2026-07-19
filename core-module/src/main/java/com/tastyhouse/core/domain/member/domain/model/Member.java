@@ -1,105 +1,84 @@
 package com.tastyhouse.core.domain.member.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
+import java.time.LocalDateTime;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 import com.tastyhouse.core.shared.vo.PhoneNumber;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 회원 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code MemberJpaEntity} + {@code MemberMapper}가 담당한다. 도메인이 프레임워크-프리이므로
+ * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code MemberRepository#save}를
+ * 호출해야 한다.
+ */
 @Getter
-@Entity
-@Table(name = "MEMBER")
-public class Member extends BaseEntity {
+public class Member {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "username", nullable = false, unique = true, length = 50)
-    private String username;
-
-    @Column(name = "password")
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final String username;
     private String password;
-
-    @Column(name = "nickname", nullable = false, length = 50)
     private String nickname;
-
-    @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
-
-    @Column(name = "birth_date", nullable = false)
     private Integer birthDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "gender", nullable = false, length = 10, columnDefinition = "VARCHAR(10)")
     private MemberGender gender;
-
-    @Embedded
     private PhoneNumber phoneNumber;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "member_grade", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberGrade memberGrade;
-
-    @Column(name = "profile_image_file_id")
+    private final MemberGrade memberGrade;
     private Long profileImageFileId;
-
-    @Column(name = "status_message", length = 200)
     private String statusMessage;
-
-    @Column(name = "push_notification_enabled", nullable = false)
     private boolean pushNotificationEnabled;
-
-    @Column(name = "marketing_info_enabled", nullable = false)
     private boolean marketingInfoEnabled;
-
-    @Column(name = "event_info_enabled", nullable = false)
     private boolean eventInfoEnabled;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private MemberStatus memberStatus;
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
+    private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private Member(
+        Long id,
         String username,
         String password,
         String nickname,
         String fullName,
-        MemberGender gender,
         Integer birthDate,
-        String phoneNumber,
+        MemberGender gender,
+        PhoneNumber phoneNumber,
+        MemberGrade memberGrade,
+        Long profileImageFileId,
+        String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
-        boolean eventInfoEnabled
+        boolean eventInfoEnabled,
+        MemberStatus memberStatus,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
+        this.id = id;
         this.username = username;
         this.password = password;
         this.nickname = nickname;
         this.fullName = fullName;
-        this.gender = gender;
         this.birthDate = birthDate;
-        this.phoneNumber = phoneNumber != null ? new PhoneNumber(phoneNumber) : null;
+        this.gender = gender;
+        this.phoneNumber = phoneNumber;
+        this.memberGrade = memberGrade;
+        this.profileImageFileId = profileImageFileId;
+        this.statusMessage = statusMessage;
         this.pushNotificationEnabled = pushNotificationEnabled;
         this.marketingInfoEnabled = marketingInfoEnabled;
         this.eventInfoEnabled = eventInfoEnabled;
-        this.memberGrade = MemberGrade.NEWCOMER;
-        this.memberStatus = MemberStatus.ACTIVE;
+        this.memberStatus = memberStatus;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
+    /**
+     * 일반(아이디/비밀번호) 신규 회원을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     */
     public static Member of(
         String username,
         String password,
@@ -113,11 +92,17 @@ public class Member extends BaseEntity {
         boolean eventInfoEnabled
     ) {
         return new Member(
-            username, password, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
+            null, username, password, nickname, fullName, birthDate, gender,
+            phoneNumber != null ? new PhoneNumber(phoneNumber) : null,
+            MemberGrade.NEWCOMER, null, null,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
+            MemberStatus.ACTIVE, null, null
         );
     }
 
+    /**
+     * 소셜 로그인 신규 회원을 생성한다(비밀번호 없음). 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     */
     public static Member ofSocial(
         String username,
         String nickname,
@@ -130,8 +115,42 @@ public class Member extends BaseEntity {
         boolean eventInfoEnabled
     ) {
         return new Member(
-            username, null, nickname, fullName, gender, birthDate, phoneNumber,
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
+            null, username, null, nickname, fullName, birthDate, gender,
+            phoneNumber != null ? new PhoneNumber(phoneNumber) : null,
+            MemberGrade.NEWCOMER, null, null,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
+            MemberStatus.ACTIVE, null, null
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static Member reconstitute(
+        Long id,
+        String username,
+        String password,
+        String nickname,
+        String fullName,
+        Integer birthDate,
+        MemberGender gender,
+        PhoneNumber phoneNumber,
+        MemberGrade memberGrade,
+        Long profileImageFileId,
+        String statusMessage,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
+        MemberStatus memberStatus,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        return new Member(
+            id, username, password, nickname, fullName, birthDate, gender, phoneNumber,
+            memberGrade, profileImageFileId, statusMessage,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
+            memberStatus, createdAt, updatedAt
         );
     }
 

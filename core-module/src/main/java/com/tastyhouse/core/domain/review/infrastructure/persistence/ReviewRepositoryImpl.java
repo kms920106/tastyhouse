@@ -12,6 +12,9 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -45,7 +48,6 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
 import static com.tastyhouse.core.domain.order.domain.model.QOrderProduct.orderProduct;
 import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
 import static com.tastyhouse.core.domain.review.domain.model.QReview.review;
@@ -53,6 +55,12 @@ import static com.tastyhouse.core.domain.review.domain.model.QReviewImage.review
 import static com.tastyhouse.core.domain.shop.domain.model.QShop.shop;
 import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
 
+/**
+ * {@code member}는 infrastructure-module로 이동한 {@code MemberJpaEntity}를 가리킨다.
+ * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
+ * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("MemberJpaEntity")을
+ * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class ReviewRepositoryImpl implements ReviewRepository {
@@ -61,6 +69,11 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     private static final QReviewLike subReviewLike = new QReviewLike("subReviewLike");
     private static final QReviewComment subReviewComment = new QReviewComment("subReviewComment");
     private static final QReviewLike sortReviewLike = new QReviewLike("sortReviewLike");
+
+    private static final PathBuilder<Object> member = new PathBuilder<>(Object.class, "MemberJpaEntity");
+    private static final NumberPath<Long> memberIdCol = member.getNumber("id", Long.class);
+    private static final StringPath memberNicknameCol = member.getString("nickname");
+    private static final NumberPath<Long> memberProfileImageFileIdCol = member.getNumber("profileImageFileId", Long.class);
 
     private final JPAQueryFactory queryFactory;
     private final ReviewJpaRepository reviewJpaRepository;
@@ -116,7 +129,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.totalRating,
                 review.content,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 uploadedFile.filePath,
                 review.createdAt,
                 product.id,
@@ -132,8 +145,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
             .where(review.hidden.eq(false))
             .orderBy(review.createdAt.desc());
@@ -185,7 +198,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.totalRating,
                 review.content,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 uploadedFile.filePath,
                 review.createdAt,
                 product.id,
@@ -201,8 +214,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
             .where(
                 Expressions.numberPath(Long.class, review, "memberId").in(followingMemberIds),
@@ -269,7 +282,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.totalRating,
                 review.content,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 uploadedFile.filePath,
                 review.createdAt,
                 product.id,
@@ -285,15 +298,15 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
             .where(whereClause);
 
         if ("RECOMMENDED".equals(sortType)) {
             query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(review.id))
                 .groupBy(review.id, station.stationName, review.totalRating, review.content,
-                    member.id, member.nickname, uploadedFile.filePath, review.createdAt,
+                    memberIdCol, memberNicknameCol, uploadedFile.filePath, review.createdAt,
                     product.id, product.name)
                 .orderBy(sortReviewLike.count().desc(), review.createdAt.desc());
         } else if ("OLDEST".equals(sortType)) {
@@ -362,15 +375,15 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.hygieneRating,
                 review.willRevisit,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 uploadedFile.filePath,
                 review.createdAt
             ))
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .where(
                 review.id.eq(reviewId.value()),
                 review.hidden.eq(false)
@@ -405,7 +418,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.totalRating,
                 review.content,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 uploadedFile.filePath,
                 review.createdAt,
                 product.id,
@@ -421,8 +434,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
             .where(whereClause)
             .orderBy(review.createdAt.desc())
@@ -481,7 +494,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.totalRating,
                 review.content,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 uploadedFile.filePath,
                 review.createdAt,
                 product.id,
@@ -497,15 +510,15 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
             .where(whereClause);
 
         if ("RECOMMENDED".equals(sortType)) {
             query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(review.id))
                 .groupBy(review.id, station.stationName, review.totalRating, review.content,
-                    member.id, member.nickname, uploadedFile.filePath, review.createdAt,
+                    memberIdCol, memberNicknameCol, uploadedFile.filePath, review.createdAt,
                     product.id, product.name)
                 .orderBy(sortReviewLike.count().desc(), review.createdAt.desc());
         } else if ("OLDEST".equals(sortType)) {
@@ -552,7 +565,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.totalRating,
                 review.content,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 uploadedFile.filePath,
                 review.createdAt,
                 product.id,
@@ -568,8 +581,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .leftJoin(product).on(review.productId.eq(product.id))
             .where(whereClause)
             .orderBy(review.createdAt.desc())
@@ -902,14 +915,14 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.shopId,
                 review.productId,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 review.totalRating,
                 review.content,
                 review.hidden,
                 review.createdAt
             ))
             .from(review)
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
             .where(
                 shopIdEq(condition.shopId()),
                 productIdEq(condition.productId()),
@@ -982,15 +995,15 @@ public class ReviewRepositoryImpl implements ReviewRepository {
                 review.willRevisit,
                 review.hidden,
                 review.memberId,
-                member.nickname,
+                memberNicknameCol,
                 uploadedFile.filePath,
                 review.createdAt
             ))
             .from(review)
             .innerJoin(shop).on(review.shopId.eq(shop.id))
             .innerJoin(station).on(shop.stationId.eq(station.id))
-            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .innerJoin(member).on(Expressions.numberPath(Long.class, review, "memberId").eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .where(review.id.eq(reviewId.value()))
             .fetchOne();
 

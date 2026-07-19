@@ -67,6 +67,7 @@ public class AppleSocialLoginService {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             // Apple은 이메일 외 nickname/profileImageUrl 미제공 → email만 업데이트
             socialAccount.updateProviderInfo(appleUser.email(), null, null);
+            memberCommandService.saveSocialAccount(socialAccount);
 
             Member member = memberQueryService.getById(socialAccount.getMemberId());
             return AuthSocialLoginResponse.ofLogin(issueJwt(member));

@@ -5,11 +5,16 @@ import java.util.Optional;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.follow.domain.model.Follow;
 import com.tastyhouse.core.domain.member.follow.domain.model.QFollow;
@@ -19,12 +24,23 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.member.domain.model.QMember.member;
 import static com.tastyhouse.core.domain.member.follow.domain.model.QFollow.follow;
 
+/**
+ * {@code member}는 infrastructure-module로 이동한 {@code MemberJpaEntity}를 가리킨다.
+ * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
+ * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("MemberJpaEntity")을
+ * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class FollowRepositoryImpl implements FollowRepository {
+
+    private static final PathBuilder<Object> member = new PathBuilder<>(Object.class, "MemberJpaEntity");
+    private static final NumberPath<Long> memberIdCol = member.getNumber("id", Long.class);
+    private static final StringPath memberNicknameCol = member.getString("nickname");
+    private static final NumberPath<Long> memberProfileImageFileIdCol = member.getNumber("profileImageFileId", Long.class);
+    private static final EnumPath<MemberGrade> memberGradeCol = member.getEnum("memberGrade", MemberGrade.class);
 
     private static final QFollow viewerFollow = new QFollow("viewerFollow");
 
@@ -106,22 +122,22 @@ public class FollowRepositoryImpl implements FollowRepository {
                 .from(viewerFollow)
                 .where(
                     viewerFollow.followerId.eq(viewerMemberId.value()),
-                    viewerFollow.followingId.eq(member.id)
+                    viewerFollow.followingId.eq(memberIdCol)
                 )
                 .exists()
             : com.querydsl.core.types.dsl.Expressions.FALSE;
 
         List<FollowMemberResult> content = queryFactory
             .select(Projections.constructor(FollowMemberResult.class,
-                member.id,
-                member.nickname,
-                member.memberGrade,
+                memberIdCol,
+                memberNicknameCol,
+                memberGradeCol,
                 uploadedFile.filePath,
                 isFollowing
             ))
             .from(follow)
-            .join(member).on(follow.followingId.eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .join(member).on(follow.followingId.eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .where(follow.followerId.eq(memberId.value()))
             .orderBy(follow.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -144,22 +160,22 @@ public class FollowRepositoryImpl implements FollowRepository {
                 .from(viewerFollow)
                 .where(
                     viewerFollow.followerId.eq(viewerMemberId.value()),
-                    viewerFollow.followingId.eq(member.id)
+                    viewerFollow.followingId.eq(memberIdCol)
                 )
                 .exists()
             : com.querydsl.core.types.dsl.Expressions.FALSE;
 
         List<FollowMemberResult> content = queryFactory
             .select(Projections.constructor(FollowMemberResult.class,
-                member.id,
-                member.nickname,
-                member.memberGrade,
+                memberIdCol,
+                memberNicknameCol,
+                memberGradeCol,
                 uploadedFile.filePath,
                 isFollowing
             ))
             .from(follow)
-            .join(member).on(follow.followerId.eq(member.id))
-            .leftJoin(uploadedFile).on(member.profileImageFileId.eq(uploadedFile.id))
+            .join(member).on(follow.followerId.eq(memberIdCol))
+            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
             .where(follow.followingId.eq(memberId.value()))
             .orderBy(follow.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())

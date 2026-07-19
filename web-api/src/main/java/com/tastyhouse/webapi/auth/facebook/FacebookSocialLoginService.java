@@ -61,6 +61,7 @@ public class FacebookSocialLoginService {
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl());
+            memberCommandService.saveSocialAccount(socialAccount);
 
             Member member = memberQueryService.getById(socialAccount.getMemberId());
             return AuthSocialLoginResponse.ofLogin(issueJwt(member));

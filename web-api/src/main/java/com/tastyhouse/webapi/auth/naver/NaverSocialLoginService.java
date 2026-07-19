@@ -56,6 +56,7 @@ public class NaverSocialLoginService {
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl());
+            memberCommandService.saveSocialAccount(socialAccount);
 
             Member member = memberQueryService.getById(socialAccount.getMemberId());
             return AuthSocialLoginResponse.ofLogin(issueJwt(member));

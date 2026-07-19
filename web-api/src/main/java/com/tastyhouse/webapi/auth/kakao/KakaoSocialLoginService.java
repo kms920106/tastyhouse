@@ -56,6 +56,7 @@ public class KakaoSocialLoginService {
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(kakaoUser.getEmail(), kakaoUser.getNickname(), kakaoUser.getProfileImageUrl());
+            memberCommandService.saveSocialAccount(socialAccount);
 
             Member member = memberQueryService.getById(socialAccount.getMemberId());
             return AuthSocialLoginResponse.ofLogin(issueJwt(member));
