@@ -25,6 +25,7 @@ import {
   Soup,
   SquareArrowUpRight,
   Star,
+  Store,
   TicketPercent,
   Trophy,
   UserRound,
@@ -168,6 +169,11 @@ export const sidebarItems: NavGroup[] = [
         title: "주문",
         url: "/dashboard/orders",
         icon: Package,
+      },
+      {
+        title: "가게",
+        url: "/dashboard/shops",
+        icon: Store,
       },
       {
         title: "상품",

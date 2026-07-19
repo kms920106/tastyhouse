@@ -10,6 +10,7 @@ Feature modules grouped by business domain. Each module bundles the server-side 
 | Directory | Purpose |
 |-----------|---------|
 | `notice/` | Notice feature: CRUD Server Actions, form schema, and feedback messages (see `notice/AGENTS.md`) |
+| `shop/` | Shop feature: gate CRUD plus 9 sub-resource groups (business hours/break times/closed days, amenity/food-type categories + assignments, tags, order methods, banners/photo images, editor choices). First feature consumed by a dynamic detail route (`/dashboard/shops/[id]`). Enum-backed fields (`constants.ts`) are typed against spec examples only — confirm against the backend enum before relying on a value beyond the ones already listed. |
 
 ## For AI Agents
 

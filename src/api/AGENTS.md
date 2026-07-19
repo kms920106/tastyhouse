@@ -17,6 +17,8 @@ Data-access layer for the app. Repositories, DTOs, and shared HTTP plumbing live
 | `notice/notice.service.ts` | Notice read service — calls repository and maps DTO → domain (`@/feature/notice/domain`) for queries that need it |
 | `file/file.repository.ts` | File Admin upload repository — `POST /api/files/v1/upload` (multipart), returns the uploaded fileId (`number`) |
 | `file/file.dto.ts` | File upload DTOs — `FileUploadResponse` (= fileId `number`), `ALLOWED_IMAGE_TYPES`, `MAX_IMAGE_SIZE_BYTES` |
+| `shop/shop.repository.ts` | Shop Admin repository — largest resource so far: `getStations()` (GET `/v1/stations`, 등록/수정 폼 드롭다운용) plus gate CRUD and 9 sub-resource groups (business hours/break times/closed days, amenity/food-type master categories + assignments, tags, order methods, banners/photo categories/photo images, editor choices). Sub-resource update/delete routes key off the sub-resource's own ID, not the parent shopId — mirrors the `option-groups/{groupId}/options` trap in `product.repository.ts` |
+| `shop/shop.dto.ts` | Shop DTOs — enum fields (`dayType`, `amenity`, `foodType`, `orderMethod`, `closedDayType`) are confirmed against the backend enums (2026-07-19); the canonical value/label catalog lives in `src/feature/shop/constants.ts`. List responses carry server-rendered Korean labels — `description` (business hours/break times/closed days) and `displayName` (order methods) — which the UI renders for existing items, while the `*_LABEL` constants drive only the create/edit dropdown option catalog. Photo image create/update bodies require `visible: boolean`. |
 
 ## For AI Agents
 
