@@ -27,4 +27,17 @@ public class ShopPhotoCategory extends BaseEntity {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name; // 사진 카테고리명 (예: 가게 외관, 메뉴, 내부 인테리어)
+
+    private ShopPhotoCategory(Long shopId, String name) {
+        this.shopId = shopId;
+        this.name = name;
+    }
+
+    public static ShopPhotoCategory of(Long shopId, String name) {
+        return new ShopPhotoCategory(shopId, name);
+    }
+
+    public void update(String name) {
+        this.name = name;
+    }
 }

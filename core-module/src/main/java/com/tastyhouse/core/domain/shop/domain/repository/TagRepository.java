@@ -11,5 +11,9 @@ public interface TagRepository {
 
     Optional<Tag> findByTagName(String tagName);
 
+    List<Tag> findAllTags();
+
     Tag save(Tag tag);
+
+    void deleteById(Long id);
 }

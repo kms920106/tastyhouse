@@ -13,27 +13,38 @@ import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.shop.domain.model.ShopAmenityCategory;
+import com.tastyhouse.core.domain.shop.domain.model.ShopBannerImage;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
+import com.tastyhouse.core.domain.shop.domain.model.ShopChoice;
 import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
+import com.tastyhouse.core.domain.shop.domain.model.ShopFoodTypeCategory;
 import com.tastyhouse.core.domain.shop.domain.model.ShopOrderMethod;
 import com.tastyhouse.core.domain.shop.domain.model.ShopOwnerMessageHistory;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
+import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategoryImage;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
+import com.tastyhouse.core.domain.shop.domain.model.Tag;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopBookmarkRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
+import com.tastyhouse.core.domain.shop.application.dto.ShopSearchCondition;
 import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityAssignmentResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeAssignmentResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopListItemResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
 import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopJpaRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -51,6 +62,7 @@ public class ShopQueryService {
     private final ShopDetailRepository shopDetailRepository;
     private final ShopJpaRepository shopJpaRepository;
     private final ShopBookmarkRepository shopBookmarkRepository;
+    private final TagRepository tagRepository;
     private final FileQueryService fileQueryService;
 
     public List<Shop> findNearbyShops(Double latitude, Double longitude) {
@@ -89,6 +101,11 @@ public class ShopQueryService {
     public Shop findShopById(ShopId shopId) {
         return shopJpaRepository.findById(shopId.value())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+    }
+
+    public PageResult<ShopListItemResult> findShops(ShopSearchCondition condition, int page, int size) {
+        PageQuery pageQuery = PageQuery.of(page, size);
+        return shopRepository.findShops(condition, pageQuery);
     }
 
     public List<ShopBusinessHour> findShopBusinessHours(Long shopId) {
@@ -141,5 +158,38 @@ public class ShopQueryService {
             return Optional.empty();
         }
         return fileQueryService.findFilePath(UploadedFileId.of(thumbnailImageFileId));
+    }
+
+    public List<ShopAmenityCategory> findAmenityCategories() {
+        return shopDetailRepository.findAllAmenityCategories();
+    }
+
+    public List<ShopFoodTypeCategory> findFoodTypeCategories() {
+        return shopDetailRepository.findAllFoodTypeCategories();
+    }
+
+    public List<ShopAmenityAssignmentResult> findShopAmenityAssignments(Long shopId) {
+        return shopDetailRepository.findAmenityAssignmentsByShopId(shopId);
+    }
+
+    public List<ShopFoodTypeAssignmentResult> findShopFoodTypeAssignments(Long shopId) {
+        return shopDetailRepository.findFoodTypeAssignmentsByShopId(shopId);
+    }
+
+    public List<Tag> findAllTags() {
+        return tagRepository.findAllTags();
+    }
+
+    public List<ShopPhotoCategoryImage> findShopPhotoCategoryImages(Long categoryId) {
+        return shopDetailRepository.findPhotoCategoryImagesByCategoryId(categoryId);
+    }
+
+    public List<ShopBannerImage> findShopBannerImageEntities(Long shopId) {
+        return shopDetailRepository.findBannerImageEntitiesByShopId(shopId);
+    }
+
+    public ShopChoice findShopChoiceById(Long id) {
+        return shopChoiceRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
     }
 }

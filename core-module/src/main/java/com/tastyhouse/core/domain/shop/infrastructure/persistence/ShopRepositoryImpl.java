@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,15 +12,20 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.core.domain.shop.application.dto.ShopSearchCondition;
 import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.QShopListItemResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopListItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -38,6 +44,7 @@ import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
 public class ShopRepositoryImpl implements ShopRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final ShopJpaRepository shopJpaRepository;
 
     @Override
     public List<Shop> findNearbyShops(BigDecimal latitude, BigDecimal longitude) {
@@ -300,6 +307,64 @@ public class ShopRepositoryImpl implements ShopRepository {
             .collect(Collectors.toList());
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public PageResult<ShopListItemResult> findShops(ShopSearchCondition condition, PageQuery pageQuery) {
+        Long total = queryFactory
+            .select(shop.count())
+            .from(shop)
+            .where(
+                nameContains(condition.name()),
+                stationIdEq(condition.stationId()),
+                permanentlyClosedEq(condition.permanentlyClosed())
+            )
+            .fetchOne();
+
+        if (total == null || total == 0) {
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
+        }
+
+        List<ShopListItemResult> content = queryFactory
+            .select(new QShopListItemResult(
+                shop.id,
+                shop.name,
+                station.stationName,
+                shop.roadAddress,
+                shop.rating,
+                shop.permanentlyClosed
+            ))
+            .from(shop)
+            .leftJoin(station).on(station.id.eq(shop.stationId))
+            .where(
+                nameContains(condition.name()),
+                stationIdEq(condition.stationId()),
+                permanentlyClosedEq(condition.permanentlyClosed())
+            )
+            .orderBy(shop.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public Optional<Shop> findById(ShopId id) {
+        return shopJpaRepository.findById(id.value());
+    }
+
+    @Override
+    public Shop save(Shop shop) {
+        return shopJpaRepository.save(shop);
+    }
+
+    private BooleanExpression nameContains(String name) {
+        return StringUtils.hasText(name) ? shop.name.containsIgnoreCase(name) : null;
+    }
+
+    private BooleanExpression permanentlyClosedEq(Boolean permanentlyClosed) {
+        return permanentlyClosed != null ? shop.permanentlyClosed.eq(permanentlyClosed) : null;
     }
 
     private BooleanExpression stationIdEq(Long stationId) {

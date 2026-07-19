@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.product.domain.model.QProductImage;
+import com.tastyhouse.core.domain.shop.domain.model.ShopChoice;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
 import com.tastyhouse.core.domain.product.application.dto.result.QProductSimpleResult;
@@ -33,6 +35,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
     private static final QProductImage subProductImage = new QProductImage("subProductImage");
 
     private final JPAQueryFactory queryFactory;
+    private final ShopChoiceJpaRepository shopChoiceJpaRepository;
 
     @Override
     public PageResult<EditorChoiceResult> findEditorChoice(PageQuery pageQuery) {
@@ -128,5 +131,20 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
             .toList();
 
         return PageResult.of(content, totalCount, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public Optional<ShopChoice> findById(Long id) {
+        return shopChoiceJpaRepository.findById(id);
+    }
+
+    @Override
+    public ShopChoice save(ShopChoice shopChoice) {
+        return shopChoiceJpaRepository.save(shopChoice);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        shopChoiceJpaRepository.deleteById(id);
     }
 }

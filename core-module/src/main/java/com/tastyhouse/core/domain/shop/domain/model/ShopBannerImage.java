@@ -6,8 +6,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 @Table(name = "SHOP_BANNER_IMAGE")
@@ -25,4 +28,14 @@ public class ShopBannerImage {
 
     @Column(name = "sort")
     private Integer sort; // 정렬 순서
+
+    private ShopBannerImage(Long shopId, Long imageFileId, Integer sort) {
+        this.shopId = shopId;
+        this.imageFileId = imageFileId;
+        this.sort = sort;
+    }
+
+    public static ShopBannerImage of(Long shopId, Long imageFileId, Integer sort) {
+        return new ShopBannerImage(shopId, imageFileId, sort);
+    }
 }

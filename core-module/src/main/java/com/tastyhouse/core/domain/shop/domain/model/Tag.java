@@ -23,7 +23,11 @@ public class Tag {
     @Column(name = "tag_name", nullable = false)
     private String tagName; // 태그명
 
-    public Tag(String tagName) {
+    private Tag(String tagName) {
         this.tagName = tagName;
+    }
+
+    public static Tag of(String tagName) {
+        return new Tag(tagName);
     }
 }

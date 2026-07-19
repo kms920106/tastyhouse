@@ -10,8 +10,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 @Table(name = "SHOP_BREAK_TIME")
@@ -33,4 +36,21 @@ public class ShopBreakTime {
 
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime; // 브레이크타임 종료 시각
+
+    private ShopBreakTime(Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
+        this.shopId = shopId;
+        this.dayType = dayType;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    public static ShopBreakTime of(Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
+        return new ShopBreakTime(shopId, dayType, startTime, endTime);
+    }
+
+    public void update(DayType dayType, LocalTime startTime, LocalTime endTime) {
+        this.dayType = dayType;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
 }

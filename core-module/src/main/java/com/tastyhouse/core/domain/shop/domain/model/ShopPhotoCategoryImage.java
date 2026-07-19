@@ -31,33 +31,42 @@ public class ShopPhotoCategoryImage extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort; // 정렬 순서
 
+    @Column(name = "is_visible", nullable = false)
+    private boolean visible; // 노출 여부 (true: 노출)
+
     private ShopPhotoCategoryImage(
         Long shopPhotoCategoryId,
         Long imageFileId,
-        Integer sort
+        Integer sort,
+        boolean visible
     ) {
         this.shopPhotoCategoryId = shopPhotoCategoryId;
         this.imageFileId = imageFileId;
         this.sort = sort;
+        this.visible = visible;
     }
 
     public static ShopPhotoCategoryImage of(
         Long shopPhotoCategoryId,
         Long imageFileId,
-        Integer sort
+        Integer sort,
+        boolean visible
     ) {
         return new ShopPhotoCategoryImage(
             shopPhotoCategoryId,
             imageFileId,
-            sort
+            sort,
+            visible
         );
     }
 
     public void update(
         Long imageFileId,
-        Integer sort
+        Integer sort,
+        boolean visible
     ) {
         this.imageFileId = imageFileId;
         this.sort = sort;
+        this.visible = visible;
     }
 }

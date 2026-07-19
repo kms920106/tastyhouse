@@ -572,6 +572,7 @@ CREATE TABLE SHOP_PHOTO_CATEGORY_IMAGE
     shop_photo_category_id BIGINT   NOT NULL,                                             -- 사진 카테고리 ID (SHOP_PHOTO_CATEGORY.id 참조)
     image_file_id           BIGINT   NOT NULL,                                             -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
     sort                    INT      NOT NULL,                                             -- 정렬 순서
+    is_visible              TINYINT(1) NOT NULL DEFAULT 1,                                 -- 노출 여부 (1: 노출, 0: 숨김)
     created_at              DATETIME NOT NULL,                                             -- 생성 일시
     updated_at              DATETIME NOT NULL,                                             -- 수정 일시
     INDEX idx_shop_photo_category_image_category_id (shop_photo_category_id)             -- 인덱스: 사진 카테고리별 조회

@@ -10,8 +10,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 @Table(name = "SHOP_BUSINESS_HOUR")
@@ -36,4 +39,23 @@ public class ShopBusinessHour {
 
     @Column(name = "is_closed")
     private Boolean isClosed; // 휴무 여부 (true: 휴무)
+
+    private ShopBusinessHour(Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+        this.shopId = shopId;
+        this.dayType = dayType;
+        this.openTime = openTime;
+        this.closeTime = closeTime;
+        this.isClosed = isClosed;
+    }
+
+    public static ShopBusinessHour of(Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+        return new ShopBusinessHour(shopId, dayType, openTime, closeTime, isClosed);
+    }
+
+    public void update(DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+        this.dayType = dayType;
+        this.openTime = openTime;
+        this.closeTime = closeTime;
+        this.isClosed = isClosed;
+    }
 }

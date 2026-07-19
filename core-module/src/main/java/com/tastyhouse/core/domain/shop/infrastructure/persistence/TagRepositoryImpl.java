@@ -38,7 +38,20 @@ public class TagRepositoryImpl implements TagRepository {
     }
 
     @Override
+    public List<Tag> findAllTags() {
+        return queryFactory
+            .selectFrom(tag)
+            .orderBy(tag.id.desc())
+            .fetch();
+    }
+
+    @Override
     public Tag save(Tag tag) {
         return tagJpaRepository.save(tag);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        tagJpaRepository.deleteById(id);
     }
 }

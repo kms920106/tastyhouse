@@ -6,10 +6,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 @Table(name = "SHOP_CHOICE")
@@ -27,4 +30,19 @@ public class ShopChoice extends BaseEntity {
 
     @Column(name = "content", columnDefinition = "TEXT")
     private String content; // 선택지 상세 내용
+
+    private ShopChoice(Long shopId, String title, String content) {
+        this.shopId = shopId;
+        this.title = title;
+        this.content = content;
+    }
+
+    public static ShopChoice of(Long shopId, String title, String content) {
+        return new ShopChoice(shopId, title, content);
+    }
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

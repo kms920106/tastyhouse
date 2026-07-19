@@ -3,6 +3,9 @@ package com.tastyhouse.core.domain.shop.domain.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+
 @Getter
 @RequiredArgsConstructor
 public enum DayType {
@@ -20,4 +23,13 @@ public enum DayType {
     SUNDAY("일요일");
 
     private final String description;
+
+    public static DayType from(String code) {
+        try {
+            return valueOf(code);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.DAY_TYPE_UNKNOWN,
+                ErrorCode.DAY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+        }
+    }
 }

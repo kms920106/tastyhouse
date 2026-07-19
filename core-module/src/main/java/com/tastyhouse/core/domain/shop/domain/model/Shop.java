@@ -8,11 +8,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.shared.entity.BaseEntity;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 @Table(name = "SHOP")
@@ -52,7 +55,74 @@ public class Shop extends BaseEntity {
     @Column(name = "is_permanently_closed", nullable = false)
     private boolean permanentlyClosed; // 폐업 여부 (true: 폐업)
 
+    private Shop(
+        Long stationId,
+        String name,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String roadAddress,
+        String lotAddress,
+        String phoneNumber,
+        Long thumbnailImageFileId
+    ) {
+        this.stationId = stationId;
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.roadAddress = roadAddress;
+        this.lotAddress = lotAddress;
+        this.phoneNumber = phoneNumber;
+        this.thumbnailImageFileId = thumbnailImageFileId;
+        this.permanentlyClosed = false;
+    }
+
+    public static Shop of(
+        Long stationId,
+        String name,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String roadAddress,
+        String lotAddress,
+        String phoneNumber,
+        Long thumbnailImageFileId
+    ) {
+        return new Shop(
+            stationId,
+            name,
+            latitude,
+            longitude,
+            roadAddress,
+            lotAddress,
+            phoneNumber,
+            thumbnailImageFileId
+        );
+    }
+
     public ShopId getShopId() {
         return ShopId.of(this.id);
+    }
+
+    public void update(
+        Long stationId,
+        String name,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String roadAddress,
+        String lotAddress,
+        String phoneNumber,
+        Long thumbnailImageFileId
+    ) {
+        this.stationId = stationId;
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.roadAddress = roadAddress;
+        this.lotAddress = lotAddress;
+        this.phoneNumber = phoneNumber;
+        this.thumbnailImageFileId = thumbnailImageFileId;
+    }
+
+    public void close() {
+        this.permanentlyClosed = true;
     }
 }

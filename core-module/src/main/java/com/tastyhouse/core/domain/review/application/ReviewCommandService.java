@@ -267,7 +267,7 @@ public class ReviewCommandService {
         List<ReviewTag> reviewTags = tagNames.stream()
             .map(tagName -> {
                 Tag tag = tagRepository.findByTagName(tagName)
-                    .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+                    .orElseGet(() -> tagRepository.save(Tag.of(tagName)));
                 return new ReviewTag(reviewId, tag.getId());
             })
             .toList();

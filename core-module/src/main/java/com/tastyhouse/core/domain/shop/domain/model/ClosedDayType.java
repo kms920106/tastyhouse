@@ -3,6 +3,9 @@ package com.tastyhouse.core.domain.shop.domain.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
+
 @Getter
 @RequiredArgsConstructor
 public enum ClosedDayType {
@@ -65,4 +68,13 @@ public enum ClosedDayType {
     EVERY_MONTH_LAST_WEEK_SUNDAY("매달 마지막 주 일요일");
 
     private final String description;
+
+    public static ClosedDayType from(String code) {
+        try {
+            return valueOf(code);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.CLOSED_DAY_TYPE_UNKNOWN,
+                ErrorCode.CLOSED_DAY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+        }
+    }
 }

@@ -69,4 +69,12 @@ public class ShopFoodTypeCategory extends BaseEntity {
             visible
         );
     }
+
+    public void update(String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, boolean visible) {
+        this.displayName = displayName;
+        this.activeImageFileId = activeImageFileId;
+        this.inactiveImageFileId = inactiveImageFileId;
+        this.sort = sort;
+        this.visible = visible;
+    }
 }

@@ -2,14 +2,18 @@ package com.tastyhouse.core.domain.shop.domain.repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.core.domain.shop.application.dto.ShopSearchCondition;
 import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopListItemResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -24,4 +28,10 @@ public interface ShopRepository {
     PageResult<ShopBookmarkedItemResult> findMyBookmarkedShops(MemberId memberId, PageQuery pageQuery);
 
     PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(String keyword, MemberId memberId, PageQuery pageQuery);
+
+    PageResult<ShopListItemResult> findShops(ShopSearchCondition condition, PageQuery pageQuery);
+
+    Optional<Shop> findById(ShopId id);
+
+    Shop save(Shop shop);
 }
