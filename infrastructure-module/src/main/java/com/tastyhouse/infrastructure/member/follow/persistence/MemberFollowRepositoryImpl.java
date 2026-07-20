@@ -23,7 +23,7 @@ import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMem
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.follow.persistence.QMemberFollowJpaEntity.memberFollowJpaEntity;
 
 /**
@@ -141,12 +141,12 @@ public class MemberFollowRepositoryImpl implements MemberFollowRepository {
                 memberIdCol,
                 memberNicknameCol,
                 memberGradeCol,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 isFollowing
             ))
             .from(memberFollowJpaEntity)
             .join(member).on(followingIdCol.eq(memberIdCol))
-            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileIdCol.eq(uploadedFileJpaEntity.id))
             .where(memberFollowJpaEntity.followerId.eq(memberId))
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -179,12 +179,12 @@ public class MemberFollowRepositoryImpl implements MemberFollowRepository {
                 memberIdCol,
                 memberNicknameCol,
                 memberGradeCol,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 isFollowing
             ))
             .from(memberFollowJpaEntity)
             .join(member).on(followerIdCol.eq(memberIdCol))
-            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileIdCol.eq(uploadedFileJpaEntity.id))
             .where(memberFollowJpaEntity.followingId.eq(memberId))
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())

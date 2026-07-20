@@ -12,7 +12,7 @@ import com.tastyhouse.core.domain.rank.domain.repository.RankInfoRepository;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankDurationResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.rank.persistence.QRankPeriodJpaEntity.rankPeriodJpaEntity;
 import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;
 
@@ -46,11 +46,11 @@ public class RankInfoRepositoryImpl implements RankInfoRepository {
                 rankPrizeJpaEntity.prizeRank,
                 rankPrizeJpaEntity.name,
                 rankPrizeJpaEntity.brand,
-                uploadedFile.filePath
+                uploadedFileJpaEntity.filePath
             ))
             .from(rankPeriodJpaEntity)
             .innerJoin(rankPrizeJpaEntity).on(rankPrizeJpaEntity.rankId.eq(rankPeriodJpaEntity.id))
-            .leftJoin(uploadedFile).on(rankPrizeJpaEntity.imageFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(rankPrizeJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(
                 rankPeriodJpaEntity.visible.isTrue(),
                 rankPeriodJpaEntity.deleted.isFalse(),

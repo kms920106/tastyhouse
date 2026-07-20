@@ -21,7 +21,7 @@ import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankReposit
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.QMemberRankResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJpaEntity.memberReviewRankJpaEntity;
 
 /**
@@ -49,14 +49,14 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
             .select(new QMemberRankResult(
                 memberReviewRankJpaEntity.memberId,
                 memberNicknameCol,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 memberReviewRankJpaEntity.reviewCount,
                 memberReviewRankJpaEntity.rankNo,
                 memberGradeCol
             ))
             .from(memberReviewRankJpaEntity)
             .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberIdCol))
-            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileIdCol.eq(uploadedFileJpaEntity.id))
             .where(
                 memberReviewRankJpaEntity.rankType.eq(rankType),
                 memberReviewRankJpaEntity.baseDate.eq(baseDate)
@@ -72,14 +72,14 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
             .select(new QMemberRankResult(
                 memberReviewRankJpaEntity.memberId,
                 memberNicknameCol,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 memberReviewRankJpaEntity.reviewCount,
                 memberReviewRankJpaEntity.rankNo,
                 memberGradeCol
             ))
             .from(memberReviewRankJpaEntity)
             .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberIdCol))
-            .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileIdCol.eq(uploadedFileJpaEntity.id))
             .where(
                 memberReviewRankJpaEntity.memberId.eq(memberId),
                 memberReviewRankJpaEntity.rankType.eq(rankType),

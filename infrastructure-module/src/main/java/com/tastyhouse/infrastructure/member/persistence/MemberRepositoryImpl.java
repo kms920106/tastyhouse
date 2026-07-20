@@ -21,7 +21,7 @@ import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfil
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
 
 @Repository
@@ -83,10 +83,10 @@ public class MemberRepositoryImpl implements MemberRepository {
                 memberJpaEntity.nickname,
                 memberJpaEntity.memberGrade,
                 memberJpaEntity.statusMessage,
-                uploadedFile.filePath
+                uploadedFileJpaEntity.filePath
             ))
             .from(memberJpaEntity)
-            .leftJoin(uploadedFile).on(memberJpaEntity.profileImageFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
             .where(memberJpaEntity.nickname.containsIgnoreCase(nickname))
             .orderBy(memberJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -144,10 +144,10 @@ public class MemberRepositoryImpl implements MemberRepository {
                     memberJpaEntity.nickname,
                     memberJpaEntity.memberGrade,
                     memberJpaEntity.statusMessage,
-                    uploadedFile.filePath
+                    uploadedFileJpaEntity.filePath
                 ))
                 .from(memberJpaEntity)
-                .leftJoin(uploadedFile).on(memberJpaEntity.profileImageFileId.eq(uploadedFile.id))
+                .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
                 .where(memberJpaEntity.id.eq(memberId.value()))
                 .fetchOne()
         );
@@ -165,11 +165,11 @@ public class MemberRepositoryImpl implements MemberRepository {
                 memberJpaEntity.gender,
                 memberJpaEntity.memberGrade,
                 memberJpaEntity.memberStatus,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 memberJpaEntity.createdAt
             ))
             .from(memberJpaEntity)
-            .leftJoin(uploadedFile).on(memberJpaEntity.profileImageFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
             .where(
                 nicknameContains(condition.nickname()),
                 usernameContains(condition.username()),

@@ -12,7 +12,7 @@ import com.tastyhouse.core.domain.product.domain.model.ProductImage;
 import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepresentativeImage;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 
 @Repository
@@ -37,9 +37,9 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
     @Override
     public String findFilePathByImageFileId(Long imageFileId) {
         return queryFactory
-            .select(uploadedFile.filePath)
-            .from(uploadedFile)
-            .where(uploadedFile.id.eq(imageFileId))
+            .select(uploadedFileJpaEntity.filePath)
+            .from(uploadedFileJpaEntity)
+            .where(uploadedFileJpaEntity.id.eq(imageFileId))
             .fetchOne();
     }
 
@@ -53,10 +53,10 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
             .select(Projections.constructor(
                 ProductRepresentativeImage.class,
                 productImageJpaEntity.productId,
-                uploadedFile.filePath
+                uploadedFileJpaEntity.filePath
             ))
             .from(productImageJpaEntity)
-            .innerJoin(uploadedFile).on(productImageJpaEntity.imageFileId.eq(uploadedFile.id))
+            .innerJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(
                 productImageJpaEntity.productId.in(productIds),
                 productImageJpaEntity.visible.eq(true),

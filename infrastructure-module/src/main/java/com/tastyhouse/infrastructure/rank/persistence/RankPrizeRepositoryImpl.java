@@ -14,7 +14,7 @@ import com.tastyhouse.core.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.core.domain.rank.domain.vo.RankPrizeId;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeManagementResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;
 
 @Repository
@@ -58,11 +58,11 @@ public class RankPrizeRepositoryImpl implements RankPrizeRepository {
                 rankPrizeJpaEntity.name,
                 rankPrizeJpaEntity.brand,
                 rankPrizeJpaEntity.imageFileId,
-                uploadedFile.originalFilename,
-                uploadedFile.filePath
+                uploadedFileJpaEntity.originalFilename,
+                uploadedFileJpaEntity.filePath
             ))
             .from(rankPrizeJpaEntity)
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(rankPrizeJpaEntity.imageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
             .where(rankPrizeJpaEntity.rankId.eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
             .orderBy(rankPrizeJpaEntity.prizeRank.asc())
             .fetch();
@@ -78,11 +78,11 @@ public class RankPrizeRepositoryImpl implements RankPrizeRepository {
                 rankPrizeJpaEntity.name,
                 rankPrizeJpaEntity.brand,
                 rankPrizeJpaEntity.imageFileId,
-                uploadedFile.originalFilename,
-                uploadedFile.filePath
+                uploadedFileJpaEntity.originalFilename,
+                uploadedFileJpaEntity.filePath
             ))
             .from(rankPrizeJpaEntity)
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(rankPrizeJpaEntity.imageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
             .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())
             .fetchOne();
 

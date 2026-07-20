@@ -23,7 +23,7 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.banner.persistence.QBannerJpaEntity.bannerJpaEntity;
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -52,11 +52,11 @@ public class BannerRepositoryImpl implements BannerRepository {
             .select(new QBannerListItemResult(
                 bannerJpaEntity.id,
                 bannerJpaEntity.title,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 bannerJpaEntity.linkUrl
             ))
             .from(bannerJpaEntity)
-            .join(uploadedFile).on(uploadedFile.id.eq(bannerJpaEntity.imageFileId))
+            .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerJpaEntity.imageFileId))
             .where(
                 bannerJpaEntity.type.eq(type),
                 bannerJpaEntity.deleted.isFalse(),
@@ -90,9 +90,9 @@ public class BannerRepositoryImpl implements BannerRepository {
                 bannerJpaEntity.id,
                 bannerJpaEntity.type,
                 bannerJpaEntity.title,
-                uploadedFile.id,
-                uploadedFile.originalFilename,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.id,
+                uploadedFileJpaEntity.originalFilename,
+                uploadedFileJpaEntity.filePath,
                 bannerJpaEntity.linkUrl,
                 bannerJpaEntity.startDate,
                 bannerJpaEntity.endDate,
@@ -100,7 +100,7 @@ public class BannerRepositoryImpl implements BannerRepository {
                 bannerJpaEntity.visible
             ))
             .from(bannerJpaEntity)
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(bannerJpaEntity.imageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerJpaEntity.imageFileId))
             .where(
                 bannerJpaEntity.deleted.isFalse(),
                 typeEq(condition.type()),

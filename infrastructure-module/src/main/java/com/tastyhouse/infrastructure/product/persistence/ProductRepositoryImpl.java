@@ -24,7 +24,7 @@ import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountPr
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -45,7 +45,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 productJpaEntity.id,
                 shopJpaEntity.name,
                 productJpaEntity.name,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 productJpaEntity.originalPrice,
                 productJpaEntity.discountInfo.discountPrice,
                 productJpaEntity.discountInfo.discountRate
@@ -63,7 +63,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                                 .and(subProductImage.visible.eq(true)))
                     ))
             )
-            .leftJoin(uploadedFile).on(productImageJpaEntity.imageFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(productJpaEntity.discountInfo.discountPrice.isNotNull()
                 .and(productJpaEntity.visible.eq(true)))
             .orderBy(productJpaEntity.discountInfo.discountRate.desc());
@@ -99,7 +99,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                 productJpaEntity.id,
                 shopJpaEntity.name,
                 productJpaEntity.name,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 productJpaEntity.originalPrice,
                 productJpaEntity.discountInfo.discountPrice,
                 productJpaEntity.discountInfo.discountRate,
@@ -120,7 +120,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                                 .and(subProductImage.visible.eq(true)))
                     ))
             )
-            .leftJoin(uploadedFile).on(productImageJpaEntity.imageFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(
                 productJpaEntity.name.containsIgnoreCase(keyword)
                     .and(productJpaEntity.visible.eq(true))

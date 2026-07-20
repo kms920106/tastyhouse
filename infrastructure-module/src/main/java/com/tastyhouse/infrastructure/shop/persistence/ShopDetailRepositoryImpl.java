@@ -8,7 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.file.domain.model.QUploadedFile;
+import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.core.domain.shop.domain.model.ShopAmenity;
 import com.tastyhouse.core.domain.shop.domain.model.ShopAmenityCategory;
@@ -32,7 +32,7 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeAssign
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityJpaEntity.shopAmenityJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBannerImageJpaEntity.shopBannerImageJpaEntity;
@@ -51,8 +51,8 @@ import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.s
 @RequiredArgsConstructor
 public class ShopDetailRepositoryImpl implements ShopDetailRepository {
 
-    private static final QUploadedFile activeFile = new QUploadedFile("activeFile");
-    private static final QUploadedFile inactiveFile = new QUploadedFile("inactiveFile");
+    private static final QUploadedFileJpaEntity activeFile = new QUploadedFileJpaEntity("activeFile");
+    private static final QUploadedFileJpaEntity inactiveFile = new QUploadedFileJpaEntity("inactiveFile");
 
     private final JPAQueryFactory queryFactory;
     private final ShopBusinessHourJpaRepository shopBusinessHourJpaRepository;
@@ -394,11 +394,11 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
         return queryFactory
             .select(Projections.constructor(ShopBannerImageResult.class,
                 shopBannerImageJpaEntity.id,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 shopBannerImageJpaEntity.sort
             ))
             .from(shopBannerImageJpaEntity)
-            .join(uploadedFile).on(uploadedFile.id.eq(shopBannerImageJpaEntity.imageFileId))
+            .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopBannerImageJpaEntity.imageFileId))
             .where(shopBannerImageJpaEntity.shopId.eq(shopId))
             .orderBy(shopBannerImageJpaEntity.sort.asc())
             .fetch();
@@ -505,11 +505,11 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
             .select(Projections.constructor(ShopPhotoCategoryImageResult.class,
                 shopPhotoCategoryImageJpaEntity.id,
                 shopPhotoCategoryImageJpaEntity.shopPhotoCategoryId,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 shopPhotoCategoryImageJpaEntity.sort
             ))
             .from(shopPhotoCategoryImageJpaEntity)
-            .join(uploadedFile).on(uploadedFile.id.eq(shopPhotoCategoryImageJpaEntity.imageFileId))
+            .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopPhotoCategoryImageJpaEntity.imageFileId))
             .orderBy(shopPhotoCategoryImageJpaEntity.sort.asc())
             .fetch();
     }

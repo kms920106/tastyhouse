@@ -24,8 +24,8 @@ import com.tastyhouse.core.domain.event.application.dto.result.QEventManagementL
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
 import static com.tastyhouse.infrastructure.event.persistence.QEventJpaEntity.eventJpaEntity;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -40,12 +40,12 @@ public class EventRepositoryImpl implements EventRepository {
             .select(new QEventListItemResult(
                 eventJpaEntity.id,
                 eventJpaEntity.name,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 eventJpaEntity.startAt,
                 eventJpaEntity.endAt
             ))
             .from(eventJpaEntity)
-            .leftJoin(uploadedFile).on(eventJpaEntity.thumbnailImageFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(eventJpaEntity.thumbnailImageFileId.eq(uploadedFileJpaEntity.id))
             .where(eventJpaEntity.status.eq(status))
             .orderBy(eventJpaEntity.startAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -65,10 +65,10 @@ public class EventRepositoryImpl implements EventRepository {
     public Optional<EventDetailResult> findEventDetailById(EventId eventId) {
         EventDetailResult result = queryFactory
             .select(new QEventDetailResult(
-                uploadedFile.filePath
+                uploadedFileJpaEntity.filePath
             ))
             .from(eventJpaEntity)
-            .leftJoin(uploadedFile).on(eventJpaEntity.bannerImageFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(eventJpaEntity.bannerImageFileId.eq(uploadedFileJpaEntity.id))
             .where(eventJpaEntity.id.eq(eventId.value()))
             .fetchOne();
 
@@ -102,13 +102,13 @@ public class EventRepositoryImpl implements EventRepository {
                 eventJpaEntity.name,
                 eventJpaEntity.status,
                 eventJpaEntity.thumbnailImageFileId,
-                uploadedFile.originalFilename,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.originalFilename,
+                uploadedFileJpaEntity.filePath,
                 eventJpaEntity.startAt,
                 eventJpaEntity.endAt
             ))
             .from(eventJpaEntity)
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(eventJpaEntity.thumbnailImageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(eventJpaEntity.thumbnailImageFileId))
             .where(
                 eventJpaEntity.deleted.isFalse(),
                 nameContains(condition.name()),

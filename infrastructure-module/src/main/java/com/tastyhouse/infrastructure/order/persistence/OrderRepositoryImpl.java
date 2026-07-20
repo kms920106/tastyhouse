@@ -25,7 +25,7 @@ import com.tastyhouse.core.domain.order.application.dto.result.QOrderManagementL
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
 import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEntity.orderProductJpaEntity;
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
@@ -58,7 +58,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             .select(new QOrderListItemResult(
                 orderJpaEntity.id,
                 shopJpaEntity.name,
-                uploadedFile.filePath,
+                uploadedFileJpaEntity.filePath,
                 orderProductJpaEntity.name.min(),
                 orderProductJpaEntity.id.count().castToNum(Integer.class),
                 orderJpaEntity.finalAmount,
@@ -68,10 +68,10 @@ public class OrderRepositoryImpl implements OrderRepository {
             .from(orderJpaEntity)
             .innerJoin(paymentJpaEntity).on(paymentJoinCondition)
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopJpaEntity.thumbnailImageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
             .leftJoin(orderProductJpaEntity).on(orderProductJpaEntity.orderId.eq(orderJpaEntity.id))
             .where(orderJpaEntity.memberId.eq(memberId))
-            .groupBy(orderJpaEntity.id, shopJpaEntity.name, uploadedFile.filePath, orderJpaEntity.finalAmount, paymentJpaEntity.paymentStatus, paymentJpaEntity.approvedAt)
+            .groupBy(orderJpaEntity.id, shopJpaEntity.name, uploadedFileJpaEntity.filePath, orderJpaEntity.finalAmount, paymentJpaEntity.paymentStatus, paymentJpaEntity.approvedAt)
             .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())

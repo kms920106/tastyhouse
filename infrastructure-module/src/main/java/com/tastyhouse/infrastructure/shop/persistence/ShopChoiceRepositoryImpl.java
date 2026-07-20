@@ -22,7 +22,7 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity;
 
-import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopChoiceJpaEntity.shopChoiceJpaEntity;
@@ -55,11 +55,11 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                 shopJpaEntity.name,
                 shopChoiceJpaEntity.title,
                 shopChoiceJpaEntity.content,
-                uploadedFile.filePath
+                uploadedFileJpaEntity.filePath
             )
             .from(shopChoiceJpaEntity)
             .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopChoiceJpaEntity.shopId).and(shopJpaEntity.permanentlyClosed.eq(false)))
-            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopJpaEntity.thumbnailImageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -76,7 +76,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                     productJpaEntity.id,
                     shopJpaEntity.name,
                     productJpaEntity.name,
-                    uploadedFile.filePath,
+                    uploadedFileJpaEntity.filePath,
                     productJpaEntity.originalPrice,
                     productJpaEntity.discountInfo.discountPrice,
                     productJpaEntity.discountInfo.discountRate
@@ -95,7 +95,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                                 .and(subProductImage.visible.eq(true)))
                     ))
             )
-            .leftJoin(uploadedFile).on(productImageJpaEntity.imageFileId.eq(uploadedFile.id))
+            .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(productJpaEntity.shopId.in(shopIds))
             .fetch();
 
@@ -124,7 +124,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                     tuple.get(shopJpaEntity.name),
                     tuple.get(shopChoiceJpaEntity.title),
                     tuple.get(shopChoiceJpaEntity.content),
-                    tuple.get(uploadedFile.filePath),
+                    tuple.get(uploadedFileJpaEntity.filePath),
                     products
                 );
             })

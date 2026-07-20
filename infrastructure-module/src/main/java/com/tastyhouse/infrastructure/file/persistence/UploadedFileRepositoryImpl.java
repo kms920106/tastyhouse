@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.file.infrastructure.persistence;
+package com.tastyhouse.infrastructure.file.persistence;
 
 import java.util.Optional;
 
@@ -16,12 +16,13 @@ public class UploadedFileRepositoryImpl implements UploadedFileRepository {
     private final UploadedFileJpaRepository uploadedFileJpaRepository;
 
     @Override
-    public UploadedFile save(UploadedFile file) {
-        return uploadedFileJpaRepository.save(file);
+    public UploadedFile save(UploadedFile uploadedFile) {
+        UploadedFileJpaEntity saved = uploadedFileJpaRepository.save(UploadedFileMapper.toEntity(uploadedFile));
+        return UploadedFileMapper.toDomain(saved);
     }
 
     @Override
     public Optional<UploadedFile> findById(UploadedFileId id) {
-        return uploadedFileJpaRepository.findById(id.value());
+        return uploadedFileJpaRepository.findById(id.value()).map(UploadedFileMapper::toDomain);
     }
 }
