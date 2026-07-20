@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -12,7 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.product.domain.vo.ProductDiscountInfo;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 상품 JPA 영속 모델.
@@ -46,6 +48,10 @@ public class ProductJpaEntity extends BaseEntity {
     private Integer originalPrice;
 
     @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "discountPrice", column = @Column(name = "discount_price")),
+        @AttributeOverride(name = "discountRate", column = @Column(name = "discount_rate"))
+    })
     private ProductDiscountInfo discountInfo;
 
     @Column(name = "rating")

@@ -3,6 +3,8 @@ package com.tastyhouse.infrastructure.search.persistence;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +19,9 @@ public class PopularKeywordRepositoryImpl implements PopularKeywordRepository {
 
     private final JPAQueryFactory queryFactory;
     private final PopularKeywordJpaRepository jpaRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<PopularKeyword> findActiveOrderByRank() {
@@ -38,5 +43,7 @@ public class PopularKeywordRepositoryImpl implements PopularKeywordRepository {
     @Override
     public void deleteAll() {
         queryFactory.delete(popularKeywordJpaEntity).execute();
+        entityManager.flush();
+        entityManager.clear();
     }
 }

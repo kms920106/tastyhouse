@@ -16,7 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 이벤트 JPA 영속 모델.

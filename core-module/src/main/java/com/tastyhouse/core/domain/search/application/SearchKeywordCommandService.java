@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ public class SearchKeywordCommandService {
 
     private final SearchKeywordLogRepository searchKeywordLogRepository;
     private final PopularKeywordRepository popularKeywordRepository;
-    private final EntityManager entityManager;
 
     public void aggregatePopularKeywords() {
         LocalDateTime since = LocalDateTime.now().minusDays(7);
@@ -34,8 +32,6 @@ public class SearchKeywordCommandService {
             .stream().map(PopularKeyword::getKeyword).collect(Collectors.toSet());
 
         popularKeywordRepository.deleteAll();
-        entityManager.flush();
-        entityManager.clear();
 
         List<PopularKeyword> newRanks = new ArrayList<>();
         int rank = 1;

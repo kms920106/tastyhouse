@@ -708,8 +708,8 @@ web-api / admin-api ──implementation──→ core-module          (도메�
                               └──implementation──→ core-module
 ```
 
-- 분리된 도메인: 도메인 모델·application·Repository 인터페이스는 core-module에 유지, `XxxJpaEntity`/`XxxMapper`/`XxxJpaRepository`/`XxxRepositoryImpl`은 `infrastructure-module`.
-- 미분리 도메인: persistence가 core-module 내부에 잔류(현행).
+- 전 도메인(21개) 분리 완료: 도메인 모델·application·Repository 인터페이스는 core-module에 유지, `XxxJpaEntity`/`XxxMapper`/`XxxJpaRepository`/`XxxRepositoryImpl`은 `infrastructure-module`. 미분리 도메인은 더 이상 없다.
+- **core-module 100% JPA-free 완료**: converter(`AttributeConverter`) 5개, `BaseEntity`, `QueryDslConfig`, `DatabaseConfig`(폐지)까지 전부 infrastructure-module로 이동/병합했고, 공유 `@Embeddable` VO(`PhoneNumber`/`ProductDiscountInfo`/`VerificationCode`)도 어노테이션을 제거해 순수 POJO로 전환(컬럼 매핑은 각 JpaEntity의 `@AttributeOverride`로 재선언). `core-module/build.gradle`에서 `spring-boot-starter-data-jpa`·`mysql-connector-j` 제거, `querydsl-jpa`→`querydsl-core` 교체 완료.
 
 ### 핵심 규칙 (상세는 루트 `CLAUDE.md` "도메인 모델 / JPA 엔티티 분리 규칙", `infrastructure-module/AGENTS.md`)
 
@@ -722,7 +722,7 @@ web-api / admin-api ──implementation──→ core-module          (도메�
 
 1. 대상 선정: 상태전이/불변식이 코드에 실재하는 도메인 우선 (order·payment·coupon·point·reservation)
 2. 도메인 모델 POJO화 (`of`/`reconstitute`) → `XxxJpaEntity`/`XxxMapper` 신설 → persistence를 `infrastructure-module`로 이동 → command 서비스 명시적 save → 순수 단위 테스트 → 문서 reference 갱신
-3. 전 도메인 이동 완료 시: core-module에서 `spring-boot-starter-data-jpa`·mysql 의존 제거(QueryDSL 어노테이션은 result DTO Q타입용 잔류), `DatabaseConfig` 이관 검토
+3. **(완료)** 전 도메인 이동 완료 후: core-module에서 `spring-boot-starter-data-jpa`·mysql 의존 제거(QueryDSL은 `querydsl-core`로 교체해 result DTO Q타입 생성용으로 잔류), `DatabaseConfig` 폐지 후 `@EnableJpaAuditing`/`@EnableTransactionManagement`를 infrastructure-module의 `InfrastructurePersistenceConfig`로 병합, 공유 `@Embeddable` VO 3개의 JPA 어노테이션 제거(+ 대응 JpaEntity에 `@AttributeOverride` 추가), `EntityManager`를 직접 쓰던 application 서비스 3개(`ReservationCreator`/`SearchKeywordCommandService`/`RankCommandService`)는 flush/clear를 Repository 계약(`saveAndFlush` 신설, 벌크 delete impl에 흡수) 뒤로 은닉.
 
 ### notice 파일럿 결과물 (reference)
 

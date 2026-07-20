@@ -5,6 +5,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +18,9 @@ import com.tastyhouse.core.domain.reservation.domain.repository.ReservationSlotR
 public class ReservationSlotRepositoryImpl implements ReservationSlotRepository {
 
     private final ReservationSlotJpaRepository slotJpaRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public Optional<ReservationSlot> findByShopAndDateAndTime(Long shopId, LocalDate date, LocalTime time) {
@@ -44,5 +49,11 @@ public class ReservationSlotRepositoryImpl implements ReservationSlotRepository 
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 예약 슬롯입니다: " + slot.getId()));
         ReservationSlotMapper.applyChanges(entity, slot);
         return ReservationSlotMapper.toDomain(entity);
+    }
+
+    @Override
+    public void saveAndFlush(ReservationSlot slot) {
+        save(slot);
+        entityManager.flush();
     }
 }

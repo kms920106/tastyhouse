@@ -8,7 +8,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,7 +42,6 @@ public class RankCommandService {
     private final ReviewQueryService reviewQueryService;
     private final RankPeriodRepository rankPeriodRepository;
     private final RankPrizeRepository rankPrizeRepository;
-    private final EntityManager entityManager;
 
     public void saveAllRanks(List<MemberReviewRank> ranks) {
         memberReviewRankRepository.saveAll(ranks);
@@ -51,8 +49,6 @@ public class RankCommandService {
 
     public void deleteOldRanks(RankType rankType, LocalDate baseDate) {
         memberReviewRankRepository.deleteByRankTypeAndBaseDate(rankType, baseDate);
-        entityManager.flush();
-        entityManager.clear();
     }
 
     public void aggregateAllRanks() {

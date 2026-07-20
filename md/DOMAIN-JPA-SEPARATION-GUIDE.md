@@ -174,7 +174,7 @@ Spring/JPA 없이 `of` → 상태전이(`update`/`delete`/…) → `reconstitute
 - [x] `infrastructure-module/build.gradle` — QueryDSL apt 설정 등 (core-module과 동일)
 - [x] `web-api/build.gradle`·`admin-api/build.gradle` — `runtimeOnly project(':infrastructure-module')`
 - [x] `WebApiApplication`·`AdminApiApplication` — `scanBasePackages`에 `com.tastyhouse.infrastructure`
-- [x] `infrastructure-module`의 `InfrastructurePersistenceConfig`(패키지 루트) — 이 모듈의 `@EnableJpaRepositories`/`@EntityScan`을 `basePackageClasses`로 자체 선언 (core의 `DatabaseConfig`는 `com.tastyhouse.core.domain`만 스캔하며, infrastructure 패키지를 넣지 않는다)
+- [x] `infrastructure-module`의 `InfrastructurePersistenceConfig`(패키지 루트) — 이 모듈의 `@EnableJpaRepositories`/`@EntityScan`을 `basePackageClasses`로 자체 선언. **(갱신)** 전 도메인 이동 완료 후 core의 `DatabaseConfig`는 폐지되었고, `@EnableJpaAuditing`/`@EnableTransactionManagement` 전역 설정도 이 클래스로 병합되었다(7절 참고).
 
 > 즉 **두 번째 도메인부터는 Step 1~8만** 하면 된다.
 
@@ -217,3 +217,28 @@ Spring/JPA 없이 `of` → 상태전이(`update`/`delete`/…) → `reconstitute
 | 매퍼 인자 순서 뒤바뀜 | 컴파일은 되나 값이 섞임 | 필드/`reconstitute`/호출 인자 순서 3중 대조 |
 | Q타입 혼동 | 엔티티 Q타입을 core에서 찾음 | `Q<Xxx>JpaEntity`=infra, `Q<Xxx>Result`=core |
 | `@Column` 매핑 누락/변경 | 부팅 시 `ddl-auto=validate` 실패 | JpaEntity의 테이블/컬럼을 원본과 100% 동일하게 |
+
+---
+
+## 7. 전 도메인 이동 완료 후 — core-module 100% JPA-free 마무리 (완료)
+
+21개 전 도메인의 도메인별 전환(1~6절)이 끝난 뒤에도, core-module에는 도메인 persistence 외의 **JPA 공용 잔재**가 남아 있었다. 이를 정리해 core-module을 완전한 JPA-free 모듈로 만드는 마무리 작업을 별도로 진행했다(순서 의존이 있어 도메인별 전환과 달리 한 번에 진행).
+
+- **converter 5개**(`OrderIdConverter`/`PaymentIdConverter`/`AmountConverter`/`MemberIdConverter` + 미사용 죽은 코드였던 `PaymentRefundIdConverter`) — core의 `domain/<xxx>/infrastructure/persistence/converter/`에서 infrastructure-module의 대응 도메인 `persistence/` 패키지로 이동(죽은 코드는 삭제). `@Convert`를 쓰는 JpaEntity들의 import만 갱신.
+- **`BaseEntity`** — `core/shared/entity/BaseEntity.java` → `infrastructure/shared/persistence/BaseEntity.java`. `extends BaseEntity`하는 JpaEntity 59개의 import를 일괄 갱신.
+- **`QueryDslConfig`**(`JPAQueryFactory` 빈) — `core/config/` → `infrastructure/config/`로 이동. Spring DI 주입이라 사용처(RepositoryImpl 47개) 수정 불필요.
+- **공유 `@Embeddable` VO 3개**(`PhoneNumber`/`ProductDiscountInfo`/`VerificationCode`) — `@Embeddable`/`@Column`/`jakarta.persistence` import를 완전히 제거해 순수 POJO화. 대신 이를 `@Embedded`로 쓰던 JpaEntity 4곳(`MemberJpaEntity`/`EventWinnerJpaEntity`/`PhoneVerificationJpaEntity`/`ProductJpaEntity`)에 `@AttributeOverride`(`ProductJpaEntity`는 `@AttributeOverrides`)를 추가해 컬럼 매핑을 재선언. **이 단계는 VO 수정과 JpaEntity의 override 추가를 반드시 같은 커밋으로 묶어야** `ddl-auto=validate`가 깨지지 않는다(override 없이 `@Column` 제거만 하면 기본 컬럼명이 필드명 `value`로 바뀌어 검증 실패).
+- **`EntityManager` 직접 사용 서비스 3개** — `ReservationCreator`/`SearchKeywordCommandService`/`RankCommandService`가 `entityManager.flush()`/`.clear()`를 직접 호출하던 것을 Repository 계약 뒤로 은닉:
+  - 벌크 delete(`SearchKeywordLogRepository`/`MemberReviewRankRepository`) 뒤 flush+clear가 필요한 두 곳은 impl(`PopularKeywordRepositoryImpl#deleteAll`, `MemberReviewRankRepositoryImpl#deleteByRankTypeAndBaseDate`) 말미로 흡수(인터페이스 시그니처 불변).
+  - 낙관적 락/유니크 충돌을 커밋 전에 즉시 노출해야 하는 `ReservationCreator`는 `ReservationSlotRepository`에 `saveAndFlush(ReservationSlot)`을 신설해 `save`+`flush`를 원자적으로 수행.
+- **`DatabaseConfig` 폐지** — `core/config/DatabaseConfig.java`(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)를 삭제하고, `@EnableJpaAuditing`/`@EnableTransactionManagement`를 infrastructure-module의 `InfrastructurePersistenceConfig`로 병합(JPA 스캔 설정과 전역 설정을 한 곳에 응집).
+- **`core-module/build.gradle` 정리** — `spring-boot-starter-data-jpa`·`mysql-connector-j` 제거, `querydsl-jpa` → `querydsl-core`로 교체(core는 `@QueryProjection` result DTO만 생성하므로 `com.querydsl.core.*`만 있으면 충분 — 유일한 `com.querydsl.jpa` 사용처였던 `QueryDslConfig`가 infra로 이동해 성립), `jakarta.persistence-api` annotationProcessor 제거. `@Transactional`/`@Service` 등은 루트 `build.gradle`의 `subprojects { implementation 'spring-boot-starter' }` 전이 의존으로 계속 커버되어 별도 추가 불필요.
+- **JPA/DB 설정 YAML 이동** — `core/src/main/resources/application-core.yml`(datasource·hibernate `ddl-auto`·mysql driver·`spring.sql.init` 등 100% JPA/DB 설정, core resources의 유일한 파일이었음)을 `infrastructure-module/src/main/resources/application-infrastructure.yml`로 이동·리네이밍. 이 설정을 실제로 구동하는 JPA/MySQL 의존성과 `InfrastructurePersistenceConfig`(JPA 전역 설정)가 이미 infra에 있어, YAML만 core에 남아 있던 비대칭을 정합시켰다. `web-api`/`admin-api`의 `application.yml`의 `spring.config.import` 2곳을 새 파일명으로 갱신(`application-external.yml` 참조 패턴과 동일). 이동 후 `core-module/src/main/resources`는 빈 디렉토리라 함께 삭제.
+
+완료 검증(4절 DoD에 추가):
+- [x] `grep -rln "jakarta.persistence\|EntityManager\|AttributeConverter\|BaseEntity\|com.querydsl.jpa" core-module/src/main/java` → 0건.
+- [x] `core-module/build.gradle`에 `data-jpa`/`mysql`/`querydsl-jpa` 없음, `querydsl-core`로 대체.
+- [x] `core-module/src/main/resources` 디렉토리 없음(JPA/DB 설정 YAML도 infrastructure-module로 이동 완료).
+- [ ] (사람 확인 필요) 컴파일·부팅·`ddl-auto=validate`·단위 테스트 — 특히 `PhoneNumber`/`ProductDiscountInfo`/`VerificationCode`를 쓰는 4개 JpaEntity의 컬럼(`phone_number`/`discount_price`/`discount_rate`/`verification_code`) 매핑.
+
+이 마무리 작업으로 규칙 문서(루트 `CLAUDE.md`)의 "공유 `@Embeddable` VO는 core에 어노테이션 유지" 원칙이 "VO는 core에서 순수 POJO, 컬럼 매핑은 infra JpaEntity의 `@AttributeOverride`로"로 역전되었다. 상세는 루트 `CLAUDE.md`의 "도메인 모델 / JPA 엔티티 분리 규칙" 개정 내용과 `md/CLEAN-ARCHITECTURE.md` 참고.

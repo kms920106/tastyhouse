@@ -2,6 +2,7 @@ package com.tastyhouse.infrastructure.event.persistence;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -14,8 +15,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
 import com.tastyhouse.core.shared.vo.PhoneNumber;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 이벤트 당첨자 JPA 영속 모델.
@@ -49,6 +50,7 @@ public class EventWinnerJpaEntity extends BaseEntity {
     private String winnerName; // 당첨자 이름
 
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "phone_number", nullable = false, length = 11))
     private PhoneNumber phoneNumber; // 휴대폰 번호 (값 객체)
 
     @Column(name = "announced_at", nullable = false)

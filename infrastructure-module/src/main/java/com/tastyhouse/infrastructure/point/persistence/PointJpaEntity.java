@@ -13,8 +13,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 회원 포인트 JPA 영속 모델.

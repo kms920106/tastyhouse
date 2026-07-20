@@ -15,7 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.partnership.domain.model.PartnershipStatus;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 제휴 문의 JPA 영속 모델.

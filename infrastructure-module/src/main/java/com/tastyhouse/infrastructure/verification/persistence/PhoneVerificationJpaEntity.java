@@ -42,6 +42,7 @@ public class PhoneVerificationJpaEntity {
     private Long id;
 
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "phone_number", nullable = false, length = 11))
     private PhoneNumber phoneNumber;
 
     @Embedded

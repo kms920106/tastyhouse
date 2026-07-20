@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
+import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -16,8 +17,8 @@ import lombok.NoArgsConstructor;
 import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 import com.tastyhouse.core.shared.vo.PhoneNumber;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 회원 JPA 영속 모델.
@@ -55,6 +56,7 @@ public class MemberJpaEntity extends BaseEntity {
     private MemberGender gender;
 
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "phone_number", nullable = false, length = 11))
     private PhoneNumber phoneNumber;
 
     @Enumerated(EnumType.STRING)

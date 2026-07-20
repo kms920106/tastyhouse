@@ -3,19 +3,11 @@ package com.tastyhouse.core.domain.product.domain.vo;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-
-@Embeddable
 public final class ProductDiscountInfo {
 
-    @Column(name = "discount_price")
-    private Integer discountPrice;
+    private final Integer discountPrice;
 
-    @Column(name = "discount_rate")
-    private BigDecimal discountRate;
-
-    protected ProductDiscountInfo() {}
+    private final BigDecimal discountRate;
 
     private ProductDiscountInfo(Integer discountPrice, BigDecimal discountRate) {
         this.discountPrice = discountPrice;

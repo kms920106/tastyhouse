@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.member.infrastructure.persistence.converter;
+package com.tastyhouse.infrastructure.member.persistence;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

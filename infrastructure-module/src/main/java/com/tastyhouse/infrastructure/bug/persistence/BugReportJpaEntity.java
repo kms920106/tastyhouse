@@ -21,8 +21,8 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportPlatform;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 버그 신고 JPA 영속 모델.

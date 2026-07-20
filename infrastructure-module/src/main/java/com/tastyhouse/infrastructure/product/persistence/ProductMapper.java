@@ -28,7 +28,9 @@ final class ProductMapper {
             entity.getSpiciness(),
             entity.isSoldOut(),
             entity.isVisible(),
-            entity.getSort()
+            entity.getSort(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt()
         );
     }
 

@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
 import com.tastyhouse.core.domain.admin.domain.model.AdminStatus;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 관리자 계정 JPA 영속 모델.

@@ -10,6 +10,8 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -42,6 +44,9 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
 
     private final JPAQueryFactory queryFactory;
     private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<MemberRankResult> findMemberRankList(RankType rankType, LocalDate baseDate, int limit) {
@@ -118,5 +123,7 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
                 memberReviewRankJpaEntity.baseDate.eq(baseDate)
             )
             .execute();
+        entityManager.flush();
+        entityManager.clear();
     }
 }

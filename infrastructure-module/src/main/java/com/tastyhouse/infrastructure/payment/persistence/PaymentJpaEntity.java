@@ -20,9 +20,8 @@ import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
-import com.tastyhouse.core.domain.order.infrastructure.persistence.converter.OrderIdConverter;
-import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.AmountConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.order.persistence.OrderIdConverter;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 결제 JPA 영속 모델.

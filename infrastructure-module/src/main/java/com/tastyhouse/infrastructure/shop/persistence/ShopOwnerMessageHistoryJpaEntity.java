@@ -10,7 +10,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 사장님 한마디 이력 JPA 영속 모델. 순수 도메인 모델 {@code ShopOwnerMessageHistory}와 분리된 영속 전용 엔티티다.

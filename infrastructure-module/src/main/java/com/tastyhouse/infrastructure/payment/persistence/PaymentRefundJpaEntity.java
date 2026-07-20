@@ -18,9 +18,7 @@ import lombok.NoArgsConstructor;
 import com.tastyhouse.core.domain.payment.domain.model.RefundStatus;
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
-import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.AmountConverter;
-import com.tastyhouse.core.domain.payment.infrastructure.persistence.converter.PaymentIdConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 결제 환불 JPA 영속 모델.

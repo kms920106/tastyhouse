@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.order.infrastructure.persistence.converter;
+package com.tastyhouse.infrastructure.order.persistence;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

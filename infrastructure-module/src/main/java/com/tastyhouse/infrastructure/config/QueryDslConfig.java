@@ -1,4 +1,4 @@
-package com.tastyhouse.core.config;
+package com.tastyhouse.infrastructure.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

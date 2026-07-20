@@ -1,22 +1,15 @@
 package com.tastyhouse.core.shared.vo;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode
-@Embeddable
 public class PhoneNumber {
 
     private static final String PHONE_NUMBER_PATTERN = "^01[0-9]{8,9}$";
 
-    @Column(name = "phone_number", nullable = false, length = 11)
-    private String value;
-
-    protected PhoneNumber() {
-    }
+    private final String value;
 
     public PhoneNumber(String value) {
         validate(value);

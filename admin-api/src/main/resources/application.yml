@@ -19,7 +19,7 @@ spring:
     name: admin-api
   config:
     import:
-      - classpath:application-core.yml
+      - classpath:application-infrastructure.yml
       - classpath:application-external.yml
       - optional:file:.env[.properties]
   servlet:

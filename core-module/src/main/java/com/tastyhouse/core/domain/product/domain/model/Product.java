@@ -1,6 +1,7 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import lombok.Getter;
 
@@ -32,6 +33,8 @@ public class Product {
     private boolean soldOut;
     private boolean visible;
     private Integer sort;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
     private Product(
         Long id,
@@ -47,7 +50,9 @@ public class Product {
         Integer spiciness,
         boolean soldOut,
         boolean visible,
-        Integer sort
+        Integer sort,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
         this.id = id;
         this.shopId = shopId;
@@ -63,6 +68,8 @@ public class Product {
         this.soldOut = soldOut;
         this.visible = visible;
         this.sort = sort;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public static Product of(
@@ -95,7 +102,9 @@ public class Product {
             spiciness,
             soldOut,
             visible,
-            sort
+            sort,
+            null,
+            null
         );
     }
 
@@ -117,7 +126,9 @@ public class Product {
         Integer spiciness,
         boolean soldOut,
         boolean visible,
-        Integer sort
+        Integer sort,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
         return new Product(
             id,
@@ -133,7 +144,9 @@ public class Product {
             spiciness,
             soldOut,
             visible,
-            sort
+            sort,
+            createdAt,
+            updatedAt
         );
     }
 

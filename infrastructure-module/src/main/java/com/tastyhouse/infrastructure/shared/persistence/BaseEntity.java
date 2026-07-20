@@ -1,4 +1,4 @@
-package com.tastyhouse.core.shared.entity;
+package com.tastyhouse.infrastructure.shared.persistence;
 
 import java.time.LocalDateTime;
 

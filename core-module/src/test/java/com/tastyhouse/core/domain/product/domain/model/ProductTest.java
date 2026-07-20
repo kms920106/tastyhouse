@@ -107,7 +107,8 @@ class ProductTest {
 
         Product product = Product.reconstitute(
             1L, 10L, 20L, "떡볶이", "매운맛", 10000,
-            discountInfo, 4.5, 10, true, 3, false, true, 1
+            discountInfo, 4.5, 10, true, 3, false, true, 1,
+            null, null
         );
 
         assertThat(product.getId()).isEqualTo(1L);

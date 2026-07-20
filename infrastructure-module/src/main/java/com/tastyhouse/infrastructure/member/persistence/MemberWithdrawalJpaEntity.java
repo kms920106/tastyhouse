@@ -15,8 +15,7 @@ import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 회원 탈퇴 이력 JPA 영속 모델.

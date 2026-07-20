@@ -3,8 +3,6 @@ package com.tastyhouse.core.domain.reservation.application;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,9 +37,6 @@ public class ReservationCreator {
     private final ReservationSlotRepository slotRepository;
     private final ShopQueryService shopQueryService;
     private final MemberQueryService memberQueryService;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @Transactional
     public ReservationResult createInNewTx(MemberId memberId, ReservationCreateCommand cmd) {
@@ -81,8 +76,7 @@ public class ReservationCreator {
         //    - 기존 슬롯 동시 update  → 낙관적 락 충돌(ObjectOptimisticLockingFailureException)
         //    위 두 경합 예외는 호출자(ReservationCommandService)의 재시도 루프가 처리한다.
         slot.reserve();
-        slotRepository.save(slot);
-        entityManager.flush(); // 커밋 전 메서드 내부에서 충돌을 유발해야 재시도 루프가 잡을 수 있음
+        slotRepository.saveAndFlush(slot); // 커밋 전 메서드 내부에서 충돌을 유발해야 재시도 루프가 잡을 수 있음
 
         // 8. 예약 저장
         Reservation reservation = Reservation.of(

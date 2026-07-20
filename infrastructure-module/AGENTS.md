@@ -23,6 +23,10 @@ com.tastyhouse.infrastructure.<도메인>.persistence/
 
 reference 구현: `notice` 도메인 (`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl`).
 
+## 설정 파일 (`src/main/resources/application-infrastructure.yml`)
+
+이 모듈이 실제로 구현·소비하는 datasource/hibernate(`ddl-auto`)/mysql driver/`spring.sql.init` 등 JPA·DB 설정을 이 모듈의 `application-infrastructure.yml`이 소유한다(과거 `core-module`의 `application-core.yml`이었으나, core-module이 100% JPA-free로 전환되며 이 모듈로 이동·리네이밍됨). `web-api`/`admin-api`의 `application.yml`이 `spring.config.import: classpath:application-infrastructure.yml`로 로딩하며, 이는 이미 참조 중인 `application-external.yml`(external-api 소유)과 동일한 패턴이다.
+
 ## Dependencies
 
 ### Internal

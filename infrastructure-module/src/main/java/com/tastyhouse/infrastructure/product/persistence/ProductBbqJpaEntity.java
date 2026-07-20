@@ -10,7 +10,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * Product와 BBQ 메뉴 ID 매핑 JPA 영속 모델 — BBQ API 외부 메뉴 ID 임시 저장.
