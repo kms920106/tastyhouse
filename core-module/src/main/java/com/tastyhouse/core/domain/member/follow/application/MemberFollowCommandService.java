@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.follow.domain.model.Follow;
-import com.tastyhouse.core.domain.member.follow.domain.repository.FollowRepository;
+import com.tastyhouse.core.domain.member.follow.domain.model.MemberFollow;
+import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -15,9 +15,9 @@ import com.tastyhouse.core.exception.ErrorCode;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class FollowCommandService {
+public class MemberFollowCommandService {
 
-    private final FollowRepository followRepository;
+    private final MemberFollowRepository memberFollowRepository;
     private final MemberQueryService memberQueryService;
 
     public void follow(Long followerId, Long followingId) {
@@ -25,28 +25,34 @@ public class FollowCommandService {
             throw new BusinessException(ErrorCode.FOLLOW_SELF_NOT_ALLOWED);
         }
 
-        if (memberQueryService.findById(MemberId.of(followingId)).isEmpty()) {
+        MemberId followerMemberId = MemberId.of(followerId);
+        MemberId followingMemberId = MemberId.of(followingId);
+
+        if (memberQueryService.findById(followingMemberId).isEmpty()) {
             throw new EntityNotFoundException(ErrorCode.FOLLOW_TARGET_NOT_FOUND);
         }
 
-        if (followRepository.existsByFollowerIdAndFollowingId(followerId, followingId)) {
+        if (memberFollowRepository.existsByFollowerIdAndFollowingId(followerMemberId, followingMemberId)) {
             throw new BusinessException(ErrorCode.FOLLOW_ALREADY_EXISTS);
         }
 
-        followRepository.save(Follow.of(followerId, followingId));
+        memberFollowRepository.save(MemberFollow.of(followerMemberId, followingMemberId));
     }
 
     public void unfollow(Long followerId, Long followingId) {
-        Follow follow = followRepository.findByFollowerIdAndFollowingId(followerId, followingId)
+        MemberId followerMemberId = MemberId.of(followerId);
+        MemberId followingMemberId = MemberId.of(followingId);
+
+        MemberFollow memberFollow = memberFollowRepository.findByFollowerIdAndFollowingId(followerMemberId, followingMemberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
 
-        followRepository.delete(follow);
+        memberFollowRepository.delete(memberFollow);
     }
 
     public void removeFollower(MemberId memberId, MemberId followerId) {
-        Follow follow = followRepository.findByFollowerIdAndFollowingId(followerId.value(), memberId.value())
+        MemberFollow memberFollow = memberFollowRepository.findByFollowerIdAndFollowingId(followerId, memberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
 
-        followRepository.delete(follow);
+        memberFollowRepository.delete(memberFollow);
     }
 }

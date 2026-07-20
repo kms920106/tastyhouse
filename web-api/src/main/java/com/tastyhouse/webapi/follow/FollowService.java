@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.follow.application.FollowCommandService;
-import com.tastyhouse.core.domain.member.follow.application.FollowQueryService;
+import com.tastyhouse.core.domain.member.follow.application.MemberFollowCommandService;
+import com.tastyhouse.core.domain.member.follow.application.MemberFollowQueryService;
 import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
@@ -19,8 +19,8 @@ import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
 @Slf4j
 public class FollowService {
 
-    private final FollowCommandService followCommandService;
-    private final FollowQueryService followQueryService;
+    private final MemberFollowCommandService followCommandService;
+    private final MemberFollowQueryService followQueryService;
     private final FileService fileService;
 
     @Transactional

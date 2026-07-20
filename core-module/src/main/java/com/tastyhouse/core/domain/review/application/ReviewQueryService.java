@@ -25,7 +25,7 @@ import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
-import com.tastyhouse.core.domain.member.follow.application.FollowQueryService;
+import com.tastyhouse.core.domain.member.follow.application.MemberFollowQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
@@ -56,7 +56,7 @@ public class ReviewQueryService {
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
     private final MemberQueryService memberQueryService;
-    private final FollowQueryService followQueryService;
+    private final MemberFollowQueryService followQueryService;
     private final TagRepository tagRepository;
 
     public PageResult<BestReviewListItemResult> findBestReviewsWithPagination(int page, int size) {

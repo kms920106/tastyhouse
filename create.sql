@@ -135,16 +135,16 @@ CREATE TABLE EVENT_ANNOUNCEMENT
     INDEX idx_event_announcement_announced_at (announced_at)                     -- 인덱스: 발표 일시별 조회
 );
 
-CREATE TABLE FOLLOW
+CREATE TABLE MEMBER_FOLLOW
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,                     -- 팔로우 ID (PK)
-    follower_id  BIGINT   NOT NULL,                                     -- 팔로워 회원 ID (MEMBER.id 참조)
-    following_id BIGINT   NOT NULL,                                     -- 팔로잉 회원 ID (MEMBER.id 참조)
-    created_at   DATETIME NOT NULL,                                     -- 생성 일시
-    updated_at   DATETIME NOT NULL,                                     -- 수정 일시
-    UNIQUE KEY uk_follow_follower_following (follower_id, following_id), -- 유니크: 중복 팔로우 방지
-    INDEX idx_follow_follower_id (follower_id),                          -- 인덱스: 팔로워별 조회
-    INDEX idx_follow_following_id (following_id)                         -- 인덱스: 팔로잉별 조회
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,                            -- 팔로우 ID (PK)
+    follower_id  BIGINT   NOT NULL,                                            -- 팔로워 회원 ID (MEMBER.id 참조)
+    following_id BIGINT   NOT NULL,                                            -- 팔로잉 회원 ID (MEMBER.id 참조)
+    created_at   DATETIME NOT NULL,                                            -- 생성 일시
+    updated_at   DATETIME NOT NULL,                                            -- 수정 일시
+    UNIQUE KEY uk_member_follow_follower_following (follower_id, following_id), -- 유니크: 중복 팔로우 방지
+    INDEX idx_member_follow_follower_id (follower_id),                         -- 인덱스: 팔로워별 조회
+    INDEX idx_member_follow_following_id (following_id)                        -- 인덱스: 팔로잉별 조회
 );
 
 CREATE TABLE MEMBER

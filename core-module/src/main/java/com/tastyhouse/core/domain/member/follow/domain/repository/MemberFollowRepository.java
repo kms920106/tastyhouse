@@ -4,26 +4,26 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.follow.domain.model.Follow;
+import com.tastyhouse.core.domain.member.follow.domain.model.MemberFollow;
 import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
-public interface FollowRepository {
+public interface MemberFollowRepository {
 
-    Optional<Follow> findByFollowerIdAndFollowingId(Long followerId, Long followingId);
+    Optional<MemberFollow> findByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId);
 
-    boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
+    boolean existsByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId);
 
-    List<Long> findFollowingIdsByFollowerId(Long followerId);
+    List<Long> findFollowingIdsByFollowerId(MemberId followerId);
 
-    long countByFollowerId(Long followerId);
+    long countByFollowerId(MemberId followerId);
 
-    long countByFollowingId(Long followingId);
+    long countByFollowingId(MemberId followingId);
 
-    Follow save(Follow follow);
+    MemberFollow save(MemberFollow memberFollow);
 
-    void delete(Follow follow);
+    void delete(MemberFollow memberFollow);
 
     PageResult<FollowMemberResult> findFollowingList(MemberId memberId, MemberId viewerMemberId, PageQuery pageQuery);
 

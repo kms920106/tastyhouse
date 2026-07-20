@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.StringPath;
@@ -16,25 +17,28 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.follow.domain.model.Follow;
-import com.tastyhouse.core.domain.member.follow.domain.model.QFollow;
-import com.tastyhouse.core.domain.member.follow.domain.repository.FollowRepository;
+import com.tastyhouse.core.domain.member.follow.domain.model.MemberFollow;
+import com.tastyhouse.core.domain.member.follow.domain.model.QMemberFollow;
+import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.member.follow.domain.model.QFollow.follow;
+import static com.tastyhouse.core.domain.member.follow.domain.model.QMemberFollow.memberFollow;
 
 /**
  * {@code member}는 infrastructure-module로 이동한 {@code MemberJpaEntity}를 가리킨다.
  * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
  * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("MemberJpaEntity")을
  * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
+ * {@code memberFollow.followerId}/{@code followingId}는 {@code @Convert(MemberIdConverter)}로
+ * {@link MemberId} VO 경로이므로, raw {@code Long} PK({@code memberIdCol})와 직접 조인·비교할 수 없다.
+ * {@link Expressions#numberPath}로 두 컬럼의 raw Long 경로를 우회 노출해 조인·비교에 사용한다.
  */
 @Repository
 @RequiredArgsConstructor
-public class FollowRepositoryImpl implements FollowRepository {
+public class MemberFollowRepositoryImpl implements MemberFollowRepository {
 
     private static final PathBuilder<Object> member = new PathBuilder<>(Object.class, "MemberJpaEntity");
     private static final NumberPath<Long> memberIdCol = member.getNumber("id", Long.class);
@@ -42,18 +46,23 @@ public class FollowRepositoryImpl implements FollowRepository {
     private static final NumberPath<Long> memberProfileImageFileIdCol = member.getNumber("profileImageFileId", Long.class);
     private static final EnumPath<MemberGrade> memberGradeCol = member.getEnum("memberGrade", MemberGrade.class);
 
-    private static final QFollow viewerFollow = new QFollow("viewerFollow");
+    private static final NumberPath<Long> followerIdCol = Expressions.numberPath(Long.class, memberFollow, "followerId");
+    private static final NumberPath<Long> followingIdCol = Expressions.numberPath(Long.class, memberFollow, "followingId");
+
+    private static final QMemberFollow viewerFollow = new QMemberFollow("viewerFollow");
+    private static final NumberPath<Long> viewerFollowerIdCol = Expressions.numberPath(Long.class, viewerFollow, "followerId");
+    private static final NumberPath<Long> viewerFollowingIdCol = Expressions.numberPath(Long.class, viewerFollow, "followingId");
 
     private final JPAQueryFactory queryFactory;
-    private final FollowJpaRepository followJpaRepository;
+    private final MemberFollowJpaRepository memberFollowJpaRepository;
 
     @Override
-    public Optional<Follow> findByFollowerIdAndFollowingId(Long followerId, Long followingId) {
-        Follow result = queryFactory
-            .selectFrom(follow)
+    public Optional<MemberFollow> findByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId) {
+        MemberFollow result = queryFactory
+            .selectFrom(memberFollow)
             .where(
-                follow.followerId.eq(followerId),
-                follow.followingId.eq(followingId)
+                memberFollow.followerId.eq(followerId),
+                memberFollow.followingId.eq(followingId)
             )
             .fetchOne();
 
@@ -61,13 +70,13 @@ public class FollowRepositoryImpl implements FollowRepository {
     }
 
     @Override
-    public boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId) {
+    public boolean existsByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId) {
         Long count = queryFactory
-            .select(follow.count())
-            .from(follow)
+            .select(memberFollow.count())
+            .from(memberFollow)
             .where(
-                follow.followerId.eq(followerId),
-                follow.followingId.eq(followingId)
+                memberFollow.followerId.eq(followerId),
+                memberFollow.followingId.eq(followingId)
             )
             .fetchOne();
 
@@ -75,41 +84,41 @@ public class FollowRepositoryImpl implements FollowRepository {
     }
 
     @Override
-    public Follow save(Follow follow) {
-        return followJpaRepository.save(follow);
+    public MemberFollow save(MemberFollow memberFollow) {
+        return memberFollowJpaRepository.save(memberFollow);
     }
 
     @Override
-    public void delete(Follow follow) {
-        followJpaRepository.delete(follow);
+    public void delete(MemberFollow memberFollow) {
+        memberFollowJpaRepository.delete(memberFollow);
     }
 
     @Override
-    public List<Long> findFollowingIdsByFollowerId(Long followerId) {
+    public List<Long> findFollowingIdsByFollowerId(MemberId followerId) {
         return queryFactory
-            .select(follow.followingId)
-            .from(follow)
-            .where(follow.followerId.eq(followerId))
+            .select(followingIdCol)
+            .from(memberFollow)
+            .where(memberFollow.followerId.eq(followerId))
             .fetch();
     }
 
     @Override
-    public long countByFollowerId(Long followerId) {
+    public long countByFollowerId(MemberId followerId) {
         Long count = queryFactory
-            .select(follow.count())
-            .from(follow)
-            .where(follow.followerId.eq(followerId))
+            .select(memberFollow.count())
+            .from(memberFollow)
+            .where(memberFollow.followerId.eq(followerId))
             .fetchOne();
 
         return count != null ? count : 0L;
     }
 
     @Override
-    public long countByFollowingId(Long followingId) {
+    public long countByFollowingId(MemberId followingId) {
         Long count = queryFactory
-            .select(follow.count())
-            .from(follow)
-            .where(follow.followingId.eq(followingId))
+            .select(memberFollow.count())
+            .from(memberFollow)
+            .where(memberFollow.followingId.eq(followingId))
             .fetchOne();
 
         return count != null ? count : 0L;
@@ -121,11 +130,11 @@ public class FollowRepositoryImpl implements FollowRepository {
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
                 .where(
-                    viewerFollow.followerId.eq(viewerMemberId.value()),
-                    viewerFollow.followingId.eq(memberIdCol)
+                    viewerFollowerIdCol.eq(viewerMemberId.value()),
+                    viewerFollowingIdCol.eq(memberIdCol)
                 )
                 .exists()
-            : com.querydsl.core.types.dsl.Expressions.FALSE;
+            : Expressions.FALSE;
 
         List<FollowMemberResult> content = queryFactory
             .select(Projections.constructor(FollowMemberResult.class,
@@ -135,19 +144,19 @@ public class FollowRepositoryImpl implements FollowRepository {
                 uploadedFile.filePath,
                 isFollowing
             ))
-            .from(follow)
-            .join(member).on(follow.followingId.eq(memberIdCol))
+            .from(memberFollow)
+            .join(member).on(followingIdCol.eq(memberIdCol))
             .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
-            .where(follow.followerId.eq(memberId.value()))
-            .orderBy(follow.createdAt.desc())
+            .where(memberFollow.followerId.eq(memberId))
+            .orderBy(memberFollow.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
 
         Long total = queryFactory
-            .select(follow.count())
-            .from(follow)
-            .where(follow.followerId.eq(memberId.value()))
+            .select(memberFollow.count())
+            .from(memberFollow)
+            .where(memberFollow.followerId.eq(memberId))
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
@@ -159,11 +168,11 @@ public class FollowRepositoryImpl implements FollowRepository {
             ? JPAExpressions.selectOne()
                 .from(viewerFollow)
                 .where(
-                    viewerFollow.followerId.eq(viewerMemberId.value()),
-                    viewerFollow.followingId.eq(memberIdCol)
+                    viewerFollowerIdCol.eq(viewerMemberId.value()),
+                    viewerFollowingIdCol.eq(memberIdCol)
                 )
                 .exists()
-            : com.querydsl.core.types.dsl.Expressions.FALSE;
+            : Expressions.FALSE;
 
         List<FollowMemberResult> content = queryFactory
             .select(Projections.constructor(FollowMemberResult.class,
@@ -173,19 +182,19 @@ public class FollowRepositoryImpl implements FollowRepository {
                 uploadedFile.filePath,
                 isFollowing
             ))
-            .from(follow)
-            .join(member).on(follow.followerId.eq(memberIdCol))
+            .from(memberFollow)
+            .join(member).on(followerIdCol.eq(memberIdCol))
             .leftJoin(uploadedFile).on(memberProfileImageFileIdCol.eq(uploadedFile.id))
-            .where(follow.followingId.eq(memberId.value()))
-            .orderBy(follow.createdAt.desc())
+            .where(memberFollow.followingId.eq(memberId))
+            .orderBy(memberFollow.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
 
         Long total = queryFactory
-            .select(follow.count())
-            .from(follow)
-            .where(follow.followingId.eq(memberId.value()))
+            .select(memberFollow.count())
+            .from(memberFollow)
+            .where(memberFollow.followingId.eq(memberId))
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
