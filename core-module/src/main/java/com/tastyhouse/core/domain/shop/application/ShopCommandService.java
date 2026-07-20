@@ -24,6 +24,7 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopBookmarkRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.StationRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.shop.application.dto.command.ShopAmenityCategorySaveCommand;
@@ -37,8 +38,6 @@ import com.tastyhouse.core.domain.shop.application.dto.command.ShopFoodTypeCateg
 import com.tastyhouse.core.domain.shop.application.dto.command.ShopOrderMethodAssignCommand;
 import com.tastyhouse.core.domain.shop.application.dto.command.ShopPhotoCategoryImageSaveCommand;
 import com.tastyhouse.core.domain.shop.application.dto.command.ShopUpdateCommand;
-import com.tastyhouse.core.domain.shop.infrastructure.persistence.ShopBookmarkJpaRepository;
-import com.tastyhouse.core.domain.shop.infrastructure.persistence.StationJpaRepository;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -51,10 +50,9 @@ public class ShopCommandService {
     private final ShopRepository shopRepository;
     private final ShopDetailRepository shopDetailRepository;
     private final ShopBookmarkRepository shopBookmarkRepository;
-    private final ShopBookmarkJpaRepository shopBookmarkJpaRepository;
     private final ShopChoiceRepository shopChoiceRepository;
     private final TagRepository tagRepository;
-    private final StationJpaRepository stationJpaRepository;
+    private final StationRepository stationRepository;
 
     public boolean toggleBookmark(Long shopId, MemberId memberId) {
         if (shopBookmarkRepository.existsByShopIdAndMemberId(shopId, memberId)) {
@@ -62,7 +60,8 @@ public class ShopCommandService {
             return false;
         } else {
             shopQueryService.findShopById(ShopId.of(shopId));
-            shopBookmarkJpaRepository.save(new ShopBookmark(shopId, memberId));
+            ShopBookmark shopBookmark = ShopBookmark.of(shopId, memberId);
+            shopBookmarkRepository.save(shopBookmark);
             return true;
         }
     }
@@ -100,7 +99,7 @@ public class ShopCommandService {
     }
 
     private void validateStationExists(Long stationId) {
-        if (!stationJpaRepository.existsById(stationId)) {
+        if (!stationRepository.existsById(stationId)) {
             throw new EntityNotFoundException(ErrorCode.STATION_NOT_FOUND);
         }
     }

@@ -1,33 +1,32 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 태그 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code TagJpaEntity} + {@code TagMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "TAG")
 public class Tag {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final Long id;
+    private final String tagName;
 
-    @Column(name = "tag_name", nullable = false)
-    private String tagName; // 태그명
-
-    private Tag(String tagName) {
+    private Tag(Long id, String tagName) {
+        this.id = id;
         this.tagName = tagName;
     }
 
     public static Tag of(String tagName) {
-        return new Tag(tagName);
+        return new Tag(null, tagName);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static Tag reconstitute(Long id, String tagName) {
+        return new Tag(id, tagName);
     }
 }

@@ -1,45 +1,30 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상점 사진 카테고리 이미지 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopPhotoCategoryImageJpaEntity} + {@code ShopPhotoCategoryImageMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "SHOP_PHOTO_CATEGORY_IMAGE")
-public class ShopPhotoCategoryImage extends BaseEntity {
+public class ShopPhotoCategoryImage {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
-
-    @Column(name = "shop_photo_category_id", nullable = false)
-    private Long shopPhotoCategoryId; // 사진 카테고리 ID (SHOP_PHOTO_CATEGORY.id 참조)
-
-    @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId; // 이미지 파일 ID (FILE.id 참조)
-
-    @Column(name = "sort", nullable = false)
-    private Integer sort; // 정렬 순서
-
-    @Column(name = "is_visible", nullable = false)
-    private boolean visible; // 노출 여부 (true: 노출)
+    private final Long id;
+    private final Long shopPhotoCategoryId;
+    private Long imageFileId;
+    private Integer sort;
+    private boolean visible;
 
     private ShopPhotoCategoryImage(
+        Long id,
         Long shopPhotoCategoryId,
         Long imageFileId,
         Integer sort,
         boolean visible
     ) {
+        this.id = id;
         this.shopPhotoCategoryId = shopPhotoCategoryId;
         this.imageFileId = imageFileId;
         this.sort = sort;
@@ -52,19 +37,23 @@ public class ShopPhotoCategoryImage extends BaseEntity {
         Integer sort,
         boolean visible
     ) {
-        return new ShopPhotoCategoryImage(
-            shopPhotoCategoryId,
-            imageFileId,
-            sort,
-            visible
-        );
+        return new ShopPhotoCategoryImage(null, shopPhotoCategoryId, imageFileId, sort, visible);
     }
 
-    public void update(
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ShopPhotoCategoryImage reconstitute(
+        Long id,
+        Long shopPhotoCategoryId,
         Long imageFileId,
         Integer sort,
         boolean visible
     ) {
+        return new ShopPhotoCategoryImage(id, shopPhotoCategoryId, imageFileId, sort, visible);
+    }
+
+    public void update(Long imageFileId, Integer sort, boolean visible) {
         this.imageFileId = imageFileId;
         this.sort = sort;
         this.visible = visible;

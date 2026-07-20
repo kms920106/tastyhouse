@@ -1,40 +1,35 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상점 사진 카테고리 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopPhotoCategoryJpaEntity} + {@code ShopPhotoCategoryMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "SHOP_PHOTO_CATEGORY")
-public class ShopPhotoCategory extends BaseEntity {
+public class ShopPhotoCategory {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final Long id;
+    private final Long shopId;
+    private String name;
 
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
-
-    @Column(name = "name", nullable = false, length = 100)
-    private String name; // 사진 카테고리명 (예: 가게 외관, 메뉴, 내부 인테리어)
-
-    private ShopPhotoCategory(Long shopId, String name) {
+    private ShopPhotoCategory(Long id, Long shopId, String name) {
+        this.id = id;
         this.shopId = shopId;
         this.name = name;
     }
 
     public static ShopPhotoCategory of(Long shopId, String name) {
-        return new ShopPhotoCategory(shopId, name);
+        return new ShopPhotoCategory(null, shopId, name);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ShopPhotoCategory reconstitute(Long id, Long shopId, String name) {
+        return new ShopPhotoCategory(id, shopId, name);
     }
 
     public void update(String name) {

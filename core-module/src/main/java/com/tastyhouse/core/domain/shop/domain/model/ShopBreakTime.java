@@ -2,42 +2,25 @@ package com.tastyhouse.core.domain.shop.domain.model;
 
 import java.time.LocalTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상점 브레이크타임 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopBreakTimeJpaEntity} + {@code ShopBreakTimeMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "SHOP_BREAK_TIME")
 public class ShopBreakTime {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final Long id;
+    private final Long shopId;
+    private DayType dayType;
+    private LocalTime startTime;
+    private LocalTime endTime;
 
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "day_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DayType dayType; // 요일 유형 (WEEKDAY, SATURDAY, SUNDAY, HOLIDAY 등)
-
-    @Column(name = "start_time", nullable = false)
-    private LocalTime startTime; // 브레이크타임 시작 시각
-
-    @Column(name = "end_time", nullable = false)
-    private LocalTime endTime; // 브레이크타임 종료 시각
-
-    private ShopBreakTime(Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
+    private ShopBreakTime(Long id, Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
+        this.id = id;
         this.shopId = shopId;
         this.dayType = dayType;
         this.startTime = startTime;
@@ -45,7 +28,14 @@ public class ShopBreakTime {
     }
 
     public static ShopBreakTime of(Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
-        return new ShopBreakTime(shopId, dayType, startTime, endTime);
+        return new ShopBreakTime(null, shopId, dayType, startTime, endTime);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ShopBreakTime reconstitute(Long id, Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
+        return new ShopBreakTime(id, shopId, dayType, startTime, endTime);
     }
 
     public void update(DayType dayType, LocalTime startTime, LocalTime endTime) {

@@ -1,40 +1,34 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상점 정기 휴무 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopClosedDayJpaEntity} + {@code ShopClosedDayMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "SHOP_CLOSED_DAY")
 public class ShopClosedDay {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final Long id;
+    private final Long shopId;
+    private final ClosedDayType closedDayType;
 
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "closed_day_type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private ClosedDayType closedDayType; // 정기 휴무 유형 (FIRST_MON, SECOND_SUN, EVERY_TUE 등)
-
-    private ShopClosedDay(Long shopId, ClosedDayType closedDayType) {
+    private ShopClosedDay(Long id, Long shopId, ClosedDayType closedDayType) {
+        this.id = id;
         this.shopId = shopId;
         this.closedDayType = closedDayType;
     }
 
     public static ShopClosedDay of(Long shopId, ClosedDayType closedDayType) {
-        return new ShopClosedDay(shopId, closedDayType);
+        return new ShopClosedDay(null, shopId, closedDayType);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ShopClosedDay reconstitute(Long id, Long shopId, ClosedDayType closedDayType) {
+        return new ShopClosedDay(id, shopId, closedDayType);
     }
 }

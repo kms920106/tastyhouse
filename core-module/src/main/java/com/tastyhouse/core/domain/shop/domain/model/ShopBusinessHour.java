@@ -2,45 +2,26 @@ package com.tastyhouse.core.domain.shop.domain.model;
 
 import java.time.LocalTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상점 영업시간 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopBusinessHourJpaEntity} + {@code ShopBusinessHourMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "SHOP_BUSINESS_HOUR")
 public class ShopBusinessHour {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final Long id;
+    private final Long shopId;
+    private DayType dayType;
+    private LocalTime openTime;
+    private LocalTime closeTime;
+    private Boolean isClosed;
 
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "day_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DayType dayType; // 요일 유형 (WEEKDAY, SATURDAY, SUNDAY, HOLIDAY 등)
-
-    @Column(name = "open_time")
-    private LocalTime openTime; // 영업 시작 시각
-
-    @Column(name = "close_time")
-    private LocalTime closeTime; // 영업 종료 시각
-
-    @Column(name = "is_closed")
-    private Boolean isClosed; // 휴무 여부 (true: 휴무)
-
-    private ShopBusinessHour(Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+    private ShopBusinessHour(Long id, Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+        this.id = id;
         this.shopId = shopId;
         this.dayType = dayType;
         this.openTime = openTime;
@@ -49,7 +30,21 @@ public class ShopBusinessHour {
     }
 
     public static ShopBusinessHour of(Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
-        return new ShopBusinessHour(shopId, dayType, openTime, closeTime, isClosed);
+        return new ShopBusinessHour(null, shopId, dayType, openTime, closeTime, isClosed);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ShopBusinessHour reconstitute(
+        Long id,
+        Long shopId,
+        DayType dayType,
+        LocalTime openTime,
+        LocalTime closeTime,
+        Boolean isClosed
+    ) {
+        return new ShopBusinessHour(id, shopId, dayType, openTime, closeTime, isClosed);
     }
 
     public void update(DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {

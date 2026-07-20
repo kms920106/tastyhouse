@@ -1,30 +1,39 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+
 import lombok.Getter;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
+/**
+ * 사장님 한마디 이력 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopOwnerMessageHistoryJpaEntity} + {@code ShopOwnerMessageHistoryMapper}가 담당한다.
+ * 최신 메시지 조회가 {@code createdAt} 내림차순 정렬에 의존하므로 감사 시각을 필드로 유지한다.
+ */
 @Getter
-@Entity
-@Table(name = "SHOP_OWNER_MESSAGE_HISTORY")
-public class ShopOwnerMessageHistory extends BaseEntity {
+public class ShopOwnerMessageHistory {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final Long id;
+    private final Long shopId;
+    private final String message;
+    private final LocalDateTime createdAt;
 
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private ShopOwnerMessageHistory(Long id, Long shopId, String message, LocalDateTime createdAt) {
+        this.id = id;
+        this.shopId = shopId;
+        this.message = message;
+        this.createdAt = createdAt;
+    }
 
-    @Column(name = "message", columnDefinition = "TEXT")
-    private String message; // 사장님 한마디 메시지 내용
+    public static ShopOwnerMessageHistory of(Long shopId, String message) {
+        return new ShopOwnerMessageHistory(null, shopId, message, null);
+    }
 
-    protected ShopOwnerMessageHistory() {
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ShopOwnerMessageHistory reconstitute(Long id, Long shopId, String message, LocalDateTime createdAt) {
+        return new ShopOwnerMessageHistory(id, shopId, message, createdAt);
     }
 }

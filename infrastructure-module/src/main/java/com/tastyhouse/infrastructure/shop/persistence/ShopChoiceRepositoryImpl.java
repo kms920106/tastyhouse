@@ -1,0 +1,159 @@
+package com.tastyhouse.infrastructure.shop.persistence;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.core.domain.product.domain.model.QProductImage;
+import com.tastyhouse.core.domain.shop.domain.model.ShopChoice;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
+import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
+import com.tastyhouse.core.domain.product.application.dto.result.QProductSimpleResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceResult;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
+
+import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
+import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
+import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopChoiceJpaEntity.shopChoiceJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
+
+@Repository
+@RequiredArgsConstructor
+public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
+
+    private static final QProductImage subProductImage = new QProductImage("subProductImage");
+
+    private final JPAQueryFactory queryFactory;
+    private final ShopChoiceJpaRepository shopChoiceJpaRepository;
+
+    @Override
+    public PageResult<EditorChoiceResult> findEditorChoice(PageQuery pageQuery) {
+        Long totalCount = queryFactory
+            .select(shopChoiceJpaEntity.count())
+            .from(shopChoiceJpaEntity)
+            .fetchOne();
+
+        if (totalCount == null || totalCount == 0) {
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
+        }
+
+        List<Tuple> shopChoices = queryFactory
+            .select(
+                shopChoiceJpaEntity.id,
+                shopChoiceJpaEntity.shopId,
+                shopJpaEntity.name,
+                shopChoiceJpaEntity.title,
+                shopChoiceJpaEntity.content,
+                uploadedFile.filePath
+            )
+            .from(shopChoiceJpaEntity)
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopChoiceJpaEntity.shopId).and(shopJpaEntity.permanentlyClosed.eq(false)))
+            .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopJpaEntity.thumbnailImageFileId))
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        List<Long> shopIds = shopChoices.stream()
+            .map(tuple -> tuple.get(shopChoiceJpaEntity.shopId))
+            .distinct()
+            .toList();
+
+        List<Tuple> productTuples = queryFactory
+            .select(
+                product.shopId,
+                new QProductSimpleResult(
+                    product.id,
+                    shopJpaEntity.name,
+                    product.name,
+                    uploadedFile.filePath,
+                    product.originalPrice,
+                    product.discountInfo.discountPrice,
+                    product.discountInfo.discountRate
+                )
+            )
+            .from(product)
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(product.shopId))
+            .leftJoin(productImage).on(
+                productImage.productId.eq(product.id)
+                    .and(productImage.visible.eq(true))
+                    .and(productImage.sort.eq(
+                        JPAExpressions
+                            .select(subProductImage.sort.min())
+                            .from(subProductImage)
+                            .where(subProductImage.productId.eq(product.id)
+                                .and(subProductImage.visible.eq(true)))
+                    ))
+            )
+            .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
+            .where(product.shopId.in(shopIds))
+            .fetch();
+
+        Map<Long, List<ProductSimpleResult>> productsByShopId = productTuples.stream()
+            .filter(tuple -> tuple.get(product.shopId) != null)
+            .collect(Collectors.groupingBy(
+                tuple -> Objects.requireNonNull(tuple.get(product.shopId)),
+                Collectors.mapping(
+                    tuple -> tuple.get(1, ProductSimpleResult.class),
+                    Collectors.toList()
+                )
+            ))
+            .entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().stream().limit(2).toList()
+            ));
+
+        List<EditorChoiceResult> content = shopChoices.stream()
+            .map(tuple -> {
+                Long shopIdValue = tuple.get(shopChoiceJpaEntity.shopId);
+                List<ProductSimpleResult> products = productsByShopId.getOrDefault(shopIdValue, new ArrayList<>());
+                return new EditorChoiceResult(
+                    tuple.get(shopChoiceJpaEntity.id),
+                    shopIdValue,
+                    tuple.get(shopJpaEntity.name),
+                    tuple.get(shopChoiceJpaEntity.title),
+                    tuple.get(shopChoiceJpaEntity.content),
+                    tuple.get(uploadedFile.filePath),
+                    products
+                );
+            })
+            .toList();
+
+        return PageResult.of(content, totalCount, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public Optional<ShopChoice> findById(Long id) {
+        return shopChoiceJpaRepository.findById(id).map(ShopChoiceMapper::toDomain);
+    }
+
+    @Override
+    public ShopChoice save(ShopChoice shopChoice) {
+        if (shopChoice.getId() == null) {
+            ShopChoiceJpaEntity saved = shopChoiceJpaRepository.save(ShopChoiceMapper.toEntity(shopChoice));
+            return ShopChoiceMapper.toDomain(saved);
+        }
+
+        // update 경로: managed 엔티티를 PK로 조회한 뒤 변경 필드만 복사해 dirty checking으로 flush.
+        ShopChoiceJpaEntity entity = shopChoiceJpaRepository.findById(shopChoice.getId())
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 에디터 초이스입니다: " + shopChoice.getId()));
+        ShopChoiceMapper.applyChanges(entity, shopChoice);
+        return ShopChoiceMapper.toDomain(entity);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        shopChoiceJpaRepository.deleteById(id);
+    }
+}

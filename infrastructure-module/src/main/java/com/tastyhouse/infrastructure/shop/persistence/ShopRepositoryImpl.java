@@ -33,13 +33,13 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenity.shopAmenity;
-import static com.tastyhouse.core.domain.shop.domain.model.QShopAmenityCategory.shopAmenityCategory;
-import static com.tastyhouse.core.domain.shop.domain.model.QShopBookmark.shopBookmark;
-import static com.tastyhouse.core.domain.shop.domain.model.QShopFoodType.shopFoodType;
-import static com.tastyhouse.core.domain.shop.domain.model.QShopFoodTypeCategory.shopFoodTypeCategory;
-import static com.tastyhouse.core.domain.shop.domain.model.QStation.station;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityJpaEntity.shopAmenityJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeCategoryJpaEntity.shopFoodTypeCategoryJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeJpaEntity.shopFoodTypeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.stationJpaEntity;
 
 /**
  * {@code review}는 infrastructure-module로 이동한 {@code ReviewJpaEntity}를 가리킨다.
@@ -86,7 +86,7 @@ public class ShopRepositoryImpl implements ShopRepository {
 
         List<Long> shopIds = pagedShops.stream().map(ShopJpaEntity::getId).collect(Collectors.toList());
 
-        var stationMap = queryFactory.select(shopJpaEntity.id, station.stationName).from(shopJpaEntity).join(station).on(station.id.eq(shopJpaEntity.stationId)).where(shopJpaEntity.id.in(shopIds)).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)), tuple -> Objects.requireNonNull(tuple.get(station.stationName))));
+        var stationMap = queryFactory.select(shopJpaEntity.id, stationJpaEntity.stationName).from(shopJpaEntity).join(stationJpaEntity).on(stationJpaEntity.id.eq(shopJpaEntity.stationId)).where(shopJpaEntity.id.in(shopIds)).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)), tuple -> Objects.requireNonNull(tuple.get(stationJpaEntity.stationName))));
 
         var thumbnailFilePathMap = queryFactory
             .select(shopJpaEntity.id, uploadedFile.filePath)
@@ -99,15 +99,15 @@ public class ShopRepositoryImpl implements ShopRepository {
             .collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)), tuple -> Objects.requireNonNull(tuple.get(uploadedFile.filePath))));
 
         var foodTypeMap = queryFactory
-            .select(shopFoodType.shopId, shopFoodTypeCategory.foodType)
-            .from(shopFoodType)
-            .join(shopFoodTypeCategory).on(shopFoodType.shopFoodTypeCategoryId.eq(shopFoodTypeCategory.id))
-            .where(shopFoodType.shopId.in(shopIds))
+            .select(shopFoodTypeJpaEntity.shopId, shopFoodTypeCategoryJpaEntity.foodType)
+            .from(shopFoodTypeJpaEntity)
+            .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeJpaEntity.shopFoodTypeCategoryId.eq(shopFoodTypeCategoryJpaEntity.id))
+            .where(shopFoodTypeJpaEntity.shopId.in(shopIds))
             .fetch()
             .stream()
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(shopFoodType.shopId)),
-                Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategory.foodType), Collectors.toList())
+                tuple -> Objects.requireNonNull(tuple.get(shopFoodTypeJpaEntity.shopId)),
+                Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategoryJpaEntity.foodType), Collectors.toList())
             ));
 
         List<BestShopItemResult> content = pagedShops.stream().map(s -> new BestShopItemResult(s.getId(), s.getName(), stationMap.get(s.getId()), s.getRating(), thumbnailFilePathMap.get(s.getId()), foodTypeMap.getOrDefault(s.getId(), List.of()))).collect(Collectors.toList());
@@ -120,10 +120,10 @@ public class ShopRepositoryImpl implements ShopRepository {
         Set<Long> foodTypeShopIds = null;
         if (foodTypes != null && !foodTypes.isEmpty()) {
             foodTypeShopIds = new HashSet<>(queryFactory
-                .select(shopFoodType.shopId)
-                .from(shopFoodType)
-                .join(shopFoodTypeCategory).on(shopFoodType.shopFoodTypeCategoryId.eq(shopFoodTypeCategory.id))
-                .where(shopFoodTypeCategory.foodType.in(foodTypes))
+                .select(shopFoodTypeJpaEntity.shopId)
+                .from(shopFoodTypeJpaEntity)
+                .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeJpaEntity.shopFoodTypeCategoryId.eq(shopFoodTypeCategoryJpaEntity.id))
+                .where(shopFoodTypeCategoryJpaEntity.foodType.in(foodTypes))
                 .fetch());
 
             if (foodTypeShopIds.isEmpty()) {
@@ -134,12 +134,12 @@ public class ShopRepositoryImpl implements ShopRepository {
         Set<Long> amenityShopIds = null;
         if (amenities != null && !amenities.isEmpty()) {
             amenityShopIds = new HashSet<>(queryFactory
-                .select(shopAmenity.shopId)
-                .from(shopAmenity)
-                .join(shopAmenityCategory).on(shopAmenity.shopAmenityCategoryId.eq(shopAmenityCategory.id))
-                .where(shopAmenityCategory.amenity.in(amenities))
-                .groupBy(shopAmenity.shopId)
-                .having(shopAmenity.shopId.count().goe((long) amenities.size()))
+                .select(shopAmenityJpaEntity.shopId)
+                .from(shopAmenityJpaEntity)
+                .join(shopAmenityCategoryJpaEntity).on(shopAmenityJpaEntity.shopAmenityCategoryId.eq(shopAmenityCategoryJpaEntity.id))
+                .where(shopAmenityCategoryJpaEntity.amenity.in(amenities))
+                .groupBy(shopAmenityJpaEntity.shopId)
+                .having(shopAmenityJpaEntity.shopId.count().goe((long) amenities.size()))
                 .fetch());
 
             if (amenityShopIds.isEmpty()) {
@@ -178,7 +178,7 @@ public class ShopRepositoryImpl implements ShopRepository {
 
         List<Long> shopIds = pagedShops.stream().map(ShopJpaEntity::getId).collect(Collectors.toList());
 
-        var stationMap = queryFactory.select(shopJpaEntity.id, station.stationName).from(shopJpaEntity).join(station).on(station.id.eq(shopJpaEntity.stationId)).where(shopJpaEntity.id.in(shopIds)).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)), tuple -> Objects.requireNonNull(tuple.get(station.stationName))));
+        var stationMap = queryFactory.select(shopJpaEntity.id, stationJpaEntity.stationName).from(shopJpaEntity).join(stationJpaEntity).on(stationJpaEntity.id.eq(shopJpaEntity.stationId)).where(shopJpaEntity.id.in(shopIds)).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)), tuple -> Objects.requireNonNull(tuple.get(stationJpaEntity.stationName))));
 
         var thumbnailFilePathMap = queryFactory
             .select(shopJpaEntity.id, uploadedFile.filePath)
@@ -192,18 +192,18 @@ public class ShopRepositoryImpl implements ShopRepository {
 
         var reviewCountMap = queryFactory.select(reviewShopIdCol, reviewShopIdCol.count()).from(review).where(reviewShopIdCol.in(shopIds).and(reviewHiddenCol.eq(false))).groupBy(reviewShopIdCol).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(reviewShopIdCol)), tuple -> Objects.requireNonNull(tuple.get(reviewShopIdCol.count()))));
 
-        var bookmarkCountMap = queryFactory.select(shopBookmark.shopId, shopBookmark.count()).from(shopBookmark).where(shopBookmark.shopId.in(shopIds)).groupBy(shopBookmark.shopId).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopBookmark.shopId)), tuple -> Objects.requireNonNull(tuple.get(shopBookmark.count()))));
+        var bookmarkCountMap = queryFactory.select(shopBookmarkJpaEntity.shopId, shopBookmarkJpaEntity.count()).from(shopBookmarkJpaEntity).where(shopBookmarkJpaEntity.shopId.in(shopIds)).groupBy(shopBookmarkJpaEntity.shopId).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.shopId)), tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.count()))));
 
         var foodTypeMap = queryFactory
-            .select(shopFoodType.shopId, shopFoodTypeCategory.foodType)
-            .from(shopFoodType)
-            .join(shopFoodTypeCategory).on(shopFoodType.shopFoodTypeCategoryId.eq(shopFoodTypeCategory.id))
-            .where(shopFoodType.shopId.in(shopIds))
+            .select(shopFoodTypeJpaEntity.shopId, shopFoodTypeCategoryJpaEntity.foodType)
+            .from(shopFoodTypeJpaEntity)
+            .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeJpaEntity.shopFoodTypeCategoryId.eq(shopFoodTypeCategoryJpaEntity.id))
+            .where(shopFoodTypeJpaEntity.shopId.in(shopIds))
             .fetch()
             .stream()
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(shopFoodType.shopId)),
-                Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategory.foodType), Collectors.toList())
+                tuple -> Objects.requireNonNull(tuple.get(shopFoodTypeJpaEntity.shopId)),
+                Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategoryJpaEntity.foodType), Collectors.toList())
             ));
 
         List<LatestShopItemResult> content = pagedShops.stream().map(s -> new LatestShopItemResult(
@@ -239,10 +239,10 @@ public class ShopRepositoryImpl implements ShopRepository {
 
         List<Long> shopIds = pagedShops.stream().map(ShopJpaEntity::getId).collect(Collectors.toList());
 
-        var stationMap = queryFactory.select(shopJpaEntity.id, station.stationName)
-                .from(shopJpaEntity).join(station).on(station.id.eq(shopJpaEntity.stationId))
+        var stationMap = queryFactory.select(shopJpaEntity.id, stationJpaEntity.stationName)
+                .from(shopJpaEntity).join(stationJpaEntity).on(stationJpaEntity.id.eq(shopJpaEntity.stationId))
                 .where(shopJpaEntity.id.in(shopIds)).fetch().stream()
-                .collect(Collectors.toMap(t -> Objects.requireNonNull(t.get(shopJpaEntity.id)), t -> Objects.requireNonNull(t.get(station.stationName))));
+                .collect(Collectors.toMap(t -> Objects.requireNonNull(t.get(shopJpaEntity.id)), t -> Objects.requireNonNull(t.get(stationJpaEntity.stationName))));
 
         var thumbnailFilePathMap = queryFactory.select(shopJpaEntity.id, uploadedFile.filePath)
                 .from(shopJpaEntity).leftJoin(uploadedFile).on(uploadedFile.id.eq(shopJpaEntity.thumbnailImageFileId))
@@ -253,10 +253,10 @@ public class ShopRepositoryImpl implements ShopRepository {
         Set<Long> bookmarkedShopIds = new HashSet<>();
         if (memberId != null) {
             bookmarkedShopIds = new HashSet<>(
-                queryFactory.select(shopBookmark.shopId)
-                    .from(shopBookmark)
-                    .where(shopBookmark.shopId.in(shopIds)
-                        .and(shopBookmark.memberId.eq(memberId)))
+                queryFactory.select(shopBookmarkJpaEntity.shopId)
+                    .from(shopBookmarkJpaEntity)
+                    .where(shopBookmarkJpaEntity.shopId.in(shopIds)
+                        .and(shopBookmarkJpaEntity.memberId.eq(memberId)))
                     .fetch()
             );
         }
@@ -279,10 +279,10 @@ public class ShopRepositoryImpl implements ShopRepository {
     @Override
     public PageResult<ShopBookmarkedItemResult> findMyBookmarkedShops(MemberId memberId, PageQuery pageQuery) {
         Long total = queryFactory
-            .select(shopBookmark.count())
-            .from(shopBookmark)
-            .join(shopJpaEntity).on(shopBookmark.shopId.eq(shopJpaEntity.id).and(shopJpaEntity.permanentlyClosed.eq(false)))
-            .where(shopBookmark.memberId.eq(memberId))
+            .select(shopBookmarkJpaEntity.count())
+            .from(shopBookmarkJpaEntity)
+            .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id).and(shopJpaEntity.permanentlyClosed.eq(false)))
+            .where(shopBookmarkJpaEntity.memberId.eq(memberId))
             .fetchOne();
 
         if (total == null || total == 0) {
@@ -292,18 +292,18 @@ public class ShopRepositoryImpl implements ShopRepository {
         var results = queryFactory
             .select(
                 shopJpaEntity.id,
-                shopBookmark.id,
+                shopBookmarkJpaEntity.id,
                 shopJpaEntity.name,
-                station.stationName,
+                stationJpaEntity.stationName,
                 shopJpaEntity.rating,
                 uploadedFile.filePath
             )
-            .from(shopBookmark)
-            .join(shopJpaEntity).on(shopBookmark.shopId.eq(shopJpaEntity.id).and(shopJpaEntity.permanentlyClosed.eq(false)))
-            .join(station).on(shopJpaEntity.stationId.eq(station.id))
+            .from(shopBookmarkJpaEntity)
+            .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id).and(shopJpaEntity.permanentlyClosed.eq(false)))
+            .join(stationJpaEntity).on(shopJpaEntity.stationId.eq(stationJpaEntity.id))
             .leftJoin(uploadedFile).on(uploadedFile.id.eq(shopJpaEntity.thumbnailImageFileId))
-            .where(shopBookmark.memberId.eq(memberId))
-            .orderBy(shopBookmark.createdAt.desc())
+            .where(shopBookmarkJpaEntity.memberId.eq(memberId))
+            .orderBy(shopBookmarkJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -311,9 +311,9 @@ public class ShopRepositoryImpl implements ShopRepository {
         List<ShopBookmarkedItemResult> content = results.stream()
             .map(tuple -> new ShopBookmarkedItemResult(
                 tuple.get(shopJpaEntity.id),
-                tuple.get(shopBookmark.id),
+                tuple.get(shopBookmarkJpaEntity.id),
                 tuple.get(shopJpaEntity.name),
-                tuple.get(station.stationName),
+                tuple.get(stationJpaEntity.stationName),
                 tuple.get(shopJpaEntity.rating),
                 tuple.get(uploadedFile.filePath),
                 true
@@ -343,13 +343,13 @@ public class ShopRepositoryImpl implements ShopRepository {
             .select(new QShopListItemResult(
                 shopJpaEntity.id,
                 shopJpaEntity.name,
-                station.stationName,
+                stationJpaEntity.stationName,
                 shopJpaEntity.roadAddress,
                 shopJpaEntity.rating,
                 shopJpaEntity.permanentlyClosed
             ))
             .from(shopJpaEntity)
-            .leftJoin(station).on(station.id.eq(shopJpaEntity.stationId))
+            .leftJoin(stationJpaEntity).on(stationJpaEntity.id.eq(shopJpaEntity.stationId))
             .where(
                 nameContains(condition.name()),
                 stationIdEq(condition.stationId()),

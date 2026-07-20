@@ -1,49 +1,34 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상점-음식유형 배정 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopFoodTypeJpaEntity} + {@code ShopFoodTypeMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "SHOP_FOOD_TYPE", uniqueConstraints = {@UniqueConstraint(columnNames = {"shop_id", "shop_food_type_category_id"})})
-public class ShopFoodType extends BaseEntity {
+public class ShopFoodType {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final Long id;
+    private final Long shopId;
+    private final Long shopFoodTypeCategoryId;
 
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
-
-    @Column(name = "shop_food_type_category_id", nullable = false)
-    private Long shopFoodTypeCategoryId; // 음식 유형 카테고리 ID (SHOP_FOOD_TYPE_CATEGORY.id 참조)
-
-    private ShopFoodType(
-        Long shopId,
-        Long shopFoodTypeCategoryId
-    ) {
+    private ShopFoodType(Long id, Long shopId, Long shopFoodTypeCategoryId) {
+        this.id = id;
         this.shopId = shopId;
         this.shopFoodTypeCategoryId = shopFoodTypeCategoryId;
     }
 
-    public static ShopFoodType of(
-        Long shopId,
-        Long shopFoodTypeCategoryId
-    ) {
-        return new ShopFoodType(
-            shopId,
-            shopFoodTypeCategoryId
-        );
+    public static ShopFoodType of(Long shopId, Long shopFoodTypeCategoryId) {
+        return new ShopFoodType(null, shopId, shopFoodTypeCategoryId);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ShopFoodType reconstitute(Long id, Long shopId, Long shopFoodTypeCategoryId) {
+        return new ShopFoodType(id, shopId, shopFoodTypeCategoryId);
     }
 }

@@ -1,49 +1,34 @@
 package com.tastyhouse.core.domain.shop.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상점-편의시설 배정 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopAmenityJpaEntity} + {@code ShopAmenityMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "SHOP_AMENITY", uniqueConstraints = {@UniqueConstraint(columnNames = {"shop_id", "shop_amenity_category_id"})})
-public class ShopAmenity extends BaseEntity {
+public class ShopAmenity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final Long id;
+    private final Long shopId;
+    private final Long shopAmenityCategoryId;
 
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
-
-    @Column(name = "shop_amenity_category_id", nullable = false)
-    private Long shopAmenityCategoryId; // 편의시설 카테고리 ID (SHOP_AMENITY_CATEGORY.id 참조)
-
-    private ShopAmenity(
-        Long shopId,
-        Long shopAmenityCategoryId
-    ) {
+    private ShopAmenity(Long id, Long shopId, Long shopAmenityCategoryId) {
+        this.id = id;
         this.shopId = shopId;
         this.shopAmenityCategoryId = shopAmenityCategoryId;
     }
 
-    public static ShopAmenity of(
-        Long shopId,
-        Long shopAmenityCategoryId
-    ) {
-        return new ShopAmenity(
-            shopId,
-            shopAmenityCategoryId
-        );
+    public static ShopAmenity of(Long shopId, Long shopAmenityCategoryId) {
+        return new ShopAmenity(null, shopId, shopAmenityCategoryId);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ShopAmenity reconstitute(Long id, Long shopId, Long shopAmenityCategoryId) {
+        return new ShopAmenity(id, shopId, shopAmenityCategoryId);
     }
 }
