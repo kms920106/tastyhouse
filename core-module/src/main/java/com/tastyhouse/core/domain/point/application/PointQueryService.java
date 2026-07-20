@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.point.domain.repository.MemberPointHistoryRepository;
-import com.tastyhouse.core.domain.point.domain.repository.MemberPointRepository;
+import com.tastyhouse.core.domain.point.domain.repository.PointHistoryRepository;
+import com.tastyhouse.core.domain.point.domain.repository.PointRepository;
 import com.tastyhouse.core.domain.point.application.dto.PointSearchCondition;
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
+import com.tastyhouse.core.domain.point.application.dto.result.PointHistoryResult;
+import com.tastyhouse.core.domain.point.application.dto.result.PointResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
@@ -22,24 +22,24 @@ import com.tastyhouse.core.shared.page.PageResult;
 @RequiredArgsConstructor
 public class PointQueryService {
 
-    private final MemberPointRepository memberPointRepository;
-    private final MemberPointHistoryRepository memberPointHistoryRepository;
+    private final PointRepository pointRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
-    public Optional<MemberPointResult> findMemberPoint(MemberId memberId) {
-        return memberPointRepository.findByMemberId(memberId)
-            .map(MemberPointResult::from);
+    public Optional<PointResult> findMemberPoint(MemberId memberId) {
+        return pointRepository.findByMemberId(memberId)
+            .map(PointResult::from);
     }
 
-    public List<MemberPointHistoryResult> findPointHistory(MemberId memberId) {
-        return memberPointHistoryRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
+    public List<PointHistoryResult> findPointHistory(MemberId memberId) {
+        return pointHistoryRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
             .stream()
-            .map(MemberPointHistoryResult::from)
+            .map(PointHistoryResult::from)
             .collect(Collectors.toList());
     }
 
-    public PageResult<MemberPointHistoryResult> findPointHistory(PointSearchCondition condition, int page, int size) {
+    public PageResult<PointHistoryResult> findPointHistory(PointSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return memberPointHistoryRepository.findPointHistory(condition, pageQuery)
-            .map(MemberPointHistoryResult::from);
+        return pointHistoryRepository.findPointHistory(condition, pageQuery)
+            .map(PointHistoryResult::from);
     }
 }

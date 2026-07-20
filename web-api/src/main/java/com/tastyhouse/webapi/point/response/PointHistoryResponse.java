@@ -1,11 +1,11 @@
-package com.tastyhouse.webapi.member.response;
+package com.tastyhouse.webapi.point.response;
 
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "포인트 내역 응답 DTO")
-public record MemberPointHistoryResponse(
+public record PointHistoryResponse(
     @Schema(description = "사용 가능 포인트", example = "1000")
     Integer availablePoints,
 
@@ -13,14 +13,14 @@ public record MemberPointHistoryResponse(
     Integer expiredThisMonth,
 
     @Schema(description = "포인트 내역 목록")
-    List<MemberPointHistoryItemResponse> histories
+    List<PointHistoryItemResponse> histories
 ) {
-    public static MemberPointHistoryResponse from(
+    public static PointHistoryResponse from(
         Integer availablePoints,
         Integer expiredThisMonth,
-        List<MemberPointHistoryItemResponse> histories
+        List<PointHistoryItemResponse> histories
     ) {
-        return new MemberPointHistoryResponse(
+        return new PointHistoryResponse(
             availablePoints,
             expiredThisMonth,
             histories

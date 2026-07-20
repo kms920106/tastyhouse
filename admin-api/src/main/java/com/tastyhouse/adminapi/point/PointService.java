@@ -10,8 +10,8 @@ import com.tastyhouse.core.domain.point.application.PointQueryService;
 import com.tastyhouse.core.domain.point.application.dto.PointSearchCondition;
 import com.tastyhouse.core.domain.point.application.dto.command.PointDeductCommand;
 import com.tastyhouse.core.domain.point.application.dto.command.PointEarnCommand;
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointHistoryResult;
-import com.tastyhouse.core.domain.point.application.dto.result.MemberPointResult;
+import com.tastyhouse.core.domain.point.application.dto.result.PointHistoryResult;
+import com.tastyhouse.core.domain.point.application.dto.result.PointResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.point.response.PointBalanceResponse;
@@ -50,11 +50,11 @@ public class PointService {
         pointCommandService.deductPoints(command);
     }
 
-    private PointBalanceResponse toPointBalanceResponse(MemberPointResult result) {
+    private PointBalanceResponse toPointBalanceResponse(PointResult result) {
         return PointBalanceResponse.from(result.memberId().value(), result.availablePoints(), result.expiredThisMonth());
     }
 
-    private PointHistoryResponse toPointHistoryResponse(MemberPointHistoryResult result) {
+    private PointHistoryResponse toPointHistoryResponse(PointHistoryResult result) {
         return PointHistoryResponse.from(result.pointType().name(), result.pointAmount(), result.reason(), result.createdAt());
     }
 }

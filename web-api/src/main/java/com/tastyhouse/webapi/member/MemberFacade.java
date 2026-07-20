@@ -13,11 +13,8 @@ import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.MemberPhoneAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.MemberPointHistoryResponse;
-import com.tastyhouse.webapi.member.response.MemberPointResponse;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.MemberUsablePointResponse;
 import com.tastyhouse.webapi.member.response.MemberVerifyPasswordResponse;
 import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
@@ -29,7 +26,6 @@ import com.tastyhouse.webapi.member.service.MemberAccountService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 import com.tastyhouse.webapi.member.service.MemberFollowService;
 import com.tastyhouse.webapi.member.service.MemberGradeService;
-import com.tastyhouse.webapi.member.service.MemberPointService;
 import com.tastyhouse.webapi.member.service.MemberReviewService;
 import com.tastyhouse.webapi.member.service.MemberShopService;
 
@@ -40,7 +36,6 @@ public class MemberFacade {
     private final MemberAccountService memberAccountService;
     private final MemberAuthService memberAuthService;
     private final MemberFollowService memberFollowService;
-    private final MemberPointService memberPointService;
     private final MemberShopService memberShopService;
     private final MemberReviewService memberReviewService;
     private final CouponQueryService couponQueryService;
@@ -95,18 +90,6 @@ public class MemberFacade {
 
     public MyGradeResponse getMyGrade(Long memberId) {
         return memberGradeService.getMyGrade(memberId);
-    }
-
-    public MemberPointResponse getMyPoint(Long memberId) {
-        return memberPointService.getMemberPoint(memberId);
-    }
-
-    public MemberPointHistoryResponse getMyPointHistory(Long memberId) {
-        return memberPointService.getPointHistory(memberId);
-    }
-
-    public MemberUsablePointResponse getMyUsablePoint(Long memberId) {
-        return memberPointService.getUsablePoint(memberId);
     }
 
     public List<MyCouponListItemResponse> getMyCoupons(Long memberId) {

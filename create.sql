@@ -361,7 +361,7 @@ CREATE TABLE SHOP
     updated_at        DATETIME      NOT NULL             -- 수정 일시
 );
 
-CREATE TABLE MEMBER_POINT
+CREATE TABLE POINT
 (
     id                      BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 회원 포인트 ID (PK)
     member_id               BIGINT   NOT NULL UNIQUE,            -- 회원 ID (MEMBER.id 참조)
@@ -369,10 +369,10 @@ CREATE TABLE MEMBER_POINT
     expired_this_month      INT      NOT NULL DEFAULT 0,         -- 이번 달 만료 예정 포인트
     created_at              DATETIME NOT NULL,                   -- 생성 일시
     updated_at              DATETIME NOT NULL,                   -- 수정 일시
-    INDEX idx_member_point_member_id (member_id)                 -- 인덱스: 회원별 조회
+    INDEX idx_point_member_id (member_id)                        -- 인덱스: 회원별 조회
 );
 
-CREATE TABLE MEMBER_POINT_HISTORY
+CREATE TABLE POINT_HISTORY
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,                    -- 포인트 이력 ID (PK)
     member_id         BIGINT       NOT NULL,                                -- 회원 ID (MEMBER.id 참조)
@@ -381,8 +381,8 @@ CREATE TABLE MEMBER_POINT_HISTORY
     reason            VARCHAR(200) NOT NULL,                                -- 변동 사유
     created_at        DATETIME     NOT NULL,                                -- 생성 일시
     updated_at        DATETIME     NOT NULL,                                -- 수정 일시
-    INDEX idx_member_point_history_member_id (member_id),                   -- 인덱스: 회원별 조회
-    INDEX idx_member_point_history_created_at (created_at)                  -- 인덱스: 생성 일시별 조회
+    INDEX idx_point_history_member_id (member_id),                         -- 인덱스: 회원별 조회
+    INDEX idx_point_history_created_at (created_at)                        -- 인덱스: 생성 일시별 조회
 );
 
 CREATE TABLE NOTICE

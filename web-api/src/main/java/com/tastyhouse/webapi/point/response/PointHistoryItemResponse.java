@@ -1,11 +1,11 @@
-package com.tastyhouse.webapi.member.response;
+package com.tastyhouse.webapi.point.response;
 
 import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "포인트 내역 항목")
-public record MemberPointHistoryItemResponse(
+public record PointHistoryItemResponse(
     @Schema(description = "포인트 사용/적립 사유", example = "포토 리뷰 적립금")
     String reason,
 
@@ -18,13 +18,13 @@ public record MemberPointHistoryItemResponse(
     @Schema(description = "포인트 유형 (EARNED: 적립, USE: 사용, REFUND: 환불)", example = "EARNED")
     String pointType
 ) {
-    public static MemberPointHistoryItemResponse from(
+    public static PointHistoryItemResponse from(
         String reason,
         LocalDate date,
         Integer pointAmount,
         String pointType
     ) {
-        return new MemberPointHistoryItemResponse(
+        return new PointHistoryItemResponse(
             reason,
             date,
             pointAmount,

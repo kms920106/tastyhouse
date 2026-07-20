@@ -33,10 +33,7 @@ import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
-import com.tastyhouse.webapi.member.response.MemberPointHistoryResponse;
-import com.tastyhouse.webapi.member.response.MemberPointResponse;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
-import com.tastyhouse.webapi.member.response.MemberUsablePointResponse;
 import com.tastyhouse.webapi.member.response.MemberVerifyPasswordResponse;
 
 @RestController
@@ -120,14 +117,6 @@ public class MemberMeApiController {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyGrade(userDetails.getMemberId())));
     }
 
-    @Operation(summary = "보유 포인트 조회", description = "현재 로그인한 회원의 사용 가능한 포인트와 이번달 소멸 예정 포인트를 조회합니다.")
-    @GetMapping("/v1/me/point")
-    public ResponseEntity<ApiResponse<MemberPointResponse>> getMyPoint(
-        @CurrentUser CustomUserDetails userDetails
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyPoint(userDetails.getMemberId())));
-    }
-
     @Operation(summary = "보유 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 모든 쿠폰을 조회합니다. (사용 여부 무관)")
     @GetMapping("/v1/me/coupons")
     public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyCoupons(
@@ -142,22 +131,6 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyAvailableCoupons(userDetails.getMemberId())));
-    }
-
-    @Operation(summary = "포인트 내역 조회", description = "사용 가능 포인트, 이번달 소멸 예정 포인트, 포인트 적립/사용 내역 목록을 조회합니다.")
-    @GetMapping("/v1/me/point/history")
-    public ResponseEntity<ApiResponse<MemberPointHistoryResponse>> getMyPointHistory(
-        @CurrentUser CustomUserDetails userDetails
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyPointHistory(userDetails.getMemberId())));
-    }
-
-    @Operation(summary = "사용 가능 포인트 조회 (주문용)", description = "주문 시 사용 가능한 포인트를 조회합니다.")
-    @GetMapping("/v1/me/point/usable")
-    public ResponseEntity<ApiResponse<MemberUsablePointResponse>> getMyUsablePoint(
-        @CurrentUser CustomUserDetails userDetails
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyUsablePoint(userDetails.getMemberId())));
     }
 
     @Operation(summary = "내가 작성한 리뷰 개수 조회", description = "로그인한 회원이 작성한 리뷰 개수를 조회합니다.")
