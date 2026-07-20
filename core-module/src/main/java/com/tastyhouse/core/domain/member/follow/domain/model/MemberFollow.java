@@ -1,56 +1,40 @@
 package com.tastyhouse.core.domain.member.follow.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.infrastructure.persistence.converter.MemberIdConverter;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
+/**
+ * 회원 팔로우 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code MemberFollowJpaEntity} + {@code MemberFollowMapper}가 담당한다. 상태전이가 없어
+ * 생성(팔로우)과 삭제(언팔로우)만 존재하므로, 감사 시각을 소비하는 조회 결과가 없어 필드로 두지 않는다.
+ */
 @Getter
-@Entity
-@Table(
-    name = "MEMBER_FOLLOW",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uk_member_follow_follower_following",
-        columnNames = {"follower_id", "following_id"}
-    ),
-    indexes = {
-        @Index(name = "idx_member_follow_follower_id", columnList = "follower_id"),
-        @Index(name = "idx_member_follow_following_id", columnList = "following_id")
-    }
-)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberFollow extends BaseEntity {
+public class MemberFollow {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final MemberId followerId;
+    private final MemberId followingId;
 
-    @Convert(converter = MemberIdConverter.class)
-    @Column(name = "follower_id", nullable = false)
-    private MemberId followerId;
-
-    @Convert(converter = MemberIdConverter.class)
-    @Column(name = "following_id", nullable = false)
-    private MemberId followingId;
-
-    public MemberFollow(MemberId followerId, MemberId followingId) {
+    private MemberFollow(Long id, MemberId followerId, MemberId followingId) {
+        this.id = id;
         this.followerId = followerId;
         this.followingId = followingId;
     }
 
+    /**
+     * 신규 팔로우 관계를 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
+     */
     public static MemberFollow of(MemberId followerId, MemberId followingId) {
-        return new MemberFollow(followerId, followingId);
+        return new MemberFollow(null, followerId, followingId);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static MemberFollow reconstitute(Long id, MemberId followerId, MemberId followingId) {
+        return new MemberFollow(id, followerId, followingId);
     }
 }

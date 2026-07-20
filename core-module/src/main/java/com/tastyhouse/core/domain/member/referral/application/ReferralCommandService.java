@@ -40,7 +40,7 @@ public class ReferralCommandService {
         }
 
         MemberReferral referral = MemberReferral.register(command.referrerId(), command.refereeId());
-        memberReferralRepository.save(referral);
+        referral = memberReferralRepository.save(referral);
 
         pointCommandService.earnPoints(PointEarnCommand.of(command.referrerId(), REFERRAL_REWARD_POINT, "추천인 보상"));
         pointCommandService.earnPoints(PointEarnCommand.of(command.refereeId(), REFEREE_REWARD_POINT, "추천받기 보상"));
