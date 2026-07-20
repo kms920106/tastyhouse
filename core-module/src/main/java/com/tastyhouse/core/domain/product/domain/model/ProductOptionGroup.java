@@ -1,56 +1,31 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상품 옵션 그룹 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ProductOptionGroupJpaEntity} + {@code ProductOptionGroupMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "PRODUCT_OPTION_GROUP")
-public class ProductOptionGroup extends BaseEntity {
+public class ProductOptionGroup {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
-
-    @Column(name = "name", nullable = false, length = 100)
+    private final Long id;
+    private final Long productId;
     private String name;
-
-    @Column(name = "description", length = 500)
     private String description;
-
-    @Column(name = "is_required", nullable = false)
     private boolean required;
-
-    @Column(name = "is_multiple_select", nullable = false)
     private boolean multipleSelect;
-
-    @Column(name = "min_select")
     private Integer minSelect;
-
-    @Column(name = "max_select")
     private Integer maxSelect;
-
-    @Column(name = "sort", nullable = false)
     private Integer sort;
-
-    @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
     private ProductOptionGroup(
+        Long id,
         Long productId,
         String name,
         String description,
@@ -61,6 +36,7 @@ public class ProductOptionGroup extends BaseEntity {
         Integer sort,
         boolean visible
     ) {
+        this.id = id;
         this.productId = productId;
         this.name = name;
         this.description = description;
@@ -84,7 +60,28 @@ public class ProductOptionGroup extends BaseEntity {
         boolean visible
     ) {
         return new ProductOptionGroup(
-            productId, name, description, required, multipleSelect,
+            null, productId, name, description, required, multipleSelect,
+            minSelect, maxSelect, sort, visible
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ProductOptionGroup reconstitute(
+        Long id,
+        Long productId,
+        String name,
+        String description,
+        boolean required,
+        boolean multipleSelect,
+        Integer minSelect,
+        Integer maxSelect,
+        Integer sort,
+        boolean visible
+    ) {
+        return new ProductOptionGroup(
+            id, productId, name, description, required, multipleSelect,
             minSelect, maxSelect, sort, visible
         );
     }

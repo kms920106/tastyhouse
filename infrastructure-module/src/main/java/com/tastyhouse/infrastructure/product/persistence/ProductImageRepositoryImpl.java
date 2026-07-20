@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.product.infrastructure.persistence;
+package com.tastyhouse.infrastructure.product.persistence;
 
 import java.util.List;
 
@@ -9,12 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.product.domain.model.ProductImage;
-import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepresentativeImage;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;
+import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,10 +25,13 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
     @Override
     public List<ProductImage> findActiveByProductIdOrderBySort(Long productId) {
         return queryFactory
-            .selectFrom(productImage)
-            .where(productImage.productId.eq(productId), productImage.visible.eq(true))
-            .orderBy(productImage.sort.asc())
-            .fetch();
+            .selectFrom(productImageJpaEntity)
+            .where(productImageJpaEntity.productId.eq(productId), productImageJpaEntity.visible.eq(true))
+            .orderBy(productImageJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .map(ProductImageMapper::toDomain)
+            .toList();
     }
 
     @Override
@@ -46,23 +48,23 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
         if (productIds.isEmpty()) {
             return List.of();
         }
-        QProductImage subProductImage = new QProductImage("subProductImage");
+        QProductImageJpaEntity subProductImage = new QProductImageJpaEntity("subProductImage");
         return queryFactory
             .select(Projections.constructor(
                 ProductRepresentativeImage.class,
-                productImage.productId,
+                productImageJpaEntity.productId,
                 uploadedFile.filePath
             ))
-            .from(productImage)
-            .innerJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
+            .from(productImageJpaEntity)
+            .innerJoin(uploadedFile).on(productImageJpaEntity.imageFileId.eq(uploadedFile.id))
             .where(
-                productImage.productId.in(productIds),
-                productImage.visible.eq(true),
-                productImage.sort.eq(
+                productImageJpaEntity.productId.in(productIds),
+                productImageJpaEntity.visible.eq(true),
+                productImageJpaEntity.sort.eq(
                     JPAExpressions
                         .select(subProductImage.sort.min())
                         .from(subProductImage)
-                        .where(subProductImage.productId.eq(productImage.productId)
+                        .where(subProductImage.productId.eq(productImageJpaEntity.productId)
                             .and(subProductImage.visible.eq(true)))
                 )
             )
@@ -71,6 +73,7 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
 
     @Override
     public ProductImage save(ProductImage entity) {
-        return productImageJpaRepository.save(entity);
+        ProductImageJpaEntity saved = productImageJpaRepository.save(ProductImageMapper.toEntity(entity));
+        return ProductImageMapper.toDomain(saved);
     }
 }

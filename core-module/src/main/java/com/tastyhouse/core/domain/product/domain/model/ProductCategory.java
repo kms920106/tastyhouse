@@ -1,41 +1,26 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.product.domain.vo.ProductCategoryId;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상품 카테고리 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ProductCategoryJpaEntity} + {@code ProductCategoryMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "PRODUCT_CATEGORY")
-public class ProductCategory extends BaseEntity {
+public class ProductCategory {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId;
-
-    @Column(name = "name", nullable = false, length = 100)
+    private final Long id;
+    private final Long shopId;
     private String name;
-
-    @Column(name = "sort", nullable = false)
     private Integer sort;
-
-    @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
-    private ProductCategory(Long shopId, String name, Integer sort, boolean visible) {
+    private ProductCategory(Long id, Long shopId, String name, Integer sort, boolean visible) {
+        this.id = id;
         this.shopId = shopId;
         this.name = name;
         this.sort = sort;
@@ -43,7 +28,14 @@ public class ProductCategory extends BaseEntity {
     }
 
     public static ProductCategory of(Long shopId, String name, Integer sort, boolean visible) {
-        return new ProductCategory(shopId, name, sort, visible);
+        return new ProductCategory(null, shopId, name, sort, visible);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ProductCategory reconstitute(Long id, Long shopId, String name, Integer sort, boolean visible) {
+        return new ProductCategory(id, shopId, name, sort, visible);
     }
 
     public ProductCategoryId getProductCategoryId() {

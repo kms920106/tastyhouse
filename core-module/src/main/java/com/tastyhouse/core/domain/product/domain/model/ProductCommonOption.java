@@ -1,46 +1,26 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상품 공통 옵션 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ProductCommonOptionJpaEntity} + {@code ProductCommonOptionMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "PRODUCT_COMMON_OPTION")
-public class ProductCommonOption extends BaseEntity {
+public class ProductCommonOption {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "option_group_id", nullable = false)
-    private Long optionGroupId;
-
-    @Column(name = "name", nullable = false, length = 100)
+    private final Long id;
+    private final Long optionGroupId;
     private String name;
-
-    @Column(name = "additional_price", nullable = false)
     private Integer additionalPrice;
-
-    @Column(name = "sort", nullable = false)
     private Integer sort;
-
-    @Column(name = "is_sold_out", nullable = false)
     private boolean soldOut;
-
-    @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
     private ProductCommonOption(
+        Long id,
         Long optionGroupId,
         String name,
         Integer additionalPrice,
@@ -48,9 +28,10 @@ public class ProductCommonOption extends BaseEntity {
         boolean soldOut,
         boolean visible
     ) {
+        this.id = id;
         this.optionGroupId = optionGroupId;
         this.name = name;
-        this.additionalPrice = additionalPrice != null ? additionalPrice : 0;
+        this.additionalPrice = additionalPrice;
         this.sort = sort;
         this.soldOut = soldOut;
         this.visible = visible;
@@ -64,7 +45,30 @@ public class ProductCommonOption extends BaseEntity {
         boolean soldOut,
         boolean visible
     ) {
-        return new ProductCommonOption(optionGroupId, name, additionalPrice, sort, soldOut, visible);
+        return new ProductCommonOption(
+            null,
+            optionGroupId,
+            name,
+            additionalPrice != null ? additionalPrice : 0,
+            sort,
+            soldOut,
+            visible
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ProductCommonOption reconstitute(
+        Long id,
+        Long optionGroupId,
+        String name,
+        Integer additionalPrice,
+        Integer sort,
+        boolean soldOut,
+        boolean visible
+    ) {
+        return new ProductCommonOption(id, optionGroupId, name, additionalPrice, sort, soldOut, visible);
     }
 
     public void update(String name, Integer additionalPrice, Integer sort, boolean soldOut, boolean visible) {

@@ -13,7 +13,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.product.domain.model.QProductImage;
 import com.tastyhouse.core.domain.shop.domain.model.ShopChoice;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
@@ -21,10 +20,11 @@ import com.tastyhouse.core.domain.product.application.dto.result.QProductSimpleR
 import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceResult;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity;
 
 import static com.tastyhouse.core.domain.file.domain.model.QUploadedFile.uploadedFile;
-import static com.tastyhouse.core.domain.product.domain.model.QProduct.product;
-import static com.tastyhouse.core.domain.product.domain.model.QProductImage.productImage;
+import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopChoiceJpaEntity.shopChoiceJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
@@ -32,7 +32,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
 @RequiredArgsConstructor
 public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
 
-    private static final QProductImage subProductImage = new QProductImage("subProductImage");
+    private static final QProductImageJpaEntity subProductImage = new QProductImageJpaEntity("subProductImage");
 
     private final JPAQueryFactory queryFactory;
     private final ShopChoiceJpaRepository shopChoiceJpaRepository;
@@ -71,38 +71,38 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
 
         List<Tuple> productTuples = queryFactory
             .select(
-                product.shopId,
+                productJpaEntity.shopId,
                 new QProductSimpleResult(
-                    product.id,
+                    productJpaEntity.id,
                     shopJpaEntity.name,
-                    product.name,
+                    productJpaEntity.name,
                     uploadedFile.filePath,
-                    product.originalPrice,
-                    product.discountInfo.discountPrice,
-                    product.discountInfo.discountRate
+                    productJpaEntity.originalPrice,
+                    productJpaEntity.discountInfo.discountPrice,
+                    productJpaEntity.discountInfo.discountRate
                 )
             )
-            .from(product)
-            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(product.shopId))
-            .leftJoin(productImage).on(
-                productImage.productId.eq(product.id)
-                    .and(productImage.visible.eq(true))
-                    .and(productImage.sort.eq(
+            .from(productJpaEntity)
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(productJpaEntity.shopId))
+            .leftJoin(productImageJpaEntity).on(
+                productImageJpaEntity.productId.eq(productJpaEntity.id)
+                    .and(productImageJpaEntity.visible.eq(true))
+                    .and(productImageJpaEntity.sort.eq(
                         JPAExpressions
                             .select(subProductImage.sort.min())
                             .from(subProductImage)
-                            .where(subProductImage.productId.eq(product.id)
+                            .where(subProductImage.productId.eq(productJpaEntity.id)
                                 .and(subProductImage.visible.eq(true)))
                     ))
             )
-            .leftJoin(uploadedFile).on(productImage.imageFileId.eq(uploadedFile.id))
-            .where(product.shopId.in(shopIds))
+            .leftJoin(uploadedFile).on(productImageJpaEntity.imageFileId.eq(uploadedFile.id))
+            .where(productJpaEntity.shopId.in(shopIds))
             .fetch();
 
         Map<Long, List<ProductSimpleResult>> productsByShopId = productTuples.stream()
-            .filter(tuple -> tuple.get(product.shopId) != null)
+            .filter(tuple -> tuple.get(productJpaEntity.shopId) != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(product.shopId)),
+                tuple -> Objects.requireNonNull(tuple.get(productJpaEntity.shopId)),
                 Collectors.mapping(
                     tuple -> tuple.get(1, ProductSimpleResult.class),
                     Collectors.toList()

@@ -1,40 +1,25 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상품 이미지 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ProductImageJpaEntity} + {@code ProductImageMapper}가 담당한다. 상태전이 메서드가
+ * 없는 불변 애그리거트라 전 필드가 {@code final}이다.
+ */
 @Getter
-@Entity
-@Table(name = "PRODUCT_IMAGE")
-public class ProductImage extends BaseEntity {
+public class ProductImage {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id;
+    private final Long productId;
+    private final Long imageFileId;
+    private final Integer sort;
+    private final boolean visible;
 
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
-
-    @Column(name = "sort", nullable = false)
-    private Integer sort;
-
-    @Column(name = "is_visible", nullable = false)
-    private boolean visible;
-
-    @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
-
-    private ProductImage(Long productId, Long imageFileId, Integer sort, boolean visible) {
+    private ProductImage(Long id, Long productId, Long imageFileId, Integer sort, boolean visible) {
+        this.id = id;
         this.productId = productId;
         this.imageFileId = imageFileId;
         this.sort = sort;
@@ -42,6 +27,19 @@ public class ProductImage extends BaseEntity {
     }
 
     public static ProductImage of(Long productId, Long imageFileId, Integer sort, boolean visible) {
-        return new ProductImage(productId, imageFileId, sort, visible);
+        return new ProductImage(null, productId, imageFileId, sort, visible);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ProductImage reconstitute(
+        Long id,
+        Long productId,
+        Long imageFileId,
+        Integer sort,
+        boolean visible
+    ) {
+        return new ProductImage(id, productId, imageFileId, sort, visible);
     }
 }

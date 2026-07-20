@@ -1,41 +1,24 @@
 package com.tastyhouse.core.domain.product.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.shared.entity.BaseEntity;
-
-/** Product와 BBQ 메뉴 ID 매핑 엔티티 — BBQ API 외부 메뉴 ID 임시 저장 */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * Product와 BBQ 메뉴 ID 매핑 순수 도메인 모델 — BBQ API 외부 메뉴 ID 임시 저장.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ProductBbqJpaEntity} + {@code ProductBbqMapper}가 담당한다.
+ */
 @Getter
-@Entity
-@Table(name = "PRODUCT_BBQ")
-public class ProductBbq extends BaseEntity {
+public class ProductBbq {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "product_id", nullable = false, unique = true)
-    private Long productId;
-
-    @Column(name = "bbq_menu_id", nullable = false)
-    private Long bbqMenuId;
-
-    @Column(name = "bbq_category_id")
-    private Long bbqCategoryId;
-
-    @Column(name = "is_options_synced", nullable = false)
+    private final Long id;
+    private final Long productId;
+    private final Long bbqMenuId;
+    private final Long bbqCategoryId;
     private boolean optionsSynced;
 
-    private ProductBbq(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
+    private ProductBbq(Long id, Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
+        this.id = id;
         this.productId = productId;
         this.bbqMenuId = bbqMenuId;
         this.bbqCategoryId = bbqCategoryId;
@@ -43,7 +26,20 @@ public class ProductBbq extends BaseEntity {
     }
 
     public static ProductBbq of(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
-        return new ProductBbq(productId, bbqMenuId, bbqCategoryId, optionsSynced);
+        return new ProductBbq(null, productId, bbqMenuId, bbqCategoryId, optionsSynced);
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
+     */
+    public static ProductBbq reconstitute(
+        Long id,
+        Long productId,
+        Long bbqMenuId,
+        Long bbqCategoryId,
+        boolean optionsSynced
+    ) {
+        return new ProductBbq(id, productId, bbqMenuId, bbqCategoryId, optionsSynced);
     }
 
     public void markOptionsSynced() {

@@ -2,78 +2,45 @@ package com.tastyhouse.core.domain.product.domain.model;
 
 import java.math.BigDecimal;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.core.domain.product.domain.vo.ProductDiscountInfo;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
-import com.tastyhouse.core.shared.entity.BaseEntity;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * 상품 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ProductJpaEntity} + {@code ProductMapper}가 담당한다. 도메인이 프레임워크-프리이므로
+ * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code ProductRepository#save}를
+ * 호출해야 한다.
+ */
 @Getter
-@Entity
-@Table(name = "PRODUCT")
-public class Product extends BaseEntity {
+public class Product {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "shop_id", nullable = false)
-    private Long shopId;
-
-    @Column(name = "product_category_id")
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final Long shopId;
     private Long productCategoryId;
-
-    @Column(name = "name", nullable = false)
     private String name;
-
-    @Column(name = "description", length = 1000)
     private String description;
-
-    @Column(name = "original_price", nullable = false)
     private Integer originalPrice;
-
-    @Embedded
     private ProductDiscountInfo discountInfo;
-
-    @Column(name = "rating")
     private Double rating;
-
-    @Column(name = "review_count")
     private Integer reviewCount;
-
-    @Column(name = "is_representative")
     private boolean representative;
-
-    @Column(name = "spiciness")
     private Integer spiciness;
-
-    @Column(name = "is_sold_out", nullable = false)
     private boolean soldOut;
-
-    @Column(name = "is_visible", nullable = false)
     private boolean visible;
-
-    @Column(name = "sort", nullable = false)
     private Integer sort;
 
     private Product(
+        Long id,
         Long shopId,
         Long productCategoryId,
         String name,
         String description,
         Integer originalPrice,
-        Integer discountPrice,
-        BigDecimal discountRate,
+        ProductDiscountInfo discountInfo,
         Double rating,
         Integer reviewCount,
         boolean representative,
@@ -82,14 +49,15 @@ public class Product extends BaseEntity {
         boolean visible,
         Integer sort
     ) {
+        this.id = id;
         this.shopId = shopId;
         this.productCategoryId = productCategoryId;
         this.name = name;
         this.description = description;
         this.originalPrice = originalPrice;
-        this.discountInfo = ProductDiscountInfo.of(discountPrice, discountRate);
+        this.discountInfo = discountInfo;
         this.rating = rating;
-        this.reviewCount = reviewCount != null ? reviewCount : 0;
+        this.reviewCount = reviewCount;
         this.representative = representative;
         this.spiciness = spiciness;
         this.soldOut = soldOut;
@@ -114,10 +82,58 @@ public class Product extends BaseEntity {
         Integer sort
     ) {
         return new Product(
-            shopId, productCategoryId, name, description,
-            originalPrice, discountPrice, discountRate,
-            rating, reviewCount, representative, spiciness,
-            soldOut, visible, sort
+            null,
+            shopId,
+            productCategoryId,
+            name,
+            description,
+            originalPrice,
+            ProductDiscountInfo.of(discountPrice, discountRate),
+            rating,
+            reviewCount != null ? reviewCount : 0,
+            representative,
+            spiciness,
+            soldOut,
+            visible,
+            sort
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자를 주입한다.
+     */
+    public static Product reconstitute(
+        Long id,
+        Long shopId,
+        Long productCategoryId,
+        String name,
+        String description,
+        Integer originalPrice,
+        ProductDiscountInfo discountInfo,
+        Double rating,
+        Integer reviewCount,
+        boolean representative,
+        Integer spiciness,
+        boolean soldOut,
+        boolean visible,
+        Integer sort
+    ) {
+        return new Product(
+            id,
+            shopId,
+            productCategoryId,
+            name,
+            description,
+            originalPrice,
+            discountInfo,
+            rating,
+            reviewCount,
+            representative,
+            spiciness,
+            soldOut,
+            visible,
+            sort
         );
     }
 
