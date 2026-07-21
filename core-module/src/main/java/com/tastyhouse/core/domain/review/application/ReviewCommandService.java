@@ -51,7 +51,6 @@ public class ReviewCommandService {
     private final ReviewLikeRepository reviewLikeRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
-    // TODO: Shop BC 미전환 과도기 허용 — Shop 도메인 DDD 전환 후 ShopTagQueryService 참조로 교체
     private final TagRepository tagRepository;
     private final ApplicationEventPublisher eventPublisher;
 
