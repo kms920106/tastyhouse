@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.exception;
+package com.tastyhouse.adminapi.exception;
 
 import com.tastyhouse.core.exception.ErrorCode;
 

@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-02 | Updated: 2026-07-17 -->
+<!-- Generated: 2026-06-02 | Updated: 2026-07-21 -->
 
 # admin-api
 
@@ -36,6 +36,7 @@
 - **`@PathVariable` 주 리소스는 `id`로 통일한다**: 컨트롤러가 `@RequestMapping`으로 이미 그 도메인에 스코프되므로 주 리소스 식별자는 단건 CRUD·중첩 하위 경로 모두 bare `id`로 쓰고(예: `/coupons/v1/{id}`, `/coupons/v1/{id}/issues`) 한 컨트롤러 안에서 `id`/`{도메인}Id` 혼재를 금지한다. 다른 애그리거트를 함께 참조하는 경우만 그 식별자를 `{도메인}Id`로 구분한다. 타입은 `Long` 유지(`@PathVariable Long id`) 후 Service에서 `XxxId.of(...)`로 승격한다(reference: `coupon/CouponApiController`). 상세는 루트 CLAUDE.md 참고.
 - **중첩 경로의 부모 `@PathVariable`이 완전히 미사용이면 경로를 평탄화한다**: 하위 리소스 식별자가 전역 유니크 PK라 부모 없이 단독 식별이 가능하고, 핸들러·`{도메인}Service`·core 어디서도 부모 `id`를 쓰지 않는다면(소속 검증 로직 없음) `/v1/{id}/{하위리소스}/{하위id}` 경로에서 부모 세그먼트를 제거해 `/v1/{하위리소스}/{하위id}`로 바꾸고 미사용 `@PathVariable`을 제거한다(reference: `event/EventApiController#deleteWinner`). 부모 id를 소속 검증에 실제로 쓰는 다른 핸들러는 대상이 아니다. 상세는 루트 CLAUDE.md 참고.
 - **Request/Response record는 `@Schema`로 완전히 문서화한다**: 타입 레벨에 `@Schema(description = ...)`, 모든 필드에 `@Schema(description = ..., example = ...)`를 붙인다(컬렉션·중첩 record 필드는 example 생략 가능하나 description은 필수). Request는 Bean Validation 어노테이션 다음 줄에 `@Schema`를 두고 필수 필드는 `requiredMode = Schema.RequiredMode.REQUIRED`로 표시하며, enum 후보 `String`/`List<String>` 필드는 기존 `allowableValues = {...}`에 `description`을 병기한다(reference: `notice/request/NoticeUpdateRequest`, `banner/response/BannerListItemResponse`). 상세는 루트 CLAUDE.md 참고.
+- **Rate Limit은 전면 적용하지 않고 `auth` 로그인 엔드포인트에만 최소 적용한다 (결정 근거)**: admin-api는 인증된 소수 관리자만 접근하는 내부 관리용 API이므로 일반 사용자 트래픽을 겨냥한 전면적 rate limit(검색·조회 API 등)은 불필요하다고 판단했다 — web-api처럼 불특정 다수가 호출하는 공개/준공개 엔드포인트가 없고, 트래픽 규모도 본질적으로 다르다. 다만 `auth/AuthApiController#login`만은 예외로 두었다: 로그인은 인증 이전 단계라 "인증된 관리자만 접근"이라는 전제가 적용되지 않고, 무차별 대입(brute-force)으로 관리자 계정을 탈취당하면 서비스 전체에 영향을 미치는 고위험 엔드포인트이기 때문이다. 이 판단에 따라 `web-api`의 `ratelimit/` 패키지(`RateLimit`/`RateLimitAspect`/`RateLimiterService`/`RateLimitKeyType`) 구조를 그대로 참고해 `adminapi.ratelimit` 패키지에 최소 버전을 두고, `AuthApiController#login`에만 `@RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:admin_login")`을 적용했다(web-api `login`과 동일한 제한값). `RateLimitException`은 `adminapi.exception` 패키지에 두고 `GlobalExceptionHandler`에서 429로 처리한다(web-api와 동일 패턴). **web-api와 동일 코드가 두 모듈에 중복되는 것은 감수**했다 — 두 모듈 다 공용 인프라 모듈에 대한 의존이 없는 현재 구조에서 이 작업만을 위해 신규 공용 모듈을 도입하는 것은 과잉이라고 판단했다(공용화 여부는 별도 작업지시서의 common 정리 범위). `admin-api/build.gradle`은 이미 `spring-boot-starter-aop`(및 `spring-boot-starter-data-redis`)를 갖고 있어 추가 의존성 도입 없이 구현했다. 다른 도메인(banner/coupon/notice 등)의 CRUD 엔드포인트는 이 결정에 따라 rate limit 대상이 아니다.
 
 ### Testing Requirements
 - `@SpringBootTest` 기반 컨트롤러 검증.

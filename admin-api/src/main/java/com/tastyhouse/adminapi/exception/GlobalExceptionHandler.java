@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
 
 @Slf4j
 @RestControllerAdvice
@@ -26,6 +27,16 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleBusinessException(BusinessException e) {
         log.warn("BusinessException [{}]: {}", e.getErrorCode().getCode(), e.getMessage());
         return problemDetail(e.getErrorCode().getHttpStatusCode(), e.getErrorCode().getCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(RateLimitException.class)
+    public ProblemDetail handleRateLimitException(RateLimitException e) {
+        log.warn("RateLimitException: {}", e.getMessage());
+        return problemDetail(
+            HttpStatus.TOO_MANY_REQUESTS.value(),
+            ErrorCode.RATE_LIMIT_EXCEEDED.getCode(),
+            ErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()
+        );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

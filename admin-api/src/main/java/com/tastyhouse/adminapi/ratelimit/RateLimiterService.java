@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.ratelimit;
+package com.tastyhouse.adminapi.ratelimit;
 
 import java.time.Duration;
 import java.util.List;

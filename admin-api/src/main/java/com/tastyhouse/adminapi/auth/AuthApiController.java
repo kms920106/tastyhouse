@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
+import com.tastyhouse.adminapi.ratelimit.RateLimit;
+import com.tastyhouse.adminapi.ratelimit.RateLimitKeyType;
 import com.tastyhouse.adminapi.auth.request.LoginRequest;
 import com.tastyhouse.adminapi.auth.request.RefreshTokenRequest;
 import com.tastyhouse.adminapi.auth.response.JwtResponse;
@@ -25,6 +27,7 @@ public class AuthApiController {
     private final AuthService authService;
 
     @Operation(summary = "관리자 로그인", description = "아이디/비밀번호 인증 후 JWT(Access/Refresh)를 발급합니다.")
+    @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:admin_login")
     @PostMapping("/v1/login")
     public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
