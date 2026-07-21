@@ -84,7 +84,7 @@ public class ReservationService {
     public ReservationDetailResponse getReservationDetail(Long memberId, Long reservationId) {
         ReservationResult result = reservationQueryService.findDetail(MemberId.of(memberId), ReservationId.of(reservationId));
         Member reserver = memberQueryService.getById(result.memberId());
-        String phoneNumber = reserver.getPhoneNumber() != null ? reserver.getPhoneNumber().getValue() : null;
+        String phoneNumber = reserver.getPhoneNumber() != null ? reserver.getPhoneNumber().value() : null;
         return ReservationDetailResponse.from(
             result.id().value(),
             result.shopId(),

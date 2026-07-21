@@ -28,7 +28,7 @@ class PhoneVerificationTest {
         assertThat(verification.getId()).isNull();
         assertThat(verification.getPhoneNumber()).isEqualTo(new PhoneNumber("01012345678"));
         assertThat(verification.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
-        assertThat(verification.getVerificationCode().getValue()).matches("^[0-9]{6}$");
+        assertThat(verification.getVerificationCode().value()).matches("^[0-9]{6}$");
         assertThat(verification.getVerifiedAt()).isNull();
         assertThat(verification.getCreatedAt()).isNotNull();
         assertThat(verification.getExpiresAt()).isAfter(verification.getCreatedAt());

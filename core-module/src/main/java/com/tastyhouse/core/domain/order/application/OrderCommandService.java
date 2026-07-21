@@ -72,7 +72,7 @@ public class OrderCommandService {
             command.orderMethod(),
             OrderStatus.PENDING,
             member.getFullName(),
-            member.getPhoneNumber().getValue(),
+            member.getPhoneNumber().value(),
             member.getUsername(),
             0, 0, 0, 0, 0, 0, null, 0, 0
         );

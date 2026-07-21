@@ -59,7 +59,7 @@ public class MemberService {
             member.getUsername(),
             member.getNickname(),
             member.getFullName(),
-            member.getPhoneNumber() != null ? member.getPhoneNumber().toString() : null,
+            member.getPhoneNumber() != null ? member.getPhoneNumber().value() : null,
             member.getGender().name(),
             member.getBirthDate(),
             member.getMemberGrade().name(),

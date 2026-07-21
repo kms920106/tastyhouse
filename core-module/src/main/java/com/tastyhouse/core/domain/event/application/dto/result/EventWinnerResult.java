@@ -19,7 +19,7 @@ public record EventWinnerResult(
             winner.getEventId(),
             winner.getRankNo(),
             winner.getWinnerName(),
-            winner.getPhoneNumber().getValue(),
+            winner.getPhoneNumber().value(),
             winner.getAnnouncedAt()
         );
     }

@@ -27,7 +27,7 @@ class EmailVerificationTest {
         assertThat(verification.getId()).isNull();
         assertThat(verification.getEmail()).isEqualTo("test@example.com");
         assertThat(verification.getStatus()).isEqualTo(EmailVerificationStatus.PENDING);
-        assertThat(verification.getVerificationCode().getValue()).matches("^[0-9]{6}$");
+        assertThat(verification.getVerificationCode().value()).matches("^[0-9]{6}$");
         assertThat(verification.getVerifiedAt()).isNull();
         assertThat(verification.getCreatedAt()).isNotNull();
         assertThat(verification.getExpiresAt()).isAfter(verification.getCreatedAt());

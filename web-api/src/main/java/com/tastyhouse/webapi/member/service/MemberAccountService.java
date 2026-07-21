@@ -188,7 +188,7 @@ public class MemberAccountService {
         return MemberPersonalInfoResponse.of(
             member.getUsername(),
             member.getFullName(),
-            member.getPhoneNumber().getValue(),
+            member.getPhoneNumber().value(),
             member.getBirthDate(),
             member.getGender().name(),
             member.isPushNotificationEnabled(),

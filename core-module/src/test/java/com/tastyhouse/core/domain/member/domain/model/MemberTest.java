@@ -33,7 +33,7 @@ class MemberTest {
         assertThat(member.getFullName()).isEqualTo("홍길동");
         assertThat(member.getGender()).isEqualTo(MemberGender.MALE);
         assertThat(member.getBirthDate()).isEqualTo(19900101);
-        assertThat(member.getPhoneNumber().getValue()).isEqualTo("01012345678");
+        assertThat(member.getPhoneNumber().value()).isEqualTo("01012345678");
         assertThat(member.getMemberGrade()).isEqualTo(MemberGrade.NEWCOMER);
         assertThat(member.getMemberStatus()).isEqualTo(MemberStatus.ACTIVE);
         assertThat(member.getCreatedAt()).isNull();
@@ -79,7 +79,7 @@ class MemberTest {
         member.updatePersonalInfo("새이름", "01099998888", 20000101, MemberGender.FEMALE, false, false, false);
 
         assertThat(member.getFullName()).isEqualTo("새이름");
-        assertThat(member.getPhoneNumber().getValue()).isEqualTo("01099998888");
+        assertThat(member.getPhoneNumber().value()).isEqualTo("01099998888");
         assertThat(member.getBirthDate()).isEqualTo(20000101);
         assertThat(member.getGender()).isEqualTo(MemberGender.FEMALE);
         assertThat(member.isPushNotificationEnabled()).isFalse();

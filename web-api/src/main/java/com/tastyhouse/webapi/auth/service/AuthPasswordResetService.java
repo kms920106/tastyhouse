@@ -46,7 +46,7 @@ public class AuthPasswordResetService {
         emailVerificationRepository.expireAllPendingByEmail(username);
 
         EmailVerification verification = EmailVerification.create(username);
-        String codeValue = verification.getVerificationCode().getValue();
+        String codeValue = verification.getVerificationCode().value();
 
         emailVerificationRepository.save(verification);
 

@@ -27,7 +27,7 @@ class EventWinnerTest {
         assertThat(winner.getEventId()).isEqualTo(1L);
         assertThat(winner.getRankNo()).isEqualTo(1);
         assertThat(winner.getWinnerName()).isEqualTo("당첨자");
-        assertThat(winner.getPhoneNumber().getValue()).isEqualTo("01012345678");
+        assertThat(winner.getPhoneNumber().value()).isEqualTo("01012345678");
         assertThat(winner.getAnnouncedAt()).isEqualTo(announcedAt);
         assertThat(winner.isDeleted()).isFalse();
     }
