@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.scheduler;
+package com.tastyhouse.batch.scheduler;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

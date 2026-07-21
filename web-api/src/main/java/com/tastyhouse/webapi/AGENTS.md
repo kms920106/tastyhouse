@@ -14,7 +14,6 @@
 | `exception/` | 중앙화된 예외 처리. GlobalExceptionHandler가 BusinessException (core-module), ExternalApiException (external-api), RateLimitException, Security 예외, 유효성 검사 예외를 처리하며 ApiResponse 형식으로 응답. UnauthorizedException (web-api 로컬)는 401 매핑. |
 | `logging/` | AOP 기반 요청/응답 로깅. ApiLoggingFilter (서블릿 필터로 전체 요청 추적), ApiLoggingAspect (컨트롤러 진입 로깅), SensitiveFieldMasker (민감정보 마스킹). |
 | `ratelimit/` | 분산 Rate Limiting. RateLimit 애노테이션, RateLimitAspect(AOP), RateLimiterService(Redis 기반), RateLimitKeyType(사용자/IP/전역). |
-| `scheduler/` | 스케줄된 배치 작업. GradeScheduler (회원 등급 계산), RankScheduler (순위 집계), ProductScheduler (상품 동기화), SearchKeywordScheduler (인기 검색어 집계), 각각 Service 클래스 분리. |
 | `security/` | Spring Security 보조 컴포넌트. CurrentUser (메서드 파라미터 주입 애노테이션). JwtAccessDeniedHandler, JwtAuthenticationEntryPoint, CustomUserDetailsService, CustomUserDetails는 config/security/ 에 위치. |
 | `common/` | 공통 유틸. ApiResponse (모든 응답의 상위 래퍼, success/error/data), PageRequest (페이징 요청). 페이징 응답은 core-module의 PageResult<T>를 그대로 사용. |
 
@@ -43,7 +42,6 @@
 | `search/` | 통합 검색 및 검색 로그 기록 API |
 | `shop/` | 가게 조회, 상세 정보, 즐겨찾기, 사진/카테고리 조회 API (Place에서 Shop으로 재명명됨) |
 | `verification/` | 사용자 인증(이메일/SMS 인증) 및 검증 API |
-| `crawling/bbq/` | BBQ 외부 데이터 크롤링 (외부-api 연동 지원) |
 
 ## For AI Agents
 

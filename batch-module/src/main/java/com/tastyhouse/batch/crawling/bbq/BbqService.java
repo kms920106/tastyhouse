@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.crawling.bbq;
+package com.tastyhouse.batch.crawling.bbq;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,10 +21,10 @@ import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;
 import com.tastyhouse.external.file.RemoteImageDownloader;
-import com.tastyhouse.webapi.crawling.bbq.response.BbqProductCategoryResponse;
-import com.tastyhouse.webapi.crawling.bbq.response.BbqProductResponse;
-import com.tastyhouse.webapi.crawling.bbq.response.BbqProductSubOptionResponse;
-import com.tastyhouse.webapi.crawling.bbq.response.SubOptionItemDetailResponse;
+import com.tastyhouse.batch.crawling.bbq.response.BbqProductCategoryResponse;
+import com.tastyhouse.batch.crawling.bbq.response.BbqProductResponse;
+import com.tastyhouse.batch.crawling.bbq.response.BbqProductSubOptionResponse;
+import com.tastyhouse.batch.crawling.bbq.response.SubOptionItemDetailResponse;
 
 @Service
 @RequiredArgsConstructor

@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.scheduler;
+package com.tastyhouse.batch.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

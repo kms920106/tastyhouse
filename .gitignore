@@ -33,7 +33,7 @@ Thumbs.db
 # Claude
 .claude/settings.local.json
 RESULT.md
-md/REFACTORING.md
+docs/REFACTORING.md
 
 # Cursor
 .vscode/
