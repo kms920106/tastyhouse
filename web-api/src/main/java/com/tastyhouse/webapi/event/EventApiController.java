@@ -41,12 +41,12 @@ public class EventApiController {
     }
 
     @Operation(summary = "이벤트 상세 조회", description = "이벤트의 상세 정보를 조회합니다.")
-    @GetMapping("/v1/{eventId}")
+    @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<EventDetailResponse>> getEventDetail(
         @Parameter(description = "이벤트 ID", example = "1")
-        @PathVariable Long eventId
+        @PathVariable Long id
     ) {
-        EventDetailResponse event = eventService.getEventDetail(eventId);
+        EventDetailResponse event = eventService.getEventDetail(id);
         return ResponseEntity.ok(ApiResponse.success(event));
     }
 

@@ -74,56 +74,56 @@ public class ReservationApiController {
     }
 
     @Operation(summary = "예약 완료 상세 조회", description = "본인의 예약 상세를 조회합니다.")
-    @GetMapping("/v1/{reservationId}/complete")
+    @GetMapping("/v1/{id}/complete")
     public ResponseEntity<ApiResponse<ReservationCompleteDetailResponse>> getDetail(
-        @PathVariable Long reservationId,
+        @PathVariable Long id,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReservationCompleteDetailResponse response = reservationService.getDetail(userDetails.getMemberId(), reservationId);
+        ReservationCompleteDetailResponse response = reservationService.getDetail(userDetails.getMemberId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "예약 상세 조회", description = "본인의 예약 단건 상세 정보를 조회합니다.")
-    @GetMapping("/v1/{reservationId}")
+    @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservationDetail(
-        @PathVariable Long reservationId,
+        @PathVariable Long id,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReservationDetailResponse response = reservationService.getReservationDetail(userDetails.getMemberId(), reservationId);
+        ReservationDetailResponse response = reservationService.getReservationDetail(userDetails.getMemberId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "예약 취소", description = "본인의 예약을 취소합니다. (PENDING|CONFIRMED -> CANCELED)")
-    @PatchMapping("/v1/{reservationId}/cancel")
+    @PatchMapping("/v1/{id}/cancel")
     public ResponseEntity<ApiResponse<Void>> cancel(
-        @PathVariable Long reservationId,
+        @PathVariable Long id,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        reservationService.cancel(reservationId, userDetails.getMemberId());
+        reservationService.cancel(id, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "예약 승인(점주)", description = "점주가 예약을 승인합니다. (PENDING -> CONFIRMED)")
-    @PatchMapping("/v1/{reservationId}/confirm")
-    public ResponseEntity<ApiResponse<ReservationResponse>> confirm(@PathVariable Long reservationId) {
+    @PatchMapping("/v1/{id}/confirm")
+    public ResponseEntity<ApiResponse<ReservationResponse>> confirm(@PathVariable Long id) {
         // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
-        ReservationResponse response = reservationService.confirm(reservationId);
+        ReservationResponse response = reservationService.confirm(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "예약 거절(점주)", description = "점주가 예약을 거절합니다. (PENDING -> REJECTED, 정원 반납)")
-    @PatchMapping("/v1/{reservationId}/reject")
-    public ResponseEntity<ApiResponse<ReservationResponse>> reject(@PathVariable Long reservationId) {
+    @PatchMapping("/v1/{id}/reject")
+    public ResponseEntity<ApiResponse<ReservationResponse>> reject(@PathVariable Long id) {
         // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
-        ReservationResponse response = reservationService.reject(reservationId);
+        ReservationResponse response = reservationService.reject(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "방문 완료(점주)", description = "점주가 방문 완료 처리합니다. (CONFIRMED -> COMPLETED)")
-    @PatchMapping("/v1/{reservationId}/complete")
-    public ResponseEntity<ApiResponse<ReservationResponse>> complete(@PathVariable Long reservationId) {
+    @PatchMapping("/v1/{id}/complete")
+    public ResponseEntity<ApiResponse<ReservationResponse>> complete(@PathVariable Long id) {
         // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
-        ReservationResponse response = reservationService.complete(reservationId);
+        ReservationResponse response = reservationService.complete(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

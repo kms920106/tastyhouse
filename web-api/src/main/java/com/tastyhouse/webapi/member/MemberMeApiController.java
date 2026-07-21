@@ -42,14 +42,14 @@ import com.tastyhouse.webapi.member.response.MemberVerifyPasswordResponse;
 @Tag(name = "Member Me", description = "내 정보 관리 API")
 public class MemberMeApiController {
 
-    private final MemberFacade memberFacade;
+    private final MemberService memberService;
 
     @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보(회원 ID, 닉네임, 등급, 상태메시지, 프로필 이미지)를 조회합니다.")
     @GetMapping("/v1/me/profile")
     public ResponseEntity<ApiResponse<MyProfileResponse>> getMyProfile(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyProfile(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMyProfile(userDetails.getMemberId())));
     }
 
     @Operation(summary = "프로필 수정", description = "로그인한 회원의 프로필 정보를 수정합니다. (닉네임, 상태메시지, 프로필 이미지)")
@@ -58,7 +58,7 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @RequestBody UpdateProfileRequest request
     ) {
-        memberFacade.updateMyProfile(userDetails.getMemberId(), request.nickname(), request.statusMessage(), request.profileImageFileId());
+        memberService.updateMyProfile(userDetails.getMemberId(), request.nickname(), request.statusMessage(), request.profileImageFileId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -67,7 +67,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MemberStatsResponse>> getMyStats(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMemberStats(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMemberStats(userDetails.getMemberId())));
     }
 
     @Operation(summary = "비밀번호 인증 (개인정보 수정 진입)", description = "개인정보 수정 화면 진입 전 현재 비밀번호를 검증합니다. 검증 성공 시 5분간 유효한 verifyToken을 반환합니다.")
@@ -76,7 +76,7 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @RequestBody VerifyPasswordRequest request
     ) {
-        MemberVerifyPasswordResponse response = memberFacade.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password());
+        MemberVerifyPasswordResponse response = memberService.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -85,7 +85,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MemberPersonalInfoResponse>> getMyPersonalInfo(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getPersonalInfo(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getPersonalInfo(userDetails.getMemberId())));
     }
 
     @Operation(
@@ -101,7 +101,7 @@ public class MemberMeApiController {
         @RequestHeader(value = "X-Phone-Verify-Token", required = false) String phoneVerifyToken,
         @Valid @RequestBody UpdatePersonalInfoRequest request
     ) {
-        memberFacade.updatePersonalInfo(
+        memberService.updatePersonalInfo(
             userDetails.getMemberId(), verifyToken, phoneVerifyToken,
             request.fullName(), request.phoneNumber(), request.birthDate(), request.gender(),
             request.pushNotificationEnabled(), request.marketingInfoEnabled(), request.eventInfoEnabled()
@@ -114,7 +114,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyGradeResponse>> getMyGrade(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyGrade(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMyGrade(userDetails.getMemberId())));
     }
 
     @Operation(summary = "보유 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 모든 쿠폰을 조회합니다. (사용 여부 무관)")
@@ -122,7 +122,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyCoupons(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyCoupons(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMyCoupons(userDetails.getMemberId())));
     }
 
     @Operation(summary = "사용 가능한 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 사용 가능한 쿠폰을 조회합니다. (미사용 + 유효기간 내)")
@@ -130,7 +130,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyAvailableCoupons(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyAvailableCoupons(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMyAvailableCoupons(userDetails.getMemberId())));
     }
 
     @Operation(summary = "내가 작성한 리뷰 개수 조회", description = "로그인한 회원이 작성한 리뷰 개수를 조회합니다.")
@@ -138,7 +138,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyReviewCountResponse>> getMyReviewCount(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberFacade.getMyReviewCount(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(memberService.getMyReviewCount(userDetails.getMemberId())));
     }
 
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "로그인한 회원이 작성한 리뷰 목록을 페이징하여 조회합니다.")
@@ -147,7 +147,7 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = memberFacade.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var pageResult = memberService.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -162,7 +162,7 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = memberFacade.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var pageResult = memberService.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -181,7 +181,7 @@ public class MemberMeApiController {
         @RequestHeader("X-Verify-Token") String verifyToken,
         @Valid @RequestBody UpdatePasswordRequest request
     ) {
-        memberFacade.updatePassword(userDetails.getMemberId(), verifyToken, request.newPassword(), request.newPasswordConfirm());
+        memberService.updatePassword(userDetails.getMemberId(), verifyToken, request.newPassword(), request.newPasswordConfirm());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -192,7 +192,7 @@ public class MemberMeApiController {
         @RequestHeader("Authorization") String bearerToken,
         @Valid @RequestBody WithdrawMemberRequest request
     ) {
-        memberFacade.withdrawMember(userDetails.getMemberId(), request.reason(), request.reasonDetail(), bearerToken);
+        memberService.withdrawMember(userDetails.getMemberId(), request.reason(), request.reasonDetail(), bearerToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

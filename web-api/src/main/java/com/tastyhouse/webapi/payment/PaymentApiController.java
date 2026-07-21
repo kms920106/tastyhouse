@@ -83,36 +83,36 @@ public class PaymentApiController {
     }
 
     @Operation(summary = "결제 취소", description = "결제를 취소합니다.")
-    @PostMapping("/v1/{paymentId}/cancel")
+    @PostMapping("/v1/{id}/cancel")
     public ResponseEntity<ApiResponse<PaymentCancelResponse>> cancelPayment(
-        @PathVariable Long paymentId,
+        @PathVariable Long id,
         @Valid @RequestBody PaymentCancelRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentCancelResponse response = paymentService.cancelPayment(
-            userDetails.getMemberId(), paymentId, request.cancelReason());
+            userDetails.getMemberId(), id, request.cancelReason());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "현장결제 완료", description = "현장결제를 완료 처리합니다. 구매자가 직접 호출합니다.")
-    @PostMapping("/v1/{paymentId}/complete")
+    @PostMapping("/v1/{id}/complete")
     public ResponseEntity<ApiResponse<PaymentResponse>> completeOnSitePayment(
-        @PathVariable Long paymentId,
+        @PathVariable Long id,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.completeOnSitePayment(userDetails.getMemberId(), paymentId);
+        PaymentResponse response = paymentService.completeOnSitePayment(userDetails.getMemberId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "환불 요청", description = "결제에 대한 환불을 요청합니다.")
-    @PostMapping("/v1/{paymentId}/refund")
+    @PostMapping("/v1/{id}/refund")
     public ResponseEntity<ApiResponse<PaymentRefundResponse>> requestRefund(
-        @PathVariable Long paymentId,
+        @PathVariable Long id,
         @Valid @RequestBody RefundRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentRefundResponse response = paymentService.requestRefund(
-            userDetails.getMemberId(), paymentId, request.refundAmount(), request.refundReason());
+            userDetails.getMemberId(), id, request.refundAmount(), request.refundReason());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

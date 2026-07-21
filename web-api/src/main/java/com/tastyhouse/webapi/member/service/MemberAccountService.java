@@ -35,7 +35,7 @@ public class MemberAccountService {
     private final FileService fileService;
     private final PasswordEncoder passwordEncoder;
 
-    // 회원가입 (토큰 검증은 MemberFacade에서 MemberAuthService를 통해 선행)
+    // 회원가입 (토큰 검증은 MemberService에서 MemberAuthService를 통해 선행)
     @Transactional
     public void signUp(
         String username,
@@ -65,7 +65,7 @@ public class MemberAccountService {
         );
     }
 
-    // 새 비밀번호 확인 일치 여부를 검증한 후 변경 (기존 비번 동일 여부는 MemberFacade에서 MemberAuthService를 통해 선행)
+    // 새 비밀번호 확인 일치 여부를 검증한 후 변경 (기존 비번 동일 여부는 MemberService에서 MemberAuthService를 통해 선행)
     @Transactional
     public void updatePassword(
         Long memberId,

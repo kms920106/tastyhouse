@@ -73,13 +73,13 @@ public class OrderApiController {
     }
 
     @Operation(summary = "주문 상세 조회", description = "주문 상세 정보를 조회합니다.")
-    @GetMapping("/v1/{orderId}")
+    @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderDetail(
-        @PathVariable Long orderId,
+        @PathVariable Long id,
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
-        OrderDetailResponse response = orderService.getOrderDetail(memberId, orderId);
+        OrderDetailResponse response = orderService.getOrderDetail(memberId, id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

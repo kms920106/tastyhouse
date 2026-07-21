@@ -31,7 +31,7 @@ import com.tastyhouse.webapi.member.service.MemberShopService;
 
 @Component
 @RequiredArgsConstructor
-public class MemberFacade {
+public class MemberService {
 
     private final MemberAccountService memberAccountService;
     private final MemberAuthService memberAuthService;

@@ -17,14 +17,14 @@ import com.tastyhouse.webapi.auth.response.AuthPhoneLoginResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialLinkResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
 import com.tastyhouse.webapi.auth.service.AuthPasswordResetService;
-import com.tastyhouse.webapi.auth.service.AuthService;
+import com.tastyhouse.webapi.auth.service.CredentialLoginService;
 import com.tastyhouse.webapi.auth.service.PhoneLoginService;
 
 @Component
 @RequiredArgsConstructor
-public class AuthFacade {
+public class AuthService {
 
-    private final AuthService authService;
+    private final CredentialLoginService credentialLoginService;
     private final AuthPasswordResetService authPasswordResetService;
     private final KakaoSocialLoginService kakaoSocialLoginService;
     private final NaverSocialLoginService naverSocialLoginService;
@@ -40,7 +40,7 @@ public class AuthFacade {
                        boolean marketingInfoEnabled, boolean eventInfoEnabled,
                        String phoneVerifyToken, String emailVerifyToken,
                        String referrerNickname) {
-        authService.signUp(
+        credentialLoginService.signUp(
             username, password, nickname, fullName, MemberGender.from(gender), birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
             phoneVerifyToken, emailVerifyToken, referrerNickname
@@ -49,17 +49,17 @@ public class AuthFacade {
 
     // 로그인
     public AuthJwtResponse login(String username, String password, boolean rememberMe) {
-        return authService.login(username, password, rememberMe);
+        return credentialLoginService.login(username, password, rememberMe);
     }
 
     // 토큰 갱신
     public AuthJwtResponse refresh(String refreshToken) {
-        return authService.refresh(refreshToken);
+        return credentialLoginService.refresh(refreshToken);
     }
 
     // 로그아웃
     public void logout(String bearerToken) {
-        authService.logout(bearerToken);
+        credentialLoginService.logout(bearerToken);
     }
 
     // 비밀번호 찾기 - 인증코드 발송

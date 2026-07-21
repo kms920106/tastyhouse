@@ -15,7 +15,7 @@ import com.tastyhouse.webapi.member.service.MemberAuthService;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class CredentialLoginService {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.search.application.SearchKeywordQueryService;
 import com.tastyhouse.core.domain.search.application.SearchResultQueryService;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
@@ -36,7 +38,8 @@ public class SearchService {
             .toList();
     }
 
-    public PageResult<ProductSummaryResponse> searchMenus(String keyword, int page, int size) {
+    public PageResult<ProductSummaryResponse> searchMenus(String query, int page, int size) {
+        String keyword = validateKeyword(query);
         return searchResultQueryService.searchProducts(keyword, page, size)
             .map(dto -> ProductSummaryResponse.from(
                 dto.id(),
@@ -52,12 +55,14 @@ public class SearchService {
             ));
     }
 
-    public PageResult<SearchReviewListItemResponse> searchReviews(String keyword, int page, int size) {
+    public PageResult<SearchReviewListItemResponse> searchReviews(String query, int page, int size) {
+        String keyword = validateKeyword(query);
         return searchResultQueryService.searchReviews(keyword, page, size)
             .map(dto -> SearchReviewListItemResponse.from(dto.id(), fileService.getUrlByPath(dto.imageFilePath())));
     }
 
-    public PageResult<SearchShopListItemResponse> searchShopsPaged(String keyword, Long memberId, int page, int size) {
+    public PageResult<SearchShopListItemResponse> searchShopsPaged(String query, Long memberId, int page, int size) {
+        String keyword = validateKeyword(query);
         return searchResultQueryService.searchShopsWithBookmark(keyword, MemberId.of(memberId), page, size)
             .map(dto -> SearchShopListItemResponse.from(
                 dto.shopId(),
@@ -69,7 +74,8 @@ public class SearchService {
             ));
     }
 
-    public PageResult<SearchShopListItemResponse> searchShopsPublic(String keyword, int page, int size) {
+    public PageResult<SearchShopListItemResponse> searchShopsPublic(String query, int page, int size) {
+        String keyword = validateKeyword(query);
         return searchResultQueryService.searchShopsWithBookmark(keyword, null, page, size)
             .map(dto -> SearchShopListItemResponse.from(
                 dto.shopId(),
@@ -79,5 +85,13 @@ public class SearchService {
                 dto.imageUrl() != null ? fileService.getUrlByPath(dto.imageUrl()) : null,
                 dto.bookmarked()
             ));
+    }
+
+    private String validateKeyword(String query) {
+        String keyword = query.strip();
+        if (keyword.isBlank()) {
+            throw new BusinessException(ErrorCode.SEARCH_KEYWORD_BLANK);
+        }
+        return keyword;
     }
 }

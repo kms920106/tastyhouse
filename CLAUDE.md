@@ -109,13 +109,13 @@ reference 구현: `admin-api`/`web-api` 공통 — `common/PaginationResponse.ja
 
 ## DTO 조립 규칙 (`new` 직접 호출 지양)
 
-컨트롤러·Facade·서비스 등 **호출부에서 DTO(command / condition / response record)를 `new`로 직접 조립하지 않습니다.** 대신 변환 책임을 해당 타입 또는 소스 타입으로 위임합니다. 이는 필드 추가 시 호출부 연쇄 수정을 막고, 조립 로직을 한 곳에 모아 가독성과 응집도를 높입니다.
+컨트롤러·Service 등 **호출부에서 DTO(command / condition / response record)를 `new`로 직접 조립하지 않습니다.** 대신 변환 책임을 해당 타입 또는 소스 타입으로 위임합니다. 이는 필드 추가 시 호출부 연쇄 수정을 막고, 조립 로직을 한 곳에 모아 가독성과 응집도를 높입니다.
 
 - **원시 파라미터 → command/VO/condition 변환**: command·condition 등 대상 record 자신에 정적 팩토리 `of(...)`를 두고 `Xxx.of(a, b, c)`로 생성합니다. Request DTO는 command 생성 책임을 지지 않는 순수 데이터 홀더(검증 + Swagger 스키마)로 유지하고, `toCommand()` 같은 변환 메서드를 두지 않습니다.
-- **호출 경로**: 컨트롤러가 Request를 개별 원시 필드로 언패킹(`request.title()` 등)해 Facade/서비스에 전달하고, Facade/서비스는 그 원시 파라미터로 `Command.of(...)`를 호출합니다. Facade가 원시 파라미터만 받으므로 admin-api Request 타입에 의존하지 않습니다.
-- **도메인/DTO → 응답 변환 (result 객체가 아니라 개별 원시타입으로 수신)**: 응답 record의 정적 팩토리 `from(...)`은 core-module의 result 객체(`XxxResult`)를 통째로 받지 않고, **result의 각 필드를 원시타입(String/Long/Integer/LocalDateTime 등)으로 낱개 언패킹해서 받습니다.** `XxxResponse.from(id, title, content, ...)` 형태이며 `XxxResponse` 파일 자체는 `com.tastyhouse.core.*`를 import하지 않습니다(컨트롤러·Request record와 동일하게 Response record도 core-free). result를 낱개로 풀어 넘기는 책임은 이 Response를 호출하는 Facade/Service가 지며, Facade/Service에 private 매퍼 메서드(`toXxxResponse(XxxResult dto)`)를 두어 `dto.id()`, `dto.title()`처럼 이름 기반으로 안전하게 꺼낸 뒤 `XxxResponse.from(...)`에 위치 기반으로 전달합니다. 중첩 조립(리스트 필드, 하위 Response 필드)이 있으면 그 조립도 Facade/Service의 private 매퍼로 나눕니다.
+- **호출 경로**: 컨트롤러가 Request를 개별 원시 필드로 언패킹(`request.title()` 등)해 Service에 전달하고, Service는 그 원시 파라미터로 `Command.of(...)`를 호출합니다. Service가 원시 파라미터만 받으므로 admin-api Request 타입에 의존하지 않습니다.
+- **도메인/DTO → 응답 변환 (result 객체가 아니라 개별 원시타입으로 수신)**: 응답 record의 정적 팩토리 `from(...)`은 core-module의 result 객체(`XxxResult`)를 통째로 받지 않고, **result의 각 필드를 원시타입(String/Long/Integer/LocalDateTime 등)으로 낱개 언패킹해서 받습니다.** `XxxResponse.from(id, title, content, ...)` 형태이며 `XxxResponse` 파일 자체는 `com.tastyhouse.core.*`를 import하지 않습니다(컨트롤러·Request record와 동일하게 Response record도 core-free). result를 낱개로 풀어 넘기는 책임은 이 Response를 호출하는 Service가 지며, Service에 private 매퍼 메서드(`toXxxResponse(XxxResult dto)`)를 두어 `dto.id()`, `dto.title()`처럼 이름 기반으로 안전하게 꺼낸 뒤 `XxxResponse.from(...)`에 위치 기반으로 전달합니다. 중첩 조립(리스트 필드, 하위 Response 필드)이 있으면 그 조립도 Service의 private 매퍼로 나눕니다.
   - **예외 — `PageResult<T>` 변환은 그대로 `from(pageResult)`**: `PaginationResponse.from(PageResult<T> pageResult)`처럼 `PageResult<T>`(core-module의 공용 페이징 타입)를 받아 `content()`/`page()`/`size()`/`totalElements()`를 그대로 위임하는 경우는 이 규칙의 대상이 아닙니다. `PageResult<T>` 자체는 도메인 result가 아니라 공용 페이징 계약이므로 원시타입 언패킹 대상이 아니며, 이 경우 페이징 응답(`PaginationResponse<T>`)이 `PageResult<T>`를 import하는 것은 허용합니다.
-  - **왜 result 객체 통째 수신이 아닌가**: result 객체를 그대로 받으면 Response record가 core result의 필드 구조를 알아야 해 core에 결합되고, 필드 접근이 이름 기반(`result.title()`)이라 안전하지만 그 안전함을 Facade로 옮겨도 잃지 않습니다 — 대신 Response는 Request와 대칭적으로 순수 데이터 홀더가 되고 core 의존은 Facade 한 곳에 집중됩니다. 다만 같은 타입(String/Long 등) 파라미터가 여러 개면 위치 기반 전달이라 순서를 착각하면 컴파일은 되지만 값이 뒤바뀌는 조용한 버그가 날 수 있으므로, 신규 작성 시 record 필드 선언 순서·`from` 파라미터 순서·호출부에서 넘기는 인자 순서를 반드시 하나씩 대조합니다.
+  - **왜 result 객체 통째 수신이 아닌가**: result 객체를 그대로 받으면 Response record가 core result의 필드 구조를 알아야 해 core에 결합되고, 필드 접근이 이름 기반(`result.title()`)이라 안전하지만 그 안전함을 Service로 옮겨도 잃지 않습니다 — 대신 Response는 Request와 대칭적으로 순수 데이터 홀더가 되고 core 의존은 Service 한 곳에 집중됩니다. 다만 같은 타입(String/Long 등) 파라미터가 여러 개면 위치 기반 전달이라 순서를 착각하면 컴파일은 되지만 값이 뒤바뀌는 조용한 버그가 날 수 있으므로, 신규 작성 시 record 필드 선언 순서·`from` 파라미터 순서·호출부에서 넘기는 인자 순서를 반드시 하나씩 대조합니다.
 - `new`는 이러한 팩토리 메서드 **내부**에만 남깁니다(각 record가 자기 자신을 생성). 호출부에는 `new`가 남지 않는 것을 목표로 합니다.
 
 reference 구현: `admin-api`의 `notice` 도메인 — `CreateNoticeCommand.of(...)`, `NoticeUpdateCommand.of(...)`, `NoticeSearchCondition.of(...)`, `NoticeListItemResponse.from(Long id, String title, String content, boolean visible, LocalDateTime createdAt)`(core-free) + `NoticeService#toNoticeListItemResponse(NoticeListItemResult dto)`(private 매퍼가 언패킹), `PaginationResponse.from(pageResult)`(PageResult 위임은 예외 그대로), `NoticeService#createNotice(String, String, boolean)`. 중첩 조립 사례: `admin-api`의 `order` 도메인 — `OrderService#toOrderDetailResponse`가 `OrderProductResponse`/`PaymentSummaryResponse` 중첩 리스트·필드를 각각의 private 매퍼(`toOrderProductResponse`, `toPaymentSummaryResponse`)로 분리 조립.
@@ -171,7 +171,7 @@ reference 구현: `admin-api`의 `notice` 도메인 — `NoticeService#updateNot
 
 ## record 파일 분리 규칙 (중첩 record 선언 지양)
 
-**`record`는 서비스·컨트롤러·Facade 등 다른 클래스 본문 안에 중첩 선언하지 않고, 각 도메인의 관례 위치에 독립된 `.java` 파일로 둡니다.** 클래스 안에 DTO record를 함께 두면 파일 응집도가 떨어지고, 다른 클래스에서 참조할 때 `Outer.Inner` 접두사가 붙어 결합도가 커지며, DTO 조립 규칙(정적 팩토리 위임)을 적용하기도 불리합니다.
+**`record`는 서비스·컨트롤러 등 다른 클래스 본문 안에 중첩 선언하지 않고, 각 도메인의 관례 위치에 독립된 `.java` 파일로 둡니다.** 클래스 안에 DTO record를 함께 두면 파일 응집도가 떨어지고, 다른 클래스에서 참조할 때 `Outer.Inner` 접두사가 붙어 결합도가 커지며, DTO 조립 규칙(정적 팩토리 위임)을 적용하기도 불리합니다.
 
 - **분리 위치**: 각 도메인의 기존 관례를 따릅니다. web-api/admin-api의 응답성 record는 해당 패키지의 `response/` 하위에, core-module의 결과 DTO는 `application/dto/result/`(command는 `application/dto/command/`)에 둡니다.
 - **접근제어자**: 별도 파일로 빼면 최상위 타입이 되므로 `public record`로 선언합니다. 한 클래스 내부에서만 쓰이던 `private`/`package-private` 헬퍼 record도 분리 시 `public`으로 격상합니다.
@@ -220,12 +220,12 @@ reference 구현: `policy` 도메인 — `PolicyDocumentId`, `PolicyCommandServi
 
 ## 도메인 enum 경계 규칙
 
-도메인 enum(`core.domain.<도메인>.domain.model`의 `BannerType`·`EventStatus`·`FoodType` 등)은 **ID VO와 동일한 경계 원칙**을 따릅니다. HTTP 경계(컨트롤러 `@RequestParam`/Request 필드)는 `String`(다중값은 `List<String>`)으로 받고, web-api/admin-api Service(Facade)에서 core enum으로 **승격**합니다. 이는 ID를 `Long`으로 받아 `XxxId.of()`로 승격하는 것과 대칭이며, "컨트롤러·Request record는 `com.tastyhouse.core.*`를 import하지 않는다"는 상위 규칙(각 모듈 `AGENTS.md`)의 enum 케이스 구체화입니다. 컨트롤러가 도메인 enum을 직접 노출하면 API 계약이 도메인 모델에 결합되어, enum 상수 추가가 곧 공개 스키마 변경이 되고 어댑터가 도메인을 알게 되는 레이어 위반이 발생합니다.
+도메인 enum(`core.domain.<도메인>.domain.model`의 `BannerType`·`EventStatus`·`FoodType` 등)은 **ID VO와 동일한 경계 원칙**을 따릅니다. HTTP 경계(컨트롤러 `@RequestParam`/Request 필드)는 `String`(다중값은 `List<String>`)으로 받고, web-api/admin-api Service에서 core enum으로 **승격**합니다. 이는 ID를 `Long`으로 받아 `XxxId.of()`로 승격하는 것과 대칭이며, "컨트롤러·Request record는 `com.tastyhouse.core.*`를 import하지 않는다"는 상위 규칙(각 모듈 `AGENTS.md`)의 enum 케이스 구체화입니다. 컨트롤러가 도메인 enum을 직접 노출하면 API 계약이 도메인 모델에 결합되어, enum 상수 추가가 곧 공개 스키마 변경이 되고 어댑터가 도메인을 알게 되는 레이어 위반이 발생합니다.
 
 | 계층 | enum 타입 | 비고 |
 |---|---|---|
 | HTTP 경계 (컨트롤러 `@RequestParam`/요청 필드) | `String` / `List<String>` | 도메인 enum을 web-api/admin-api 밖(HTTP)으로 노출하지 않습니다 |
-| web-api/admin-api Service(Facade) | 입력은 `String`, 여기서 core enum으로 승격 | `Enum.from(String)` 정적 팩토리로 승격(`valueOf` 산재·`new` 금지) |
+| web-api/admin-api Service | 입력은 `String`, 여기서 core enum으로 승격 | `Enum.from(String)` 정적 팩토리로 승격(`valueOf` 산재·`new` 금지) |
 | core-module application 서비스 public 시그니처 | core enum | Command/Condition DTO 필드도 동일. String이 core로 내려가지 않습니다 |
 | 도메인 모델 내부 / 도메인 이벤트 | core enum | |
 
@@ -303,9 +303,9 @@ reference 구현: `order` 도메인 — `Order`(`@Enumerated(EnumType.STRING)` +
 | `@PathVariable` id | `Long` 유지 | ID VO 경계 규칙과 동일 |
 
 - **적용 예외**: 조회 파라미터가 **아예 없는**(페이징만 있는) GET은 `@ModelAttribute PageRequest`만 두고 SearchRequest를 만들지 않습니다. `@PathVariable`만 받는 단건 조회도 대상이 아닙니다.
-- **순수 데이터 홀더 유지 (DTO 조립 규칙과 일관)**: `{도메인}SearchRequest`는 검증 + Swagger 스키마만 갖는 순수 record로 두고, `toCondition()`/`toCommand()` 같은 변환 메서드를 두지 않습니다. 컨트롤러가 `request.title()` 등 **개별 원시 필드로 언패킹**해 Facade/Service에 전달하고, Facade/Service가 `{도메인}SearchCondition.of(...)`로 조립합니다. → Facade/Service 시그니처(개별 파라미터 수신)는 **변경하지 않습니다**.
+- **순수 데이터 홀더 유지 (DTO 조립 규칙과 일관)**: `{도메인}SearchRequest`는 검증 + Swagger 스키마만 갖는 순수 record로 두고, `toCondition()`/`toCommand()` 같은 변환 메서드를 두지 않습니다. 컨트롤러가 `request.title()` 등 **개별 원시 필드로 언패킹**해 Service에 전달하고, Service가 `{도메인}SearchCondition.of(...)`로 조립합니다. → Service 시그니처(개별 파라미터 수신)는 **변경하지 않습니다**.
 - **기본값·필수 표현**: `@RequestParam(defaultValue = ...)`로 표현하던 기본값은 record의 **compact constructor에서 정규화**하거나(`type == null ? "ALL" : type`) 필드 초기화로 대체합니다. 필수 파라미터는 필드에 Bean Validation(`@NotBlank`/`@NotNull` 등)을 부착하고 `@Valid`로 강제합니다.
-- **경계 타입 (ID VO·enum 경계 규칙과 일관)**: record 필드에서도 enum 후보는 `String`/`List<String>`, FK/식별자는 `Long`으로 받습니다. `com.tastyhouse.core.*`(core enum·VO)를 Request가 import하지 않습니다. 승격은 기존대로 Facade/Service에서 `Enum.from(String)`·`XxxId.of(Long)`으로 수행합니다.
+- **경계 타입 (ID VO·enum 경계 규칙과 일관)**: record 필드에서도 enum 후보는 `String`/`List<String>`, FK/식별자는 `Long`으로 받습니다. `com.tastyhouse.core.*`(core enum·VO)를 Request가 import하지 않습니다. 승격은 기존대로 Service에서 `Enum.from(String)`·`XxxId.of(Long)`으로 수행합니다.
 - **파일 분리·명명 (record 파일 분리·명명 순서 규칙과 일관)**: 컨트롤러 본문 중첩이 아니라 도메인 폴더 `request/`에 `public record {도메인}SearchRequest`로 둡니다. 이름은 `{도메인}` 접두 순서(예: `ShopSearchRequest`, `NoticeSearchRequest`, `RankSearchRequest`)로 기존 `{도메인}CreateRequest`/`{도메인}UpdateRequest`와 이름순 인접시킵니다.
 - **Swagger**: 기존에 `@RequestParam`에 붙던 `@Parameter(schema = @Schema(allowableValues = {...}))`는 record 필드의 `@Schema(allowableValues = {...})`로 이전합니다. `required = false` 옵션 동작(미바인딩 시 null/빈 리스트)은 그대로 보존합니다.
 - **적용 대상**: 신규 조회 API는 이 규칙을 따르고, 기존 `@RequestParam` GET(다중: `shop/getLatestShops`·admin `notice/getNotices`, 단일: `search/searchMenus`의 `query`, `rank/getMemberRankList`의 `type`/`limit` 등)도 수정 시 전환합니다.
@@ -319,7 +319,7 @@ reference 구현(전환 예정): `web-api`의 `ShopSearchRequest`(`shop/request/
 **한 컨트롤러 안에서 그 컨트롤러의 주(主) 리소스를 가리키는 `@PathVariable` 식별자는 경로상의 위치·핸들러 종류와 무관하게 bare `id`로 통일합니다.** 단건 CRUD(`GET/PUT/DELETE /coupons/v1/{id}`)든 그 리소스에 속한 중첩 하위 경로(`POST /coupons/v1/{id}/issues`)든, 결국 "쿠폰"을 가리키는 경로 변수는 모두 `id` 하나로 씁니다. 같은 대상을 어떤 메서드에서는 `id`, 어떤 메서드에서는 `{도메인}Id`로 **혼재하는 것을 금지**합니다.
 
 - **왜 `{id}`인가**: `@RequestMapping("/api/coupons")`로 컨트롤러 전체가 이미 쿠폰 리소스에 스코프되어 있으므로, 경로 변수 `id`는 문맥상 "이 컨트롤러가 다루는 쿠폰의 id"임이 자명합니다. `couponId`처럼 도메인 접두어를 반복하면 클래스 스코프와 중복되어 장황하고, 오히려 한 파일 안에서 `id`/`couponId`가 섞이는 혼재를 부릅니다. 짧고 일관된 `id`가 REST 관례(리소스 컬렉션 `/coupons/{id}`)에도 부합합니다.
-- **경계 타입은 그대로**: 타입은 [ID VO 경계 규칙](#id-vo식별자-값-객체-경계-규칙)대로 HTTP 경계에서 `Long`을 유지합니다(`@PathVariable Long id`). Facade/Service에서 `XxxId.of(id)`로 승격하는 흐름은 변경하지 않습니다.
+- **경계 타입은 그대로**: 타입은 [ID VO 경계 규칙](#id-vo식별자-값-객체-경계-규칙)대로 HTTP 경계에서 `Long`을 유지합니다(`@PathVariable Long id`). Service에서 `XxxId.of(id)`로 승격하는 흐름은 변경하지 않습니다.
 - **다른 애그리거트를 참조하는 경우는 예외**: 어떤 컨트롤러가 **자기 주 리소스가 아닌 다른 도메인의 식별자**를 경로로 받는 경우(예: 회원 컨트롤러가 `/members/{memberId}/orders/{orderId}`처럼 두 종류 이상의 식별자를 동시에 받는 경우)에는 각 식별자를 `{도메인}Id`로 구분해 모호함을 없앱니다. 즉 "그 컨트롤러의 주 리소스 = `id`, 그 외 참조 식별자 = `{도메인}Id`"가 기준입니다.
 - **적용 대상**: 신규 컨트롤러는 이 규칙을 따르고, 기존에 주 리소스를 `{도메인}Id`로 받던 컨트롤러는 **해당 파일을 수정할 때 함께 `id`로 전환**합니다. 이 규칙만을 위해 전 컨트롤러를 일괄 재작성하지는 않습니다.
 
@@ -327,10 +327,10 @@ reference 구현: `admin-api/coupon/CouponApiController` — 단건 CRUD·중첩
 
 ## 컨트롤러 미사용 `@PathVariable` 경로 평탄화 규칙
 
-**중첩 리소스 경로(`/v1/{id}/{하위리소스}/{하위id}`)의 부모 `@PathVariable`(`id`)이 핸들러·Facade·core 어디에서도 실제로 사용되지 않는다면(단순 전달조차 없이 완전히 죽은 파라미터), 그 경로를 부모 세그먼트 없이 평탄화합니다.** 하위 리소스의 식별자(`{하위id}`)가 전역 유니크 PK라 부모 없이도 단독으로 대상을 특정할 수 있는 경우가 이에 해당합니다. "경로가 리소스 계층을 반영해야 한다"는 REST 중첩 관례보다, **실제로 쓰이지 않는 경로 변수를 남겨 두지 않는 것**을 우선합니다 — 사용하지 않는 파라미터는 호출자에게 "이 값이 삭제 대상을 좁히는 데 쓰인다"는 잘못된 인상을 주고, 나중에 검증 로직이 있는 줄 착각하게 만들기 쉽습니다.
+**중첩 리소스 경로(`/v1/{id}/{하위리소스}/{하위id}`)의 부모 `@PathVariable`(`id`)이 핸들러·Service·core 어디에서도 실제로 사용되지 않는다면(단순 전달조차 없이 완전히 죽은 파라미터), 그 경로를 부모 세그먼트 없이 평탄화합니다.** 하위 리소스의 식별자(`{하위id}`)가 전역 유니크 PK라 부모 없이도 단독으로 대상을 특정할 수 있는 경우가 이에 해당합니다. "경로가 리소스 계층을 반영해야 한다"는 REST 중첩 관례보다, **실제로 쓰이지 않는 경로 변수를 남겨 두지 않는 것**을 우선합니다 — 사용하지 않는 파라미터는 호출자에게 "이 값이 삭제 대상을 좁히는 데 쓰인다"는 잘못된 인상을 주고, 나중에 검증 로직이 있는 줄 착각하게 만들기 쉽습니다.
 
-- **판별 기준**: 핸들러 메서드 본문에서 부모 `id`를 Facade/Service 호출 인자로 전달조차 하지 않는 경우(완전 미사용)에만 적용합니다. Facade나 core에서 `id`를 소속 검증(예: "이 하위 리소스가 이 부모에 속하는지")에 사용한다면 평탄화 대상이 아니며 기존 중첩 경로를 그대로 유지합니다.
-- **적용 방법**: `@DeleteMapping("/v1/{id}/{하위리소스}/{하위id}")` → `@DeleteMapping("/v1/{하위리소스}/{하위id}")`로 변경하고, 미사용 `@PathVariable Long id` 파라미터를 제거합니다. Facade/core 시그니처가 이미 하위 식별자만 받고 있다면 추가 변경이 필요 없습니다.
+- **판별 기준**: 핸들러 메서드 본문에서 부모 `id`를 Service 호출 인자로 전달조차 하지 않는 경우(완전 미사용)에만 적용합니다. Service나 core에서 `id`를 소속 검증(예: "이 하위 리소스가 이 부모에 속하는지")에 사용한다면 평탄화 대상이 아니며 기존 중첩 경로를 그대로 유지합니다.
+- **적용 방법**: `@DeleteMapping("/v1/{id}/{하위리소스}/{하위id}")` → `@DeleteMapping("/v1/{하위리소스}/{하위id}")`로 변경하고, 미사용 `@PathVariable Long id` 파라미터를 제거합니다. Service/core 시그니처가 이미 하위 식별자만 받고 있다면 추가 변경이 필요 없습니다.
 - **타입·명명은 그대로**: 남는 하위 식별자는 [`@PathVariable` 식별자 명명 규칙](#컨트롤러-pathvariable-식별자-명명-규칙-id로-통일)에 따라 `Long` 타입을 유지하며, 이름은 기존 하위 식별자명(`winnerId` 등)을 그대로 씁니다.
 - **적용 대상**: 같은 컨트롤러의 다른 CRUD/중첩 API(예: 생성·목록 조회)는 부모 `id`를 실제로 사용하므로 그대로 둡니다 — 평탄화는 미사용이 확인된 해당 핸들러 하나에만 적용하고, 컨트롤러 전체 경로 스타일을 바꾸지 않습니다.
 
