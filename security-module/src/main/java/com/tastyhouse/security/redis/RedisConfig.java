@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.config;
+package com.tastyhouse.security.redis;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

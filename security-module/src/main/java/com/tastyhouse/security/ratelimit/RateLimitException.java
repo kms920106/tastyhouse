@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.exception;
+package com.tastyhouse.security.ratelimit;
 
 import com.tastyhouse.core.exception.ErrorCode;
 

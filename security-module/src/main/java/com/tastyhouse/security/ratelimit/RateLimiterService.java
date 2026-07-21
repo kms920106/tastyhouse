@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.ratelimit;
+package com.tastyhouse.security.ratelimit;
 
 import java.time.Duration;
 import java.util.List;
@@ -34,12 +34,14 @@ public class RateLimiterService {
      * @param duration 윈도우 기간
      * @return 제한 초과 여부 (true = 초과)
      */
+    @SuppressWarnings("ConstantConditions") // execute()는 @Nullable 반환 — Redis 계층에서 null 가능성이 있어 방어 코드 유지
     public boolean isLimitExceeded(String key, int limit, Duration duration) {
-        long count = stringRedisTemplate.execute(
+        Long count = stringRedisTemplate.execute(
             RATE_LIMIT_SCRIPT,
             List.of(key),
             String.valueOf(duration.toMillis())
         );
-        return count > limit;
+        long currentCount = count == null ? 0L : count;
+        return currentCount > limit;
     }
 }

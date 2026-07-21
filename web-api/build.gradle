@@ -4,6 +4,7 @@ dependencies {
     runtimeOnly project(':infrastructure-module')
     implementation project(':external-api')
     implementation project(':logging-module')
+    implementation project(':security-module')
 
     // Spring Boot Starter
     implementation 'org.springframework.boot:spring-boot-starter-web'

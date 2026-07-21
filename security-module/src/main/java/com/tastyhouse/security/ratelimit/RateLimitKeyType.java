@@ -1,4 +1,4 @@
-package com.tastyhouse.adminapi.ratelimit;
+package com.tastyhouse.security.ratelimit;
 
 public enum RateLimitKeyType {
 

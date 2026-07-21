@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.config.jwt.repository;
+package com.tastyhouse.security.token;
 
 import java.util.concurrent.TimeUnit;
 

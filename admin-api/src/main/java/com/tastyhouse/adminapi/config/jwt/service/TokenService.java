@@ -9,10 +9,10 @@ import com.tastyhouse.core.domain.admin.domain.model.Admin;
 import com.tastyhouse.core.domain.admin.application.AdminQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.security.token.BlacklistRedisRepository;
+import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.adminapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.adminapi.config.jwt.TokenType;
-import com.tastyhouse.adminapi.config.jwt.repository.BlacklistRedisRepository;
-import com.tastyhouse.adminapi.config.jwt.repository.RefreshTokenRedisRepository;
 import com.tastyhouse.adminapi.auth.response.JwtResponse;
 
 /**
@@ -57,7 +57,7 @@ public class TokenService {
 
         String username = jwtTokenProvider.getUsernameFromJWT(refreshToken);
 
-        if (!refreshTokenRepository.isValid(username, refreshToken)) {
+        if (refreshTokenRepository.isInvalid(username, refreshToken)) {
             throw new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "만료되었거나 이미 로그아웃된 Refresh Token입니다.");
         }
 

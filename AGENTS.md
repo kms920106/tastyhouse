@@ -8,7 +8,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `settings.gradle` | 멀티모듈 정의 (`web-api`, `admin-api`, `core-module`, `infrastructure-module`, `external-api`, `logging-module`, `batch-module`) |
+| `settings.gradle` | 멀티모듈 정의 (`web-api`, `admin-api`, `core-module`, `infrastructure-module`, `external-api`, `security-module`, `logging-module`, `batch-module`) |
 | `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인, AWS BOM) |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
 | `CLAUDE.md` | AI 작업 규칙 (한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지) |
@@ -22,6 +22,7 @@
 | `infrastructure-module/` | core Repository 포트의 JPA/QueryDSL persistence 어댑터 (see `infrastructure-module/AGENTS.md`) |
 | `web-api/` | 사용자용 REST API — 컨트롤러, 인증(JWT/OAuth), 보안 (see `web-api/AGENTS.md`) |
 | `external-api/` | 외부 연동 어댑터 — OAuth, 결제(Toss), 이메일/SMS, 파일(S3/Firebase), 크롤링 (see `external-api/AGENTS.md`) |
+| `security-module/` | web-api·admin-api 공유 보안/인증 지원 라이브러리 — Redis 기반 JWT 세션(RefreshToken/Blacklist/소셜 임시토큰), Rate Limiting (see `security-module/AGENTS.md`) |
 | `admin-api/` | 관리자용 REST API — 관리자 계정/인증, banner·bug·coupon·event·faq·member·notice·policy 등 도메인 관리 (see `admin-api/AGENTS.md`) |
 | `batch-module/` | 시간 기반 배치 스케줄러 전담 독립 실행 모듈(Rank/Product/Grade/SearchKeyword) (see `batch-module/AGENTS.md`) |
 | `docs/` | 설계 문서 — 소셜 로그인 가이드, 결제 연동 가이드, 리팩토링 노트(`REFACTORING.md`, gitignore 대상), 작업지시서(`docs/tasks/`) |
@@ -47,15 +48,18 @@
 web-api ──┬─→ core-module (implementation)
           ├─→ infrastructure-module (runtimeOnly)
           ├─→ external-api (implementation)
+          ├─→ security-module (implementation)
           └─→ logging-module (implementation)
 admin-api ─(동일 패턴)
 batch-module ─(동일 패턴)
 infrastructure-module ─→ core-module (api)
 external-api ─→ core-module (implementation)
+security-module ─→ core-module (implementation)
 core-module → (no Spring Web, no JPA; querydsl-core만 의존)
 ```
 - `core-module`은 다른 모듈에 의존하지 않는다. Spring Web/HttpStatus/JPA 사용 불가 → 예외는 `int httpStatusCode`로 표현, persistence는 `infrastructure-module`이 전담.
-- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`batch-module` 셋뿐이다. 나머지(`core-module`/`infrastructure-module`/`external-api`/`logging-module`)는 `bootJar` 비활성 + plain jar.
+- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`batch-module` 셋뿐이다. 나머지(`core-module`/`infrastructure-module`/`external-api`/`security-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
+- **모듈 경계 원칙**: `infrastructure-module`은 core Repository 포트의 **DB persistence 어댑터 전용**이다. core에 포트가 없는 기술(Redis 등 web/admin 공유 관심사)은 infrastructure-module에 두지 않고, 그 관심사를 위한 별도 공유 모듈(`security-module`)을 둔다. `infrastructure-module`이 `runtimeOnly`로 은닉되는 것과 달리, `security-module`은 core 도메인 어댑터가 아니라 presentation 공유 유틸이므로 `implementation`으로 노출한다.
 
 ### Testing Requirements
 - 스키마 무변경 보장: `hibernate.ddl-auto=validate` 기준. 엔티티 변경 시 `create.sql`과 정합성 확인.

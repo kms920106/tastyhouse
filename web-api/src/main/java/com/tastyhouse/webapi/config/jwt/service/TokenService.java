@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.security.token.BlacklistRedisRepository;
+import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.webapi.config.jwt.repository.BlacklistRedisRepository;
-import com.tastyhouse.webapi.config.jwt.repository.RefreshTokenRedisRepository;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.exception.UnauthorizedException;
 import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
@@ -73,7 +73,7 @@ public class TokenService {
 
         String username = jwtTokenProvider.getUsernameFromJWT(refreshToken);
 
-        if (!refreshTokenRepository.isValid(username, refreshToken)) {
+        if (refreshTokenRepository.isInvalid(username, refreshToken)) {
             throw new UnauthorizedException("만료되었거나 이미 로그아웃된 Refresh Token입니다.");
         }
 
