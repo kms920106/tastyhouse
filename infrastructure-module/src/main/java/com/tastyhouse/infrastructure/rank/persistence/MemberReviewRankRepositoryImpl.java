@@ -4,18 +4,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.PathBuilder;
-import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
 import com.tastyhouse.core.domain.rank.domain.model.RankType;
@@ -24,23 +19,12 @@ import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.QMemberRankResult;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
+import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
 import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJpaEntity.memberReviewRankJpaEntity;
 
-/**
- * {@code member}는 infrastructure-module로 이동한 {@code MemberJpaEntity}를 가리킨다.
- * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
- * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("MemberJpaEntity")을
- * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
- */
 @Repository
 @RequiredArgsConstructor
 public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepository {
-
-    private static final PathBuilder<Object> member = new PathBuilder<>(Object.class, "MemberJpaEntity");
-    private static final NumberPath<Long> memberIdCol = member.getNumber("id", Long.class);
-    private static final StringPath memberNicknameCol = member.getString("nickname");
-    private static final NumberPath<Long> memberProfileImageFileIdCol = member.getNumber("profileImageFileId", Long.class);
-    private static final EnumPath<MemberGrade> memberGradeCol = member.getEnum("memberGrade", MemberGrade.class);
 
     private final JPAQueryFactory queryFactory;
     private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
@@ -53,15 +37,15 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
         return queryFactory
             .select(new QMemberRankResult(
                 memberReviewRankJpaEntity.memberId,
-                memberNicknameCol,
+                memberJpaEntity.nickname,
                 uploadedFileJpaEntity.filePath,
                 memberReviewRankJpaEntity.reviewCount,
                 memberReviewRankJpaEntity.rankNo,
-                memberGradeCol
+                memberJpaEntity.memberGrade
             ))
             .from(memberReviewRankJpaEntity)
-            .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberIdCol))
-            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileIdCol.eq(uploadedFileJpaEntity.id))
+            .innerJoin(memberJpaEntity).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
             .where(
                 memberReviewRankJpaEntity.rankType.eq(rankType),
                 memberReviewRankJpaEntity.baseDate.eq(baseDate)
@@ -76,15 +60,15 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
         return queryFactory
             .select(new QMemberRankResult(
                 memberReviewRankJpaEntity.memberId,
-                memberNicknameCol,
+                memberJpaEntity.nickname,
                 uploadedFileJpaEntity.filePath,
                 memberReviewRankJpaEntity.reviewCount,
                 memberReviewRankJpaEntity.rankNo,
-                memberGradeCol
+                memberJpaEntity.memberGrade
             ))
             .from(memberReviewRankJpaEntity)
-            .innerJoin(member).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberIdCol))
-            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileIdCol.eq(uploadedFileJpaEntity.id))
+            .innerJoin(memberJpaEntity).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
             .where(
                 memberReviewRankJpaEntity.memberId.eq(memberId),
                 memberReviewRankJpaEntity.rankType.eq(rankType),

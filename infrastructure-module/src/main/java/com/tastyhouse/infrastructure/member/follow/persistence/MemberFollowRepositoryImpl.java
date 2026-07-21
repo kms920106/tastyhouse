@@ -5,17 +5,13 @@ import java.util.Optional;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.PathBuilder;
-import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.follow.domain.model.MemberFollow;
 import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
@@ -25,25 +21,16 @@ import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.follow.persistence.QMemberFollowJpaEntity.memberFollowJpaEntity;
+import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
 
 /**
- * {@code member}는 infrastructure-module로 이동한 {@code MemberJpaEntity}를 가리킨다.
- * core-module은 infrastructure-module을 의존할 수 없어(의존 방향: infrastructure → core)
- * 생성된 Q타입을 import할 수 없으므로, {@link PathBuilder}로 JPA 엔티티명("MemberJpaEntity")을
- * 문자열 참조해 필요한 컬럼만 타입 세이프하게 노출한다.
  * {@code memberFollowJpaEntity.followerId}/{@code followingId}는 {@code @Convert(MemberIdConverter)}로
- * {@link MemberId} VO 경로이므로, raw {@code Long} PK({@code memberIdCol})와 직접 조인·비교할 수 없다.
+ * {@link MemberId} VO 경로이므로, raw {@code Long} PK({@code memberJpaEntity.id})와 직접 조인·비교할 수 없다.
  * {@link Expressions#numberPath}로 두 컬럼의 raw Long 경로를 우회 노출해 조인·비교에 사용한다.
  */
 @Repository
 @RequiredArgsConstructor
 public class MemberFollowRepositoryImpl implements MemberFollowRepository {
-
-    private static final PathBuilder<Object> member = new PathBuilder<>(Object.class, "MemberJpaEntity");
-    private static final NumberPath<Long> memberIdCol = member.getNumber("id", Long.class);
-    private static final StringPath memberNicknameCol = member.getString("nickname");
-    private static final NumberPath<Long> memberProfileImageFileIdCol = member.getNumber("profileImageFileId", Long.class);
-    private static final EnumPath<MemberGrade> memberGradeCol = member.getEnum("memberGrade", MemberGrade.class);
 
     private static final NumberPath<Long> followerIdCol = Expressions.numberPath(Long.class, memberFollowJpaEntity, "followerId");
     private static final NumberPath<Long> followingIdCol = Expressions.numberPath(Long.class, memberFollowJpaEntity, "followingId");
@@ -131,22 +118,22 @@ public class MemberFollowRepositoryImpl implements MemberFollowRepository {
                 .from(viewerFollow)
                 .where(
                     viewerFollowerIdCol.eq(viewerMemberId.value()),
-                    viewerFollowingIdCol.eq(memberIdCol)
+                    viewerFollowingIdCol.eq(memberJpaEntity.id)
                 )
                 .exists()
             : Expressions.FALSE;
 
         List<FollowMemberResult> content = queryFactory
             .select(Projections.constructor(FollowMemberResult.class,
-                memberIdCol,
-                memberNicknameCol,
-                memberGradeCol,
+                memberJpaEntity.id,
+                memberJpaEntity.nickname,
+                memberJpaEntity.memberGrade,
                 uploadedFileJpaEntity.filePath,
                 isFollowing
             ))
             .from(memberFollowJpaEntity)
-            .join(member).on(followingIdCol.eq(memberIdCol))
-            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileIdCol.eq(uploadedFileJpaEntity.id))
+            .join(memberJpaEntity).on(followingIdCol.eq(memberJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
             .where(memberFollowJpaEntity.followerId.eq(memberId))
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -169,22 +156,22 @@ public class MemberFollowRepositoryImpl implements MemberFollowRepository {
                 .from(viewerFollow)
                 .where(
                     viewerFollowerIdCol.eq(viewerMemberId.value()),
-                    viewerFollowingIdCol.eq(memberIdCol)
+                    viewerFollowingIdCol.eq(memberJpaEntity.id)
                 )
                 .exists()
             : Expressions.FALSE;
 
         List<FollowMemberResult> content = queryFactory
             .select(Projections.constructor(FollowMemberResult.class,
-                memberIdCol,
-                memberNicknameCol,
-                memberGradeCol,
+                memberJpaEntity.id,
+                memberJpaEntity.nickname,
+                memberJpaEntity.memberGrade,
                 uploadedFileJpaEntity.filePath,
                 isFollowing
             ))
             .from(memberFollowJpaEntity)
-            .join(member).on(followerIdCol.eq(memberIdCol))
-            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileIdCol.eq(uploadedFileJpaEntity.id))
+            .join(memberJpaEntity).on(followerIdCol.eq(memberJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
             .where(memberFollowJpaEntity.followingId.eq(memberId))
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())

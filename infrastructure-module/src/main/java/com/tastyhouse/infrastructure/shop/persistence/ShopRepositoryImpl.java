@@ -9,9 +9,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.BooleanPath;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -33,6 +30,7 @@ import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
+import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityJpaEntity.shopAmenityJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
@@ -41,20 +39,9 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeJpaEnt
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.stationJpaEntity;
 
-/**
- * {@code review}는 infrastructure-module로 이동한 {@code ReviewJpaEntity}를 가리킨다.
- * 이 클래스 자신도 infrastructure-module 소속이지만, {@code Review}가 이미 POJO로 분리되어
- * core-module에 {@code QReview}가 더 이상 생성되지 않으므로(review 도메인 전환 시점의 선례와 동일),
- * {@link PathBuilder}로 JPA 엔티티명("ReviewJpaEntity")을 문자열 참조해 필요한 컬럼만
- * 타입 세이프하게 노출한다(`ReviewRepositoryImpl`의 member 참조와 동일한 우회).
- */
 @Repository
 @RequiredArgsConstructor
 public class ShopRepositoryImpl implements ShopRepository {
-
-    private static final PathBuilder<Object> review = new PathBuilder<>(Object.class, "ReviewJpaEntity");
-    private static final NumberPath<Long> reviewShopIdCol = review.getNumber("shopId", Long.class);
-    private static final BooleanPath reviewHiddenCol = review.getBoolean("hidden");
 
     private final JPAQueryFactory queryFactory;
     private final ShopJpaRepository shopJpaRepository;
@@ -190,7 +177,7 @@ public class ShopRepositoryImpl implements ShopRepository {
             .filter(tuple -> tuple.get(uploadedFileJpaEntity.filePath) != null)
             .collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)), tuple -> Objects.requireNonNull(tuple.get(uploadedFileJpaEntity.filePath))));
 
-        var reviewCountMap = queryFactory.select(reviewShopIdCol, reviewShopIdCol.count()).from(review).where(reviewShopIdCol.in(shopIds).and(reviewHiddenCol.eq(false))).groupBy(reviewShopIdCol).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(reviewShopIdCol)), tuple -> Objects.requireNonNull(tuple.get(reviewShopIdCol.count()))));
+        var reviewCountMap = queryFactory.select(reviewJpaEntity.shopId, reviewJpaEntity.shopId.count()).from(reviewJpaEntity).where(reviewJpaEntity.shopId.in(shopIds).and(reviewJpaEntity.hidden.eq(false))).groupBy(reviewJpaEntity.shopId).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(reviewJpaEntity.shopId)), tuple -> Objects.requireNonNull(tuple.get(reviewJpaEntity.shopId.count()))));
 
         var bookmarkCountMap = queryFactory.select(shopBookmarkJpaEntity.shopId, shopBookmarkJpaEntity.count()).from(shopBookmarkJpaEntity).where(shopBookmarkJpaEntity.shopId.in(shopIds)).groupBy(shopBookmarkJpaEntity.shopId).fetch().stream().collect(Collectors.toMap(tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.shopId)), tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.count()))));
 
