@@ -18,7 +18,7 @@ import com.tastyhouse.core.domain.reservation.application.ReservationQueryServic
 import com.tastyhouse.core.domain.reservation.application.dto.command.ReservationCreateCommand;
 import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;

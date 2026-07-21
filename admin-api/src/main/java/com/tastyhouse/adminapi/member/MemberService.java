@@ -16,7 +16,7 @@ import com.tastyhouse.core.domain.member.application.dto.MemberSearchCondition;
 import com.tastyhouse.core.domain.member.application.dto.command.WithdrawMemberCommand;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.member.response.MemberDetailResponse;
 import com.tastyhouse.adminapi.member.response.MemberListItemResponse;

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.core.domain.banner.application.BannerQueryService;
 import com.tastyhouse.core.domain.banner.application.dto.result.BannerListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
 
 @Service

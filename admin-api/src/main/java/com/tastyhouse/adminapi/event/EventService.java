@@ -27,7 +27,7 @@ import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.event.response.EventAnnouncementResponse;
 import com.tastyhouse.adminapi.event.response.EventDetailResponse;

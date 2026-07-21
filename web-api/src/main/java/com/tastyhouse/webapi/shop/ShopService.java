@@ -40,7 +40,7 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageRes
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.shop.response.ShopAmenityItem;
 import com.tastyhouse.webapi.shop.response.ShopAmenityListItemResponse;

@@ -19,7 +19,7 @@ import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResul
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderProductRequest;

@@ -17,7 +17,7 @@ import com.tastyhouse.core.domain.banner.application.dto.result.BannerDetailResu
 import com.tastyhouse.core.domain.banner.application.dto.result.BannerManagementListItemResult;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;

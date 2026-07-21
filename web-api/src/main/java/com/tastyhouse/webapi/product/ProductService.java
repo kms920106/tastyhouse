@@ -23,7 +23,7 @@ import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingR
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.product.request.ProductBatchRequest;
 import com.tastyhouse.webapi.product.response.ProductBatchOptionResponse;

@@ -13,7 +13,7 @@ import com.tastyhouse.core.domain.event.application.dto.result.EventListItemResu
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
 import com.tastyhouse.webapi.event.response.EventDetailResponse;
 import com.tastyhouse.webapi.event.response.EventListItemResponse;

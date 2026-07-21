@@ -26,7 +26,7 @@ import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsR
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.response.ProductCategoryResponse;
 import com.tastyhouse.adminapi.product.response.ProductDetailResponse;

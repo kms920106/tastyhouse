@@ -45,7 +45,7 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityAssignm
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeAssignmentResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.response.ShopAmenityCategoryResponse;
 import com.tastyhouse.adminapi.shop.response.ShopAmenityResponse;

@@ -2,19 +2,17 @@ package com.tastyhouse.core.domain.file.application.dto.command;
 
 public record UploadFileCommand(
     String originalFilename,
-    String storedFilename,
-    String filePath,
+    byte[] content,
     Long fileSize,
     String contentType
 ) {
 
     public static UploadFileCommand of(
         String originalFilename,
-        String storedFilename,
-        String filePath,
+        byte[] content,
         Long fileSize,
         String contentType
     ) {
-        return new UploadFileCommand(originalFilename, storedFilename, filePath, fileSize, contentType);
+        return new UploadFileCommand(originalFilename, content, fileSize, contentType);
     }
 }

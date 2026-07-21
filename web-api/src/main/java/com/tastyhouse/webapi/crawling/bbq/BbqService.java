@@ -20,7 +20,7 @@ import com.tastyhouse.external.crawling.bbq.BbqApiClient;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.external.file.RemoteImageDownloader;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductCategoryResponse;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductResponse;
 import com.tastyhouse.webapi.crawling.bbq.response.BbqProductSubOptionResponse;
@@ -34,7 +34,7 @@ public class BbqService {
     private final BbqApiClient bbqApiClient;
     private final ProductCommandService productCommandService;
     private final ProductQueryService productQueryService;
-    private final FileService fileService;
+    private final RemoteImageDownloader remoteImageDownloader;
 
     public List<BbqProductCategoryResponse> getMenuCategories() {
         try {
@@ -188,7 +188,7 @@ public class BbqService {
         ));
 
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {
-            Long uploadedFileId = fileService.uploadFromUrl(menuDetail.imageUrl());
+            Long uploadedFileId = remoteImageDownloader.uploadFromUrl(menuDetail.imageUrl());
             productCommandService.saveProductImage(SaveProductImageCommand.of(
                 savedProduct.getId(), uploadedFileId, 0, true
             ));

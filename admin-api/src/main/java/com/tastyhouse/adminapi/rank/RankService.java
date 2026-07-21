@@ -19,7 +19,7 @@ import com.tastyhouse.core.domain.rank.application.dto.command.RankPrizeUpdateCo
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankPeriodResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeManagementResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.file.response.FileResponse;
 import com.tastyhouse.adminapi.rank.response.RankMemberListItemResponse;
 import com.tastyhouse.adminapi.rank.response.RankPeriodDetailResponse;

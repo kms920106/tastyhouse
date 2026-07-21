@@ -10,7 +10,7 @@ import com.tastyhouse.core.domain.member.follow.application.MemberFollowCommandS
 import com.tastyhouse.core.domain.member.follow.application.MemberFollowQueryService;
 import com.tastyhouse.core.domain.member.follow.application.dto.result.FollowMemberResult;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
 import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
 

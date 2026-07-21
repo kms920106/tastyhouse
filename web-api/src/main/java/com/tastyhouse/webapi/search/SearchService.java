@@ -11,7 +11,7 @@ import com.tastyhouse.core.domain.search.application.SearchResultQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.response.SearchPopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchRecommendedKeywordResponse;

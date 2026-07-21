@@ -18,7 +18,7 @@ import com.tastyhouse.core.domain.member.application.dto.command.WithdrawMemberC
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.MemberPhoneAvailabilityResponse;

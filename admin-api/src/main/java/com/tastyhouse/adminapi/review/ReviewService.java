@@ -18,7 +18,7 @@ import com.tastyhouse.core.domain.review.application.dto.result.ReviewReplyListI
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.external.file.FileService;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.review.response.ReviewCommentListItemResponse;
 import com.tastyhouse.adminapi.review.response.ReviewListItemResponse;

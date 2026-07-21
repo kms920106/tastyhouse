@@ -1,0 +1,30 @@
+package com.tastyhouse.external.file;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.tastyhouse.core.domain.file.application.port.out.FileStoragePort;
+
+@Component
+@RequiredArgsConstructor
+public class FileStoragePortAdapter implements FileStoragePort {
+
+    private final FileStorageStrategy fileStorageStrategy;
+
+    @Override
+    public String store(byte[] content, String storedFilename, String datePath, String contentType) {
+        MultipartFile file = new ByteArrayMultipartFile(storedFilename, contentType, content);
+        return fileStorageStrategy.store(file, storedFilename, datePath);
+    }
+
+    @Override
+    public String getFileUrl(String filePath) {
+        return fileStorageStrategy.getFileUrl(filePath);
+    }
+
+    @Override
+    public void delete(String filePath) {
+        fileStorageStrategy.delete(filePath);
+    }
+}
