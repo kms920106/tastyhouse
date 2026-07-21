@@ -39,6 +39,6 @@
 
 ### External
 - AWS SDK (SES, SNS), spring-cloud-aws-s3, Firebase Admin 9.10.0
-- spring-boot-starter-mail, webflux(WebClient), JJWT 0.12.3
+- spring-boot-starter-mail, webflux(WebClient), JJWT 0.13.0
 
 <!-- MANUAL: -->

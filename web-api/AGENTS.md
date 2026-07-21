@@ -49,6 +49,6 @@
 
 ### External
 - Spring Web/WebFlux/Security, Redis, AOP, Validation
-- JJWT 0.12.3, springdoc-openapi 2.3.0, p6spy
+- JJWT 0.13.0, springdoc-openapi 2.3.0, p6spy
 
 <!-- MANUAL: -->

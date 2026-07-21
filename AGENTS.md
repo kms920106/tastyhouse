@@ -14,7 +14,6 @@
 | `CLAUDE.md` | AI 작업 규칙 (한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지) |
 | `create.sql` / `insert.sql` / `alter.sql` | 스키마 및 시드 데이터 (DDL은 `ddl-auto=validate` 전제) |
 | `.env`, `.env-copy` | 환경 변수 (외부 연동 키 등) |
-| `REAME.md` | 이미지 경로 네이밍 컨벤션 메모 (오타 파일명, README 아님) |
 
 ## Subdirectories
 | Directory | Purpose |
@@ -25,7 +24,7 @@
 | `external-api/` | 외부 연동 어댑터 — OAuth, 결제(Toss), 이메일/SMS, 파일(S3/Firebase), 크롤링 (see `external-api/AGENTS.md`) |
 | `admin-api/` | 관리자용 REST API — 관리자 계정/인증, banner·bug·coupon·event·faq·member·notice·policy 등 도메인 관리 (see `admin-api/AGENTS.md`) |
 | `batch-module/` | 시간 기반 배치 스케줄러 전담 독립 실행 모듈(Rank/Product/Grade/SearchKeyword) (see `batch-module/AGENTS.md`) |
-| `md/` | 설계 문서 — `CLEAN-ARCHITECTURE.md`(전환 가이드, 정전), 소셜 로그인 가이드, 리팩토링 노트 |
+| `docs/` | 설계 문서 — 소셜 로그인 가이드, 결제 연동 가이드, 리팩토링 노트(`REFACTORING.md`, gitignore 대상), 작업지시서(`docs/tasks/`) |
 | `gradle/` | Gradle Wrapper 바이너리/설정 |
 | `json/` | 외부 자격 증명 JSON (예: Firebase 서비스 계정) |
 
@@ -36,7 +35,7 @@
 - **빌드/테스트 실행 금지**: 로직 구현 후 `gradle build`/test를 자동 실행하지 않는다.
 - **커밋/롤백 금지** (`NO_COMMIT_OR_ROLLBACK`): 사용자가 명시적으로 요청하지 않는 한 git 커밋·롤백을 하지 않는다.
 - 네이밍은 명확하고 의미 있는 이름을 선택한다.
-- 변경 전 반드시 `md/CLEAN-ARCHITECTURE.md`의 레이어 의존 규칙을 따른다.
+- 변경 전 반드시 [CLAUDE.md](CLAUDE.md#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)의 레이어 의존 규칙을 따른다.
 - **DTO 조립은 `new` 직접 호출을 지양**한다: 컨트롤러·Service 등 호출부에서 command/condition/response record를 `new`로 조립하지 않고, 대상 record 자신의 정적 팩토리 `of(...)`/`from(...)`로 위임한다. Request DTO는 command 생성 책임을 지지 않는 순수 데이터 홀더로 유지하며, 컨트롤러가 Request를 원시 필드로 언패킹해 Service에 전달한다. `new`는 팩토리 메서드 내부에만 남긴다. 상세 규칙과 reference 구현(admin-api notice)은 [CLAUDE.md](CLAUDE.md#dto-조립-규칙-new-직접-호출-지양) 참고.
 - **`record`는 별도 파일로 분리**한다: 서비스·컨트롤러 등 다른 클래스 본문 안에 record를 중첩 선언하지 않고, 각 도메인 관례 위치(web-api/admin-api는 `response/`, core는 `application/dto/result`·`command`)에 독립 `.java` 파일로 둔다. 분리 시 최상위 타입이 되므로 `public record`로 선언하고, 내부 전용 헬퍼 record도 동일하게 분리한다. 상세와 reference(web-api `NoticeListPageResult`/`OrderListPageResult`, core `OptionInfo`)는 [CLAUDE.md](CLAUDE.md#record-파일-분리-규칙-중첩-record-선언-지양) 참고.
 - **presentation의 core 결합 격리**: admin-api·web-api 모두 컨트롤러가 `core-module`에 직접 결합되는 것을 막기 위해 도메인별 `{도메인}Service`를 두어 컨트롤러 ↔ core 사이를 중개한다(과거 이 계층을 "Facade"로 부르던 문서 표현은 정정되었으며, 클래스 네이밍은 예외 없이 `Service`로 통일되어 있다 — reference: `admin-api/notice/NoticeService`). 이 Service가 core 서비스 호출과 core DTO↔Request/Response 변환을 전담하며, 컨트롤러는 `com.tastyhouse.core.*`를 import하지 않는다(각 모듈 `AGENTS.md` 참조).
