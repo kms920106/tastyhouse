@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.config;
+package com.tastyhouse.webapi.config.security;
 
 public final class PublicPaths {
 

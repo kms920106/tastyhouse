@@ -24,18 +24,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.tastyhouse.adminapi.config.jwt.JwtAuthenticationFilter;
 
+import static com.tastyhouse.adminapi.config.security.PublicPaths.PATTERNS;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private static final String[] PUBLIC_PATHS = {
-        "/api/auth/v1/**",
-        "/swagger-ui/**",
-        "/swagger-ui.html",
-        "/v3/api-docs/**"
-    };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -75,7 +70,8 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(PUBLIC_PATHS).permitAll()
+                // 공개 경로 (PublicPaths.PATTERNS에서 중앙 관리)
+                .requestMatchers(PATTERNS).permitAll()
                 // 로그아웃은 인증 필요 (임의 토큰 블랙리스트 등록 방지)
                 .requestMatchers("/api/auth/v1/logout").authenticated()
                 // 나머지 API는 인증 필요

@@ -27,11 +27,11 @@ import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.adminapi.common.FileResponse;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportDetailResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportListItemResponse;
 import com.tastyhouse.adminapi.bug.response.MemberSummaryResponse;
+import com.tastyhouse.adminapi.file.response.FileResponse;
 
 @Service
 @RequiredArgsConstructor

@@ -105,6 +105,8 @@ public record PaginationResponse<T>(
 
 reference 구현: `admin-api`/`web-api` 공통 — `common/PaginationResponse.java` + 이를 사용하는 전 도메인의 페이징 조회 메서드(`NoticeService#getNotices`, `EventService#getEvents`, `OrderService#getOrderList` 등).
 
+**적용 확인 (위치·네이밍 정렬)**: 위 "모듈별로 각각 둠" 관례는 `ApiResponse`/`PageRequest`/`PaginationResponse`뿐 아니라 예외 처리·보안 설정 파일 위치에도 동일하게 적용됩니다 — `GlobalExceptionHandler`는 두 모듈 모두 `exception/` 패키지에, `SecurityConfig`는 두 모듈 모두 `config/security/` 패키지에, 공개 경로(permit-all) 목록은 두 모듈 모두 `config/security/PublicPaths.PATTERNS` 상수 클래스로 위치가 통일되어 있습니다(신규 규칙이 아니라 기존 산발적 배치를 이 관례에 맞게 정렬한 것).
+
 ## DTO 조립 규칙 (`new` 직접 호출 지양)
 
 컨트롤러·Facade·서비스 등 **호출부에서 DTO(command / condition / response record)를 `new`로 직접 조립하지 않습니다.** 대신 변환 책임을 해당 타입 또는 소스 타입으로 위임합니다. 이는 필드 추가 시 호출부 연쇄 수정을 막고, 조립 로직을 한 곳에 모아 가독성과 응집도를 높입니다.

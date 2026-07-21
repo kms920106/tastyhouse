@@ -1,4 +1,4 @@
-package com.tastyhouse.adminapi.common;
+package com.tastyhouse.adminapi.file.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

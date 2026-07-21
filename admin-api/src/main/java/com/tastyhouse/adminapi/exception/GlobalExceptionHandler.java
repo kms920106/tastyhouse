@@ -1,4 +1,4 @@
-package com.tastyhouse.adminapi.common;
+package com.tastyhouse.adminapi.exception;
 
 import java.util.stream.Collectors;
 

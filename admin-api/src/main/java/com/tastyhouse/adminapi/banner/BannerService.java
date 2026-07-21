@@ -18,10 +18,10 @@ import com.tastyhouse.core.domain.banner.application.dto.result.BannerManagement
 import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.adminapi.common.FileResponse;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
+import com.tastyhouse.adminapi.file.response.FileResponse;
 
 @Service
 @RequiredArgsConstructor

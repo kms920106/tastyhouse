@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.adminapi.common.FileResponse;
+import com.tastyhouse.adminapi.file.response.FileResponse;
 
 @Schema(description = "이벤트 상세 응답")
 public record EventDetailResponse(

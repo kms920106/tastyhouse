@@ -1,4 +1,4 @@
-package com.tastyhouse.webapi.config;
+package com.tastyhouse.webapi.config.security;
 
 
 import java.util.Arrays;
@@ -24,10 +24,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.tastyhouse.webapi.config.jwt.JwtAuthenticationFilter;
-import com.tastyhouse.webapi.config.security.JwtAccessDeniedHandler;
-import com.tastyhouse.webapi.config.security.JwtAuthenticationEntryPoint;
 
-import static com.tastyhouse.webapi.config.PublicPaths.PATTERNS;
+import static com.tastyhouse.webapi.config.security.PublicPaths.PATTERNS;
 
 @Configuration
 @EnableWebSecurity

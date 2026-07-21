@@ -28,10 +28,10 @@ import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.adminapi.common.FileResponse;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.event.response.EventAnnouncementResponse;
 import com.tastyhouse.adminapi.event.response.EventDetailResponse;
+import com.tastyhouse.adminapi.file.response.FileResponse;
 import com.tastyhouse.adminapi.event.response.EventListItemResponse;
 import com.tastyhouse.adminapi.event.response.EventWinnerResponse;
 
