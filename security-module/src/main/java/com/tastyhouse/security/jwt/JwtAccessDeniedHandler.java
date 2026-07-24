@@ -1,4 +1,4 @@
-package com.tastyhouse.adminapi.config.security;
+package com.tastyhouse.security.jwt;
 
 import java.io.IOException;
 

@@ -9,10 +9,10 @@ import com.tastyhouse.core.domain.admin.domain.model.Admin;
 import com.tastyhouse.core.domain.admin.application.AdminQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.adminapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.adminapi.config.jwt.TokenType;
 import com.tastyhouse.adminapi.auth.response.JwtResponse;
 
 /**

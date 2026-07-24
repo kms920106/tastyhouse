@@ -1,139 +1,19 @@
 package com.tastyhouse.adminapi.config.jwt;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.stream.Collectors;
-
-import javax.crypto.SecretKey;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.security.jwt.JwtProperties;
 import com.tastyhouse.adminapi.config.security.CustomUserDetails;
 
+/**
+ * 공용 {@link com.tastyhouse.security.jwt.JwtTokenProvider}(access/refresh 발급·검증 메커니즘)를 상속한다.
+ * admin-api는 검증용 토큰이 없으므로 추가 메서드 없이 principal 식별자 클레임({@code adminId})과
+ * principal 재구성({@code CustomUserDetails})만 주입한다.
+ */
 @Component
-public class JwtTokenProvider {
-
-    private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
-
-    private final JwtProperties jwtProperties;
-    private SecretKey key;
+public class JwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvider {
 
     public JwtTokenProvider(JwtProperties jwtProperties) {
-        this.jwtProperties = jwtProperties;
-    }
-
-    @PostConstruct
-    public void init() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
-        this.key = Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public String createToken(Authentication authentication, long expirationTime, String tokenType) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
-
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + expirationTime);
-
-        Long adminId = null;
-        if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-            adminId = userDetails.getAdminId();
-        }
-        return Jwts.builder()
-                .subject(authentication.getName())
-                .claim("auth", authorities)
-                .claim("type", tokenType)
-                .claim("adminId", adminId)
-                .issuedAt(now)
-                .expiration(validity)
-                .signWith(key)
-                .compact();
-    }
-
-    public String createAccessToken(Authentication authentication) {
-        return createToken(authentication, jwtProperties.getAccessTokenExpiration(), TokenType.ACCESS.name());
-    }
-
-    public String createRefreshToken(Authentication authentication) {
-        return createToken(authentication, jwtProperties.getRefreshTokenExpiration(), TokenType.REFRESH.name());
-    }
-
-    public String createRefreshToken(Authentication authentication, boolean rememberMe) {
-        long ttl = rememberMe
-                ? jwtProperties.getRememberMeRefreshTokenExpiration()
-                : jwtProperties.getRefreshTokenExpiration();
-        return createToken(authentication, ttl, TokenType.REFRESH.name());
-    }
-
-    public long getRefreshTokenTtl(boolean rememberMe) {
-        return rememberMe
-                ? jwtProperties.getRememberMeRefreshTokenExpiration()
-                : jwtProperties.getRefreshTokenExpiration();
-    }
-
-    public Authentication getAuthentication(String token) {
-        Claims claims = parseClaims(token);
-
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-
-        Long adminId = claims.get("adminId", Long.class);
-        CustomUserDetails principal = new CustomUserDetails(adminId, claims.getSubject(), authorities);
-
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
-    }
-
-    public String getUsernameFromJWT(String token) {
-        return parseClaims(token).getSubject();
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            parseClaims(token);
-            return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.error("Invalid JWT signature/format.", e);
-        } catch (ExpiredJwtException e) {
-            log.error("Expired JWT token.", e);
-        } catch (UnsupportedJwtException e) {
-            log.error("Unsupported JWT token.", e);
-        } catch (IllegalArgumentException e) {
-            log.error("JWT claims string is empty.", e);
-        }
-        return false;
-    }
-
-    public void validateTokenType(String token, TokenType expectedType) {
-        Claims claims = parseClaims(token);
-        String actualType = claims.get("type", String.class);
-        if (!expectedType.name().equals(actualType)) {
-            throw new JwtException("유효하지 않은 토큰입니다.");
-        }
-    }
-
-    private Claims parseClaims(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-    }
-
-    public long getExpirationMillis(String token) {
-        return parseClaims(token).getExpiration().getTime();
+        super(jwtProperties, "adminId", CustomUserDetails::new);
     }
 }

@@ -44,6 +44,9 @@
 ### Common Patterns
 - 컨트롤러 → `{도메인}Service` → `core-module` application 서비스의 2-hop 구조. 컨트롤러는 HTTP 매핑만, 이 Service는 위임·변환만 담당한다.
 - application 서비스 공유(web-api와 동일 core 서비스)로 인한 회귀 주의 — command/query 시그니처 변경 시 web-api와 동시 수정.
+- **JWT 인증 메커니즘은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. admin-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `adminId` 클레임·`CustomUserDetails` 재구성만 주입한다(검증 토큰 없음). 공용 필터는 `config/jwt/JwtConfig`가 admin 전용 블랙리스트 저장소(`admin:bl:`)로 빈 등록한다. 정책은 admin-api에 잔류: `config/security/SecurityConfig`·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현)·`AdminUserDetailsService`, `config/jwt/TokenService`·`RedisRepositoryConfig`.
+- **인가 체인은 `.anyRequest().hasAnyRole("ADMIN", "SUPER_ADMIN")`**로 관리자 역할을 강제한다(심층 방어). `@PreAuthorize`는 더 세분화된 제어(예: `AdminApiController`의 `SUPER_ADMIN`)에만 추가로 쓴다.
+- **`jwt.secret`은 web-api와 반드시 달라야 한다**(admin=`JWT_SECRET_ADMIN`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과하는 권한 상승이 발생한다 — 상세는 `security-module/AGENTS.md`. 시크릿 교체 시 기존 admin 세션은 전면 무효화되므로 배포 시 관리자 재로그인 안내가 필요하다.
 
 ## Dependencies
 

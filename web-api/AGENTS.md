@@ -37,7 +37,9 @@
 - `@WebMvcTest` / `@SpringBootTest` + `spring-security-test`로 인증 흐름 검증.
 
 ### Common Patterns
-- JWT 발급/검증은 `config/jwt/`, 보안 설정은 `config/security/`.
+- **JWT 인증 메커니즘(access/refresh 발급·검증·필터·EntryPoint·AccessDeniedHandler)은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. web-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `memberId` 클레임·`CustomUserDetails` 재구성을 주입하고, **web 전용 검증 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급 메서드만 추가**한다. 공용 필터는 `config/jwt/JwtConfig`가 web 전용 블랙리스트 저장소로 빈 등록한다.
+- **정책은 web-api에 잔류**: `config/security/`의 `SecurityConfig`(공개 경로·CORS 헤더 `X-Verify-Token` 등)·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현)·`CustomUserDetailsService`, `config/jwt/`의 `TokenService`·`RedisRepositoryConfig`.
+- **`jwt.secret`은 admin-api와 반드시 달라야 한다**(web=`JWT_SECRET`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과한다 — 상세는 `security-module/AGENTS.md`.
 - 소셜 로그인은 `auth/{kakao,naver,apple,facebook}` — 실제 외부 호출은 `external-api`에 위임.
 - 응답은 공통 래퍼(`common/`)로 일관화.
 

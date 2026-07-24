@@ -11,6 +11,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // 공용 JWT 인증 메커니즘(JwtTokenProvider·필터·EntryPoint·AccessDeniedHandler)이 Spring Security 타입에
+    // 의존하므로 api로 노출한다. web-api/admin-api도 자체적으로 이 starter를 선언하지만 중복은 무해하다.
+    api 'org.springframework.boot:spring-boot-starter-security'
+
+    // JWT (공용 JwtTokenProvider가 서명/파싱에 사용)
+    api 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
     // Lombok
     implementation 'org.projectlombok:lombok'

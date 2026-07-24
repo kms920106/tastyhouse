@@ -8,8 +8,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import com.tastyhouse.core.domain.admin.domain.model.Admin;
+import com.tastyhouse.security.jwt.JwtPrincipal;
 
-public class CustomUserDetails extends User {
+public class CustomUserDetails extends User implements JwtPrincipal {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -25,5 +26,10 @@ public class CustomUserDetails extends User {
     public CustomUserDetails(Long adminId, String username, Collection<? extends GrantedAuthority> authorities) {
         super(username, "", authorities);
         this.adminId = adminId;
+    }
+
+    @Override
+    public Long getPrincipalId() {
+        return adminId;
     }
 }
