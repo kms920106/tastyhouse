@@ -3,6 +3,7 @@ package com.tastyhouse.core.domain.ceo.domain.model;
 import lombok.Getter;
 
 import com.tastyhouse.core.domain.ceo.domain.vo.CeoId;
+import com.tastyhouse.core.shared.vo.PhoneNumber;
 
 /**
  * 점주 계정 순수 도메인 모델.
@@ -19,21 +20,37 @@ public class Ceo {
     private final String username;
     private final String password;
     private final String name;
+    private final String businessRegistrationNumber;
+    private final PhoneNumber phoneNumber;
+    private final String email;
     private final CeoStatus status;
 
-    private Ceo(Long id, String username, String password, String name, CeoStatus status) {
+    private Ceo(
+        Long id,
+        String username,
+        String password,
+        String name,
+        String businessRegistrationNumber,
+        PhoneNumber phoneNumber,
+        String email,
+        CeoStatus status
+    ) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.name = name;
+        this.businessRegistrationNumber = businessRegistrationNumber;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
         this.status = status;
     }
 
     /**
      * 신규 점주 계정을 생성한다. password는 이미 인코딩된 값이어야 한다.
+     * 사업자등록번호·휴대폰번호·이메일은 시드 시점에는 알 수 없으므로 null로 시작한다.
      */
     public static Ceo create(String username, String encodedPassword, String name) {
-        return new Ceo(null, username, encodedPassword, name, CeoStatus.ACTIVE);
+        return new Ceo(null, username, encodedPassword, name, null, null, null, CeoStatus.ACTIVE);
     }
 
     /**
@@ -45,9 +62,12 @@ public class Ceo {
         String username,
         String password,
         String name,
+        String businessRegistrationNumber,
+        PhoneNumber phoneNumber,
+        String email,
         CeoStatus status
     ) {
-        return new Ceo(id, username, password, name, status);
+        return new Ceo(id, username, password, name, businessRegistrationNumber, phoneNumber, email, status);
     }
 
     public CeoId getCeoId() {

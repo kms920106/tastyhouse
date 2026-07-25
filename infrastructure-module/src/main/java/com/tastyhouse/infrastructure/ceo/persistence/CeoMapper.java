@@ -19,6 +19,9 @@ final class CeoMapper {
             entity.getUsername(),
             entity.getPassword(),
             entity.getName(),
+            entity.getBusinessRegistrationNumber(),
+            entity.getPhoneNumber(),
+            entity.getEmail(),
             entity.getStatus()
         );
     }
@@ -31,6 +34,9 @@ final class CeoMapper {
             domain.getUsername(),
             domain.getPassword(),
             domain.getName(),
+            domain.getBusinessRegistrationNumber(),
+            domain.getPhoneNumber(),
+            domain.getEmail(),
             domain.getStatus()
         );
     }

@@ -186,6 +186,9 @@ CREATE TABLE CEO
     username   VARCHAR(50)  NOT NULL UNIQUE,      -- 점주 아이디 (로그인 ID)
     password   VARCHAR(255) NOT NULL,             -- 비밀번호 (BCrypt 인코딩)
     name       VARCHAR(100) NOT NULL,             -- 점주 이름
+    business_registration_number VARCHAR(20),     -- 사업자등록번호
+    phone_number VARCHAR(11),                     -- 점주 휴대폰번호
+    email      VARCHAR(200),                      -- 점주 이메일
     status     VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE', -- 계정 상태 (ACTIVE, INACTIVE)
     created_at DATETIME     NOT NULL,             -- 생성 일시
     updated_at DATETIME     NOT NULL              -- 수정 일시
