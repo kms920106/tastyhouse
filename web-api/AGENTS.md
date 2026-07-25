@@ -9,8 +9,8 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | web, webflux, security, data-redis, aop, validation, JJWT, springdoc, p6spy 의존 |
-| `src/main/resources/` | `application*.yml` 등 환경 설정 |
+| `build.gradle` | web, webflux, security, data-redis, aop, validation, JJWT, springdoc 의존 (p6spy는 logging-module이 api로 전이) |
+| `src/main/resources/` | `application.yml` 등 환경 설정 (로깅 설정은 logging-module의 `application-logging.yml`을 import) |
 
 ## Subdirectories
 | Directory | Purpose |
@@ -51,6 +51,6 @@
 
 ### External
 - Spring Web/WebFlux/Security, Redis, AOP, Validation
-- JJWT 0.13.0, springdoc-openapi 2.3.0, p6spy
+- JJWT 0.13.0, springdoc-openapi 2.3.0 (p6spy는 logging-module 경유 전이 의존)
 
 <!-- MANUAL: -->

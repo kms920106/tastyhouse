@@ -9,6 +9,10 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-aop'
     api 'org.springframework.boot:spring-boot-starter-security'
 
+    // p6spy SQL 로깅 — 소비 모듈(web/admin/ceo-api)이 별도 선언하지 않도록 api로 노출.
+    // SQL 로그 포맷은 application-logging.yml의 decorator.datasource.p6spy.log-format이 소유.
+    api 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.12.1'
+
     // Lombok
     implementation 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

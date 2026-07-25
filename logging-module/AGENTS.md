@@ -33,9 +33,18 @@ dependencies {
 
 - **패키지 루트는 `com.tastyhouse.logging`** — `web-api`/`admin-api`/`batch-module`의 `scanBasePackages`(및 admin-api는 `@EnableJpaAuditing` 등 컴포넌트 스캔 목록)에 이 패키지가 등록되어 있어야 `ApiLoggingFilter`/`ApiLoggingAspect`가 빈으로 인식된다.
 - **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`external-api`/`infrastructure-module`과 동일한 라이브러리 모듈 패턴).
-- **바디 로깅은 DEBUG 레벨에서만 활성화**된다(`application-dev.yml`: `com.tastyhouse.logging: DEBUG`, `application-prod.yml`: 기본값 `INFO` 유지) — 운영 환경에서 요청/응답 바디가 로그에 그대로 남지 않도록 하는 안전장치이므로, 로그 레벨 설정을 변경할 때 이 전제를 깨지 않도록 주의한다.
+- **바디 로깅은 DEBUG 레벨에서만 활성화**된다 — `com.tastyhouse.logging` 레벨이 `DEBUG`일 때만 요청/응답 바디가 로깅된다. 운영 환경에서 바디가 로그에 그대로 남지 않도록 하는 안전장치이므로, 로그 레벨 설정을 변경할 때 이 전제를 깨지 않도록 주의한다. 이 레벨은 아래 `application-logging.yml`에서 `${API_BODY_LOG_LEVEL:DEBUG}`로 환경변수화되어 있어, 운영에서는 `API_BODY_LOG_LEVEL=INFO`만 지정하면 코드 수정·재빌드 없이 바디 로깅을 끌 수 있다(로컬 기본값은 DEBUG).
 - **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. 마스킹이 실사용에 연결되지 않은 현재 상태에서 목록만 갱신해도 즉시 효과는 없으므로, 마스킹을 실제로 적용하려면 `ApiLoggingAspect`의 활성화가 선행되어야 한다.
 - **core-module 의존 없음**: 이 모듈은 순수 횡단 관심사(로깅/필터/AOP)만 다루며 도메인 모델이나 core 서비스에 의존하지 않는다.
+
+## 로깅 설정 소유 (`application-logging.yml`)
+
+이 모듈은 로깅 관련 **코드**뿐 아니라 **설정**도 소유한다. 과거 `web-api`/`admin-api`/`ceo-api` 3개 실행 모듈의 `application.yml`에 동일하게 복제돼 있던 `logging:` 블록(콘솔 패턴·root 레벨·`com.tastyhouse.logging` 레벨)과 각 모듈 `src/main/resources/spy.properties`(p6spy SQL 로그 포맷)를 이 모듈의 `src/main/resources/application-logging.yml` 하나로 통합했다. 이는 `security-module`이 `application-security.yml`을, `infrastructure-module`이 `application-infrastructure.yml`을 소유하고 실행 모듈이 `spring.config.import`로 로딩하는 기존 컨벤션(루트 CLAUDE.md "모듈 경계 규칙 — 설정값도 같은 패턴")의 반복 적용이다.
+
+- **소유 항목**: 콘솔 로그 패턴(`requestId` MDC 포함), `root: INFO`, `com.tastyhouse.logging: ${API_BODY_LOG_LEVEL:DEBUG}`, p6spy 로그 포맷(`decorator.datasource.p6spy.log-format: "%(sql)"`).
+- **spy.properties 폐지**: 과거 `appender=Slf4JLogger`/`logMessageFormat=CustomLineFormat`/`customLogMessageFormat=%(sql)` 4줄을 `p6spy-spring-boot-starter`의 `decorator.datasource.p6spy.log-format` 프로퍼티로 흡수했다(appender는 starter 기본값이 Slf4JLogger라 생략, dateformat은 `%(sql)` 포맷에서 미사용). 동작은 동일하다.
+- **로딩 방법**: 실행 모듈 `application.yml`의 `spring.config.import`에 `classpath:application-logging.yml`을 추가한다(현재 web/admin/ceo-api 적용). `application-infrastructure.yml`도 `logging.level`(`org.hibernate.SQL`/`p6spy` 등)을 갖지만 키가 서로 달라 병합되므로 import 순서와 무관하다.
+- **batch-module은 대상 아님**: batch는 HTTP 요청이 없어 requestId 패턴·p6spy가 불필요하므로 `application-logging.yml`을 import하지 않고 자체 `logging:` 블록을 유지한다. 다만 `logging-module`을 의존하면 아래 p6spy `api` 노출이 전이되므로, `batch-module/build.gradle`은 `implementation(project(':logging-module')) { exclude ... p6spy-spring-boot-starter }`로 전이를 차단해 기존(SQL 로그 없음) 동작을 보존한다.
 
 ## Dependencies
 
@@ -46,6 +55,7 @@ dependencies {
 - `spring-boot-starter-web` (api) — `OncePerRequestFilter`, `ContentCachingRequestWrapper`/`ContentCachingResponseWrapper`, 전이적으로 Jackson(`ObjectMapper`/`JsonNode`)도 포함해 `SensitiveFieldMasker`의 JSON 트리 마스킹에 쓰인다(별도 Jackson 의존 선언 없음)
 - `spring-boot-starter-aop` (api) — `@Aspect`/`@Around`/`@Before`
 - `spring-boot-starter-security` (api) — `SecurityContextHolder`/`Authentication`
+- `p6spy-spring-boot-starter` 1.12.1 (api) — datasource 데코레이션으로 SQL 로깅. 소비 모듈(web/admin/ceo-api)이 별도 선언하지 않도록 `api`로 노출하며, SQL 로그 포맷은 `application-logging.yml`이 소유한다. (batch-module은 `exclude`로 전이 차단 — 위 "로깅 설정 소유" 참고)
 - Lombok
 
 <!-- MANUAL: -->

@@ -3,7 +3,11 @@ dependencies {
     implementation project(':core-module')
     runtimeOnly project(':infrastructure-module')
     implementation project(':external-api')
-    implementation project(':logging-module')
+    // logging-module이 p6spy를 api로 노출하지만, batch는 HTTP 요청이 없어 p6spy를 쓰지 않으므로
+    // 전이 의존을 차단해 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다.
+    implementation(project(':logging-module')) {
+        exclude group: 'com.github.gavlyukovskiy', module: 'p6spy-spring-boot-starter'
+    }
 
     // Lombok
     implementation 'org.projectlombok:lombok'

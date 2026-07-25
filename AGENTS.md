@@ -83,6 +83,6 @@ core-module → (no Spring Web, no JPA; querydsl-core만 의존)
 - JJWT 0.12.3 — JWT 발급/검증
 - AWS SDK (SES, SNS, S3), Firebase Admin 9.10.0
 - springdoc-openapi 2.3.0 — Swagger UI
-- Lombok, p6spy (SQL 로깅)
+- Lombok, p6spy (SQL 로깅 — logging-module이 api로 노출하고 SQL 로그 포맷을 `application-logging.yml`에서 소유)
 
 <!-- MANUAL: 수동 메모는 이 라인 아래에 추가하면 재생성 시 보존됩니다 -->
