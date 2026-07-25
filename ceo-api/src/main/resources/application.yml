@@ -20,8 +20,6 @@ spring:
       max-request-size: 10MB
 
 jwt:
-  # web-api·admin-api와 반드시 다른 시크릿을 사용한다. 동일 시크릿이면 다른 API의 토큰이 점주 인증을
-  # 통과하는 권한 상승이 발생하므로 점주 전용 환경변수(JWT_SECRET_CEO)로 분리한다.
   secret: ${JWT_SECRET_CEO}
   accessTokenExpiration: 3600000 # 1시간 (ms)
   refreshTokenExpiration: 604800000 # 7일 (ms) - 일반 로그인

@@ -20,7 +20,7 @@ spring:
       max-request-size: 10MB
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET_WEB}
   accessTokenExpiration: 3600000 # 1시간 (ms)
   refreshTokenExpiration: 604800000 # 7일 (ms) - 일반 로그인
   rememberMeRefreshTokenExpiration: 2592000000 # 30일 (ms) - 로그인 상태 유지
