@@ -19,6 +19,7 @@ import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 public class Shop {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private Long ceoId; // 소유 점주 ID (CEO.id 참조, null이면 점주 미배정)
     private Long stationId; // 지하철역 ID (STATION.id 참조)
     private String name; // 상호명
     private BigDecimal latitude; // 위도
@@ -26,14 +27,18 @@ public class Shop {
     private final Double rating; // 평균 평점
     private String roadAddress; // 도로명 주소
     private String lotAddress; // 지번 주소
-    private String phoneNumber; // 전화번호
+    private String phoneNumber; // 대표 전화번호
     private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
+    private Long trademarkImageFileId; // 상표 이미지 파일 ID (승인 완료 시 반영, FILE.id 참조)
     private boolean permanentlyClosed; // 폐업 여부 (true: 폐업)
+    private boolean hidden; // 노출정지 여부 (true: 배민앱 완전 비노출, 폐업과 별개)
+    private boolean closedOnPublicHolidays; // 공휴일 휴무 여부 (true: 공휴일 휴무)
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
     private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private Shop(
         Long id,
+        Long ceoId,
         Long stationId,
         String name,
         BigDecimal latitude,
@@ -43,11 +48,15 @@ public class Shop {
         String lotAddress,
         String phoneNumber,
         Long thumbnailImageFileId,
+        Long trademarkImageFileId,
         boolean permanentlyClosed,
+        boolean hidden,
+        boolean closedOnPublicHolidays,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
         this.id = id;
+        this.ceoId = ceoId;
         this.stationId = stationId;
         this.name = name;
         this.latitude = latitude;
@@ -57,7 +66,10 @@ public class Shop {
         this.lotAddress = lotAddress;
         this.phoneNumber = phoneNumber;
         this.thumbnailImageFileId = thumbnailImageFileId;
+        this.trademarkImageFileId = trademarkImageFileId;
         this.permanentlyClosed = permanentlyClosed;
+        this.hidden = hidden;
+        this.closedOnPublicHolidays = closedOnPublicHolidays;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -77,6 +89,7 @@ public class Shop {
     ) {
         return new Shop(
             null,
+            null,
             stationId,
             name,
             latitude,
@@ -86,6 +99,9 @@ public class Shop {
             lotAddress,
             phoneNumber,
             thumbnailImageFileId,
+            null,
+            false,
+            false,
             false,
             null,
             null
@@ -98,6 +114,7 @@ public class Shop {
      */
     public static Shop reconstitute(
         Long id,
+        Long ceoId,
         Long stationId,
         String name,
         BigDecimal latitude,
@@ -107,12 +124,16 @@ public class Shop {
         String lotAddress,
         String phoneNumber,
         Long thumbnailImageFileId,
+        Long trademarkImageFileId,
         boolean permanentlyClosed,
+        boolean hidden,
+        boolean closedOnPublicHolidays,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
         return new Shop(
             id,
+            ceoId,
             stationId,
             name,
             latitude,
@@ -122,7 +143,10 @@ public class Shop {
             lotAddress,
             phoneNumber,
             thumbnailImageFileId,
+            trademarkImageFileId,
             permanentlyClosed,
+            hidden,
+            closedOnPublicHolidays,
             createdAt,
             updatedAt
         );
@@ -150,6 +174,55 @@ public class Shop {
         this.lotAddress = lotAddress;
         this.phoneNumber = phoneNumber;
         this.thumbnailImageFileId = thumbnailImageFileId;
+    }
+
+    /**
+     * 소유 점주를 배정한다(관리자가 가게-점주 연결 시 사용). null이면 점주 미배정 상태로 되돌린다.
+     */
+    public void assignCeo(Long ceoId) {
+        this.ceoId = ceoId;
+    }
+
+    /**
+     * 대표 전화번호를 갱신한다. 전화번호 다건 관리에서 대표번호 변경 시 {@code Shop.phoneNumber}를 동기화한다.
+     */
+    public void changePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    /**
+     * 승인 완료된 상표 이미지를 반영한다.
+     */
+    public void changeTrademarkImage(Long trademarkImageFileId) {
+        this.trademarkImageFileId = trademarkImageFileId;
+    }
+
+    /**
+     * 승인 완료된 대표(썸네일) 이미지를 반영한다.
+     */
+    public void changeThumbnailImage(Long thumbnailImageFileId) {
+        this.thumbnailImageFileId = thumbnailImageFileId;
+    }
+
+    /**
+     * 공휴일 휴무 여부를 설정한다.
+     */
+    public void updateHolidayClosure(boolean closedOnPublicHolidays) {
+        this.closedOnPublicHolidays = closedOnPublicHolidays;
+    }
+
+    /**
+     * 배민앱에서 가게를 완전히 숨긴다(노출정지).
+     */
+    public void hide() {
+        this.hidden = true;
+    }
+
+    /**
+     * 노출정지를 해제해 다시 노출한다.
+     */
+    public void show() {
+        this.hidden = false;
     }
 
     public void close() {

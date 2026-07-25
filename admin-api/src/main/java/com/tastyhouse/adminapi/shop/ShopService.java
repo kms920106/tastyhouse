@@ -104,6 +104,7 @@ public class ShopService {
     }
 
     public Long createShop(
+        Long ceoId,
         Long stationId,
         String name,
         BigDecimal latitude,
@@ -114,7 +115,7 @@ public class ShopService {
         Long thumbnailImageFileId
     ) {
         ShopCreateCommand command = ShopCreateCommand.of(
-            stationId, name, latitude, longitude, roadAddress, lotAddress, phoneNumber, thumbnailImageFileId
+            ceoId, stationId, name, latitude, longitude, roadAddress, lotAddress, phoneNumber, thumbnailImageFileId
         );
         Shop shop = shopCommandService.createShop(command);
         return shop.getId();
@@ -180,18 +181,19 @@ public class ShopService {
             businessHour.getDayType().getDescription(),
             businessHour.getOpenTime(),
             businessHour.getCloseTime(),
-            businessHour.getIsClosed()
+            businessHour.getIsClosed(),
+            businessHour.getIs24Hours()
         );
     }
 
-    public Long createBusinessHour(Long id, String dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
-        ShopBusinessHourSaveCommand command = ShopBusinessHourSaveCommand.of(DayType.from(dayType), openTime, closeTime, isClosed);
+    public Long createBusinessHour(Long id, String dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed, Boolean is24Hours) {
+        ShopBusinessHourSaveCommand command = ShopBusinessHourSaveCommand.of(DayType.from(dayType), openTime, closeTime, isClosed, is24Hours);
         ShopBusinessHour businessHour = shopCommandService.createBusinessHour(id, command);
         return businessHour.getId();
     }
 
-    public void updateBusinessHour(Long businessHourId, String dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
-        ShopBusinessHourSaveCommand command = ShopBusinessHourSaveCommand.of(DayType.from(dayType), openTime, closeTime, isClosed);
+    public void updateBusinessHour(Long businessHourId, String dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed, Boolean is24Hours) {
+        ShopBusinessHourSaveCommand command = ShopBusinessHourSaveCommand.of(DayType.from(dayType), openTime, closeTime, isClosed, is24Hours);
         shopCommandService.updateBusinessHour(businessHourId, command);
     }
 

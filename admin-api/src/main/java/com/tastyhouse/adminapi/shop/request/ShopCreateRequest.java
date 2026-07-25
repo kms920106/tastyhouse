@@ -8,6 +8,9 @@ import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "가게 등록 요청")
 public record ShopCreateRequest(
+    @Schema(description = "소유 점주 ID (미지정 시 점주 미배정 가게)", example = "1")
+    Long ceoId,
+
     @NotNull(message = "지하철역 ID는 필수입니다.")
     @Schema(description = "지하철역 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Long stationId,

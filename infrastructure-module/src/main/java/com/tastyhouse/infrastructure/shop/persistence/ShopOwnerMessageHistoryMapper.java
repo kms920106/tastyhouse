@@ -15,4 +15,11 @@ final class ShopOwnerMessageHistoryMapper {
             entity.getCreatedAt()
         );
     }
+
+    static ShopOwnerMessageHistoryJpaEntity toEntity(ShopOwnerMessageHistory domain) {
+        return ShopOwnerMessageHistoryJpaEntity.create(
+            domain.getShopId(),
+            domain.getMessage()
+        );
+    }
 }

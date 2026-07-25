@@ -66,6 +66,7 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     private final ShopBannerImageJpaRepository shopBannerImageJpaRepository;
     private final ShopPhotoCategoryJpaRepository shopPhotoCategoryJpaRepository;
     private final ShopPhotoCategoryImageJpaRepository shopPhotoCategoryImageJpaRepository;
+    private final ShopOwnerMessageHistoryJpaRepository shopOwnerMessageHistoryJpaRepository;
 
     @Override
     public List<Station> findAllStationsOrderByName() {
@@ -522,5 +523,12 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
             .orderBy(shopOwnerMessageHistoryJpaEntity.createdAt.desc())
             .fetchFirst();
         return Optional.ofNullable(result).map(ShopOwnerMessageHistoryMapper::toDomain);
+    }
+
+    @Override
+    public void saveOwnerMessage(ShopOwnerMessageHistory ownerMessageHistory) {
+        shopOwnerMessageHistoryJpaRepository.save(
+            ShopOwnerMessageHistoryMapper.toEntity(ownerMessageHistory)
+        );
     }
 }

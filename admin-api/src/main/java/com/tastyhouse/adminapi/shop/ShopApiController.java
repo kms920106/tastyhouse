@@ -88,7 +88,7 @@ public class ShopApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createShop(@Valid @RequestBody ShopCreateRequest request) {
         Long id = shopService.createShop(
-            request.stationId(), request.name(), request.latitude(), request.longitude(),
+            request.ceoId(), request.stationId(), request.name(), request.latitude(), request.longitude(),
             request.roadAddress(), request.lotAddress(), request.phoneNumber(), request.thumbnailImageFileId()
         );
         return ResponseEntity.ok(ApiResponse.success(id));
@@ -134,7 +134,7 @@ public class ShopApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        Long businessHourId = shopService.createBusinessHour(id, request.dayType(), request.openTime(), request.closeTime(), request.isClosed());
+        Long businessHourId = shopService.createBusinessHour(id, request.dayType(), request.openTime(), request.closeTime(), request.isClosed(), request.is24Hours());
         return ResponseEntity.ok(ApiResponse.success(businessHourId));
     }
 
@@ -144,7 +144,7 @@ public class ShopApiController {
         @PathVariable Long businessHourId,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        shopService.updateBusinessHour(businessHourId, request.dayType(), request.openTime(), request.closeTime(), request.isClosed());
+        shopService.updateBusinessHour(businessHourId, request.dayType(), request.openTime(), request.closeTime(), request.isClosed(), request.is24Hours());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

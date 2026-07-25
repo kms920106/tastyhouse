@@ -6,7 +6,11 @@
 ## Purpose
 점주(매장 오너)용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). `web-api`(일반 회원)·`admin-api`(관리자)와 대칭인 3번째 프레젠테이션 모듈로, 매장 사장님이 자기 매장·주문·예약·리뷰 등을 관리하는 셀프 서비스 API를 제공할 예정이다. `core-module`의 동일한 application 서비스를 재사용한다.
 
-**현재 상태: 로그인 API 구현 완료** — 모듈 골격 + JWT 인증 인프라 + 공통(common/exception) 요소에 더해, `core-module`에 점주 계정 도메인(`ceo`)을 신설하고 `auth`(로그인/토큰갱신/로그아웃) 엔드포인트를 구현했다. shop·order 등 나머지 도메인 엔드포인트는 아직 없다.
+**현재 상태: 로그인 + 점주 가게 관리 API 구현 완료** — 모듈 골격 + JWT 인증 인프라 + 공통(common/exception) 요소, `auth`(로그인/토큰갱신/로그아웃)에 더해, 배민 사장님 셀프서비스 가이드 기반 **점주 가게 설정 API(`shop`)** 를 구현했다: 내 가게 조회, 영업시간·휴게시간(PDF 규격 검증), 휴무일(공휴일/정기/임시), 전화번호(다건+대표번호), 가게 상태(노출정지), 가게소개(금칙어 검수), 편의정보·찾아오는길·노출위치, 상표·대표이미지 변경요청(승인 워크플로), 콘텐츠보드, 영업 임시중지, 위생정보 조회. order 등 나머지 도메인 엔드포인트는 아직 없다.
+
+- **점주-가게 소유권**: `Shop`에 `ceoId` 컬럼을 두어 1점주 N가게를 표현한다(관리자가 admin-api에서 배정). 모든 가게 관리 엔드포인트는 `shop/ShopOwnershipValidator.validateOwnership(ceoId, shopId)`를 먼저 호출해 `shop.ceoId == 로그인 ceoId`를 확인하고, 불일치 시 `AccessDeniedException(SHOP_ACCESS_DENIED)`(403)을 던진다. `CustomUserDetails`는 `ceoId`만 노출하므로 shopId는 경로/바디로 받아 이 검증기로 소유권을 확인한다.
+- **검수/승인**: 상표·대표이미지는 `core/shared/model/ApprovalStatus`(PENDING/APPROVED/REJECTED)를 쓰는 공용 `ShopImageChangeRequest` 애그리거트로 "점주 변경요청 → admin 승인/반려 → 승인 시 Shop 반영" 워크플로를 구현한다. 가게소개·찾아오는길은 `ProhibitedWordValidator`(금칙어) 통과 시 즉시 반영, 콘텐츠보드는 즉시 노출 + admin 사후 숨김/삭제. 노출정지는 PENDING 승인요청 존재 시 차단(`SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST`).
+- **이미지 규격 검증**: `shop/ShopImageSpecValidator`가 상표(JPG·≤900KB·560×560↑·1:1)/콘텐츠(IMAGE JPG·PNG ≤10MB 700×700↑, GIF ≤10MB 250×250↑) 규격을 업로드 전 검증하고, 통과분만 `FileService`로 업로드한다. 유튜브 영상 길이(5~30분)는 서버 검증 불가라 URL 형식만 검증한다.
 
 컨트롤러가 `core-module`에 직접 결합되는 것을 막기 위해, 신규 도메인은 admin-api와 동일하게 도메인별 ceo-api 소속 `{도메인}Service`를 두어 컨트롤러와 core 사이를 중개하는 패턴을 따른다(컨트롤러는 `com.tastyhouse.core.*`를 import하지 않고 ceo-api 타입에만 의존).
 

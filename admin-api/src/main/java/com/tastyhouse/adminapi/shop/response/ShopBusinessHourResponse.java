@@ -22,7 +22,10 @@ public record ShopBusinessHourResponse(
     LocalTime closeTime,
 
     @Schema(description = "휴무 여부", example = "false")
-    Boolean isClosed
+    Boolean isClosed,
+
+    @Schema(description = "24시간 영업 여부", example = "false")
+    Boolean is24Hours
 ) {
     public static ShopBusinessHourResponse from(
         Long id,
@@ -30,7 +33,8 @@ public record ShopBusinessHourResponse(
         String description,
         LocalTime openTime,
         LocalTime closeTime,
-        Boolean isClosed
+        Boolean isClosed,
+        Boolean is24Hours
     ) {
         return new ShopBusinessHourResponse(
             id,
@@ -38,7 +42,8 @@ public record ShopBusinessHourResponse(
             description,
             openTime,
             closeTime,
-            isClosed
+            isClosed,
+            is24Hours
         );
     }
 }

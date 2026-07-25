@@ -16,6 +16,7 @@ final class ShopMapper {
     static Shop toDomain(ShopJpaEntity entity) {
         return Shop.reconstitute(
             entity.getId(),
+            entity.getCeoId(),
             entity.getStationId(),
             entity.getName(),
             entity.getLatitude(),
@@ -25,7 +26,10 @@ final class ShopMapper {
             entity.getLotAddress(),
             entity.getPhoneNumber(),
             entity.getThumbnailImageFileId(),
+            entity.getTrademarkImageFileId(),
             entity.isPermanentlyClosed(),
+            entity.isHidden(),
+            entity.isClosedOnPublicHolidays(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
@@ -36,6 +40,7 @@ final class ShopMapper {
      */
     static ShopJpaEntity toEntity(Shop domain) {
         return ShopJpaEntity.create(
+            domain.getCeoId(),
             domain.getStationId(),
             domain.getName(),
             domain.getLatitude(),
@@ -45,7 +50,10 @@ final class ShopMapper {
             domain.getLotAddress(),
             domain.getPhoneNumber(),
             domain.getThumbnailImageFileId(),
-            domain.isPermanentlyClosed()
+            domain.getTrademarkImageFileId(),
+            domain.isPermanentlyClosed(),
+            domain.isHidden(),
+            domain.isClosedOnPublicHolidays()
         );
     }
 
@@ -54,6 +62,7 @@ final class ShopMapper {
      */
     static void applyChanges(ShopJpaEntity entity, Shop domain) {
         entity.applyChanges(
+            domain.getCeoId(),
             domain.getStationId(),
             domain.getName(),
             domain.getLatitude(),
@@ -63,7 +72,10 @@ final class ShopMapper {
             domain.getLotAddress(),
             domain.getPhoneNumber(),
             domain.getThumbnailImageFileId(),
-            domain.isPermanentlyClosed()
+            domain.getTrademarkImageFileId(),
+            domain.isPermanentlyClosed(),
+            domain.isHidden(),
+            domain.isClosedOnPublicHolidays()
         );
     }
 }

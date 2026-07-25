@@ -3,6 +3,7 @@ package com.tastyhouse.core.domain.shop.application.dto.command;
 import java.math.BigDecimal;
 
 public record ShopCreateCommand(
+    Long ceoId,
     Long stationId,
     String name,
     BigDecimal latitude,
@@ -14,6 +15,7 @@ public record ShopCreateCommand(
 ) {
 
     public static ShopCreateCommand of(
+        Long ceoId,
         Long stationId,
         String name,
         BigDecimal latitude,
@@ -24,6 +26,7 @@ public record ShopCreateCommand(
         Long thumbnailImageFileId
     ) {
         return new ShopCreateCommand(
+            ceoId,
             stationId,
             name,
             latitude,

@@ -18,6 +18,9 @@ public record ShopBusinessHourSaveRequest(
     LocalTime closeTime,
 
     @Schema(description = "휴무 여부", example = "false")
-    Boolean isClosed
+    Boolean isClosed,
+
+    @Schema(description = "24시간 영업 여부", example = "false")
+    Boolean is24Hours
 ) {
 }

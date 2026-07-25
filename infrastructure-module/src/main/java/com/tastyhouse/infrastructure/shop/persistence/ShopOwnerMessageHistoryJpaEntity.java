@@ -30,4 +30,13 @@ public class ShopOwnerMessageHistoryJpaEntity extends BaseEntity {
 
     @Column(name = "message", columnDefinition = "TEXT")
     private String message; // 사장님 한마디 메시지 내용
+
+    private ShopOwnerMessageHistoryJpaEntity(Long shopId, String message) {
+        this.shopId = shopId;
+        this.message = message;
+    }
+
+    static ShopOwnerMessageHistoryJpaEntity create(Long shopId, String message) {
+        return new ShopOwnerMessageHistoryJpaEntity(shopId, message);
+    }
 }

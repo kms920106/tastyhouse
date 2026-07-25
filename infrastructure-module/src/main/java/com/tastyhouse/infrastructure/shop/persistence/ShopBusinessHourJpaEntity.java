@@ -45,22 +45,41 @@ public class ShopBusinessHourJpaEntity {
     @Column(name = "is_closed")
     private Boolean isClosed; // 휴무 여부 (true: 휴무)
 
-    private ShopBusinessHourJpaEntity(Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+    @Column(name = "is_open_24_hours")
+    private Boolean is24Hours; // 24시간 영업 여부
+
+    private ShopBusinessHourJpaEntity(
+        Long shopId,
+        DayType dayType,
+        LocalTime openTime,
+        LocalTime closeTime,
+        Boolean isClosed,
+        Boolean is24Hours
+    ) {
         this.shopId = shopId;
         this.dayType = dayType;
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.isClosed = isClosed;
+        this.is24Hours = is24Hours;
     }
 
-    static ShopBusinessHourJpaEntity create(Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
-        return new ShopBusinessHourJpaEntity(shopId, dayType, openTime, closeTime, isClosed);
+    static ShopBusinessHourJpaEntity create(
+        Long shopId,
+        DayType dayType,
+        LocalTime openTime,
+        LocalTime closeTime,
+        Boolean isClosed,
+        Boolean is24Hours
+    ) {
+        return new ShopBusinessHourJpaEntity(shopId, dayType, openTime, closeTime, isClosed, is24Hours);
     }
 
-    void applyChanges(DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+    void applyChanges(DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed, Boolean is24Hours) {
         this.dayType = dayType;
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.isClosed = isClosed;
+        this.is24Hours = is24Hours;
     }
 }

@@ -108,6 +108,7 @@ class ShopTest {
 
         Shop shop = Shop.reconstitute(
             1L,
+            100L,
             2L,
             "상점명",
             BigDecimal.valueOf(37.5),
@@ -117,7 +118,10 @@ class ShopTest {
             "지번 주소",
             "010-1234-5678",
             10L,
+            20L,
             true,
+            false,
+            false,
             createdAt,
             updatedAt
         );

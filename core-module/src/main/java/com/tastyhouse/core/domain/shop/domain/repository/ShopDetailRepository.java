@@ -114,4 +114,6 @@ public interface ShopDetailRepository {
     void deletePhotoCategoryImageById(Long id);
 
     Optional<ShopOwnerMessageHistory> findLatestOwnerMessageByShopId(Long shopId);
+
+    void saveOwnerMessage(ShopOwnerMessageHistory ownerMessageHistory);
 }

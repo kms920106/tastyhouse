@@ -318,7 +318,8 @@ public class ShopRepositoryImpl implements ShopRepository {
             .where(
                 nameContains(condition.name()),
                 stationIdEq(condition.stationId()),
-                permanentlyClosedEq(condition.permanentlyClosed())
+                permanentlyClosedEq(condition.permanentlyClosed()),
+                ceoIdEq(condition.ceoId())
             )
             .fetchOne();
 
@@ -340,7 +341,8 @@ public class ShopRepositoryImpl implements ShopRepository {
             .where(
                 nameContains(condition.name()),
                 stationIdEq(condition.stationId()),
-                permanentlyClosedEq(condition.permanentlyClosed())
+                permanentlyClosedEq(condition.permanentlyClosed()),
+                ceoIdEq(condition.ceoId())
             )
             .orderBy(shopJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -380,6 +382,10 @@ public class ShopRepositoryImpl implements ShopRepository {
 
     private BooleanExpression stationIdEq(Long stationId) {
         return stationId != null ? shopJpaEntity.stationId.eq(stationId) : null;
+    }
+
+    private BooleanExpression ceoIdEq(Long ceoId) {
+        return ceoId != null ? shopJpaEntity.ceoId.eq(ceoId) : null;
     }
 
     private BooleanExpression shopIdIn(Set<Long> shopIds) {

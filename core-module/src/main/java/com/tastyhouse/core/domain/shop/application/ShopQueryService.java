@@ -110,8 +110,18 @@ public class ShopQueryService {
         return shopDetailRepository.findBusinessHoursByShopId(shopId);
     }
 
+    public ShopBusinessHour findShopBusinessHourById(Long id) {
+        return shopDetailRepository.findBusinessHourById(id)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
+    }
+
     public List<ShopBreakTime> findShopBreakTimes(Long shopId) {
         return shopDetailRepository.findBreakTimesByShopId(shopId);
+    }
+
+    public ShopBreakTime findShopBreakTimeById(Long id) {
+        return shopDetailRepository.findBreakTimeById(id)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
     }
 
     public List<ShopClosedDay> findShopClosedDays(Long shopId) {

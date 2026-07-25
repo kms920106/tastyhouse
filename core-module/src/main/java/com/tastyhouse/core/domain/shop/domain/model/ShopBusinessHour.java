@@ -19,18 +19,35 @@ public class ShopBusinessHour {
     private LocalTime openTime;
     private LocalTime closeTime;
     private Boolean isClosed;
+    private Boolean is24Hours; // 24시간 영업 여부 (true면 openTime/closeTime 무관)
 
-    private ShopBusinessHour(Long id, Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+    private ShopBusinessHour(
+        Long id,
+        Long shopId,
+        DayType dayType,
+        LocalTime openTime,
+        LocalTime closeTime,
+        Boolean isClosed,
+        Boolean is24Hours
+    ) {
         this.id = id;
         this.shopId = shopId;
         this.dayType = dayType;
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.isClosed = isClosed;
+        this.is24Hours = is24Hours;
     }
 
-    public static ShopBusinessHour of(Long shopId, DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
-        return new ShopBusinessHour(null, shopId, dayType, openTime, closeTime, isClosed);
+    public static ShopBusinessHour of(
+        Long shopId,
+        DayType dayType,
+        LocalTime openTime,
+        LocalTime closeTime,
+        Boolean isClosed,
+        Boolean is24Hours
+    ) {
+        return new ShopBusinessHour(null, shopId, dayType, openTime, closeTime, isClosed, is24Hours);
     }
 
     /**
@@ -42,15 +59,17 @@ public class ShopBusinessHour {
         DayType dayType,
         LocalTime openTime,
         LocalTime closeTime,
-        Boolean isClosed
+        Boolean isClosed,
+        Boolean is24Hours
     ) {
-        return new ShopBusinessHour(id, shopId, dayType, openTime, closeTime, isClosed);
+        return new ShopBusinessHour(id, shopId, dayType, openTime, closeTime, isClosed, is24Hours);
     }
 
-    public void update(DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed) {
+    public void update(DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed, Boolean is24Hours) {
         this.dayType = dayType;
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.isClosed = isClosed;
+        this.is24Hours = is24Hours;
     }
 }

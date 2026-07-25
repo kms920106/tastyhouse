@@ -361,6 +361,7 @@ CREATE TABLE PRODUCT_OPTION_GROUP
 CREATE TABLE SHOP
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY, -- 장소 ID (PK)
+    ceo_id            BIGINT,                            -- 소유 점주 ID (CEO.id 참조, NULL이면 미배정)
     station_id        BIGINT        NOT NULL,            -- 지하철역 ID (STATION.id 참조)
     name              VARCHAR(255)  NOT NULL UNIQUE,     -- 장소 이름
     latitude          DECIMAL(9, 6) NOT NULL,            -- 위도
@@ -370,9 +371,13 @@ CREATE TABLE SHOP
     lot_address       VARCHAR(500),                      -- 지번 주소
     phone_number      VARCHAR(20),                       -- 대표 전화번호
     thumbnail_image_file_id    BIGINT,                   -- 썸네일 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    trademark_image_file_id    BIGINT,                   -- 상표 이미지 파일 ID (승인 완료 시 반영, UPLOADED_FILE.id 참조)
     is_permanently_closed      TINYINT(1)    NOT NULL DEFAULT 0, -- 폐업 여부 (1: 폐업)
+    is_hidden                  TINYINT(1)    NOT NULL DEFAULT 0, -- 노출정지 여부 (1: 배민앱 완전 비노출)
+    is_closed_on_public_holidays TINYINT(1)  NOT NULL DEFAULT 0, -- 공휴일 휴무 여부
     created_at        DATETIME      NOT NULL,            -- 생성 일시
-    updated_at        DATETIME      NOT NULL             -- 수정 일시
+    updated_at        DATETIME      NOT NULL,            -- 수정 일시
+    INDEX idx_shop_ceo_id (ceo_id)
 );
 
 CREATE TABLE POINT
@@ -503,6 +508,7 @@ CREATE TABLE SHOP_BUSINESS_HOUR
     open_time        TIME,                                            -- 영업 시작 시간
     close_time       TIME,                                            -- 영업 종료 시간
     is_closed        TINYINT(1),                                      -- 휴무 여부 (1: 휴무)
+    is_open_24_hours TINYINT(1),                                      -- 24시간 영업 여부 (1: 24시간)
     INDEX idx_shop_business_hour_shop_id (shop_id),                -- 인덱스: 장소별 조회
     UNIQUE KEY uk_shop_business_hour (shop_id, day_type)            -- 유니크: 장소·요일 중복 방지
 );
@@ -599,6 +605,115 @@ CREATE TABLE SHOP_BANNER_IMAGE
     image_file_id  BIGINT   NOT NULL,                             -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
     sort           INT,                                           -- 정렬 순서
     INDEX idx_shop_banner_image_shop_id (shop_id)              -- 인덱스: 장소별 조회
+);
+
+-- 임시 휴무 (점주 설정, 누적 30일 이내)
+CREATE TABLE SHOP_TEMPORARY_CLOSURE
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 임시 휴무 ID (PK)
+    shop_id    BIGINT   NOT NULL,                     -- 장소 ID (SHOP.id 참조)
+    start_date DATE     NOT NULL,                     -- 임시 휴무 시작일
+    end_date   DATE     NOT NULL,                     -- 임시 휴무 종료일
+    created_at DATETIME NOT NULL,                     -- 생성 일시
+    updated_at DATETIME NOT NULL,                     -- 수정 일시
+    INDEX idx_shop_temporary_closure_shop_id (shop_id)
+);
+
+-- 가게 전화번호 (다건, 대표 1개, 가상번호 플래그)
+CREATE TABLE SHOP_PHONE_NUMBER
+(
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 전화번호 ID (PK)
+    shop_id      BIGINT      NOT NULL,                -- 장소 ID (SHOP.id 참조)
+    phone_number VARCHAR(20) NOT NULL,                -- 전화번호
+    is_primary   TINYINT(1)  NOT NULL DEFAULT 0,      -- 대표 여부 (1: 대표)
+    is_virtual   TINYINT(1)  NOT NULL DEFAULT 0,      -- 가상번호(안심번호) 여부
+    created_at   DATETIME    NOT NULL,                -- 생성 일시
+    updated_at   DATETIME    NOT NULL,                -- 수정 일시
+    INDEX idx_shop_phone_number_shop_id (shop_id)
+);
+
+-- 가게 편의정보 (주차/발렛/찾아오는길/노출위치, shop당 1개)
+CREATE TABLE SHOP_CONVENIENCE_INFO
+(
+    id                   BIGINT AUTO_INCREMENT PRIMARY KEY, -- 편의정보 ID (PK)
+    shop_id              BIGINT       NOT NULL,             -- 장소 ID (SHOP.id 참조)
+    is_parking_available TINYINT(1)   NOT NULL DEFAULT 0,   -- 주차 가능 여부
+    is_parking_paid      TINYINT(1)   NOT NULL DEFAULT 0,   -- 주차 유료 여부
+    is_valet_available   TINYINT(1)   NOT NULL DEFAULT 0,   -- 발렛 가능 여부
+    is_valet_paid        TINYINT(1)   NOT NULL DEFAULT 0,   -- 발렛 유료 여부
+    directions_guide     VARCHAR(200),                      -- 찾아오는 길 안내 (최대 200자)
+    display_latitude     DECIMAL(9, 6),                     -- 노출 위치 위도 (실위치 반경 1km 이내)
+    display_longitude    DECIMAL(9, 6),                     -- 노출 위치 경도
+    created_at           DATETIME     NOT NULL,             -- 생성 일시
+    updated_at           DATETIME     NOT NULL,             -- 수정 일시
+    UNIQUE KEY uk_shop_convenience_info_shop_id (shop_id)
+);
+
+-- 가게 이미지 변경 승인요청 (상표/대표이미지 → 관리자 검수)
+CREATE TABLE SHOP_IMAGE_CHANGE_REQUEST
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,    -- 요청 ID (PK)
+    shop_id       BIGINT       NOT NULL,                -- 장소 ID (SHOP.id 참조)
+    image_type    VARCHAR(20)  NOT NULL,               -- 이미지 유형 (TRADEMARK, THUMBNAIL)
+    image_file_id BIGINT       NOT NULL,                -- 요청된 신규 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    status        VARCHAR(20)  NOT NULL,               -- 승인 상태 (PENDING, APPROVED, REJECTED)
+    reject_reason VARCHAR(500),                         -- 반려 사유
+    created_at    DATETIME     NOT NULL,                -- 생성 일시
+    updated_at    DATETIME     NOT NULL,                -- 수정 일시
+    INDEX idx_shop_image_change_request_shop_id_status (shop_id, status),
+    INDEX idx_shop_image_change_request_status_image_type (status, image_type)
+);
+
+-- 영업 임시중지 (사유+기간+주문유형별/일괄, 즉시 해제)
+CREATE TABLE SHOP_SUSPENSION
+(
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 임시중지 ID (PK)
+    shop_id      BIGINT      NOT NULL,                  -- 장소 ID (SHOP.id 참조)
+    reason       VARCHAR(30) NOT NULL,                  -- 사유 (EARLY_CLOSE, OPEN_DELAY, SHOP_CIRCUMSTANCE, UNREACHABLE, TERMINATION_REQUEST, BAD_WEATHER)
+    order_method VARCHAR(20),                           -- 대상 주문유형 (TABLE, RESERVATION, DELIVERY, TAKEOUT / NULL이면 전체)
+    start_at     DATETIME    NOT NULL,                  -- 임시중지 시작 시각
+    end_at       DATETIME    NOT NULL,                  -- 임시중지 종료 시각
+    released_at  DATETIME,                              -- 해제 시각 (NULL이면 미해제)
+    created_at   DATETIME    NOT NULL,                  -- 생성 일시
+    updated_at   DATETIME    NOT NULL,                  -- 수정 일시
+    INDEX idx_shop_suspension_shop_id (shop_id)
+);
+
+-- 가게 콘텐츠보드 (최대 4개, IMAGE/GIF/VIDEO, 주제, 설명 50자)
+CREATE TABLE SHOP_CONTENT_BOARD
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,    -- 콘텐츠보드 ID (PK)
+    shop_id       BIGINT       NOT NULL,                -- 장소 ID (SHOP.id 참조)
+    content_type  VARCHAR(10)  NOT NULL,               -- 콘텐츠 형태 (IMAGE, GIF, VIDEO)
+    topic         VARCHAR(20)  NOT NULL,               -- 주제 (EXTERIOR, INTERIOR, FOOD_STORY, NEWS)
+    image_file_id BIGINT,                               -- 이미지/GIF 파일 ID (IMAGE/GIF일 때, UPLOADED_FILE.id 참조)
+    youtube_url   VARCHAR(500),                         -- 유튜브 링크 (VIDEO일 때)
+    description   VARCHAR(50),                          -- 설명글 (최대 50자)
+    is_hidden     TINYINT(1)   NOT NULL DEFAULT 0,      -- 관리자 숨김 여부
+    created_at    DATETIME     NOT NULL,                -- 생성 일시
+    updated_at    DATETIME     NOT NULL,                -- 수정 일시
+    INDEX idx_shop_content_board_shop_id (shop_id)
+);
+
+-- 가게 위생 인증 뱃지 (식품안심업소/세스코, 조회 전용·admin 등록)
+CREATE TABLE SHOP_HYGIENE_BADGE
+(
+    id                    BIGINT AUTO_INCREMENT PRIMARY KEY, -- 위생 뱃지 ID (PK)
+    shop_id               BIGINT      NOT NULL,              -- 장소 ID (SHOP.id 참조)
+    badge_type            VARCHAR(30) NOT NULL,             -- 인증 유형 (FOOD_SAFETY_CERTIFIED, CESCO_BLUE, CESCO_WHITE)
+    certified_date        DATE        NOT NULL,              -- 인증일
+    last_inspection_month VARCHAR(7),                        -- 세스코 최근 점검월 (예: 2026-03)
+    created_at            DATETIME    NOT NULL,              -- 생성 일시
+    updated_at            DATETIME    NOT NULL,              -- 수정 일시
+    INDEX idx_shop_hygiene_badge_shop_id (shop_id)
+);
+
+-- 금칙어 (가게소개/찾아오는길 검수용, read-only·SQL 시드)
+CREATE TABLE PROHIBITED_WORD
+(
+    id     BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 금칙어 ID (PK)
+    word   VARCHAR(100) NOT NULL,                         -- 금칙어
+    reason VARCHAR(200)                                   -- 등록 불가 사유 분류
 );
 
 CREATE TABLE STATION
@@ -1058,3 +1173,15 @@ CREATE TABLE RESERVATION
     INDEX idx_reservation_shop_slot (shop_id, reservation_date, reservation_time), -- 인덱스: 가게·날짜·시간 복합 조회
     INDEX idx_reservation_member (member_id)                                       -- 인덱스: 회원별 조회
 );
+
+-- 금칙어 시드 (가게소개/찾아오는길 검수용, 배민 가이드 등록 불가 기준)
+INSERT INTO PROHIBITED_WORD (word, reason) VALUES
+    ('전화주문', '전화 주문 유도'),
+    ('전화 주문', '전화 주문 유도'),
+    ('직접결제', '배민 외 직접 결제 유도'),
+    ('계좌이체', '계좌이체 결제 유도'),
+    ('무통장입금', '계좌이체 결제 유도'),
+    ('현금결제', '배민 외 직접 결제 유도'),
+    ('재주문율 1위', '사실 확인 어려운 내용'),
+    ('배민오더', '가게 홍보 문구'),
+    ('콜라 무료', '가게 홍보 문구');

@@ -30,6 +30,9 @@ public class ShopJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
+    @Column(name = "ceo_id")
+    private Long ceoId; // 소유 점주 ID (CEO.id 참조, null이면 점주 미배정)
+
     @Column(name = "station_id", nullable = false)
     private Long stationId; // 지하철역 ID (STATION.id 참조)
 
@@ -57,10 +60,20 @@ public class ShopJpaEntity extends BaseEntity {
     @Column(name = "thumbnail_image_file_id")
     private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
 
+    @Column(name = "trademark_image_file_id")
+    private Long trademarkImageFileId; // 상표 이미지 파일 ID (FILE.id 참조)
+
     @Column(name = "is_permanently_closed", nullable = false)
     private boolean permanentlyClosed; // 폐업 여부 (true: 폐업)
 
+    @Column(name = "is_hidden", nullable = false)
+    private boolean hidden; // 노출정지 여부 (true: 배민앱 완전 비노출)
+
+    @Column(name = "is_closed_on_public_holidays", nullable = false)
+    private boolean closedOnPublicHolidays; // 공휴일 휴무 여부
+
     private ShopJpaEntity(
+        Long ceoId,
         Long stationId,
         String name,
         BigDecimal latitude,
@@ -70,8 +83,12 @@ public class ShopJpaEntity extends BaseEntity {
         String lotAddress,
         String phoneNumber,
         Long thumbnailImageFileId,
-        boolean permanentlyClosed
+        Long trademarkImageFileId,
+        boolean permanentlyClosed,
+        boolean hidden,
+        boolean closedOnPublicHolidays
     ) {
+        this.ceoId = ceoId;
         this.stationId = stationId;
         this.name = name;
         this.latitude = latitude;
@@ -81,13 +98,17 @@ public class ShopJpaEntity extends BaseEntity {
         this.lotAddress = lotAddress;
         this.phoneNumber = phoneNumber;
         this.thumbnailImageFileId = thumbnailImageFileId;
+        this.trademarkImageFileId = trademarkImageFileId;
         this.permanentlyClosed = permanentlyClosed;
+        this.hidden = hidden;
+        this.closedOnPublicHolidays = closedOnPublicHolidays;
     }
 
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopMapper#toEntity}에서만 호출한다.
      */
     static ShopJpaEntity create(
+        Long ceoId,
         Long stationId,
         String name,
         BigDecimal latitude,
@@ -97,9 +118,13 @@ public class ShopJpaEntity extends BaseEntity {
         String lotAddress,
         String phoneNumber,
         Long thumbnailImageFileId,
-        boolean permanentlyClosed
+        Long trademarkImageFileId,
+        boolean permanentlyClosed,
+        boolean hidden,
+        boolean closedOnPublicHolidays
     ) {
         return new ShopJpaEntity(
+            ceoId,
             stationId,
             name,
             latitude,
@@ -109,7 +134,10 @@ public class ShopJpaEntity extends BaseEntity {
             lotAddress,
             phoneNumber,
             thumbnailImageFileId,
-            permanentlyClosed
+            trademarkImageFileId,
+            permanentlyClosed,
+            hidden,
+            closedOnPublicHolidays
         );
     }
 
@@ -117,6 +145,7 @@ public class ShopJpaEntity extends BaseEntity {
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자는 건드리지 않는다.
      */
     void applyChanges(
+        Long ceoId,
         Long stationId,
         String name,
         BigDecimal latitude,
@@ -126,8 +155,12 @@ public class ShopJpaEntity extends BaseEntity {
         String lotAddress,
         String phoneNumber,
         Long thumbnailImageFileId,
-        boolean permanentlyClosed
+        Long trademarkImageFileId,
+        boolean permanentlyClosed,
+        boolean hidden,
+        boolean closedOnPublicHolidays
     ) {
+        this.ceoId = ceoId;
         this.stationId = stationId;
         this.name = name;
         this.latitude = latitude;
@@ -137,6 +170,9 @@ public class ShopJpaEntity extends BaseEntity {
         this.lotAddress = lotAddress;
         this.phoneNumber = phoneNumber;
         this.thumbnailImageFileId = thumbnailImageFileId;
+        this.trademarkImageFileId = trademarkImageFileId;
         this.permanentlyClosed = permanentlyClosed;
+        this.hidden = hidden;
+        this.closedOnPublicHolidays = closedOnPublicHolidays;
     }
 }

@@ -12,7 +12,7 @@ class ShopBusinessHourTest {
     @Test
     @DisplayName("of로 생성하면 미영속 상태다")
     void of_createsTransientBusinessHour() {
-        ShopBusinessHour businessHour = ShopBusinessHour.of(1L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false);
+        ShopBusinessHour businessHour = ShopBusinessHour.of(1L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false);
 
         assertThat(businessHour.getId()).isNull();
         assertThat(businessHour.getShopId()).isEqualTo(1L);
@@ -20,14 +20,15 @@ class ShopBusinessHourTest {
         assertThat(businessHour.getOpenTime()).isEqualTo(LocalTime.of(9, 0));
         assertThat(businessHour.getCloseTime()).isEqualTo(LocalTime.of(22, 0));
         assertThat(businessHour.getIsClosed()).isFalse();
+        assertThat(businessHour.getIs24Hours()).isFalse();
     }
 
     @Test
     @DisplayName("update는 영업시간 정보를 변경한다")
     void update_changesFields() {
-        ShopBusinessHour businessHour = ShopBusinessHour.of(1L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false);
+        ShopBusinessHour businessHour = ShopBusinessHour.of(1L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false);
 
-        businessHour.update(DayType.SUNDAY, LocalTime.of(10, 0), LocalTime.of(20, 0), true);
+        businessHour.update(DayType.SUNDAY, LocalTime.of(10, 0), LocalTime.of(20, 0), true, false);
 
         assertThat(businessHour.getDayType()).isEqualTo(DayType.SUNDAY);
         assertThat(businessHour.getOpenTime()).isEqualTo(LocalTime.of(10, 0));
@@ -39,7 +40,7 @@ class ShopBusinessHourTest {
     @DisplayName("reconstitute는 DB 상태로부터 식별자를 포함해 재구성한다")
     void reconstitute_restoresPersistedState() {
         ShopBusinessHour businessHour = ShopBusinessHour.reconstitute(
-            1L, 2L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false
+            1L, 2L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false
         );
 
         assertThat(businessHour.getId()).isEqualTo(1L);

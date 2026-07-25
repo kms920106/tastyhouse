@@ -14,7 +14,8 @@ final class ShopBusinessHourMapper {
             entity.getDayType(),
             entity.getOpenTime(),
             entity.getCloseTime(),
-            entity.getIsClosed()
+            entity.getIsClosed(),
+            entity.getIs24Hours()
         );
     }
 
@@ -24,7 +25,8 @@ final class ShopBusinessHourMapper {
             domain.getDayType(),
             domain.getOpenTime(),
             domain.getCloseTime(),
-            domain.getIsClosed()
+            domain.getIsClosed(),
+            domain.getIs24Hours()
         );
     }
 
@@ -33,7 +35,8 @@ final class ShopBusinessHourMapper {
             domain.getDayType(),
             domain.getOpenTime(),
             domain.getCloseTime(),
-            domain.getIsClosed()
+            domain.getIsClosed(),
+            domain.getIs24Hours()
         );
     }
 }

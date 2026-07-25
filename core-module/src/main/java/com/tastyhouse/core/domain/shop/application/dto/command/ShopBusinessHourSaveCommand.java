@@ -8,15 +8,17 @@ public record ShopBusinessHourSaveCommand(
     DayType dayType,
     LocalTime openTime,
     LocalTime closeTime,
-    Boolean isClosed
+    Boolean isClosed,
+    Boolean is24Hours
 ) {
 
     public static ShopBusinessHourSaveCommand of(
         DayType dayType,
         LocalTime openTime,
         LocalTime closeTime,
-        Boolean isClosed
+        Boolean isClosed,
+        Boolean is24Hours
     ) {
-        return new ShopBusinessHourSaveCommand(dayType, openTime, closeTime, isClosed);
+        return new ShopBusinessHourSaveCommand(dayType, openTime, closeTime, isClosed, is24Hours);
     }
 }
