@@ -9,7 +9,8 @@ Application source root. Uses a **colocation-based architecture**: routes live u
 ## Key Files
 | File | Description |
 |------|-------------|
-| `proxy.disabled.ts` | Disabled Next.js proxy/middleware stub. Rename to `proxy.ts` (or `middleware.ts`) to enable request interception. There is **no active middleware** in this template |
+| `proxy.ts` | 활성 Next.js 16 Proxy(구 middleware). 인증 게이트: `/auth/*` 는 통과, accessToken 쿠키가 있으면 통과, 없고 refreshToken 만 있으면 `/api/auth/v1/refresh` 로 자동 갱신 후 새 쿠키를 응답에 실어 통과시킨다. 갱신 실패·refreshToken 부재면 인증 쿠키를 모두 지우고 `callbackUrl` 을 붙여 로그인으로 리다이렉트한다. Server Component 는 쿠키를 쓸 수 없어 자동 갱신은 반드시 이 지점에서 해야 한다 |
+| `proxy.disabled.ts` | 템플릿 원본의 비활성 proxy 스텁 — 현재 라우팅에 영향을 주지 않는다. 인증 동작을 바꿀 때는 `proxy.ts` 를 수정한다 |
 
 ## Subdirectories
 | Directory | Purpose |

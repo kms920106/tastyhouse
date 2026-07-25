@@ -5,4 +5,6 @@ export const AUTH_MESSAGE = {
   LOGOUT_FAILED: "로그아웃 중 오류가 발생했습니다.",
   REFRESH_FAILED: "토큰 갱신에 실패했습니다. 다시 로그인해 주세요.",
   INVALID_INPUT: "입력값이 올바르지 않습니다.",
+  // 로그인 Rate Limit (IP당 60초 10회) 초과 — 백엔드가 429 로 응답한다.
+  LOGIN_RATE_LIMITED: "로그인 시도 횟수를 초과했습니다. 잠시 후 다시 시도해 주세요.",
 } as const;

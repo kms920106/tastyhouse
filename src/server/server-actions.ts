@@ -10,12 +10,18 @@ export async function getValueFromCookie(key: string): Promise<string | undefine
 export async function setValueToCookie(
   key: string,
   value: string,
-  options: { path?: string; maxAge?: number } = {},
+  options: { path?: string; maxAge?: number; httpOnly?: boolean; sameSite?: "lax" | "strict" | "none" } = {},
 ): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(key, value, {
     path: options.path ?? "/",
     maxAge: options.maxAge ?? 60 * 60 * 24 * 7, // default: 7 days
+    // 테마·사이드바 등 레이아웃 취향 쿠키는 클라이언트 JS 가 읽어야 하므로 기본값은 false 다.
+    // 토큰처럼 노출되면 안 되는 값은 호출부에서 httpOnly 를 명시한다.
+    httpOnly: options.httpOnly ?? false,
+    sameSite: options.sameSite ?? "lax",
+    // HTTPS 환경에서만 전송한다 (로컬 개발은 http 이므로 제외).
+    secure: process.env.NODE_ENV === "production",
   });
 }
 
