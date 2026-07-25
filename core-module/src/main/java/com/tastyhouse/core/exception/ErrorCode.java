@@ -81,6 +81,12 @@ public enum ErrorCode {
     ADMIN_ACCOUNT_INACTIVE(401, "ADMIN_ACCOUNT_INACTIVE", "비활성화된 관리자 계정입니다."),
     ADMIN_ROLE_UNKNOWN(400, "ADMIN_ROLE_UNKNOWN", "알 수 없는 관리자 권한입니다."),
 
+    // 점주
+    CEO_NOT_FOUND(404, "CEO_NOT_FOUND", "점주를 찾을 수 없습니다."),
+    CEO_USERNAME_DUPLICATED(409, "CEO_USERNAME_DUPLICATED", "이미 사용 중인 점주 아이디입니다."),
+    CEO_AUTHENTICATION_FAILED(401, "CEO_AUTHENTICATION_FAILED", "아이디 또는 비밀번호가 올바르지 않습니다."),
+    CEO_ACCOUNT_INACTIVE(401, "CEO_ACCOUNT_INACTIVE", "비활성화된 점주 계정입니다."),
+
     // 인증 (SMS)
     VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
     VERIFICATION_CODE_EXPIRED(400, "VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),

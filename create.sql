@@ -180,6 +180,17 @@ CREATE TABLE ADMIN
     updated_at DATETIME     NOT NULL              -- 수정 일시
 );
 
+CREATE TABLE CEO
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY, -- 점주 ID (PK)
+    username   VARCHAR(50)  NOT NULL UNIQUE,      -- 점주 아이디 (로그인 ID)
+    password   VARCHAR(255) NOT NULL,             -- 비밀번호 (BCrypt 인코딩)
+    name       VARCHAR(100) NOT NULL,             -- 점주 이름
+    status     VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE', -- 계정 상태 (ACTIVE, INACTIVE)
+    created_at DATETIME     NOT NULL,             -- 생성 일시
+    updated_at DATETIME     NOT NULL              -- 수정 일시
+);
+
 CREATE TABLE MEMBER_SOCIAL_ACCOUNT
 (
     id                          BIGINT AUTO_INCREMENT PRIMARY KEY,                              -- 소셜 계정 ID (PK)

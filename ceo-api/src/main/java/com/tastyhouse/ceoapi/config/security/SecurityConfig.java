@@ -76,8 +76,8 @@ public class SecurityConfig {
                 .requestMatchers(PATTERNS).permitAll()
                 // 로그아웃은 인증만 필요 (특정 역할 불요, 임의 토큰 블랙리스트 등록 방지)
                 .requestMatchers("/api/auth/v1/logout").authenticated()
-                // 나머지 API는 인증 필수. 점주 전용 역할 도메인이 확정되면 hasRole("CEO")로 강화한다.
-                .anyRequest().authenticated()
+                // 나머지 API는 점주 전용 역할(ROLE_CEO) 필요 (심층 방어)
+                .anyRequest().hasRole("CEO")
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)

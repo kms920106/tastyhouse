@@ -35,3 +35,10 @@ jwt:
   accessTokenExpiration: 3600000 # 1시간 (ms)
   refreshTokenExpiration: 604800000 # 7일 (ms) - 일반 로그인
   rememberMeRefreshTokenExpiration: 2592000000 # 30일 (ms) - 로그인 상태 유지
+
+# password 미설정(__UNSET__) 시 신규 시드를 거부한다. 운영/최초 기동 시 CEO_SEED_PASSWORD 필수.
+ceo:
+  seed:
+    username: ${CEO_SEED_USERNAME:ceo}
+    password: ${CEO_SEED_PASSWORD:__UNSET__}
+    name: ${CEO_SEED_NAME:점주}

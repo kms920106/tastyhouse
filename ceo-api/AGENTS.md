@@ -6,7 +6,7 @@
 ## Purpose
 점주(매장 오너)용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). `web-api`(일반 회원)·`admin-api`(관리자)와 대칭인 3번째 프레젠테이션 모듈로, 매장 사장님이 자기 매장·주문·예약·리뷰 등을 관리하는 셀프 서비스 API를 제공할 예정이다. `core-module`의 동일한 application 서비스를 재사용한다.
 
-**현재 상태: 뼈대(skeleton)** — 모듈 골격 + JWT 인증 인프라 + 공통(common/exception) 요소만 존재하며, 도메인 엔드포인트(auth·shop·order 등)와 점주 계정 도메인(core-module)은 아직 없다. 인증 필터 체인은 admin-api 패턴대로 완비되어 있으나, 점주 계정 도메인에 의존하는 `UserDetailsService`·로그인 서비스는 도메인 신설 후 추가한다.
+**현재 상태: 로그인 API 구현 완료** — 모듈 골격 + JWT 인증 인프라 + 공통(common/exception) 요소에 더해, `core-module`에 점주 계정 도메인(`ceo`)을 신설하고 `auth`(로그인/토큰갱신/로그아웃) 엔드포인트를 구현했다. shop·order 등 나머지 도메인 엔드포인트는 아직 없다.
 
 컨트롤러가 `core-module`에 직접 결합되는 것을 막기 위해, 신규 도메인은 admin-api와 동일하게 도메인별 ceo-api 소속 `{도메인}Service`를 두어 컨트롤러와 core 사이를 중개하는 패턴을 따른다(컨트롤러는 `com.tastyhouse.core.*`를 import하지 않고 ceo-api 타입에만 의존).
 
@@ -19,7 +19,7 @@
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `src/main/java/com/tastyhouse/ceoapi/` | 점주 컨트롤러 루트 — `common/`(공용 인프라: `ApiResponse`·`PageRequest`·`PaginationResponse`), `config/`(JWT·Security), `exception/`(`GlobalExceptionHandler`). 도메인 폴더는 신규 기능 추가 시 admin-api 컨벤션(`컨트롤러 + {도메인}Service + request/·response/`)대로 생성 |
+| `src/main/java/com/tastyhouse/ceoapi/` | 점주 컨트롤러 루트 — `common/`(공용 인프라: `ApiResponse`·`PageRequest`·`PaginationResponse`), `config/`(JWT·Security·`CeoSeeder`/`CeoSeedProperties`), `exception/`(`GlobalExceptionHandler`), `auth/`(로그인·토큰갱신·로그아웃). 신규 도메인 폴더는 admin-api 컨벤션(`컨트롤러 + {도메인}Service + request/·response/`)대로 생성 |
 | `src/test/` | 점주 API 테스트 (`contextLoads`) |
 
 ## For AI Agents
@@ -33,8 +33,10 @@
 - `@SpringBootTest` 기반 컨텍스트 로드/컨트롤러 검증.
 
 ### Common Patterns
-- **JWT 인증 메커니즘은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. ceo-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `ceoId` 클레임·`CustomUserDetails` 재구성만 주입한다(검증 토큰 없음). 공용 필터는 `config/jwt/JwtConfig`가 점주 전용 블랙리스트 저장소(`ceo:bl:`)로 빈 등록하고, refresh 저장소는 `RedisRepositoryConfig`가 `ceo:rt:` 접두사로 등록한다. 정책은 ceo-api에 잔류: `config/security/SecurityConfig`·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현).
-- **인가 체인은 현재 `.anyRequest().authenticated()`** — 점주 전용 역할 도메인(예: `ROLE_CEO`)이 확정되면 admin-api처럼 `.hasRole("CEO")`로 강화한다(심층 방어).
+- **JWT 인증 메커니즘은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. ceo-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `ceoId` 클레임·`CustomUserDetails` 재구성만 주입한다(검증 토큰 없음). 공용 필터는 `config/jwt/JwtConfig`가 점주 전용 블랙리스트 저장소(`ceo:bl:`)로 빈 등록하고, refresh 저장소는 `RedisRepositoryConfig`가 `ceo:rt:` 접두사로 등록한다. 정책은 ceo-api에 잔류: `config/security/SecurityConfig`·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현, `Ceo` 도메인 모델 기반 생성자 포함)·`CeoUserDetailsService`.
+- **점주 계정 도메인(`ceo`)은 core-module의 `admin` 도메인과 동일한 최소 CRUD 패턴**이다(`Admin` 대비 `role` 없이 `status`만 보유). `Ceo`(순수 POJO)/`CeoStatus`/`CeoId`/`CeoRepository`/`CeoQueryService`/`CeoCommandService`는 `core-module/.../domain/ceo/`에, 영속 어댑터(`CeoJpaEntity`/`CeoMapper`/`CeoJpaRepository`/`CeoRepositoryImpl`)는 `infrastructure-module/.../ceo/persistence/`에 있다. DDL은 `create.sql`의 `CEO` 테이블.
+- **인가 체인은 `.anyRequest().hasRole("CEO")`로 강화되어 있다** — `CeoUserDetailsService`가 로그인 시 고정 `ROLE_CEO` 권한을 부여한다(점주는 단일 역할이라 역할 enum 없음).
+- **최초 점주 계정은 부팅 시드로 주입**된다(`config/CeoSeeder`+`CeoSeedProperties`, admin-api `AdminSeeder` 패턴과 동일). `ceo.seed.password`가 기본 센티넬(`__UNSET__`)이면 fail-fast로 부팅을 거부하므로, 운영/최초 기동 시 `CEO_SEED_PASSWORD` 환경변수가 필수다.
 - **`jwt.secret`은 web-api·admin-api와 반드시 달라야 한다**(ceo=`JWT_SECRET_CEO`). 동일 시크릿이면 다른 API의 토큰이 점주 인증을 통과하는 권한 상승이 발생한다 — 상세는 `security-module/AGENTS.md`.
 - **Redis 키 접두사는 점주 전용으로 분리**: refresh `ceo:rt:`, blacklist `ceo:bl:` (web=`rt:`/`bl:`, admin=`admin:rt:`/`admin:bl:`와 겹치지 않음).
 
