@@ -9,9 +9,9 @@
     "syncedAt": "2026-06-15"
   },
   "scripts": {
-    "dev": "next dev -p 3010",
+    "dev": "next dev -p 3020",
     "build": "next build",
-    "start": "next start -p 3010",
+    "start": "next start -p 3020",
     "lint": "biome lint",
     "format": "biome format --write",
     "check": "biome check",
@@ -22,7 +22,9 @@
     "generate:presets": "ts-node -P tsconfig.scripts.json src/scripts/generate-theme-presets.ts"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": ["biome check --write --no-errors-on-unmatched"]
+    "*.{js,ts,jsx,tsx}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -16,7 +16,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:3010",
+    baseURL: "http://localhost:3020",
     trace: "on-first-retry",
   },
 
@@ -38,7 +38,7 @@ export default defineConfig({
   // dev 서버 자동 기동 (공식 Web server 패턴)
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:3010",
+    url: "http://localhost:3020",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
