@@ -34,7 +34,7 @@ export function LoginForm() {
       return;
     }
 
-    const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard/default";
+    const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard/notices";
     router.push(callbackUrl);
   };
 
