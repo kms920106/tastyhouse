@@ -10,6 +10,6 @@ export interface BugReportResponse {
   device: string
   title: string
   content: string
-  uploadedFileIds: number[]
+  imageUrls: string[]
   createdAt: string
 }
