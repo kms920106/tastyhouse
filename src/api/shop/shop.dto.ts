@@ -32,8 +32,8 @@ export interface ShopDetailResponse {
   roadAddress: string;
   lotAddress: string;
   phoneNumber: string;
-  thumbnailImageFileId: number | null;
-  trademarkImageFileId: number | null;
+  thumbnailImageUrl: string | null;
+  trademarkImageUrl: string | null;
   permanentlyClosed: boolean;
   hidden: boolean;
   closedOnPublicHolidays: boolean;
@@ -240,13 +240,13 @@ export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
 export interface ImageChangeRequestResponse {
   id: number;
   imageType: ImageType;
-  imageFileId: number;
+  imageUrl: string;
   status: ApprovalStatus;
   rejectReason: string | null;
 }
 
 export interface ShopImageStatusResponse {
-  currentImageFileId: number | null;
+  currentImageUrl: string | null;
   requests: ImageChangeRequestResponse[];
 }
 
@@ -260,7 +260,7 @@ export interface ContentBoardResponse {
   shopId: number;
   contentType: ContentBoardType;
   topic: ContentBoardTopic;
-  imageFileId: number | null;
+  imageUrl: string | null;
   youtubeUrl: string | null;
   description: string;
   hidden: boolean;

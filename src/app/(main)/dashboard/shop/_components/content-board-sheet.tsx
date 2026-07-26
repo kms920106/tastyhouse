@@ -161,7 +161,7 @@ export function ContentBoardSheet({ open, onOpenChange, shopId, contentBoards }:
       youtubeUrl: target.youtubeUrl ?? undefined,
       description: target.description,
       // 기존 이미지가 있으면 재첨부 없이도 통과해야 한다.
-      hasExistingFile: target.imageFileId !== null,
+      hasExistingFile: target.imageUrl !== null,
     });
   }
 

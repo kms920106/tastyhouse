@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { requestThumbnailChangeAction } from "@/feature/shop/actions";
 import { APPROVAL_STATUS_LABEL } from "@/feature/shop/constants";
 import type { ShopImageStatus } from "@/feature/shop/domain";
-import { resolveFileUrl } from "@/feature/shop/image";
 import { SHOP_BASIC_COPY, SHOP_MESSAGE } from "@/feature/shop/message";
 
 import { ShopImagePreview } from "./shop-image-preview";
@@ -17,11 +16,11 @@ import { useImageFileSelect } from "./use-image-file-select";
 
 interface ThumbnailImageCardProps {
   shopId: number;
-  thumbnailImageFileId: number | null;
+  thumbnailImageUrl: string | null;
   thumbnailStatus: ShopImageStatus;
 }
 
-export function ThumbnailImageCard({ shopId, thumbnailImageFileId, thumbnailStatus }: ThumbnailImageCardProps) {
+export function ThumbnailImageCard({ shopId, thumbnailImageUrl, thumbnailStatus }: ThumbnailImageCardProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = React.useTransition();
   const { select, isValidating } = useImageFileSelect("thumbnail");
@@ -32,8 +31,8 @@ export function ThumbnailImageCard({ shopId, thumbnailImageFileId, thumbnailStat
     (request) => request.status === "REJECTED" && request.rejectReason,
   );
 
-  // 승인 완료된 현재 이미지가 있으면 그것을, 없으면 가게 상세의 fileId 를 쓴다.
-  const currentUrl = resolveFileUrl(thumbnailStatus.currentImageFileId ?? thumbnailImageFileId);
+  // 승인 완료된 현재 이미지가 있으면 그것을, 없으면 가게 상세의 URL 을 쓴다.
+  const currentUrl = thumbnailStatus.currentImageUrl ?? thumbnailImageUrl;
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];

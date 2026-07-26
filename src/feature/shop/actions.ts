@@ -111,7 +111,7 @@ export async function fetchContentBoardsAction(shopId: number): Promise<DataResu
       id: item.id,
       contentType: item.contentType,
       topic: item.topic,
-      imageFileId: item.imageFileId,
+      imageUrl: item.imageUrl,
       youtubeUrl: item.youtubeUrl,
       description: item.description,
       hidden: item.hidden,

@@ -19,7 +19,6 @@ import {
 import { requestTrademarkChangeAction } from "@/feature/shop/actions";
 import { APPROVAL_STATUS_LABEL } from "@/feature/shop/constants";
 import type { ShopImageStatus } from "@/feature/shop/domain";
-import { resolveFileUrl } from "@/feature/shop/image";
 import { SHOP_BASIC_COPY, SHOP_MESSAGE } from "@/feature/shop/message";
 
 import { ShopImagePreview } from "./shop-image-preview";
@@ -29,7 +28,7 @@ interface TrademarkRequestSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   shopId: number;
-  trademarkImageFileId: number | null;
+  trademarkImageUrl: string | null;
   trademarkStatus: ShopImageStatus;
 }
 
@@ -37,7 +36,7 @@ export function TrademarkRequestSheet({
   open,
   onOpenChange,
   shopId,
-  trademarkImageFileId,
+  trademarkImageUrl,
   trademarkStatus,
 }: TrademarkRequestSheetProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -57,7 +56,7 @@ export function TrademarkRequestSheet({
 
   const isBusy = isPending || isValidating;
   const hasPendingRequest = trademarkStatus.requests.some((request) => request.status === "PENDING");
-  const currentUrl = resolveFileUrl(trademarkStatus.currentImageFileId ?? trademarkImageFileId);
+  const currentUrl = trademarkStatus.currentImageUrl ?? trademarkImageUrl;
   const previewUrl = selected?.previewUrl ?? currentUrl;
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {

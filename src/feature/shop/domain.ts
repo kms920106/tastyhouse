@@ -43,7 +43,7 @@ export interface ContentBoardItem {
   id: number;
   contentType: ContentBoardType;
   topic: ContentBoardTopic;
-  imageFileId: number | null;
+  imageUrl: string | null;
   youtubeUrl: string | null;
   description: string;
   hidden: boolean;
@@ -52,13 +52,13 @@ export interface ContentBoardItem {
 export interface ImageChangeRequest {
   id: number;
   imageType: ImageType;
-  imageFileId: number;
+  imageUrl: string;
   status: ApprovalStatus;
   rejectReason: string | null;
 }
 
 export interface ShopImageStatus {
-  currentImageFileId: number | null;
+  currentImageUrl: string | null;
   requests: ImageChangeRequest[];
 }
 
@@ -99,8 +99,8 @@ export interface ShopBasicInfo {
   permanentlyClosed: boolean;
   closedOnPublicHolidays: boolean;
   introduction: string;
-  thumbnailImageFileId: number | null;
-  trademarkImageFileId: number | null;
+  thumbnailImageUrl: string | null;
+  trademarkImageUrl: string | null;
   thumbnailStatus: ShopImageStatus;
   trademarkStatus: ShopImageStatus;
   phoneNumbers: PhoneNumber[];

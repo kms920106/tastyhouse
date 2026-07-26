@@ -49,7 +49,7 @@ export function BasicInfoTab({ shopId, basicInfo }: BasicInfoTabProps) {
     <div className="flex flex-col">
       <ThumbnailImageCard
         shopId={shopId}
-        thumbnailImageFileId={basicInfo.thumbnailImageFileId}
+        thumbnailImageUrl={basicInfo.thumbnailImageUrl}
         thumbnailStatus={basicInfo.thumbnailStatus}
       />
 
@@ -59,7 +59,7 @@ export function BasicInfoTab({ shopId, basicInfo }: BasicInfoTabProps) {
         summary={
           hasTrademarkPending ? (
             <Badge variant="secondary">{SHOP_BASIC_COPY.IMAGE_PENDING_BADGE}</Badge>
-          ) : (basicInfo.trademarkStatus.currentImageFileId ?? basicInfo.trademarkImageFileId) ? (
+          ) : (basicInfo.trademarkStatus.currentImageUrl ?? basicInfo.trademarkImageUrl) ? (
             <span>{SHOP_BASIC_COPY.IMAGE_REGISTERED}</span>
           ) : undefined
         }
@@ -119,7 +119,7 @@ export function BasicInfoTab({ shopId, basicInfo }: BasicInfoTabProps) {
         open={openSheet === "trademark"}
         onOpenChange={closeSheet}
         shopId={shopId}
-        trademarkImageFileId={basicInfo.trademarkImageFileId}
+        trademarkImageUrl={basicInfo.trademarkImageUrl}
         trademarkStatus={basicInfo.trademarkStatus}
       />
       <IntroductionSheet

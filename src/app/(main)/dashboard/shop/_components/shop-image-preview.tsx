@@ -7,7 +7,7 @@ import { SHOP_BASIC_COPY } from "@/feature/shop/message";
 import { cn } from "@/lib/utils";
 
 interface ShopImagePreviewProps {
-  /** blob: 미리보기 URL 또는 resolveFileUrl 결과. null 이면 미등록 상태로 렌더한다. */
+  /** blob: 미리보기 URL 또는 서버가 내려준 이미지 URL. null 이면 미등록 상태로 렌더한다. */
   src: string | null;
   alt: string;
   className?: string;

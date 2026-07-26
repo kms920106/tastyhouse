@@ -16,7 +16,6 @@ Shop (가게 관리) feature module for the **점주(shop owner)** scope. Provid
 | `constants.ts` | Enum catalog as `*_OPTIONS` (`as const` array) + `*_LABEL` (`Record`) pairs, plus input limits and `SHOP_MANAGE_TABS`. All values are now sourced from `docs/CEO-API-SHOP-SPEC-FOR-FRONTEND.md`: `DAY_TYPE_*`, `CLOSED_DAY_TYPE_*` (43종), `ORDER_METHOD_*`, `SHOP_STATUS_*` (OPEN/HIDDEN only), `APPROVAL_STATUS_*`, `CONTENT_BOARD_TYPE/TOPIC_*`, `SUSPENSION_REASON_*`, `HYGIENE_BADGE_TYPE_*`. 편의시설(amenities) has no hardcoded enum — the catalog is fetched at runtime via `fetchAmenityCategoriesAction` |
 | `schema.ts` | Zod schemas per setting item. Cross-field rules use `.superRefine()`: 콘텐츠보드 VIDEO ⇒ YouTube URL only (no file), 영업시간 1h~23h55m, 휴게시간 must sit inside 영업시간, 휴게시간 ≠ 영업시간, 임시휴무 ≤ 30일, 임시중지 endAt > startAt. 5-minute granularity via a shared `timeString` refine. 대표번호 is assigned server-side (first number wins), so there is no client-side "exactly one primary" rule |
 | `time.ts` | Pure time helpers, deliberately UI-free so the overnight/clamp logic is testable: `parseTimeToMinutes`, `formatMinutesToTime`, `formatTimeLabel`, `isTimeStepValid`, `getDurationMinutes`, `isRangeWithin`, `isSameRange`, `clampRangeToBusinessHours`, `HOUR_OPTIONS`/`MINUTE_OPTIONS`, `countInclusiveDays`. Overnight ranges are normalized by adding 24h when end ≤ start |
-| `image.ts` | `resolveFileUrl(fileId)` — the spec returns only file IDs, never display URLs. Builds `${NEXT_PUBLIC_API_URL}/api/files/v1/{fileId}`, which is a **provisional guess** not yet confirmed against the backend; every consumer must render an error fallback (see `shop-image-preview.tsx`) |
 | `message.ts` | Korean copy only: `SHOP_PAGE_COPY` / `SHOP_STATUS_PAGE_COPY` (page+loading headers), `SHOP_BASIC_COPY` / `SHOP_OPERATION_COPY` (setting-row labels and guidance), `SHOP_MESSAGE` (toasts, error fallbacks, validation notices) |
 
 ## For AI Agents
@@ -33,7 +32,7 @@ Shop (가게 관리) feature module for the **점주(shop owner)** scope. Provid
 - Validation failure returns the first Zod issue's message, falling back to `SHOP_MESSAGE.INVALID_INPUT`.
 - Image규격 (상표 900KB/JPG/560²/1:1, 대표이미지 700², 콘텐츠보드 700²·GIF 250²) is pre-checked client-side with `createImageBitmap` (see `dashboard/shop/_components/use-image-file-select.ts`) and re-checked for MIME/size by `extractFile` inside the action.
 - 대표이미지/상표 changes are an approval workflow, not an instant update: `requestThumbnailChangeAction` / `requestTrademarkChangeAction` submit a request, and the UI reflects `thumbnailStatus`/`trademarkStatus` (PENDING badge, REJECTED `rejectReason`).
-- fileId → URL conversion goes through `resolveFileUrl` in `image.ts`; never build the path inline, and always pair it with an `onError` fallback.
+- 이미지 URL은 API가 바로 표시 가능한 절대 URL(`thumbnailImageUrl`/`trademarkImageUrl`/`currentImageUrl`/`imageUrl`)로 내려주므로 별도 변환 없이 그대로 쓴다. 존재하지 않을 수 있으니 `onError` 폴백은 계속 유지한다.
 
 ## Dependencies
 

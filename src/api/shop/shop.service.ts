@@ -22,7 +22,7 @@ import { shopRepository } from "./shop.repository";
 
 function toImageStatus(res: ShopImageStatusResponse | undefined): ShopImageStatus {
   return {
-    currentImageFileId: res?.currentImageFileId ?? null,
+    currentImageUrl: res?.currentImageUrl ?? null,
     requests: (res?.requests ?? []).map(toImageChangeRequest),
   };
 }
@@ -31,7 +31,7 @@ function toImageChangeRequest(item: ImageChangeRequestResponse) {
   return {
     id: item.id,
     imageType: item.imageType,
-    imageFileId: item.imageFileId,
+    imageUrl: item.imageUrl,
     status: item.status,
     rejectReason: item.rejectReason,
   };
@@ -113,7 +113,7 @@ export const shopService = {
       id: item.id,
       contentType: item.contentType,
       topic: item.topic,
-      imageFileId: item.imageFileId,
+      imageUrl: item.imageUrl,
       youtubeUrl: item.youtubeUrl,
       description: item.description,
       hidden: item.hidden,
@@ -143,8 +143,8 @@ export const shopService = {
         permanentlyClosed: detail.permanentlyClosed,
         closedOnPublicHolidays: detail.closedOnPublicHolidays,
         introduction: introductionRes.data?.message ?? "",
-        thumbnailImageFileId: detail.thumbnailImageFileId,
-        trademarkImageFileId: detail.trademarkImageFileId,
+        thumbnailImageUrl: detail.thumbnailImageUrl,
+        trademarkImageUrl: detail.trademarkImageUrl,
         thumbnailStatus: toImageStatus(thumbnailRes.data),
         trademarkStatus: toImageStatus(trademarkRes.data),
         phoneNumbers,
