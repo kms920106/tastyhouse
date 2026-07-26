@@ -3,6 +3,8 @@ package com.tastyhouse.adminapi.shop;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.ShopImageType;
 import com.tastyhouse.core.domain.shop.application.ShopImageChangeCommandService;
 import com.tastyhouse.core.domain.shop.application.ShopImageChangeQueryService;
@@ -10,6 +12,7 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopImageChangeReq
 import com.tastyhouse.core.shared.model.ApprovalStatus;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.shop.response.ShopImageChangeRequestItemResponse;
 
 /**
@@ -22,6 +25,8 @@ public class ShopImageChangeAdminService {
 
     private final ShopImageChangeCommandService shopImageChangeCommandService;
     private final ShopImageChangeQueryService shopImageChangeQueryService;
+    private final FileQueryService fileQueryService;
+    private final FileService fileService;
 
     public PaginationResponse<ShopImageChangeRequestItemResponse> getImageChangeRequests(String status, String imageType, int page, int size) {
         ApprovalStatus approvalStatus = status == null ? null : ApprovalStatus.valueOf(status);
@@ -47,8 +52,18 @@ public class ShopImageChangeAdminService {
             dto.shopId(),
             dto.imageType().name(),
             dto.imageFileId(),
+            resolveImageUrl(dto.imageFileId()),
             dto.status().name(),
             dto.rejectReason()
         );
+    }
+
+    private String resolveImageUrl(Long imageFileId) {
+        if (imageFileId == null) {
+            return null;
+        }
+        return fileQueryService.findFilePath(UploadedFileId.of(imageFileId))
+            .map(fileService::getUrlByPath)
+            .orElse(null);
     }
 }

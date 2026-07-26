@@ -1,8 +1,10 @@
 package com.tastyhouse.infrastructure.ceo.persistence;
 
+import java.util.List;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.ceo.domain.model.Ceo;
@@ -18,6 +20,13 @@ public class CeoRepositoryImpl implements CeoRepository {
     @Override
     public Optional<Ceo> findById(CeoId ceoId) {
         return ceoJpaRepository.findById(ceoId.value()).map(CeoMapper::toDomain);
+    }
+
+    @Override
+    public List<Ceo> findAll() {
+        return ceoJpaRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
+            .map(CeoMapper::toDomain)
+            .toList();
     }
 
     @Override

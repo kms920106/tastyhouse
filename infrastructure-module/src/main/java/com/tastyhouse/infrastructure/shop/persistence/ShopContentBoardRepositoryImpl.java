@@ -3,17 +3,25 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.shop.domain.model.ShopContentBoard;
+import com.tastyhouse.core.domain.shop.domain.model.ShopContentType;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopContentBoardRepository;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
+
+import static com.tastyhouse.infrastructure.shop.persistence.QShopContentBoardJpaEntity.shopContentBoardJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
 public class ShopContentBoardRepositoryImpl implements ShopContentBoardRepository {
 
     private final ShopContentBoardJpaRepository shopContentBoardJpaRepository;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public ShopContentBoard save(ShopContentBoard shopContentBoard) {
@@ -39,6 +47,36 @@ public class ShopContentBoardRepositoryImpl implements ShopContentBoardRepositor
     }
 
     @Override
+    public PageResult<ShopContentBoard> findAll(Long shopId, Boolean hidden, ShopContentType contentType, PageQuery pageQuery) {
+        Long total = queryFactory
+            .select(shopContentBoardJpaEntity.id.count())
+            .from(shopContentBoardJpaEntity)
+            .where(
+                shopIdEq(shopId),
+                hiddenEq(hidden),
+                contentTypeEq(contentType)
+            )
+            .fetchOne();
+
+        List<ShopContentBoard> items = queryFactory
+            .selectFrom(shopContentBoardJpaEntity)
+            .where(
+                shopIdEq(shopId),
+                hiddenEq(hidden),
+                contentTypeEq(contentType)
+            )
+            .orderBy(shopContentBoardJpaEntity.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch()
+            .stream()
+            .map(ShopContentBoardMapper::toDomain)
+            .toList();
+
+        return PageResult.of(items, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
     public Optional<ShopContentBoard> findById(Long id) {
         return shopContentBoardJpaRepository.findById(id).map(ShopContentBoardMapper::toDomain);
     }
@@ -51,5 +89,17 @@ public class ShopContentBoardRepositoryImpl implements ShopContentBoardRepositor
     @Override
     public long countByShopId(Long shopId) {
         return shopContentBoardJpaRepository.countByShopId(shopId);
+    }
+
+    private BooleanExpression shopIdEq(Long shopId) {
+        return shopId != null ? shopContentBoardJpaEntity.shopId.eq(shopId) : null;
+    }
+
+    private BooleanExpression hiddenEq(Boolean hidden) {
+        return hidden != null ? shopContentBoardJpaEntity.hidden.eq(hidden) : null;
+    }
+
+    private BooleanExpression contentTypeEq(ShopContentType contentType) {
+        return contentType != null ? shopContentBoardJpaEntity.contentType.eq(contentType) : null;
     }
 }

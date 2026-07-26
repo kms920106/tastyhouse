@@ -13,6 +13,9 @@ public record ShopImageChangeRequestItemResponse(
     @Schema(description = "요청된 이미지 파일 ID", example = "11")
     Long imageFileId,
 
+    @Schema(description = "요청된 이미지 URL(미리보기용, 파일이 없으면 null)", example = "https://cdn.tastyhouse.com/shop/trademark/11.png")
+    String imageUrl,
+
     @Schema(description = "승인 상태", example = "PENDING", allowableValues = {"PENDING", "APPROVED", "REJECTED"})
     String status,
 
@@ -23,6 +26,7 @@ public record ShopImageChangeRequestItemResponse(
         Long id,
         String imageType,
         Long imageFileId,
+        String imageUrl,
         String status,
         String rejectReason
     ) {
@@ -30,6 +34,7 @@ public record ShopImageChangeRequestItemResponse(
             id,
             imageType,
             imageFileId,
+            imageUrl,
             status,
             rejectReason
         );

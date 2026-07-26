@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.file.application.FileCommandService;
+import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.file.application.dto.command.UploadFileCommand;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -17,6 +18,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 public class FileService {
 
     private final FileCommandService fileCommandService;
+    private final FileQueryService fileQueryService;
 
     public Long upload(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -32,6 +34,10 @@ public class FileService {
         );
         UploadedFileId fileId = fileCommandService.upload(command);
         return fileId.value();
+    }
+
+    public String getUrlByPath(String filePath) {
+        return fileQueryService.getUrlByPath(filePath);
     }
 
     private byte[] readBytes(MultipartFile file) {
