@@ -53,19 +53,19 @@ public class ShopRepositoryImpl implements ShopRepository {
         BigDecimal latDiff = BigDecimal.valueOf(degreeDistance);
         BigDecimal lonDiff = BigDecimal.valueOf(degreeDistance);
 
-        List<ShopJpaEntity> entities = queryFactory.select(shopJpaEntity).from(shopJpaEntity).where(shopJpaEntity.latitude.between(latitude.subtract(latDiff), latitude.add(latDiff)).and(shopJpaEntity.longitude.between(longitude.subtract(lonDiff), longitude.add(lonDiff))).and(shopJpaEntity.permanentlyClosed.eq(false))).fetch();
+        List<ShopJpaEntity> entities = queryFactory.select(shopJpaEntity).from(shopJpaEntity).where(shopJpaEntity.latitude.between(latitude.subtract(latDiff), latitude.add(latDiff)).and(shopJpaEntity.longitude.between(longitude.subtract(lonDiff), longitude.add(lonDiff))).and(shopJpaEntity.permanentlyClosed.eq(false)).and(shopJpaEntity.hidden.eq(false))).fetch();
         return entities.stream().map(ShopMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public PageResult<BestShopItemResult> findBestShops(PageQuery pageQuery) {
-        Long total = queryFactory.select(shopJpaEntity.id.count()).from(shopJpaEntity).where(shopJpaEntity.rating.isNotNull().and(shopJpaEntity.permanentlyClosed.eq(false))).fetchOne();
+        Long total = queryFactory.select(shopJpaEntity.id.count()).from(shopJpaEntity).where(shopJpaEntity.rating.isNotNull().and(shopJpaEntity.permanentlyClosed.eq(false)).and(shopJpaEntity.hidden.eq(false))).fetchOne();
 
         if (total == null || total == 0) {
             return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
-        List<ShopJpaEntity> pagedShops = queryFactory.selectFrom(shopJpaEntity).where(shopJpaEntity.rating.isNotNull().and(shopJpaEntity.permanentlyClosed.eq(false))).orderBy(shopJpaEntity.rating.desc()).offset((long) pageQuery.page() * pageQuery.size()).limit(pageQuery.size()).fetch();
+        List<ShopJpaEntity> pagedShops = queryFactory.selectFrom(shopJpaEntity).where(shopJpaEntity.rating.isNotNull().and(shopJpaEntity.permanentlyClosed.eq(false)).and(shopJpaEntity.hidden.eq(false))).orderBy(shopJpaEntity.rating.desc()).offset((long) pageQuery.page() * pageQuery.size()).limit(pageQuery.size()).fetch();
 
         if (pagedShops.isEmpty()) {
             return PageResult.empty(pageQuery.page(), pageQuery.size());
@@ -148,7 +148,7 @@ public class ShopRepositoryImpl implements ShopRepository {
         }
 
         Long total = queryFactory.select(shopJpaEntity.count()).from(shopJpaEntity)
-            .where(shopJpaEntity.permanentlyClosed.eq(false), stationIdEq(stationId), shopIdIn(filteredShopIds))
+            .where(shopJpaEntity.permanentlyClosed.eq(false), shopJpaEntity.hidden.eq(false), stationIdEq(stationId), shopIdIn(filteredShopIds))
             .fetchOne();
 
         if (total == null || total == 0) {
@@ -156,7 +156,7 @@ public class ShopRepositoryImpl implements ShopRepository {
         }
 
         List<ShopJpaEntity> pagedShops = queryFactory.selectFrom(shopJpaEntity)
-            .where(shopJpaEntity.permanentlyClosed.eq(false), stationIdEq(stationId), shopIdIn(filteredShopIds))
+            .where(shopJpaEntity.permanentlyClosed.eq(false), shopJpaEntity.hidden.eq(false), stationIdEq(stationId), shopIdIn(filteredShopIds))
             .orderBy(shopJpaEntity.createdAt.desc()).offset((long) pageQuery.page() * pageQuery.size()).limit(pageQuery.size()).fetch();
 
         if (pagedShops.isEmpty()) {
@@ -211,12 +211,12 @@ public class ShopRepositoryImpl implements ShopRepository {
     @Override
     public PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(String keyword, MemberId memberId, PageQuery pageQuery) {
         Long total = queryFactory.select(shopJpaEntity.count()).from(shopJpaEntity)
-                .where(shopJpaEntity.permanentlyClosed.eq(false), shopJpaEntity.name.containsIgnoreCase(keyword))
+                .where(shopJpaEntity.permanentlyClosed.eq(false), shopJpaEntity.hidden.eq(false), shopJpaEntity.name.containsIgnoreCase(keyword))
                 .fetchOne();
         if (total == null || total == 0) return PageResult.empty(pageQuery.page(), pageQuery.size());
 
         List<ShopJpaEntity> pagedShops = queryFactory.selectFrom(shopJpaEntity)
-                .where(shopJpaEntity.permanentlyClosed.eq(false), shopJpaEntity.name.containsIgnoreCase(keyword))
+                .where(shopJpaEntity.permanentlyClosed.eq(false), shopJpaEntity.hidden.eq(false), shopJpaEntity.name.containsIgnoreCase(keyword))
                 .orderBy(shopJpaEntity.rating.desc().nullsLast())
                 .offset((long) pageQuery.page() * pageQuery.size())
                 .limit(pageQuery.size())
@@ -268,7 +268,7 @@ public class ShopRepositoryImpl implements ShopRepository {
         Long total = queryFactory
             .select(shopBookmarkJpaEntity.count())
             .from(shopBookmarkJpaEntity)
-            .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id).and(shopJpaEntity.permanentlyClosed.eq(false)))
+            .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id).and(shopJpaEntity.permanentlyClosed.eq(false)).and(shopJpaEntity.hidden.eq(false)))
             .where(shopBookmarkJpaEntity.memberId.eq(memberId))
             .fetchOne();
 
@@ -286,7 +286,7 @@ public class ShopRepositoryImpl implements ShopRepository {
                 uploadedFileJpaEntity.filePath
             )
             .from(shopBookmarkJpaEntity)
-            .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id).and(shopJpaEntity.permanentlyClosed.eq(false)))
+            .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id).and(shopJpaEntity.permanentlyClosed.eq(false)).and(shopJpaEntity.hidden.eq(false)))
             .join(stationJpaEntity).on(shopJpaEntity.stationId.eq(stationJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
             .where(shopBookmarkJpaEntity.memberId.eq(memberId))
@@ -355,6 +355,18 @@ public class ShopRepositoryImpl implements ShopRepository {
     @Override
     public Optional<Shop> findById(ShopId id) {
         return shopJpaRepository.findById(id.value()).map(ShopMapper::toDomain);
+    }
+
+    @Override
+    public Optional<Shop> findVisibleById(ShopId id) {
+        ShopJpaEntity entity = queryFactory.selectFrom(shopJpaEntity)
+            .where(
+                shopJpaEntity.id.eq(id.value()),
+                shopJpaEntity.permanentlyClosed.eq(false),
+                shopJpaEntity.hidden.eq(false)
+            )
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ShopMapper::toDomain);
     }
 
     @Override

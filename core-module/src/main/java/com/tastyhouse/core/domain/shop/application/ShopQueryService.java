@@ -101,6 +101,15 @@ public class ShopQueryService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
+    /**
+     * 회원 노출용 단건 조회. 폐업·노출정지 가게는 조회되지 않아 딥링크 진입을 차단한다.
+     * admin/ceo는 {@link #findShopById(ShopId)}를 그대로 쓴다.
+     */
+    public Shop findVisibleShopById(ShopId shopId) {
+        return shopRepository.findVisibleById(shopId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+    }
+
     public PageResult<ShopListItemResult> findShops(ShopSearchCondition condition, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return shopRepository.findShops(condition, pageQuery);

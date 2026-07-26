@@ -1,5 +1,7 @@
 package com.tastyhouse.webapi.shop;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
 import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
+import com.tastyhouse.core.domain.shop.domain.model.ShopOperatingStatus;
 import com.tastyhouse.core.domain.shop.domain.model.ShopOrderMethod;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Station;
@@ -30,6 +33,9 @@ import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewList
 import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
 import com.tastyhouse.core.domain.review.application.dto.result.ShopReviewStatisticsResult;
 import com.tastyhouse.core.domain.shop.application.ShopCommandService;
+import com.tastyhouse.core.domain.shop.application.ShopConvenienceInfoQueryService;
+import com.tastyhouse.core.domain.shop.application.ShopOperatingStatusQueryService;
+import com.tastyhouse.core.domain.shop.application.ShopPhoneNumberQueryService;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceResult;
@@ -37,7 +43,9 @@ import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemResu
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityCategoryResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopAmenityWithCategoryResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopBannerImageResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopConvenienceInfoResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
+import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhoneNumberResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.file.FileService;
@@ -59,6 +67,7 @@ import com.tastyhouse.webapi.shop.response.ShopLatestListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopMapMarkerResponse;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodItem;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodResponse;
+import com.tastyhouse.webapi.shop.response.ShopPhoneNumberItem;
 import com.tastyhouse.webapi.shop.response.ShopPhotoCategoryResponse;
 import com.tastyhouse.webapi.shop.response.ShopProductCategoryResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewListItemResponse;
@@ -73,6 +82,9 @@ public class ShopService {
 
     private final ShopQueryService shopQueryService;
     private final ShopCommandService shopCommandService;
+    private final ShopPhoneNumberQueryService shopPhoneNumberQueryService;
+    private final ShopConvenienceInfoQueryService shopConvenienceInfoQueryService;
+    private final ShopOperatingStatusQueryService shopOperatingStatusQueryService;
     private final ProductQueryService productQueryService;
     private final ReviewQueryService reviewQueryService;
     private final FileService fileService;
@@ -90,14 +102,31 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public PageResult<ShopBestListItemResponse> searchBestShops(int page, int size) {
-        return shopQueryService.findBestShops(page, size).map(this::convertToBestShopListItemResponse);
+        PageResult<BestShopItemResult> result = shopQueryService.findBestShops(page, size);
+        Map<Long, ShopOperatingStatus> statusMap = resolveOperatingStatuses(
+            result.content().stream().map(BestShopItemResult::id).toList()
+        );
+        return result.map(dto -> convertToBestShopListItemResponse(dto, statusMap));
     }
 
     @Transactional(readOnly = true)
     public PageResult<ShopLatestListItemResponse> searchLatestShops(Long stationId, List<String> foodTypes, List<String> amenities, int page, int size) {
         List<FoodType> foodTypeFilters = foodTypes == null ? null : foodTypes.stream().map(FoodType::from).toList();
         List<Amenity> amenityFilters = amenities == null ? null : amenities.stream().map(Amenity::from).toList();
-        return shopQueryService.findLatestShops(stationId, foodTypeFilters, amenityFilters, page, size).map(this::convertToLatestShopListItemResponse);
+        PageResult<LatestShopItemResult> result = shopQueryService.findLatestShops(stationId, foodTypeFilters, amenityFilters, page, size);
+        Map<Long, ShopOperatingStatus> statusMap = resolveOperatingStatuses(
+            result.content().stream().map(LatestShopItemResult::id).toList()
+        );
+        return result.map(dto -> convertToLatestShopListItemResponse(dto, statusMap));
+    }
+
+    private Map<Long, ShopOperatingStatus> resolveOperatingStatuses(List<Long> shopIds) {
+        return shopOperatingStatusQueryService.findOperatingStatuses(shopIds, LocalDateTime.now());
+    }
+
+    private String operatingStatusName(Map<Long, ShopOperatingStatus> statusMap, Long shopId) {
+        ShopOperatingStatus status = statusMap.get(shopId);
+        return status == null ? null : status.name();
     }
 
     @Transactional(readOnly = true)
@@ -120,18 +149,19 @@ public class ShopService {
         );
     }
 
-    private ShopBestListItemResponse convertToBestShopListItemResponse(BestShopItemResult dto) {
+    private ShopBestListItemResponse convertToBestShopListItemResponse(BestShopItemResult dto, Map<Long, ShopOperatingStatus> statusMap) {
         return ShopBestListItemResponse.from(
             dto.id(),
             dto.name(),
             dto.stationName(),
             dto.rating(),
             fileService.getUrlByPath(dto.imageUrl()),
-            dto.foodTypes().stream().map(Enum::name).toList()
+            dto.foodTypes().stream().map(Enum::name).toList(),
+            operatingStatusName(statusMap, dto.id())
         );
     }
 
-    private ShopLatestListItemResponse convertToLatestShopListItemResponse(LatestShopItemResult dto) {
+    private ShopLatestListItemResponse convertToLatestShopListItemResponse(LatestShopItemResult dto, Map<Long, ShopOperatingStatus> statusMap) {
         return ShopLatestListItemResponse.from(
             dto.id(),
             dto.name(),
@@ -141,7 +171,8 @@ public class ShopService {
             dto.createdAt(),
             dto.reviewCount(),
             dto.bookmarkCount(),
-            dto.foodTypes().stream().map(Enum::name).toList()
+            dto.foodTypes().stream().map(Enum::name).toList(),
+            operatingStatusName(statusMap, dto.id())
         );
     }
 
@@ -206,7 +237,20 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public ShopDetailResponse getShopDetail(Long shopId) {
-        Shop shop = shopQueryService.findShopById(ShopId.of(shopId));
+        Shop shop = shopQueryService.findVisibleShopById(ShopId.of(shopId));
+
+        List<ShopPhoneNumberItem> phoneNumbers = shopPhoneNumberQueryService.findPhoneNumbers(shopId).stream()
+            .map(this::convertToShopPhoneNumberItem)
+            .toList();
+
+        String trademarkImageUrl = fileService.getUrlByPath(
+            shopQueryService.findThumbnailFilePath(shop.getTrademarkImageFileId()).orElse(null)
+        );
+
+        String operatingStatus = shopOperatingStatusQueryService
+            .findOperatingStatus(shopId, LocalDateTime.now())
+            .name();
+
         return ShopDetailResponse.of(
             shop.getId(),
             shop.getName(),
@@ -215,13 +259,24 @@ public class ShopService {
             shop.getRating(),
             shop.getRoadAddress(),
             shop.getLotAddress(),
-            shop.getPhoneNumber()
+            shop.getPhoneNumber(),
+            phoneNumbers,
+            trademarkImageUrl,
+            operatingStatus
+        );
+    }
+
+    private ShopPhoneNumberItem convertToShopPhoneNumberItem(ShopPhoneNumberResult dto) {
+        return ShopPhoneNumberItem.from(
+            dto.phoneNumber(),
+            dto.primary(),
+            dto.virtual()
         );
     }
 
     @Transactional(readOnly = true)
     public ShopInfoResponse getShopInfo(Long shopId) {
-        shopQueryService.findShopById(ShopId.of(shopId));
+        shopQueryService.findVisibleShopById(ShopId.of(shopId));
         List<ShopBusinessHour> businessHours = shopQueryService.findShopBusinessHours(shopId);
         List<ShopBreakTime> breakTimes = shopQueryService.findShopBreakTimes(shopId);
         List<ShopClosedDay> closedDays = shopQueryService.findShopClosedDays(shopId);
@@ -244,11 +299,30 @@ public class ShopService {
                 .toList();
 
         String ownerMessage = null;
-        java.time.LocalDateTime ownerMessageCreatedAt = null;
+        LocalDateTime ownerMessageCreatedAt = null;
         var ownerMessageHistory = shopQueryService.findLatestOwnerMessage(shopId);
         if (ownerMessageHistory.isPresent()) {
             ownerMessage = ownerMessageHistory.get().getMessage();
             ownerMessageCreatedAt = ownerMessageHistory.get().getCreatedAt();
+        }
+
+        Boolean parkingAvailable = null;
+        Boolean parkingPaid = null;
+        Boolean valetAvailable = null;
+        Boolean valetPaid = null;
+        String directionsGuide = null;
+        BigDecimal displayLatitude = null;
+        BigDecimal displayLongitude = null;
+        var convenienceInfo = shopConvenienceInfoQueryService.findConvenienceInfo(shopId);
+        if (convenienceInfo.isPresent()) {
+            ShopConvenienceInfoResult info = convenienceInfo.get();
+            parkingAvailable = info.parkingAvailable();
+            parkingPaid = info.parkingPaid();
+            valetAvailable = info.valetAvailable();
+            valetPaid = info.valetPaid();
+            directionsGuide = info.directionsGuide();
+            displayLatitude = info.displayLatitude();
+            displayLongitude = info.displayLongitude();
         }
 
         return ShopInfoResponse.from(
@@ -257,7 +331,14 @@ public class ShopService {
             breakTimeItems,
             amenityItems,
             ownerMessage,
-            ownerMessageCreatedAt
+            ownerMessageCreatedAt,
+            parkingAvailable,
+            parkingPaid,
+            valetAvailable,
+            valetPaid,
+            directionsGuide,
+            displayLatitude,
+            displayLongitude
         );
     }
 
@@ -360,7 +441,7 @@ public class ShopService {
     public ShopReviewStatisticsResponse getShopReviewStatistics(Long shopId) {
         ShopReviewStatisticsResult statistics = reviewQueryService.findShopReviewStatistics(shopId);
 
-        Shop shop = shopQueryService.findShopById(ShopId.of(shopId));
+        Shop shop = shopQueryService.findVisibleShopById(ShopId.of(shopId));
 
         return ShopReviewStatisticsResponse.from(
             shop.getRating(),
@@ -385,7 +466,8 @@ public class ShopService {
             businessHour.getDayType().getDescription(),
             businessHour.getOpenTime() != null ? businessHour.getOpenTime().format(formatter) : null,
             businessHour.getCloseTime() != null ? businessHour.getCloseTime().format(formatter) : null,
-            businessHour.getIsClosed()
+            Boolean.TRUE.equals(businessHour.getIsClosed()),
+            Boolean.TRUE.equals(businessHour.getIs24Hours())
         );
     }
 
@@ -458,7 +540,7 @@ public class ShopService {
 
     @Transactional(readOnly = true)
     public ShopOrderMethodResponse getShopOrderMethods(Long shopId) {
-        shopQueryService.findShopById(ShopId.of(shopId));
+        shopQueryService.findVisibleShopById(ShopId.of(shopId));
         List<ShopOrderMethod> shopOrderMethods = shopQueryService.findShopOrderMethods(shopId);
 
         List<ShopOrderMethodItem> orderMethodItems =

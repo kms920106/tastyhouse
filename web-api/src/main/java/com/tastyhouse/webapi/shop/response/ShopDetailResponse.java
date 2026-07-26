@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.shop.response;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -27,8 +28,17 @@ public record ShopDetailResponse(
     @Schema(description = "지번 주소", example = "서울 강남구 신사동 653-7")
     String lotAddress,
 
-    @Schema(description = "전화번호", example = "02-1234-5678")
-    String phoneNumber
+    @Schema(description = "대표 전화번호", example = "02-1234-5678")
+    String phoneNumber,
+
+    @Schema(description = "전화번호 목록(대표·가상번호 포함)")
+    List<ShopPhoneNumberItem> phoneNumbers,
+
+    @Schema(description = "상표 이미지 URL", example = "https://cdn.tastyhouse.com/shop/1/trademark.jpg")
+    String trademarkImageUrl,
+
+    @Schema(description = "실시간 영업 상태(OPEN: 영업중, PREPARING: 준비중)", example = "OPEN")
+    String operatingStatus
 ) {
     public static ShopDetailResponse of(
         Long id,
@@ -38,7 +48,10 @@ public record ShopDetailResponse(
         Double rating,
         String roadAddress,
         String lotAddress,
-        String phoneNumber
+        String phoneNumber,
+        List<ShopPhoneNumberItem> phoneNumbers,
+        String trademarkImageUrl,
+        String operatingStatus
     ) {
         return new ShopDetailResponse(
             id,
@@ -48,7 +61,10 @@ public record ShopDetailResponse(
             rating,
             roadAddress,
             lotAddress,
-            phoneNumber
+            phoneNumber,
+            phoneNumbers,
+            trademarkImageUrl,
+            operatingStatus
         );
     }
 }

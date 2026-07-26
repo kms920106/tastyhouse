@@ -33,5 +33,11 @@ public interface ShopRepository {
 
     Optional<Shop> findById(ShopId id);
 
+    /**
+     * 회원 노출용 단건 조회. 폐업(permanentlyClosed)·노출정지(hidden) 가게는 조회되지 않아,
+     * 딥링크로 비노출 가게 상세에 진입하는 것을 차단한다. admin/ceo는 {@link #findById(ShopId)}를 쓴다.
+     */
+    Optional<Shop> findVisibleById(ShopId id);
+
     Shop save(Shop shop);
 }

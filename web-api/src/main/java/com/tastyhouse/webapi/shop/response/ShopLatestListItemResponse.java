@@ -24,7 +24,10 @@ public record ShopLatestListItemResponse(
     @Schema(description = "북마크 개수", example = "5")
     Long bookmarkCount,
     @Schema(description = "음식 타입 목록")
-    List<String> foodTypes
+    List<String> foodTypes,
+
+    @Schema(description = "실시간 영업 상태(OPEN: 영업중, PREPARING: 준비중)", example = "OPEN")
+    String operatingStatus
 ) {
     public static ShopLatestListItemResponse from(
         Long id,
@@ -35,7 +38,8 @@ public record ShopLatestListItemResponse(
         LocalDateTime createdAt,
         Long reviewCount,
         Long bookmarkCount,
-        List<String> foodTypes
+        List<String> foodTypes,
+        String operatingStatus
     ) {
         return new ShopLatestListItemResponse(
             id,
@@ -46,7 +50,8 @@ public record ShopLatestListItemResponse(
             createdAt,
             reviewCount,
             bookmarkCount,
-            foodTypes
+            foodTypes,
+            operatingStatus
         );
     }
 }

@@ -17,21 +17,26 @@ public record ShopBusinessHourItem(
     String closeTime,
 
     @Schema(description = "휴무 여부", example = "false")
-    boolean closed
+    boolean closed,
+
+    @Schema(description = "24시간 영업 여부", example = "false")
+    boolean is24Hours
 ) {
     public static ShopBusinessHourItem from(
         String dayType,
         String dayTypeDescription,
         String openTime,
         String closeTime,
-        boolean closed
+        boolean closed,
+        boolean is24Hours
     ) {
         return new ShopBusinessHourItem(
             dayType,
             dayTypeDescription,
             openTime,
             closeTime,
-            closed
+            closed,
+            is24Hours
         );
     }
 }

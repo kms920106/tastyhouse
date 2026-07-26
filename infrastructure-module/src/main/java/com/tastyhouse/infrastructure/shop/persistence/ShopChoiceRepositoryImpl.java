@@ -58,7 +58,7 @@ public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
                 uploadedFileJpaEntity.filePath
             )
             .from(shopChoiceJpaEntity)
-            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopChoiceJpaEntity.shopId).and(shopJpaEntity.permanentlyClosed.eq(false)))
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopChoiceJpaEntity.shopId).and(shopJpaEntity.permanentlyClosed.eq(false)).and(shopJpaEntity.hidden.eq(false)))
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())

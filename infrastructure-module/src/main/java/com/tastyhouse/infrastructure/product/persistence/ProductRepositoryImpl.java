@@ -89,6 +89,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                     .and(productJpaEntity.visible.eq(true))
                     .and(productJpaEntity.soldOut.eq(false))
                     .and(shopJpaEntity.permanentlyClosed.eq(false))
+                    .and(shopJpaEntity.hidden.eq(false))
             )
             .fetchOne();
 
@@ -126,6 +127,7 @@ public class ProductRepositoryImpl implements ProductRepository {
                     .and(productJpaEntity.visible.eq(true))
                     .and(productJpaEntity.soldOut.eq(false))
                     .and(shopJpaEntity.permanentlyClosed.eq(false))
+                    .and(shopJpaEntity.hidden.eq(false))
             )
             .orderBy(productJpaEntity.representative.desc().nullsLast(), productJpaEntity.rating.desc().nullsLast())
             .offset((long) pageQuery.page() * pageQuery.size())
