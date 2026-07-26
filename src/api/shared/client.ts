@@ -235,8 +235,22 @@ class ApiClient {
     config?: RequestConfig<P>,
   ): Promise<ApiResponse<T>> {
     return this.request<T, P>(endpoint, {
-      ...config,
       method: "POST",
+      ...config,
+      body: formData,
+      isFormData: true,
+    });
+  }
+
+  // PUT multipart/form-data — 콘텐츠보드 수정처럼 파일 첨부와 함께 갱신하는 요청에 사용한다.
+  async uploadPut<T = unknown, P extends object = object>(
+    endpoint: string,
+    formData: FormData,
+    config?: RequestConfig<P>,
+  ): Promise<ApiResponse<T>> {
+    return this.request<T, P>(endpoint, {
+      method: "PUT",
+      ...config,
       body: formData,
       isFormData: true,
     });

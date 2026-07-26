@@ -1,4 +1,4 @@
-import { Fingerprint, type LucideIcon, Megaphone } from "lucide-react";
+import { Fingerprint, type LucideIcon, Megaphone, PowerOff, Store } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -30,6 +30,16 @@ export const sidebarItems: NavGroup[] = [
     id: 1,
     label: "Pages",
     items: [
+      {
+        title: "가게 관리",
+        url: "/dashboard/shop",
+        icon: Store,
+      },
+      {
+        title: "전체현황·임시중지",
+        url: "/dashboard/shop-status",
+        icon: PowerOff,
+      },
       {
         title: "공지사항",
         url: "/dashboard/notices",
