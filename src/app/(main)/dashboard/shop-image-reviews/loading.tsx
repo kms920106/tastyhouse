@@ -10,7 +10,7 @@ const SKELETON_COLUMNS = [
   { id: "id", header: "ID", width: 80, align: "left" },
   { id: "shopId", header: "가게 ID", width: 100, align: "left" },
   { id: "imageType", header: "이미지 유형", width: 120, align: "left" },
-  { id: "imageFileId", header: "파일 ID", width: 100, align: "left" },
+  { id: "preview", header: "미리보기", width: 100, align: "left" },
   { id: "status", header: "상태", width: 100, align: "left" },
   { id: "rejectReason", header: "반려 사유", width: 240, align: "left" },
   { id: "actions", header: "작업", width: 80, align: "right" },

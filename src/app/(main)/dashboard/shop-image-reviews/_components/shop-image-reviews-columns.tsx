@@ -48,11 +48,11 @@ export const shopImageReviewsColumns: ColumnDef<ShopImageChangeRequest>[] = [
     maxSize: 140,
   },
   {
-    accessorKey: "imageFileId",
+    id: "preview",
     header: "미리보기",
     cell: ({ row }) => {
-      const { imageUrl, imageFileId } = row.original;
-      if (!imageUrl) return <span className="tabular-nums">{imageFileId}</span>;
+      const { imageUrl } = row.original;
+      if (!imageUrl) return <span className="text-muted-foreground">-</span>;
       return (
         <a href={imageUrl} target="_blank" rel="noreferrer" className="block size-10">
           {/* biome-ignore lint/performance/noImgElement: 목록 썸네일 미리보기 */}

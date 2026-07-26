@@ -109,8 +109,9 @@ export function ShopFormSheet({ open, onOpenChange, shop }: ShopFormSheetProps) 
         roadAddress: detail.roadAddress,
         lotAddress: detail.lotAddress,
         phoneNumber: detail.phoneNumber ?? undefined,
-        thumbnailImageFileId: detail.thumbnailImageFileId ?? undefined,
+        thumbnailImageFileId: undefined,
       });
+      setPreviewUrl(detail.thumbnailImageUrl ?? undefined);
     });
 
     return () => {
@@ -424,7 +425,9 @@ export function ShopFormSheet({ open, onOpenChange, shop }: ShopFormSheetProps) 
                 name="thumbnailImageFileId"
                 render={({ field, fieldState }) => (
                   <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="shop-thumbnail-file">썸네일 이미지 (선택)</FieldLabel>
+                    <FieldLabel htmlFor="shop-thumbnail-file">
+                      썸네일 이미지 (선택){isEdit ? " — 유지하려면 재업로드하지 마세요" : ""}
+                    </FieldLabel>
                     {previewUrl ? (
                       // biome-ignore lint/performance/noImgElement: 업로드 직후 blob URL 미리보기
                       <img

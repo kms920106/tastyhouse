@@ -70,7 +70,7 @@ export interface ShopDetailResponse {
   roadAddress: string;
   lotAddress: string;
   phoneNumber: string | null;
-  thumbnailImageFileId: number | null;
+  thumbnailImageUrl: string | null;
   permanentlyClosed: boolean;
   createdAt: string;
   updatedAt: string;
@@ -163,8 +163,8 @@ export interface AmenityCategoryResponse {
   id: number;
   amenity: Amenity;
   displayName: string;
-  activeImageFileId: number;
-  inactiveImageFileId: number;
+  activeImageUrl: string;
+  inactiveImageUrl: string;
   sort: number;
   visible: boolean;
 }
@@ -194,8 +194,8 @@ export interface FoodTypeCategoryResponse {
   id: number;
   foodType: FoodType;
   displayName: string;
-  activeImageFileId: number;
-  inactiveImageFileId: number;
+  activeImageUrl: string;
+  inactiveImageUrl: string;
   sort: number;
   visible: boolean;
 }
@@ -272,7 +272,6 @@ export interface OrderMethodCreateRequest {
 
 export interface BannerImageResponse {
   id: number;
-  imageFileId: number;
   imageUrl: string;
   sort: number;
 }
@@ -297,7 +296,6 @@ export interface PhotoCategoryUpdateRequest {
 
 export interface PhotoImageResponse {
   id: number;
-  imageFileId: number;
   imageUrl: string;
   sort: number;
   visible: boolean;
@@ -357,8 +355,7 @@ export interface ShopImageChangeRequestItemResponse {
   id: number;
   shopId: number;
   imageType: ShopImageType;
-  imageFileId: number;
-  /** 미리보기 URL. imageFileId가 없으면 null */
+  /** 미리보기 URL. 없으면 null */
   imageUrl: string | null;
   status: ShopImageChangeStatus;
   rejectReason: string | null;
@@ -385,7 +382,6 @@ export interface ContentBoardItemResponse {
   shopId: number;
   contentType: ContentBoardContentType;
   topic: ContentBoardTopic;
-  imageFileId: number | null;
   imageUrl: string | null;
   youtubeUrl: string | null;
   description: string;

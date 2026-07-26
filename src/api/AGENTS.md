@@ -34,3 +34,6 @@ Data-access layer for the app. Repositories, DTOs, and shared HTTP plumbing live
 - Plain typed TS modules; mock datasets export arrays/objects.
 
 <!-- MANUAL: Any manually added notes below this line are preserved on regeneration -->
+
+### Shop 이미지 필드 비대칭 (2026-07-26 확인)
+`shop.dto.ts`의 이미지 관련 응답(`*Response`)과 요청(`*CreateRequest`/`*UpdateRequest`)은 필드 형태가 다르다. **조회 응답은 바로 접근 가능한 `imageUrl`/`activeImageUrl`/`inactiveImageUrl`/`thumbnailImageUrl`(문자열 URL)을 내려주고, 생성·수정 요청은 여전히 업로드 후 받은 `imageFileId`(숫자)를 요구한다.** 즉 목록/상세 조회에서는 fileId를 전혀 받을 수 없으므로, 수정 폼에서 "기존 이미지 유지"를 하려면 재업로드가 필요하다 — `../feature/AGENTS.md`의 재업로드 정책 참고.

@@ -56,6 +56,7 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
   const [isPending, startTransition] = React.useTransition();
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [uploadingField, setUploadingField] = React.useState<"activeImageFileId" | "inactiveImageFileId" | null>(null);
+  const [editingImageUrls, setEditingImageUrls] = React.useState<{ active: string; inactive: string } | null>(null);
 
   const form = useForm<FoodTypeCategoryFormValues>({
     resolver: zodResolver(foodTypeCategorySchema),
@@ -86,17 +87,19 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
     if (!open) return;
     form.reset(EMPTY_VALUES);
     setEditingId(null);
+    setEditingImageUrls(null);
     const cleanup = loadCategories();
     return cleanup;
   }, [open, form.reset, loadCategories]);
 
   function startEdit(category: FoodTypeCategory) {
     setEditingId(category.id);
+    setEditingImageUrls({ active: category.activeImageUrl, inactive: category.inactiveImageUrl });
     form.reset({
       foodType: category.foodType as FoodTypeCategoryFormValues["foodType"],
       displayName: category.displayName,
-      activeImageFileId: category.activeImageFileId,
-      inactiveImageFileId: category.inactiveImageFileId,
+      activeImageFileId: undefined as unknown as number,
+      inactiveImageFileId: undefined as unknown as number,
       sort: category.sort,
       visible: category.visible,
     });
@@ -104,6 +107,7 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
 
   function cancelEdit() {
     setEditingId(null);
+    setEditingImageUrls(null);
     form.reset(EMPTY_VALUES);
   }
 
@@ -185,9 +189,19 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
                     key={category.id}
                     className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
                   >
-                    <div className="flex flex-col">
-                      <span>{category.displayName}</span>
-                      <span className="text-muted-foreground text-xs">{category.foodType}</span>
+                    <div className="flex items-center gap-2">
+                      {/* biome-ignore lint/performance/noImgElement: CDN URL 미리보기 */}
+                      <img src={category.activeImageUrl} alt="활성" className="size-8 rounded-md border object-cover" />
+                      {/* biome-ignore lint/performance/noImgElement: CDN URL 미리보기 */}
+                      <img
+                        src={category.inactiveImageUrl}
+                        alt="비활성"
+                        className="size-8 rounded-md border object-cover"
+                      />
+                      <div className="flex flex-col">
+                        <span>{category.displayName}</span>
+                        <span className="text-muted-foreground text-xs">{category.foodType}</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={category.visible ? "default" : "secondary"}>
@@ -209,6 +223,7 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
 
           <div className="space-y-3">
             <h4 className="font-medium text-sm">{editingId ? "카테고리 수정" : "카테고리 추가"}</h4>
+            {editingId ? <p className="text-muted-foreground text-xs">{SHOP_MESSAGE.IMAGE_REUPLOAD_REQUIRED}</p> : null}
             <form id="food-type-category-form" noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
               <Controller
                 control={form.control}
@@ -261,7 +276,17 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
                 name="activeImageFileId"
                 render={({ field, fieldState }) => (
                   <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="food-type-category-active-image">활성 이미지</FieldLabel>
+                    <FieldLabel htmlFor="food-type-category-active-image">
+                      활성 이미지{editingId ? " (재업로드 필요)" : ""}
+                    </FieldLabel>
+                    {editingImageUrls ? (
+                      // biome-ignore lint/performance/noImgElement: CDN URL 미리보기
+                      <img
+                        src={editingImageUrls.active}
+                        alt="현재 활성 이미지"
+                        className="h-16 w-16 rounded-md border object-cover"
+                      />
+                    ) : null}
                     <Input
                       id="food-type-category-active-image"
                       type="file"
@@ -272,9 +297,7 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
                     {uploadingField === "activeImageFileId" && (
                       <p className="text-muted-foreground text-xs">업로드 중...</p>
                     )}
-                    {field.value ? (
-                      <p className="text-muted-foreground text-xs">업로드된 파일 ID: {field.value}</p>
-                    ) : null}
+                    {field.value ? <p className="text-muted-foreground text-xs">업로드 완료</p> : null}
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -284,7 +307,17 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
                 name="inactiveImageFileId"
                 render={({ field, fieldState }) => (
                   <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="food-type-category-inactive-image">비활성 이미지</FieldLabel>
+                    <FieldLabel htmlFor="food-type-category-inactive-image">
+                      비활성 이미지{editingId ? " (재업로드 필요)" : ""}
+                    </FieldLabel>
+                    {editingImageUrls ? (
+                      // biome-ignore lint/performance/noImgElement: CDN URL 미리보기
+                      <img
+                        src={editingImageUrls.inactive}
+                        alt="현재 비활성 이미지"
+                        className="h-16 w-16 rounded-md border object-cover"
+                      />
+                    ) : null}
                     <Input
                       id="food-type-category-inactive-image"
                       type="file"
@@ -295,9 +328,7 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
                     {uploadingField === "inactiveImageFileId" && (
                       <p className="text-muted-foreground text-xs">업로드 중...</p>
                     )}
-                    {field.value ? (
-                      <p className="text-muted-foreground text-xs">업로드된 파일 ID: {field.value}</p>
-                    ) : null}
+                    {field.value ? <p className="text-muted-foreground text-xs">업로드 완료</p> : null}
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}

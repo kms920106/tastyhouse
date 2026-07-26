@@ -21,7 +21,6 @@ import {
   fetchBannersAction,
   fetchPhotoCategoriesAction,
   fetchPhotoCategoryImagesAction,
-  updatePhotoCategoryImageAction,
   uploadShopImageAction,
 } from "@/feature/shop/actions";
 import { PHOTO_CATEGORY_NAME_MAX } from "@/feature/shop/constants";
@@ -216,22 +215,6 @@ function PhotoCategoryImages({ categoryId }: { categoryId: number }) {
     });
   }
 
-  function handleToggleVisible(image: PhotoImage) {
-    startTransition(async () => {
-      const { success, message } = await updatePhotoCategoryImageAction(image.id, {
-        imageFileId: image.imageFileId,
-        sort: image.sort,
-        visible: !image.visible,
-      });
-      if (success) {
-        toast.success(SHOP_MESSAGE.PHOTO_IMAGE_UPDATE_SUCCESS);
-        load();
-      } else {
-        toast.error(message ?? SHOP_MESSAGE.CREATE_UPDATE_FAILED);
-      }
-    });
-  }
-
   function handleDelete(imageId: number) {
     startTransition(async () => {
       const { success, message } = await deletePhotoCategoryImageAction(imageId);
@@ -260,7 +243,7 @@ function PhotoCategoryImages({ categoryId }: { categoryId: number }) {
               <img src={image.imageUrl} alt="포토" className="h-20 w-full rounded-md border object-cover" />
               <div className="flex items-center justify-between text-muted-foreground text-xs">
                 <span>정렬 {image.sort}</span>
-                <Switch checked={image.visible} onCheckedChange={() => handleToggleVisible(image)} disabled={busy} />
+                <Switch checked={image.visible} disabled title={SHOP_MESSAGE.PHOTO_IMAGE_VISIBLE_TOGGLE_DISABLED} />
                 <button
                   type="button"
                   className="text-destructive disabled:opacity-50"

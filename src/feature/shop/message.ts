@@ -68,6 +68,8 @@ export const SHOP_MESSAGE = {
   IMAGE_UPLOAD_FAILED: "이미지 업로드 중 오류가 발생했습니다.",
   IMAGE_TYPE_INVALID: "jpg, png, gif, webp 형식의 이미지만 업로드할 수 있습니다.",
   IMAGE_SIZE_EXCEEDED: "이미지 크기는 최대 10MB까지 업로드할 수 있습니다.",
+  IMAGE_REUPLOAD_REQUIRED: "수정 시 이미지를 다시 업로드해야 저장할 수 있습니다.",
+  PHOTO_IMAGE_VISIBLE_TOGGLE_DISABLED: "API 스펙 변경으로 노출 전환이 일시적으로 지원되지 않습니다.",
   INVALID_INPUT: "입력값이 올바르지 않습니다.",
   LIST_LOAD_FAILED: "가게 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
   DETAIL_LOAD_FAILED: "가게 상세를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",

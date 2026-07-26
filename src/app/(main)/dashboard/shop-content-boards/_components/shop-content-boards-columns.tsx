@@ -61,7 +61,7 @@ export const shopContentBoardsColumns: ColumnDef<ContentBoard>[] = [
     id: "preview",
     header: "미리보기",
     cell: ({ row }) => {
-      const { imageUrl, youtubeUrl, imageFileId } = row.original;
+      const { imageUrl, youtubeUrl } = row.original;
       if (imageUrl) {
         return (
           <a href={imageUrl} target="_blank" rel="noreferrer" className="block size-10">
@@ -77,7 +77,7 @@ export const shopContentBoardsColumns: ColumnDef<ContentBoard>[] = [
           </a>
         );
       }
-      return <span className="tabular-nums">{imageFileId ?? "-"}</span>;
+      return <span className="text-muted-foreground">-</span>;
     },
     enableSorting: false,
     size: 100,
