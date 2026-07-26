@@ -52,6 +52,7 @@ const EMPTY_BUSINESS_HOUR: BusinessHourFormValues = {
   openTime: "09:00:00",
   closeTime: "22:00:00",
   isClosed: false,
+  is24Hours: false,
 };
 
 const EMPTY_BREAK_TIME: BreakTimeFormValues = {
@@ -100,6 +101,7 @@ function BusinessHoursSection({ shopId }: TabProps) {
       openTime: item.openTime,
       closeTime: item.closeTime,
       isClosed: item.isClosed,
+      is24Hours: item.is24Hours,
     });
   }
 
@@ -137,6 +139,10 @@ function BusinessHoursSection({ shopId }: TabProps) {
     });
   }
 
+  const isClosedWatch = form.watch("isClosed");
+  const is24HoursWatch = form.watch("is24Hours");
+  const timeInputsDisabled = isPending || isClosedWatch || is24HoursWatch;
+
   return (
     <div className="space-y-3">
       <h4 className="font-medium text-sm">운영시간</h4>
@@ -149,7 +155,8 @@ function BusinessHoursSection({ shopId }: TabProps) {
           {items.map((item) => (
             <li key={item.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
               <span>
-                {item.description} · {item.isClosed ? "휴무" : `${item.openTime} ~ ${item.closeTime}`}
+                {item.description} ·{" "}
+                {item.isClosed ? "휴무" : item.is24Hours ? "24시간 영업" : `${item.openTime} ~ ${item.closeTime}`}
               </span>
               <div className="flex gap-1">
                 <Button type="button" size="sm" variant="outline" onClick={() => startEdit(item)}>
@@ -203,7 +210,7 @@ function BusinessHoursSection({ shopId }: TabProps) {
           render={({ field, fieldState }) => (
             <Field className="w-32 gap-1.5" data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="business-hour-open">시작 (HH:mm:ss)</FieldLabel>
-              <Input {...field} id="business-hour-open" placeholder="09:00:00" disabled={isPending} />
+              <Input {...field} id="business-hour-open" placeholder="09:00:00" disabled={timeInputsDisabled} />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
@@ -214,8 +221,23 @@ function BusinessHoursSection({ shopId }: TabProps) {
           render={({ field, fieldState }) => (
             <Field className="w-32 gap-1.5" data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="business-hour-close">종료 (HH:mm:ss)</FieldLabel>
-              <Input {...field} id="business-hour-close" placeholder="22:00:00" disabled={isPending} />
+              <Input {...field} id="business-hour-close" placeholder="22:00:00" disabled={timeInputsDisabled} />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="is24Hours"
+          render={({ field }) => (
+            <Field orientation="horizontal">
+              <FieldLabel htmlFor="business-hour-is-24-hours">24시간 영업</FieldLabel>
+              <Switch
+                id="business-hour-is-24-hours"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={isPending}
+              />
             </Field>
           )}
         />

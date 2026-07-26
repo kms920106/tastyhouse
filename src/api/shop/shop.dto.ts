@@ -9,6 +9,14 @@ export interface StationResponse {
   stationName: string;
 }
 
+// 점주(ceo) — 가게 등록 폼 소유 점주 선택 드롭다운용. 페이징 없음(전체 목록).
+export interface CeoResponse {
+  id: number;
+  name: string;
+  businessRegistrationNumber: string;
+  status: "ACTIVE" | "INACTIVE";
+}
+
 // 가게 목록 조회 쿼리
 export interface ShopListQueryRequest {
   name?: string;
@@ -28,6 +36,7 @@ export interface ShopListItemResponse {
 
 // 가게 등록
 export interface ShopCreateRequest {
+  ceoId?: number;
   stationId: number;
   name: string;
   latitude: number;
@@ -91,6 +100,7 @@ export interface BusinessHourResponse {
   openTime: string;
   closeTime: string;
   isClosed: boolean;
+  is24Hours: boolean;
 }
 
 export interface BusinessHourCreateRequest {
@@ -98,6 +108,7 @@ export interface BusinessHourCreateRequest {
   openTime: string;
   closeTime: string;
   isClosed: boolean;
+  is24Hours: boolean;
 }
 
 export interface BusinessHourUpdateRequest {
@@ -105,6 +116,7 @@ export interface BusinessHourUpdateRequest {
   openTime: string;
   closeTime: string;
   isClosed: boolean;
+  is24Hours: boolean;
 }
 
 export interface BreakTimeResponse {
@@ -328,4 +340,79 @@ export interface EditorChoiceCreateRequest {
 export interface EditorChoiceUpdateRequest {
   title: string;
   content: string;
+}
+
+// ===== Phase G. 이미지 변경요청 검수 (상표·대표이미지) =====
+
+export type ShopImageType = "TRADEMARK" | "THUMBNAIL";
+
+export type ShopImageChangeStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface ShopImageChangeRequestListQueryRequest {
+  status?: ShopImageChangeStatus;
+  imageType?: ShopImageType;
+}
+
+export interface ShopImageChangeRequestItemResponse {
+  id: number;
+  shopId: number;
+  imageType: ShopImageType;
+  imageFileId: number;
+  /** 미리보기 URL. imageFileId가 없으면 null */
+  imageUrl: string | null;
+  status: ShopImageChangeStatus;
+  rejectReason: string | null;
+}
+
+export interface ShopImageChangeRejectRequest {
+  reason: string;
+}
+
+// ===== Phase H. 콘텐츠보드 검수 =====
+
+export type ContentBoardContentType = "IMAGE" | "GIF" | "VIDEO";
+
+export type ContentBoardTopic = "EXTERIOR" | "INTERIOR" | "FOOD_STORY" | "NEWS";
+
+export interface ContentBoardListQueryRequest {
+  shopId?: number;
+  hidden?: boolean;
+  contentType?: ContentBoardContentType;
+}
+
+export interface ContentBoardItemResponse {
+  id: number;
+  shopId: number;
+  contentType: ContentBoardContentType;
+  topic: ContentBoardTopic;
+  imageFileId: number | null;
+  imageUrl: string | null;
+  youtubeUrl: string | null;
+  description: string;
+  hidden: boolean;
+  createdAt: string;
+}
+
+export interface ShopContentBoardHideRequest {
+  hidden: boolean;
+}
+
+// ===== Phase I. 위생 인증 뱃지 =====
+
+export type HygieneBadgeType = "FOOD_SAFETY_CERTIFIED" | "CESCO_BLUE" | "CESCO_WHITE";
+
+export interface ShopHygieneBadgeResponse {
+  id: number;
+  shopId: number;
+  badgeType: HygieneBadgeType;
+  /** LocalDate (YYYY-MM-DD) */
+  certifiedDate: string;
+  /** 세스코 최근 점검월 (YYYY-MM), 없으면 null */
+  lastInspectionMonth: string | null;
+}
+
+export interface ShopHygieneBadgeCreateRequest {
+  badgeType: HygieneBadgeType;
+  certifiedDate: string;
+  lastInspectionMonth?: string;
 }

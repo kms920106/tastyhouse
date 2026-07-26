@@ -11,6 +11,8 @@ export const EDITOR_CHOICE_CONTENT_MAX = 2000;
 export const AMENITY_DISPLAY_NAME_MAX = 50;
 export const FOOD_TYPE_DISPLAY_NAME_MAX = 50;
 export const TAG_NAME_MAX = 50;
+export const REJECT_REASON_MAX = 500;
+export const BUSINESS_HOUR_MINUTE_UNIT = 5;
 
 // dayType — 백엔드 DayType enum 기준(2026-07-19 확인)
 export const DAY_TYPE_OPTIONS = [
@@ -191,4 +193,61 @@ export const SHOP_DETAIL_TABS = {
   BUSINESS_HOURS: "business-hours",
   CLASSIFICATION: "classification",
   IMAGES: "images",
+  HYGIENE: "hygiene",
 } as const;
+
+// 점주 상태 — 백엔드 GET /api/ceos/v1 응답 기준(2026-07-26 확인)
+export const CEO_STATUS_LABEL: Record<"ACTIVE" | "INACTIVE", string> = {
+  ACTIVE: "활성",
+  INACTIVE: "비활성",
+};
+
+// imageType — 백엔드 실제 GET .../image-change-requests 응답 기준(스펙 문서, 2026-07-25 확인)
+export const SHOP_IMAGE_TYPE_OPTIONS = ["TRADEMARK", "THUMBNAIL"] as const;
+export type ShopImageTypeOption = (typeof SHOP_IMAGE_TYPE_OPTIONS)[number];
+
+export const SHOP_IMAGE_TYPE_LABEL: Record<ShopImageTypeOption, string> = {
+  TRADEMARK: "상표",
+  THUMBNAIL: "대표이미지",
+};
+
+// 이미지 변경요청 검수 상태 — 백엔드 스펙 문서 기준(2026-07-25 확인)
+export const SHOP_IMAGE_CHANGE_STATUS_OPTIONS = ["PENDING", "APPROVED", "REJECTED"] as const;
+export type ShopImageChangeStatusOption = (typeof SHOP_IMAGE_CHANGE_STATUS_OPTIONS)[number];
+
+export const SHOP_IMAGE_CHANGE_STATUS_LABEL: Record<ShopImageChangeStatusOption, string> = {
+  PENDING: "대기",
+  APPROVED: "승인",
+  REJECTED: "반려",
+};
+
+// 위생 인증 뱃지 유형 — 백엔드 스펙 문서 기준(2026-07-25 확인)
+export const HYGIENE_BADGE_TYPE_OPTIONS = ["FOOD_SAFETY_CERTIFIED", "CESCO_BLUE", "CESCO_WHITE"] as const;
+export type HygieneBadgeTypeOption = (typeof HYGIENE_BADGE_TYPE_OPTIONS)[number];
+
+export const HYGIENE_BADGE_TYPE_LABEL: Record<HygieneBadgeTypeOption, string> = {
+  FOOD_SAFETY_CERTIFIED: "식품안심업소",
+  CESCO_BLUE: "블루세스코",
+  CESCO_WHITE: "화이트세스코",
+};
+
+// 콘텐츠보드 콘텐츠 유형 — 백엔드 스펙 문서 기준(2026-07-26 확인)
+export const CONTENT_BOARD_CONTENT_TYPE_OPTIONS = ["IMAGE", "GIF", "VIDEO"] as const;
+export type ContentBoardContentTypeOption = (typeof CONTENT_BOARD_CONTENT_TYPE_OPTIONS)[number];
+
+export const CONTENT_BOARD_CONTENT_TYPE_LABEL: Record<ContentBoardContentTypeOption, string> = {
+  IMAGE: "이미지",
+  GIF: "GIF",
+  VIDEO: "동영상",
+};
+
+// 콘텐츠보드 주제 — 백엔드 스펙 문서 기준(2026-07-26 확인)
+export const CONTENT_BOARD_TOPIC_OPTIONS = ["EXTERIOR", "INTERIOR", "FOOD_STORY", "NEWS"] as const;
+export type ContentBoardTopicOption = (typeof CONTENT_BOARD_TOPIC_OPTIONS)[number];
+
+export const CONTENT_BOARD_TOPIC_LABEL: Record<ContentBoardTopicOption, string> = {
+  EXTERIOR: "외부전경",
+  INTERIOR: "내부전경",
+  FOOD_STORY: "음식 이야기",
+  NEWS: "소식",
+};

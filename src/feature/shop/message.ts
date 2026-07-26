@@ -4,6 +4,18 @@ export const SHOP_PAGE_COPY = {
   DESCRIPTION: "가게를 등록하고 운영정보·편의시설·이미지를 관리합니다.",
 } as const;
 
+/** 이미지 검수 화면 헤더 정적 문구 (목록/로딩 공용) */
+export const SHOP_IMAGE_REVIEW_PAGE_COPY = {
+  TITLE: "이미지 검수",
+  DESCRIPTION: "점주가 요청한 상표·대표이미지 변경을 검수합니다.",
+} as const;
+
+/** 콘텐츠보드 검수 화면 헤더 정적 문구 (목록/로딩 공용) */
+export const CONTENT_BOARD_PAGE_COPY = {
+  TITLE: "콘텐츠보드 검수",
+  DESCRIPTION: "점주가 등록한 콘텐츠보드를 검수하고 숨김·삭제 조치합니다.",
+} as const;
+
 /** 가게 사용자 피드백 메시지 (동적/토스트/에러 폴백) */
 export const SHOP_MESSAGE = {
   // 성공 toast
@@ -41,6 +53,13 @@ export const SHOP_MESSAGE = {
   EDITOR_CHOICE_CREATE_SUCCESS: "테하 초이스가 등록되었습니다.",
   EDITOR_CHOICE_UPDATE_SUCCESS: "테하 초이스가 수정되었습니다.",
   EDITOR_CHOICE_DELETE_SUCCESS: "테하 초이스가 삭제되었습니다.",
+  IMAGE_CHANGE_APPROVE_SUCCESS: "이미지 변경요청이 승인되었습니다.",
+  IMAGE_CHANGE_REJECT_SUCCESS: "이미지 변경요청이 반려되었습니다.",
+  CONTENT_BOARD_HIDE_SUCCESS: "콘텐츠보드가 숨김 처리되었습니다.",
+  CONTENT_BOARD_SHOW_SUCCESS: "콘텐츠보드가 노출로 복원되었습니다.",
+  CONTENT_BOARD_DELETE_SUCCESS: "콘텐츠보드가 삭제되었습니다.",
+  HYGIENE_BADGE_CREATE_SUCCESS: "위생 인증 뱃지가 등록되었습니다.",
+  HYGIENE_BADGE_DELETE_SUCCESS: "위생 인증 뱃지가 삭제되었습니다.",
 
   // 에러 폴백
   CREATE_UPDATE_FAILED: "처리 중 오류가 발생했습니다.",
@@ -66,4 +85,8 @@ export const SHOP_MESSAGE = {
   PHOTO_IMAGES_LOAD_FAILED: "이미지 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
   EDITOR_CHOICES_LOAD_FAILED: "테하 초이스 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
   STATIONS_LOAD_FAILED: "지하철역 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  IMAGE_CHANGE_REQUESTS_LOAD_FAILED: "이미지 변경요청 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  HYGIENE_BADGES_LOAD_FAILED: "위생 인증 뱃지 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  CEOS_LOAD_FAILED: "점주 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  CONTENT_BOARDS_LOAD_FAILED: "콘텐츠보드 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
 } as const;

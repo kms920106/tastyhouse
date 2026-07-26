@@ -11,8 +11,10 @@ import {
   GraduationCap,
   Handshake,
   HelpCircle,
+  ImageIcon,
   Kanban,
   LayoutDashboard,
+  LayoutGrid,
   ListTodo,
   Lock,
   type LucideIcon,
@@ -174,6 +176,16 @@ export const sidebarItems: NavGroup[] = [
         title: "가게",
         url: "/dashboard/shops",
         icon: Store,
+      },
+      {
+        title: "이미지 검수",
+        url: "/dashboard/shop-image-reviews",
+        icon: ImageIcon,
+      },
+      {
+        title: "콘텐츠보드 검수",
+        url: "/dashboard/shop-content-boards",
+        icon: LayoutGrid,
       },
       {
         title: "상품",

@@ -15,8 +15,11 @@ import type {
   BusinessHourCreateRequest,
   BusinessHourResponse,
   BusinessHourUpdateRequest,
+  CeoResponse,
   ClosedDayCreateRequest,
   ClosedDayResponse,
+  ContentBoardItemResponse,
+  ContentBoardListQueryRequest,
   EditorChoiceCreateRequest,
   EditorChoiceListQueryRequest,
   EditorChoiceResponse,
@@ -35,10 +38,16 @@ import type {
   PhotoImageUpdateRequest,
   ShopAmenityCreateRequest,
   ShopAmenityResponse,
+  ShopContentBoardHideRequest,
   ShopCreateRequest,
   ShopDetailResponse,
   ShopFoodTypeCreateRequest,
   ShopFoodTypeResponse,
+  ShopHygieneBadgeCreateRequest,
+  ShopHygieneBadgeResponse,
+  ShopImageChangeRejectRequest,
+  ShopImageChangeRequestItemResponse,
+  ShopImageChangeRequestListQueryRequest,
   ShopListItemResponse,
   ShopListQueryRequest,
   ShopUpdateRequest,
@@ -46,6 +55,8 @@ import type {
   TagCreateRequest,
   TagResponse,
 } from "./shop.dto";
+
+const CEOS_ENDPOINT = "/api/ceos/v1";
 
 /**
  * 가게 관리자 API
@@ -59,6 +70,11 @@ export const shopRepository = {
   // 지하철역 목록 조회 (등록/수정 폼 드롭다운용)
   getStations(): Promise<ApiResponse<StationResponse[]>> {
     return api.get<StationResponse[]>(`${ENDPOINT}/v1/stations`);
+  },
+
+  // 점주(ceo) 목록 조회 (가게 등록 폼 소유 점주 선택 드롭다운용) — /api/shops 하위가 아닌 별도 리소스
+  getCeos(): Promise<ApiResponse<CeoResponse[]>> {
+    return api.get<CeoResponse[]>(CEOS_ENDPOINT);
   },
 
   // 가게 목록 조건 페이징 조회
@@ -321,5 +337,66 @@ export const shopRepository = {
   // 테하 초이스 삭제
   deleteEditorChoice(choiceId: number): Promise<ApiResponse<null>> {
     return api.delete<null>(`${ENDPOINT}/v1/editor-choices/${choiceId}`);
+  },
+
+  // ===== Phase G. 이미지 변경요청 검수 (상표·대표이미지) =====
+
+  // 이미지 변경요청 검수 대기/이력 목록 조회
+  getImageChangeRequests(
+    query: ShopImageChangeRequestListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ShopImageChangeRequestItemResponse[]>> {
+    return api.get<ShopImageChangeRequestItemResponse[]>(`${ENDPOINT}/v1/image-change-requests`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 이미지 변경요청 승인 (body 없음, 즉시 반영)
+  approveImageChangeRequest(requestId: number): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/image-change-requests/${requestId}/approve`);
+  },
+
+  // 이미지 변경요청 반려
+  rejectImageChangeRequest(requestId: number, body: ShopImageChangeRejectRequest): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/image-change-requests/${requestId}/reject`, body);
+  },
+
+  // ===== Phase H. 콘텐츠보드 검수 =====
+
+  // 콘텐츠보드 검수 목록 조회
+  getContentBoards(
+    query: ContentBoardListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ContentBoardItemResponse[]>> {
+    return api.get<ContentBoardItemResponse[]>(`${ENDPOINT}/v1/content-boards`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 콘텐츠보드 숨김/노출 토글
+  hideContentBoard(contentBoardId: number, body: ShopContentBoardHideRequest): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/content-boards/${contentBoardId}/hide`, body);
+  },
+
+  // 콘텐츠보드 삭제
+  deleteContentBoard(contentBoardId: number): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/content-boards/${contentBoardId}`);
+  },
+
+  // ===== Phase I. 위생 인증 뱃지 =====
+
+  // 가게별 위생 뱃지 조회
+  getHygieneBadges(shopId: number): Promise<ApiResponse<ShopHygieneBadgeResponse[]>> {
+    return api.get<ShopHygieneBadgeResponse[]>(`${ENDPOINT}/v1/${shopId}/hygiene-badges`);
+  },
+
+  // 위생 뱃지 등록
+  createHygieneBadge(shopId: number, body: ShopHygieneBadgeCreateRequest): Promise<ApiResponse<number>> {
+    return api.post<number>(`${ENDPOINT}/v1/${shopId}/hygiene-badges`, body);
+  },
+
+  // 위생 뱃지 삭제 — 경로가 shopId 가 아닌 hygieneBadgeId 기준임에 주의
+  deleteHygieneBadge(hygieneBadgeId: number): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/hygiene-badges/${hygieneBadgeId}`);
   },
 };

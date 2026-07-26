@@ -11,7 +11,9 @@ import type {
   BannerImage,
   BreakTime,
   BusinessHour,
+  Ceo,
   ClosedDay,
+  ContentBoard,
   EditorChoice,
   FoodTypeCategory,
   OrderMethod,
@@ -20,6 +22,8 @@ import type {
   ShopAmenity,
   ShopDetail,
   ShopFoodType,
+  ShopHygieneBadge,
+  ShopImageChangeRequest,
   Station,
   Tag,
 } from "@/feature/shop/domain";
@@ -35,11 +39,17 @@ import {
   breakTimeSchema,
   businessHourSchema,
   type ClosedDayFormValues,
+  type ContentBoardHideFormValues,
   closedDaySchema,
+  contentBoardHideSchema,
   type EditorChoiceFormValues,
   editorChoiceSchema,
   type FoodTypeCategoryFormValues,
   foodTypeCategorySchema,
+  type HygieneBadgeFormValues,
+  hygieneBadgeSchema,
+  type ImageChangeRejectFormValues,
+  imageChangeRejectSchema,
   type OrderMethodFormValues,
   orderMethodSchema,
   type PhotoCategoryFormValues,
@@ -104,7 +114,30 @@ export async function fetchStationsAction(): Promise<{ success: boolean; message
   return { success: true, data };
 }
 
-function toShopBody(values: ShopFormValues) {
+// 점주(ceo) 목록 조회 (가게 등록 폼 소유 점주 선택 드롭다운용)
+export async function fetchCeosAction(): Promise<{ success: boolean; message?: string; data?: Ceo[] }> {
+  const { error, data } = await shopService.getCeos();
+  if (error !== undefined) {
+    return { success: false, message: error };
+  }
+  return { success: true, data };
+}
+
+function toShopCreateBody(values: ShopFormValues) {
+  return {
+    ceoId: values.ceoId,
+    stationId: values.stationId,
+    name: values.name,
+    latitude: values.latitude,
+    longitude: values.longitude,
+    roadAddress: values.roadAddress,
+    lotAddress: values.lotAddress,
+    phoneNumber: values.phoneNumber,
+    thumbnailImageFileId: values.thumbnailImageFileId,
+  };
+}
+
+function toShopUpdateBody(values: ShopFormValues) {
   return {
     stationId: values.stationId,
     name: values.name,
@@ -124,7 +157,7 @@ export async function createShopAction(values: ShopFormValues): Promise<ActionRe
     return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
   }
 
-  const { error, data } = await shopRepository.create(toShopBody(parsed.data));
+  const { error, data } = await shopRepository.create(toShopCreateBody(parsed.data));
   if (error !== undefined) {
     return { success: false, message: error };
   }
@@ -149,7 +182,7 @@ export async function updateShopAction(id: number, values: ShopFormValues): Prom
     return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
   }
 
-  const { error } = await shopRepository.update(id, toShopBody(parsed.data));
+  const { error } = await shopRepository.update(id, toShopUpdateBody(parsed.data));
   if (error !== undefined) {
     return { success: false, message: error };
   }
@@ -607,6 +640,122 @@ export async function updateEditorChoiceAction(
 // 테하 초이스 삭제
 export async function deleteEditorChoiceAction(choiceId: number): Promise<ActionResult> {
   const { error } = await shopRepository.deleteEditorChoice(choiceId);
+  if (error !== undefined) return { success: false, message: error };
+  return { success: true };
+}
+
+// ===== Phase G. 이미지 변경요청 검수 =====
+
+const IMAGE_REVIEWS_PATH = "/dashboard/shop-image-reviews";
+
+type ImageChangeRequestsResult = { success: boolean; message?: string; data?: ShopImageChangeRequest[] };
+
+// 이미지 변경요청 검수 대기/이력 목록 조회 (검수 후 재조회용)
+export async function fetchImageChangeRequestsAction(
+  query: { status?: ShopImageChangeRequest["status"]; imageType?: ShopImageChangeRequest["imageType"] },
+  page: number,
+  size: number,
+): Promise<ImageChangeRequestsResult> {
+  const { error, data } = await shopService.getImageChangeRequests(query, { page, size });
+  if (error !== undefined) return { success: false, message: error };
+  return { success: true, data };
+}
+
+// 이미지 변경요청 승인
+export async function approveImageChangeRequestAction(requestId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.approveImageChangeRequest(requestId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(IMAGE_REVIEWS_PATH);
+  return { success: true };
+}
+
+// 이미지 변경요청 반려
+export async function rejectImageChangeRequestAction(
+  requestId: number,
+  values: ImageChangeRejectFormValues,
+): Promise<ActionResult> {
+  const parsed = imageChangeRejectSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.rejectImageChangeRequest(requestId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(IMAGE_REVIEWS_PATH);
+  return { success: true };
+}
+
+// ===== Phase H. 콘텐츠보드 검수 =====
+
+const CONTENT_BOARDS_PATH = "/dashboard/shop-content-boards";
+
+type ContentBoardsResult = { success: boolean; message?: string; data?: ContentBoard[] };
+
+// 콘텐츠보드 검수 목록 조회 (검수 후 재조회용)
+export async function fetchContentBoardsAction(
+  query: { shopId?: number; hidden?: boolean; contentType?: ContentBoard["contentType"] },
+  page: number,
+  size: number,
+): Promise<ContentBoardsResult> {
+  const { error, data } = await shopService.getContentBoards(query, { page, size });
+  if (error !== undefined) return { success: false, message: error };
+  return { success: true, data };
+}
+
+// 콘텐츠보드 숨김/노출 토글
+export async function hideContentBoardAction(
+  contentBoardId: number,
+  values: ContentBoardHideFormValues,
+): Promise<ActionResult> {
+  const parsed = contentBoardHideSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.hideContentBoard(contentBoardId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(CONTENT_BOARDS_PATH);
+  return { success: true };
+}
+
+// 콘텐츠보드 삭제
+export async function deleteContentBoardAction(contentBoardId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.deleteContentBoard(contentBoardId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(CONTENT_BOARDS_PATH);
+  return { success: true };
+}
+
+// ===== Phase I. 위생 인증 뱃지 =====
+
+type HygieneBadgesResult = { success: boolean; message?: string; data?: ShopHygieneBadge[] };
+
+// 가게별 위생 뱃지 조회
+export async function fetchHygieneBadgesAction(shopId: number): Promise<HygieneBadgesResult> {
+  const { error, data } = await shopService.getHygieneBadges(shopId);
+  if (error !== undefined) return { success: false, message: error };
+  return { success: true, data };
+}
+
+// 위생 뱃지 등록
+export async function createHygieneBadgeAction(shopId: number, values: HygieneBadgeFormValues): Promise<ActionResult> {
+  const parsed = hygieneBadgeSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error, data } = await shopRepository.createHygieneBadge(shopId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+  return { success: true, id: data };
+}
+
+// 위생 뱃지 삭제
+export async function deleteHygieneBadgeAction(hygieneBadgeId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.deleteHygieneBadge(hygieneBadgeId);
   if (error !== undefined) return { success: false, message: error };
   return { success: true };
 }

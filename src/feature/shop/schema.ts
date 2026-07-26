@@ -4,14 +4,17 @@ import {
   ADDRESS_MAX,
   AMENITY_DISPLAY_NAME_MAX,
   AMENITY_OPTIONS,
+  BUSINESS_HOUR_MINUTE_UNIT,
   CLOSED_DAY_TYPE_OPTIONS,
   DAY_TYPE_OPTIONS,
   EDITOR_CHOICE_CONTENT_MAX,
   EDITOR_CHOICE_TITLE_MAX,
   FOOD_TYPE_DISPLAY_NAME_MAX,
   FOOD_TYPE_OPTIONS,
+  HYGIENE_BADGE_TYPE_OPTIONS,
   ORDER_METHOD_OPTIONS,
   PHOTO_CATEGORY_NAME_MAX,
+  REJECT_REASON_MAX,
   SHOP_NAME_MAX,
   TAG_NAME_MAX,
 } from "./constants";
@@ -52,11 +55,18 @@ export const shopFormSchema = z.object({
     .transform(emptyToUndefined)
     .optional(),
   thumbnailImageFileId: z.number().int().positive().optional(),
+  ceoId: z.number().int().positive({ message: "점주 ID는 양수여야 합니다." }).optional(),
 });
 
 export type ShopFormValues = z.infer<typeof shopFormSchema>;
 
 // ===== Phase B. 운영시간 · 휴게시간 · 정기휴무일 =====
+
+// HH:mm:ss 문자열을 자정 기준 분(minute)으로 변환
+function toMinutes(time: string): number {
+  const [hour, minute] = time.split(":").map(Number);
+  return hour * 60 + minute;
+}
 
 export const businessHourSchema = z
   .object({
@@ -64,12 +74,30 @@ export const businessHourSchema = z
     openTime: timeStringSchema,
     closeTime: timeStringSchema,
     isClosed: z.boolean(),
+    is24Hours: z.boolean(),
   })
   .superRefine((data, ctx) => {
-    if (!data.isClosed && data.openTime >= data.closeTime) {
+    // 휴무 또는 24시간 영업이면 시간 검증을 생략한다(서버 검증과 동일).
+    if (data.isClosed || data.is24Hours) return;
+
+    const openMinutes = toMinutes(data.openTime);
+    const closeMinutes = toMinutes(data.closeTime);
+
+    if (openMinutes % BUSINESS_HOUR_MINUTE_UNIT !== 0 || closeMinutes % BUSINESS_HOUR_MINUTE_UNIT !== 0) {
       ctx.addIssue({
         code: "custom",
-        message: "종료 시간은 시작 시간보다 이후여야 합니다.",
+        message: `영업시간은 ${BUSINESS_HOUR_MINUTE_UNIT}분 단위로 입력해 주세요.`,
+        path: ["closeTime"],
+      });
+      return;
+    }
+
+    // 자정 넘김(종료 < 시작)을 허용하므로 24시간 순환 거리로 영업 길이를 계산한다.
+    const durationMinutes = (closeMinutes - openMinutes + 24 * 60) % (24 * 60) || 24 * 60;
+    if (durationMinutes < 60 || durationMinutes > 23 * 60 + 55) {
+      ctx.addIssue({
+        code: "custom",
+        message: "영업시간은 최소 1시간, 최대 23시간 55분까지 설정할 수 있습니다.",
         path: ["closeTime"],
       });
     }
@@ -229,3 +257,45 @@ export const editorChoiceSchema = z.object({
 });
 
 export type EditorChoiceFormValues = z.infer<typeof editorChoiceSchema>;
+
+// ===== Phase G. 이미지 변경요청 검수 =====
+
+export const imageChangeRejectSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(1, { message: "반려 사유를 입력해 주세요." })
+    .max(REJECT_REASON_MAX, { message: `반려 사유는 최대 ${REJECT_REASON_MAX}자까지 입력할 수 있습니다.` }),
+});
+
+export type ImageChangeRejectFormValues = z.infer<typeof imageChangeRejectSchema>;
+
+// ===== Phase H. 콘텐츠보드 검수 =====
+
+export const contentBoardHideSchema = z.object({
+  hidden: z.boolean(),
+});
+
+export type ContentBoardHideFormValues = z.infer<typeof contentBoardHideSchema>;
+
+// ===== Phase I. 위생 인증 뱃지 =====
+
+const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "인증일은 YYYY-MM-DD 형식이어야 합니다." });
+
+export const hygieneBadgeSchema = z
+  .object({
+    badgeType: z.enum(HYGIENE_BADGE_TYPE_OPTIONS, { message: "위생 인증 유형을 선택해 주세요." }),
+    certifiedDate: dateStringSchema,
+    lastInspectionMonth: z.string().transform(emptyToUndefined).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.lastInspectionMonth !== undefined && !/^\d{4}-\d{2}$/.test(data.lastInspectionMonth)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "점검월은 YYYY-MM 형식이어야 합니다.",
+        path: ["lastInspectionMonth"],
+      });
+    }
+  });
+
+export type HygieneBadgeFormValues = z.infer<typeof hygieneBadgeSchema>;

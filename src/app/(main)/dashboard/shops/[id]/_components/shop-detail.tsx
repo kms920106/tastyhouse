@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { useRouter } from "next/navigation";
 
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, LayoutGrid, Pencil } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { formatDateTime } from "@/lib/date";
 import { ShopFormSheet } from "../../_components/shop-form-sheet";
 import { BusinessHoursTab } from "./business-hours-tab";
 import { ClassificationTab } from "./classification-tab";
+import { HygieneBadgesTab } from "./hygiene-badges-tab";
 import { ImagesTab } from "./images-tab";
 
 interface ShopDetailProps {
@@ -43,6 +44,13 @@ export function ShopDetail({ shop }: ShopDetailProps) {
           </div>
           <CardDescription className="max-w-lg leading-snug">{shop.roadAddress}</CardDescription>
           <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => router.push(`/dashboard/shop-content-boards?shopId=${shop.id}`)}
+            >
+              <LayoutGrid /> 콘텐츠보드 검수
+            </Button>
             <Button size="sm" onClick={() => setFormOpen(true)}>
               <Pencil /> 가게 수정
             </Button>
@@ -82,6 +90,7 @@ export function ShopDetail({ shop }: ShopDetailProps) {
               <TabsTrigger value={SHOP_DETAIL_TABS.BUSINESS_HOURS}>운영정보</TabsTrigger>
               <TabsTrigger value={SHOP_DETAIL_TABS.CLASSIFICATION}>편의·음식·주문</TabsTrigger>
               <TabsTrigger value={SHOP_DETAIL_TABS.IMAGES}>이미지</TabsTrigger>
+              <TabsTrigger value={SHOP_DETAIL_TABS.HYGIENE}>위생 인증</TabsTrigger>
             </TabsList>
             <TabsContent value={SHOP_DETAIL_TABS.BUSINESS_HOURS} className="pt-4">
               <BusinessHoursTab shopId={shop.id} />
@@ -91,6 +100,9 @@ export function ShopDetail({ shop }: ShopDetailProps) {
             </TabsContent>
             <TabsContent value={SHOP_DETAIL_TABS.IMAGES} className="pt-4">
               <ImagesTab shopId={shop.id} />
+            </TabsContent>
+            <TabsContent value={SHOP_DETAIL_TABS.HYGIENE} className="pt-4">
+              <HygieneBadgesTab shopId={shop.id} />
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -6,7 +6,9 @@ import type {
   BannerImage,
   BreakTime,
   BusinessHour,
+  Ceo,
   ClosedDay,
+  ContentBoard,
   EditorChoice,
   FoodTypeCategory,
   OrderMethod,
@@ -15,12 +17,19 @@ import type {
   ShopAmenity,
   ShopDetail,
   ShopFoodType,
+  ShopHygieneBadge,
+  ShopImageChangeRequest,
   ShopListItem,
   Station,
   Tag,
 } from "@/feature/shop/domain";
 
-import type { EditorChoiceListQueryRequest, ShopListQueryRequest } from "./shop.dto";
+import type {
+  ContentBoardListQueryRequest,
+  EditorChoiceListQueryRequest,
+  ShopImageChangeRequestListQueryRequest,
+  ShopListQueryRequest,
+} from "./shop.dto";
 import { shopRepository } from "./shop.repository";
 
 export const shopService = {
@@ -30,6 +39,20 @@ export const shopService = {
     return {
       ...res,
       data: res.data?.map((item) => ({ id: item.id, stationName: item.stationName })),
+    };
+  },
+
+  // 점주(ceo) 목록 조회 (가게 등록 폼 소유 점주 선택 드롭다운용) — 도메인 반환
+  async getCeos(): Promise<ApiResponse<Ceo[]>> {
+    const res = await shopRepository.getCeos();
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        name: item.name,
+        businessRegistrationNumber: item.businessRegistrationNumber,
+        status: item.status,
+      })),
     };
   },
 
@@ -85,6 +108,7 @@ export const shopService = {
         openTime: item.openTime,
         closeTime: item.closeTime,
         isClosed: item.isClosed,
+        is24Hours: item.is24Hours,
       })),
     };
   },
@@ -253,6 +277,64 @@ export const shopService = {
         content: item.content,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
+      })),
+    };
+  },
+
+  // 이미지 변경요청 검수 목록 조회 — 도메인 반환
+  async getImageChangeRequests(
+    query: ShopImageChangeRequestListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ShopImageChangeRequest[]>> {
+    const res = await shopRepository.getImageChangeRequests(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        shopId: item.shopId,
+        imageType: item.imageType,
+        imageFileId: item.imageFileId,
+        imageUrl: item.imageUrl,
+        status: item.status,
+        rejectReason: item.rejectReason,
+      })),
+    };
+  },
+
+  // 가게별 위생 뱃지 조회 — 도메인 반환
+  async getHygieneBadges(shopId: number): Promise<ApiResponse<ShopHygieneBadge[]>> {
+    const res = await shopRepository.getHygieneBadges(shopId);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        shopId: item.shopId,
+        badgeType: item.badgeType,
+        certifiedDate: item.certifiedDate,
+        lastInspectionMonth: item.lastInspectionMonth,
+      })),
+    };
+  },
+
+  // 콘텐츠보드 검수 목록 조회 — 도메인 반환
+  async getContentBoards(
+    query: ContentBoardListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ContentBoard[]>> {
+    const res = await shopRepository.getContentBoards(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        shopId: item.shopId,
+        contentType: item.contentType,
+        topic: item.topic,
+        imageFileId: item.imageFileId,
+        imageUrl: item.imageUrl,
+        youtubeUrl: item.youtubeUrl,
+        description: item.description,
+        hidden: item.hidden,
+        createdAt: item.createdAt,
       })),
     };
   },

@@ -23,13 +23,14 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   createShopAction,
+  fetchCeosAction,
   fetchShopAction,
   fetchStationsAction,
   updateShopAction,
   uploadShopImageAction,
 } from "@/feature/shop/actions";
-import { ADDRESS_MAX, SHOP_NAME_MAX } from "@/feature/shop/constants";
-import type { ShopListItem, Station } from "@/feature/shop/domain";
+import { ADDRESS_MAX, CEO_STATUS_LABEL, SHOP_NAME_MAX } from "@/feature/shop/constants";
+import type { Ceo, ShopListItem, Station } from "@/feature/shop/domain";
 import { SHOP_MESSAGE } from "@/feature/shop/message";
 import { type ShopFormValues, shopFormSchema } from "@/feature/shop/schema";
 
@@ -48,6 +49,7 @@ const EMPTY_VALUES: ShopFormValues = {
   lotAddress: "",
   phoneNumber: undefined,
   thumbnailImageFileId: undefined,
+  ceoId: undefined,
 };
 
 /** 숫자 input onChange: 빈 값이면 undefined, 아니면 Number */
@@ -62,6 +64,7 @@ export function ShopFormSheet({ open, onOpenChange, shop }: ShopFormSheetProps) 
   const [isUploading, setIsUploading] = React.useState(false);
   const [previewUrl, setPreviewUrl] = React.useState<string | undefined>(undefined);
   const [stations, setStations] = React.useState<Station[]>([]);
+  const [ceos, setCeos] = React.useState<Ceo[]>([]);
 
   const form = useForm<ShopFormValues>({
     resolver: zodResolver(shopFormSchema),
@@ -133,6 +136,25 @@ export function ShopFormSheet({ open, onOpenChange, shop }: ShopFormSheetProps) 
       active = false;
     };
   }, [open, stations.length]);
+
+  // 시트가 열릴 때(등록 모드에서만) 점주 목록 로드 (드롭다운용)
+  React.useEffect(() => {
+    if (!open || isEdit || ceos.length > 0) return;
+
+    let active = true;
+    void fetchCeosAction().then((result) => {
+      if (!active) return;
+      if (result.success && result.data) {
+        setCeos(result.data);
+      } else {
+        toast.error(result.message ?? SHOP_MESSAGE.CEOS_LOAD_FAILED);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [open, isEdit, ceos.length]);
 
   // 언마운트 시 objectURL 해제
   React.useEffect(() => {
@@ -247,6 +269,39 @@ export function ShopFormSheet({ open, onOpenChange, shop }: ShopFormSheetProps) 
                   </Field>
                 )}
               />
+
+              {!isEdit ? (
+                <Controller
+                  control={form.control}
+                  name="ceoId"
+                  render={({ field, fieldState }) => (
+                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="shop-ceo-id">소유 점주 (선택)</FieldLabel>
+                      <Select
+                        value={field.value == null ? "none" : String(field.value)}
+                        onValueChange={(value) => field.onChange(value === "none" ? undefined : Number(value))}
+                        disabled={busy || ceos.length === 0}
+                      >
+                        <SelectTrigger id="shop-ceo-id" className="w-full" aria-invalid={fieldState.invalid}>
+                          <SelectValue placeholder={ceos.length === 0 ? "점주 불러오는 중..." : "선택 안 함"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="none">선택 안 함 (미배정으로 등록)</SelectItem>
+                            {ceos.map((ceo) => (
+                              <SelectItem key={ceo.id} value={String(ceo.id)}>
+                                {ceo.name} ({ceo.businessRegistrationNumber})
+                                {ceo.status === "INACTIVE" ? ` (${CEO_STATUS_LABEL.INACTIVE})` : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+              ) : null}
 
               <Controller
                 control={form.control}
