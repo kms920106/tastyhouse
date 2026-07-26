@@ -33,18 +33,22 @@ import {
 import { FOOD_TYPE_DISPLAY_NAME_MAX, FOOD_TYPE_LABEL, FOOD_TYPE_OPTIONS } from "@/feature/shop/constants";
 import type { FoodTypeCategory } from "@/feature/shop/domain";
 import { SHOP_MESSAGE } from "@/feature/shop/message";
-import { type FoodTypeCategoryFormValues, foodTypeCategorySchema } from "@/feature/shop/schema";
+import {
+  type FoodTypeCategoryFormInput,
+  type FoodTypeCategoryFormValues,
+  foodTypeCategorySchema,
+} from "@/feature/shop/schema";
 
 interface FoodTypeCategoriesSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const EMPTY_VALUES: FoodTypeCategoryFormValues = {
+const EMPTY_VALUES: FoodTypeCategoryFormInput = {
   foodType: FOOD_TYPE_OPTIONS[0],
   displayName: "",
-  activeImageFileId: undefined as unknown as number,
-  inactiveImageFileId: undefined as unknown as number,
+  activeImageFileId: undefined,
+  inactiveImageFileId: undefined,
   sort: 0,
   visible: true,
 };
@@ -58,7 +62,7 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
   const [uploadingField, setUploadingField] = React.useState<"activeImageFileId" | "inactiveImageFileId" | null>(null);
   const [editingImageUrls, setEditingImageUrls] = React.useState<{ active: string; inactive: string } | null>(null);
 
-  const form = useForm<FoodTypeCategoryFormValues>({
+  const form = useForm<FoodTypeCategoryFormInput, unknown, FoodTypeCategoryFormValues>({
     resolver: zodResolver(foodTypeCategorySchema),
     defaultValues: EMPTY_VALUES,
   });
@@ -98,8 +102,8 @@ export function FoodTypeCategoriesSheet({ open, onOpenChange }: FoodTypeCategori
     form.reset({
       foodType: category.foodType as FoodTypeCategoryFormValues["foodType"],
       displayName: category.displayName,
-      activeImageFileId: undefined as unknown as number,
-      inactiveImageFileId: undefined as unknown as number,
+      activeImageFileId: undefined,
+      inactiveImageFileId: undefined,
       sort: category.sort,
       visible: category.visible,
     });

@@ -26,6 +26,23 @@ const timeStringSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, { message: "시간은 HH:mm:ss 형식이어야 합니다." });
 
+// 수정 폼에서 재업로드 전에는 값이 비어 있는(undefined) 이미지 파일 ID 필드.
+// optional로 입력을 받되 제출 시 undefined면 에러를 던져 required 검증을 유지하고,
+// 통과 시 output 타입을 number로 좁힌다.
+const requiredImageFileIdSchema = (message: string) =>
+  z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .transform((value, ctx) => {
+      if (value === undefined) {
+        ctx.addIssue({ code: "custom", message });
+        return z.NEVER;
+      }
+      return value;
+    });
+
 // ===== Phase A. 가게 본체 =====
 
 export const shopFormSchema = z.object({
@@ -138,13 +155,18 @@ export const amenityCategorySchema = z.object({
     .trim()
     .min(1, { message: "노출명을 입력해 주세요." })
     .max(AMENITY_DISPLAY_NAME_MAX, { message: `노출명은 최대 ${AMENITY_DISPLAY_NAME_MAX}자까지 입력할 수 있습니다.` }),
-  activeImageFileId: z.number({ message: "활성 이미지를 업로드해 주세요." }).int().positive(),
-  inactiveImageFileId: z.number({ message: "비활성 이미지를 업로드해 주세요." }).int().positive(),
+  // 수정 폼은 기존 이미지를 재업로드하기 전까지 필드가 비어 있으므로 optional로 받고,
+  // transform에서 required 검증을 강제해 제출 결과 타입은 number로 좁힌다.
+  activeImageFileId: requiredImageFileIdSchema("활성 이미지를 업로드해 주세요."),
+  inactiveImageFileId: requiredImageFileIdSchema("비활성 이미지를 업로드해 주세요."),
   sort: z.number({ message: "정렬 순서를 입력해 주세요." }).int(),
   visible: z.boolean(),
 });
 
 export type AmenityCategoryFormValues = z.infer<typeof amenityCategorySchema>;
+// 재업로드 전(수정 폼 초기 상태)에는 이미지 필드가 비어 있을 수 있는 폼 입력 타입.
+// 제출 결과(AmenityCategoryFormValues)는 required 검증을 거쳐 number로 좁혀진다.
+export type AmenityCategoryFormInput = z.input<typeof amenityCategorySchema>;
 
 export const foodTypeCategorySchema = z.object({
   foodType: z.enum(FOOD_TYPE_OPTIONS, { message: "음식 종류를 선택해 주세요." }),
@@ -155,13 +177,18 @@ export const foodTypeCategorySchema = z.object({
     .max(FOOD_TYPE_DISPLAY_NAME_MAX, {
       message: `노출명은 최대 ${FOOD_TYPE_DISPLAY_NAME_MAX}자까지 입력할 수 있습니다.`,
     }),
-  activeImageFileId: z.number({ message: "활성 이미지를 업로드해 주세요." }).int().positive(),
-  inactiveImageFileId: z.number({ message: "비활성 이미지를 업로드해 주세요." }).int().positive(),
+  // 수정 폼은 기존 이미지를 재업로드하기 전까지 필드가 비어 있으므로 optional로 받고,
+  // transform에서 required 검증을 강제해 제출 결과 타입은 number로 좁힌다.
+  activeImageFileId: requiredImageFileIdSchema("활성 이미지를 업로드해 주세요."),
+  inactiveImageFileId: requiredImageFileIdSchema("비활성 이미지를 업로드해 주세요."),
   sort: z.number({ message: "정렬 순서를 입력해 주세요." }).int(),
   visible: z.boolean(),
 });
 
 export type FoodTypeCategoryFormValues = z.infer<typeof foodTypeCategorySchema>;
+// 재업로드 전(수정 폼 초기 상태)에는 이미지 필드가 비어 있을 수 있는 폼 입력 타입.
+// 제출 결과(FoodTypeCategoryFormValues)는 required 검증을 거쳐 number로 좁혀진다.
+export type FoodTypeCategoryFormInput = z.input<typeof foodTypeCategorySchema>;
 
 export const shopAmenitySchema = z.object({
   amenityCategoryId: z.number({ message: "편의시설을 선택해 주세요." }).int().positive(),
@@ -226,6 +253,8 @@ export const photoImageSchema = z.object({
 
 export type PhotoImageFormValues = z.infer<typeof photoImageSchema>;
 
+// updatePhotoCategoryImageAction 전용 스키마. 현재 호출부(노출 토글)가 비활성화되어 미사용 상태 —
+// PhotoImageUpdateRequest.imageFileId가 optional로 바뀌면 함께 복원한다.
 export const photoImageUpdateSchema = z.object({
   imageFileId: z.number({ message: "이미지를 업로드해 주세요." }).int().positive({
     message: "이미지를 업로드해 주세요.",

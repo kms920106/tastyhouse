@@ -33,18 +33,22 @@ import {
 import { AMENITY_DISPLAY_NAME_MAX, AMENITY_LABEL, AMENITY_OPTIONS } from "@/feature/shop/constants";
 import type { AmenityCategory } from "@/feature/shop/domain";
 import { SHOP_MESSAGE } from "@/feature/shop/message";
-import { type AmenityCategoryFormValues, amenityCategorySchema } from "@/feature/shop/schema";
+import {
+  type AmenityCategoryFormInput,
+  type AmenityCategoryFormValues,
+  amenityCategorySchema,
+} from "@/feature/shop/schema";
 
 interface AmenityCategoriesSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const EMPTY_VALUES: AmenityCategoryFormValues = {
+const EMPTY_VALUES: AmenityCategoryFormInput = {
   amenity: AMENITY_OPTIONS[0],
   displayName: "",
-  activeImageFileId: undefined as unknown as number,
-  inactiveImageFileId: undefined as unknown as number,
+  activeImageFileId: undefined,
+  inactiveImageFileId: undefined,
   sort: 0,
   visible: true,
 };
@@ -58,7 +62,7 @@ export function AmenityCategoriesSheet({ open, onOpenChange }: AmenityCategories
   const [uploadingField, setUploadingField] = React.useState<"activeImageFileId" | "inactiveImageFileId" | null>(null);
   const [editingImageUrls, setEditingImageUrls] = React.useState<{ active: string; inactive: string } | null>(null);
 
-  const form = useForm<AmenityCategoryFormValues>({
+  const form = useForm<AmenityCategoryFormInput, unknown, AmenityCategoryFormValues>({
     resolver: zodResolver(amenityCategorySchema),
     defaultValues: EMPTY_VALUES,
   });
@@ -98,8 +102,8 @@ export function AmenityCategoriesSheet({ open, onOpenChange }: AmenityCategories
     form.reset({
       amenity: category.amenity as AmenityCategoryFormValues["amenity"],
       displayName: category.displayName,
-      activeImageFileId: undefined as unknown as number,
-      inactiveImageFileId: undefined as unknown as number,
+      activeImageFileId: undefined,
+      inactiveImageFileId: undefined,
       sort: category.sort,
       visible: category.visible,
     });

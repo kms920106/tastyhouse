@@ -581,6 +581,8 @@ export async function createPhotoCategoryImageAction(
 }
 
 // 이미지 정렬/노출 수정
+// PhotoImageUpdateRequest.imageFileId가 필수라 조회 응답(imageUrl만 제공)만으로는 값을 채울 수 없어
+// 현재 UI에서는 호출부(노출 토글)를 비활성화했다. 백엔드가 해당 필드를 optional로 바꾸면 복원한다.
 export async function updatePhotoCategoryImageAction(
   imageId: number,
   values: PhotoImageUpdateFormValues,
