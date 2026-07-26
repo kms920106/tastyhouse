@@ -606,3 +606,17 @@ reference 구현: `notice` 도메인 — 순수 모델 `core-module/.../notice/d
 **가게소개(500자)·찾아오는길(200자) 등 점주 입력 텍스트는 저장 전 공용 금칙어 검증을 통과해야 한다.** `shop/domain/model/ProhibitedWord`는 Java 계층에 생성 경로가 없는 **read-only 애그리거트**(`reconstitute`만 공개, SQL 시드로 `PROHIBITED_WORD` 테이블 관리 — search 도메인 `RecommendedKeyword` 선례)이고, `shop/application/ProhibitedWordValidator`(@Component)의 `List<String> findViolations(String)`·`void validate(String)`(위반 시 `SHOP_TEXT_PROHIBITED_WORD`)를 command 서비스가 저장 직전 호출한다. ceo-api는 사전 검증 엔드포인트(`.../introduction/validate`)로 위반 단어 목록을 미리 반환한다.
 
 reference 구현: `shop` 도메인의 점주 관리 기능 전반 — 소유권 `ShopOwnershipValidator`, 승인 워크플로 `ShopImageChangeRequest`/`ApprovalStatus`, 금칙어 `ProhibitedWordValidator`/`ProhibitedWord`, 그리고 이 규칙을 따르는 ceo-api `shop/` 하위 도메인별 컨트롤러·Service(영업시간·휴무일·전화번호·상태·소개·편의정보·상표·콘텐츠보드·임시중지·위생) 및 admin-api의 검수 API(`ShopImageChangeAdminApiController` 등).
+
+## 응답 record 파일/이미지 필드 URL 규칙 (`~FileId` 노출 금지, 표시용 URL만)
+
+**HTTP 응답 record는 파일 식별자(`~FileId`/`List<Long> ~FileIds`)를 그대로 노출하지 않고, 서버가 만든 표시용 URL 필드(`~ImageUrl`·`~Url`/`List<String> imageUrls`)로 대체합니다.** 프론트엔드가 fileId만 받으면 표시용 URL을 얻을 공식 경로가 없어 `${API_URL}/api/files/v1/{fileId}` 같은 **존재하지 않는 엔드포인트를 추측 조립**하게 됩니다(파일 API는 `POST /api/files/v1/upload` 업로드 전용이고 GET 단건 조회가 없음). 파일 URL은 Firebase Storage 경로 인코딩(`?alt=media`)이 필요해 **서버만 생성**할 수 있으므로, 응답 계약이 URL을 직접 내려주는 것이 유일하게 올바른 방식입니다. 이 규칙은 [Request/Response record `@Schema` 문서화 규칙](#requestresponse-record-schema-문서화-규칙)·[DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)의 파일 필드 케이스 구체화입니다.
+
+- **적용 대상**: web-api/admin-api/ceo-api의 조회(GET) 응답 record 및 파일 식별자를 담던 생성/수정 응답 record. `~FileId`(Long)는 `~ImageUrl`/`~Url`(String)로, `List<Long> ~FileIds`는 `List<String> imageUrls`로 바꿉니다. **fileId는 응답에서 완전히 제거**합니다(url과 병기하지 않습니다).
+- **변환 방법 (서비스 private 매퍼)**: Response record 자체는 `core-free`(`com.tastyhouse.core.*` 미import)를 유지하고, fileId→url 변환은 이를 조립하는 Service의 private 매퍼가 담당합니다. 두 경로 중 하나를 씁니다.
+  - result가 **파일 경로(filePath)** 를 주면: `fileService.getUrlByPath(filePath)` 직접 사용.
+  - result/도메인이 **fileId만** 주면: `fileQueryService.findFilePath(UploadedFileId.of(id)).map(fileService::getUrlByPath).orElse(null)`(경량) 또는 `fileQueryService.findById(UploadedFileId.of(id)).map(f -> fileService.getUrlByPath(f.getFilePath())).orElse(null)`(파일명 등도 필요할 때).
+  - 항상 `fileId == null → null` 가드. 리스트는 `List.of()` 빈 리스트로 정규화하고 변환 실패분(null)은 걸러냅니다.
+- **적용 제외**: Request/Command(업로드 시 fileId 수신은 그대로), 이미 `FileResponse(id, name, url)`처럼 url을 동반하는 타입.
+- **적용 시점**: 신규 작성은 이 규칙을 따르고, 기존에 fileId를 노출하던 응답은 해당 파일을 수정할 때 함께 전환합니다.
+
+reference 구현: ceo-api — `ShopImageStatusResponse.currentImageUrl`·`ShopImageChangeRequestItemResponse.imageUrl`·`ShopContentBoardResponse.imageUrl`·`ShopDetailResponse.thumbnailImageUrl`/`trademarkImageUrl`(`ShopTrademarkService.resolveImageUrl`·`ShopContentBoardService.resolveImageUrl`·`ShopService.resolveImageUrl`가 `findFilePath` 경유로 변환). admin-api — `ShopService.toImageUrl`(도메인 엔티티의 fileId만 있어 `findById` 경유)로 `ShopAmenityCategoryResponse`/`ShopFoodTypeCategoryResponse`/`ShopBannerImageItemResponse`/`ShopPhotoCategoryImageItemResponse`/`ShopDetailResponse`를 변환, `ShopContentBoardListItemResponse`/`ShopImageChangeRequestItemResponse`는 fileId 제거. web-api — `BugReportService.toImageUrls`·`ReviewService.toImageUrls`로 `BugReportResponse.imageUrls`/`ReviewResponse.imageUrls`. 이미 url로 통일돼 있던 다수 선례: web-api `ReviewService`의 목록/상세 응답, admin-api `BannerService.toFileResponse`(`FileResponse`).

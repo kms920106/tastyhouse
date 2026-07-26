@@ -3,6 +3,7 @@ package com.tastyhouse.webapi.review;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
@@ -20,6 +22,7 @@ import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
 import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
@@ -63,6 +66,7 @@ public class ReviewService {
     private final ProductQueryService productQueryService;
     private final OrderQueryService orderQueryService;
     private final FileService fileService;
+    private final FileQueryService fileQueryService;
 
     @Transactional(readOnly = true)
     public PaginationResponse<ReviewBestListItemResponse> searchBestReviewList(int page, int size) {
@@ -389,7 +393,7 @@ public class ReviewService {
             result.priceRating(),
             result.totalRating(),
             result.content(),
-            result.uploadedFileIds(),
+            toImageUrls(result.uploadedFileIds()),
             result.tags(),
             result.createdAt()
         );
@@ -417,10 +421,22 @@ public class ReviewService {
             result.priceRating(),
             result.totalRating(),
             result.content(),
-            result.uploadedFileIds(),
+            toImageUrls(result.uploadedFileIds()),
             result.tags(),
             result.createdAt()
         );
+    }
+
+    private List<String> toImageUrls(List<Long> imageFileIds) {
+        if (imageFileIds == null || imageFileIds.isEmpty()) {
+            return List.of();
+        }
+        return imageFileIds.stream()
+            .map(fileId -> fileQueryService.findFilePath(UploadedFileId.of(fileId))
+                .map(fileService::getUrlByPath)
+                .orElse(null))
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     @Transactional

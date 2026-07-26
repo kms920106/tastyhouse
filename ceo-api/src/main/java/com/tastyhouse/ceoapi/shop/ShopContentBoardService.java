@@ -6,8 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.shop.domain.model.ShopContentType;
 import com.tastyhouse.core.domain.shop.domain.model.ShopContentTopic;
+import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.shop.application.ShopContentBoardCommandService;
 import com.tastyhouse.core.domain.shop.application.ShopContentBoardQueryService;
 import com.tastyhouse.core.domain.shop.application.dto.command.ShopContentBoardCreateCommand;
@@ -31,6 +33,7 @@ public class ShopContentBoardService {
     private final ShopContentBoardQueryService shopContentBoardQueryService;
     private final ShopImageSpecValidator shopImageSpecValidator;
     private final FileService fileService;
+    private final FileQueryService fileQueryService;
 
     public List<ShopContentBoardResponse> getContentBoards(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
@@ -106,10 +109,19 @@ public class ShopContentBoardService {
             dto.shopId(),
             dto.contentType().name(),
             dto.topic().name(),
-            dto.imageFileId(),
+            resolveImageUrl(dto.imageFileId()),
             dto.youtubeUrl(),
             dto.description(),
             dto.hidden()
         );
+    }
+
+    private String resolveImageUrl(Long imageFileId) {
+        if (imageFileId == null) {
+            return null;
+        }
+        return fileQueryService.findFilePath(UploadedFileId.of(imageFileId))
+            .map(fileService::getUrlByPath)
+            .orElse(null);
     }
 }

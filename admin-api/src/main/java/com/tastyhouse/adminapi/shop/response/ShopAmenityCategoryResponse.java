@@ -13,11 +13,11 @@ public record ShopAmenityCategoryResponse(
     @Schema(description = "화면 표시명", example = "와이파이")
     String displayName,
 
-    @Schema(description = "활성 상태 아이콘 파일 ID", example = "20")
-    Long activeImageFileId,
+    @Schema(description = "활성 상태 아이콘 URL(없으면 null)", example = "https://firebasestorage.googleapis.com/v0/b/bucket/o/2025%2F02%2F16%2Factive.png?alt=media")
+    String activeImageUrl,
 
-    @Schema(description = "비활성 상태 아이콘 파일 ID", example = "21")
-    Long inactiveImageFileId,
+    @Schema(description = "비활성 상태 아이콘 URL(없으면 null)", example = "https://firebasestorage.googleapis.com/v0/b/bucket/o/2025%2F02%2F16%2Finactive.png?alt=media")
+    String inactiveImageUrl,
 
     @Schema(description = "정렬 순서", example = "1")
     Integer sort,
@@ -29,8 +29,8 @@ public record ShopAmenityCategoryResponse(
         Long id,
         String amenity,
         String displayName,
-        Long activeImageFileId,
-        Long inactiveImageFileId,
+        String activeImageUrl,
+        String inactiveImageUrl,
         Integer sort,
         boolean visible
     ) {
@@ -38,8 +38,8 @@ public record ShopAmenityCategoryResponse(
             id,
             amenity,
             displayName,
-            activeImageFileId,
-            inactiveImageFileId,
+            activeImageUrl,
+            inactiveImageUrl,
             sort,
             visible
         );

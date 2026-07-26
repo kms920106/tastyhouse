@@ -3,12 +3,15 @@ package com.tastyhouse.ceoapi.shop;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.application.dto.ShopSearchCondition;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopListItemResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.ceoapi.common.PaginationResponse;
+import com.tastyhouse.ceoapi.file.FileService;
 import com.tastyhouse.ceoapi.shop.response.ShopDetailResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopListItemResponse;
 
@@ -22,6 +25,8 @@ public class ShopService {
 
     private final ShopQueryService shopQueryService;
     private final ShopOwnershipValidator shopOwnershipValidator;
+    private final FileService fileService;
+    private final FileQueryService fileQueryService;
 
     public PaginationResponse<ShopListItemResponse> getMyShops(
         Long ceoId,
@@ -64,11 +69,20 @@ public class ShopService {
             shop.getRoadAddress(),
             shop.getLotAddress(),
             shop.getPhoneNumber(),
-            shop.getThumbnailImageFileId(),
-            shop.getTrademarkImageFileId(),
+            resolveImageUrl(shop.getThumbnailImageFileId()),
+            resolveImageUrl(shop.getTrademarkImageFileId()),
             shop.isPermanentlyClosed(),
             shop.isHidden(),
             shop.isClosedOnPublicHolidays()
         );
+    }
+
+    private String resolveImageUrl(Long imageFileId) {
+        if (imageFileId == null) {
+            return null;
+        }
+        return fileQueryService.findFilePath(UploadedFileId.of(imageFileId))
+            .map(fileService::getUrlByPath)
+            .orElse(null);
     }
 }

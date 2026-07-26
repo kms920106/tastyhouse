@@ -34,8 +34,8 @@ public record ShopDetailResponse(
     @Schema(description = "전화번호", example = "02-1234-5678")
     String phoneNumber,
 
-    @Schema(description = "썸네일 이미지 파일 ID", example = "10")
-    Long thumbnailImageFileId,
+    @Schema(description = "썸네일 이미지 URL(없으면 null)", example = "https://firebasestorage.googleapis.com/v0/b/bucket/o/2025%2F02%2F16%2Fthumb.jpg?alt=media")
+    String thumbnailImageUrl,
 
     @Schema(description = "폐업 여부", example = "false")
     boolean permanentlyClosed,
@@ -56,7 +56,7 @@ public record ShopDetailResponse(
         String roadAddress,
         String lotAddress,
         String phoneNumber,
-        Long thumbnailImageFileId,
+        String thumbnailImageUrl,
         boolean permanentlyClosed,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -71,7 +71,7 @@ public record ShopDetailResponse(
             roadAddress,
             lotAddress,
             phoneNumber,
-            thumbnailImageFileId,
+            thumbnailImageUrl,
             permanentlyClosed,
             createdAt,
             updatedAt

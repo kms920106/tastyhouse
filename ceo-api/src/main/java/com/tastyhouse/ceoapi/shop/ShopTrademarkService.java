@@ -35,7 +35,7 @@ public class ShopTrademarkService {
 
     public ShopImageStatusResponse getTrademarkStatus(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toShopImageStatusResponse(shop.getTrademarkImageFileId(), shopId);
+        return toShopImageStatusResponse(resolveImageUrl(shop.getTrademarkImageFileId()), shopId);
     }
 
     public Long requestTrademarkChange(Long ceoId, Long shopId, MultipartFile file) {
@@ -49,7 +49,7 @@ public class ShopTrademarkService {
 
     public ShopImageStatusResponse getThumbnailStatus(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toShopImageStatusResponse(shop.getThumbnailImageFileId(), shopId);
+        return toShopImageStatusResponse(resolveImageUrl(shop.getThumbnailImageFileId()), shopId);
     }
 
     public Long requestThumbnailChange(Long ceoId, Long shopId, MultipartFile file) {
@@ -61,18 +61,17 @@ public class ShopTrademarkService {
         return shopImageChangeCommandService.requestImageChange(command);
     }
 
-    private ShopImageStatusResponse toShopImageStatusResponse(Long currentImageFileId, Long shopId) {
+    private ShopImageStatusResponse toShopImageStatusResponse(String currentImageUrl, Long shopId) {
         List<ShopImageChangeRequestItemResponse> requests = shopImageChangeQueryService.findByShopId(shopId).stream()
             .map(this::toShopImageChangeRequestItemResponse)
             .toList();
-        return ShopImageStatusResponse.of(currentImageFileId, requests);
+        return ShopImageStatusResponse.of(currentImageUrl, requests);
     }
 
     private ShopImageChangeRequestItemResponse toShopImageChangeRequestItemResponse(ShopImageChangeRequestResult dto) {
         return ShopImageChangeRequestItemResponse.of(
             dto.id(),
             dto.imageType().name(),
-            dto.imageFileId(),
             resolveImageUrl(dto.imageFileId()),
             dto.status().name(),
             dto.rejectReason()

@@ -7,13 +7,13 @@ public record ShopBannerImageItemResponse(
     @Schema(description = "배너 이미지 ID", example = "1")
     Long id,
 
-    @Schema(description = "이미지 파일 ID", example = "30")
-    Long imageFileId,
+    @Schema(description = "이미지 URL(없으면 null)", example = "https://firebasestorage.googleapis.com/v0/b/bucket/o/2025%2F02%2F16%2Fbanner.jpg?alt=media")
+    String imageUrl,
 
     @Schema(description = "정렬 순서", example = "1")
     Integer sort
 ) {
-    public static ShopBannerImageItemResponse from(Long id, Long imageFileId, Integer sort) {
-        return new ShopBannerImageItemResponse(id, imageFileId, sort);
+    public static ShopBannerImageItemResponse from(Long id, String imageUrl, Integer sort) {
+        return new ShopBannerImageItemResponse(id, imageUrl, sort);
     }
 }

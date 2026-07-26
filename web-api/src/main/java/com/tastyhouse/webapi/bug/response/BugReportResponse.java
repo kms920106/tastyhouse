@@ -31,8 +31,8 @@ public record BugReportResponse(
     @Schema(description = "처리 상태", example = "RECEIVED")
     String status,
 
-    @Schema(description = "첨부 파일 ID 목록")
-    List<Long> uploadedFileIds,
+    @Schema(description = "첨부 이미지 URL 목록")
+    List<String> imageUrls,
 
     @Schema(description = "신고 등록 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
@@ -46,7 +46,7 @@ public record BugReportResponse(
         String platform,
         String osVersion,
         String status,
-        List<Long> uploadedFileIds,
+        List<String> imageUrls,
         LocalDateTime createdAt
     ) {
         return new BugReportResponse(
@@ -58,7 +58,7 @@ public record BugReportResponse(
             platform,
             osVersion,
             status,
-            uploadedFileIds,
+            imageUrls,
             createdAt
         );
     }

@@ -51,7 +51,6 @@ public class ShopImageChangeAdminService {
             dto.id(),
             dto.shopId(),
             dto.imageType().name(),
-            dto.imageFileId(),
             resolveImageUrl(dto.imageFileId()),
             dto.status().name(),
             dto.rejectReason()

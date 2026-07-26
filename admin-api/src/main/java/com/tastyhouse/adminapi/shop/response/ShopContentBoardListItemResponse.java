@@ -18,10 +18,7 @@ public record ShopContentBoardListItemResponse(
     @Schema(description = "콘텐츠 주제", example = "EXTERIOR", allowableValues = {"EXTERIOR", "INTERIOR", "FOOD_STORY", "NEWS"})
     String topic,
 
-    @Schema(description = "이미지 파일 ID (IMAGE/GIF인 경우)", example = "12")
-    Long imageFileId,
-
-    @Schema(description = "이미지 URL(미리보기용, 파일이 없으면 null)", example = "https://cdn.tastyhouse.com/shop/content/12.png")
+    @Schema(description = "이미지 URL(IMAGE/GIF인 경우, 파일이 없으면 null)", example = "https://firebasestorage.googleapis.com/v0/b/bucket/o/2025%2F02%2F16%2Fcontent.png?alt=media")
     String imageUrl,
 
     @Schema(description = "유튜브 영상 URL (VIDEO인 경우)", example = "https://www.youtube.com/watch?v=abcdefg")
@@ -41,7 +38,6 @@ public record ShopContentBoardListItemResponse(
         Long shopId,
         String contentType,
         String topic,
-        Long imageFileId,
         String imageUrl,
         String youtubeUrl,
         String description,
@@ -53,7 +49,6 @@ public record ShopContentBoardListItemResponse(
             shopId,
             contentType,
             topic,
-            imageFileId,
             imageUrl,
             youtubeUrl,
             description,

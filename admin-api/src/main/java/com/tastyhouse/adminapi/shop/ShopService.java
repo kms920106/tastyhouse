@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.ClosedDayType;
 import com.tastyhouse.core.domain.shop.domain.model.DayType;
@@ -27,6 +28,7 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategoryImage;
 import com.tastyhouse.core.domain.shop.domain.model.Tag;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.shop.application.ShopCommandService;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.domain.shop.application.dto.ShopSearchCondition;
@@ -72,6 +74,7 @@ public class ShopService {
     private final ShopCommandService shopCommandService;
     private final ShopQueryService shopQueryService;
     private final FileService fileService;
+    private final FileQueryService fileQueryService;
 
     public List<StationResponse> getStations() {
         return shopQueryService.findAllStations().stream()
@@ -138,7 +141,7 @@ public class ShopService {
             shop.getRoadAddress(),
             shop.getLotAddress(),
             shop.getPhoneNumber(),
-            shop.getThumbnailImageFileId(),
+            toImageUrl(shop.getThumbnailImageFileId()),
             shop.isPermanentlyClosed(),
             shop.getCreatedAt(),
             shop.getUpdatedAt()
@@ -267,8 +270,8 @@ public class ShopService {
             category.getId(),
             category.getAmenity().name(),
             category.getDisplayName(),
-            category.getActiveImageFileId(),
-            category.getInactiveImageFileId(),
+            toImageUrl(category.getActiveImageFileId()),
+            toImageUrl(category.getInactiveImageFileId()),
             category.getSort(),
             category.isVisible()
         );
@@ -300,8 +303,8 @@ public class ShopService {
             category.getId(),
             category.getFoodType().name(),
             category.getDisplayName(),
-            category.getActiveImageFileId(),
-            category.getInactiveImageFileId(),
+            toImageUrl(category.getActiveImageFileId()),
+            toImageUrl(category.getInactiveImageFileId()),
             category.getSort(),
             category.isVisible()
         );
@@ -414,7 +417,7 @@ public class ShopService {
 
     public List<ShopBannerImageItemResponse> getBannerImages(Long id) {
         return shopQueryService.findShopBannerImageEntities(id).stream()
-            .map(image -> ShopBannerImageItemResponse.from(image.getId(), image.getImageFileId(), image.getSort()))
+            .map(image -> ShopBannerImageItemResponse.from(image.getId(), toImageUrl(image.getImageFileId()), image.getSort()))
             .toList();
     }
 
@@ -457,10 +460,19 @@ public class ShopService {
         return ShopPhotoCategoryImageItemResponse.from(
             image.getId(),
             image.getShopPhotoCategoryId(),
-            image.getImageFileId(),
+            toImageUrl(image.getImageFileId()),
             image.getSort(),
             image.isVisible()
         );
+    }
+
+    private String toImageUrl(Long imageFileId) {
+        if (imageFileId == null) {
+            return null;
+        }
+        return fileQueryService.findById(UploadedFileId.of(imageFileId))
+            .map(file -> fileService.getUrlByPath(file.getFilePath()))
+            .orElse(null);
     }
 
     public Long createPhotoCategoryImage(Long categoryId, Long imageFileId, Integer sort, Boolean visible) {

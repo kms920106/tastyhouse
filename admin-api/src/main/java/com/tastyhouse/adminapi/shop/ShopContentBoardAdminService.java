@@ -50,7 +50,6 @@ public class ShopContentBoardAdminService {
             dto.shopId(),
             dto.contentType().name(),
             dto.topic().name(),
-            dto.imageFileId(),
             resolveImageUrl(dto.imageFileId()),
             dto.youtubeUrl(),
             dto.description(),

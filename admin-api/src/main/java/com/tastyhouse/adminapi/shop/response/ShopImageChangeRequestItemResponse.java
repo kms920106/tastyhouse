@@ -13,10 +13,7 @@ public record ShopImageChangeRequestItemResponse(
     @Schema(description = "이미지 유형", example = "TRADEMARK", allowableValues = {"TRADEMARK", "THUMBNAIL"})
     String imageType,
 
-    @Schema(description = "요청된 이미지 파일 ID", example = "11")
-    Long imageFileId,
-
-    @Schema(description = "요청된 이미지 URL(미리보기용, 파일이 없으면 null)", example = "https://cdn.tastyhouse.com/shop/trademark/11.png")
+    @Schema(description = "요청된 이미지 URL(미리보기용, 파일이 없으면 null)", example = "https://firebasestorage.googleapis.com/v0/b/bucket/o/2025%2F02%2F16%2Ftrademark.jpg?alt=media")
     String imageUrl,
 
     @Schema(description = "승인 상태", example = "PENDING", allowableValues = {"PENDING", "APPROVED", "REJECTED"})
@@ -29,7 +26,6 @@ public record ShopImageChangeRequestItemResponse(
         Long id,
         Long shopId,
         String imageType,
-        Long imageFileId,
         String imageUrl,
         String status,
         String rejectReason
@@ -38,7 +34,6 @@ public record ShopImageChangeRequestItemResponse(
             id,
             shopId,
             imageType,
-            imageFileId,
             imageUrl,
             status,
             rejectReason

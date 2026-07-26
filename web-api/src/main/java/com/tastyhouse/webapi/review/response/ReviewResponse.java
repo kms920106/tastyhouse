@@ -28,8 +28,8 @@ public record ReviewResponse(
     @Schema(description = "리뷰 내용")
     String content,
 
-    @Schema(description = "리뷰 이미지 파일 ID 목록")
-    List<Long> uploadedFileIds,
+    @Schema(description = "리뷰 이미지 URL 목록")
+    List<String> imageUrls,
 
     @Schema(description = "태그 목록")
     List<String> tags,
@@ -45,7 +45,7 @@ public record ReviewResponse(
         Double priceRating,
         Double totalRating,
         String content,
-        List<Long> uploadedFileIds,
+        List<String> imageUrls,
         List<String> tags,
         LocalDateTime createdAt
     ) {
@@ -57,7 +57,7 @@ public record ReviewResponse(
             priceRating,
             totalRating,
             content,
-            uploadedFileIds,
+            imageUrls,
             tags,
             createdAt
         );
