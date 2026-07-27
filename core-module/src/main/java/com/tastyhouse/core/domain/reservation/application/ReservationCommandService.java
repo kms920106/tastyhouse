@@ -3,7 +3,6 @@ package com.tastyhouse.core.domain.reservation.application;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +18,7 @@ import com.tastyhouse.core.domain.reservation.application.dto.result.Reservation
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.exception.OptimisticLockConflictException;
 
 @Slf4j
 @Service
@@ -41,7 +41,7 @@ public class ReservationCommandService {
         for (int attempt = 0; ; attempt++) {
             try {
                 return reservationCreator.createInNewTx(memberId, cmd);
-            } catch (ObjectOptimisticLockingFailureException | DataIntegrityViolationException e) {
+            } catch (OptimisticLockConflictException | DataIntegrityViolationException e) {
                 log.warn("예약 생성 동시성 경합 재시도 {}/{}: shopId={}, date={}, time={}",
                     attempt + 1, MAX_RETRY, cmd.shopId(), cmd.date(), cmd.time());
                 if (attempt == MAX_RETRY - 1) {
