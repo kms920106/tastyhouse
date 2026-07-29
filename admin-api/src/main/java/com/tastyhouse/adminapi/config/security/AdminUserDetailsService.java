@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.admin.domain.model.Admin;
-import com.tastyhouse.core.domain.admin.application.AdminQueryService;
+import com.tastyhouse.adminapi.admin.AdminQueryService;
 
 @Slf4j
 @Service

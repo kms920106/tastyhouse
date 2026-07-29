@@ -6,13 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.admin.domain.model.Admin;
-import com.tastyhouse.core.domain.admin.application.AdminQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.adminapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.adminapi.admin.AdminQueryService;
 import com.tastyhouse.adminapi.auth.response.JwtResponse;
 
 /**
@@ -90,10 +90,6 @@ public class TokenService {
             blacklistRepository.add(accessToken, jwtTokenProvider.getExpirationMillis(accessToken));
             refreshTokenRepository.delete(jwtTokenProvider.getUsernameFromJWT(accessToken));
         }
-    }
-
-    public boolean isBlacklisted(String accessToken) {
-        return blacklistRepository.contains(accessToken);
     }
 
     private String extractToken(String bearerToken) {

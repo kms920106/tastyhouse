@@ -7,18 +7,12 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.admin.domain.model.Admin;
 import com.tastyhouse.core.domain.admin.domain.repository.AdminRepository;
-import com.tastyhouse.core.domain.admin.domain.vo.AdminId;
 
 @Repository
 @RequiredArgsConstructor
 public class AdminRepositoryImpl implements AdminRepository {
 
     private final AdminJpaRepository adminJpaRepository;
-
-    @Override
-    public Optional<Admin> findById(AdminId adminId) {
-        return adminJpaRepository.findById(adminId.value()).map(AdminMapper::toDomain);
-    }
 
     @Override
     public Optional<Admin> findByUsername(String username) {

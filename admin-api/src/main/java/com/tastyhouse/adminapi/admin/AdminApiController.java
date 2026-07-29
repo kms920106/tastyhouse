@@ -22,13 +22,18 @@ import com.tastyhouse.adminapi.admin.response.AdminCreateResponse;
 @RequestMapping("/api/admins")
 public class AdminApiController {
 
-    private final AdminAccountService adminAccountService;
+    private final AdminCommandService adminCommandService;
 
     @Operation(summary = "관리자 계정 생성", description = "신규 관리자 계정을 생성합니다. 최고관리자(SUPER_ADMIN)만 호출할 수 있습니다.")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<AdminCreateResponse>> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
-        Long id = adminAccountService.create(request);
+        Long id = adminCommandService.createAdmin(
+            request.username(),
+            request.password(),
+            request.name(),
+            request.role()
+        );
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(AdminCreateResponse.from(id)));
     }
