@@ -30,7 +30,8 @@ import com.tastyhouse.adminapi.partnership.response.PartnershipRequestListItemRe
 @RequestMapping("/api/partnership-requests")
 public class PartnershipApiController {
 
-    private final PartnershipService partnershipService;
+    private final PartnershipCommandService partnershipCommandService;
+    private final PartnershipQueryService partnershipQueryService;
 
     @Operation(summary = "제휴 신청 목록 조회", description = "제휴 신청 목록을 페이징 조회합니다. 상호명/담당자명/연락처/처리상태/접수기간 필터를 지원합니다.")
     @GetMapping("/v1")
@@ -38,7 +39,7 @@ public class PartnershipApiController {
         @Valid @ModelAttribute PartnershipSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<PartnershipRequestListItemResponse> pageResponse = partnershipService.getPartnershipRequests(
+        PaginationResponse<PartnershipRequestListItemResponse> pageResponse = partnershipQueryService.getPartnershipRequests(
             search.businessName(), search.contactName(), search.contactPhone(), search.status(),
             search.startDate(), search.endDate(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
@@ -47,7 +48,7 @@ public class PartnershipApiController {
     @Operation(summary = "제휴 신청 상세 조회", description = "제휴 신청 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<PartnershipRequestDetailResponse>> getPartnershipRequest(@PathVariable Long id) {
-        PartnershipRequestDetailResponse response = partnershipService.getPartnershipRequest(id);
+        PartnershipRequestDetailResponse response = partnershipQueryService.getPartnershipRequest(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -57,14 +58,14 @@ public class PartnershipApiController {
         @PathVariable Long id,
         @Valid @RequestBody PartnershipStatusUpdateRequest request
     ) {
-        partnershipService.changeStatus(id, request.status());
+        partnershipCommandService.changeStatus(id, request.status());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "제휴 신청 삭제", description = "제휴 신청을 삭제합니다.")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deletePartnershipRequest(@PathVariable Long id) {
-        partnershipService.deletePartnershipRequest(id);
+        partnershipCommandService.deletePartnershipRequest(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

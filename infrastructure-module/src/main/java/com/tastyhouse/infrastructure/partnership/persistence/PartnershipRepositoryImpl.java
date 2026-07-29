@@ -1,27 +1,23 @@
 package com.tastyhouse.infrastructure.partnership.persistence;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
-import com.tastyhouse.core.domain.partnership.domain.model.PartnershipStatus;
 import com.tastyhouse.core.domain.partnership.domain.repository.PartnershipRepository;
 import com.tastyhouse.core.domain.partnership.domain.vo.PartnershipRequestId;
-import com.tastyhouse.core.domain.partnership.application.dto.PartnershipSearchCondition;
-import com.tastyhouse.core.domain.partnership.application.dto.result.PartnershipRequestListItemResult;
-import com.tastyhouse.core.domain.partnership.application.dto.result.QPartnershipRequestListItemResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.partnership.persistence.QPartnershipRequestJpaEntity.partnershipRequestJpaEntity;
 
+/**
+ * 제휴 신청 write 어댑터.
+ *
+ * <p>도메인 모델 단건 로드와 저장만 담당한다. 표현 목적 조회는 같은 모듈의
+ * {@code partnership/query/PartnershipQueryDao}로 분리되어 있다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class PartnershipRepositoryImpl implements PartnershipRepository {
@@ -31,55 +27,14 @@ public class PartnershipRepositoryImpl implements PartnershipRepository {
 
     @Override
     public Optional<PartnershipRequest> findById(PartnershipRequestId partnershipRequestId) {
+        if (partnershipRequestId == null) {
+            return Optional.empty();
+        }
         PartnershipRequestJpaEntity entity = queryFactory
             .selectFrom(partnershipRequestJpaEntity)
             .where(partnershipRequestJpaEntity.id.eq(partnershipRequestId.value()), partnershipRequestJpaEntity.deleted.isFalse())
             .fetchOne();
         return Optional.ofNullable(entity).map(PartnershipRequestMapper::toDomain);
-    }
-
-    @Override
-    public PageResult<PartnershipRequestListItemResult> findPartnershipRequests(PartnershipSearchCondition condition, PageQuery pageQuery) {
-        Long total = queryFactory
-            .select(partnershipRequestJpaEntity.id.count())
-            .from(partnershipRequestJpaEntity)
-            .where(
-                businessNameContains(condition.businessName()),
-                contactNameContains(condition.contactName()),
-                contactPhoneContains(condition.contactPhone()),
-                statusEq(condition.status()),
-                createdAtGoe(condition.startDate()),
-                createdAtLoe(condition.endDate()),
-                partnershipRequestJpaEntity.deleted.isFalse()
-            )
-            .fetchOne();
-
-        List<PartnershipRequestListItemResult> items = queryFactory
-            .select(new QPartnershipRequestListItemResult(
-                partnershipRequestJpaEntity.id,
-                partnershipRequestJpaEntity.businessName,
-                partnershipRequestJpaEntity.contactName,
-                partnershipRequestJpaEntity.contactPhone,
-                partnershipRequestJpaEntity.status,
-                partnershipRequestJpaEntity.consultationRequestedAt,
-                partnershipRequestJpaEntity.createdAt
-            ))
-            .from(partnershipRequestJpaEntity)
-            .where(
-                businessNameContains(condition.businessName()),
-                contactNameContains(condition.contactName()),
-                contactPhoneContains(condition.contactPhone()),
-                statusEq(condition.status()),
-                createdAtGoe(condition.startDate()),
-                createdAtLoe(condition.endDate()),
-                partnershipRequestJpaEntity.deleted.isFalse()
-            )
-            .orderBy(partnershipRequestJpaEntity.createdAt.desc())
-            .offset((long) pageQuery.page() * pageQuery.size())
-            .limit(pageQuery.size())
-            .fetch();
-
-        return PageResult.of(items, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override
@@ -96,29 +51,5 @@ public class PartnershipRepositoryImpl implements PartnershipRepository {
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 제휴 문의입니다: " + partnershipRequest.getId()));
         PartnershipRequestMapper.applyChanges(entity, partnershipRequest);
         return PartnershipRequestMapper.toDomain(entity);
-    }
-
-    private BooleanExpression businessNameContains(String businessName) {
-        return StringUtils.hasText(businessName) ? partnershipRequestJpaEntity.businessName.containsIgnoreCase(businessName) : null;
-    }
-
-    private BooleanExpression contactNameContains(String contactName) {
-        return StringUtils.hasText(contactName) ? partnershipRequestJpaEntity.contactName.containsIgnoreCase(contactName) : null;
-    }
-
-    private BooleanExpression contactPhoneContains(String contactPhone) {
-        return StringUtils.hasText(contactPhone) ? partnershipRequestJpaEntity.contactPhone.containsIgnoreCase(contactPhone) : null;
-    }
-
-    private BooleanExpression statusEq(PartnershipStatus status) {
-        return status != null ? partnershipRequestJpaEntity.status.eq(status) : null;
-    }
-
-    private BooleanExpression createdAtGoe(LocalDateTime startDate) {
-        return startDate != null ? partnershipRequestJpaEntity.createdAt.goe(startDate) : null;
-    }
-
-    private BooleanExpression createdAtLoe(LocalDateTime endDate) {
-        return endDate != null ? partnershipRequestJpaEntity.createdAt.loe(endDate) : null;
     }
 }
