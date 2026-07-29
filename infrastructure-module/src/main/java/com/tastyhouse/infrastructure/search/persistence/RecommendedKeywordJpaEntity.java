@@ -15,9 +15,11 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 /**
  * 추천 검색어 JPA 영속 모델.
  *
- * <p>순수 도메인 모델 {@code RecommendedKeyword}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
- * 담당하고 비즈니스 행위는 갖지 않는다. Java 애플리케이션 계층에 생성/변경 경로가 없는 읽기 전용 애그리거트이므로
- * {@code create}/{@code applyChanges}는 두지 않는다. 도메인↔엔티티 변환은 {@code RecommendedKeywordMapper}가 수행한다.
+ * <p>DB 매핑(테이블/컬럼/감사 필드)만 담당하고 비즈니스 행위는 갖지 않는다. Java 애플리케이션 계층에
+ * 생성/변경 경로가 없는 읽기 전용 애그리거트이므로 {@code create}/{@code applyChanges}는 두지 않는다.
+ *
+ * <p>조회 경로가 CQRS query 측({@code search/query/SearchQueryDao})으로 이관되어 이 엔티티에서 Result DTO로
+ * 직접 투영하므로, 대응하는 순수 도메인 모델·write 포트·매퍼는 두지 않는다(전부 미사용이 되어 제거됨).
  */
 @Entity
 @Table(name = "RECOMMENDED_KEYWORD")

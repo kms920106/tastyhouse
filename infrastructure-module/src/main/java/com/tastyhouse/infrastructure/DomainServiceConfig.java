@@ -10,6 +10,9 @@ import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.faq.domain.service.FaqCategoryDeletionPolicy;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.domain.policy.domain.service.PolicyActivationService;
+import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
+import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
+import com.tastyhouse.core.domain.search.domain.service.PopularKeywordRefreshService;
 import com.tastyhouse.core.shared.event.DomainEventPublisher;
 
 /**
@@ -53,5 +56,16 @@ public class DomainServiceConfig {
         DomainEventPublisher domainEventPublisher
     ) {
         return new PolicyActivationService(policyDocumentRepository, domainEventPublisher);
+    }
+
+    /**
+     * 인기 검색어 갱신 규칙 — 기존 목록 전체를 읽어 신규 여부를 판정하고 통째로 교체하는 크로스 인스턴스 오케스트레이션.
+     */
+    @Bean
+    public PopularKeywordRefreshService popularKeywordRefreshService(
+        SearchKeywordLogRepository searchKeywordLogRepository,
+        PopularKeywordRepository popularKeywordRepository
+    ) {
+        return new PopularKeywordRefreshService(searchKeywordLogRepository, popularKeywordRepository);
     }
 }

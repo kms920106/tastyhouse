@@ -31,18 +31,18 @@ import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
 @Tag(name = "Search", description = "검색 API")
 public class SearchApiController {
 
-    private final SearchService searchService;
+    private final SearchQueryService searchQueryService;
 
     @Operation(summary = "인기 검색어 조회", description = "1~10위 인기 검색어 반환. 신규 진입 키워드는 isNew=true.")
     @GetMapping("/v1/popular-keywords")
     public ResponseEntity<ApiResponse<List<SearchPopularKeywordResponse>>> getPopularKeywords() {
-        return ResponseEntity.ok(ApiResponse.success(searchService.getPopularKeywords()));
+        return ResponseEntity.ok(ApiResponse.success(searchQueryService.getPopularKeywords()));
     }
 
     @Operation(summary = "추천 검색어 조회", description = "운영 관리 추천 검색어 태그 목록 반환.")
     @GetMapping("/v1/recommended-keywords")
     public ResponseEntity<ApiResponse<List<SearchRecommendedKeywordResponse>>> getRecommendedKeywords() {
-        return ResponseEntity.ok(ApiResponse.success(searchService.getRecommendedKeywords()));
+        return ResponseEntity.ok(ApiResponse.success(searchQueryService.getRecommendedKeywords()));
     }
 
     @Operation(summary = "메뉴 검색", description = "메뉴 탭 — 메뉴명 기반 검색. 판매 중인 메뉴만 포함.")
@@ -52,7 +52,7 @@ public class SearchApiController {
         @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var result = searchService.searchMenus(search.query(), pageRequest.page(), pageRequest.size());
+        var result = searchQueryService.searchMenus(search.query(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
@@ -65,7 +65,7 @@ public class SearchApiController {
         @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var result = searchService.searchReviews(search.query(), pageRequest.page(), pageRequest.size());
+        var result = searchQueryService.searchReviews(search.query(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
@@ -79,7 +79,7 @@ public class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        var result = searchService.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var result = searchQueryService.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
@@ -92,7 +92,7 @@ public class SearchApiController {
         @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var result = searchService.searchShopsPublic(search.query(), pageRequest.page(), pageRequest.size());
+        var result = searchQueryService.searchShopsPublic(search.query(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));

@@ -14,3 +14,10 @@
 
 ## 완료 기준
 - batch-module 포함 전 모듈 LSP 오류 0, 추천 커밋 메시지 제시.
+
+## 전환 결과 기록 (잔여물·사양 편차 사유)
+
+- **작업 2번(`web SearchCommandService`로 검색어 로그 적재 흡수) 미수행** — 전제가 성립하지 않았다. 전환 시점에 `SearchKeywordLogRepository.save(...)`의 **호출부가 코드베이스 전체에 0건**이었다(컨트롤러·서비스 어디에서도 검색어를 로깅하지 않고, `SEARCH_KEYWORD_LOG` 테이블은 batch 집계 쿼리가 읽기만 함). 흡수할 command 경로가 없어 죽은 `SearchCommandService`를 신설하지 않았다. write 포트의 `save`는 향후 로깅 기능이 붙을 자리로 그대로 남겼다(집계용 `findTop10KeywordsSince`·`deleteOlderThan`은 갱신 불변식에 필요해 잔류가 확정).
+- **작업 3번 후반(가게/메뉴/리뷰 검색 위임) 잠정 유지** — `SearchQueryService`가 `ProductQueryService`·`ReviewRepository`·`ShopRepository`(core)를 그대로 주입한다. 해당 도메인의 infra query DAO가 그룹 3에서 생기므로, **shop/product/review 전환 작업자는 이 세 의존을 각 도메인의 infra query DAO 주입으로 교체**해야 한다(파일 상단 Javadoc에도 명시).
+- **`RecommendedKeyword` 쓰기 체인 삭제** — 유일한 조회(`findActiveOrderBySortOrder`)가 query DAO로 이관되어 write 포트가 완전히 미사용이 됐다. README "소비 모듈이 실제 쓰는 메서드만 이관 — 안 쓰는 것은 삭제" 규칙에 따라 도메인 모델·포트·RepositoryImpl·Mapper·JpaRepository·단위 테스트를 제거했다(JpaEntity는 DAO가 투영 대상으로 사용하므로 유지). 읽기 전용 애그리거트라 write 경로가 애초에 없었다.
+- **트랜잭션 경계** — `PopularKeywordRefreshService`는 순수 POJO라 자체 트랜잭션이 없고, `batch-module`의 `SearchKeywordSchedulerService`(`@Transactional`)가 경계를 제공한다. `PopularKeywordRepositoryImpl#deleteAll`이 `entityManager.flush()`를 호출하므로 이 래퍼는 선택이 아니라 **필수**다(없으면 런타임 실패).
