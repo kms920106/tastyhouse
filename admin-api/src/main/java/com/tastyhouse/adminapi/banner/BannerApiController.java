@@ -32,7 +32,8 @@ import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
 @RequestMapping("/api/banners")
 public class BannerApiController {
 
-    private final BannerService bannerService;
+    private final BannerCommandService bannerCommandService;
+    private final BannerQueryService bannerQueryService;
 
     @Operation(summary = "배너 목록 조회", description = "배너 목록을 페이징 조회합니다. (비노출·노출기간 만료 배너 포함) type 미지정 시 전체 유형 조회, title은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @GetMapping("/v1")
@@ -40,14 +41,14 @@ public class BannerApiController {
         @Valid @ModelAttribute BannerSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<BannerListItemResponse> pageResponse = bannerService.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<BannerListItemResponse> pageResponse = bannerQueryService.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "배너 등록", description = "새로운 배너를 등록합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createBanner(@Valid @RequestBody BannerCreateRequest request) {
-        Long id = bannerService.createBanner(
+        Long id = bannerCommandService.createBanner(
             request.type(),
             request.title(),
             request.imageFileId(),
@@ -63,7 +64,7 @@ public class BannerApiController {
     @Operation(summary = "배너 상세 조회", description = "배너 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<BannerDetailResponse>> getBanner(@PathVariable Long id) {
-        BannerDetailResponse response = bannerService.getBanner(id);
+        BannerDetailResponse response = bannerQueryService.getBanner(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -73,7 +74,7 @@ public class BannerApiController {
         @PathVariable Long id,
         @Valid @RequestBody BannerUpdateRequest request
     ) {
-        bannerService.updateBanner(
+        bannerCommandService.updateBanner(
             id,
             request.type(),
             request.title(),
@@ -90,7 +91,7 @@ public class BannerApiController {
     @Operation(summary = "배너 삭제", description = "기존 배너를 삭제합니다.")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteBanner(@PathVariable Long id) {
-        bannerService.deleteBanner(id);
+        bannerCommandService.deleteBanner(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

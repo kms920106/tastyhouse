@@ -1,0 +1,57 @@
+package com.tastyhouse.webapi.banner;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.core.domain.banner.domain.model.BannerType;
+import com.tastyhouse.core.shared.page.PageQuery;
+import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.infrastructure.banner.query.BannerListItemResult;
+import com.tastyhouse.infrastructure.banner.query.BannerQueryDao;
+import com.tastyhouse.webapi.common.PaginationResponse;
+import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
+import com.tastyhouse.webapi.file.FileService;
+
+/**
+ * 배너 조회 서비스.
+ *
+ * <p>회원 노출용 조회만 있는 도메인이라 command 서비스 없이 QueryService만 둔다. infra read
+ * 어댑터({@link BannerQueryDao})를 주입해 현재 노출 중인 배너만 조회하고, 파일 경로를 표시용
+ * URL로 변환해 Response를 조립한다.
+ *
+ * <p>배너 유형은 노출 위치별 전용 엔드포인트로 고정되어 있어 HTTP 파라미터로 받지 않고 이 서비스가
+ * 직접 core enum 상수를 지정한다.
+ */
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class BannerQueryService {
+
+    private final BannerQueryDao bannerQueryDao;
+    private final FileService fileService;
+
+    public PaginationResponse<BannerListItemResponse> getHomeBanners(int page, int size) {
+        return getBannersByType(BannerType.HOME, page, size);
+    }
+
+    public PaginationResponse<BannerListItemResponse> getSidebarBanners(int page, int size) {
+        return getBannersByType(BannerType.SIDEBAR, page, size);
+    }
+
+    private PaginationResponse<BannerListItemResponse> getBannersByType(BannerType type, int page, int size) {
+        PageQuery pageQuery = PageQuery.of(page, size);
+        PageResult<BannerListItemResponse> pageResult = bannerQueryDao.findVisibleBannersByType(type, pageQuery)
+            .map(this::toBannerListItemResponse);
+        return PaginationResponse.from(pageResult);
+    }
+
+    private BannerListItemResponse toBannerListItemResponse(BannerListItemResult dto) {
+        return BannerListItemResponse.from(
+            dto.id(),
+            dto.title(),
+            fileService.getUrlByPath(dto.filePath()),
+            dto.linkUrl()
+        );
+    }
+}

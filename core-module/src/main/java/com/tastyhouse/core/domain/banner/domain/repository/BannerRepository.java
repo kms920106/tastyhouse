@@ -3,19 +3,15 @@ package com.tastyhouse.core.domain.banner.domain.repository;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.banner.domain.model.Banner;
-import com.tastyhouse.core.domain.banner.domain.model.BannerType;
 import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
-import com.tastyhouse.core.domain.banner.application.dto.BannerSearchCondition;
-import com.tastyhouse.core.domain.banner.application.dto.result.BannerListItemResult;
-import com.tastyhouse.core.domain.banner.application.dto.result.BannerManagementListItemResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
+/**
+ * 배너 write 포트.
+ *
+ * <p>도메인 모델을 주고받는 CRUD만 노출한다. 목록·검색·페이징 등 표현 목적 read는 이 포트가 아니라
+ * infrastructure-module의 {@code banner/query/BannerQueryDao}가 담당한다(CQRS 분리).
+ */
 public interface BannerRepository {
-
-    PageResult<BannerListItemResult> findAllByType(BannerType type, PageQuery pageQuery);
-
-    PageResult<BannerManagementListItemResult> findAllBanners(BannerSearchCondition condition, PageQuery pageQuery);
 
     Optional<Banner> findById(BannerId id);
 
