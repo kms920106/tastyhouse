@@ -23,13 +23,13 @@ import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 @Tag(name = "Notice", description = "공지사항 관리 API")
 public class NoticeApiController {
 
-    private final NoticeService noticeService;
+    private final NoticeQueryService noticeQueryService;
 
     @Operation(summary = "공지사항 목록 조회", description = "페이징된 공지사항 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
 
-        PaginationResponse<NoticeListItemResponse> pageResult = noticeService.getNoticeList(pageRequest.page(), pageRequest.size());
+        PaginationResponse<NoticeListItemResponse> pageResult = noticeQueryService.getNoticeList(pageRequest.page(), pageRequest.size());
 
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),

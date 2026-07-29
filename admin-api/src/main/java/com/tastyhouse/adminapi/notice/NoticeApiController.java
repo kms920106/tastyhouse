@@ -32,7 +32,8 @@ import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
 @RequestMapping("/api/notices")
 public class NoticeApiController {
 
-    private final NoticeService noticeService;
+    private final NoticeCommandService noticeCommandService;
+    private final NoticeQueryService noticeQueryService;
 
     @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다. (비노출 공지 포함) title/content는 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @GetMapping("/v1")
@@ -40,21 +41,21 @@ public class NoticeApiController {
         @Valid @ModelAttribute NoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<NoticeListItemResponse> pageResponse = noticeService.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<NoticeListItemResponse> pageResponse = noticeQueryService.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "공지사항 등록", description = "새로운 공지사항을 등록합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createNotice(@Valid @RequestBody NoticeCreateRequest request) {
-        Long id = noticeService.createNotice(request.title(), request.content(), request.visible());
+        Long id = noticeCommandService.createNotice(request.title(), request.content(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세을 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNotice(@PathVariable Long id) {
-        NoticeDetailResponse response = noticeService.getNotice(id);
+        NoticeDetailResponse response = noticeQueryService.getNotice(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -64,14 +65,14 @@ public class NoticeApiController {
         @PathVariable Long id,
         @Valid @RequestBody NoticeUpdateRequest request
     ) {
-        noticeService.updateNotice(id, request.title(), request.content(), request.visible());
+        noticeCommandService.updateNotice(id, request.title(), request.content(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "공지사항 삭제", description = "기존 공지사항을 삭제합니다.")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteNotice(@PathVariable Long id) {
-        noticeService.deleteNotice(id);
+        noticeCommandService.deleteNotice(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

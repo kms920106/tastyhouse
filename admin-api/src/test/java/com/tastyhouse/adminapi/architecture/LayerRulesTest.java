@@ -45,4 +45,30 @@ class LayerRulesTest {
 
         rule.check(classes);
     }
+
+    /**
+     * api 모듈은 QueryDSL을 알지 않는다. 조회는 infrastructure-module의 {@code <ctx>/query/} DAO가
+     * 캡슐화하며, 이 모듈은 그 DAO와 Result DTO만 주입·import한다.
+     */
+    @Test
+    void shouldNotDependOnQuerydsl() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("com.querydsl..")
+            .allowEmptyShould(true);
+
+        rule.check(classes);
+    }
+
+    /**
+     * api 모듈은 infra 중 {@code ..query..}(직접)·{@code ..listener..}(간접)만 허용하며,
+     * persistence 어댑터(JpaEntity/Mapper/JpaRepository/RepositoryImpl)에 직접 의존하지 않는다.
+     */
+    @Test
+    void shouldNotDependOnInfrastructurePersistence() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("..infrastructure..persistence..")
+            .allowEmptyShould(true);
+
+        rule.check(classes);
+    }
 }

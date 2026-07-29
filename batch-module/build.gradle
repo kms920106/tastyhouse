@@ -9,43 +9,13 @@ dependencies {
         exclude group: 'com.github.gavlyukovskiy', module: 'p6spy-spring-boot-starter'
     }
 
-    // QueryDSL — @QueryProjection Result DTO가 이 모듈로 이관될 때 Q타입 생성에 필요
-    // (OpenFeign 포크 — CVE-2024-49203 대응). 조회는 infrastructure-module의 JPAQueryFactory 사용.
-    annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:6.11:jakarta'
-    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
-    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
-
     // Lombok
     implementation 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
     testImplementation 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
-}
-
-// QueryDSL 생성 파일을 build 폴더에 생성하도록 설정 (infrastructure-module 설정 복제)
-def querydslDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main").get().asFile
-def querydslTestDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/test").get().asFile
-
-sourceSets {
-    main {
-        java {
-            srcDirs += querydslDir
-        }
-    }
-    test {
-        java {
-            srcDirs += querydslTestDir
-        }
-    }
-}
-
-tasks.named('compileJava') {
-    options.generatedSourceOutputDirectory = file(querydslDir)
-}
-
-tasks.named('compileTestJava') {
-    options.generatedSourceOutputDirectory = file(querydslTestDir)
 }

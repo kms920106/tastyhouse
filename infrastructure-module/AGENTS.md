@@ -18,10 +18,20 @@ com.tastyhouse.infrastructure.<도메인>.persistence/
 - **웹/관리 API는 이 모듈을 `runtimeOnly`로만 의존**한다 — 컴파일 타임에 어댑터 구현을 보지 못하게 해 은닉한다.
 - **JPA 엔티티(`XxxJpaEntity`)는 영속 전용**: 행위 메서드를 두지 않고, 신규 생성용 정적 팩토리 `create(...)`와 update 복사용 `applyChanges(...)`만 둔다. 감사 필드는 `BaseEntity`(`@MappedSuperclass`)에서 상속.
 - **저장 시맨틱은 load-copy-save**: `save(domain)`에서 id null이면 insert, id 있으면 managed 엔티티 조회 후 `applyChanges` 복사. detached merge 금지(감사 필드 파손 방지).
-- **Q타입 생성 위치 주의**: `QXxxJpaEntity`는 이 모듈에서 생성(엔티티가 여기 있으므로). `@QueryProjection` result DTO의 `QXxxResult`는 여전히 core-module에서 생성된다(DTO가 core `application/dto`에 있으므로). 양쪽 build.gradle 모두 QueryDSL apt를 유지한다.
+- **Q타입 생성 위치 주의**: `QXxxJpaEntity`는 이 모듈에서 생성(엔티티가 여기 있으므로). `@QueryProjection` result DTO의 `QXxxResult`는 그 DTO가 있는 모듈에서 생성된다 — CQRS 전환이 끝난 도메인은 Result DTO가 이 모듈 `<ctx>/query/`에 있어 여기서 생성되고, 아직 전환되지 않은 도메인은 core `application/dto/result`에 남아 core-module에서 생성된다. 양쪽 build.gradle 모두 QueryDSL apt를 유지한다.
+- **QueryDSL은 이 모듈 안에 갇힌다**: `querydsl-jpa`는 `api`가 아니라 `implementation`으로 의존해 소비 모듈(web/admin/ceo/batch)에 전이 노출되지 않는다. api 모듈은 `<ctx>/query/`의 DAO와 Result DTO만 주입·import하며, `com.querydsl..`·`..persistence..` 의존은 각 api 모듈 `architecture/LayerRulesTest`(ArchUnit)가 차단한다.
 - **엔티티 enum 매핑**은 core AGENTS.md와 동일: `@Enumerated(EnumType.STRING)` + `@Column(columnDefinition = "VARCHAR(n)")`, `ORDINAL` 금지.
 
-reference 구현: `notice` 도메인 (`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl`).
+reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl` — 단건 로드·저장만), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
+
+## `<ctx>/query/` — read 어댑터 (CQRS query 측)
+
+표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result DTO로 **직접 투영**하며(도메인 모델을 거치지 않음), Result DTO·SearchCondition도 이 패키지가 소유한다.
+
+- **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(shop/review 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
+- **Result 이름 충돌 시 `Management` 한정어**: admin 전용 Result가 비-admin 형제와 같은 패키지에 공존해 충돌하면 `Management`를 부여한다(`NoticeManagementListItemResult` vs `NoticeListItemResult`). 필드 셋이 다른 admin/web Result는 통합하지 않는다(과잉 노출 방지).
+- **write 포트 잔류 판정**: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?" — 그렇다면 write 포트에 남기고(`findById`/`existsByX`/락 획득용 조회), 화면 조립용이면 이 DAO로 보낸다.
+- **소비 모듈이 실제 쓰는 메서드·필드만 이관**한다(미사용은 삭제).
 
 ## 설정 파일 (`src/main/resources/application-infrastructure.yml`)
 

@@ -142,7 +142,7 @@ if (condition.visible() != null) { where.and(notice.visible.eq(condition.visible
 - `BooleanBuilder`는 OR 조합·복잡한 그룹핑처럼 varargs `.where(...)`(AND만 지원)로 표현 불가능한 경우에만 예외적으로 쓰고, 그 이유를 주석으로 남긴다.
 - 서브쿼리로 ID 집합을 먼저 계산해 교집합하는 등 **where 조립이 아닌 선행 데이터 계산**은 이 규칙 대상이 아니다(예: `ShopRepositoryImpl#findLatestShops`의 foodType/amenity 서브쿼리 집합 계산 — 계산된 집합을 최종 where에 넣을 때는 `shopIdIn(Set<Long>)` 헬퍼를 그대로 사용).
 
-reference 구현: `notice` 도메인 `NoticeRepositoryImpl`(다수 도메인이 이미 이 패턴), `order` 도메인 `OrderRepositoryImpl#findOrders`, `shop` 도메인 `ShopRepositoryImpl#findLatestShops`/`#searchByKeywordWithBookmark`(과거 `BooleanBuilder`였다가 통일).
+reference 구현: `notice` 도메인 `NoticeQueryDao`(CQRS 전환으로 동적 where 조립이 `NoticeRepositoryImpl`에서 infrastructure-module의 `notice/query/NoticeQueryDao`로 이동 — write 어댑터에는 단건 로드·저장만 남음), `order` 도메인 `OrderRepositoryImpl#findOrders`, `shop` 도메인 `ShopRepositoryImpl#findLatestShops`/`#searchByKeywordWithBookmark`(과거 `BooleanBuilder`였다가 통일).
 
 **ID VO + Converter 패턴**:
 ```java
