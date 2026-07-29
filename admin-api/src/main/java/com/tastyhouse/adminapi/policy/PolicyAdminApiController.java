@@ -23,12 +23,12 @@ import com.tastyhouse.adminapi.policy.request.PolicyUpdateRequest;
 @RequestMapping("/api/policies")
 public class PolicyAdminApiController {
 
-    private final PolicyService policyService;
+    private final PolicyCommandService policyCommandService;
 
     @Operation(summary = "약관 생성", description = "새로운 약관을 생성합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createPolicy(@Valid @RequestBody PolicyCreateRequest request) {
-        Long id = policyService.createPolicy(
+        Long id = policyCommandService.createPolicy(
             request.type(),
             request.version(),
             request.title(),
@@ -46,7 +46,7 @@ public class PolicyAdminApiController {
         @PathVariable Long id,
         @Valid @RequestBody PolicyUpdateRequest request
     ) {
-        policyService.updatePolicy(
+        policyCommandService.updatePolicy(
             id,
             request.title(),
             request.content(),
@@ -60,7 +60,7 @@ public class PolicyAdminApiController {
     @Operation(summary = "현재 약관 변경", description = "지정된 약관을 현재 유효한 약관으로 변경합니다.")
     @PatchMapping("/v1/{id}/current")
     public ResponseEntity<ApiResponse<Void>> updateCurrentPolicy(@PathVariable Long id) {
-        policyService.activateCurrentPolicy(id);
+        policyCommandService.activateCurrentPolicy(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

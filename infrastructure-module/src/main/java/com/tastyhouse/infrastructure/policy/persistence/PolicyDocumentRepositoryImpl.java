@@ -1,9 +1,7 @@
 package com.tastyhouse.infrastructure.policy.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -12,15 +10,15 @@ import com.tastyhouse.core.domain.policy.domain.model.PolicyDocument;
 import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
-import com.tastyhouse.core.domain.policy.application.dto.result.PolicyDocumentResult;
-import com.tastyhouse.core.domain.policy.application.dto.result.PolicyListItemResult;
-import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyDocumentResult;
-import com.tastyhouse.core.domain.policy.application.dto.result.QPolicyListItemResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJpaEntity.policyDocumentJpaEntity;
 
+/**
+ * 정책 문서 write 어댑터.
+ *
+ * <p>도메인 모델을 주고받는 command 경로만 담당한다. 표현 목적 조회(Result DTO 투영·페이징)는
+ * 같은 모듈의 {@code policy/query/PolicyQueryDao}가 담당하므로 이 클래스에 두지 않는다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
@@ -49,82 +47,6 @@ public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
             .fetchOne();
 
         return Optional.ofNullable(result).map(PolicyDocumentMapper::toDomain);
-    }
-
-    @Override
-    public Optional<PolicyDocumentResult> findCurrentByType(PolicyType type) {
-        PolicyDocumentResult result = queryFactory
-            .select(new QPolicyDocumentResult(
-                policyDocumentJpaEntity.id,
-                policyDocumentJpaEntity.type,
-                policyDocumentJpaEntity.version,
-                policyDocumentJpaEntity.title,
-                policyDocumentJpaEntity.content,
-                policyDocumentJpaEntity.current,
-                policyDocumentJpaEntity.mandatory,
-                policyDocumentJpaEntity.effectiveDate,
-                policyDocumentJpaEntity.createdAt,
-                policyDocumentJpaEntity.updatedAt
-            ))
-            .from(policyDocumentJpaEntity)
-            .where(
-                policyDocumentJpaEntity.type.eq(type),
-                policyDocumentJpaEntity.current.isTrue()
-            )
-            .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
-
-    @Override
-    public Optional<PolicyDocumentResult> findByTypeAndVersion(PolicyType type, String version) {
-        PolicyDocumentResult result = queryFactory
-            .select(new QPolicyDocumentResult(
-                policyDocumentJpaEntity.id,
-                policyDocumentJpaEntity.type,
-                policyDocumentJpaEntity.version,
-                policyDocumentJpaEntity.title,
-                policyDocumentJpaEntity.content,
-                policyDocumentJpaEntity.current,
-                policyDocumentJpaEntity.mandatory,
-                policyDocumentJpaEntity.effectiveDate,
-                policyDocumentJpaEntity.createdAt,
-                policyDocumentJpaEntity.updatedAt
-            ))
-            .from(policyDocumentJpaEntity)
-            .where(
-                policyDocumentJpaEntity.type.eq(type),
-                policyDocumentJpaEntity.version.eq(version)
-            )
-            .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
-
-    @Override
-    public PageResult<PolicyListItemResult> findAllByType(PolicyType type, PageQuery pageQuery) {
-        JPAQuery<PolicyListItemResult> query = queryFactory
-            .select(new QPolicyListItemResult(
-                policyDocumentJpaEntity.id,
-                policyDocumentJpaEntity.type,
-                policyDocumentJpaEntity.version,
-                policyDocumentJpaEntity.title,
-                policyDocumentJpaEntity.current,
-                policyDocumentJpaEntity.effectiveDate,
-                policyDocumentJpaEntity.createdAt
-            ))
-            .from(policyDocumentJpaEntity)
-            .where(policyDocumentJpaEntity.type.eq(type))
-            .orderBy(policyDocumentJpaEntity.createdAt.desc());
-
-        long total = query.fetch().size();
-
-        List<PolicyListItemResult> policies = query
-            .offset((long) pageQuery.page() * pageQuery.size())
-            .limit(pageQuery.size())
-            .fetch();
-
-        return PageResult.of(policies, total, pageQuery.page(), pageQuery.size());
     }
 
     @Override

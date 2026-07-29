@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.faq.domain.service.FaqCategoryDeletionPolicy;
+import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
+import com.tastyhouse.core.domain.policy.domain.service.PolicyActivationService;
+import com.tastyhouse.core.shared.event.DomainEventPublisher;
 
 /**
  * 하강된 도메인 서비스(POJO) 빈 등록 설정.
@@ -25,5 +28,16 @@ public class DomainServiceConfig {
     @Bean
     public FaqCategoryDeletionPolicy faqCategoryDeletionPolicy(FaqCategoryRepository faqCategoryRepository) {
         return new FaqCategoryDeletionPolicy(faqCategoryRepository);
+    }
+
+    /**
+     * 정책 활성화 규칙 — 같은 유형의 기존 현행 정책을 함께 비활성화하는 크로스 인스턴스 불변식.
+     */
+    @Bean
+    public PolicyActivationService policyActivationService(
+        PolicyDocumentRepository policyDocumentRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new PolicyActivationService(policyDocumentRepository, domainEventPublisher);
     }
 }
