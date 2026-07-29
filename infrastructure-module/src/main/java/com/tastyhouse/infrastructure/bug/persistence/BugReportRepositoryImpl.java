@@ -1,84 +1,25 @@
 package com.tastyhouse.infrastructure.bug.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.bug.domain.model.BugReport;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportCategory;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportSearchCondition;
-import com.tastyhouse.core.domain.bug.application.dto.result.BugReportListItemResult;
-import com.tastyhouse.core.domain.bug.application.dto.result.QBugReportListItemResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.infrastructure.bug.persistence.QBugReportImageJpaEntity.bugReportImageJpaEntity;
-import static com.tastyhouse.infrastructure.bug.persistence.QBugReportJpaEntity.bugReportJpaEntity;
-
+/**
+ * 버그 제보 write 어댑터.
+ *
+ * <p>write 포트 순수화(공통 지침 패턴 4)에 따라 단건 로드·저장만 담당한다. 목록/검색 등 표현 목적
+ * 조회는 같은 모듈의 {@code bug/query/BugReportQueryDao}로 이관되어, 이 클래스는 QueryDSL을 쓰지 않는다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class BugReportRepositoryImpl implements BugReportRepository {
 
-    private final JPAQueryFactory queryFactory;
     private final BugReportJpaRepository bugReportJpaRepository;
-
-    @Override
-    public PageResult<BugReportListItemResult> findAllBugReports(BugReportSearchCondition condition, PageQuery pageQuery) {
-        Long total = queryFactory
-            .select(bugReportJpaEntity.id.count())
-            .from(bugReportJpaEntity)
-            .where(
-                titleContains(condition.title()),
-                contentContains(condition.content()),
-                memberIdEq(condition.memberId()),
-                statusEq(condition.status()),
-                categoryEq(condition.category()),
-                priorityEq(condition.priority())
-            )
-            .fetchOne();
-
-        List<BugReportListItemResult> bugReports = queryFactory
-            .select(new QBugReportListItemResult(
-                bugReportJpaEntity.id,
-                bugReportJpaEntity.memberId,
-                bugReportJpaEntity.device,
-                bugReportJpaEntity.title,
-                bugReportJpaEntity.status,
-                bugReportJpaEntity.category,
-                bugReportJpaEntity.priority,
-                JPAExpressions
-                    .select(bugReportImageJpaEntity.count())
-                    .from(bugReportImageJpaEntity)
-                    .where(bugReportImageJpaEntity.bugReportId.eq(bugReportJpaEntity.id)),
-                bugReportJpaEntity.createdAt
-            ))
-            .from(bugReportJpaEntity)
-            .where(
-                titleContains(condition.title()),
-                contentContains(condition.content()),
-                memberIdEq(condition.memberId()),
-                statusEq(condition.status()),
-                categoryEq(condition.category()),
-                priorityEq(condition.priority())
-            )
-            .orderBy(bugReportJpaEntity.id.desc())
-            .offset((long) pageQuery.page() * pageQuery.size())
-            .limit(pageQuery.size())
-            .fetch();
-
-        return PageResult.of(bugReports, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
-    }
 
     @Override
     public Optional<BugReport> findById(BugReportId bugReportId) {
@@ -102,29 +43,5 @@ public class BugReportRepositoryImpl implements BugReportRepository {
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 버그 신고입니다: " + bugReport.getId()));
         BugReportMapper.applyChanges(entity, bugReport);
         return BugReportMapper.toDomain(entity);
-    }
-
-    private BooleanExpression titleContains(String title) {
-        return StringUtils.hasText(title) ? bugReportJpaEntity.title.containsIgnoreCase(title) : null;
-    }
-
-    private BooleanExpression contentContains(String content) {
-        return StringUtils.hasText(content) ? bugReportJpaEntity.content.containsIgnoreCase(content) : null;
-    }
-
-    private BooleanExpression memberIdEq(MemberId memberId) {
-        return memberId != null ? bugReportJpaEntity.memberId.eq(memberId) : null;
-    }
-
-    private BooleanExpression statusEq(BugReportStatus status) {
-        return status != null ? bugReportJpaEntity.status.eq(status) : null;
-    }
-
-    private BooleanExpression categoryEq(BugReportCategory category) {
-        return category != null ? bugReportJpaEntity.category.eq(category) : null;
-    }
-
-    private BooleanExpression priorityEq(BugReportPriority priority) {
-        return priority != null ? bugReportJpaEntity.priority.eq(priority) : null;
     }
 }

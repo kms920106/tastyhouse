@@ -1,44 +1,54 @@
 package com.tastyhouse.adminapi.bug;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.bug.domain.model.BugReportCategory;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
-import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.bug.application.BugReportCommandService;
-import com.tastyhouse.core.domain.bug.application.BugReportQueryService;
-import com.tastyhouse.core.domain.bug.application.dto.BugReportSearchCondition;
-import com.tastyhouse.core.domain.bug.application.dto.result.BugReportDetailResult;
-import com.tastyhouse.core.domain.bug.application.dto.result.BugReportListItemResult;
-import com.tastyhouse.core.domain.bug.application.dto.command.BugReportAssignCommand;
-import com.tastyhouse.core.domain.bug.application.dto.command.BugReportClassifyCommand;
-import com.tastyhouse.core.domain.bug.application.dto.command.BugReportStatusUpdateCommand;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.adminapi.file.FileService;
+import com.tastyhouse.infrastructure.bug.query.BugReportDetailResult;
+import com.tastyhouse.infrastructure.bug.query.BugReportListItemResult;
+import com.tastyhouse.infrastructure.bug.query.BugReportQueryDao;
+import com.tastyhouse.infrastructure.bug.query.BugReportSearchCondition;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportDetailResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportListItemResponse;
 import com.tastyhouse.adminapi.bug.response.MemberSummaryResponse;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.file.response.FileResponse;
 
+/**
+ * 버그 제보 관리 조회 서비스.
+ *
+ * <p>infra read 어댑터({@link BugReportQueryDao})만 주입해 제보를 조회하고 Response를 조립한다. write
+ * 포트를 주입하지 않으며, 쓰기는 {@link BugReportCommandService}가 담당한다.
+ *
+ * <p>제보자 요약 정보와 첨부 파일 정보는 각각 다른 컨텍스트(member/file)의 조회 서비스에서 가져와
+ * 이 서비스가 합성한다(제보 DAO는 자기 컨텍스트만 투영한다).
+ *
+ * <p>HTTP 경계에서 받은 {@code String} 필터값은 여기서 core enum으로 승격하고, Response로 내보낼 때는
+ * 다시 {@code name()} 문자열로 되돌린다(api 모듈은 core enum을 노출하지 않는다).
+ */
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class BugReportService {
+public class BugReportQueryService {
 
-    private final BugReportQueryService bugReportQueryService;
-    private final BugReportCommandService bugReportCommandService;
+    private final BugReportQueryDao bugReportQueryDao;
     private final MemberQueryService memberQueryService;
     private final FileQueryService fileQueryService;
     private final FileService fileService;
@@ -61,7 +71,8 @@ public class BugReportService {
             category == null ? null : BugReportCategory.from(category),
             priority == null ? null : BugReportPriority.from(priority)
         );
-        PageResult<BugReportListItemResult> pageResult = bugReportQueryService.findAllBugReports(condition, page, size);
+        PageQuery pageQuery = PageQuery.of(page, size);
+        PageResult<BugReportListItemResult> pageResult = bugReportQueryDao.findBugReports(condition, pageQuery);
 
         Map<Long, MemberWithProfileImageResult> membersById = memberQueryService.findMemberWithProfileImagesByIds(
             pageResult.content().stream().map(dto -> dto.memberId().value()).toList()
@@ -74,7 +85,8 @@ public class BugReportService {
     }
 
     public BugReportDetailResponse getBugReport(Long id) {
-        BugReportDetailResult detail = bugReportQueryService.findDetailById(BugReportId.of(id));
+        BugReportDetailResult detail = bugReportQueryDao.findDetailById(id)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
 
         MemberSummaryResponse member = memberQueryService.findMemberWithProfileImage(detail.memberId())
             .map(this::toMemberSummaryResponse)
@@ -83,25 +95,6 @@ public class BugReportService {
         List<FileResponse> images = toFileResponses(detail.imageFileIds());
 
         return toBugReportDetailResponse(detail, member, images);
-    }
-
-    public void changeStatus(Long id, String status, String answer) {
-        BugReportStatusUpdateCommand command = BugReportStatusUpdateCommand.of(
-            BugReportId.of(id), BugReportStatus.from(status), answer
-        );
-        bugReportCommandService.changeStatus(command);
-    }
-
-    public void classify(Long id, String category, String priority) {
-        BugReportClassifyCommand command = BugReportClassifyCommand.of(
-            BugReportId.of(id), BugReportCategory.from(category), BugReportPriority.from(priority)
-        );
-        bugReportCommandService.classify(command);
-    }
-
-    public void assign(Long id, Long assigneeAdminId) {
-        BugReportAssignCommand command = BugReportAssignCommand.of(BugReportId.of(id), assigneeAdminId);
-        bugReportCommandService.assign(command);
     }
 
     private MemberSummaryResponse toMemberSummaryResponse(MemberWithProfileImageResult result) {
@@ -127,7 +120,7 @@ public class BugReportService {
 
     private BugReportDetailResponse toBugReportDetailResponse(BugReportDetailResult dto, MemberSummaryResponse member, List<FileResponse> images) {
         return BugReportDetailResponse.from(
-            dto.id().value(),
+            dto.id(),
             member,
             dto.device(),
             dto.title(),
@@ -149,7 +142,7 @@ public class BugReportService {
 
     private List<FileResponse> toFileResponses(List<Long> imageFileIds) {
         if (imageFileIds == null || imageFileIds.isEmpty()) {
-            return Collections.emptyList();
+            return List.of();
         }
         return imageFileIds.stream()
             .map(fileId -> fileQueryService.findById(UploadedFileId.of(fileId))

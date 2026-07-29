@@ -22,7 +22,7 @@ import com.tastyhouse.webapi.bug.response.BugReportResponse;
 @Tag(name = "BugReport", description = "버그 제보 API")
 public class BugReportApiController {
 
-    private final BugReportService bugReportService;
+    private final BugReportCommandService bugReportCommandService;
 
     @Operation(summary = "버그 제보 등록", description = "버그 제보를 등록합니다. 단말기 정보, 제목, 내용, 이미지를 포함할 수 있습니다.")
     @PostMapping("/v1")
@@ -30,7 +30,7 @@ public class BugReportApiController {
         @Valid @RequestBody BugReportCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        BugReportResponse response = bugReportService.createBugReport(
+        BugReportResponse response = bugReportCommandService.createBugReport(
             userDetails.getMemberId(),
             request.device(),
             request.title(),

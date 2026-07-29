@@ -31,7 +31,8 @@ import com.tastyhouse.adminapi.bug.response.BugReportListItemResponse;
 @RequestMapping("/api/bug-reports")
 public class BugReportApiController {
 
-    private final BugReportService bugReportService;
+    private final BugReportCommandService bugReportCommandService;
+    private final BugReportQueryService bugReportQueryService;
 
     @Operation(summary = "버그 제보 목록 조회", description = "버그 제보 목록을 페이징 조회합니다. title/content는 부분 일치 검색, memberId는 정확 일치합니다.")
     @GetMapping("/v1")
@@ -39,7 +40,7 @@ public class BugReportApiController {
         @Valid @ModelAttribute BugReportSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<BugReportListItemResponse> pageResponse = bugReportService.getBugReports(
+        PaginationResponse<BugReportListItemResponse> pageResponse = bugReportQueryService.getBugReports(
             search.title(), search.content(), search.memberId(),
             search.status(), search.category(), search.priority(),
             pageRequest.page(), pageRequest.size()
@@ -50,7 +51,7 @@ public class BugReportApiController {
     @Operation(summary = "버그 제보 상세 조회", description = "버그 제보 상세를 조회합니다. 첨부 이미지 URL과 제보 회원 정보를 포함합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<BugReportDetailResponse>> getBugReport(@PathVariable Long id) {
-        BugReportDetailResponse response = bugReportService.getBugReport(id);
+        BugReportDetailResponse response = bugReportQueryService.getBugReport(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -60,7 +61,7 @@ public class BugReportApiController {
         @PathVariable Long id,
         @Valid @RequestBody BugReportStatusUpdateRequest request
     ) {
-        bugReportService.changeStatus(id, request.status(), request.answer());
+        bugReportCommandService.changeStatus(id, request.status(), request.answer());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -70,7 +71,7 @@ public class BugReportApiController {
         @PathVariable Long id,
         @Valid @RequestBody BugReportClassifyRequest request
     ) {
-        bugReportService.classify(id, request.category(), request.priority());
+        bugReportCommandService.classify(id, request.category(), request.priority());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -80,7 +81,7 @@ public class BugReportApiController {
         @PathVariable Long id,
         @Valid @RequestBody BugReportAssignRequest request
     ) {
-        bugReportService.assign(id, request.assigneeAdminId());
+        bugReportCommandService.assign(id, request.assigneeAdminId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

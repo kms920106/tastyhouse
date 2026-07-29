@@ -3,6 +3,9 @@ package com.tastyhouse.infrastructure;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.tastyhouse.core.domain.bug.domain.repository.BugReportImageRepository;
+import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
+import com.tastyhouse.core.domain.bug.domain.service.BugReportRegistrationService;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.faq.domain.service.FaqCategoryDeletionPolicy;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
@@ -21,6 +24,17 @@ import com.tastyhouse.core.shared.event.DomainEventPublisher;
  */
 @Configuration
 public class DomainServiceConfig {
+
+    /**
+     * 버그 제보 등록 — 제보 애그리거트와 첨부 이미지 애그리거트를 한 트랜잭션에서 함께 저장하는 오케스트레이션.
+     */
+    @Bean
+    public BugReportRegistrationService bugReportRegistrationService(
+        BugReportRepository bugReportRepository,
+        BugReportImageRepository bugReportImageRepository
+    ) {
+        return new BugReportRegistrationService(bugReportRepository, bugReportImageRepository);
+    }
 
     /**
      * FAQ 카테고리 삭제 규칙 — 소속된 활성 FAQ 항목이 남아 있으면 삭제를 막는 크로스 애그리거트 규칙.
