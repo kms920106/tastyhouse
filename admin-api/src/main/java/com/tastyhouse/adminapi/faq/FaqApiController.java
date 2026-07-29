@@ -35,26 +35,28 @@ import com.tastyhouse.adminapi.faq.response.FaqListItemResponse;
 @RequestMapping("/api/faqs")
 public class FaqApiController {
 
-    private final FaqService faqService;
+    private final FaqCommandService faqCommandService;
+    private final FaqCategoryCommandService faqCategoryCommandService;
+    private final FaqQueryService faqQueryService;
 
     @Operation(summary = "FAQ 카테고리 등록", description = "새로운 FAQ 카테고리를 등록합니다.")
     @PostMapping("/v1/categories")
     public ResponseEntity<ApiResponse<Long>> createCategory(@Valid @RequestBody FaqCategoryCreateRequest request) {
-        Long id = faqService.createCategory(request.name(), request.sort(), request.visible());
+        Long id = faqCategoryCommandService.createCategory(request.name(), request.sort(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "FAQ 카테고리 목록 조회", description = "FAQ 카테고리 목록을 정렬 순서대로 조회합니다. (비노출 포함)")
     @GetMapping("/v1/categories")
     public ResponseEntity<ApiResponse<List<FaqCategoryResponse>>> getCategories() {
-        List<FaqCategoryResponse> categories = faqService.getCategories();
+        List<FaqCategoryResponse> categories = faqQueryService.getCategories();
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
     @Operation(summary = "FAQ 카테고리 상세 조회", description = "FAQ 카테고리 상세를 조회합니다.")
     @GetMapping("/v1/categories/{categoryId}")
     public ResponseEntity<ApiResponse<FaqCategoryResponse>> getCategory(@PathVariable Long categoryId) {
-        FaqCategoryResponse response = faqService.getCategory(categoryId);
+        FaqCategoryResponse response = faqQueryService.getCategory(categoryId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -64,21 +66,21 @@ public class FaqApiController {
         @PathVariable Long categoryId,
         @Valid @RequestBody FaqCategoryUpdateRequest request
     ) {
-        faqService.updateCategory(categoryId, request.name(), request.sort(), request.visible());
+        faqCategoryCommandService.updateCategory(categoryId, request.name(), request.sort(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "FAQ 카테고리 삭제", description = "기존 FAQ 카테고리를 삭제합니다. 소속된 FAQ 항목이 있으면 삭제할 수 없습니다.")
     @DeleteMapping("/v1/categories/{categoryId}")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long categoryId) {
-        faqService.deleteCategory(categoryId);
+        faqCategoryCommandService.deleteCategory(categoryId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "FAQ 항목 등록", description = "새로운 FAQ 항목을 등록합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createFaq(@Valid @RequestBody FaqCreateRequest request) {
-        Long id = faqService.createFaq(request.faqCategoryId(), request.question(), request.answer(), request.sort(), request.visible());
+        Long id = faqCommandService.createFaq(request.faqCategoryId(), request.question(), request.answer(), request.sort(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
@@ -88,14 +90,14 @@ public class FaqApiController {
         @Valid @ModelAttribute FaqSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<FaqListItemResponse> pageResponse = faqService.getFaqs(search.categoryId(), search.question(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<FaqListItemResponse> pageResponse = faqQueryService.getFaqs(search.categoryId(), search.question(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "FAQ 항목 상세 조회", description = "FAQ 항목 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<FaqDetailResponse>> getFaq(@PathVariable Long id) {
-        FaqDetailResponse response = faqService.getFaq(id);
+        FaqDetailResponse response = faqQueryService.getFaq(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -105,14 +107,14 @@ public class FaqApiController {
         @PathVariable Long id,
         @Valid @RequestBody FaqUpdateRequest request
     ) {
-        faqService.updateFaq(id, request.faqCategoryId(), request.question(), request.answer(), request.sort(), request.visible());
+        faqCommandService.updateFaq(id, request.faqCategoryId(), request.question(), request.answer(), request.sort(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "FAQ 항목 삭제", description = "기존 FAQ 항목을 삭제합니다. (Soft Delete)")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteFaq(@PathVariable Long id) {
-        faqService.deleteFaq(id);
+        faqCommandService.deleteFaq(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

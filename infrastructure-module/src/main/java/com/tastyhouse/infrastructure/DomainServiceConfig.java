@@ -1,6 +1,10 @@
 package com.tastyhouse.infrastructure;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
+import com.tastyhouse.core.domain.faq.domain.service.FaqCategoryDeletionPolicy;
 
 /**
  * 하강된 도메인 서비스(POJO) 빈 등록 설정.
@@ -14,4 +18,12 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class DomainServiceConfig {
+
+    /**
+     * FAQ 카테고리 삭제 규칙 — 소속된 활성 FAQ 항목이 남아 있으면 삭제를 막는 크로스 애그리거트 규칙.
+     */
+    @Bean
+    public FaqCategoryDeletionPolicy faqCategoryDeletionPolicy(FaqCategoryRepository faqCategoryRepository) {
+        return new FaqCategoryDeletionPolicy(faqCategoryRepository);
+    }
 }
