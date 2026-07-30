@@ -26,12 +26,12 @@ import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
 @Tag(name = "Rank", description = "랭킹 관리 API")
 public class RankApiController {
 
-    private final RankService rankService;
+    private final RankQueryService rankQueryService;
 
     @Operation(summary = "랭킹 기간 조회", description = "현재 진행중인 랭킹의 시작일자와 종료일자를 조회합니다.")
     @GetMapping("/v1/duration")
     public ResponseEntity<ApiResponse<RankDurationResponse>> getDuration() {
-        return rankService.getDuration()
+        return rankQueryService.getDuration()
             .map(duration -> ResponseEntity.ok(ApiResponse.success(duration)))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -39,7 +39,7 @@ public class RankApiController {
     @Operation(summary = "랭킹 경품 목록 조회", description = "현재 진행중인 랭킹의 등수별 경품 목록을 조회합니다.")
     @GetMapping("/v1/prizes")
     public ResponseEntity<ApiResponse<List<RankPrizeListItemResponse>>> getPrizes() {
-        List<RankPrizeListItemResponse> prizes = rankService.getPrizes();
+        List<RankPrizeListItemResponse> prizes = rankQueryService.getPrizes();
         return ResponseEntity.ok(ApiResponse.success(prizes));
     }
 
@@ -48,7 +48,7 @@ public class RankApiController {
     public ResponseEntity<ApiResponse<List<RankMemberListItemResponse>>> getMemberRankList(
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        List<RankMemberListItemResponse> ranks = rankService.getMemberRankList(search.type(), search.limit());
+        List<RankMemberListItemResponse> ranks = rankQueryService.getMemberRankList(search.type(), search.limit());
         return ResponseEntity.ok(ApiResponse.success(ranks));
     }
 
@@ -58,7 +58,7 @@ public class RankApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        RankMemberListItemResponse myRank = rankService.getMyMemberRank(userDetails.getMemberId(), search.type());
+        RankMemberListItemResponse myRank = rankQueryService.getMyMemberRank(userDetails.getMemberId(), search.type());
         return ResponseEntity.ok(ApiResponse.success(myRank));
     }
 }

@@ -1,9 +1,7 @@
 package com.tastyhouse.infrastructure.rank.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -11,10 +9,15 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.rank.domain.model.RankPeriod;
 import com.tastyhouse.core.domain.rank.domain.repository.RankPeriodRepository;
 import com.tastyhouse.core.domain.rank.domain.vo.RankPeriodId;
-import com.tastyhouse.core.domain.rank.application.dto.result.RankPeriodResult;
 
 import static com.tastyhouse.infrastructure.rank.persistence.QRankPeriodJpaEntity.rankPeriodJpaEntity;
 
+/**
+ * 랭킹 기간 write 어댑터.
+ *
+ * <p>목록·상세 조회(표현 목적)는 같은 모듈의 {@code rank/query/RankQueryDao}로 이관했고, command
+ * 경로가 쓰는 단건 로드·저장·소프트 삭제만 남는다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class RankPeriodRepositoryImpl implements RankPeriodRepository {
@@ -44,41 +47,6 @@ public class RankPeriodRepositoryImpl implements RankPeriodRepository {
             .where(rankPeriodJpaEntity.id.eq(id.value()), rankPeriodJpaEntity.deleted.isFalse())
             .fetchOne();
         return Optional.ofNullable(entity).map(RankPeriodMapper::toDomain);
-    }
-
-    @Override
-    public List<RankPeriodResult> findAllPeriods() {
-        return queryFactory
-            .select(Projections.constructor(RankPeriodResult.class,
-                rankPeriodJpaEntity.id,
-                rankPeriodJpaEntity.startAt,
-                rankPeriodJpaEntity.endAt,
-                rankPeriodJpaEntity.visible,
-                rankPeriodJpaEntity.createdAt,
-                rankPeriodJpaEntity.updatedAt
-            ))
-            .from(rankPeriodJpaEntity)
-            .where(rankPeriodJpaEntity.deleted.isFalse())
-            .orderBy(rankPeriodJpaEntity.startAt.desc())
-            .fetch();
-    }
-
-    @Override
-    public Optional<RankPeriodResult> findPeriodById(RankPeriodId id) {
-        RankPeriodResult result = queryFactory
-            .select(Projections.constructor(RankPeriodResult.class,
-                rankPeriodJpaEntity.id,
-                rankPeriodJpaEntity.startAt,
-                rankPeriodJpaEntity.endAt,
-                rankPeriodJpaEntity.visible,
-                rankPeriodJpaEntity.createdAt,
-                rankPeriodJpaEntity.updatedAt
-            ))
-            .from(rankPeriodJpaEntity)
-            .where(rankPeriodJpaEntity.id.eq(id.value()), rankPeriodJpaEntity.deleted.isFalse())
-            .fetchOne();
-
-        return Optional.ofNullable(result);
     }
 
     @Override

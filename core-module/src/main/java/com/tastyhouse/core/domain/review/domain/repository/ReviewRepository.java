@@ -1,6 +1,5 @@
 package com.tastyhouse.core.domain.review.domain.repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -8,7 +7,6 @@ import java.util.Optional;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
@@ -37,8 +35,6 @@ public interface ReviewRepository {
     PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType);
 
     List<LatestReviewListItemResult> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit);
-
-    List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate);
 
     Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId);
 

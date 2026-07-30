@@ -1,22 +1,23 @@
 package com.tastyhouse.infrastructure.rank.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.rank.domain.model.RankPrize;
 import com.tastyhouse.core.domain.rank.domain.repository.RankPrizeRepository;
-import com.tastyhouse.core.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.core.domain.rank.domain.vo.RankPrizeId;
-import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeManagementResult;
 
-import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;
 
+/**
+ * 랭킹 경품 write 어댑터.
+ *
+ * <p>기간별 목록·상세 조회(파일 join 투영)는 같은 모듈의 {@code rank/query/RankQueryDao}로 이관했고,
+ * command 경로가 쓰는 단건 로드·저장·소프트 삭제만 남는다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class RankPrizeRepositoryImpl implements RankPrizeRepository {
@@ -46,47 +47,6 @@ public class RankPrizeRepositoryImpl implements RankPrizeRepository {
             .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())
             .fetchOne();
         return Optional.ofNullable(entity).map(RankPrizeMapper::toDomain);
-    }
-
-    @Override
-    public List<RankPrizeManagementResult> findByPeriodId(RankPeriodId periodId) {
-        return queryFactory
-            .select(Projections.constructor(RankPrizeManagementResult.class,
-                rankPrizeJpaEntity.id,
-                rankPrizeJpaEntity.rankId,
-                rankPrizeJpaEntity.prizeRank,
-                rankPrizeJpaEntity.name,
-                rankPrizeJpaEntity.brand,
-                rankPrizeJpaEntity.imageFileId,
-                uploadedFileJpaEntity.originalFilename,
-                uploadedFileJpaEntity.filePath
-            ))
-            .from(rankPrizeJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
-            .where(rankPrizeJpaEntity.rankId.eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
-            .orderBy(rankPrizeJpaEntity.prizeRank.asc())
-            .fetch();
-    }
-
-    @Override
-    public Optional<RankPrizeManagementResult> findPrizeById(RankPrizeId id) {
-        RankPrizeManagementResult result = queryFactory
-            .select(Projections.constructor(RankPrizeManagementResult.class,
-                rankPrizeJpaEntity.id,
-                rankPrizeJpaEntity.rankId,
-                rankPrizeJpaEntity.prizeRank,
-                rankPrizeJpaEntity.name,
-                rankPrizeJpaEntity.brand,
-                rankPrizeJpaEntity.imageFileId,
-                uploadedFileJpaEntity.originalFilename,
-                uploadedFileJpaEntity.filePath
-            ))
-            .from(rankPrizeJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
-            .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())
-            .fetchOne();
-
-        return Optional.ofNullable(result);
     }
 
     @Override

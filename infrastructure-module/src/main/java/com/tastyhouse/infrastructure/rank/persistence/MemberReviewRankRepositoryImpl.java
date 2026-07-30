@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -15,13 +14,15 @@ import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.rank.domain.model.MemberReviewRank;
 import com.tastyhouse.core.domain.rank.domain.model.RankType;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
-import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
-import com.tastyhouse.core.domain.rank.application.dto.result.QMemberRankResult;
 
-import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
-import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
 import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJpaEntity.memberReviewRankJpaEntity;
 
+/**
+ * 회원 리뷰 랭킹 write 어댑터.
+ *
+ * <p>표현 목적 조회(랭킹 목록·내 랭킹 join 투영)는 같은 모듈의 {@code rank/query/RankQueryDao}로
+ * 이관했다. 여기에는 랭킹 확정 트랜잭션의 일괄 삭제·적재와 등급 산정용 단건 로드만 남는다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepository {
@@ -31,51 +32,6 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
 
     @PersistenceContext
     private EntityManager entityManager;
-
-    @Override
-    public List<MemberRankResult> findMemberRankList(RankType rankType, LocalDate baseDate, int limit) {
-        return queryFactory
-            .select(new QMemberRankResult(
-                memberReviewRankJpaEntity.memberId,
-                memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
-                memberReviewRankJpaEntity.reviewCount,
-                memberReviewRankJpaEntity.rankNo,
-                memberJpaEntity.memberGrade
-            ))
-            .from(memberReviewRankJpaEntity)
-            .innerJoin(memberJpaEntity).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
-            .where(
-                memberReviewRankJpaEntity.rankType.eq(rankType),
-                memberReviewRankJpaEntity.baseDate.eq(baseDate)
-            )
-            .orderBy(memberReviewRankJpaEntity.rankNo.asc())
-            .limit(limit)
-            .fetch();
-    }
-
-    @Override
-    public MemberRankResult findMemberRank(MemberId memberId, RankType rankType, LocalDate baseDate) {
-        return queryFactory
-            .select(new QMemberRankResult(
-                memberReviewRankJpaEntity.memberId,
-                memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
-                memberReviewRankJpaEntity.reviewCount,
-                memberReviewRankJpaEntity.rankNo,
-                memberJpaEntity.memberGrade
-            ))
-            .from(memberReviewRankJpaEntity)
-            .innerJoin(memberJpaEntity).on(Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId").eq(memberJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
-            .where(
-                memberReviewRankJpaEntity.memberId.eq(memberId),
-                memberReviewRankJpaEntity.rankType.eq(rankType),
-                memberReviewRankJpaEntity.baseDate.eq(baseDate)
-            )
-            .fetchOne();
-    }
 
     @Override
     public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType) {
@@ -98,6 +54,10 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
         memberReviewRankJpaRepository.saveAll(entities);
     }
 
+    /**
+     * 벌크 삭제 후 1차 캐시를 비운다 — 같은 트랜잭션에서 곧바로 같은 기준일 랭킹을 새로 적재하므로,
+     * 삭제된 행이 캐시에 남아 있으면 적재분과 충돌한다.
+     */
     @Override
     public void deleteByRankTypeAndBaseDate(RankType rankType, LocalDate baseDate) {
         queryFactory

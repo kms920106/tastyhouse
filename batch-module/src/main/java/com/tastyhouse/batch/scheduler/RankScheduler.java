@@ -5,14 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.rank.application.RankCommandService;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class RankScheduler {
 
-    private final RankCommandService rankCommandService;
+    private final RankSchedulerService rankSchedulerService;
 
 //    @Scheduled(cron = "0 * * * * *") // 1분마다 실행 (테스트용)
     @Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시 실행 (운영용)
@@ -20,7 +18,7 @@ public class RankScheduler {
         log.info("=== 랭킹 집계 스케줄러 시작 ===");
 
         try {
-            rankCommandService.aggregateAllRanks();
+            rankSchedulerService.aggregateAllRanks();
             log.info("=== 랭킹 집계 스케줄러 완료 ===");
         } catch (Exception e) {
             log.error("랭킹 집계 중 오류 발생", e);

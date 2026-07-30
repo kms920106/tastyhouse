@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +22,6 @@ import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
-import com.tastyhouse.core.domain.rank.application.dto.result.QMemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
@@ -315,30 +312,6 @@ public class ReviewRepositoryImpl implements ReviewRepository {
         }
 
         return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
-    }
-
-    @Override
-    public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
-        var memberIdPath = Expressions.numberPath(Long.class, reviewJpaEntity, "memberId");
-
-        return queryFactory
-            .select(new QMemberReviewCountResult(
-                reviewJpaEntity.memberId,
-                reviewJpaEntity.count(),
-                reviewJpaEntity.createdAt.max()
-            ))
-            .from(reviewJpaEntity)
-            .where(
-                reviewJpaEntity.createdAt.goe(startDate),
-                reviewJpaEntity.createdAt.lt(endDate)
-            )
-            .groupBy(memberIdPath)
-            .orderBy(
-                reviewJpaEntity.count().desc(),
-                reviewJpaEntity.createdAt.max().asc(),
-                memberIdPath.asc()
-            )
-            .fetch();
     }
 
     @Override

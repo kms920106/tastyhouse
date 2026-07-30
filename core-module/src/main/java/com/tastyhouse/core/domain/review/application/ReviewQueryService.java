@@ -26,7 +26,6 @@ import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
-import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
 import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
@@ -242,10 +241,6 @@ public class ReviewQueryService {
 
     public Map<Long, String> findNicknamesByIds(Collection<Long> memberIds) {
         return memberRepository.findNicknamesByIds(memberIds);
-    }
-
-    public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
-        return reviewRepository.countReviewsByMemberWithPeriod(startDate, endDate);
     }
 
     public PageResult<ReviewListItemResult> findReviews(ReviewSearchCondition condition, int page, int size) {

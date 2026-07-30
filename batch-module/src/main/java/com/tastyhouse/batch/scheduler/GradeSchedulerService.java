@@ -13,15 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
-import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
+import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
+import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GradeSchedulerService {
 
-    private final ReviewQueryService reviewQueryService;
+    private final MemberReviewCountQueryDao memberReviewCountQueryDao;
     private final MemberRepository memberRepository;
 
     /**
@@ -35,7 +35,7 @@ public class GradeSchedulerService {
         LocalDateTime startDate = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
         LocalDateTime endDate = LocalDateTime.now();
 
-        List<MemberReviewCountResult> reviewCounts = reviewQueryService.countReviewsByMemberWithPeriod(startDate, endDate);
+        List<MemberReviewCountResult> reviewCounts = memberReviewCountQueryDao.countReviewsByMemberWithPeriod(startDate, endDate);
 
         log.info("리뷰 작성 회원 수: {}", reviewCounts.size());
 

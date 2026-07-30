@@ -24,6 +24,9 @@ import com.tastyhouse.core.domain.member.referral.domain.service.ReferralRegistr
 import com.tastyhouse.core.domain.point.domain.service.PointLedgerService;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.domain.policy.domain.service.PolicyActivationService;
+import com.tastyhouse.core.domain.rank.domain.port.MemberReviewCountPort;
+import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
+import com.tastyhouse.core.domain.rank.domain.service.RankSettlementService;
 import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
 import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
 import com.tastyhouse.core.domain.search.domain.service.PopularKeywordRefreshService;
@@ -86,6 +89,17 @@ public class DomainServiceConfig {
         DomainEventPublisher domainEventPublisher
     ) {
         return new PolicyActivationService(policyDocumentRepository, domainEventPublisher);
+    }
+
+    /**
+     * 랭킹 확정 — 기준일의 기존 랭킹 일괄 삭제와 신규 순위 일괄 적재를 한 트랜잭션에서 함께 처리하는 오케스트레이션.
+     */
+    @Bean
+    public RankSettlementService rankSettlementService(
+        MemberReviewRankRepository memberReviewRankRepository,
+        MemberReviewCountPort memberReviewCountPort
+    ) {
+        return new RankSettlementService(memberReviewRankRepository, memberReviewCountPort);
     }
 
     /**
