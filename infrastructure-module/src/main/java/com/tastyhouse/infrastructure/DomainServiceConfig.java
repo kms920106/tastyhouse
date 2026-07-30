@@ -18,6 +18,7 @@ import com.tastyhouse.core.domain.member.domain.service.MemberRegistrationServic
 import com.tastyhouse.core.domain.member.domain.service.MemberWithdrawalService;
 import com.tastyhouse.core.domain.member.follow.domain.service.MemberFollowService;
 import com.tastyhouse.core.domain.member.referral.domain.service.ReferralRegistrationService;
+import com.tastyhouse.core.domain.point.domain.service.PointLedgerService;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.domain.policy.domain.service.PolicyActivationService;
 import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
@@ -146,6 +147,18 @@ public class DomainServiceConfig {
             pointHistoryRepository,
             domainEventPublisher
         );
+    }
+
+    /**
+     * 포인트 원장 — 잔액 변경과 변동 이력 기록을 한 트랜잭션에서 함께 처리하는 오케스트레이션.
+     */
+    @Bean
+    public PointLedgerService pointLedgerService(
+        PointRepository pointRepository,
+        PointHistoryRepository pointHistoryRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new PointLedgerService(pointRepository, pointHistoryRepository, domainEventPublisher);
     }
 
     /**

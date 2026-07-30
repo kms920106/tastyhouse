@@ -22,6 +22,7 @@ import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepo
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.core.domain.point.domain.service.PointLedgerService;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.ProductOption;
 import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
@@ -37,8 +38,6 @@ import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
-import com.tastyhouse.core.domain.point.application.PointCommandService;
-import com.tastyhouse.core.domain.point.application.dto.command.PointUseCommand;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.exception.BusinessException;
@@ -57,7 +56,7 @@ public class OrderCommandService {
     private final MemberRepository memberRepository;
     private final ProductQueryService productQueryService;
     private final CouponCommandService couponCommandService;
-    private final PointCommandService pointCommandService;
+    private final PointLedgerService pointLedgerService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -157,7 +156,7 @@ public class OrderCommandService {
         int pointDiscountAmount = 0;
         if (command.usePoint() > 0) {
             pointDiscountAmount = command.usePoint();
-            pointCommandService.usePoints(new PointUseCommand(memberId, pointDiscountAmount));
+            pointLedgerService.usePoints(memberId, pointDiscountAmount);
         }
 
         int totalDiscountAmount = productDiscountAmount + couponDiscountAmount + pointDiscountAmount;

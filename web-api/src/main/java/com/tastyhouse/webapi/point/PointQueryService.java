@@ -1,42 +1,47 @@
-package com.tastyhouse.webapi.point.service;
+package com.tastyhouse.webapi.point;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.point.application.PointQueryService;
-import com.tastyhouse.core.domain.point.application.dto.result.PointHistoryResult;
-import com.tastyhouse.core.domain.point.application.dto.result.PointResult;
+import com.tastyhouse.infrastructure.point.query.PointBalanceResult;
+import com.tastyhouse.infrastructure.point.query.PointHistoryResult;
+import com.tastyhouse.infrastructure.point.query.PointQueryDao;
 import com.tastyhouse.webapi.point.response.PointHistoryItemResponse;
 import com.tastyhouse.webapi.point.response.PointHistoryResponse;
 import com.tastyhouse.webapi.point.response.PointResponse;
 import com.tastyhouse.webapi.point.response.PointUsableResponse;
 
+/**
+ * 내 포인트 조회 서비스.
+ *
+ * <p>infra read 어댑터({@link PointQueryDao})만 주입해 조회하고 Response를 조립한다. web-api에는 포인트
+ * 쓰기 경로가 없으므로(주문 결제 사용은 order 도메인 트랜잭션 안에서 도메인 서비스가 처리) CommandService를
+ * 두지 않는다.
+ */
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class PointService {
+public class PointQueryService {
 
-    private final PointQueryService pointQueryService;
+    private final PointQueryDao pointQueryDao;
 
-    @Transactional(readOnly = true)
     public PointResponse getMemberPoint(Long memberId) {
-        return pointQueryService.findMemberPoint(MemberId.of(memberId))
+        return pointQueryDao.findBalanceByMemberId(MemberId.of(memberId))
             .map(this::toPointResponse)
             .orElseGet(() -> PointResponse.of(0, 0));
     }
 
-    @Transactional(readOnly = true)
     public PointHistoryResponse getPointHistory(Long memberId) {
         PointResponse pointResponse = getMemberPoint(memberId);
 
-        List<PointHistoryItemResponse> histories = pointQueryService.findPointHistory(MemberId.of(memberId))
+        List<PointHistoryItemResponse> histories = pointQueryDao.findPointHistories(MemberId.of(memberId))
             .stream()
             .map(this::toPointHistoryItemResponse)
-            .collect(Collectors.toList());
+            .toList();
 
         return PointHistoryResponse.from(
             pointResponse.availablePoints(),
@@ -45,14 +50,13 @@ public class PointService {
         );
     }
 
-    @Transactional(readOnly = true)
     public PointUsableResponse getUsablePoint(Long memberId) {
-        return pointQueryService.findMemberPoint(MemberId.of(memberId))
+        return pointQueryDao.findBalanceByMemberId(MemberId.of(memberId))
             .map(result -> PointUsableResponse.of(result.availablePoints()))
             .orElseGet(() -> PointUsableResponse.of(0));
     }
 
-    private PointResponse toPointResponse(PointResult result) {
+    private PointResponse toPointResponse(PointBalanceResult result) {
         return PointResponse.of(result.availablePoints(), result.expiredThisMonth());
     }
 

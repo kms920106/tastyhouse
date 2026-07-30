@@ -30,12 +30,13 @@ import com.tastyhouse.adminapi.point.response.PointHistoryResponse;
 @RequestMapping("/api/points")
 public class PointApiController {
 
-    private final PointService pointService;
+    private final PointCommandService pointCommandService;
+    private final PointQueryService pointQueryService;
 
     @Operation(summary = "회원 포인트 잔액 조회", description = "회원의 사용 가능 포인트와 이번 달 소멸 예정 포인트를 조회합니다.")
     @GetMapping("/v1/members/{memberId}")
     public ResponseEntity<ApiResponse<PointBalanceResponse>> getPointBalance(@PathVariable Long memberId) {
-        PointBalanceResponse response = pointService.getPointBalance(memberId);
+        PointBalanceResponse response = pointQueryService.getPointBalance(memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -46,7 +47,7 @@ public class PointApiController {
         @Valid @ModelAttribute PointSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<PointHistoryResponse> pageResponse = pointService.getPointHistories(memberId, search.type(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<PointHistoryResponse> pageResponse = pointQueryService.getPointHistories(memberId, search.type(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -56,7 +57,7 @@ public class PointApiController {
         @PathVariable Long memberId,
         @Valid @RequestBody PointEarnRequest request
     ) {
-        pointService.earnPoint(memberId, request.amount(), request.reason());
+        pointCommandService.earnPoint(memberId, request.amount(), request.reason());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -66,7 +67,7 @@ public class PointApiController {
         @PathVariable Long memberId,
         @Valid @RequestBody PointDeductRequest request
     ) {
-        pointService.deductPoint(memberId, request.amount(), request.reason());
+        pointCommandService.deductPoint(memberId, request.amount(), request.reason());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
