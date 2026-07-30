@@ -37,7 +37,8 @@ import com.tastyhouse.adminapi.event.response.EventWinnerResponse;
 @RequestMapping("/api/events")
 public class EventApiController {
 
-    private final EventService eventService;
+    private final EventCommandService eventCommandService;
+    private final EventQueryService eventQueryService;
 
     @Operation(summary = "이벤트 목록 조회", description = "이벤트 목록을 페이징 조회합니다. (삭제된 이벤트 제외) name은 부분 일치 검색, status 미지정 시 전체 상태 조회")
     @GetMapping("/v1")
@@ -45,14 +46,14 @@ public class EventApiController {
         @Valid @ModelAttribute EventSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<EventListItemResponse> pageResponse = eventService.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<EventListItemResponse> pageResponse = eventQueryService.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "이벤트 등록", description = "새로운 이벤트를 등록합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createEvent(@Valid @RequestBody EventCreateRequest request) {
-        Long id = eventService.createEvent(
+        Long id = eventCommandService.createEvent(
             request.name(),
             request.description(),
             request.subtitle(),
@@ -69,7 +70,7 @@ public class EventApiController {
     @Operation(summary = "이벤트 상세 조회", description = "이벤트 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<EventDetailResponse>> getEvent(@PathVariable Long id) {
-        EventDetailResponse response = eventService.getEvent(id);
+        EventDetailResponse response = eventQueryService.getEvent(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -79,7 +80,7 @@ public class EventApiController {
         @PathVariable Long id,
         @Valid @RequestBody EventUpdateRequest request
     ) {
-        eventService.updateEvent(
+        eventCommandService.updateEvent(
             id,
             request.name(),
             request.description(),
@@ -97,7 +98,7 @@ public class EventApiController {
     @Operation(summary = "이벤트 삭제", description = "기존 이벤트를 삭제합니다. (Soft Delete)")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
+        eventCommandService.deleteEvent(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -107,7 +108,7 @@ public class EventApiController {
         @PathVariable Long id,
         @Valid @RequestBody EventAnnouncementCreateRequest request
     ) {
-        Long announcementId = eventService.createAnnouncement(id, request.name(), request.content(), request.announcedAt());
+        Long announcementId = eventCommandService.createAnnouncement(id, request.name(), request.content(), request.announcedAt());
         return ResponseEntity.ok(ApiResponse.success(announcementId));
     }
 
@@ -117,14 +118,14 @@ public class EventApiController {
         @PathVariable Long id,
         @Valid @RequestBody EventAnnouncementUpdateRequest request
     ) {
-        eventService.updateAnnouncement(id, request.name(), request.content(), request.announcedAt());
+        eventCommandService.updateAnnouncement(id, request.name(), request.content(), request.announcedAt());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "당첨자 발표 공지 조회", description = "이벤트의 당첨자 발표 공지를 조회합니다.")
     @GetMapping("/v1/{id}/announcement")
     public ResponseEntity<ApiResponse<EventAnnouncementResponse>> getAnnouncement(@PathVariable Long id) {
-        EventAnnouncementResponse response = eventService.getAnnouncement(id);
+        EventAnnouncementResponse response = eventQueryService.getAnnouncement(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -134,21 +135,21 @@ public class EventApiController {
         @PathVariable Long id,
         @Valid @RequestBody EventWinnerCreateRequest request
     ) {
-        Long winnerId = eventService.createWinner(id, request.rankNo(), request.winnerName(), request.phoneNumber(), request.announcedAt());
+        Long winnerId = eventCommandService.createWinner(id, request.rankNo(), request.winnerName(), request.phoneNumber(), request.announcedAt());
         return ResponseEntity.ok(ApiResponse.success(winnerId));
     }
 
     @Operation(summary = "당첨자 목록 조회", description = "이벤트의 당첨자 목록을 순위순으로 조회합니다.")
     @GetMapping("/v1/{id}/winners")
     public ResponseEntity<ApiResponse<List<EventWinnerResponse>>> getWinners(@PathVariable Long id) {
-        List<EventWinnerResponse> winners = eventService.getWinners(id);
+        List<EventWinnerResponse> winners = eventQueryService.getWinners(id);
         return ResponseEntity.ok(ApiResponse.success(winners));
     }
 
     @Operation(summary = "당첨자 삭제", description = "이벤트의 당첨자를 삭제합니다.")
     @DeleteMapping("/v1/winners/{winnerId}")
     public ResponseEntity<ApiResponse<Void>> deleteWinner(@PathVariable Long winnerId) {
-        eventService.deleteWinner(winnerId);
+        eventCommandService.deleteWinner(winnerId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

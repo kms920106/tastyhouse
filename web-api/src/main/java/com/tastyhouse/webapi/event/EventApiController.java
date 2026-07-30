@@ -27,7 +27,7 @@ import com.tastyhouse.webapi.event.response.EventListItemResponse;
 @Tag(name = "Event", description = "이벤트 관리 API")
 public class EventApiController {
 
-    private final EventService eventService;
+    private final EventQueryService eventQueryService;
 
     @Operation(summary = "이벤트 목록 조회", description = "상태별 이벤트 목록을 조회합니다. (진행중, 종료)")
     @GetMapping("/v1/list")
@@ -35,7 +35,7 @@ public class EventApiController {
         @Valid @ModelAttribute EventSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = eventService.getEventList(search.status(), pageRequest.page(), pageRequest.size());
+        var pageResult = eventQueryService.getEventList(search.status(), pageRequest.page(), pageRequest.size());
         ApiResponse<List<EventListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -46,7 +46,7 @@ public class EventApiController {
         @Parameter(description = "이벤트 ID", example = "1")
         @PathVariable Long id
     ) {
-        EventDetailResponse event = eventService.getEventDetail(id);
+        EventDetailResponse event = eventQueryService.getEventDetail(id);
         return ResponseEntity.ok(ApiResponse.success(event));
     }
 
@@ -55,7 +55,7 @@ public class EventApiController {
     public ResponseEntity<ApiResponse<List<EventAnnouncementListItemResponse>>> getEventAnnouncementList(
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = eventService.getEventAnnouncementList(pageRequest.page(), pageRequest.size());
+        var pageResult = eventQueryService.getEventAnnouncementList(pageRequest.page(), pageRequest.size());
         ApiResponse<List<EventAnnouncementListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }

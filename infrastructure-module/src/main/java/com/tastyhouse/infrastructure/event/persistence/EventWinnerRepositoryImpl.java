@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -9,28 +8,21 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.event.domain.model.EventWinner;
 import com.tastyhouse.core.domain.event.domain.repository.EventWinnerRepository;
-import com.tastyhouse.core.domain.event.domain.vo.EventId;
 
 import static com.tastyhouse.infrastructure.event.persistence.QEventWinnerJpaEntity.eventWinnerJpaEntity;
 
+/**
+ * 이벤트 당첨자 write 어댑터.
+ *
+ * <p>command 경로의 단건 로드·저장만 담당한다. 당첨자 목록 조회(표현 목적 read)는 같은 모듈의
+ * {@code EventQueryDao}로 이관했다(CQRS 분리).
+ */
 @Repository
 @RequiredArgsConstructor
 public class EventWinnerRepositoryImpl implements EventWinnerRepository {
 
     private final JPAQueryFactory queryFactory;
     private final EventWinnerJpaRepository eventWinnerJpaRepository;
-
-    @Override
-    public List<EventWinner> findByEventIdOrderByRankNo(EventId eventId) {
-        return queryFactory
-            .selectFrom(eventWinnerJpaEntity)
-            .where(eventWinnerJpaEntity.eventId.eq(eventId.value()), eventWinnerJpaEntity.deleted.isFalse())
-            .orderBy(eventWinnerJpaEntity.rankNo.asc())
-            .fetch()
-            .stream()
-            .map(EventWinnerMapper::toDomain)
-            .toList();
-    }
 
     @Override
     public Optional<EventWinner> findById(Long id) {

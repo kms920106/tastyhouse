@@ -1,9 +1,7 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -11,37 +9,21 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
 import com.tastyhouse.core.domain.event.domain.repository.EventAnnouncementRepository;
 import com.tastyhouse.core.domain.event.domain.vo.EventId;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.event.persistence.QEventAnnouncementJpaEntity.eventAnnouncementJpaEntity;
 
+/**
+ * 이벤트 당첨자 발표 write 어댑터.
+ *
+ * <p>command 경로의 단건 로드·중복 검증·저장만 담당한다. 발표 목록 조회(표현 목적 read)는 같은 모듈의
+ * {@code EventQueryDao}로 이관했다(CQRS 분리).
+ */
 @Repository
 @RequiredArgsConstructor
 public class EventAnnouncementRepositoryImpl implements EventAnnouncementRepository {
 
     private final JPAQueryFactory queryFactory;
     private final EventAnnouncementJpaRepository eventAnnouncementJpaRepository;
-
-    @Override
-    public PageResult<EventAnnouncement> findAllOrderByAnnouncedAtDesc(PageQuery pageQuery) {
-        List<EventAnnouncement> content = queryFactory
-            .selectFrom(eventAnnouncementJpaEntity)
-            .orderBy(eventAnnouncementJpaEntity.announcedAt.desc())
-            .offset((long) pageQuery.page() * pageQuery.size())
-            .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(EventAnnouncementMapper::toDomain)
-            .toList();
-
-        JPAQuery<Long> countQuery = queryFactory
-            .select(eventAnnouncementJpaEntity.count())
-            .from(eventAnnouncementJpaEntity);
-
-        Long total = countQuery.fetchOne();
-        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
-    }
 
     @Override
     public Optional<EventAnnouncement> findByEventId(EventId eventId) {
