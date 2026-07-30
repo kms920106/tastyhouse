@@ -11,6 +11,9 @@ import com.tastyhouse.core.domain.product.domain.repository.ProductBbqRepository
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 
+/**
+ * 상품 ↔ BBQ 매핑 write 어댑터. 동기화 대상 탐색은 {@code ProductQueryDao#findFirstBbqSyncTarget}가 담당한다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class ProductBbqRepositoryImpl implements ProductBbqRepository {
@@ -25,16 +28,6 @@ public class ProductBbqRepositoryImpl implements ProductBbqRepository {
                 .selectFrom(productBbqJpaEntity)
                 .where(productBbqJpaEntity.productId.eq(productId))
                 .fetchOne()
-        ).map(ProductBbqMapper::toDomain);
-    }
-
-    @Override
-    public Optional<ProductBbq> findFirstWithOptionsSyncPending() {
-        return Optional.ofNullable(
-            queryFactory
-                .selectFrom(productBbqJpaEntity)
-                .where(productBbqJpaEntity.optionsSynced.eq(false))
-                .fetchFirst()
         ).map(ProductBbqMapper::toDomain);
     }
 

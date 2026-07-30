@@ -40,7 +40,8 @@ import com.tastyhouse.adminapi.product.response.ProductOptionGroupsResponse;
 @RequestMapping("/api/products")
 public class ProductApiController {
 
-    private final ProductService productService;
+    private final ProductCommandService productCommandService;
+    private final ProductQueryService productQueryService;
 
     @Operation(summary = "상품 목록 조회", description = "상품 목록을 조건 페이징 조회합니다.")
     @GetMapping("/v1")
@@ -48,7 +49,7 @@ public class ProductApiController {
         @Valid @ModelAttribute ProductSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ProductListItemResponse> pageResponse = productService.getProducts(
+        PaginationResponse<ProductListItemResponse> pageResponse = productQueryService.getProducts(
             search.shopId(), search.productCategoryId(), search.name(), search.visible(), search.soldOut(),
             pageRequest.page(), pageRequest.size()
         );
@@ -58,7 +59,7 @@ public class ProductApiController {
     @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createProduct(@Valid @RequestBody ProductCreateRequest request) {
-        Long id = productService.createProduct(
+        Long id = productCommandService.createProduct(
             request.shopId(), request.productCategoryId(), request.name(), request.description(),
             request.originalPrice(), request.discountPrice(), request.discountRate(),
             request.rating(), request.reviewCount(), request.representative(), request.spiciness(),
@@ -70,7 +71,7 @@ public class ProductApiController {
     @Operation(summary = "상품 상세 조회", description = "상품 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProduct(@PathVariable Long id) {
-        ProductDetailResponse response = productService.getProduct(id);
+        ProductDetailResponse response = productQueryService.getProduct(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -80,7 +81,7 @@ public class ProductApiController {
         @PathVariable Long id,
         @Valid @RequestBody ProductUpdateRequest request
     ) {
-        productService.updateProduct(
+        productCommandService.updateProduct(
             id, request.productCategoryId(), request.name(), request.description(),
             request.originalPrice(), request.discountPrice(), request.discountRate(),
             request.representative(), request.spiciness(), request.soldOut(), request.visible(), request.sort()
@@ -91,21 +92,21 @@ public class ProductApiController {
     @Operation(summary = "상품 품절 처리", description = "상품을 품절 상태로 변경합니다.")
     @PatchMapping("/v1/{id}/sold-out")
     public ResponseEntity<ApiResponse<Void>> markSoldOut(@PathVariable Long id) {
-        productService.markSoldOut(id);
+        productCommandService.markSoldOut(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "상품 비활성화", description = "상품을 비노출 상태로 변경합니다.")
     @PatchMapping("/v1/{id}/deactivate")
     public ResponseEntity<ApiResponse<Void>> deactivateProduct(@PathVariable Long id) {
-        productService.deactivateProduct(id);
+        productCommandService.deactivateProduct(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "상품 옵션 조회", description = "상품의 옵션그룹과 옵션 목록을 조회합니다. (공통 옵션그룹 병합 포함)")
     @GetMapping("/v1/{id}/options")
     public ResponseEntity<ApiResponse<ProductOptionGroupsResponse>> getProductOptions(@PathVariable Long id) {
-        ProductOptionGroupsResponse response = productService.getProductOptions(id);
+        ProductOptionGroupsResponse response = productQueryService.getProductOptions(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -115,7 +116,7 @@ public class ProductApiController {
         @PathVariable Long id,
         @Valid @RequestBody ProductOptionGroupCreateRequest request
     ) {
-        Long optionGroupId = productService.createProductOptionGroup(
+        Long optionGroupId = productCommandService.createProductOptionGroup(
             id, request.name(), request.description(), request.required(), request.multipleSelect(),
             request.minSelect(), request.maxSelect(), request.sort(), request.visible()
         );
@@ -128,7 +129,7 @@ public class ProductApiController {
         @PathVariable Long groupId,
         @Valid @RequestBody ProductOptionCreateRequest request
     ) {
-        productService.createProductOption(
+        productCommandService.createProductOption(
             groupId, request.name(), request.additionalPrice(), request.sort(), request.soldOut(), request.visible()
         );
         return ResponseEntity.ok(ApiResponse.success(null));
@@ -137,7 +138,7 @@ public class ProductApiController {
     @Operation(summary = "상품 이미지 목록 조회", description = "상품에 등록된 이미지 URL 목록을 조회합니다.")
     @GetMapping("/v1/{id}/images")
     public ResponseEntity<ApiResponse<ProductImagesResponse>> getProductImages(@PathVariable Long id) {
-        ProductImagesResponse response = productService.getProductImages(id);
+        ProductImagesResponse response = productQueryService.getProductImages(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -147,7 +148,7 @@ public class ProductApiController {
         @PathVariable Long id,
         @Valid @RequestBody ProductImageCreateRequest request
     ) {
-        productService.createProductImage(id, request.imageFileId(), request.sort(), request.visible());
+        productCommandService.createProductImage(id, request.imageFileId(), request.sort(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -156,14 +157,14 @@ public class ProductApiController {
     public ResponseEntity<ApiResponse<List<ProductCategoryResponse>>> getProductCategories(
         @Valid @ModelAttribute ProductCategorySearchRequest search
     ) {
-        List<ProductCategoryResponse> response = productService.getProductCategories(search.shopId());
+        List<ProductCategoryResponse> response = productQueryService.getProductCategories(search.shopId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "상품 카테고리 등록", description = "새로운 상품 카테고리를 등록합니다.")
     @PostMapping("/v1/categories")
     public ResponseEntity<ApiResponse<Long>> createProductCategory(@Valid @RequestBody ProductCategoryCreateRequest request) {
-        Long id = productService.createProductCategory(request.shopId(), request.name(), request.sort(), request.visible());
+        Long id = productCommandService.createProductCategory(request.shopId(), request.name(), request.sort(), request.visible());
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 }

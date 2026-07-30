@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
+import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
 
 public record EditorChoiceResult(
     Long id,

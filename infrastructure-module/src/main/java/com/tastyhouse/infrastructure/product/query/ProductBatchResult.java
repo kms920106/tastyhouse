@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.product.application.dto.result;
+package com.tastyhouse.infrastructure.product.query;
 
 import java.math.BigDecimal;
 import java.util.List;

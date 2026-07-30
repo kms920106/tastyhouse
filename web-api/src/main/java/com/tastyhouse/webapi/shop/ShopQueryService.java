@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.product.domain.model.Product;
-import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.core.domain.shop.domain.model.Amenity;
 import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
@@ -31,12 +29,12 @@ import com.tastyhouse.core.domain.shop.domain.service.ShopOperatingStatusService
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
-import com.tastyhouse.core.domain.product.application.ProductQueryService;
-import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
+import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
 import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
@@ -55,6 +53,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryImageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
 import com.tastyhouse.webapi.file.FileService;
+import com.tastyhouse.webapi.product.ProductQueryService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.review.ReviewQueryService;
 import com.tastyhouse.webapi.shop.response.ShopAmenityItem;
@@ -369,21 +368,20 @@ public class ShopQueryService {
     }
 
     public List<ShopProductCategoryResponse> getShopProducts(Long shopId) {
-        List<ProductCategory> categories = productQueryService.findProductCategoriesByShopId(shopId);
-        List<Product> products = productQueryService.findActiveProductsByShopId(shopId);
+        Map<Long, List<ShopProductItemResult>> productsByCategory =
+            productQueryService.findShopProducts(shopId).stream()
+                .filter(product -> product.productCategoryId() != null)
+                .collect(Collectors.groupingBy(ShopProductItemResult::productCategoryId));
 
-        Map<Long, List<Product>> productsByCategory = products.stream()
-            .filter(product -> product.getProductCategoryId() != null)
-            .collect(Collectors.groupingBy(Product::getProductCategoryId));
-
-        return categories.stream()
+        return productQueryService.findShopProductCategories(shopId).stream()
             .map(category -> {
-                List<Product> categoryProducts = productsByCategory.getOrDefault(category.getId(), new ArrayList<>());
-                List<ProductSummaryResponse> menuResponses = categoryProducts.stream()
+                List<ProductSummaryResponse> menuResponses = productsByCategory
+                    .getOrDefault(category.id(), new ArrayList<>())
+                    .stream()
                     .map(this::convertToShopMenuResponse)
                     .toList();
                 return ShopProductCategoryResponse.from(
-                    category.getName(),
+                    category.name(),
                     menuResponses
                 );
             })
@@ -520,20 +518,18 @@ public class ShopQueryService {
         );
     }
 
-    private ProductSummaryResponse convertToShopMenuResponse(Product product) {
-        String imageUrl = productQueryService.getFirstImageFilePath(product.getId());
-
+    private ProductSummaryResponse convertToShopMenuResponse(ShopProductItemResult product) {
         return ProductSummaryResponse.from(
-            product.getId(),
-            product.getName(),
-            fileService.getUrlByPath(imageUrl),
-            product.getOriginalPrice(),
-            product.getDiscountPrice(),
-            product.getDiscountRate(),
-            product.getRating(),
-            product.getReviewCount(),
-            product.isRepresentative(),
-            product.getSpiciness()
+            product.id(),
+            product.name(),
+            fileService.getUrlByPath(product.imageFilePath()),
+            product.originalPrice(),
+            product.discountPrice(),
+            product.discountRate(),
+            product.rating(),
+            product.reviewCount(),
+            product.representative(),
+            product.spiciness()
         );
     }
 

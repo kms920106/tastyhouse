@@ -1,18 +1,16 @@
 package com.tastyhouse.core.domain.product.domain.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
 
+/**
+ * 상품 옵션 그룹 write 포트. 표현 목적 옵션 목록 조회는 {@code ProductQueryDao#findProductOptions}가 담당한다.
+ */
 public interface ProductOptionGroupRepository {
 
-    List<ProductOptionGroup> findActiveByProductIdOrderBySort(Long productId);
-
     Optional<ProductOptionGroup> findById(ProductOptionGroupId id);
-
-    List<ProductOptionGroup> findAllByIds(List<Long> ids);
 
     ProductOptionGroup save(ProductOptionGroup productOptionGroup);
 }

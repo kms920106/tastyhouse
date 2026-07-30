@@ -1,9 +1,12 @@
-package com.tastyhouse.core.domain.product.application.dto.result;
+package com.tastyhouse.infrastructure.product.query;
 
 import java.math.BigDecimal;
 
 import com.querydsl.core.annotations.QueryProjection;
 
+/**
+ * 오늘의 할인 상품 목록 항목 read model.
+ */
 public record TodayDiscountProductResult(
     Long id,
     String shopName,

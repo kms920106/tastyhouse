@@ -1,14 +1,11 @@
 package com.tastyhouse.core.domain.product.domain.repository;
 
-import java.util.List;
-
 import com.tastyhouse.core.domain.product.domain.model.ProductCommonOption;
 
+/**
+ * 상품 공통 옵션 write 포트. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
+ */
 public interface ProductCommonOptionRepository {
-
-    List<ProductCommonOption> findActiveByOptionGroupIdsOrderBySort(List<Long> optionGroupIds);
-
-    List<ProductCommonOption> findActiveByIds(List<Long> ids);
 
     ProductCommonOption save(ProductCommonOption productCommonOption);
 }

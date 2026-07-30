@@ -12,8 +12,6 @@ import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
-import com.tastyhouse.core.domain.product.domain.model.Product;
-import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
 import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
@@ -26,12 +24,13 @@ import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
-import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
+import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
 import com.tastyhouse.webapi.file.FileService;
+import com.tastyhouse.webapi.product.ProductQueryService;
 import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.ReviewCommentResponse;
@@ -74,12 +73,12 @@ public class ReviewCommandService {
             orderId = orderProduct.getOrderId();
         }
 
-        Product product = productQueryService.findProductById(ProductId.of(request.productId()))
+        ProductDetailResult product = productQueryService.findProductDetail(request.productId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewRegistration registration = reviewLifecycleService.register(
-            product.getShopId(),
-            product.getId(),
+            product.shopId(),
+            product.id(),
             MemberId.of(memberId),
             orderId,
             request.tasteRating(),

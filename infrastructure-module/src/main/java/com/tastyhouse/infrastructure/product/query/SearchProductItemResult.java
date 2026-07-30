@@ -1,22 +1,26 @@
-package com.tastyhouse.core.domain.product.application.dto.result;
+package com.tastyhouse.infrastructure.product.query;
 
 import java.math.BigDecimal;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-public record ProductListItemResult(
+/**
+ * 통합검색 상품 항목 read model.
+ */
+public record SearchProductItemResult(
     Long id,
     String shopName,
     String name,
+    String imageFilePath,
     Integer originalPrice,
     Integer discountPrice,
     BigDecimal discountRate,
+    Double rating,
+    Integer reviewCount,
     boolean representative,
-    boolean soldOut,
-    boolean visible,
-    Integer sort
+    Integer spiciness
 ) {
     @QueryProjection
-    public ProductListItemResult {
+    public SearchProductItemResult {
     }
 }

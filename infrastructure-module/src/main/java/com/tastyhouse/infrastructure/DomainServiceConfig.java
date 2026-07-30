@@ -23,6 +23,15 @@ import com.tastyhouse.core.domain.member.follow.domain.service.MemberFollowServi
 import com.tastyhouse.core.domain.member.referral.domain.service.ReferralRegistrationService;
 import com.tastyhouse.core.domain.point.domain.service.PointLedgerService;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
+import com.tastyhouse.core.domain.product.domain.port.ProductReviewStatisticsPort;
+import com.tastyhouse.core.domain.product.domain.repository.ProductBbqRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductCategoryRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductOptionRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.core.domain.product.domain.service.ProductRegistrationService;
+import com.tastyhouse.core.domain.product.domain.service.ProductReviewStatsService;
 import com.tastyhouse.core.domain.policy.domain.service.PolicyActivationService;
 import com.tastyhouse.core.domain.rank.domain.port.MemberReviewCountPort;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
@@ -116,6 +125,43 @@ public class DomainServiceConfig {
         DomainEventPublisher domainEventPublisher
     ) {
         return new PolicyActivationService(policyDocumentRepository, domainEventPublisher);
+    }
+
+    /**
+     * 상품 등록·구성 — 상품 본체와 카테고리·옵션그룹·옵션·이미지·BBQ 매핑을 한 트랜잭션에서 함께
+     * 저장하는 오케스트레이션(admin CRUD·batch 크롤링이 공유하는 액터 무관 규칙).
+     */
+    @Bean
+    public ProductRegistrationService productRegistrationService(
+        ProductRepository productRepository,
+        ProductCategoryRepository productCategoryRepository,
+        ProductOptionGroupRepository productOptionGroupRepository,
+        ProductOptionRepository productOptionRepository,
+        ProductImageRepository productImageRepository,
+        ProductBbqRepository productBbqRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new ProductRegistrationService(
+            productRepository,
+            productCategoryRepository,
+            productOptionGroupRepository,
+            productOptionRepository,
+            productImageRepository,
+            productBbqRepository,
+            domainEventPublisher
+        );
+    }
+
+    /**
+     * 상품 리뷰 통계 갱신 — 리뷰 집계(출력 포트)를 읽어 상품 애그리거트의 평점·리뷰 수에 반영하는
+     * 크로스 애그리거트 오케스트레이션.
+     */
+    @Bean
+    public ProductReviewStatsService productReviewStatsService(
+        ProductRepository productRepository,
+        ProductReviewStatisticsPort productReviewStatisticsPort
+    ) {
+        return new ProductReviewStatsService(productRepository, productReviewStatisticsPort);
     }
 
     /**

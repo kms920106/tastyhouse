@@ -1,109 +1,106 @@
 package com.tastyhouse.batch.scheduler;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.product.domain.model.Product;
-import com.tastyhouse.core.domain.product.domain.model.ProductBbq;
-import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
-import com.tastyhouse.core.domain.product.domain.vo.ProductId;
-import com.tastyhouse.core.domain.product.application.ProductCommandService;
-import com.tastyhouse.core.domain.product.application.ProductQueryService;
-import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOptionCommand;
-import com.tastyhouse.core.domain.product.application.dto.command.SaveProductOptionGroupCommand;
+import com.tastyhouse.infrastructure.product.query.ProductBbqSyncTargetResult;
+import com.tastyhouse.batch.crawling.bbq.BbqOptionGroupRegistration;
+import com.tastyhouse.batch.crawling.bbq.BbqOptionRegistration;
+import com.tastyhouse.batch.crawling.bbq.BbqProductSyncService;
 import com.tastyhouse.batch.crawling.bbq.BbqService;
 import com.tastyhouse.batch.crawling.bbq.response.BbqProductSubOptionResponse;
 import com.tastyhouse.batch.crawling.bbq.response.SubOptionItemDetailResponse;
 
+/**
+ * 상품 옵션 동기화 스케줄 진입점.
+ *
+ * <p>외부 BBQ API 호출(느린 I/O)은 트랜잭션 밖에서 수행하고, 저장은 {@link BbqProductSyncService}의
+ * 트랜잭션 경계 안에서 옵션 그룹 단위로 처리한다.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductSchedulerService {
 
     private final BbqService bbqService;
-    private final ProductCommandService productCommandService;
-    private final ProductQueryService productQueryService;
+    private final BbqProductSyncService bbqProductSyncService;
 
-    @Transactional
     public void crawlAndSaveProductOptions() {
-        Optional<ProductBbq> productBbqOpt = productQueryService.findFirstBbqWithOptionsSyncPending();
-        if (productBbqOpt.isEmpty()) {
+        Optional<ProductBbqSyncTargetResult> targetOpt = bbqProductSyncService.findFirstOptionSyncTarget();
+        if (targetOpt.isEmpty()) {
             log.debug("옵션 동기화가 필요한 상품이 없습니다.");
             return;
         }
 
-        ProductBbq productBbq = productBbqOpt.get();
-        Long productId = productBbq.getProductId();
-        Long bbqMenuId = productBbq.getBbqMenuId();
+        ProductBbqSyncTargetResult target = targetOpt.get();
+        log.info("상품 옵션 크롤링 시작: productId={}, bbqMenuId={}", target.productId(), target.bbqMenuId());
 
-        log.info("상품 옵션 크롤링 시작: productId={}, bbqMenuId={}", productId, bbqMenuId);
+        // 외부 API 호출은 트랜잭션 밖에서 먼저 끝내고, 저장은 아래 한 트랜잭션에서 원자적으로 처리한다.
+        List<BbqOptionGroupRegistration> optionGroups = crawlOptionGroups(target);
+        bbqProductSyncService.syncOptions(target.productId(), optionGroups);
 
-        saveProductOptions(productId, bbqMenuId);
-
-        ProductId targetProductId = ProductId.of(productId);
-        productCommandService.markBbqOptionsSynced(targetProductId);
-
-        log.info("상품 옵션 저장 완료: productId={}", productId);
+        log.info("상품 옵션 저장 완료: productId={}", target.productId());
     }
 
-    private void saveProductOptions(Long productId, Long bbqMenuId) {
-        List<BbqProductSubOptionResponse> subOptions = bbqService.getMenuSubOptions(bbqMenuId);
+    private List<BbqOptionGroupRegistration> crawlOptionGroups(ProductBbqSyncTargetResult target) {
+        List<BbqProductSubOptionResponse> subOptions = bbqService.getMenuSubOptions(target.bbqMenuId());
 
         if (subOptions.isEmpty()) {
-            Product product = productQueryService.findProductById(ProductId.of(productId))
-                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다: productId=" + productId));
-
-            ProductOptionGroup savedOptionGroup = productCommandService.saveProductOptionGroup(
-                SaveProductOptionGroupCommand.of(productId, "기본 선택", null, false, false, 0, 1, 0, true)
+            log.info(
+                "서브 옵션이 없어 기본 옵션 그룹 및 옵션 저장: productId={}, 상품명={}",
+                target.productId(),
+                target.productName()
             );
-
-            productCommandService.saveProductOption(
-                SaveProductOptionCommand.of(savedOptionGroup.getId(), product.getName(), 0, 0, false, true)
-            );
-
-            log.info("서브 옵션이 없어 기본 옵션 그룹 및 옵션 저장: productId={}, 상품명={}", productId, product.getName());
-            return;
+            return List.of(BbqOptionGroupRegistration.of(
+                target.productId(),
+                "기본 선택",
+                false,
+                false,
+                0,
+                1,
+                0,
+                List.of(BbqOptionRegistration.of(target.productName(), 0, false, true))
+            ));
         }
 
+        List<BbqOptionGroupRegistration> optionGroups = new ArrayList<>();
         for (int i = 0; i < subOptions.size(); i++) {
             BbqProductSubOptionResponse subOption = subOptions.get(i);
 
-            ProductOptionGroup savedOptionGroup = productCommandService.saveProductOptionGroup(
-                SaveProductOptionGroupCommand.of(
-                    productId,
-                    subOption.subOptionTitle(),
-                    null,
-                    subOption.requiredSelectCount() != null && subOption.requiredSelectCount() > 0,
-                    subOption.maxSelectCount() != null && subOption.maxSelectCount() > 1,
-                    subOption.requiredSelectCount(),
-                    subOption.maxSelectCount(),
-                    i,
-                    true
-                )
-            );
-
-            if (subOption.subOptionItemDetailResponseList() != null) {
-                for (int j = 0; j < subOption.subOptionItemDetailResponseList().size(); j++) {
-                    SubOptionItemDetailResponse itemDetail =
-                        subOption.subOptionItemDetailResponseList().get(j);
-
-                    productCommandService.saveProductOption(
-                        SaveProductOptionCommand.of(
-                            savedOptionGroup.getId(),
-                            itemDetail.itemTitle(),
-                            itemDetail.addPrice() != null ? itemDetail.addPrice() : 0,
-                            j,
-                            itemDetail.soldOut(),
-                            itemDetail.hidden()
-                        )
-                    );
-                }
-            }
+            optionGroups.add(BbqOptionGroupRegistration.of(
+                target.productId(),
+                subOption.subOptionTitle(),
+                subOption.requiredSelectCount() != null && subOption.requiredSelectCount() > 0,
+                subOption.maxSelectCount() != null && subOption.maxSelectCount() > 1,
+                subOption.requiredSelectCount(),
+                subOption.maxSelectCount(),
+                i,
+                toOptionRegistrations(subOption)
+            ));
         }
+        return optionGroups;
+    }
+
+    private List<BbqOptionRegistration> toOptionRegistrations(BbqProductSubOptionResponse subOption) {
+        if (subOption.subOptionItemDetailResponseList() == null) {
+            return List.of();
+        }
+        return subOption.subOptionItemDetailResponseList().stream()
+            .map(this::toOptionRegistration)
+            .toList();
+    }
+
+    private BbqOptionRegistration toOptionRegistration(SubOptionItemDetailResponse itemDetail) {
+        return BbqOptionRegistration.of(
+            itemDetail.itemTitle(),
+            itemDetail.addPrice() != null ? itemDetail.addPrice() : 0,
+            itemDetail.soldOut(),
+            itemDetail.hidden()
+        );
     }
 }

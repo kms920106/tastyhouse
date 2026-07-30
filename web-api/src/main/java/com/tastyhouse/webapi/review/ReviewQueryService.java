@@ -15,16 +15,14 @@ import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
-import com.tastyhouse.core.domain.product.domain.model.Product;
-import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
-import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
 import com.tastyhouse.infrastructure.review.query.BestReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.MyReviewListItemResult;
@@ -38,6 +36,7 @@ import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
 import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.file.FileService;
+import com.tastyhouse.webapi.product.ProductQueryService;
 import com.tastyhouse.webapi.review.response.ReviewBestListItemResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentListResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentResponse;
@@ -165,16 +164,16 @@ public class ReviewQueryService {
         List<String> reviewImageUrls = toImageUrls(reviewDetail.imageUrls());
         String reviewMemberProfileImageUrl = fileService.getUrlByPath(reviewDetail.memberProfileImageUrl());
 
-        return productQueryService.findProductById(ProductId.of(findProductIdOfReview(reviewId)))
+        return productQueryService.findProductDetail(findProductIdOfReview(reviewId))
             .map(product -> {
-                Integer price = product.getDiscountPrice() != null
-                    ? product.getDiscountPrice()
-                    : product.getOriginalPrice();
+                Integer price = product.discountPrice() != null
+                    ? product.discountPrice()
+                    : product.originalPrice();
 
                 return ReviewProductResponse.from(
-                    product.getId(),
-                    product.getName(),
-                    getFirstImageUrl(product.getId()),
+                    product.id(),
+                    product.name(),
+                    getFirstImageUrl(product.id()),
                     price,
                     reviewDetail.id(),
                     reviewDetail.content(),
@@ -223,21 +222,21 @@ public class ReviewQueryService {
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderProductId, Long memberId) {
         OrderProduct orderProduct = orderQueryService.findOrderProductById(OrderProductId.of(orderProductId));
 
-        Product product = productQueryService.findProductById(ProductId.of(orderProduct.getProductId()))
+        ProductDetailResult product = productQueryService.findProductDetail(orderProduct.getProductId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
-        Integer price = product.getDiscountPrice() != null
-            ? product.getDiscountPrice()
-            : product.getOriginalPrice();
+        Integer price = product.discountPrice() != null
+            ? product.discountPrice()
+            : product.originalPrice();
 
         boolean reviewed = reviewQueryDao.existsByOrderIdAndProductIdAndMemberId(
             orderProduct.getOrderId(), orderProduct.getProductId(), MemberId.of(memberId)
         );
 
         return ReviewWriteInfoResponse.from(
-            product.getId(),
-            product.getName(),
-            getFirstImageUrl(product.getId()),
+            product.id(),
+            product.name(),
+            getFirstImageUrl(product.id()),
             price,
             orderProduct.getOrderId(),
             reviewed
@@ -502,7 +501,7 @@ public class ReviewQueryService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return fileService.getUrlByPath(productQueryService.getFirstImageFilePath(productId));
+        return fileService.getUrlByPath(productQueryService.findFirstImageFilePath(productId));
     }
 
     /**

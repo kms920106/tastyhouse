@@ -26,6 +26,10 @@ import com.tastyhouse.core.domain.point.domain.service.PointLedgerService;
 import com.tastyhouse.core.domain.product.domain.model.Product;
 import com.tastyhouse.core.domain.product.domain.model.ProductOption;
 import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
+import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductOptionRepository;
+import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionId;
@@ -39,7 +43,6 @@ import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
-import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -54,7 +57,10 @@ public class OrderCommandService {
     private final OrderProductOptionRepository orderProductOptionRepository;
     private final ShopRepository shopRepository;
     private final MemberRepository memberRepository;
-    private final ProductQueryService productQueryService;
+    private final ProductRepository productRepository;
+    private final ProductOptionGroupRepository productOptionGroupRepository;
+    private final ProductOptionRepository productOptionRepository;
+    private final ProductImageRepository productImageRepository;
     private final CouponIssueService couponIssueService;
     private final PointLedgerService pointLedgerService;
     private final ApplicationEventPublisher eventPublisher;
@@ -83,7 +89,7 @@ public class OrderCommandService {
         int productDiscountAmount = 0;
 
         for (var itemCommand : command.orderProducts()) {
-            Product product = productQueryService.findProductById(ProductId.of(itemCommand.productId()))
+            Product product = productRepository.findById(ProductId.of(itemCommand.productId()))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
                     ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + itemCommand.productId()));
 
@@ -92,7 +98,7 @@ public class OrderCommandService {
                     ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }
 
-            String productImageFilePath = productQueryService.getFirstImageFilePath(product.getId());
+            String productImageFilePath = productImageRepository.findRepresentativeImageFilePath(product.getId());
             int originalPrice = product.getOriginalPrice();
             Integer discountPrice = product.getDiscountPrice();
             int totalOptionPrice = 0;
@@ -111,12 +117,12 @@ public class OrderCommandService {
 
             if (itemCommand.selectedOptions() != null) {
                 for (OrderProductOptionCreateCommand optionCommand : itemCommand.selectedOptions()) {
-                    ProductOptionGroup optionGroup = productQueryService
-                        .findProductOptionGroupById(ProductOptionGroupId.of(optionCommand.groupId()))
+                    ProductOptionGroup optionGroup = productOptionGroupRepository
+                        .findById(ProductOptionGroupId.of(optionCommand.groupId()))
                         .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
 
-                    ProductOption option = productQueryService
-                        .findProductOptionById(ProductOptionId.of(optionCommand.optionId()))
+                    ProductOption option = productOptionRepository
+                        .findById(ProductOptionId.of(optionCommand.optionId()))
                         .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
 
                     orderProductOptionRepository.save(OrderProductOption.of(

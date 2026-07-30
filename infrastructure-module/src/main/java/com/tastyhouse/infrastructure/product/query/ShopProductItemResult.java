@@ -1,0 +1,27 @@
+package com.tastyhouse.infrastructure.product.query;
+
+import java.math.BigDecimal;
+
+import com.querydsl.core.annotations.QueryProjection;
+
+/**
+ * 가게 상세 화면의 카테고리별 상품 항목 read model. 대표 이미지 경로를 함께 투영한다.
+ */
+public record ShopProductItemResult(
+    Long id,
+    Long productCategoryId,
+    String name,
+    String imageFilePath,
+    Integer originalPrice,
+    Integer discountPrice,
+    BigDecimal discountRate,
+    Double rating,
+    Integer reviewCount,
+    boolean representative,
+    Integer spiciness,
+    boolean soldOut
+) {
+    @QueryProjection
+    public ShopProductItemResult {
+    }
+}

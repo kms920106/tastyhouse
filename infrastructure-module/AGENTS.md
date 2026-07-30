@@ -32,6 +32,7 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 - **Result 이름 충돌 시 `Management` 한정어**: admin 전용 Result가 비-admin 형제와 같은 패키지에 공존해 충돌하면 `Management`를 부여한다(`NoticeManagementListItemResult` vs `NoticeListItemResult`). 필드 셋이 다른 admin/web Result는 통합하지 않는다(과잉 노출 방지).
 - **write 포트 잔류 판정**: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?" — 그렇다면 write 포트에 남기고(`findById`/`existsByX`/락 획득용 조회), 화면 조립용이면 이 DAO로 보낸다.
 - **소비 모듈이 실제 쓰는 메서드·필드만 이관**한다(미사용은 삭제).
+- **소비 모듈은 web/admin/ceo-api만이 아니다**: `batch-module`도 이 DAO를 직접 소비한다(reference: `product` 도메인의 `ProductQueryDao#findFirstBbqSyncTarget` — BBQ 옵션 동기화 대상 조회). batch 역시 QueryDSL을 알지 않으며, 자기 application 서비스(`@Transactional`)가 DAO와 도메인 서비스를 주입한다.
 
 **대형 도메인 용도별 DAO 분리 reference: `shop`** — 소비 모듈 3개(web/admin/ceo)가 함께 쓰는 최대 도메인이라 DAO를 용도별로 3개로 나눴다.
 

@@ -36,12 +36,12 @@ import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemRespon
 @Tag(name = "Product", description = "상품 관리 API")
 public class ProductApiController {
 
-    private final ProductService productService;
+    private final ProductQueryService productQueryService;
 
     @Operation(summary = "상품 목록 조회 (오늘의 할인)", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @GetMapping("/v1/today-discounts")
     public ResponseEntity<ApiResponse<List<ProductTodayDiscountListItemResponse>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
-        PaginationResponse<ProductTodayDiscountListItemResponse> pageResponse = productService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
+        PaginationResponse<ProductTodayDiscountListItemResponse> pageResponse = productQueryService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size());
         ApiResponse<List<ProductTodayDiscountListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -49,35 +49,35 @@ public class ProductApiController {
     @Operation(summary = "상품 상세 조회", description = "상품의 기본 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductById(@PathVariable Long id) {
-        ProductDetailResponse response = productService.findProductById(id);
+        ProductDetailResponse response = productQueryService.findProductById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "상품 배치 조회 (옵션 포함)", description = "여러 (상품ID, 옵션ID) 조합을 한 번에 조회합니다. 상품별로 그룹핑하여 기본 정보(이름/정가/할인가)와 요청한 옵션 정보만 반환하므로, 상품마다 상세·옵션 API를 따로 호출하는 N+1 호출을 단일 호출로 대체합니다. 장바구니·주문서 등 여러 상품을 동시에 표시하는 화면에서 사용합니다. 판매 종료되었거나 존재하지 않는 상품은 결과에서 제외하지 않고 available=false 로 남깁니다(요청 순서 유지). 요청한 옵션 중 조회에 실패하거나 해당 상품에 속하지 않는 옵션은 options 에서 제외됩니다.")
     @PostMapping("/v1/batch")
     public ResponseEntity<ApiResponse<ProductBatchResponse>> getProductsBatch(@Valid @RequestBody ProductBatchRequest request) {
-        ProductBatchResponse response = productService.findProductsBatch(request);
+        ProductBatchResponse response = productQueryService.findProductsBatch(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "상품 이미지 목록 조회", description = "상품의 이미지 URL 목록을 조회합니다.")
     @GetMapping("/v1/{id}/images")
     public ResponseEntity<ApiResponse<ProductImagesResponse>> getProductImages(@PathVariable Long id) {
-        ProductImagesResponse response = productService.findProductImages(id);
+        ProductImagesResponse response = productQueryService.findProductImages(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "상품 옵션 조회", description = "상품의 옵션 그룹 및 옵션 목록을 조회합니다. 개별 옵션(isCommon: false)과 공통 옵션(isCommon: true)을 단일 목록으로 반환합니다.")
     @GetMapping("/v1/{id}/options")
     public ResponseEntity<ApiResponse<ProductOptionGroupsResponse>> getProductOptions(@PathVariable Long id) {
-        ProductOptionGroupsResponse response = productService.findProductOptions(id);
+        ProductOptionGroupsResponse response = productQueryService.findProductOptions(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "상품 리뷰 수 조회", description = "상품의 리뷰 총 개수를 조회합니다.")
     @GetMapping("/v1/{id}/reviews/count")
     public ResponseEntity<ApiResponse<ProductReviewCountResponse>> getProductReviewCount(@PathVariable Long id) {
-        ProductReviewCountResponse response = productService.findProductReviewCount(id);
+        ProductReviewCountResponse response = productQueryService.findProductReviewCount(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -88,7 +88,7 @@ public class ProductApiController {
         @Valid @ModelAttribute ProductSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        ProductReviewsByRatingPageResponse result = productService.getProductReviewsByRatingWithPagination(id, pageRequest.page(), pageRequest.size(), search.hasImage());
+        ProductReviewsByRatingPageResponse result = productQueryService.getProductReviewsByRatingWithPagination(id, pageRequest.page(), pageRequest.size(), search.hasImage());
         ApiResponse<ProductReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
     }
@@ -96,7 +96,7 @@ public class ProductApiController {
     @Operation(summary = "상품 리뷰 통계 조회", description = "상품의 리뷰 통계를 조회합니다. 평점, 맛 평점, 양 평점, 가격 평점을 포함합니다.")
     @GetMapping("/v1/{id}/reviews/statistics")
     public ResponseEntity<ApiResponse<ProductReviewStatisticsResponse>> getProductReviewStatistics(@PathVariable Long id) {
-        ProductReviewStatisticsResponse statistics = productService.getProductReviewStatistics(id);
+        ProductReviewStatisticsResponse statistics = productQueryService.getProductReviewStatistics(id);
         ApiResponse<ProductReviewStatisticsResponse> response = ApiResponse.success(statistics);
         return ResponseEntity.ok(response);
     }

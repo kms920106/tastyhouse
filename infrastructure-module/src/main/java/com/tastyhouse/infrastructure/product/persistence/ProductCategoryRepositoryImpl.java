@@ -13,6 +13,9 @@ import com.tastyhouse.core.domain.product.domain.vo.ProductCategoryId;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 
+/**
+ * 상품 카테고리 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class ProductCategoryRepositoryImpl implements ProductCategoryRepository {
@@ -23,18 +26,6 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
     @Override
     public Optional<ProductCategory> findById(ProductCategoryId id) {
         return productCategoryJpaRepository.findById(id.value()).map(ProductCategoryMapper::toDomain);
-    }
-
-    @Override
-    public List<ProductCategory> findActiveCategoriesByShopIdOrderBySort(Long shopId) {
-        return queryFactory
-            .selectFrom(productCategoryJpaEntity)
-            .where(productCategoryJpaEntity.shopId.eq(shopId), productCategoryJpaEntity.visible.eq(true))
-            .orderBy(productCategoryJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(ProductCategoryMapper::toDomain)
-            .toList();
     }
 
     @Override

@@ -1,9 +1,7 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -11,44 +9,18 @@ import com.tastyhouse.core.domain.product.domain.model.ProductOption;
 import com.tastyhouse.core.domain.product.domain.repository.ProductOptionRepository;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionId;
 
-import static com.tastyhouse.infrastructure.product.persistence.QProductOptionJpaEntity.productOptionJpaEntity;
-
+/**
+ * 상품 옵션 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class ProductOptionRepositoryImpl implements ProductOptionRepository {
 
-    private final JPAQueryFactory queryFactory;
     private final ProductOptionJpaRepository productOptionJpaRepository;
-
-    @Override
-    public List<ProductOption> findActiveByOptionGroupIdsOrderBySort(List<Long> optionGroupIds) {
-        return queryFactory
-            .selectFrom(productOptionJpaEntity)
-            .where(productOptionJpaEntity.optionGroupId.in(optionGroupIds), productOptionJpaEntity.visible.eq(true))
-            .orderBy(productOptionJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(ProductOptionMapper::toDomain)
-            .toList();
-    }
 
     @Override
     public Optional<ProductOption> findById(ProductOptionId id) {
         return productOptionJpaRepository.findById(id.value()).map(ProductOptionMapper::toDomain);
-    }
-
-    @Override
-    public List<ProductOption> findActiveByIds(List<Long> ids) {
-        if (ids.isEmpty()) {
-            return List.of();
-        }
-        return queryFactory
-            .selectFrom(productOptionJpaEntity)
-            .where(productOptionJpaEntity.id.in(ids), productOptionJpaEntity.visible.eq(true))
-            .fetch()
-            .stream()
-            .map(ProductOptionMapper::toDomain)
-            .toList();
     }
 
     @Override

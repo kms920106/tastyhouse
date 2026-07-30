@@ -8,14 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.product.domain.model.Product;
-import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
-import com.tastyhouse.core.domain.product.application.ProductCommandService;
-import com.tastyhouse.core.domain.product.application.ProductQueryService;
-import com.tastyhouse.core.domain.product.application.dto.command.ProductCategoryCreateCommand;
-import com.tastyhouse.core.domain.product.application.dto.command.ProductCreateCommand;
-import com.tastyhouse.core.domain.product.application.dto.command.SaveProductBbqCommand;
-import com.tastyhouse.core.domain.product.application.dto.command.SaveProductImageCommand;
 import com.tastyhouse.external.crawling.bbq.BbqApiClient;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
@@ -32,8 +24,7 @@ import com.tastyhouse.batch.crawling.bbq.response.SubOptionItemDetailResponse;
 public class BbqService {
 
     private final BbqApiClient bbqApiClient;
-    private final ProductCommandService productCommandService;
-    private final ProductQueryService productQueryService;
+    private final BbqProductSyncService bbqProductSyncService;
     private final RemoteImageDownloader remoteImageDownloader;
 
     public List<BbqProductCategoryResponse> getMenuCategories() {
@@ -139,14 +130,16 @@ public class BbqService {
             for (int categoryIndex = 0; categoryIndex < menuCategories.size(); categoryIndex++) {
                 BbqProductCategoryResponse categoryResponse = menuCategories.get(categoryIndex);
 
-                ProductCategory savedCategory = saveOrGetCategory(shopId, categoryResponse, categoryIndex);
+                Long categoryId = bbqProductSyncService.resolveCategoryId(
+                    shopId, categoryResponse.name(), categoryIndex
+                );
 
                 List<BbqProductResponse> menus = getMenusByCategoryId(categoryResponse.id());
                 log.info("카테고리 '{}' - 상품 {}개 조회", categoryResponse.name(), menus.size());
 
                 for (int menuIndex = 0; menuIndex < menus.size(); menuIndex++) {
                     BbqProductResponse menuResponse = menus.get(menuIndex);
-                    saveProductWithImage(shopId, savedCategory.getId(), menuResponse, categoryResponse.id(), menuIndex);
+                    saveProductWithImage(shopId, categoryId, menuResponse, categoryResponse.id(), menuIndex);
                 }
 
                 if (categoryIndex < menuCategories.size() - 1) {
@@ -168,36 +161,28 @@ public class BbqService {
         }
     }
 
-    private ProductCategory saveOrGetCategory(Long shopId, BbqProductCategoryResponse categoryResponse, int sort) {
-        List<ProductCategory> existingCategories = productQueryService.findProductCategoriesByNameAndShopId(categoryResponse.name(), shopId);
-        if (!existingCategories.isEmpty()) {
-            return existingCategories.getFirst();
-        }
-        return productCommandService.createProductCategory(ProductCategoryCreateCommand.of(
-            shopId, categoryResponse.name(), sort, true
-        ));
-    }
-
     private void saveProductWithImage(Long shopId, Long categoryId, BbqProductResponse menuResponse, Long bbqCategoryId, int sort) {
         BbqProductResponse menuDetail = getMenuDetail(menuResponse.id());
 
-        Product savedProduct = productCommandService.createProduct(ProductCreateCommand.of(
-            shopId, categoryId, menuDetail.name(), menuDetail.description(),
-            menuDetail.originalPrice(), null, null, null, 0, false, null,
-            menuDetail.soldOut(), true, sort
-        ));
-
+        Long uploadedFileId = null;
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {
-            Long uploadedFileId = remoteImageDownloader.uploadFromUrl(menuDetail.imageUrl());
-            productCommandService.saveProductImage(SaveProductImageCommand.of(
-                savedProduct.getId(), uploadedFileId, 0, true
-            ));
+            uploadedFileId = remoteImageDownloader.uploadFromUrl(menuDetail.imageUrl());
         }
 
-        productCommandService.saveProductBbq(SaveProductBbqCommand.of(
-            savedProduct.getId(), menuResponse.id(), bbqCategoryId, false
-        ));
+        BbqProductRegistration registration = BbqProductRegistration.of(
+            shopId,
+            categoryId,
+            menuDetail.name(),
+            menuDetail.description(),
+            menuDetail.originalPrice(),
+            menuDetail.soldOut(),
+            sort,
+            uploadedFileId,
+            menuResponse.id(),
+            bbqCategoryId
+        );
+        Long productId = bbqProductSyncService.createCrawledProduct(registration);
 
-        log.debug("상품 저장 완료: productId={}, name={}", savedProduct.getId(), savedProduct.getName());
+        log.debug("상품 저장 완료: productId={}, name={}", productId, menuDetail.name());
     }
 }
