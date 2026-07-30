@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.review.application.dto.result;
+package com.tastyhouse.infrastructure.review.query;
 
 import java.time.LocalDateTime;
 

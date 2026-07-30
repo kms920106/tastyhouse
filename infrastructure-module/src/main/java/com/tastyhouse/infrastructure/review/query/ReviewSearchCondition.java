@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.review.application.dto;
+package com.tastyhouse.infrastructure.review.query;
 
 public record ReviewSearchCondition(
     Long shopId,

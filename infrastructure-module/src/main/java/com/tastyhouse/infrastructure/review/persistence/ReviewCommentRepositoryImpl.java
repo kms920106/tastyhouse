@@ -1,40 +1,19 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewCommentRepository;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-
-import static com.tastyhouse.infrastructure.review.persistence.QReviewCommentJpaEntity.reviewCommentJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
 public class ReviewCommentRepositoryImpl implements ReviewCommentRepository {
 
-    private final JPAQueryFactory queryFactory;
     private final ReviewCommentJpaRepository reviewCommentJpaRepository;
-
-    @Override
-    public List<ReviewComment> findByReviewIdOrderByCreatedAtDesc(ReviewId reviewId) {
-        return queryFactory
-            .selectFrom(reviewCommentJpaEntity)
-            .where(
-                reviewCommentJpaEntity.reviewId.eq(reviewId.value()),
-                reviewCommentJpaEntity.hidden.eq(false)
-            )
-            .orderBy(reviewCommentJpaEntity.createdAt.desc())
-            .fetch()
-            .stream()
-            .map(ReviewCommentMapper::toDomain)
-            .toList();
-    }
 
     @Override
     public Optional<ReviewComment> findById(ReviewCommentId commentId) {

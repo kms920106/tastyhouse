@@ -28,10 +28,6 @@ import com.tastyhouse.core.domain.shop.domain.model.Station;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductSimpleResult;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
-import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ShopReviewStatisticsResult;
 import com.tastyhouse.core.domain.shop.application.ShopCommandService;
 import com.tastyhouse.core.domain.shop.application.ShopConvenienceInfoQueryService;
 import com.tastyhouse.core.domain.shop.application.ShopOperatingStatusQueryService;
@@ -47,9 +43,13 @@ import com.tastyhouse.core.domain.shop.application.dto.result.ShopConvenienceInf
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopFoodTypeCategoryResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhoneNumberResult;
 import com.tastyhouse.core.domain.shop.application.dto.result.ShopPhotoCategoryImageResult;
+import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
+import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
+import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
+import com.tastyhouse.webapi.review.ReviewQueryService;
 import com.tastyhouse.webapi.shop.response.ShopAmenityItem;
 import com.tastyhouse.webapi.shop.response.ShopAmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopBannerResponse;
@@ -400,7 +400,7 @@ public class ShopService {
     public ShopReviewsByRatingPageResponse getShopReviewsByRatingWithPagination(Long shopId, int page, int size, Boolean hasImage) {
         ReviewsByRatingResult result = reviewQueryService.findShopReviewsByRating(shopId, page, size, hasImage);
 
-        Map<Integer, List<ShopReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
+        Map<Integer, List<ShopReviewListItemResponse>> reviewsByRating = result.reviewsByRating().entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> entry.getValue().stream()
@@ -408,16 +408,16 @@ public class ShopService {
                                 .toList()
                 ));
 
-        List<ShopReviewListItemResponse> allReviews = result.getAllReviews().stream()
+        List<ShopReviewListItemResponse> allReviews = result.allReviews().stream()
                 .map(this::convertToShopReviewListItemResponse)
                 .toList();
 
         ShopReviewsByRatingResponse response = ShopReviewsByRatingResponse.from(
             reviewsByRating, allReviews,
-            result.getTotalReviewCount()
+            result.totalReviewCount()
         );
 
-        return new ShopReviewsByRatingPageResponse(response, result.getTotalElements());
+        return new ShopReviewsByRatingPageResponse(response, result.totalElements());
     }
 
     private ShopReviewListItemResponse convertToShopReviewListItemResponse(LatestReviewListItemResult dto) {

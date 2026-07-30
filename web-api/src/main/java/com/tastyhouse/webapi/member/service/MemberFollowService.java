@@ -4,10 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.webapi.follow.FollowQueryService;
 import com.tastyhouse.webapi.member.response.MemberStatsResponse;
+import com.tastyhouse.webapi.review.ReviewQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +18,7 @@ public class MemberFollowService {
     // 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회
     @Transactional(readOnly = true)
     public MemberStatsResponse getMemberStats(Long memberId) {
-        long reviewCount = reviewQueryService.countVisibleReviewsByMemberId(MemberId.of(memberId));
+        long reviewCount = reviewQueryService.countVisibleReviewsByMemberId(memberId);
         long followingCount = followQueryService.countFollowing(memberId);
         long followerCount = followQueryService.countFollower(memberId);
 

@@ -1,86 +1,25 @@
 package com.tastyhouse.core.domain.review.domain.repository;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
-import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.MyReviewListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewDetailResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewManagementDetailResult;
-import com.tastyhouse.core.domain.review.application.dto.result.SearchReviewItemResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
+/**
+ * 리뷰 write 포트.
+ *
+ * <p>도메인 모델을 주고받는 CRUD만 남긴다(공통 지침 패턴 4). 목록·검색·통계 등 표현 목적 read는
+ * infrastructure-module의 {@code ReviewQueryDao}/{@code ReviewManagementQueryDao}가 담당한다.
+ *
+ * <p>{@code findByIdAndMemberId}는 조회처럼 보이지만 "본인 리뷰만 수정·삭제할 수 있다"는 소유권
+ * 불변식을 검증하는 command 경로 전용 로드이므로 여기 남는다.
+ */
 public interface ReviewRepository {
-
-    PageResult<BestReviewListItemResult> findBestReviews(PageQuery pageQuery);
-
-    PageResult<SearchReviewItemResult> searchByKeyword(String keyword, PageQuery pageQuery);
-
-    PageResult<LatestReviewListItemResult> findLatestReviews(PageQuery pageQuery);
-
-    PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(List<Long> followingMemberIds, PageQuery pageQuery);
-
-    PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType);
-
-    List<LatestReviewListItemResult> findReviewsByShopIdAndRating(Long shopId, Integer rating, int limit);
-
-    PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType);
-
-    List<LatestReviewListItemResult> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit);
-
-    Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId);
-
-    PageResult<MyReviewListItemResult> findMyReviews(MemberId memberId, PageQuery pageQuery);
-
-    PageResult<MyReviewListItemResult> findReviewsByMemberId(MemberId memberId, PageQuery pageQuery);
-
-    Long countByShopIdAndHiddenFalse(Long shopId);
-
-    Long countWillRevisit(Long shopId);
-
-    Double getAverageTasteRating(Long shopId);
-
-    Double getAverageAmountRating(Long shopId);
-
-    Double getAveragePriceRating(Long shopId);
-
-    Double getAverageAtmosphereRating(Long shopId);
-
-    Double getAverageKindnessRating(Long shopId);
-
-    Double getAverageHygieneRating(Long shopId);
-
-    Map<Integer, Long> getRatingCounts(Long shopId);
-
-    Map<Integer, Long> getMonthlyReviewCounts(Long shopId, int year);
-
-    Long countByProductIdAndHiddenFalse(Long productId);
-
-    Double getAverageTasteRatingByProductId(Long productId);
-
-    Double getAverageAmountRatingByProductId(Long productId);
-
-    Double getAveragePriceRatingByProductId(Long productId);
 
     Optional<Review> findById(ReviewId reviewId);
 
     Optional<Review> findByIdAndMemberId(ReviewId reviewId, MemberId memberId);
-
-    PageResult<ReviewListItemResult> findReviews(ReviewSearchCondition condition, PageQuery pageQuery);
-
-    Optional<ReviewManagementDetailResult> findReviewManagementDetail(ReviewId reviewId);
-
-    long countVisibleReviewsByMemberId(MemberId memberId);
-
-    boolean existsByOrderIdAndProductIdAndMemberId(Long orderId, Long productId, MemberId memberId);
 
     Review save(Review review);
 

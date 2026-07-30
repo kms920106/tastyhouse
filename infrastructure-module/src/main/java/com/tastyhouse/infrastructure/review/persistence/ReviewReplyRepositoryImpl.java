@@ -1,58 +1,19 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
 import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewReplyId;
-
-import static com.tastyhouse.infrastructure.review.persistence.QReviewReplyJpaEntity.reviewReplyJpaEntity;
 
 @Repository
 @RequiredArgsConstructor
 public class ReviewReplyRepositoryImpl implements ReviewReplyRepository {
 
-    private final JPAQueryFactory queryFactory;
     private final ReviewReplyJpaRepository reviewReplyJpaRepository;
-
-    @Override
-    public List<ReviewReply> findByCommentIdInAndHiddenFalseOrderByCreatedAtAsc(List<ReviewCommentId> commentIds) {
-        List<Long> commentIdValues = commentIds.stream()
-            .map(ReviewCommentId::value)
-            .toList();
-        return queryFactory
-            .selectFrom(reviewReplyJpaEntity)
-            .where(
-                reviewReplyJpaEntity.commentId.in(commentIdValues),
-                reviewReplyJpaEntity.hidden.eq(false)
-            )
-            .orderBy(reviewReplyJpaEntity.createdAt.asc())
-            .fetch()
-            .stream()
-            .map(ReviewReplyMapper::toDomain)
-            .toList();
-    }
-
-    @Override
-    public List<ReviewReply> findByCommentIdInOrderByCreatedAtAsc(List<ReviewCommentId> commentIds) {
-        List<Long> commentIdValues = commentIds.stream()
-            .map(ReviewCommentId::value)
-            .toList();
-        return queryFactory
-            .selectFrom(reviewReplyJpaEntity)
-            .where(reviewReplyJpaEntity.commentId.in(commentIdValues))
-            .orderBy(reviewReplyJpaEntity.createdAt.asc())
-            .fetch()
-            .stream()
-            .map(ReviewReplyMapper::toDomain)
-            .toList();
-    }
 
     @Override
     public Optional<ReviewReply> findById(ReviewReplyId replyId) {

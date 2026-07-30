@@ -4,35 +4,49 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewReplyId;
-import com.tastyhouse.core.domain.review.application.ReviewCommandService;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
-import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewCommentListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewManagementDetailResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewReplyListItemResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
-import com.tastyhouse.adminapi.file.FileService;
+import com.tastyhouse.infrastructure.review.query.ReviewCommentListItemResult;
+import com.tastyhouse.infrastructure.review.query.ReviewListItemResult;
+import com.tastyhouse.infrastructure.review.query.ReviewManagementDetailResult;
+import com.tastyhouse.infrastructure.review.query.ReviewManagementQueryDao;
+import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
+import com.tastyhouse.infrastructure.review.query.ReviewReplyListItemResult;
+import com.tastyhouse.infrastructure.review.query.ReviewSearchCondition;
 import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.review.response.ReviewCommentListItemResponse;
 import com.tastyhouse.adminapi.review.response.ReviewListItemResponse;
 import com.tastyhouse.adminapi.review.response.ReviewManagementDetailResponse;
 import com.tastyhouse.adminapi.review.response.ReviewReplyListItemResponse;
 
+/**
+ * 리뷰 관리 조회 서비스(admin).
+ *
+ * <p>관리 화면은 숨김 리뷰·댓글·답글까지 모두 봐야 하므로 관리 전용 read 어댑터
+ * ({@link ReviewManagementQueryDao})를 쓰고, 태그명처럼 web과 공유하는 조회만 {@link ReviewQueryDao}를
+ * 쓴다. 파일 경로 → 표시용 URL 변환은 이 계층이 담당한다.
+ *
+ * <p>명령 동작은 {@link ReviewCommandService}로 분리했다(CQRS).
+ */
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class ReviewService {
+public class ReviewQueryService {
 
-    private final ReviewCommandService reviewCommandService;
-    private final ReviewQueryService reviewQueryService;
+    private final ReviewManagementQueryDao reviewManagementQueryDao;
+    private final ReviewQueryDao reviewQueryDao;
     private final FileService fileService;
 
+    /**
+     * 리뷰 목록(숨김 포함) — 검색 조건으로 필터링한다.
+     */
     public PaginationResponse<ReviewListItemResponse> getReviews(
         Long shopId,
         Long productId,
@@ -45,60 +59,42 @@ public class ReviewService {
         int size
     ) {
         ReviewSearchCondition condition = ReviewSearchCondition.of(shopId, productId, memberId, hidden, content, minRating, maxRating);
-        PageResult<ReviewListItemResponse> pageResult = reviewQueryService.findReviews(condition, page, size)
+        PageResult<ReviewListItemResponse> pageResult = reviewManagementQueryDao.findReviews(condition, PageQuery.of(page, size))
             .map(this::toReviewListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
+    /**
+     * 리뷰 상세(숨김 포함) — 상세 본문 조회와 태그명 조회를 조합한다.
+     */
     public ReviewManagementDetailResponse getReview(Long id) {
         ReviewId reviewId = ReviewId.of(id);
-        ReviewManagementDetailResult detail = reviewQueryService.findReviewManagementDetail(reviewId)
+        ReviewManagementDetailResult detail = reviewManagementQueryDao.findReviewManagementDetail(reviewId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        List<Long> tagIds = reviewQueryDao.findTagIdsByReviewId(reviewId.value());
+        if (!tagIds.isEmpty()) {
+            detail = detail.withTagNames(reviewQueryDao.findTagNamesByIds(tagIds));
+        }
+
         return toReviewManagementDetailResponse(detail);
     }
 
-    public void changeReviewHidden(Long id, boolean hidden) {
-        ReviewId reviewId = ReviewId.of(id);
-        reviewCommandService.changeReviewHidden(reviewId, hidden);
-    }
-
-    public void deleteReview(Long id) {
-        ReviewId reviewId = ReviewId.of(id);
-        reviewCommandService.deleteReview(reviewId);
-    }
-
+    /**
+     * 리뷰의 댓글·답글 목록(숨김 포함).
+     */
     public List<ReviewCommentListItemResponse> getComments(Long id) {
         ReviewId reviewId = ReviewId.of(id);
-        List<ReviewCommentListItemResult> comments = reviewQueryService.findCommentsIncludingHidden(reviewId);
+        List<ReviewCommentListItemResult> comments = reviewManagementQueryDao.findCommentsIncludingHidden(reviewId);
 
         List<ReviewCommentId> commentIds = comments.stream()
             .map(comment -> ReviewCommentId.of(comment.id()))
             .toList();
-        List<ReviewReplyListItemResult> replies = reviewQueryService.findRepliesIncludingHidden(commentIds);
+        List<ReviewReplyListItemResult> replies = reviewManagementQueryDao.findRepliesIncludingHidden(commentIds);
 
         return comments.stream()
             .map(comment -> toReviewCommentListItemResponse(comment, replies))
             .toList();
-    }
-
-    public void changeCommentHidden(Long commentId, boolean hidden) {
-        ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
-        reviewCommandService.changeCommentHidden(reviewCommentId, hidden);
-    }
-
-    public void deleteComment(Long commentId) {
-        ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
-        reviewCommandService.deleteComment(reviewCommentId);
-    }
-
-    public void changeReplyHidden(Long replyId, boolean hidden) {
-        ReviewReplyId reviewReplyId = ReviewReplyId.of(replyId);
-        reviewCommandService.changeReplyHidden(reviewReplyId, hidden);
-    }
-
-    public void deleteReply(Long replyId) {
-        ReviewReplyId reviewReplyId = ReviewReplyId.of(replyId);
-        reviewCommandService.deleteReply(reviewReplyId);
     }
 
     private ReviewListItemResponse toReviewListItemResponse(ReviewListItemResult dto) {
@@ -140,7 +136,10 @@ public class ReviewService {
         );
     }
 
-    private ReviewCommentListItemResponse toReviewCommentListItemResponse(ReviewCommentListItemResult comment, List<ReviewReplyListItemResult> replies) {
+    private ReviewCommentListItemResponse toReviewCommentListItemResponse(
+        ReviewCommentListItemResult comment,
+        List<ReviewReplyListItemResult> replies
+    ) {
         List<ReviewReplyListItemResponse> commentReplies = replies.stream()
             .filter(reply -> reply.commentId().equals(comment.id()))
             .map(this::toReviewReplyListItemResponse)

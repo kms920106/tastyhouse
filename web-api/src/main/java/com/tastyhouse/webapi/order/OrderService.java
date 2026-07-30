@@ -17,7 +17,6 @@ import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResu
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.common.PaginationResponse;
@@ -27,6 +26,7 @@ import com.tastyhouse.webapi.order.response.OrderDetailResponse;
 import com.tastyhouse.webapi.order.response.OrderProductOptionResponse;
 import com.tastyhouse.webapi.order.response.OrderProductResponse;
 import com.tastyhouse.webapi.order.response.PaymentSummaryResponse;
+import com.tastyhouse.webapi.review.ReviewQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -132,7 +132,7 @@ public class OrderService {
                 boolean reviewed = reviewQueryService.isReviewedByOrderAndProduct(
                     result.orderId().value(),
                     orderProduct.productId(),
-                    MemberId.of(memberId)
+                    memberId
                 );
                 String imageUrl = fileService.getUrlByPath(orderProduct.imageUrl());
                 return toOrderProductResponse(orderProduct, imageUrl, reviewed);

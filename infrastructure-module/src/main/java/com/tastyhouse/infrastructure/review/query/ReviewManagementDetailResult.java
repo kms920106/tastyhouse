@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.review.application.dto.result;
+package com.tastyhouse.infrastructure.review.query;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,7 +7,7 @@ import com.querydsl.core.annotations.QueryProjection;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 
-public record ReviewDetailResult(
+public record ReviewManagementDetailResult(
     Long id,
     Long shopId,
     String shopName,
@@ -21,6 +21,7 @@ public record ReviewDetailResult(
     Double kindnessRating,
     Double hygieneRating,
     boolean willRevisit,
+    boolean hidden,
     MemberId memberId,
     String memberNickname,
     String memberProfileImageUrl,
@@ -29,7 +30,7 @@ public record ReviewDetailResult(
     List<String> tagNames
 ) {
     @QueryProjection
-    public ReviewDetailResult(
+    public ReviewManagementDetailResult(
         Long id,
         Long shopId,
         String shopName,
@@ -43,6 +44,7 @@ public record ReviewDetailResult(
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
+        boolean hidden,
         MemberId memberId,
         String memberNickname,
         String memberProfileImageUrl,
@@ -51,27 +53,27 @@ public record ReviewDetailResult(
         this(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
-            atmosphereRating, kindnessRating, hygieneRating, willRevisit,
+            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden,
             memberId, memberNickname, memberProfileImageUrl, createdAt,
             List.of(), List.of()
         );
     }
 
-    public ReviewDetailResult withImageUrls(List<String> imageUrls) {
-        return new ReviewDetailResult(
+    public ReviewManagementDetailResult withImageUrls(List<String> imageUrls) {
+        return new ReviewManagementDetailResult(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
-            atmosphereRating, kindnessRating, hygieneRating, willRevisit,
+            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden,
             memberId, memberNickname, memberProfileImageUrl, createdAt,
             imageUrls, tagNames
         );
     }
 
-    public ReviewDetailResult withTagNames(List<String> tagNames) {
-        return new ReviewDetailResult(
+    public ReviewManagementDetailResult withTagNames(List<String> tagNames) {
+        return new ReviewManagementDetailResult(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
-            atmosphereRating, kindnessRating, hygieneRating, willRevisit,
+            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden,
             memberId, memberNickname, memberProfileImageUrl, createdAt,
             imageUrls, tagNames
         );

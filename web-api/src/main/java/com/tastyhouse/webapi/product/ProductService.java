@@ -16,10 +16,9 @@ import com.tastyhouse.core.domain.product.application.dto.command.ProductBatchQu
 import com.tastyhouse.core.domain.product.application.dto.result.ProductBatchResult;
 import com.tastyhouse.core.domain.product.application.dto.result.ProductOptionsResult;
 import com.tastyhouse.core.domain.product.application.dto.result.TodayDiscountProductResult;
-import com.tastyhouse.core.domain.review.application.ReviewQueryService;
-import com.tastyhouse.core.domain.review.application.dto.result.LatestReviewListItemResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ProductReviewStatisticsResult;
-import com.tastyhouse.core.domain.review.application.dto.result.ReviewsByRatingResult;
+import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
+import com.tastyhouse.infrastructure.review.query.ProductReviewStatisticsResult;
+import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -40,6 +39,7 @@ import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemResponse;
+import com.tastyhouse.webapi.review.ReviewQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -166,7 +166,7 @@ public class ProductService {
     public ProductReviewsByRatingPageResponse getProductReviewsByRatingWithPagination(Long productId, int page, int size, Boolean hasImage) {
         ReviewsByRatingResult result = reviewQueryService.findProductReviewsByRating(productId, page, size, hasImage);
 
-        Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.getReviewsByRating().entrySet().stream()
+        Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.reviewsByRating().entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> entry.getValue().stream()
@@ -174,15 +174,15 @@ public class ProductService {
                     .toList()
             ));
 
-        List<ProductReviewListItemResponse> allReviews = result.getAllReviews().stream()
+        List<ProductReviewListItemResponse> allReviews = result.allReviews().stream()
             .map(this::convertToProductReviewListItemResponse)
             .toList();
 
         ProductReviewsByRatingResponse response = ProductReviewsByRatingResponse.from(
-            reviewsByRating, allReviews, result.getTotalReviewCount()
+            reviewsByRating, allReviews, result.totalReviewCount()
         );
 
-        return new ProductReviewsByRatingPageResponse(response, result.getTotalElements());
+        return new ProductReviewsByRatingPageResponse(response, result.totalElements());
     }
 
     private ProductReviewListItemResponse convertToProductReviewListItemResponse(LatestReviewListItemResult dto) {

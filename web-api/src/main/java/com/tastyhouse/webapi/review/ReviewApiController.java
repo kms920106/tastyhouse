@@ -47,7 +47,8 @@ import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
 @Tag(name = "Review", description = "리뷰 관리 API")
 public class ReviewApiController {
 
-    private final ReviewService reviewService;
+    private final ReviewCommandService reviewCommandService;
+    private final ReviewQueryService reviewQueryService;
 
     @Operation(summary = "리뷰 작성 정보 조회", description = "주문 상품 ID로 리뷰 작성 페이지에 필요한 상품 정보를 조회합니다.")
     @GetMapping("/v1/write/order-items/{orderProductId}")
@@ -55,7 +56,7 @@ public class ReviewApiController {
         @Parameter(description = "주문 상품 ID", example = "1") @PathVariable Long orderProductId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewWriteInfoResponse response = reviewService.getReviewWriteInfo(orderProductId, userDetails.getMemberId());
+        ReviewWriteInfoResponse response = reviewQueryService.getReviewWriteInfo(orderProductId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -65,7 +66,7 @@ public class ReviewApiController {
         @Valid @RequestBody ReviewCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewResponse response = reviewService.createReview(userDetails.getMemberId(), request);
+        ReviewResponse response = reviewCommandService.createReview(userDetails.getMemberId(), request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -76,7 +77,7 @@ public class ReviewApiController {
         @Valid @RequestBody ReviewUpdateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewResponse response = reviewService.updateReview(reviewId, userDetails.getMemberId(), request);
+        ReviewResponse response = reviewCommandService.updateReview(reviewId, userDetails.getMemberId(), request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -86,14 +87,14 @@ public class ReviewApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        reviewService.deleteReview(reviewId, userDetails.getMemberId());
+        reviewCommandService.deleteReview(reviewId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "베스트 리뷰 목록 조회", description = "평점이 높은 순으로 정렬된 베스트 리뷰 목록을 페이징하여 조회합니다.")
     @GetMapping("/v1/best")
     public ResponseEntity<ApiResponse<List<ReviewBestListItemResponse>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
-        PaginationResponse<ReviewBestListItemResponse> pageResponse = reviewService.searchBestReviewList(pageRequest.page(), pageRequest.size());
+        PaginationResponse<ReviewBestListItemResponse> pageResponse = reviewQueryService.searchBestReviewList(pageRequest.page(), pageRequest.size());
         ApiResponse<List<ReviewBestListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -106,7 +107,7 @@ public class ReviewApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        PaginationResponse<ReviewLatestListItemResponse> pageResponse = reviewService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), search.type(), memberId);
+        PaginationResponse<ReviewLatestListItemResponse> pageResponse = reviewQueryService.searchLatestReviewList(pageRequest.page(), pageRequest.size(), search.type(), memberId);
         ApiResponse<List<ReviewLatestListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -114,7 +115,7 @@ public class ReviewApiController {
     @Operation(summary = "리뷰 상세 조회", description = "리뷰 ID로 리뷰 상세 정보를 조회합니다. 리뷰 태그 정보도 함께 조회됩니다.")
     @GetMapping("/v1/{reviewId}")
     public ResponseEntity<ApiResponse<ReviewDetailResponse>> getReviewDetail(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId) {
-        return reviewService.findReviewDetail(reviewId)
+        return reviewQueryService.findReviewDetail(reviewId)
                 .map(detail -> ResponseEntity.ok(ApiResponse.success(detail)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -122,7 +123,7 @@ public class ReviewApiController {
     @Operation(summary = "리뷰 상세 정보 조회 (상품 정보 포함)", description = "리뷰 ID로 리뷰 상세 정보와 연결된 상품 정보를 함께 조회합니다. 평점, 유저 정보, 작성일, 내용, 이미지, 태그 정보가 포함됩니다.")
     @GetMapping("/v1/{reviewId}/product")
     public ResponseEntity<ApiResponse<ReviewProductResponse>> getReviewProduct(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId) {
-        return reviewService.findReviewProduct(reviewId)
+        return reviewQueryService.findReviewProduct(reviewId)
                 .map(product -> ResponseEntity.ok(ApiResponse.success(product)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -138,7 +139,7 @@ public class ReviewApiController {
             liked = ReviewLikeStatusResponse.from(false);
         } else {
             Long memberId = userDetails.getMemberId();
-            liked = reviewService.isLiked(reviewId, memberId);
+            liked = reviewQueryService.isLiked(reviewId, memberId);
         }
         return ResponseEntity.ok(ApiResponse.success(liked));
     }
@@ -149,7 +150,7 @@ public class ReviewApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        boolean liked = reviewService.toggleReviewLike(reviewId, userDetails.getMemberId());
+        boolean liked = reviewCommandService.toggleReviewLike(reviewId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(ReviewLikeResponse.from(liked)));
     }
 
@@ -160,7 +161,7 @@ public class ReviewApiController {
         @Valid @RequestBody CommentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewCommentResponse response = reviewService.createComment(reviewId, userDetails.getMemberId(), request.content());
+        ReviewCommentResponse response = reviewCommandService.createComment(reviewId, userDetails.getMemberId(), request.content());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -171,14 +172,14 @@ public class ReviewApiController {
         @Valid @RequestBody ReplyCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewReplyResponse response = reviewService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
+        ReviewReplyResponse response = reviewCommandService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "댓글 및 답글 조회", description = "리뷰의 모든 댓글과 답글을 조회합니다.")
     @GetMapping("/v1/{reviewId}/comments")
     public ResponseEntity<ApiResponse<ReviewCommentListResponse>> getComments(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId) {
-        ReviewCommentListResponse response = reviewService.searchCommentsWithReplies(reviewId);
+        ReviewCommentListResponse response = reviewQueryService.searchCommentsWithReplies(reviewId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -188,7 +189,7 @@ public class ReviewApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ReviewMemberListItemResponse> pageResponse = reviewService.findMemberReviews(memberId, pageRequest.page(), pageRequest.size());
+        PaginationResponse<ReviewMemberListItemResponse> pageResponse = reviewQueryService.findMemberReviews(memberId, pageRequest.page(), pageRequest.size());
         ApiResponse<List<ReviewMemberListItemResponse>> response = ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         );

@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.review.application.dto.result;
+package com.tastyhouse.infrastructure.review.query;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,36 +22,6 @@ public record LatestReviewListItemResult(
     Long likeCount,
     Long commentCount
 ) {
-    @QueryProjection
-    public LatestReviewListItemResult(
-        Long id,
-        String stationName,
-        Double totalRating,
-        String content,
-        MemberId memberId,
-        String memberNickname,
-        String memberProfileImageUrl,
-        LocalDateTime createdAt,
-        Long productId,
-        String productName
-    ) {
-        this(
-            id,
-            List.of(),
-            stationName,
-            totalRating,
-            content,
-            memberId,
-            memberNickname,
-            memberProfileImageUrl,
-            createdAt,
-            productId,
-            productName,
-            0L,
-            0L
-        );
-    }
-
     @QueryProjection
     public LatestReviewListItemResult(
         Long id,

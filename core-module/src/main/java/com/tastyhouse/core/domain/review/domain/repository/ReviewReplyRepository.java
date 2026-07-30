@@ -1,17 +1,17 @@
 package com.tastyhouse.core.domain.review.domain.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewReplyId;
 
+/**
+ * 리뷰 답글 write 포트.
+ *
+ * <p>목록 조회는 표현 목적 read이므로 infrastructure-module의 query DAO로 이관했고(공통 지침 패턴 4),
+ * 여기에는 상태 전이·삭제에 필요한 단건 로드와 저장만 남긴다.
+ */
 public interface ReviewReplyRepository {
-
-    List<ReviewReply> findByCommentIdInAndHiddenFalseOrderByCreatedAtAsc(List<ReviewCommentId> commentIds);
-
-    List<ReviewReply> findByCommentIdInOrderByCreatedAtAsc(List<ReviewCommentId> commentIds);
 
     Optional<ReviewReply> findById(ReviewReplyId replyId);
 

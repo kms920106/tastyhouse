@@ -8,18 +8,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.tastyhouse.core.domain.product.domain.port.ProductReviewStatisticsPort;
 import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
 import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.review.domain.event.ReviewCreatedEvent;
 import com.tastyhouse.core.domain.review.domain.event.ReviewDeletedEvent;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
 
 @Component
 @RequiredArgsConstructor
 public class ProductReviewEventListener {
 
     private final ProductRepository productRepository;
-    private final ReviewRepository reviewRepository;
+    private final ProductReviewStatisticsPort productReviewStatisticsPort;
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -39,7 +39,7 @@ public class ProductReviewEventListener {
 
     private void updateProductReviewStats(Long productId) {
         productRepository.findById(ProductId.of(productId)).ifPresent(product -> {
-            Long count = reviewRepository.countByProductIdAndHiddenFalse(productId);
+            Long count = productReviewStatisticsPort.countVisibleReviewsByProductId(productId);
             Double rating = calculateAverageRating(productId);
             product.updateReviewStats(rating, count != null ? count.intValue() : 0);
             productRepository.save(product);
@@ -47,9 +47,9 @@ public class ProductReviewEventListener {
     }
 
     private Double calculateAverageRating(Long productId) {
-        Double taste = reviewRepository.getAverageTasteRatingByProductId(productId);
-        Double amount = reviewRepository.getAverageAmountRatingByProductId(productId);
-        Double price = reviewRepository.getAveragePriceRatingByProductId(productId);
+        Double taste = productReviewStatisticsPort.getAverageTasteRatingByProductId(productId);
+        Double amount = productReviewStatisticsPort.getAverageAmountRatingByProductId(productId);
+        Double price = productReviewStatisticsPort.getAveragePriceRatingByProductId(productId);
         if (taste == null && amount == null && price == null) return null;
         double t = taste != null ? taste : 0.0;
         double a = amount != null ? amount : 0.0;

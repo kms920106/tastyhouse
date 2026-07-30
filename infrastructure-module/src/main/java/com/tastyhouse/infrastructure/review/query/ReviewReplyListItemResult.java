@@ -1,30 +1,39 @@
-package com.tastyhouse.core.domain.review.application.dto.result;
+package com.tastyhouse.infrastructure.review.query;
 
 import java.time.LocalDateTime;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 
-public record ReviewCommentListItemResult(
+public record ReviewReplyListItemResult(
     Long id,
+    Long commentId,
     MemberId memberId,
     String memberNickname,
+    MemberId replyToMemberId,
+    String replyToMemberNickname,
     String content,
     boolean hidden,
     LocalDateTime createdAt
 ) {
 
-    public static ReviewCommentListItemResult of(
+    public static ReviewReplyListItemResult of(
         Long id,
+        Long commentId,
         MemberId memberId,
         String memberNickname,
+        MemberId replyToMemberId,
+        String replyToMemberNickname,
         String content,
         boolean hidden,
         LocalDateTime createdAt
     ) {
-        return new ReviewCommentListItemResult(
+        return new ReviewReplyListItemResult(
             id,
+            commentId,
             memberId,
             memberNickname,
+            replyToMemberId,
+            replyToMemberNickname,
             content,
             hidden,
             createdAt

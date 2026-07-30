@@ -19,15 +19,6 @@ public class ReviewTagRepositoryImpl implements ReviewTagRepository {
     private final ReviewTagJpaRepository reviewTagJpaRepository;
 
     @Override
-    public List<Long> findTagIdsByReviewId(Long reviewId) {
-        return queryFactory
-            .select(reviewTagJpaEntity.tagId)
-            .from(reviewTagJpaEntity)
-            .where(reviewTagJpaEntity.reviewId.eq(reviewId))
-            .fetch();
-    }
-
-    @Override
     public void saveAll(List<ReviewTag> tags) {
         List<ReviewTagJpaEntity> entities = tags.stream()
             .map(ReviewTagMapper::toEntity)

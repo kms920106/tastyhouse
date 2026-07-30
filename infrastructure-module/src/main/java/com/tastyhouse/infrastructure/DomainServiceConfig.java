@@ -28,9 +28,15 @@ import com.tastyhouse.core.domain.rank.domain.port.MemberReviewCountPort;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
 import com.tastyhouse.core.domain.rank.domain.service.RankSettlementService;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
+import com.tastyhouse.core.domain.review.domain.repository.ReviewImageRepository;
+import com.tastyhouse.core.domain.review.domain.repository.ReviewLikeRepository;
+import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
+import com.tastyhouse.core.domain.review.domain.repository.ReviewTagRepository;
+import com.tastyhouse.core.domain.review.domain.service.ReviewLifecycleService;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationSlotRepository;
 import com.tastyhouse.core.domain.reservation.domain.service.ReservationBookingService;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
 import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
 import com.tastyhouse.core.domain.search.domain.service.PopularKeywordRefreshService;
@@ -123,6 +129,29 @@ public class DomainServiceConfig {
             reservationSlotRepository,
             shopRepository,
             memberRepository
+        );
+    }
+
+    /**
+     * 리뷰 생애주기 — 리뷰 본문과 첨부 이미지·태그를 한 트랜잭션에서 함께 저장·정리하고, 좋아요 토글과
+     * 통계 갱신 이벤트 발행을 함께 처리하는 오케스트레이션.
+     */
+    @Bean
+    public ReviewLifecycleService reviewLifecycleService(
+        ReviewRepository reviewRepository,
+        ReviewImageRepository reviewImageRepository,
+        ReviewTagRepository reviewTagRepository,
+        ReviewLikeRepository reviewLikeRepository,
+        TagRepository tagRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new ReviewLifecycleService(
+            reviewRepository,
+            reviewImageRepository,
+            reviewTagRepository,
+            reviewLikeRepository,
+            tagRepository,
+            domainEventPublisher
         );
     }
 
