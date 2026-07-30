@@ -29,7 +29,6 @@ import com.tastyhouse.core.domain.payment.domain.repository.TossPaymentRecordRep
 import com.tastyhouse.core.domain.payment.domain.vo.Amount;
 import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.core.domain.payment.domain.vo.PgOrderId;
-import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.domain.payment.application.dto.command.CancelPaymentCommand;
 import com.tastyhouse.core.domain.payment.application.dto.command.ConfirmPaymentCommand;
 import com.tastyhouse.core.domain.payment.application.dto.command.PaymentCreateCommand;
@@ -56,7 +55,6 @@ public class PaymentCommandService {
     private final PaymentRefundRepository paymentRefundRepository;
     private final TossPaymentRecordRepository tossPaymentRecordRepository;
     private final PgPaymentGateway pgPaymentGateway;
-    private final OrderQueryService orderQueryService;
     private final OrderRepository orderRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -65,7 +63,7 @@ public class PaymentCommandService {
     @Transactional
     public PaymentResult createPayment(MemberId memberId, PaymentCreateCommand command) {
         OrderId orderId = OrderId.of(command.orderId());
-        Order order = orderQueryService.findById(orderId)
+        Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -101,7 +99,7 @@ public class PaymentCommandService {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
-        Order order = orderQueryService.findById(payment.getOrderId())
+        Order order = orderRepository.findById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         payment.updatePgInfo(command.pgProvider(), command.pgTid(), command.pgOrderId());
@@ -124,7 +122,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findByPgOrderId(command.pgOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderQueryService.findById(payment.getOrderId())
+        Order order = orderRepository.findById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -187,7 +185,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderQueryService.findById(payment.getOrderId())
+        Order order = orderRepository.findById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -242,7 +240,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderQueryService.findById(payment.getOrderId())
+        Order order = orderRepository.findById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {
@@ -279,7 +277,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderQueryService.findById(payment.getOrderId())
+        Order order = orderRepository.findById(payment.getOrderId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {

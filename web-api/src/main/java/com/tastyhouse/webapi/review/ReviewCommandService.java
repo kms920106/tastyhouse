@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.core.domain.review.domain.model.Review;
 import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
@@ -23,7 +24,6 @@ import com.tastyhouse.core.domain.review.domain.service.ReviewRegistration;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
-import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
@@ -58,7 +58,7 @@ public class ReviewCommandService {
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
     private final ProductQueryService productQueryService;
-    private final OrderQueryService orderQueryService;
+    private final OrderProductRepository orderProductRepository;
     private final MemberQueryDao memberQueryDao;
     private final FileService fileService;
     private final FileQueryService fileQueryService;
@@ -69,7 +69,8 @@ public class ReviewCommandService {
     public ReviewResponse createReview(Long memberId, ReviewCreateRequest request) {
         Long orderId = null;
         if (request.orderProductId() != null) {
-            OrderProduct orderProduct = orderQueryService.findOrderProductById(OrderProductId.of(request.orderProductId()));
+            OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(request.orderProductId()))
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
             orderId = orderProduct.getOrderId();
         }
 

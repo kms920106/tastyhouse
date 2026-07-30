@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
+import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
-import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.domain.payment.application.dto.result.PaymentResult;
 import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -20,12 +20,12 @@ import com.tastyhouse.core.exception.ErrorCode;
 public class PaymentQueryService {
 
     private final PaymentRepository paymentRepository;
-    private final OrderQueryService orderQueryService;
+    private final OrderRepository orderRepository;
 
     @Transactional(readOnly = true)
     public PaymentResult getPaymentByOrderId(MemberId memberId, Long orderIdValue) {
         OrderId orderId = OrderId.of(orderIdValue);
-        Order order = orderQueryService.findById(orderId)
+        Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getMemberId().equals(memberId)) {

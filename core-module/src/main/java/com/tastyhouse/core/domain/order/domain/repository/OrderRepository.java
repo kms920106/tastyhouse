@@ -2,22 +2,19 @@ package com.tastyhouse.core.domain.order.domain.repository;
 
 import java.util.Optional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
-import com.tastyhouse.core.domain.order.application.dto.OrderSearchCondition;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderManagementListItemResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
+/**
+ * 주문 write 포트.
+ *
+ * <p>command 경로·도메인 서비스의 트랜잭션 안에서 소비되는 단건 로드와 저장만 남긴다. 목록·검색·페이징
+ * 등 표현 목적 조회는 infrastructure-module의 {@code infrastructure/order/query/OrderQueryDao}가
+ * 담당한다(공통 지침 패턴 4).
+ */
 public interface OrderRepository {
 
     Optional<Order> findById(OrderId orderId);
-
-    PageResult<OrderListItemResult> findOrderListByMemberId(MemberId memberId, PageQuery pageQuery);
-
-    PageResult<OrderManagementListItemResult> findOrders(OrderSearchCondition condition, PageQuery pageQuery);
 
     Order save(Order order);
 }

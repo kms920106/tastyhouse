@@ -31,7 +31,8 @@ import com.tastyhouse.webapi.order.response.OrderDetailResponse;
 @Tag(name = "Order", description = "주문 API")
 public class OrderApiController {
 
-    private final OrderService orderService;
+    private final OrderCommandService orderCommandService;
+    private final OrderQueryService orderQueryService;
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
     @PostMapping("/v1")
@@ -39,7 +40,7 @@ public class OrderApiController {
         @Valid @RequestBody OrderCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        Long orderId = orderService.createOrder(
+        Long orderId = orderCommandService.createOrder(
             userDetails.getMemberId(),
             request.shopId(),
             request.orderMethod(),
@@ -62,7 +63,7 @@ public class OrderApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
-        PaginationResponse<OrderListItemResponse> page = orderService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
+        PaginationResponse<OrderListItemResponse> page = orderQueryService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
         ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
             page.content(),
             page.page(),
@@ -79,7 +80,7 @@ public class OrderApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
-        OrderDetailResponse response = orderService.getOrderDetail(memberId, id);
+        OrderDetailResponse response = orderQueryService.getOrderDetail(memberId, id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

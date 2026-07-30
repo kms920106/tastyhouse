@@ -1,39 +1,29 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 
-import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEntity.orderProductJpaEntity;
-
+/**
+ * 주문 상품 라인 write 어댑터.
+ *
+ * <p>write 포트 순수화(공통 지침 패턴 4)로 목록 조회는 {@code order/query/OrderQueryDao}로 이관되어,
+ * 이 어댑터는 단건 로드와 저장만 담당한다 — QueryDSL이 필요 없어 {@code JPAQueryFactory}를 주입하지 않는다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class OrderProductRepositoryImpl implements OrderProductRepository {
 
-    private final JPAQueryFactory queryFactory;
     private final OrderProductJpaRepository orderProductJpaRepository;
 
     @Override
     public Optional<OrderProduct> findById(OrderProductId orderProductId) {
         return orderProductJpaRepository.findById(orderProductId.value()).map(OrderProductMapper::toDomain);
-    }
-
-    @Override
-    public List<OrderProduct> findByOrderId(OrderId orderId) {
-        return queryFactory.selectFrom(orderProductJpaEntity)
-            .where(orderProductJpaEntity.orderId.eq(orderId.value()))
-            .fetch()
-            .stream()
-            .map(OrderProductMapper::toDomain)
-            .toList();
     }
 
     @Override

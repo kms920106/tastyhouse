@@ -14,6 +14,11 @@ import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.repository.MemberWithdrawalRepository;
 import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.core.domain.member.referral.domain.repository.MemberReferralRepository;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepository;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
+import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
+import com.tastyhouse.core.domain.order.domain.service.OrderPlacementService;
+import com.tastyhouse.core.domain.order.domain.service.OrderTransitionService;
 import com.tastyhouse.core.domain.point.domain.repository.PointHistoryRepository;
 import com.tastyhouse.core.domain.point.domain.repository.PointRepository;
 import com.tastyhouse.core.domain.faq.domain.service.FaqCategoryDeletionPolicy;
@@ -292,6 +297,50 @@ public class DomainServiceConfig {
             pointHistoryRepository,
             domainEventPublisher
         );
+    }
+
+    /**
+     * 주문 접수 — 주문 헤더·상품 라인·라인 옵션 세 애그리거트를 한 트랜잭션에서 함께 만들고, 금액 계산과
+     * 쿠폰 사용·포인트 차감까지 원자로 묶는 오케스트레이션.
+     */
+    @Bean
+    public OrderPlacementService orderPlacementService(
+        OrderRepository orderRepository,
+        OrderProductRepository orderProductRepository,
+        OrderProductOptionRepository orderProductOptionRepository,
+        ShopRepository shopRepository,
+        MemberRepository memberRepository,
+        ProductRepository productRepository,
+        ProductOptionGroupRepository productOptionGroupRepository,
+        ProductOptionRepository productOptionRepository,
+        ProductImageRepository productImageRepository,
+        CouponIssueService couponIssueService,
+        PointLedgerService pointLedgerService,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new OrderPlacementService(
+            orderRepository,
+            orderProductRepository,
+            orderProductOptionRepository,
+            shopRepository,
+            memberRepository,
+            productRepository,
+            productOptionGroupRepository,
+            productOptionRepository,
+            productImageRepository,
+            couponIssueService,
+            pointLedgerService,
+            domainEventPublisher
+        );
+    }
+
+    /**
+     * 주문 상태전이 — 결제·포인트 연쇄의 진입점. 주문 로드·전이·저장을 원자로 묶어, 트리거 액터
+     * (회원·관리자·결제 콜백)가 여러 개여도 전이 규칙이 갈리지 않게 한다.
+     */
+    @Bean
+    public OrderTransitionService orderTransitionService(OrderRepository orderRepository) {
+        return new OrderTransitionService(orderRepository);
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.order.application.dto;
+package com.tastyhouse.infrastructure.order.query;
 
 import java.time.LocalDateTime;
 
@@ -6,6 +6,12 @@ import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
 
+/**
+ * 주문 관리 목록 검색 조건(admin-api용) — 모든 필드가 null 허용이며, null인 항목은 조건에서 제외된다.
+ *
+ * <p>enum 필드는 도메인 enum이므로 HTTP 경계의 {@code String}을 소비 모듈의 {@code OrderQueryService}가
+ * {@code Enum.from(...)}으로 승격해 담는다(도메인 enum 경계 규칙).
+ */
 public record OrderSearchCondition(
     Long shopId,
     OrderStatus orderStatus,
@@ -27,6 +33,15 @@ public record OrderSearchCondition(
         LocalDateTime startDate,
         LocalDateTime endDate
     ) {
-        return new OrderSearchCondition(shopId, orderStatus, orderMethod, paymentStatus, orderNumber, ordererName, startDate, endDate);
+        return new OrderSearchCondition(
+            shopId,
+            orderStatus,
+            orderMethod,
+            paymentStatus,
+            orderNumber,
+            ordererName,
+            startDate,
+            endDate
+        );
     }
 }

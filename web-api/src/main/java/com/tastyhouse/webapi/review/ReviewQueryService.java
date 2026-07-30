@@ -14,10 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
+import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -70,7 +70,7 @@ public class ReviewQueryService {
     private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
     private final MemberFollowRepository memberFollowRepository;
     private final ProductQueryService productQueryService;
-    private final OrderQueryService orderQueryService;
+    private final OrderProductRepository orderProductRepository;
     private final FileService fileService;
 
     /**
@@ -220,7 +220,8 @@ public class ReviewQueryService {
      * 리뷰 작성 화면 정보 — 주문 상품에서 상품을 찾아 가격·대표 이미지와 작성 이력 여부를 함께 준다.
      */
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderProductId, Long memberId) {
-        OrderProduct orderProduct = orderQueryService.findOrderProductById(OrderProductId.of(orderProductId));
+        OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
 
         ProductDetailResult product = productQueryService.findProductDetail(orderProduct.getProductId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));

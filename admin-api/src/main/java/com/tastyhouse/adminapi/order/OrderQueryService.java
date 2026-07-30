@@ -5,20 +5,23 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
 import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
-import com.tastyhouse.core.domain.order.application.OrderCommandService;
-import com.tastyhouse.core.domain.order.application.OrderQueryService;
-import com.tastyhouse.core.domain.order.application.dto.OrderSearchCondition;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderManagementListItemResult;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderPaymentResult;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
-import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.infrastructure.order.query.OrderDetailResult;
+import com.tastyhouse.infrastructure.order.query.OrderManagementListItemResult;
+import com.tastyhouse.infrastructure.order.query.OrderPaymentResult;
+import com.tastyhouse.infrastructure.order.query.OrderProductOptionResult;
+import com.tastyhouse.infrastructure.order.query.OrderProductResult;
+import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
+import com.tastyhouse.infrastructure.order.query.OrderSearchCondition;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.order.response.OrderDetailResponse;
 import com.tastyhouse.adminapi.order.response.OrderListItemResponse;
@@ -26,40 +29,60 @@ import com.tastyhouse.adminapi.order.response.OrderProductOptionResponse;
 import com.tastyhouse.adminapi.order.response.OrderProductResponse;
 import com.tastyhouse.adminapi.order.response.PaymentSummaryResponse;
 
+/**
+ * 주문 관리 조회 서비스(admin-api).
+ *
+ * <p>infra query DAO({@link OrderQueryDao})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
+ * (공통 지침 패턴 2·3). write 포트는 주입하지 않는다.
+ *
+ * <p>enum 후보값은 HTTP 경계에서 {@code String}으로 받아 여기서 {@code Enum.from(...)}으로 승격한다
+ * (도메인 enum 경계 규칙). 관리자 조회는 회원 스코프가 없어 소유권 검증을 하지 않는다.
+ */
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class OrderService {
+public class OrderQueryService {
 
-    private final OrderCommandService orderCommandService;
-    private final OrderQueryService orderQueryService;
+    private final OrderQueryDao orderQueryDao;
 
-    public PaginationResponse<OrderListItemResponse> getOrders(Long shopId, String orderStatus, String orderMethod, String paymentStatus,
-                                       String orderNumber, String ordererName,
-                                       LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
-        OrderStatus status = orderStatus == null ? null : OrderStatus.from(orderStatus);
-        OrderMethod method = orderMethod == null ? null : OrderMethod.from(orderMethod);
-        PaymentStatus payment = paymentStatus == null ? null : PaymentStatus.valueOf(paymentStatus);
-        OrderSearchCondition condition = OrderSearchCondition.of(shopId, status, method, payment, orderNumber, ordererName, startDate, endDate);
-        PageResult<OrderListItemResponse> pageResult = orderQueryService.findOrders(condition, page, size)
+    /**
+     * 주문 관리 목록.
+     */
+    public PaginationResponse<OrderListItemResponse> getOrders(
+        Long shopId,
+        String orderStatus,
+        String orderMethod,
+        String paymentStatus,
+        String orderNumber,
+        String ordererName,
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        int page,
+        int size
+    ) {
+        OrderSearchCondition condition = OrderSearchCondition.of(
+            shopId,
+            orderStatus == null ? null : OrderStatus.from(orderStatus),
+            orderMethod == null ? null : OrderMethod.from(orderMethod),
+            paymentStatus == null ? null : PaymentStatus.valueOf(paymentStatus),
+            orderNumber,
+            ordererName,
+            startDate,
+            endDate
+        );
+        PageQuery pageQuery = PageQuery.of(page, size);
+        PageResult<OrderListItemResponse> pageResult = orderQueryDao.findOrders(condition, pageQuery)
             .map(this::toOrderListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
+    /**
+     * 주문 관리 상세.
+     */
     public OrderDetailResponse getOrder(Long id) {
-        OrderId orderId = OrderId.of(id);
-        OrderResult result = orderQueryService.findOrderDetailById(orderId);
+        OrderDetailResult result = orderQueryDao.findOrderDetail(OrderId.of(id))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
         return toOrderDetailResponse(result);
-    }
-
-    public void changeStatus(Long id, String status) {
-        OrderId orderId = OrderId.of(id);
-        OrderStatus orderStatus = OrderStatus.from(status);
-        orderCommandService.changeOrderStatus(orderId, orderStatus);
-    }
-
-    public void deleteOrder(Long id) {
-        OrderId orderId = OrderId.of(id);
-        orderCommandService.deleteOrder(orderId);
     }
 
     private OrderListItemResponse toOrderListItemResponse(OrderManagementListItemResult result) {
@@ -77,17 +100,16 @@ public class OrderService {
         );
     }
 
-    private OrderDetailResponse toOrderDetailResponse(OrderResult result) {
-        List<OrderProductResponse> orderProducts = result.orderProducts() == null ? List.of() :
-            result.orderProducts().stream()
-                .map(this::toOrderProductResponse)
-                .toList();
+    private OrderDetailResponse toOrderDetailResponse(OrderDetailResult result) {
+        List<OrderProductResponse> orderProducts = result.orderProducts().stream()
+            .map(this::toOrderProductResponse)
+            .toList();
         PaymentSummaryResponse payment = result.payment() != null ? toPaymentSummaryResponse(result.payment()) : null;
         return OrderDetailResponse.from(
-            result.orderId().value(),
+            result.id(),
             result.orderNumber(),
             result.orderMethod() != null ? result.orderMethod().name() : null,
-            result.paymentStatus() != null ? result.paymentStatus().name() : null,
+            toPaymentStatusName(result.payment()),
             result.shopName(),
             result.shopPhoneNumber(),
             result.ordererName(),
@@ -103,21 +125,30 @@ public class OrderService {
             result.earnedPoint(),
             orderProducts,
             payment,
-            result.approvedAt(),
+            result.payment() == null ? null : result.payment().approvedAt(),
             result.createdAt()
         );
     }
 
+    /**
+     * 결제 상태 이름 — 결제가 없거나 상태가 비어 있으면 {@code null}(기존 동작 보존).
+     */
+    private String toPaymentStatusName(OrderPaymentResult payment) {
+        if (payment == null || payment.paymentStatus() == null) {
+            return null;
+        }
+        return payment.paymentStatus().name();
+    }
+
     private OrderProductResponse toOrderProductResponse(OrderProductResult result) {
-        List<OrderProductOptionResponse> selectedOptions = result.options() == null ? List.of() :
-            result.options().stream()
-                .map(this::toOrderProductOptionResponse)
-                .toList();
+        List<OrderProductOptionResponse> selectedOptions = result.options().stream()
+            .map(this::toOrderProductOptionResponse)
+            .toList();
         return OrderProductResponse.from(
-            result.orderProductId().value(),
+            result.orderProductId(),
             result.productId(),
             result.name(),
-            result.imageUrl(),
+            result.imageFilePath(),
             result.quantity(),
             result.originalPrice(),
             result.discountPrice(),
@@ -129,7 +160,7 @@ public class OrderService {
 
     private OrderProductOptionResponse toOrderProductOptionResponse(OrderProductOptionResult result) {
         return OrderProductOptionResponse.from(
-            result.orderProductOptionId().value(),
+            result.orderProductOptionId(),
             result.optionGroupName(),
             result.optionName(),
             result.additionalPrice()
@@ -141,7 +172,7 @@ public class OrderService {
             result.id(),
             result.paymentMethod() != null ? result.paymentMethod().name() : null,
             result.paymentStatus() != null ? result.paymentStatus().name() : null,
-            result.amount(),
+            result.amount() != null ? result.amount().value() : null,
             result.cardCompany(),
             result.cardNumber(),
             result.approvedAt(),

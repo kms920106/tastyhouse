@@ -30,7 +30,8 @@ import com.tastyhouse.adminapi.order.response.OrderListItemResponse;
 @RequestMapping("/api/orders")
 public class OrderApiController {
 
-    private final OrderService orderService;
+    private final OrderCommandService orderCommandService;
+    private final OrderQueryService orderQueryService;
 
     @Operation(summary = "주문 목록 조회", description = "주문 목록을 페이징 조회합니다. 가게/주문상태/주문방법/결제상태/주문번호/주문자명/기간 필터를 지원합니다.")
     @GetMapping("/v1")
@@ -38,7 +39,7 @@ public class OrderApiController {
         @Valid @ModelAttribute OrderSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<OrderListItemResponse> pageResponse = orderService.getOrders(
+        PaginationResponse<OrderListItemResponse> pageResponse = orderQueryService.getOrders(
             search.shopId(), search.orderStatus(), search.orderMethod(), search.paymentStatus(),
             search.orderNumber(), search.ordererName(), search.startDate(), search.endDate(),
             pageRequest.page(), pageRequest.size());
@@ -48,7 +49,7 @@ public class OrderApiController {
     @Operation(summary = "주문 상세 조회", description = "주문 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrder(@PathVariable Long id) {
-        OrderDetailResponse response = orderService.getOrder(id);
+        OrderDetailResponse response = orderQueryService.getOrder(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -58,14 +59,14 @@ public class OrderApiController {
         @PathVariable Long id,
         @Valid @RequestBody OrderStatusUpdateRequest request
     ) {
-        orderService.changeStatus(id, request.status());
+        orderCommandService.changeStatus(id, request.status());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "주문 삭제", description = "주문을 삭제합니다.")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteOrder(@PathVariable Long id) {
-        orderService.deleteOrder(id);
+        orderCommandService.deleteOrder(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

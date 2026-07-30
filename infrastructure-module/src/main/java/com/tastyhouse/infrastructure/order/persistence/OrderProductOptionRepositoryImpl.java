@@ -1,33 +1,22 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
-import java.util.List;
-
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.core.domain.order.domain.model.OrderProductOption;
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductOptionRepository;
-import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 
-import static com.tastyhouse.infrastructure.order.persistence.QOrderProductOptionJpaEntity.orderProductOptionJpaEntity;
-
+/**
+ * 주문 상품 라인 옵션 write 어댑터.
+ *
+ * <p>write 포트 순수화(공통 지침 패턴 4)로 목록 조회는 {@code order/query/OrderQueryDao}로 이관되어,
+ * 이 어댑터는 신규 저장(insert)만 담당한다 — QueryDSL이 필요 없어 {@code JPAQueryFactory}를 주입하지 않는다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class OrderProductOptionRepositoryImpl implements OrderProductOptionRepository {
 
-    private final JPAQueryFactory queryFactory;
     private final OrderProductOptionJpaRepository orderProductOptionJpaRepository;
-
-    @Override
-    public List<OrderProductOption> findByOrderProductId(OrderProductId orderProductId) {
-        return queryFactory.selectFrom(orderProductOptionJpaEntity)
-            .where(orderProductOptionJpaEntity.orderProductId.eq(orderProductId.value()))
-            .fetch()
-            .stream()
-            .map(OrderProductOptionMapper::toDomain)
-            .toList();
-    }
 
     @Override
     public void save(OrderProductOption orderProductOption) {
