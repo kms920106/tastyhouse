@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.ceo.domain.model.Ceo;
-import com.tastyhouse.core.domain.ceo.application.CeoQueryService;
+import com.tastyhouse.ceoapi.ceo.CeoQueryService;
 
 @Slf4j
 @Service

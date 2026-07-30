@@ -19,12 +19,12 @@ import com.tastyhouse.adminapi.ceo.response.CeoListItemResponse;
 @RequestMapping("/api/ceos")
 public class CeoApiController {
 
-    private final CeoService ceoService;
+    private final CeoQueryService ceoQueryService;
 
     @Operation(summary = "점주 목록 조회", description = "가게 배정용 점주 Select 드롭다운을 위한 전체 점주 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<CeoListItemResponse>>> getCeos() {
-        List<CeoListItemResponse> ceos = ceoService.getCeos();
+        List<CeoListItemResponse> ceos = ceoQueryService.getCeos();
         return ResponseEntity.ok(ApiResponse.success(ceos));
     }
 }
