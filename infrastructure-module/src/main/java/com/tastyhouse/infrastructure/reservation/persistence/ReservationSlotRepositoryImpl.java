@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.reservation.persistence;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
@@ -28,13 +27,6 @@ public class ReservationSlotRepositoryImpl implements ReservationSlotRepository 
     public Optional<ReservationSlot> findByShopAndDateAndTime(Long shopId, LocalDate date, LocalTime time) {
         return slotJpaRepository.findByShopIdAndSlotDateAndSlotTime(shopId, date, time)
             .map(ReservationSlotMapper::toDomain);
-    }
-
-    @Override
-    public List<ReservationSlot> findByShopAndDate(Long shopId, LocalDate date) {
-        return slotJpaRepository.findByShopIdAndSlotDate(shopId, date).stream()
-            .map(ReservationSlotMapper::toDomain)
-            .toList();
     }
 
     @Override

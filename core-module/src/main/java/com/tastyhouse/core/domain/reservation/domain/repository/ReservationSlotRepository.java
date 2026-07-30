@@ -2,16 +2,22 @@ package com.tastyhouse.core.domain.reservation.domain.repository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.reservation.domain.model.ReservationSlot;
 
+/**
+ * 예약 슬롯 write 포트.
+ *
+ * <p>정원 차감·반납 불변식에 필요한 단건 로드와 저장만 둔다. 가용성 화면용 날짜별 슬롯 목록 조회는
+ * infrastructure-module의 {@code ReservationQueryDao#findSlotOccupancies}가 담당한다.
+ */
 public interface ReservationSlotRepository {
 
+    /**
+     * 정원을 차감·반납할 슬롯 단건 로드(get-or-create의 get 측).
+     */
     Optional<ReservationSlot> findByShopAndDateAndTime(Long shopId, LocalDate date, LocalTime time);
-
-    List<ReservationSlot> findByShopAndDate(Long shopId, LocalDate date);
 
     ReservationSlot save(ReservationSlot slot);
 

@@ -27,6 +27,10 @@ import com.tastyhouse.core.domain.policy.domain.service.PolicyActivationService;
 import com.tastyhouse.core.domain.rank.domain.port.MemberReviewCountPort;
 import com.tastyhouse.core.domain.rank.domain.repository.MemberReviewRankRepository;
 import com.tastyhouse.core.domain.rank.domain.service.RankSettlementService;
+import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
+import com.tastyhouse.core.domain.reservation.domain.repository.ReservationSlotRepository;
+import com.tastyhouse.core.domain.reservation.domain.service.ReservationBookingService;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
 import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
 import com.tastyhouse.core.domain.search.domain.service.PopularKeywordRefreshService;
@@ -100,6 +104,26 @@ public class DomainServiceConfig {
         MemberReviewCountPort memberReviewCountPort
     ) {
         return new RankSettlementService(memberReviewRankRepository, memberReviewCountPort);
+    }
+
+    /**
+     * 예약 예약/취소 — 예약 애그리거트의 생성·상태전이와 슬롯 정원 차감·반납을 한 트랜잭션에서 함께
+     * 처리하는 오케스트레이션. 슬롯 정원 차감은 낙관적 락으로 보호되며, 충돌 시 재시도는 트랜잭션 경계
+     * 바깥(web-api {@code ReservationCommandService})이 담당한다.
+     */
+    @Bean
+    public ReservationBookingService reservationBookingService(
+        ReservationRepository reservationRepository,
+        ReservationSlotRepository reservationSlotRepository,
+        ShopRepository shopRepository,
+        MemberRepository memberRepository
+    ) {
+        return new ReservationBookingService(
+            reservationRepository,
+            reservationSlotRepository,
+            shopRepository,
+            memberRepository
+        );
     }
 
     /**

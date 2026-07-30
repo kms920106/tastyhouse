@@ -620,3 +620,17 @@ reference 구현: `shop` 도메인의 점주 관리 기능 전반 — 소유권 
 - **적용 시점**: 신규 작성은 이 규칙을 따르고, 기존에 fileId를 노출하던 응답은 해당 파일을 수정할 때 함께 전환합니다.
 
 reference 구현: ceo-api — `ShopImageStatusResponse.currentImageUrl`·`ShopImageChangeRequestItemResponse.imageUrl`·`ShopContentBoardResponse.imageUrl`·`ShopDetailResponse.thumbnailImageUrl`/`trademarkImageUrl`(`ShopTrademarkService.resolveImageUrl`·`ShopContentBoardService.resolveImageUrl`·`ShopService.resolveImageUrl`가 `findFilePath` 경유로 변환). admin-api — `ShopService.toImageUrl`(도메인 엔티티의 fileId만 있어 `findById` 경유)로 `ShopAmenityCategoryResponse`/`ShopFoodTypeCategoryResponse`/`ShopBannerImageItemResponse`/`ShopPhotoCategoryImageItemResponse`/`ShopDetailResponse`를 변환, `ShopContentBoardListItemResponse`/`ShopImageChangeRequestItemResponse`는 fileId 제거. web-api — `BugReportService.toImageUrls`·`ReviewService.toImageUrls`로 `BugReportResponse.imageUrls`/`ReviewResponse.imageUrls`. 이미 url로 통일돼 있던 다수 선례: web-api `ReviewService`의 목록/상세 응답, admin-api `BannerService.toFileResponse`(`FileResponse`).
+
+## 낙관적 락 재시도 배치 규칙 (재시도 루프는 트랜잭션 경계 **밖**, 별도 Executor 빈)
+
+**동시성 경합(낙관적 락 `@Version`·유니크 제약 충돌)을 재시도해야 하는 명령은, 재시도 루프를 트랜잭션 안에 두지 않고 "재시도 루프(비트랜잭션) → 트랜잭션 경계 빈 → 도메인 서비스" 3단으로 분리합니다.** 재시도는 매 시도가 **새 트랜잭션**이어야 의미가 있는데, 같은 빈의 메서드를 호출하면 Spring 프록시를 거치지 않아(self-invocation) `@Transactional`이 적용되지 않고, 첫 시도에서 rollback-only로 표시된 트랜잭션을 그대로 재사용해 재시도가 무의미해집니다. 또한 도메인 서비스는 순수 POJO(패턴 1)라 `@Transactional`을 가질 수 없으므로, 트랜잭션 경계를 담당하는 얇은 빈이 별도로 필요합니다.
+
+- **3단 구조와 각 층의 책임**:
+  1. **`{도메인}CommandService`** (소비 모듈, `@Transactional` **없음**) — 재시도 루프(`MAX_RETRY`)와 경합 예외 판별만. 재시도 소진 시 도메인 의미의 실패로 변환(예: `RESERVATION_SLOT_FULL`).
+  2. **`{도메인}{동작}Executor`** (소비 모듈, `@Component` + `@Transactional`) — 한 번의 시도를 독립 트랜잭션으로 감싸는 얇은 위임. 비즈니스 로직을 갖지 않습니다.
+  3. **도메인 서비스** (domain, 순수 POJO) — 불변식 본체. 경합을 **재시도하지 않고**, 충돌이 커밋 전에 드러나도록 `saveAndFlush`로 노출만 시킵니다.
+- **경합 예외 판별**: 프레임워크-프리 `OptimisticLockConflictException`(기존 행 동시 update — infra 어댑터가 `ObjectOptimisticLockingFailureException`을 catch해 번역)과 `DataIntegrityViolationException`(신규 행 동시 insert 시 유니크 충돌) **두 가지만** 재시도합니다. 비즈니스 예외(정원 마감·중복·약관 미동의 등)는 재시도하지 않고 즉시 전파합니다 — 재시도해도 결과가 같으므로 지연만 늘어납니다.
+- **커밋 전 노출이 필수**: 충돌이 트랜잭션 커밋 시점에야 터지면 이미 루프를 벗어나 재시도 루프가 잡을 수 없습니다. 그래서 경합 지점의 write 포트에 `saveAndFlush`를 두어 **메서드 내부에서** 충돌을 유발합니다(일반 `save`와 구분되는 존재 이유).
+- **응답 조립은 재조회로**: CommandService가 트랜잭션을 열지 않으므로 명령 결과를 그대로 응답에 쓸 수 없습니다. 명령은 식별자(`Long`)만 반환하고, 컨트롤러가 커밋 완료 후 `{도메인}QueryService`로 재조회해 Response를 조립합니다(CQRS 분리와도 일관 — 응답 조립은 QueryService 책임).
+
+reference 구현: `reservation` 도메인 — `webapi/reservation/ReservationCommandService#createReservation`(재시도 루프, 비트랜잭션) → `webapi/reservation/ReservationBookingExecutor#bookInNewTx`(`@Transactional`) → `core/.../reservation/domain/service/ReservationBookingService#book`(정원 차감 + 예약 저장 원자 연산, `slotRepository.saveAndFlush`로 충돌 노출), 예외 번역은 `infrastructure/reservation/persistence/ReservationSlotRepositoryImpl`. 이 프로젝트에서 재시도 루프를 가진 유일한 경로입니다.

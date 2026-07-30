@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.reservation.persistence;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -29,28 +28,6 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public List<Reservation> findByMemberId(MemberId memberId) {
-        return queryFactory.selectFrom(reservationJpaEntity)
-            .where(reservationJpaEntity.memberId.eq(memberId))
-            .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
-            .fetch()
-            .stream()
-            .map(ReservationMapper::toDomain)
-            .toList();
-    }
-
-    @Override
-    public List<Reservation> findByShopId(Long shopId) {
-        return queryFactory.selectFrom(reservationJpaEntity)
-            .where(reservationJpaEntity.shopId.eq(shopId))
-            .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
-            .fetch()
-            .stream()
-            .map(ReservationMapper::toDomain)
-            .toList();
-    }
-
-    @Override
     public boolean existsBlockingByMemberShopDate(MemberId memberId, Long shopId, LocalDate date) {
         return queryFactory.selectOne()
             .from(reservationJpaEntity)
@@ -61,21 +38,6 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                 reservationJpaEntity.status.in(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED)
             )
             .fetchFirst() != null;
-    }
-
-    @Override
-    public Optional<Reservation> findBlockingByMemberShopDate(MemberId memberId, Long shopId, LocalDate date) {
-        return Optional.ofNullable(
-            queryFactory.selectFrom(reservationJpaEntity)
-                .where(
-                    reservationJpaEntity.memberId.eq(memberId),
-                    reservationJpaEntity.shopId.eq(shopId),
-                    reservationJpaEntity.reservationDate.eq(date),
-                    reservationJpaEntity.status.in(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED)
-                )
-                .orderBy(reservationJpaEntity.reservationTime.asc())
-                .fetchFirst()
-        ).map(ReservationMapper::toDomain);
     }
 
     @Override

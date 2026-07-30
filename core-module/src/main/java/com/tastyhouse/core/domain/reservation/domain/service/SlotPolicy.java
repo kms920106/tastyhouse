@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.reservation.domain.model;
+package com.tastyhouse.core.domain.reservation.domain.service;
 
 import java.time.LocalTime;
 import java.util.ArrayList;

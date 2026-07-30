@@ -5,6 +5,7 @@ import java.time.LocalTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.core.domain.reservation.domain.service.SlotPolicy;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 
