@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportImageRepository;
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.core.domain.bug.domain.service.BugReportRegistrationService;
+import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
+import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
+import com.tastyhouse.core.domain.coupon.domain.service.CouponIssueService;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.repository.MemberWithdrawalRepository;
@@ -52,6 +55,18 @@ public class DomainServiceConfig {
         BugReportImageRepository bugReportImageRepository
     ) {
         return new BugReportRegistrationService(bugReportRepository, bugReportImageRepository);
+    }
+
+    /**
+     * 쿠폰 발급·사용 — 쿠폰 원본 정책과 회원 보유분 두 애그리거트를 한 트랜잭션에서 함께 다루는 오케스트레이션.
+     */
+    @Bean
+    public CouponIssueService couponIssueService(
+        CouponRepository couponRepository,
+        MemberCouponRepository memberCouponRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new CouponIssueService(couponRepository, memberCouponRepository, domainEventPublisher);
     }
 
     /**

@@ -7,9 +7,8 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.coupon.application.CouponQueryService;
 import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.webapi.coupon.CouponQueryService;
 import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.MemberPhoneAvailabilityResponse;
@@ -102,25 +101,11 @@ public class MemberService {
     }
 
     public List<MyCouponListItemResponse> getMyCoupons(Long memberId) {
-        return couponQueryService.findMemberCoupons(MemberId.of(memberId)).stream()
-            .map(r -> MyCouponListItemResponse.of(
-                r.id(), r.couponId(), r.name(), r.description(),
-                r.discountType().name(), r.discountAmount(), r.maxDiscountAmount(),
-                r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
-                r.expiredAt(), r.used(), r.usedAt()
-            ))
-            .toList();
+        return couponQueryService.getMyCoupons(memberId);
     }
 
     public List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
-        return couponQueryService.findAvailableMemberCoupons(MemberId.of(memberId)).stream()
-            .map(r -> MyCouponListItemResponse.of(
-                r.id(), r.couponId(), r.name(), r.description(),
-                r.discountType().name(), r.discountAmount(), r.maxDiscountAmount(),
-                r.minOrderAmount(), r.useStartAt(), r.useEndAt(),
-                r.expiredAt(), r.used(), r.usedAt()
-            ))
-            .toList();
+        return couponQueryService.getMyAvailableCoupons(memberId);
     }
 
     public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {

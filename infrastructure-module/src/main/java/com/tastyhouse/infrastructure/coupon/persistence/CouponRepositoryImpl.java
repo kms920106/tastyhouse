@@ -1,26 +1,23 @@
 package com.tastyhouse.infrastructure.coupon.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
-import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
 import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
-import com.tastyhouse.core.domain.coupon.application.dto.CouponSearchCondition;
-import com.tastyhouse.core.domain.coupon.application.dto.result.CouponListItemResult;
-import com.tastyhouse.core.domain.coupon.application.dto.result.QCouponListItemResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.couponJpaEntity;
 
+/**
+ * 쿠폰 write 어댑터.
+ *
+ * <p>목록·상세 등 표현 목적 조회는 같은 모듈의 {@code CouponQueryDao}(query 패키지)로 이관했으므로,
+ * 여기에는 단건 로드와 저장만 남는다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class CouponRepositoryImpl implements CouponRepository {
@@ -41,49 +38,6 @@ public class CouponRepositoryImpl implements CouponRepository {
     }
 
     @Override
-    public PageResult<CouponListItemResult> findAllCoupons(CouponSearchCondition condition, PageQuery pageQuery) {
-        Long total = queryFactory
-            .select(couponJpaEntity.id.count())
-            .from(couponJpaEntity)
-            .where(
-                couponJpaEntity.deleted.isFalse(),
-                nameContains(condition.name()),
-                discountTypeEq(condition.discountType()),
-                visibleEq(condition.visible())
-            )
-            .fetchOne();
-
-        List<CouponListItemResult> coupons = queryFactory
-            .select(new QCouponListItemResult(
-                couponJpaEntity.id,
-                couponJpaEntity.name,
-                couponJpaEntity.discountType,
-                couponJpaEntity.discountAmount,
-                couponJpaEntity.maxDiscountAmount,
-                couponJpaEntity.minOrderAmount,
-                couponJpaEntity.maxDiscountCount,
-                couponJpaEntity.issueStartAt,
-                couponJpaEntity.issueEndAt,
-                couponJpaEntity.useStartAt,
-                couponJpaEntity.useEndAt,
-                couponJpaEntity.visible
-            ))
-            .from(couponJpaEntity)
-            .where(
-                couponJpaEntity.deleted.isFalse(),
-                nameContains(condition.name()),
-                discountTypeEq(condition.discountType()),
-                visibleEq(condition.visible())
-            )
-            .orderBy(couponJpaEntity.id.desc())
-            .offset((long) pageQuery.page() * pageQuery.size())
-            .limit(pageQuery.size())
-            .fetch();
-
-        return PageResult.of(coupons, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
-    }
-
-    @Override
     public Coupon save(Coupon coupon) {
         if (coupon.getId() == null) {
             CouponJpaEntity saved = couponJpaRepository.save(CouponMapper.toEntity(coupon));
@@ -96,17 +50,5 @@ public class CouponRepositoryImpl implements CouponRepository {
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 쿠폰입니다: " + coupon.getId()));
         CouponMapper.applyChanges(entity, coupon);
         return CouponMapper.toDomain(entity);
-    }
-
-    private BooleanExpression nameContains(String name) {
-        return StringUtils.hasText(name) ? couponJpaEntity.name.containsIgnoreCase(name) : null;
-    }
-
-    private BooleanExpression discountTypeEq(DiscountType discountType) {
-        return discountType != null ? couponJpaEntity.discountType.eq(discountType) : null;
-    }
-
-    private BooleanExpression visibleEq(Boolean visible) {
-        return visible != null ? couponJpaEntity.visible.eq(visible) : null;
     }
 }

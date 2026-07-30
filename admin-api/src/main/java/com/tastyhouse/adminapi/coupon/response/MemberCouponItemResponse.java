@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "쿠폰 발급 현황 항목 응답")
-public record MemberCouponAdminItemResponse(
+public record MemberCouponItemResponse(
     @Schema(description = "회원 쿠폰 ID", example = "1")
     Long id,
 
@@ -24,7 +24,7 @@ public record MemberCouponAdminItemResponse(
     @Schema(description = "발급 일시", example = "2026-01-01T00:00:00")
     LocalDateTime issuedAt
 ) {
-    public static MemberCouponAdminItemResponse from(
+    public static MemberCouponItemResponse from(
         Long id,
         Long memberId,
         boolean used,
@@ -32,7 +32,7 @@ public record MemberCouponAdminItemResponse(
         LocalDateTime expiredAt,
         LocalDateTime issuedAt
     ) {
-        return new MemberCouponAdminItemResponse(
+        return new MemberCouponItemResponse(
             id,
             memberId,
             used,

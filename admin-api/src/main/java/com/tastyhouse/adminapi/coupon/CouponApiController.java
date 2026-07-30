@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.coupon.request.CouponSearchRequest;
 import com.tastyhouse.adminapi.coupon.request.CouponUpdateRequest;
 import com.tastyhouse.adminapi.coupon.response.CouponDetailResponse;
 import com.tastyhouse.adminapi.coupon.response.CouponListItemResponse;
-import com.tastyhouse.adminapi.coupon.response.MemberCouponAdminItemResponse;
+import com.tastyhouse.adminapi.coupon.response.MemberCouponItemResponse;
 
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController
@@ -34,7 +34,8 @@ import com.tastyhouse.adminapi.coupon.response.MemberCouponAdminItemResponse;
 @RequestMapping("/api/coupons")
 public class CouponApiController {
 
-    private final CouponService couponService;
+    private final CouponCommandService couponCommandService;
+    private final CouponQueryService couponQueryService;
 
     @Operation(summary = "쿠폰 목록 조회", description = "쿠폰 목록을 페이징 조회합니다. (삭제된 쿠폰 제외) discountType 미지정 시 전체 유형, name은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @GetMapping("/v1")
@@ -42,14 +43,14 @@ public class CouponApiController {
         @Valid @ModelAttribute CouponSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<CouponListItemResponse> pageResponse = couponService.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<CouponListItemResponse> pageResponse = couponQueryService.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "쿠폰 등록", description = "새로운 쿠폰을 등록합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createCoupon(@Valid @RequestBody CouponCreateRequest request) {
-        Long id = couponService.createCoupon(
+        Long id = couponCommandService.createCoupon(
             request.name(),
             request.description(),
             request.discountType(),
@@ -69,7 +70,7 @@ public class CouponApiController {
     @Operation(summary = "쿠폰 상세 조회", description = "쿠폰 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<CouponDetailResponse>> getCoupon(@PathVariable Long id) {
-        CouponDetailResponse response = couponService.getCoupon(id);
+        CouponDetailResponse response = couponQueryService.getCoupon(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -79,7 +80,7 @@ public class CouponApiController {
         @PathVariable Long id,
         @Valid @RequestBody CouponUpdateRequest request
     ) {
-        couponService.updateCoupon(
+        couponCommandService.updateCoupon(
             id,
             request.name(),
             request.description(),
@@ -100,7 +101,7 @@ public class CouponApiController {
     @Operation(summary = "쿠폰 삭제", description = "기존 쿠폰을 삭제합니다. (Soft Delete)")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCoupon(@PathVariable Long id) {
-        couponService.deleteCoupon(id);
+        couponCommandService.deleteCoupon(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -110,17 +111,17 @@ public class CouponApiController {
         @PathVariable Long id,
         @Valid @RequestBody CouponIssueRequest request
     ) {
-        Long memberCouponId = couponService.issueCoupon(id, request.memberId());
+        Long memberCouponId = couponCommandService.issueCoupon(id, request.memberId());
         return ResponseEntity.ok(ApiResponse.success(memberCouponId));
     }
 
     @Operation(summary = "쿠폰 발급 현황 조회", description = "특정 쿠폰의 회원 발급 현황을 페이징 조회합니다.")
     @GetMapping("/v1/{id}/issues")
-    public ResponseEntity<ApiResponse<List<MemberCouponAdminItemResponse>>> getIssuedCoupons(
+    public ResponseEntity<ApiResponse<List<MemberCouponItemResponse>>> getIssuedCoupons(
         @PathVariable Long id,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<MemberCouponAdminItemResponse> pageResponse = couponService.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
+        PaginationResponse<MemberCouponItemResponse> pageResponse = couponQueryService.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 }

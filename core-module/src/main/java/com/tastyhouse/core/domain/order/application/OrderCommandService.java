@@ -31,9 +31,9 @@ import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionId;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.core.domain.coupon.application.CouponCommandService;
-import com.tastyhouse.core.domain.coupon.application.dto.command.UseCouponCommand;
-import com.tastyhouse.core.domain.coupon.application.dto.result.UseCouponResult;
+import com.tastyhouse.core.domain.coupon.domain.service.CouponIssueService;
+import com.tastyhouse.core.domain.coupon.domain.service.CouponUseResult;
+import com.tastyhouse.core.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
@@ -55,7 +55,7 @@ public class OrderCommandService {
     private final ShopQueryService shopQueryService;
     private final MemberRepository memberRepository;
     private final ProductQueryService productQueryService;
-    private final CouponCommandService couponCommandService;
+    private final CouponIssueService couponIssueService;
     private final PointLedgerService pointLedgerService;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -146,8 +146,8 @@ public class OrderCommandService {
         Long memberCouponId = null;
         if (command.memberCouponId() != null) {
             int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
-            UseCouponResult couponResult = couponCommandService.useCoupon(
-                UseCouponCommand.of(command.memberCouponId(), memberId, orderAmountAfterProductDiscount)
+            CouponUseResult couponResult = couponIssueService.useCoupon(
+                MemberCouponId.of(command.memberCouponId()), memberId, orderAmountAfterProductDiscount
             );
             couponDiscountAmount = couponResult.couponDiscountAmount();
             memberCouponId = couponResult.memberCouponId();
