@@ -22,18 +22,27 @@ import com.tastyhouse.webapi.member.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
-import com.tastyhouse.webapi.member.service.MemberAccountService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
+import com.tastyhouse.webapi.member.service.MemberCommandService;
 import com.tastyhouse.webapi.member.service.MemberFollowService;
 import com.tastyhouse.webapi.member.service.MemberGradeService;
+import com.tastyhouse.webapi.member.service.MemberQueryService;
 import com.tastyhouse.webapi.member.service.MemberReviewService;
 import com.tastyhouse.webapi.member.service.MemberShopService;
 
+/**
+ * 내 정보 화면 컨트롤러 파사드.
+ *
+ * <p>회원 자체의 조회·변경은 CQRS 분리에 따라 {@link MemberQueryService}/{@link MemberCommandService}가
+ * 담당하고, 이 클래스는 "토큰 검증 후 변경"처럼 여러 협력자를 순서대로 엮는 화면 단위 흐름과, 내 정보
+ * 화면이 함께 보여주는 다른 컨텍스트(쿠폰·리뷰·북마크·등급·팔로우 통계) 위임만 얇게 유지한다.
+ */
 @Component
 @RequiredArgsConstructor
 public class MemberService {
 
-    private final MemberAccountService memberAccountService;
+    private final MemberQueryService memberQueryService;
+    private final MemberCommandService memberCommandService;
     private final MemberAuthService memberAuthService;
     private final MemberFollowService memberFollowService;
     private final MemberShopService memberShopService;
@@ -42,7 +51,7 @@ public class MemberService {
     private final MemberGradeService memberGradeService;
 
     public void updateMyProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
-        memberAccountService.updateMemberProfile(memberId, nickname, statusMessage, profileImageFileId);
+        memberCommandService.updateProfile(memberId, nickname, statusMessage, profileImageFileId);
     }
 
     public MemberVerifyPasswordResponse verifyPasswordAndIssueToken(Long memberId, String password) {
@@ -52,7 +61,7 @@ public class MemberService {
     }
 
     public MemberPersonalInfoResponse getPersonalInfo(Long memberId) {
-        return memberAccountService.getPersonalInfo(memberId);
+        return memberQueryService.getPersonalInfo(memberId);
     }
 
     public void updatePersonalInfo(Long memberId, String verifyToken,
@@ -64,7 +73,7 @@ public class MemberService {
         if (phoneNumber != null) {
             memberAuthService.verifyPhoneToken(memberId, phoneVerifyToken, phoneNumber);
         }
-        memberAccountService.updatePersonalInfo(memberId, fullName, phoneNumber, birthDate,
+        memberCommandService.updatePersonalInfo(memberId, fullName, phoneNumber, birthDate,
             gender == null ? null : MemberGender.from(gender),
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
     }
@@ -72,20 +81,20 @@ public class MemberService {
     public void updatePassword(Long memberId, String verifyToken, String newPassword, String newPasswordConfirm) {
         memberAuthService.verifyPersonalInfoToken(memberId, verifyToken);
         memberAuthService.verifyNotSamePassword(memberId, newPassword);
-        memberAccountService.updatePassword(memberId, newPassword, newPasswordConfirm);
+        memberCommandService.updatePassword(memberId, newPassword, newPasswordConfirm);
     }
 
     public void withdrawMember(Long memberId, String reason, String reasonDetail, String bearerToken) {
-        memberAccountService.withdrawMember(memberId, MemberWithdrawalReason.from(reason), reasonDetail);
+        memberCommandService.withdraw(memberId, MemberWithdrawalReason.from(reason), reasonDetail);
         memberAuthService.invalidateAccessToken(bearerToken);
     }
 
     public MemberNicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
-        return memberAccountService.checkNicknameAvailability(nickname);
+        return memberQueryService.checkNicknameAvailability(nickname);
     }
 
     public MemberPhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
-        return memberAccountService.checkPhoneAvailability(phoneNumber);
+        return memberQueryService.checkPhoneAvailability(phoneNumber);
     }
 
     public MyGradeResponse getMyGrade(Long memberId) {
@@ -127,11 +136,11 @@ public class MemberService {
     }
 
     public MemberProfileResponse getMemberBasicProfile(Long targetMemberId) {
-        return memberAccountService.getMemberProfile(targetMemberId);
+        return memberQueryService.getMemberProfile(targetMemberId);
     }
 
     public MyProfileResponse getMyProfile(Long memberId) {
-        return memberAccountService.getMyProfile(memberId);
+        return memberQueryService.getMyProfile(memberId);
     }
 
     public MemberStatsResponse getMemberStats(Long memberId) {

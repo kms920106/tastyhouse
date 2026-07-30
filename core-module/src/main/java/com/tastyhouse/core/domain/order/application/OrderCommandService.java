@@ -33,7 +33,7 @@ import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.coupon.application.CouponCommandService;
 import com.tastyhouse.core.domain.coupon.application.dto.command.UseCouponCommand;
 import com.tastyhouse.core.domain.coupon.application.dto.result.UseCouponResult;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
@@ -54,7 +54,7 @@ public class OrderCommandService {
     private final OrderProductRepository orderProductRepository;
     private final OrderProductOptionRepository orderProductOptionRepository;
     private final ShopQueryService shopQueryService;
-    private final MemberQueryService memberQueryService;
+    private final MemberRepository memberRepository;
     private final ProductQueryService productQueryService;
     private final CouponCommandService couponCommandService;
     private final PointCommandService pointCommandService;
@@ -63,7 +63,8 @@ public class OrderCommandService {
     @Transactional
     public OrderResult createOrder(MemberId memberId, OrderCreateCommand command) {
         Shop shop = shopQueryService.findShopById(ShopId.of(command.shopId()));
-        Member member = memberQueryService.getById(memberId);
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         Order order = Order.of(
             memberId,

@@ -23,7 +23,8 @@ import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
+import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.order.application.OrderQueryService;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.review.application.ReviewCommandService;
@@ -61,6 +62,7 @@ import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
 @RequiredArgsConstructor
 public class ReviewService {
 
+    private final MemberQueryDao memberQueryDao;
     private final ReviewCommandService reviewCommandService;
     private final ReviewQueryService reviewQueryService;
     private final ProductQueryService productQueryService;
@@ -170,7 +172,7 @@ public class ReviewService {
     public ReviewCommentResponse createComment(Long reviewId, Long memberId, String content) {
         ReviewCommentCreateCommand command = ReviewCommentCreateCommand.of(ReviewId.of(reviewId), MemberId.of(memberId), content);
         ReviewComment comment = reviewCommandService.createComment(command);
-        MemberWithProfileImageResult member = reviewQueryService.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
+        MemberWithProfileImageResult member = memberQueryDao.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
         return convertToCommentResponse(comment, member, List.of());
     }
 
@@ -184,7 +186,7 @@ public class ReviewService {
         );
         ReviewReply reply = reviewCommandService.createReply(command);
         List<Long> ids = replyToMemberId != null ? List.of(memberId, replyToMemberId) : List.of(memberId);
-        Map<Long, MemberWithProfileImageResult> memberMap = reviewQueryService.findMemberWithProfileImagesByIds(ids);
+        Map<Long, MemberWithProfileImageResult> memberMap = memberQueryDao.findMemberWithProfileImagesByIds(ids);
         return convertToReplyResponse(reply, memberMap.get(memberId), replyToMemberId != null ? memberMap.get(replyToMemberId) : null);
     }
 
@@ -214,7 +216,7 @@ public class ReviewService {
             }
         });
 
-        Map<Long, MemberWithProfileImageResult> memberMap = reviewQueryService.findMemberWithProfileImagesByIds(memberIds);
+        Map<Long, MemberWithProfileImageResult> memberMap = memberQueryDao.findMemberWithProfileImagesByIds(memberIds);
 
         List<ReviewCommentResponse> commentResponses = comments.stream()
             .map(comment -> {

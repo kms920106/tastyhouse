@@ -30,7 +30,8 @@ import com.tastyhouse.adminapi.member.response.MemberListItemResponse;
 @RequestMapping("/api/members")
 public class MemberApiController {
 
-    private final MemberService memberService;
+    private final MemberQueryService memberQueryService;
+    private final MemberCommandService memberCommandService;
 
     @Operation(summary = "회원 목록 조회", description = "회원 목록을 페이징 조회합니다. nickname/username/phone은 부분 일치 검색, status/grade는 필터(미지정 시 전체)입니다.")
     @GetMapping("/v1")
@@ -38,7 +39,7 @@ public class MemberApiController {
         @Valid @ModelAttribute MemberSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<MemberListItemResponse> pageResponse = memberService.getMembers(
+        PaginationResponse<MemberListItemResponse> pageResponse = memberQueryService.getMembers(
             search.nickname(), search.username(), search.phone(), search.status(), search.grade(),
             pageRequest.page(), pageRequest.size()
         );
@@ -48,21 +49,21 @@ public class MemberApiController {
     @Operation(summary = "회원 상세 조회", description = "회원 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<MemberDetailResponse>> getMember(@PathVariable Long id) {
-        MemberDetailResponse response = memberService.getMember(id);
+        MemberDetailResponse response = memberQueryService.getMember(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "회원 정지", description = "회원 상태를 ACTIVE에서 SUSPENDED로 변경합니다.")
     @PatchMapping("/v1/{id}/suspend")
     public ResponseEntity<ApiResponse<Void>> suspend(@PathVariable Long id) {
-        memberService.suspend(id);
+        memberCommandService.suspend(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "회원 정지 해제", description = "회원 상태를 SUSPENDED에서 ACTIVE로 변경합니다.")
     @PatchMapping("/v1/{id}/activate")
     public ResponseEntity<ApiResponse<Void>> activate(@PathVariable Long id) {
-        memberService.activate(id);
+        memberCommandService.activate(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -72,7 +73,7 @@ public class MemberApiController {
         @PathVariable Long id,
         @Valid @RequestBody MemberWithdrawRequest request
     ) {
-        memberService.withdraw(id, request.reason(), request.reasonDetail());
+        memberCommandService.withdraw(id, request.reason(), request.reasonDetail());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

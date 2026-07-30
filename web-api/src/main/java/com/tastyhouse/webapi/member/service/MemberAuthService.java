@@ -7,8 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
@@ -27,7 +25,7 @@ public class MemberAuthService {
     // 입력한 비밀번호가 저장된 비밀번호와 일치하는지 검증
     @Transactional(readOnly = true)
     public void verifyPassword(Long memberId, String rawPassword) {
-        Member member = memberQueryService.getById(MemberId.of(memberId));
+        Member member = memberQueryService.getMember(memberId);
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_MISMATCH);
@@ -96,7 +94,7 @@ public class MemberAuthService {
     // 새 비밀번호가 기존 비밀번호와 동일한 경우 예외 처리
     @Transactional(readOnly = true)
     public void verifyNotSamePassword(Long memberId, String newPassword) {
-        Member member = memberQueryService.getById(MemberId.of(memberId));
+        Member member = memberQueryService.getMember(memberId);
         if (passwordEncoder.matches(newPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
         }

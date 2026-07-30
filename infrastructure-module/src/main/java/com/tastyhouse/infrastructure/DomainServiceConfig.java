@@ -8,7 +8,16 @@ import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.core.domain.bug.domain.service.BugReportRegistrationService;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.core.domain.member.domain.repository.MemberWithdrawalRepository;
+import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
+import com.tastyhouse.core.domain.member.referral.domain.repository.MemberReferralRepository;
+import com.tastyhouse.core.domain.point.domain.repository.PointHistoryRepository;
+import com.tastyhouse.core.domain.point.domain.repository.PointRepository;
 import com.tastyhouse.core.domain.faq.domain.service.FaqCategoryDeletionPolicy;
+import com.tastyhouse.core.domain.member.domain.service.MemberRegistrationService;
+import com.tastyhouse.core.domain.member.domain.service.MemberWithdrawalService;
+import com.tastyhouse.core.domain.member.follow.domain.service.MemberFollowService;
+import com.tastyhouse.core.domain.member.referral.domain.service.ReferralRegistrationService;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.domain.policy.domain.service.PolicyActivationService;
 import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
@@ -84,6 +93,59 @@ public class DomainServiceConfig {
         DomainEventPublisher domainEventPublisher
     ) {
         return new EmailVerificationService(memberRepository, emailVerificationRepository, domainEventPublisher);
+    }
+
+    /**
+     * 회원 등록 — 회원 애그리거트를 저장하고, 추천인이 지정되면 추천 관계까지 함께 만드는 오케스트레이션.
+     */
+    @Bean
+    public MemberRegistrationService memberRegistrationService(
+        MemberRepository memberRepository,
+        ReferralRegistrationService referralRegistrationService,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new MemberRegistrationService(memberRepository, referralRegistrationService, domainEventPublisher);
+    }
+
+    /**
+     * 회원 탈퇴 — 회원 상태 전이와 탈퇴 사유 기록을 한 트랜잭션에서 함께 처리하는 오케스트레이션.
+     */
+    @Bean
+    public MemberWithdrawalService memberWithdrawalService(
+        MemberRepository memberRepository,
+        MemberWithdrawalRepository memberWithdrawalRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new MemberWithdrawalService(memberRepository, memberWithdrawalRepository, domainEventPublisher);
+    }
+
+    /**
+     * 팔로우 등록·해제 — 팔로우 대상 회원의 존재를 확인해야 하는 크로스 애그리거트 규칙.
+     */
+    @Bean
+    public MemberFollowService memberFollowService(
+        MemberFollowRepository memberFollowRepository,
+        MemberRepository memberRepository
+    ) {
+        return new MemberFollowService(memberFollowRepository, memberRepository);
+    }
+
+    /**
+     * 추천인 등록 — 추천 관계 생성과 추천인·피추천인 양쪽 포인트 보상 적립을 함께 처리하는 오케스트레이션.
+     */
+    @Bean
+    public ReferralRegistrationService referralRegistrationService(
+        MemberReferralRepository memberReferralRepository,
+        PointRepository pointRepository,
+        PointHistoryRepository pointHistoryRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new ReferralRegistrationService(
+            memberReferralRepository,
+            pointRepository,
+            pointHistoryRepository,
+            domainEventPublisher
+        );
     }
 
     /**

@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
@@ -21,7 +21,7 @@ import com.tastyhouse.webapi.auth.response.AuthPhoneLoginResponse;
 public class PhoneLoginService {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final MemberQueryService memberQueryService;
+    private final MemberRepository memberRepository;
     private final TokenService tokenService;
 
     // phoneVerifyToken을 검증하고, 해당 번호로 가입된 회원이 있으면 JWT 발급
@@ -34,7 +34,7 @@ public class PhoneLoginService {
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
 
-        Optional<Member> memberOpt = memberQueryService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isPresent()) {
             AuthJwtResponse jwt = tokenService.issue(memberOpt.get(), false);

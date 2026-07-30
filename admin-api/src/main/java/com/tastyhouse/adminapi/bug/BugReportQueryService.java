@@ -14,8 +14,8 @@ import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.file.application.FileQueryService;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
+import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -49,7 +49,7 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
 public class BugReportQueryService {
 
     private final BugReportQueryDao bugReportQueryDao;
-    private final MemberQueryService memberQueryService;
+    private final MemberQueryDao memberQueryDao;
     private final FileQueryService fileQueryService;
     private final FileService fileService;
 
@@ -74,7 +74,7 @@ public class BugReportQueryService {
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<BugReportListItemResult> pageResult = bugReportQueryDao.findBugReports(condition, pageQuery);
 
-        Map<Long, MemberWithProfileImageResult> membersById = memberQueryService.findMemberWithProfileImagesByIds(
+        Map<Long, MemberWithProfileImageResult> membersById = memberQueryDao.findMemberWithProfileImagesByIds(
             pageResult.content().stream().map(dto -> dto.memberId().value()).toList()
         );
 
@@ -88,7 +88,7 @@ public class BugReportQueryService {
         BugReportDetailResult detail = bugReportQueryDao.findDetailById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
 
-        MemberSummaryResponse member = memberQueryService.findMemberWithProfileImage(detail.memberId())
+        MemberSummaryResponse member = memberQueryDao.findMemberWithProfileImageById(detail.memberId())
             .map(this::toMemberSummaryResponse)
             .orElse(null);
 

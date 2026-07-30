@@ -15,11 +15,12 @@ import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepos
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationSlotRepository;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.reservation.application.dto.command.ReservationCreateCommand;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
 import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 
 /**
@@ -36,7 +37,7 @@ public class ReservationCreator {
     private final ReservationRepository reservationRepository;
     private final ReservationSlotRepository slotRepository;
     private final ShopQueryService shopQueryService;
-    private final MemberQueryService memberQueryService;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public ReservationResult createInNewTx(MemberId memberId, ReservationCreateCommand cmd) {
@@ -58,7 +59,9 @@ public class ReservationCreator {
 
         // 4. 가게/회원 검증 (가게 이름 확보)
         Shop shop = shopQueryService.findShopById(ShopId.of(cmd.shopId()));
-        memberQueryService.getById(memberId);
+        if (memberRepository.findById(memberId).isEmpty()) {
+            throw new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND);
+        }
 
         // 5. 본인 중복 차단 (같은 가게 + 같은 날짜에 재예약 차단 예약 1건 제한)
         if (reservationRepository.existsBlockingByMemberShopDate(memberId, cmd.shopId(), cmd.date())) {

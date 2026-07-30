@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
-import com.tastyhouse.webapi.member.service.MemberAccountService;
+import com.tastyhouse.webapi.member.service.MemberCommandService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 
 @Service
@@ -19,7 +19,7 @@ public class CredentialLoginService {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
-    private final MemberAccountService memberAccountService;
+    private final MemberCommandService memberCommandService;
     private final MemberAuthService memberAuthService;
 
     // 회원가입 토큰 검증 후 신규 회원을 등록
@@ -31,7 +31,7 @@ public class CredentialLoginService {
                        String phoneVerifyToken, String emailVerifyToken,
                        String referrerNickname) {
         memberAuthService.verifySignUpTokens(phoneNumber, phoneVerifyToken, username, emailVerifyToken);
-        memberAccountService.signUp(
+        memberCommandService.signUp(
             username, password, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
             referrerNickname

@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.rank.domain.model.RankType;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
+import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.core.domain.rank.application.RankQueryService;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberRankResult;
 import com.tastyhouse.core.domain.rank.application.dto.result.RankPrizeResult;
@@ -27,7 +27,7 @@ import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
 public class RankService {
 
     private final RankQueryService rankQueryService;
-    private final MemberQueryService memberQueryService;
+    private final MemberQueryDao memberQueryDao;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
@@ -68,7 +68,7 @@ public class RankService {
 
         MemberRankResult dto = rankQueryService.findMemberRank(MemberId.of(memberId), type, baseDate);
         if (dto == null) {
-            MemberWithProfileImageResult member = memberQueryService.findMemberWithProfileImage(MemberId.of(memberId))
+            MemberWithProfileImageResult member = memberQueryDao.findMemberWithProfileImageById(MemberId.of(memberId))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
             return RankMemberListItemResponse.of(
                 memberId,

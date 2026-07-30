@@ -24,9 +24,8 @@ import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
-import com.tastyhouse.core.domain.member.follow.application.MemberFollowQueryService;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.dto.ReviewSearchCondition;
 import com.tastyhouse.core.domain.review.application.dto.result.BestReviewListItemResult;
@@ -55,8 +54,8 @@ public class ReviewQueryService {
     private final ReviewTagRepository reviewTagRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
-    private final MemberQueryService memberQueryService;
-    private final MemberFollowQueryService followQueryService;
+    private final MemberRepository memberRepository;
+    private final MemberFollowRepository memberFollowRepository;
     private final TagRepository tagRepository;
 
     public PageResult<BestReviewListItemResult> findBestReviewsWithPagination(int page, int size) {
@@ -90,7 +89,7 @@ public class ReviewQueryService {
     }
 
     public PageResult<LatestReviewListItemResult> findLatestReviewsByFollowingWithPagination(MemberId memberId, int page, int size) {
-        List<Long> followingMemberIds = followQueryService.findFollowingIds(memberId);
+        List<Long> followingMemberIds = memberFollowRepository.findFollowingIdsByFollowerId(memberId);
 
         if (followingMemberIds.isEmpty()) {
             return PageResult.empty(page, size);
@@ -241,8 +240,8 @@ public class ReviewQueryService {
         return reviewReplyRepository.findByCommentIdInAndHiddenFalseOrderByCreatedAtAsc(commentIds);
     }
 
-    public Map<Long, MemberWithProfileImageResult> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {
-        return memberQueryService.findMemberWithProfileImagesByIds(memberIds);
+    public Map<Long, String> findNicknamesByIds(Collection<Long> memberIds) {
+        return memberRepository.findNicknamesByIds(memberIds);
     }
 
     public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
@@ -267,7 +266,7 @@ public class ReviewQueryService {
 
     public List<ReviewCommentListItemResult> findCommentsIncludingHidden(ReviewId reviewId) {
         List<ReviewComment> comments = reviewCommentRepository.findByReviewIdOrderByCreatedAtDesc(reviewId);
-        Map<Long, MemberWithProfileImageResult> memberMap = findMemberWithProfileImagesByIds(
+        Map<Long, String> nicknameMap = findNicknamesByIds(
             comments.stream().map(comment -> comment.getMemberId().value()).toList()
         );
 
@@ -275,7 +274,7 @@ public class ReviewQueryService {
             .map(comment -> ReviewCommentListItemResult.of(
                 comment.getId(),
                 comment.getMemberId(),
-                nicknameOf(memberMap, comment.getMemberId().value()),
+                nicknameOf(nicknameMap, comment.getMemberId().value()),
                 comment.getContent(),
                 comment.isHidden(),
                 comment.getCreatedAt()
@@ -296,16 +295,16 @@ public class ReviewQueryService {
                 memberIds.add(reply.getReplyToMemberId().value());
             }
         }
-        Map<Long, MemberWithProfileImageResult> memberMap = findMemberWithProfileImagesByIds(memberIds);
+        Map<Long, String> nicknameMap = findNicknamesByIds(memberIds);
 
         return replies.stream()
             .map(reply -> ReviewReplyListItemResult.of(
                 reply.getId(),
                 reply.getCommentId(),
                 reply.getMemberId(),
-                nicknameOf(memberMap, reply.getMemberId().value()),
+                nicknameOf(nicknameMap, reply.getMemberId().value()),
                 reply.getReplyToMemberId(),
-                reply.getReplyToMemberId() != null ? nicknameOf(memberMap, reply.getReplyToMemberId().value()) : null,
+                reply.getReplyToMemberId() != null ? nicknameOf(nicknameMap, reply.getReplyToMemberId().value()) : null,
                 reply.getContent(),
                 reply.isHidden(),
                 reply.getCreatedAt()
@@ -313,8 +312,7 @@ public class ReviewQueryService {
             .toList();
     }
 
-    private String nicknameOf(Map<Long, MemberWithProfileImageResult> memberMap, Long memberId) {
-        MemberWithProfileImageResult member = memberMap.get(memberId);
-        return member != null ? member.nickname() : null;
+    private String nicknameOf(Map<Long, String> nicknameMap, Long memberId) {
+        return nicknameMap.get(memberId);
     }
 }

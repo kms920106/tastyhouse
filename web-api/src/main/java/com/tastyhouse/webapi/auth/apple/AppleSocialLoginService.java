@@ -13,9 +13,10 @@ import com.tastyhouse.core.domain.member.domain.model.MemberGender;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
 import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.application.MemberCommandService;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
 import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.external.oauth.apple.AppleIdTokenPayload;
 import com.tastyhouse.external.oauth.apple.AppleOAuthClient;
@@ -23,6 +24,7 @@ import com.tastyhouse.external.oauth.apple.AppleTokenResponse;
 import com.tastyhouse.security.token.AppleTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
+import com.tastyhouse.webapi.member.service.MemberCommandService;
 import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialLinkResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
@@ -34,7 +36,8 @@ public class AppleSocialLoginService {
 
     private final AppleOAuthClient appleOAuthClient;
     private final MemberCommandService memberCommandService;
-    private final MemberQueryService memberQueryService;
+    private final MemberRepository memberRepository;
+    private final MemberSocialAccountRepository memberSocialAccountRepository;
     private final TokenService tokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AppleTempTokenRedisRepository appleTempTokenRedisRepository;
@@ -61,7 +64,7 @@ public class AppleSocialLoginService {
         String providerId = appleUser.sub();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberQueryService.findSocialAccount(MemberSocialProvider.APPLE, providerId);
+            memberSocialAccountRepository.findByProviderAndProviderId(MemberSocialProvider.APPLE, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
@@ -69,14 +72,15 @@ public class AppleSocialLoginService {
             socialAccount.updateProviderInfo(appleUser.email(), null, null);
             memberCommandService.saveSocialAccount(socialAccount);
 
-            Member member = memberQueryService.getById(socialAccount.getMemberId());
+            Member member = memberRepository.findById(socialAccount.getMemberId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
             return AuthSocialLoginResponse.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
         // → 사용자 동의 후 연동 처리가 필요하므로 NEEDS_LINKING 반환
         String appleEmail = appleUser.email();
-        if (StringUtils.hasText(appleEmail) && memberQueryService.existsByUsername(appleEmail)) {
+        if (StringUtils.hasText(appleEmail) && memberRepository.existsByUsername(appleEmail)) {
             String appleTempToken = issueTempToken(appleToken.idToken());
             return AuthSocialLoginResponse.ofLinkingRequired(appleTempToken);
         }
@@ -111,12 +115,12 @@ public class AppleSocialLoginService {
         String providerId = appleUser.sub();
 
         // 이미 Apple 소셜 계정이 연동된 경우 중복 연동을 방지한다.
-        if (memberQueryService.existsSocialAccount(MemberSocialProvider.APPLE, providerId)) {
+        if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
-        Optional<Member> findMember = memberQueryService.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> findMember = memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // appleTempToken은 /signup/apple에서 재사용해야 하므로 삭제하지 않는다.
@@ -187,7 +191,7 @@ public class AppleSocialLoginService {
 
         String providerId = appleUser.sub();
 
-        if (memberQueryService.existsSocialAccount(MemberSocialProvider.APPLE, providerId)) {
+        if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 

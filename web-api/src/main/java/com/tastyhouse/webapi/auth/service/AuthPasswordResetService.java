@@ -10,12 +10,12 @@ import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.verification.domain.model.EmailVerification;
 import com.tastyhouse.core.domain.verification.domain.port.MailSender;
 import com.tastyhouse.core.domain.verification.domain.service.EmailVerificationService;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.auth.response.AuthPasswordResetTokenResponse;
-import com.tastyhouse.webapi.member.service.MemberAccountService;
+import com.tastyhouse.webapi.member.service.MemberCommandService;
 
 @Service
 @RequiredArgsConstructor
@@ -25,16 +25,16 @@ public class AuthPasswordResetService {
     private static final String EMAIL_SUBJECT = "[TASTY HOUSE] 비밀번호 재설정 인증번호 안내";
     private static final String EMAIL_BODY_TEMPLATE = "[TASTY HOUSE] 비밀번호 재설정 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
 
-    private final MemberQueryService memberQueryService;
+    private final MemberRepository memberRepository;
     private final EmailVerificationService emailVerificationService;
     private final MailSender mailSender;
     private final JwtTokenProvider jwtTokenProvider;
-    private final MemberAccountService memberAccountService;
+    private final MemberCommandService memberCommandService;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void sendPasswordResetCode(String username) {
-        if (!memberQueryService.existsByUsername(username)) {
+        if (!memberRepository.existsByUsername(username)) {
             log.info("비밀번호 재설정 요청: 존재하지 않는 아이디. username={}", username);
             return;
         }
@@ -63,13 +63,13 @@ public class AuthPasswordResetService {
 
         String username = jwtTokenProvider.getUsernameFromPasswordResetToken(passwordResetToken);
 
-        Member member = memberQueryService.findByUsername(username)
+        Member member = memberRepository.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (passwordEncoder.matches(newPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
         }
 
-        memberAccountService.updatePassword(member.getId(), newPassword, newPasswordConfirm);
+        memberCommandService.updatePassword(member.getId(), newPassword, newPasswordConfirm);
     }
 }

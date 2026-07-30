@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.core.domain.member.application.MemberCommandService;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.rank.application.dto.result.MemberReviewCountResult;
 import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 
@@ -22,7 +22,7 @@ import com.tastyhouse.core.domain.review.application.ReviewQueryService;
 public class GradeSchedulerService {
 
     private final ReviewQueryService reviewQueryService;
-    private final MemberCommandService memberCommandService;
+    private final MemberRepository memberRepository;
 
     /**
      * 모든 회원의 등급을 리뷰 개수 기준으로 업데이트
@@ -82,6 +82,6 @@ public class GradeSchedulerService {
             return 0;
         }
 
-        return memberCommandService.bulkUpdateGrade(memberIds, grade);
+        return memberRepository.bulkUpdateGrade(memberIds, grade);
     }
 }

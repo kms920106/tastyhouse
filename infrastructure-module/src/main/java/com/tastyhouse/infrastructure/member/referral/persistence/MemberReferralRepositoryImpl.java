@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.member.referral.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -28,17 +27,6 @@ public class MemberReferralRepositoryImpl implements MemberReferralRepository {
             .from(memberReferralJpaEntity)
             .where(memberReferralJpaEntity.refereeId.eq(refereeId))
             .fetchFirst() != null;
-    }
-
-    @Override
-    public List<MemberReferral> findByReferrerId(MemberId referrerId) {
-        return queryFactory
-            .selectFrom(memberReferralJpaEntity)
-            .where(memberReferralJpaEntity.referrerId.eq(referrerId))
-            .fetch()
-            .stream()
-            .map(MemberReferralMapper::toDomain)
-            .toList();
     }
 
     @Override

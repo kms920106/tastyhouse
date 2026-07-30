@@ -1,29 +1,30 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.application.dto.MemberSearchCondition;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberListItemResult;
-import com.tastyhouse.core.domain.member.application.dto.result.MemberWithProfileImageResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
-import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
 
+/**
+ * 회원 write 어댑터.
+ *
+ * <p>단건 로드·중복 검증·등급 일괄 갱신·저장만 담당한다. 표현 목적 read(회원 관리 목록·닉네임 검색·
+ * 프로필 이미지 조인 투영)는 같은 모듈의 {@code member/query/MemberQueryDao}로 이관했다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class MemberRepositoryImpl implements MemberRepository {
@@ -76,33 +77,6 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public PageResult<MemberWithProfileImageResult> findByNicknameContaining(String nickname, PageQuery pageQuery) {
-        List<MemberWithProfileImageResult> content = queryFactory
-            .select(Projections.constructor(MemberWithProfileImageResult.class,
-                memberJpaEntity.id,
-                memberJpaEntity.nickname,
-                memberJpaEntity.memberGrade,
-                memberJpaEntity.statusMessage,
-                uploadedFileJpaEntity.filePath
-            ))
-            .from(memberJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
-            .where(memberJpaEntity.nickname.containsIgnoreCase(nickname))
-            .orderBy(memberJpaEntity.createdAt.desc())
-            .offset((long) pageQuery.page() * pageQuery.size())
-            .limit(pageQuery.size())
-            .fetch();
-
-        Long total = queryFactory
-            .select(memberJpaEntity.count())
-            .from(memberJpaEntity)
-            .where(memberJpaEntity.nickname.containsIgnoreCase(nickname))
-            .fetchOne();
-
-        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
-    }
-
-    @Override
     public boolean existsByPhoneNumberAndStatusNot(String phoneNumber, MemberStatus memberStatus) {
         return queryFactory
             .selectOne()
@@ -136,65 +110,29 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(MemberId memberId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(MemberWithProfileImageResult.class,
-                    memberJpaEntity.id,
-                    memberJpaEntity.nickname,
-                    memberJpaEntity.memberGrade,
-                    memberJpaEntity.statusMessage,
-                    uploadedFileJpaEntity.filePath
-                ))
-                .from(memberJpaEntity)
-                .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
-                .where(memberJpaEntity.id.eq(memberId.value()))
-                .fetchOne()
-        );
-    }
+    public Map<Long, String> findNicknamesByIds(Collection<Long> memberIds) {
+        if (memberIds == null || memberIds.isEmpty()) {
+            return Map.of();
+        }
 
-    @Override
-    public PageResult<MemberListItemResult> findMembers(MemberSearchCondition condition, PageQuery pageQuery) {
-        List<MemberListItemResult> content = queryFactory
-            .select(Projections.constructor(MemberListItemResult.class,
-                memberJpaEntity.id,
-                memberJpaEntity.username,
-                memberJpaEntity.nickname,
-                memberJpaEntity.fullName,
-                memberJpaEntity.phoneNumber.value,
-                memberJpaEntity.gender,
-                memberJpaEntity.memberGrade,
-                memberJpaEntity.memberStatus,
-                uploadedFileJpaEntity.filePath,
-                memberJpaEntity.createdAt
-            ))
+        List<Long> distinctIds = memberIds.stream().distinct().toList();
+
+        List<Tuple> tuples = queryFactory
+            .select(memberJpaEntity.id, memberJpaEntity.nickname)
             .from(memberJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
-            .where(
-                nicknameContains(condition.nickname()),
-                usernameContains(condition.username()),
-                phoneContains(condition.phone()),
-                statusEq(condition.status()),
-                gradeEq(condition.grade())
-            )
-            .orderBy(memberJpaEntity.createdAt.desc())
-            .offset((long) pageQuery.page() * pageQuery.size())
-            .limit(pageQuery.size())
+            .where(memberJpaEntity.id.in(distinctIds))
             .fetch();
 
-        Long total = queryFactory
-            .select(memberJpaEntity.count())
-            .from(memberJpaEntity)
-            .where(
-                nicknameContains(condition.nickname()),
-                usernameContains(condition.username()),
-                phoneContains(condition.phone()),
-                statusEq(condition.status()),
-                gradeEq(condition.grade())
-            )
-            .fetchOne();
-
-        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+        Map<Long, String> nicknamesById = new HashMap<>();
+        for (Tuple tuple : tuples) {
+            Long id = tuple.get(memberJpaEntity.id);
+            String nickname = tuple.get(memberJpaEntity.nickname);
+            if (id == null || nickname == null) {
+                continue;
+            }
+            nicknamesById.putIfAbsent(id, nickname);
+        }
+        return nicknamesById;
     }
 
     @Override
@@ -210,25 +148,5 @@ public class MemberRepositoryImpl implements MemberRepository {
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다: " + member.getId()));
         MemberMapper.applyChanges(entity, member);
         return MemberMapper.toDomain(entity);
-    }
-
-    private BooleanExpression nicknameContains(String nickname) {
-        return StringUtils.hasText(nickname) ? memberJpaEntity.nickname.containsIgnoreCase(nickname) : null;
-    }
-
-    private BooleanExpression usernameContains(String username) {
-        return StringUtils.hasText(username) ? memberJpaEntity.username.containsIgnoreCase(username) : null;
-    }
-
-    private BooleanExpression phoneContains(String phone) {
-        return StringUtils.hasText(phone) ? memberJpaEntity.phoneNumber.value.containsIgnoreCase(phone) : null;
-    }
-
-    private BooleanExpression statusEq(MemberStatus status) {
-        return status != null ? memberJpaEntity.memberStatus.eq(status) : null;
-    }
-
-    private BooleanExpression gradeEq(MemberGrade grade) {
-        return grade != null ? memberJpaEntity.memberGrade.eq(grade) : null;
     }
 }

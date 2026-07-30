@@ -1,0 +1,148 @@
+package com.tastyhouse.webapi.member.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.core.domain.member.domain.model.MemberGender;
+import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
+import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.core.domain.member.domain.service.MemberRegistrationService;
+import com.tastyhouse.core.domain.member.domain.service.MemberWithdrawalService;
+import com.tastyhouse.core.exception.BusinessException;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
+
+/**
+ * 회원 명령 서비스.
+ *
+ * <p>프로필·개인정보·비밀번호 변경은 {@code Member} 애그리거트 하나만 다루는 단일 애그리거트 연산
+ * (분류 A)이므로 이 서비스가 직접 write 포트로 처리한다. 가입·탈퇴는 추천 관계·탈퇴 사유 등 다른
+ * 애그리거트를 함께 다루는 불변식이므로 도메인 서비스({@link MemberRegistrationService},
+ * {@link MemberWithdrawalService})에 위임한다.
+ *
+ * <p>비밀번호 인코딩은 Spring Security {@code PasswordEncoder}에 의존하므로 프레임워크-프리 도메인
+ * 계층이 아니라 이 계층에서 수행하고, 도메인에는 인코딩된 값만 넘긴다.
+ *
+ * <p>도메인이 프레임워크-프리라 더티 체킹이 없으므로 변경 후 저장은 명시적 save로 수행한다.
+ */
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class MemberCommandService {
+
+    private final MemberRepository memberRepository;
+    private final MemberSocialAccountRepository memberSocialAccountRepository;
+    private final MemberRegistrationService memberRegistrationService;
+    private final MemberWithdrawalService memberWithdrawalService;
+    private final PasswordEncoder passwordEncoder;
+
+    public void signUp(
+        String username,
+        String rawPassword,
+        String nickname,
+        String fullName,
+        MemberGender gender,
+        Integer birthDate,
+        String phoneNumber,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
+        String referrerNickname
+    ) {
+        memberRegistrationService.signUp(
+            username,
+            passwordEncoder.encode(rawPassword),
+            nickname,
+            fullName,
+            gender,
+            birthDate,
+            phoneNumber,
+            pushNotificationEnabled,
+            marketingInfoEnabled,
+            eventInfoEnabled,
+            referrerNickname
+        );
+    }
+
+    /** 소셜 가입 — 소셜로그인 서비스(4종)가 신원 확인 후 호출한다. */
+    public Member signUpSocial(
+        String username,
+        String nickname,
+        String fullName,
+        MemberGender gender,
+        Integer birthDate,
+        String phoneNumber,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
+        String referrerNickname
+    ) {
+        return memberRegistrationService.signUpSocial(
+            username,
+            nickname,
+            fullName,
+            gender,
+            birthDate,
+            phoneNumber,
+            pushNotificationEnabled,
+            marketingInfoEnabled,
+            eventInfoEnabled,
+            referrerNickname
+        );
+    }
+
+    public void updateProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
+        Member member = loadMember(memberId);
+        member.updateProfile(nickname, statusMessage, profileImageFileId);
+        memberRepository.save(member);
+    }
+
+    public void updatePersonalInfo(
+        Long memberId,
+        String fullName,
+        String phoneNumber,
+        Integer birthDate,
+        MemberGender gender,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled
+    ) {
+        Member member = loadMember(memberId);
+        member.updatePersonalInfo(
+            fullName, phoneNumber, birthDate, gender,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
+        );
+        memberRepository.save(member);
+    }
+
+    /** 새 비밀번호와 확인값 일치를 검증한 뒤 인코딩해 변경한다. */
+    public void updatePassword(Long memberId, String newPassword, String newPasswordConfirm) {
+        if (!newPassword.equals(newPasswordConfirm)) {
+            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
+        }
+
+        Member member = loadMember(memberId);
+        member.updatePassword(passwordEncoder.encode(newPassword));
+        memberRepository.save(member);
+    }
+
+    public void withdraw(Long memberId, MemberWithdrawalReason reason, String reasonDetail) {
+        memberWithdrawalService.withdraw(MemberId.of(memberId), reason, reasonDetail);
+    }
+
+    /** 소셜 계정 신규 저장·제공자 정보 갱신을 반영한다. */
+    public void saveSocialAccount(MemberSocialAccount socialAccount) {
+        memberSocialAccountRepository.save(socialAccount);
+    }
+
+    private Member loadMember(Long memberId) {
+        return memberRepository.findById(MemberId.of(memberId))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+}

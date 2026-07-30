@@ -12,12 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
-import com.tastyhouse.core.domain.member.application.MemberQueryService;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.reservation.application.ReservationCommandService;
 import com.tastyhouse.core.domain.reservation.application.ReservationQueryService;
 import com.tastyhouse.core.domain.reservation.application.dto.command.ReservationCreateCommand;
 import com.tastyhouse.core.domain.reservation.application.dto.result.DailySlotAvailabilityResult;
 import com.tastyhouse.core.domain.reservation.application.dto.result.ReservationResult;
+import com.tastyhouse.core.exception.EntityNotFoundException;
+import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
@@ -36,7 +38,7 @@ public class ReservationService {
 
     private final ReservationCommandService reservationCommandService;
     private final ReservationQueryService reservationQueryService;
-    private final MemberQueryService memberQueryService;
+    private final MemberRepository memberRepository;
     private final FileService fileService;
 
     @Transactional(readOnly = true)
@@ -83,7 +85,8 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public ReservationDetailResponse getReservationDetail(Long memberId, Long reservationId) {
         ReservationResult result = reservationQueryService.findDetail(MemberId.of(memberId), ReservationId.of(reservationId));
-        Member reserver = memberQueryService.getById(result.memberId());
+        Member reserver = memberRepository.findById(result.memberId())
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         String phoneNumber = reserver.getPhoneNumber() != null ? reserver.getPhoneNumber().value() : null;
         return ReservationDetailResponse.from(
             result.id().value(),
