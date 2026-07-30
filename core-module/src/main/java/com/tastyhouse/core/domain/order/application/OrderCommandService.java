@@ -30,6 +30,7 @@ import com.tastyhouse.core.domain.product.domain.vo.ProductId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.core.domain.product.domain.vo.ProductOptionId;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.coupon.domain.service.CouponIssueService;
 import com.tastyhouse.core.domain.coupon.domain.service.CouponUseResult;
@@ -39,7 +40,6 @@ import com.tastyhouse.core.domain.order.application.dto.command.OrderCreateComma
 import com.tastyhouse.core.domain.order.application.dto.command.OrderProductOptionCreateCommand;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
-import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -52,7 +52,7 @@ public class OrderCommandService {
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
     private final OrderProductOptionRepository orderProductOptionRepository;
-    private final ShopQueryService shopQueryService;
+    private final ShopRepository shopRepository;
     private final MemberRepository memberRepository;
     private final ProductQueryService productQueryService;
     private final CouponIssueService couponIssueService;
@@ -61,7 +61,8 @@ public class OrderCommandService {
 
     @Transactional
     public OrderResult createOrder(MemberId memberId, OrderCreateCommand command) {
-        Shop shop = shopQueryService.findShopById(ShopId.of(command.shopId()));
+        Shop shop = shopRepository.findById(ShopId.of(command.shopId()))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 

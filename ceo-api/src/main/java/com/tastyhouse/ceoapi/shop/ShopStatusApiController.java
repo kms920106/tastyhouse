@@ -24,7 +24,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopStatusResponse;
 @RequestMapping("/api/shops")
 public class ShopStatusApiController {
 
-    private final ShopStatusService shopStatusService;
+    private final ShopStatusQueryService shopStatusQueryService;
+    private final ShopStatusCommandService shopStatusCommandService;
 
     @Operation(summary = "내 가게 노출 상태 조회", description = "로그인한 점주가 소유한 가게의 노출정지·폐업 상태를 조회합니다.")
     @GetMapping("/v1/{id}/status")
@@ -32,7 +33,7 @@ public class ShopStatusApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopStatusResponse response = shopStatusService.getStatus(userDetails.getCeoId(), id);
+        ShopStatusResponse response = shopStatusQueryService.getStatus(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -43,7 +44,7 @@ public class ShopStatusApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopStatusUpdateRequest request
     ) {
-        shopStatusService.updateStatus(userDetails.getCeoId(), id, request.status());
+        shopStatusCommandService.updateStatus(userDetails.getCeoId(), id, request.status());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

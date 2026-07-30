@@ -1,13 +1,16 @@
 package com.tastyhouse.core.domain.shop.domain.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.shop.domain.model.ShopHygieneBadge;
 
+/**
+ * 가게 위생 인증 뱃지 write 포트.
+ *
+ * <p>목록 조회는 infrastructure-module의 {@code infrastructure/shop/query/ShopQueryDao}로 이관했다
+ * (공통 지침 패턴 4).
+ */
 public interface ShopHygieneBadgeRepository {
-
-    List<ShopHygieneBadge> findByShopId(Long shopId);
 
     Optional<ShopHygieneBadge> findById(Long id);
 

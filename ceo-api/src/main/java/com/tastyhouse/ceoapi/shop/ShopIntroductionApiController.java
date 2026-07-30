@@ -27,7 +27,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopIntroductionValidationResponse;
 @RequestMapping("/api/shops")
 public class ShopIntroductionApiController {
 
-    private final ShopIntroductionService shopIntroductionService;
+    private final ShopIntroductionQueryService shopIntroductionQueryService;
+    private final ShopIntroductionCommandService shopIntroductionCommandService;
 
     @Operation(summary = "내 가게소개 조회", description = "로그인한 점주가 소유한 가게의 최근 가게소개(사장님 한마디)를 조회합니다.")
     @GetMapping("/v1/{id}/introduction")
@@ -35,7 +36,7 @@ public class ShopIntroductionApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopIntroductionResponse response = shopIntroductionService.getIntroduction(userDetails.getCeoId(), id);
+        ShopIntroductionResponse response = shopIntroductionQueryService.getIntroduction(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -46,7 +47,7 @@ public class ShopIntroductionApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopIntroductionUpdateRequest request
     ) {
-        shopIntroductionService.updateIntroduction(userDetails.getCeoId(), id, request.message());
+        shopIntroductionCommandService.updateIntroduction(userDetails.getCeoId(), id, request.message());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -57,7 +58,7 @@ public class ShopIntroductionApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopIntroductionValidateRequest request
     ) {
-        ShopIntroductionValidationResponse response = shopIntroductionService.validateIntroduction(
+        ShopIntroductionValidationResponse response = shopIntroductionQueryService.validateIntroduction(
             userDetails.getCeoId(), id, request.message()
         );
         return ResponseEntity.ok(ApiResponse.success(response));

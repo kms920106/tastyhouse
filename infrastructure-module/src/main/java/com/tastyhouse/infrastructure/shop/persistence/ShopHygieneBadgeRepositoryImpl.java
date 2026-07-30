@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -14,13 +13,6 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopHygieneBadgeReposit
 public class ShopHygieneBadgeRepositoryImpl implements ShopHygieneBadgeRepository {
 
     private final ShopHygieneBadgeJpaRepository shopHygieneBadgeJpaRepository;
-
-    @Override
-    public List<ShopHygieneBadge> findByShopId(Long shopId) {
-        return shopHygieneBadgeJpaRepository.findByShopId(shopId).stream()
-            .map(ShopHygieneBadgeMapper::toDomain)
-            .toList();
-    }
 
     @Override
     public Optional<ShopHygieneBadge> findById(Long id) {

@@ -1,35 +1,18 @@
 package com.tastyhouse.core.domain.shop.domain.repository;
 
-import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.shop.domain.model.Amenity;
-import com.tastyhouse.core.domain.shop.domain.model.FoodType;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.core.domain.shop.application.dto.ShopSearchCondition;
-import com.tastyhouse.core.domain.shop.application.dto.result.BestShopItemResult;
-import com.tastyhouse.core.domain.shop.application.dto.result.LatestShopItemResult;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemResult;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopListItemResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
+/**
+ * 가게 write 포트.
+ *
+ * <p>command 경로·도메인 서비스가 트랜잭션 안에서 소비하는 도메인 모델 반환 CRUD만 둔다. 목록·검색·
+ * 베스트·즐겨찾기 등 표현 목적 read는 infrastructure-module의
+ * {@code infrastructure/shop/query/ShopSearchQueryDao}로 이관했다(공통 지침 패턴 4).
+ */
 public interface ShopRepository {
-
-    List<Shop> findNearbyShops(BigDecimal latitude, BigDecimal longitude);
-
-    PageResult<BestShopItemResult> findBestShops(PageQuery pageQuery);
-
-    PageResult<LatestShopItemResult> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, PageQuery pageQuery);
-
-    PageResult<ShopBookmarkedItemResult> findMyBookmarkedShops(MemberId memberId, PageQuery pageQuery);
-
-    PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(String keyword, MemberId memberId, PageQuery pageQuery);
-
-    PageResult<ShopListItemResult> findShops(ShopSearchCondition condition, PageQuery pageQuery);
 
     Optional<Shop> findById(ShopId id);
 

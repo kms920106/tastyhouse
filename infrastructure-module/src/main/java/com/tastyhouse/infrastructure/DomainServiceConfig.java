@@ -35,8 +35,25 @@ import com.tastyhouse.core.domain.review.domain.repository.ReviewTagRepository;
 import com.tastyhouse.core.domain.review.domain.service.ReviewLifecycleService;
 import com.tastyhouse.core.domain.reservation.domain.repository.ReservationSlotRepository;
 import com.tastyhouse.core.domain.reservation.domain.service.ReservationBookingService;
+import com.tastyhouse.core.domain.shop.domain.repository.ProhibitedWordRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopBookmarkRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopConvenienceInfoRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopImageChangeRequestRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopPhoneNumberRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopSuspensionRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopTemporaryClosureRepository;
+import com.tastyhouse.core.domain.shop.domain.repository.StationRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
+import com.tastyhouse.core.domain.shop.domain.service.ProhibitedWordValidator;
+import com.tastyhouse.core.domain.shop.domain.service.ShopBusinessHourService;
+import com.tastyhouse.core.domain.shop.domain.service.ShopConvenienceInfoService;
+import com.tastyhouse.core.domain.shop.domain.service.ShopImageApprovalService;
+import com.tastyhouse.core.domain.shop.domain.service.ShopLifecycleService;
+import com.tastyhouse.core.domain.shop.domain.service.ShopOperatingStatusCalculator;
+import com.tastyhouse.core.domain.shop.domain.service.ShopOperatingStatusService;
+import com.tastyhouse.core.domain.shop.domain.service.ShopPhoneNumberRegistryService;
 import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
 import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
 import com.tastyhouse.core.domain.search.domain.service.PopularKeywordRefreshService;
@@ -252,5 +269,107 @@ public class DomainServiceConfig {
         DomainEventPublisher domainEventPublisher
     ) {
         return new PhoneVerificationService(phoneVerificationRepository, domainEventPublisher);
+    }
+
+    /**
+     * 금칙어 검수 정책 — 점주 입력 텍스트(가게소개·찾아오는길)에 액터 무관하게 적용되는 무상태 정책.
+     */
+    @Bean
+    public ProhibitedWordValidator prohibitedWordValidator(ProhibitedWordRepository prohibitedWordRepository) {
+        return new ProhibitedWordValidator(prohibitedWordRepository);
+    }
+
+    /**
+     * 가게 영업 상태 계산기 — 리포지토리에 의존하지 않는 순수 판정 로직.
+     */
+    @Bean
+    public ShopOperatingStatusCalculator shopOperatingStatusCalculator() {
+        return new ShopOperatingStatusCalculator();
+    }
+
+    /**
+     * 가게 영업 상태 판정 — 가게·영업시간·휴게시간·정기휴무·임시휴무·임시중지 여섯 애그리거트를 읽어
+     * 계산기에 위임하는 오케스트레이션.
+     */
+    @Bean
+    public ShopOperatingStatusService shopOperatingStatusService(
+        ShopRepository shopRepository,
+        ShopDetailRepository shopDetailRepository,
+        ShopTemporaryClosureRepository shopTemporaryClosureRepository,
+        ShopSuspensionRepository shopSuspensionRepository,
+        ShopOperatingStatusCalculator shopOperatingStatusCalculator
+    ) {
+        return new ShopOperatingStatusService(
+            shopRepository,
+            shopDetailRepository,
+            shopTemporaryClosureRepository,
+            shopSuspensionRepository,
+            shopOperatingStatusCalculator
+        );
+    }
+
+    /**
+     * 가게 이미지 변경 승인 워크플로 — 요청 승인과 가게 이미지 반영을 한 트랜잭션에서 함께 처리하는
+     * 원자 연산(요청자 ceo·검수자 admin 양쪽이 공유하는 액터 무관 규칙).
+     */
+    @Bean
+    public ShopImageApprovalService shopImageApprovalService(
+        ShopImageChangeRequestRepository shopImageChangeRequestRepository,
+        ShopRepository shopRepository
+    ) {
+        return new ShopImageApprovalService(shopImageChangeRequestRepository, shopRepository);
+    }
+
+    /**
+     * 가게 전화번호 목록 불변식 — 대표번호와 가게 애그리거트의 대표 전화번호를 항상 함께 갱신한다.
+     */
+    @Bean
+    public ShopPhoneNumberRegistryService shopPhoneNumberRegistryService(
+        ShopPhoneNumberRepository shopPhoneNumberRepository,
+        ShopRepository shopRepository
+    ) {
+        return new ShopPhoneNumberRegistryService(shopPhoneNumberRepository, shopRepository);
+    }
+
+    /**
+     * 가게 영업시간·휴게시간·정기휴무 규격 불변식 — 휴게시간이 같은 요일 영업시간 범위 안인지 등을 검증한다.
+     */
+    @Bean
+    public ShopBusinessHourService shopBusinessHourService(ShopDetailRepository shopDetailRepository) {
+        return new ShopBusinessHourService(shopDetailRepository);
+    }
+
+    /**
+     * 가게 생애주기 불변식 — 역 존재 확인·노출정지 차단(진행 중 이미지 요청)·가게소개 검수를 담당한다.
+     */
+    @Bean
+    public ShopLifecycleService shopLifecycleService(
+        ShopRepository shopRepository,
+        ShopDetailRepository shopDetailRepository,
+        ShopBookmarkRepository shopBookmarkRepository,
+        StationRepository stationRepository,
+        ShopImageApprovalService shopImageApprovalService,
+        ProhibitedWordValidator prohibitedWordValidator
+    ) {
+        return new ShopLifecycleService(
+            shopRepository,
+            shopDetailRepository,
+            shopBookmarkRepository,
+            stationRepository,
+            shopImageApprovalService,
+            prohibitedWordValidator
+        );
+    }
+
+    /**
+     * 가게 편의정보 불변식 — 찾아오는길 금칙어 검수와 표시 위치 반경(1km) 검증을 담당한다.
+     */
+    @Bean
+    public ShopConvenienceInfoService shopConvenienceInfoService(
+        ShopConvenienceInfoRepository shopConvenienceInfoRepository,
+        ShopRepository shopRepository,
+        ProhibitedWordValidator prohibitedWordValidator
+    ) {
+        return new ShopConvenienceInfoService(shopConvenienceInfoRepository, shopRepository, prohibitedWordValidator);
     }
 }

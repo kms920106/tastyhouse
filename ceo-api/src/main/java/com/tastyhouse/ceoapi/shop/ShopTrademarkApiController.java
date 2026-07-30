@@ -25,7 +25,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopImageStatusResponse;
 @RequestMapping("/api/shops")
 public class ShopTrademarkApiController {
 
-    private final ShopTrademarkService shopTrademarkService;
+    private final ShopTrademarkQueryService shopTrademarkQueryService;
+    private final ShopTrademarkCommandService shopTrademarkCommandService;
 
     @Operation(summary = "상표 이미지 현황 조회", description = "가게의 현재 상표 이미지와 변경 요청 상태 목록을 조회합니다.")
     @GetMapping("/v1/{id}/trademark")
@@ -33,7 +34,7 @@ public class ShopTrademarkApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopImageStatusResponse response = shopTrademarkService.getTrademarkStatus(userDetails.getCeoId(), id);
+        ShopImageStatusResponse response = shopTrademarkQueryService.getTrademarkStatus(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -45,7 +46,7 @@ public class ShopTrademarkApiController {
         @Parameter(description = "상표 이미지 파일", required = true)
         @RequestParam("file") MultipartFile file
     ) {
-        Long requestId = shopTrademarkService.requestTrademarkChange(userDetails.getCeoId(), id, file);
+        Long requestId = shopTrademarkCommandService.requestTrademarkChange(userDetails.getCeoId(), id, file);
         return ResponseEntity.ok(ApiResponse.success(requestId));
     }
 
@@ -55,7 +56,7 @@ public class ShopTrademarkApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopImageStatusResponse response = shopTrademarkService.getThumbnailStatus(userDetails.getCeoId(), id);
+        ShopImageStatusResponse response = shopTrademarkQueryService.getThumbnailStatus(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -67,7 +68,7 @@ public class ShopTrademarkApiController {
         @Parameter(description = "대표이미지 파일", required = true)
         @RequestParam("file") MultipartFile file
     ) {
-        Long requestId = shopTrademarkService.requestThumbnailChange(userDetails.getCeoId(), id, file);
+        Long requestId = shopTrademarkCommandService.requestThumbnailChange(userDetails.getCeoId(), id, file);
         return ResponseEntity.ok(ApiResponse.success(requestId));
     }
 }

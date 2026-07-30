@@ -19,6 +19,7 @@ import com.tastyhouse.core.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.core.domain.payment.domain.model.Payment;
 import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.core.domain.order.application.dto.OrderSearchCondition;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderListItemResult;
@@ -26,7 +27,6 @@ import com.tastyhouse.core.domain.order.application.dto.result.OrderManagementLi
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductOptionResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderProductResult;
 import com.tastyhouse.core.domain.order.application.dto.result.OrderResult;
-import com.tastyhouse.core.domain.shop.application.ShopQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -41,7 +41,7 @@ public class OrderQueryService {
     private final OrderProductRepository orderProductRepository;
     private final OrderProductOptionRepository orderProductOptionRepository;
     private final PaymentRepository paymentRepository;
-    private final ShopQueryService shopQueryService;
+    private final ShopRepository shopRepository;
 
     public Optional<Order> findById(OrderId orderId) {
         return orderRepository.findById(orderId);
@@ -63,7 +63,8 @@ public class OrderQueryService {
 
         order.validateOwnership(memberId);
 
-        Shop shop = shopQueryService.findShopById(ShopId.of(order.getShopId()));
+        Shop shop = shopRepository.findById(ShopId.of(order.getShopId()))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
         List<OrderProductResult> itemResults = buildOrderProductResults(orderId);
 
@@ -82,7 +83,8 @@ public class OrderQueryService {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
-        Shop shop = shopQueryService.findShopById(ShopId.of(order.getShopId()));
+        Shop shop = shopRepository.findById(ShopId.of(order.getShopId()))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
         List<OrderProductResult> itemResults = buildOrderProductResults(orderId);
 

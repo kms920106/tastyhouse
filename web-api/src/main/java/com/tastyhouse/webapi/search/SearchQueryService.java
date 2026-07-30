@@ -7,10 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.product.application.ProductQueryService;
 import com.tastyhouse.core.domain.product.application.dto.result.SearchProductItemResult;
-import com.tastyhouse.core.domain.shop.application.dto.result.ShopBookmarkedItemResult;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -20,6 +18,8 @@ import com.tastyhouse.infrastructure.review.query.SearchReviewItemResult;
 import com.tastyhouse.infrastructure.search.query.PopularKeywordResult;
 import com.tastyhouse.infrastructure.search.query.RecommendedKeywordResult;
 import com.tastyhouse.infrastructure.search.query.SearchQueryDao;
+import com.tastyhouse.infrastructure.shop.query.ShopBookmarkedItemResult;
+import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
 import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.response.SearchPopularKeywordResponse;
@@ -47,7 +47,7 @@ public class SearchQueryService {
     private final SearchQueryDao searchQueryDao;
     private final ProductQueryService productQueryService;
     private final ReviewQueryDao reviewQueryDao;
-    private final ShopRepository shopRepository;
+    private final ShopSearchQueryDao shopSearchQueryDao;
     private final FileService fileService;
 
     public List<SearchPopularKeywordResponse> getPopularKeywords() {
@@ -78,14 +78,14 @@ public class SearchQueryService {
     public PageResult<SearchShopListItemResponse> searchShopsPaged(String query, Long memberId, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
-        return shopRepository.searchByKeywordWithBookmark(keyword, MemberId.of(memberId), pageQuery)
+        return shopSearchQueryDao.searchByKeywordWithBookmark(keyword, MemberId.of(memberId), pageQuery)
             .map(this::toSearchShopListItemResponse);
     }
 
     public PageResult<SearchShopListItemResponse> searchShopsPublic(String query, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
-        return shopRepository.searchByKeywordWithBookmark(keyword, null, pageQuery)
+        return shopSearchQueryDao.searchByKeywordWithBookmark(keyword, null, pageQuery)
             .map(this::toSearchShopListItemResponse);
     }
 

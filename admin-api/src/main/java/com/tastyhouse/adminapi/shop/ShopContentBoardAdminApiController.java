@@ -29,7 +29,8 @@ import com.tastyhouse.adminapi.shop.response.ShopContentBoardListItemResponse;
 @RequestMapping("/api/shops")
 public class ShopContentBoardAdminApiController {
 
-    private final ShopContentBoardAdminService shopContentBoardAdminService;
+    private final ShopContentBoardQueryService shopContentBoardQueryService;
+    private final ShopContentBoardCommandService shopContentBoardCommandService;
 
     @Operation(summary = "콘텐츠보드 목록 조회", description = "전체 가게 콘텐츠보드를 조건 페이징 조회합니다. shopId/hidden/contentType은 필터(미지정 시 전체)입니다.")
     @GetMapping("/v1/content-boards")
@@ -37,7 +38,7 @@ public class ShopContentBoardAdminApiController {
         @Valid @ModelAttribute ShopContentBoardSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopContentBoardListItemResponse> pageResponse = shopContentBoardAdminService.getContentBoards(
+        PaginationResponse<ShopContentBoardListItemResponse> pageResponse = shopContentBoardQueryService.getContentBoards(
             search.shopId(), search.hidden(), search.contentType(), pageRequest.page(), pageRequest.size()
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -51,14 +52,14 @@ public class ShopContentBoardAdminApiController {
         @PathVariable Long contentBoardId,
         @Valid @RequestBody ShopContentBoardHideRequest request
     ) {
-        shopContentBoardAdminService.changeHidden(contentBoardId, request.hidden());
+        shopContentBoardCommandService.changeHidden(contentBoardId, request.hidden());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "콘텐츠보드 삭제", description = "가게 콘텐츠보드를 삭제합니다.")
     @DeleteMapping("/v1/content-boards/{contentBoardId}")
     public ResponseEntity<ApiResponse<Void>> deleteContentBoard(@PathVariable Long contentBoardId) {
-        shopContentBoardAdminService.deleteContentBoard(contentBoardId);
+        shopContentBoardCommandService.deleteContentBoard(contentBoardId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

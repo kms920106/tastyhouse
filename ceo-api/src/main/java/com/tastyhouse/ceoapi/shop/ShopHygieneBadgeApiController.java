@@ -22,7 +22,7 @@ import com.tastyhouse.ceoapi.shop.response.ShopHygieneBadgeResponse;
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeApiController {
 
-    private final ShopHygieneBadgeService shopHygieneBadgeService;
+    private final ShopHygieneBadgeQueryService shopHygieneBadgeQueryService;
 
     @Operation(summary = "위생 인증 뱃지 목록 조회", description = "가게의 위생 인증 뱃지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/hygiene-badges")
@@ -30,7 +30,7 @@ public class ShopHygieneBadgeApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeService.getHygieneBadges(userDetails.getCeoId(), id);
+        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeQueryService.getHygieneBadges(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

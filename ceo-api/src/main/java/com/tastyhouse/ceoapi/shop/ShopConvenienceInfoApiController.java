@@ -30,7 +30,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopConvenienceInfoResponse;
 @RequestMapping("/api/shops")
 public class ShopConvenienceInfoApiController {
 
-    private final ShopConvenienceInfoService shopConvenienceInfoService;
+    private final ShopConvenienceInfoQueryService shopConvenienceInfoQueryService;
+    private final ShopConvenienceInfoCommandService shopConvenienceInfoCommandService;
 
     @Operation(summary = "내 가게 편의정보 조회", description = "로그인한 점주가 소유한 가게의 편의정보(주차·발렛·찾아오는길·노출위치)를 조회합니다.")
     @GetMapping("/v1/{id}/convenience-info")
@@ -38,7 +39,7 @@ public class ShopConvenienceInfoApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopConvenienceInfoResponse response = shopConvenienceInfoService.getConvenienceInfo(userDetails.getCeoId(), id);
+        ShopConvenienceInfoResponse response = shopConvenienceInfoQueryService.getConvenienceInfo(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -49,7 +50,7 @@ public class ShopConvenienceInfoApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopConvenienceInfoUpdateRequest request
     ) {
-        shopConvenienceInfoService.updateConvenienceInfo(
+        shopConvenienceInfoCommandService.updateConvenienceInfo(
             userDetails.getCeoId(),
             id,
             request.parkingAvailable(),
@@ -69,7 +70,7 @@ public class ShopConvenienceInfoApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopAmenityResponse> response = shopConvenienceInfoService.getAmenities(userDetails.getCeoId(), id);
+        List<ShopAmenityResponse> response = shopConvenienceInfoQueryService.getAmenities(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -80,7 +81,7 @@ public class ShopConvenienceInfoApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopAmenityAssignRequest request
     ) {
-        Long amenityId = shopConvenienceInfoService.assignAmenity(userDetails.getCeoId(), id, request.amenityCategoryId());
+        Long amenityId = shopConvenienceInfoCommandService.assignAmenity(userDetails.getCeoId(), id, request.amenityCategoryId());
         return ResponseEntity.ok(ApiResponse.success(amenityId));
     }
 
@@ -91,7 +92,7 @@ public class ShopConvenienceInfoApiController {
         @PathVariable Long id,
         @PathVariable Long amenityCategoryId
     ) {
-        shopConvenienceInfoService.unassignAmenity(userDetails.getCeoId(), id, amenityCategoryId);
+        shopConvenienceInfoCommandService.unassignAmenity(userDetails.getCeoId(), id, amenityCategoryId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -33,6 +33,18 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 - **write 포트 잔류 판정**: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?" — 그렇다면 write 포트에 남기고(`findById`/`existsByX`/락 획득용 조회), 화면 조립용이면 이 DAO로 보낸다.
 - **소비 모듈이 실제 쓰는 메서드·필드만 이관**한다(미사용은 삭제).
 
+**대형 도메인 용도별 DAO 분리 reference: `shop`** — 소비 모듈 3개(web/admin/ceo)가 함께 쓰는 최대 도메인이라 DAO를 용도별로 3개로 나눴다.
+
+| DAO | 담당 |
+|---|---|
+| `ShopQueryDao` | 가게별 설정·관리 조회(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형 카테고리·배정·배너·사진) |
+| `ShopSearchQueryDao` | 목록·검색 대형 조인(지도 마커·베스트·최신·키워드 검색·즐겨찾기·관리 목록) |
+| `ShopChoiceQueryDao` | 가게에 종속되지 않는 독립 조회(에디터 추천 목록·전역 태그·역 목록) |
+
+- 목록 조회는 페이지 대상 가게를 먼저 뽑고 역·썸네일·음식유형·리뷰수·즐겨찾기수를 shopId 일괄 조회(in절)로 채운다 — 컬렉션 필드(음식유형 다건)가 있어 단일 조인 투영은 카티전 곱이 생기기 때문이다.
+- **필드 셋이 달라 Result를 통합하지 않은 사례**: 사진 카테고리 이미지 조회는 회원용 `ShopPhotoCategoryImageResult`(노출분 표시용)와 관리용 `ShopPhotoCategoryImageManagementResult`(`visible` 포함 — 관리 화면은 미노출 이미지도 상태와 함께 보여줘야 함)로 나뉜다. 같은 패키지에 공존해 충돌하므로 `Management` 한정어를 부여했다.
+- **write 포트 잔류 판정이 갈린 사례**: `findBusinessHoursByShopId`·`findBreakTimesByShopId`·`findClosedDaysByShopId`·`findByShopId`(임시중지·임시휴무)는 표현용으로도 쓰이지만 **휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정**이라는 불변식에 필요하므로 write 포트(`ShopDetailRepository` 등)에 남겼다. 반면 Result DTO를 반환하던 카테고리·배정·배너·사진 목록은 전부 DAO로 보냈다.
+
 ## 설정 파일 (`src/main/resources/application-infrastructure.yml`)
 
 이 모듈이 실제로 구현·소비하는 datasource/hibernate(`ddl-auto`)/mysql driver/`spring.sql.init` 등 JPA·DB 설정을 이 모듈의 `application-infrastructure.yml`이 소유한다(과거 `core-module`의 `application-core.yml`이었으나, core-module이 100% JPA-free로 전환되며 이 모듈로 이동·리네이밍됨). `web-api`/`admin-api`의 `application.yml`이 `spring.config.import: classpath:application-infrastructure.yml`로 로딩하며, 이는 이미 참조 중인 `application-external.yml`(external-api 소유)과 동일한 패턴이다.

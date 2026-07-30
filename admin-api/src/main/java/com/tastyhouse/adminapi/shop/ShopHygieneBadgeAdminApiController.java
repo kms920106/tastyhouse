@@ -25,12 +25,13 @@ import com.tastyhouse.adminapi.shop.response.ShopHygieneBadgeResponse;
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeAdminApiController {
 
-    private final ShopHygieneBadgeAdminService shopHygieneBadgeAdminService;
+    private final ShopHygieneBadgeQueryService shopHygieneBadgeQueryService;
+    private final ShopHygieneBadgeCommandService shopHygieneBadgeCommandService;
 
     @Operation(summary = "위생 인증 뱃지 목록 조회", description = "가게의 위생 인증 뱃지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/hygiene-badges")
     public ResponseEntity<ApiResponse<List<ShopHygieneBadgeResponse>>> getHygieneBadges(@PathVariable Long id) {
-        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeAdminService.getHygieneBadges(id);
+        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeQueryService.getHygieneBadges(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -40,7 +41,7 @@ public class ShopHygieneBadgeAdminApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopHygieneBadgeCreateRequest request
     ) {
-        ShopHygieneBadgeResponse response = shopHygieneBadgeAdminService.createHygieneBadge(
+        ShopHygieneBadgeResponse response = shopHygieneBadgeCommandService.createHygieneBadge(
             id, request.badgeType(), request.certifiedDate(), request.lastInspectionMonth()
         );
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -49,7 +50,7 @@ public class ShopHygieneBadgeAdminApiController {
     @Operation(summary = "위생 인증 뱃지 삭제", description = "등록된 위생 인증 뱃지를 삭제합니다.")
     @DeleteMapping("/v1/hygiene-badges/{hygieneBadgeId}")
     public ResponseEntity<ApiResponse<Void>> deleteHygieneBadge(@PathVariable Long hygieneBadgeId) {
-        shopHygieneBadgeAdminService.deleteHygieneBadge(hygieneBadgeId);
+        shopHygieneBadgeCommandService.deleteHygieneBadge(hygieneBadgeId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

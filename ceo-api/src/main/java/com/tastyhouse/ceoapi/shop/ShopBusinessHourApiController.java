@@ -30,7 +30,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopBusinessHourResponse;
 @RequestMapping("/api/shops")
 public class ShopBusinessHourApiController {
 
-    private final ShopBusinessHourService shopBusinessHourService;
+    private final ShopBusinessHourQueryService shopBusinessHourQueryService;
+    private final ShopBusinessHourCommandService shopBusinessHourCommandService;
 
     @Operation(summary = "내 가게 운영시간 목록 조회", description = "로그인한 점주가 소유한 가게의 운영시간 목록을 조회합니다.")
     @GetMapping("/v1/{id}/business-hours")
@@ -38,7 +39,7 @@ public class ShopBusinessHourApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopBusinessHourResponse> response = shopBusinessHourService.getBusinessHours(userDetails.getCeoId(), id);
+        List<ShopBusinessHourResponse> response = shopBusinessHourQueryService.getBusinessHours(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -49,7 +50,7 @@ public class ShopBusinessHourApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        Long businessHourId = shopBusinessHourService.createBusinessHour(
+        Long businessHourId = shopBusinessHourCommandService.createBusinessHour(
             userDetails.getCeoId(), id, request.dayType(), request.openTime(), request.closeTime(), request.isClosed(), request.is24Hours()
         );
         return ResponseEntity.ok(ApiResponse.success(businessHourId));
@@ -62,7 +63,7 @@ public class ShopBusinessHourApiController {
         @PathVariable Long businessHourId,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        shopBusinessHourService.updateBusinessHour(
+        shopBusinessHourCommandService.updateBusinessHour(
             userDetails.getCeoId(), businessHourId, request.dayType(), request.openTime(), request.closeTime(), request.isClosed(), request.is24Hours()
         );
         return ResponseEntity.ok(ApiResponse.success(null));
@@ -74,7 +75,7 @@ public class ShopBusinessHourApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long businessHourId
     ) {
-        shopBusinessHourService.deleteBusinessHour(userDetails.getCeoId(), businessHourId);
+        shopBusinessHourCommandService.deleteBusinessHour(userDetails.getCeoId(), businessHourId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -84,7 +85,7 @@ public class ShopBusinessHourApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopBreakTimeResponse> response = shopBusinessHourService.getBreakTimes(userDetails.getCeoId(), id);
+        List<ShopBreakTimeResponse> response = shopBusinessHourQueryService.getBreakTimes(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -95,7 +96,7 @@ public class ShopBusinessHourApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
-        Long breakTimeId = shopBusinessHourService.createBreakTime(
+        Long breakTimeId = shopBusinessHourCommandService.createBreakTime(
             userDetails.getCeoId(), id, request.dayType(), request.startTime(), request.endTime()
         );
         return ResponseEntity.ok(ApiResponse.success(breakTimeId));
@@ -108,7 +109,7 @@ public class ShopBusinessHourApiController {
         @PathVariable Long breakTimeId,
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
-        shopBusinessHourService.updateBreakTime(
+        shopBusinessHourCommandService.updateBreakTime(
             userDetails.getCeoId(), breakTimeId, request.dayType(), request.startTime(), request.endTime()
         );
         return ResponseEntity.ok(ApiResponse.success(null));
@@ -120,7 +121,7 @@ public class ShopBusinessHourApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long breakTimeId
     ) {
-        shopBusinessHourService.deleteBreakTime(userDetails.getCeoId(), breakTimeId);
+        shopBusinessHourCommandService.deleteBreakTime(userDetails.getCeoId(), breakTimeId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

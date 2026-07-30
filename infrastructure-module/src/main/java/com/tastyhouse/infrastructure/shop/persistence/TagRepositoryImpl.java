@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -12,6 +11,14 @@ import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJpaEntity;
 
+/**
+ * 태그 write 어댑터.
+ *
+ * <p>목록 조회({@code findAllTags})는 같은 모듈의
+ * {@link com.tastyhouse.infrastructure.shop.query.ShopChoiceQueryDao}로 이관했고,
+ * {@code findTagNamesByIds}는 review 도메인이 자기 {@code ReviewQueryDao}에 같은 조회를 갖게 되어
+ * 소비자가 사라져 제거했다(공통 지침 패턴 4).
+ */
 @Repository
 @RequiredArgsConstructor
 public class TagRepositoryImpl implements TagRepository {
@@ -20,32 +27,12 @@ public class TagRepositoryImpl implements TagRepository {
     private final TagJpaRepository tagJpaRepository;
 
     @Override
-    public List<String> findTagNamesByIds(List<Long> tagIds) {
-        return queryFactory
-            .select(tagJpaEntity.tagName)
-            .from(tagJpaEntity)
-            .where(tagJpaEntity.id.in(tagIds))
-            .fetch();
-    }
-
-    @Override
     public Optional<Tag> findByTagName(String tagName) {
         TagJpaEntity result = queryFactory
             .selectFrom(tagJpaEntity)
             .where(tagJpaEntity.tagName.eq(tagName))
             .fetchOne();
         return Optional.ofNullable(result).map(TagMapper::toDomain);
-    }
-
-    @Override
-    public List<Tag> findAllTags() {
-        return queryFactory
-            .selectFrom(tagJpaEntity)
-            .orderBy(tagJpaEntity.id.desc())
-            .fetch()
-            .stream()
-            .map(TagMapper::toDomain)
-            .toList();
     }
 
     @Override

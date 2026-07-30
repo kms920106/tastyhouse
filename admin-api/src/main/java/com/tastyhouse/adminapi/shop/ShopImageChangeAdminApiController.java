@@ -28,7 +28,8 @@ import com.tastyhouse.adminapi.shop.response.ShopImageChangeRequestItemResponse;
 @RequestMapping("/api/shops")
 public class ShopImageChangeAdminApiController {
 
-    private final ShopImageChangeAdminService shopImageChangeAdminService;
+    private final ShopImageChangeQueryService shopImageChangeQueryService;
+    private final ShopImageChangeCommandService shopImageChangeCommandService;
 
     @Operation(summary = "이미지 변경 요청 목록 조회", description = "가게 상표/대표이미지 변경 요청 목록을 조건 페이징 조회합니다.")
     @GetMapping("/v1/image-change-requests")
@@ -36,7 +37,7 @@ public class ShopImageChangeAdminApiController {
         @Valid @ModelAttribute ShopImageChangeRequestSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopImageChangeRequestItemResponse> pageResponse = shopImageChangeAdminService.getImageChangeRequests(
+        PaginationResponse<ShopImageChangeRequestItemResponse> pageResponse = shopImageChangeQueryService.getImageChangeRequests(
             search.status(), search.imageType(), pageRequest.page(), pageRequest.size()
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -47,7 +48,7 @@ public class ShopImageChangeAdminApiController {
     @Operation(summary = "이미지 변경 요청 승인", description = "가게 상표/대표이미지 변경 요청을 승인하고 가게 이미지를 갱신합니다.")
     @PatchMapping("/v1/image-change-requests/{requestId}/approve")
     public ResponseEntity<ApiResponse<Void>> approveImageChange(@PathVariable Long requestId) {
-        shopImageChangeAdminService.approveImageChange(requestId);
+        shopImageChangeCommandService.approveImageChange(requestId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -57,7 +58,7 @@ public class ShopImageChangeAdminApiController {
         @PathVariable Long requestId,
         @Valid @RequestBody ShopImageChangeRejectRequest request
     ) {
-        shopImageChangeAdminService.rejectImageChange(requestId, request.reason());
+        shopImageChangeCommandService.rejectImageChange(requestId, request.reason());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

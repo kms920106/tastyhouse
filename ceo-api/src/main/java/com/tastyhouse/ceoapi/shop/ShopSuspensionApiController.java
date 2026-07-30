@@ -28,7 +28,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopSuspensionResponse;
 @RequestMapping("/api/shops")
 public class ShopSuspensionApiController {
 
-    private final ShopSuspensionService shopSuspensionService;
+    private final ShopSuspensionQueryService shopSuspensionQueryService;
+    private final ShopSuspensionCommandService shopSuspensionCommandService;
 
     @Operation(summary = "영업 임시중지 목록 조회", description = "가게의 영업 임시중지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/suspensions")
@@ -36,7 +37,7 @@ public class ShopSuspensionApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopSuspensionResponse> response = shopSuspensionService.getSuspensions(userDetails.getCeoId(), id);
+        List<ShopSuspensionResponse> response = shopSuspensionQueryService.getSuspensions(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -47,7 +48,7 @@ public class ShopSuspensionApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopSuspensionCreateRequest request
     ) {
-        List<Long> suspensionIds = shopSuspensionService.createSuspension(
+        List<Long> suspensionIds = shopSuspensionCommandService.createSuspension(
             userDetails.getCeoId(),
             id,
             request.reason(),
@@ -65,7 +66,7 @@ public class ShopSuspensionApiController {
         @PathVariable Long id,
         @PathVariable Long suspensionId
     ) {
-        shopSuspensionService.releaseSuspension(userDetails.getCeoId(), id, suspensionId);
+        shopSuspensionCommandService.releaseSuspension(userDetails.getCeoId(), id, suspensionId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -75,7 +76,7 @@ public class ShopSuspensionApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @RequestBody ShopSuspensionBulkCreateRequest request
     ) {
-        List<Long> suspensionIds = shopSuspensionService.createSuspensionsBulk(
+        List<Long> suspensionIds = shopSuspensionCommandService.createSuspensionsBulk(
             userDetails.getCeoId(),
             request.shopIds(),
             request.reason(),

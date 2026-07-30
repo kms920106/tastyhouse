@@ -28,7 +28,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopPhoneNumberResponse;
 @RequestMapping("/api/shops")
 public class ShopPhoneNumberApiController {
 
-    private final ShopPhoneNumberService shopPhoneNumberService;
+    private final ShopPhoneNumberQueryService shopPhoneNumberQueryService;
+    private final ShopPhoneNumberCommandService shopPhoneNumberCommandService;
 
     @Operation(summary = "내 가게 전화번호 목록 조회", description = "로그인한 점주가 소유한 가게의 전화번호 목록을 조회합니다.")
     @GetMapping("/v1/{id}/phone-numbers")
@@ -36,7 +37,7 @@ public class ShopPhoneNumberApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopPhoneNumberResponse> response = shopPhoneNumberService.getPhoneNumbers(userDetails.getCeoId(), id);
+        List<ShopPhoneNumberResponse> response = shopPhoneNumberQueryService.getPhoneNumbers(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -47,21 +48,21 @@ public class ShopPhoneNumberApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopPhoneNumberCreateRequest request
     ) {
-        Long phoneNumberId = shopPhoneNumberService.addPhoneNumber(userDetails.getCeoId(), id, request.phoneNumber(), request.virtual());
+        Long phoneNumberId = shopPhoneNumberCommandService.addPhoneNumber(userDetails.getCeoId(), id, request.phoneNumber(), request.virtual());
         return ResponseEntity.ok(ApiResponse.success(phoneNumberId));
     }
 
     @Operation(summary = "내 가게 전화번호 삭제", description = "로그인한 점주가 소유한 가게의 전화번호를 삭제합니다.")
     @DeleteMapping("/v1/phone-numbers/{phoneNumberId}")
     public ResponseEntity<ApiResponse<Void>> deletePhoneNumber(@PathVariable Long phoneNumberId) {
-        shopPhoneNumberService.deletePhoneNumber(phoneNumberId);
+        shopPhoneNumberCommandService.deletePhoneNumber(phoneNumberId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "내 가게 대표 전화번호 지정", description = "로그인한 점주가 소유한 가게의 대표 전화번호를 지정합니다.")
     @PatchMapping("/v1/phone-numbers/{phoneNumberId}/primary")
     public ResponseEntity<ApiResponse<Void>> designatePrimary(@PathVariable Long phoneNumberId) {
-        shopPhoneNumberService.designatePrimary(phoneNumberId);
+        shopPhoneNumberCommandService.designatePrimary(phoneNumberId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

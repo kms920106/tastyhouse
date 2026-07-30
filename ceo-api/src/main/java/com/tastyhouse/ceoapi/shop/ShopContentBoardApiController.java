@@ -30,7 +30,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopContentBoardResponse;
 @RequestMapping("/api/shops")
 public class ShopContentBoardApiController {
 
-    private final ShopContentBoardService shopContentBoardService;
+    private final ShopContentBoardQueryService shopContentBoardQueryService;
+    private final ShopContentBoardCommandService shopContentBoardCommandService;
 
     @Operation(summary = "콘텐츠보드 목록 조회", description = "가게의 콘텐츠보드 목록을 조회합니다.")
     @GetMapping("/v1/{id}/content-boards")
@@ -38,7 +39,7 @@ public class ShopContentBoardApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopContentBoardResponse> response = shopContentBoardService.getContentBoards(userDetails.getCeoId(), id);
+        List<ShopContentBoardResponse> response = shopContentBoardQueryService.getContentBoards(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -49,7 +50,7 @@ public class ShopContentBoardApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ShopContentBoardCreateRequest request
     ) {
-        Long contentBoardId = shopContentBoardService.createContentBoard(
+        Long contentBoardId = shopContentBoardCommandService.createContentBoard(
             userDetails.getCeoId(),
             id,
             request.contentType(),
@@ -69,7 +70,7 @@ public class ShopContentBoardApiController {
         @PathVariable Long contentBoardId,
         @Valid @ModelAttribute ShopContentBoardUpdateRequest request
     ) {
-        shopContentBoardService.updateContentBoard(
+        shopContentBoardCommandService.updateContentBoard(
             userDetails.getCeoId(),
             id,
             contentBoardId,
@@ -88,7 +89,7 @@ public class ShopContentBoardApiController {
         @PathVariable Long id,
         @PathVariable Long contentBoardId
     ) {
-        shopContentBoardService.deleteContentBoard(userDetails.getCeoId(), id, contentBoardId);
+        shopContentBoardCommandService.deleteContentBoard(userDetails.getCeoId(), id, contentBoardId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

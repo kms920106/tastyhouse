@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -12,8 +11,6 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopImageChangeRequest;
 import com.tastyhouse.core.domain.shop.domain.model.ShopImageType;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopImageChangeRequestRepository;
 import com.tastyhouse.core.shared.model.ApprovalStatus;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 
@@ -47,18 +44,6 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
     }
 
     @Override
-    public List<ShopImageChangeRequest> findByShopId(Long shopId) {
-        return queryFactory
-            .selectFrom(shopImageChangeRequestJpaEntity)
-            .where(shopImageChangeRequestJpaEntity.shopId.eq(shopId))
-            .orderBy(shopImageChangeRequestJpaEntity.id.desc())
-            .fetch()
-            .stream()
-            .map(ShopImageChangeRequestMapper::toDomain)
-            .toList();
-    }
-
-    @Override
     public boolean existsByShopIdAndImageTypeAndStatus(Long shopId, ShopImageType imageType, ApprovalStatus status) {
         Integer result = queryFactory
             .selectOne()
@@ -83,34 +68,6 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
             )
             .fetchFirst();
         return result != null;
-    }
-
-    @Override
-    public PageResult<ShopImageChangeRequest> findByStatusAndImageType(ApprovalStatus status, ShopImageType imageType, PageQuery pageQuery) {
-        Long total = queryFactory
-            .select(shopImageChangeRequestJpaEntity.id.count())
-            .from(shopImageChangeRequestJpaEntity)
-            .where(
-                statusEq(status),
-                imageTypeEq(imageType)
-            )
-            .fetchOne();
-
-        List<ShopImageChangeRequest> items = queryFactory
-            .selectFrom(shopImageChangeRequestJpaEntity)
-            .where(
-                statusEq(status),
-                imageTypeEq(imageType)
-            )
-            .orderBy(shopImageChangeRequestJpaEntity.id.desc())
-            .offset((long) pageQuery.page() * pageQuery.size())
-            .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(ShopImageChangeRequestMapper::toDomain)
-            .toList();
-
-        return PageResult.of(items, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     private BooleanExpression statusEq(ApprovalStatus status) {

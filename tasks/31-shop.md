@@ -18,3 +18,38 @@
 
 ## 완료 기준
 - ceo-api 포함 전 모듈 LSP 오류 0, 추천 커밋 메시지 제시. 하강한 도메인 서비스 시그니처를 하단에 기록(17-search의 위임 조회, 40-order의 가게 검증에서 참조).
+
+---
+
+## 전환 결과 (완료)
+
+### 현황 정정
+작업 문서가 언급한 `ShopDeliveryTip*`/`ShopOrderAvailability*`/`ShopScheduledOrder*`/`ScheduledOrderSlotCalculator`는 **코드베이스에 존재하지 않았다**(application 서비스 23개가 아니라 실제 19개). 존재하는 것만 전환했다.
+
+### 하강한 도메인 서비스 (`core/domain/shop/domain/service/`, 전부 순수 POJO — 빈 등록은 `DomainServiceConfig`)
+
+| 서비스 | 분류 | 공개 시그니처 |
+|---|---|---|
+| `ProhibitedWordValidator` | D | `List<String> findViolations(String)` · `void validate(String)` |
+| `ShopOperatingStatusCalculator` | D | `ShopOperatingStatus calculate(Shop, List<ShopBusinessHour>, List<ShopBreakTime>, List<ShopClosedDay>, List<ShopTemporaryClosure>, List<ShopSuspension>, boolean publicHoliday, LocalDateTime)` |
+| `ShopOperatingStatusService` | C | `ShopOperatingStatus findOperatingStatus(Long shopId, LocalDateTime)` · `Map<Long, ShopOperatingStatus> findOperatingStatuses(List<Long> shopIds, LocalDateTime)` |
+| `ShopLifecycleService` | C | `Shop createShop(Long ceoId, Long stationId, String name, BigDecimal lat, BigDecimal lon, String roadAddress, String lotAddress, String phoneNumber, Long thumbnailImageFileId)` · `void updateShop(ShopId, …동일 8개)` · `void closeShop(ShopId)` · `void updateHolidayClosure(ShopId, boolean)` · `void changeVisibility(ShopId, boolean hidden)` · `void createOwnerMessage(Long shopId, String message)` · `boolean toggleBookmark(Long shopId, MemberId)` |
+| `ShopImageApprovalService` | C | `Long requestImageChange(Long shopId, ShopImageType, Long imageFileId)` · `void approveImageChange(Long id)` · `void rejectImageChange(Long id, String reason)` · `boolean existsPendingByShopId(Long shopId)` |
+| `ShopPhoneNumberRegistryService` | C | `Long addPhoneNumber(Long shopId, String phoneNumber, boolean virtual)` · `void deletePhoneNumber(Long id)` · `void designatePrimary(Long id)` |
+| `ShopBusinessHourService` | C/D | `ShopBusinessHour createBusinessHour(Long shopId, DayType, LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours)` · `void updateBusinessHour(Long id, …동일 5개)` · `void deleteBusinessHour(Long id)` · `ShopBreakTime createBreakTime(Long shopId, DayType, LocalTime start, LocalTime end)` · `void updateBreakTime(Long id, …동일 3개)` · `void deleteBreakTime(Long id)` · `ShopClosedDay createClosedDay(Long shopId, ClosedDayType)` · `void deleteClosedDay(Long id)` |
+| `ShopConvenienceInfoService` | C | `void upsertConvenienceInfo(Long shopId, Boolean parkingAvailable, Boolean parkingPaid, Boolean valetAvailable, Boolean valetPaid, String directionsGuide, BigDecimal displayLatitude, BigDecimal displayLongitude)` |
+
+**40-order 참조용**: 가게 존재 검증은 도메인 서비스가 아니라 write 포트 `ShopRepository#findById(ShopId)`(+`findVisibleById`)를 직접 쓴다 — `order`의 `OrderCommandService`/`OrderQueryService`가 구 `ShopQueryService#findShopById`를 쓰던 지점을 이 포트로 교체해 두었다(컴파일 복구 목적의 최소 수정).
+
+**17-search 참조용**: 가게 키워드 검색 위임은 `ShopSearchQueryDao#searchByKeywordWithBookmark(String keyword, MemberId, PageQuery)`로 이관됐다. `web-api`의 `SearchQueryService`가 이미 이 DAO를 주입하도록 교체해 두었다(잠정 `ShopRepository` 의존 해소).
+
+### infra query DAO (`infrastructure/shop/query/`)
+`ShopQueryDao`(설정·관리 조회) / `ShopSearchQueryDao`(목록·검색 대형 조인) / `ShopChoiceQueryDao`(에디터 추천·태그·역) 3개로 용도별 분리. Result 19개 + `ShopSearchCondition` 이관, 신규 `ShopMapMarkerResult`·`ShopChoiceDetailResult`·`TagResult`·`StationResult`·`ShopPhotoCategoryImageManagementResult` 추가.
+
+### 소비 모듈 CQRS 분리
+- **ceo-api**: 11개 facade → Command/Query 17개(`ShopQueryService`, `Shop{BusinessHour,Status,Introduction,PhoneNumber,Trademark,ClosedDay,ContentBoard,ConvenienceInfo,Suspension}{Command,Query}Service`, `ShopHygieneBadgeQueryService`). `ShopOwnershipValidator`는 `ShopRepository` 직접 주입으로 전환, 선검증 규칙 불변.
+- **admin-api**: `ShopService`(518줄) → `ShopCommandService`/`ShopQueryService`, 그리고 `Shop{ContentBoard,HygieneBadge,ImageChange}{Command,Query}Service`(구 `*AdminService` 3개 대체).
+- **web-api**: `ShopService`(555줄) → `ShopCommandService`(즐겨찾기 토글)/`ShopQueryService`. `MemberShopService`·`SearchQueryService`도 DAO 주입으로 전환.
+
+### 검증
+전 7모듈 javac 컴파일 오류 0 / core 단위테스트 324개 통과(이동한 `ShopOperatingStatusCalculatorTest` 포함) / ArchUnit 15개 통과 + `ClassFileImporter`로 Shop 클래스 152개가 실제 임포트된 상태에서 `com.querydsl..`·`..persistence..` 의존 0건 확인(공허 통과 아님) / 엔드포인트 매핑 수 HEAD와 동일(web 142·admin 163·ceo 46).

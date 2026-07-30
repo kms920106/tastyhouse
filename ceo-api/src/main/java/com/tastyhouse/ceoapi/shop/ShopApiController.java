@@ -28,7 +28,7 @@ import com.tastyhouse.ceoapi.shop.response.ShopListItemResponse;
 @RequestMapping("/api/shops")
 public class ShopApiController {
 
-    private final ShopService shopService;
+    private final ShopQueryService shopQueryService;
 
     @Operation(summary = "내 가게 목록 조회", description = "로그인한 점주가 소유한 가게 목록을 조회합니다.")
     @GetMapping("/v1")
@@ -37,7 +37,7 @@ public class ShopApiController {
         @Valid @ModelAttribute ShopSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopListItemResponse> response = shopService.getMyShops(
+        PaginationResponse<ShopListItemResponse> response = shopQueryService.getMyShops(
             userDetails.getCeoId(),
             request.name(),
             request.stationId(),
@@ -59,7 +59,7 @@ public class ShopApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopDetailResponse response = shopService.getMyShop(userDetails.getCeoId(), id);
+        ShopDetailResponse response = shopQueryService.getMyShop(userDetails.getCeoId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

@@ -3,13 +3,14 @@ package com.tastyhouse.core.domain.shop.domain.repository;
 import java.util.Optional;
 
 import com.tastyhouse.core.domain.shop.domain.model.ShopChoice;
-import com.tastyhouse.core.domain.shop.application.dto.result.EditorChoiceResult;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
 
+/**
+ * 에디터 추천(가게 선정) write 포트.
+ *
+ * <p>목록 페이징 조회({@code findEditorChoice})는 infrastructure-module의
+ * {@code infrastructure/shop/query/ShopChoiceQueryDao}로 이관했다(공통 지침 패턴 4).
+ */
 public interface ShopChoiceRepository {
-
-    PageResult<EditorChoiceResult> findEditorChoice(PageQuery pageQuery);
 
     Optional<ShopChoice> findById(Long id);
 
