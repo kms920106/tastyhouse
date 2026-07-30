@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.verification.application.port.out;
+package com.tastyhouse.core.domain.verification.domain.port;
 
 public interface SmsSender {
 

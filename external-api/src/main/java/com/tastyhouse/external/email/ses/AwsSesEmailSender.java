@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.ses.model.Message;
 import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SesException;
 
-import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
+import com.tastyhouse.core.domain.verification.domain.port.MailSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 
@@ -23,19 +23,10 @@ public class AwsSesEmailSender implements MailSender {
 
     @Override
     public void send(String to, String subject, String content) {
-        sendEmail(to, subject, content, false);
-    }
-
-    @Override
-    public void sendHtml(String to, String subject, String htmlContent) {
-        sendEmail(to, subject, htmlContent, true);
-    }
-
-    private void sendEmail(String to, String subject, String content, boolean isHtml) {
         try {
-            Body body = isHtml
-                ? Body.builder().html(Content.builder().charset("UTF-8").data(content).build()).build()
-                : Body.builder().text(Content.builder().charset("UTF-8").data(content).build()).build();
+            Body body = Body.builder()
+                .text(Content.builder().charset("UTF-8").data(content).build())
+                .build();
 
             SendEmailRequest request = SendEmailRequest.builder()
                 .source(senderEmail)

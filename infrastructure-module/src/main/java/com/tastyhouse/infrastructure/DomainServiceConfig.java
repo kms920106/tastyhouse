@@ -7,12 +7,17 @@ import com.tastyhouse.core.domain.bug.domain.repository.BugReportImageRepository
 import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.core.domain.bug.domain.service.BugReportRegistrationService;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
+import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.faq.domain.service.FaqCategoryDeletionPolicy;
 import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.core.domain.policy.domain.service.PolicyActivationService;
 import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
 import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
 import com.tastyhouse.core.domain.search.domain.service.PopularKeywordRefreshService;
+import com.tastyhouse.core.domain.verification.domain.repository.EmailVerificationRepository;
+import com.tastyhouse.core.domain.verification.domain.repository.PhoneVerificationRepository;
+import com.tastyhouse.core.domain.verification.domain.service.EmailVerificationService;
+import com.tastyhouse.core.domain.verification.domain.service.PhoneVerificationService;
 import com.tastyhouse.core.shared.event.DomainEventPublisher;
 
 /**
@@ -67,5 +72,28 @@ public class DomainServiceConfig {
         PopularKeywordRepository popularKeywordRepository
     ) {
         return new PopularKeywordRefreshService(searchKeywordLogRepository, popularKeywordRepository);
+    }
+
+    /**
+     * 이메일 인증 발급·검증 규칙 — 같은 이메일의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식.
+     */
+    @Bean
+    public EmailVerificationService emailVerificationService(
+        MemberRepository memberRepository,
+        EmailVerificationRepository emailVerificationRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new EmailVerificationService(memberRepository, emailVerificationRepository, domainEventPublisher);
+    }
+
+    /**
+     * 휴대폰 인증 발급·검증 규칙 — 같은 번호의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식.
+     */
+    @Bean
+    public PhoneVerificationService phoneVerificationService(
+        PhoneVerificationRepository phoneVerificationRepository,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new PhoneVerificationService(phoneVerificationRepository, domainEventPublisher);
     }
 }

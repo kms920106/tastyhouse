@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.tastyhouse.core.domain.verification.application.port.out.SmsSender;
+import com.tastyhouse.core.domain.verification.domain.port.SmsSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 import com.tastyhouse.external.sms.solapi.request.SolapiMessageRequest;
@@ -35,15 +35,11 @@ public class SolapiSmsClient implements SmsSender {
 
     @Override
     public void send(String to, String content) {
-        sendSms(to, content);
-    }
-
-    public SolapiMessageResponse sendSms(String to, String text) {
         SolapiMessageRequest request = new SolapiMessageRequest(
             List.of(new SolapiMessageRequest.SolapiMessage(
                 to,
                 solapiProperties.getSenderNumber(),
-                text,
+                content,
                 "SMS",
                 null
             ))
@@ -75,7 +71,6 @@ public class SolapiSmsClient implements SmsSender {
             }
 
             log.info("Solapi SMS 발송 성공. to: {}", to);
-            return response;
 
         } catch (WebClientResponseException e) {
             log.error("Solapi SMS 발송 API 오류. status: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);

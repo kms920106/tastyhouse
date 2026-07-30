@@ -24,7 +24,7 @@ import com.tastyhouse.webapi.verification.response.VerificationEmailTokenRespons
 @Tag(name = "Email Verification", description = "이메일 인증 API")
 public class EmailVerificationApiController {
 
-    private final EmailVerificationService emailVerificationService;
+    private final EmailVerificationCommandService emailVerificationCommandService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(
@@ -36,7 +36,7 @@ public class EmailVerificationApiController {
     public ResponseEntity<ApiResponse<Void>> sendVerificationCode(
         @Valid @RequestBody SendEmailVerificationCodeRequest request
     ) {
-        emailVerificationService.sendVerificationCode(request.email());
+        emailVerificationCommandService.sendVerificationCode(request.email());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -49,7 +49,7 @@ public class EmailVerificationApiController {
     public ResponseEntity<ApiResponse<VerificationEmailTokenResponse>> confirmVerificationCode(
         @Valid @RequestBody ConfirmEmailVerificationCodeRequest request
     ) {
-        String email = emailVerificationService.confirmVerificationCode(request.email(), request.verificationCode());
+        String email = emailVerificationCommandService.confirmVerificationCode(request.email(), request.verificationCode());
         String emailVerifyToken = jwtTokenProvider.createEmailVerifyToken(email);
         return ResponseEntity.ok(ApiResponse.success(VerificationEmailTokenResponse.from(emailVerifyToken)));
     }

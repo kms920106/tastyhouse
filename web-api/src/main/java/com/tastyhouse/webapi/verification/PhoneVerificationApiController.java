@@ -24,7 +24,7 @@ import com.tastyhouse.webapi.verification.response.VerificationPhoneTokenRespons
 @Tag(name = "Phone Verification", description = "휴대폰번호 인증 API")
 public class PhoneVerificationApiController {
 
-    private final PhoneVerificationService phoneVerificationService;
+    private final PhoneVerificationCommandService phoneVerificationCommandService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(
@@ -36,7 +36,7 @@ public class PhoneVerificationApiController {
     public ResponseEntity<ApiResponse<Void>> sendVerificationCode(
         @Valid @RequestBody SendVerificationCodeRequest request
     ) {
-        phoneVerificationService.sendVerificationCode(request.phoneNumber());
+        phoneVerificationCommandService.sendVerificationCode(request.phoneNumber());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -49,7 +49,7 @@ public class PhoneVerificationApiController {
     public ResponseEntity<ApiResponse<VerificationPhoneTokenResponse>> confirmVerificationCode(
         @Valid @RequestBody ConfirmVerificationCodeRequest request
     ) {
-        String phoneNumber = phoneVerificationService.confirmVerificationCode(request.phoneNumber(), request.verificationCode());
+        String phoneNumber = phoneVerificationCommandService.confirmVerificationCode(request.phoneNumber(), request.verificationCode());
         String phoneVerifyToken = jwtTokenProvider.createPhoneVerifyToken(phoneNumber);
         return ResponseEntity.ok(ApiResponse.success(
             VerificationPhoneTokenResponse.from(phoneVerifyToken)

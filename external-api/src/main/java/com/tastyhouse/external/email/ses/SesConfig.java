@@ -9,7 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
 
-import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
+import com.tastyhouse.core.domain.verification.domain.port.MailSender;
 import com.tastyhouse.external.email.EmailProperties;
 
 @Configuration

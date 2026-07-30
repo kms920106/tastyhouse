@@ -9,7 +9,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
+import com.tastyhouse.core.domain.verification.domain.port.MailSender;
 import com.tastyhouse.external.email.EmailProperties;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
@@ -25,22 +25,13 @@ public class JavaMailEmailSender implements MailSender {
 
     @Override
     public void send(String to, String subject, String content) {
-        sendEmail(to, subject, content, false);
-    }
-
-    @Override
-    public void sendHtml(String to, String subject, String htmlContent) {
-        sendEmail(to, subject, htmlContent, true);
-    }
-
-    private void sendEmail(String to, String subject, String content, boolean isHtml) {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
             helper.setFrom(emailProperties.getSenderAddress());
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(content, isHtml);
+            helper.setText(content, false);
 
             javaMailSender.send(mimeMessage);
             log.info("이메일 발송 성공. to: {}, subject: {}", to, subject);

@@ -1,7 +1,5 @@
 package com.tastyhouse.webapi.auth.service;
 
-import java.time.LocalDateTime;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,11 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.verification.domain.model.EmailVerification;
-import com.tastyhouse.core.domain.verification.domain.model.EmailVerificationStatus;
-import com.tastyhouse.core.domain.verification.domain.repository.EmailVerificationRepository;
-import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
+import com.tastyhouse.core.domain.verification.domain.port.MailSender;
+import com.tastyhouse.core.domain.verification.domain.service.EmailVerificationService;
 import com.tastyhouse.core.domain.member.application.MemberQueryService;
-import com.tastyhouse.core.domain.verification.application.port.out.MailSender;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
@@ -30,7 +26,7 @@ public class AuthPasswordResetService {
     private static final String EMAIL_BODY_TEMPLATE = "[TASTY HOUSE] 비밀번호 재설정 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
 
     private final MemberQueryService memberQueryService;
-    private final EmailVerificationRepository emailVerificationRepository;
+    private final EmailVerificationService emailVerificationService;
     private final MailSender mailSender;
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberAccountService memberAccountService;
@@ -43,12 +39,8 @@ public class AuthPasswordResetService {
             return;
         }
 
-        emailVerificationRepository.expireAllPendingByEmail(username);
-
-        EmailVerification verification = EmailVerification.create(username);
+        EmailVerification verification = emailVerificationService.issue(username);
         String codeValue = verification.getVerificationCode().value();
-
-        emailVerificationRepository.save(verification);
 
         String emailBody = EMAIL_BODY_TEMPLATE.formatted(codeValue);
         mailSender.send(username, EMAIL_SUBJECT, emailBody);
@@ -56,12 +48,7 @@ public class AuthPasswordResetService {
 
     @Transactional
     public AuthPasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
-        EmailVerification verification = emailVerificationRepository
-            .findLatestPendingByEmail(username, EmailVerificationStatus.PENDING)
-            .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
-
-        verification.verify(VerificationCode.of(verificationCode), LocalDateTime.now());
-        emailVerificationRepository.save(verification);
+        emailVerificationService.confirm(username, verificationCode);
 
         String passwordResetToken = jwtTokenProvider.createPasswordResetToken(username);
 
