@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.core.domain.payment.domain.model.PaymentCancelCode;
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
@@ -24,13 +25,21 @@ import com.tastyhouse.webapi.payment.response.PaymentCancelResponse;
 import com.tastyhouse.webapi.payment.response.PaymentRefundResponse;
 import com.tastyhouse.webapi.payment.response.PaymentResponse;
 
+/**
+ * 회원 결제 API.
+ *
+ * <p>command(생성·승인·취소·현장완료·환불)와 조회를 CQRS로 분리한 두 서비스를 각각 주입한다
+ * (공통 지침 패턴 2). command 서비스는 식별자만 돌려주므로, 커밋 이후 조회 서비스로 재조회해 응답을
+ * 조립한다.
+ */
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
 @Tag(name = "Payment", description = "결제 API")
 public class PaymentApiController {
 
-    private final PaymentService paymentService;
+    private final PaymentCommandService paymentCommandService;
+    private final PaymentQueryService paymentQueryService;
 
     @Operation(summary = "결제 생성", description = "주문에 대한 결제를 생성합니다.")
     @PostMapping("/v1")
@@ -38,8 +47,9 @@ public class PaymentApiController {
         @Valid @RequestBody PaymentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.createPayment(
-            userDetails.getMemberId(), request.orderId(), request.paymentMethod());
+        Long memberId = userDetails.getMemberId();
+        Long paymentId = paymentCommandService.createPayment(memberId, request.orderId(), request.paymentMethod());
+        PaymentResponse response = paymentQueryService.getPayment(memberId, paymentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -48,7 +58,7 @@ public class PaymentApiController {
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(
         @Valid @RequestBody PaymentConfirmRequest request
     ) {
-        PaymentResponse response = paymentService.confirmPayment(
+        Long paymentId = paymentCommandService.confirmPayment(
             request.paymentId(),
             request.pgProvider(),
             request.pgTid(),
@@ -58,6 +68,7 @@ public class PaymentApiController {
             request.installmentMonths(),
             request.receiptUrl()
         );
+        PaymentResponse response = paymentQueryService.getPayment(paymentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -67,8 +78,10 @@ public class PaymentApiController {
         @Valid @RequestBody TossPaymentConfirmApiRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.confirmTossPayment(
-            userDetails.getMemberId(), request.paymentKey(), request.pgOrderId(), request.amount());
+        Long memberId = userDetails.getMemberId();
+        Long paymentId = paymentCommandService.confirmTossPayment(
+            memberId, request.paymentKey(), request.pgOrderId(), request.amount());
+        PaymentResponse response = paymentQueryService.getPayment(memberId, paymentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -78,7 +91,7 @@ public class PaymentApiController {
         @PathVariable Long orderId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.getPaymentByOrderId(userDetails.getMemberId(), orderId);
+        PaymentResponse response = paymentQueryService.getPaymentByOrderId(userDetails.getMemberId(), orderId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -89,8 +102,9 @@ public class PaymentApiController {
         @Valid @RequestBody PaymentCancelRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentCancelResponse response = paymentService.cancelPayment(
+        PaymentCancelCode cancelCode = paymentCommandService.cancelPayment(
             userDetails.getMemberId(), id, request.cancelReason());
+        PaymentCancelResponse response = PaymentCancelResponse.of(cancelCode.name(), cancelCode.getMessage());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -100,7 +114,9 @@ public class PaymentApiController {
         @PathVariable Long id,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentService.completeOnSitePayment(userDetails.getMemberId(), id);
+        Long memberId = userDetails.getMemberId();
+        Long paymentId = paymentCommandService.completeOnSitePayment(memberId, id);
+        PaymentResponse response = paymentQueryService.getPayment(memberId, paymentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -111,8 +127,9 @@ public class PaymentApiController {
         @Valid @RequestBody RefundRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentRefundResponse response = paymentService.requestRefund(
+        Long refundId = paymentCommandService.requestRefund(
             userDetails.getMemberId(), id, request.refundAmount(), request.refundReason());
+        PaymentRefundResponse response = paymentQueryService.getRefund(refundId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

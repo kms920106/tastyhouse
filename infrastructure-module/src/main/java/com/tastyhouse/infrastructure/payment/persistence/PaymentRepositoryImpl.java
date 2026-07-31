@@ -13,6 +13,12 @@ import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
 
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
 
+/**
+ * 결제 write 어댑터.
+ *
+ * <p>write 포트 전용으로 축소되어 상태 전이 대상의 단건 로드·중복 검증·저장만 담당한다(공통 지침 패턴 4).
+ * 표현 목적 조회(주문별 결제 조회 등)는 같은 모듈의 {@code payment/query/PaymentQueryDao}로 이관했다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class PaymentRepositoryImpl implements PaymentRepository {
@@ -23,15 +29,6 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public Optional<Payment> findById(PaymentId paymentId) {
         return paymentJpaRepository.findById(paymentId.value()).map(PaymentMapper::toDomain);
-    }
-
-    @Override
-    public Optional<Payment> findByOrderId(OrderId orderId) {
-        return Optional.ofNullable(
-            queryFactory.selectFrom(paymentJpaEntity)
-                .where(paymentJpaEntity.orderId.eq(orderId))
-                .fetchOne()
-        ).map(PaymentMapper::toDomain);
     }
 
     @Override

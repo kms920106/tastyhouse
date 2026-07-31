@@ -1,4 +1,4 @@
-package com.tastyhouse.core.domain.payment.application.port.dto;
+package com.tastyhouse.core.domain.payment.domain.port.dto;
 
 import java.time.LocalDateTime;
 

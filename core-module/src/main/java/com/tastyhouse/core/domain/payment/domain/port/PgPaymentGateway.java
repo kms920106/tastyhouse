@@ -1,7 +1,7 @@
-package com.tastyhouse.core.domain.payment.application.port;
+package com.tastyhouse.core.domain.payment.domain.port;
 
-import com.tastyhouse.core.domain.payment.application.port.dto.PgCancelResult;
-import com.tastyhouse.core.domain.payment.application.port.dto.PgConfirmResult;
+import com.tastyhouse.core.domain.payment.domain.port.dto.PgCancelResult;
+import com.tastyhouse.core.domain.payment.domain.port.dto.PgConfirmResult;
 
 public interface PgPaymentGateway {
 

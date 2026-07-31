@@ -19,6 +19,12 @@ import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.order.domain.service.OrderPlacementService;
 import com.tastyhouse.core.domain.order.domain.service.OrderTransitionService;
+import com.tastyhouse.core.domain.payment.domain.port.PgPaymentGateway;
+import com.tastyhouse.core.domain.payment.domain.repository.PaymentRefundRepository;
+import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
+import com.tastyhouse.core.domain.payment.domain.repository.TossPaymentRecordRepository;
+import com.tastyhouse.core.domain.payment.domain.service.PaymentCancellationService;
+import com.tastyhouse.core.domain.payment.domain.service.PaymentConfirmationService;
 import com.tastyhouse.core.domain.point.domain.repository.PointHistoryRepository;
 import com.tastyhouse.core.domain.point.domain.repository.PointRepository;
 import com.tastyhouse.core.domain.faq.domain.service.FaqCategoryDeletionPolicy;
@@ -341,6 +347,49 @@ public class DomainServiceConfig {
     @Bean
     public OrderTransitionService orderTransitionService(OrderRepository orderRepository) {
         return new OrderTransitionService(orderRepository);
+    }
+
+    /**
+     * 결제 개시·승인 — 결제 상태 전이와 주문 확정 전이를 한 트랜잭션에서 원자로 묶는 오케스트레이션.
+     * 승인 경로(PG 콜백·토스 승인·현장결제 완료)가 여러 개여도 "결제 완료와 주문 확정은 항상 함께"라는
+     * 규칙이 이 한 곳에만 존재한다. 주문 전이는 {@link OrderTransitionService}에 위임한다.
+     */
+    @Bean
+    public PaymentConfirmationService paymentConfirmationService(
+        PaymentRepository paymentRepository,
+        TossPaymentRecordRepository tossPaymentRecordRepository,
+        PgPaymentGateway pgPaymentGateway,
+        OrderTransitionService orderTransitionService,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new PaymentConfirmationService(
+            paymentRepository,
+            tossPaymentRecordRepository,
+            pgPaymentGateway,
+            orderTransitionService,
+            domainEventPublisher
+        );
+    }
+
+    /**
+     * 결제 취소·환불 — 결제 취소 전이와 주문 취소 전이를 한 트랜잭션에서 원자로 묶고, PG 취소 요청과
+     * 포인트 원복(이벤트 경유)까지 함께 조율하는 오케스트레이션.
+     */
+    @Bean
+    public PaymentCancellationService paymentCancellationService(
+        PaymentRepository paymentRepository,
+        PaymentRefundRepository paymentRefundRepository,
+        PgPaymentGateway pgPaymentGateway,
+        OrderTransitionService orderTransitionService,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new PaymentCancellationService(
+            paymentRepository,
+            paymentRefundRepository,
+            pgPaymentGateway,
+            orderTransitionService,
+            domainEventPublisher
+        );
     }
 
     /**

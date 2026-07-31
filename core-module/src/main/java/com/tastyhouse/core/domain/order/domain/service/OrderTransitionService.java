@@ -5,6 +5,7 @@ import com.tastyhouse.core.domain.order.domain.model.Order;
 import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.core.exception.AccessDeniedException;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 
@@ -26,7 +27,8 @@ import com.tastyhouse.core.exception.ErrorCode;
  * <p><b>41-payment 인계 메모 — 공개 시그니처</b>:
  * <pre>
  * Order load(OrderId orderId)                                  // PK 로드(없으면 ORDER_NOT_FOUND)
- * Order loadOwnedBy(OrderId orderId, MemberId memberId)        // 로드 + 소유권 검증
+ * Order loadOwnedBy(OrderId orderId, MemberId memberId)        // 로드 + 소유권 검증(ORDER_ACCESS_DENIED)
+ * Order loadOwnedBy(OrderId, MemberId, ErrorCode)              // 로드 + 소유권 검증(실패 코드 지정 — 결제용)
  * void changeStatus(OrderId orderId, OrderStatus status)       // 로드 → 전이 → save
  * void changeStatus(Order order, OrderStatus status)           // 이미 로드된 주문의 전이 → save
  * void confirm(Order order)                                    // 결제 승인 확정 전이 → save
@@ -54,11 +56,26 @@ public class OrderTransitionService {
     }
 
     /**
-     * 주문을 로드하고 요청 회원의 소유인지 검증한다.
+     * 주문을 로드하고 요청 회원의 소유인지 검증한다 — 위반 시 {@code ORDER_ACCESS_DENIED}.
      */
     public Order loadOwnedBy(OrderId orderId, MemberId memberId) {
         Order order = load(orderId);
         order.validateOwnership(memberId);
+        return order;
+    }
+
+    /**
+     * 주문을 로드하고 요청 회원의 소유인지 검증한다 — 위반 시 호출자가 지정한 에러 코드로 실패시킨다.
+     *
+     * <p>결제 경로는 같은 소유권 위반을 주문 조회와 다른 에러 코드
+     * ({@code PAYMENT_ORDER_ACCESS_DENIED}·{@code PAYMENT_ACCESS_DENIED})로 알려야 하므로, 검증 규칙
+     * 자체는 이 서비스에 두고 실패 코드만 호출자가 고르게 한다.
+     */
+    public Order loadOwnedBy(OrderId orderId, MemberId memberId, ErrorCode accessDeniedCode) {
+        Order order = load(orderId);
+        if (!order.getMemberId().equals(memberId)) {
+            throw new AccessDeniedException(accessDeniedCode);
+        }
         return order;
     }
 
