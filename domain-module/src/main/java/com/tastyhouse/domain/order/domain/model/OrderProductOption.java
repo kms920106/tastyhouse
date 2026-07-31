@@ -2,7 +2,6 @@ package com.tastyhouse.domain.order.domain.model;
 
 import lombok.Getter;
 
-import com.tastyhouse.domain.order.domain.vo.OrderProductOptionId;
 
 /**
  * 주문 상품 옵션 순수 도메인 모델.
@@ -83,9 +82,5 @@ public class OrderProductOption {
             optionName,
             additionalPrice
         );
-    }
-
-    public OrderProductOptionId getOrderProductOptionId() {
-        return OrderProductOptionId.of(this.id);
     }
 }

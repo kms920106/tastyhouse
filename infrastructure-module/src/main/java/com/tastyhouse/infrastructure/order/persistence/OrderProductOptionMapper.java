@@ -11,21 +11,6 @@ final class OrderProductOptionMapper {
     }
 
     /**
-     * JPA 엔티티를 도메인 모델로 재구성한다(조회 경로).
-     */
-    static OrderProductOption toDomain(OrderProductOptionJpaEntity entity) {
-        return OrderProductOption.reconstitute(
-            entity.getId(),
-            entity.getOrderProductId(),
-            entity.getOptionGroupId(),
-            entity.getOptionGroupName(),
-            entity.getOptionId(),
-            entity.getOptionName(),
-            entity.getAdditionalPrice()
-        );
-    }
-
-    /**
      * 신규 도메인 모델을 저장용 JPA 엔티티로 변환한다(식별자 없는 상태). 옵션은 update 행위가 없어 insert 전용이다.
      */
     static OrderProductOptionJpaEntity toEntity(OrderProductOption domain) {

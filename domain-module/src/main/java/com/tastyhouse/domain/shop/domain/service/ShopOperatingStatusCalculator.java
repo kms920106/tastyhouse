@@ -20,7 +20,7 @@ import com.tastyhouse.domain.shop.domain.model.ShopTemporaryClosure;
  * 가게 실시간 영업 상태(영업중/준비중)를 계산하는 순수 계산기.
  *
  * <p>리포지토리에 의존하지 않는 순수 로직이라 Spring/DB 없이 단위 테스트할 수 있다.
- * 조회·조립은 {@link ShopOperatingStatusQueryService}가 담당하고, 이 계산기는 넘겨받은 값만으로 판정한다.
+ * 조회·조립은 {@link ShopOperatingStatusService}가 담당하고, 이 계산기는 넘겨받은 값만으로 판정한다.
  *
  * <p>판정 우선순위(하나라도 준비중 조건이면 즉시 PREPARING):
  * <ol>
