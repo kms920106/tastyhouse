@@ -4,13 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.model.Member;
 import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -40,7 +38,6 @@ public class MemberQueryService {
 
     private final MemberQueryDao memberQueryDao;
     private final MemberRepository memberRepository;
-    private final FileQueryService fileQueryService;
     private final FileService fileService;
 
     public PaginationResponse<MemberListItemResponse> getMembers(
@@ -112,8 +109,6 @@ public class MemberQueryService {
         if (profileImageFileId == null) {
             return null;
         }
-        return fileQueryService.findFilePath(UploadedFileId.of(profileImageFileId))
-            .map(fileService::getUrlByPath)
-            .orElse(null);
+        return fileService.getUrlByFileId(profileImageFileId);
     }
 }

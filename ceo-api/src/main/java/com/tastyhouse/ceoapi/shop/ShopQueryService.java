@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopListItemResult;
@@ -31,7 +29,6 @@ public class ShopQueryService {
     private final ShopSearchQueryDao shopSearchQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final FileService fileService;
-    private final FileQueryService fileQueryService;
 
     public PaginationResponse<ShopListItemResponse> getMyShops(
         Long ceoId,
@@ -87,8 +84,6 @@ public class ShopQueryService {
         if (imageFileId == null) {
             return null;
         }
-        return fileQueryService.findFilePath(UploadedFileId.of(imageFileId))
-            .map(fileService::getUrlByPath)
-            .orElse(null);
+        return fileService.getUrlByFileId(imageFileId);
     }
 }

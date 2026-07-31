@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
@@ -16,7 +15,6 @@ import com.tastyhouse.core.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -69,7 +67,6 @@ public class ShopQueryService {
     private final ShopSearchQueryDao shopSearchQueryDao;
     private final ShopChoiceQueryDao shopChoiceQueryDao;
     private final FileService fileService;
-    private final FileQueryService fileQueryService;
 
     public List<StationResponse> getStations() {
         return shopChoiceQueryDao.findAllStations().stream()
@@ -319,8 +316,6 @@ public class ShopQueryService {
         if (imageFileId == null) {
             return null;
         }
-        return fileQueryService.findById(UploadedFileId.of(imageFileId))
-            .map(file -> fileService.getUrlByPath(file.getFilePath()))
-            .orElse(null);
+        return fileService.getUrlByFileId(imageFileId);
     }
 }

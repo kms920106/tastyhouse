@@ -10,9 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.bug.domain.model.BugReport;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportPlatform;
 import com.tastyhouse.core.domain.bug.domain.service.BugReportRegistrationService;
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.webapi.bug.response.BugReportResponse;
 import com.tastyhouse.webapi.file.FileService;
 
@@ -32,7 +30,6 @@ import com.tastyhouse.webapi.file.FileService;
 public class BugReportCommandService {
 
     private final BugReportRegistrationService bugReportRegistrationService;
-    private final FileQueryService fileQueryService;
     private final FileService fileService;
 
     public BugReportResponse createBugReport(
@@ -82,9 +79,7 @@ public class BugReportCommandService {
             return List.of();
         }
         return imageFileIds.stream()
-            .map(fileId -> fileQueryService.findFilePath(UploadedFileId.of(fileId))
-                .map(fileService::getUrlByPath)
-                .orElse(null))
+            .map(fileService::getUrlByFileId)
             .filter(Objects::nonNull)
             .toList();
     }

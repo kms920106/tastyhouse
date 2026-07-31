@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.file.application.FileCommandService;
-import com.tastyhouse.core.domain.file.application.dto.command.UploadFileCommand;
+import com.tastyhouse.core.domain.file.domain.service.FileUploadCommand;
+import com.tastyhouse.core.domain.file.domain.service.FileUploadService;
 import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.exception.BusinessException;
 import com.tastyhouse.core.exception.ErrorCode;
@@ -21,7 +21,7 @@ import com.tastyhouse.core.exception.ErrorCode;
 @RequiredArgsConstructor
 public class RemoteImageDownloader {
 
-    private final FileCommandService fileCommandService;
+    private final FileUploadService fileUploadService;
 
     // 외부 URL에서 이미지를 다운로드하여 업로드하고 파일 ID를 반환한다.
     public Long uploadFromUrl(String imageUrl) {
@@ -45,8 +45,8 @@ public class RemoteImageDownloader {
             String rawFilename = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
             String filename = rawFilename.contains("?") ? rawFilename.substring(0, rawFilename.indexOf("?")) : rawFilename;
 
-            UploadFileCommand command = UploadFileCommand.of(filename, imageBytes, (long) imageBytes.length, contentType);
-            UploadedFileId fileId = fileCommandService.upload(command);
+            FileUploadCommand command = FileUploadCommand.of(filename, imageBytes, (long) imageBytes.length, contentType);
+            UploadedFileId fileId = fileUploadService.upload(command);
             return fileId.value();
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();

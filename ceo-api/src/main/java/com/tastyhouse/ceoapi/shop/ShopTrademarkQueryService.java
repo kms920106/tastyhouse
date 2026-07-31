@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.Shop;
 import com.tastyhouse.infrastructure.shop.query.ShopImageChangeRequestResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
@@ -29,7 +27,6 @@ public class ShopTrademarkQueryService {
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final FileService fileService;
-    private final FileQueryService fileQueryService;
 
     public ShopImageStatusResponse getTrademarkStatus(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
@@ -62,8 +59,6 @@ public class ShopTrademarkQueryService {
         if (imageFileId == null) {
             return null;
         }
-        return fileQueryService.findFilePath(UploadedFileId.of(imageFileId))
-            .map(fileService::getUrlByPath)
-            .orElse(null);
+        return fileService.getUrlByFileId(imageFileId);
     }
 }

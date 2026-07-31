@@ -8,9 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.core.domain.event.domain.model.EventStatus;
 import com.tastyhouse.core.domain.event.domain.vo.EventId;
-import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -36,7 +33,7 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  * write 포트를 주입하지 않으므로 조회 경로가 도메인 모델을 거치지 않는다.
  *
  * <p>파일 URL 조립은 두 경로로 나뉜다 — 목록은 DAO가 join으로 함께 가져온 파일명·경로를 그대로 쓰고,
- * 상세는 파일 ID만 있으므로 {@link FileQueryService}로 파일을 조회해 URL을 만든다.
+ * 상세는 파일 ID만 있으므로 {@link FileService}로 파일을 조회해 URL을 만든다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -44,7 +41,6 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
 public class EventQueryService {
 
     private final EventQueryDao eventQueryDao;
-    private final FileQueryService fileQueryService;
     private final FileService fileService;
 
     public PaginationResponse<EventListItemResponse> getEvents(String name, String status, int page, int size) {
@@ -144,8 +140,10 @@ public class EventQueryService {
         if (fileId == null) {
             return null;
         }
-        UploadedFile uploadedFile = fileQueryService.findById(UploadedFileId.of(fileId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FILE_NOT_FOUND));
-        return FileResponse.of(fileId, uploadedFile.getOriginalFilename(), fileService.getUrlByPath(uploadedFile.getFilePath()));
+        FileResponse fileResponse = fileService.findFileResponse(fileId);
+        if (fileResponse == null) {
+            throw new EntityNotFoundException(ErrorCode.FILE_NOT_FOUND);
+        }
+        return fileResponse;
     }
 }

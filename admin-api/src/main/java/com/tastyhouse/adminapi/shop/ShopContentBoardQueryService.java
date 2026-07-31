@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.domain.shop.domain.model.ShopContentType;
 import com.tastyhouse.core.shared.page.PageQuery;
 import com.tastyhouse.core.shared.page.PageResult;
@@ -26,7 +24,6 @@ import com.tastyhouse.adminapi.shop.response.ShopContentBoardListItemResponse;
 public class ShopContentBoardQueryService {
 
     private final ShopQueryDao shopQueryDao;
-    private final FileQueryService fileQueryService;
     private final FileService fileService;
 
     public PaginationResponse<ShopContentBoardListItemResponse> getContentBoards(
@@ -62,8 +59,6 @@ public class ShopContentBoardQueryService {
         if (imageFileId == null) {
             return null;
         }
-        return fileQueryService.findFilePath(UploadedFileId.of(imageFileId))
-            .map(fileService::getUrlByPath)
-            .orElse(null);
+        return fileService.getUrlByFileId(imageFileId);
     }
 }

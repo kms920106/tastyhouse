@@ -11,9 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportCategory;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.core.exception.EntityNotFoundException;
@@ -50,7 +48,6 @@ public class BugReportQueryService {
 
     private final BugReportQueryDao bugReportQueryDao;
     private final MemberQueryDao memberQueryDao;
-    private final FileQueryService fileQueryService;
     private final FileService fileService;
 
     public PaginationResponse<BugReportListItemResponse> getBugReports(
@@ -145,9 +142,7 @@ public class BugReportQueryService {
             return List.of();
         }
         return imageFileIds.stream()
-            .map(fileId -> fileQueryService.findById(UploadedFileId.of(fileId))
-                .map(file -> FileResponse.of(file.getId(), file.getOriginalFilename(), fileService.getUrlByPath(file.getFilePath())))
-                .orElse(null))
+            .map(fileService::findFileResponse)
             .filter(Objects::nonNull)
             .toList();
     }

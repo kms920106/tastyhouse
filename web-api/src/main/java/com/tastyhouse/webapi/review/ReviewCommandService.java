@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.core.domain.member.domain.vo.MemberId;
 import com.tastyhouse.core.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.core.domain.order.domain.repository.OrderProductRepository;
@@ -23,7 +22,6 @@ import com.tastyhouse.core.domain.review.domain.service.ReviewLifecycleService;
 import com.tastyhouse.core.domain.review.domain.service.ReviewRegistration;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
@@ -61,7 +59,6 @@ public class ReviewCommandService {
     private final OrderProductRepository orderProductRepository;
     private final MemberQueryDao memberQueryDao;
     private final FileService fileService;
-    private final FileQueryService fileQueryService;
 
     /**
      * 리뷰 등록 — 주문 상품이 지정되면 그 주문을 인증 근거로 함께 남긴다. 가게는 상품에서 역으로 얻는다.
@@ -219,9 +216,7 @@ public class ReviewCommandService {
         }
 
         return imageFileIds.stream()
-            .map(fileId -> fileQueryService.findFilePath(UploadedFileId.of(fileId))
-                .map(fileService::getUrlByPath)
-                .orElse(null))
+            .map(fileService::getUrlByFileId)
             .filter(Objects::nonNull)
             .toList();
     }

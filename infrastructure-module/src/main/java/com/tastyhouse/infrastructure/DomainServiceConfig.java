@@ -10,6 +10,9 @@ import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.repository.MemberCouponRepository;
 import com.tastyhouse.core.domain.coupon.domain.service.CouponIssueService;
 import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
+import com.tastyhouse.core.domain.file.domain.port.FileStoragePort;
+import com.tastyhouse.core.domain.file.domain.repository.UploadedFileRepository;
+import com.tastyhouse.core.domain.file.domain.service.FileUploadService;
 import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.core.domain.member.domain.repository.MemberWithdrawalRepository;
 import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
@@ -125,6 +128,19 @@ public class DomainServiceConfig {
     @Bean
     public FaqCategoryDeletionPolicy faqCategoryDeletionPolicy(FaqCategoryRepository faqCategoryRepository) {
         return new FaqCategoryDeletionPolicy(faqCategoryRepository);
+    }
+
+    /**
+     * 파일 업로드 규칙 — 규격 검증·스토리지 저장·메타 저장·이벤트 발행을 한 트랜잭션에서 원자로 묶는
+     * 액터 무관 연산(web·admin·ceo 업로드와 batch 외부 이미지 다운로드가 공유).
+     */
+    @Bean
+    public FileUploadService fileUploadService(
+        UploadedFileRepository uploadedFileRepository,
+        FileStoragePort fileStoragePort,
+        DomainEventPublisher domainEventPublisher
+    ) {
+        return new FileUploadService(uploadedFileRepository, fileStoragePort, domainEventPublisher);
     }
 
     /**

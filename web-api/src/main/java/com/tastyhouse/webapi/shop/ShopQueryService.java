@@ -27,8 +27,6 @@ import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.core.domain.shop.domain.service.ShopOperatingStatusService;
 import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.core.domain.file.application.FileQueryService;
 import com.tastyhouse.core.exception.EntityNotFoundException;
 import com.tastyhouse.core.exception.ErrorCode;
 import com.tastyhouse.core.shared.page.PageQuery;
@@ -106,7 +104,6 @@ public class ShopQueryService {
     private final ShopOperatingStatusService shopOperatingStatusService;
     private final ProductQueryService productQueryService;
     private final ReviewQueryService reviewQueryService;
-    private final FileQueryService fileQueryService;
     private final FileService fileService;
 
     public List<ShopMapMarkerResponse> searchMapMarkers(Double latitude, Double longitude) {
@@ -263,9 +260,7 @@ public class ShopQueryService {
             .map(this::convertToShopPhoneNumberItem)
             .toList();
 
-        String trademarkImageUrl = fileService.getUrlByPath(
-            findFilePath(shop.getTrademarkImageFileId())
-        );
+        String trademarkImageUrl = fileService.getUrlByFileId(shop.getTrademarkImageFileId());
 
         String operatingStatus = shopOperatingStatusService
             .findOperatingStatus(shopId, LocalDateTime.now())
@@ -560,13 +555,4 @@ public class ShopQueryService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
-    /**
-     * 파일 식별자의 저장 경로. 식별자가 없으면 null을 돌려준다.
-     */
-    private String findFilePath(Long fileId) {
-        if (fileId == null) {
-            return null;
-        }
-        return fileQueryService.findFilePath(UploadedFileId.of(fileId)).orElse(null);
-    }
 }
