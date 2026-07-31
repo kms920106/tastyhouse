@@ -23,18 +23,18 @@ import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 import com.tastyhouse.webapi.member.service.MemberCommandService;
-import com.tastyhouse.webapi.member.service.MemberFollowService;
 import com.tastyhouse.webapi.member.service.MemberGradeService;
 import com.tastyhouse.webapi.member.service.MemberQueryService;
 import com.tastyhouse.webapi.member.service.MemberReviewService;
 import com.tastyhouse.webapi.member.service.MemberShopService;
+import com.tastyhouse.webapi.member.service.MemberStatsQueryService;
 
 /**
  * 내 정보 화면 컨트롤러 파사드.
  *
  * <p>회원 자체의 조회·변경은 CQRS 분리에 따라 {@link MemberQueryService}/{@link MemberCommandService}가
  * 담당하고, 이 클래스는 "토큰 검증 후 변경"처럼 여러 협력자를 순서대로 엮는 화면 단위 흐름과, 내 정보
- * 화면이 함께 보여주는 다른 컨텍스트(쿠폰·리뷰·북마크·등급·팔로우 통계) 위임만 얇게 유지한다.
+ * 화면이 함께 보여주는 다른 컨텍스트(쿠폰·리뷰·북마크·등급·회원 통계) 위임만 얇게 유지한다.
  */
 @Component
 @RequiredArgsConstructor
@@ -43,7 +43,7 @@ public class MemberService {
     private final MemberQueryService memberQueryService;
     private final MemberCommandService memberCommandService;
     private final MemberAuthService memberAuthService;
-    private final MemberFollowService memberFollowService;
+    private final MemberStatsQueryService memberStatsQueryService;
     private final MemberShopService memberShopService;
     private final MemberReviewService memberReviewService;
     private final CouponQueryService couponQueryService;
@@ -129,6 +129,6 @@ public class MemberService {
     }
 
     public MemberStatsResponse getMemberStats(Long memberId) {
-        return memberFollowService.getMemberStats(memberId);
+        return memberStatsQueryService.getMemberStats(memberId);
     }
 }

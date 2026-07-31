@@ -23,10 +23,10 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
+import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 import com.tastyhouse.infrastructure.review.query.BestReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.MyReviewListItemResult;
-import com.tastyhouse.infrastructure.review.query.ProductReviewStatisticsResult;
 import com.tastyhouse.infrastructure.review.query.ReviewCommentItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewDetailResult;
 import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
@@ -36,7 +36,6 @@ import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
 import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.file.FileService;
-import com.tastyhouse.webapi.product.ProductQueryService;
 import com.tastyhouse.webapi.review.response.ReviewBestListItemResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentListResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentResponse;
@@ -59,6 +58,10 @@ import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
  * <p>과거 core 조회 서비스가 여러 조회를 조합해 만들던 값(리뷰 상세의 태그명)도 이 계층이 조합한다 —
  * DAO는 단일 조회 단위만 제공한다.
  *
+ * <p>리뷰 화면이 곁들여 보여주는 상품 정보(상품명·가격·대표 이미지)는 다른 도메인의 QueryService를 경유하지
+ * 않고 {@link ProductQueryDao}를 직접 주입해 조회한다 — 서비스를 경유하면 상품 쪽이 리뷰 통계를 얻기 위해
+ * 이 서비스를 다시 주입해야 해서 빈 순환 참조가 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다.
+ *
  * <p>명령 동작은 {@link ReviewCommandService}로 분리했다(CQRS).
  */
 @Service
@@ -69,7 +72,7 @@ public class ReviewQueryService {
     private final ReviewQueryDao reviewQueryDao;
     private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
     private final MemberFollowRepository memberFollowRepository;
-    private final ProductQueryService productQueryService;
+    private final ProductQueryDao productQueryDao;
     private final OrderProductRepository orderProductRepository;
     private final FileService fileService;
 
@@ -164,7 +167,7 @@ public class ReviewQueryService {
         List<String> reviewImageUrls = toImageUrls(reviewDetail.imageUrls());
         String reviewMemberProfileImageUrl = fileService.getUrlByPath(reviewDetail.memberProfileImageUrl());
 
-        return productQueryService.findProductDetail(findProductIdOfReview(reviewId))
+        return productQueryDao.findProductDetailById(findProductIdOfReview(reviewId))
             .map(product -> {
                 Integer price = product.discountPrice() != null
                     ? product.discountPrice()
@@ -223,7 +226,7 @@ public class ReviewQueryService {
         OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
 
-        ProductDetailResult product = productQueryService.findProductDetail(orderProduct.getProductId())
+        ProductDetailResult product = productQueryDao.findProductDetailById(orderProduct.getProductId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         Integer price = product.discountPrice() != null
@@ -283,31 +286,6 @@ public class ReviewQueryService {
         );
     }
 
-    /**
-     * 상품의 평점대별 리뷰 묶음 — 가게 버전과 동일한 조합을 상품 기준으로 수행한다.
-     */
-    public ReviewsByRatingResult findProductReviewsByRating(Long productId, int page, int size, Boolean hasImage) {
-        Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
-        for (int rating = 1; rating <= 5; rating++) {
-            reviewsByRating.put(rating, reviewQueryDao.findReviewsByProductIdAndRating(productId, rating, 5));
-        }
-
-        PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<LatestReviewListItemResult> allReviewsPage =
-            reviewQueryDao.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, "LATEST");
-
-        Long totalReviewCount = reviewStatisticsQueryDao.countByProductIdAndHiddenFalse(productId);
-
-        return new ReviewsByRatingResult(
-            reviewsByRating,
-            allReviewsPage.content(),
-            totalReviewCount,
-            allReviewsPage.totalElements(),
-            allReviewsPage.totalPages(),
-            allReviewsPage.page(),
-            allReviewsPage.size()
-        );
-    }
 
     /**
      * 가게 리뷰 통계 — 리뷰가 하나도 없으면 평균·재방문율·월별 집계를 계산하지 않고 비운다.
@@ -347,24 +325,6 @@ public class ReviewQueryService {
             ratingMap,
             null
         );
-    }
-
-    /**
-     * 상품 리뷰 통계 — 리뷰가 하나도 없으면 평균을 계산하지 않고 비운다.
-     */
-    public ProductReviewStatisticsResult findProductReviewStatistics(Long productId) {
-        Long totalCount = reviewStatisticsQueryDao.countByProductIdAndHiddenFalse(productId);
-
-        if (totalCount > 0) {
-            return new ProductReviewStatisticsResult(
-                totalCount,
-                reviewStatisticsQueryDao.getAverageTasteRatingByProductId(productId),
-                reviewStatisticsQueryDao.getAverageAmountRatingByProductId(productId),
-                reviewStatisticsQueryDao.getAveragePriceRatingByProductId(productId)
-            );
-        }
-
-        return new ProductReviewStatisticsResult(totalCount, null, null, null);
     }
 
     /**
@@ -502,7 +462,10 @@ public class ReviewQueryService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return fileService.getUrlByPath(productQueryService.findFirstImageFilePath(productId));
+        String firstImageFilePath = productQueryDao.findProductImagePaths(productId).stream()
+            .findFirst()
+            .orElse(null);
+        return fileService.getUrlByPath(firstImageFilePath);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.tastyhouse.webapi.product;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +26,8 @@ import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
 import com.tastyhouse.infrastructure.product.query.TodayDiscountProductResult;
 import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.ProductReviewStatisticsResult;
+import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
+import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.file.FileService;
@@ -43,13 +46,15 @@ import com.tastyhouse.webapi.product.response.ProductReviewStatisticsResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemResponse;
-import com.tastyhouse.webapi.review.ReviewQueryService;
 
 /**
  * 회원용 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryDao}만 주입하고, 조회 결과를
  * Response로 조립한다(private 매퍼). web-api에는 상품 command 경로가 없어 QueryService만 둔다.
  *
- * <p>리뷰 통계·목록은 review 도메인 소관이라 {@link ReviewQueryService}에 위임한다.
+ * <p>상품 화면이 곁들여 보여주는 리뷰 통계·평점대별 목록은 review 도메인의
+ * {@link ReviewQueryDao}·{@link ReviewStatisticsQueryDao}를 직접 주입해 조회한다 — 이 조회들은 상품 화면
+ * 전용이라 리뷰 쪽에는 다른 호출부가 없었고, review QueryService를 경유하면 그쪽이 상품 정보를 얻기 위해 이
+ * 서비스를 다시 주입해야 해서 빈 순환 참조가 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -57,7 +62,8 @@ import com.tastyhouse.webapi.review.ReviewQueryService;
 public class ProductQueryService {
 
     private final ProductQueryDao productQueryDao;
-    private final ReviewQueryService reviewQueryService;
+    private final ReviewQueryDao reviewQueryDao;
+    private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
     private final FileService fileService;
 
     public PaginationResponse<ProductTodayDiscountListItemResponse> searchTodayDiscountProducts(int page, int size) {
@@ -95,7 +101,7 @@ public class ProductQueryService {
 
     public ProductReviewCountResponse findProductReviewCount(Long productId) {
         loadProductDetail(productId);
-        ProductReviewStatisticsResult statistics = reviewQueryService.findProductReviewStatistics(productId);
+        ProductReviewStatisticsResult statistics = findProductReviewStatistics(productId);
         Long total = statistics.totalReviewCount();
         return ProductReviewCountResponse.from(total != null ? total.intValue() : 0);
     }
@@ -183,7 +189,7 @@ public class ProductQueryService {
         int size,
         Boolean hasImage
     ) {
-        ReviewsByRatingResult result = reviewQueryService.findProductReviewsByRating(productId, page, size, hasImage);
+        ReviewsByRatingResult result = findProductReviewsByRating(productId, page, size, hasImage);
 
         Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.reviewsByRating().entrySet().stream()
             .collect(Collectors.toMap(
@@ -222,7 +228,7 @@ public class ProductQueryService {
     }
 
     public ProductReviewStatisticsResponse getProductReviewStatistics(Long productId) {
-        ProductReviewStatisticsResult statistics = reviewQueryService.findProductReviewStatistics(productId);
+        ProductReviewStatisticsResult statistics = findProductReviewStatistics(productId);
         ProductDetailResult product = loadProductDetail(productId);
 
         return ProductReviewStatisticsResponse.from(
@@ -257,15 +263,6 @@ public class ProductQueryService {
     }
 
     /**
-     * 상품 대표 이미지 파일 경로. 없으면 null.
-     */
-    public String findFirstImageFilePath(Long productId) {
-        return productQueryDao.findProductImagePaths(productId).stream()
-            .findFirst()
-            .orElse(null);
-    }
-
-    /**
      * 다른 도메인(review 등)이 상품 정보를 곁들여 조립할 때 쓰는 단건 조회. 없으면 빈 Optional.
      */
     public Optional<ProductDetailResult> findProductDetail(Long productId) {
@@ -275,5 +272,49 @@ public class ProductQueryService {
     private ProductDetailResult loadProductDetail(Long productId) {
         return productQueryDao.findProductDetailById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    /**
+     * 상품의 리뷰 평점 통계. 리뷰가 없으면 평균값은 모두 null이고 건수만 0이다.
+     */
+    private ProductReviewStatisticsResult findProductReviewStatistics(Long productId) {
+        Long totalCount = reviewStatisticsQueryDao.countByProductIdAndHiddenFalse(productId);
+
+        if (totalCount > 0) {
+            return new ProductReviewStatisticsResult(
+                totalCount,
+                reviewStatisticsQueryDao.getAverageTasteRatingByProductId(productId),
+                reviewStatisticsQueryDao.getAverageAmountRatingByProductId(productId),
+                reviewStatisticsQueryDao.getAveragePriceRatingByProductId(productId)
+            );
+        }
+
+        return new ProductReviewStatisticsResult(totalCount, null, null, null);
+    }
+
+    /**
+     * 상품의 평점대별 리뷰 묶음 — 평점 1~5 각각의 상위 5건과 전체 페이징 목록을 함께 조회한다.
+     */
+    private ReviewsByRatingResult findProductReviewsByRating(Long productId, int page, int size, Boolean hasImage) {
+        Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
+        for (int rating = 1; rating <= 5; rating++) {
+            reviewsByRating.put(rating, reviewQueryDao.findReviewsByProductIdAndRating(productId, rating, 5));
+        }
+
+        PageQuery pageQuery = PageQuery.of(page, size);
+        PageResult<LatestReviewListItemResult> allReviewsPage =
+            reviewQueryDao.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, "LATEST");
+
+        Long totalReviewCount = reviewStatisticsQueryDao.countByProductIdAndHiddenFalse(productId);
+
+        return new ReviewsByRatingResult(
+            reviewsByRating,
+            allReviewsPage.content(),
+            totalReviewCount,
+            allReviewsPage.totalElements(),
+            allReviewsPage.totalPages(),
+            allReviewsPage.page(),
+            allReviewsPage.size()
+        );
     }
 }
