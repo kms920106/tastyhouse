@@ -7,6 +7,8 @@ logging:
 spring:
   application:
     name: batch-module
+  main:
+    web-application-type: none
   config:
     import:
       - classpath:application-infrastructure.yml
