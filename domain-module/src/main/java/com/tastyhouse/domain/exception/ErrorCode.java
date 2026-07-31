@@ -88,14 +88,18 @@ public enum ErrorCode {
     CEO_ACCOUNT_INACTIVE(401, "CEO_ACCOUNT_INACTIVE", "비활성화된 점주 계정입니다."),
 
     // 인증 (SMS)
-    VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
-    VERIFICATION_CODE_EXPIRED(400, "VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
-    VERIFICATION_CODE_MISMATCH(400, "VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
+    // 상수명은 SMS_ 접두어로 대칭화했으나 응답 code 문자열은 기존 값을 유지한다 —
+    // 프론트가 code로 분기하는 경우 구버전 클라이언트가 unknown으로 처리해 안내 문구가 퇴화하기 때문.
+    // 프론트 마이그레이션 완료 후 code도 SMS_VERIFICATION_CODE_*로 통일 예정.
+    SMS_VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
+    SMS_VERIFICATION_CODE_EXPIRED(400, "VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
+    SMS_VERIFICATION_CODE_MISMATCH(400, "VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
 
-    // 인증 (이메일)
-    EMAIL_VERIFICATION_CODE_NOT_FOUND(400, "EMAIL_VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
-    EMAIL_VERIFICATION_CODE_EXPIRED(400, "EMAIL_VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
-    EMAIL_VERIFICATION_CODE_MISMATCH(400, "EMAIL_VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
+    // 인증 (메일)
+    // 위 SMS와 동일하게 상수명만 MAIL_ 접두어로 통일하고 응답 code 문자열은 유지한다.
+    MAIL_VERIFICATION_CODE_NOT_FOUND(400, "EMAIL_VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
+    MAIL_VERIFICATION_CODE_EXPIRED(400, "EMAIL_VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
+    MAIL_VERIFICATION_CODE_MISMATCH(400, "EMAIL_VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
 
     // 포인트
     POINT_NOT_FOUND(404, "POINT_NOT_FOUND", "포인트 정보를 찾을 수 없습니다."),

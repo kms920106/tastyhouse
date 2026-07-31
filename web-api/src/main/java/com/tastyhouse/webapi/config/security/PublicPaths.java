@@ -20,8 +20,8 @@ public final class PublicPaths {
         "/api/ranks/v1/duration", "/api/ranks/v1/prizes", "/api/ranks/v1/members",
         "/api/reviews/**",
         "/api/search/v1/popular-keywords", "/api/search/v1/recommended-keywords", "/api/search/v1/menus", "/api/search/v1/reviews", "/api/search/v1/shops/public",
-        "/api/email-verifications/**",
-        "/api/phone-verifications/**",
+        "/api/mail-verifications/**",
+        "/api/sms-verifications/**",
         "/swagger-ui/**", "/swagger-resources/**",
         "/v3/api-docs/**"
     };

@@ -4,7 +4,7 @@
 # external-api
 
 ## Purpose
-외부 시스템 연동 어댑터 라이브러리 모듈(`java-library`). 소셜 로그인(OAuth), 결제(Toss), 이메일(JavaMail/AWS SES), SMS(AWS SNS/Solapi), 파일 스토리지(AWS S3/Firebase), 가게 정보 크롤링을 캡슐화한다. `domain-module`이 선언한 출력 포트(`<ctx>/domain/port/` — `MailSender`·`SmsSender`·`FileStoragePort`·`PgPaymentGateway`·`ProductReviewStatisticsPort`·`MemberReviewCountPort`)를 구현하는 어댑터 역할을 한다.
+외부 시스템 연동 어댑터 라이브러리 모듈(`java-library`). 소셜 로그인(OAuth), 결제(Toss), 이메일(JavaMail/AWS SES), SMS(AWS SNS/Solapi), 파일 스토리지(AWS S3/Firebase), 가게 정보 크롤링을 캡슐화한다. `domain-module`이 선언한 출력 포트(`<ctx>/domain/port/` — `mail/`의 `MailSender`, `sms/`의 `SmsSender`, `FileStoragePort`·`PgPaymentGateway`·`ProductReviewStatisticsPort`·`MemberReviewCountPort`)를 구현하는 어댑터 역할을 한다.
 
 ## Key Files
 | File | Description |

@@ -24,15 +24,15 @@ public class PhoneLoginService {
     private final MemberRepository memberRepository;
     private final TokenService tokenService;
 
-    // phoneVerifyToken을 검증하고, 해당 번호로 가입된 회원이 있으면 JWT 발급
+    // smsVerifyToken을 검증하고, 해당 번호로 가입된 회원이 있으면 JWT 발급
     // 없으면 needsSignUp=true 반환
     @Transactional(readOnly = true)
-    public AuthPhoneLoginResponse login(String phoneVerifyToken) {
-        if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
+    public AuthPhoneLoginResponse login(String smsVerifyToken) {
+        if (!jwtTokenProvider.validateSmsVerifyToken(smsVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
-        String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
+        String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
 
         Optional<Member> memberOpt = memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 

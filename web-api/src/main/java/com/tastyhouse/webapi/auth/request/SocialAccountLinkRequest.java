@@ -14,8 +14,8 @@ public record SocialAccountLinkRequest(
     @NotBlank(message = "소셜 임시 토큰을 입력해주세요.")
     String tempToken,
 
-    @Schema(description = "휴대폰 인증 완료 후 발급된 phoneVerifyToken (본인 확인용, 10분 유효)")
+    @Schema(description = "휴대폰 인증 완료 후 발급된 smsVerifyToken (본인 확인용, 10분 유효)")
     @NotBlank(message = "휴대폰 인증 토큰을 입력해주세요.")
-    String phoneVerifyToken
+    String smsVerifyToken
 ) {
 }

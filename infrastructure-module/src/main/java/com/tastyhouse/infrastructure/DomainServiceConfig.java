@@ -80,10 +80,12 @@ import com.tastyhouse.domain.shop.domain.service.ShopPhoneNumberRegistryService;
 import com.tastyhouse.domain.search.domain.repository.PopularKeywordRepository;
 import com.tastyhouse.domain.search.domain.repository.SearchKeywordLogRepository;
 import com.tastyhouse.domain.search.domain.service.PopularKeywordRefreshService;
-import com.tastyhouse.domain.verification.domain.repository.EmailVerificationRepository;
-import com.tastyhouse.domain.verification.domain.repository.PhoneVerificationRepository;
-import com.tastyhouse.domain.verification.domain.service.EmailVerificationService;
-import com.tastyhouse.domain.verification.domain.service.PhoneVerificationService;
+import com.tastyhouse.domain.mail.domain.port.MailSender;
+import com.tastyhouse.domain.mail.domain.repository.MailVerificationRepository;
+import com.tastyhouse.domain.mail.domain.service.MailVerificationService;
+import com.tastyhouse.domain.sms.domain.port.SmsSender;
+import com.tastyhouse.domain.sms.domain.repository.SmsVerificationRepository;
+import com.tastyhouse.domain.sms.domain.service.SmsVerificationService;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
@@ -257,15 +259,19 @@ public class DomainServiceConfig {
     }
 
     /**
-     * 이메일 인증 발급·검증 규칙 — 같은 이메일의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식.
+     * 메일 인증 발급·검증 규칙 — 같은 이메일의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식.
+     *
+     * <p>{@link MailSender}는 external-api의 어댑터가 구현한다. 발급이 발송까지 원자적으로 수행하도록
+     * 도메인 서비스에 주입한다(발송 누락 방지 — 상세는 {@code MailVerificationService} Javadoc).
      */
     @Bean
-    public EmailVerificationService emailVerificationService(
+    public MailVerificationService mailVerificationService(
         MemberRepository memberRepository,
-        EmailVerificationRepository emailVerificationRepository,
+        MailVerificationRepository mailVerificationRepository,
+        MailSender mailSender,
         DomainEventPublisher domainEventPublisher
     ) {
-        return new EmailVerificationService(memberRepository, emailVerificationRepository, domainEventPublisher);
+        return new MailVerificationService(memberRepository, mailVerificationRepository, mailSender, domainEventPublisher);
     }
 
     /**
@@ -421,14 +427,18 @@ public class DomainServiceConfig {
     }
 
     /**
-     * 휴대폰 인증 발급·검증 규칙 — 같은 번호의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식.
+     * SMS 인증 발급·검증 규칙 — 같은 번호의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식.
+     *
+     * <p>{@link SmsSender}는 external-api의 어댑터가 구현한다. 발급이 발송까지 원자적으로 수행하도록
+     * 도메인 서비스에 주입한다(발송 누락 방지 — 상세는 {@code SmsVerificationService} Javadoc).
      */
     @Bean
-    public PhoneVerificationService phoneVerificationService(
-        PhoneVerificationRepository phoneVerificationRepository,
+    public SmsVerificationService smsVerificationService(
+        SmsVerificationRepository smsVerificationRepository,
+        SmsSender smsSender,
         DomainEventPublisher domainEventPublisher
     ) {
-        return new PhoneVerificationService(phoneVerificationRepository, domainEventPublisher);
+        return new SmsVerificationService(smsVerificationRepository, smsSender, domainEventPublisher);
     }
 
     /**

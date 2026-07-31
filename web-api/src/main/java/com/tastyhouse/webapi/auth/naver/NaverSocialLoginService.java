@@ -79,13 +79,13 @@ public class NaverSocialLoginService {
     }
 
     // 네이버 계정을 기존 일반가입 계정에 연동하고 JWT 발급
-    // - phoneVerifyToken으로 본인 확인 (전화번호로 Member 조회)
+    // - smsVerifyToken으로 본인 확인 (전화번호로 Member 조회)
     // - naverTempToken으로 Redis에서 naverAccessToken 조회 후 사용자 정보 확인
     // - 전화번호로 가입된 회원이 없으면 NEEDS_SIGN_UP 반환 (naverTempToken 유지)
     // - MEMBER_SOCIAL_ACCOUNT INSERT 후 JWT 발급 (naverTempToken 삭제)
     @Transactional
-    public AuthSocialLinkResponse linkAccount(String naverTempToken, String phoneVerifyToken) {
-        if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
+    public AuthSocialLinkResponse linkAccount(String naverTempToken, String smsVerifyToken) {
+        if (!jwtTokenProvider.validateSmsVerifyToken(smsVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
@@ -102,7 +102,7 @@ public class NaverSocialLoginService {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
+        String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
         Optional<Member> memberOpt = memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.

@@ -92,17 +92,17 @@ public class MemberMeApiController {
         summary = "개인정보 수정",
         description = "개인정보를 수정합니다. " +
                       "비밀번호 인증으로 발급받은 X-Verify-Token 헤더가 필요합니다. " +
-                      "휴대폰번호를 변경하는 경우 SMS 인증으로 발급받은 X-Phone-Verify-Token 헤더도 함께 필요합니다."
+                      "휴대폰번호를 변경하는 경우 SMS 인증으로 발급받은 X-Sms-Verify-Token 헤더도 함께 필요합니다."
     )
     @PutMapping("/v1/me/personal-info")
     public ResponseEntity<ApiResponse<Void>> updateMyPersonalInfo(
         @CurrentUser CustomUserDetails userDetails,
         @RequestHeader("X-Verify-Token") String verifyToken,
-        @RequestHeader(value = "X-Phone-Verify-Token", required = false) String phoneVerifyToken,
+        @RequestHeader(value = "X-Sms-Verify-Token", required = false) String smsVerifyToken,
         @Valid @RequestBody UpdatePersonalInfoRequest request
     ) {
         memberService.updatePersonalInfo(
-            userDetails.getMemberId(), verifyToken, phoneVerifyToken,
+            userDetails.getMemberId(), verifyToken, smsVerifyToken,
             request.fullName(), request.phoneNumber(), request.birthDate(), request.gender(),
             request.pushNotificationEnabled(), request.marketingInfoEnabled(), request.eventInfoEnabled()
         );

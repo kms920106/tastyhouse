@@ -45,47 +45,47 @@ public class MemberAuthService {
     }
 
     // 휴대폰 인증 토큰의 유효성과 회원·번호 일치 여부를 검증
-    public void verifyPhoneToken(Long memberId, String phoneVerifyToken, String phoneNumber) {
-        if (!StringUtils.hasText(phoneVerifyToken)) {
+    public void verifyPhoneToken(Long memberId, String smsVerifyToken, String phoneNumber) {
+        if (!StringUtils.hasText(smsVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_SMS_REQUIRED);
         }
 
-        if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
+        if (!jwtTokenProvider.validateSmsVerifyToken(smsVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
-        Long phoneVerifiedMemberId = jwtTokenProvider.getMemberIdFromPhoneVerifyToken(phoneVerifyToken);
+        Long phoneVerifiedMemberId = jwtTokenProvider.getMemberIdFromSmsVerifyToken(smsVerifyToken);
         if (!phoneVerifiedMemberId.equals(memberId)) {
             throw new UnauthorizedException("휴대폰 인증 정보가 일치하지 않습니다.");
         }
 
-        String verifiedPhoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
+        String verifiedPhoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
         if (!verifiedPhoneNumber.equals(phoneNumber)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_MISMATCH);
         }
     }
 
     // 회원가입 시 휴대폰·이메일 인증 토큰 유효성과 일치 여부를 검증
-    public void verifySignUpTokens(String phoneNumber, String phoneVerifyToken,
-                                   String username, String emailVerifyToken) {
-        if (!StringUtils.hasText(phoneVerifyToken) || !jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
+    public void verifySignUpTokens(String phoneNumber, String smsVerifyToken,
+                                   String username, String mailVerifyToken) {
+        if (!StringUtils.hasText(smsVerifyToken) || !jwtTokenProvider.validateSmsVerifyToken(smsVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_SIGNUP_PHONE_REQUIRED);
         }
 
-        String verifiedPhone = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
+        String verifiedPhone = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
         if (!verifiedPhone.equals(phoneNumber)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_MISMATCH);
         }
 
-        if (!StringUtils.hasText(emailVerifyToken)) {
+        if (!StringUtils.hasText(mailVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_SIGNUP_EMAIL_REQUIRED);
         }
 
-        if (!jwtTokenProvider.validateEmailVerifyToken(emailVerifyToken)) {
+        if (!jwtTokenProvider.validateMailVerifyToken(mailVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_EMAIL_AUTH_EXPIRED);
         }
 
-        String verifiedEmail = jwtTokenProvider.getEmailFromEmailVerifyToken(emailVerifyToken);
+        String verifiedEmail = jwtTokenProvider.getEmailFromMailVerifyToken(mailVerifyToken);
         if (!verifiedEmail.equals(username)) {
             throw new BusinessException(ErrorCode.MEMBER_EMAIL_MISMATCH);
         }

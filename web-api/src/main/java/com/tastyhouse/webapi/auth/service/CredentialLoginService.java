@@ -28,9 +28,9 @@ public class CredentialLoginService {
                        MemberGender gender, Integer birthDate, String phoneNumber,
                        boolean pushNotificationEnabled,
                        boolean marketingInfoEnabled, boolean eventInfoEnabled,
-                       String phoneVerifyToken, String emailVerifyToken,
+                       String smsVerifyToken, String mailVerifyToken,
                        String referrerNickname) {
-        memberAuthService.verifySignUpTokens(phoneNumber, phoneVerifyToken, username, emailVerifyToken);
+        memberAuthService.verifySignUpTokens(phoneNumber, smsVerifyToken, username, mailVerifyToken);
         memberCommandService.signUp(
             username, password, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,

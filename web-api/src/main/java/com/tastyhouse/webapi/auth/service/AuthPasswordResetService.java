@@ -6,10 +6,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.mail.domain.model.MailVerificationPurpose;
+import com.tastyhouse.domain.mail.domain.service.MailVerificationService;
 import com.tastyhouse.domain.member.domain.model.Member;
-import com.tastyhouse.domain.verification.domain.model.EmailVerification;
-import com.tastyhouse.domain.verification.domain.port.MailSender;
-import com.tastyhouse.domain.verification.domain.service.EmailVerificationService;
 import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -22,12 +21,8 @@ import com.tastyhouse.webapi.member.service.MemberCommandService;
 @Slf4j
 public class AuthPasswordResetService {
 
-    private static final String EMAIL_SUBJECT = "[TASTY HOUSE] 비밀번호 재설정 인증번호 안내";
-    private static final String EMAIL_BODY_TEMPLATE = "[TASTY HOUSE] 비밀번호 재설정 인증번호 [%s]를 입력해주세요. (5분 내 유효)";
-
     private final MemberRepository memberRepository;
-    private final EmailVerificationService emailVerificationService;
-    private final MailSender mailSender;
+    private final MailVerificationService mailVerificationService;
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberCommandService memberCommandService;
     private final PasswordEncoder passwordEncoder;
@@ -39,16 +34,15 @@ public class AuthPasswordResetService {
             return;
         }
 
-        EmailVerification verification = emailVerificationService.issue(username);
-        String codeValue = verification.getVerificationCode().value();
-
-        String emailBody = EMAIL_BODY_TEMPLATE.formatted(codeValue);
-        mailSender.send(username, EMAIL_SUBJECT, emailBody);
+        // 발급이 발송까지 수행한다(문구는 도메인 소유 MailVerificationMessage). 과거에는 이 파사드가
+        // MailSender를 직접 주입해 문구 상수와 함께 발송을 호출했는데, 그 구조 때문에 인증코드 발송
+        // API 경로는 발송 호출을 빠뜨려 코드가 저장만 되던 버그가 있었다.
+        mailVerificationService.issue(username, MailVerificationPurpose.PASSWORD_RESET);
     }
 
     @Transactional
     public AuthPasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
-        emailVerificationService.confirm(username, verificationCode);
+        mailVerificationService.confirm(username, verificationCode);
 
         String passwordResetToken = jwtTokenProvider.createPasswordResetToken(username);
 

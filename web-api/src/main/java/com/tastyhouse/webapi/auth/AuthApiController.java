@@ -42,7 +42,7 @@ public class AuthApiController {
 
     private final AuthService authService;
 
-    @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(phoneVerifyToken)이 필요합니다.")
+    @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(smsVerifyToken)이 필요합니다.")
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:signup")
     @PostMapping("/v1/signup")
     public ResponseEntity<ApiResponse<Void>> signUp(@Valid @RequestBody SignUpRequest request) {
@@ -57,8 +57,8 @@ public class AuthApiController {
             request.pushNotificationEnabled(),
             request.marketingInfoEnabled(),
             request.eventInfoEnabled(),
-            request.phoneVerifyToken(),
-            request.emailVerifyToken(),
+            request.smsVerifyToken(),
+            request.mailVerifyToken(),
             request.referrerNickname()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
@@ -105,11 +105,11 @@ public class AuthApiController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @Operation(summary = "휴대폰 인증 로그인", description = "휴대폰 인증 완료 후 발급된 phoneVerifyToken으로 로그인합니다. 기존 회원이면 JWT를 발급하고, 신규 사용자이면 needsSignUp=true를 반환합니다.")
+    @Operation(summary = "휴대폰 인증 로그인", description = "휴대폰 인증 완료 후 발급된 smsVerifyToken으로 로그인합니다. 기존 회원이면 JWT를 발급하고, 신규 사용자이면 needsSignUp=true를 반환합니다.")
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:phone_login")
     @PostMapping("/v1/login/phone")
     public ResponseEntity<ApiResponse<AuthPhoneLoginResponse>> phoneLogin(@Valid @RequestBody PhoneLoginRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(authService.phoneLogin(request.phoneVerifyToken())));
+        return ResponseEntity.ok(ApiResponse.success(authService.phoneLogin(request.smsVerifyToken())));
     }
 
     @Operation(summary = "카카오 로그인", description = "카카오 인가 코드로 로그인합니다. 기존 회원이면 JWT를 발급하고, 신규 사용자이면 needsSignUp=true와 카카오 프로필 정보를 반환합니다.")
@@ -140,12 +140,12 @@ public class AuthApiController {
         return ResponseEntity.ok(ApiResponse.success(authService.appleLogin(request.code())));
     }
 
-    @Operation(summary = "소셜 계정 연동", description = "소셜 로그인 시 status=NEEDS_LINKING을 받은 경우, 휴대폰 인증(phoneVerifyToken)으로 본인 확인 후 소셜 계정을 연동하고 JWT를 발급합니다. 해당 전화번호로 가입된 계정이 없으면 status=NEEDS_SIGN_UP을 반환합니다.")
+    @Operation(summary = "소셜 계정 연동", description = "소셜 로그인 시 status=NEEDS_LINKING을 받은 경우, 휴대폰 인증(smsVerifyToken)으로 본인 확인 후 소셜 계정을 연동하고 JWT를 발급합니다. 해당 전화번호로 가입된 계정이 없으면 status=NEEDS_SIGN_UP을 반환합니다.")
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:social_link")
     @PostMapping("/v1/link/social")
     public ResponseEntity<ApiResponse<AuthSocialLinkResponse>> linkSocialAccount(@Valid @RequestBody SocialAccountLinkRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
-            authService.linkAccount(request.provider(), request.tempToken(), request.phoneVerifyToken())
+            authService.linkAccount(request.provider(), request.tempToken(), request.smsVerifyToken())
         ));
     }
 

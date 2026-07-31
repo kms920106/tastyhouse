@@ -60,7 +60,7 @@ public class JwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvid
         }
     }
 
-    public String createPhoneVerifyToken(String phoneNumber) {
+    public String createSmsVerifyToken(String phoneNumber) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + 10 * 60 * 1000L); // 10분
 
@@ -74,7 +74,7 @@ public class JwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvid
                 .compact();
     }
 
-    public boolean validatePhoneVerifyToken(String token) {
+    public boolean validateSmsVerifyToken(String token) {
         try {
             Claims claims = parseClaims(token);
             return TokenType.PHONE_VERIFY.name().equals(claims.get("type", String.class));
@@ -84,7 +84,7 @@ public class JwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvid
         }
     }
 
-    public String getPhoneNumberFromPhoneVerifyToken(String token) {
+    public String getPhoneNumberFromSmsVerifyToken(String token) {
         Claims claims = parseClaims(token);
 
         if (!TokenType.PHONE_VERIFY.name().equals(claims.get("type", String.class))) {
@@ -94,7 +94,7 @@ public class JwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvid
         return claims.get("phoneNumber", String.class);
     }
 
-    public Long getMemberIdFromPhoneVerifyToken(String token) {
+    public Long getMemberIdFromSmsVerifyToken(String token) {
         Claims claims = parseClaims(token);
 
         if (!TokenType.PHONE_VERIFY.name().equals(claims.get("type", String.class))) {
@@ -104,7 +104,7 @@ public class JwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvid
         return Long.parseLong(claims.getSubject());
     }
 
-    public String createEmailVerifyToken(String email) {
+    public String createMailVerifyToken(String email) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + 10 * 60 * 1000L); // 10분
 
@@ -117,7 +117,7 @@ public class JwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvid
                 .compact();
     }
 
-    public boolean validateEmailVerifyToken(String token) {
+    public boolean validateMailVerifyToken(String token) {
         try {
             Claims claims = parseClaims(token);
             return TokenType.EMAIL_VERIFY.name().equals(claims.get("type", String.class));
@@ -127,7 +127,7 @@ public class JwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvid
         }
     }
 
-    public String getEmailFromEmailVerifyToken(String token) {
+    public String getEmailFromMailVerifyToken(String token) {
         Claims claims = parseClaims(token);
 
         if (!TokenType.EMAIL_VERIFY.name().equals(claims.get("type", String.class))) {

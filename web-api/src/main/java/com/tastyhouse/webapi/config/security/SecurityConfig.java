@@ -57,7 +57,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(allowedOriginsRaw.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Verify-Token", "X-Phone-Verify-Token"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Verify-Token", "X-Sms-Verify-Token"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 

@@ -41,6 +41,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | file | 파일 업로드/관리 | 1 | 1 | 1 | 1 | 2 | 1 (`FileStoragePort`) |
 | member | 회원 관리 (하위 `follow`·`referral` 포함). 다른 모든 BC가 `MemberId`로 참조하는 핵심 도메인 | 11 | 4 | 3 | 5 | 4 | - |
 | notice | 공지사항 (분리 패턴 reference 도메인) | 1 | 1 | - | 1 | - | - |
+| mail | 메일(이메일 주소) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | 1 (`MailSender`) |
 | order | 주문 (Order/OrderProduct/OrderProductOption) | 4 | 3 | 2 | 3 | 5 | - |
 | partnership | 제휴 신청 | 2 | 1 | - | 1 | - | - |
 | payment | 결제 (Payment/PaymentRefund/TossPaymentRecord) | 8 | 4 | 3 | 3 | 3 | 4 (`PgPaymentGateway` + dto) |
@@ -52,7 +53,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | review | 리뷰/댓글/답글/이미지/좋아요/태그 (6 애그리거트) | 7 | 4 | 3 | 6 | 2 | - |
 | search | 검색어 (PopularKeyword/SearchKeywordLog) | 2 | - | - | 2 | 1 | - |
 | shop | 가게/식당 + 자식 애그리거트 다수 — 최대 도메인 | 36 | 1 | - | 14 | 8 | - |
-| verification | 이메일/SMS 인증 | 4 | 3 | 2 | 2 | 2 | 2 (`MailSender`/`SmsSender`) |
+| sms | SMS(휴대폰번호) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | 1 (`SmsSender`) |
 
 ## For AI Agents
 
@@ -180,7 +181,8 @@ public interface DomainEventPublisher {
 
 **출력 포트 (external-api가 구현)**:
 ```java
-// domain/<ctx>/domain/port/MailSender.java
+// domain/mail/domain/port/MailSender.java
+// domain/sms/domain/port/SmsSender.java
 // domain/file/domain/port/FileStoragePort.java
 // domain/payment/domain/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등)
 ```

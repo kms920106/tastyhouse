@@ -1063,7 +1063,7 @@ CREATE TABLE MEMBER_WITHDRAWAL
     INDEX idx_member_withdrawal_member_id (member_id)            -- 인덱스: 회원별 조회
 );
 
-CREATE TABLE PHONE_VERIFICATION
+CREATE TABLE SMS_VERIFICATION
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 휴대폰 인증 ID (PK)
     phone_number      VARCHAR(11)  NOT NULL,                              -- 인증 휴대폰 번호
@@ -1072,11 +1072,11 @@ CREATE TABLE PHONE_VERIFICATION
     expires_at        DATETIME     NOT NULL,                              -- 만료 일시
     verified_at       DATETIME,                                           -- 인증 완료 일시
     created_at        DATETIME     NOT NULL,                              -- 생성 일시
-    INDEX idx_phone_verification_phone_number (phone_number),             -- 인덱스: 휴대폰 번호별 조회
-    INDEX idx_phone_verification_expires_at (expires_at)                  -- 인덱스: 만료 일시별 조회
+    INDEX idx_sms_verification_phone_number (phone_number),               -- 인덱스: 휴대폰 번호별 조회
+    INDEX idx_sms_verification_expires_at (expires_at)                    -- 인덱스: 만료 일시별 조회
 );
 
-CREATE TABLE EMAIL_VERIFICATION
+CREATE TABLE MAIL_VERIFICATION
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 이메일 인증 ID (PK)
     email             VARCHAR(100) NOT NULL,                            -- 인증 이메일 주소
@@ -1085,8 +1085,8 @@ CREATE TABLE EMAIL_VERIFICATION
     expires_at        DATETIME     NOT NULL,                            -- 만료 일시
     verified_at       DATETIME,                                         -- 인증 완료 일시
     created_at        DATETIME     NOT NULL,                            -- 생성 일시
-    INDEX idx_email_verification_email (email),                         -- 인덱스: 이메일별 조회
-    INDEX idx_email_verification_expires_at (expires_at)                -- 인덱스: 만료 일시별 조회
+    INDEX idx_mail_verification_email (email),                          -- 인덱스: 이메일별 조회
+    INDEX idx_mail_verification_expires_at (expires_at)                 -- 인덱스: 만료 일시별 조회
 );
 
 CREATE TABLE RANK_PERIOD

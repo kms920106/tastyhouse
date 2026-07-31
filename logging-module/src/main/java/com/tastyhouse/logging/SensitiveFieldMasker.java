@@ -24,7 +24,7 @@ public class SensitiveFieldMasker {
     private static final Set<String> SENSITIVE_FIELDS = Set.of(
             "password", "newPassword", "newPasswordConfirm", "currentPassword",
             "accessToken", "refreshToken", "tempToken", "passwordResetToken",
-            "verificationCode", "phoneVerifyToken", "emailVerifyToken",
+            "verificationCode", "smsVerifyToken", "mailVerifyToken",
             "cardNumber", "cvv", "privateKey", "secret"
     );
 

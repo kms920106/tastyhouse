@@ -41,7 +41,8 @@
 | `review/` | 리뷰 작성, 조회, 수정, 삭제 API |
 | `search/` | 통합 검색 및 검색 로그 기록 API |
 | `shop/` | 가게 조회, 상세 정보, 즐겨찾기, 사진/카테고리 조회 API (Place에서 Shop으로 재명명됨) |
-| `verification/` | 사용자 인증(이메일/SMS 인증) 및 검증 API |
+| `mail/` | 메일(이메일 주소) 인증 API — 인증코드 발송·확인 |
+| `sms/` | SMS(휴대폰번호) 인증 API — 인증코드 발송·확인 |
 
 ## For AI Agents
 

@@ -38,12 +38,12 @@ public class AuthService {
                        String gender, Integer birthDate, String phoneNumber,
                        boolean pushNotificationEnabled,
                        boolean marketingInfoEnabled, boolean eventInfoEnabled,
-                       String phoneVerifyToken, String emailVerifyToken,
+                       String smsVerifyToken, String mailVerifyToken,
                        String referrerNickname) {
         credentialLoginService.signUp(
             username, password, nickname, fullName, MemberGender.from(gender), birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
-            phoneVerifyToken, emailVerifyToken, referrerNickname
+            smsVerifyToken, mailVerifyToken, referrerNickname
         );
     }
 
@@ -83,17 +83,17 @@ public class AuthService {
     }
 
     // 휴대폰 인증 토큰으로 로그인 (기존 회원이면 JWT 발급, 신규이면 needsSignUp=true)
-    public AuthPhoneLoginResponse phoneLogin(String phoneVerifyToken) {
-        return phoneLoginService.login(phoneVerifyToken);
+    public AuthPhoneLoginResponse phoneLogin(String smsVerifyToken) {
+        return phoneLoginService.login(smsVerifyToken);
     }
 
     // 소셜 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
-    public AuthSocialLinkResponse linkAccount(String provider, String tempToken, String phoneVerifyToken) {
+    public AuthSocialLinkResponse linkAccount(String provider, String tempToken, String smsVerifyToken) {
         return switch (MemberSocialProvider.from(provider)) {
-            case KAKAO -> kakaoSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
-            case NAVER -> naverSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
-            case FACEBOOK -> facebookSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
-            case APPLE -> appleSocialLoginService.linkAccount(tempToken, phoneVerifyToken);
+            case KAKAO -> kakaoSocialLoginService.linkAccount(tempToken, smsVerifyToken);
+            case NAVER -> naverSocialLoginService.linkAccount(tempToken, smsVerifyToken);
+            case FACEBOOK -> facebookSocialLoginService.linkAccount(tempToken, smsVerifyToken);
+            case APPLE -> appleSocialLoginService.linkAccount(tempToken, smsVerifyToken);
             default -> throw new BusinessException(ErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN,
                 ErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN.getDefaultMessage() + ": " + provider);
         };

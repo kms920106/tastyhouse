@@ -84,13 +84,13 @@ public class FacebookSocialLoginService {
     }
 
     // 페이스북 계정을 기존 일반가입 계정에 연동하고 JWT 발급
-    // - phoneVerifyToken으로 본인 확인 (전화번호로 Member 조회)
+    // - smsVerifyToken으로 본인 확인 (전화번호로 Member 조회)
     // - facebookTempToken으로 Redis에서 facebookAccessToken 조회 후 사용자 정보 확인
     // - 전화번호로 가입된 회원이 없으면 NEEDS_SIGN_UP 반환 (facebookTempToken 유지)
     // - MEMBER_SOCIAL_ACCOUNT INSERT 후 JWT 발급 (facebookTempToken 삭제)
     @Transactional
-    public AuthSocialLinkResponse linkAccount(String facebookTempToken, String phoneVerifyToken) {
-        if (!jwtTokenProvider.validatePhoneVerifyToken(phoneVerifyToken)) {
+    public AuthSocialLinkResponse linkAccount(String facebookTempToken, String smsVerifyToken) {
+        if (!jwtTokenProvider.validateSmsVerifyToken(smsVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
@@ -107,7 +107,7 @@ public class FacebookSocialLoginService {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        String phoneNumber = jwtTokenProvider.getPhoneNumberFromPhoneVerifyToken(phoneVerifyToken);
+        String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
         Optional<Member> memberOpt = memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.

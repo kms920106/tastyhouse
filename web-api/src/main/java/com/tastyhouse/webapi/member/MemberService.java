@@ -64,13 +64,13 @@ public class MemberService {
     }
 
     public void updatePersonalInfo(Long memberId, String verifyToken,
-                                   String phoneVerifyToken, String fullName,
+                                   String smsVerifyToken, String fullName,
                                    String phoneNumber, Integer birthDate, String gender,
                                    boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                                    boolean eventInfoEnabled) {
         memberAuthService.verifyPersonalInfoToken(memberId, verifyToken);
         if (phoneNumber != null) {
-            memberAuthService.verifyPhoneToken(memberId, phoneVerifyToken, phoneNumber);
+            memberAuthService.verifyPhoneToken(memberId, smsVerifyToken, phoneNumber);
         }
         memberCommandService.updatePersonalInfo(memberId, fullName, phoneNumber, birthDate,
             gender == null ? null : MemberGender.from(gender),
