@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.admin.domain.model.Admin;
-import com.tastyhouse.core.domain.admin.domain.repository.AdminRepository;
+import com.tastyhouse.domain.admin.domain.model.Admin;
+import com.tastyhouse.domain.admin.domain.repository.AdminRepository;
 
 /**
  * 관리자 계정 조회 서비스.

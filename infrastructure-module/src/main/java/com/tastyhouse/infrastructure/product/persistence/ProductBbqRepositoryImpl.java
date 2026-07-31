@@ -6,8 +6,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.product.domain.model.ProductBbq;
-import com.tastyhouse.core.domain.product.domain.repository.ProductBbqRepository;
+import com.tastyhouse.domain.product.domain.model.ProductBbq;
+import com.tastyhouse.domain.product.domain.repository.ProductBbqRepository;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 

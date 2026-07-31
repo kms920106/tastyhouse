@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.Shop;
-import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.domain.model.Shop;
+import com.tastyhouse.domain.shop.domain.model.ShopClosedDay;
+import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopTemporaryClosureResult;
 import com.tastyhouse.ceoapi.shop.response.ShopClosedDaysResponse;

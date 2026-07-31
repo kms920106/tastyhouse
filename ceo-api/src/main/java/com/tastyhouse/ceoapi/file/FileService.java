@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.core.domain.file.domain.repository.UploadedFileRepository;
-import com.tastyhouse.core.domain.file.domain.service.FileUploadCommand;
-import com.tastyhouse.core.domain.file.domain.service.FileUploadService;
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.file.domain.repository.UploadedFileRepository;
+import com.tastyhouse.domain.file.domain.service.FileUploadCommand;
+import com.tastyhouse.domain.file.domain.service.FileUploadService;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 파일 업로드·URL 변환 서비스.

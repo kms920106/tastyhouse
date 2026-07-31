@@ -10,12 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReportCategory;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
+import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
+import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.bug.persistence.QBugReportImageJpaEntity.bugReportImageJpaEntity;
 import static com.tastyhouse.infrastructure.bug.persistence.QBugReportJpaEntity.bugReportJpaEntity;

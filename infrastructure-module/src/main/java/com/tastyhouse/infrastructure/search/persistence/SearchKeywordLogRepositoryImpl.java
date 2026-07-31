@@ -6,8 +6,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.search.domain.model.SearchKeywordLog;
-import com.tastyhouse.core.domain.search.domain.repository.SearchKeywordLogRepository;
+import com.tastyhouse.domain.search.domain.model.SearchKeywordLog;
+import com.tastyhouse.domain.search.domain.repository.SearchKeywordLogRepository;
 
 @Repository
 @RequiredArgsConstructor

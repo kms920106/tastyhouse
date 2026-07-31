@@ -5,9 +5,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.core.domain.point.domain.event.PointEarnedEvent;
-import com.tastyhouse.core.domain.point.domain.event.PointRefundedEvent;
-import com.tastyhouse.core.domain.point.domain.event.PointUsedEvent;
+import com.tastyhouse.domain.point.domain.event.PointEarnedEvent;
+import com.tastyhouse.domain.point.domain.event.PointRefundedEvent;
+import com.tastyhouse.domain.point.domain.event.PointUsedEvent;
 
 /**
  * 포인트 변동 이벤트 리스너.

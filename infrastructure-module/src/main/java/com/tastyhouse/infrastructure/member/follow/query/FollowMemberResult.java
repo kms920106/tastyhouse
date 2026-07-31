@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.member.follow.query;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.domain.member.domain.model.MemberGrade;
 
 /**
  * 팔로잉/팔로워 목록 항목 read model.

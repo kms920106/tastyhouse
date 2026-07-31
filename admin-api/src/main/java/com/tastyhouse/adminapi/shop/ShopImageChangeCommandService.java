@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.service.ShopImageApprovalService;
+import com.tastyhouse.domain.shop.domain.service.ShopImageApprovalService;
 
 /**
  * admin용 가게 이미지 변경요청 검수 변경 서비스(CQRS command 측).

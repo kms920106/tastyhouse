@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.model.Member;
-import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.member.domain.model.Member;
+import com.tastyhouse.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.webapi.file.FileService;

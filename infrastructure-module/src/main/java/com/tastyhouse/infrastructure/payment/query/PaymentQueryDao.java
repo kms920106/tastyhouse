@@ -9,9 +9,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
-import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
-import com.tastyhouse.core.domain.payment.domain.vo.PaymentRefundId;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.payment.domain.vo.PaymentRefundId;
 
 import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;

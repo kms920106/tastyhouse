@@ -5,9 +5,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
-import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
-import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
+import com.tastyhouse.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.domain.member.domain.model.MemberSocialProvider;
+import com.tastyhouse.domain.member.domain.repository.MemberSocialAccountRepository;
 
 @Repository
 @RequiredArgsConstructor

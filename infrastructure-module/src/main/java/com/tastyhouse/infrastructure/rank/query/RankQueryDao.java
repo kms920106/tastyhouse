@@ -10,10 +10,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.rank.domain.model.RankType;
-import com.tastyhouse.core.domain.rank.domain.vo.RankPeriodId;
-import com.tastyhouse.core.domain.rank.domain.vo.RankPrizeId;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.rank.domain.model.RankType;
+import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;

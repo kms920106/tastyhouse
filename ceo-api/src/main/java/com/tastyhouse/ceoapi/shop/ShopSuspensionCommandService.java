@@ -8,12 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
-import com.tastyhouse.core.domain.shop.domain.model.ShopSuspension;
-import com.tastyhouse.core.domain.shop.domain.model.SuspensionReason;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopSuspensionRepository;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.shop.domain.model.ShopSuspension;
+import com.tastyhouse.domain.shop.domain.model.SuspensionReason;
+import com.tastyhouse.domain.shop.domain.repository.ShopSuspensionRepository;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 점주용 가게 영업 임시중지 변경 서비스(CQRS command 측).

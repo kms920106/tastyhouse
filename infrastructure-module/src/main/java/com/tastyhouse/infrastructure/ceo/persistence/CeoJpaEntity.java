@@ -14,8 +14,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.ceo.domain.model.CeoStatus;
-import com.tastyhouse.core.shared.vo.PhoneNumber;
+import com.tastyhouse.domain.ceo.domain.model.CeoStatus;
+import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

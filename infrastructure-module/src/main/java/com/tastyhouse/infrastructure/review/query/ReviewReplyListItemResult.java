@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.review.query;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
 
 public record ReviewReplyListItemResult(
     Long id,

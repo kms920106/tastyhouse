@@ -18,8 +18,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.rank.domain.model.RankType;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.rank.domain.model.RankType;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 

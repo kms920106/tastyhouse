@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.payment.domain.model.RefundStatus;
-import com.tastyhouse.core.domain.payment.domain.vo.Amount;
+import com.tastyhouse.domain.payment.domain.model.RefundStatus;
+import com.tastyhouse.domain.payment.domain.vo.Amount;
 
 /**
  * 결제 환불 단건 조회 결과.

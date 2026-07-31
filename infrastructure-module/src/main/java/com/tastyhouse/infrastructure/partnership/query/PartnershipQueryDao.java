@@ -10,9 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.core.domain.partnership.domain.model.PartnershipStatus;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.partnership.domain.model.PartnershipStatus;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 import static com.tastyhouse.infrastructure.partnership.persistence.QPartnershipRequestJpaEntity.partnershipRequestJpaEntity;
 

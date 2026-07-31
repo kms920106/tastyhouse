@@ -16,11 +16,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReportCategory;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportPlatform;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
+import com.tastyhouse.domain.bug.domain.model.BugReportPlatform;
+import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
+import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 

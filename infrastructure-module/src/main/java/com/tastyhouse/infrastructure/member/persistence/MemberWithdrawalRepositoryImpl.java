@@ -3,8 +3,8 @@ package com.tastyhouse.infrastructure.member.persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawal;
-import com.tastyhouse.core.domain.member.domain.repository.MemberWithdrawalRepository;
+import com.tastyhouse.domain.member.domain.model.MemberWithdrawal;
+import com.tastyhouse.domain.member.domain.repository.MemberWithdrawalRepository;
 
 @Repository
 @RequiredArgsConstructor

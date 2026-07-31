@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.follow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
 import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
 

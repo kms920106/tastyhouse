@@ -5,8 +5,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopHygieneBadge;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopHygieneBadgeRepository;
+import com.tastyhouse.domain.shop.domain.model.ShopHygieneBadge;
+import com.tastyhouse.domain.shop.domain.repository.ShopHygieneBadgeRepository;
 
 @Repository
 @RequiredArgsConstructor

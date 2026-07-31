@@ -6,9 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.rank.domain.model.RankPeriod;
-import com.tastyhouse.core.domain.rank.domain.repository.RankPeriodRepository;
-import com.tastyhouse.core.domain.rank.domain.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.domain.model.RankPeriod;
+import com.tastyhouse.domain.rank.domain.repository.RankPeriodRepository;
+import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
 
 import static com.tastyhouse.infrastructure.rank.persistence.QRankPeriodJpaEntity.rankPeriodJpaEntity;
 

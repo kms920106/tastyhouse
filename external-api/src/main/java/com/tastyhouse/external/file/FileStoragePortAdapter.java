@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.core.domain.file.domain.port.FileStoragePort;
+import com.tastyhouse.domain.file.domain.port.FileStoragePort;
 
 @Component
 @RequiredArgsConstructor

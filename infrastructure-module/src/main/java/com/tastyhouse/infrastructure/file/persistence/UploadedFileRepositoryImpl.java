@@ -5,9 +5,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.file.domain.model.UploadedFile;
-import com.tastyhouse.core.domain.file.domain.repository.UploadedFileRepository;
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.file.domain.model.UploadedFile;
+import com.tastyhouse.domain.file.domain.repository.UploadedFileRepository;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
 @Repository
 @RequiredArgsConstructor

@@ -7,7 +7,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
+import com.tastyhouse.domain.admin.domain.model.AdminRole;
 import com.tastyhouse.adminapi.admin.AdminCommandService;
 import com.tastyhouse.adminapi.admin.AdminQueryService;
 

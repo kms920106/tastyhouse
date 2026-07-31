@@ -6,8 +6,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.Tag;
-import com.tastyhouse.core.domain.shop.domain.repository.TagRepository;
+import com.tastyhouse.domain.shop.domain.model.Tag;
+import com.tastyhouse.domain.shop.domain.repository.TagRepository;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJpaEntity;
 

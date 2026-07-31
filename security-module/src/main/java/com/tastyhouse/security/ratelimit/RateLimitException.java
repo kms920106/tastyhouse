@@ -1,6 +1,6 @@
 package com.tastyhouse.security.ratelimit;
 
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 public class RateLimitException extends RuntimeException {
 

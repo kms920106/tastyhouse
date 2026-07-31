@@ -7,7 +7,7 @@ import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import com.tastyhouse.core.domain.member.domain.model.Member;
+import com.tastyhouse.domain.member.domain.model.Member;
 import com.tastyhouse.security.jwt.JwtPrincipal;
 
 public class CustomUserDetails extends User implements JwtPrincipal {

@@ -6,16 +6,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.ClosedDayType;
-import com.tastyhouse.core.domain.shop.domain.model.ShopClosedDay;
-import com.tastyhouse.core.domain.shop.domain.model.ShopTemporaryClosure;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopTemporaryClosureRepository;
-import com.tastyhouse.core.domain.shop.domain.service.ShopBusinessHourService;
-import com.tastyhouse.core.domain.shop.domain.service.ShopLifecycleService;
-import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.model.ClosedDayType;
+import com.tastyhouse.domain.shop.domain.model.ShopClosedDay;
+import com.tastyhouse.domain.shop.domain.model.ShopTemporaryClosure;
+import com.tastyhouse.domain.shop.domain.repository.ShopTemporaryClosureRepository;
+import com.tastyhouse.domain.shop.domain.service.ShopBusinessHourService;
+import com.tastyhouse.domain.shop.domain.service.ShopLifecycleService;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 점주용 휴무(공휴일 토글·정기 휴무·임시 휴무) 변경 서비스(CQRS command 측).

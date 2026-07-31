@@ -10,11 +10,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopContentType;
-import com.tastyhouse.core.domain.shop.domain.model.ShopImageType;
-import com.tastyhouse.core.shared.model.ApprovalStatus;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.shop.domain.model.ShopContentType;
+import com.tastyhouse.domain.shop.domain.model.ShopImageType;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;

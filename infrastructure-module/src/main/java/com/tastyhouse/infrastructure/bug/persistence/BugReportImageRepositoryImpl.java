@@ -3,8 +3,8 @@ package com.tastyhouse.infrastructure.bug.persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReportImage;
-import com.tastyhouse.core.domain.bug.domain.repository.BugReportImageRepository;
+import com.tastyhouse.domain.bug.domain.model.BugReportImage;
+import com.tastyhouse.domain.bug.domain.repository.BugReportImageRepository;
 
 /**
  * 버그 제보 첨부 이미지 write 어댑터.

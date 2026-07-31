@@ -5,11 +5,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.admin.domain.model.Admin;
-import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
-import com.tastyhouse.core.domain.admin.domain.repository.AdminRepository;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.admin.domain.model.Admin;
+import com.tastyhouse.domain.admin.domain.model.AdminRole;
+import com.tastyhouse.domain.admin.domain.repository.AdminRepository;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 관리자 계정 command 서비스.

@@ -6,11 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.HygieneBadgeType;
-import com.tastyhouse.core.domain.shop.domain.model.ShopHygieneBadge;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopHygieneBadgeRepository;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.model.HygieneBadgeType;
+import com.tastyhouse.domain.shop.domain.model.ShopHygieneBadge;
+import com.tastyhouse.domain.shop.domain.repository.ShopHygieneBadgeRepository;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.adminapi.shop.response.ShopHygieneBadgeResponse;
 
 /**

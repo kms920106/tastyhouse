@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.core.domain.product.domain.service.ProductReviewStatsService;
-import com.tastyhouse.core.domain.review.domain.event.ReviewCreatedEvent;
-import com.tastyhouse.core.domain.review.domain.event.ReviewDeletedEvent;
+import com.tastyhouse.domain.product.domain.service.ProductReviewStatsService;
+import com.tastyhouse.domain.review.domain.event.ReviewCreatedEvent;
+import com.tastyhouse.domain.review.domain.event.ReviewDeletedEvent;
 
 /**
  * 리뷰 등록·삭제 이벤트를 받아 상품의 평점·리뷰 수를 갱신하는 크로스커팅 리스너(분류 E).

@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.core.domain.payment.domain.vo.Amount;
+import com.tastyhouse.domain.payment.domain.model.PaymentMethod;
+import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
+import com.tastyhouse.domain.payment.domain.vo.Amount;
 
 /**
  * 주문 상세에 함께 노출하는 결제 요약 조회 결과.

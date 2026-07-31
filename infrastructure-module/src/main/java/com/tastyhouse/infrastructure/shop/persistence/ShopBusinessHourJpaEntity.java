@@ -14,7 +14,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.shop.domain.model.DayType;
+import com.tastyhouse.domain.shop.domain.model.DayType;
 
 /**
  * 상점 영업시간 JPA 영속 모델. 순수 도메인 모델 {@code ShopBusinessHour}와 분리된 영속 전용 엔티티다.

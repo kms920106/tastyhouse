@@ -17,9 +17,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.verification.domain.model.PhoneVerificationStatus;
-import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
-import com.tastyhouse.core.shared.vo.PhoneNumber;
+import com.tastyhouse.domain.verification.domain.model.PhoneVerificationStatus;
+import com.tastyhouse.domain.verification.domain.vo.VerificationCode;
+import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
 /**
  * 휴대폰 인증 JPA 영속 모델.

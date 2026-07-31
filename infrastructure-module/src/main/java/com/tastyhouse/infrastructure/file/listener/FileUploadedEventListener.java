@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.core.domain.file.domain.event.FileUploadedEvent;
+import com.tastyhouse.domain.file.domain.event.FileUploadedEvent;
 
 @Slf4j
 @Component

@@ -3,8 +3,8 @@ package com.tastyhouse.infrastructure.point.persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.point.domain.model.PointHistory;
-import com.tastyhouse.core.domain.point.domain.repository.PointHistoryRepository;
+import com.tastyhouse.domain.point.domain.model.PointHistory;
+import com.tastyhouse.domain.point.domain.repository.PointHistoryRepository;
 
 /**
  * 포인트 변동 이력 write 어댑터.

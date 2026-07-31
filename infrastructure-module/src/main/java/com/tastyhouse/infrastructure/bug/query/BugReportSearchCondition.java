@@ -1,9 +1,9 @@
 package com.tastyhouse.infrastructure.bug.query;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReportCategory;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
+import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
+import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
 
 /**
  * 버그 제보 관리 목록 검색 조건.

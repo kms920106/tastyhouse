@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.infrastructure.coupon.query.CouponQueryDao;
 import com.tastyhouse.infrastructure.coupon.query.MemberCouponResult;
 import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;

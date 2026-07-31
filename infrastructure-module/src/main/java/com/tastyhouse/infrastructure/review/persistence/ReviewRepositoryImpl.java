@@ -6,10 +6,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.review.domain.model.Review;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.review.domain.model.Review;
+import com.tastyhouse.domain.review.domain.repository.ReviewRepository;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 

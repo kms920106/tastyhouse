@@ -15,7 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
+import com.tastyhouse.domain.coupon.domain.model.DiscountType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.shared.event.DomainEventPublisher;
+import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
  * {@link DomainEventPublisher} 포트의 Spring 어댑터.

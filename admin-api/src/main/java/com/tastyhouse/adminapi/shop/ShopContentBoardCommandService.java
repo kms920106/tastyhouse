@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopContentBoard;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopContentBoardRepository;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.model.ShopContentBoard;
+import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * admin용 가게 콘텐츠보드 검수 변경 서비스(CQRS command 측).

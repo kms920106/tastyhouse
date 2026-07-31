@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
-import com.tastyhouse.core.domain.partnership.domain.repository.PartnershipRepository;
+import com.tastyhouse.domain.partnership.domain.model.PartnershipRequest;
+import com.tastyhouse.domain.partnership.domain.repository.PartnershipRepository;
 import com.tastyhouse.webapi.partnership.response.PartnershipRequestResponse;
 
 /**

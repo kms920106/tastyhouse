@@ -9,9 +9,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.follow.domain.model.MemberFollow;
-import com.tastyhouse.core.domain.member.follow.domain.repository.MemberFollowRepository;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.follow.domain.model.MemberFollow;
+import com.tastyhouse.domain.member.follow.domain.repository.MemberFollowRepository;
 
 import static com.tastyhouse.infrastructure.member.follow.persistence.QMemberFollowJpaEntity.memberFollowJpaEntity;
 

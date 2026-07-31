@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.core.domain.coupon.domain.event.MemberCouponIssuedEvent;
-import com.tastyhouse.core.domain.coupon.domain.event.MemberCouponUsedEvent;
+import com.tastyhouse.domain.coupon.domain.event.MemberCouponIssuedEvent;
+import com.tastyhouse.domain.coupon.domain.event.MemberCouponUsedEvent;
 
 /**
  * 쿠폰 발급·사용 이벤트 리스너.

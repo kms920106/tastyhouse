@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     // 내부 모듈
-    implementation project(':core-module')
+    implementation project(':domain-module')
 
     // Spring Boot Starter
     implementation 'org.springframework.boot:spring-boot-starter-web'

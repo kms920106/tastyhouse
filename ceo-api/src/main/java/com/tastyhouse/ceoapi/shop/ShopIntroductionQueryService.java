@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopOwnerMessageHistory;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
-import com.tastyhouse.core.domain.shop.domain.service.ProhibitedWordValidator;
+import com.tastyhouse.domain.shop.domain.model.ShopOwnerMessageHistory;
+import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.domain.service.ProhibitedWordValidator;
 import com.tastyhouse.ceoapi.shop.response.ShopIntroductionResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopIntroductionValidationResponse;
 

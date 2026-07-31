@@ -5,9 +5,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
-import com.tastyhouse.core.domain.product.domain.repository.ProductOptionGroupRepository;
-import com.tastyhouse.core.domain.product.domain.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.product.domain.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.domain.repository.ProductOptionGroupRepository;
+import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 
 /**
  * 상품 옵션 그룹 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.

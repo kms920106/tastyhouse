@@ -12,8 +12,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.admin.domain.model.AdminRole;
-import com.tastyhouse.core.domain.admin.domain.model.AdminStatus;
+import com.tastyhouse.domain.admin.domain.model.AdminRole;
+import com.tastyhouse.domain.admin.domain.model.AdminStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

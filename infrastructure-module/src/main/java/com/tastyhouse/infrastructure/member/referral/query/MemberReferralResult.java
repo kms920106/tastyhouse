@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.referral.domain.model.MemberReferralStatus;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.referral.domain.model.MemberReferralStatus;
 
 /**
  * 내 추천 목록 항목 read model(web-api 소비).

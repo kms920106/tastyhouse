@@ -6,8 +6,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopPhoneNumber;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopPhoneNumberRepository;
+import com.tastyhouse.domain.shop.domain.model.ShopPhoneNumber;
+import com.tastyhouse.domain.shop.domain.repository.ShopPhoneNumberRepository;
 
 @Repository
 @RequiredArgsConstructor

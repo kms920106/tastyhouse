@@ -8,8 +8,8 @@ import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.search.domain.model.PopularKeyword;
-import com.tastyhouse.core.domain.search.domain.repository.PopularKeywordRepository;
+import com.tastyhouse.domain.search.domain.model.PopularKeyword;
+import com.tastyhouse.domain.search.domain.repository.PopularKeywordRepository;
 
 import static com.tastyhouse.infrastructure.search.persistence.QPopularKeywordJpaEntity.popularKeywordJpaEntity;
 

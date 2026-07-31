@@ -2,7 +2,7 @@ package com.tastyhouse.external.oauth.kakao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGender;
+import com.tastyhouse.domain.member.domain.model.MemberGender;
 
 public record KakaoUserInfoResponse(
     @JsonProperty("id") Long id,

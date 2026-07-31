@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.shop.query;
 
 import java.time.LocalDate;
 
-import com.tastyhouse.core.domain.shop.domain.model.HygieneBadgeType;
+import com.tastyhouse.domain.shop.domain.model.HygieneBadgeType;
 
 public record ShopHygieneBadgeResult(
     Long id,

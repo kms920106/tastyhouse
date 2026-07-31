@@ -11,9 +11,10 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 /**
  * admin-api 레이어 경계 규칙(ArchUnit).
  *
- * <p>core-module → domain-module 전환 목표 구조를 컴파일 게이트로 강제한다.
- * {@code ..application..} 패키지는 전환이 진행되며 채워지므로, 아직 클래스가 없을 때도
- * 규칙이 공허하게 통과하도록 {@code allowEmptyShould(true)}를 둔다.
+ * <p>core-module → domain-module 전환으로 확정된 구조를 컴파일 게이트로 강제한다.
+ *
+ * <p>전환이 끝나 모든 규칙이 실제 대상 클래스를 갖게 되었으므로 {@code allowEmptyShould(true)}를
+ * 제거했다 — 규칙이 대상 0건으로 공허하게 통과하면 그 자체가 실패로 드러나야 한다.
  */
 class LayerRulesTest {
 
@@ -21,17 +22,32 @@ class LayerRulesTest {
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("com.tastyhouse.adminapi");
 
+    /**
+     * application 서비스(도메인당 {@code {도메인}CommandService}/{@code {도메인}QueryService} CQRS 분리)는
+     * HTTP 계층을 알지 않는다. 컨트롤러가 Request를 원시 필드로 언패킹해 넘기고, Response 조립은
+     * 서비스의 private 매퍼가 담당하므로 서비스가 {@code org.springframework.web}·{@code jakarta.servlet}에
+     * 의존할 일이 없다.
+     *
+     * <p>전환 완료로 이 서비스들은 {@code ..application..}이 아니라 도메인 패키지에 직접 놓이므로,
+     * 클래스 이름(={@code *CommandService}/{@code *QueryService})으로 대상을 잡는다 — 과거
+     * {@code ..application..} 패키지 매칭은 대상 0건으로 공허하게 통과하고 있었다.
+     *
+     * <p>차단 대상은 요청 바인딩·서블릿·{@code HttpStatus} 등 web <em>플럼빙</em>이다.
+     * {@code org.springframework.web.multipart.MultipartFile}은 제외한다 — 파일 업로드 서비스가
+     * 업로드 자체를 받는 경계 타입이라 {@code ceo-api}의 이미지 변경/콘텐츠보드 서비스가 정당하게
+     * 파라미터로 사용하며, 이를 금지하려면 업로드 흐름 재설계가 필요해 이번 전환 범위를 벗어난다.
+     */
     @Test
-    void applicationShouldNotDependOnWebLayer() {
+    void applicationServicesShouldNotDependOnWebLayer() {
         ArchRule rule = noClasses()
-            .that().resideInAPackage("..application..")
+            .that().haveSimpleNameEndingWith("CommandService")
+            .or().haveSimpleNameEndingWith("QueryService")
             .should().dependOnClassesThat().resideInAnyPackage(
-                "org.springframework.web..",
-                "jakarta.servlet..",
-                "..request..",
-                "..response.."
-            )
-            .allowEmptyShould(true);
+                "org.springframework.web.bind..",
+                "org.springframework.web.servlet..",
+                "org.springframework.http..",
+                "jakarta.servlet.."
+            );
 
         rule.check(classes);
     }
@@ -40,8 +56,7 @@ class LayerRulesTest {
     void controllersShouldNotDependOnRepositories() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().haveSimpleNameEndingWith("Repository")
-            .allowEmptyShould(true);
+            .should().dependOnClassesThat().haveSimpleNameEndingWith("Repository");
 
         rule.check(classes);
     }
@@ -53,8 +68,7 @@ class LayerRulesTest {
     @Test
     void shouldNotDependOnQuerydsl() {
         ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAPackage("com.querydsl..")
-            .allowEmptyShould(true);
+            .should().dependOnClassesThat().resideInAPackage("com.querydsl..");
 
         rule.check(classes);
     }
@@ -66,8 +80,7 @@ class LayerRulesTest {
     @Test
     void shouldNotDependOnInfrastructurePersistence() {
         ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAPackage("..infrastructure..persistence..")
-            .allowEmptyShould(true);
+            .should().dependOnClassesThat().resideInAPackage("..infrastructure..persistence..");
 
         rule.check(classes);
     }

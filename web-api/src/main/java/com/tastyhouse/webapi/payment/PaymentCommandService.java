@@ -5,15 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentCancelCode;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
-import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
-import com.tastyhouse.core.domain.payment.domain.service.PaymentCancellationService;
-import com.tastyhouse.core.domain.payment.domain.service.PaymentConfirmationService;
-import com.tastyhouse.core.domain.payment.domain.service.PgConfirmation;
-import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.payment.domain.model.PaymentCancelCode;
+import com.tastyhouse.domain.payment.domain.model.PaymentMethod;
+import com.tastyhouse.domain.payment.domain.model.PgProvider;
+import com.tastyhouse.domain.payment.domain.service.PaymentCancellationService;
+import com.tastyhouse.domain.payment.domain.service.PaymentConfirmationService;
+import com.tastyhouse.domain.payment.domain.service.PgConfirmation;
+import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 
 /**
  * 회원 결제 command 서비스(web-api).

@@ -7,12 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.product.domain.model.Product;
-import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
-import com.tastyhouse.core.domain.product.domain.model.ProductOptionGroup;
-import com.tastyhouse.core.domain.product.domain.repository.ProductCategoryRepository;
-import com.tastyhouse.core.domain.product.domain.service.ProductRegistrationService;
-import com.tastyhouse.core.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.product.domain.model.Product;
+import com.tastyhouse.domain.product.domain.model.ProductCategory;
+import com.tastyhouse.domain.product.domain.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.domain.repository.ProductCategoryRepository;
+import com.tastyhouse.domain.product.domain.service.ProductRegistrationService;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.infrastructure.product.query.ProductBbqSyncTargetResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 

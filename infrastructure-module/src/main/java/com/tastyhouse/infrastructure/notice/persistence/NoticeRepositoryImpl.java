@@ -6,9 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.notice.domain.model.Notice;
-import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
-import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
+import com.tastyhouse.domain.notice.domain.model.Notice;
+import com.tastyhouse.domain.notice.domain.repository.NoticeRepository;
+import com.tastyhouse.domain.notice.domain.vo.NoticeId;
 
 import static com.tastyhouse.infrastructure.notice.persistence.QNoticeJpaEntity.noticeJpaEntity;
 

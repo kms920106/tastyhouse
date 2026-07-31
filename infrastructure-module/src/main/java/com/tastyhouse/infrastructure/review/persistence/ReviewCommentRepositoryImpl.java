@@ -5,9 +5,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewCommentRepository;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.domain.model.ReviewComment;
+import com.tastyhouse.domain.review.domain.repository.ReviewCommentRepository;
+import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 
 @Repository
 @RequiredArgsConstructor

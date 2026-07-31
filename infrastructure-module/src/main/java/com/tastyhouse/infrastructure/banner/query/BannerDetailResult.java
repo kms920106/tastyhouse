@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.banner.domain.model.BannerType;
+import com.tastyhouse.domain.banner.domain.model.BannerType;
 
 /**
  * 배너 상세 조회 결과.

@@ -6,12 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.review.query.ReviewCommentListItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewManagementDetailResult;

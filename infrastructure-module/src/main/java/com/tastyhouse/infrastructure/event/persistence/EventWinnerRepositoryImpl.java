@@ -6,8 +6,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.event.domain.model.EventWinner;
-import com.tastyhouse.core.domain.event.domain.repository.EventWinnerRepository;
+import com.tastyhouse.domain.event.domain.model.EventWinner;
+import com.tastyhouse.domain.event.domain.repository.EventWinnerRepository;
 
 import static com.tastyhouse.infrastructure.event.persistence.QEventWinnerJpaEntity.eventWinnerJpaEntity;
 

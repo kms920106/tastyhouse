@@ -6,13 +6,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.DayType;
-import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
-import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
-import com.tastyhouse.core.domain.shop.domain.service.ShopBusinessHourService;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.model.DayType;
+import com.tastyhouse.domain.shop.domain.model.ShopBreakTime;
+import com.tastyhouse.domain.shop.domain.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.domain.service.ShopBusinessHourService;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 점주용 영업시간·휴게시간 변경 서비스(CQRS command 측).

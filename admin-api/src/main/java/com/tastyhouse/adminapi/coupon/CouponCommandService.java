@@ -6,14 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
-import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
-import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
-import com.tastyhouse.core.domain.coupon.domain.service.CouponIssueService;
-import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.coupon.domain.model.Coupon;
+import com.tastyhouse.domain.coupon.domain.model.DiscountType;
+import com.tastyhouse.domain.coupon.domain.repository.CouponRepository;
+import com.tastyhouse.domain.coupon.domain.service.CouponIssueService;
+import com.tastyhouse.domain.coupon.domain.vo.CouponId;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 쿠폰 관리 명령 서비스(admin).

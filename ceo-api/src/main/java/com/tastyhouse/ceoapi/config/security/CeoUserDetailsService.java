@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.ceo.domain.model.Ceo;
+import com.tastyhouse.domain.ceo.domain.model.Ceo;
 import com.tastyhouse.ceoapi.ceo.CeoQueryService;
 
 @Slf4j

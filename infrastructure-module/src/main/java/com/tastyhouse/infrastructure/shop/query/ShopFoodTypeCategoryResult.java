@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.core.domain.shop.domain.model.FoodType;
+import com.tastyhouse.domain.shop.domain.model.FoodType;
 
 public record ShopFoodTypeCategoryResult(
     Long id,

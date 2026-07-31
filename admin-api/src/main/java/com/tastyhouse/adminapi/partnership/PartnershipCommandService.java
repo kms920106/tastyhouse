@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.partnership.domain.model.PartnershipRequest;
-import com.tastyhouse.core.domain.partnership.domain.model.PartnershipStatus;
-import com.tastyhouse.core.domain.partnership.domain.repository.PartnershipRepository;
-import com.tastyhouse.core.domain.partnership.domain.vo.PartnershipRequestId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.partnership.domain.model.PartnershipRequest;
+import com.tastyhouse.domain.partnership.domain.model.PartnershipStatus;
+import com.tastyhouse.domain.partnership.domain.repository.PartnershipRepository;
+import com.tastyhouse.domain.partnership.domain.vo.PartnershipRequestId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 제휴 신청 관리 command 서비스.

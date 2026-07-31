@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.ceo.domain.model.Ceo;
-import com.tastyhouse.core.domain.ceo.domain.repository.CeoRepository;
+import com.tastyhouse.domain.ceo.domain.model.Ceo;
+import com.tastyhouse.domain.ceo.domain.repository.CeoRepository;
 
 /**
  * 점주 계정 조회 서비스.

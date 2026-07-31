@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.shop.domain.model.FoodType;
+import com.tastyhouse.domain.shop.domain.model.FoodType;
 
 public record BestShopItemResult(
     Long id,

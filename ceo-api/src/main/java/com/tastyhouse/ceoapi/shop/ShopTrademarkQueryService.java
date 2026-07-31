@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.Shop;
+import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.infrastructure.shop.query.ShopImageChangeRequestResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.ceoapi.file.FileService;

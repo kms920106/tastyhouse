@@ -12,8 +12,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopContentType;
-import com.tastyhouse.core.domain.shop.domain.model.ShopContentTopic;
+import com.tastyhouse.domain.shop.domain.model.ShopContentType;
+import com.tastyhouse.domain.shop.domain.model.ShopContentTopic;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

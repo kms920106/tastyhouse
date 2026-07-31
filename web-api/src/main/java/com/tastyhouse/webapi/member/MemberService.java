@@ -5,9 +5,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGender;
-import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.member.domain.model.MemberGender;
+import com.tastyhouse.domain.member.domain.model.MemberWithdrawalReason;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.webapi.coupon.CouponQueryService;
 import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;

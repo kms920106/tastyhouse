@@ -14,7 +14,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
+import com.tastyhouse.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

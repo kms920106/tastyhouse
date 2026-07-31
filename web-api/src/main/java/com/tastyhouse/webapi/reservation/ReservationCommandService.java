@@ -9,14 +9,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.reservation.domain.model.Reservation;
-import com.tastyhouse.core.domain.reservation.domain.repository.ReservationRepository;
-import com.tastyhouse.core.domain.reservation.domain.service.ReservationBookingService;
-import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.exception.OptimisticLockConflictException;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.reservation.domain.model.Reservation;
+import com.tastyhouse.domain.reservation.domain.repository.ReservationRepository;
+import com.tastyhouse.domain.reservation.domain.service.ReservationBookingService;
+import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
 
 /**
  * 예약 명령 서비스(web).

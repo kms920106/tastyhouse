@@ -13,7 +13,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.product.domain.vo.ProductDiscountInfo;
+import com.tastyhouse.domain.product.domain.vo.ProductDiscountInfo;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

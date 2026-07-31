@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopBookmark;
+import com.tastyhouse.domain.shop.domain.model.ShopBookmark;
 
 final class ShopBookmarkMapper {
 

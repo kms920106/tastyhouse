@@ -15,7 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.event.domain.model.EventStatus;
+import com.tastyhouse.domain.event.domain.model.EventStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

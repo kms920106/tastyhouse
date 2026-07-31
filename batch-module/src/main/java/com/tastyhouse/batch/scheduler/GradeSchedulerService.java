@@ -11,8 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 

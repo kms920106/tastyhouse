@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
+import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
 
 /**
  * 내 주문 목록 항목 조회 결과(web-api용) — 가게 대표 이미지·첫 상품명·상품 종류 수와 결제 상태를 함께 투영한다.

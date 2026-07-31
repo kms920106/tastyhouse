@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.coupon.query;
 
-import com.tastyhouse.core.domain.coupon.domain.model.DiscountType;
+import com.tastyhouse.domain.coupon.domain.model.DiscountType;
 
 /**
  * 쿠폰 목록 검색 조건.

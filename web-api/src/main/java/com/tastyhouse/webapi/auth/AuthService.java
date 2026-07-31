@@ -3,10 +3,10 @@ package com.tastyhouse.webapi.auth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGender;
-import com.tastyhouse.core.domain.member.domain.model.MemberSocialProvider;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.member.domain.model.MemberGender;
+import com.tastyhouse.domain.member.domain.model.MemberSocialProvider;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;
 import com.tastyhouse.webapi.auth.facebook.FacebookSocialLoginService;
 import com.tastyhouse.webapi.auth.kakao.KakaoSocialLoginService;

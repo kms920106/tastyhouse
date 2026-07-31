@@ -6,12 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.banner.domain.model.Banner;
-import com.tastyhouse.core.domain.banner.domain.model.BannerType;
-import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
-import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.banner.domain.model.Banner;
+import com.tastyhouse.domain.banner.domain.model.BannerType;
+import com.tastyhouse.domain.banner.domain.repository.BannerRepository;
+import com.tastyhouse.domain.banner.domain.vo.BannerId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 배너 관리 command 서비스.

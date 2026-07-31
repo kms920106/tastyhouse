@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.payment.domain.port.PgPaymentGateway;
-import com.tastyhouse.core.domain.payment.domain.port.dto.PgCancelResult;
-import com.tastyhouse.core.domain.payment.domain.port.dto.PgConfirmResult;
-import com.tastyhouse.core.domain.payment.domain.port.dto.TossPaymentDetail;
+import com.tastyhouse.domain.payment.domain.port.PgPaymentGateway;
+import com.tastyhouse.domain.payment.domain.port.dto.PgCancelResult;
+import com.tastyhouse.domain.payment.domain.port.dto.PgConfirmResult;
+import com.tastyhouse.domain.payment.domain.port.dto.TossPaymentDetail;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
 
 @Slf4j

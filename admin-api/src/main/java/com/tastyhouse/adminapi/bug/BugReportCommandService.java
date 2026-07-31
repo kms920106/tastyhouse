@@ -4,15 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReport;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportCategory;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportPriority;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportStatus;
-import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
-import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.bug.domain.model.BugReport;
+import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
+import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
+import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
+import com.tastyhouse.domain.bug.domain.repository.BugReportRepository;
+import com.tastyhouse.domain.bug.domain.vo.BugReportId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 버그 제보 관리 command 서비스.

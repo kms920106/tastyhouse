@@ -6,11 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopAmenity;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
-import com.tastyhouse.core.domain.shop.domain.service.ShopConvenienceInfoService;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.model.ShopAmenity;
+import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.domain.service.ShopConvenienceInfoService;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 점주용 가게 편의정보·편의시설 변경 서비스(CQRS command 측).

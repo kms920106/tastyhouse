@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.verification.domain.service.EmailVerificationService;
+import com.tastyhouse.domain.verification.domain.service.EmailVerificationService;
 
 /**
  * 이메일 인증 command 서비스(web-api).

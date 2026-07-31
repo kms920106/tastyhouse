@@ -6,8 +6,8 @@ import java.time.LocalTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.reservation.domain.model.ReservationStatus;
 
 /**
  * 예약 목록·단건 조회 결과 — 예약 행에 가게 상호명·주소·썸네일 이미지 경로를 join해 투영한다.

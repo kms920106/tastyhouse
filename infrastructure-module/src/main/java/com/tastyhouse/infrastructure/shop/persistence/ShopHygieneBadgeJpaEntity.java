@@ -14,7 +14,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.shop.domain.model.HygieneBadgeType;
+import com.tastyhouse.domain.shop.domain.model.HygieneBadgeType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.Shop;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.shop.domain.model.Shop;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopListItemResult;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchCondition;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;

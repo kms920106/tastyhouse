@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.product.persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.product.domain.port.ProductReviewStatisticsPort;
+import com.tastyhouse.domain.product.domain.port.ProductReviewStatisticsPort;
 import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
 
 /**

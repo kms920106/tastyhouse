@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.faq.domain.model.Faq;
-import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
-import com.tastyhouse.core.domain.faq.domain.repository.FaqRepository;
-import com.tastyhouse.core.domain.faq.domain.vo.FaqCategoryId;
-import com.tastyhouse.core.domain.faq.domain.vo.FaqId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.faq.domain.model.Faq;
+import com.tastyhouse.domain.faq.domain.repository.FaqCategoryRepository;
+import com.tastyhouse.domain.faq.domain.repository.FaqRepository;
+import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
+import com.tastyhouse.domain.faq.domain.vo.FaqId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * FAQ 항목 관리 command 서비스.

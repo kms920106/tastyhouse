@@ -7,10 +7,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopImageChangeRequest;
-import com.tastyhouse.core.domain.shop.domain.model.ShopImageType;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopImageChangeRequestRepository;
-import com.tastyhouse.core.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shop.domain.model.ShopImageChangeRequest;
+import com.tastyhouse.domain.shop.domain.model.ShopImageType;
+import com.tastyhouse.domain.shop.domain.repository.ShopImageChangeRequestRepository;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 

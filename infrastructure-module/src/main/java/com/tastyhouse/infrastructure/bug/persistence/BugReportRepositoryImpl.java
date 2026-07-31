@@ -5,9 +5,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReport;
-import com.tastyhouse.core.domain.bug.domain.repository.BugReportRepository;
-import com.tastyhouse.core.domain.bug.domain.vo.BugReportId;
+import com.tastyhouse.domain.bug.domain.model.BugReport;
+import com.tastyhouse.domain.bug.domain.repository.BugReportRepository;
+import com.tastyhouse.domain.bug.domain.vo.BugReportId;
 
 /**
  * 버그 제보 write 어댑터.

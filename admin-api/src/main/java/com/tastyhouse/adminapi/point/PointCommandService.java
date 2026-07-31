@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.point.domain.service.PointLedgerService;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.point.domain.service.PointLedgerService;
 
 /**
  * 포인트 관리 command 서비스.

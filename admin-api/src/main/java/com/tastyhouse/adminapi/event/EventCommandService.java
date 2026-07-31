@@ -6,17 +6,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.event.domain.model.Event;
-import com.tastyhouse.core.domain.event.domain.model.EventAnnouncement;
-import com.tastyhouse.core.domain.event.domain.model.EventStatus;
-import com.tastyhouse.core.domain.event.domain.model.EventWinner;
-import com.tastyhouse.core.domain.event.domain.repository.EventAnnouncementRepository;
-import com.tastyhouse.core.domain.event.domain.repository.EventRepository;
-import com.tastyhouse.core.domain.event.domain.repository.EventWinnerRepository;
-import com.tastyhouse.core.domain.event.domain.vo.EventId;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.event.domain.model.Event;
+import com.tastyhouse.domain.event.domain.model.EventAnnouncement;
+import com.tastyhouse.domain.event.domain.model.EventStatus;
+import com.tastyhouse.domain.event.domain.model.EventWinner;
+import com.tastyhouse.domain.event.domain.repository.EventAnnouncementRepository;
+import com.tastyhouse.domain.event.domain.repository.EventRepository;
+import com.tastyhouse.domain.event.domain.repository.EventWinnerRepository;
+import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 이벤트 관리 명령 서비스(admin).

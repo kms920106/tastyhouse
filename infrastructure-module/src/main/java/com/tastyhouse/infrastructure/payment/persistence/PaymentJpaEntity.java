@@ -15,11 +15,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentMethod;
-import com.tastyhouse.core.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.core.domain.payment.domain.model.PgProvider;
-import com.tastyhouse.core.domain.payment.domain.vo.Amount;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.payment.domain.model.PaymentMethod;
+import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
+import com.tastyhouse.domain.payment.domain.model.PgProvider;
+import com.tastyhouse.domain.payment.domain.vo.Amount;
 import com.tastyhouse.infrastructure.order.persistence.OrderIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 

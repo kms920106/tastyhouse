@@ -5,13 +5,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopContentBoard;
-import com.tastyhouse.core.domain.shop.domain.model.ShopContentTopic;
-import com.tastyhouse.core.domain.shop.domain.model.ShopContentType;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopContentBoardRepository;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.model.ShopContentBoard;
+import com.tastyhouse.domain.shop.domain.model.ShopContentTopic;
+import com.tastyhouse.domain.shop.domain.model.ShopContentType;
+import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.ceoapi.file.FileService;
 
 /**

@@ -12,7 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.shop.domain.model.ClosedDayType;
+import com.tastyhouse.domain.shop.domain.model.ClosedDayType;
 
 /**
  * 상점 정기 휴무 JPA 영속 모델. 순수 도메인 모델 {@code ShopClosedDay}와 분리된 영속 전용 엔티티다.

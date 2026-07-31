@@ -5,9 +5,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.banner.domain.model.Banner;
-import com.tastyhouse.core.domain.banner.domain.repository.BannerRepository;
-import com.tastyhouse.core.domain.banner.domain.vo.BannerId;
+import com.tastyhouse.domain.banner.domain.model.Banner;
+import com.tastyhouse.domain.banner.domain.repository.BannerRepository;
+import com.tastyhouse.domain.banner.domain.vo.BannerId;
 
 /**
  * 배너 write 어댑터.

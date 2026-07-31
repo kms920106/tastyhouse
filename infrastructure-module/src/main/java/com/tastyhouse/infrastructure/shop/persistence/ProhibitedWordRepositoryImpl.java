@@ -5,8 +5,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.ProhibitedWord;
-import com.tastyhouse.core.domain.shop.domain.repository.ProhibitedWordRepository;
+import com.tastyhouse.domain.shop.domain.model.ProhibitedWord;
+import com.tastyhouse.domain.shop.domain.repository.ProhibitedWordRepository;
 
 @Repository
 @RequiredArgsConstructor

@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.verification.domain.service.PhoneVerificationService;
+import com.tastyhouse.domain.verification.domain.service.PhoneVerificationService;
 
 /**
  * 휴대폰 인증 command 서비스(web-api).

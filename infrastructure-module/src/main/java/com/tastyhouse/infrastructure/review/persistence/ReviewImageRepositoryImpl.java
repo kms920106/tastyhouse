@@ -6,8 +6,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.review.domain.model.ReviewImage;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewImageRepository;
+import com.tastyhouse.domain.review.domain.model.ReviewImage;
+import com.tastyhouse.domain.review.domain.repository.ReviewImageRepository;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity.reviewImageJpaEntity;
 

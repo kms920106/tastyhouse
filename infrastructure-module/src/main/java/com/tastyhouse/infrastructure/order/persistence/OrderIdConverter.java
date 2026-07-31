@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.order.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
 
 @Converter(autoApply = true)
 public class OrderIdConverter implements AttributeConverter<OrderId, Long> {

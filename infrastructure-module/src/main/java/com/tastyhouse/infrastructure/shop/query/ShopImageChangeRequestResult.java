@@ -1,7 +1,7 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopImageType;
-import com.tastyhouse.core.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shop.domain.model.ShopImageType;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 public record ShopImageChangeRequestResult(
     Long id,

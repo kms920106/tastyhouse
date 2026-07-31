@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.model.Member;
-import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
-import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.domain.service.MemberWithdrawalService;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.member.domain.model.Member;
+import com.tastyhouse.domain.member.domain.model.MemberWithdrawalReason;
+import com.tastyhouse.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.domain.service.MemberWithdrawalService;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 회원 관리 명령 서비스.

@@ -6,9 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.verification.domain.model.EmailVerification;
-import com.tastyhouse.core.domain.verification.domain.model.EmailVerificationStatus;
-import com.tastyhouse.core.domain.verification.domain.repository.EmailVerificationRepository;
+import com.tastyhouse.domain.verification.domain.model.EmailVerification;
+import com.tastyhouse.domain.verification.domain.model.EmailVerificationStatus;
+import com.tastyhouse.domain.verification.domain.repository.EmailVerificationRepository;
 
 import static com.tastyhouse.infrastructure.verification.persistence.QEmailVerificationJpaEntity.emailVerificationJpaEntity;
 

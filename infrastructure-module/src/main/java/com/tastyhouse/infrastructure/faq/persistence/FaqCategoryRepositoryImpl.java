@@ -6,9 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.faq.domain.model.FaqCategory;
-import com.tastyhouse.core.domain.faq.domain.repository.FaqCategoryRepository;
-import com.tastyhouse.core.domain.faq.domain.vo.FaqCategoryId;
+import com.tastyhouse.domain.faq.domain.model.FaqCategory;
+import com.tastyhouse.domain.faq.domain.repository.FaqCategoryRepository;
+import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
 
 import static com.tastyhouse.infrastructure.faq.persistence.QFaqCategoryJpaEntity.faqCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpaEntity;

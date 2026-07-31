@@ -12,8 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.model.Member;
-import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.domain.member.domain.model.Member;
+import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 
 @Slf4j
 @Service

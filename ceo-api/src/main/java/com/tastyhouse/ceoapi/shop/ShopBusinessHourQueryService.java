@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopBreakTime;
-import com.tastyhouse.core.domain.shop.domain.model.ShopBusinessHour;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.domain.model.ShopBreakTime;
+import com.tastyhouse.domain.shop.domain.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.ceoapi.shop.response.ShopBreakTimeResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopBusinessHourResponse;
 

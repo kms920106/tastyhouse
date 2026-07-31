@@ -1,7 +1,7 @@
 package com.tastyhouse.infrastructure.point.query;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.point.domain.model.PointType;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.point.domain.model.PointType;
 
 /**
  * 포인트 이력 검색 조건.

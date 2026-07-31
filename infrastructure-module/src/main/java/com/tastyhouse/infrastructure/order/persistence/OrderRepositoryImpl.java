@@ -5,9 +5,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.order.domain.model.Order;
-import com.tastyhouse.core.domain.order.domain.repository.OrderRepository;
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.order.domain.model.Order;
+import com.tastyhouse.domain.order.domain.repository.OrderRepository;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
 
 /**
  * 주문 write 어댑터.

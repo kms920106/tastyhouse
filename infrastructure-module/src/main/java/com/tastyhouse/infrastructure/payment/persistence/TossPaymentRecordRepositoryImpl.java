@@ -3,8 +3,8 @@ package com.tastyhouse.infrastructure.payment.persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.payment.domain.model.TossPaymentRecord;
-import com.tastyhouse.core.domain.payment.domain.repository.TossPaymentRecordRepository;
+import com.tastyhouse.domain.payment.domain.model.TossPaymentRecord;
+import com.tastyhouse.domain.payment.domain.repository.TossPaymentRecordRepository;
 
 @Repository
 @RequiredArgsConstructor

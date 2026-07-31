@@ -6,9 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.point.domain.model.Point;
-import com.tastyhouse.core.domain.point.domain.repository.PointRepository;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.point.domain.model.Point;
+import com.tastyhouse.domain.point.domain.repository.PointRepository;
 
 import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.pointJpaEntity;
 

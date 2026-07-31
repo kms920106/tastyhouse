@@ -13,9 +13,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.core.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.order.domain.model.OrderStatus;
+import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 

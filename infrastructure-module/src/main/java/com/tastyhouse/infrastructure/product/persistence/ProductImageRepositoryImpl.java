@@ -4,8 +4,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.product.domain.model.ProductImage;
-import com.tastyhouse.core.domain.product.domain.repository.ProductImageRepository;
+import com.tastyhouse.domain.product.domain.model.ProductImage;
+import com.tastyhouse.domain.product.domain.repository.ProductImageRepository;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;

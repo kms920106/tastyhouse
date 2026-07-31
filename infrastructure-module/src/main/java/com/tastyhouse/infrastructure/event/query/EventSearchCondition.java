@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.event.query;
 
-import com.tastyhouse.core.domain.event.domain.model.EventStatus;
+import com.tastyhouse.domain.event.domain.model.EventStatus;
 
 /**
  * 이벤트 관리 목록 검색 조건(admin).

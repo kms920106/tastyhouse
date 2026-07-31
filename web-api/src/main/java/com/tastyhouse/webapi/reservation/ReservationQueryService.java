@@ -12,12 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.reservation.domain.service.SlotPolicy;
-import com.tastyhouse.core.domain.reservation.domain.vo.ReservationId;
-import com.tastyhouse.core.exception.AccessDeniedException;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.reservation.domain.service.SlotPolicy;
+import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.infrastructure.reservation.query.ReservationDetailResult;
 import com.tastyhouse.infrastructure.reservation.query.ReservationQueryDao;
 import com.tastyhouse.infrastructure.reservation.query.ReservationResult;

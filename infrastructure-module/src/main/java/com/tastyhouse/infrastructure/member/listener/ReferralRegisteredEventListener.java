@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.core.domain.member.referral.domain.event.ReferralRegisteredEvent;
+import com.tastyhouse.domain.member.referral.domain.event.ReferralRegisteredEvent;
 
 /**
  * 추천 등록 이벤트 리스너(크로스커팅).

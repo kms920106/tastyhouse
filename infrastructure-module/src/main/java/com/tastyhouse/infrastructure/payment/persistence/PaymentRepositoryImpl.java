@@ -6,10 +6,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.order.domain.vo.OrderId;
-import com.tastyhouse.core.domain.payment.domain.model.Payment;
-import com.tastyhouse.core.domain.payment.domain.repository.PaymentRepository;
-import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.payment.domain.model.Payment;
+import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
+import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
 

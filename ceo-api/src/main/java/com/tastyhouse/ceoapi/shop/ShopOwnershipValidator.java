@@ -3,12 +3,12 @@ package com.tastyhouse.ceoapi.shop;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.shop.domain.model.Shop;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
-import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.core.exception.AccessDeniedException;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.model.Shop;
+import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 점주가 자기 소유 가게에만 접근하도록 강제하는 검증기.

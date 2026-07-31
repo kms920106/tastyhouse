@@ -9,8 +9,8 @@ import javax.imageio.ImageIO;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 점주가 업로드하는 가게 이미지(상표/콘텐츠)의 규격(형식·용량·해상도·비율)을 검증한다.

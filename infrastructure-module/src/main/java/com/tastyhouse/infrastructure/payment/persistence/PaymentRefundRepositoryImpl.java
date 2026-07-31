@@ -3,8 +3,8 @@ package com.tastyhouse.infrastructure.payment.persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.payment.domain.model.PaymentRefund;
-import com.tastyhouse.core.domain.payment.domain.repository.PaymentRefundRepository;
+import com.tastyhouse.domain.payment.domain.model.PaymentRefund;
+import com.tastyhouse.domain.payment.domain.repository.PaymentRefundRepository;
 
 @Repository
 @RequiredArgsConstructor

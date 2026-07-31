@@ -6,12 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.event.domain.model.EventStatus;
-import com.tastyhouse.core.domain.event.domain.vo.EventId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.event.domain.model.EventStatus;
+import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.event.query.EventAnnouncementResult;
 import com.tastyhouse.infrastructure.event.query.EventManagementDetailResult;
 import com.tastyhouse.infrastructure.event.query.EventManagementListItemResult;

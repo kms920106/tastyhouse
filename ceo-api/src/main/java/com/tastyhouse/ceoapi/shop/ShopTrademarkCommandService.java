@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopImageType;
-import com.tastyhouse.core.domain.shop.domain.service.ShopImageApprovalService;
+import com.tastyhouse.domain.shop.domain.model.ShopImageType;
+import com.tastyhouse.domain.shop.domain.service.ShopImageApprovalService;
 import com.tastyhouse.ceoapi.file.FileService;
 
 /**

@@ -6,10 +6,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.policy.domain.model.PolicyDocument;
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
-import com.tastyhouse.core.domain.policy.domain.repository.PolicyDocumentRepository;
-import com.tastyhouse.core.domain.policy.domain.vo.PolicyDocumentId;
+import com.tastyhouse.domain.policy.domain.model.PolicyDocument;
+import com.tastyhouse.domain.policy.domain.model.PolicyType;
+import com.tastyhouse.domain.policy.domain.repository.PolicyDocumentRepository;
+import com.tastyhouse.domain.policy.domain.vo.PolicyDocumentId;
 
 import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJpaEntity.policyDocumentJpaEntity;
 

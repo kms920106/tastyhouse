@@ -6,8 +6,8 @@ import java.time.LocalTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.reservation.domain.model.ReservationStatus;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.reservation.domain.model.ReservationStatus;
 
 /**
  * 예약 단건 상세 조회 결과 — {@link ReservationResult}의 가게 정보에 예약자 회원 정보(이름·휴대폰·계정)를

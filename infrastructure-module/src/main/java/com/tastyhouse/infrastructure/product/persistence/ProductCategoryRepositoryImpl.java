@@ -7,9 +7,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.product.domain.model.ProductCategory;
-import com.tastyhouse.core.domain.product.domain.repository.ProductCategoryRepository;
-import com.tastyhouse.core.domain.product.domain.vo.ProductCategoryId;
+import com.tastyhouse.domain.product.domain.model.ProductCategory;
+import com.tastyhouse.domain.product.domain.repository.ProductCategoryRepository;
+import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 

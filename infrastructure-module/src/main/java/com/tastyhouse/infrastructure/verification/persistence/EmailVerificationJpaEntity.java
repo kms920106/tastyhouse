@@ -17,8 +17,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.verification.domain.model.EmailVerificationStatus;
-import com.tastyhouse.core.domain.verification.domain.vo.VerificationCode;
+import com.tastyhouse.domain.verification.domain.model.EmailVerificationStatus;
+import com.tastyhouse.domain.verification.domain.vo.VerificationCode;
 
 /**
  * 이메일 인증 JPA 영속 모델.

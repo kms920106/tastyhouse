@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.payment.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.core.domain.payment.domain.vo.Amount;
+import com.tastyhouse.domain.payment.domain.vo.Amount;
 
 @Converter(autoApply = true)
 public class AmountConverter implements AttributeConverter<Amount, Integer> {

@@ -4,18 +4,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.review.domain.model.ReviewComment;
-import com.tastyhouse.core.domain.review.domain.model.ReviewReply;
-import com.tastyhouse.core.domain.review.domain.model.Review;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewCommentRepository;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewReplyRepository;
-import com.tastyhouse.core.domain.review.domain.repository.ReviewRepository;
-import com.tastyhouse.core.domain.review.domain.service.ReviewLifecycleService;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewReplyId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.review.domain.model.ReviewComment;
+import com.tastyhouse.domain.review.domain.model.ReviewReply;
+import com.tastyhouse.domain.review.domain.model.Review;
+import com.tastyhouse.domain.review.domain.repository.ReviewCommentRepository;
+import com.tastyhouse.domain.review.domain.repository.ReviewReplyRepository;
+import com.tastyhouse.domain.review.domain.repository.ReviewRepository;
+import com.tastyhouse.domain.review.domain.service.ReviewLifecycleService;
+import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.review.domain.vo.ReviewReplyId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 리뷰 관리 명령 서비스(admin).

@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.webapi.grade.response.GradeInfoListItemResponse;
 
 @Service

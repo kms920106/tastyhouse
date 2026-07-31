@@ -6,8 +6,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.rank.domain.port.MemberReviewCount;
-import com.tastyhouse.core.domain.rank.domain.port.MemberReviewCountPort;
+import com.tastyhouse.domain.rank.domain.port.MemberReviewCount;
+import com.tastyhouse.domain.rank.domain.port.MemberReviewCountPort;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 

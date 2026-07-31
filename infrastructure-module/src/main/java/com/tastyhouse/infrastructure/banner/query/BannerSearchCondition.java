@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.banner.query;
 
-import com.tastyhouse.core.domain.banner.domain.model.BannerType;
+import com.tastyhouse.domain.banner.domain.model.BannerType;
 
 /**
  * 배너 관리 목록 검색 조건.

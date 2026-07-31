@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.follow.domain.service.MemberFollowService;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.follow.domain.service.MemberFollowService;
 
 /**
  * 팔로우 명령 서비스.

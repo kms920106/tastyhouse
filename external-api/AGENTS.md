@@ -1,15 +1,15 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-02 | Updated: 2026-06-02 -->
+<!-- Generated: 2026-06-02 | Updated: 2026-07-31 -->
 
 # external-api
 
 ## Purpose
-외부 시스템 연동 어댑터 라이브러리 모듈(`java-library`). 소셜 로그인(OAuth), 결제(Toss), 이메일(JavaMail/AWS SES), SMS(AWS SNS/Solapi), 파일 스토리지(AWS S3/Firebase), 가게 정보 크롤링을 캡슐화한다. `core-module`의 port 인터페이스(예: `MailSender`, `SmsSender`)를 구현하는 infrastructure 어댑터 역할을 한다.
+외부 시스템 연동 어댑터 라이브러리 모듈(`java-library`). 소셜 로그인(OAuth), 결제(Toss), 이메일(JavaMail/AWS SES), SMS(AWS SNS/Solapi), 파일 스토리지(AWS S3/Firebase), 가게 정보 크롤링을 캡슐화한다. `domain-module`이 선언한 출력 포트(`<ctx>/domain/port/` — `MailSender`·`SmsSender`·`FileStoragePort`·`PgPaymentGateway`·`ProductReviewStatisticsPort`·`MemberReviewCountPort`)를 구현하는 어댑터 역할을 한다.
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + web/webflux, mail, AWS SES/SNS/S3, Firebase Admin, JJWT(Apple 로그인용). `bootJar` 비활성 |
+| `build.gradle` | `java-library` + `domain-module`(implementation) + web/webflux, mail, AWS SES/SNS/S3, Firebase Admin, JJWT(Apple 로그인용). `bootJar` 비활성 |
 | `src/main/resources/config/` | 외부 연동 설정 |
 
 ## Subdirectories
@@ -23,7 +23,7 @@
 ### Working In This Directory
 - 각 연동은 제공자(provider)별 하위 패키지로 분리 (`oauth/kakao`, `payment/toss`, `sms/solapi` …).
 - 외부 비밀키/자격증명은 코드에 하드코딩하지 말고 환경 변수(`.env`)·`json/`·설정에서 주입.
-- `core-module`의 port 인터페이스를 구현하되, `core` 도메인 모델을 외부 응답 DTO로 오염시키지 않는다.
+- `domain-module`의 출력 포트(`<ctx>/domain/port/`)를 구현하되, 도메인 모델을 외부 응답 DTO로 오염시키지 않는다. 포트는 프레임워크-프리이므로 어댑터 쪽 DTO·WebClient 타입이 포트 시그니처로 새어나가지 않게 한다.
 
 ### Testing Requirements
 - 외부 호출은 가능하면 모킹. 실제 네트워크 테스트는 `src/test/.../bbq` 처럼 격리.
@@ -35,7 +35,7 @@
 ## Dependencies
 
 ### Internal
-- `core-module` — port 인터페이스 및 도메인 타입
+- `domain-module` (implementation) — 출력 포트 인터페이스(`<ctx>/domain/port/`) 및 도메인 타입
 
 ### External
 - AWS SDK (SES, SNS), spring-cloud-aws-s3, Firebase Admin 9.10.0

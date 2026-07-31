@@ -6,9 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.verification.domain.model.PhoneVerification;
-import com.tastyhouse.core.domain.verification.domain.model.PhoneVerificationStatus;
-import com.tastyhouse.core.domain.verification.domain.repository.PhoneVerificationRepository;
+import com.tastyhouse.domain.verification.domain.model.PhoneVerification;
+import com.tastyhouse.domain.verification.domain.model.PhoneVerificationStatus;
+import com.tastyhouse.domain.verification.domain.repository.PhoneVerificationRepository;
 
 import static com.tastyhouse.infrastructure.verification.persistence.QPhoneVerificationJpaEntity.phoneVerificationJpaEntity;
 

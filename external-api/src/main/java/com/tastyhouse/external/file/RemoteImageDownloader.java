@@ -10,11 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.core.domain.file.domain.service.FileUploadCommand;
-import com.tastyhouse.core.domain.file.domain.service.FileUploadService;
-import com.tastyhouse.core.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.file.domain.service.FileUploadCommand;
+import com.tastyhouse.domain.file.domain.service.FileUploadService;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 @Slf4j
 @Component

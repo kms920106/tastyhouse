@@ -6,9 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.coupon.domain.model.Coupon;
-import com.tastyhouse.core.domain.coupon.domain.repository.CouponRepository;
-import com.tastyhouse.core.domain.coupon.domain.vo.CouponId;
+import com.tastyhouse.domain.coupon.domain.model.Coupon;
+import com.tastyhouse.domain.coupon.domain.repository.CouponRepository;
+import com.tastyhouse.domain.coupon.domain.vo.CouponId;
 
 import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.couponJpaEntity;
 

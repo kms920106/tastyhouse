@@ -15,9 +15,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.payment.domain.model.RefundStatus;
-import com.tastyhouse.core.domain.payment.domain.vo.Amount;
-import com.tastyhouse.core.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.payment.domain.model.RefundStatus;
+import com.tastyhouse.domain.payment.domain.vo.Amount;
+import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

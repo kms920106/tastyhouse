@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.policy.domain.model.PolicyType;
+import com.tastyhouse.domain.policy.domain.model.PolicyType;
 
 /**
  * 정책 문서 상세 조회 결과.

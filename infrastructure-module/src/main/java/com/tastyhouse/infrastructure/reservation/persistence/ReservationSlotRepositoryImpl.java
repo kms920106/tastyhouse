@@ -10,9 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.reservation.domain.model.ReservationSlot;
-import com.tastyhouse.core.domain.reservation.domain.repository.ReservationSlotRepository;
-import com.tastyhouse.core.shared.exception.OptimisticLockConflictException;
+import com.tastyhouse.domain.reservation.domain.model.ReservationSlot;
+import com.tastyhouse.domain.reservation.domain.repository.ReservationSlotRepository;
+import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
 
 @Repository
 @RequiredArgsConstructor

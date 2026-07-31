@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.member.query;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.domain.member.domain.model.MemberGrade;
 
 /**
  * 회원 요약 + 프로필 이미지 경로 read model.

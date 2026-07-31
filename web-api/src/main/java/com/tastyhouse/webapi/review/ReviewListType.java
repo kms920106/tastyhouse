@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.review;
 
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum ReviewListType {
     ALL,

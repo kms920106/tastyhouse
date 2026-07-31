@@ -7,11 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.rank.domain.model.RankType;
-import com.tastyhouse.core.domain.rank.domain.vo.RankPeriodId;
-import com.tastyhouse.core.domain.rank.domain.vo.RankPrizeId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.rank.domain.model.RankType;
+import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.infrastructure.rank.query.MemberRankResult;
 import com.tastyhouse.infrastructure.rank.query.RankPeriodResult;
 import com.tastyhouse.infrastructure.rank.query.RankPrizeManagementResult;

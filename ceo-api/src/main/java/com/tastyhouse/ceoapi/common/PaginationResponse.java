@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 @Schema(description = "페이지 목록 응답")
 public record PaginationResponse<T>(

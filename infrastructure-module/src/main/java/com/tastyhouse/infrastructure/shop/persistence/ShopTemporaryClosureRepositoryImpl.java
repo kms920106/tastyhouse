@@ -6,8 +6,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopTemporaryClosure;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopTemporaryClosureRepository;
+import com.tastyhouse.domain.shop.domain.model.ShopTemporaryClosure;
+import com.tastyhouse.domain.shop.domain.repository.ShopTemporaryClosureRepository;
 
 @Repository
 @RequiredArgsConstructor

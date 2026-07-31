@@ -14,7 +14,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.banner.domain.model.BannerType;
+import com.tastyhouse.domain.banner.domain.model.BannerType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

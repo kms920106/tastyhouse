@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGender;
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.domain.member.domain.model.MemberGender;
+import com.tastyhouse.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.domain.member.domain.model.MemberStatus;
 
 /**
  * 회원 관리 목록 read model(admin-api 소비).

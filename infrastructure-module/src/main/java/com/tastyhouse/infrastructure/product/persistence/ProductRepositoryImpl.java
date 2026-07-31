@@ -5,9 +5,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.product.domain.model.Product;
-import com.tastyhouse.core.domain.product.domain.repository.ProductRepository;
-import com.tastyhouse.core.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.product.domain.model.Product;
+import com.tastyhouse.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 
 /**
  * 상품 write 어댑터. 표현 목적 조회는 {@code infrastructure/product/query/ProductQueryDao}가 담당한다.

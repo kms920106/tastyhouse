@@ -6,9 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.Shop;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopRepository;
-import com.tastyhouse.core.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.domain.model.Shop;
+import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 

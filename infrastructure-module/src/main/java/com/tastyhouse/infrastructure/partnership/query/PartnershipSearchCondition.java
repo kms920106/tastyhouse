@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.partnership.query;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.core.domain.partnership.domain.model.PartnershipStatus;
+import com.tastyhouse.domain.partnership.domain.model.PartnershipStatus;
 
 /**
  * 제휴 신청 관리 목록 검색 조건.

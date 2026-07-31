@@ -5,18 +5,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.model.Member;
-import com.tastyhouse.core.domain.member.domain.model.MemberGender;
-import com.tastyhouse.core.domain.member.domain.model.MemberSocialAccount;
-import com.tastyhouse.core.domain.member.domain.model.MemberWithdrawalReason;
-import com.tastyhouse.core.domain.member.domain.repository.MemberRepository;
-import com.tastyhouse.core.domain.member.domain.repository.MemberSocialAccountRepository;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.member.domain.service.MemberRegistrationService;
-import com.tastyhouse.core.domain.member.domain.service.MemberWithdrawalService;
-import com.tastyhouse.core.exception.BusinessException;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.member.domain.model.Member;
+import com.tastyhouse.domain.member.domain.model.MemberGender;
+import com.tastyhouse.domain.member.domain.model.MemberSocialAccount;
+import com.tastyhouse.domain.member.domain.model.MemberWithdrawalReason;
+import com.tastyhouse.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.domain.member.domain.repository.MemberSocialAccountRepository;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.domain.service.MemberRegistrationService;
+import com.tastyhouse.domain.member.domain.service.MemberWithdrawalService;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 회원 명령 서비스.

@@ -14,10 +14,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.tastyhouse.core.domain.member.domain.model.MemberGender;
-import com.tastyhouse.core.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.core.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.core.shared.vo.PhoneNumber;
+import com.tastyhouse.domain.member.domain.model.MemberGender;
+import com.tastyhouse.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

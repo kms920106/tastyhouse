@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.bug.domain.model.BugReport;
-import com.tastyhouse.core.domain.bug.domain.model.BugReportPlatform;
-import com.tastyhouse.core.domain.bug.domain.service.BugReportRegistrationService;
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.bug.domain.model.BugReport;
+import com.tastyhouse.domain.bug.domain.model.BugReportPlatform;
+import com.tastyhouse.domain.bug.domain.service.BugReportRegistrationService;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.webapi.bug.response.BugReportResponse;
 import com.tastyhouse.webapi.file.FileService;
 

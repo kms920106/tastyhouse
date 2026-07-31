@@ -5,8 +5,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.model.ShopChoice;
-import com.tastyhouse.core.domain.shop.domain.repository.ShopChoiceRepository;
+import com.tastyhouse.domain.shop.domain.model.ShopChoice;
+import com.tastyhouse.domain.shop.domain.repository.ShopChoiceRepository;
 
 /**
  * 에디터 추천 write 어댑터.

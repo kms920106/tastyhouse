@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.shop.domain.service.ShopLifecycleService;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.shop.domain.service.ShopLifecycleService;
 
 /**
  * 회원용 가게 변경 서비스(CQRS command 측).

@@ -15,11 +15,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.member.domain.vo.MemberId;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewCommentId;
-import com.tastyhouse.core.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.core.shared.page.PageQuery;
-import com.tastyhouse.core.shared.page.PageResult;
+import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewCommentJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity;

@@ -5,8 +5,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.ceo.domain.model.Ceo;
-import com.tastyhouse.core.domain.ceo.domain.repository.CeoRepository;
+import com.tastyhouse.domain.ceo.domain.model.Ceo;
+import com.tastyhouse.domain.ceo.domain.repository.CeoRepository;
 
 @Repository
 @RequiredArgsConstructor

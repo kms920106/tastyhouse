@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.core.domain.notice.domain.model.Notice;
-import com.tastyhouse.core.domain.notice.domain.repository.NoticeRepository;
-import com.tastyhouse.core.domain.notice.domain.vo.NoticeId;
-import com.tastyhouse.core.exception.EntityNotFoundException;
-import com.tastyhouse.core.exception.ErrorCode;
+import com.tastyhouse.domain.notice.domain.model.Notice;
+import com.tastyhouse.domain.notice.domain.repository.NoticeRepository;
+import com.tastyhouse.domain.notice.domain.vo.NoticeId;
+import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 공지사항 관리 command 서비스.

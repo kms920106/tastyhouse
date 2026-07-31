@@ -1,6 +1,6 @@
 # logging-module
 
-`web-api`/`admin-api`/`batch-module` 세 실행 모듈이 공통으로 쓰는 **횡단 관심사(cross-cutting concern) 제공 모듈**. API 요청/응답 메타 로깅, 컨트롤러 진입 시 인증 사용자·요청 바디 로깅, 로그 출력 전 민감 필드 마스킹을 담당한다. `external-api`가 OAuth/결제/파일 등 외부 연동 어댑터를, `infrastructure-module`이 persistence 어댑터를 캡슐화하는 것과 같은 원리로, 로깅 관련 구현체를 core/presentation 밖으로 분리해 각 실행 모듈이 로깅 코드를 중복 작성하지 않도록 한다.
+`web-api`/`admin-api`/`ceo-api`/`batch-module` 네 실행 모듈이 공통으로 쓰는 **횡단 관심사(cross-cutting concern) 제공 모듈**. API 요청/응답 메타 로깅, 컨트롤러 진입 시 인증 사용자·요청 바디 로깅, 로그 출력 전 민감 필드 마스킹을 담당한다. `external-api`가 OAuth/결제/파일 등 외부 연동 어댑터를, `infrastructure-module`이 persistence·조회 어댑터를 캡슐화하는 것과 같은 원리로, 로깅 관련 구현체를 domain/presentation 밖으로 분리해 각 실행 모듈이 로깅 코드를 중복 작성하지 않도록 한다.
 
 ## 패키지 구조
 
@@ -27,19 +27,19 @@ dependencies {
 }
 ```
 
-이 모듈의 클래스들(`OncePerRequestFilter`, `@Aspect`, `SecurityContextHolder`)이 `web`/`aop`/`security`를 직접 사용하므로, 그 의존성을 `api`로 선언하면 **이 모듈을 `implementation`으로 의존하는 소비 모듈(`web-api`/`admin-api`/`batch-module`)이 같은 starter를 각자 별도로 선언하지 않아도** 전이적으로 클래스패스에 올라온다. 즉 "로깅 관련 기능에 필요한 프레임워크 의존을 이 모듈 하나로 대표한다"는 설계다. 실제로 `admin-api/build.gradle`은 `spring-boot-starter-aop`를 명시적으로도 갖고 있는데, 이는 이 모듈의 `api` 노출과 별개로 admin-api 자체 AOP 코드(예: `ratelimit/RateLimitAspect`)가 직접 선언한 것이다 — 소비 모듈이 이 모듈의 `api` 노출에만 의존하지 않고 자기 필요에 따라 동일 starter를 중복 선언하는 것 자체는 금지되지 않는다.
+이 모듈의 클래스들(`OncePerRequestFilter`, `@Aspect`, `SecurityContextHolder`)이 `web`/`aop`/`security`를 직접 사용하므로, 그 의존성을 `api`로 선언하면 **이 모듈을 `implementation`으로 의존하는 소비 모듈(`web-api`/`admin-api`/`ceo-api`/`batch-module`)이 같은 starter를 각자 별도로 선언하지 않아도** 전이적으로 클래스패스에 올라온다. 즉 "로깅 관련 기능에 필요한 프레임워크 의존을 이 모듈 하나로 대표한다"는 설계다. 실제로 `admin-api/build.gradle`은 `spring-boot-starter-aop`를 명시적으로도 갖고 있는데, 이는 이 모듈의 `api` 노출과 별개로 admin-api 자체 AOP 코드(예: `ratelimit/RateLimitAspect`)가 직접 선언한 것이다 — 소비 모듈이 이 모듈의 `api` 노출에만 의존하지 않고 자기 필요에 따라 동일 starter를 중복 선언하는 것 자체는 금지되지 않는다.
 
 ## 규칙
 
-- **패키지 루트는 `com.tastyhouse.logging`** — `web-api`/`admin-api`/`batch-module`의 `scanBasePackages`(및 admin-api는 `@EnableJpaAuditing` 등 컴포넌트 스캔 목록)에 이 패키지가 등록되어 있어야 `ApiLoggingFilter`/`ApiLoggingAspect`가 빈으로 인식된다.
-- **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`external-api`/`infrastructure-module`과 동일한 라이브러리 모듈 패턴).
+- **패키지 루트는 `com.tastyhouse.logging`** — `web-api`/`admin-api`/`ceo-api`/`batch-module`의 `scanBasePackages`(admin/ceo는 `@ComponentScan basePackages`에도)에 이 패키지가 등록되어 있어야 `ApiLoggingFilter`/`ApiLoggingAspect`가 빈으로 인식된다.
+- **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`domain-module`/`infrastructure-module`/`external-api`/`security-module`과 동일한 라이브러리 모듈 패턴).
 - **바디 로깅은 DEBUG 레벨에서만 활성화**된다 — `com.tastyhouse.logging` 레벨이 `DEBUG`일 때만 요청/응답 바디가 로깅된다. 운영 환경에서 바디가 로그에 그대로 남지 않도록 하는 안전장치이므로, 로그 레벨 설정을 변경할 때 이 전제를 깨지 않도록 주의한다. 이 레벨은 아래 `application-logging.yml`에서 `${API_BODY_LOG_LEVEL:DEBUG}`로 환경변수화되어 있어, 운영에서는 `API_BODY_LOG_LEVEL=INFO`만 지정하면 코드 수정·재빌드 없이 바디 로깅을 끌 수 있다(로컬 기본값은 DEBUG).
 - **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. 마스킹이 실사용에 연결되지 않은 현재 상태에서 목록만 갱신해도 즉시 효과는 없으므로, 마스킹을 실제로 적용하려면 `ApiLoggingAspect`의 활성화가 선행되어야 한다.
-- **core-module 의존 없음**: 이 모듈은 순수 횡단 관심사(로깅/필터/AOP)만 다루며 도메인 모델이나 core 서비스에 의존하지 않는다.
+- **`domain-module` 의존 없음**: 이 모듈은 순수 횡단 관심사(로깅/필터/AOP)만 다루며 도메인 모델이나 application 서비스에 의존하지 않는다(사내 모듈 의존이 0인 유일한 모듈).
 
 ## 로깅 설정 소유 (`application-logging.yml`)
 
-이 모듈은 로깅 관련 **코드**뿐 아니라 **설정**도 소유한다. 과거 `web-api`/`admin-api`/`ceo-api` 3개 실행 모듈의 `application.yml`에 동일하게 복제돼 있던 `logging:` 블록(콘솔 패턴·root 레벨·`com.tastyhouse.logging` 레벨)과 각 모듈 `src/main/resources/spy.properties`(p6spy SQL 로그 포맷)를 이 모듈의 `src/main/resources/application-logging.yml` 하나로 통합했다. 이는 `security-module`이 `application-security.yml`을, `infrastructure-module`이 `application-infrastructure.yml`을 소유하고 실행 모듈이 `spring.config.import`로 로딩하는 기존 컨벤션(루트 CLAUDE.md "모듈 경계 규칙 — 설정값도 같은 패턴")의 반복 적용이다.
+이 모듈은 로깅 관련 **코드**뿐 아니라 **설정**도 소유한다. 과거 `web-api`/`admin-api`/`ceo-api` 3개 실행 모듈의 `application.yml`에 동일하게 복제돼 있던 `logging:` 블록(콘솔 패턴·root 레벨·`com.tastyhouse.logging` 레벨)과 각 모듈 `src/main/resources/spy.properties`(p6spy SQL 로그 포맷)를 이 모듈의 `src/main/resources/application-logging.yml` 하나로 통합했다. 이는 `security-module`이 `application-security.yml`을, `infrastructure-module`이 `application-infrastructure.yml`(과거 `core-module`의 `application-core.yml`이었다가 이동)을 소유하고 실행 모듈이 `spring.config.import`로 로딩하는 기존 컨벤션(루트 CLAUDE.md "모듈 경계 규칙 — 설정값도 같은 패턴")의 반복 적용이다.
 
 - **소유 항목**: 콘솔 로그 패턴(`requestId` MDC 포함), `root: INFO`, `com.tastyhouse.logging: ${API_BODY_LOG_LEVEL:DEBUG}`, p6spy 로그 포맷(`decorator.datasource.p6spy.log-format: "%(sql)"`).
 - **spy.properties 폐지**: 과거 `appender=Slf4JLogger`/`logMessageFormat=CustomLineFormat`/`customLogMessageFormat=%(sql)` 4줄을 `p6spy-spring-boot-starter`의 `decorator.datasource.p6spy.log-format` 프로퍼티로 흡수했다(appender는 starter 기본값이 Slf4JLogger라 생략, dateformat은 `%(sql)` 포맷에서 미사용). 동작은 동일하다.

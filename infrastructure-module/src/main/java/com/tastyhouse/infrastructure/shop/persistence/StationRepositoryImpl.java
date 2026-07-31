@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.core.domain.shop.domain.repository.StationRepository;
+import com.tastyhouse.domain.shop.domain.repository.StationRepository;
 
 @Repository
 @RequiredArgsConstructor
