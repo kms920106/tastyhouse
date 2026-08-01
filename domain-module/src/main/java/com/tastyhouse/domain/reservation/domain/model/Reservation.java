@@ -57,6 +57,16 @@ public class Reservation {
 
     /**
      * 신규 예약을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다. 초기 상태는 PENDING이다.
+     *
+     * <p>방문 인원수는 1명 이상이어야 한다 — 0명·음수 예약은 슬롯 정원을 차감하면서 실제 방문은 없는
+     * 모순된 상태가 된다.
+     *
+     * <p>과거 일시 검증은 여기 두지 않고 {@code ReservationBookingService}에 남긴다 — "지금"을 기준으로
+     * 판정하는 규칙이라 값 자체의 불변식이 아니고, 시간이 지나면 이미 저장된 예약도 위반 상태가 되어
+     * 재구성·재검증이 불가능해지기 때문이다(인원수는 시간과 무관한 순수 값 불변식이라 여기가 맞다).
+     *
+     * <p>{@link #reconstitute}는 이 검증을 <b>거치지 않는다</b> — 기존 DB 데이터가 새 불변식을 위반해도
+     * 로드는 가능해야 하기 때문이다.
      */
     public static Reservation of(
         MemberId memberId,
@@ -66,6 +76,11 @@ public class Reservation {
         Integer partySize,
         String request
     ) {
+        if (partySize == null || partySize < 1) {
+            throw new BusinessException(ErrorCode.RESERVATION_PARTY_SIZE_INVALID,
+                ErrorCode.RESERVATION_PARTY_SIZE_INVALID.getDefaultMessage() + ": " + partySize);
+        }
+
         return new Reservation(null, memberId, shopId, reservationDate, reservationTime, partySize,
             ReservationStatus.PENDING, request, null);
     }
@@ -73,6 +88,9 @@ public class Reservation {
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
      * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     *
+     * <p><b>{@link #of}와 달리 인원수 검증을 하지 않는다</b> — 불변식 도입 이전에 저장된 기존 예약이
+     * 새 규칙을 위반하더라도 로드는 가능해야 하기 때문이다.
      */
     public static Reservation reconstitute(
         Long id,

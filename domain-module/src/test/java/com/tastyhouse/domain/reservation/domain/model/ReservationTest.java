@@ -190,4 +190,42 @@ class ReservationTest {
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
         assertThat(reservation.getCreatedAt()).isEqualTo(createdAt);
     }
+
+    @Test
+    @DisplayName("of는 인원수 경계값 1명을 통과시킨다")
+    void of_partySizeOne_passes() {
+        Reservation reservation = Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, 1, null);
+
+        assertThat(reservation.getPartySize()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("of는 인원수가 0·음수·null이면 RESERVATION_PARTY_SIZE_INVALID로 거부한다")
+    @SuppressWarnings("DataFlowIssue") // null partySize 호출이 항상 실패하는 것이 이 테스트의 검증 대상이다
+    void of_invalidPartySize_throws() {
+        assertThatThrownBy(() -> Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, 0, null))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.RESERVATION_PARTY_SIZE_INVALID);
+
+        assertThatThrownBy(() -> Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, -1, null))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.RESERVATION_PARTY_SIZE_INVALID);
+
+        assertThatThrownBy(() -> Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, null, null))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.RESERVATION_PARTY_SIZE_INVALID);
+    }
+
+    @Test
+    @DisplayName("reconstitute는 인원수 검증을 하지 않는다(불변식 위반 레거시 행도 로드 가능)")
+    void reconstitute_bypassesPartySizeValidation() {
+        Reservation reservation = Reservation.reconstitute(
+            1L, MEMBER_ID, SHOP_ID, DATE, TIME, 0, ReservationStatus.CONFIRMED, null, null
+        );
+
+        assertThat(reservation.getPartySize()).isZero();
+    }
 }

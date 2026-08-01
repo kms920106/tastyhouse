@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.product.domain.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -126,5 +128,78 @@ class ProductTest {
 
         assertThatThrownBy(product::getProductId)
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static Product productWithPrices(Integer originalPrice, Integer discountPrice) {
+        return Product.of(
+            1L, 2L, "떡볶이", "매운맛", originalPrice,
+            discountPrice, null, null, 0, false, 3, false, true, 1
+        );
+    }
+
+    @Test
+    @DisplayName("of는 할인가가 정가와 같은 경계값을 통과시키고, 할인가 null(할인 없음)도 통과시킨다")
+    void of_priceBoundaries_pass() {
+        assertThat(productWithPrices(10000, 10000).getDiscountPrice()).isEqualTo(10000);
+        assertThat(productWithPrices(10000, null).getDiscountPrice()).isNull();
+        assertThat(productWithPrices(0, 0).getOriginalPrice()).isZero();
+    }
+
+    @Test
+    @DisplayName("of는 정가가 음수면 PRODUCT_PRICE_NEGATIVE로 거부한다")
+    void of_negativeOriginalPrice_throws() {
+        assertThatThrownBy(() -> productWithPrices(-1, null))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.PRODUCT_PRICE_NEGATIVE);
+    }
+
+    @Test
+    @DisplayName("of는 할인가가 음수면 PRODUCT_PRICE_NEGATIVE로 거부한다")
+    void of_negativeDiscountPrice_throws() {
+        assertThatThrownBy(() -> productWithPrices(10000, -1))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.PRODUCT_PRICE_NEGATIVE);
+    }
+
+    @Test
+    @DisplayName("of는 할인가가 정가보다 크면 PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL로 거부한다")
+    void of_discountPriceExceedsOriginal_throws() {
+        assertThatThrownBy(() -> productWithPrices(10000, 10001))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL);
+    }
+
+    @Test
+    @DisplayName("update도 of와 같은 가격 불변식을 강제한다(생성만 막고 변경을 열어두지 않는다)")
+    void update_enforcesSameInvariants() {
+        Product product = productWithPrices(10000, 8000);
+
+        assertThatThrownBy(() -> product.update(
+            3L, "국물떡볶이", "순한맛", 10000,
+            20000, null, true, 1, true, false, 2
+        ))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL);
+
+        // 실패한 update는 기존 상태를 바꾸지 않는다
+        assertThat(product.getName()).isEqualTo("떡볶이");
+        assertThat(product.getDiscountPrice()).isEqualTo(8000);
+    }
+
+    @Test
+    @DisplayName("reconstitute는 가격 불변식 검증을 하지 않는다(불변식 위반 레거시 행도 로드 가능)")
+    void reconstitute_bypassesPriceValidation() {
+        Product product = Product.reconstitute(
+            1L, 10L, 20L, "레거시상품", "설명", -5000,
+            ProductDiscountInfo.of(99999, null), null, 0, false, 3, false, true, 1,
+            null, null
+        );
+
+        assertThat(product.getOriginalPrice()).isEqualTo(-5000);
+        assertThat(product.getDiscountPrice()).isEqualTo(99999);
     }
 }

@@ -40,6 +40,11 @@ public enum ErrorCode {
     COUPON_NOT_AVAILABLE(400, "COUPON_NOT_AVAILABLE", "사용할 수 없는 쿠폰입니다."),
     COUPON_DISCOUNT_TYPE_UNKNOWN(400, "COUPON_DISCOUNT_TYPE_UNKNOWN", "알 수 없는 할인 유형입니다."),
     COUPON_ALREADY_ISSUED(409, "COUPON_ALREADY_ISSUED", "이미 발급된 쿠폰입니다."),
+    COUPON_DISCOUNT_AMOUNT_INVALID(400, "COUPON_DISCOUNT_AMOUNT_INVALID", "할인 금액은 1 이상이어야 합니다."),
+    COUPON_DISCOUNT_RATE_INVALID(400, "COUPON_DISCOUNT_RATE_INVALID", "할인율은 1 이상 100 이하여야 합니다."),
+    COUPON_AMOUNT_NEGATIVE(400, "COUPON_AMOUNT_NEGATIVE", "쿠폰 금액은 음수일 수 없습니다."),
+    COUPON_PERIOD_INVALID(400, "COUPON_PERIOD_INVALID", "쿠폰 기간의 시작 일시는 종료 일시보다 늦을 수 없습니다."),
+    COUPON_USE_END_AT_REQUIRED(400, "COUPON_USE_END_AT_REQUIRED", "쿠폰 사용 종료 일시는 필수입니다."),
 
     // 결제
     PAYMENT_ORDER_ACCESS_DENIED(403, "PAYMENT_ORDER_ACCESS_DENIED", "본인의 주문만 결제할 수 있습니다."),
@@ -198,6 +203,8 @@ public enum ErrorCode {
 
     // 상품
     PRODUCT_NOT_FOUND(404, "PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다."),
+    PRODUCT_PRICE_NEGATIVE(400, "PRODUCT_PRICE_NEGATIVE", "상품 가격은 음수일 수 없습니다."),
+    PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL(400, "PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL", "할인가는 정가보다 클 수 없습니다."),
 
     // 공지사항
     NOTICE_NOT_FOUND(404, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
@@ -285,6 +292,7 @@ public enum ErrorCode {
     RESERVATION_INVALID_TIME(400, "RESERVATION_INVALID_TIME", "예약할 수 없는 시간입니다."),
     RESERVATION_PAST_NOT_ALLOWED(400, "RESERVATION_PAST_NOT_ALLOWED", "지난 일시는 예약할 수 없습니다."),
     RESERVATION_TERMS_NOT_AGREED(400, "RESERVATION_TERMS_NOT_AGREED", "필수 약관에 동의해야 예약할 수 있습니다."),
+    RESERVATION_PARTY_SIZE_INVALID(400, "RESERVATION_PARTY_SIZE_INVALID", "방문 인원수는 1명 이상이어야 합니다."),
     DUPLICATE_RESERVATION(409, "DUPLICATE_RESERVATION", "이미 해당 날짜에 예약이 존재합니다. 예약을 변경하려면 기존 예약을 취소해주세요."),
 
     // 제휴 신청

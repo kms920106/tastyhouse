@@ -99,4 +99,32 @@ class MemberCouponTest {
         assertThat(memberCoupon.getUsedAt()).isEqualTo(usedAt);
         assertThat(memberCoupon.getExpiredAt()).isEqualTo(expiredAt);
     }
+
+    @Test
+    @DisplayName("expiredAt이 null이면 isExpired가 NPE 없이 false(무기한)를 반환한다")
+    void isExpired_withNullExpiredAt_returnsFalseWithoutNpe() {
+        MemberCoupon unlimited = MemberCoupon.of(MemberId.of(1L), 10L, false, null, null);
+
+        assertThat(unlimited.isExpired()).isFalse();
+        assertThat(unlimited.isAvailable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("expiredAt이 null인 레거시 행을 reconstitute해도 만료 판정이 NPE 없이 동작한다")
+    void isExpired_withNullExpiredAtOnReconstituted_doesNotThrow() {
+        MemberCoupon legacy = MemberCoupon.reconstitute(1L, MemberId.of(2L), 10L, false, null, null);
+
+        assertThat(legacy.isExpired()).isFalse();
+        assertThat(legacy.isAvailable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("expiredAt이 null이면 무기한이므로 use가 만료로 막히지 않는다")
+    void use_withNullExpiredAt_succeeds() {
+        MemberCoupon unlimited = MemberCoupon.of(MemberId.of(1L), 10L, false, null, null);
+
+        unlimited.use();
+
+        assertThat(unlimited.isUsed()).isTrue();
+    }
 }

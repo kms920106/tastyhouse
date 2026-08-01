@@ -367,4 +367,110 @@ class OrderTest {
         assertThat(order.getCreatedAt()).isEqualTo(createdAt);
         assertThat(order.getUpdatedAt()).isEqualTo(updatedAt);
     }
+
+    /**
+     * {@code of()} 금액 정합 불변식 — {@code updateAmounts}와 같은 검증({@code validateAmountConsistency})을
+     * 공유하므로, 여기서는 생성 경로에서도 그 검증이 실제로 걸리는지를 본다.
+     */
+    private Order orderWithAmounts(
+        Integer totalProductAmount,
+        Integer productDiscountAmount,
+        Integer couponDiscountAmount,
+        Integer pointDiscountAmount,
+        Integer totalDiscountAmount,
+        Integer finalAmount,
+        Integer usedPoint
+    ) {
+        return Order.of(
+            MEMBER_ID,
+            10L,
+            "ORD-001",
+            OrderMethod.TABLE,
+            null,
+            "홍길동",
+            "010-1234-5678",
+            "hong@test.com",
+            totalProductAmount,
+            productDiscountAmount,
+            couponDiscountAmount,
+            pointDiscountAmount,
+            totalDiscountAmount,
+            finalAmount,
+            null,
+            usedPoint,
+            0
+        );
+    }
+
+    @Test
+    @DisplayName("of는 금액 전부 생략(모두 0) 시 통과한다 — 기존 주문 접수 플로 무회귀")
+    void of_allZeroAmounts_passes() {
+        Order order = orderWithAmounts(null, null, null, null, null, null, null);
+
+        assertThat(order.getTotalProductAmount()).isZero();
+        assertThat(order.getFinalAmount()).isZero();
+    }
+
+    @Test
+    @DisplayName("of는 정합이 맞는 금액 조합을 통과시킨다(경계: 전액 할인으로 결제 금액 0)")
+    void of_consistentAmounts_passes() {
+        Order order = orderWithAmounts(10000, 1000, 500, 300, 1800, 8200, 300);
+        assertThat(order.getFinalAmount()).isEqualTo(8200);
+
+        Order fullyDiscounted = orderWithAmounts(10000, 10000, 0, 0, 10000, 0, 0);
+        assertThat(fullyDiscounted.getFinalAmount()).isZero();
+    }
+
+    @Test
+    @DisplayName("of는 음수 금액을 ORDER_AMOUNT_NEGATIVE로 거부한다")
+    void of_negativeAmount_throws() {
+        assertThatThrownBy(() -> orderWithAmounts(-1, 0, 0, 0, 0, -1, 0))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+    }
+
+    @Test
+    @DisplayName("of는 총 할인이 항목 합과 다르면 ORDER_AMOUNT_NOT_CONSISTENT로 거부한다")
+    void of_discountSumMismatch_throws() {
+        assertThatThrownBy(() -> orderWithAmounts(10000, 1000, 500, 300, 9999, 1, 300))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+    }
+
+    @Test
+    @DisplayName("of는 결제 금액이 상품금액-총할인과 다르면 ORDER_AMOUNT_NOT_CONSISTENT로 거부한다")
+    void of_finalAmountMismatch_throws() {
+        assertThatThrownBy(() -> orderWithAmounts(10000, 1000, 500, 300, 1800, 9999, 300))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+    }
+
+    @Test
+    @DisplayName("reconstitute는 금액 정합 검증을 하지 않는다(불변식 위반 레거시 행도 로드 가능)")
+    void reconstitute_bypassesAmountValidation() {
+        Order order = Order.reconstitute(
+            1L,
+            MEMBER_ID,
+            10L,
+            "ORD-001",
+            OrderMethod.TABLE,
+            OrderStatus.CONFIRMED,
+            "홍길동",
+            "010-1234-5678",
+            "hong@test.com",
+            -1, 0, 0, 0, 9999, -12345,
+            null,
+            0,
+            0,
+            false,
+            null,
+            null
+        );
+
+        assertThat(order.getFinalAmount()).isEqualTo(-12345);
+        assertThat(order.getTotalDiscountAmount()).isEqualTo(9999);
+    }
 }

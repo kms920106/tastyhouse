@@ -83,8 +83,19 @@ public class MemberCoupon {
         this.usedAt = LocalDateTime.now();
     }
 
+    /**
+     * 만료 여부. {@code expiredAt}이 null이면 <b>무기한(만료 없음)</b>으로 보아 false를 반환한다.
+     *
+     * <p>null을 무기한으로 해석하는 것이 이 도메인에서 안전한 쪽이다 — 반대로 "만료됨"으로 보면 만료일
+     * 정보가 없다는 이유만으로 정상 발급된 쿠폰의 사용이 막힌다. 신규 발급 경로는 이미 null이 될 수 없다:
+     * {@code expiredAt}은 {@code Coupon.getUseEndAt()}을 승계하고({@code CouponIssueService#issueCoupon}),
+     * {@code Coupon.of}가 {@code useEndAt} 필수를 강제한다. 따라서 null은 불변식 도입 이전에 저장된
+     * 레거시 행이 {@code reconstitute}로 로드된 경우에만 나타난다.
+     *
+     * <p>이 null 가드가 없으면 {@code LocalDateTime.now().isAfter(null)}로 NPE가 났다.
+     */
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiredAt);
+        return expiredAt != null && LocalDateTime.now().isAfter(expiredAt);
     }
 
     public boolean isAvailable() {

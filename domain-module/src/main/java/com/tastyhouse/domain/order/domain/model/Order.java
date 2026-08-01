@@ -92,6 +92,13 @@ public class Order {
 
     /**
      * 신규 주문을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     *
+     * <p>금액 정합 불변식({@link #validateAmountConsistency})을 {@code updateAmounts}와 동일하게 강제한다 —
+     * 같은 규칙을 두 벌로 구현하지 않도록 검증 메서드 하나를 양쪽에서 호출한다. null 금액은 0으로 정규화한
+     * 뒤 검증하므로, 전부 생략한 호출(모두 0)은 그대로 통과한다.
+     *
+     * <p>{@link #reconstitute}는 이 검증을 <b>거치지 않는다</b> — 기존 DB 데이터가 새 불변식을 위반해도
+     * 로드는 가능해야 하기 때문이다(신규 생성만 막고 기존 데이터는 읽힌다).
      */
     public static Order of(
         MemberId memberId,
@@ -112,6 +119,24 @@ public class Order {
         Integer usedPoint,
         Integer earnedPoint
     ) {
+        int normalizedTotalProduct = orZero(totalProductAmount);
+        int normalizedProductDiscount = orZero(productDiscountAmount);
+        int normalizedCouponDiscount = orZero(couponDiscountAmount);
+        int normalizedPointDiscount = orZero(pointDiscountAmount);
+        int normalizedTotalDiscount = orZero(totalDiscountAmount);
+        int normalizedFinalAmount = orZero(finalAmount);
+        int normalizedUsedPoint = orZero(usedPoint);
+
+        validateAmountConsistency(
+            normalizedTotalProduct,
+            normalizedProductDiscount,
+            normalizedCouponDiscount,
+            normalizedPointDiscount,
+            normalizedTotalDiscount,
+            normalizedFinalAmount,
+            normalizedUsedPoint
+        );
+
         return new Order(
             null,
             memberId,
@@ -122,15 +147,15 @@ public class Order {
             ordererName,
             ordererPhone,
             ordererEmail,
-            totalProductAmount != null ? totalProductAmount : 0,
-            productDiscountAmount != null ? productDiscountAmount : 0,
-            couponDiscountAmount != null ? couponDiscountAmount : 0,
-            pointDiscountAmount != null ? pointDiscountAmount : 0,
-            totalDiscountAmount != null ? totalDiscountAmount : 0,
-            finalAmount != null ? finalAmount : 0,
+            normalizedTotalProduct,
+            normalizedProductDiscount,
+            normalizedCouponDiscount,
+            normalizedPointDiscount,
+            normalizedTotalDiscount,
+            normalizedFinalAmount,
             memberCouponId,
-            usedPoint != null ? usedPoint : 0,
-            earnedPoint != null ? earnedPoint : 0,
+            normalizedUsedPoint,
+            orZero(earnedPoint),
             false,
             null,
             null
@@ -140,6 +165,9 @@ public class Order {
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
      * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     *
+     * <p><b>{@link #of}와 달리 금액 정합 검증을 하지 않는다</b> — 불변식 도입 이전에 저장된 기존 데이터가
+     * 새 규칙을 위반하더라도 로드는 가능해야 하기 때문이다(검증은 신규 생성 경로에서만 강제한다).
      */
     public static Order reconstitute(
         Long id,
@@ -307,11 +335,14 @@ public class Order {
     /**
      * 금액 정합 불변식을 검증한다 — 호출부가 null을 0으로 정규화한 값을 넘긴다.
      *
-     * <p>검증과 저장이 같은 정규화 값을 쓰도록 {@code updateAmounts}에서 한 번만 정규화한다 — 검증만
-     * null을 0으로 보고 저장은 raw null을 넣으면, 부분 null 입력이 검증을 통과한 뒤 불변식을 위반하는
-     * 상태로 저장된다.
+     * <p>검증과 저장이 같은 정규화 값을 쓰도록 호출부({@code of}·{@code updateAmounts})에서 한 번만
+     * 정규화한다 — 검증만 null을 0으로 보고 저장은 raw null을 넣으면, 부분 null 입력이 검증을 통과한 뒤
+     * 불변식을 위반하는 상태로 저장된다.
+     *
+     * <p>인스턴스 상태를 읽지 않으므로 {@code static}이다 — 그래야 신규 생성 경로({@code of})와 변경
+     * 경로({@code updateAmounts})가 <b>같은 검증 한 벌</b>을 공유할 수 있다.
      */
-    private void validateAmountConsistency(
+    private static void validateAmountConsistency(
         int totalProductAmount,
         int productDiscountAmount,
         int couponDiscountAmount,
