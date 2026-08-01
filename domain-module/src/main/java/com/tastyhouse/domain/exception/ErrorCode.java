@@ -26,6 +26,12 @@ public enum ErrorCode {
     ORDER_MINIMUM_AMOUNT_NOT_MET(400, "ORDER_MINIMUM_AMOUNT_NOT_MET", "최소 주문 금액을 충족하지 않습니다."),
     ORDER_METHOD_UNKNOWN(400, "ORDER_METHOD_UNKNOWN", "알 수 없는 주문 방법입니다."),
     ORDER_STATUS_UNKNOWN(400, "ORDER_STATUS_UNKNOWN", "알 수 없는 주문 상태입니다."),
+    ORDER_INVALID_STATUS_TRANSITION(400, "ORDER_INVALID_STATUS_TRANSITION", "현재 주문 상태에서는 해당 상태로 변경할 수 없습니다."),
+    ORDER_ALREADY_CANCELLED(409, "ORDER_ALREADY_CANCELLED", "이미 취소된 주문입니다."),
+    ORDER_ALREADY_COMPLETED(409, "ORDER_ALREADY_COMPLETED", "이미 완료된 주문은 변경할 수 없습니다."),
+    ORDER_ALREADY_PREPARING(409, "ORDER_ALREADY_PREPARING", "조리가 시작된 주문은 변경할 수 없습니다."),
+    ORDER_AMOUNT_NEGATIVE(400, "ORDER_AMOUNT_NEGATIVE", "주문 금액은 음수일 수 없습니다."),
+    ORDER_AMOUNT_NOT_CONSISTENT(400, "ORDER_AMOUNT_NOT_CONSISTENT", "주문 금액 합계가 일치하지 않습니다."),
 
     // 쿠폰
     COUPON_NOT_FOUND(404, "COUPON_NOT_FOUND", "쿠폰을 찾을 수 없습니다."),

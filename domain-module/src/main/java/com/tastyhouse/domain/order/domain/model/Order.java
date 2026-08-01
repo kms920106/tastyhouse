@@ -8,6 +8,7 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
@@ -198,22 +199,73 @@ public class Order {
         }
     }
 
+    /**
+     * 결제 승인 확정: PENDING -&gt; CONFIRMED.
+     *
+     * <p>확정 불가 상태는 사유별로 구분된 예외를 던져 안내 메시지를 세분화한다
+     * ({@code Reservation#cancel} 선례).
+     */
     public void confirm() {
-        this.orderStatus = OrderStatus.CONFIRMED;
+        transitionTo(OrderStatus.CONFIRMED);
     }
 
+    /**
+     * 결제 취소: PENDING|CONFIRMED -&gt; CANCELLED.
+     */
     public void cancel() {
-        this.orderStatus = OrderStatus.CANCELLED;
+        transitionTo(OrderStatus.CANCELLED);
     }
 
+    /**
+     * 관리자 수동 상태 변경 — 전이 테이블({@link OrderStatus#canTransitionTo})을 통과하는 전이만 허용한다.
+     *
+     * <p><b>폐기하지 않고 남긴 근거</b>: {@code PREPARING}·{@code COMPLETED}(조리 파이프라인)에 도달하는
+     * 경로가 admin-api의 {@code PATCH /api/orders/v1/{id}/status} 하나뿐이라, 이 메서드를 폐기하면 주문이
+     * {@code CONFIRMED}에서 더 진행되지 못한다. 따라서 "무검증 임의 전이"라는 구멍만 막고
+     * (기존에는 어떤 전이든 무조건 대입했다) 메서드 자체는 전이 테이블 검증을 태워 유지한다.
+     */
     public void changeStatus(OrderStatus status) {
-        this.orderStatus = status;
+        transitionTo(status);
+    }
+
+    /**
+     * 전이 테이블을 검증한 뒤 상태를 바꾼다. 불가 전이는 현재 상태별로 구분된 에러 코드로 실패시킨다.
+     */
+    private void transitionTo(OrderStatus target) {
+        if (this.orderStatus.canTransitionTo(target)) {
+            this.orderStatus = target;
+            return;
+        }
+        throw new BusinessException(resolveTransitionErrorCode());
+    }
+
+    /**
+     * 전이가 거부된 현재 상태에 맞는 에러 코드를 고른다 — 종결·진행 상태는 사용자에게 사유를 그대로 안내할 수
+     * 있도록 구분하고, 그 밖의 잘못된 전이는 일반 코드로 묶는다.
+     */
+    private ErrorCode resolveTransitionErrorCode() {
+        return switch (this.orderStatus) {
+            case CANCELLED -> ErrorCode.ORDER_ALREADY_CANCELLED;
+            case COMPLETED -> ErrorCode.ORDER_ALREADY_COMPLETED;
+            case PREPARING -> ErrorCode.ORDER_ALREADY_PREPARING;
+            case PENDING, CONFIRMED -> ErrorCode.ORDER_INVALID_STATUS_TRANSITION;
+        };
     }
 
     public void delete() {
         this.deleted = true;
     }
 
+    /**
+     * 확정된 주문 금액을 반영한다 — 애그리거트 불변식으로 금액 정합을 스스로 검증한다.
+     *
+     * <p>검증 항목: 모든 금액 음수 금지, {@code totalDiscountAmount == productDiscount + couponDiscount +
+     * pointDiscount}, {@code finalAmount == totalProductAmount - totalDiscountAmount}.
+     *
+     * <p>{@code OrderPlacementService#validateAmounts}의 검증과 역할이 다르다 — 그쪽은 "클라이언트가 보낸
+     * 금액과 서버 계산이 같은지" 대조(위조 방지)이고, 이쪽은 "저장되는 금액 자체가 성립하는지"를 보는
+     * 애그리거트 불변식이다. 따라서 클라이언트 경로를 거치지 않는 호출에도 정합이 보장된다.
+     */
     public void updateAmounts(
         Integer totalProductAmount,
         Integer productDiscountAmount,
@@ -224,14 +276,72 @@ public class Order {
         Long memberCouponId,
         Integer usedPoint
     ) {
-        this.totalProductAmount = totalProductAmount;
-        this.productDiscountAmount = productDiscountAmount;
-        this.couponDiscountAmount = couponDiscountAmount;
-        this.pointDiscountAmount = pointDiscountAmount;
-        this.totalDiscountAmount = totalDiscountAmount;
-        this.finalAmount = finalAmount;
+        int normalizedTotalProduct = orZero(totalProductAmount);
+        int normalizedProductDiscount = orZero(productDiscountAmount);
+        int normalizedCouponDiscount = orZero(couponDiscountAmount);
+        int normalizedPointDiscount = orZero(pointDiscountAmount);
+        int normalizedTotalDiscount = orZero(totalDiscountAmount);
+        int normalizedFinalAmount = orZero(finalAmount);
+        int normalizedUsedPoint = orZero(usedPoint);
+
+        validateAmountConsistency(
+            normalizedTotalProduct,
+            normalizedProductDiscount,
+            normalizedCouponDiscount,
+            normalizedPointDiscount,
+            normalizedTotalDiscount,
+            normalizedFinalAmount,
+            normalizedUsedPoint
+        );
+
+        this.totalProductAmount = normalizedTotalProduct;
+        this.productDiscountAmount = normalizedProductDiscount;
+        this.couponDiscountAmount = normalizedCouponDiscount;
+        this.pointDiscountAmount = normalizedPointDiscount;
+        this.totalDiscountAmount = normalizedTotalDiscount;
+        this.finalAmount = normalizedFinalAmount;
         this.memberCouponId = memberCouponId;
-        this.usedPoint = usedPoint;
+        this.usedPoint = normalizedUsedPoint;
+    }
+
+    /**
+     * 금액 정합 불변식을 검증한다 — 호출부가 null을 0으로 정규화한 값을 넘긴다.
+     *
+     * <p>검증과 저장이 같은 정규화 값을 쓰도록 {@code updateAmounts}에서 한 번만 정규화한다 — 검증만
+     * null을 0으로 보고 저장은 raw null을 넣으면, 부분 null 입력이 검증을 통과한 뒤 불변식을 위반하는
+     * 상태로 저장된다.
+     */
+    private void validateAmountConsistency(
+        int totalProductAmount,
+        int productDiscountAmount,
+        int couponDiscountAmount,
+        int pointDiscountAmount,
+        int totalDiscountAmount,
+        int finalAmount,
+        int usedPoint
+    ) {
+        if (totalProductAmount < 0 || productDiscountAmount < 0 || couponDiscountAmount < 0
+            || pointDiscountAmount < 0 || totalDiscountAmount < 0 || finalAmount < 0 || usedPoint < 0) {
+            throw new BusinessException(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+        }
+
+        int discountSum = productDiscountAmount + couponDiscountAmount + pointDiscountAmount;
+        if (totalDiscountAmount != discountSum) {
+            throw new BusinessException(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT,
+                ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT.getDefaultMessage()
+                    + " 총 할인: " + totalDiscountAmount + ", 항목 합: " + discountSum);
+        }
+
+        if (finalAmount != totalProductAmount - totalDiscountAmount) {
+            throw new BusinessException(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT,
+                ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT.getDefaultMessage()
+                    + " 결제 금액: " + finalAmount
+                    + ", 상품 금액 - 총 할인: " + (totalProductAmount - totalDiscountAmount));
+        }
+    }
+
+    private static int orZero(Integer value) {
+        return value != null ? value : 0;
     }
 
     public void updateEarnedPoint(Integer earnedPoint) {

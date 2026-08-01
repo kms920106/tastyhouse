@@ -14,7 +14,9 @@ import com.tastyhouse.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -88,10 +90,52 @@ class OrderTransitionServiceTest {
         Fixture fixture = new Fixture();
         Order order = fixture.service.load(OrderId.of(ORDER_ID));
 
-        fixture.service.changeStatus(order, OrderStatus.COMPLETED);
+        fixture.service.changeStatus(order, OrderStatus.CANCELLED);
 
         assertThat(fixture.orderRepository.saved).hasSize(1);
-        assertThat(fixture.orderRepository.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
+        assertThat(fixture.orderRepository.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("전이 테이블이 막는 상태 변경은 저장 없이 BusinessException으로 실패한다")
+    void changeStatus_invalidTransition_throwsAndDoesNotSave() {
+        Fixture fixture = new Fixture();
+
+        // PENDING -> COMPLETED 는 단계 건너뛰기라 허용하지 않는다
+        assertThatThrownBy(() -> fixture.service.changeStatus(OrderId.of(ORDER_ID), OrderStatus.COMPLETED))
+            .isInstanceOf(BusinessException.class);
+
+        assertThat(fixture.orderRepository.saved).isEmpty();
+    }
+
+    @Test
+    @DisplayName("이미 취소된 주문의 결제 확정은 저장 없이 ORDER_ALREADY_CANCELLED로 실패한다")
+    void confirm_onCancelledOrder_throwsAndDoesNotSave() {
+        Fixture fixture = new Fixture();
+        fixture.orderRepository.stored = Fixture.orderWithStatus(OrderStatus.CANCELLED);
+        Order order = fixture.service.load(OrderId.of(ORDER_ID));
+
+        assertThatThrownBy(() -> fixture.service.confirm(order))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.ORDER_ALREADY_CANCELLED);
+
+        assertThat(fixture.orderRepository.saved).isEmpty();
+    }
+
+    @Test
+    @DisplayName("조리 시작된 주문의 결제 취소는 저장 없이 ORDER_ALREADY_PREPARING으로 실패한다")
+    void cancel_onPreparingOrder_throwsAndDoesNotSave() {
+        Fixture fixture = new Fixture();
+        fixture.orderRepository.stored = Fixture.orderWithStatus(OrderStatus.PREPARING);
+        Order order = fixture.service.load(OrderId.of(ORDER_ID));
+
+        assertThatThrownBy(() -> fixture.service.cancel(order))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.ORDER_ALREADY_PREPARING);
+
+        assertThat(fixture.orderRepository.saved).isEmpty();
     }
 
     @Test
@@ -135,17 +179,17 @@ class OrderTransitionServiceTest {
         private final OrderTransitionService service = new OrderTransitionService(orderRepository);
 
         private Fixture() {
-            orderRepository.stored = pendingOrder();
+            orderRepository.stored = orderWithStatus(OrderStatus.PENDING);
         }
 
-        private static Order pendingOrder() {
+        private static Order orderWithStatus(OrderStatus status) {
             return Order.reconstitute(
                 ORDER_ID,
                 MemberId.of(MEMBER_ID),
                 1L,
                 "ORD-20260731000000-ABCDEF123456",
                 OrderMethod.DELIVERY,
-                OrderStatus.PENDING,
+                status,
                 "홍길동",
                 "01012345678",
                 "hong@example.com",
