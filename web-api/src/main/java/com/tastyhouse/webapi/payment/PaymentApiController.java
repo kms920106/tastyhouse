@@ -41,16 +41,15 @@ public class PaymentApiController {
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
 
-    @Operation(summary = "결제 생성", description = "주문에 대한 결제를 생성합니다.")
+    @Operation(summary = "결제 생성", description = "주문에 대한 결제를 생성합니다. 생성된 결제 ID를 반환합니다.")
     @PostMapping("/v1")
-    public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
+    public ResponseEntity<ApiResponse<Long>> createPayment(
         @Valid @RequestBody PaymentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
         Long paymentId = paymentCommandService.createPayment(memberId, request.orderId(), request.paymentMethod());
-        PaymentResponse response = paymentQueryService.getPayment(memberId, paymentId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(paymentId));
     }
 
     @Operation(summary = "결제 승인 (PG 콜백)", description = "PG사로부터 결제 승인을 처리합니다.")

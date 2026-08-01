@@ -22,7 +22,6 @@ import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.request.OrderCreateRequest;
-import com.tastyhouse.webapi.order.response.OrderCreateResponse;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
 
 @RestController
@@ -34,9 +33,9 @@ public class OrderApiController {
     private final OrderCommandService orderCommandService;
     private final OrderQueryService orderQueryService;
 
-    @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
+    @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다. 생성된 주문 ID를 반환합니다.")
     @PostMapping("/v1")
-    public ResponseEntity<ApiResponse<OrderCreateResponse>> createOrder(
+    public ResponseEntity<ApiResponse<Long>> createOrder(
         @Valid @RequestBody OrderCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
@@ -53,7 +52,7 @@ public class OrderApiController {
             request.couponDiscountAmount(),
             request.finalAmount()
         );
-        return ResponseEntity.ok(ApiResponse.success(OrderCreateResponse.from(orderId)));
+        return ResponseEntity.ok(ApiResponse.success(orderId));
     }
 
     @Operation(summary = "주문 목록 조회", description = "회원의 주문 목록을 조회합니다.")

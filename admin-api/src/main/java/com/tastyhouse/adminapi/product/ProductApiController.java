@@ -123,16 +123,16 @@ public class ProductApiController {
         return ResponseEntity.ok(ApiResponse.success(optionGroupId));
     }
 
-    @Operation(summary = "상품 옵션 등록", description = "옵션그룹에 새로운 옵션을 등록합니다.")
+    @Operation(summary = "상품 옵션 등록", description = "옵션그룹에 새로운 옵션을 등록하고, 등록된 옵션의 ID를 반환합니다.")
     @PostMapping("/v1/option-groups/{groupId}/options")
-    public ResponseEntity<ApiResponse<Void>> createProductOption(
+    public ResponseEntity<ApiResponse<Long>> createProductOption(
         @PathVariable Long groupId,
         @Valid @RequestBody ProductOptionCreateRequest request
     ) {
-        productCommandService.createProductOption(
+        Long optionId = productCommandService.createProductOption(
             groupId, request.name(), request.additionalPrice(), request.sort(), request.soldOut(), request.visible()
         );
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success(optionId));
     }
 
     @Operation(summary = "상품 이미지 목록 조회", description = "상품에 등록된 이미지 URL 목록을 조회합니다.")
@@ -142,14 +142,14 @@ public class ProductApiController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "상품 이미지 등록", description = "사전 업로드된 파일을 상품 이미지로 등록합니다.")
+    @Operation(summary = "상품 이미지 등록", description = "사전 업로드된 파일을 상품 이미지로 등록하고, 등록된 이미지의 ID를 반환합니다.")
     @PostMapping("/v1/{id}/images")
-    public ResponseEntity<ApiResponse<Void>> createProductImage(
+    public ResponseEntity<ApiResponse<Long>> createProductImage(
         @PathVariable Long id,
         @Valid @RequestBody ProductImageCreateRequest request
     ) {
-        productCommandService.createProductImage(id, request.imageFileId(), request.sort(), request.visible());
-        return ResponseEntity.ok(ApiResponse.success(null));
+        Long imageId = productCommandService.createProductImage(id, request.imageFileId(), request.sort(), request.visible());
+        return ResponseEntity.ok(ApiResponse.success(imageId));
     }
 
     @Operation(summary = "상품 카테고리 목록 조회", description = "매장의 상품 카테고리 목록을 조회합니다.")

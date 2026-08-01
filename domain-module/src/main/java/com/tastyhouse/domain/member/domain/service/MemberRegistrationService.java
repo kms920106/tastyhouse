@@ -47,8 +47,10 @@ public class MemberRegistrationService {
     /**
      * 아이디·비밀번호 기반 일반 가입. 아이디/닉네임/휴대폰 중복을 검증한 뒤 저장하고, 추천인이 지정되면
      * 추천 관계까지 등록한다.
+     *
+     * @return 생성된 회원의 식별자
      */
-    public void signUp(
+    public Long signUp(
         String username,
         String encodedPassword,
         String nickname,
@@ -78,6 +80,8 @@ public class MemberRegistrationService {
 
         registerReferralIfPresent(member, nickname, referrerNickname);
         publishRegistered(member);
+
+        return member.getMemberId().value();
     }
 
     /**

@@ -42,11 +42,11 @@ public class AuthApiController {
 
     private final AuthService authService;
 
-    @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(smsVerifyToken)이 필요합니다.")
+    @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(smsVerifyToken)이 필요합니다. 생성된 회원의 식별자(id)를 반환합니다.")
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:signup")
     @PostMapping("/v1/signup")
-    public ResponseEntity<ApiResponse<Void>> signUp(@Valid @RequestBody SignUpRequest request) {
-        authService.signUp(
+    public ResponseEntity<ApiResponse<Long>> signUp(@Valid @RequestBody SignUpRequest request) {
+        Long memberId = authService.signUp(
             request.username(),
             request.password(),
             request.nickname(),
@@ -61,7 +61,7 @@ public class AuthApiController {
             request.mailVerifyToken(),
             request.referrerNickname()
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(memberId));
     }
 
     @Operation(summary = "로그인", description = "사용자 인증을 통해 JWT 토큰을 발급합니다.")

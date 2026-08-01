@@ -42,7 +42,7 @@ public class MemberCommandService {
     private final MemberWithdrawalService memberWithdrawalService;
     private final PasswordEncoder passwordEncoder;
 
-    public void signUp(
+    public Long signUp(
         String username,
         String rawPassword,
         String nickname,
@@ -55,7 +55,7 @@ public class MemberCommandService {
         boolean eventInfoEnabled,
         String referrerNickname
     ) {
-        memberRegistrationService.signUp(
+        return memberRegistrationService.signUp(
             username,
             passwordEncoder.encode(rawPassword),
             nickname,

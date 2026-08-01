@@ -27,8 +27,8 @@ public class FollowService {
     private final FollowCommandService followCommandService;
     private final FollowQueryService followQueryService;
 
-    public void follow(Long followerId, Long followingId) {
-        followCommandService.follow(followerId, followingId);
+    public Long follow(Long followerId, Long followingId) {
+        return followCommandService.follow(followerId, followingId);
     }
 
     public void unfollow(Long followerId, Long followingId) {

@@ -30,14 +30,12 @@ import com.tastyhouse.webapi.review.request.ReviewSearchRequest;
 import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.response.ReviewBestListItemResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentListResponse;
-import com.tastyhouse.webapi.review.response.ReviewCommentResponse;
 import com.tastyhouse.webapi.review.response.ReviewDetailResponse;
 import com.tastyhouse.webapi.review.response.ReviewLatestListItemResponse;
 import com.tastyhouse.webapi.review.response.ReviewLikeResponse;
 import com.tastyhouse.webapi.review.response.ReviewLikeStatusResponse;
 import com.tastyhouse.webapi.review.response.ReviewMemberListItemResponse;
 import com.tastyhouse.webapi.review.response.ReviewProductResponse;
-import com.tastyhouse.webapi.review.response.ReviewReplyResponse;
 import com.tastyhouse.webapi.review.response.ReviewResponse;
 import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
 
@@ -60,9 +58,9 @@ public class ReviewApiController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "리뷰 등록", description = "리뷰를 등록합니다. orderProductId가 있으면 주문 기반 인증 리뷰, 없으면 일반 리뷰로 등록됩니다.")
+    @Operation(summary = "리뷰 등록", description = "리뷰를 등록합니다. orderProductId가 있으면 주문 기반 인증 리뷰, 없으면 일반 리뷰로 등록됩니다. 생성된 리뷰 ID를 반환합니다.")
     @PostMapping("/v1")
-    public ResponseEntity<ApiResponse<ReviewResponse>> createReview(
+    public ResponseEntity<ApiResponse<Long>> createReview(
         @Valid @RequestBody ReviewCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
@@ -77,8 +75,7 @@ public class ReviewApiController {
             request.uploadedFileIds(),
             request.tags()
         );
-        ReviewResponse response = reviewQueryService.getReviewResponse(reviewId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(reviewId));
     }
 
     @Operation(summary = "리뷰 수정", description = "본인이 작성한 리뷰를 수정합니다.")
@@ -175,28 +172,26 @@ public class ReviewApiController {
         return ResponseEntity.ok(ApiResponse.success(ReviewLikeResponse.from(liked)));
     }
 
-    @Operation(summary = "댓글 등록", description = "리뷰에 댓글을 등록합니다.")
+    @Operation(summary = "댓글 등록", description = "리뷰에 댓글을 등록합니다. 생성된 댓글 ID를 반환합니다.")
     @PostMapping("/v1/{reviewId}/comments")
-    public ResponseEntity<ApiResponse<ReviewCommentResponse>> createComment(
+    public ResponseEntity<ApiResponse<Long>> createComment(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
         @Valid @RequestBody CommentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long commentId = reviewCommandService.createComment(reviewId, userDetails.getMemberId(), request.content());
-        ReviewCommentResponse response = reviewQueryService.getCommentResponse(commentId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(commentId));
     }
 
-    @Operation(summary = "답글 등록", description = "댓글에 답글을 등록합니다.")
+    @Operation(summary = "답글 등록", description = "댓글에 답글을 등록합니다. 생성된 답글 ID를 반환합니다.")
     @PostMapping("/v1/comments/{commentId}/replies")
-    public ResponseEntity<ApiResponse<ReviewReplyResponse>> createReply(
+    public ResponseEntity<ApiResponse<Long>> createReply(
         @Parameter(description = "댓글 ID", example = "1") @PathVariable Long commentId,
         @Valid @RequestBody ReplyCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long replyId = reviewCommandService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
-        ReviewReplyResponse response = reviewQueryService.getReplyResponse(replyId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(replyId));
     }
 
     @Operation(summary = "댓글 및 답글 조회", description = "리뷰의 모든 댓글과 답글을 조회합니다.")

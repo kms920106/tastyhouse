@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.EntityNotFoundException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.infrastructure.shop.query.ShopHygieneBadgeResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.adminapi.shop.response.ShopHygieneBadgeResponse;
@@ -26,17 +24,6 @@ public class ShopHygieneBadgeQueryService {
         return shopQueryDao.findHygieneBadges(shopId).stream()
             .map(this::toShopHygieneBadgeResponse)
             .toList();
-    }
-
-    /**
-     * 뱃지 등록 응답 — 명령이 돌려준 식별자로 커밋 이후 재조회해 조립한다
-     * ({@link ShopHygieneBadgeCommandService}가 식별자만 반환하므로).
-     */
-    public ShopHygieneBadgeResponse getHygieneBadge(Long hygieneBadgeId) {
-        ShopHygieneBadgeResult badge = shopQueryDao.findHygieneBadge(hygieneBadgeId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_HYGIENE_BADGE_NOT_FOUND));
-
-        return toShopHygieneBadgeResponse(badge);
     }
 
     private ShopHygieneBadgeResponse toShopHygieneBadgeResponse(ShopHygieneBadgeResult dto) {

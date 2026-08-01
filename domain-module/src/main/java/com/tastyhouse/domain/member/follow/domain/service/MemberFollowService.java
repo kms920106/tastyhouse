@@ -32,7 +32,10 @@ public class MemberFollowService {
         this.memberRepository = memberRepository;
     }
 
-    public void follow(MemberId followerId, MemberId followingId) {
+    /**
+     * @return 생성된 팔로우 관계의 식별자
+     */
+    public Long follow(MemberId followerId, MemberId followingId) {
         if (followerId.equals(followingId)) {
             throw new BusinessException(ErrorCode.FOLLOW_SELF_NOT_ALLOWED);
         }
@@ -45,7 +48,8 @@ public class MemberFollowService {
             throw new BusinessException(ErrorCode.FOLLOW_ALREADY_EXISTS);
         }
 
-        memberFollowRepository.save(MemberFollow.of(followerId, followingId));
+        MemberFollow saved = memberFollowRepository.save(MemberFollow.of(followerId, followingId));
+        return saved.getId();
     }
 
     public void unfollow(MemberId followerId, MemberId followingId) {

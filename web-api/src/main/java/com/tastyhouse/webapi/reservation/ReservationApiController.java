@@ -46,9 +46,9 @@ public class ReservationApiController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "예약 생성", description = "가게 시간 슬롯에 예약을 신청합니다. (PENDING)")
+    @Operation(summary = "예약 생성", description = "가게 시간 슬롯에 예약을 신청합니다. (PENDING) 생성된 예약 ID를 반환합니다.")
     @PostMapping("/v1")
-    public ResponseEntity<ApiResponse<ReservationResponse>> create(
+    public ResponseEntity<ApiResponse<Long>> create(
         @Valid @RequestBody ReservationCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
@@ -61,9 +61,8 @@ public class ReservationApiController {
             request.request(),
             request.agreedRequiredTerms()
         );
-        ReservationResponse response = reservationQueryService.getReservation(reservationId);
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(response));
+            .body(ApiResponse.success(reservationId));
     }
 
     @Operation(summary = "내 예약 목록 조회", description = "로그인한 회원의 예약 목록을 조회합니다.")

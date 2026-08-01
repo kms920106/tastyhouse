@@ -21,10 +21,10 @@ public class FollowCommandService {
 
     private final MemberFollowService memberFollowService;
 
-    public void follow(Long followerId, Long followingId) {
+    public Long follow(Long followerId, Long followingId) {
         MemberId followerMemberId = MemberId.of(followerId);
         MemberId followingMemberId = MemberId.of(followingId);
-        memberFollowService.follow(followerMemberId, followingMemberId);
+        return memberFollowService.follow(followerMemberId, followingMemberId);
     }
 
     public void unfollow(Long followerId, Long followingId) {

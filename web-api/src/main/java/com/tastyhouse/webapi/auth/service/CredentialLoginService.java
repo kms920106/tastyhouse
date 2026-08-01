@@ -22,8 +22,8 @@ public class CredentialLoginService {
     private final MemberCommandService memberCommandService;
     private final MemberAuthService memberAuthService;
 
-    // 회원가입 토큰 검증 후 신규 회원을 등록
-    public void signUp(String username, String password,
+    // 회원가입 토큰 검증 후 신규 회원을 등록하고 생성된 회원 식별자를 반환
+    public Long signUp(String username, String password,
                        String nickname, String fullName,
                        MemberGender gender, Integer birthDate, String phoneNumber,
                        boolean pushNotificationEnabled,
@@ -31,7 +31,7 @@ public class CredentialLoginService {
                        String smsVerifyToken, String mailVerifyToken,
                        String referrerNickname) {
         memberAuthService.verifySignUpTokens(phoneNumber, smsVerifyToken, username, mailVerifyToken);
-        memberCommandService.signUp(
+        return memberCommandService.signUp(
             username, password, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
             referrerNickname

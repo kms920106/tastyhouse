@@ -48,6 +48,7 @@
 - **최초 점주 계정은 부팅 시드로 주입**된다(`config/CeoSeeder`+`CeoSeedProperties`, admin-api `AdminSeeder` 패턴과 동일). `ceo.seed.password`가 기본 센티넬(`__UNSET__`)이면 fail-fast로 부팅을 거부하므로, 운영/최초 기동 시 `CEO_SEED_PASSWORD` 환경변수가 필수다.
 - **`jwt.secret`은 web-api·admin-api와 반드시 달라야 한다**(ceo=`JWT_SECRET_CEO`). 동일 시크릿이면 다른 API의 토큰이 점주 인증을 통과하는 권한 상승이 발생한다 — 상세는 `security-module/AGENTS.md`.
 - **Redis 키 접두사는 점주 전용으로 분리**: refresh `ceo:rt:`, blacklist `ceo:bl:` (web=`rt:`/`bl:`, admin=`admin:rt:`/`admin:bl:`와 겹치지 않음).
+- **등록(POST) API는 생성된 `Long` id만 반환**한다: `ResponseEntity<ApiResponse<Long>>`로 PK 하나만 반환하고, 생성 응답 전용 래퍼 record를 만들거나 생성 직후 QueryService로 재조회해 상세 DTO를 반환하지 않는다. 벌크 등록은 `ApiResponse<List<Long>>`(reference: `ShopSuspensionApiController#createSuspension`). 검증 전용 POST(`ShopIntroductionApiController#validateIntroduction`)·인증/토큰 발급·토글/상태전이는 리소스 등록이 아니므로 적용 제외. 이 모듈은 shop 하위 등록 API 전부가 이미 이 형태이며 프로젝트 reference 구현이다. 상세는 루트 CLAUDE.md 참고.
 
 ## Dependencies
 

@@ -48,15 +48,15 @@ public class AuthService {
     private final AppleSocialLoginService appleSocialLoginService;
     private final PhoneLoginService phoneLoginService;
 
-    // 회원가입
-    public void signUp(String username, String password,
+    // 회원가입 (생성된 회원 식별자를 반환)
+    public Long signUp(String username, String password,
                        String nickname, String fullName,
                        String gender, Integer birthDate, String phoneNumber,
                        boolean pushNotificationEnabled,
                        boolean marketingInfoEnabled, boolean eventInfoEnabled,
                        String smsVerifyToken, String mailVerifyToken,
                        String referrerNickname) {
-        credentialLoginService.signUp(
+        return credentialLoginService.signUp(
             username, password, nickname, fullName, MemberGender.from(gender), birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
             smsVerifyToken, mailVerifyToken, referrerNickname

@@ -126,7 +126,7 @@ public class ProductCommandService {
         return optionGroup.getId();
     }
 
-    public void createProductOption(
+    public Long createProductOption(
         Long groupId,
         String name,
         Integer additionalPrice,
@@ -134,11 +134,11 @@ public class ProductCommandService {
         boolean soldOut,
         boolean visible
     ) {
-        productRegistrationService.saveProductOption(groupId, name, additionalPrice, sort, soldOut, visible);
+        return productRegistrationService.saveProductOption(groupId, name, additionalPrice, sort, soldOut, visible);
     }
 
-    public void createProductImage(Long id, Long imageFileId, Integer sort, boolean visible) {
-        productRegistrationService.saveProductImage(id, imageFileId, sort, visible);
+    public Long createProductImage(Long id, Long imageFileId, Integer sort, boolean visible) {
+        return productRegistrationService.saveProductImage(id, imageFileId, sort, visible);
     }
 
     public Long createProductCategory(Long shopId, String name, Integer sort, boolean visible) {

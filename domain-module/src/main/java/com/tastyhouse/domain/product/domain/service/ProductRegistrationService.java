@@ -181,9 +181,10 @@ public class ProductRegistrationService {
     /**
      * 상품 이미지 등록.
      */
-    public void saveProductImage(Long productId, Long imageFileId, Integer sort, boolean visible) {
+    public Long saveProductImage(Long productId, Long imageFileId, Integer sort, boolean visible) {
         ProductImage image = ProductImage.of(productId, imageFileId, sort, visible);
-        productImageRepository.save(image);
+        ProductImage saved = productImageRepository.save(image);
+        return saved.getId();
     }
 
     /**
@@ -217,7 +218,7 @@ public class ProductRegistrationService {
     /**
      * 상품 옵션 등록.
      */
-    public void saveProductOption(
+    public Long saveProductOption(
         Long optionGroupId,
         String name,
         Integer additionalPrice,
@@ -226,7 +227,8 @@ public class ProductRegistrationService {
         boolean visible
     ) {
         ProductOption option = ProductOption.of(optionGroupId, name, additionalPrice, sort, soldOut, visible);
-        productOptionRepository.save(option);
+        ProductOption saved = productOptionRepository.save(option);
+        return saved.getId();
     }
 
     /**

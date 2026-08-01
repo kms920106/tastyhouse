@@ -51,6 +51,7 @@
 - **`jwt.secret`은 admin-api와 반드시 달라야 한다**(web=`JWT_SECRET`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과한다 — 상세는 `security-module/AGENTS.md`.
 - 소셜 로그인은 `auth/{kakao,naver,apple,facebook}` — 실제 외부 호출은 `external-api`에 위임.
 - 응답은 공통 래퍼(`common/`)로 일관화.
+- **등록(POST) API는 생성된 `Long` id만 반환**한다: `ResponseEntity<ApiResponse<Long>>`로 PK 하나만 반환하고, **생성 직후 `{도메인}QueryService`로 재조회해 상세 DTO를 반환하지 않는다**(과거 이 모듈만 등록 8종이 재조회 DTO 형태였으나 전면 전환됨). 생성 응답 전용 래퍼 record(`OrderCreateResponse` 등)를 만들지 않고, 행을 생성하고도 `ApiResponse<Void>`를 반환하지 않는다(`signUp`·`follow`도 id 반환). 상세가 필요한 클라이언트는 그 id로 GET 상세를 호출한다. 파일 업로드(`FileApiController#upload`)·인증/토큰 발급(소셜 로그인·`signUpSocialAccount`·인증코드 확인 등)·토글(`toggleBookmark`·`toggleReviewLike`)·상태전이(payment `confirm`/`cancel`/`refund`, reservation `confirm`/`reject`/`complete`)·POST-as-query(`getProductsBatch`)는 적용 제외. 상세는 루트 CLAUDE.md 참고.
 
 ## Dependencies
 

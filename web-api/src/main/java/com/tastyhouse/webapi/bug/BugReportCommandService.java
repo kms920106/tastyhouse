@@ -19,8 +19,9 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
  * {@link BugReportRegistrationService}에 위임한다(공통 지침 패턴 1·2). 이 서비스는 트랜잭션 경계와
  * 경계 타입 승격(Long→VO, String→core enum)만 담당한다.
  *
- * <p>CQRS 규칙대로 <b>식별자만</b> 반환한다 — 등록 응답 조립은 커밋 이후 컨트롤러가
- * {@link BugReportQueryService}로 재조회해 담당한다.
+ * <p>CQRS 규칙대로 <b>식별자만</b> 반환하며, 컨트롤러도 그 식별자를 그대로 응답한다 — 등록 응답은
+ * 생성된 id 하나이므로 재조회로 상세를 조립하지 않는다(등록 API 응답 본문 규칙). 상세가 필요한
+ * 클라이언트는 반환받은 id로 별도 조회를 호출한다.
  */
 @Service
 @Transactional

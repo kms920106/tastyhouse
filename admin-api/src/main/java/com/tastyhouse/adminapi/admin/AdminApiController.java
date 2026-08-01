@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.adminapi.common.ApiResponse;
 import com.tastyhouse.adminapi.admin.request.AdminCreateRequest;
-import com.tastyhouse.adminapi.admin.response.AdminCreateResponse;
 
 @Tag(name = "Admin", description = "관리자 계정 관리 API")
 @RestController
@@ -24,10 +23,10 @@ public class AdminApiController {
 
     private final AdminCommandService adminCommandService;
 
-    @Operation(summary = "관리자 계정 생성", description = "신규 관리자 계정을 생성합니다. 최고관리자(SUPER_ADMIN)만 호출할 수 있습니다.")
+    @Operation(summary = "관리자 계정 생성", description = "신규 관리자 계정을 생성합니다. 최고관리자(SUPER_ADMIN)만 호출할 수 있습니다. 생성된 관리자 ID를 반환합니다.")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping("/v1")
-    public ResponseEntity<ApiResponse<AdminCreateResponse>> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
+    public ResponseEntity<ApiResponse<Long>> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
         Long id = adminCommandService.createAdmin(
             request.username(),
             request.password(),
@@ -35,6 +34,6 @@ public class AdminApiController {
             request.role()
         );
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success(AdminCreateResponse.from(id)));
+            .body(ApiResponse.success(id));
     }
 }

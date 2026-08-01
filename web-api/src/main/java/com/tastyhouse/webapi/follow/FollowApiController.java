@@ -33,14 +33,14 @@ public class FollowApiController {
 
     private final FollowService followService;
 
-    @Operation(summary = "팔로우", description = "특정 회원을 팔로우합니다.")
+    @Operation(summary = "팔로우", description = "특정 회원을 팔로우합니다. 생성된 팔로우 관계의 식별자(id)를 반환합니다.")
     @PostMapping("/v1/{memberId}")
-    public ResponseEntity<ApiResponse<Void>> follow(
+    public ResponseEntity<ApiResponse<Long>> follow(
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "팔로우할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
-        followService.follow(userDetails.getMemberId(), memberId);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        Long followId = followService.follow(userDetails.getMemberId(), memberId);
+        return ResponseEntity.ok(ApiResponse.success(followId));
     }
 
     @Operation(summary = "언팔로우", description = "특정 회원을 언팔로우합니다.")

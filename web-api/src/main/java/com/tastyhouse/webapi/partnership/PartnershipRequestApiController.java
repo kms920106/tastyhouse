@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.common.ApiResponse;
 import com.tastyhouse.webapi.partnership.request.PartnershipRequestCreateRequest;
-import com.tastyhouse.webapi.partnership.response.PartnershipRequestResponse;
 
 @RestController
 @RequestMapping("/api/partnership-requests")
@@ -21,11 +20,10 @@ import com.tastyhouse.webapi.partnership.response.PartnershipRequestResponse;
 public class PartnershipRequestApiController {
 
     private final PartnershipCommandService partnershipCommandService;
-    private final PartnershipQueryService partnershipQueryService;
 
-    @Operation(summary = "광고 및 제휴 신청", description = "광고 및 제휴를 신청합니다. 상호명, 위치 정보(주소, 상세주소), 성명, 연락처, 상담신청시간을 포함합니다.")
+    @Operation(summary = "광고 및 제휴 신청", description = "광고 및 제휴를 신청합니다. 상호명, 위치 정보(주소, 상세주소), 성명, 연락처, 상담신청시간을 포함합니다. 생성된 제휴 신청 ID를 반환합니다.")
     @PostMapping("/v1")
-    public ResponseEntity<ApiResponse<PartnershipRequestResponse>> createPartnershipRequest(
+    public ResponseEntity<ApiResponse<Long>> createPartnershipRequest(
         @Valid @RequestBody PartnershipRequestCreateRequest request
     ) {
         Long partnershipRequestId = partnershipCommandService.createPartnershipRequest(
@@ -36,7 +34,6 @@ public class PartnershipRequestApiController {
             request.contactPhone(),
             request.consultationRequestedAt()
         );
-        PartnershipRequestResponse response = partnershipQueryService.getPartnershipRequestResponse(partnershipRequestId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(partnershipRequestId));
     }
 }

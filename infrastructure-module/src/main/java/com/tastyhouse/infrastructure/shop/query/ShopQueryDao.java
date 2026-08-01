@@ -201,26 +201,6 @@ public class ShopQueryDao {
             .fetch();
     }
 
-    /**
-     * 위생 인증 뱃지 단건 — 등록 직후 컨트롤러가 응답을 조립하려고 재조회할 때 쓴다.
-     *
-     * <p>{@link #findHygieneBadges}와 같은 투영을 쓰되 가게 단위가 아니라 뱃지 식별자로 한 건만 집는다 —
-     * admin 등록 명령이 식별자만 반환하므로(CQRS 교차 주입 금지) 응답 조립에 이 조회가 필요하다.
-     */
-    public Optional<ShopHygieneBadgeResult> findHygieneBadge(Long hygieneBadgeId) {
-        return Optional.ofNullable(queryFactory
-            .select(Projections.constructor(ShopHygieneBadgeResult.class,
-                shopHygieneBadgeJpaEntity.id,
-                shopHygieneBadgeJpaEntity.shopId,
-                shopHygieneBadgeJpaEntity.badgeType,
-                shopHygieneBadgeJpaEntity.certifiedDate,
-                shopHygieneBadgeJpaEntity.lastInspectionMonth
-            ))
-            .from(shopHygieneBadgeJpaEntity)
-            .where(shopHygieneBadgeJpaEntity.id.eq(hygieneBadgeId))
-            .fetchOne());
-    }
-
     // ------------------------------------------------------- 이미지 변경요청
 
     /**

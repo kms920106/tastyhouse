@@ -141,26 +141,6 @@ public class ReviewQueryService {
     }
 
     /**
-     * 댓글 등록 응답 — 명령이 돌려준 식별자로 커밋 이후 재조회해 조립한다(답글은 등록 직후라 항상 비어 있다).
-     */
-    public ReviewCommentResponse getCommentResponse(Long commentId) {
-        ReviewCommentItemResult comment = reviewQueryDao.findComment(ReviewCommentId.of(commentId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
-
-        return toCommentResponse(comment, List.of());
-    }
-
-    /**
-     * 답글 등록 응답 — 명령이 돌려준 식별자로 커밋 이후 재조회해 조립한다.
-     */
-    public ReviewReplyResponse getReplyResponse(Long replyId) {
-        ReviewReplyItemResult reply = reviewQueryDao.findReply(replyId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
-
-        return toReplyResponse(reply);
-    }
-
-    /**
      * 리뷰 좋아요 여부.
      */
     public ReviewLikeStatusResponse isLiked(Long reviewId, Long memberId) {
