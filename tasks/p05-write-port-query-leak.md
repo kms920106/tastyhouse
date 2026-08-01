@@ -36,12 +36,12 @@
 
 ## 수용 기준
 
-- [ ] `ShopDetailRepository`에 도메인 소비자 0인 메서드가 없음
-- [ ] web/admin/ceo의 shop 관련 QueryService에서 `ShopDetailRepository` 주입 제거
-- [ ] 도메인 포트에 `List<Object[]>`·`Map<Long,String>` 반환 0건
-- [ ] 신설 Result record가 CLAUDE.md 네이밍(Result 접미어, admin 충돌 시 Management 한정어) 준수
-- [ ] HTTP 응답 JSON 무변경 (기존 화면 계약 유지)
-- [ ] 관련 테스트 통과 (verify-without-gradle)
+- [x] `ShopDetailRepository`에 도메인 소비자 0인 메서드가 없음
+- [x] web/admin/ceo의 shop 관련 QueryService에서 `ShopDetailRepository` 주입 제거
+- [x] 도메인 포트에 `List<Object[]>`·`Map<Long,String>` 반환 0건
+- [x] 신설 Result record가 CLAUDE.md 네이밍(Result 접미어, admin 충돌 시 Management 한정어) 준수
+- [x] HTTP 응답 JSON 무변경 (기존 화면 계약 유지)
+- [x] 관련 테스트 통과 (verify-without-gradle)
 
 ## 주의사항
 

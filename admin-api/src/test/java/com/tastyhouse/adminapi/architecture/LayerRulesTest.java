@@ -124,7 +124,9 @@ class LayerRulesTest {
     void queryServicesShouldNotDependOnWritePorts() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("QueryService")
-            .and().haveSimpleNameNotEndingWith("ShopQueryService")     // TODO(P5)
+            // P5 이관으로 ShopDetailRepository 주입은 사라졌고, 남은 것은 가게 단건 상세
+            // (ShopRepository#findById — 도메인 모델을 그대로 응답에 매핑)뿐이다.
+            .and().haveSimpleNameNotEndingWith("ShopQueryService")     // TODO(P7)
             .and().haveSimpleNameNotEndingWith("MemberQueryService")   // TODO(P5)
             .and().haveSimpleNameNotEndingWith("AdminQueryService")    // TODO(P5)
             .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..repository..")

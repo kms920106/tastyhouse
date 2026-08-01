@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.search.persistence;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -19,11 +18,6 @@ public class SearchKeywordLogRepositoryImpl implements SearchKeywordLogRepositor
     public SearchKeywordLog save(SearchKeywordLog log) {
         SearchKeywordLogJpaEntity saved = jpaRepository.save(SearchKeywordLogMapper.toEntity(log));
         return SearchKeywordLogMapper.toDomain(saved);
-    }
-
-    @Override
-    public List<Object[]> findTop10KeywordsSince(LocalDateTime since) {
-        return jpaRepository.findTop10KeywordsSince(since);
     }
 
     @Override

@@ -25,16 +25,14 @@ import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBreakTimeJpaEntity.shopBreakTimeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBusinessHourJpaEntity.shopBusinessHourJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopClosedDayJpaEntity.shopClosedDayJpaEntity;
-import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderMethodJpaEntity.shopOrderMethodJpaEntity;
-import static com.tastyhouse.infrastructure.shop.persistence.QShopOwnerMessageHistoryJpaEntity.shopOwnerMessageHistoryJpaEntity;
-import static com.tastyhouse.infrastructure.shop.persistence.QShopPhotoCategoryJpaEntity.shopPhotoCategoryJpaEntity;
 
 /**
  * 가게 자식 애그리거트 write 어댑터.
  *
- * <p>Result DTO를 반환하던 표현 목적 read(카테고리 목록·배정 목록·배너·사진 목록 등)는 같은 모듈의
- * {@link com.tastyhouse.infrastructure.shop.query.ShopQueryDao}로 이관했다(공통 지침 패턴 4).
- * 불변식 검증·영업 상태 판정에 쓰이는 목록 조회(영업시간·휴게시간·정기휴무)는 write 어댑터에 남는다.
+ * <p>표현 목적 read(카테고리 목록·배정 목록·배너·사진 목록, 주문방식 배정·사진 카테고리·최신 사장님
+ * 한마디)는 같은 모듈의 {@link com.tastyhouse.infrastructure.shop.query.ShopQueryDao}로 이관했다
+ * (공통 지침 패턴 4). 불변식 검증·영업 상태 판정에 쓰이는 목록 조회(영업시간·휴게시간·정기휴무)는
+ * 도메인 소비자가 있어 write 어댑터에 남는다.
  */
 @Repository
 @RequiredArgsConstructor
@@ -231,17 +229,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
 
 
     @Override
-    public List<ShopOrderMethod> findOrderMethodsByShopId(Long shopId) {
-        return queryFactory
-            .selectFrom(shopOrderMethodJpaEntity)
-            .where(shopOrderMethodJpaEntity.shopId.eq(shopId))
-            .fetch()
-            .stream()
-            .map(ShopOrderMethodMapper::toDomain)
-            .toList();
-    }
-
-    @Override
     public ShopOrderMethod saveOrderMethod(ShopOrderMethod orderMethod) {
         if (orderMethod.getId() == null) {
             ShopOrderMethodJpaEntity saved = shopOrderMethodJpaRepository.save(ShopOrderMethodMapper.toEntity(orderMethod));
@@ -277,17 +264,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     @Override
     public void deleteBannerImageById(Long id) {
         shopBannerImageJpaRepository.deleteById(id);
-    }
-
-    @Override
-    public List<ShopPhotoCategory> findPhotoCategoriesByShopId(Long shopId) {
-        return queryFactory
-            .selectFrom(shopPhotoCategoryJpaEntity)
-            .where(shopPhotoCategoryJpaEntity.shopId.eq(shopId))
-            .fetch()
-            .stream()
-            .map(ShopPhotoCategoryMapper::toDomain)
-            .toList();
     }
 
     @Override
@@ -337,16 +313,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
         shopPhotoCategoryImageJpaRepository.deleteById(id);
     }
 
-
-    @Override
-    public Optional<ShopOwnerMessageHistory> findLatestOwnerMessageByShopId(Long shopId) {
-        ShopOwnerMessageHistoryJpaEntity result = queryFactory
-            .selectFrom(shopOwnerMessageHistoryJpaEntity)
-            .where(shopOwnerMessageHistoryJpaEntity.shopId.eq(shopId))
-            .orderBy(shopOwnerMessageHistoryJpaEntity.createdAt.desc())
-            .fetchFirst();
-        return Optional.ofNullable(result).map(ShopOwnerMessageHistoryMapper::toDomain);
-    }
 
     @Override
     public void saveOwnerMessage(ShopOwnerMessageHistory ownerMessageHistory) {

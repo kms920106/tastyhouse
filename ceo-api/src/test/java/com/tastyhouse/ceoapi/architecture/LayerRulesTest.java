@@ -115,9 +115,10 @@ class LayerRulesTest {
      * ({@code readOnly = true})에서 쓰기 경로가 열리는 것을 구조적으로 막는다. 조회는 infra
      * {@code <ctx>/query/} DAO만 쓴다.
      *
-     * <p>아래 예외 클래스들은 write 포트를 표현 목적 조회에 쓰고 있어(= query DAO로 내려야 하는
-     * 조회가 write 포트에 남아 있는 상태) P5 태스크의 이관 대상이다. 규칙 전체를 끄지 않고
-     * 클래스명으로 명시적으로 제외한다.
+     * <p>남은 예외 클래스는 write 포트를 표현 목적 조회에 쓰고 있어(= query DAO로 내려야 하는
+     * 조회가 write 포트에 남아 있는 상태) 아직 이관 대상이다. 규칙 전체를 끄지 않고 클래스명으로
+     * 명시적으로 제외한다. shop 관련 세 QueryService(가게소개·영업시간·휴무)는 P5 이관으로
+     * {@code ShopDetailRepository} 주입이 사라져 예외 목록에서 제거했다.
      *
      * <p><strong>간접 위반은 이 규칙으로 잡히지 않는다.</strong> 이 모듈의
      * {@code ShopOwnershipValidator}는 내부에 {@code ShopRepository}(write 포트)를 보유하며, 다수의
@@ -132,9 +133,6 @@ class LayerRulesTest {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("QueryService")
             .and().haveSimpleNameNotEndingWith("CeoQueryService")                // TODO(P5)
-            .and().haveSimpleNameNotEndingWith("ShopIntroductionQueryService")   // TODO(P5)
-            .and().haveSimpleNameNotEndingWith("ShopBusinessHourQueryService")   // TODO(P5)
-            .and().haveSimpleNameNotEndingWith("ShopClosedDayQueryService")      // TODO(P5)
             .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..repository..")
             .because("QueryService는 write 포트를 주입하지 않는다(CQRS 교차 주입 금지)");
 

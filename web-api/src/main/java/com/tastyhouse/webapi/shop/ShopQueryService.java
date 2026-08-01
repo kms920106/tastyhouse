@@ -16,14 +16,8 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.shop.domain.model.Amenity;
 import com.tastyhouse.domain.shop.domain.model.FoodType;
 import com.tastyhouse.domain.shop.domain.model.Shop;
-import com.tastyhouse.domain.shop.domain.model.ShopBreakTime;
-import com.tastyhouse.domain.shop.domain.model.ShopBusinessHour;
-import com.tastyhouse.domain.shop.domain.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.domain.model.ShopOperatingStatus;
-import com.tastyhouse.domain.shop.domain.model.ShopOrderMethod;
-import com.tastyhouse.domain.shop.domain.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.domain.repository.ShopBookmarkRepository;
-import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -42,12 +36,17 @@ import com.tastyhouse.infrastructure.shop.query.LatestShopItemResult;
 import com.tastyhouse.infrastructure.shop.query.ShopAmenityCategoryResult;
 import com.tastyhouse.infrastructure.shop.query.ShopAmenityWithCategoryResult;
 import com.tastyhouse.infrastructure.shop.query.ShopBannerImageResult;
+import com.tastyhouse.infrastructure.shop.query.ShopBreakTimeResult;
+import com.tastyhouse.infrastructure.shop.query.ShopBusinessHourResult;
 import com.tastyhouse.infrastructure.shop.query.ShopChoiceQueryDao;
+import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
 import com.tastyhouse.infrastructure.shop.query.ShopConvenienceInfoResult;
 import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeCategoryResult;
 import com.tastyhouse.infrastructure.shop.query.ShopMapMarkerResult;
+import com.tastyhouse.infrastructure.shop.query.ShopOrderMethodResult;
 import com.tastyhouse.infrastructure.shop.query.ShopPhoneNumberResult;
 import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryImageResult;
+import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
 import com.tastyhouse.webapi.file.FileService;
@@ -83,9 +82,9 @@ import com.tastyhouse.webapi.shop.response.ShopStationListItemResponse;
 /**
  * 회원용 가게 조회 서비스(CQRS query 측).
  *
- * <p>목록·검색·카테고리·배너·사진 등 표현 목적 조회는 infra query DAO에서 Result를 받아 Response로
- * 조립하고, 노출 가게 단건과 영업시간·휴게시간·정기휴무·주문방식·사진 카테고리는 도메인 서비스가
- * 불변식 검증·상태 판정에 쓰는 조회라 write 포트에 잔류했으므로 그 포트를 그대로 쓴다.
+ * <p>표현 목적 조회는 전부 infra query DAO에서 Result를 받아 Response로 조립한다. 노출 가게 단건과
+ * 북마크 여부만 도메인 write 포트를 쓴다 — 전자는 폐업·노출정지 가게 차단이라는 도메인 판정이고,
+ * 후자는 존재 검증이다.
  *
  * <p>실시간 영업 상태는 여섯 애그리거트를 함께 읽어 판정해야 하므로 도메인 서비스
  * {@link ShopOperatingStatusService}에 위임한다.
@@ -96,7 +95,6 @@ import com.tastyhouse.webapi.shop.response.ShopStationListItemResponse;
 public class ShopQueryService {
 
     private final ShopRepository shopRepository;
-    private final ShopDetailRepository shopDetailRepository;
     private final ShopBookmarkRepository shopBookmarkRepository;
     private final ShopQueryDao shopQueryDao;
     private final ShopSearchQueryDao shopSearchQueryDao;
@@ -291,9 +289,9 @@ public class ShopQueryService {
 
     public ShopInfoResponse getShopInfo(Long shopId) {
         findVisibleShop(shopId);
-        List<ShopBusinessHour> businessHours = shopDetailRepository.findBusinessHoursByShopId(shopId);
-        List<ShopBreakTime> breakTimes = shopDetailRepository.findBreakTimesByShopId(shopId);
-        List<ShopClosedDay> closedDays = shopDetailRepository.findClosedDaysByShopId(shopId);
+        List<ShopBusinessHourResult> businessHours = shopQueryDao.findBusinessHours(shopId);
+        List<ShopBreakTimeResult> breakTimes = shopQueryDao.findBreakTimes(shopId);
+        List<ShopClosedDayResult> closedDays = shopQueryDao.findClosedDays(shopId);
         List<ShopAmenityWithCategoryResult> shopAmenities = shopQueryDao.findAmenitiesWithCategory(shopId);
 
         List<ShopBusinessHourItem> businessHourItems = businessHours.stream()
@@ -314,10 +312,10 @@ public class ShopQueryService {
 
         String ownerMessage = null;
         LocalDateTime ownerMessageCreatedAt = null;
-        var ownerMessageHistory = shopDetailRepository.findLatestOwnerMessageByShopId(shopId);
+        var ownerMessageHistory = shopQueryDao.findLatestOwnerMessage(shopId);
         if (ownerMessageHistory.isPresent()) {
-            ownerMessage = ownerMessageHistory.get().getMessage();
-            ownerMessageCreatedAt = ownerMessageHistory.get().getCreatedAt();
+            ownerMessage = ownerMessageHistory.get().message();
+            ownerMessageCreatedAt = ownerMessageHistory.get().createdAt();
         }
 
         Boolean parkingAvailable = null;
@@ -384,7 +382,7 @@ public class ShopQueryService {
     }
 
     public List<ShopPhotoCategoryResponse> getShopPhotos(Long shopId) {
-        List<ShopPhotoCategory> categories = shopDetailRepository.findPhotoCategoriesByShopId(shopId);
+        List<ShopPhotoCategoryResult> categories = shopQueryDao.findPhotoCategories(shopId);
         List<ShopPhotoCategoryImageResult> images = shopQueryDao.findAllPhotoCategoryImages();
 
         Map<Long, List<ShopPhotoCategoryImageResult>> imagesByCategory = images.stream()
@@ -394,12 +392,12 @@ public class ShopQueryService {
         return categories.stream()
             .map(category -> {
                 List<ShopPhotoCategoryImageResult> categoryImages =
-                    imagesByCategory.getOrDefault(category.getId(), new ArrayList<>());
+                    imagesByCategory.getOrDefault(category.id(), new ArrayList<>());
                 List<String> imageUrls = categoryImages.stream()
                     .map(image -> fileService.getUrlByPath(image.filePath()))
                     .toList();
                 return ShopPhotoCategoryResponse.from(
-                    category.getName(),
+                    category.name(),
                     imageUrls
                 );
             })
@@ -466,34 +464,34 @@ public class ShopQueryService {
         );
     }
 
-    private ShopBusinessHourItem convertToBusinessHourItem(ShopBusinessHour businessHour) {
+    private ShopBusinessHourItem convertToBusinessHourItem(ShopBusinessHourResult businessHour) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
         return ShopBusinessHourItem.from(
-            businessHour.getDayType().name(),
-            businessHour.getDayType().getDescription(),
-            businessHour.getOpenTime() != null ? businessHour.getOpenTime().format(formatter) : null,
-            businessHour.getCloseTime() != null ? businessHour.getCloseTime().format(formatter) : null,
-            Boolean.TRUE.equals(businessHour.getIsClosed()),
-            Boolean.TRUE.equals(businessHour.getIs24Hours())
+            businessHour.dayType().name(),
+            businessHour.dayType().getDescription(),
+            businessHour.openTime() != null ? businessHour.openTime().format(formatter) : null,
+            businessHour.closeTime() != null ? businessHour.closeTime().format(formatter) : null,
+            Boolean.TRUE.equals(businessHour.closed()),
+            Boolean.TRUE.equals(businessHour.allDay())
         );
     }
 
-    private ShopBreakTimeItem convertToBreakTimeItem(ShopBreakTime breakTime) {
+    private ShopBreakTimeItem convertToBreakTimeItem(ShopBreakTimeResult breakTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
         return ShopBreakTimeItem.from(
-            breakTime.getDayType().name(),
-            breakTime.getDayType().getDescription(),
-            breakTime.getStartTime() != null ? breakTime.getStartTime().format(formatter) : null,
-            breakTime.getEndTime() != null ? breakTime.getEndTime().format(formatter) : null
+            breakTime.dayType().name(),
+            breakTime.dayType().getDescription(),
+            breakTime.startTime() != null ? breakTime.startTime().format(formatter) : null,
+            breakTime.endTime() != null ? breakTime.endTime().format(formatter) : null
         );
     }
 
-    private ShopClosedDayItem convertToClosedDayItem(ShopClosedDay closedDay) {
+    private ShopClosedDayItem convertToClosedDayItem(ShopClosedDayResult closedDay) {
         return ShopClosedDayItem.from(
-            closedDay.getClosedDayType().name(),
-            closedDay.getClosedDayType().getDescription()
+            closedDay.closedDayType().name(),
+            closedDay.closedDayType().getDescription()
         );
     }
 
@@ -535,13 +533,13 @@ public class ShopQueryService {
 
     public ShopOrderMethodResponse getShopOrderMethods(Long shopId) {
         findVisibleShop(shopId);
-        List<ShopOrderMethod> shopOrderMethods = shopDetailRepository.findOrderMethodsByShopId(shopId);
+        List<ShopOrderMethodResult> shopOrderMethods = shopQueryDao.findOrderMethods(shopId);
 
         List<ShopOrderMethodItem> orderMethodItems =
             shopOrderMethods.stream()
                 .map(som -> ShopOrderMethodItem.from(
-                    som.getOrderMethod().name(),
-                    som.getOrderMethod().getDisplayName()))
+                    som.orderMethod().name(),
+                    som.orderMethod().getDisplayName()))
                 .toList();
 
         return ShopOrderMethodResponse.from(orderMethodItems);

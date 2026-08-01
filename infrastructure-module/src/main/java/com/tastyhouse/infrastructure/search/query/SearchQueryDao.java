@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.search.query;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import static com.tastyhouse.infrastructure.search.persistence.QPopularKeywordJpaEntity.popularKeywordJpaEntity;
 import static com.tastyhouse.infrastructure.search.persistence.QRecommendedKeywordJpaEntity.recommendedKeywordJpaEntity;
+import static com.tastyhouse.infrastructure.search.persistence.QSearchKeywordLogJpaEntity.searchKeywordLogJpaEntity;
 
 /**
  * 검색 키워드 read 어댑터(CQRS query 측).
@@ -23,6 +25,11 @@ import static com.tastyhouse.infrastructure.search.persistence.QRecommendedKeywo
 @Repository
 @RequiredArgsConstructor
 public class SearchQueryDao {
+
+    /**
+     * 인기 검색어로 노출하는 상위 키워드 수.
+     */
+    private static final long TOP_KEYWORD_LIMIT = 10L;
 
     private final JPAQueryFactory queryFactory;
 
@@ -51,6 +58,26 @@ public class SearchQueryDao {
             .from(recommendedKeywordJpaEntity)
             .where(recommendedKeywordJpaEntity.visible.isTrue())
             .orderBy(recommendedKeywordJpaEntity.sortOrder.asc())
+            .fetch();
+    }
+
+    /**
+     * 집계 기준 시각 이후 검색된 키워드를 횟수 내림차순 상위 10건까지 집계한다.
+     *
+     * <p>인기 검색어 갱신(도메인 서비스)이 이 집계를 입력으로 순위를 매긴다 — 소비자가 도메인이라
+     * 결과는 {@code SearchKeywordCountAdapter}가 도메인 값 타입으로 옮겨 담아 전달한다.
+     */
+    public List<KeywordCountResult> findTopKeywordsSince(LocalDateTime since) {
+        return queryFactory
+            .select(new QKeywordCountResult(
+                searchKeywordLogJpaEntity.keyword,
+                searchKeywordLogJpaEntity.count()
+            ))
+            .from(searchKeywordLogJpaEntity)
+            .where(searchKeywordLogJpaEntity.searchedAt.goe(since))
+            .groupBy(searchKeywordLogJpaEntity.keyword)
+            .orderBy(searchKeywordLogJpaEntity.count().desc())
+            .limit(TOP_KEYWORD_LIMIT)
             .fetch();
     }
 }

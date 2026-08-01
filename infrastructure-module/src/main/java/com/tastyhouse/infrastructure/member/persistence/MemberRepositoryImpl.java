@@ -1,12 +1,8 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -23,7 +19,8 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
  * 회원 write 어댑터.
  *
  * <p>단건 로드·중복 검증·등급 일괄 갱신·저장만 담당한다. 표현 목적 read(회원 관리 목록·닉네임 검색·
- * 프로필 이미지 조인 투영)는 같은 모듈의 {@code member/query/MemberQueryDao}로 이관했다.
+ * 프로필 이미지 조인 투영, 작성자 표시명 색인)는 같은 모듈의 {@code member/query/MemberQueryDao}로
+ * 이관했다.
  */
 @Repository
 @RequiredArgsConstructor
@@ -107,32 +104,6 @@ public class MemberRepositoryImpl implements MemberRepository {
             .set(memberJpaEntity.memberGrade, grade)
             .where(memberJpaEntity.id.in(memberIds))
             .execute();
-    }
-
-    @Override
-    public Map<Long, String> findNicknamesByIds(Collection<Long> memberIds) {
-        if (memberIds == null || memberIds.isEmpty()) {
-            return Map.of();
-        }
-
-        List<Long> distinctIds = memberIds.stream().distinct().toList();
-
-        List<Tuple> tuples = queryFactory
-            .select(memberJpaEntity.id, memberJpaEntity.nickname)
-            .from(memberJpaEntity)
-            .where(memberJpaEntity.id.in(distinctIds))
-            .fetch();
-
-        Map<Long, String> nicknamesById = new HashMap<>();
-        for (Tuple tuple : tuples) {
-            Long id = tuple.get(memberJpaEntity.id);
-            String nickname = tuple.get(memberJpaEntity.nickname);
-            if (id == null || nickname == null) {
-                continue;
-            }
-            nicknamesById.putIfAbsent(id, nickname);
-        }
-        return nicknamesById;
     }
 
     @Override

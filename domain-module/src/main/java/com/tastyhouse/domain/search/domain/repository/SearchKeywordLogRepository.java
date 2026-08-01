@@ -1,15 +1,18 @@
 package com.tastyhouse.domain.search.domain.repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.tastyhouse.domain.search.domain.model.SearchKeywordLog;
 
+/**
+ * 검색 키워드 로그 write 포트.
+ *
+ * <p>키워드별 검색 수 집계는 인프라 투영이 필요한 조회이므로 이 포트가 아니라
+ * {@link com.tastyhouse.domain.search.domain.port.KeywordCountPort}가 담당한다.
+ */
 public interface SearchKeywordLogRepository {
 
     SearchKeywordLog save(SearchKeywordLog log);
-
-    List<Object[]> findTop10KeywordsSince(LocalDateTime since);
 
     void deleteOlderThan(LocalDateTime before);
 }

@@ -130,7 +130,9 @@ class LayerRulesTest {
     void queryServicesShouldNotDependOnWritePorts() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("QueryService")
-            .and().haveSimpleNameNotEndingWith("ShopQueryService")      // TODO(P5)
+            // P5 이관으로 ShopDetailRepository 주입은 사라졌고, 남은 것은 노출 가게 판정
+            // (ShopRepository#findVisibleById)·북마크 존재 검증(ShopBookmarkRepository)뿐이다.
+            .and().haveSimpleNameNotEndingWith("ShopQueryService")      // TODO(P7)
             .and().haveSimpleNameNotEndingWith("ReviewQueryService")    // TODO(P5)
             .and().haveSimpleNameNotEndingWith("FollowQueryService")    // TODO(P5)
             .and().haveSimpleNameNotEndingWith("MemberQueryService")    // TODO(P5)

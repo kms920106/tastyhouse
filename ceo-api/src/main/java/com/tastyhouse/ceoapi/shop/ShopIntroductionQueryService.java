@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.model.ShopOwnerMessageHistory;
-import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.domain.service.ProhibitedWordValidator;
+import com.tastyhouse.infrastructure.shop.query.ShopOwnerMessageResult;
+import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.ceoapi.shop.response.ShopIntroductionResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopIntroductionValidationResponse;
 
@@ -16,21 +16,21 @@ import com.tastyhouse.ceoapi.shop.response.ShopIntroductionValidationResponse;
  * 점주용 가게소개(사장님 한마디) 조회·사전검증 서비스(CQRS query 측).
  *
  * <p>사전검증({@link #validateIntroduction})은 저장 없이 금칙어 위반 목록만 돌려주는 읽기 연산이므로
- * query 측에 둔다. 최신 사장님 한마디 조회는 write 포트에 잔류한 단건 조회를 쓴다.
+ * query 측에 둔다. 최신 사장님 한마디는 표현 목적 조회이므로 infra query DAO에서 Result를 받아 조립한다.
  */
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ShopIntroductionQueryService {
 
-    private final ShopDetailRepository shopDetailRepository;
+    private final ShopQueryDao shopQueryDao;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopIntroductionResponse getIntroduction(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        String message = shopDetailRepository.findLatestOwnerMessageByShopId(shopId)
-            .map(ShopOwnerMessageHistory::getMessage)
+        String message = shopQueryDao.findLatestOwnerMessage(shopId)
+            .map(ShopOwnerMessageResult::message)
             .orElse(null);
         return ShopIntroductionResponse.from(message);
     }

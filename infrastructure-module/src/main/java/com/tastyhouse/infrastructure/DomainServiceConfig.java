@@ -77,6 +77,7 @@ import com.tastyhouse.domain.shop.domain.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.domain.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.domain.service.ShopPhoneNumberRegistryService;
 import com.tastyhouse.domain.search.domain.repository.PopularKeywordRepository;
+import com.tastyhouse.domain.search.domain.port.KeywordCountPort;
 import com.tastyhouse.domain.search.domain.repository.SearchKeywordLogRepository;
 import com.tastyhouse.domain.search.domain.service.PopularKeywordRefreshService;
 import com.tastyhouse.domain.mail.domain.port.MailSender;
@@ -252,9 +253,10 @@ public class DomainServiceConfig {
     @Bean
     public PopularKeywordRefreshService popularKeywordRefreshService(
         SearchKeywordLogRepository searchKeywordLogRepository,
+        KeywordCountPort keywordCountPort,
         PopularKeywordRepository popularKeywordRepository
     ) {
-        return new PopularKeywordRefreshService(searchKeywordLogRepository, popularKeywordRepository);
+        return new PopularKeywordRefreshService(searchKeywordLogRepository, keywordCountPort, popularKeywordRepository);
     }
 
     /**

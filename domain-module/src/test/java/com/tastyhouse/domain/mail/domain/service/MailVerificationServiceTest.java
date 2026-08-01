@@ -1,9 +1,7 @@
 package com.tastyhouse.domain.mail.domain.service;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -237,11 +235,6 @@ class MailVerificationServiceTest {
 
         @Override
         public long bulkUpdateGrade(List<Long> memberIds, MemberGrade grade) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Map<Long, String> findNicknamesByIds(Collection<Long> memberIds) {
             throw new UnsupportedOperationException();
         }
 

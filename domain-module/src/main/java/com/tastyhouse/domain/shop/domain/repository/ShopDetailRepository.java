@@ -25,8 +25,12 @@ import com.tastyhouse.domain.shop.domain.model.ShopPhotoCategoryImage;
  * {@link #findBusinessHoursByShopId(Long)}, 정기휴무 개수 제한을 검증하는
  * {@link #findClosedDaysByShopId(Long)}, 영업 상태 판정에 쓰이는 {@link #findBreakTimesByShopId(Long)}).
  *
- * <p>Result DTO를 반환하던 표현 목적 read(카테고리 목록·배정 목록·배너·사진 목록 등)는
- * infrastructure-module의 {@code infrastructure/shop/query/ShopQueryDao}로 이관했다(공통 지침 패턴 4).
+ * <p>표현 목적 read(카테고리 목록·배정 목록·배너·사진 목록, 주문방식 배정 목록·사진 카테고리 목록·
+ * 최신 사장님 한마디)는 infrastructure-module의 {@code infrastructure/shop/query/ShopQueryDao}로
+ * 이관했다(공통 지침 패턴 4). 위 세 조회는 도메인 소비자가 없어 화면 전용이었다.
+ *
+ * <p>영업시간·정기휴무 목록은 도메인 소비자가 있어 이 포트에 남지만, 화면 조립용 같은 데이터는
+ * {@code ShopQueryDao}의 투영 조회를 쓴다 — 목적(불변식 vs 표현)과 반환 타입이 달라 중복이 아니다.
  */
 public interface ShopDetailRepository {
 
@@ -81,19 +85,9 @@ public interface ShopDetailRepository {
 
     void deleteOrderMethodByShopIdAndOrderMethod(Long shopId, OrderMethod orderMethod);
 
-    /**
-     * 가게의 주문방식 배정 전체. 회원 상세의 주문방식 노출에 쓰인다.
-     */
-    List<ShopOrderMethod> findOrderMethodsByShopId(Long shopId);
-
     ShopBannerImage saveBannerImage(ShopBannerImage bannerImage);
 
     void deleteBannerImageById(Long id);
-
-    /**
-     * 가게의 사진 카테고리 전체. 카테고리별 사진 묶음 조립에 쓰인다.
-     */
-    List<ShopPhotoCategory> findPhotoCategoriesByShopId(Long shopId);
 
     Optional<ShopPhotoCategory> findPhotoCategoryById(Long id);
 
@@ -106,11 +100,6 @@ public interface ShopDetailRepository {
     ShopPhotoCategoryImage savePhotoCategoryImage(ShopPhotoCategoryImage photoCategoryImage);
 
     void deletePhotoCategoryImageById(Long id);
-
-    /**
-     * 가게의 최신 사장님 한마디. 가게소개 조회·수정 화면이 소비한다.
-     */
-    Optional<ShopOwnerMessageHistory> findLatestOwnerMessageByShopId(Long shopId);
 
     void saveOwnerMessage(ShopOwnerMessageHistory ownerMessageHistory);
 }

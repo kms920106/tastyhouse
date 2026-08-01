@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.tastyhouse.domain.search.domain.model.PopularKeyword;
+import com.tastyhouse.domain.search.domain.port.KeywordCount;
+import com.tastyhouse.domain.search.domain.port.KeywordCountPort;
 import com.tastyhouse.domain.search.domain.repository.PopularKeywordRepository;
 import com.tastyhouse.domain.search.domain.repository.SearchKeywordLogRepository;
 
@@ -38,13 +40,16 @@ public class PopularKeywordRefreshService {
     private static final int LOG_RETENTION_DAYS = 30;
 
     private final SearchKeywordLogRepository searchKeywordLogRepository;
+    private final KeywordCountPort keywordCountPort;
     private final PopularKeywordRepository popularKeywordRepository;
 
     public PopularKeywordRefreshService(
         SearchKeywordLogRepository searchKeywordLogRepository,
+        KeywordCountPort keywordCountPort,
         PopularKeywordRepository popularKeywordRepository
     ) {
         this.searchKeywordLogRepository = searchKeywordLogRepository;
+        this.keywordCountPort = keywordCountPort;
         this.popularKeywordRepository = popularKeywordRepository;
     }
 
@@ -56,7 +61,7 @@ public class PopularKeywordRefreshService {
      */
     public void refresh() {
         LocalDateTime since = LocalDateTime.now().minusDays(AGGREGATION_WINDOW_DAYS);
-        List<Object[]> rows = searchKeywordLogRepository.findTop10KeywordsSince(since);
+        List<KeywordCount> rows = keywordCountPort.findTopKeywordsSince(since);
 
         Set<String> previousKeywords = popularKeywordRepository.findActiveOrderByRank().stream()
             .map(PopularKeyword::getKeyword)
@@ -66,8 +71,8 @@ public class PopularKeywordRefreshService {
 
         List<PopularKeyword> newRanks = new ArrayList<>();
         int rank = 1;
-        for (Object[] row : rows) {
-            String keyword = (String) row[0];
+        for (KeywordCount row : rows) {
+            String keyword = row.keyword();
             newRanks.add(PopularKeyword.of(keyword, rank++, !previousKeywords.contains(keyword)));
         }
         popularKeywordRepository.saveAll(newRanks);

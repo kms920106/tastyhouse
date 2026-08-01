@@ -21,14 +21,20 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityJpaEntity.shopAmenityJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBannerImageJpaEntity.shopBannerImageJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopBreakTimeJpaEntity.shopBreakTimeJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopBusinessHourJpaEntity.shopBusinessHourJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopClosedDayJpaEntity.shopClosedDayJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopContentBoardJpaEntity.shopContentBoardJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopConvenienceInfoJpaEntity.shopConvenienceInfoJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeCategoryJpaEntity.shopFoodTypeCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeJpaEntity.shopFoodTypeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopHygieneBadgeJpaEntity.shopHygieneBadgeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderMethodJpaEntity.shopOrderMethodJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopOwnerMessageHistoryJpaEntity.shopOwnerMessageHistoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhoneNumberJpaEntity.shopPhoneNumberJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhotoCategoryImageJpaEntity.shopPhotoCategoryImageJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopPhotoCategoryJpaEntity.shopPhotoCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopSuspensionJpaEntity.shopSuspensionJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopTemporaryClosureJpaEntity.shopTemporaryClosureJpaEntity;
 
@@ -493,6 +499,117 @@ public class ShopQueryDao {
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopPhotoCategoryImageJpaEntity.imageFileId))
             .where(shopPhotoCategoryImageJpaEntity.shopPhotoCategoryId.eq(shopPhotoCategoryId))
             .orderBy(shopPhotoCategoryImageJpaEntity.sort.asc())
+            .fetch();
+    }
+
+    /**
+     * 가게 사진 카테고리 목록(회원 상세·관리 화면) — 등록 순.
+     */
+    public List<ShopPhotoCategoryResult> findPhotoCategories(Long shopId) {
+        return queryFactory
+            .select(Projections.constructor(ShopPhotoCategoryResult.class,
+                shopPhotoCategoryJpaEntity.id,
+                shopPhotoCategoryJpaEntity.name
+            ))
+            .from(shopPhotoCategoryJpaEntity)
+            .where(shopPhotoCategoryJpaEntity.shopId.eq(shopId))
+            .orderBy(shopPhotoCategoryJpaEntity.id.asc())
+            .fetch();
+    }
+
+    // ------------------------------------------------------------ 주문방식
+
+    /**
+     * 가게에 배정된 주문방식 목록(회원 상세·관리 화면) — 등록 순.
+     */
+    public List<ShopOrderMethodResult> findOrderMethods(Long shopId) {
+        return queryFactory
+            .select(Projections.constructor(ShopOrderMethodResult.class,
+                shopOrderMethodJpaEntity.id,
+                shopOrderMethodJpaEntity.orderMethod
+            ))
+            .from(shopOrderMethodJpaEntity)
+            .where(shopOrderMethodJpaEntity.shopId.eq(shopId))
+            .orderBy(shopOrderMethodJpaEntity.id.asc())
+            .fetch();
+    }
+
+    // -------------------------------------------------------- 사장님 한마디
+
+    /**
+     * 가게의 최신 사장님 한마디(회원 가게정보·점주 가게소개 화면). 없으면 비어 있다.
+     */
+    public Optional<ShopOwnerMessageResult> findLatestOwnerMessage(Long shopId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(Projections.constructor(ShopOwnerMessageResult.class,
+                    shopOwnerMessageHistoryJpaEntity.message,
+                    shopOwnerMessageHistoryJpaEntity.createdAt
+                ))
+                .from(shopOwnerMessageHistoryJpaEntity)
+                .where(shopOwnerMessageHistoryJpaEntity.shopId.eq(shopId))
+                .orderBy(shopOwnerMessageHistoryJpaEntity.createdAt.desc())
+                .fetchFirst()
+        );
+    }
+
+    // -------------------------------------------------- 영업시간·정기휴무(표현용)
+
+    /**
+     * 가게 영업시간 목록(회원 가게정보·점주 설정·관리 화면) — 요일 순.
+     *
+     * <p>같은 데이터를 도메인 서비스도 읽지만 그쪽은 write 포트로 도메인 모델을 로드한다 —
+     * 목적(불변식 검증 vs 화면 표현)과 반환 타입이 다르므로 중복이 아니다.
+     */
+    public List<ShopBusinessHourResult> findBusinessHours(Long shopId) {
+        return queryFactory
+            .select(Projections.constructor(ShopBusinessHourResult.class,
+                shopBusinessHourJpaEntity.id,
+                shopBusinessHourJpaEntity.dayType,
+                shopBusinessHourJpaEntity.openTime,
+                shopBusinessHourJpaEntity.closeTime,
+                shopBusinessHourJpaEntity.isClosed,
+                shopBusinessHourJpaEntity.is24Hours
+            ))
+            .from(shopBusinessHourJpaEntity)
+            .where(shopBusinessHourJpaEntity.shopId.eq(shopId))
+            .orderBy(shopBusinessHourJpaEntity.dayType.asc())
+            .fetch();
+    }
+
+    /**
+     * 가게 휴게시간 목록(회원 가게정보·점주 설정·관리 화면) — 요일 순.
+     *
+     * <p>{@link #findBusinessHours(Long)}과 같은 이유로 write 포트의 목록 조회와 공존한다.
+     */
+    public List<ShopBreakTimeResult> findBreakTimes(Long shopId) {
+        return queryFactory
+            .select(Projections.constructor(ShopBreakTimeResult.class,
+                shopBreakTimeJpaEntity.id,
+                shopBreakTimeJpaEntity.dayType,
+                shopBreakTimeJpaEntity.startTime,
+                shopBreakTimeJpaEntity.endTime
+            ))
+            .from(shopBreakTimeJpaEntity)
+            .where(shopBreakTimeJpaEntity.shopId.eq(shopId))
+            .orderBy(shopBreakTimeJpaEntity.dayType.asc())
+            .fetch();
+    }
+
+    /**
+     * 가게 정기휴무 목록(회원 가게정보·점주 설정·관리 화면) — 등록 순.
+     *
+     * <p>{@link #findBusinessHours(Long)}과 같은 이유로 write 포트의 목록 조회와 공존한다.
+     */
+    public List<ShopClosedDayResult> findClosedDays(Long shopId) {
+        return queryFactory
+            .select(Projections.constructor(ShopClosedDayResult.class,
+                shopClosedDayJpaEntity.id,
+                shopClosedDayJpaEntity.closedDayType
+            ))
+            .from(shopClosedDayJpaEntity)
+            .where(shopClosedDayJpaEntity.shopId.eq(shopId))
+            .orderBy(shopClosedDayJpaEntity.id.asc())
             .fetch();
     }
 
