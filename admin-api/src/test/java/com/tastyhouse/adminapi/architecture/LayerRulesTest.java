@@ -95,8 +95,8 @@ class LayerRulesTest {
      * 여전히 하나로 뭉쳐 있어 CQRS 분리가 이름만 남는다. 명령은 식별자만 반환하고 응답이 필요하면
      * 컨트롤러가 커밋 후 QueryService로 재조회한다.
      *
-     * <p>이 모듈은 현재 위반 0건이므로 예외 목록이 없다(web-api는 {@code ReviewCommandService}
-     * 하나를 P3 대기로 제외 중).
+     * <p>이 모듈은 위반 0건이므로 예외 목록이 없다. web-api도 P3에서 {@code ReviewCommandService} 예외가
+     * 해소되어 두 모듈 모두 예외 없이 규칙이 적용된다.
      */
     @Test
     void commandServicesShouldNotDependOnQueryDaos() {

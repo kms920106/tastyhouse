@@ -20,8 +20,6 @@ import com.tastyhouse.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.domain.payment.domain.model.PgProvider;
 import com.tastyhouse.domain.payment.domain.model.TossPaymentRecord;
-import com.tastyhouse.domain.payment.domain.port.PgPaymentGateway;
-import com.tastyhouse.domain.payment.domain.port.dto.PgCancelResult;
 import com.tastyhouse.domain.payment.domain.port.dto.PgConfirmResult;
 import com.tastyhouse.domain.payment.domain.port.dto.TossPaymentDetail;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
@@ -84,12 +82,11 @@ class PaymentConfirmationServiceTest {
     }
 
     @Test
-    @DisplayName("토스 승인: 승인 성공 시 결제 완료·주문 확정·원장 기록·완료 이벤트가 모두 일어난다")
-    void confirmTossPayment_completesAndPublishesEvent() {
+    @DisplayName("토스 반영(성공): 결제 완료·주문 확정·원장 기록·완료 이벤트가 모두 일어난다")
+    void applyTossConfirmation_completesAndPublishesEvent() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
-        fixture.pgPaymentGateway.confirmResult = successConfirmResult();
 
-        fixture.service.confirmTossPayment(MEMBER_ID, "payment-key", "pg-order-1", 21000);
+        fixture.service.applyTossConfirmation(MEMBER_ID, "pg-order-1", successConfirmResult());
 
         assertThat(fixture.paymentRepository.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(fixture.orderRepository.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
@@ -102,16 +99,14 @@ class PaymentConfirmationServiceTest {
     }
 
     @Test
-    @DisplayName("토스 승인: PG 승인 실패 시 결제를 FAILED로 저장하고 주문은 확정하지 않으며 원장은 남긴다")
-    void confirmTossPayment_failsWithoutConfirmingOrder() {
+    @DisplayName("토스 반영(실패): 결제를 FAILED로 저장하고 주문은 확정하지 않으며 원장은 남긴다")
+    void failTossConfirmation_savesFailedWithoutConfirmingOrder() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
-        fixture.pgPaymentGateway.confirmResult = new PgConfirmResult(
+        PgConfirmResult rejected = new PgConfirmResult(
             false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과", detail()
         );
 
-        assertThatThrownBy(() -> fixture.service.confirmTossPayment(MEMBER_ID, "payment-key", "pg-order-1", 21000))
-            .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("한도 초과");
+        fixture.service.failTossConfirmation("pg-order-1", rejected);
 
         assertThat(fixture.paymentRepository.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED);
         assertThat(fixture.orderRepository.lastSaved).isNull();
@@ -120,30 +115,60 @@ class PaymentConfirmationServiceTest {
     }
 
     @Test
-    @DisplayName("토스 승인: 요청 금액이 결제 금액과 다르면 PG 요청 전에 거절한다")
-    void confirmTossPayment_rejectsAmountMismatch() {
+    @DisplayName("토스 반영(실패): 예외를 던지지 않는다 — 실패 근거(원장·FAILED 전이)가 커밋되어야 하므로 예외 변환은 호출자 몫이다")
+    void failTossConfirmation_doesNotThrow() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+        PgConfirmResult rejected = new PgConfirmResult(
+            false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과", detail()
+        );
 
-        assertThatThrownBy(() -> fixture.service.confirmTossPayment(MEMBER_ID, "payment-key", "pg-order-1", 999))
-            .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_AMOUNT_MISMATCH.getDefaultMessage());
+        fixture.service.failTossConfirmation("pg-order-1", rejected);
 
-        assertThat(fixture.pgPaymentGateway.confirmCalled).isFalse();
-        assertThat(fixture.paymentRepository.lastSaved).isNull();
-        assertThat(fixture.orderRepository.lastSaved).isNull();
+        assertThat(fixture.tossPaymentRecordRepository.saved).hasSize(1);
     }
 
     @Test
-    @DisplayName("토스 승인: 다른 회원의 주문이면 PAYMENT_ACCESS_DENIED로 거절한다")
-    void confirmTossPayment_rejectsOtherMember() {
+    @DisplayName("토스 사전 검증: 요청 금액이 결제 금액과 다르면 거절하고 아무 상태도 바꾸지 않는다(PG 호출 전)")
+    void prepareTossConfirmation_rejectsAmountMismatch() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
 
-        assertThatThrownBy(() -> fixture.service.confirmTossPayment(OTHER_MEMBER_ID, "k", "pg-order-1", 21000))
-            .isInstanceOf(AccessDeniedException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
+        assertThatThrownBy(() -> fixture.service.prepareTossConfirmation(MEMBER_ID, "pg-order-1", 999))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(ErrorCode.PAYMENT_AMOUNT_MISMATCH.getDefaultMessage());
 
         assertThat(fixture.paymentRepository.lastSaved).isNull();
         assertThat(fixture.orderRepository.lastSaved).isNull();
+        assertThat(fixture.tossPaymentRecordRepository.saved).isEmpty();
+    }
+
+    @Test
+    @DisplayName("토스 사전 검증: 통과하면 PG 요청에 쓸 결제 식별자·주문번호·금액을 확정해 돌려준다")
+    void prepareTossConfirmation_returnsPgRequestTarget() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+
+        TossConfirmationTarget target = fixture.service.prepareTossConfirmation(MEMBER_ID, "pg-order-1", 21000);
+
+        assertThat(target.paymentId()).isEqualTo(PAYMENT_ID.value());
+        assertThat(target.pgOrderId()).isEqualTo("pg-order-1");
+        assertThat(target.amount()).isEqualTo(21000);
+        assertThat(fixture.paymentRepository.lastSaved).isNull();
+    }
+
+    @Test
+    @DisplayName("토스 승인: 다른 회원의 주문이면 사전 검증·반영 모두 PAYMENT_ACCESS_DENIED로 거절한다")
+    void confirmTossPayment_rejectsOtherMember() {
+        Fixture prepareFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+        assertThatThrownBy(() -> prepareFixture.service.prepareTossConfirmation(OTHER_MEMBER_ID, "pg-order-1", 21000))
+            .isInstanceOf(AccessDeniedException.class)
+            .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
+
+        Fixture applyFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+        assertThatThrownBy(() -> applyFixture.service.applyTossConfirmation(OTHER_MEMBER_ID, "pg-order-1", successConfirmResult()))
+            .isInstanceOf(AccessDeniedException.class)
+            .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
+
+        assertThat(applyFixture.paymentRepository.lastSaved).isNull();
+        assertThat(applyFixture.orderRepository.lastSaved).isNull();
     }
 
     @Test
@@ -233,19 +258,16 @@ class PaymentConfirmationServiceTest {
         private final PaymentRepositoryStub paymentRepository;
         private final OrderRepositoryStub orderRepository;
         private final TossPaymentRecordRepositoryStub tossPaymentRecordRepository;
-        private final PgPaymentGatewayStub pgPaymentGateway;
         private final DomainEventPublisherStub eventPublisher;
 
         private Fixture(Payment payment, Order order) {
             this.paymentRepository = new PaymentRepositoryStub(payment);
             this.orderRepository = new OrderRepositoryStub(order);
             this.tossPaymentRecordRepository = new TossPaymentRecordRepositoryStub();
-            this.pgPaymentGateway = new PgPaymentGatewayStub();
             this.eventPublisher = new DomainEventPublisherStub();
             this.service = new PaymentConfirmationService(
                 paymentRepository,
                 tossPaymentRecordRepository,
-                pgPaymentGateway,
                 new OrderTransitionService(orderRepository),
                 eventPublisher
             );
@@ -342,23 +364,6 @@ class PaymentConfirmationServiceTest {
         public TossPaymentRecord save(TossPaymentRecord tossPaymentRecord) {
             saved.add(tossPaymentRecord);
             return tossPaymentRecord;
-        }
-    }
-
-    private static final class PgPaymentGatewayStub implements PgPaymentGateway {
-
-        private PgConfirmResult confirmResult = successConfirmResult();
-        private boolean confirmCalled;
-
-        @Override
-        public PgConfirmResult confirmPayment(Long paymentId, String paymentKey, String pgOrderId, int amount) {
-            this.confirmCalled = true;
-            return confirmResult;
-        }
-
-        @Override
-        public PgCancelResult cancelPayment(String pgTid, String cancelReason) {
-            return new PgCancelResult(true, null, null);
         }
     }
 

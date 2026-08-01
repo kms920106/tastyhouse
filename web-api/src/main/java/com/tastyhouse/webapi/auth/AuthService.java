@@ -20,6 +20,22 @@ import com.tastyhouse.webapi.auth.service.AuthPasswordResetService;
 import com.tastyhouse.webapi.auth.service.CredentialLoginService;
 import com.tastyhouse.webapi.auth.service.PhoneLoginService;
 
+/**
+ * 인증 컨트롤러 파사드.
+ *
+ * <p>실제 처리는 인증 수단별 하위 서비스({@link CredentialLoginService}·소셜 로그인 4종·
+ * {@link PhoneLoginService}·{@link AuthPasswordResetService})가 담당하고, 이 클래스는 컨트롤러가 쓰는
+ * 진입점과 HTTP 경계 타입 승격(예: {@code String gender} → {@code MemberGender})만 얇게 유지한다.
+ *
+ * <p><b>트랜잭션 원자성 판정: 묶을 대상 없음(파사드에 {@code @Transactional} 불필요).</b> 이 파사드의 모든
+ * 메서드는 하위 서비스 <em>한 곳</em>에만 위임하는 1:1 pass-through이며, 한 요청이 여러 하위 서비스를
+ * 순서대로 엮는 지점이 없다. 따라서 파사드 수준에서 쪼개지는 "검증→갱신 시퀀스"가 존재하지 않는다.
+ *
+ * <p>단계별 원자성 판정이 필요한 흐름은 그 흐름을 소유한 하위 서비스가 갖는다 — 회원가입은
+ * {@link CredentialLoginService#signUp}(토큰 검증은 JWT 서명뿐이라 DB와 무관하고, DB write는 가입 한 번),
+ * 비밀번호 재설정은 {@link AuthPasswordResetService}(클래스 Javadoc에 단계별 판정 명시)를 참고한다.
+ * 로그인·토큰 갱신·로그아웃은 DB write가 없고 Redis 기반 토큰 저장소만 다루므로 DB 트랜잭션과 무관하다.
+ */
 @Component
 @RequiredArgsConstructor
 public class AuthService {

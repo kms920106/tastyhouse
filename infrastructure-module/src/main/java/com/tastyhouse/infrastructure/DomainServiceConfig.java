@@ -22,7 +22,6 @@ import com.tastyhouse.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.domain.order.domain.service.OrderPlacementService;
 import com.tastyhouse.domain.order.domain.service.OrderTransitionService;
-import com.tastyhouse.domain.payment.domain.port.PgPaymentGateway;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRefundRepository;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.domain.payment.domain.repository.TossPaymentRecordRepository;
@@ -380,14 +379,12 @@ public class DomainServiceConfig {
     public PaymentConfirmationService paymentConfirmationService(
         PaymentRepository paymentRepository,
         TossPaymentRecordRepository tossPaymentRecordRepository,
-        PgPaymentGateway pgPaymentGateway,
         OrderTransitionService orderTransitionService,
         DomainEventPublisher domainEventPublisher
     ) {
         return new PaymentConfirmationService(
             paymentRepository,
             tossPaymentRecordRepository,
-            pgPaymentGateway,
             orderTransitionService,
             domainEventPublisher
         );
@@ -401,14 +398,12 @@ public class DomainServiceConfig {
     public PaymentCancellationService paymentCancellationService(
         PaymentRepository paymentRepository,
         PaymentRefundRepository paymentRefundRepository,
-        PgPaymentGateway pgPaymentGateway,
         OrderTransitionService orderTransitionService,
         DomainEventPublisher domainEventPublisher
     ) {
         return new PaymentCancellationService(
             paymentRepository,
             paymentRefundRepository,
-            pgPaymentGateway,
             orderTransitionService,
             domainEventPublisher
         );

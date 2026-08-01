@@ -91,15 +91,6 @@ public class MemberAuthService {
         }
     }
 
-    // 새 비밀번호가 기존 비밀번호와 동일한 경우 예외 처리
-    @Transactional(readOnly = true)
-    public void verifyNotSamePassword(Long memberId, String newPassword) {
-        Member member = memberQueryService.getMember(memberId);
-        if (passwordEncoder.matches(newPassword, member.getPassword())) {
-            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
-        }
-    }
-
     // 개인정보 수정용 본인인증 토큰 생성
     public String createPersonalInfoVerifyToken(Long memberId) {
         return jwtTokenProvider.createPersonalInfoVerifyToken(memberId);

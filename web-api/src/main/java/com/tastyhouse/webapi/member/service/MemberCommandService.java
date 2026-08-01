@@ -121,13 +121,32 @@ public class MemberCommandService {
         memberRepository.save(member);
     }
 
-    /** 새 비밀번호와 확인값 일치를 검증한 뒤 인코딩해 변경한다. */
+    /**
+     * 새 비밀번호와 확인값 일치를 검증한 뒤 인코딩해 변경한다.
+     *
+     * <p><b>트랜잭션 원자성 판정</b> — "기존 비밀번호와 동일한지" 검증은 <em>DB에서 읽은 현재 비밀번호</em>에
+     * 의존하는 read-then-write이므로, 검증과 변경이 같은 트랜잭션·같은 회원 로드 안에서 일어나야 한다.
+     * 과거에는 이 검증이 파사드({@code MemberService.updatePassword})에서 별도 readOnly 트랜잭션
+     * ({@code MemberAuthService.verifyNotSamePassword})으로 수행돼, 검증 후 변경 사이에 비밀번호가 바뀌면
+     * 검사를 우회할 수 있고 회원을 두 번 로드하는 구조였다. 검증을 이 메서드 안으로 내려 단일 트랜잭션·
+     * 단일 로드로 원자화했다.
+     *
+     * <p>기존 예외 계약·검사 순서를 그대로 보존한다 — 파사드는 {@code verifyNotSamePassword}(동일 여부)를
+     * 먼저 호출하고 그 다음 이 메서드의 확인값 검사가 돌았으므로, 여기서도 <b>동일 여부
+     * ({@code MEMBER_PASSWORD_SAME_AS_OLD}) → 확인값 불일치({@code MEMBER_PASSWORD_CONFIRM_MISMATCH})</b>
+     * 순서를 유지한다. 순서를 뒤집으면 두 조건을 동시에 위반한 요청의 응답 코드가 바뀐다.
+     */
     public void updatePassword(Long memberId, String newPassword, String newPasswordConfirm) {
+        Member member = loadMember(memberId);
+
+        if (passwordEncoder.matches(newPassword, member.getPassword())) {
+            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
+        }
+
         if (!newPassword.equals(newPasswordConfirm)) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
         }
 
-        Member member = loadMember(memberId);
         member.updatePassword(passwordEncoder.encode(newPassword));
         memberRepository.save(member);
     }

@@ -66,7 +66,18 @@ public class ReviewApiController {
         @Valid @RequestBody ReviewCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewResponse response = reviewCommandService.createReview(userDetails.getMemberId(), request);
+        Long reviewId = reviewCommandService.createReview(
+            userDetails.getMemberId(),
+            request.orderProductId(),
+            request.productId(),
+            request.tasteRating(),
+            request.amountRating(),
+            request.priceRating(),
+            request.content(),
+            request.uploadedFileIds(),
+            request.tags()
+        );
+        ReviewResponse response = reviewQueryService.getReviewResponse(reviewId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -77,7 +88,17 @@ public class ReviewApiController {
         @Valid @RequestBody ReviewUpdateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewResponse response = reviewCommandService.updateReview(reviewId, userDetails.getMemberId(), request);
+        Long updatedReviewId = reviewCommandService.updateReview(
+            reviewId,
+            userDetails.getMemberId(),
+            request.tasteRating(),
+            request.amountRating(),
+            request.priceRating(),
+            request.content(),
+            request.uploadedFileIds(),
+            request.tags()
+        );
+        ReviewResponse response = reviewQueryService.getReviewResponse(updatedReviewId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -161,7 +182,8 @@ public class ReviewApiController {
         @Valid @RequestBody CommentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewCommentResponse response = reviewCommandService.createComment(reviewId, userDetails.getMemberId(), request.content());
+        Long commentId = reviewCommandService.createComment(reviewId, userDetails.getMemberId(), request.content());
+        ReviewCommentResponse response = reviewQueryService.getCommentResponse(commentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -172,7 +194,8 @@ public class ReviewApiController {
         @Valid @RequestBody ReplyCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewReplyResponse response = reviewCommandService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
+        Long replyId = reviewCommandService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
+        ReviewReplyResponse response = reviewQueryService.getReplyResponse(replyId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

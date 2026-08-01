@@ -23,6 +23,7 @@ import com.tastyhouse.webapi.bug.response.BugReportResponse;
 public class BugReportApiController {
 
     private final BugReportCommandService bugReportCommandService;
+    private final BugReportQueryService bugReportQueryService;
 
     @Operation(summary = "버그 제보 등록", description = "버그 제보를 등록합니다. 단말기 정보, 제목, 내용, 이미지를 포함할 수 있습니다.")
     @PostMapping("/v1")
@@ -30,7 +31,7 @@ public class BugReportApiController {
         @Valid @RequestBody BugReportCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        BugReportResponse response = bugReportCommandService.createBugReport(
+        Long bugReportId = bugReportCommandService.createBugReport(
             userDetails.getMemberId(),
             request.device(),
             request.title(),
@@ -40,6 +41,7 @@ public class BugReportApiController {
             request.osVersion(),
             request.uploadedFileIds()
         );
+        BugReportResponse response = bugReportQueryService.getBugReportResponse(bugReportId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

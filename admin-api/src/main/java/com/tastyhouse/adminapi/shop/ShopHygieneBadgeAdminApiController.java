@@ -41,9 +41,10 @@ public class ShopHygieneBadgeAdminApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopHygieneBadgeCreateRequest request
     ) {
-        ShopHygieneBadgeResponse response = shopHygieneBadgeCommandService.createHygieneBadge(
+        Long hygieneBadgeId = shopHygieneBadgeCommandService.createHygieneBadge(
             id, request.badgeType(), request.certifiedDate(), request.lastInspectionMonth()
         );
+        ShopHygieneBadgeResponse response = shopHygieneBadgeQueryService.getHygieneBadge(hygieneBadgeId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

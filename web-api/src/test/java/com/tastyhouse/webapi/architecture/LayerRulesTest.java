@@ -95,16 +95,15 @@ class LayerRulesTest {
      * 여전히 하나로 뭉쳐 있어 CQRS 분리가 이름만 남는다. 명령은 식별자만 반환하고 응답이 필요하면
      * 컨트롤러가 커밋 후 QueryService로 재조회한다.
      *
-     * <p>예외 {@code ReviewCommandService}: 리뷰 작성 시 상품 스냅샷·회원 검증에 조회를 직접 쓰고 있다.
-     * 해소는 P3 태스크 담당이며, 규칙 전체를 끄지 않고 이 클래스 하나만 명시적으로 제외한다.
+     * <p>과거 {@code ReviewCommandService}가 리뷰 작성 시 {@code MemberQueryDao}·{@code ProductQueryService}를
+     * 직접 주입해 예외로 제외돼 있었으나, P3에서 해소되어(상품→가게 역조회는 write 포트
+     * {@code ProductRepository#findById}로, 등록 응답 조립은 컨트롤러의 {@code ReviewQueryService} 재조회로)
+     * <b>예외 목록이 비었다</b>. 이 모듈의 모든 {@code *CommandService}가 규칙 대상이다.
      */
-    // TODO(P3): ReviewCommandService의 MemberQueryDao·ProductQueryService 직접 주입을 제거하고
-    //           아래 예외 항목을 삭제한다.
     @Test
     void commandServicesShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("CommandService")
-            .and().haveSimpleNameNotEndingWith("ReviewCommandService")
             .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
             .because("CommandService는 ..query..를 주입하지 않는다(CQRS 교차 주입 금지)");

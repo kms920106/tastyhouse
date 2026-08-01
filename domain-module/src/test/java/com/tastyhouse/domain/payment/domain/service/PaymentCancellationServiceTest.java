@@ -23,9 +23,6 @@ import com.tastyhouse.domain.payment.domain.model.PaymentRefund;
 import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.domain.payment.domain.model.PgProvider;
 import com.tastyhouse.domain.payment.domain.model.RefundStatus;
-import com.tastyhouse.domain.payment.domain.port.PgPaymentGateway;
-import com.tastyhouse.domain.payment.domain.port.dto.PgCancelResult;
-import com.tastyhouse.domain.payment.domain.port.dto.PgConfirmResult;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRefundRepository;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.domain.payment.domain.vo.Amount;
@@ -44,8 +41,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <p>순수 POJO(도메인 서비스)이므로 Spring 컨텍스트·JPA 없이 write 포트·PG 게이트웨이·이벤트 발행 포트를
  * 손으로 만든 스텁으로 대체해 검증한다.
  *
- * <p>핵심 검증 대상은 <b>결제 취소와 주문 취소가 항상 함께 반영되고, 취소 불가·PG 실패 시에는 어느 쪽도
- * 바뀌지 않는다</b>는 원자 불변식이다.
+ * <p>핵심 검증 대상은 <b>결제 취소와 주문 취소가 항상 함께 반영되고, 취소 불가 시에는 어느 쪽도 바뀌지
+ * 않는다</b>는 원자 불변식이다.
+ *
+ * <p><b>PG 취소 요청은 이 서비스 밖으로 나갔다</b>(P3 트랜잭션 경계 정리) — 취소가 사전 판정
+ * {@code prepareCancellation}(읽기)과 결과 반영 {@code applyCancellation}(쓰기)으로 쪼개지고 그 사이의 PG
+ * 호출은 소비 모듈이 트랜잭션 밖에서 수행한다. 따라서 여기서는 (1) 사전 판정이 PG 호출 필요 여부와 거절
+ * 코드를 올바르게 돌려주는지, (2) 결과 반영이 결제·주문을 함께 취소하는지를 검증하고, "PG 실패 시
+ * CANCEL_FAILED" 같은 오케스트레이션 동작은 소비 모듈의 {@code PaymentCommandService}가 책임진다.
  */
 class PaymentCancellationServiceTest {
 
@@ -55,11 +58,11 @@ class PaymentCancellationServiceTest {
     private static final PaymentId PAYMENT_ID = PaymentId.of(200L);
 
     @Test
-    @DisplayName("취소 성공: 결제와 주문을 함께 취소 저장하고 포인트 원복 이벤트를 발행한다")
-    void cancel_cancelsPaymentAndOrderTogether() {
+    @DisplayName("반영: 결제와 주문을 함께 취소 저장하고 포인트 원복 이벤트를 발행한다")
+    void applyCancellation_cancelsPaymentAndOrderTogether() {
         Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
 
-        PaymentCancelCode code = fixture.service.cancel(MEMBER_ID, PAYMENT_ID, "고객 변심");
+        PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심");
 
         assertThat(code).isEqualTo(PaymentCancelCode.SUCCESS);
         assertThat(fixture.paymentRepository.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
@@ -73,88 +76,92 @@ class PaymentCancellationServiceTest {
     }
 
     @Test
-    @DisplayName("취소 성공: 완료된 토스 결제는 PG 취소를 먼저 요청한다")
-    void cancel_requestsPgCancelForCompletedTossPayment() {
+    @DisplayName("사전 판정: 완료된 토스 결제는 PG 취소가 필요하다고 알리고 pgTid를 함께 돌려준다")
+    void prepareCancellation_requiresPgCancelForCompletedTossPayment() {
         Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
 
-        fixture.service.cancel(MEMBER_ID, PAYMENT_ID, "고객 변심");
+        PaymentCancellationTarget target = fixture.service.prepareCancellation(MEMBER_ID, PAYMENT_ID);
 
-        assertThat(fixture.pgPaymentGateway.cancelCalled).isTrue();
+        assertThat(target.isRejected()).isFalse();
+        assertThat(target.pgCancelRequired()).isTrue();
+        assertThat(target.pgTid()).isEqualTo("tid-1");
     }
 
     @Test
-    @DisplayName("취소 성공: 아직 승인되지 않은 결제는 PG 취소를 요청하지 않는다")
-    void cancel_skipsPgCancelForPendingPayment() {
+    @DisplayName("사전 판정: 아직 승인되지 않은 결제는 PG 취소가 필요하지 않다")
+    void prepareCancellation_skipsPgCancelForPendingPayment() {
         Fixture fixture = Fixture.with(PaymentStatus.PENDING, OrderStatus.PENDING);
 
-        PaymentCancelCode code = fixture.service.cancel(MEMBER_ID, PAYMENT_ID, "고객 변심");
+        PaymentCancellationTarget target = fixture.service.prepareCancellation(MEMBER_ID, PAYMENT_ID);
 
-        assertThat(code).isEqualTo(PaymentCancelCode.SUCCESS);
-        assertThat(fixture.pgPaymentGateway.cancelCalled).isFalse();
-        assertThat(fixture.orderRepository.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(target.isRejected()).isFalse();
+        assertThat(target.pgCancelRequired()).isFalse();
     }
 
     @Test
-    @DisplayName("취소 거절: 조리가 시작된 주문은 코드만 돌려주고 결제·주문 모두 바꾸지 않는다")
-    void cancel_rejectsWhenPreparing() {
+    @DisplayName("사전 판정: 판정만 하므로 결제·주문을 저장하지 않는다(PG 호출 전이라 상태를 바꿀 수 없다)")
+    void prepareCancellation_doesNotMutateState() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+
+        fixture.service.prepareCancellation(MEMBER_ID, PAYMENT_ID);
+
+        assertThat(fixture.paymentRepository.lastSaved).isNull();
+        assertThat(fixture.orderRepository.lastSaved).isNull();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+    }
+
+    @Test
+    @DisplayName("사전 판정 거절: 조리가 시작된 주문은 거절 코드만 돌려주고 결제·주문 모두 바꾸지 않는다")
+    void prepareCancellation_rejectsWhenPreparing() {
         Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
 
-        PaymentCancelCode code = fixture.service.cancel(MEMBER_ID, PAYMENT_ID, "고객 변심");
+        PaymentCancellationTarget target = fixture.service.prepareCancellation(MEMBER_ID, PAYMENT_ID);
+
+        assertThat(target.isRejected()).isTrue();
+        assertThat(target.rejectCode()).isEqualTo(PaymentCancelCode.ALREADY_PREPARING);
+        assertThat(target.pgCancelRequired()).isFalse();
+        assertThat(fixture.paymentRepository.lastSaved).isNull();
+        assertThat(fixture.orderRepository.lastSaved).isNull();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+    }
+
+    @Test
+    @DisplayName("사전 판정 거절: 이미 취소·완료된 주문은 각각의 코드를 돌려준다")
+    void prepareCancellation_rejectsWhenAlreadyCancelledOrCompleted() {
+        assertThat(Fixture.with(PaymentStatus.CANCELLED, OrderStatus.CANCELLED).service
+            .prepareCancellation(MEMBER_ID, PAYMENT_ID).rejectCode()).isEqualTo(PaymentCancelCode.ALREADY_CANCELLED);
+        assertThat(Fixture.with(PaymentStatus.COMPLETED, OrderStatus.COMPLETED).service
+            .prepareCancellation(MEMBER_ID, PAYMENT_ID).rejectCode()).isEqualTo(PaymentCancelCode.ORDER_COMPLETED);
+    }
+
+    @Test
+    @DisplayName("반영 재판정: PG 취소 후 주문이 조리 시작으로 넘어갔으면 상태를 바꾸지 않고 거절 코드를 돌려준다")
+    void applyCancellation_rejectsWhenOrderMovedDuringPgRoundTrip() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
+
+        PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심");
 
         assertThat(code).isEqualTo(PaymentCancelCode.ALREADY_PREPARING);
         assertThat(fixture.paymentRepository.lastSaved).isNull();
         assertThat(fixture.orderRepository.lastSaved).isNull();
-        assertThat(fixture.pgPaymentGateway.cancelCalled).isFalse();
         assertThat(fixture.eventPublisher.published).isEmpty();
     }
 
     @Test
-    @DisplayName("취소 거절: 이미 취소·완료된 주문은 각각의 코드를 돌려준다")
-    void cancel_rejectsWhenAlreadyCancelledOrCompleted() {
-        assertThat(Fixture.with(PaymentStatus.CANCELLED, OrderStatus.CANCELLED).service
-            .cancel(MEMBER_ID, PAYMENT_ID, "사유")).isEqualTo(PaymentCancelCode.ALREADY_CANCELLED);
-        assertThat(Fixture.with(PaymentStatus.COMPLETED, OrderStatus.COMPLETED).service
-            .cancel(MEMBER_ID, PAYMENT_ID, "사유")).isEqualTo(PaymentCancelCode.ORDER_COMPLETED);
-    }
-
-    @Test
-    @DisplayName("취소 실패: PG 취소가 실패하면 CANCEL_FAILED를 돌려주고 결제·주문 모두 바꾸지 않는다")
-    void cancel_returnsFailedWhenPgCancelFails() {
-        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
-        fixture.pgPaymentGateway.cancelResult = new PgCancelResult(false, "REJECT", "취소 불가");
-
-        PaymentCancelCode code = fixture.service.cancel(MEMBER_ID, PAYMENT_ID, "고객 변심");
-
-        assertThat(code).isEqualTo(PaymentCancelCode.CANCEL_FAILED);
-        assertThat(fixture.paymentRepository.lastSaved).isNull();
-        assertThat(fixture.orderRepository.lastSaved).isNull();
-        assertThat(fixture.eventPublisher.published).isEmpty();
-    }
-
-    @Test
-    @DisplayName("취소 실패: PG 호출이 예외를 던져도 CANCEL_FAILED로 흡수하고 상태를 바꾸지 않는다")
-    void cancel_returnsFailedWhenPgCancelThrows() {
-        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
-        fixture.pgPaymentGateway.throwOnCancel = true;
-
-        PaymentCancelCode code = fixture.service.cancel(MEMBER_ID, PAYMENT_ID, "고객 변심");
-
-        assertThat(code).isEqualTo(PaymentCancelCode.CANCEL_FAILED);
-        assertThat(fixture.paymentRepository.lastSaved).isNull();
-        assertThat(fixture.orderRepository.lastSaved).isNull();
-    }
-
-    @Test
-    @DisplayName("취소 거절: 다른 회원의 주문이면 PAYMENT_ACCESS_DENIED로 거절한다")
+    @DisplayName("거절: 다른 회원의 주문이면 사전 판정·반영 모두 PAYMENT_ACCESS_DENIED로 거절한다")
     void cancel_rejectsOtherMember() {
-        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
-
-        assertThatThrownBy(() -> fixture.service.cancel(OTHER_MEMBER_ID, PAYMENT_ID, "사유"))
+        Fixture prepareFixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+        assertThatThrownBy(() -> prepareFixture.service.prepareCancellation(OTHER_MEMBER_ID, PAYMENT_ID))
             .isInstanceOf(AccessDeniedException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
-        assertThat(fixture.paymentRepository.lastSaved).isNull();
-        assertThat(fixture.orderRepository.lastSaved).isNull();
+        Fixture applyFixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+        assertThatThrownBy(() -> applyFixture.service.applyCancellation(OTHER_MEMBER_ID, PAYMENT_ID, "사유"))
+            .isInstanceOf(AccessDeniedException.class)
+            .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
+
+        assertThat(applyFixture.paymentRepository.lastSaved).isNull();
+        assertThat(applyFixture.orderRepository.lastSaved).isNull();
     }
 
     @Test
@@ -208,19 +215,16 @@ class PaymentCancellationServiceTest {
         private final PaymentRepositoryStub paymentRepository;
         private final OrderRepositoryStub orderRepository;
         private final PaymentRefundRepositoryStub paymentRefundRepository;
-        private final PgPaymentGatewayStub pgPaymentGateway;
         private final DomainEventPublisherStub eventPublisher;
 
         private Fixture(Payment payment, Order order) {
             this.paymentRepository = new PaymentRepositoryStub(payment);
             this.orderRepository = new OrderRepositoryStub(order);
             this.paymentRefundRepository = new PaymentRefundRepositoryStub();
-            this.pgPaymentGateway = new PgPaymentGatewayStub();
             this.eventPublisher = new DomainEventPublisherStub();
             this.service = new PaymentCancellationService(
                 paymentRepository,
                 paymentRefundRepository,
-                pgPaymentGateway,
                 new OrderTransitionService(orderRepository),
                 eventPublisher
             );
@@ -318,27 +322,6 @@ class PaymentCancellationServiceTest {
                 LocalDateTime.of(2026, 7, 31, 10, 0)
             ));
             return saved.getLast();
-        }
-    }
-
-    private static final class PgPaymentGatewayStub implements PgPaymentGateway {
-
-        private PgCancelResult cancelResult = new PgCancelResult(true, null, null);
-        private boolean cancelCalled;
-        private boolean throwOnCancel;
-
-        @Override
-        public PgConfirmResult confirmPayment(Long paymentId, String paymentKey, String pgOrderId, int amount) {
-            throw new UnsupportedOperationException("취소 테스트에서는 사용하지 않는다");
-        }
-
-        @Override
-        public PgCancelResult cancelPayment(String pgTid, String cancelReason) {
-            this.cancelCalled = true;
-            if (throwOnCancel) {
-                throw new IllegalStateException("PG 통신 실패");
-            }
-            return cancelResult;
         }
     }
 

@@ -1,8 +1,6 @@
 package com.tastyhouse.webapi.review;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +10,9 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.domain.order.domain.vo.OrderProductId;
+import com.tastyhouse.domain.product.domain.model.Product;
+import com.tastyhouse.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.domain.review.domain.model.Review;
 import com.tastyhouse.domain.review.domain.model.ReviewComment;
 import com.tastyhouse.domain.review.domain.model.ReviewReply;
@@ -24,25 +25,22 @@ import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
-import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
-import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
-import com.tastyhouse.webapi.file.FileService;
-import com.tastyhouse.webapi.product.ProductQueryService;
-import com.tastyhouse.webapi.review.request.ReviewCreateRequest;
-import com.tastyhouse.webapi.review.request.ReviewUpdateRequest;
-import com.tastyhouse.webapi.review.response.ReviewCommentResponse;
-import com.tastyhouse.webapi.review.response.ReviewReplyResponse;
-import com.tastyhouse.webapi.review.response.ReviewResponse;
 
 /**
  * 리뷰 명령 서비스(web).
  *
  * <p>리뷰 본문·이미지·태그를 함께 다루는 크로스 애그리거트 불변식은 도메인 서비스
  * {@link ReviewLifecycleService}가 갖고, 이 서비스는 트랜잭션 경계 선언과 HTTP 경계 타입
- * ({@code Long} 식별자 · Request/Response record) 변환만 담당한다.
+ * ({@code Long} 식별자 · 원시 파라미터) 승격만 담당한다.
  *
  * <p>댓글·답글 등록은 단일 애그리거트 저장이라 도메인 서비스를 거치지 않고 write 포트를 직접 호출한다.
+ *
+ * <p><b>CQRS 교차 주입 금지</b> — 이 서비스는 infra query DAO({@code ..infrastructure..query..})도
+ * 같은 모듈의 {@code *QueryService}도 주입하지 않는다. 그래서 (1) 모든 명령은 <b>식별자만</b> 반환하고
+ * 응답 조립은 커밋 이후 컨트롤러가 {@link ReviewQueryService}로 재조회해 담당하며, (2) 리뷰 등록 시
+ * 필요한 상품→가게 역조회는 표현용 투영({@code ProductQueryDao})이 아니라 write 포트
+ * {@link ProductRepository#findById}의 정당한 단건 로드로 수행한다 — 이 값은 화면 표시용이 아니라
+ * "리뷰가 어느 가게에 속하는가"를 확정하는 불변식 입력이기 때문이다.
  *
  * <p>조회 전용 동작은 {@link ReviewQueryService}로 분리했다(CQRS).
  */
@@ -55,58 +53,79 @@ public class ReviewCommandService {
     private final ReviewRepository reviewRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
-    private final ProductQueryService productQueryService;
+    private final ProductRepository productRepository;
     private final OrderProductRepository orderProductRepository;
-    private final MemberQueryDao memberQueryDao;
-    private final FileService fileService;
 
     /**
      * 리뷰 등록 — 주문 상품이 지정되면 그 주문을 인증 근거로 함께 남긴다. 가게는 상품에서 역으로 얻는다.
+     *
+     * @return 등록된 리뷰 식별자
      */
-    public ReviewResponse createReview(Long memberId, ReviewCreateRequest request) {
+    public Long createReview(
+        Long memberId,
+        Long orderProductId,
+        Long productId,
+        Integer tasteRating,
+        Integer amountRating,
+        Integer priceRating,
+        String content,
+        List<Long> uploadedFileIds,
+        List<String> tags
+    ) {
         Long orderId = null;
-        if (request.orderProductId() != null) {
-            OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(request.orderProductId()))
+        if (orderProductId != null) {
+            OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
             orderId = orderProduct.getOrderId();
         }
 
-        ProductDetailResult product = productQueryService.findProductDetail(request.productId())
+        Product product = productRepository.findById(ProductId.of(productId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewRegistration registration = reviewLifecycleService.register(
-            product.shopId(),
-            product.id(),
+            product.getShopId(),
+            product.getId(),
             MemberId.of(memberId),
             orderId,
-            request.tasteRating(),
-            request.amountRating(),
-            request.priceRating(),
-            request.content(),
-            request.uploadedFileIds(),
-            request.tags()
+            tasteRating,
+            amountRating,
+            priceRating,
+            content,
+            uploadedFileIds,
+            tags
         );
 
-        return toReviewResponse(registration);
+        return registration.review().getReviewId().value();
     }
 
     /**
      * 리뷰 수정 — 본인 리뷰만 수정할 수 있다(소유권 검증은 도메인 서비스가 수행).
+     *
+     * @return 수정된 리뷰 식별자
      */
-    public ReviewResponse updateReview(Long reviewId, Long memberId, ReviewUpdateRequest request) {
+    public Long updateReview(
+        Long reviewId,
+        Long memberId,
+        Integer tasteRating,
+        Integer amountRating,
+        Integer priceRating,
+        String content,
+        List<Long> uploadedFileIds,
+        List<String> tags
+    ) {
         ReviewId targetReviewId = ReviewId.of(reviewId);
         ReviewRegistration registration = reviewLifecycleService.modify(
             targetReviewId,
             MemberId.of(memberId),
-            request.tasteRating(),
-            request.amountRating(),
-            request.priceRating(),
-            request.content(),
-            request.uploadedFileIds(),
-            request.tags()
+            tasteRating,
+            amountRating,
+            priceRating,
+            content,
+            uploadedFileIds,
+            tags
         );
 
-        return toReviewResponse(registration);
+        return registration.review().getReviewId().value();
     }
 
     /**
@@ -130,18 +149,20 @@ public class ReviewCommandService {
 
     /**
      * 리뷰 댓글 등록.
+     *
+     * @return 등록된 댓글 식별자
      */
-    public ReviewCommentResponse createComment(Long reviewId, Long memberId, String content) {
+    public Long createComment(Long reviewId, Long memberId, String content) {
         ReviewComment comment = reviewCommentRepository.save(ReviewComment.of(reviewId, MemberId.of(memberId), content));
-
-        MemberWithProfileImageResult member = memberQueryDao.findMemberWithProfileImagesByIds(List.of(memberId)).get(memberId);
-        return toCommentResponse(comment, member, List.of());
+        return comment.getId();
     }
 
     /**
      * 댓글 답글 등록 — 답글 대상 회원은 없을 수 있다.
+     *
+     * @return 등록된 답글 식별자
      */
-    public ReviewReplyResponse createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
+    public Long createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
         ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
         ReviewReply reply = reviewReplyRepository.save(ReviewReply.of(
             reviewCommentId.value(),
@@ -150,74 +171,6 @@ public class ReviewCommandService {
             content
         ));
 
-        List<Long> ids = replyToMemberId != null ? List.of(memberId, replyToMemberId) : List.of(memberId);
-        Map<Long, MemberWithProfileImageResult> memberMap = memberQueryDao.findMemberWithProfileImagesByIds(ids);
-        return toReplyResponse(reply, memberMap.get(memberId), replyToMemberId != null ? memberMap.get(replyToMemberId) : null);
-    }
-
-    private ReviewResponse toReviewResponse(ReviewRegistration registration) {
-        Review review = registration.review();
-
-        return ReviewResponse.from(
-            review.getReviewId().value(),
-            review.getProductId(),
-            review.getTasteRating(),
-            review.getAmountRating(),
-            review.getPriceRating(),
-            review.getTotalRating(),
-            review.getContent(),
-            toImageUrls(registration.uploadedFileIds()),
-            registration.tags(),
-            review.getCreatedAt()
-        );
-    }
-
-    private ReviewCommentResponse toCommentResponse(
-        ReviewComment comment,
-        MemberWithProfileImageResult member,
-        List<ReviewReplyResponse> replies
-    ) {
-        return ReviewCommentResponse.from(
-            comment.getId(),
-            comment.getReviewId(),
-            comment.getMemberId().value(),
-            member != null ? member.nickname() : null,
-            member != null ? fileService.getUrlByPath(member.profileImageFilePath()) : null,
-            comment.getContent(),
-            comment.getCreatedAt(),
-            replies
-        );
-    }
-
-    private ReviewReplyResponse toReplyResponse(
-        ReviewReply reply,
-        MemberWithProfileImageResult member,
-        MemberWithProfileImageResult replyToMember
-    ) {
-        return ReviewReplyResponse.from(
-            reply.getId(),
-            reply.getCommentId(),
-            reply.getMemberId().value(),
-            member != null ? member.nickname() : null,
-            member != null ? fileService.getUrlByPath(member.profileImageFilePath()) : null,
-            reply.getReplyToMemberId() != null ? reply.getReplyToMemberId().value() : null,
-            replyToMember != null ? replyToMember.nickname() : null,
-            reply.getContent(),
-            reply.getCreatedAt()
-        );
-    }
-
-    /**
-     * 업로드 파일 식별자를 표시용 URL로 변환한다. 경로를 찾지 못한 항목은 제외한다.
-     */
-    private List<String> toImageUrls(List<Long> imageFileIds) {
-        if (imageFileIds == null || imageFileIds.isEmpty()) {
-            return List.of();
-        }
-
-        return imageFileIds.stream()
-            .map(fileService::getUrlByFileId)
-            .filter(Objects::nonNull)
-            .toList();
+        return reply.getId();
     }
 }

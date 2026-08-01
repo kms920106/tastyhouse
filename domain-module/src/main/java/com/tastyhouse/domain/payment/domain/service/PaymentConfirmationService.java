@@ -13,7 +13,6 @@ import com.tastyhouse.domain.payment.domain.model.PaymentMethod;
 import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.domain.payment.domain.model.PgProvider;
 import com.tastyhouse.domain.payment.domain.model.TossPaymentRecord;
-import com.tastyhouse.domain.payment.domain.port.PgPaymentGateway;
 import com.tastyhouse.domain.payment.domain.port.dto.PgConfirmResult;
 import com.tastyhouse.domain.payment.domain.port.dto.TossPaymentDetail;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
@@ -40,9 +39,17 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * {@link OrderTransitionService}에 위임한다 — 전이와 저장을 항상 함께 수행한다는 규칙의 단일 원천을
  * 주문 도메인에 유지하기 위함이다.
  *
+ * <p><b>PG HTTP 왕복은 이 서비스 안에서 하지 않는다</b> — 토스 승인은 (1) 금액·상태·소유권을 검증하는
+ * {@link #prepareTossConfirmation}(DB 읽기, 트랜잭션 안)과 (2) PG 응답을 반영하는
+ * {@link #applyTossConfirmation}/{@link #failTossConfirmation}(DB 쓰기, 별도 트랜잭션)으로 쪼개져 있고,
+ * 그 사이의 PG 호출은 소비 모듈이 <b>트랜잭션 밖에서</b> 수행한다. 과거에는 PG 왕복 전체가 DB 트랜잭션
+ * 안에 있어 커넥션·행 락을 네트워크 지연만큼 점유했고, PG 승인 성공 후 커밋이 실패하면 "PG는 승인,
+ * DB는 미승인"이 되어 보상이 불가능했다. 그래서 이 서비스는 {@code PgPaymentGateway}를 주입받지 않는다.
+ *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
  * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
- * 소비 모듈의 command 서비스(web-api {@code PaymentCommandService})가 선언한다.
+ * 소비 모듈의 command 서비스(web-api {@code PaymentCommandService})와 그 트랜잭션 경계 빈
+ * ({@code PaymentConfirmationExecutor})이 선언한다.
  *
  * <p>이벤트 발행은 Spring {@code ApplicationEventPublisher}가 아니라 프레임워크-프리 포트
  * {@link DomainEventPublisher}를 쓴다.
@@ -59,20 +66,17 @@ public class PaymentConfirmationService {
 
     private final PaymentRepository paymentRepository;
     private final TossPaymentRecordRepository tossPaymentRecordRepository;
-    private final PgPaymentGateway pgPaymentGateway;
     private final OrderTransitionService orderTransitionService;
     private final DomainEventPublisher domainEventPublisher;
 
     public PaymentConfirmationService(
         PaymentRepository paymentRepository,
         TossPaymentRecordRepository tossPaymentRecordRepository,
-        PgPaymentGateway pgPaymentGateway,
         OrderTransitionService orderTransitionService,
         DomainEventPublisher domainEventPublisher
     ) {
         this.paymentRepository = paymentRepository;
         this.tossPaymentRecordRepository = tossPaymentRecordRepository;
-        this.pgPaymentGateway = pgPaymentGateway;
         this.orderTransitionService = orderTransitionService;
         this.domainEventPublisher = domainEventPublisher;
     }
@@ -133,22 +137,20 @@ public class PaymentConfirmationService {
     }
 
     /**
-     * 토스페이먼츠 결제를 승인한다 — 금액을 대조하고 PG 승인을 요청한 뒤, 성공 시 결제를 완료 전이하고
-     * 주문을 확정한다.
+     * 토스 승인 1단 — PG 호출 <b>전에</b> 소유권·상태·금액을 검증하고, PG 요청에 필요한 값만 확정해 돌려준다.
      *
-     * <p>PG 응답 원본은 성공·실패와 무관하게 원장({@link TossPaymentRecord})에 먼저 기록한다 — 승인 실패
-     * 시에도 PG와의 대조 근거를 남겨야 하기 때문이다. 실패 시 결제를 {@code FAILED}로 전이해 저장한 뒤
-     * {@code PAYMENT_APPROVAL_FAILED}로 실패시킨다.
+     * <p>검증 순서·예외 코드는 PG 호출을 트랜잭션 안에서 하던 기존 구현과 동일하다(미존재 →
+     * {@code ENTITY_NOT_FOUND}, 소유권 → {@code PAYMENT_ACCESS_DENIED}, 상태 →
+     * {@code PAYMENT_NOT_PENDING_APPROVAL}, 금액 → {@code PAYMENT_AMOUNT_MISMATCH}). 즉 <b>PG를 호출하기 전에
+     * 걸러지던 실패는 여전히 PG 호출 없이 같은 코드로 걸러진다.</b>
      *
-     * @return 승인된 결제 식별자
+     * <p>이 메서드는 읽기만 하므로 여기서 예외가 나면 바꿀 상태가 없다.
      */
-    public PaymentId confirmTossPayment(MemberId memberId, String paymentKey, String pgOrderId, int amount) {
+    public TossConfirmationTarget prepareTossConfirmation(MemberId memberId, String pgOrderId, int amount) {
         Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        Order order = orderTransitionService.loadOwnedBy(
-            payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
-        );
+        orderTransitionService.loadOwnedBy(payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED);
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
@@ -158,18 +160,31 @@ public class PaymentConfirmationService {
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        PgConfirmResult result = pgPaymentGateway.confirmPayment(payment.getId(), paymentKey, pgOrderId, amount);
+        return new TossConfirmationTarget(payment.getId(), pgOrderId, amount);
+    }
+
+    /**
+     * 토스 승인 2단(성공) — PG가 승인한 결과를 반영한다. 결제를 완료 전이하고 주문을 확정하며, PG 응답
+     * 원본을 원장({@link TossPaymentRecord})에 기록한다.
+     *
+     * <p>새 트랜잭션에서 결제·주문을 <b>다시 로드</b>한다 — 1단에서 읽은 인스턴스는 트랜잭션이 이미 끝나
+     * detached이고, PG 왕복 동안 상태가 바뀌었을 수 있기 때문이다. 그래서 상태를 여기서 <b>한 번 더</b>
+     * 확인해, 왕복 중에 이미 승인·취소된 결제에 승인을 덮어쓰지 않는다(1단에만 검사를 두면 그 경합이 열린다).
+     *
+     * @return 승인된 결제 식별자
+     */
+    public PaymentId applyTossConfirmation(MemberId memberId, String pgOrderId, PgConfirmResult result) {
+        Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+
+        Order order = orderTransitionService.loadOwnedBy(
+            payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
+        );
+
         tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getId(), result.detail()));
 
-        if (!result.success()) {
-            payment.fail();
-            paymentRepository.save(payment);
-            throw new BusinessException(
-                ErrorCode.PAYMENT_APPROVAL_FAILED,
-                result.errorMessage() != null
-                    ? result.errorMessage()
-                    : ErrorCode.PAYMENT_APPROVAL_FAILED.getDefaultMessage()
-            );
+        if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
+            throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
         payment.updatePgInfo(PgProvider.TOSS, result.paymentKey(), pgOrderId);
@@ -194,6 +209,29 @@ public class PaymentConfirmationService {
         ));
 
         return savedPayment.getPaymentId();
+    }
+
+    /**
+     * 토스 승인 2단(실패) — PG가 승인을 거절한 결과를 반영한다. PG 응답 원본을 원장에 기록하고 결제를
+     * {@code FAILED}로 전이해 저장한다.
+     *
+     * <p>원장 기록을 성공·실패 무관하게 남기는 것은 기존 동작 그대로다 — 승인 실패 시에도 PG와의 대조
+     * 근거가 필요하다. 상태 전이는 커밋되어야 하므로(실패 사실을 남긴다) 예외를 던지지 않고,
+     * {@code PAYMENT_APPROVAL_FAILED} 예외 변환은 트랜잭션 밖의 호출자가 커밋 이후에 수행한다 — 이 안에서
+     * 던지면 원장 기록과 {@code FAILED} 전이가 함께 롤백되어 실패 근거가 사라진다.
+     */
+    public void failTossConfirmation(String pgOrderId, PgConfirmResult result) {
+        Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+
+        tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getId(), result.detail()));
+
+        if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
+            return;
+        }
+
+        payment.fail();
+        paymentRepository.save(payment);
     }
 
     /**

@@ -45,6 +45,7 @@ import com.tastyhouse.webapi.review.response.ReviewLikeStatusResponse;
 import com.tastyhouse.webapi.review.response.ReviewMemberListItemResponse;
 import com.tastyhouse.webapi.review.response.ReviewProductResponse;
 import com.tastyhouse.webapi.review.response.ReviewReplyResponse;
+import com.tastyhouse.webapi.review.response.ReviewResponse;
 import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
 
 /**
@@ -111,6 +112,52 @@ public class ReviewQueryService {
     public Optional<ReviewDetailResponse> findReviewDetail(Long reviewId) {
         return findReviewDetailResult(ReviewId.of(reviewId))
             .map(this::toReviewDetailResponse);
+    }
+
+    /**
+     * 리뷰 등록·수정 응답 — 명령이 돌려준 식별자로 커밋 이후 재조회해 조립한다.
+     *
+     * <p>{@link ReviewCommandService}가 식별자만 반환하므로(CQRS 교차 주입 금지) 등록·수정 API의 응답은
+     * 이 메서드가 만든다. 응답 계약을 바꾸지 않기 위해 {@code ReviewResponse}의 필드 구성은 그대로 두고,
+     * 값의 출처만 "명령이 들고 있던 도메인 모델"에서 "커밋된 행의 투영"으로 옮겼다 — 리뷰 상세 투영이
+     * 숨김 리뷰를 제외하므로, 방금 등록된(숨김이 아닌) 리뷰는 항상 조회된다.
+     */
+    public ReviewResponse getReviewResponse(Long reviewId) {
+        ReviewDetailResult detail = findReviewDetailResult(ReviewId.of(reviewId))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        return ReviewResponse.from(
+            detail.id(),
+            findProductIdOfReview(reviewId),
+            detail.tasteRating(),
+            detail.amountRating(),
+            detail.priceRating(),
+            detail.totalRating(),
+            detail.content(),
+            toImageUrls(detail.imageUrls()),
+            detail.tagNames(),
+            detail.createdAt()
+        );
+    }
+
+    /**
+     * 댓글 등록 응답 — 명령이 돌려준 식별자로 커밋 이후 재조회해 조립한다(답글은 등록 직후라 항상 비어 있다).
+     */
+    public ReviewCommentResponse getCommentResponse(Long commentId) {
+        ReviewCommentItemResult comment = reviewQueryDao.findComment(ReviewCommentId.of(commentId))
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        return toCommentResponse(comment, List.of());
+    }
+
+    /**
+     * 답글 등록 응답 — 명령이 돌려준 식별자로 커밋 이후 재조회해 조립한다.
+     */
+    public ReviewReplyResponse getReplyResponse(Long replyId) {
+        ReviewReplyItemResult reply = reviewQueryDao.findReply(replyId)
+            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        return toReplyResponse(reply);
     }
 
     /**

@@ -745,6 +745,61 @@ public class ReviewQueryDao {
     }
 
     /**
+     * 댓글 단건(숨김 포함) — 등록 직후 컨트롤러가 응답을 조립하려고 재조회할 때 쓴다.
+     *
+     * <p>{@link #findComments}와 같은 투영·조인을 쓰되 리뷰 단위가 아니라 댓글 식별자로 한 건만 집는다.
+     * 등록 응답이 작성자 닉네임·프로필 이미지를 포함하므로 명령 서비스가 회원 투영 조회를 직접 하지 않고
+     * 이 조회를 커밋 이후에 사용한다(CQRS 교차 주입 금지).
+     */
+    public Optional<ReviewCommentItemResult> findComment(ReviewCommentId commentId) {
+        return Optional.ofNullable(queryFactory
+            .select(new QReviewCommentItemResult(
+                reviewCommentJpaEntity.id,
+                reviewCommentJpaEntity.reviewId,
+                reviewCommentJpaEntity.memberId,
+                memberJpaEntity.nickname,
+                uploadedFileJpaEntity.filePath,
+                reviewCommentJpaEntity.content,
+                reviewCommentJpaEntity.createdAt
+            ))
+            .from(reviewCommentJpaEntity)
+            .leftJoin(memberJpaEntity)
+            .on(Expressions.numberPath(Long.class, reviewCommentJpaEntity, "memberId").eq(memberJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .where(reviewCommentJpaEntity.id.eq(commentId.value()))
+            .fetchOne());
+    }
+
+    /**
+     * 답글 단건(숨김 포함) — 등록 직후 컨트롤러가 응답을 조립하려고 재조회할 때 쓴다.
+     *
+     * <p>{@link #findVisibleReplies}와 같은 투영·조인을 쓰되 숨김 필터 없이 식별자로 한 건만 집는다 —
+     * 방금 등록한 답글은 숨김이 아니므로 필터가 무의미하고, 필터를 두면 조회 실패로 오인될 수 있다.
+     */
+    public Optional<ReviewReplyItemResult> findReply(Long replyId) {
+        return Optional.ofNullable(queryFactory
+            .select(new QReviewReplyItemResult(
+                reviewReplyJpaEntity.id,
+                reviewReplyJpaEntity.commentId,
+                reviewReplyJpaEntity.memberId,
+                memberJpaEntity.nickname,
+                uploadedFileJpaEntity.filePath,
+                reviewReplyJpaEntity.replyToMemberId,
+                replyToMember.nickname,
+                reviewReplyJpaEntity.content,
+                reviewReplyJpaEntity.createdAt
+            ))
+            .from(reviewReplyJpaEntity)
+            .leftJoin(memberJpaEntity)
+            .on(Expressions.numberPath(Long.class, reviewReplyJpaEntity, "memberId").eq(memberJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(replyToMember)
+            .on(Expressions.numberPath(Long.class, reviewReplyJpaEntity, "replyToMemberId").eq(replyToMember.id))
+            .where(reviewReplyJpaEntity.id.eq(replyId))
+            .fetchOne());
+    }
+
+    /**
      * 여러 댓글에 달린 답글 목록(숨김 제외) — 작성순. 입력이 비어 있으면 조회하지 않고 빈 목록을 돌려준다.
      *
      * <p>작성자 프로필 이미지 경로를 함께 투영하며, 답글 대상 회원(replyTo)은 없을 수 있어 leftJoin으로

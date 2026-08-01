@@ -13,8 +13,6 @@ import com.tastyhouse.domain.payment.domain.model.PaymentCancelCode;
 import com.tastyhouse.domain.payment.domain.model.PaymentRefund;
 import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.domain.payment.domain.model.PgProvider;
-import com.tastyhouse.domain.payment.domain.port.PgPaymentGateway;
-import com.tastyhouse.domain.payment.domain.port.dto.PgCancelResult;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRefundRepository;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.domain.payment.domain.vo.Amount;
@@ -38,9 +36,17 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * {@link OrderTransitionService}에 위임한다 — 전이와 저장을 항상 함께 수행한다는 규칙의 단일 원천을
  * 주문 도메인에 유지하기 위함이다.
  *
+ * <p><b>PG 취소 요청은 이 서비스 안에서 하지 않는다</b> — 취소는 (1) 취소 가능 여부를 판정하는
+ * {@link #prepareCancellation}(DB 읽기, 트랜잭션 안)과 (2) 결제·주문을 취소 전이하는
+ * {@link #applyCancellation}(DB 쓰기, 별도 트랜잭션)으로 쪼개져 있고, 그 사이의 PG 취소 요청은 소비
+ * 모듈이 <b>트랜잭션 밖에서</b> 수행한다. 과거에는 PG 왕복 전체가 DB 트랜잭션 안에 있어 커넥션·행 락을
+ * 네트워크 지연만큼 점유했고, PG 취소 성공 후 커밋이 실패하면 "PG는 취소, DB는 미취소"가 되어 보상이
+ * 불가능했다. 그래서 이 서비스는 {@code PgPaymentGateway}를 주입받지 않는다.
+ *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
  * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
- * 소비 모듈의 command 서비스(web-api {@code PaymentCommandService})가 선언한다.
+ * 소비 모듈의 command 서비스(web-api {@code PaymentCommandService})와 그 트랜잭션 경계 빈
+ * ({@code PaymentCancellationExecutor})이 선언한다.
  *
  * <p>이벤트 발행은 Spring {@code ApplicationEventPublisher}가 아니라 프레임워크-프리 포트
  * {@link DomainEventPublisher}를 쓴다.
@@ -51,35 +57,61 @@ public class PaymentCancellationService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentRefundRepository paymentRefundRepository;
-    private final PgPaymentGateway pgPaymentGateway;
     private final OrderTransitionService orderTransitionService;
     private final DomainEventPublisher domainEventPublisher;
 
     public PaymentCancellationService(
         PaymentRepository paymentRepository,
         PaymentRefundRepository paymentRefundRepository,
-        PgPaymentGateway pgPaymentGateway,
         OrderTransitionService orderTransitionService,
         DomainEventPublisher domainEventPublisher
     ) {
         this.paymentRepository = paymentRepository;
         this.paymentRefundRepository = paymentRefundRepository;
-        this.pgPaymentGateway = pgPaymentGateway;
         this.orderTransitionService = orderTransitionService;
         this.domainEventPublisher = domainEventPublisher;
     }
 
     /**
-     * 결제를 취소한다 — 주문 상태로 취소 가능 여부를 판정하고, 완료된 토스 결제면 PG 취소를 먼저 요청한
-     * 뒤 결제·주문을 함께 취소 전이한다.
+     * 취소 1단 — PG 취소 요청 <b>전에</b> 소유권과 주문 상태로 취소 가능 여부를 판정하고, PG 취소가 필요한
+     * 결제인지와 그 요청에 쓸 PG 거래 식별자를 확정해 돌려준다.
      *
-     * <p>취소 불가 사유(조리 시작·이미 취소·주문 완료)와 PG 취소 실패는 예외가 아니라
-     * {@link PaymentCancelCode}로 돌려준다 — 호출자가 사유를 그대로 사용자에게 안내해야 하고, 이 경우
-     * 어떤 상태도 바꾸지 않기 때문이다(기존 동작 보존).
+     * <p>취소 불가 사유(조리 시작·이미 취소·주문 완료)는 예외가 아니라 {@link PaymentCancelCode}로 돌려준다 —
+     * 호출자가 사유를 그대로 사용자에게 안내해야 하고, 이 경우 어떤 상태도 바꾸지 않기 때문이다(기존 동작
+     * 보존). 소유권 위반만 예외({@code PAYMENT_ACCESS_DENIED})이며 판정 순서도 기존과 같다.
+     *
+     * <p>이 메서드는 읽기만 하므로 여기서 거절 코드가 나오거나 예외가 나면 바꿀 상태가 없다 — 즉
+     * <b>PG를 호출하기 전에 거절되던 요청은 여전히 PG 호출 없이 같은 코드로 거절된다.</b>
+     */
+    public PaymentCancellationTarget prepareCancellation(MemberId memberId, PaymentId paymentId) {
+        Payment payment = loadPayment(paymentId);
+        Order order = orderTransitionService.loadOwnedBy(
+            payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
+        );
+
+        PaymentCancelCode cancelCode = resolveCancelCode(order.getOrderStatus());
+        if (cancelCode != PaymentCancelCode.SUCCESS) {
+            return PaymentCancellationTarget.rejected(cancelCode);
+        }
+
+        return PaymentCancellationTarget.cancellable(isPgCancelRequired(payment), payment.getPgTid());
+    }
+
+    /**
+     * 취소 2단 — PG 취소가 성공(또는 불필요)한 뒤 결제·주문을 함께 취소 전이하고 포인트 원복 이벤트를
+     * 발행한다.
+     *
+     * <p>새 트랜잭션에서 결제·주문을 <b>다시 로드</b>한다(1단 인스턴스는 detached). PG 왕복 동안 주문이
+     * 조리 시작·완료로 넘어갔을 수 있으므로 취소 가능 여부를 <b>한 번 더</b> 판정해, 그 경우 상태를 바꾸지
+     * 않고 판정 코드를 그대로 돌려준다 — 1단에만 검사를 두면 그 경합이 열린다.
+     *
+     * <p><b>PG 취소는 이미 성공한 상태로 이 메서드에 들어온다.</b> 따라서 여기서 거절 코드가 나오거나 저장이
+     * 실패하면 "PG는 취소, DB는 미취소"라는 보상 필요 상태가 되므로, 호출자가 그 상황을 감지해 운영 개입용
+     * 로그를 남긴다({@code PaymentCancellationExecutor}/{@code PaymentCommandService} 참고).
      *
      * @return 취소 결과 코드 — {@link PaymentCancelCode#SUCCESS}면 취소가 반영됨
      */
-    public PaymentCancelCode cancel(MemberId memberId, PaymentId paymentId, String cancelReason) {
+    public PaymentCancelCode applyCancellation(MemberId memberId, PaymentId paymentId, String cancelReason) {
         Payment payment = loadPayment(paymentId);
         Order order = orderTransitionService.loadOwnedBy(
             payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
@@ -88,10 +120,6 @@ public class PaymentCancellationService {
         PaymentCancelCode cancelCode = resolveCancelCode(order.getOrderStatus());
         if (cancelCode != PaymentCancelCode.SUCCESS) {
             return cancelCode;
-        }
-
-        if (isPgCancelRequired(payment) && !requestPgCancel(payment, cancelReason)) {
-            return PaymentCancelCode.CANCEL_FAILED;
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -175,22 +203,5 @@ public class PaymentCancellationService {
     private boolean isPgCancelRequired(Payment payment) {
         return payment.getPgProvider() == PgProvider.TOSS
             && payment.getPaymentStatus() == PaymentStatus.COMPLETED;
-    }
-
-    /**
-     * PG 취소를 요청한다 — 실패·예외 모두 취소 불가로 간주해 {@code false}를 돌려주고, 어떤 상태도
-     * 바꾸지 않는다(기존 동작 보존).
-     *
-     * <p>실패 사유 로깅은 이 POJO가 아니라 트랜잭션 경계를 가진 소비 모듈의 command 서비스가 담당한다 —
-     * 도메인 서비스는 프레임워크(로깅 포함)에 의존하지 않는다(공통 지침 패턴 1). 호출자는 돌려받은
-     * {@link PaymentCancelCode#CANCEL_FAILED}로 실패를 인지해 기록한다.
-     */
-    private boolean requestPgCancel(Payment payment, String cancelReason) {
-        try {
-            PgCancelResult cancelResult = pgPaymentGateway.cancelPayment(payment.getPgTid(), cancelReason);
-            return cancelResult.success();
-        } catch (Exception e) {
-            return false;
-        }
     }
 }

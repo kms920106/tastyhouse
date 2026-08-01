@@ -21,13 +21,14 @@ import com.tastyhouse.webapi.partnership.response.PartnershipRequestResponse;
 public class PartnershipRequestApiController {
 
     private final PartnershipCommandService partnershipCommandService;
+    private final PartnershipQueryService partnershipQueryService;
 
     @Operation(summary = "광고 및 제휴 신청", description = "광고 및 제휴를 신청합니다. 상호명, 위치 정보(주소, 상세주소), 성명, 연락처, 상담신청시간을 포함합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<PartnershipRequestResponse>> createPartnershipRequest(
         @Valid @RequestBody PartnershipRequestCreateRequest request
     ) {
-        PartnershipRequestResponse response = partnershipCommandService.createPartnershipRequest(
+        Long partnershipRequestId = partnershipCommandService.createPartnershipRequest(
             request.businessName(),
             request.address(),
             request.addressDetail(),
@@ -35,6 +36,7 @@ public class PartnershipRequestApiController {
             request.contactPhone(),
             request.consultationRequestedAt()
         );
+        PartnershipRequestResponse response = partnershipQueryService.getPartnershipRequestResponse(partnershipRequestId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
