@@ -80,4 +80,30 @@ class LayerRulesTest {
 
         rule.check(classes);
     }
+
+    /**
+     * Request/Response record는 domain-free·infra-free 순수 데이터 홀더다. 이 모듈에는 HTTP 경계가
+     * 없지만 BBQ 크롤링 응답 매핑용 {@code crawling/bbq/response/} record들이 있어 규칙 대상이 되며,
+     * 외부 API 응답 DTO가 도메인·infra 타입을 알 이유가 없다는 점은 동일하게 적용된다.
+     *
+     * <p>web/admin/ceo에 추가한 나머지 CQRS 게이트 3개
+     * ({@code commandServicesShouldNotDependOnQueryDaos},
+     * {@code queryServicesShouldNotDependOnWritePorts}, {@code controllersShouldBeDomainFree})는
+     * 이 모듈에 <strong>두지 않는다</strong> — batch는 CQRS application 서비스도 HTTP 컨트롤러도 두지
+     * 않아(스케줄러가 도메인 서비스를 직접 호출) 대상이 구조적으로 0건이고, 그런 규칙을 추가하면
+     * {@code allowEmptyShould(true)}로 공허 통과를 열어야 한다. 규칙을 두지 않는 것이 공허하게
+     * 통과시키는 것보다 정직하다. batch에 CQRS 서비스나 컨트롤러가 생기면 그 시점에 추가한다.
+     */
+    @Test
+    void requestResponseRecordsShouldBeDomainAndInfraFree() {
+        ArchRule rule = noClasses()
+            .that().resideInAnyPackage("..request..", "..response..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.domain..",
+                "com.tastyhouse.infrastructure.."
+            )
+            .because("Request/Response record는 domain-free·infra-free 순수 데이터 홀더다");
+
+        rule.check(classes);
+    }
 }

@@ -6,6 +6,9 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
@@ -81,6 +84,106 @@ class LayerRulesTest {
     void shouldNotDependOnInfrastructurePersistence() {
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("..infrastructure..persistence..");
+
+        rule.check(classes);
+    }
+
+    /**
+     * CQRS 교차 주입 금지(명령 → 조회). {@code *CommandService}는 infra query DAO·Result
+     * ({@code com.tastyhouse.infrastructure..query..})와 같은 모듈의 {@code *QueryService}를
+     * 주입하지 않는다 — 명령 경로가 표현용 투영에 결합되면 클래스는 둘로 나뉘었지만 의존 그래프는
+     * 여전히 하나로 뭉쳐 있어 CQRS 분리가 이름만 남는다. 명령은 식별자만 반환하고 응답이 필요하면
+     * 컨트롤러가 커밋 후 QueryService로 재조회한다.
+     *
+     * <p>이 모듈은 현재 위반 0건이므로 예외 목록이 없다(web-api는 {@code ReviewCommandService}
+     * 하나를 P3 대기로 제외 중).
+     */
+    @Test
+    void commandServicesShouldNotDependOnQueryDaos() {
+        ArchRule rule = noClasses()
+            .that().haveSimpleNameEndingWith("CommandService")
+            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
+            .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
+            .because("CommandService는 ..query..를 주입하지 않는다(CQRS 교차 주입 금지)");
+
+        rule.check(classes);
+    }
+
+    /**
+     * CQRS 교차 주입 금지(조회 → 쓰기). {@code *QueryService}는 domain-module의 write 포트
+     * ({@code com.tastyhouse.domain..repository..})를 주입하지 않는다 — 조회 트랜잭션
+     * ({@code readOnly = true})에서 쓰기 경로가 열리는 것을 구조적으로 막는다. 조회는 infra
+     * {@code <ctx>/query/} DAO만 쓴다.
+     *
+     * <p>아래 예외 클래스들은 write 포트를 표현 목적 조회에 쓰고 있어(= query DAO로 내려야 하는
+     * 조회가 write 포트에 남아 있는 상태) P5 태스크의 이관 대상이다. 규칙 전체를 끄지 않고
+     * 클래스명으로 명시적으로 제외한다.
+     *
+     * <p><strong>간접 위반은 이 규칙으로 잡히지 않는다.</strong> 이 모듈의
+     * {@code ShopOwnershipValidator}는 내부에 {@code ShopRepository}(write 포트)를 보유하며, 다수의
+     * {@code *QueryService}가 소유권 검증을 위해 그 협력 빈을 주입한다 — 그 경로는 write 포트를
+     * <em>직접</em> 주입하지 않으므로 위 예외 목록에 없는 QueryService도 이 규칙을 통과한다.
+     * 직접 주입만 규칙화하고, 간접 건은 P5 이관 후 재평가한다.
+     */
+    // TODO(P5): 아래 예외 클래스들의 write 포트 주입을 infra query DAO로 이관하고 예외 목록을 비운다.
+    //           ShopOwnershipValidator 경유 간접 주입도 P5 이관 후 규칙화 가능 여부를 재평가한다.
+    @Test
+    void queryServicesShouldNotDependOnWritePorts() {
+        ArchRule rule = noClasses()
+            .that().haveSimpleNameEndingWith("QueryService")
+            .and().haveSimpleNameNotEndingWith("CeoQueryService")                // TODO(P5)
+            .and().haveSimpleNameNotEndingWith("ShopIntroductionQueryService")   // TODO(P5)
+            .and().haveSimpleNameNotEndingWith("ShopBusinessHourQueryService")   // TODO(P5)
+            .and().haveSimpleNameNotEndingWith("ShopClosedDayQueryService")      // TODO(P5)
+            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..repository..")
+            .because("QueryService는 write 포트를 주입하지 않는다(CQRS 교차 주입 금지)");
+
+        rule.check(classes);
+    }
+
+    /**
+     * 컨트롤러는 domain-free다. HTTP 경계는 식별자를 {@code Long}, 도메인 enum을 {@code String}으로
+     * 받고 승격은 Service가 담당하므로(ID VO·도메인 enum 경계 규칙), 컨트롤러가
+     * {@code com.tastyhouse.domain..}를 알 이유가 없다.
+     *
+     * <p>{@code domain.shared.page.PageResult}는 차단 대상에서 제외한다 — 페이징 컨트롤러가
+     * QueryService가 반환한 {@code PageResult<T>}를 해체해 {@code ApiResponse.success(...)} 4-인자
+     * 호출에 넘기는 것은 CLAUDE.md가 문서화한 페이징 관행(공용 페이징 <em>계약</em>이지 도메인
+     * 모델이 아니다)이다. 클래스 단위가 아니라 타입 단위로 좁혀 다른 도메인 타입 유입은 계속 잡는다.
+     *
+     * <p>이 모듈은 현재 위반 0건이므로 클래스 예외 목록이 없다(web-api는 {@code PaymentApiController}
+     * 하나를 P5 대기로 제외 중).
+     */
+    @Test
+    void controllersShouldBeDomainFree() {
+        ArchRule rule = noClasses()
+            .that().haveSimpleNameEndingWith("ApiController")
+            .should().dependOnClassesThat(
+                resideInAPackage("com.tastyhouse.domain..")
+                    .and(not(assignableTo("com.tastyhouse.domain.shared.page.PageResult")))
+                    .as("com.tastyhouse.domain.. (PageResult 제외)"))
+            .because("컨트롤러는 com.tastyhouse.domain..를 import하지 않는다(HTTP 경계는 Long·String)");
+
+        rule.check(classes);
+    }
+
+    /**
+     * Request/Response record는 domain-free·infra-free 순수 데이터 홀더다(검증 + Swagger 스키마).
+     * result 객체를 통째로 받지 않고 원시타입으로 낱개 언패킹해 받으므로 infra query result 구조를
+     * 알 필요가 없고, 도메인 enum·VO 승격은 Service가 담당한다.
+     *
+     * <p>CLAUDE.md에 문서화된 {@code PaginationResponse}의 {@code PageResult} 예외는 이 규칙의
+     * 대상이 아니다 — 그 타입은 {@code ..response..}가 아니라 {@code common/}에 있어 매칭되지 않는다.
+     */
+    @Test
+    void requestResponseRecordsShouldBeDomainAndInfraFree() {
+        ArchRule rule = noClasses()
+            .that().resideInAnyPackage("..request..", "..response..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.domain..",
+                "com.tastyhouse.infrastructure.."
+            )
+            .because("Request/Response record는 domain-free·infra-free 순수 데이터 홀더다");
 
         rule.check(classes);
     }

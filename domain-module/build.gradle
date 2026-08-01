@@ -20,6 +20,9 @@ dependencies {
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
+    // 도메인 순수성(프레임워크-프리·의존 방향) 게이트용. 위 프레임워크-프리 원칙은 production
+    // 의존에만 적용되며, 그 원칙을 강제하는 테스트 의존은 이 규칙의 대상이 아니다.
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
     testImplementation 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
