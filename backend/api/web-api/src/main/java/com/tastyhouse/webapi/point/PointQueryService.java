@@ -1,0 +1,75 @@
+package com.tastyhouse.webapi.point;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.infrastructure.point.query.PointBalanceResult;
+import com.tastyhouse.infrastructure.point.query.PointHistoryResult;
+import com.tastyhouse.infrastructure.point.query.PointQueryDao;
+import com.tastyhouse.webapi.point.response.PointHistoryItemResponse;
+import com.tastyhouse.webapi.point.response.PointHistoryResponse;
+import com.tastyhouse.webapi.point.response.PointResponse;
+import com.tastyhouse.webapi.point.response.PointUsableResponse;
+
+/**
+ * 내 포인트 조회 서비스.
+ *
+ * <p>infra read 어댑터({@link PointQueryDao})만 주입해 조회하고 Response를 조립한다. web-api에는 포인트
+ * 쓰기 경로가 없으므로(주문 결제 사용은 order 도메인 트랜잭션 안에서 도메인 서비스가 처리) CommandService를
+ * 두지 않는다.
+ */
+@Service
+@Transactional(readOnly = true)
+public class PointQueryService {
+
+    private final PointQueryDao pointQueryDao;
+
+    public PointQueryService(PointQueryDao pointQueryDao) {
+        this.pointQueryDao = pointQueryDao;
+    }
+
+    public PointResponse getMemberPoint(Long memberId) {
+        return pointQueryDao.findBalanceByMemberId(MemberId.of(memberId))
+            .map(this::toPointResponse)
+            .orElseGet(() -> PointResponse.of(0, 0));
+    }
+
+    public PointHistoryResponse getPointHistory(Long memberId) {
+        PointResponse pointResponse = getMemberPoint(memberId);
+
+        List<PointHistoryItemResponse> histories = pointQueryDao.findPointHistories(MemberId.of(memberId))
+            .stream()
+            .map(this::toPointHistoryItemResponse)
+            .toList();
+
+        return PointHistoryResponse.from(
+            pointResponse.availablePoints(),
+            pointResponse.expiredThisMonth(),
+            histories
+        );
+    }
+
+    public PointUsableResponse getUsablePoint(Long memberId) {
+        return pointQueryDao.findBalanceByMemberId(MemberId.of(memberId))
+            .map(result -> PointUsableResponse.of(result.availablePoints()))
+            .orElseGet(() -> PointUsableResponse.of(0));
+    }
+
+    private PointResponse toPointResponse(PointBalanceResult result) {
+        return PointResponse.of(result.availablePoints(), result.expiredThisMonth());
+    }
+
+    private PointHistoryItemResponse toPointHistoryItemResponse(PointHistoryResult history) {
+        String pointType = history.pointType().name();
+        Integer pointAmount = "USE".equals(pointType) ? -history.pointAmount() : history.pointAmount();
+        return PointHistoryItemResponse.from(
+            history.reason(),
+            history.createdAt().toLocalDate(),
+            pointAmount,
+            pointType
+        );
+    }
+}

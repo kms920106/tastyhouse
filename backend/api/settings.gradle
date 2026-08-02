@@ -1,0 +1,12 @@
+rootProject.name = 'tastyhouse-api'
+
+include 'web-api'
+include 'admin-api'
+include 'ceo-api'
+include 'domain-module'
+include 'infrastructure-module'
+include 'external-api'
+include 'logging-module'
+include 'batch-module'
+include 'security-module'
+include 'api-common-module'

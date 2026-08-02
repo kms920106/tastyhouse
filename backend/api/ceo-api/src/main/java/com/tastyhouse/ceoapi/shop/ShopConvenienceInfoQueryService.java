@@ -1,0 +1,68 @@
+package com.tastyhouse.ceoapi.shop;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.infrastructure.shop.query.ShopAmenityAssignmentResult;
+import com.tastyhouse.infrastructure.shop.query.ShopConvenienceInfoResult;
+import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.ceoapi.shop.response.ShopAmenityResponse;
+import com.tastyhouse.ceoapi.shop.response.ShopConvenienceInfoResponse;
+
+/**
+ * 점주용 가게 편의정보·편의시설 조회 서비스(CQRS query 측).
+ *
+ * <p>편의정보가 아직 등록되지 않은 가게는 빈 기본값 응답을 돌려준다(기존 동작 유지).
+ */
+@Service
+@Transactional(readOnly = true)
+public class ShopConvenienceInfoQueryService {
+
+    private final ShopQueryDao shopQueryDao;
+    private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopConvenienceInfoQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryDao = shopQueryDao;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
+
+    public ShopConvenienceInfoResponse getConvenienceInfo(Long ceoId, Long shopId) {
+        shopOwnershipValidator.validateOwnership(ceoId, shopId);
+        return shopQueryDao.findConvenienceInfo(shopId)
+            .map(this::toShopConvenienceInfoResponse)
+            .orElseGet(() -> ShopConvenienceInfoResponse.from(null, shopId, false, false, false, false, null, null, null));
+    }
+
+    public List<ShopAmenityResponse> getAmenities(Long ceoId, Long shopId) {
+        shopOwnershipValidator.validateOwnership(ceoId, shopId);
+        return shopQueryDao.findAmenityAssignments(shopId).stream()
+            .map(this::toShopAmenityResponse)
+            .toList();
+    }
+
+    private ShopConvenienceInfoResponse toShopConvenienceInfoResponse(ShopConvenienceInfoResult dto) {
+        return ShopConvenienceInfoResponse.from(
+            dto.id(),
+            dto.shopId(),
+            dto.parkingAvailable(),
+            dto.parkingPaid(),
+            dto.valetAvailable(),
+            dto.valetPaid(),
+            dto.directionsGuide(),
+            dto.displayLatitude(),
+            dto.displayLongitude()
+        );
+    }
+
+    private ShopAmenityResponse toShopAmenityResponse(ShopAmenityAssignmentResult dto) {
+        return ShopAmenityResponse.from(
+            dto.id(),
+            dto.amenityCategoryId(),
+            dto.amenity().name(),
+            dto.displayName(),
+            dto.activeIconUrl()
+        );
+    }
+}

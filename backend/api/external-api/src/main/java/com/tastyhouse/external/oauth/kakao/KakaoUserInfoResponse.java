@@ -1,0 +1,68 @@
+package com.tastyhouse.external.oauth.kakao;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record KakaoUserInfoResponse(
+    @JsonProperty("id") Long id,
+    @JsonProperty("connected_at") String connectedAt,
+    @JsonProperty("kakao_account") KakaoAccount kakaoAccount
+) {
+    public record KakaoAccount(
+    @JsonProperty("profile") Profile profile,
+    @JsonProperty("email_needs_agreement") Boolean emailNeedsAgreement,
+    @JsonProperty("is_email_valid") Boolean isEmailValid,
+    @JsonProperty("is_email_verified") Boolean isEmailVerified,
+    @JsonProperty("email") String email,
+    @JsonProperty("name_needs_agreement") Boolean nameNeedsAgreement,
+    @JsonProperty("name") String name,
+    @JsonProperty("gender_needs_agreement") Boolean genderNeedsAgreement,
+    @JsonProperty("gender") String gender,
+    @JsonProperty("phone_number_needs_agreement") Boolean phoneNumberNeedsAgreement,
+    @JsonProperty("phone_number") String phoneNumber
+    ) {}
+
+    public record Profile(
+    @JsonProperty("nickname") String nickname,
+    @JsonProperty("thumbnail_image_url") String thumbnailImageUrl,
+    @JsonProperty("profile_image_url") String profileImageUrl,
+    @JsonProperty("is_default_image") Boolean isDefaultImage
+    ) {}
+
+    public String getEmail() {
+    if (kakaoAccount == null) return null;
+    return kakaoAccount.email();
+    }
+
+    public String getNickname() {
+    if (kakaoAccount == null || kakaoAccount.profile() == null) return null;
+    return kakaoAccount.profile().nickname();
+    }
+
+    public String getProfileImageUrl() {
+    if (kakaoAccount == null || kakaoAccount.profile() == null) return null;
+    return kakaoAccount.profile().profileImageUrl();
+    }
+
+    public String getName() {
+    if (kakaoAccount == null) return null;
+    return kakaoAccount.name();
+    }
+
+    public String getPhoneNumber() {
+    if (kakaoAccount == null) return null;
+    return kakaoAccount.phoneNumber();
+    }
+
+    // 카카오 gender: "male" → "MALE", "female" → "FEMALE", 그 외 → null
+    // 도메인 enum(MemberGender)이 아니라 그 상수명 문자열을 반환한다 — 외부 응답 DTO가 도메인 타입을
+    // 보유하면 external-api → domain-module 역방향 결합이 생기기 때문이다. 도메인 enum 승격이 필요하면
+    // 소비 측(web-api Service)이 MemberGender.from(String)으로 수행한다(도메인 enum 경계 규칙).
+    public String getGender() {
+    if (kakaoAccount == null || kakaoAccount.gender() == null) return null;
+    return switch (kakaoAccount.gender()) {
+        case "male" -> "MALE";
+        case "female" -> "FEMALE";
+        default -> null;
+    };
+    }
+}

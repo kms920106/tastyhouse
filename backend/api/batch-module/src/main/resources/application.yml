@@ -1,0 +1,16 @@
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%thread] %cyan(%logger{36}) : %msg%n"
+  level:
+    root: INFO
+
+spring:
+  application:
+    name: batch-module
+  main:
+    web-application-type: none
+  config:
+    import:
+      - classpath:application-infrastructure.yml
+      - classpath:application-external.yml
+      - optional:file:.env[.properties]

@@ -1,0 +1,29 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    // Spring Boot Starter
+    // 공유 모듈이 web/aop/security/jackson을 api로 노출 → 소비 모듈(admin-api)이 aop를 별도 추가할 필요가 없다.
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-aop'
+    api 'org.springframework.boot:spring-boot-starter-security'
+
+    // p6spy SQL 로깅 — 소비 모듈(web/admin/ceo-api)이 별도 선언하지 않도록 api로 노출.
+    // SQL 로그 포맷은 application-logging.yml의 decorator.datasource.p6spy.log-format이 소유.
+    api 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.12.1'
+
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+// 실행 가능한 애플리케이션이 아니므로 일반 jar만 생성하고 bootJar는 비활성화한다.
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}

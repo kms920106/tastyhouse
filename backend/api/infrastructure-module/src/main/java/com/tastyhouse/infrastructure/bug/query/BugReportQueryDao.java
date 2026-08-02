@@ -1,0 +1,213 @@
+package com.tastyhouse.infrastructure.bug.query;
+
+import java.util.List;
+import java.util.Optional;
+
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+
+import com.tastyhouse.domain.bug.model.BugReportCategory;
+import com.tastyhouse.domain.bug.model.BugReportPriority;
+import com.tastyhouse.domain.bug.model.BugReportStatus;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+
+import static com.tastyhouse.infrastructure.bug.persistence.QBugReportImageJpaEntity.bugReportImageJpaEntity;
+import static com.tastyhouse.infrastructure.bug.persistence.QBugReportJpaEntity.bugReportJpaEntity;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
+
+/**
+ * 버그 제보 read 어댑터(CQRS query 측).
+ *
+ * <p>표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영한다. 도메인 모델을 거치지 않으므로
+ * write 포트({@code BugReportRepository}/{@code BugReportImageRepository})와 역할이 겹치지 않는다.
+ * 소비 모듈(admin-api)의 {@code BugReportQueryService}가 이 DAO를 주입해 사용하며, 그 덕분에 api
+ * 모듈은 QueryDSL을 알지 않는다.
+ *
+ * <p>도메인당 DAO 1개 원칙에 따라 소비자별 메서드를 이 한 클래스에 둔다. 버그 제보 조회는 관리자만
+ * 소비하므로(web-api는 제보 등록만 한다) 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다.
+ */
+@Repository
+public class BugReportQueryDao {
+
+    private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
+
+    public BugReportQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
+
+    /**
+     * 관리 목록 조회 — 제목/내용 부분일치·회원·처리상태·분류·우선순위 필터를 적용하고 첨부 이미지 개수를
+     * 서브쿼리 count로 함께 투영한다.
+     */
+    public PageResult<BugReportListItemResult> findBugReports(BugReportSearchCondition condition, PageQuery pageQuery) {
+        Long total = queryFactory
+            .select(bugReportJpaEntity.id.count())
+            .from(bugReportJpaEntity)
+            .where(
+                titleContains(condition.title()),
+                contentContains(condition.content()),
+                memberIdEq(condition.memberId()),
+                statusEq(condition.status()),
+                categoryEq(condition.category()),
+                priorityEq(condition.priority())
+            )
+            .fetchOne();
+
+        List<BugReportListItemResult> items = queryFactory
+            .select(new QBugReportListItemResult(
+                bugReportJpaEntity.id,
+                bugReportJpaEntity.memberId,
+                bugReportJpaEntity.device,
+                bugReportJpaEntity.title,
+                bugReportJpaEntity.status,
+                bugReportJpaEntity.category,
+                bugReportJpaEntity.priority,
+                JPAExpressions
+                    .select(bugReportImageJpaEntity.count())
+                    .from(bugReportImageJpaEntity)
+                    .where(imageBugReportId().eq(bugReportJpaEntity.id)),
+                bugReportJpaEntity.createdAt
+            ))
+            .from(bugReportJpaEntity)
+            .where(
+                titleContains(condition.title()),
+                contentContains(condition.content()),
+                memberIdEq(condition.memberId()),
+                statusEq(condition.status()),
+                categoryEq(condition.category()),
+                priorityEq(condition.priority())
+            )
+            .orderBy(bugReportJpaEntity.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        return PageResult.of(items, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    /**
+     * 관리 상세 조회 — 스칼라 필드를 투영한 뒤 첨부 이미지 파일 ID 목록을 정렬 순서대로 합쳐 조립한다.
+     */
+    public Optional<BugReportDetailResult> findDetailById(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+
+        BugReportDetailProjection projection = queryFactory
+            .select(new QBugReportDetailProjection(
+                bugReportJpaEntity.id,
+                bugReportJpaEntity.memberId,
+                bugReportJpaEntity.device,
+                bugReportJpaEntity.title,
+                bugReportJpaEntity.content,
+                bugReportJpaEntity.status,
+                bugReportJpaEntity.category,
+                bugReportJpaEntity.priority,
+                reportAssigneeAdminId(),
+                bugReportJpaEntity.adminAnswer,
+                bugReportJpaEntity.resolvedAt,
+                bugReportJpaEntity.appVersion,
+                bugReportJpaEntity.platform,
+                bugReportJpaEntity.osVersion,
+                bugReportJpaEntity.createdAt,
+                bugReportJpaEntity.updatedAt
+            ))
+            .from(bugReportJpaEntity)
+            .where(bugReportJpaEntity.id.eq(id))
+            .fetchOne();
+
+        if (projection == null) {
+            return Optional.empty();
+        }
+
+        List<BugReportImageResult> images = findImages(id);
+        return Optional.of(BugReportDetailResult.from(projection, images));
+    }
+
+    /**
+     * 첨부 이미지를 정렬 순서대로 조회하며, {@code uploaded_file}을 join해 파일명·저장 경로를 함께
+     * 가져온 뒤 {@link FileUrlResolver}로 표시용 URL까지 변환한다(소비 측의 추가 파일 조회 제거).
+     */
+    private List<BugReportImageResult> findImages(Long bugReportId) {
+        return queryFactory
+            .select(new QBugReportImageResult(
+                imageFileIdPath(),
+                uploadedFileJpaEntity.originalFilename,
+                uploadedFileJpaEntity.filePath
+            ))
+            .from(bugReportImageJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(imageFileIdPath()))
+            .where(imageBugReportId().eq(bugReportId))
+            .orderBy(bugReportImageJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+    }
+
+    private BugReportImageResult withResolvedImageUrl(BugReportImageResult row) {
+        return new BugReportImageResult(
+            row.fileId(),
+            row.fileName(),
+            fileUrlResolver.resolve(row.imageUrl())
+        );
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code BUG_REPORT.assignee_admin_id}를 raw {@code Long}으로 투영하기
+     * 위한 path.
+     */
+    private NumberPath<Long> reportAssigneeAdminId() {
+        return Expressions.numberPath(Long.class, bugReportJpaEntity, "assigneeAdminId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code BUG_REPORT_IMAGE.bug_report_id}를 raw {@code Long}으로 비교하기
+     * 위한 path.
+     */
+    private NumberPath<Long> imageBugReportId() {
+        return Expressions.numberPath(Long.class, bugReportImageJpaEntity, "bugReportId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code BUG_REPORT_IMAGE.image_file_id}를 raw {@code Long}으로 투영하기
+     * 위한 path.
+     */
+    private NumberPath<Long> imageFileIdPath() {
+        return Expressions.numberPath(Long.class, bugReportImageJpaEntity, "imageFileId");
+    }
+
+    private BooleanExpression titleContains(String title) {
+        return StringUtils.hasText(title) ? bugReportJpaEntity.title.containsIgnoreCase(title) : null;
+    }
+
+    private BooleanExpression contentContains(String content) {
+        return StringUtils.hasText(content) ? bugReportJpaEntity.content.containsIgnoreCase(content) : null;
+    }
+
+    private BooleanExpression memberIdEq(MemberId memberId) {
+        return memberId != null ? bugReportJpaEntity.memberId.eq(memberId) : null;
+    }
+
+    private BooleanExpression statusEq(BugReportStatus status) {
+        return status != null ? bugReportJpaEntity.status.eq(status) : null;
+    }
+
+    private BooleanExpression categoryEq(BugReportCategory category) {
+        return category != null ? bugReportJpaEntity.category.eq(category) : null;
+    }
+
+    private BooleanExpression priorityEq(BugReportPriority priority) {
+        return priority != null ? bugReportJpaEntity.priority.eq(priority) : null;
+    }
+}

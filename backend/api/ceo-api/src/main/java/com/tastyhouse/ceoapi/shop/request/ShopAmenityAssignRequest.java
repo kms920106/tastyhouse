@@ -1,0 +1,12 @@
+package com.tastyhouse.ceoapi.shop.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+
+@Schema(description = "내 가게 편의시설 지정 요청")
+public record ShopAmenityAssignRequest(
+    @NotNull(message = "편의시설 카테고리 ID는 필수입니다.")
+    @Schema(description = "편의시설 카테고리 ID", example = "3", requiredMode = Schema.RequiredMode.REQUIRED)
+    Long amenityCategoryId
+) {
+}

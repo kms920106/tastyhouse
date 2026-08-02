@@ -1,0 +1,52 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Spring Boot
+*.jar
+!**/src/main/**
+!**/src/test/**
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env-*
+
+# Firebase
+*-firebase-adminsdk-*.json
+
+# Claude
+.claude/settings.local.json
+RESULT.md
+docs/REFACTORING.md
+
+# Cursor
+.vscode/
+
+# Bin directories
+bin/
+**/bin/
+
+# Annotation Processor generated files (IntelliJ IDEA legacy)
+.apt_generated/
+.apt_generated_tests/
+**/.apt_generated/
+**/.apt_generated_tests/
+
+# oh-my-claudecode state
+.omc/

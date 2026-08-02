@@ -1,0 +1,13 @@
+file:
+  provider: firebase # firebase | s3
+  # FIREBASE
+  firebase:
+    service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH}
+    storage-bucket: ${FIREBASE_STORAGE_BUCKET}
+    base-url: https://firebasestorage.googleapis.com/v0/b/${FIREBASE_STORAGE_BUCKET}/o
+  # AWS
+  aws:
+    s3:
+      bucket-name: ${S3_BUCKET_NAME}
+      region: ap-northeast-2
+      base-url: https://cdn.tastyhouse.com
