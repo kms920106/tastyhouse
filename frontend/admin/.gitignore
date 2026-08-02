@@ -36,9 +36,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# oh-my-claudecode
-.omc/
-
 # playwright
 /test-results/
 /playwright-report/

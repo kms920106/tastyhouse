@@ -45,18 +45,12 @@ yarn-error.log*
 # claude settings
 .claude/settings.local.json
 
-# oh-my-claudecode runtime
-.omc/
-
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# ide
-.idea
 
 # result files
 RESULT.md

@@ -1,0 +1,21 @@
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# oh-my-claudecode state
+.omc/
+
+# VSCode / Cursor
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/settings.local.json
+
+# Logs
+*.log
