@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.partnership.request.PartnershipRequestCreateRequest;
 
 @RestController

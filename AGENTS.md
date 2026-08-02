@@ -13,7 +13,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `settings.gradle` | 멀티모듈 정의 (`web-api`, `admin-api`, `ceo-api`, `domain-module`, `infrastructure-module`, `external-api`, `security-module`, `logging-module`, `batch-module`) |
+| `settings.gradle` | 멀티모듈 정의 (`web-api`, `admin-api`, `ceo-api`, `domain-module`, `infrastructure-module`, `external-api`, `security-module`, `api-common-module`, `logging-module`, `batch-module`) |
 | `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인, AWS BOM) |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
 | `CLAUDE.md` | AI 작업 규칙 (한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지) |
@@ -28,6 +28,7 @@
 | `web-api/` | 사용자용 REST API — 컨트롤러, 도메인당 CQRS 서비스, 인증(JWT/OAuth), 보안 (see `web-api/AGENTS.md`) |
 | `external-api/` | 외부 연동 어댑터 — OAuth, 결제(Toss), 이메일/SMS, 파일(S3/Firebase), 크롤링 (see `external-api/AGENTS.md`) |
 | `security-module/` | web-api·admin-api·ceo-api 공유 보안/인증 지원 라이브러리 — Redis 기반 JWT 세션(RefreshToken/Blacklist/소셜 임시토큰), Rate Limiting (see `security-module/AGENTS.md`) |
+| `api-common-module/` | web-api·admin-api·ceo-api 공유 HTTP 플럼웨어 — `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`/`GlobalExceptionHandler`(admin·ceo 전용) (see `api-common-module/AGENTS.md`) |
 | `admin-api/` | 관리자용 REST API — 관리자 계정/인증, banner·bug·coupon·event·faq·member·notice·policy 등 도메인 관리 (see `admin-api/AGENTS.md`) |
 | `ceo-api/` | 점주(매장 오너)용 REST API — JWT 인증 인프라 + 점주 가게 설정 API(`shop`: 영업시간·휴무일·전화번호·소개·이미지 변경요청 등) (see `ceo-api/AGENTS.md`) |
 | `batch-module/` | 시간 기반 배치 스케줄러 전담 독립 실행 모듈(Rank/Product/Grade/SearchKeyword) (see `batch-module/AGENTS.md`) |
@@ -63,20 +64,25 @@ web-api ──┬─→ domain-module (implementation)
           ├─→ infrastructure-module (implementation)   ← <ctx>/query DAO를 직접 주입하므로 컴파일 타임 필요
           ├─→ external-api (implementation)
           ├─→ security-module (implementation)
+          ├─→ api-common-module (implementation)
           └─→ logging-module (implementation)
 admin-api ─(동일 패턴)
 ceo-api ─(동일 패턴)
 batch-module ─(동일 패턴 — security-module 없음, logging-module은 p6spy exclude)
 infrastructure-module ─→ domain-module (api)
 external-api ─→ domain-module (implementation)   ← domain <ctx>/port 구현
-security-module ─→ domain-module (implementation) ← ErrorCode 참조만
+security-module ─→ domain-module (implementation) ← 현재 도메인 참조 0건(RateLimitException의 ErrorCode 결합 해소됨)
+api-common-module ─┬→ domain-module (api)            ← PageResult·FileUploadService가 공개 시그니처에 노출
+                   └→ security-module (implementation) ← RateLimitException 처리
 domain-module → 의존 없음 (production 의존은 Lombok 하나뿐)
 ```
 - **`domain-module`은 프레임워크를 모른다**: 다른 모듈에 의존하지 않으며, Spring(Web/tx/orm)·JPA·QueryDSL 전부 의존이 없다. HTTP 상태는 `ErrorCode.httpStatusCode`(int)로, 낙관적 락 충돌은 프레임워크-프리 `OptimisticLockConflictException`으로 표현한다(스프링 예외 번역은 infrastructure-module의 `RepositoryImpl` 담당). persistence·조회·이벤트 발행·도메인 서비스 빈 등록은 전부 `infrastructure-module`이 전담한다.
 - **api 모듈이 `infrastructure-module`을 `implementation`으로 의존하는 이유**: `{도메인}QueryService`가 infra `<ctx>/query/`의 `{도메인}QueryDao`를 컴파일 타임에 직접 주입하기 때문이다(과거 `runtimeOnly` 은닉에서 변경). 대신 은닉은 의존 스코프가 아니라 **ArchUnit 규칙**이 담당한다 — `..infrastructure..persistence..`(write 어댑터)와 `com.querydsl..`은 여전히 금지이고, `..query..`만 허용된다. `querydsl-jpa`는 infrastructure-module에서 `implementation`으로 강등되어 api 모듈 클래스패스로 전이되지 않는다.
-- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이다. 나머지(`domain-module`/`infrastructure-module`/`external-api`/`security-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
+- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이다. 나머지(`domain-module`/`infrastructure-module`/`external-api`/`security-module`/`api-common-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
 - **`scanBasePackages`에 domain 엔트리 없음**: `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없으므로(도메인 서비스는 POJO, 빈 등록은 infra `DomainServiceConfig`), 4개 앱의 `scanBasePackages`(및 admin/ceo의 `@ComponentScan basePackages`)에서 domain 패키지 엔트리를 제거했다. 남은 엔트리는 각 앱 자신 + `com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`(web/admin/ceo)·`com.tastyhouse.logging`이다.
-- **모듈 경계 원칙**: `infrastructure-module`은 domain 포트의 **DB 어댑터 전용**이다(write `persistence` + read `query` + 이벤트 `listener`). domain에 포트가 없는 기술(Redis 등 presentation 공유 관심사)은 infrastructure-module에 두지 않고, 그 관심사를 위한 별도 공유 모듈(`security-module`)을 둔다.
+- **모듈 경계 원칙**: `infrastructure-module`은 domain 포트의 **DB 어댑터 전용**이다(write `persistence` + read `query` + 이벤트 `listener`). domain에 포트가 없는 기술(Redis 등 presentation 공유 관심사)은 infrastructure-module에 두지 않고, 그 관심사를 위한 별도 공유 모듈(`security-module`·`api-common-module`)을 둔다.
+- **api 모듈 공용 플럼빙은 `api-common-module`이 단독 소유**한다(과거 "모듈별로 각각 둠" 관례 개정): 세 모듈에 package 선언 1줄만 다르게 복제돼 있던 `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`와 admin↔ceo 복제였던 `GlobalExceptionHandler`를 통합했다. **완전 동일한 것만** 통합하며, 내용이 다른 정책 파일(`SecurityConfig`·`PublicPaths`·`TokenService`·`AuthService`)과 계약이 다른 응답 record(`ShopDetailResponse` 등)는 복제를 유지한다 — 허용 목록은 [CLAUDE.md](CLAUDE.md#api-모듈-공용-플럼빙-소유-규칙-api-common-module) 표 참고. `GlobalExceptionHandler`는 빈이므로 **web-api는 `com.tastyhouse.apicommon.file`만 스캔**한다(자체 핸들러 유지).
+- **소셜 로그인은 `external.oauth.spi` SPI로만 사용**한다: web-api는 제공자별 패키지(`..oauth.kakao..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClient`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI를 domain-module이 아니라 external-api가 소유하는 이유는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다(security-module 선례와 동일 판단). 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-externaloauthspi) 참고.
 
 ### Testing Requirements
 - 스키마 무변경 보장: `hibernate.ddl-auto=validate` 기준. JPA 엔티티(`infrastructure-module`) 변경 시 `create.sql`과 정합성 확인.

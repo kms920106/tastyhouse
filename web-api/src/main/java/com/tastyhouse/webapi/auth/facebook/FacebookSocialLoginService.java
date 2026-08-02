@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -19,9 +19,10 @@ import com.tastyhouse.domain.member.domain.repository.MemberSocialAccountReposit
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.external.oauth.facebook.FacebookOAuthClient;
-import com.tastyhouse.external.oauth.facebook.FacebookTokenDebugResponse;
-import com.tastyhouse.external.oauth.facebook.FacebookUserInfoResponse;
+import com.tastyhouse.external.oauth.spi.SocialAuthorization;
+import com.tastyhouse.external.oauth.spi.SocialCredential;
+import com.tastyhouse.external.oauth.spi.SocialOAuthClient;
+import com.tastyhouse.external.oauth.spi.SocialProfile;
 import com.tastyhouse.security.token.FacebookTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
@@ -35,10 +36,9 @@ import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 @RequiredArgsConstructor
 public class FacebookSocialLoginService {
 
-    @Value("${facebook.app-id}")
-    private String facebookAppId;
-
-    private final FacebookOAuthClient facebookOAuthClient;
+    // SocialOAuthClient 구현이 제공자별로 4개이므로 빈 이름으로 명시 지정한다.
+    @Qualifier("facebookOAuthClient")
+    private final SocialOAuthClient facebookOAuthClient;
     private final MemberCommandService memberCommandService;
     private final MemberRepository memberRepository;
     private final MemberSocialAccountRepository memberSocialAccountRepository;
@@ -53,17 +53,17 @@ public class FacebookSocialLoginService {
     // - 동일 이메일 일반가입 계정 존재: facebookTempToken 반환 (NEEDS_LINKING)
     @Transactional
     public AuthSocialLoginResponse login(String facebookAccessToken) {
-        validateToken(facebookAccessToken);
-
-        FacebookUserInfoResponse facebookUser = facebookOAuthClient.fetchUserInfo(facebookAccessToken);
-        String providerId = facebookUser.id();
+        // exchange가 Facebook 공식 문서 권장 서버측 app_id 검증을 수행한다(과거 이 클래스의 validateToken).
+        SocialCredential credential = facebookOAuthClient.exchange(SocialAuthorization.of(facebookAccessToken));
+        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(credential);
+        String providerId = facebookUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
             memberSocialAccountRepository.findByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
-            socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl());
+            socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl());
             memberCommandService.saveSocialAccount(socialAccount);
 
             Member member = memberRepository.findById(socialAccount.getMemberId())
@@ -75,11 +75,11 @@ public class FacebookSocialLoginService {
         // → 사용자 동의 후 연동 처리가 필요하므로 NEEDS_LINKING 반환
         String facebookEmail = facebookUser.email();
         if (StringUtils.hasText(facebookEmail) && memberRepository.existsByUsername(facebookEmail)) {
-            String facebookTempToken = issueTempToken(facebookAccessToken);
+            String facebookTempToken = issueTempToken(credential.value());
             return AuthSocialLoginResponse.ofLinkingRequired(facebookTempToken);
         }
 
-        String facebookTempToken = issueTempToken(facebookAccessToken);
+        String facebookTempToken = issueTempToken(credential.value());
         return AuthSocialLoginResponse.ofSignUpRequired(facebookTempToken);
     }
 
@@ -99,8 +99,8 @@ public class FacebookSocialLoginService {
             throw new BusinessException(ErrorCode.FACEBOOK_TEMP_TOKEN_EXPIRED);
         }
 
-        FacebookUserInfoResponse facebookUser = facebookOAuthClient.fetchUserInfo(facebookAccessToken);
-        String providerId = facebookUser.id();
+        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(SocialCredential.of(facebookAccessToken));
+        String providerId = facebookUser.providerId();
 
         // 이미 페이스북 소셜 계정이 연동된 경우 중복 연동을 방지한다.
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
@@ -118,14 +118,14 @@ public class FacebookSocialLoginService {
                 new AuthSocialProfileResponse(
                     providerId,
                     facebookUser.email(),
-                    null,
-                    facebookUser.getProfileImageUrl(),
+                    facebookUser.nickname(),
+                    facebookUser.profileImageUrl(),
                     facebookUser.name(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
+                    facebookUser.phoneNumber(),
+                    facebookUser.gender(),
+                    facebookUser.birthYear(),
+                    facebookUser.birthMonth(),
+                    facebookUser.birthDay()
                 )
             );
         }
@@ -134,7 +134,7 @@ public class FacebookSocialLoginService {
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
                 member.getMemberId(), MemberSocialProvider.FACEBOOK, providerId,
-                facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
+                facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl()
             )
         );
 
@@ -156,8 +156,8 @@ public class FacebookSocialLoginService {
             throw new BusinessException(ErrorCode.FACEBOOK_TEMP_TOKEN_EXPIRED);
         }
 
-        FacebookUserInfoResponse facebookUser = facebookOAuthClient.fetchUserInfo(facebookAccessToken);
-        String providerId = facebookUser.id();
+        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(SocialCredential.of(facebookAccessToken));
+        String providerId = facebookUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
@@ -171,21 +171,13 @@ public class FacebookSocialLoginService {
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
                 savedMember.getMemberId(), MemberSocialProvider.FACEBOOK, providerId,
-                facebookUser.email(), facebookUser.name(), facebookUser.getProfileImageUrl()
+                facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl()
             )
         );
 
         facebookTempTokenRedisRepository.delete(facebookTempToken);
 
         return issueJwt(savedMember);
-    }
-
-    // Facebook 공식 문서 권장: 서버에서 액세스 토큰의 app_id가 자신의 앱과 일치하는지 반드시 검증
-    private void validateToken(String facebookAccessToken) {
-        FacebookTokenDebugResponse debugResponse = facebookOAuthClient.debugToken(facebookAccessToken);
-        if (!debugResponse.isValid() || !facebookAppId.equals(debugResponse.getAppId())) {
-            throw new BusinessException(ErrorCode.SOCIAL_OAUTH_FAILED);
-        }
     }
 
     private String issueTempToken(String facebookAccessToken) {

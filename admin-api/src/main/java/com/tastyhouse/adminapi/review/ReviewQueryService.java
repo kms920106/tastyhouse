@@ -19,7 +19,7 @@ import com.tastyhouse.infrastructure.review.query.ReviewManagementQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewReplyListItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.review.response.ReviewCommentListItemResponse;
 import com.tastyhouse.adminapi.review.response.ReviewListItemResponse;
 import com.tastyhouse.adminapi.review.response.ReviewManagementDetailResponse;

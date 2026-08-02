@@ -100,12 +100,65 @@ public record PaginationResponse<T>(
 
 - **서비스 사용법**: 페이징 조회 메서드는 `PaginationResponse<XxxListItemResponse>`를 반환하고, 마지막 줄에서 `PaginationResponse.from(pageResult)`로 조립합니다(`PageResult<T>` 위임 예외는 [DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)과 동일).
 - **컨트롤러 사용법**: 지역 변수 타입만 `PaginationResponse<XxxListItemResponse>`로 두고, `ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements())` 4-인자 호출은 **그대로 유지**합니다. `ApiResponse`에 `PaginationResponse<T>`를 받는 오버로드를 추가하지 않습니다 — `ApiResponse.java`는 이 리팩터링과 무관하게 기존 형태를 유지합니다.
-- **모듈별로 각각 둠**: `ApiResponse<T>`/`PageRequest`가 이미 `adminapi.common`·`webapi.common`에 모듈별로 중복 배치된 선례를 그대로 따라, `PaginationResponse<T>`도 두 모듈에 각각 둡니다(모듈 간 공유 모듈 없음).
+- **~~모듈별로 각각 둠~~ → `api-common-module`이 단독 소유 (개정됨)**: 과거에는 `ApiResponse<T>`/`PageRequest`가 모듈별로 중복 배치된 선례를 따라 `PaginationResponse<T>`도 각 모듈에 뒀으나, 세 모듈의 파일이 **package 선언 1줄만 다른 완전 복제**로 확인되어 신설 공유 모듈 `api-common-module`(`com.tastyhouse.apicommon.common`)이 단독 소유하도록 통합했습니다. 상세 기준은 아래 [api 모듈 공용 플럼빙 소유 규칙](#api-모듈-공용-플럼빙-소유-규칙-api-common-module)을 참고합니다.
 - **적용 제외 (변종)**: `response`(중첩 객체) + `totalElements`만 갖는 형태(예: `ProductReviewsByRatingPageResponse`, `ShopReviewsByRatingPageResponse`)처럼 표준 4필드가 아닌 페이징 응답은 이 규칙 대상이 아니며 기존 도메인 접두어 규칙을 그대로 따릅니다.
 
 reference 구현: `admin-api`/`web-api` 공통 — `common/PaginationResponse.java` + 이를 사용하는 전 도메인의 페이징 조회 메서드(`NoticeQueryService#getNotices`, `EventService#getEvents`, `OrderService#getOrderList` 등).
 
-**적용 확인 (위치·네이밍 정렬)**: 위 "모듈별로 각각 둠" 관례는 `ApiResponse`/`PageRequest`/`PaginationResponse`뿐 아니라 예외 처리·보안 설정 파일 위치에도 동일하게 적용됩니다 — `GlobalExceptionHandler`는 두 모듈 모두 `exception/` 패키지에, `SecurityConfig`는 두 모듈 모두 `config/security/` 패키지에, 공개 경로(permit-all) 목록은 두 모듈 모두 `config/security/PublicPaths.PATTERNS` 상수 클래스로 위치가 통일되어 있습니다(신규 규칙이 아니라 기존 산발적 배치를 이 관례에 맞게 정렬한 것).
+**적용 확인 (위치·네이밍 정렬, 개정됨)**: `ApiResponse`/`PageRequest`/`PaginationResponse`는 위 개정에 따라 `api-common-module`이 단독 소유합니다. 반면 `SecurityConfig`(인증 주체·필터체인·인가 정책이 모듈마다 다름)와 `PublicPaths.PATTERNS`(공개 경로 목록이 모듈마다 전혀 다름 — web은 18줄, admin/ceo는 3줄)는 **내용이 실제로 다른 정책 파일**이므로 계속 모듈별로 각각 둡니다. 위치·패키지 이름만 세 모듈에서 통일합니다(`config/security/`).
+
+## api 모듈 공용 플럼빙 소유 규칙 (`api-common-module`)
+
+**web-api/admin-api/ceo-api에서 내용이 완전히 동일한(= package 선언 줄만 다른) 비도메인 플럼빙 타입은 모듈별로 복제하지 않고 `api-common-module`이 단독 소유합니다.** 과거 관례는 "모듈별로 각각 둠"이었고 그 근거는 모듈 독립성이었으나, 전수 diff 결과 대상 파일들이 **정말로 한 글자도 다르지 않아** 그 관례가 보호하던 "소비자별 계약 차이"가 실재하지 않았습니다. 계약이 같은 것을 복제해 두면 한쪽만 고쳐지는 드리프트(실제로 세 모듈 `FileService`가 서로 다르게 갈라졌던 선례)가 생기므로, **동일함이 확인된 것만** 통합합니다.
+
+- **모듈 형태**: `java-library` + `bootJar` 비활성 + `implementation` 의존. `security-module` 선례를 그대로 따릅니다(도메인 포트가 없는 공유 기술은 별도 공유 모듈이 소유).
+- **통합 판정 기준 — "완전 동일"만**: `diff` 결과가 package 선언 1줄뿐인 것만 대상입니다. 한 줄이라도 **의미 있는** 차이가 있으면 그 차이가 소비자별 계약 차이인지 우연인지 먼저 판정하고, 계약 차이면 통합하지 않고 각 모듈에 남깁니다.
+- **Swagger `@Schema` 문구 차이는 통합하지 않는 사유입니다**: `description`이 "가게" vs "내 가게"처럼 다르면 필드 구조가 같아도 **API 문서에 노출되는 값이 달라지므로** 통합 대상에서 제외합니다(그 문구가 소비자별로 의도된 설명이기 때문).
+
+### 통합된 것 (`api-common-module` 소유)
+
+| 타입 | 패키지 | 통합 전 |
+|---|---|---|
+| `ApiResponse<T>` | `apicommon.common` | 3모듈 복제(diff 1줄) |
+| `PaginationResponse<T>` | `apicommon.common` | 3모듈 복제(diff 1줄) |
+| `PageRequest` | `apicommon.common` | 3모듈 복제(diff 1줄) |
+| `FileService` | `apicommon.file` | 3모듈 복제(diff 1줄) |
+| `GlobalExceptionHandler` | `apicommon.exception` | admin↔ceo 복제(diff 1줄) — **web-api는 제외** |
+| `ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse` | `apicommon.shop.response` | admin↔ceo 바이트 동일 |
+
+**스캔 주의**: `GlobalExceptionHandler`(`@RestControllerAdvice`)와 `FileService`(`@Service`)는 빈이므로 어느 앱이 무엇을 스캔하는지가 곧 동작입니다. admin/ceo는 `com.tastyhouse.apicommon` 전체를, **web-api는 `com.tastyhouse.apicommon.file`만** 스캔합니다(자체 핸들러를 쓰므로 `exception` 패키지를 스캔하면 핸들러가 2개가 됩니다).
+
+### 복제를 유지하는 것 (허용 목록 — 통합 금지)
+
+아래는 이름이 같아도 **내용이 실제로 달라** 각 모듈이 각자 소유합니다. 통합하려는 시도가 반복되지 않도록 사유를 명시합니다.
+
+| 타입 | 사유 |
+|---|---|
+| `GlobalExceptionHandler` (web-api) | web 전용 핸들러 4종(`ExternalApiException`·`NoHandlerFoundException`·`MissingServletRequestParameterException`·`MethodArgumentTypeMismatchException`) 보유 + 검증 실패 메시지 형식이 `"필드명: 메시지"`로 다름 → **응답 계약 차이** |
+| `TokenService` (admin/ceo) | 인증 주체(`Admin`/`Ceo`)·`ErrorCode`(`ADMIN_*`/`CEO_*`)·조회 서비스가 전부 다름. **JWT 시크릿도 분리**(`JWT_SECRET_ADMIN` 등)되어야 하므로 통합 시 권한 상승 위험 |
+| `AuthService` (admin/ceo) | 위와 동일(인증 주체 차이) |
+| `SecurityConfig` (3모듈) | 필터체인·인가 정책이 모듈마다 다름 |
+| `PublicPaths` (3모듈) | 공개 경로 목록이 모듈마다 전혀 다름(web 18줄 vs admin/ceo 3줄). admin↔ceo가 우연히 같을 뿐 **정책 파일**이므로 통합하지 않음 |
+| `ShopDetailResponse` (admin/ceo) | 필드 셋이 다름 — admin은 `createdAt`/`updatedAt`, ceo는 `trademarkImageUrl`/`hidden` → **계약 차이** |
+| `ShopAmenityResponse`·`ShopListItemResponse` (admin/ceo) | 필드는 같으나 `@Schema(description)`이 "가게" vs "내 가게"로 달라 Swagger 문서가 바뀜 |
+| `OrderDetailResponse` (web/admin) | `@Schema` example이 `APPROVED` vs `COMPLETED`로 다름(소비자별 대표값) |
+| `ApiResponse`/`PageRequest`/`PaginationResponse`의 **모듈별 사본** | 없음 — 위 표대로 통합 완료 |
+
+reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 의존하는 3개 api 모듈, 스캔 범위를 좁힌 `WebApiApplication`.
+
+## 소셜 로그인 SPI 규칙 (`external.oauth.spi`)
+
+**소셜 로그인은 external-api가 소유한 SPI(`com.tastyhouse.external.oauth.spi`)를 통해서만 사용합니다.** web-api는 제공자별 패키지(`..oauth.kakao..` 등)의 wire DTO·클라이언트 구현을 직접 import하지 않습니다.
+
+- **왜 domain-module이 아닌가**: domain-module의 출력 포트(`MailSender`·`FileStoragePort` 등)는 전부 **도메인 서비스가** 불변식을 만족시키려고 호출하는 것들입니다. 소셜 OAuth는 호출부가 전부 web-api(표현 계층)이고 도메인 서비스가 쓰는 곳이 없어, domain-module에 두면 "아무 도메인 서비스도 호출하지 않는 포트"가 됩니다. 도메인에 대응 개념이 없는 공유 기술은 별도 모듈이 소유한다는 [모듈 경계 규칙](#모듈-경계-규칙-도메인-포트-없는-공유-기술은-infrastructure가-아니라-별도-공유-모듈로)(security-module의 Redis JWT·rate limit 선례)에 따라 **어댑터와 같은 모듈(external-api)이 자신의 SPI를 소유**합니다.
+- **2단 계약으로 제공자별 흐름 차이를 흡수**: `exchange(SocialAuthorization) → SocialCredential`(카카오·네이버·애플의 토큰 교환, 페이스북의 app_id 검증)과 `fetchProfile(SocialCredential) → SocialProfile`(카카오·네이버·페이스북의 userinfo 조회, 애플의 id_token 검증·추출). `state`는 네이버만 쓰며 나머지는 `null`입니다.
+- **`SocialProfile`은 전 필드 `String`**: `gender`도 도메인 enum이 아니라 상수명 문자열(`"MALE"`/`"FEMALE"`/`null`)을 담습니다 — 외부 연동 타입이 도메인 타입을 보유하면 external-api → domain-module 역방향 결합이 됩니다(과거 `KakaoUserInfoResponse`/`NaverUserInfoResponse`가 `MemberGender`를 import하던 문제). 도메인 enum 승격은 소비 측이 `MemberGender.from(String)`으로 수행합니다.
+- **제공자별 관심사는 어댑터가 회수**: 페이스북 app_id 검증(`${facebook.app-id}` 설정값 포함)과 애플 id_token 검증 예외 번역(`APPLE_ID_TOKEN_INVALID`)은 과거 web-api 서비스에 있었으나 어댑터로 옮겼습니다. 응답 계약(`SOCIAL_OAUTH_FAILED`·`APPLE_ID_TOKEN_INVALID`)은 그대로입니다.
+- **보존해야 하는 것**: 제공자별 Redis 임시토큰 저장소 4종과 **key prefix**(`kakao_temp:` 등), 제공자별 `*_TEMP_TOKEN_EXPIRED` `ErrorCode` 4종은 통합하지 않습니다 — prefix를 바꾸면 배포 시점에 진행 중인 임시토큰이 전부 무효화되고, ErrorCode는 프론트가 분기할 수 있는 wire 계약입니다.
+- **빈 주입**: `SocialOAuthClient` 구현이 4개이므로 소비 측은 `@Qualifier("kakaoOAuthClient")`처럼 빈 이름을 명시합니다. 루트 `lombok.config`의 `lombok.copyableAnnotations`가 `@Qualifier`를 `@RequiredArgsConstructor` 생성자 파라미터로 복사해 주며, **이 설정이 없으면 `@Qualifier`가 조용히 무시**되고 주입이 빈 이름 우연 일치에만 의존하게 됩니다.
+- **ArchUnit으로 강제**: `web-api`의 `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 제공자별 패키지 의존을 금지합니다.
+
+reference 구현: `external-api`의 `oauth/spi/`(`SocialOAuthClient`·`SocialProfile`·`SocialCredential`·`SocialAuthorization`·`SocialProvider`)와 이를 구현한 `KakaoOAuthClient`·`NaverOAuthClient`·`FacebookOAuthClient`·`AppleOAuthClient`, 소비 측 `web-api`의 소셜 로그인 서비스 4종.
 
 ## DTO 조립 규칙 (`new` 직접 호출 지양)
 

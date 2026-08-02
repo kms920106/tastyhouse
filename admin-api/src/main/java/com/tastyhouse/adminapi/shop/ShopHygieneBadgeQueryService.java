@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.infrastructure.shop.query.ShopHygieneBadgeResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
-import com.tastyhouse.adminapi.shop.response.ShopHygieneBadgeResponse;
+import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
 
 /**
  * admin용 가게 위생 인증 뱃지 조회 서비스(CQRS query 측). 소유권 검증 없이 전체 가게를 대상으로 한다.

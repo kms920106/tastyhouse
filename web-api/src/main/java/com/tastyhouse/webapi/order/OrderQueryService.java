@@ -21,7 +21,7 @@ import com.tastyhouse.infrastructure.order.query.OrderPaymentResult;
 import com.tastyhouse.infrastructure.order.query.OrderProductOptionResult;
 import com.tastyhouse.infrastructure.order.query.OrderProductResult;
 import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
-import com.tastyhouse.webapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
 import com.tastyhouse.webapi.order.response.OrderProductOptionResponse;

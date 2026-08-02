@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.common.ApiResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.ceoapi.shop.request.ShopBusinessHourSaveRequest;
-import com.tastyhouse.ceoapi.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.ceoapi.shop.response.ShopBusinessHourResponse;
+import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
+import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
 
 @Tag(name = "Ceo Shop Business Hour", description = "점주 가게 운영시간·브레이크타임 관리 API")
 @RestController

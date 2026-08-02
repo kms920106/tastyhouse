@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.banner.query.BannerListItemResult;
 import com.tastyhouse.infrastructure.banner.query.BannerQueryDao;
-import com.tastyhouse.webapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
 
 /**

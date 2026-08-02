@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopContentBoardResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.response.ShopContentBoardListItemResponse;
 
 /**

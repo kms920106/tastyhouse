@@ -12,7 +12,7 @@ import com.tastyhouse.infrastructure.point.query.PointBalanceResult;
 import com.tastyhouse.infrastructure.point.query.PointHistoryResult;
 import com.tastyhouse.infrastructure.point.query.PointQueryDao;
 import com.tastyhouse.infrastructure.point.query.PointSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.point.response.PointBalanceResponse;
 import com.tastyhouse.adminapi.point.response.PointHistoryResponse;
 

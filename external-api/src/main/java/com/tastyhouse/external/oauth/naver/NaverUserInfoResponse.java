@@ -2,8 +2,6 @@ package com.tastyhouse.external.oauth.naver;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.tastyhouse.domain.member.domain.model.MemberGender;
-
 // 네이버 프로필 API 응답 (GET https://openapi.naver.com/v1/nid/me)
 // 사용자 정보는 최상위 "response" 객체 안에 중첩된다.
 public record NaverUserInfoResponse(
@@ -54,12 +52,16 @@ public record NaverUserInfoResponse(
     return response.mobile();
     }
 
-    // 네이버 gender: "M" → MALE, "F" → FEMALE, 그 외 → null
-    public MemberGender getGender() {
-    if (response == null) return null;
+    // 네이버 gender: "M" → "MALE", "F" → "FEMALE", 그 외 → null
+    // 도메인 enum(MemberGender)이 아니라 그 상수명 문자열을 반환한다 — 외부 응답 DTO가 도메인 타입을
+    // 보유하면 external-api → domain-module 역방향 결합이 생기기 때문이다. 도메인 enum 승격이 필요하면
+    // 소비 측(web-api Service)이 MemberGender.from(String)으로 수행한다(도메인 enum 경계 규칙).
+    // response.gender()는 사용자가 성별 제공에 동의하지 않으면 null이므로 반드시 가드한다(카카오 형제와 동일).
+    public String getGender() {
+    if (response == null || response.gender() == null) return null;
     return switch (response.gender()) {
-        case "M" -> MemberGender.MALE;
-        case "F" -> MemberGender.FEMALE;
+        case "M" -> "MALE";
+        case "F" -> "FEMALE";
         default -> null;
     };
     }

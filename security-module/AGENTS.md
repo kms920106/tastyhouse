@@ -11,7 +11,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + web/aop/data-redis starter, `domain-module`(implementation, `RateLimitException`이 `ErrorCode` 참조). `bootJar` 비활성 |
+| `build.gradle` | `java-library` + web/aop/data-redis starter, `domain-module`(implementation — 공용 JWT provider가 도메인 타입을 참조. `RateLimitException`의 `ErrorCode` 결합은 해소되어 `ratelimit` 패키지는 도메인 의존 0건). `bootJar` 비활성 |
 | `src/main/resources/application-security.yml` | `spring.data.redis`(host/port/password) 소유. web-api/admin-api/ceo-api가 `spring.config.import`로 로딩(`application-infrastructure.yml`/`application-external.yml`/`application-logging.yml`과 동일 패턴) |
 
 ## Subdirectories

@@ -178,6 +178,26 @@ class LayerRulesTest {
     }
 
     /**
+     * 소셜 로그인은 external-api의 SPI({@code com.tastyhouse.external.oauth.spi})만 통해 쓴다.
+     * 제공자별 패키지({@code ..oauth.kakao..} 등)의 wire DTO·클라이언트 구현에 직접 의존하지 않는다 —
+     * 직접 의존하면 제공자 API 응답 스키마 변경이 표현 계층까지 번지고, 과거처럼 외부 응답 DTO가
+     * 도메인 타입({@code MemberGender})을 보유하는 역방향 결합이 되살아나기 쉽다.
+     */
+    @Test
+    void shouldDependOnOauthSpiOnlyNotProviderPackages() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.external.oauth.kakao..",
+                "com.tastyhouse.external.oauth.naver..",
+                "com.tastyhouse.external.oauth.facebook..",
+                "com.tastyhouse.external.oauth.apple.."
+            )
+            .because("소셜 로그인은 com.tastyhouse.external.oauth.spi를 통해서만 사용한다");
+
+        rule.check(classes);
+    }
+
+    /**
      * Request/Response record는 domain-free·infra-free 순수 데이터 홀더다(검증 + Swagger 스키마).
      * result 객체를 통째로 받지 않고 원시타입으로 낱개 언패킹해 받으므로 infra query result 구조를
      * 알 필요가 없고, 도메인 enum·VO 승격은 Service가 담당한다.

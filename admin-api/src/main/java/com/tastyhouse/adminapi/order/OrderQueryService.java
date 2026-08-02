@@ -22,7 +22,7 @@ import com.tastyhouse.infrastructure.order.query.OrderProductOptionResult;
 import com.tastyhouse.infrastructure.order.query.OrderProductResult;
 import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
 import com.tastyhouse.infrastructure.order.query.OrderSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.order.response.OrderDetailResponse;
 import com.tastyhouse.adminapi.order.response.OrderListItemResponse;
 import com.tastyhouse.adminapi.order.response.OrderProductOptionResponse;

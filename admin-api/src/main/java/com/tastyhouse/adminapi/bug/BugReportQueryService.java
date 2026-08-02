@@ -22,7 +22,7 @@ import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportDetailResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportListItemResponse;
 import com.tastyhouse.adminapi.bug.response.MemberSummaryResponse;

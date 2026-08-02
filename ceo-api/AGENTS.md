@@ -27,7 +27,7 @@
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `src/main/java/com/tastyhouse/ceoapi/` | 점주 컨트롤러 루트 — `common/`(공용 인프라: `ApiResponse`·`PageRequest`·`PaginationResponse`), `config/`(JWT·Security·`CeoSeeder`/`CeoSeedProperties`), `exception/`(`GlobalExceptionHandler`), `auth/`(로그인·토큰갱신·로그아웃), `ceo/`(점주 계정 CQRS 서비스), `file/`, `shop/`(점주 가게 설정 — 관심사별 CQRS 서비스 + `ShopOwnershipValidator`·`ShopImageSpecValidator`). 신규 도메인 폴더는 admin-api 컨벤션(`컨트롤러 + {도메인}CommandService`/`{도메인}QueryService` + `request/`·`response/`)대로 생성 |
+| `src/main/java/com/tastyhouse/ceoapi/` | 점주 컨트롤러 루트 — `config/`(JWT·Security·`CeoSeeder`/`CeoSeedProperties`), `auth/`(로그인·토큰갱신·로그아웃), `ceo/`(점주 계정 CQRS 서비스), `file/`, `shop/`(점주 가게 설정 — 관심사별 CQRS 서비스 + `ShopOwnershipValidator`·`ShopImageSpecValidator`). **공용 플럼빙(`ApiResponse`·`PageRequest`·`PaginationResponse`·`FileService`·`GlobalExceptionHandler`)과 admin과 바이트 동일하던 shop 응답 3종(`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`)은 `api-common-module`(`com.tastyhouse.apicommon`) 소유**이며 `CeoApiApplication`이 그 패키지를 스캔한다. 반면 `ShopDetailResponse`(필드 셋 차이)·`ShopAmenityResponse`/`ShopListItemResponse`(`@Schema` 문구 차이)는 이 모듈에 잔류한다. 신규 도메인 폴더는 admin-api 컨벤션대로 생성 |
 | `src/test/` | 점주 API 테스트 (`contextLoads`) |
 
 ## For AI Agents

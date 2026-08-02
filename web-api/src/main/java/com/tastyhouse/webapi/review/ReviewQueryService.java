@@ -37,7 +37,7 @@ import com.tastyhouse.infrastructure.review.query.ReviewReplyItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
-import com.tastyhouse.webapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.review.response.ReviewBestListItemResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentListResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentResponse;

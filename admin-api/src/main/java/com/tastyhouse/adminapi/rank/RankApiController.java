@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.adminapi.common.ApiResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.rank.request.RankAggregateRequest;
 import com.tastyhouse.adminapi.rank.request.RankPeriodCreateRequest;
 import com.tastyhouse.adminapi.rank.request.RankPeriodUpdateRequest;

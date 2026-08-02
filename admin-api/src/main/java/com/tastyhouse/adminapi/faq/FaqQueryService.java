@@ -15,7 +15,7 @@ import com.tastyhouse.infrastructure.faq.query.FaqDetailResult;
 import com.tastyhouse.infrastructure.faq.query.FaqManagementListItemResult;
 import com.tastyhouse.infrastructure.faq.query.FaqQueryDao;
 import com.tastyhouse.infrastructure.faq.query.FaqSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.faq.response.FaqCategoryResponse;
 import com.tastyhouse.adminapi.faq.response.FaqDetailResponse;
 import com.tastyhouse.adminapi.faq.response.FaqListItemResponse;

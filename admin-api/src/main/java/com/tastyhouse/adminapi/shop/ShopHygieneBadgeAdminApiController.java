@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.adminapi.common.ApiResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.request.ShopHygieneBadgeCreateRequest;
-import com.tastyhouse.adminapi.shop.response.ShopHygieneBadgeResponse;
+import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
 
 @Tag(name = "Shop Hygiene Badge Admin", description = "가게 위생 인증 뱃지 등록 관리자 API")
 @RestController

@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,9 +19,10 @@ import com.tastyhouse.domain.member.domain.repository.MemberSocialAccountReposit
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.external.oauth.naver.NaverOAuthClient;
-import com.tastyhouse.external.oauth.naver.NaverTokenResponse;
-import com.tastyhouse.external.oauth.naver.NaverUserInfoResponse;
+import com.tastyhouse.external.oauth.spi.SocialAuthorization;
+import com.tastyhouse.external.oauth.spi.SocialCredential;
+import com.tastyhouse.external.oauth.spi.SocialOAuthClient;
+import com.tastyhouse.external.oauth.spi.SocialProfile;
 import com.tastyhouse.security.token.NaverTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
@@ -34,7 +36,9 @@ import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 @RequiredArgsConstructor
 public class NaverSocialLoginService {
 
-    private final NaverOAuthClient naverOAuthClient;
+    // SocialOAuthClient 구현이 제공자별로 4개이므로 빈 이름으로 명시 지정한다.
+    @Qualifier("naverOAuthClient")
+    private final SocialOAuthClient naverOAuthClient;
     private final MemberCommandService memberCommandService;
     private final MemberRepository memberRepository;
     private final MemberSocialAccountRepository memberSocialAccountRepository;
@@ -48,17 +52,17 @@ public class NaverSocialLoginService {
     // - 동일 이메일 일반가입 계정 존재: naverTempToken 반환 (NEEDS_LINKING)
     @Transactional
     public AuthSocialLoginResponse login(String authorizationCode, String state) {
-        NaverTokenResponse naverToken = naverOAuthClient.fetchToken(authorizationCode, state);
-        NaverUserInfoResponse naverUser = naverOAuthClient.fetchUserInfo(naverToken.accessToken());
+        SocialCredential credential = naverOAuthClient.exchange(SocialAuthorization.of(authorizationCode, state));
+        SocialProfile naverUser = naverOAuthClient.fetchProfile(credential);
 
-        String providerId = naverUser.getProviderId();
+        String providerId = naverUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
             memberSocialAccountRepository.findByProviderAndProviderId(MemberSocialProvider.NAVER, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
-            socialAccount.updateProviderInfo(naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl());
+            socialAccount.updateProviderInfo(naverUser.email(), naverUser.nickname(), naverUser.profileImageUrl());
             memberCommandService.saveSocialAccount(socialAccount);
 
             Member member = memberRepository.findById(socialAccount.getMemberId())
@@ -68,13 +72,13 @@ public class NaverSocialLoginService {
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
         // → 사용자 동의 후 연동 처리가 필요하므로 NEEDS_LINKING 반환
-        String naverEmail = naverUser.getEmail();
+        String naverEmail = naverUser.email();
         if (StringUtils.hasText(naverEmail) && memberRepository.existsByUsername(naverEmail)) {
-            String naverTempToken = issueTempToken(naverToken.accessToken());
+            String naverTempToken = issueTempToken(credential.value());
             return AuthSocialLoginResponse.ofLinkingRequired(naverTempToken);
         }
 
-        String naverTempToken = issueTempToken(naverToken.accessToken());
+        String naverTempToken = issueTempToken(credential.value());
         return AuthSocialLoginResponse.ofSignUpRequired(naverTempToken);
     }
 
@@ -94,8 +98,8 @@ public class NaverSocialLoginService {
             throw new BusinessException(ErrorCode.NAVER_TEMP_TOKEN_EXPIRED);
         }
 
-        NaverUserInfoResponse naverUser = naverOAuthClient.fetchUserInfo(naverAccessToken);
-        String providerId = naverUser.getProviderId();
+        SocialProfile naverUser = naverOAuthClient.fetchProfile(SocialCredential.of(naverAccessToken));
+        String providerId = naverUser.providerId();
 
         // 이미 네이버 소셜 계정이 연동된 경우 중복 연동을 방지한다.
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.NAVER, providerId)) {
@@ -112,15 +116,15 @@ public class NaverSocialLoginService {
                 naverTempToken,
                 new AuthSocialProfileResponse(
                     providerId,
-                    naverUser.getEmail(),
-                    naverUser.getNickname(),
-                    naverUser.getProfileImageUrl(),
-                    naverUser.getName(),
-                    naverUser.getMobile(),
-                    naverUser.getGender() != null ? naverUser.getGender().name() : null,
-                    naverUser.getBirthYear(),
-                    naverUser.getBirthMonth(),
-                    naverUser.getBirthDay()
+                    naverUser.email(),
+                    naverUser.nickname(),
+                    naverUser.profileImageUrl(),
+                    naverUser.name(),
+                    naverUser.phoneNumber(),
+                    naverUser.gender(),
+                    naverUser.birthYear(),
+                    naverUser.birthMonth(),
+                    naverUser.birthDay()
                 )
             );
         }
@@ -129,7 +133,7 @@ public class NaverSocialLoginService {
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
                 member.getMemberId(), MemberSocialProvider.NAVER, providerId,
-                naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
+                naverUser.email(), naverUser.nickname(), naverUser.profileImageUrl()
             )
         );
 
@@ -151,8 +155,8 @@ public class NaverSocialLoginService {
             throw new BusinessException(ErrorCode.NAVER_TEMP_TOKEN_EXPIRED);
         }
 
-        NaverUserInfoResponse naverUser = naverOAuthClient.fetchUserInfo(naverAccessToken);
-        String providerId = naverUser.getProviderId();
+        SocialProfile naverUser = naverOAuthClient.fetchProfile(SocialCredential.of(naverAccessToken));
+        String providerId = naverUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.NAVER, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
@@ -166,7 +170,7 @@ public class NaverSocialLoginService {
         memberCommandService.saveSocialAccount(
             MemberSocialAccount.of(
                 savedMember.getMemberId(), MemberSocialProvider.NAVER, providerId,
-                naverUser.getEmail(), naverUser.getNickname(), naverUser.getProfileImageUrl()
+                naverUser.email(), naverUser.nickname(), naverUser.profileImageUrl()
             )
         );
 

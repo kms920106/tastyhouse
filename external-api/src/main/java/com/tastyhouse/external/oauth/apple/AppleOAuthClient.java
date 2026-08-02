@@ -21,6 +21,14 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.external.oauth.spi.SocialAuthorization;
+import com.tastyhouse.external.oauth.spi.SocialCredential;
+import com.tastyhouse.external.oauth.spi.SocialOAuthClient;
+import com.tastyhouse.external.oauth.spi.SocialProfile;
+import com.tastyhouse.external.oauth.spi.SocialProvider;
+
 /**
  * Apple OAuth 클라이언트
  * <p>
@@ -30,7 +38,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 @Component
 @RequiredArgsConstructor
-public class AppleOAuthClient {
+public class AppleOAuthClient implements SocialOAuthClient {
 
     private static final String APPLE_AUTH_BASE_URL = "https://appleid.apple.com";
     private static final String APPLE_JWKS_URI = APPLE_AUTH_BASE_URL + "/auth/keys";
@@ -54,6 +62,49 @@ public class AppleOAuthClient {
     private String privateKeyBase64;
 
     private final WebClient webClient;
+
+    @Override
+    public SocialProvider provider() {
+        return SocialProvider.APPLE;
+    }
+
+    // Apple은 UserInfo 엔드포인트가 없어 id_token 자체가 프로필 소스다. 따라서 자격증명으로 액세스
+    // 토큰이 아닌 id_token을 반환하고, 여기서 한 번 검증해 잘못된 토큰이 Redis에 저장되지 않게 한다.
+    @Override
+    public SocialCredential exchange(SocialAuthorization authorization) {
+        String idToken = fetchToken(authorization.code()).idToken();
+        verifyIdToken(idToken);
+        return SocialCredential.of(idToken);
+    }
+
+    // JWKS를 네트워크로 받아 서명을 매번 재검증하므로 값싼 조회가 아니다(호출 빈도에 주의).
+    @Override
+    public SocialProfile fetchProfile(SocialCredential credential) {
+        AppleIdTokenPayload payload = verifyIdToken(credential.value());
+        return new SocialProfile(
+            payload.sub(),
+            payload.email(),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+    }
+
+    // verifyAndExtractIdToken의 bare RuntimeException을 도메인 의미의 예외로 번역한다.
+    // 과거 web-api의 AppleSocialLoginService 3곳에 중복돼 있던 try/catch를 어댑터로 회수한 것으로,
+    // 응답 계약(APPLE_ID_TOKEN_INVALID)은 그대로다.
+    private AppleIdTokenPayload verifyIdToken(String idToken) {
+        try {
+            return verifyAndExtractIdToken(idToken);
+        } catch (RuntimeException e) {
+            throw new BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID);
+        }
+    }
 
     // 인가 코드로 Apple 토큰(id_token 포함)을 발급
     public AppleTokenResponse fetchToken(String authorizationCode) {

@@ -13,7 +13,7 @@ import com.tastyhouse.infrastructure.banner.query.BannerDetailResult;
 import com.tastyhouse.infrastructure.banner.query.BannerManagementListItemResult;
 import com.tastyhouse.infrastructure.banner.query.BannerQueryDao;
 import com.tastyhouse.infrastructure.banner.query.BannerSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
 import com.tastyhouse.adminapi.file.response.FileResponse;

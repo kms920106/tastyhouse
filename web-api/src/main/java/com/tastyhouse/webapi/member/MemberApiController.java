@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.member.request.NicknameAvailabilityRequest;
 import com.tastyhouse.webapi.member.request.PhoneAvailabilityRequest;
 import com.tastyhouse.webapi.member.response.MemberProfileResponse;

@@ -18,7 +18,7 @@ import com.tastyhouse.infrastructure.product.query.ProductListItemResult;
 import com.tastyhouse.infrastructure.product.query.ProductOptionsResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 import com.tastyhouse.infrastructure.product.query.ProductSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.response.ProductCategoryResponse;
 import com.tastyhouse.adminapi.product.response.ProductDetailResponse;
 import com.tastyhouse.adminapi.product.response.ProductImagesResponse;

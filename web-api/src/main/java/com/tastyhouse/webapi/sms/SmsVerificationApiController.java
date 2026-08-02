@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.security.ratelimit.RateLimit;
 import com.tastyhouse.security.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapi.common.ApiResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.sms.request.SmsVerificationConfirmRequest;
 import com.tastyhouse.webapi.sms.request.SmsVerificationSendRequest;

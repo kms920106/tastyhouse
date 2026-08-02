@@ -14,7 +14,7 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.ceoapi.file.FileService;
+import com.tastyhouse.apicommon.file.FileService;
 
 /**
  * 점주용 가게 콘텐츠보드 변경 서비스(CQRS command 측).

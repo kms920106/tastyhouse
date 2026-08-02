@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.domain.shop.domain.model.ShopImageType;
 import com.tastyhouse.domain.shop.domain.service.ShopImageApprovalService;
-import com.tastyhouse.ceoapi.file.FileService;
+import com.tastyhouse.apicommon.file.FileService;
 
 /**
  * 점주용 가게 상표/대표이미지 변경요청 서비스(CQRS command 측).

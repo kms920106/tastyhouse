@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,9 +19,10 @@ import com.tastyhouse.domain.member.domain.repository.MemberSocialAccountReposit
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.external.oauth.apple.AppleIdTokenPayload;
-import com.tastyhouse.external.oauth.apple.AppleOAuthClient;
-import com.tastyhouse.external.oauth.apple.AppleTokenResponse;
+import com.tastyhouse.external.oauth.spi.SocialAuthorization;
+import com.tastyhouse.external.oauth.spi.SocialCredential;
+import com.tastyhouse.external.oauth.spi.SocialOAuthClient;
+import com.tastyhouse.external.oauth.spi.SocialProfile;
 import com.tastyhouse.security.token.AppleTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
@@ -34,7 +36,9 @@ import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 @RequiredArgsConstructor
 public class AppleSocialLoginService {
 
-    private final AppleOAuthClient appleOAuthClient;
+    // SocialOAuthClient 구현이 제공자별로 4개이므로 빈 이름으로 명시 지정한다.
+    @Qualifier("appleOAuthClient")
+    private final SocialOAuthClient appleOAuthClient;
     private final MemberCommandService memberCommandService;
     private final MemberRepository memberRepository;
     private final MemberSocialAccountRepository memberSocialAccountRepository;
@@ -52,16 +56,11 @@ public class AppleSocialLoginService {
     // 따라서 Apple 프로필에는 sub/email만 저장하고, 회원가입 시 사용자가 직접 이름을 입력한다.
     @Transactional
     public AuthSocialLoginResponse login(String authorizationCode) {
-        AppleTokenResponse appleToken = appleOAuthClient.fetchToken(authorizationCode);
+        // exchange가 토큰 교환과 id_token 검증(실패 시 APPLE_ID_TOKEN_INVALID)을 함께 수행한다.
+        SocialCredential credential = appleOAuthClient.exchange(SocialAuthorization.of(authorizationCode));
+        SocialProfile appleUser = appleOAuthClient.fetchProfile(credential);
 
-        AppleIdTokenPayload appleUser;
-        try {
-            appleUser = appleOAuthClient.verifyAndExtractIdToken(appleToken.idToken());
-        } catch (RuntimeException e) {
-            throw new BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID);
-        }
-
-        String providerId = appleUser.sub();
+        String providerId = appleUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
             memberSocialAccountRepository.findByProviderAndProviderId(MemberSocialProvider.APPLE, providerId);
@@ -69,7 +68,7 @@ public class AppleSocialLoginService {
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             // Apple은 이메일 외 nickname/profileImageUrl 미제공 → email만 업데이트
-            socialAccount.updateProviderInfo(appleUser.email(), null, null);
+            socialAccount.updateProviderInfo(appleUser.email(), appleUser.nickname(), appleUser.profileImageUrl());
             memberCommandService.saveSocialAccount(socialAccount);
 
             Member member = memberRepository.findById(socialAccount.getMemberId())
@@ -81,11 +80,11 @@ public class AppleSocialLoginService {
         // → 사용자 동의 후 연동 처리가 필요하므로 NEEDS_LINKING 반환
         String appleEmail = appleUser.email();
         if (StringUtils.hasText(appleEmail) && memberRepository.existsByUsername(appleEmail)) {
-            String appleTempToken = issueTempToken(appleToken.idToken());
+            String appleTempToken = issueTempToken(credential.value());
             return AuthSocialLoginResponse.ofLinkingRequired(appleTempToken);
         }
 
-        String appleTempToken = issueTempToken(appleToken.idToken());
+        String appleTempToken = issueTempToken(credential.value());
         return AuthSocialLoginResponse.ofSignUpRequired(appleTempToken);
     }
 
@@ -105,14 +104,8 @@ public class AppleSocialLoginService {
             throw new BusinessException(ErrorCode.APPLE_TEMP_TOKEN_EXPIRED);
         }
 
-        AppleIdTokenPayload appleUser;
-        try {
-            appleUser = appleOAuthClient.verifyAndExtractIdToken(appleIdToken);
-        } catch (RuntimeException e) {
-            throw new BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID);
-        }
-
-        String providerId = appleUser.sub();
+        SocialProfile appleUser = appleOAuthClient.fetchProfile(SocialCredential.of(appleIdToken));
+        String providerId = appleUser.providerId();
 
         // 이미 Apple 소셜 계정이 연동된 경우 중복 연동을 방지한다.
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
@@ -130,14 +123,14 @@ public class AppleSocialLoginService {
                 new AuthSocialProfileResponse(
                     providerId,
                     appleUser.email(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
+                    appleUser.nickname(),
+                    appleUser.profileImageUrl(),
+                    appleUser.name(),
+                    appleUser.phoneNumber(),
+                    appleUser.gender(),
+                    appleUser.birthYear(),
+                    appleUser.birthMonth(),
+                    appleUser.birthDay()
                 )
             );
         }
@@ -150,8 +143,8 @@ public class AppleSocialLoginService {
                 MemberSocialProvider.APPLE,
                 providerId,
                 appleUser.email(),
-                null,
-                null
+                appleUser.nickname(),
+                appleUser.profileImageUrl()
             )
         );
 
@@ -182,14 +175,8 @@ public class AppleSocialLoginService {
             throw new BusinessException(ErrorCode.APPLE_TEMP_TOKEN_EXPIRED);
         }
 
-        AppleIdTokenPayload appleUser;
-        try {
-            appleUser = appleOAuthClient.verifyAndExtractIdToken(appleIdToken);
-        } catch (RuntimeException e) {
-            throw new BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID);
-        }
-
-        String providerId = appleUser.sub();
+        SocialProfile appleUser = appleOAuthClient.fetchProfile(SocialCredential.of(appleIdToken));
+        String providerId = appleUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
@@ -206,8 +193,8 @@ public class AppleSocialLoginService {
                 MemberSocialProvider.APPLE,
                 providerId,
                 appleUser.email(),
-                null,
-                null
+                appleUser.nickname(),
+                appleUser.profileImageUrl()
             )
         );
 

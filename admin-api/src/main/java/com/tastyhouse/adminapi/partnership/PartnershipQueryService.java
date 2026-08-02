@@ -15,7 +15,7 @@ import com.tastyhouse.infrastructure.partnership.query.PartnershipQueryDao;
 import com.tastyhouse.infrastructure.partnership.query.PartnershipRequestDetailResult;
 import com.tastyhouse.infrastructure.partnership.query.PartnershipRequestListItemResult;
 import com.tastyhouse.infrastructure.partnership.query.PartnershipSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.partnership.response.PartnershipRequestDetailResponse;
 import com.tastyhouse.adminapi.partnership.response.PartnershipRequestListItemResponse;
 

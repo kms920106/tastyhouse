@@ -16,7 +16,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.member.query.MemberListItemResult;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.member.response.MemberDetailResponse;
 import com.tastyhouse.adminapi.member.response.MemberListItemResponse;
 

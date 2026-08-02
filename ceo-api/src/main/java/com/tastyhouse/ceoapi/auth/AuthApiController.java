@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.security.ratelimit.RateLimit;
 import com.tastyhouse.security.ratelimit.RateLimitKeyType;
-import com.tastyhouse.ceoapi.common.ApiResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.auth.request.LoginRequest;
 import com.tastyhouse.ceoapi.auth.request.RefreshTokenRequest;
 import com.tastyhouse.ceoapi.auth.response.JwtResponse;

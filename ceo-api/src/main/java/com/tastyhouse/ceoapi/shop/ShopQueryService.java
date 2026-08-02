@@ -14,7 +14,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopListItemResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchCondition;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
-import com.tastyhouse.ceoapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopDetailResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopListItemResponse;
 

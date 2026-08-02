@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.common.ApiResponse;
-import com.tastyhouse.ceoapi.common.PageRequest;
-import com.tastyhouse.ceoapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.request.ShopSearchRequest;
 import com.tastyhouse.ceoapi.shop.response.ShopDetailResponse;

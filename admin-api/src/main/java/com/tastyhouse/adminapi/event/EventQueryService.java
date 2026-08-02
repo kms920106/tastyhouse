@@ -18,7 +18,7 @@ import com.tastyhouse.infrastructure.event.query.EventManagementListItemResult;
 import com.tastyhouse.infrastructure.event.query.EventQueryDao;
 import com.tastyhouse.infrastructure.event.query.EventSearchCondition;
 import com.tastyhouse.infrastructure.event.query.EventWinnerResult;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.event.response.EventAnnouncementResponse;
 import com.tastyhouse.adminapi.event.response.EventDetailResponse;
 import com.tastyhouse.adminapi.event.response.EventListItemResponse;

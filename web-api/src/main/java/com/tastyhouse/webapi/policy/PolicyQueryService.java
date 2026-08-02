@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.policy.query.PolicyDocumentResult;
 import com.tastyhouse.infrastructure.policy.query.PolicyListItemResult;
 import com.tastyhouse.infrastructure.policy.query.PolicyQueryDao;
-import com.tastyhouse.webapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
 import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
 

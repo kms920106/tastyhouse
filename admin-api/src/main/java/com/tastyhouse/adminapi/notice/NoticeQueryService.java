@@ -12,7 +12,7 @@ import com.tastyhouse.infrastructure.notice.query.NoticeDetailResult;
 import com.tastyhouse.infrastructure.notice.query.NoticeManagementListItemResult;
 import com.tastyhouse.infrastructure.notice.query.NoticeQueryDao;
 import com.tastyhouse.infrastructure.notice.query.NoticeSearchCondition;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.notice.response.NoticeDetailResponse;
 import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
 

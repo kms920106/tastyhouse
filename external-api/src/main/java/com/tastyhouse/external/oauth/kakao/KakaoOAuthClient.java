@@ -9,9 +9,15 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.tastyhouse.external.oauth.spi.SocialAuthorization;
+import com.tastyhouse.external.oauth.spi.SocialCredential;
+import com.tastyhouse.external.oauth.spi.SocialOAuthClient;
+import com.tastyhouse.external.oauth.spi.SocialProfile;
+import com.tastyhouse.external.oauth.spi.SocialProvider;
+
 @Component
 @RequiredArgsConstructor
-public class KakaoOAuthClient {
+public class KakaoOAuthClient implements SocialOAuthClient {
 
     private static final String KAUTH_BASE_URL = "https://kauth.kakao.com";
     private static final String KAPI_BASE_URL = "https://kapi.kakao.com";
@@ -23,6 +29,34 @@ public class KakaoOAuthClient {
     private String redirectUri;
 
     private final WebClient webClient;
+
+    @Override
+    public SocialProvider provider() {
+        return SocialProvider.KAKAO;
+    }
+
+    // 인가 코드를 액세스 토큰으로 교환한다.
+    @Override
+    public SocialCredential exchange(SocialAuthorization authorization) {
+        return SocialCredential.of(fetchToken(authorization.code()).accessToken());
+    }
+
+    @Override
+    public SocialProfile fetchProfile(SocialCredential credential) {
+        KakaoUserInfoResponse user = fetchUserInfo(credential.value());
+        return new SocialProfile(
+            String.valueOf(user.id()),
+            user.getEmail(),
+            user.getNickname(),
+            user.getProfileImageUrl(),
+            user.getName(),
+            user.getPhoneNumber(),
+            user.getGender(),
+            null,
+            null,
+            null
+        );
+    }
 
     // 인가 코드로 카카오 액세스 토큰을 발급
     public KakaoTokenResponse fetchToken(String authorizationCode) {

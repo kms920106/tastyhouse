@@ -8,7 +8,7 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.notice.query.NoticeListItemResult;
 import com.tastyhouse.infrastructure.notice.query.NoticeQueryDao;
-import com.tastyhouse.webapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 
 /**

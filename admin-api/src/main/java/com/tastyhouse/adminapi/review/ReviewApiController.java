@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.adminapi.common.ApiResponse;
-import com.tastyhouse.adminapi.common.PageRequest;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.review.request.ReviewHiddenUpdateRequest;
 import com.tastyhouse.adminapi.review.request.ReviewSearchRequest;
 import com.tastyhouse.adminapi.review.response.ReviewCommentListItemResponse;

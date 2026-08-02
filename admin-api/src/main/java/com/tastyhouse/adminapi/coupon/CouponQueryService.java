@@ -15,7 +15,7 @@ import com.tastyhouse.infrastructure.coupon.query.CouponListItemResult;
 import com.tastyhouse.infrastructure.coupon.query.CouponQueryDao;
 import com.tastyhouse.infrastructure.coupon.query.CouponSearchCondition;
 import com.tastyhouse.infrastructure.coupon.query.MemberCouponItemResult;
-import com.tastyhouse.adminapi.common.PaginationResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.coupon.response.CouponDetailResponse;
 import com.tastyhouse.adminapi.coupon.response.CouponListItemResponse;
 import com.tastyhouse.adminapi.coupon.response.MemberCouponItemResponse;
