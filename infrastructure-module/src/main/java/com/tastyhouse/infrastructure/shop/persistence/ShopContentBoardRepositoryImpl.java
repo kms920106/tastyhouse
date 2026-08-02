@@ -2,17 +2,19 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ShopContentBoard;
 import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class ShopContentBoardRepositoryImpl implements ShopContentBoardRepository {
 
     private final ShopContentBoardJpaRepository shopContentBoardJpaRepository;
+
+    public ShopContentBoardRepositoryImpl(ShopContentBoardJpaRepository shopContentBoardJpaRepository) {
+        this.shopContentBoardJpaRepository = shopContentBoardJpaRepository;
+    }
 
     @Override
     public ShopContentBoard save(ShopContentBoard shopContentBoard) {

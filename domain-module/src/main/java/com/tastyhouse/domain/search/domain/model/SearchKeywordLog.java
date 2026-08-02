@@ -2,15 +2,12 @@ package com.tastyhouse.domain.search.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 /**
  * 검색 키워드 로그 순수 도메인 모델.
  *
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code SearchKeywordLogJpaEntity} + {@code SearchKeywordLogMapper}가 담당한다.
  */
-@Getter
 public class SearchKeywordLog {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -36,5 +33,17 @@ public class SearchKeywordLog {
      */
     public static SearchKeywordLog reconstitute(Long id, String keyword, LocalDateTime searchedAt) {
         return new SearchKeywordLog(id, keyword, searchedAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getKeyword() {
+        return this.keyword;
+    }
+
+    public LocalDateTime getSearchedAt() {
+        return this.searchedAt;
     }
 }

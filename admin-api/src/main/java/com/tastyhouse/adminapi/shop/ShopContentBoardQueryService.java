@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +18,13 @@ import com.tastyhouse.adminapi.shop.response.ShopContentBoardListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ShopContentBoardQueryService {
 
     private final ShopQueryDao shopQueryDao;
+
+    public ShopContentBoardQueryService(ShopQueryDao shopQueryDao) {
+        this.shopQueryDao = shopQueryDao;
+    }
 
     public PaginationResponse<ShopContentBoardListItemResponse> getContentBoards(
         Long shopId,

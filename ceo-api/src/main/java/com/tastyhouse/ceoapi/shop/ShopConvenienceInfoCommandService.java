@@ -2,7 +2,6 @@ package com.tastyhouse.ceoapi.shop;
 
 import java.math.BigDecimal;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +22,21 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopConvenienceInfoCommandService {
 
     private final ShopConvenienceInfoService shopConvenienceInfoService;
     private final ShopDetailRepository shopDetailRepository;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopConvenienceInfoCommandService(
+        ShopConvenienceInfoService shopConvenienceInfoService,
+        ShopDetailRepository shopDetailRepository,
+        ShopOwnershipValidator shopOwnershipValidator
+    ) {
+        this.shopConvenienceInfoService = shopConvenienceInfoService;
+        this.shopDetailRepository = shopDetailRepository;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public void updateConvenienceInfo(
         Long ceoId,

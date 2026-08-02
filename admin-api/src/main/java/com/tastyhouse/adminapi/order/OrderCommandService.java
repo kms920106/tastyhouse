@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.order;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +16,13 @@ import com.tastyhouse.domain.order.domain.vo.OrderId;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class OrderCommandService {
 
     private final OrderTransitionService orderTransitionService;
+
+    public OrderCommandService(OrderTransitionService orderTransitionService) {
+        this.orderTransitionService = orderTransitionService;
+    }
 
     /**
      * 주문 상태를 변경한다.

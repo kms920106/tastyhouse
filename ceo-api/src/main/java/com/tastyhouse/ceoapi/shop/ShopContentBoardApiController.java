@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,12 +25,16 @@ import com.tastyhouse.ceoapi.shop.response.ShopContentBoardResponse;
 
 @Tag(name = "Ceo Shop Content Board", description = "점주 가게 콘텐츠보드 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopContentBoardApiController {
 
     private final ShopContentBoardQueryService shopContentBoardQueryService;
     private final ShopContentBoardCommandService shopContentBoardCommandService;
+
+    public ShopContentBoardApiController(ShopContentBoardQueryService shopContentBoardQueryService, ShopContentBoardCommandService shopContentBoardCommandService) {
+        this.shopContentBoardQueryService = shopContentBoardQueryService;
+        this.shopContentBoardCommandService = shopContentBoardCommandService;
+    }
 
     @Operation(summary = "콘텐츠보드 목록 조회", description = "가게의 콘텐츠보드 목록을 조회합니다.")
     @GetMapping("/v1/{id}/content-boards")

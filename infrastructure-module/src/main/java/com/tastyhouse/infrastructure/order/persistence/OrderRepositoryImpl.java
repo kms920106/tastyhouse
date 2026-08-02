@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.order.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.order.domain.model.Order;
@@ -17,10 +16,13 @@ import com.tastyhouse.domain.order.domain.vo.OrderId;
  * 필요 없어 {@code JPAQueryFactory}를 주입하지 않는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
 
     private final OrderJpaRepository orderJpaRepository;
+
+    public OrderRepositoryImpl(OrderJpaRepository orderJpaRepository) {
+        this.orderJpaRepository = orderJpaRepository;
+    }
 
     @Override
     public Optional<Order> findById(OrderId orderId) {

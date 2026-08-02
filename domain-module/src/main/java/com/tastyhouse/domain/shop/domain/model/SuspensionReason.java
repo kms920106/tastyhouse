@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum SuspensionReason {
 
     EARLY_CLOSE("조기종료"),
@@ -18,6 +13,14 @@ public enum SuspensionReason {
     BAD_WEATHER("기상악화");
 
     private final String description;
+
+    SuspensionReason(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 
     public static SuspensionReason from(String code) {
         try {

@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-
 /**
  * 금칙어 순수 도메인 모델.
  *
@@ -10,7 +8,6 @@ import lombok.Getter;
  * Java 애플리케이션 계층에 생성/변경 경로가 없는 읽기 전용 애그리거트(SQL/수동 시드)이므로
  * 신규 생성 팩토리({@code of})는 두지 않는다.
  */
-@Getter
 public class ProhibitedWord {
 
     private final Long id;
@@ -29,5 +26,17 @@ public class ProhibitedWord {
      */
     public static ProhibitedWord reconstitute(Long id, String word, String reason) {
         return new ProhibitedWord(id, word, reason);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getWord() {
+        return this.word;
+    }
+
+    public String getReason() {
+        return this.reason;
     }
 }

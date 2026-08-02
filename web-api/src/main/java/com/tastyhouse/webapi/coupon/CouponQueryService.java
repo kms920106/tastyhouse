@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.coupon;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +23,13 @@ import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class CouponQueryService {
 
     private final CouponQueryDao couponQueryDao;
+
+    public CouponQueryService(CouponQueryDao couponQueryDao) {
+        this.couponQueryDao = couponQueryDao;
+    }
 
     /**
      * 내 쿠폰함 — 사용·만료분까지 전부 조회한다.

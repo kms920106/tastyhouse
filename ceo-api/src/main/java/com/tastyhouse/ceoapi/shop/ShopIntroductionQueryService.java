@@ -2,7 +2,6 @@ package com.tastyhouse.ceoapi.shop;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +19,21 @@ import com.tastyhouse.ceoapi.shop.response.ShopIntroductionValidationResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ShopIntroductionQueryService {
 
     private final ShopQueryDao shopQueryDao;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopIntroductionQueryService(
+        ShopQueryDao shopQueryDao,
+        ProhibitedWordValidator prohibitedWordValidator,
+        ShopOwnershipValidator shopOwnershipValidator
+    ) {
+        this.shopQueryDao = shopQueryDao;
+        this.prohibitedWordValidator = prohibitedWordValidator;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public ShopIntroductionResponse getIntroduction(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);

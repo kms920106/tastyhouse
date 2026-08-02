@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.shared.event;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -13,10 +12,13 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * {@code @TransactionalEventListener}/{@code @EventListener} 기반 리스너가 그대로 수신한다.
  */
 @Component
-@RequiredArgsConstructor
 public class SpringDomainEventPublisher implements DomainEventPublisher {
 
     private final ApplicationEventPublisher applicationEventPublisher;
+
+    public SpringDomainEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
 
     @Override
     public void publish(Object event) {

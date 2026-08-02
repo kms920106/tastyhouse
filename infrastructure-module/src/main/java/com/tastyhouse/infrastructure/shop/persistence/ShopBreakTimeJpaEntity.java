@@ -11,9 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.DayType;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -21,10 +18,8 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 /**
  * 상점 브레이크타임 JPA 영속 모델. 순수 도메인 모델 {@code ShopBreakTime}과 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_BREAK_TIME")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopBreakTimeJpaEntity {
 
     @Id
@@ -45,6 +40,9 @@ public class ShopBreakTimeJpaEntity {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime; // 브레이크타임 종료 시각
 
+    protected ShopBreakTimeJpaEntity() {
+    }
+
     private ShopBreakTimeJpaEntity(ShopId shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
         this.shopId = shopId;
         this.dayType = dayType;
@@ -60,5 +58,25 @@ public class ShopBreakTimeJpaEntity {
         this.dayType = dayType;
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public DayType getDayType() {
+        return this.dayType;
+    }
+
+    public LocalTime getStartTime() {
+        return this.startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return this.endTime;
     }
 }

@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.payment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,12 +33,16 @@ import com.tastyhouse.webapi.payment.response.PaymentResponse;
  */
 @RestController
 @RequestMapping("/api/payments")
-@RequiredArgsConstructor
 @Tag(name = "Payment", description = "결제 API")
 public class PaymentApiController {
 
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
+
+    public PaymentApiController(PaymentCommandService paymentCommandService, PaymentQueryService paymentQueryService) {
+        this.paymentCommandService = paymentCommandService;
+        this.paymentQueryService = paymentQueryService;
+    }
 
     @Operation(summary = "결제 생성", description = "주문에 대한 결제를 생성합니다. 생성된 결제 ID를 반환합니다.")
     @PostMapping("/v1")

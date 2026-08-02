@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.product.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.domain.model.ProductBbq;
@@ -16,11 +15,15 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEn
  * 상품 ↔ BBQ 매핑 write 어댑터. 동기화 대상 탐색은 {@code ProductQueryDao#findFirstBbqSyncTarget}가 담당한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class ProductBbqRepositoryImpl implements ProductBbqRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ProductBbqJpaRepository productBbqJpaRepository;
+
+    public ProductBbqRepositoryImpl(JPAQueryFactory queryFactory, ProductBbqJpaRepository productBbqJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.productBbqJpaRepository = productBbqJpaRepository;
+    }
 
     @Override
     public Optional<ProductBbq> findByProductId(ProductId productId) {

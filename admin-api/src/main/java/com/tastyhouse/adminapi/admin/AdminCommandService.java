@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.admin;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +21,15 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class AdminCommandService {
 
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public AdminCommandService(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
+        this.adminRepository = adminRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * 신규 관리자 계정을 생성한다. username 중복 시 예외를 던진다.

@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.banner.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.banner.domain.model.Banner;
@@ -16,10 +15,13 @@ import com.tastyhouse.domain.banner.domain.vo.BannerId;
  * {@code banner/query/BannerQueryDao}로 분리되어 있어 이 클래스는 QueryDSL을 쓰지 않는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class BannerRepositoryImpl implements BannerRepository {
 
     private final BannerJpaRepository bannerJpaRepository;
+
+    public BannerRepositoryImpl(BannerJpaRepository bannerJpaRepository) {
+        this.bannerJpaRepository = bannerJpaRepository;
+    }
 
     @Override
     public Optional<Banner> findById(BannerId id) {

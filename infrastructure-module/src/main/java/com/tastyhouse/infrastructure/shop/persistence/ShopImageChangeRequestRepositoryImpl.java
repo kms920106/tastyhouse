@@ -6,7 +6,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ShopImageChangeRequest;
@@ -17,11 +16,15 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequestRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ShopImageChangeRequestJpaRepository shopImageChangeRequestJpaRepository;
+
+    public ShopImageChangeRequestRepositoryImpl(JPAQueryFactory queryFactory, ShopImageChangeRequestJpaRepository shopImageChangeRequestJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.shopImageChangeRequestJpaRepository = shopImageChangeRequestJpaRepository;
+    }
 
     @Override
     public ShopImageChangeRequest save(ShopImageChangeRequest shopImageChangeRequest) {

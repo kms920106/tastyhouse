@@ -3,8 +3,8 @@ package com.tastyhouse.batch.crawling.bbq;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +19,23 @@ import com.tastyhouse.batch.crawling.bbq.response.BbqProductSubOptionResponse;
 import com.tastyhouse.batch.crawling.bbq.response.SubOptionItemDetailResponse;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class BbqService {
+
+    private static final Logger log = LoggerFactory.getLogger(BbqService.class);
 
     private final BbqApiClient bbqApiClient;
     private final BbqProductSyncService bbqProductSyncService;
     private final RemoteImageDownloader remoteImageDownloader;
+
+    public BbqService(
+        BbqApiClient bbqApiClient,
+        BbqProductSyncService bbqProductSyncService,
+        RemoteImageDownloader remoteImageDownloader
+    ) {
+        this.bbqApiClient = bbqApiClient;
+        this.bbqProductSyncService = bbqProductSyncService;
+        this.remoteImageDownloader = remoteImageDownloader;
+    }
 
     public List<BbqProductCategoryResponse> getMenuCategories() {
         try {

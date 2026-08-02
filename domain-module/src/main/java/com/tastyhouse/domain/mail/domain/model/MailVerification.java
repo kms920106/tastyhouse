@@ -2,8 +2,6 @@ package com.tastyhouse.domain.mail.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.mail.domain.vo.MailVerificationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -20,7 +18,6 @@ import com.tastyhouse.domain.shared.vo.VerificationCode;
  * <p>타입명은 채널(메일)을 따르지만 {@code email} 필드는 검증 대상인 주소 값 자체이므로
  * 그 이름을 유지한다(DB 컬럼 {@code email}과 매핑).
  */
-@Getter
 public class MailVerification {
 
     /**
@@ -102,5 +99,33 @@ public class MailVerification {
         }
         this.status = MailVerificationStatus.VERIFIED;
         this.verifiedAt = now;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public VerificationCode getVerificationCode() {
+        return this.verificationCode;
+    }
+
+    public MailVerificationStatus getStatus() {
+        return this.status;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return this.expiresAt;
+    }
+
+    public LocalDateTime getVerifiedAt() {
+        return this.verifiedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

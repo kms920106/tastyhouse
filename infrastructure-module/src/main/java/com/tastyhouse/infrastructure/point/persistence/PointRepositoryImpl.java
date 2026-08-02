@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.point.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -13,11 +12,15 @@ import com.tastyhouse.domain.point.domain.repository.PointRepository;
 import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.pointJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class PointRepositoryImpl implements PointRepository {
 
     private final JPAQueryFactory queryFactory;
     private final PointJpaRepository pointJpaRepository;
+
+    public PointRepositoryImpl(JPAQueryFactory queryFactory, PointJpaRepository pointJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.pointJpaRepository = pointJpaRepository;
+    }
 
     @Override
     public Optional<Point> findByMemberId(MemberId memberId) {

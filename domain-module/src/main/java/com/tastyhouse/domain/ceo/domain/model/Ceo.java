@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.ceo.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.ceo.domain.vo.CeoId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
@@ -13,7 +11,6 @@ import com.tastyhouse.domain.shared.vo.PhoneNumber;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code CeoRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Ceo {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -76,5 +73,37 @@ public class Ceo {
 
     public boolean isActive() {
         return this.status == CeoStatus.ACTIVE;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getBusinessRegistrationNumber() {
+        return this.businessRegistrationNumber;
+    }
+
+    public PhoneNumber getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public CeoStatus getStatus() {
+        return this.status;
     }
 }

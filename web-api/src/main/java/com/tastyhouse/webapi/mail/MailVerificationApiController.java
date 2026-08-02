@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.mail;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,12 +19,19 @@ import com.tastyhouse.webapi.mail.response.MailVerificationTokenResponse;
 
 @RestController
 @RequestMapping("/api/mail-verifications")
-@RequiredArgsConstructor
 @Tag(name = "Mail Verification", description = "메일(이메일 주소) 인증 API")
 public class MailVerificationApiController {
 
     private final MailVerificationCommandService mailVerificationCommandService;
     private final JwtTokenProvider jwtTokenProvider;
+
+    public MailVerificationApiController(
+        MailVerificationCommandService mailVerificationCommandService,
+        JwtTokenProvider jwtTokenProvider
+    ) {
+        this.mailVerificationCommandService = mailVerificationCommandService;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @Operation(
         summary = "인증번호 발송",

@@ -1,6 +1,5 @@
 package com.tastyhouse.ceoapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +17,15 @@ import com.tastyhouse.domain.shop.domain.service.ShopPhoneNumberRegistryService;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopPhoneNumberCommandService {
 
     private final ShopPhoneNumberRegistryService shopPhoneNumberRegistryService;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopPhoneNumberCommandService(ShopPhoneNumberRegistryService shopPhoneNumberRegistryService, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopPhoneNumberRegistryService = shopPhoneNumberRegistryService;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public Long addPhoneNumber(Long ceoId, Long shopId, String phoneNumber, boolean virtual) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);

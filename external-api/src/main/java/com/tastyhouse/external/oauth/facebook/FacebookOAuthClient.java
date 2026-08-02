@@ -1,6 +1,5 @@
 package com.tastyhouse.external.oauth.facebook;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -14,7 +13,6 @@ import com.tastyhouse.external.oauth.spi.SocialProfile;
 import com.tastyhouse.external.oauth.spi.SocialProvider;
 
 @Component
-@RequiredArgsConstructor
 public class FacebookOAuthClient implements SocialOAuthClient {
 
     private static final String GRAPH_BASE_URL = "https://graph.facebook.com";
@@ -27,6 +25,10 @@ public class FacebookOAuthClient implements SocialOAuthClient {
     private String appSecret;
 
     private final WebClient webClient;
+
+    public FacebookOAuthClient(WebClient webClient) {
+        this.webClient = webClient;
+    }
 
     @Override
     public SocialProvider provider() {

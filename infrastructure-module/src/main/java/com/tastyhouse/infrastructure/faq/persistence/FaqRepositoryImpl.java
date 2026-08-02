@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.faq.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.faq.domain.model.Faq;
@@ -19,11 +18,15 @@ import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpa
  * {@code faq/query/FaqQueryDao}로 분리되어 있다.
  */
 @Repository
-@RequiredArgsConstructor
 public class FaqRepositoryImpl implements FaqRepository {
 
     private final JPAQueryFactory queryFactory;
     private final FaqJpaRepository faqJpaRepository;
+
+    public FaqRepositoryImpl(JPAQueryFactory queryFactory, FaqJpaRepository faqJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.faqJpaRepository = faqJpaRepository;
+    }
 
     @Override
     public Optional<Faq> findById(FaqId faqId) {

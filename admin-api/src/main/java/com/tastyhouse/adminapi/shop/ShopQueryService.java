@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.shop;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,13 +55,24 @@ import com.tastyhouse.adminapi.shop.response.TagResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ShopQueryService {
 
     private final ShopRepository shopRepository;
     private final ShopQueryDao shopQueryDao;
     private final ShopSearchQueryDao shopSearchQueryDao;
     private final ShopChoiceQueryDao shopChoiceQueryDao;
+
+    public ShopQueryService(
+        ShopRepository shopRepository,
+        ShopQueryDao shopQueryDao,
+        ShopSearchQueryDao shopSearchQueryDao,
+        ShopChoiceQueryDao shopChoiceQueryDao
+    ) {
+        this.shopRepository = shopRepository;
+        this.shopQueryDao = shopQueryDao;
+        this.shopSearchQueryDao = shopSearchQueryDao;
+        this.shopChoiceQueryDao = shopChoiceQueryDao;
+    }
 
     public List<StationResponse> getStations() {
         return shopChoiceQueryDao.findAllStations().stream()

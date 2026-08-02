@@ -9,7 +9,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -40,7 +39,6 @@ import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.s
  * 붙였는데, 여기서는 회원 테이블을 join해 한 번에 투영한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class ReviewManagementQueryDao {
 
     /**
@@ -51,6 +49,11 @@ public class ReviewManagementQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public ReviewManagementQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 리뷰 목록(숨김 포함) — 검색 조건으로 동적 필터링, 최신순.

@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.policy;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +27,13 @@ import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class PolicyQueryService {
 
     private final PolicyQueryDao policyQueryDao;
+
+    public PolicyQueryService(PolicyQueryDao policyQueryDao) {
+        this.policyQueryDao = policyQueryDao;
+    }
 
     public PolicyDetailResponse getLatestTermsOfService() {
         return getLatestByType(PolicyType.TERMS_OF_SERVICE);

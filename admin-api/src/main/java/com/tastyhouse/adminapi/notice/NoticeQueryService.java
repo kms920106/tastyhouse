@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.notice;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +23,13 @@ import com.tastyhouse.adminapi.notice.response.NoticeListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class NoticeQueryService {
 
     private final NoticeQueryDao noticeQueryDao;
+
+    public NoticeQueryService(NoticeQueryDao noticeQueryDao) {
+        this.noticeQueryDao = noticeQueryDao;
+    }
 
     public PaginationResponse<NoticeListItemResponse> getNotices(String title, String content, Boolean visible, int page, int size) {
         NoticeSearchCondition condition = NoticeSearchCondition.of(title, content, visible);

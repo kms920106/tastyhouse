@@ -9,9 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -24,8 +21,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code MemberWithdrawalMapper}가 수행한다.
  * update 경로가 없어(insert 전용) {@code applyChanges}는 두지 않는다.
  */
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "MEMBER_WITHDRAWAL")
 public class MemberWithdrawalJpaEntity extends BaseEntity {
@@ -45,6 +40,9 @@ public class MemberWithdrawalJpaEntity extends BaseEntity {
     @Column(name = "reason_detail", length = 500)
     private String reasonDetail;
 
+    protected MemberWithdrawalJpaEntity() {
+    }
+
     private MemberWithdrawalJpaEntity(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
         this.memberId = memberId;
         this.reason = reason;
@@ -56,5 +54,21 @@ public class MemberWithdrawalJpaEntity extends BaseEntity {
      */
     static MemberWithdrawalJpaEntity create(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
         return new MemberWithdrawalJpaEntity(memberId, reason, reasonDetail);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public MemberWithdrawalReason getReason() {
+        return this.reason;
+    }
+
+    public String getReasonDetail() {
+        return this.reasonDetail;
     }
 }

@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum FoodType {
 
     KOREAN("한식"),
@@ -20,6 +15,14 @@ public enum FoodType {
     CAFE("카페");
 
     private final String displayName;
+
+    FoodType(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 
     public static FoodType from(String code) {
         try {

@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.domain.model.ProductCommonOptionGroup;
@@ -10,10 +9,13 @@ import com.tastyhouse.domain.product.domain.repository.ProductCommonOptionGroupR
  * 상품 공통 옵션 그룹 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class ProductCommonOptionGroupRepositoryImpl implements ProductCommonOptionGroupRepository {
 
     private final ProductCommonOptionGroupJpaRepository productCommonOptionGroupJpaRepository;
+
+    public ProductCommonOptionGroupRepositoryImpl(ProductCommonOptionGroupJpaRepository productCommonOptionGroupJpaRepository) {
+        this.productCommonOptionGroupJpaRepository = productCommonOptionGroupJpaRepository;
+    }
 
     @Override
     public ProductCommonOptionGroup save(ProductCommonOptionGroup entity) {

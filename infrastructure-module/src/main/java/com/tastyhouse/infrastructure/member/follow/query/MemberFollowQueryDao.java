@@ -7,7 +7,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -36,7 +35,6 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
  * 직후 재조립한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class MemberFollowQueryDao {
 
     private static final NumberPath<Long> followerIdCol =
@@ -52,6 +50,11 @@ public class MemberFollowQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public MemberFollowQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 내가(memberId) 팔로우하는 회원 목록. {@code viewerMemberId}가 주어지면 각 항목에 뷰어의 팔로우

@@ -8,9 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
@@ -22,7 +19,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code Point}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code PointMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(
     name = "POINT",
@@ -30,7 +26,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         @Index(name = "idx_point_member_id", columnList = "member_id")
     }
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointJpaEntity extends BaseEntity {
 
     @Id
@@ -46,6 +41,9 @@ public class PointJpaEntity extends BaseEntity {
 
     @Column(name = "expired_this_month", nullable = false)
     private Integer expiredThisMonth;
+
+    protected PointJpaEntity() {
+    }
 
     private PointJpaEntity(MemberId memberId, Integer availablePoints, Integer expiredThisMonth) {
         this.memberId = memberId;
@@ -66,5 +64,21 @@ public class PointJpaEntity extends BaseEntity {
     void applyChanges(Integer availablePoints, Integer expiredThisMonth) {
         this.availablePoints = availablePoints;
         this.expiredThisMonth = expiredThisMonth;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public Integer getAvailablePoints() {
+        return this.availablePoints;
+    }
+
+    public Integer getExpiredThisMonth() {
+        return this.expiredThisMonth;
     }
 }

@@ -8,7 +8,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -36,11 +35,15 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  * 소비하므로(web-api는 제보 등록만 한다) 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다.
  */
 @Repository
-@RequiredArgsConstructor
 public class BugReportQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public BugReportQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 관리 목록 조회 — 제목/내용 부분일치·회원·처리상태·분류·우선순위 필터를 적용하고 첨부 이미지 개수를

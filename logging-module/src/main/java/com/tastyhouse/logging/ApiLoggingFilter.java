@@ -8,7 +8,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -27,11 +28,11 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
  * - application-dev.yml: com.tastyhouse.logging: DEBUG
  * - application-prod.yml: com.tastyhouse.logging: INFO (기본값 유지)
  */
-@Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ApiLoggingFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(ApiLoggingFilter.class);
     private static final String MDC_REQUEST_ID = "requestId";
     private static final String X_FORWARDED_FOR = "X-Forwarded-For";
     private static final String REQUEST_START_TIME_ATTR = "requestStartTime";

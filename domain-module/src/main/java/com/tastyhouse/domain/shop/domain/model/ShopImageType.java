@@ -1,11 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
 public enum ShopImageType {
 
     TRADEMARK("상표"),
@@ -15,6 +12,10 @@ public enum ShopImageType {
 
     ShopImageType(String description) {
         this.description = description;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 
     public static ShopImageType from(String code) {

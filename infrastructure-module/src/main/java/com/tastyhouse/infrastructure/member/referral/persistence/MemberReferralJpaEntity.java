@@ -11,9 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.member.referral.domain.model.MemberReferralStatus;
@@ -26,7 +23,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code MemberReferral}과 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code MemberReferralMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(
     name = "MEMBER_REFERRAL",
@@ -39,7 +35,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         @Index(name = "idx_member_referral_status", columnList = "status")
     }
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberReferralJpaEntity extends BaseEntity {
 
     @Id
@@ -57,6 +52,9 @@ public class MemberReferralJpaEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private MemberReferralStatus status;
+
+    protected MemberReferralJpaEntity() {
+    }
 
     private MemberReferralJpaEntity(MemberId referrerId, MemberId refereeId, MemberReferralStatus status) {
         this.referrerId = referrerId;
@@ -76,5 +74,21 @@ public class MemberReferralJpaEntity extends BaseEntity {
      */
     void applyChanges(MemberReferralStatus status) {
         this.status = status;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getReferrerId() {
+        return this.referrerId;
+    }
+
+    public MemberId getRefereeId() {
+        return this.refereeId;
+    }
+
+    public MemberReferralStatus getStatus() {
+        return this.status;
     }
 }

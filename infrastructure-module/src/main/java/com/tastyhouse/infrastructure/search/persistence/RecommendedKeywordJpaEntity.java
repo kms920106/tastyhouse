@@ -6,9 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -23,8 +20,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  */
 @Entity
 @Table(name = "RECOMMENDED_KEYWORD")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class RecommendedKeywordJpaEntity extends BaseEntity {
 
     @Id
@@ -39,4 +34,19 @@ public class RecommendedKeywordJpaEntity extends BaseEntity {
 
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
+
+    protected RecommendedKeywordJpaEntity() {
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getKeyword() {
+        return this.keyword;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
+    }
 }

@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -37,7 +36,6 @@ import com.tastyhouse.external.oauth.spi.SocialProvider;
  * 2. UserInfo 엔드포인트가 없으며, id_token(RS256 JWT)에서 직접 사용자 정보를 추출한다
  */
 @Component
-@RequiredArgsConstructor
 public class AppleOAuthClient implements SocialOAuthClient {
 
     private static final String APPLE_AUTH_BASE_URL = "https://appleid.apple.com";
@@ -62,6 +60,10 @@ public class AppleOAuthClient implements SocialOAuthClient {
     private String privateKeyBase64;
 
     private final WebClient webClient;
+
+    public AppleOAuthClient(WebClient webClient) {
+        this.webClient = webClient;
+    }
 
     @Override
     public SocialProvider provider() {

@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,11 +37,14 @@ import com.tastyhouse.webapi.member.response.MemberVerifyPasswordResponse;
 
 @RestController
 @RequestMapping("/api/members")
-@RequiredArgsConstructor
 @Tag(name = "Member Me", description = "내 정보 관리 API")
 public class MemberMeApiController {
 
     private final MemberService memberService;
+
+    public MemberMeApiController(MemberService memberService) {
+        this.memberService = memberService;
+    }
 
     @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보(회원 ID, 닉네임, 등급, 상태메시지, 프로필 이미지)를 조회합니다.")
     @GetMapping("/v1/me/profile")

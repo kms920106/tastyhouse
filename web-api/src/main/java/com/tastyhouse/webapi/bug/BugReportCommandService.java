@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.bug;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,10 +24,13 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class BugReportCommandService {
 
     private final BugReportRegistrationService bugReportRegistrationService;
+
+    public BugReportCommandService(BugReportRegistrationService bugReportRegistrationService) {
+        this.bugReportRegistrationService = bugReportRegistrationService;
+    }
 
     /**
      * @return 등록된 제보 식별자

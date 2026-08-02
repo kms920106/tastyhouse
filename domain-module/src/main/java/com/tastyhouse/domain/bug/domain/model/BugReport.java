@@ -2,8 +2,6 @@ package com.tastyhouse.domain.bug.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.admin.domain.vo.AdminId;
 import com.tastyhouse.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -18,7 +16,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code BugReportRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class BugReport {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -183,5 +180,69 @@ public class BugReport {
             throw new BusinessException(ErrorCode.BUG_REPORT_INVALID_STATUS);
         }
         this.status = BugReportStatus.ON_HOLD;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public String getDevice() {
+        return this.device;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public BugReportStatus getStatus() {
+        return this.status;
+    }
+
+    public BugReportCategory getCategory() {
+        return this.category;
+    }
+
+    public BugReportPriority getPriority() {
+        return this.priority;
+    }
+
+    public AdminId getAssigneeAdminId() {
+        return this.assigneeAdminId;
+    }
+
+    public String getAdminAnswer() {
+        return this.adminAnswer;
+    }
+
+    public LocalDateTime getResolvedAt() {
+        return this.resolvedAt;
+    }
+
+    public String getAppVersion() {
+        return this.appVersion;
+    }
+
+    public BugReportPlatform getPlatform() {
+        return this.platform;
+    }
+
+    public String getOsVersion() {
+        return this.osVersion;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

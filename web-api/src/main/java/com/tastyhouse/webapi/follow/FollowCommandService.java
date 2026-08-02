@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.follow;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +15,13 @@ import com.tastyhouse.domain.member.follow.domain.service.MemberFollowService;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class FollowCommandService {
 
     private final MemberFollowService memberFollowService;
+
+    public FollowCommandService(MemberFollowService memberFollowService) {
+        this.memberFollowService = memberFollowService;
+    }
 
     public Long follow(Long followerId, Long followingId) {
         MemberId followerMemberId = MemberId.of(followerId);

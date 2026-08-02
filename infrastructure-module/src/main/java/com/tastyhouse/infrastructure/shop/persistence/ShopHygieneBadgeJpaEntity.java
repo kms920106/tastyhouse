@@ -11,9 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.HygieneBadgeType;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -22,10 +19,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 /**
  * 가게 위생 인증 뱃지 JPA 영속 모델. 순수 도메인 모델 {@code ShopHygieneBadge}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_HYGIENE_BADGE")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopHygieneBadgeJpaEntity extends BaseEntity {
 
     @Id
@@ -46,6 +41,9 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     @Column(name = "last_inspection_month", length = 7)
     private String lastInspectionMonth; // 세스코 최근 점검월 ("2026-03" 형태, nullable)
 
+    protected ShopHygieneBadgeJpaEntity() {
+    }
+
     private ShopHygieneBadgeJpaEntity(ShopId shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         this.shopId = shopId;
         this.badgeType = badgeType;
@@ -58,5 +56,25 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
      */
     static ShopHygieneBadgeJpaEntity create(ShopId shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         return new ShopHygieneBadgeJpaEntity(shopId, badgeType, certifiedDate, lastInspectionMonth);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public HygieneBadgeType getBadgeType() {
+        return this.badgeType;
+    }
+
+    public LocalDate getCertifiedDate() {
+        return this.certifiedDate;
+    }
+
+    public String getLastInspectionMonth() {
+        return this.lastInspectionMonth;
     }
 }

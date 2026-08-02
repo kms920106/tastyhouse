@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.file.domain.port.FileStoragePort;
@@ -32,10 +31,13 @@ import com.tastyhouse.domain.file.domain.port.FileStoragePort;
  * 여기 도입하면 baseUrl 설정 변경 시 무효화 책임만 새로 생긴다.
  */
 @Component
-@RequiredArgsConstructor
 public class FileUrlResolver {
 
     private final FileStoragePort fileStoragePort;
+
+    public FileUrlResolver(FileStoragePort fileStoragePort) {
+        this.fileStoragePort = fileStoragePort;
+    }
 
     /**
      * 저장 경로를 표시용 URL로 바꾼다. 경로가 없으면(파일 미첨부, left join 미스) {@code null}.

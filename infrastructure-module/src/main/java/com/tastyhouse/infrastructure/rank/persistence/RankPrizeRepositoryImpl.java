@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.rank.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.rank.domain.model.RankPrize;
@@ -19,11 +18,15 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity
  * command 경로가 쓰는 단건 로드·저장·소프트 삭제만 남는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class RankPrizeRepositoryImpl implements RankPrizeRepository {
 
     private final JPAQueryFactory queryFactory;
     private final RankPrizeJpaRepository rankPrizeJpaRepository;
+
+    public RankPrizeRepositoryImpl(JPAQueryFactory queryFactory, RankPrizeJpaRepository rankPrizeJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.rankPrizeJpaRepository = rankPrizeJpaRepository;
+    }
 
     @Override
     public RankPrize save(RankPrize rankPrize) {

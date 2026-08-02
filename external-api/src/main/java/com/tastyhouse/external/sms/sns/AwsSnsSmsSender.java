@@ -1,7 +1,7 @@
 package com.tastyhouse.external.sms.sns;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
@@ -11,11 +11,15 @@ import com.tastyhouse.domain.sms.domain.port.SmsSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 
-@Slf4j
-@RequiredArgsConstructor
 public class AwsSnsSmsSender implements SmsSender {
 
+    private static final Logger log = LoggerFactory.getLogger(AwsSnsSmsSender.class);
+
     private final SnsClient snsClient;
+
+    public AwsSnsSmsSender(SnsClient snsClient) {
+        this.snsClient = snsClient;
+    }
 
     @Override
     public void send(String to, String content) {

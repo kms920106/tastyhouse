@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.member.follow.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 
 /**
@@ -11,7 +9,6 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
  * {@code MemberFollowJpaEntity} + {@code MemberFollowMapper}가 담당한다. 상태전이가 없어
  * 생성(팔로우)과 삭제(언팔로우)만 존재하므로, 감사 시각을 소비하는 조회 결과가 없어 필드로 두지 않는다.
  */
-@Getter
 public class MemberFollow {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -36,5 +33,17 @@ public class MemberFollow {
      */
     public static MemberFollow reconstitute(Long id, MemberId followerId, MemberId followingId) {
         return new MemberFollow(id, followerId, followingId);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getFollowerId() {
+        return this.followerId;
+    }
+
+    public MemberId getFollowingId() {
+        return this.followingId;
     }
 }

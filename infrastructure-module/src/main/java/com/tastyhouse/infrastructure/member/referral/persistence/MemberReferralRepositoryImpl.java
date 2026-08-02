@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.member.referral.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -14,11 +13,15 @@ import com.tastyhouse.domain.member.referral.domain.vo.ReferralId;
 import static com.tastyhouse.infrastructure.member.referral.persistence.QMemberReferralJpaEntity.memberReferralJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class MemberReferralRepositoryImpl implements MemberReferralRepository {
 
     private final JPAQueryFactory queryFactory;
     private final MemberReferralJpaRepository memberReferralJpaRepository;
+
+    public MemberReferralRepositoryImpl(JPAQueryFactory queryFactory, MemberReferralJpaRepository memberReferralJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.memberReferralJpaRepository = memberReferralJpaRepository;
+    }
 
     @Override
     public boolean existsByRefereeId(MemberId refereeId) {

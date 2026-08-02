@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.bug.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.bug.domain.model.BugReport;
@@ -16,10 +15,13 @@ import com.tastyhouse.domain.bug.domain.vo.BugReportId;
  * 조회는 같은 모듈의 {@code bug/query/BugReportQueryDao}로 이관되어, 이 클래스는 QueryDSL을 쓰지 않는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class BugReportRepositoryImpl implements BugReportRepository {
 
     private final BugReportJpaRepository bugReportJpaRepository;
+
+    public BugReportRepositoryImpl(BugReportJpaRepository bugReportJpaRepository) {
+        this.bugReportJpaRepository = bugReportJpaRepository;
+    }
 
     @Override
     public Optional<BugReport> findById(BugReportId bugReportId) {

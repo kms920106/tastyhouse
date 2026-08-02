@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.event.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.event.domain.model.EventAnnouncement;
@@ -19,11 +18,15 @@ import static com.tastyhouse.infrastructure.event.persistence.QEventAnnouncement
  * {@code EventQueryDao}로 이관했다(CQRS 분리).
  */
 @Repository
-@RequiredArgsConstructor
 public class EventAnnouncementRepositoryImpl implements EventAnnouncementRepository {
 
     private final JPAQueryFactory queryFactory;
     private final EventAnnouncementJpaRepository eventAnnouncementJpaRepository;
+
+    public EventAnnouncementRepositoryImpl(JPAQueryFactory queryFactory, EventAnnouncementJpaRepository eventAnnouncementJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.eventAnnouncementJpaRepository = eventAnnouncementJpaRepository;
+    }
 
     @Override
     public Optional<EventAnnouncement> findByEventId(EventId eventId) {

@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -18,10 +15,8 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 /**
  * 에디터 초이스 JPA 영속 모델. 순수 도메인 모델 {@code ShopChoice}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_CHOICE")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopChoiceJpaEntity extends BaseEntity {
 
     @Id
@@ -38,6 +33,9 @@ public class ShopChoiceJpaEntity extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content; // 선택지 상세 내용
 
+    protected ShopChoiceJpaEntity() {
+    }
+
     private ShopChoiceJpaEntity(ShopId shopId, String title, String content) {
         this.shopId = shopId;
         this.title = title;
@@ -51,5 +49,21 @@ public class ShopChoiceJpaEntity extends BaseEntity {
     void applyChanges(String title, String content) {
         this.title = title;
         this.content = content;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getContent() {
+        return this.content;
     }
 }

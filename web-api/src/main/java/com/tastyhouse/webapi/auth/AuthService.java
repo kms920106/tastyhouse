@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.auth;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.member.domain.model.MemberGender;
@@ -37,7 +36,6 @@ import com.tastyhouse.webapi.auth.service.PhoneLoginService;
  * 로그인·토큰 갱신·로그아웃은 DB write가 없고 Redis 기반 토큰 저장소만 다루므로 DB 트랜잭션과 무관하다.
  */
 @Component
-@RequiredArgsConstructor
 public class AuthService {
 
     private final CredentialLoginService credentialLoginService;
@@ -47,6 +45,24 @@ public class AuthService {
     private final FacebookSocialLoginService facebookSocialLoginService;
     private final AppleSocialLoginService appleSocialLoginService;
     private final PhoneLoginService phoneLoginService;
+
+    public AuthService(
+        CredentialLoginService credentialLoginService,
+        AuthPasswordResetService authPasswordResetService,
+        KakaoSocialLoginService kakaoSocialLoginService,
+        NaverSocialLoginService naverSocialLoginService,
+        FacebookSocialLoginService facebookSocialLoginService,
+        AppleSocialLoginService appleSocialLoginService,
+        PhoneLoginService phoneLoginService
+    ) {
+        this.credentialLoginService = credentialLoginService;
+        this.authPasswordResetService = authPasswordResetService;
+        this.kakaoSocialLoginService = kakaoSocialLoginService;
+        this.naverSocialLoginService = naverSocialLoginService;
+        this.facebookSocialLoginService = facebookSocialLoginService;
+        this.appleSocialLoginService = appleSocialLoginService;
+        this.phoneLoginService = phoneLoginService;
+    }
 
     // 회원가입 (생성된 회원 식별자를 반환)
     public Long signUp(String username, String password,

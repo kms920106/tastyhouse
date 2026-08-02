@@ -6,7 +6,6 @@ import java.util.Optional;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
@@ -40,7 +39,6 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopClosedDayJpaEn
  * 도메인 소비자가 있어 write 어댑터에 남는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class ShopDetailRepositoryImpl implements ShopDetailRepository {
 
     private final JPAQueryFactory queryFactory;
@@ -56,6 +54,22 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     private final ShopPhotoCategoryJpaRepository shopPhotoCategoryJpaRepository;
     private final ShopPhotoCategoryImageJpaRepository shopPhotoCategoryImageJpaRepository;
     private final ShopOwnerMessageHistoryJpaRepository shopOwnerMessageHistoryJpaRepository;
+
+    public ShopDetailRepositoryImpl(JPAQueryFactory queryFactory, ShopBusinessHourJpaRepository shopBusinessHourJpaRepository, ShopBreakTimeJpaRepository shopBreakTimeJpaRepository, ShopClosedDayJpaRepository shopClosedDayJpaRepository, ShopAmenityCategoryJpaRepository shopAmenityCategoryJpaRepository, ShopFoodTypeCategoryJpaRepository shopFoodTypeCategoryJpaRepository, ShopAmenityJpaRepository shopAmenityJpaRepository, ShopFoodTypeJpaRepository shopFoodTypeJpaRepository, ShopOrderMethodJpaRepository shopOrderMethodJpaRepository, ShopBannerImageJpaRepository shopBannerImageJpaRepository, ShopPhotoCategoryJpaRepository shopPhotoCategoryJpaRepository, ShopPhotoCategoryImageJpaRepository shopPhotoCategoryImageJpaRepository, ShopOwnerMessageHistoryJpaRepository shopOwnerMessageHistoryJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.shopBusinessHourJpaRepository = shopBusinessHourJpaRepository;
+        this.shopBreakTimeJpaRepository = shopBreakTimeJpaRepository;
+        this.shopClosedDayJpaRepository = shopClosedDayJpaRepository;
+        this.shopAmenityCategoryJpaRepository = shopAmenityCategoryJpaRepository;
+        this.shopFoodTypeCategoryJpaRepository = shopFoodTypeCategoryJpaRepository;
+        this.shopAmenityJpaRepository = shopAmenityJpaRepository;
+        this.shopFoodTypeJpaRepository = shopFoodTypeJpaRepository;
+        this.shopOrderMethodJpaRepository = shopOrderMethodJpaRepository;
+        this.shopBannerImageJpaRepository = shopBannerImageJpaRepository;
+        this.shopPhotoCategoryJpaRepository = shopPhotoCategoryJpaRepository;
+        this.shopPhotoCategoryImageJpaRepository = shopPhotoCategoryImageJpaRepository;
+        this.shopOwnerMessageHistoryJpaRepository = shopOwnerMessageHistoryJpaRepository;
+    }
 
     @Override
     public List<ShopBusinessHour> findBusinessHoursByShopId(Long shopId) {

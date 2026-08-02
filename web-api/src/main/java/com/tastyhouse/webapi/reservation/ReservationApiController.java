@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,12 +28,19 @@ import com.tastyhouse.webapi.reservation.response.ReservationSlotAvailabilityRes
 
 @RestController
 @RequestMapping("/api/reservations")
-@RequiredArgsConstructor
 @Tag(name = "Reservation", description = "예약 API")
 public class ReservationApiController {
 
     private final ReservationCommandService reservationCommandService;
     private final ReservationQueryService reservationQueryService;
+
+    public ReservationApiController(
+        ReservationCommandService reservationCommandService,
+        ReservationQueryService reservationQueryService
+    ) {
+        this.reservationCommandService = reservationCommandService;
+        this.reservationQueryService = reservationQueryService;
+    }
 
     @Operation(summary = "슬롯 가용성 조회", description = "가게의 특정 날짜 슬롯별 잔여/가용 정보를 조회합니다. 로그인 필수 — 내 예약 슬롯은 available=false로 반환.")
     @GetMapping("/v1/availability")

@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.member.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +15,13 @@ import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
  * <p>CQRS 전환 후 core application 서비스 대신 infra query DAO를 직접 주입한다.
  */
 @Service
-@RequiredArgsConstructor
 public class MemberShopService {
 
     private final ShopSearchQueryDao shopSearchQueryDao;
+
+    public MemberShopService(ShopSearchQueryDao shopSearchQueryDao) {
+        this.shopSearchQueryDao = shopSearchQueryDao;
+    }
 
     @Transactional(readOnly = true)
     public PageResult<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {

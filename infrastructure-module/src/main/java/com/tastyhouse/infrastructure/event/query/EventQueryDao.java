@@ -8,7 +8,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -46,11 +45,15 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  * 분을 제외하고, web 노출 목록/상세와 발표 목록은 원본 쿼리에 삭제 필터가 없었으므로 추가하지 않는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class EventQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public EventQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 상태별 이벤트 목록 페이징 조회(web 노출 목록) — 시작 일시 내림차순.

@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.auth.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,13 +13,24 @@ import com.tastyhouse.webapi.member.service.MemberCommandService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 
 @Service
-@RequiredArgsConstructor
 public class CredentialLoginService {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final MemberCommandService memberCommandService;
     private final MemberAuthService memberAuthService;
+
+    public CredentialLoginService(
+        AuthenticationManager authenticationManager,
+        TokenService tokenService,
+        MemberCommandService memberCommandService,
+        MemberAuthService memberAuthService
+    ) {
+        this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
+        this.memberCommandService = memberCommandService;
+        this.memberAuthService = memberAuthService;
+    }
 
     // 회원가입 토큰 검증 후 신규 회원을 등록하고 생성된 회원 식별자를 반환
     public Long signUp(String username, String password,

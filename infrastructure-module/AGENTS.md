@@ -113,6 +113,5 @@ reference 구현: `notice/query/NoticeQueryDao`.
 ### External
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`
 - QueryDSL `io.github.openfeign.querydsl:querydsl-jpa:6.11` (**implementation** — 소비 모듈 전이 차단. OpenFeign 포크는 CVE-2024-49203 대응이며 패키지명 `com.querydsl.*` 유지, 6.x부터 jpa는 `:jakarta` classifier 없이 jakarta 기본·apt만 `:jakarta` 유지) + `querydsl-apt` annotationProcessor
-- Lombok
 
 <!-- MANUAL: -->

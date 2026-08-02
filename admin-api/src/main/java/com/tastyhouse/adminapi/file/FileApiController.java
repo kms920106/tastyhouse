@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.file;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,11 +16,14 @@ import com.tastyhouse.apicommon.file.FileService;
 
 @Tag(name = "File Admin", description = "파일 업로드 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/files")
 public class FileApiController {
 
     private final FileService fileService;
+
+    public FileApiController(FileService fileService) {
+        this.fileService = fileService;
+    }
 
     @Operation(summary = "이미지 파일 업로드", description = "이미지 파일을 업로드합니다. (jpg, png, gif, webp / 최대 10MB)")
     @PostMapping(value = "/v1/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

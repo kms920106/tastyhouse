@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +17,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopContentBoardCommandService {
 
     private final ShopContentBoardRepository shopContentBoardRepository;
+
+    public ShopContentBoardCommandService(ShopContentBoardRepository shopContentBoardRepository) {
+        this.shopContentBoardRepository = shopContentBoardRepository;
+    }
 
     public void changeHidden(Long contentBoardId, boolean hidden) {
         ShopContentBoard shopContentBoard = loadContentBoard(contentBoardId);

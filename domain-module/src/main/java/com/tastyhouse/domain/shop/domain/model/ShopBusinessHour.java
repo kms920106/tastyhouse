@@ -2,8 +2,6 @@ package com.tastyhouse.domain.shop.domain.model;
 
 import java.time.LocalTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -14,7 +12,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code ShopBusinessHourJpaEntity} + {@code ShopBusinessHourMapper}가 담당한다.
  */
-@Getter
 public class ShopBusinessHour {
 
     /** 영업시간 최소 길이(분) — PDF 규격 "최소 1시간". */
@@ -152,6 +149,23 @@ public class ShopBusinessHour {
     }
 
     /**
+     * 영속화용 원본 값 접근자 — null을 정규화하지 않고 {@code Boolean} 그대로 반환한다.
+     * 도메인 판정에는 null을 false로 접는 {@link #isClosed()}를 쓰고, DB 컬럼이 nullable이므로
+     * 매퍼는 미설정(null)과 false를 구분해 저장해야 해서 이 접근자를 쓴다.
+     */
+    public Boolean getIsClosed() {
+        return this.isClosed;
+    }
+
+    /**
+     * 영속화용 원본 값 접근자 — null을 정규화하지 않고 {@code Boolean} 그대로 반환한다.
+     * 도메인 판정에는 {@link #is24Hours()}를 쓴다.
+     */
+    public Boolean getIs24Hours() {
+        return this.is24Hours;
+    }
+
+    /**
      * 시각이 {@code [start, end)} 구간에 드는지 판단한다. {@code end < start}면 자정을 넘기는 구간으로 본다.
      */
     private static boolean isWithinRange(LocalTime time, LocalTime start, LocalTime end) {
@@ -203,5 +217,25 @@ public class ShopBusinessHour {
             diff += 24 * 60;
         }
         return diff;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public DayType getDayType() {
+        return this.dayType;
+    }
+
+    public LocalTime getOpenTime() {
+        return this.openTime;
+    }
+
+    public LocalTime getCloseTime() {
+        return this.closeTime;
     }
 }

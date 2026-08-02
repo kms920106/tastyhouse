@@ -2,8 +2,6 @@ package com.tastyhouse.webapi.config.security;
 
 import java.util.Collections;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,12 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.domain.model.Member;
 import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
+
+    public CustomUserDetailsService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
 
     @Override
     @Transactional(readOnly = true)

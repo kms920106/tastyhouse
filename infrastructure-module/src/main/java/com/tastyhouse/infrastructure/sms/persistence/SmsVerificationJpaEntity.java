@@ -13,9 +13,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.sms.domain.model.SmsVerificationStatus;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
@@ -33,8 +30,6 @@ import com.tastyhouse.domain.shared.vo.VerificationCode;
  * 그 마이그레이션과 앱 배포는 원자적으로 수행해야 한다). 반면 {@code phone_number} 컬럼은 채널이 아니라
  * 검증 대상 데이터의 이름이므로 그대로 유지한다.
  */
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "SMS_VERIFICATION", indexes = {
     @Index(name = "idx_sms_verification_phone_number", columnList = "phone_number"),
@@ -66,6 +61,9 @@ public class SmsVerificationJpaEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    protected SmsVerificationJpaEntity() {
+    }
 
     private SmsVerificationJpaEntity(
         PhoneNumber phoneNumber,
@@ -103,5 +101,33 @@ public class SmsVerificationJpaEntity {
     void applyChanges(SmsVerificationStatus status, LocalDateTime verifiedAt) {
         this.status = status;
         this.verifiedAt = verifiedAt;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public PhoneNumber getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public VerificationCode getVerificationCode() {
+        return this.verificationCode;
+    }
+
+    public SmsVerificationStatus getStatus() {
+        return this.status;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return this.expiresAt;
+    }
+
+    public LocalDateTime getVerifiedAt() {
+        return this.verifiedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

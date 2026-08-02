@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.rank.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.rank.domain.model.RankPeriod;
@@ -19,11 +18,15 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPeriodJpaEntit
  * 경로가 쓰는 단건 로드·저장·소프트 삭제만 남는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class RankPeriodRepositoryImpl implements RankPeriodRepository {
 
     private final JPAQueryFactory queryFactory;
     private final RankPeriodJpaRepository rankPeriodJpaRepository;
+
+    public RankPeriodRepositoryImpl(JPAQueryFactory queryFactory, RankPeriodJpaRepository rankPeriodJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.rankPeriodJpaRepository = rankPeriodJpaRepository;
+    }
 
     @Override
     public RankPeriod save(RankPeriod rankPeriod) {

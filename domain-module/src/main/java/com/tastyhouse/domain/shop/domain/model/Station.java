@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-
 /**
  * 지하철역 순수 도메인 모델.
  *
@@ -10,7 +8,6 @@ import lombok.Getter;
  * 재구성 매퍼가 없다). 애플리케이션 계층에서
  * 신규 생성 경로가 없어(시드 데이터 전용) {@code of}는 두지 않고 {@code reconstitute}만 공개한다.
  */
-@Getter
 public class Station {
 
     private final Long id;
@@ -26,5 +23,13 @@ public class Station {
      */
     public static Station reconstitute(Long id, String stationName) {
         return new Station(id, stationName);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getStationName() {
+        return this.stationName;
     }
 }

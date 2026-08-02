@@ -1,7 +1,7 @@
 package com.tastyhouse.infrastructure.payment.listener;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +25,18 @@ import com.tastyhouse.domain.point.domain.service.PointLedgerService;
  * {@link PaymentConfirmationService#calculateEarnedPoint}가 단일 원천이다(주문에 기록되는 적립 포인트와
  * 실제 적립액이 갈리지 않도록). 이 리스너는 이벤트 수신과 트랜잭션 경계(커밋 후 새 트랜잭션)만 담당한다.
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class PaymentEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentEventListener.class);
 
     private final PointLedgerService pointLedgerService;
     private final PaymentConfirmationService paymentConfirmationService;
+
+    public PaymentEventListener(PointLedgerService pointLedgerService, PaymentConfirmationService paymentConfirmationService) {
+        this.pointLedgerService = pointLedgerService;
+        this.paymentConfirmationService = paymentConfirmationService;
+    }
 
     /**
      * 결제 완료 — 현장 결제만 적립 대상이다(PG 결제는 주문 접수 시점에 이미 처리됨).

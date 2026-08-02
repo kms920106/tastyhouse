@@ -9,9 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -29,10 +26,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code Order}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code OrderMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "ORDERS")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderJpaEntity extends BaseEntity {
 
     @Id
@@ -97,6 +92,9 @@ public class OrderJpaEntity extends BaseEntity {
 
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted; // 삭제 여부 (true: 삭제됨, Soft Delete)
+
+    protected OrderJpaEntity() {
+    }
 
     private OrderJpaEntity(
         MemberId memberId,
@@ -210,5 +208,81 @@ public class OrderJpaEntity extends BaseEntity {
         this.usedPoint = usedPoint;
         this.earnedPoint = earnedPoint;
         this.deleted = deleted;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public String getOrderNumber() {
+        return this.orderNumber;
+    }
+
+    public OrderMethod getOrderMethod() {
+        return this.orderMethod;
+    }
+
+    public OrderStatus getOrderStatus() {
+        return this.orderStatus;
+    }
+
+    public String getOrdererName() {
+        return this.ordererName;
+    }
+
+    public String getOrdererPhone() {
+        return this.ordererPhone;
+    }
+
+    public String getOrdererEmail() {
+        return this.ordererEmail;
+    }
+
+    public Integer getTotalProductAmount() {
+        return this.totalProductAmount;
+    }
+
+    public Integer getProductDiscountAmount() {
+        return this.productDiscountAmount;
+    }
+
+    public Integer getCouponDiscountAmount() {
+        return this.couponDiscountAmount;
+    }
+
+    public Integer getPointDiscountAmount() {
+        return this.pointDiscountAmount;
+    }
+
+    public Integer getTotalDiscountAmount() {
+        return this.totalDiscountAmount;
+    }
+
+    public Integer getFinalAmount() {
+        return this.finalAmount;
+    }
+
+    public MemberCouponId getMemberCouponId() {
+        return this.memberCouponId;
+    }
+
+    public Integer getUsedPoint() {
+        return this.usedPoint;
+    }
+
+    public Integer getEarnedPoint() {
+        return this.earnedPoint;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
     }
 }

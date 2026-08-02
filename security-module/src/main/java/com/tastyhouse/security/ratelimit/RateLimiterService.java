@@ -3,16 +3,18 @@ package com.tastyhouse.security.ratelimit;
 import java.time.Duration;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class RateLimiterService {
 
     private final StringRedisTemplate stringRedisTemplate;
+
+    public RateLimiterService(StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
 
     /**
      * INCR + PEXPIRE를 단일 Lua 스크립트로 원자적으로 실행합니다.

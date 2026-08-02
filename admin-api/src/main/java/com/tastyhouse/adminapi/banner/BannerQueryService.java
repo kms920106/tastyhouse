@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.banner;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +29,13 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class BannerQueryService {
 
     private final BannerQueryDao bannerQueryDao;
+
+    public BannerQueryService(BannerQueryDao bannerQueryDao) {
+        this.bannerQueryDao = bannerQueryDao;
+    }
 
     public PaginationResponse<BannerListItemResponse> getBanners(String type, String title, Boolean visible, int page, int size) {
         BannerType bannerType = type == null ? null : BannerType.from(type);

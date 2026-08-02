@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.event;
 
 import java.time.LocalDateTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,12 +33,21 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class EventCommandService {
 
     private final EventRepository eventRepository;
     private final EventAnnouncementRepository eventAnnouncementRepository;
     private final EventWinnerRepository eventWinnerRepository;
+
+    public EventCommandService(
+        EventRepository eventRepository,
+        EventAnnouncementRepository eventAnnouncementRepository,
+        EventWinnerRepository eventWinnerRepository
+    ) {
+        this.eventRepository = eventRepository;
+        this.eventAnnouncementRepository = eventAnnouncementRepository;
+        this.eventWinnerRepository = eventWinnerRepository;
+    }
 
     public Long createEvent(
         String name,

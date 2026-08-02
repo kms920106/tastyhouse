@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.rank;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +32,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class RankCommandService {
 
     private static final int DEFAULT_AGGREGATE_LIMIT = 10;
@@ -41,6 +39,16 @@ public class RankCommandService {
     private final RankPeriodRepository rankPeriodRepository;
     private final RankPrizeRepository rankPrizeRepository;
     private final RankSettlementService rankSettlementService;
+
+    public RankCommandService(
+        RankPeriodRepository rankPeriodRepository,
+        RankPrizeRepository rankPrizeRepository,
+        RankSettlementService rankSettlementService
+    ) {
+        this.rankPeriodRepository = rankPeriodRepository;
+        this.rankPrizeRepository = rankPrizeRepository;
+        this.rankSettlementService = rankSettlementService;
+    }
 
     /**
      * 랭킹을 수동으로 재집계한다. 타입 미지정이면 전체·월간·주간을 모두, 지정하면 해당 타입만 집계한다.

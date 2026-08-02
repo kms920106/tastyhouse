@@ -2,8 +2,6 @@ package com.tastyhouse.ceoapi.config.security;
 
 import java.util.Collections;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,12 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.ceo.domain.model.Ceo;
 import com.tastyhouse.ceoapi.ceo.CeoQueryService;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class CeoUserDetailsService implements UserDetailsService {
 
     private final CeoQueryService ceoQueryService;
+
+    public CeoUserDetailsService(CeoQueryService ceoQueryService) {
+        this.ceoQueryService = ceoQueryService;
+    }
 
     @Override
     @Transactional(readOnly = true)

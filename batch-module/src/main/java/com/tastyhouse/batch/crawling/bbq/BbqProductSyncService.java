@@ -3,7 +3,6 @@ package com.tastyhouse.batch.crawling.bbq;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,12 +33,21 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class BbqProductSyncService {
 
     private final ProductRegistrationService productRegistrationService;
     private final ProductCategoryRepository productCategoryRepository;
     private final ProductQueryDao productQueryDao;
+
+    public BbqProductSyncService(
+        ProductRegistrationService productRegistrationService,
+        ProductCategoryRepository productCategoryRepository,
+        ProductQueryDao productQueryDao
+    ) {
+        this.productRegistrationService = productRegistrationService;
+        this.productCategoryRepository = productCategoryRepository;
+        this.productQueryDao = productQueryDao;
+    }
 
     /**
      * 같은 가게에 같은 이름의 카테고리가 이미 있으면 재사용하고, 없으면 새로 등록한다.

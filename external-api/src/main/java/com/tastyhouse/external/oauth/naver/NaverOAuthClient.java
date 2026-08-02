@@ -1,6 +1,5 @@
 package com.tastyhouse.external.oauth.naver;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,6 @@ import com.tastyhouse.external.oauth.spi.SocialProfile;
 import com.tastyhouse.external.oauth.spi.SocialProvider;
 
 @Component
-@RequiredArgsConstructor
 public class NaverOAuthClient implements SocialOAuthClient {
 
     private static final String NAUTH_BASE_URL = "https://nid.naver.com";
@@ -29,6 +27,10 @@ public class NaverOAuthClient implements SocialOAuthClient {
     private String clientSecret;
 
     private final WebClient webClient;
+
+    public NaverOAuthClient(WebClient webClient) {
+        this.webClient = webClient;
+    }
 
     @Override
     public SocialProvider provider() {

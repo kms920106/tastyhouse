@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum Amenity {
 
     PARKING("주차"),
@@ -20,6 +15,14 @@ public enum Amenity {
     DELIVERY("배달");
 
     private final String displayName;
+
+    Amenity(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
 
     public static Amenity from(String code) {
         try {

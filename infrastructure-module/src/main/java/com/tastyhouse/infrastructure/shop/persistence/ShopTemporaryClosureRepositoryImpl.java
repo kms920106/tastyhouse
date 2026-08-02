@@ -3,17 +3,19 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.domain.repository.ShopTemporaryClosureRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class ShopTemporaryClosureRepositoryImpl implements ShopTemporaryClosureRepository {
 
     private final ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository;
+
+    public ShopTemporaryClosureRepositoryImpl(ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository) {
+        this.shopTemporaryClosureJpaRepository = shopTemporaryClosureJpaRepository;
+    }
 
     @Override
     public ShopTemporaryClosure save(ShopTemporaryClosure shopTemporaryClosure) {

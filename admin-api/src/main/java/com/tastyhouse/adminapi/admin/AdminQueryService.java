@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.admin;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +17,13 @@ import com.tastyhouse.domain.admin.domain.repository.AdminRepository;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class AdminQueryService {
 
     private final AdminRepository adminRepository;
+
+    public AdminQueryService(AdminRepository adminRepository) {
+        this.adminRepository = adminRepository;
+    }
 
     /**
      * 인증(UserDetails 로드·토큰 갱신 시 계정 상태 재검증)용 단건 조회.

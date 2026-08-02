@@ -12,7 +12,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -50,7 +49,6 @@ import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.s
  * 카티전 곱이 생기기 때문이다.
  */
 @Repository
-@RequiredArgsConstructor
 public class ShopSearchQueryDao {
 
     /**
@@ -65,6 +63,11 @@ public class ShopSearchQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public ShopSearchQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 현재 위치 주변 가게 마커 목록. 폐업·노출정지 가게는 제외한다.

@@ -7,7 +7,6 @@ import java.util.Optional;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -39,11 +38,15 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity
  * {@code @QueryProjection}은 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class RankQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public RankQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 현재 노출 중인 랭킹의 기간 — 시작일이 가장 늦은 1건. 노출 중인 기간이 없으면 비어 있다.

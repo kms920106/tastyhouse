@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.Tag;
@@ -20,11 +19,15 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
  * 소비자가 사라져 제거했다(공통 지침 패턴 4).
  */
 @Repository
-@RequiredArgsConstructor
 public class TagRepositoryImpl implements TagRepository {
 
     private final JPAQueryFactory queryFactory;
     private final TagJpaRepository tagJpaRepository;
+
+    public TagRepositoryImpl(JPAQueryFactory queryFactory, TagJpaRepository tagJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.tagJpaRepository = tagJpaRepository;
+    }
 
     @Override
     public Optional<Tag> findByTagName(String tagName) {

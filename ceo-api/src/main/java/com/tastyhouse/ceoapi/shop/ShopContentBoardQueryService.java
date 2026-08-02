@@ -2,7 +2,6 @@ package com.tastyhouse.ceoapi.shop;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +14,15 @@ import com.tastyhouse.ceoapi.shop.response.ShopContentBoardResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ShopContentBoardQueryService {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopContentBoardQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryDao = shopQueryDao;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public List<ShopContentBoardResponse> getContentBoards(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);

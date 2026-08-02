@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.order;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +29,13 @@ import com.tastyhouse.webapi.order.request.OrderProductRequest;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class OrderCommandService {
 
     private final OrderPlacementService orderPlacementService;
+
+    public OrderCommandService(OrderPlacementService orderPlacementService) {
+        this.orderPlacementService = orderPlacementService;
+    }
 
     /**
      * 주문을 생성한다.

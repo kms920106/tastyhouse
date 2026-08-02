@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.mail.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.mail.domain.model.MailVerification;
@@ -13,11 +12,15 @@ import com.tastyhouse.domain.mail.domain.repository.MailVerificationRepository;
 import static com.tastyhouse.infrastructure.mail.persistence.QMailVerificationJpaEntity.mailVerificationJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class MailVerificationRepositoryImpl implements MailVerificationRepository {
 
     private final MailVerificationJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;
+
+    public MailVerificationRepositoryImpl(MailVerificationJpaRepository jpaRepository, JPAQueryFactory queryFactory) {
+        this.jpaRepository = jpaRepository;
+        this.queryFactory = queryFactory;
+    }
 
     @Override
     public MailVerification save(MailVerification mailVerification) {

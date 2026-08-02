@@ -11,7 +11,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -41,11 +40,15 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
  * 직후 재조립한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class MemberQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public MemberQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 회원 관리 목록 조회(admin) — 닉네임/아이디/휴대폰 부분일치와 상태·등급 필터를 적용한다.

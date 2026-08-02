@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -12,11 +11,15 @@ import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEntity.reviewLikeJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewLikeJpaRepository reviewLikeJpaRepository;
+
+    public ReviewLikeRepositoryImpl(JPAQueryFactory queryFactory, ReviewLikeJpaRepository reviewLikeJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.reviewLikeJpaRepository = reviewLikeJpaRepository;
+    }
 
     @Override
     public boolean existsByReviewIdAndMemberId(ReviewId reviewId, MemberId memberId) {

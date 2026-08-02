@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum ShopContentTopic {
 
     EXTERIOR("가게 외부"),
@@ -16,6 +11,14 @@ public enum ShopContentTopic {
     NEWS("가게 소식");
 
     private final String description;
+
+    ShopContentTopic(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 
     public static ShopContentTopic from(String code) {
         try {

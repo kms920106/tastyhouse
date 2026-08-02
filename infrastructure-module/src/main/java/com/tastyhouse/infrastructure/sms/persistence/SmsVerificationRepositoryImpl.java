@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.sms.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.sms.domain.model.SmsVerification;
@@ -13,11 +12,15 @@ import com.tastyhouse.domain.sms.domain.repository.SmsVerificationRepository;
 import static com.tastyhouse.infrastructure.sms.persistence.QSmsVerificationJpaEntity.smsVerificationJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class SmsVerificationRepositoryImpl implements SmsVerificationRepository {
 
     private final SmsVerificationJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;
+
+    public SmsVerificationRepositoryImpl(SmsVerificationJpaRepository jpaRepository, JPAQueryFactory queryFactory) {
+        this.jpaRepository = jpaRepository;
+        this.queryFactory = queryFactory;
+    }
 
     @Override
     public SmsVerification save(SmsVerification smsVerification) {

@@ -8,9 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.admin.domain.model.AdminRole;
 import com.tastyhouse.domain.admin.domain.model.AdminStatus;
@@ -22,10 +19,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code Admin}과 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code AdminMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "ADMIN")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminJpaEntity extends BaseEntity {
 
     @Id
@@ -49,6 +44,9 @@ public class AdminJpaEntity extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private AdminStatus status;
 
+    protected AdminJpaEntity() {
+    }
+
     private AdminJpaEntity(String username, String password, String name, AdminRole role, AdminStatus status) {
         this.username = username;
         this.password = password;
@@ -62,5 +60,29 @@ public class AdminJpaEntity extends BaseEntity {
      */
     static AdminJpaEntity create(String username, String password, String name, AdminRole role, AdminStatus status) {
         return new AdminJpaEntity(username, password, name, role, status);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public AdminRole getRole() {
+        return this.role;
+    }
+
+    public AdminStatus getStatus() {
+        return this.status;
     }
 }

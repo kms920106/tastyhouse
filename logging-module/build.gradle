@@ -13,9 +13,6 @@ dependencies {
     // SQL 로그 포맷은 application-logging.yml의 decorator.datasource.p6spy.log-format이 소유.
     api 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.12.1'
 
-    // Lombok
-    implementation 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

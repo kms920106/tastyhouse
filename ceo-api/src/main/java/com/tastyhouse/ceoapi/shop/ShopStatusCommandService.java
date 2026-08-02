@@ -1,6 +1,5 @@
 package com.tastyhouse.ceoapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,13 +14,17 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopStatusCommandService {
 
     private static final String STATUS_HIDDEN = "HIDDEN";
 
     private final ShopLifecycleService shopLifecycleService;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopStatusCommandService(ShopLifecycleService shopLifecycleService, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopLifecycleService = shopLifecycleService;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public void updateStatus(Long ceoId, Long shopId, String status) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);

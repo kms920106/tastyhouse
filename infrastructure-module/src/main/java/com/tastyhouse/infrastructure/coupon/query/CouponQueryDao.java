@@ -9,7 +9,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -38,10 +37,13 @@ import static com.tastyhouse.infrastructure.coupon.persistence.QMemberCouponJpaE
  * 보존해 원본 쿠폰의 삭제 여부를 필터링하지 않는다(이미 발급된 보유분은 계속 보인다).
  */
 @Repository
-@RequiredArgsConstructor
 public class CouponQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public CouponQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 쿠폰 목록 페이징 조회(admin) — 쿠폰명 부분일치·할인유형·노출여부 필터를 선택적으로 적용한다.

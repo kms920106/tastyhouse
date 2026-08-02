@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +16,21 @@ import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class GradeSchedulerService {
+
+    private static final Logger log = LoggerFactory.getLogger(GradeSchedulerService.class);
 
     private final MemberReviewCountQueryDao memberReviewCountQueryDao;
     private final MemberRepository memberRepository;
+
+    public GradeSchedulerService(
+        MemberReviewCountQueryDao memberReviewCountQueryDao,
+        MemberRepository memberRepository
+    ) {
+        this.memberReviewCountQueryDao = memberReviewCountQueryDao;
+        this.memberRepository = memberRepository;
+    }
 
     /**
      * 모든 회원의 등급을 리뷰 개수 기준으로 업데이트

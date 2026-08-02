@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.order.domain.model.OrderProductOption;
@@ -13,10 +12,13 @@ import com.tastyhouse.domain.order.domain.repository.OrderProductOptionRepositor
  * 이 어댑터는 신규 저장(insert)만 담당한다 — QueryDSL이 필요 없어 {@code JPAQueryFactory}를 주입하지 않는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class OrderProductOptionRepositoryImpl implements OrderProductOptionRepository {
 
     private final OrderProductOptionJpaRepository orderProductOptionJpaRepository;
+
+    public OrderProductOptionRepositoryImpl(OrderProductOptionJpaRepository orderProductOptionJpaRepository) {
+        this.orderProductOptionJpaRepository = orderProductOptionJpaRepository;
+    }
 
     @Override
     public void save(OrderProductOption orderProductOption) {

@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.payment;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,10 +55,10 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * <p>반환은 결제 식별자({@code Long}) 또는 취소 결과 코드다 — 응답 조립은 커밋 이후
  * {@link PaymentQueryService}가 재조회해 담당한다(CQRS 분리).
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class PaymentCommandService {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentCommandService.class);
 
     /** PG는 처리됐는데 DB 반영이 실패한 상태를 운영에서 검색·알럿하기 위한 로그 마커. */
     private static final String PG_DB_MISMATCH = "PG_DB_MISMATCH";
@@ -68,6 +68,20 @@ public class PaymentCommandService {
     private final PaymentConfirmationExecutor paymentConfirmationExecutor;
     private final PaymentCancellationExecutor paymentCancellationExecutor;
     private final PgPaymentGateway pgPaymentGateway;
+
+    public PaymentCommandService(
+        PaymentConfirmationService paymentConfirmationService,
+        PaymentCancellationService paymentCancellationService,
+        PaymentConfirmationExecutor paymentConfirmationExecutor,
+        PaymentCancellationExecutor paymentCancellationExecutor,
+        PgPaymentGateway pgPaymentGateway
+    ) {
+        this.paymentConfirmationService = paymentConfirmationService;
+        this.paymentCancellationService = paymentCancellationService;
+        this.paymentConfirmationExecutor = paymentConfirmationExecutor;
+        this.paymentCancellationExecutor = paymentCancellationExecutor;
+        this.pgPaymentGateway = pgPaymentGateway;
+    }
 
     /**
      * 결제를 생성한다.

@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.member;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +31,15 @@ import com.tastyhouse.adminapi.member.response.MemberListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class MemberQueryService {
 
     private final MemberQueryDao memberQueryDao;
     private final MemberRepository memberRepository;
+
+    public MemberQueryService(MemberQueryDao memberQueryDao, MemberRepository memberRepository) {
+        this.memberQueryDao = memberQueryDao;
+        this.memberRepository = memberRepository;
+    }
 
     public PaginationResponse<MemberListItemResponse> getMembers(
         String nickname,

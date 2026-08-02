@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.bug.persistence;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.bug.domain.model.BugReportImage;
@@ -13,10 +12,13 @@ import com.tastyhouse.domain.bug.domain.repository.BugReportImageRepository;
  * 모듈의 {@code bug/query/BugReportQueryDao}가 파일 ID만 투영해 처리한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class BugReportImageRepositoryImpl implements BugReportImageRepository {
 
     private final BugReportImageJpaRepository bugReportImageJpaRepository;
+
+    public BugReportImageRepositoryImpl(BugReportImageJpaRepository bugReportImageJpaRepository) {
+        this.bugReportImageJpaRepository = bugReportImageJpaRepository;
+    }
 
     @Override
     public BugReportImage save(BugReportImage bugReportImage) {

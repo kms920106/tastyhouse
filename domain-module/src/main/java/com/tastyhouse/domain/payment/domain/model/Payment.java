@@ -2,8 +2,6 @@ package com.tastyhouse.domain.payment.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.payment.domain.vo.Amount;
 import com.tastyhouse.domain.payment.domain.vo.PaymentId;
@@ -19,7 +17,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code PaymentRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Payment {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -139,6 +136,70 @@ public class Payment {
             receiptUrl,
             createdAt
         );
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public OrderId getOrderId() {
+        return this.orderId;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return this.paymentMethod;
+    }
+
+    public PaymentStatus getPaymentStatus() {
+        return this.paymentStatus;
+    }
+
+    public Amount getAmount() {
+        return this.amount;
+    }
+
+    public PgProvider getPgProvider() {
+        return this.pgProvider;
+    }
+
+    public String getPgTid() {
+        return this.pgTid;
+    }
+
+    public String getPgOrderId() {
+        return this.pgOrderId;
+    }
+
+    public String getCardCompany() {
+        return this.cardCompany;
+    }
+
+    public String getCardNumber() {
+        return this.cardNumber;
+    }
+
+    public Integer getInstallmentMonths() {
+        return this.installmentMonths;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return this.approvedAt;
+    }
+
+    public LocalDateTime getCancelledAt() {
+        return this.cancelledAt;
+    }
+
+    public String getCancelReason() {
+        return this.cancelReason;
+    }
+
+    public String getReceiptUrl() {
+        return this.receiptUrl;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 
     public PaymentId getPaymentId() {

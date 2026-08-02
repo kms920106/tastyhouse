@@ -3,8 +3,6 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.ceo.domain.vo.CeoId;
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -20,7 +18,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code ShopRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Shop {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -261,5 +258,73 @@ public class Shop {
         if (permanentlyClosed) {
             throw new BusinessException(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
         }
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public CeoId getCeoId() {
+        return this.ceoId;
+    }
+
+    public StationId getStationId() {
+        return this.stationId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public BigDecimal getLatitude() {
+        return this.latitude;
+    }
+
+    public BigDecimal getLongitude() {
+        return this.longitude;
+    }
+
+    public Double getRating() {
+        return this.rating;
+    }
+
+    public String getRoadAddress() {
+        return this.roadAddress;
+    }
+
+    public String getLotAddress() {
+        return this.lotAddress;
+    }
+
+    public String getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public UploadedFileId getThumbnailImageFileId() {
+        return this.thumbnailImageFileId;
+    }
+
+    public UploadedFileId getTrademarkImageFileId() {
+        return this.trademarkImageFileId;
+    }
+
+    public boolean isPermanentlyClosed() {
+        return this.permanentlyClosed;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
+    }
+
+    public boolean isClosedOnPublicHolidays() {
+        return this.closedOnPublicHolidays;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

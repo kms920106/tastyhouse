@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.faq;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,11 +23,15 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class FaqCategoryCommandService {
 
     private final FaqCategoryRepository faqCategoryRepository;
     private final FaqCategoryDeletionPolicy faqCategoryDeletionPolicy;
+
+    public FaqCategoryCommandService(FaqCategoryRepository faqCategoryRepository, FaqCategoryDeletionPolicy faqCategoryDeletionPolicy) {
+        this.faqCategoryRepository = faqCategoryRepository;
+        this.faqCategoryDeletionPolicy = faqCategoryDeletionPolicy;
+    }
 
     public Long createCategory(String name, Integer sort, boolean visible) {
         FaqCategory faqCategory = FaqCategory.of(name, sort, visible);

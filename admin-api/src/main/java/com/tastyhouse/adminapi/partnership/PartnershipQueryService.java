@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.partnership;
 
 import java.time.LocalDateTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +29,13 @@ import com.tastyhouse.adminapi.partnership.response.PartnershipRequestListItemRe
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class PartnershipQueryService {
 
     private final PartnershipQueryDao partnershipQueryDao;
+
+    public PartnershipQueryService(PartnershipQueryDao partnershipQueryDao) {
+        this.partnershipQueryDao = partnershipQueryDao;
+    }
 
     public PaginationResponse<PartnershipRequestListItemResponse> getPartnershipRequests(
         String businessName,

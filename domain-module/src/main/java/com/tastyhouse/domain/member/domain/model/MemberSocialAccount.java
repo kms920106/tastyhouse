@@ -2,8 +2,6 @@ package com.tastyhouse.domain.member.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 
 /**
@@ -14,7 +12,6 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
  * 도메인이 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 호출부가 명시적으로
  * {@code MemberSocialAccountRepository#save}를 호출해야 한다.
  */
-@Getter
 public class MemberSocialAccount {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -100,5 +97,45 @@ public class MemberSocialAccount {
         if (providerNickname != null) this.providerNickname = providerNickname;
         if (providerProfileImageUrl != null) this.providerProfileImageUrl = providerProfileImageUrl;
         this.lastLoginAt = LocalDateTime.now();
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public MemberSocialProvider getProvider() {
+        return this.provider;
+    }
+
+    public String getProviderId() {
+        return this.providerId;
+    }
+
+    public String getProviderEmail() {
+        return this.providerEmail;
+    }
+
+    public String getProviderNickname() {
+        return this.providerNickname;
+    }
+
+    public String getProviderProfileImageUrl() {
+        return this.providerProfileImageUrl;
+    }
+
+    public LocalDateTime getLastLoginAt() {
+        return this.lastLoginAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

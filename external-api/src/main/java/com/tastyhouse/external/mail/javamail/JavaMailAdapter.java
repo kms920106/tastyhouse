@@ -2,8 +2,8 @@ package com.tastyhouse.external.mail.javamail;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -20,21 +20,26 @@ import com.tastyhouse.external.mail.MailProperties;
  * <p>클래스명이 {@code JavaMailMailSender}가 아닌 이유: 이 어댑터가 주입받는 Spring의
  * {@link JavaMailSender}와 타입명이 혼동되기 때문에 {@code Adapter} 접미어로 구분한다.
  */
-@Slf4j
 @ConditionalOnProperty(name = "mail.provider", havingValue = "javamail", matchIfMissing = true)
 @Component
-@RequiredArgsConstructor
 public class JavaMailAdapter implements MailSender {
+
+    private static final Logger log = LoggerFactory.getLogger(JavaMailAdapter.class);
 
     private final JavaMailSender javaMailSender;
     private final MailProperties mailProperties;
+
+    public JavaMailAdapter(JavaMailSender javaMailSender, MailProperties mailProperties) {
+        this.javaMailSender = javaMailSender;
+        this.mailProperties = mailProperties;
+    }
 
     @Override
     public void send(String to, String subject, String content) {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
-            helper.setFrom(mailProperties.getSenderAddress());
+            helper.setFrom(mailProperties.senderAddress());
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(content, false);

@@ -3,8 +3,6 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -20,7 +18,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * <p><b>상수 이름 자체는 DB 저장값이다</b>({@code EnumType.STRING}) — 필드를 추가하는 것은 DB에 영향이
  * 없지만 상수 이름은 절대 바꾸지 않는다.
  */
-@Getter
 public enum ClosedDayType {
 
     // 연중무휴
@@ -92,6 +89,18 @@ public enum ClosedDayType {
         this.description = description;
         this.dayOfWeek = dayOfWeek;
         this.weekOrdinal = weekOrdinal;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public DayOfWeek getDayOfWeek() {
+        return this.dayOfWeek;
+    }
+
+    public WeekOrdinal getWeekOrdinal() {
+        return this.weekOrdinal;
     }
 
     /**

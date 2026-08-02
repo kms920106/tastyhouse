@@ -25,14 +25,9 @@ dependencies {
     // Swagger — 공용 응답 record가 @Schema를 갖는다.
     api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
-    // Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testCompileOnly 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -9,9 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.ShopImageType;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
@@ -26,10 +23,8 @@ import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
  * <p>순수 도메인 모델 {@code ShopImageChangeRequest}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code ShopImageChangeRequestMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_IMAGE_CHANGE_REQUEST")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopImageChangeRequestJpaEntity extends BaseEntity {
 
     @Id
@@ -54,6 +49,9 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
+
+    protected ShopImageChangeRequestJpaEntity() {
+    }
 
     private ShopImageChangeRequestJpaEntity(
         ShopId shopId,
@@ -88,5 +86,29 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
     void applyChanges(ApprovalStatus status, String rejectReason) {
         this.status = status;
         this.rejectReason = rejectReason;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public ShopImageType getImageType() {
+        return this.imageType;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public ApprovalStatus getStatus() {
+        return this.status;
+    }
+
+    public String getRejectReason() {
+        return this.rejectReason;
     }
 }

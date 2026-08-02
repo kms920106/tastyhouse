@@ -2,17 +2,19 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ShopConvenienceInfo;
 import com.tastyhouse.domain.shop.domain.repository.ShopConvenienceInfoRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class ShopConvenienceInfoRepositoryImpl implements ShopConvenienceInfoRepository {
 
     private final ShopConvenienceInfoJpaRepository shopConvenienceInfoJpaRepository;
+
+    public ShopConvenienceInfoRepositoryImpl(ShopConvenienceInfoJpaRepository shopConvenienceInfoJpaRepository) {
+        this.shopConvenienceInfoJpaRepository = shopConvenienceInfoJpaRepository;
+    }
 
     @Override
     public Optional<ShopConvenienceInfo> findByShopId(Long shopId) {

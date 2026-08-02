@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,12 +23,16 @@ import com.tastyhouse.ceoapi.shop.response.ShopSuspensionResponse;
 
 @Tag(name = "Ceo Shop Suspension", description = "점주 가게 영업 임시중지 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopSuspensionApiController {
 
     private final ShopSuspensionQueryService shopSuspensionQueryService;
     private final ShopSuspensionCommandService shopSuspensionCommandService;
+
+    public ShopSuspensionApiController(ShopSuspensionQueryService shopSuspensionQueryService, ShopSuspensionCommandService shopSuspensionCommandService) {
+        this.shopSuspensionQueryService = shopSuspensionQueryService;
+        this.shopSuspensionCommandService = shopSuspensionCommandService;
+    }
 
     @Operation(summary = "영업 임시중지 목록 조회", description = "가게의 영업 임시중지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/suspensions")

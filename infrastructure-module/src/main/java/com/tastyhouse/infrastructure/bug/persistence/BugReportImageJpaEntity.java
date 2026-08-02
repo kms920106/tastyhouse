@@ -8,9 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
@@ -23,7 +20,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code BugReportImage}와 분리된 영속 전용 엔티티다. DB 매핑만 담당하고
  * 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code BugReportImageMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(
     name = "BUG_REPORT_IMAGE",
@@ -31,7 +27,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         @Index(name = "idx_bug_report_image_bug_report_id", columnList = "bug_report_id")
     }
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BugReportImageJpaEntity extends BaseEntity {
 
     @Id
@@ -49,6 +44,9 @@ public class BugReportImageJpaEntity extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
+    protected BugReportImageJpaEntity() {
+    }
+
     private BugReportImageJpaEntity(BugReportId bugReportId, UploadedFileId imageFileId, Integer sort) {
         this.bugReportId = bugReportId;
         this.imageFileId = imageFileId;
@@ -60,5 +58,21 @@ public class BugReportImageJpaEntity extends BaseEntity {
      */
     static BugReportImageJpaEntity create(BugReportId bugReportId, UploadedFileId imageFileId, Integer sort) {
         return new BugReportImageJpaEntity(bugReportId, imageFileId, sort);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public BugReportId getBugReportId() {
+        return this.bugReportId;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
     }
 }

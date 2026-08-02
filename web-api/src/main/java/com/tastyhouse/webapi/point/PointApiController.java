@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.point;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,11 +16,14 @@ import com.tastyhouse.webapi.point.response.PointUsableResponse;
 
 @RestController
 @RequestMapping("/api/members")
-@RequiredArgsConstructor
 @Tag(name = "Point", description = "내 포인트 조회 API")
 public class PointApiController {
 
     private final PointQueryService pointQueryService;
+
+    public PointApiController(PointQueryService pointQueryService) {
+        this.pointQueryService = pointQueryService;
+    }
 
     @Operation(summary = "보유 포인트 조회", description = "현재 로그인한 회원의 사용 가능한 포인트와 이번달 소멸 예정 포인트를 조회합니다.")
     @GetMapping("/v1/me/point")

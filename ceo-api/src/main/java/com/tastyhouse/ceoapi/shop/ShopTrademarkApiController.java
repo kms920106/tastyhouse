@@ -3,7 +3,6 @@ package com.tastyhouse.ceoapi.shop;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,12 +20,16 @@ import com.tastyhouse.ceoapi.shop.response.ShopImageStatusResponse;
 
 @Tag(name = "Ceo Shop Trademark", description = "점주 가게 상표/대표이미지 변경요청 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopTrademarkApiController {
 
     private final ShopTrademarkQueryService shopTrademarkQueryService;
     private final ShopTrademarkCommandService shopTrademarkCommandService;
+
+    public ShopTrademarkApiController(ShopTrademarkQueryService shopTrademarkQueryService, ShopTrademarkCommandService shopTrademarkCommandService) {
+        this.shopTrademarkQueryService = shopTrademarkQueryService;
+        this.shopTrademarkCommandService = shopTrademarkCommandService;
+    }
 
     @Operation(summary = "상표 이미지 현황 조회", description = "가게의 현재 상표 이미지와 변경 요청 상태 목록을 조회합니다.")
     @GetMapping("/v1/{id}/trademark")

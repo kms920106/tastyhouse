@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -29,10 +28,13 @@ import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.po
  * ({@code findPointHistoryPage})은 시그니처로 구분한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class PointQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public PointQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 회원 포인트 잔액 조회 — 포인트 계정이 없는 회원이면 비어 있다(소비 측에서 0으로 대체).

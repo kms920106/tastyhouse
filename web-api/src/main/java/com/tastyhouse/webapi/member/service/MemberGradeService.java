@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.member.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,10 +11,13 @@ import com.tastyhouse.domain.rank.domain.repository.MemberReviewRankRepository;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 
 @Service
-@RequiredArgsConstructor
 public class MemberGradeService {
 
     private final MemberReviewRankRepository memberReviewRankRepository;
+
+    public MemberGradeService(MemberReviewRankRepository memberReviewRankRepository) {
+        this.memberReviewRankRepository = memberReviewRankRepository;
+    }
 
     @Transactional(readOnly = true)
     public MyGradeResponse getMyGrade(Long memberId) {

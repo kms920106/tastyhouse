@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.member.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,11 +28,15 @@ import com.tastyhouse.webapi.member.response.MyProfileResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class MemberQueryService {
 
     private final MemberQueryDao memberQueryDao;
     private final MemberRepository memberRepository;
+
+    public MemberQueryService(MemberQueryDao memberQueryDao, MemberRepository memberRepository) {
+        this.memberQueryDao = memberQueryDao;
+        this.memberRepository = memberRepository;
+    }
 
     public MemberNicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
         boolean available = !memberRepository.existsByNickname(nickname);

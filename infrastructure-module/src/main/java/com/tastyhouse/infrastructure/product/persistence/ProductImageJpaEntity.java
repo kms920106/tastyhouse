@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
@@ -23,8 +20,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * {@code ProductImageMapper}가 수행한다. 도메인 쪽에 update 행위가 없어 {@code applyChanges}는
  * 두지 않는다(insert 전용).
  */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 @Entity
 @Table(name = "PRODUCT_IMAGE")
 public class ProductImageJpaEntity extends BaseEntity {
@@ -47,6 +42,9 @@ public class ProductImageJpaEntity extends BaseEntity {
     @Column(name = "image_file_id", nullable = false)
     private UploadedFileId imageFileId;
 
+    protected ProductImageJpaEntity() {
+    }
+
     private ProductImageJpaEntity(ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         this.productId = productId;
         this.imageFileId = imageFileId;
@@ -59,5 +57,25 @@ public class ProductImageJpaEntity extends BaseEntity {
      */
     static ProductImageJpaEntity create(ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         return new ProductImageJpaEntity(productId, imageFileId, sort, visible);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
     }
 }

@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.point.persistence;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.point.domain.model.PointHistory;
@@ -13,10 +12,13 @@ import com.tastyhouse.domain.point.domain.repository.PointHistoryRepository;
  * 조회(전체 목록·페이징·유형 필터)는 같은 모듈의 {@code PointQueryDao}로 이관했다(공통 지침 패턴 3·4).
  */
 @Repository
-@RequiredArgsConstructor
 public class PointHistoryRepositoryImpl implements PointHistoryRepository {
 
     private final PointHistoryJpaRepository pointHistoryJpaRepository;
+
+    public PointHistoryRepositoryImpl(PointHistoryJpaRepository pointHistoryJpaRepository) {
+        this.pointHistoryJpaRepository = pointHistoryJpaRepository;
+    }
 
     @Override
     public PointHistory save(PointHistory history) {

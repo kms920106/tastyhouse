@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.infrastructure.product.query.ProductBbqSyncTargetResult;
@@ -22,13 +22,18 @@ import com.tastyhouse.batch.crawling.bbq.response.SubOptionItemDetailResponse;
  * <p>외부 BBQ API 호출(느린 I/O)은 트랜잭션 밖에서 수행하고, 저장은 {@link BbqProductSyncService}의
  * 트랜잭션 경계 안에서 옵션 그룹 단위로 처리한다.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class ProductSchedulerService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProductSchedulerService.class);
 
     private final BbqService bbqService;
     private final BbqProductSyncService bbqProductSyncService;
+
+    public ProductSchedulerService(BbqService bbqService, BbqProductSyncService bbqProductSyncService) {
+        this.bbqService = bbqService;
+        this.bbqProductSyncService = bbqProductSyncService;
+    }
 
     public void crawlAndSaveProductOptions() {
         Optional<ProductBbqSyncTargetResult> targetOpt = bbqProductSyncService.findFirstOptionSyncTarget();

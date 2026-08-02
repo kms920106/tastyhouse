@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,10 +13,13 @@ import com.tastyhouse.domain.shop.domain.service.ShopImageApprovalService;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopImageChangeCommandService {
 
     private final ShopImageApprovalService shopImageApprovalService;
+
+    public ShopImageChangeCommandService(ShopImageApprovalService shopImageApprovalService) {
+        this.shopImageApprovalService = shopImageApprovalService;
+    }
 
     public void approveImageChange(Long id) {
         shopImageApprovalService.approveImageChange(id);

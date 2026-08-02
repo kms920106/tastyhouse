@@ -7,7 +7,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -30,10 +29,13 @@ import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpa
  * ({@code findAllCategories}는 비노출 포함 전체, {@code findVisibleCategories}는 노출분만).
  */
 @Repository
-@RequiredArgsConstructor
 public class FaqQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public FaqQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 회원 노출 카테고리 목록 조회 — 노출(visible=true) 카테고리만 정렬 순서대로 조회한다.

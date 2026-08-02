@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.member.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +33,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class MemberCommandService {
 
     private final MemberRepository memberRepository;
@@ -42,6 +40,20 @@ public class MemberCommandService {
     private final MemberRegistrationService memberRegistrationService;
     private final MemberWithdrawalService memberWithdrawalService;
     private final PasswordEncoder passwordEncoder;
+
+    public MemberCommandService(
+        MemberRepository memberRepository,
+        MemberSocialAccountRepository memberSocialAccountRepository,
+        MemberRegistrationService memberRegistrationService,
+        MemberWithdrawalService memberWithdrawalService,
+        PasswordEncoder passwordEncoder
+    ) {
+        this.memberRepository = memberRepository;
+        this.memberSocialAccountRepository = memberSocialAccountRepository;
+        this.memberRegistrationService = memberRegistrationService;
+        this.memberWithdrawalService = memberWithdrawalService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public Long signUp(
         String username,

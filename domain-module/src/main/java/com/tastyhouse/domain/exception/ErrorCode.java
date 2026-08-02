@@ -1,10 +1,5 @@
 package com.tastyhouse.domain.exception;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
 public enum ErrorCode {
 
     // 공통 - 엔티티 미존재
@@ -304,4 +299,22 @@ public enum ErrorCode {
     private final int httpStatusCode;
     private final String code;
     private final String defaultMessage;
+
+    ErrorCode(int httpStatusCode, String code, String defaultMessage) {
+        this.httpStatusCode = httpStatusCode;
+        this.code = code;
+        this.defaultMessage = defaultMessage;
+    }
+
+    public int getHttpStatusCode() {
+        return this.httpStatusCode;
+    }
+
+    public String getCode() {
+        return this.code;
+    }
+
+    public String getDefaultMessage() {
+        return this.defaultMessage;
+    }
 }

@@ -2,8 +2,6 @@ package com.tastyhouse.domain.policy.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.policy.domain.vo.PolicyDocumentId;
 
 /**
@@ -14,7 +12,6 @@ import com.tastyhouse.domain.policy.domain.vo.PolicyDocumentId;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code PolicyDocumentRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class PolicyDocument {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -92,6 +89,54 @@ public class PolicyDocument {
         LocalDateTime updatedAt
     ) {
         return new PolicyDocument(id, type, version, title, content, mandatory, effectiveDate, current, createdBy, updatedBy, createdAt, updatedAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public PolicyType getType() {
+        return this.type;
+    }
+
+    public String getVersion() {
+        return this.version;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public boolean isMandatory() {
+        return this.mandatory;
+    }
+
+    public LocalDateTime getEffectiveDate() {
+        return this.effectiveDate;
+    }
+
+    public boolean isCurrent() {
+        return this.current;
+    }
+
+    public String getCreatedBy() {
+        return this.createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return this.updatedBy;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 
     public PolicyDocumentId getPolicyDocumentId() {

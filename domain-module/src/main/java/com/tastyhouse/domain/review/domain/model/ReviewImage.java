@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.review.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 
@@ -12,7 +10,6 @@ import com.tastyhouse.domain.review.domain.vo.ReviewId;
  * {@code ReviewImageJpaEntity} + {@code ReviewImageMapper}가 담당한다. 불변 애그리거트로
  * 상태전이가 없어 감사 시각을 소비하지 않는다.
  */
-@Getter
 public class ReviewImage {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -39,5 +36,21 @@ public class ReviewImage {
      */
     public static ReviewImage reconstitute(Long id, ReviewId reviewId, UploadedFileId imageFileId, Integer sort) {
         return new ReviewImage(id, reviewId, imageFileId, sort);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ReviewId getReviewId() {
+        return this.reviewId;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
     }
 }

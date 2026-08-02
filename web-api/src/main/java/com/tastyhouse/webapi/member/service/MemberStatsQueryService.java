@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.member.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,11 +15,15 @@ import com.tastyhouse.webapi.review.ReviewQueryService;
  * 이 클래스는 표현용 집계 조회만 수행한다.
  */
 @Service
-@RequiredArgsConstructor
 public class MemberStatsQueryService {
 
     private final ReviewQueryService reviewQueryService;
     private final FollowQueryService followQueryService;
+
+    public MemberStatsQueryService(ReviewQueryService reviewQueryService, FollowQueryService followQueryService) {
+        this.reviewQueryService = reviewQueryService;
+        this.followQueryService = followQueryService;
+    }
 
     // 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회
     @Transactional(readOnly = true)

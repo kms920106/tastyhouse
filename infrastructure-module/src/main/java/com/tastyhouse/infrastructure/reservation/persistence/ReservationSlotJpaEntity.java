@@ -12,9 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
@@ -27,7 +24,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * 낙관적 락({@code @Version})만 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은
  * {@code ReservationSlotMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(
     name = "RESERVATION_SLOT",
@@ -36,7 +32,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         columnNames = {"shop_id", "slot_date", "slot_time"}
     )
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReservationSlotJpaEntity extends BaseEntity {
 
     @Id
@@ -63,6 +58,9 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     @Column(name = "version")
     private Long version;
 
+    protected ReservationSlotJpaEntity() {
+    }
+
     private ReservationSlotJpaEntity(ShopId shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
         this.shopId = shopId;
         this.slotDate = slotDate;
@@ -84,5 +82,33 @@ public class ReservationSlotJpaEntity extends BaseEntity {
      */
     void applyChanges(Integer reservedCount) {
         this.reservedCount = reservedCount;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public LocalDate getSlotDate() {
+        return this.slotDate;
+    }
+
+    public LocalTime getSlotTime() {
+        return this.slotTime;
+    }
+
+    public Integer getCapacity() {
+        return this.capacity;
+    }
+
+    public Integer getReservedCount() {
+        return this.reservedCount;
+    }
+
+    public Long getVersion() {
+        return this.version;
     }
 }

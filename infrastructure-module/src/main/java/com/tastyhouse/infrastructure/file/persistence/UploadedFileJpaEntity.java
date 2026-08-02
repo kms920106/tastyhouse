@@ -7,9 +7,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -19,7 +16,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code UploadedFile}과 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code UploadedFileMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(
     name = "UPLOADED_FILE",
@@ -27,7 +23,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         @Index(name = "idx_uploaded_file_created_at", columnList = "created_at")
     }
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UploadedFileJpaEntity extends BaseEntity {
 
     @Id
@@ -48,6 +43,9 @@ public class UploadedFileJpaEntity extends BaseEntity {
 
     @Column(name = "content_type", nullable = false, length = 100)
     private String contentType; // MIME 타입 (예: image/jpeg, application/pdf)
+
+    protected UploadedFileJpaEntity() {
+    }
 
     private UploadedFileJpaEntity(
         String originalFilename,
@@ -74,5 +72,29 @@ public class UploadedFileJpaEntity extends BaseEntity {
         String contentType
     ) {
         return new UploadedFileJpaEntity(originalFilename, storedFilename, filePath, fileSize, contentType);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getOriginalFilename() {
+        return this.originalFilename;
+    }
+
+    public String getStoredFilename() {
+        return this.storedFilename;
+    }
+
+    public String getFilePath() {
+        return this.filePath;
+    }
+
+    public Long getFileSize() {
+        return this.fileSize;
+    }
+
+    public String getContentType() {
+        return this.contentType;
     }
 }

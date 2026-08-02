@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.faq.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.faq.domain.model.FaqCategory;
@@ -20,11 +19,15 @@ import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpa
  * 표현 목적 조회는 같은 모듈의 {@code faq/query/FaqQueryDao}로 분리되어 있다.
  */
 @Repository
-@RequiredArgsConstructor
 public class FaqCategoryRepositoryImpl implements FaqCategoryRepository {
 
     private final JPAQueryFactory queryFactory;
     private final FaqCategoryJpaRepository faqCategoryJpaRepository;
+
+    public FaqCategoryRepositoryImpl(JPAQueryFactory queryFactory, FaqCategoryJpaRepository faqCategoryJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.faqCategoryJpaRepository = faqCategoryJpaRepository;
+    }
 
     @Override
     public Optional<FaqCategory> findById(FaqCategoryId faqCategoryId) {

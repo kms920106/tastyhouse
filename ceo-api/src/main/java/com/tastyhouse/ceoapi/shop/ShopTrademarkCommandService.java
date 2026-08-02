@@ -1,6 +1,5 @@
 package com.tastyhouse.ceoapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,13 +17,24 @@ import com.tastyhouse.apicommon.file.FileService;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopTrademarkCommandService {
 
     private final ShopImageApprovalService shopImageApprovalService;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
     private final FileService fileService;
+
+    public ShopTrademarkCommandService(
+        ShopImageApprovalService shopImageApprovalService,
+        ShopOwnershipValidator shopOwnershipValidator,
+        ShopImageSpecValidator shopImageSpecValidator,
+        FileService fileService
+    ) {
+        this.shopImageApprovalService = shopImageApprovalService;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+        this.shopImageSpecValidator = shopImageSpecValidator;
+        this.fileService = fileService;
+    }
 
     public Long requestTrademarkChange(Long ceoId, Long shopId, MultipartFile file) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);

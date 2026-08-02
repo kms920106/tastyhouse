@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.review;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +46,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ReviewCommandService {
 
     private final ReviewLifecycleService reviewLifecycleService;
@@ -56,6 +54,22 @@ public class ReviewCommandService {
     private final ReviewReplyRepository reviewReplyRepository;
     private final ProductRepository productRepository;
     private final OrderProductRepository orderProductRepository;
+
+    public ReviewCommandService(
+        ReviewLifecycleService reviewLifecycleService,
+        ReviewRepository reviewRepository,
+        ReviewCommentRepository reviewCommentRepository,
+        ReviewReplyRepository reviewReplyRepository,
+        ProductRepository productRepository,
+        OrderProductRepository orderProductRepository
+    ) {
+        this.reviewLifecycleService = reviewLifecycleService;
+        this.reviewRepository = reviewRepository;
+        this.reviewCommentRepository = reviewCommentRepository;
+        this.reviewReplyRepository = reviewReplyRepository;
+        this.productRepository = productRepository;
+        this.orderProductRepository = orderProductRepository;
+    }
 
     /**
      * 리뷰 등록 — 주문 상품이 지정되면 그 주문을 인증 근거로 함께 남긴다. 가게는 상품에서 역으로 얻는다.

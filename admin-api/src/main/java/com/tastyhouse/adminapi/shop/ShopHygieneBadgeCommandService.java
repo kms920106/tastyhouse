@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.shop;
 
 import java.time.LocalDate;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +23,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopHygieneBadgeCommandService {
 
     private final ShopHygieneBadgeRepository shopHygieneBadgeRepository;
+
+    public ShopHygieneBadgeCommandService(ShopHygieneBadgeRepository shopHygieneBadgeRepository) {
+        this.shopHygieneBadgeRepository = shopHygieneBadgeRepository;
+    }
 
     /**
      * @return 등록된 위생 인증 뱃지 식별자

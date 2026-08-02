@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
@@ -19,10 +16,8 @@ import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 /**
  * 상점 사진 카테고리 이미지 JPA 영속 모델. 순수 도메인 모델 {@code ShopPhotoCategoryImage}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_PHOTO_CATEGORY_IMAGE")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopPhotoCategoryImageJpaEntity extends BaseEntity {
 
     @Id
@@ -42,6 +37,9 @@ public class ShopPhotoCategoryImageJpaEntity extends BaseEntity {
 
     @Column(name = "is_visible", nullable = false)
     private boolean visible; // 노출 여부 (true: 노출)
+
+    protected ShopPhotoCategoryImageJpaEntity() {
+    }
 
     private ShopPhotoCategoryImageJpaEntity(
         ShopPhotoCategoryId shopPhotoCategoryId,
@@ -68,5 +66,25 @@ public class ShopPhotoCategoryImageJpaEntity extends BaseEntity {
         this.imageFileId = imageFileId;
         this.sort = sort;
         this.visible = visible;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopPhotoCategoryId getShopPhotoCategoryId() {
+        return this.shopPhotoCategoryId;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

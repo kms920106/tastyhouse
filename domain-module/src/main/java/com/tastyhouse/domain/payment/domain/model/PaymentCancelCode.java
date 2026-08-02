@@ -1,10 +1,5 @@
 package com.tastyhouse.domain.payment.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
 public enum PaymentCancelCode {
 
     SUCCESS("결제가 취소되었습니다"),
@@ -14,4 +9,12 @@ public enum PaymentCancelCode {
     CANCEL_FAILED("결제 취소에 실패했습니다");
 
     private final String message;
+
+    PaymentCancelCode(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return this.message;
+    }
 }

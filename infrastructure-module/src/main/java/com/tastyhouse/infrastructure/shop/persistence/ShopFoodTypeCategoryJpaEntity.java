@@ -9,9 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.FoodType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
@@ -21,10 +18,8 @@ import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 /**
  * 음식 유형 카테고리 JPA 영속 모델. 순수 도메인 모델 {@code ShopFoodTypeCategory}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_FOOD_TYPE_CATEGORY")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopFoodTypeCategoryJpaEntity extends BaseEntity {
 
     @Id
@@ -51,6 +46,9 @@ public class ShopFoodTypeCategoryJpaEntity extends BaseEntity {
 
     @Column(name = "is_visible", nullable = false)
     private boolean visible; // 사용 여부 (true: 사용 중)
+
+    protected ShopFoodTypeCategoryJpaEntity() {
+    }
 
     private ShopFoodTypeCategoryJpaEntity(
         FoodType foodType,
@@ -85,5 +83,33 @@ public class ShopFoodTypeCategoryJpaEntity extends BaseEntity {
         this.inactiveImageFileId = inactiveImageFileId;
         this.sort = sort;
         this.visible = visible;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public FoodType getFoodType() {
+        return this.foodType;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    public UploadedFileId getActiveImageFileId() {
+        return this.activeImageFileId;
+    }
+
+    public UploadedFileId getInactiveImageFileId() {
+        return this.inactiveImageFileId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

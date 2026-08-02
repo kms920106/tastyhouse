@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.member;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +22,15 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class MemberCommandService {
 
     private final MemberRepository memberRepository;
     private final MemberWithdrawalService memberWithdrawalService;
+
+    public MemberCommandService(MemberRepository memberRepository, MemberWithdrawalService memberWithdrawalService) {
+        this.memberRepository = memberRepository;
+        this.memberWithdrawalService = memberWithdrawalService;
+    }
 
     public void suspend(Long id) {
         MemberId memberId = MemberId.of(id);

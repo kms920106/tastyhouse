@@ -1,6 +1,5 @@
 package com.tastyhouse.ceoapi.ceo;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +20,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class CeoCommandService {
 
     private final CeoRepository ceoRepository;
+
+    public CeoCommandService(CeoRepository ceoRepository) {
+        this.ceoRepository = ceoRepository;
+    }
 
     /**
      * 신규 점주 계정을 생성한다. password는 이미 인코딩된 값이어야 한다.

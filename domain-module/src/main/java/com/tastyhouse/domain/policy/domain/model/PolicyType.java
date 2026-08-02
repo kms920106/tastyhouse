@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.policy.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum PolicyType {
 
     TERMS_OF_SERVICE("이용약관"),
@@ -16,6 +11,14 @@ public enum PolicyType {
     AGE_VERIFICATION("만 14세 이상");
 
     private final String description;
+
+    PolicyType(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 
     public static PolicyType from(String code) {
         try {

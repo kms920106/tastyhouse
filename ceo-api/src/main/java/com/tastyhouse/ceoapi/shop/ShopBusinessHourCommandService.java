@@ -2,7 +2,6 @@ package com.tastyhouse.ceoapi.shop;
 
 import java.time.LocalTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +26,21 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopBusinessHourCommandService {
 
     private final ShopBusinessHourService shopBusinessHourService;
     private final ShopDetailRepository shopDetailRepository;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopBusinessHourCommandService(
+        ShopBusinessHourService shopBusinessHourService,
+        ShopDetailRepository shopDetailRepository,
+        ShopOwnershipValidator shopOwnershipValidator
+    ) {
+        this.shopBusinessHourService = shopBusinessHourService;
+        this.shopDetailRepository = shopDetailRepository;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public Long createBusinessHour(
         Long ceoId,

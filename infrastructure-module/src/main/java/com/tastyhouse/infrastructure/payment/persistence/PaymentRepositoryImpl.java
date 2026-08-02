@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.payment.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.order.domain.vo.OrderId;
@@ -20,11 +19,15 @@ import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntit
  * 표현 목적 조회(주문별 결제 조회 등)는 같은 모듈의 {@code payment/query/PaymentQueryDao}로 이관했다.
  */
 @Repository
-@RequiredArgsConstructor
 public class PaymentRepositoryImpl implements PaymentRepository {
 
     private final JPAQueryFactory queryFactory;
     private final PaymentJpaRepository paymentJpaRepository;
+
+    public PaymentRepositoryImpl(JPAQueryFactory queryFactory, PaymentJpaRepository paymentJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.paymentJpaRepository = paymentJpaRepository;
+    }
 
     @Override
     public Optional<Payment> findById(PaymentId paymentId) {

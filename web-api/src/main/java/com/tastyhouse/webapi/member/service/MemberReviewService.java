@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.member.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,10 +9,13 @@ import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.review.ReviewQueryService;
 
 @Service
-@RequiredArgsConstructor
 public class MemberReviewService {
 
     private final ReviewQueryService reviewQueryService;
+
+    public MemberReviewService(ReviewQueryService reviewQueryService) {
+        this.reviewQueryService = reviewQueryService;
+    }
 
     @Transactional(readOnly = true)
     public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {

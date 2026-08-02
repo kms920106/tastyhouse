@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static com.tastyhouse.infrastructure.search.persistence.QPopularKeywordJpaEntity.popularKeywordJpaEntity;
@@ -23,7 +22,6 @@ import static com.tastyhouse.infrastructure.search.persistence.QSearchKeywordLog
  * 키워드 조회는 web 노출 전용이라 admin 소비자가 없어 메서드가 각각 하나씩만 있다.
  */
 @Repository
-@RequiredArgsConstructor
 public class SearchQueryDao {
 
     /**
@@ -32,6 +30,10 @@ public class SearchQueryDao {
     private static final long TOP_KEYWORD_LIMIT = 10L;
 
     private final JPAQueryFactory queryFactory;
+
+    public SearchQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 노출 인기 검색어 목록 조회 — 노출(visible=true) 항목만 순위 오름차순으로 조회한다.

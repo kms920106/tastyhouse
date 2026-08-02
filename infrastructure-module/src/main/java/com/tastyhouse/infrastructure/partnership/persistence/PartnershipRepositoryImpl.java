@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.partnership.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.partnership.domain.model.PartnershipRequest;
@@ -19,11 +18,15 @@ import static com.tastyhouse.infrastructure.partnership.persistence.QPartnership
  * {@code partnership/query/PartnershipQueryDao}로 분리되어 있다.
  */
 @Repository
-@RequiredArgsConstructor
 public class PartnershipRepositoryImpl implements PartnershipRepository {
 
     private final JPAQueryFactory queryFactory;
     private final PartnershipRequestJpaRepository partnershipRequestJpaRepository;
+
+    public PartnershipRepositoryImpl(JPAQueryFactory queryFactory, PartnershipRequestJpaRepository partnershipRequestJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.partnershipRequestJpaRepository = partnershipRequestJpaRepository;
+    }
 
     @Override
     public Optional<PartnershipRequest> findById(PartnershipRequestId partnershipRequestId) {

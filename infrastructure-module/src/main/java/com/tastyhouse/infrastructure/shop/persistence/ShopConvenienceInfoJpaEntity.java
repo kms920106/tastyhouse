@@ -9,9 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -20,10 +17,8 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 /**
  * 가게 편의정보 JPA 영속 모델. 순수 도메인 모델 {@code ShopConvenienceInfo}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_CONVENIENCE_INFO")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopConvenienceInfoJpaEntity extends BaseEntity {
 
     @Id
@@ -54,6 +49,9 @@ public class ShopConvenienceInfoJpaEntity extends BaseEntity {
 
     @Column(name = "display_longitude", precision = 9, scale = 6)
     private BigDecimal displayLongitude; // 노출 위치 경도
+
+    protected ShopConvenienceInfoJpaEntity() {
+    }
 
     private ShopConvenienceInfoJpaEntity(
         ShopId shopId,
@@ -111,5 +109,41 @@ public class ShopConvenienceInfoJpaEntity extends BaseEntity {
         this.directionsGuide = directionsGuide;
         this.displayLatitude = displayLatitude;
         this.displayLongitude = displayLongitude;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public boolean isParkingAvailable() {
+        return this.parkingAvailable;
+    }
+
+    public boolean isParkingPaid() {
+        return this.parkingPaid;
+    }
+
+    public boolean isValetAvailable() {
+        return this.valetAvailable;
+    }
+
+    public boolean isValetPaid() {
+        return this.valetPaid;
+    }
+
+    public String getDirectionsGuide() {
+        return this.directionsGuide;
+    }
+
+    public BigDecimal getDisplayLatitude() {
+        return this.displayLatitude;
+    }
+
+    public BigDecimal getDisplayLongitude() {
+        return this.displayLongitude;
     }
 }

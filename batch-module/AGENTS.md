@@ -47,7 +47,6 @@ com.tastyhouse.batch/
 
 ### External
 - Spring Boot Starter(루트 `subprojects`가 부여) — `@Scheduled`/`@Transactional` 지원
-- Lombok
 
 ## 설정 파일
 

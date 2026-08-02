@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.follow;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +24,21 @@ import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class FollowQueryService {
 
     private final MemberFollowQueryDao memberFollowQueryDao;
     private final MemberQueryDao memberQueryDao;
     private final MemberFollowRepository memberFollowRepository;
+
+    public FollowQueryService(
+        MemberFollowQueryDao memberFollowQueryDao,
+        MemberQueryDao memberQueryDao,
+        MemberFollowRepository memberFollowRepository
+    ) {
+        this.memberFollowQueryDao = memberFollowQueryDao;
+        this.memberQueryDao = memberQueryDao;
+        this.memberFollowRepository = memberFollowRepository;
+    }
 
     public boolean isFollowing(Long viewerMemberId, Long targetMemberId) {
         return memberFollowRepository.existsByFollowerIdAndFollowingId(

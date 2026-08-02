@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.config.jwt.service;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,12 +23,21 @@ import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
  * - BlacklistRedisRepository: 로그아웃된 Access Token 블랙리스트
  */
 @Service
-@RequiredArgsConstructor
 public class TokenService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRedisRepository refreshTokenRepository;
     private final BlacklistRedisRepository blacklistRepository;
+
+    public TokenService(
+        JwtTokenProvider jwtTokenProvider,
+        RefreshTokenRedisRepository refreshTokenRepository,
+        BlacklistRedisRepository blacklistRepository
+    ) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.blacklistRepository = blacklistRepository;
+    }
 
     /**
      * 소셜/휴대폰 로그인 등 Member 객체를 직접 사용하는 모든 로그인 경로의 단일 토큰 발급 진입점
@@ -114,10 +122,6 @@ public class TokenService {
         if (jwtTokenProvider.validateToken(accessToken)) {
             blacklistRepository.add(accessToken, jwtTokenProvider.getExpirationMillis(accessToken));
         }
-    }
-
-    public boolean isBlacklisted(String accessToken) {
-        return blacklistRepository.contains(accessToken);
     }
 
     private String extractToken(String bearerToken) {

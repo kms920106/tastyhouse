@@ -6,9 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * 금칙어 JPA 영속 모델.
@@ -21,8 +18,6 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "PROHIBITED_WORD")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class ProhibitedWordJpaEntity {
 
     @Id
@@ -34,4 +29,19 @@ public class ProhibitedWordJpaEntity {
 
     @Column(name = "reason")
     private String reason;
+
+    protected ProhibitedWordJpaEntity() {
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getWord() {
+        return this.word;
+    }
+
+    public String getReason() {
+        return this.reason;
+    }
 }

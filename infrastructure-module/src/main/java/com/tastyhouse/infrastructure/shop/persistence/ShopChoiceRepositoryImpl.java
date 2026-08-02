@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ShopChoice;
@@ -15,10 +14,13 @@ import com.tastyhouse.domain.shop.domain.repository.ShopChoiceRepository;
  * {@link com.tastyhouse.infrastructure.shop.query.ShopChoiceQueryDao}로 이관했다(공통 지침 패턴 4).
  */
 @Repository
-@RequiredArgsConstructor
 public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {
 
     private final ShopChoiceJpaRepository shopChoiceJpaRepository;
+
+    public ShopChoiceRepositoryImpl(ShopChoiceJpaRepository shopChoiceJpaRepository) {
+        this.shopChoiceJpaRepository = shopChoiceJpaRepository;
+    }
 
     @Override
     public Optional<ShopChoice> findById(Long id) {

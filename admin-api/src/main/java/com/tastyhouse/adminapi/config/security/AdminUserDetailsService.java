@@ -2,8 +2,6 @@ package com.tastyhouse.adminapi.config.security;
 
 import java.util.Collections;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,12 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.admin.domain.model.Admin;
 import com.tastyhouse.adminapi.admin.AdminQueryService;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdminUserDetailsService implements UserDetailsService {
 
     private final AdminQueryService adminQueryService;
+
+    public AdminUserDetailsService(AdminQueryService adminQueryService) {
+        this.adminQueryService = adminQueryService;
+    }
 
     @Override
     @Transactional(readOnly = true)

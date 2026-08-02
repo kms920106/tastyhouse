@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.sms;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,12 +19,19 @@ import com.tastyhouse.webapi.sms.response.SmsVerificationTokenResponse;
 
 @RestController
 @RequestMapping("/api/sms-verifications")
-@RequiredArgsConstructor
 @Tag(name = "SMS Verification", description = "SMS(휴대폰번호) 인증 API")
 public class SmsVerificationApiController {
 
     private final SmsVerificationCommandService smsVerificationCommandService;
     private final JwtTokenProvider jwtTokenProvider;
+
+    public SmsVerificationApiController(
+        SmsVerificationCommandService smsVerificationCommandService,
+        JwtTokenProvider jwtTokenProvider
+    ) {
+        this.smsVerificationCommandService = smsVerificationCommandService;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @Operation(
         summary = "인증번호 발송",

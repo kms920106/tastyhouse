@@ -1,16 +1,11 @@
 package com.tastyhouse.external.crawling.bbq;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
-@Getter
-@Setter
-@Component
 @ConfigurationProperties(prefix = "crawling.bbq.api")
-public class BbqProperties {
-
-    private String baseUrl;
-    private int timeoutSeconds = 10;
+public record BbqProperties(
+    String baseUrl,
+    @DefaultValue("10") int timeoutSeconds
+) {
 }

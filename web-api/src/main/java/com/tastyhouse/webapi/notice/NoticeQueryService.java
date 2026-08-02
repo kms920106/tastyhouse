@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.notice;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +18,13 @@ import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class NoticeQueryService {
 
     private final NoticeQueryDao noticeQueryDao;
+
+    public NoticeQueryService(NoticeQueryDao noticeQueryDao) {
+        this.noticeQueryDao = noticeQueryDao;
+    }
 
     public PaginationResponse<NoticeListItemResponse> getNoticeList(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);

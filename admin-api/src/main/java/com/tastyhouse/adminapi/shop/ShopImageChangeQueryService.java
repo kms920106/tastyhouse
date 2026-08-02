@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +19,13 @@ import com.tastyhouse.adminapi.shop.response.ShopImageChangeRequestItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ShopImageChangeQueryService {
 
     private final ShopQueryDao shopQueryDao;
+
+    public ShopImageChangeQueryService(ShopQueryDao shopQueryDao) {
+        this.shopQueryDao = shopQueryDao;
+    }
 
     public PaginationResponse<ShopImageChangeRequestItemResponse> getImageChangeRequests(
         String status,

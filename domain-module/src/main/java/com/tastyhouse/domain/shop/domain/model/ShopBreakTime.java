@@ -3,7 +3,6 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
-import lombok.Getter;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
@@ -12,7 +11,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code ShopBreakTimeJpaEntity} + {@code ShopBreakTimeMapper}가 담당한다.
  */
-@Getter
 public class ShopBreakTime {
 
     private final Long id;
@@ -67,5 +65,25 @@ public class ShopBreakTime {
             return !time.isBefore(startTime) || time.isBefore(endTime);
         }
         return !time.isBefore(startTime) && time.isBefore(endTime);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public DayType getDayType() {
+        return this.dayType;
+    }
+
+    public LocalTime getStartTime() {
+        return this.startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return this.endTime;
     }
 }

@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,13 +30,22 @@ import com.tastyhouse.adminapi.faq.response.FaqListItemResponse;
 
 @Tag(name = "FAQ Admin", description = "FAQ 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/faqs")
 public class FaqApiController {
 
     private final FaqCommandService faqCommandService;
     private final FaqCategoryCommandService faqCategoryCommandService;
     private final FaqQueryService faqQueryService;
+
+    public FaqApiController(
+        FaqCommandService faqCommandService,
+        FaqCategoryCommandService faqCategoryCommandService,
+        FaqQueryService faqQueryService
+    ) {
+        this.faqCommandService = faqCommandService;
+        this.faqCategoryCommandService = faqCategoryCommandService;
+        this.faqQueryService = faqQueryService;
+    }
 
     @Operation(summary = "FAQ 카테고리 등록", description = "새로운 FAQ 카테고리를 등록합니다.")
     @PostMapping("/v1/categories")

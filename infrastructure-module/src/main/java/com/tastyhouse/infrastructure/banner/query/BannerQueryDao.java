@@ -8,7 +8,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -37,11 +36,15 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  * 포함한 관리 조회, {@code findVisibleBannersByType}은 현재 노출 중인 배너만).
  */
 @Repository
-@RequiredArgsConstructor
 public class BannerQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public BannerQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 회원 노출용 배너 목록 조회 — 유형이 일치하고 노출(visible=true) 상태이며 현재 시각이 노출 기간

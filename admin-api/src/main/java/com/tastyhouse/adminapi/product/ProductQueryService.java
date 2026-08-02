@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.product;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,10 +32,13 @@ import com.tastyhouse.adminapi.product.response.ProductOptionResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ProductQueryService {
 
     private final ProductQueryDao productQueryDao;
+
+    public ProductQueryService(ProductQueryDao productQueryDao) {
+        this.productQueryDao = productQueryDao;
+    }
 
     public PaginationResponse<ProductListItemResponse> getProducts(
         Long shopId,

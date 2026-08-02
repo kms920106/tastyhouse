@@ -2,8 +2,6 @@ package com.tastyhouse.domain.shop.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
@@ -18,7 +16,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로
  * {@code ShopImageChangeRequestRepository#save}를 호출해야 한다.
  */
-@Getter
 public class ShopImageChangeRequest {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -89,5 +86,37 @@ public class ShopImageChangeRequest {
         }
         this.status = ApprovalStatus.REJECTED;
         this.rejectReason = reason;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public ShopImageType getImageType() {
+        return this.imageType;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public ApprovalStatus getStatus() {
+        return this.status;
+    }
+
+    public String getRejectReason() {
+        return this.rejectReason;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

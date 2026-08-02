@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.point;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +16,13 @@ import com.tastyhouse.domain.point.domain.service.PointLedgerService;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class PointCommandService {
 
     private final PointLedgerService pointLedgerService;
+
+    public PointCommandService(PointLedgerService pointLedgerService) {
+        this.pointLedgerService = pointLedgerService;
+    }
 
     public void earnPoint(Long memberId, int amount, String reason) {
         MemberId targetMemberId = MemberId.of(memberId);

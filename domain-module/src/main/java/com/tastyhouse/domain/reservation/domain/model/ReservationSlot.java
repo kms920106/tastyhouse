@@ -3,8 +3,6 @@ package com.tastyhouse.domain.reservation.domain.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.reservation.domain.service.SlotPolicy;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -20,7 +18,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 낙관적 락 버전({@code version})은 관리형(managed) 엔티티에서 flush 시 검증·증가되므로,
  * 이 POJO는 재구성 시 마지막으로 읽은 버전 값만 보관한다(직접 증가시키지 않음).
  */
-@Getter
 public class ReservationSlot {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -98,5 +95,33 @@ public class ReservationSlot {
         if (reservedCount > 0) {
             this.reservedCount--;
         }
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public LocalDate getSlotDate() {
+        return this.slotDate;
+    }
+
+    public LocalTime getSlotTime() {
+        return this.slotTime;
+    }
+
+    public Integer getCapacity() {
+        return this.capacity;
+    }
+
+    public Integer getReservedCount() {
+        return this.reservedCount;
+    }
+
+    public Long getVersion() {
+        return this.version;
     }
 }

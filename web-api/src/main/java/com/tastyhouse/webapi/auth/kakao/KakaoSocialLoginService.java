@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.auth.kakao;
 import java.util.Optional;
 import java.util.UUID;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,11 +32,9 @@ import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 
 @Service
-@RequiredArgsConstructor
 public class KakaoSocialLoginService {
 
     // SocialOAuthClient 구현이 제공자별로 4개이므로 빈 이름으로 명시 지정한다.
-    @Qualifier("kakaoOAuthClient")
     private final SocialOAuthClient kakaoOAuthClient;
     private final MemberCommandService memberCommandService;
     private final MemberRepository memberRepository;
@@ -45,6 +42,24 @@ public class KakaoSocialLoginService {
     private final TokenService tokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoTempTokenRedisRepository kakaoTempTokenRedisRepository;
+
+    public KakaoSocialLoginService(
+        @Qualifier("kakaoOAuthClient") SocialOAuthClient kakaoOAuthClient,
+        MemberCommandService memberCommandService,
+        MemberRepository memberRepository,
+        MemberSocialAccountRepository memberSocialAccountRepository,
+        TokenService tokenService,
+        JwtTokenProvider jwtTokenProvider,
+        KakaoTempTokenRedisRepository kakaoTempTokenRedisRepository
+    ) {
+        this.kakaoOAuthClient = kakaoOAuthClient;
+        this.memberCommandService = memberCommandService;
+        this.memberRepository = memberRepository;
+        this.memberSocialAccountRepository = memberSocialAccountRepository;
+        this.tokenService = tokenService;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.kakaoTempTokenRedisRepository = kakaoTempTokenRedisRepository;
+    }
 
     // 인가 코드로 카카오 로그인 처리
     // - 기존 회원: JWT 발급

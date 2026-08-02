@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,11 +33,15 @@ import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class RankQueryService {
 
     private final RankQueryDao rankQueryDao;
     private final MemberQueryDao memberQueryDao;
+
+    public RankQueryService(RankQueryDao rankQueryDao, MemberQueryDao memberQueryDao) {
+        this.rankQueryDao = rankQueryDao;
+        this.memberQueryDao = memberQueryDao;
+    }
 
     public Optional<RankDurationResponse> getDuration() {
         return rankQueryDao.findActiveDuration()

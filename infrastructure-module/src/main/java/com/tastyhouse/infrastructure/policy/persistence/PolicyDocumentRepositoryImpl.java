@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.policy.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.policy.domain.model.PolicyDocument;
@@ -20,11 +19,15 @@ import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJp
  * 같은 모듈의 {@code policy/query/PolicyQueryDao}가 담당하므로 이 클래스에 두지 않는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class PolicyDocumentRepositoryImpl implements PolicyDocumentRepository {
 
     private final JPAQueryFactory queryFactory;
     private final PolicyDocumentJpaRepository policyDocumentJpaRepository;
+
+    public PolicyDocumentRepositoryImpl(JPAQueryFactory queryFactory, PolicyDocumentJpaRepository policyDocumentJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.policyDocumentJpaRepository = policyDocumentJpaRepository;
+    }
 
     @Override
     public Optional<PolicyDocument> findById(PolicyDocumentId id) {

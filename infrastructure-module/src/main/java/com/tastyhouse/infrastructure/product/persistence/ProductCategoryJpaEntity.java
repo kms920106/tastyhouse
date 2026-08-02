@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
@@ -21,8 +18,6 @@ import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
  * <p>순수 도메인 모델 {@code ProductCategory}와 분리된 영속 전용 엔티티다. 도메인↔엔티티 변환은
  * {@code ProductCategoryMapper}가 수행한다.
  */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 @Entity
 @Table(name = "PRODUCT_CATEGORY")
 public class ProductCategoryJpaEntity extends BaseEntity {
@@ -43,6 +38,9 @@ public class ProductCategoryJpaEntity extends BaseEntity {
 
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
+
+    protected ProductCategoryJpaEntity() {
+    }
 
     private ProductCategoryJpaEntity(ShopId shopId, String name, Integer sort, boolean visible) {
         this.shopId = shopId;
@@ -65,5 +63,25 @@ public class ProductCategoryJpaEntity extends BaseEntity {
         this.name = name;
         this.sort = sort;
         this.visible = visible;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

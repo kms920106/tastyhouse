@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,12 +25,16 @@ import com.tastyhouse.adminapi.order.response.OrderListItemResponse;
 
 @Tag(name = "Order Admin", description = "주문 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/orders")
 public class OrderApiController {
 
     private final OrderCommandService orderCommandService;
     private final OrderQueryService orderQueryService;
+
+    public OrderApiController(OrderCommandService orderCommandService, OrderQueryService orderQueryService) {
+        this.orderCommandService = orderCommandService;
+        this.orderQueryService = orderQueryService;
+    }
 
     @Operation(summary = "주문 목록 조회", description = "주문 목록을 페이징 조회합니다. 가게/주문상태/주문방법/결제상태/주문번호/주문자명/기간 필터를 지원합니다.")
     @GetMapping("/v1")

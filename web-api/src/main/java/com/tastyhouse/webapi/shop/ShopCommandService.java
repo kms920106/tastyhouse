@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +14,13 @@ import com.tastyhouse.domain.shop.domain.service.ShopLifecycleService;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopCommandService {
 
     private final ShopLifecycleService shopLifecycleService;
+
+    public ShopCommandService(ShopLifecycleService shopLifecycleService) {
+        this.shopLifecycleService = shopLifecycleService;
+    }
 
     /**
      * 즐겨찾기를 토글한다.

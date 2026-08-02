@@ -1,6 +1,5 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
@@ -9,7 +8,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code ShopOrderMethodJpaEntity} + {@code ShopOrderMethodMapper}가 담당한다.
  */
-@Getter
 public class ShopOrderMethod {
 
     private final Long id;
@@ -31,5 +29,17 @@ public class ShopOrderMethod {
      */
     public static ShopOrderMethod reconstitute(Long id, ShopId shopId, OrderMethod orderMethod) {
         return new ShopOrderMethod(id, shopId, orderMethod);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public OrderMethod getOrderMethod() {
+        return this.orderMethod;
     }
 }

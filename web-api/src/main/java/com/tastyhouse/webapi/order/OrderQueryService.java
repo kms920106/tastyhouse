@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,11 +39,15 @@ import com.tastyhouse.webapi.review.ReviewQueryService;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class OrderQueryService {
 
     private final OrderQueryDao orderQueryDao;
     private final ReviewQueryService reviewQueryService;
+
+    public OrderQueryService(OrderQueryDao orderQueryDao, ReviewQueryService reviewQueryService) {
+        this.orderQueryDao = orderQueryDao;
+        this.reviewQueryService = reviewQueryService;
+    }
 
     /**
      * 내 주문 목록.

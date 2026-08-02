@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,12 +20,16 @@ import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
 
 @Tag(name = "Shop Hygiene Badge Admin", description = "가게 위생 인증 뱃지 등록 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeAdminApiController {
 
     private final ShopHygieneBadgeQueryService shopHygieneBadgeQueryService;
     private final ShopHygieneBadgeCommandService shopHygieneBadgeCommandService;
+
+    public ShopHygieneBadgeAdminApiController(ShopHygieneBadgeQueryService shopHygieneBadgeQueryService, ShopHygieneBadgeCommandService shopHygieneBadgeCommandService) {
+        this.shopHygieneBadgeQueryService = shopHygieneBadgeQueryService;
+        this.shopHygieneBadgeCommandService = shopHygieneBadgeCommandService;
+    }
 
     @Operation(summary = "위생 인증 뱃지 목록 조회", description = "가게의 위생 인증 뱃지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/hygiene-badges")

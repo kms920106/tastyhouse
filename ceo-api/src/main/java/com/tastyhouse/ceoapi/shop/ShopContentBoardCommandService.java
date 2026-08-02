@@ -1,6 +1,5 @@
 package com.tastyhouse.ceoapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +24,6 @@ import com.tastyhouse.apicommon.file.FileService;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopContentBoardCommandService {
 
     /**
@@ -37,6 +35,18 @@ public class ShopContentBoardCommandService {
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
     private final FileService fileService;
+
+    public ShopContentBoardCommandService(
+        ShopContentBoardRepository shopContentBoardRepository,
+        ShopOwnershipValidator shopOwnershipValidator,
+        ShopImageSpecValidator shopImageSpecValidator,
+        FileService fileService
+    ) {
+        this.shopContentBoardRepository = shopContentBoardRepository;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+        this.shopImageSpecValidator = shopImageSpecValidator;
+        this.fileService = fileService;
+    }
 
     public Long createContentBoard(
         Long ceoId,

@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.auth;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,11 +14,15 @@ import com.tastyhouse.adminapi.auth.response.JwtResponse;
  * 자격증명 검증은 Spring Security AuthenticationManager(+AdminUserDetailsService)에 위임한다.
  */
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
+
+    public AuthService(AuthenticationManager authenticationManager, TokenService tokenService) {
+        this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
+    }
 
     /**
      * 아이디/비밀번호 인증 후 JWT 토큰을 발급한다.

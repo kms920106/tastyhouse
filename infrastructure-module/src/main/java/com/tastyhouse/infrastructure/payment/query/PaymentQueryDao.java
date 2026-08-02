@@ -6,7 +6,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.order.domain.vo.OrderId;
@@ -34,10 +33,13 @@ import static com.tastyhouse.infrastructure.payment.persistence.QPaymentRefundJp
  * ({@code OrderQueryDao}와 동일한 우회).
  */
 @Repository
-@RequiredArgsConstructor
 public class PaymentQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public PaymentQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 주문의 결제 단건 — 결제가 없으면 {@link Optional#empty()}.

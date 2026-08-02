@@ -11,9 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.shop.domain.model.SuspensionReason;
@@ -23,10 +20,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 /**
  * 상점 영업 임시중지 JPA 영속 모델. 순수 도메인 모델 {@code ShopSuspension}과 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_SUSPENSION")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopSuspensionJpaEntity extends BaseEntity {
 
     @Id
@@ -53,6 +48,9 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
 
     @Column(name = "released_at")
     private LocalDateTime releasedAt; // 해제 시각 (null이면 미해제)
+
+    protected ShopSuspensionJpaEntity() {
+    }
 
     private ShopSuspensionJpaEntity(
         ShopId shopId,
@@ -89,5 +87,33 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
      */
     void applyChanges(LocalDateTime releasedAt) {
         this.releasedAt = releasedAt;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public SuspensionReason getReason() {
+        return this.reason;
+    }
+
+    public OrderMethod getOrderMethod() {
+        return this.orderMethod;
+    }
+
+    public LocalDateTime getStartAt() {
+        return this.startAt;
+    }
+
+    public LocalDateTime getEndAt() {
+        return this.endAt;
+    }
+
+    public LocalDateTime getReleasedAt() {
+        return this.releasedAt;
     }
 }

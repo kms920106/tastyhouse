@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.Shop;
@@ -19,11 +18,15 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * {@link com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao}로 이관했다(공통 지침 패턴 4).
  */
 @Repository
-@RequiredArgsConstructor
 public class ShopRepositoryImpl implements ShopRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ShopJpaRepository shopJpaRepository;
+
+    public ShopRepositoryImpl(JPAQueryFactory queryFactory, ShopJpaRepository shopJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.shopJpaRepository = shopJpaRepository;
+    }
 
     @Override
     public Optional<Shop> findById(ShopId id) {

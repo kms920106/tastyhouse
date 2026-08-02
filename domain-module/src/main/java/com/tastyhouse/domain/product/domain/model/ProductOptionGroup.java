@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.product.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 
@@ -11,7 +9,6 @@ import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code ProductOptionGroupJpaEntity} + {@code ProductOptionGroupMapper}가 담당한다.
  */
-@Getter
 public class ProductOptionGroup {
 
     private final Long id;
@@ -109,5 +106,45 @@ public class ProductOptionGroup {
         this.maxSelect = maxSelect;
         this.sort = sort;
         this.visible = visible;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public boolean isRequired() {
+        return this.required;
+    }
+
+    public boolean isMultipleSelect() {
+        return this.multipleSelect;
+    }
+
+    public Integer getMinSelect() {
+        return this.minSelect;
+    }
+
+    public Integer getMaxSelect() {
+        return this.maxSelect;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.product.listener;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -23,10 +22,13 @@ import com.tastyhouse.domain.review.domain.event.ReviewDeletedEvent;
  * 트랜잭션 경계(커밋 후 새 트랜잭션)만 담당한다.
  */
 @Component
-@RequiredArgsConstructor
 public class ProductReviewEventListener {
 
     private final ProductReviewStatsService productReviewStatsService;
+
+    public ProductReviewEventListener(ProductReviewStatsService productReviewStatsService) {
+        this.productReviewStatsService = productReviewStatsService;
+    }
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)

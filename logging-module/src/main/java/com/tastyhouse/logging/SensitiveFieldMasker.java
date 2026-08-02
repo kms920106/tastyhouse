@@ -5,8 +5,8 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,11 +14,10 @@ import org.springframework.stereotype.Component;
  * 마스킹 대상: 비밀번호, 토큰, 인증코드, 카드 정보 등
  */
 @SuppressWarnings("unused")
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class SensitiveFieldMasker {
 
+    private static final Logger log = LoggerFactory.getLogger(SensitiveFieldMasker.class);
     private static final String MASKED = "***";
 
     private static final Set<String> SENSITIVE_FIELDS = Set.of(
@@ -29,6 +28,10 @@ public class SensitiveFieldMasker {
     );
 
     private final ObjectMapper objectMapper;
+
+    public SensitiveFieldMasker(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * 객체를 JSON 문자열로 변환하면서 민감 필드를 마스킹합니다.

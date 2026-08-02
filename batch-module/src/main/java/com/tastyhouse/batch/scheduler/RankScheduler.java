@@ -1,16 +1,20 @@
 package com.tastyhouse.batch.scheduler;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class RankScheduler {
 
+    private static final Logger log = LoggerFactory.getLogger(RankScheduler.class);
+
     private final RankSchedulerService rankSchedulerService;
+
+    public RankScheduler(RankSchedulerService rankSchedulerService) {
+        this.rankSchedulerService = rankSchedulerService;
+    }
 
 //    @Scheduled(cron = "0 * * * * *") // 1분마다 실행 (테스트용)
     @Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시 실행 (운영용)

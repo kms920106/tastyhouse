@@ -3,8 +3,6 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -17,7 +15,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code ShopPhoneNumberRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class ShopPhoneNumber {
 
     private static final List<String> VIRTUAL_NUMBER_PREFIXES = List.of(
@@ -107,5 +104,33 @@ public class ShopPhoneNumber {
             return false;
         }
         return VIRTUAL_NUMBER_PREFIXES.stream().anyMatch(digits::startsWith);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public String getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public boolean isPrimary() {
+        return this.primary;
+    }
+
+    public boolean isVirtual() {
+        return this.virtual;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

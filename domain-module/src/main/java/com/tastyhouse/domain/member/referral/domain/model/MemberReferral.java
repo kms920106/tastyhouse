@@ -2,8 +2,6 @@ package com.tastyhouse.domain.member.referral.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.member.referral.domain.vo.ReferralId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -17,7 +15,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code MemberReferralRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class MemberReferral {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -59,6 +56,26 @@ public class MemberReferral {
         LocalDateTime createdAt
     ) {
         return new MemberReferral(id, referrerId, refereeId, status, createdAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getReferrerId() {
+        return this.referrerId;
+    }
+
+    public MemberId getRefereeId() {
+        return this.refereeId;
+    }
+
+    public MemberReferralStatus getStatus() {
+        return this.status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 
     public ReferralId getReferralId() {

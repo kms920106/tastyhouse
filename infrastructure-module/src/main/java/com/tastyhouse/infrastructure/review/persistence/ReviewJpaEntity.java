@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
@@ -27,10 +24,8 @@ import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
  * <p>순수 도메인 모델 {@code Review}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code ReviewMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "REVIEW")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReviewJpaEntity extends BaseEntity {
 
     @Id
@@ -82,6 +77,9 @@ public class ReviewJpaEntity extends BaseEntity {
 
     @Column(name = "is_hidden", nullable = false)
     private boolean hidden;
+
+    protected ReviewJpaEntity() {
+    }
 
     private ReviewJpaEntity(
         ShopId shopId,
@@ -177,5 +175,65 @@ public class ReviewJpaEntity extends BaseEntity {
         this.hygieneRating = hygieneRating;
         this.willRevisit = willRevisit;
         this.hidden = hidden;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public Double getTotalRating() {
+        return this.totalRating;
+    }
+
+    public Double getTasteRating() {
+        return this.tasteRating;
+    }
+
+    public Double getAmountRating() {
+        return this.amountRating;
+    }
+
+    public Double getPriceRating() {
+        return this.priceRating;
+    }
+
+    public Double getAtmosphereRating() {
+        return this.atmosphereRating;
+    }
+
+    public Double getKindnessRating() {
+        return this.kindnessRating;
+    }
+
+    public Double getHygieneRating() {
+        return this.hygieneRating;
+    }
+
+    public boolean isWillRevisit() {
+        return this.willRevisit;
+    }
+
+    public OrderId getOrderId() {
+        return this.orderId;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
     }
 }

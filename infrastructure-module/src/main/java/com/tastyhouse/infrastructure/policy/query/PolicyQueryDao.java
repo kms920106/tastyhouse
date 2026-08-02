@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.policy.domain.model.PolicyType;
@@ -24,10 +23,13 @@ import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJp
  * 없어(활성/비활성 모두 공개 조회 가능) admin/web 구분이 필요하지 않으므로 메서드가 하나씩만 있다.
  */
 @Repository
-@RequiredArgsConstructor
 public class PolicyQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public PolicyQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 유형별 현행 정책 상세 조회 — 같은 유형에서 {@code current=true}인 단건을 조회한다.

@@ -1,6 +1,5 @@
 package com.tastyhouse.batch.scheduler;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +14,13 @@ import com.tastyhouse.domain.search.domain.service.PopularKeywordRefreshService;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class SearchKeywordSchedulerService {
 
     private final PopularKeywordRefreshService popularKeywordRefreshService;
+
+    public SearchKeywordSchedulerService(PopularKeywordRefreshService popularKeywordRefreshService) {
+        this.popularKeywordRefreshService = popularKeywordRefreshService;
+    }
 
     public void aggregatePopularKeywords() {
         popularKeywordRefreshService.refresh();

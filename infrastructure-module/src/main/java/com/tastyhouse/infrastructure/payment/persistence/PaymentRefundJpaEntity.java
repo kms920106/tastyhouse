@@ -11,9 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.payment.domain.model.RefundStatus;
 import com.tastyhouse.domain.payment.domain.vo.Amount;
@@ -27,10 +24,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code PaymentRefundMapper}가 수행한다.
  * update 경로가 없는 insert 전용 애그리거트라 {@code applyChanges}는 두지 않는다.
  */
-@Getter
 @Entity
 @Table(name = "PAYMENT_REFUND")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentRefundJpaEntity extends BaseEntity {
 
     @Id
@@ -57,6 +52,9 @@ public class PaymentRefundJpaEntity extends BaseEntity {
 
     @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
+
+    protected PaymentRefundJpaEntity() {
+    }
 
     private PaymentRefundJpaEntity(
         PaymentId paymentId,
@@ -86,5 +84,33 @@ public class PaymentRefundJpaEntity extends BaseEntity {
         LocalDateTime refundedAt
     ) {
         return new PaymentRefundJpaEntity(paymentId, refundAmount, refundReason, refundStatus, pgRefundId, refundedAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public PaymentId getPaymentId() {
+        return this.paymentId;
+    }
+
+    public Amount getRefundAmount() {
+        return this.refundAmount;
+    }
+
+    public String getRefundReason() {
+        return this.refundReason;
+    }
+
+    public RefundStatus getRefundStatus() {
+        return this.refundStatus;
+    }
+
+    public String getPgRefundId() {
+        return this.pgRefundId;
+    }
+
+    public LocalDateTime getRefundedAt() {
+        return this.refundedAt;
     }
 }

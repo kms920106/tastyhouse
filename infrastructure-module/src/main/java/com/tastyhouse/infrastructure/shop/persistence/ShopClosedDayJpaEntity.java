@@ -9,9 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.ClosedDayType;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -19,10 +16,8 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 /**
  * 상점 정기 휴무 JPA 영속 모델. 순수 도메인 모델 {@code ShopClosedDay}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_CLOSED_DAY")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopClosedDayJpaEntity {
 
     @Id
@@ -37,6 +32,9 @@ public class ShopClosedDayJpaEntity {
     @Column(name = "closed_day_type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
     private ClosedDayType closedDayType; // 정기 휴무 유형 (FIRST_MON, SECOND_SUN, EVERY_TUE 등)
 
+    protected ShopClosedDayJpaEntity() {
+    }
+
     private ShopClosedDayJpaEntity(ShopId shopId, ClosedDayType closedDayType) {
         this.shopId = shopId;
         this.closedDayType = closedDayType;
@@ -44,5 +42,17 @@ public class ShopClosedDayJpaEntity {
 
     static ShopClosedDayJpaEntity create(ShopId shopId, ClosedDayType closedDayType) {
         return new ShopClosedDayJpaEntity(shopId, closedDayType);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public ClosedDayType getClosedDayType() {
+        return this.closedDayType;
     }
 }

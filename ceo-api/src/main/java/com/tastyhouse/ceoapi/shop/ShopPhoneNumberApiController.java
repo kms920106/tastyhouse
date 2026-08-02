@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,12 +23,16 @@ import com.tastyhouse.ceoapi.shop.response.ShopPhoneNumberResponse;
 
 @Tag(name = "Ceo Shop Phone Number", description = "점주 가게 전화번호 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopPhoneNumberApiController {
 
     private final ShopPhoneNumberQueryService shopPhoneNumberQueryService;
     private final ShopPhoneNumberCommandService shopPhoneNumberCommandService;
+
+    public ShopPhoneNumberApiController(ShopPhoneNumberQueryService shopPhoneNumberQueryService, ShopPhoneNumberCommandService shopPhoneNumberCommandService) {
+        this.shopPhoneNumberQueryService = shopPhoneNumberQueryService;
+        this.shopPhoneNumberCommandService = shopPhoneNumberCommandService;
+    }
 
     @Operation(summary = "내 가게 전화번호 목록 조회", description = "로그인한 점주가 소유한 가게의 전화번호 목록을 조회합니다.")
     @GetMapping("/v1/{id}/phone-numbers")

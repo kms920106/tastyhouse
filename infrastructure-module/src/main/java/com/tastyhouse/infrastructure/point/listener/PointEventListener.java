@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.point.listener;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -16,9 +17,10 @@ import com.tastyhouse.domain.point.domain.event.PointUsedEvent;
  * 트리거되므로, 특정 api 모듈에 두면 다른 모듈 트리거 시 리스너가 누락된다. 따라서 크로스커팅 리스너로
  * infrastructure-module에 둔다(공통 지침 분류 E).
  */
-@Slf4j
 @Component
 public class PointEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(PointEventListener.class);
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(PointEarnedEvent event) {

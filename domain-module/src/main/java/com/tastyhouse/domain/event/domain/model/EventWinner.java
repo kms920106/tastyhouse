@@ -2,8 +2,6 @@ package com.tastyhouse.domain.event.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.event.domain.vo.EventId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
@@ -15,7 +13,6 @@ import com.tastyhouse.domain.shared.vo.PhoneNumber;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code EventWinnerRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class EventWinner {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -83,5 +80,33 @@ public class EventWinner {
 
     public void delete() {
         this.deleted = true;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public EventId getEventId() {
+        return this.eventId;
+    }
+
+    public Integer getRankNo() {
+        return this.rankNo;
+    }
+
+    public String getWinnerName() {
+        return this.winnerName;
+    }
+
+    public PhoneNumber getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public LocalDateTime getAnnouncedAt() {
+        return this.announcedAt;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
     }
 }

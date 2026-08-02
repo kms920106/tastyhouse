@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.product.domain.port.ProductReviewStatisticsPort;
@@ -14,10 +13,13 @@ import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
  * 덕분에 상품 쪽 코드는 리뷰 도메인의 read model이나 QueryDSL을 알지 않는다.
  */
 @Component
-@RequiredArgsConstructor
 public class ProductReviewStatisticsAdapter implements ProductReviewStatisticsPort {
 
     private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
+
+    public ProductReviewStatisticsAdapter(ReviewStatisticsQueryDao reviewStatisticsQueryDao) {
+        this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
+    }
 
     @Override
     public Long countVisibleReviewsByProductId(Long productId) {

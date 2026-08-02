@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.bug;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,10 +26,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class BugReportCommandService {
 
     private final BugReportRepository bugReportRepository;
+
+    public BugReportCommandService(BugReportRepository bugReportRepository) {
+        this.bugReportRepository = bugReportRepository;
+    }
 
     public void changeStatus(Long id, String status, String answer) {
         BugReportId bugReportId = BugReportId.of(id);

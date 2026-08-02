@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.review.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -14,11 +13,15 @@ import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class ReviewRepositoryImpl implements ReviewRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewJpaRepository reviewJpaRepository;
+
+    public ReviewRepositoryImpl(JPAQueryFactory queryFactory, ReviewJpaRepository reviewJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.reviewJpaRepository = reviewJpaRepository;
+    }
 
     @Override
     public Optional<Review> findById(ReviewId reviewId) {

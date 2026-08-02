@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -19,10 +16,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 /**
  * 상점 북마크 JPA 영속 모델. 순수 도메인 모델 {@code ShopBookmark}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_BOOKMARK")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopBookmarkJpaEntity extends BaseEntity {
 
     @Id
@@ -37,6 +32,9 @@ public class ShopBookmarkJpaEntity extends BaseEntity {
     @Column(name = "member_id", nullable = false)
     private MemberId memberId; // 회원 ID (MEMBER.id 참조)
 
+    protected ShopBookmarkJpaEntity() {
+    }
+
     private ShopBookmarkJpaEntity(ShopId shopId, MemberId memberId) {
         this.shopId = shopId;
         this.memberId = memberId;
@@ -44,5 +42,17 @@ public class ShopBookmarkJpaEntity extends BaseEntity {
 
     static ShopBookmarkJpaEntity create(ShopId shopId, MemberId memberId) {
         return new ShopBookmarkJpaEntity(shopId, memberId);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
     }
 }

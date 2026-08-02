@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,11 +24,15 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopSuspensionCommandService {
 
     private final ShopSuspensionRepository shopSuspensionRepository;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopSuspensionCommandService(ShopSuspensionRepository shopSuspensionRepository, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopSuspensionRepository = shopSuspensionRepository;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public List<Long> createSuspension(
         Long ceoId,

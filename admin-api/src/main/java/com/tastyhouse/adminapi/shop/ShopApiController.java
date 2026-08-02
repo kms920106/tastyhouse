@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,12 +59,16 @@ import com.tastyhouse.adminapi.shop.response.TagResponse;
 
 @Tag(name = "Shop Admin", description = "가게 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopApiController {
 
     private final ShopCommandService shopCommandService;
     private final ShopQueryService shopQueryService;
+
+    public ShopApiController(ShopCommandService shopCommandService, ShopQueryService shopQueryService) {
+        this.shopCommandService = shopCommandService;
+        this.shopQueryService = shopQueryService;
+    }
 
     @Operation(summary = "지하철역 목록 조회", description = "가게 등록·수정 시 선택 가능한 지하철역 목록을 조회합니다.")
     @GetMapping("/v1/stations")

@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,12 +25,16 @@ import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
 
 @Tag(name = "Ceo Shop Business Hour", description = "점주 가게 운영시간·브레이크타임 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopBusinessHourApiController {
 
     private final ShopBusinessHourQueryService shopBusinessHourQueryService;
     private final ShopBusinessHourCommandService shopBusinessHourCommandService;
+
+    public ShopBusinessHourApiController(ShopBusinessHourQueryService shopBusinessHourQueryService, ShopBusinessHourCommandService shopBusinessHourCommandService) {
+        this.shopBusinessHourQueryService = shopBusinessHourQueryService;
+        this.shopBusinessHourCommandService = shopBusinessHourCommandService;
+    }
 
     @Operation(summary = "내 가게 운영시간 목록 조회", description = "로그인한 점주가 소유한 가게의 운영시간 목록을 조회합니다.")
     @GetMapping("/v1/{id}/business-hours")

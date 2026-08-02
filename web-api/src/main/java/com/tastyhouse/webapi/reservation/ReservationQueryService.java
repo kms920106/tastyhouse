@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +38,6 @@ import com.tastyhouse.webapi.reservation.response.ReservationSlotAvailabilityRes
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ReservationQueryService {
 
     /**
@@ -48,6 +46,10 @@ public class ReservationQueryService {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ReservationQueryDao reservationQueryDao;
+
+    public ReservationQueryService(ReservationQueryDao reservationQueryDao) {
+        this.reservationQueryDao = reservationQueryDao;
+    }
 
     /**
      * 특정 가게·날짜의 슬롯별 가용성. 슬롯 행이 없는 시간대는 예약 0건이므로 정원 전체가 잔여다.

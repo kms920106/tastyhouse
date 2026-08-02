@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.order.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
@@ -14,7 +12,6 @@ import com.tastyhouse.domain.product.domain.vo.ProductId;
  * 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로
  * {@code OrderProductRepository#save}를 호출해야 한다.
  */
-@Getter
 public class OrderProduct {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -113,6 +110,46 @@ public class OrderProduct {
     public void updatePrices(Integer totalOptionPrice, Integer totalPrice) {
         this.totalOptionPrice = totalOptionPrice;
         this.totalPrice = totalPrice;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public OrderId getOrderId() {
+        return this.orderId;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getImageUrl() {
+        return this.imageUrl;
+    }
+
+    public Integer getQuantity() {
+        return this.quantity;
+    }
+
+    public Integer getOriginalPrice() {
+        return this.originalPrice;
+    }
+
+    public Integer getDiscountPrice() {
+        return this.discountPrice;
+    }
+
+    public Integer getTotalOptionPrice() {
+        return this.totalOptionPrice;
+    }
+
+    public Integer getTotalPrice() {
+        return this.totalPrice;
     }
 
     public OrderProductId getOrderProductId() {

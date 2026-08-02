@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,12 +32,16 @@ import com.tastyhouse.adminapi.event.response.EventWinnerResponse;
 
 @Tag(name = "Event Admin", description = "이벤트 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/events")
 public class EventApiController {
 
     private final EventCommandService eventCommandService;
     private final EventQueryService eventQueryService;
+
+    public EventApiController(EventCommandService eventCommandService, EventQueryService eventQueryService) {
+        this.eventCommandService = eventCommandService;
+        this.eventQueryService = eventQueryService;
+    }
 
     @Operation(summary = "이벤트 목록 조회", description = "이벤트 목록을 페이징 조회합니다. (삭제된 이벤트 제외) name은 부분 일치 검색, status 미지정 시 전체 상태 조회")
     @GetMapping("/v1")

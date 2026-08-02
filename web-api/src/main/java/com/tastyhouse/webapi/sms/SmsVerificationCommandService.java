@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.sms;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +16,16 @@ import com.tastyhouse.domain.sms.domain.service.SmsVerificationService;
  * <p>발송은 도메인 서비스의 {@code issue} 안에서 수행되므로 이 서비스가 별도로 발송을 호출하지
  * 않는다 — 과거 이 계층에서 발송을 호출하던 구조가 발송 누락 버그의 원인이었다.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class SmsVerificationCommandService {
 
+    private static final Logger log = LoggerFactory.getLogger(SmsVerificationCommandService.class);
+
     private final SmsVerificationService smsVerificationService;
+
+    public SmsVerificationCommandService(SmsVerificationService smsVerificationService) {
+        this.smsVerificationService = smsVerificationService;
+    }
 
     @Transactional
     public void sendVerificationCode(String phoneNumber) {

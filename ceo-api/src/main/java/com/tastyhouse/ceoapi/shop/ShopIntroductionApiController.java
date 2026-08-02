@@ -3,7 +3,6 @@ package com.tastyhouse.ceoapi.shop;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,12 +22,16 @@ import com.tastyhouse.ceoapi.shop.response.ShopIntroductionValidationResponse;
 
 @Tag(name = "Ceo Shop Introduction", description = "점주 가게소개(사장님 한마디) 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopIntroductionApiController {
 
     private final ShopIntroductionQueryService shopIntroductionQueryService;
     private final ShopIntroductionCommandService shopIntroductionCommandService;
+
+    public ShopIntroductionApiController(ShopIntroductionQueryService shopIntroductionQueryService, ShopIntroductionCommandService shopIntroductionCommandService) {
+        this.shopIntroductionQueryService = shopIntroductionQueryService;
+        this.shopIntroductionCommandService = shopIntroductionCommandService;
+    }
 
     @Operation(summary = "내 가게소개 조회", description = "로그인한 점주가 소유한 가게의 최근 가게소개(사장님 한마디)를 조회합니다.")
     @GetMapping("/v1/{id}/introduction")

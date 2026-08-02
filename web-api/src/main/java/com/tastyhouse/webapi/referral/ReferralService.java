@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.referral;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +19,13 @@ import com.tastyhouse.webapi.referral.response.ReferralMemberListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ReferralService {
 
     private final MemberReferralQueryDao memberReferralQueryDao;
+
+    public ReferralService(MemberReferralQueryDao memberReferralQueryDao) {
+        this.memberReferralQueryDao = memberReferralQueryDao;
+    }
 
     public List<ReferralMemberListItemResponse> getMyReferrals(Long referrerId) {
         MemberId memberId = MemberId.of(referrerId);

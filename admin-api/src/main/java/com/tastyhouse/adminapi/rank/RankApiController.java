@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,12 +31,16 @@ import com.tastyhouse.adminapi.rank.response.RankPrizeListItemResponse;
 
 @Tag(name = "Rank Admin", description = "랭킹 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/ranks")
 public class RankApiController {
 
     private final RankCommandService rankCommandService;
     private final RankQueryService rankQueryService;
+
+    public RankApiController(RankCommandService rankCommandService, RankQueryService rankQueryService) {
+        this.rankCommandService = rankCommandService;
+        this.rankQueryService = rankQueryService;
+    }
 
     @Operation(summary = "회원 랭킹 목록 조회", description = "유저별 리뷰 작성 개수 기준 랭킹을 조회합니다. (전체/월간/주간)")
     @GetMapping("/v1/members")

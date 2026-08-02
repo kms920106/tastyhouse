@@ -13,9 +13,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.mail.domain.model.MailVerificationStatus;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
@@ -32,13 +29,11 @@ import com.tastyhouse.domain.shared.vo.VerificationCode;
  * 그 마이그레이션과 앱 배포는 원자적으로 수행해야 한다). 반면 {@code email} 컬럼·필드는 채널이 아니라
  * 검증 대상인 주소 값 자체라 이름을 유지한다.
  */
-@Getter
 @Entity
 @Table(name = "MAIL_VERIFICATION", indexes = {
     @Index(name = "idx_mail_verification_email", columnList = "email"),
     @Index(name = "idx_mail_verification_expires_at", columnList = "expires_at")
 })
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MailVerificationJpaEntity {
 
     @Id
@@ -64,6 +59,9 @@ public class MailVerificationJpaEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    protected MailVerificationJpaEntity() {
+    }
 
     private MailVerificationJpaEntity(
         String email,
@@ -101,5 +99,33 @@ public class MailVerificationJpaEntity {
     void applyChanges(MailVerificationStatus status, LocalDateTime verifiedAt) {
         this.status = status;
         this.verifiedAt = verifiedAt;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public VerificationCode getVerificationCode() {
+        return this.verificationCode;
+    }
+
+    public MailVerificationStatus getStatus() {
+        return this.status;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return this.expiresAt;
+    }
+
+    public LocalDateTime getVerifiedAt() {
+        return this.verifiedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

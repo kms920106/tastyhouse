@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,12 +56,21 @@ import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemRespon
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ProductQueryService {
 
     private final ProductQueryDao productQueryDao;
     private final ReviewQueryDao reviewQueryDao;
     private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
+
+    public ProductQueryService(
+        ProductQueryDao productQueryDao,
+        ReviewQueryDao reviewQueryDao,
+        ReviewStatisticsQueryDao reviewStatisticsQueryDao
+    ) {
+        this.productQueryDao = productQueryDao;
+        this.reviewQueryDao = reviewQueryDao;
+        this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
+    }
 
     public PaginationResponse<ProductTodayDiscountListItemResponse> searchTodayDiscountProducts(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);

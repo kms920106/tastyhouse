@@ -2,8 +2,6 @@ package com.tastyhouse.domain.member.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 
 /**
@@ -12,7 +10,6 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code MemberWithdrawalJpaEntity} + {@code MemberWithdrawalMapper}가 담당한다.
  */
-@Getter
 public class MemberWithdrawal {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -58,5 +55,29 @@ public class MemberWithdrawal {
         LocalDateTime updatedAt
     ) {
         return new MemberWithdrawal(id, memberId, reason, reasonDetail, createdAt, updatedAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public MemberWithdrawalReason getReason() {
+        return this.reason;
+    }
+
+    public String getReasonDetail() {
+        return this.reasonDetail;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

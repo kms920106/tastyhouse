@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.coupon.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.coupon.domain.model.Coupon;
@@ -19,11 +18,15 @@ import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.
  * 여기에는 단건 로드와 저장만 남는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class CouponRepositoryImpl implements CouponRepository {
 
     private final JPAQueryFactory queryFactory;
     private final CouponJpaRepository couponJpaRepository;
+
+    public CouponRepositoryImpl(JPAQueryFactory queryFactory, CouponJpaRepository couponJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.couponJpaRepository = couponJpaRepository;
+    }
 
     @Override
     public Optional<Coupon> findById(CouponId id) {

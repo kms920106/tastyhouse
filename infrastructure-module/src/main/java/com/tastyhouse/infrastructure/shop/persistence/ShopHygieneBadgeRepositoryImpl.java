@@ -2,17 +2,19 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ShopHygieneBadge;
 import com.tastyhouse.domain.shop.domain.repository.ShopHygieneBadgeRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class ShopHygieneBadgeRepositoryImpl implements ShopHygieneBadgeRepository {
 
     private final ShopHygieneBadgeJpaRepository shopHygieneBadgeJpaRepository;
+
+    public ShopHygieneBadgeRepositoryImpl(ShopHygieneBadgeJpaRepository shopHygieneBadgeJpaRepository) {
+        this.shopHygieneBadgeJpaRepository = shopHygieneBadgeJpaRepository;
+    }
 
     @Override
     public Optional<ShopHygieneBadge> findById(Long id) {

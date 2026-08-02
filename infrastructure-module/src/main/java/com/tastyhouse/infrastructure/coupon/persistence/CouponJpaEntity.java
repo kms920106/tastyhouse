@@ -11,9 +11,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.coupon.domain.model.DiscountType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
@@ -24,7 +21,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code Coupon}과 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code CouponMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(
     name = "COUPON",
@@ -34,7 +30,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         @Index(name = "idx_coupon_use_period", columnList = "use_start_at, use_end_at")
     }
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponJpaEntity extends BaseEntity {
 
     @Id
@@ -80,6 +75,9 @@ public class CouponJpaEntity extends BaseEntity {
 
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted;
+
+    protected CouponJpaEntity() {
+    }
 
     private CouponJpaEntity(
         String name,
@@ -167,5 +165,61 @@ public class CouponJpaEntity extends BaseEntity {
         this.useEndAt = useEndAt;
         this.visible = visible;
         this.deleted = deleted;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public DiscountType getDiscountType() {
+        return this.discountType;
+    }
+
+    public Integer getDiscountAmount() {
+        return this.discountAmount;
+    }
+
+    public Integer getMaxDiscountAmount() {
+        return this.maxDiscountAmount;
+    }
+
+    public Integer getMinOrderAmount() {
+        return this.minOrderAmount;
+    }
+
+    public Integer getMaxDiscountCount() {
+        return this.maxDiscountCount;
+    }
+
+    public LocalDateTime getIssueStartAt() {
+        return this.issueStartAt;
+    }
+
+    public LocalDateTime getIssueEndAt() {
+        return this.issueEndAt;
+    }
+
+    public LocalDateTime getUseStartAt() {
+        return this.useStartAt;
+    }
+
+    public LocalDateTime getUseEndAt() {
+        return this.useEndAt;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
     }
 }

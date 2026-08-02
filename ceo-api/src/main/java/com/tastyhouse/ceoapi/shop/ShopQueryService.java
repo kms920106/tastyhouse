@@ -2,7 +2,6 @@ package com.tastyhouse.ceoapi.shop;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +25,21 @@ import com.tastyhouse.ceoapi.shop.response.ShopListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ShopQueryService {
 
     private final ShopSearchQueryDao shopSearchQueryDao;
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopQueryService(
+        ShopSearchQueryDao shopSearchQueryDao,
+        ShopQueryDao shopQueryDao,
+        ShopOwnershipValidator shopOwnershipValidator
+    ) {
+        this.shopSearchQueryDao = shopSearchQueryDao;
+        this.shopQueryDao = shopQueryDao;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public PaginationResponse<ShopListItemResponse> getMyShops(
         Long ceoId,

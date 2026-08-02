@@ -12,9 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.admin.domain.vo.AdminId;
 import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
@@ -32,7 +29,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code BugReport}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code BugReportMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(
     name = "BUG_REPORT",
@@ -41,7 +37,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         @Index(name = "idx_bug_report_status", columnList = "status")
     }
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BugReportJpaEntity extends BaseEntity {
 
     @Id
@@ -92,6 +87,9 @@ public class BugReportJpaEntity extends BaseEntity {
 
     @Column(name = "os_version", length = 30)
     private String osVersion;
+
+    protected BugReportJpaEntity() {
+    }
 
     private BugReportJpaEntity(
         MemberId memberId,
@@ -169,5 +167,61 @@ public class BugReportJpaEntity extends BaseEntity {
         this.assigneeAdminId = assigneeAdminId;
         this.adminAnswer = adminAnswer;
         this.resolvedAt = resolvedAt;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public String getDevice() {
+        return this.device;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public BugReportStatus getStatus() {
+        return this.status;
+    }
+
+    public BugReportCategory getCategory() {
+        return this.category;
+    }
+
+    public BugReportPriority getPriority() {
+        return this.priority;
+    }
+
+    public AdminId getAssigneeAdminId() {
+        return this.assigneeAdminId;
+    }
+
+    public String getAdminAnswer() {
+        return this.adminAnswer;
+    }
+
+    public LocalDateTime getResolvedAt() {
+        return this.resolvedAt;
+    }
+
+    public String getAppVersion() {
+        return this.appVersion;
+    }
+
+    public BugReportPlatform getPlatform() {
+        return this.platform;
+    }
+
+    public String getOsVersion() {
+        return this.osVersion;
     }
 }

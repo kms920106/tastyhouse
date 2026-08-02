@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.payment;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +27,13 @@ import com.tastyhouse.domain.payment.domain.vo.PaymentId;
  * 설계임을 명시하려 전파 속성을 그대로 남긴다.
  */
 @Component
-@RequiredArgsConstructor
 public class PaymentConfirmationExecutor {
 
     private final PaymentConfirmationService paymentConfirmationService;
+
+    public PaymentConfirmationExecutor(PaymentConfirmationService paymentConfirmationService) {
+        this.paymentConfirmationService = paymentConfirmationService;
+    }
 
     /**
      * 1단(트랜잭션) — PG 호출 전 검증. 읽기만 하므로 {@code readOnly}다.

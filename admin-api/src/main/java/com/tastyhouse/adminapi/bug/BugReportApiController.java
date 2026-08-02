@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -27,12 +26,16 @@ import com.tastyhouse.adminapi.bug.response.BugReportListItemResponse;
 
 @Tag(name = "BugReport Admin", description = "버그 제보 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/bug-reports")
 public class BugReportApiController {
 
     private final BugReportCommandService bugReportCommandService;
     private final BugReportQueryService bugReportQueryService;
+
+    public BugReportApiController(BugReportCommandService bugReportCommandService, BugReportQueryService bugReportQueryService) {
+        this.bugReportCommandService = bugReportCommandService;
+        this.bugReportQueryService = bugReportQueryService;
+    }
 
     @Operation(summary = "버그 제보 목록 조회", description = "버그 제보 목록을 페이징 조회합니다. title/content는 부분 일치 검색, memberId는 정확 일치합니다.")
     @GetMapping("/v1")

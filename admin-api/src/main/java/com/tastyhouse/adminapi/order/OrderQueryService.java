@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.order;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,10 +39,13 @@ import com.tastyhouse.adminapi.order.response.PaymentSummaryResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class OrderQueryService {
 
     private final OrderQueryDao orderQueryDao;
+
+    public OrderQueryService(OrderQueryDao orderQueryDao) {
+        this.orderQueryDao = orderQueryDao;
+    }
 
     /**
      * 주문 관리 목록.

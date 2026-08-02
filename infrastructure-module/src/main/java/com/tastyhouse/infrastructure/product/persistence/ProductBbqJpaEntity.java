@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.product.domain.vo.BbqCategoryId;
 import com.tastyhouse.domain.product.domain.vo.BbqMenuId;
@@ -22,8 +19,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code ProductBbq}와 분리된 영속 전용 엔티티다. 도메인↔엔티티 변환은
  * {@code ProductBbqMapper}가 수행한다.
  */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 @Entity
 @Table(name = "PRODUCT_BBQ")
 public class ProductBbqJpaEntity extends BaseEntity {
@@ -47,6 +42,9 @@ public class ProductBbqJpaEntity extends BaseEntity {
     @Column(name = "is_options_synced", nullable = false)
     private boolean optionsSynced;
 
+    protected ProductBbqJpaEntity() {
+    }
+
     private ProductBbqJpaEntity(ProductId productId, BbqMenuId bbqMenuId, BbqCategoryId bbqCategoryId, boolean optionsSynced) {
         this.productId = productId;
         this.bbqMenuId = bbqMenuId;
@@ -66,5 +64,25 @@ public class ProductBbqJpaEntity extends BaseEntity {
      */
     void applyChanges(boolean optionsSynced) {
         this.optionsSynced = optionsSynced;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public BbqMenuId getBbqMenuId() {
+        return this.bbqMenuId;
+    }
+
+    public BbqCategoryId getBbqCategoryId() {
+        return this.bbqCategoryId;
+    }
+
+    public boolean isOptionsSynced() {
+        return this.optionsSynced;
     }
 }

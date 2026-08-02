@@ -3,17 +3,19 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.domain.repository.ShopPhoneNumberRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class ShopPhoneNumberRepositoryImpl implements ShopPhoneNumberRepository {
 
     private final ShopPhoneNumberJpaRepository shopPhoneNumberJpaRepository;
+
+    public ShopPhoneNumberRepositoryImpl(ShopPhoneNumberJpaRepository shopPhoneNumberJpaRepository) {
+        this.shopPhoneNumberJpaRepository = shopPhoneNumberJpaRepository;
+    }
 
     @Override
     public ShopPhoneNumber save(ShopPhoneNumber shopPhoneNumber) {

@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -18,10 +15,8 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 /**
  * 가게 전화번호(다건) JPA 영속 모델. 순수 도메인 모델 {@code ShopPhoneNumber}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_PHONE_NUMBER")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopPhoneNumberJpaEntity extends BaseEntity {
 
     @Id
@@ -41,6 +36,9 @@ public class ShopPhoneNumberJpaEntity extends BaseEntity {
     @Column(name = "is_virtual", nullable = false)
     private boolean virtual; // 가상번호 여부
 
+    protected ShopPhoneNumberJpaEntity() {
+    }
+
     private ShopPhoneNumberJpaEntity(ShopId shopId, String phoneNumber, boolean primary, boolean virtual) {
         this.shopId = shopId;
         this.phoneNumber = phoneNumber;
@@ -54,5 +52,25 @@ public class ShopPhoneNumberJpaEntity extends BaseEntity {
 
     void applyChanges(boolean primary) {
         this.primary = primary;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public String getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public boolean isPrimary() {
+        return this.primary;
+    }
+
+    public boolean isVirtual() {
+        return this.virtual;
     }
 }

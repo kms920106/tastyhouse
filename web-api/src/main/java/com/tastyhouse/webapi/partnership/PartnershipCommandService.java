@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.partnership;
 
 import java.time.LocalDateTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +19,13 @@ import com.tastyhouse.domain.partnership.domain.repository.PartnershipRepository
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class PartnershipCommandService {
 
     private final PartnershipRepository partnershipRepository;
+
+    public PartnershipCommandService(PartnershipRepository partnershipRepository) {
+        this.partnershipRepository = partnershipRepository;
+    }
 
     /**
      * @return 생성된 제휴 신청 식별자

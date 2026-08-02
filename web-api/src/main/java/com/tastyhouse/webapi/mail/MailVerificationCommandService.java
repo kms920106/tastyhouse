@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.mail;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +16,16 @@ import com.tastyhouse.domain.mail.domain.service.MailVerificationService;
  * <p>발송은 도메인 서비스의 {@code issueForSignUp} 안에서 수행되므로 이 서비스가 별도로 발송을
  * 호출하지 않는다 — 과거 이 계층에서 발송 호출이 누락되어 인증코드가 저장만 되던 버그가 있었다.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class MailVerificationCommandService {
 
+    private static final Logger log = LoggerFactory.getLogger(MailVerificationCommandService.class);
+
     private final MailVerificationService mailVerificationService;
+
+    public MailVerificationCommandService(MailVerificationService mailVerificationService) {
+        this.mailVerificationService = mailVerificationService;
+    }
 
     @Transactional
     public void sendVerificationCode(String email) {

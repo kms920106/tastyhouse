@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum HygieneBadgeType {
 
     FOOD_SAFETY_CERTIFIED("식품안심업소"),
@@ -15,6 +10,14 @@ public enum HygieneBadgeType {
     CESCO_WHITE("화이트 세스코");
 
     private final String description;
+
+    HygieneBadgeType(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 
     public static HygieneBadgeType from(String code) {
         try {

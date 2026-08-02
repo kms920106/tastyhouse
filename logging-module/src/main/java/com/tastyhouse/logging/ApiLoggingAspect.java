@@ -5,11 +5,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RequestBody;
  * Filter 레이어에서 처리되는 401/403 등은 별도 로깅되지 않으며,
  * Controller까지 도달한 요청에 대해서만 동작합니다.
  */
-@Slf4j
 @Aspect
 @Component
-@RequiredArgsConstructor
 public class ApiLoggingAspect {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiLoggingAspect.class);
 
 //    private final SensitiveFieldMasker masker;
 

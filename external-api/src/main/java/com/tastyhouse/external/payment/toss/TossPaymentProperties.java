@@ -1,18 +1,13 @@
 package com.tastyhouse.external.payment.toss;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
-@Getter
-@Setter
-@Component
 @ConfigurationProperties(prefix = "payment.toss")
-public class TossPaymentProperties {
-
-    private String secretKey;
-    private String baseUrl = "https://api.tosspayments.com";
-    private String confirmPath = "/v1/payments/confirm";
-    private String cancelPath = "/v1/payments/{paymentKey}/cancel";
+public record TossPaymentProperties(
+    String secretKey,
+    @DefaultValue("https://api.tosspayments.com") String baseUrl,
+    @DefaultValue("/v1/payments/confirm") String confirmPath,
+    @DefaultValue("/v1/payments/{paymentKey}/cancel") String cancelPath
+) {
 }

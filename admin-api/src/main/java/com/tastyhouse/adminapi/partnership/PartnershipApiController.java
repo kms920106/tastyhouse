@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,12 +25,16 @@ import com.tastyhouse.adminapi.partnership.response.PartnershipRequestListItemRe
 
 @Tag(name = "Partnership Admin", description = "제휴 신청 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/partnership-requests")
 public class PartnershipApiController {
 
     private final PartnershipCommandService partnershipCommandService;
     private final PartnershipQueryService partnershipQueryService;
+
+    public PartnershipApiController(PartnershipCommandService partnershipCommandService, PartnershipQueryService partnershipQueryService) {
+        this.partnershipCommandService = partnershipCommandService;
+        this.partnershipQueryService = partnershipQueryService;
+    }
 
     @Operation(summary = "제휴 신청 목록 조회", description = "제휴 신청 목록을 페이징 조회합니다. 상호명/담당자명/연락처/처리상태/접수기간 필터를 지원합니다.")
     @GetMapping("/v1")

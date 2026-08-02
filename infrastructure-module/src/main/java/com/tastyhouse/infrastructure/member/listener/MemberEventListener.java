@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.member.listener;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -15,9 +16,10 @@ import com.tastyhouse.domain.member.domain.event.MemberWithdrawnEvent;
  * 모듈에 두면 다른 모듈에서 발생한 이벤트를 놓친다. 두 모듈이 공통으로 의존하는
  * infrastructure-module에 두어 어느 경로로 발행돼도 동일하게 반응하게 한다(분류 E).
  */
-@Slf4j
 @Component
 public class MemberEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(MemberEventListener.class);
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(MemberRegisteredEvent event) {

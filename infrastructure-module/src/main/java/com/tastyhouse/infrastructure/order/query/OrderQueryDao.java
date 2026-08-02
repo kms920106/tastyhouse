@@ -10,7 +10,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -51,11 +50,15 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * URL로 스냅샷된 값이라 이 변환 대상이 아니다.
  */
 @Repository
-@RequiredArgsConstructor
 public class OrderQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public OrderQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 내 주문 목록(web-api용) — 결제가 완료·취소된 주문만 최신순으로 보여준다.

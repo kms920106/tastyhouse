@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.ceo.query;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static com.tastyhouse.infrastructure.ceo.persistence.QCeoJpaEntity.ceoJpaEntity;
@@ -19,10 +18,13 @@ import static com.tastyhouse.infrastructure.ceo.persistence.QCeoJpaEntity.ceoJpa
  * 검증 경로이므로 이 DAO가 아니라 write 포트에 잔류한다(README "write 포트 잔류 판정 기준").
  */
 @Repository
-@RequiredArgsConstructor
 public class CeoQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public CeoQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 전체 점주 목록 조회 — 가게 배정용 Select 드롭다운을 채운다. 점주 조회는 관리자만 소비하므로

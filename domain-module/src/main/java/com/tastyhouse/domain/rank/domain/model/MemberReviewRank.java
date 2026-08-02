@@ -3,8 +3,6 @@ package com.tastyhouse.domain.rank.domain.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 
 /**
@@ -15,7 +13,6 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
  * insert-only 애그리거트로, 배치 집계 시 매번 새로 생성되고 {@code deleteByRankTypeAndBaseDate}로
  * 일괄 정리된다.
  */
-@Getter
 public class MemberReviewRank {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -80,5 +77,41 @@ public class MemberReviewRank {
         LocalDateTime updatedAt
     ) {
         return new MemberReviewRank(id, memberId, reviewCount, rankNo, rankType, baseDate, lastReviewAt, createdAt, updatedAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public Integer getReviewCount() {
+        return this.reviewCount;
+    }
+
+    public Integer getRankNo() {
+        return this.rankNo;
+    }
+
+    public RankType getRankType() {
+        return this.rankType;
+    }
+
+    public LocalDate getBaseDate() {
+        return this.baseDate;
+    }
+
+    public LocalDateTime getLastReviewAt() {
+        return this.lastReviewAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

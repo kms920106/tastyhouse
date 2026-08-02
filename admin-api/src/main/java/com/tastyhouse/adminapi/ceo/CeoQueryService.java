@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.ceo;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +20,13 @@ import com.tastyhouse.adminapi.ceo.response.CeoListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class CeoQueryService {
 
     private final CeoQueryDao ceoQueryDao;
+
+    public CeoQueryService(CeoQueryDao ceoQueryDao) {
+        this.ceoQueryDao = ceoQueryDao;
+    }
 
     public List<CeoListItemResponse> getCeos() {
         return ceoQueryDao.findAllCeos().stream()

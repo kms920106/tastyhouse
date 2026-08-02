@@ -8,7 +8,6 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -28,10 +27,13 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
  * <p>소비자: web-api {@code ReviewQueryService}(가게·상품 리뷰 통계 조합, 회원 리뷰 수).
  */
 @Repository
-@RequiredArgsConstructor
 public class ReviewStatisticsQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public ReviewStatisticsQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 가게의 노출 리뷰 수.

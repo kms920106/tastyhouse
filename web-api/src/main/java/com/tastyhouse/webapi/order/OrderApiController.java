@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,12 +25,16 @@ import com.tastyhouse.webapi.order.response.OrderDetailResponse;
 
 @RestController
 @RequestMapping("/api/orders")
-@RequiredArgsConstructor
 @Tag(name = "Order", description = "주문 API")
 public class OrderApiController {
 
     private final OrderCommandService orderCommandService;
     private final OrderQueryService orderQueryService;
+
+    public OrderApiController(OrderCommandService orderCommandService, OrderQueryService orderQueryService) {
+        this.orderCommandService = orderCommandService;
+        this.orderQueryService = orderQueryService;
+    }
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다. 생성된 주문 ID를 반환합니다.")
     @PostMapping("/v1")

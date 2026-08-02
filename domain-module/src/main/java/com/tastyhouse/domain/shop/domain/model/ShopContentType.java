@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum ShopContentType {
 
     IMAGE("이미지"),
@@ -15,6 +10,14 @@ public enum ShopContentType {
     VIDEO("동영상");
 
     private final String description;
+
+    ShopContentType(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 
     public static ShopContentType from(String code) {
         try {

@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.file.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.file.domain.model.UploadedFile;
@@ -17,10 +16,13 @@ import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
  * {@code uploaded_file}을 join하고 {@code FileUrlResolver}가 URL로 변환한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class UploadedFileRepositoryImpl implements UploadedFileRepository {
 
     private final UploadedFileJpaRepository uploadedFileJpaRepository;
+
+    public UploadedFileRepositoryImpl(UploadedFileJpaRepository uploadedFileJpaRepository) {
+        this.uploadedFileJpaRepository = uploadedFileJpaRepository;
+    }
 
     @Override
     public UploadedFile save(UploadedFile uploadedFile) {

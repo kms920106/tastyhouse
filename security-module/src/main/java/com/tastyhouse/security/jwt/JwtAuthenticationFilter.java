@@ -7,8 +7,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.lang.NonNull;
@@ -36,13 +36,23 @@ import com.tastyhouse.security.token.BlacklistRedisRepository;
  *       인가는 Spring Security의 AuthorizationFilter가 최종 결정한다.</li>
  * </ol>
  */
-@Slf4j
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtTokenProvider jwtTokenProvider;
     private final BlacklistRedisRepository blacklistRepository;
     private final ObjectMapper objectMapper;
+
+    public JwtAuthenticationFilter(
+        JwtTokenProvider jwtTokenProvider,
+        BlacklistRedisRepository blacklistRepository,
+        ObjectMapper objectMapper
+    ) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.blacklistRepository = blacklistRepository;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {

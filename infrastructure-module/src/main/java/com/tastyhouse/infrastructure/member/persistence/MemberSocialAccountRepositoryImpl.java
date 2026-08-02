@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.member.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.model.MemberSocialAccount;
@@ -10,10 +9,13 @@ import com.tastyhouse.domain.member.domain.model.MemberSocialProvider;
 import com.tastyhouse.domain.member.domain.repository.MemberSocialAccountRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class MemberSocialAccountRepositoryImpl implements MemberSocialAccountRepository {
 
     private final MemberSocialAccountJpaRepository memberSocialAccountJpaRepository;
+
+    public MemberSocialAccountRepositoryImpl(MemberSocialAccountJpaRepository memberSocialAccountJpaRepository) {
+        this.memberSocialAccountJpaRepository = memberSocialAccountJpaRepository;
+    }
 
     @Override
     public Optional<MemberSocialAccount> findByProviderAndProviderId(MemberSocialProvider provider, String providerId) {

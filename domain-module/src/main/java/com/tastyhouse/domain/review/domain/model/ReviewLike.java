@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.review.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 
@@ -12,7 +10,6 @@ import com.tastyhouse.domain.review.domain.vo.ReviewId;
  * {@code ReviewLikeJpaEntity} + {@code ReviewLikeMapper}가 담당한다. 불변 애그리거트로
  * 상태전이가 없어 감사 시각을 소비하지 않는다.
  */
-@Getter
 public class ReviewLike {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -37,5 +34,17 @@ public class ReviewLike {
      */
     public static ReviewLike reconstitute(Long id, ReviewId reviewId, MemberId memberId) {
         return new ReviewLike(id, reviewId, memberId);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ReviewId getReviewId() {
+        return this.reviewId;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
     }
 }

@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.auth;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,11 +35,14 @@ import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 @Tag(name = "Auth", description = "인증 관련 API")
 public class AuthApiController {
 
     private final AuthService authService;
+
+    public AuthApiController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @Operation(summary = "회원가입", description = "새 회원을 등록합니다. 휴대폰번호 입력 시 SMS 인증(smsVerifyToken)이 필요합니다. 생성된 회원의 식별자(id)를 반환합니다.")
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:signup")

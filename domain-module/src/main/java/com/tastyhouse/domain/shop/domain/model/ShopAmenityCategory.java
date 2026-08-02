@@ -1,6 +1,5 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
 /**
@@ -9,7 +8,6 @@ import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code ShopAmenityCategoryJpaEntity} + {@code ShopAmenityCategoryMapper}가 담당한다.
  */
-@Getter
 public class ShopAmenityCategory {
 
     private final Long id;
@@ -70,5 +68,33 @@ public class ShopAmenityCategory {
         this.inactiveImageFileId = inactiveImageFileId;
         this.sort = sort;
         this.visible = visible;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Amenity getAmenity() {
+        return this.amenity;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    public UploadedFileId getActiveImageFileId() {
+        return this.activeImageFileId;
+    }
+
+    public UploadedFileId getInactiveImageFileId() {
+        return this.inactiveImageFileId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

@@ -9,9 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -20,10 +17,8 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 /**
  * 상점 임시 휴무 JPA 영속 모델. 순수 도메인 모델 {@code ShopTemporaryClosure}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_TEMPORARY_CLOSURE")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopTemporaryClosureJpaEntity extends BaseEntity {
 
     @Id
@@ -40,6 +35,9 @@ public class ShopTemporaryClosureJpaEntity extends BaseEntity {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate; // 임시 휴무 종료일
 
+    protected ShopTemporaryClosureJpaEntity() {
+    }
+
     private ShopTemporaryClosureJpaEntity(ShopId shopId, LocalDate startDate, LocalDate endDate) {
         this.shopId = shopId;
         this.startDate = startDate;
@@ -51,5 +49,21 @@ public class ShopTemporaryClosureJpaEntity extends BaseEntity {
      */
     static ShopTemporaryClosureJpaEntity create(ShopId shopId, LocalDate startDate, LocalDate endDate) {
         return new ShopTemporaryClosureJpaEntity(shopId, startDate, endDate);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public LocalDate getStartDate() {
+        return this.startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return this.endDate;
     }
 }

@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -13,11 +12,15 @@ import com.tastyhouse.domain.shop.domain.repository.ShopBookmarkRepository;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ShopBookmarkJpaRepository shopBookmarkJpaRepository;
+
+    public ShopBookmarkRepositoryImpl(JPAQueryFactory queryFactory, ShopBookmarkJpaRepository shopBookmarkJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.shopBookmarkJpaRepository = shopBookmarkJpaRepository;
+    }
 
     @Override
     public boolean existsByShopIdAndMemberId(Long shopId, MemberId memberId) {

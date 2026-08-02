@@ -2,7 +2,6 @@ package com.tastyhouse.apicommon.file;
 
 import java.io.IOException;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,10 +29,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 제거됐다 — 뒤의 셋은 응답 조립 중에 파일을 다시 조회해 추가 DB 왕복을 유발하던 우회 경로였다.
  */
 @Service
-@RequiredArgsConstructor
 public class FileService {
 
     private final FileUploadService fileUploadService;
+
+    public FileService(FileUploadService fileUploadService) {
+        this.fileUploadService = fileUploadService;
+    }
 
     @Transactional
     public Long upload(MultipartFile file) {

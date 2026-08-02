@@ -3,7 +3,6 @@ package com.tastyhouse.ceoapi.shop;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,12 +23,16 @@ import com.tastyhouse.ceoapi.shop.response.ShopClosedDaysResponse;
 
 @Tag(name = "Ceo Shop Closed Day", description = "점주 가게 휴무(공휴일·정기·임시) 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/shops")
 public class ShopClosedDayApiController {
 
     private final ShopClosedDayQueryService shopClosedDayQueryService;
     private final ShopClosedDayCommandService shopClosedDayCommandService;
+
+    public ShopClosedDayApiController(ShopClosedDayQueryService shopClosedDayQueryService, ShopClosedDayCommandService shopClosedDayCommandService) {
+        this.shopClosedDayQueryService = shopClosedDayQueryService;
+        this.shopClosedDayCommandService = shopClosedDayCommandService;
+    }
 
     @Operation(summary = "내 가게 휴무 통합 조회", description = "로그인한 점주가 소유한 가게의 공휴일 휴무 여부·정기 휴무·임시 휴무를 통합 조회합니다.")
     @GetMapping("/v1/{id}/closed-days")

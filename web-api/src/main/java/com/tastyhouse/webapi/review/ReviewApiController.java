@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,12 +40,19 @@ import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
 
 @RestController
 @RequestMapping("/api/reviews")
-@RequiredArgsConstructor
 @Tag(name = "Review", description = "리뷰 관리 API")
 public class ReviewApiController {
 
     private final ReviewCommandService reviewCommandService;
     private final ReviewQueryService reviewQueryService;
+
+    public ReviewApiController(
+        ReviewCommandService reviewCommandService,
+        ReviewQueryService reviewQueryService
+    ) {
+        this.reviewCommandService = reviewCommandService;
+        this.reviewQueryService = reviewQueryService;
+    }
 
     @Operation(summary = "리뷰 작성 정보 조회", description = "주문 상품 ID로 리뷰 작성 페이지에 필요한 상품 정보를 조회합니다.")
     @GetMapping("/v1/write/order-items/{orderProductId}")

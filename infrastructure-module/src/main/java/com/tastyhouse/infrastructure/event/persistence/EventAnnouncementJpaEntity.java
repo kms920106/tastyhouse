@@ -10,9 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.event.domain.vo.EventId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
@@ -23,7 +20,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code EventAnnouncement}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code EventAnnouncementMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(
     name = "EVENT_ANNOUNCEMENT",
@@ -32,7 +28,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         @Index(name = "idx_event_announcement_announced_at", columnList = "announced_at")
     }
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EventAnnouncementJpaEntity extends BaseEntity {
 
     @Id
@@ -51,6 +46,9 @@ public class EventAnnouncementJpaEntity extends BaseEntity {
 
     @Column(name = "announced_at", nullable = false)
     private LocalDateTime announcedAt; // 당첨자 발표 일시
+
+    protected EventAnnouncementJpaEntity() {
+    }
 
     private EventAnnouncementJpaEntity(
         EventId eventId,
@@ -87,5 +85,25 @@ public class EventAnnouncementJpaEntity extends BaseEntity {
         this.name = name;
         this.content = content;
         this.announcedAt = announcedAt;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public EventId getEventId() {
+        return this.eventId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public LocalDateTime getAnnouncedAt() {
+        return this.announcedAt;
     }
 }

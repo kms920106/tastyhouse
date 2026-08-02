@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.rank.persistence;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.rank.domain.port.MemberReviewCount;
@@ -19,10 +18,13 @@ import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
  * 덕분에 랭킹 도메인 서비스는 리뷰 도메인의 read model이나 QueryDSL을 알지 않는다.
  */
 @Component
-@RequiredArgsConstructor
 public class MemberReviewCountAdapter implements MemberReviewCountPort {
 
     private final MemberReviewCountQueryDao memberReviewCountQueryDao;
+
+    public MemberReviewCountAdapter(MemberReviewCountQueryDao memberReviewCountQueryDao) {
+        this.memberReviewCountQueryDao = memberReviewCountQueryDao;
+    }
 
     @Override
     public List<MemberReviewCount> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {

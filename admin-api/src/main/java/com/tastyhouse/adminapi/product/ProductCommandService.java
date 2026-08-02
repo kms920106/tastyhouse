@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.product;
 
 import java.math.BigDecimal;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +23,13 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ProductCommandService {
 
     private final ProductRegistrationService productRegistrationService;
+
+    public ProductCommandService(ProductRegistrationService productRegistrationService) {
+        this.productRegistrationService = productRegistrationService;
+    }
 
     public Long createProduct(
         Long shopId,

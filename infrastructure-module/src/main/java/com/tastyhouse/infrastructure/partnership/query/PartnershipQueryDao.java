@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -27,10 +26,13 @@ import static com.tastyhouse.infrastructure.partnership.persistence.QPartnership
  * 소비하므로(web-api는 신청 생성만 한다) 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다.
  */
 @Repository
-@RequiredArgsConstructor
 public class PartnershipQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public PartnershipQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 관리 목록 조회 — 상호명/담당자명/연락처 부분일치·처리상태·접수기간 필터를 적용한다.

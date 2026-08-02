@@ -2,8 +2,6 @@ package com.tastyhouse.domain.file.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
 /**
@@ -12,7 +10,6 @@ import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code UploadedFileJpaEntity} + {@code UploadedFileMapper}가 담당한다.
  */
-@Getter
 public class UploadedFile {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -76,5 +73,37 @@ public class UploadedFile {
 
     public UploadedFileId getUploadedFileId() {
         return UploadedFileId.of(this.id);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getOriginalFilename() {
+        return this.originalFilename;
+    }
+
+    public String getStoredFilename() {
+        return this.storedFilename;
+    }
+
+    public String getFilePath() {
+        return this.filePath;
+    }
+
+    public Long getFileSize() {
+        return this.fileSize;
+    }
+
+    public String getContentType() {
+        return this.contentType;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,12 +29,16 @@ import com.tastyhouse.adminapi.coupon.response.MemberCouponItemResponse;
 
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/coupons")
 public class CouponApiController {
 
     private final CouponCommandService couponCommandService;
     private final CouponQueryService couponQueryService;
+
+    public CouponApiController(CouponCommandService couponCommandService, CouponQueryService couponQueryService) {
+        this.couponCommandService = couponCommandService;
+        this.couponQueryService = couponQueryService;
+    }
 
     @Operation(summary = "쿠폰 목록 조회", description = "쿠폰 목록을 페이징 조회합니다. (삭제된 쿠폰 제외) discountType 미지정 시 전체 유형, name은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @GetMapping("/v1")

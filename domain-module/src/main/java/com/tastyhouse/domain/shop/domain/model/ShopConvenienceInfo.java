@@ -3,8 +3,6 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -17,7 +15,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로
  * {@code ShopConvenienceInfoRepository#save}를 호출해야 한다. shopId당 1개만 존재한다(upsert).
  */
-@Getter
 public class ShopConvenienceInfo {
 
     private static final int DIRECTIONS_GUIDE_MAX_LENGTH = 200;
@@ -127,5 +124,49 @@ public class ShopConvenienceInfo {
         if (directionsGuide != null && directionsGuide.length() > DIRECTIONS_GUIDE_MAX_LENGTH) {
             throw new BusinessException(ErrorCode.SHOP_DIRECTIONS_GUIDE_TOO_LONG);
         }
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public boolean isParkingAvailable() {
+        return this.parkingAvailable;
+    }
+
+    public boolean isParkingPaid() {
+        return this.parkingPaid;
+    }
+
+    public boolean isValetAvailable() {
+        return this.valetAvailable;
+    }
+
+    public boolean isValetPaid() {
+        return this.valetPaid;
+    }
+
+    public String getDirectionsGuide() {
+        return this.directionsGuide;
+    }
+
+    public BigDecimal getDisplayLatitude() {
+        return this.displayLatitude;
+    }
+
+    public BigDecimal getDisplayLongitude() {
+        return this.displayLongitude;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

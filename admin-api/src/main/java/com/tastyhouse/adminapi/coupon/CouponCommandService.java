@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.coupon;
 
 import java.time.LocalDateTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +27,15 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class CouponCommandService {
 
     private final CouponRepository couponRepository;
     private final CouponIssueService couponIssueService;
+
+    public CouponCommandService(CouponRepository couponRepository, CouponIssueService couponIssueService) {
+        this.couponRepository = couponRepository;
+        this.couponIssueService = couponIssueService;
+    }
 
     public Long createCoupon(
         String name,

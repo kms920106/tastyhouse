@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.partnership;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +21,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class PartnershipCommandService {
 
     private final PartnershipRepository partnershipRepository;
+
+    public PartnershipCommandService(PartnershipRepository partnershipRepository) {
+        this.partnershipRepository = partnershipRepository;
+    }
 
     public void changeStatus(Long id, String status) {
         PartnershipRequestId partnershipRequestId = PartnershipRequestId.of(id);

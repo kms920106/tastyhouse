@@ -1,6 +1,5 @@
 package com.tastyhouse.external.oauth.kakao;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,6 @@ import com.tastyhouse.external.oauth.spi.SocialProfile;
 import com.tastyhouse.external.oauth.spi.SocialProvider;
 
 @Component
-@RequiredArgsConstructor
 public class KakaoOAuthClient implements SocialOAuthClient {
 
     private static final String KAUTH_BASE_URL = "https://kauth.kakao.com";
@@ -29,6 +27,10 @@ public class KakaoOAuthClient implements SocialOAuthClient {
     private String redirectUri;
 
     private final WebClient webClient;
+
+    public KakaoOAuthClient(WebClient webClient) {
+        this.webClient = webClient;
+    }
 
     @Override
     public SocialProvider provider() {

@@ -1,7 +1,7 @@
 package com.tastyhouse.webapi.auth.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,14 +43,26 @@ import com.tastyhouse.webapi.member.service.MemberCommandService;
  * </ul>
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AuthPasswordResetService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthPasswordResetService.class);
 
     private final MemberRepository memberRepository;
     private final MailVerificationService mailVerificationService;
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberCommandService memberCommandService;
+
+    public AuthPasswordResetService(
+        MemberRepository memberRepository,
+        MailVerificationService mailVerificationService,
+        JwtTokenProvider jwtTokenProvider,
+        MemberCommandService memberCommandService
+    ) {
+        this.memberRepository = memberRepository;
+        this.mailVerificationService = mailVerificationService;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.memberCommandService = memberCommandService;
+    }
 
     /**
      * 비밀번호 재설정 인증코드를 발급하고 메일로 발송한다.

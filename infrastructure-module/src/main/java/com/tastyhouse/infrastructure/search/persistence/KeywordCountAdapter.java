@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.search.persistence;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.search.domain.port.KeywordCount;
@@ -19,10 +18,13 @@ import com.tastyhouse.infrastructure.search.query.SearchQueryDao;
  * 선례). 덕분에 도메인 서비스는 인프라 투영 형식이나 QueryDSL을 알지 않는다.
  */
 @Component
-@RequiredArgsConstructor
 public class KeywordCountAdapter implements KeywordCountPort {
 
     private final SearchQueryDao searchQueryDao;
+
+    public KeywordCountAdapter(SearchQueryDao searchQueryDao) {
+        this.searchQueryDao = searchQueryDao;
+    }
 
     @Override
     public List<KeywordCount> findTopKeywordsSince(LocalDateTime since) {

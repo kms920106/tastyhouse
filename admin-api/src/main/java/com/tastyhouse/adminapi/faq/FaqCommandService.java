@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.faq;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,11 +24,15 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class FaqCommandService {
 
     private final FaqRepository faqRepository;
     private final FaqCategoryRepository faqCategoryRepository;
+
+    public FaqCommandService(FaqRepository faqRepository, FaqCategoryRepository faqCategoryRepository) {
+        this.faqRepository = faqRepository;
+        this.faqCategoryRepository = faqCategoryRepository;
+    }
 
     public Long createFaq(Long categoryId, String question, String answer, Integer sort, boolean visible) {
         FaqCategoryId faqCategoryId = FaqCategoryId.of(categoryId);

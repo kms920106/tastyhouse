@@ -1,16 +1,18 @@
 package com.tastyhouse.infrastructure.payment.persistence;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.payment.domain.model.TossPaymentRecord;
 import com.tastyhouse.domain.payment.domain.repository.TossPaymentRecordRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class TossPaymentRecordRepositoryImpl implements TossPaymentRecordRepository {
 
     private final TossPaymentRecordJpaRepository tossPaymentRecordJpaRepository;
+
+    public TossPaymentRecordRepositoryImpl(TossPaymentRecordJpaRepository tossPaymentRecordJpaRepository) {
+        this.tossPaymentRecordJpaRepository = tossPaymentRecordJpaRepository;
+    }
 
     @Override
     public TossPaymentRecord save(TossPaymentRecord tossPaymentRecord) {

@@ -56,6 +56,5 @@ dependencies {
 - `spring-boot-starter-aop` (api) — `@Aspect`/`@Around`/`@Before`
 - `spring-boot-starter-security` (api) — `SecurityContextHolder`/`Authentication`
 - `p6spy-spring-boot-starter` 1.12.1 (api) — datasource 데코레이션으로 SQL 로깅. 소비 모듈(web/admin/ceo-api)이 별도 선언하지 않도록 `api`로 노출하며, SQL 로그 포맷은 `application-logging.yml`이 소유한다. (batch-module은 `exclude`로 전이 차단 — 위 "로깅 설정 소유" 참고)
-- Lombok
 
 <!-- MANUAL: -->

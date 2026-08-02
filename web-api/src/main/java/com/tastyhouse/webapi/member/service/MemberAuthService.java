@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.member.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +13,24 @@ import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.exception.UnauthorizedException;
 
 @Service
-@RequiredArgsConstructor
 public class MemberAuthService {
 
     private final MemberQueryService memberQueryService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenService tokenService;
+
+    public MemberAuthService(
+        MemberQueryService memberQueryService,
+        PasswordEncoder passwordEncoder,
+        JwtTokenProvider jwtTokenProvider,
+        TokenService tokenService
+    ) {
+        this.memberQueryService = memberQueryService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.tokenService = tokenService;
+    }
 
     // 입력한 비밀번호가 저장된 비밀번호와 일치하는지 검증
     @Transactional(readOnly = true)

@@ -14,9 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.rank.domain.model.RankType;
@@ -30,7 +27,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code MemberReviewRankMapper}가 수행한다.
  * 상태전이·삭제가 없는 insert-only 애그리거트라 update용 {@code applyChanges}는 두지 않는다.
  */
-@Getter
 @Entity
 @Table(
     name = "MEMBER_REVIEW_RANK",
@@ -45,7 +41,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
         @Index(name = "idx_member_rank", columnList = "member_id, rank_type")
     }
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberReviewRankJpaEntity extends BaseEntity {
 
     @Id
@@ -71,6 +66,9 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
 
     @Column(name = "last_review_at")
     private LocalDateTime lastReviewAt;
+
+    protected MemberReviewRankJpaEntity() {
+    }
 
     private MemberReviewRankJpaEntity(
         MemberId memberId,
@@ -100,5 +98,33 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
         LocalDateTime lastReviewAt
     ) {
         return new MemberReviewRankJpaEntity(memberId, reviewCount, rankNo, rankType, baseDate, lastReviewAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public Integer getReviewCount() {
+        return this.reviewCount;
+    }
+
+    public Integer getRankNo() {
+        return this.rankNo;
+    }
+
+    public RankType getRankType() {
+        return this.rankType;
+    }
+
+    public LocalDate getBaseDate() {
+        return this.baseDate;
+    }
+
+    public LocalDateTime getLastReviewAt() {
+        return this.lastReviewAt;
     }
 }

@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,12 +27,16 @@ import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
 
 @Tag(name = "Banner Admin", description = "배너 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/banners")
 public class BannerApiController {
 
     private final BannerCommandService bannerCommandService;
     private final BannerQueryService bannerQueryService;
+
+    public BannerApiController(BannerCommandService bannerCommandService, BannerQueryService bannerQueryService) {
+        this.bannerCommandService = bannerCommandService;
+        this.bannerQueryService = bannerQueryService;
+    }
 
     @Operation(summary = "배너 목록 조회", description = "배너 목록을 페이징 조회합니다. (비노출·노출기간 만료 배너 포함) type 미지정 시 전체 유형 조회, title은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
     @GetMapping("/v1")

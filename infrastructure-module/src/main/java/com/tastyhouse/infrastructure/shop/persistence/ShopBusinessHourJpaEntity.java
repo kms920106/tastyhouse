@@ -11,9 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.DayType;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -21,10 +18,8 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 /**
  * 상점 영업시간 JPA 영속 모델. 순수 도메인 모델 {@code ShopBusinessHour}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_BUSINESS_HOUR")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopBusinessHourJpaEntity {
 
     @Id
@@ -50,6 +45,9 @@ public class ShopBusinessHourJpaEntity {
 
     @Column(name = "is_open_24_hours")
     private Boolean is24Hours; // 24시간 영업 여부
+
+    protected ShopBusinessHourJpaEntity() {
+    }
 
     private ShopBusinessHourJpaEntity(
         ShopId shopId,
@@ -84,5 +82,33 @@ public class ShopBusinessHourJpaEntity {
         this.closeTime = closeTime;
         this.isClosed = isClosed;
         this.is24Hours = is24Hours;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public DayType getDayType() {
+        return this.dayType;
+    }
+
+    public LocalTime getOpenTime() {
+        return this.openTime;
+    }
+
+    public LocalTime getCloseTime() {
+        return this.closeTime;
+    }
+
+    public Boolean getIsClosed() {
+        return this.isClosed;
+    }
+
+    public Boolean getIs24Hours() {
+        return this.is24Hours;
     }
 }

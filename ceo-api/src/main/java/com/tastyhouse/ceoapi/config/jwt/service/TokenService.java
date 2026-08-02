@@ -1,6 +1,5 @@
 package com.tastyhouse.ceoapi.config.jwt.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -22,13 +21,24 @@ import com.tastyhouse.ceoapi.auth.response.JwtResponse;
  * - BlacklistRedisRepository: 로그아웃된 Access Token 블랙리스트
  */
 @Service
-@RequiredArgsConstructor
 public class TokenService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRedisRepository refreshTokenRepository;
     private final BlacklistRedisRepository blacklistRepository;
     private final CeoQueryService ceoQueryService;
+
+    public TokenService(
+        JwtTokenProvider jwtTokenProvider,
+        RefreshTokenRedisRepository refreshTokenRepository,
+        BlacklistRedisRepository blacklistRepository,
+        CeoQueryService ceoQueryService
+    ) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.blacklistRepository = blacklistRepository;
+        this.ceoQueryService = ceoQueryService;
+    }
 
     /**
      * 로그인 성공 시 Access Token + Refresh Token 발급 및 저장

@@ -6,12 +6,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Getter;
 
 /**
  * 지하철역 JPA 영속 모델. 순수 도메인 모델 {@code Station}과 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "STATION")
 public class StationJpaEntity {
@@ -22,4 +20,12 @@ public class StationJpaEntity {
 
     @Column(name = "station_name", nullable = false)
     private String stationName; // 지하철역 이름
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getStationName() {
+        return this.stationName;
+    }
 }

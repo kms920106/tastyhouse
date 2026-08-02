@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.admin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,11 +16,14 @@ import com.tastyhouse.adminapi.admin.request.AdminCreateRequest;
 
 @Tag(name = "Admin", description = "관리자 계정 관리 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/admins")
 public class AdminApiController {
 
     private final AdminCommandService adminCommandService;
+
+    public AdminApiController(AdminCommandService adminCommandService) {
+        this.adminCommandService = adminCommandService;
+    }
 
     @Operation(summary = "관리자 계정 생성", description = "신규 관리자 계정을 생성합니다. 최고관리자(SUPER_ADMIN)만 호출할 수 있습니다. 생성된 관리자 ID를 반환합니다.")
     @PreAuthorize("hasRole('SUPER_ADMIN')")

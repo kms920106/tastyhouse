@@ -2,7 +2,6 @@ package com.tastyhouse.ceoapi.shop;
 
 import java.time.LocalDate;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +28,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopClosedDayCommandService {
 
     /**
@@ -41,6 +39,18 @@ public class ShopClosedDayCommandService {
     private final ShopLifecycleService shopLifecycleService;
     private final ShopTemporaryClosureRepository shopTemporaryClosureRepository;
     private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopClosedDayCommandService(
+        ShopBusinessHourService shopBusinessHourService,
+        ShopLifecycleService shopLifecycleService,
+        ShopTemporaryClosureRepository shopTemporaryClosureRepository,
+        ShopOwnershipValidator shopOwnershipValidator
+    ) {
+        this.shopBusinessHourService = shopBusinessHourService;
+        this.shopLifecycleService = shopLifecycleService;
+        this.shopTemporaryClosureRepository = shopTemporaryClosureRepository;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
 
     public void updateHolidayClosure(Long ceoId, Long shopId, boolean closedOnPublicHolidays) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);

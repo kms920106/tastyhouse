@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.policy;
 
 import java.time.LocalDateTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +29,15 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class PolicyCommandService {
 
     private final PolicyDocumentRepository policyDocumentRepository;
     private final PolicyActivationService policyActivationService;
+
+    public PolicyCommandService(PolicyDocumentRepository policyDocumentRepository, PolicyActivationService policyActivationService) {
+        this.policyDocumentRepository = policyDocumentRepository;
+        this.policyActivationService = policyActivationService;
+    }
 
     public Long createPolicy(
         String type,

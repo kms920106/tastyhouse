@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
@@ -22,10 +19,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code OrderProduct}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code OrderProductMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "ORDER_PRODUCT")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderProductJpaEntity extends BaseEntity {
 
     @Id
@@ -60,6 +55,9 @@ public class OrderProductJpaEntity extends BaseEntity {
 
     @Column(name = "total_price", nullable = false)
     private Integer totalPrice; // 상품 총 금액
+
+    protected OrderProductJpaEntity() {
+    }
 
     private OrderProductJpaEntity(
         OrderId orderId,
@@ -116,5 +114,45 @@ public class OrderProductJpaEntity extends BaseEntity {
     void applyChanges(Integer totalOptionPrice, Integer totalPrice) {
         this.totalOptionPrice = totalOptionPrice;
         this.totalPrice = totalPrice;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public OrderId getOrderId() {
+        return this.orderId;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getImageUrl() {
+        return this.imageUrl;
+    }
+
+    public Integer getQuantity() {
+        return this.quantity;
+    }
+
+    public Integer getOriginalPrice() {
+        return this.originalPrice;
+    }
+
+    public Integer getDiscountPrice() {
+        return this.discountPrice;
+    }
+
+    public Integer getTotalOptionPrice() {
+        return this.totalOptionPrice;
+    }
+
+    public Integer getTotalPrice() {
+        return this.totalPrice;
     }
 }

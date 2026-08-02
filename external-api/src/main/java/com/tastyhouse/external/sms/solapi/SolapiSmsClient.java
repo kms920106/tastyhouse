@@ -7,8 +7,8 @@ import java.util.UUID;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -21,11 +21,11 @@ import com.tastyhouse.external.exception.ExternalApiException;
 import com.tastyhouse.external.sms.solapi.request.SolapiMessageRequest;
 import com.tastyhouse.external.sms.solapi.response.SolapiMessageResponse;
 
-@Slf4j
 @ConditionalOnProperty(name = "sms.provider", havingValue = "solapi", matchIfMissing = true)
 @Component
-@RequiredArgsConstructor
 public class SolapiSmsClient implements SmsSender {
+
+    private static final Logger log = LoggerFactory.getLogger(SolapiSmsClient.class);
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String AUTH_SCHEME = "HMAC-SHA256";
@@ -33,12 +33,17 @@ public class SolapiSmsClient implements SmsSender {
     private final WebClient.Builder webClientBuilder;
     private final SolapiProperties solapiProperties;
 
+    public SolapiSmsClient(WebClient.Builder webClientBuilder, SolapiProperties solapiProperties) {
+        this.webClientBuilder = webClientBuilder;
+        this.solapiProperties = solapiProperties;
+    }
+
     @Override
     public void send(String to, String content) {
         SolapiMessageRequest request = new SolapiMessageRequest(
             List.of(new SolapiMessageRequest.SolapiMessage(
                 to,
-                solapiProperties.getSenderNumber(),
+                solapiProperties.senderNumber(),
                 content,
                 "SMS",
                 null
@@ -52,7 +57,7 @@ public class SolapiSmsClient implements SmsSender {
 
             SolapiMessageResponse response = webClientBuilder.build()
                 .post()
-                .uri(solapiProperties.getBaseUrl() + solapiProperties.getSendManyPath())
+                .uri(solapiProperties.baseUrl() + solapiProperties.sendManyPath())
                 .header("Authorization", authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
@@ -86,11 +91,11 @@ public class SolapiSmsClient implements SmsSender {
     private String createAuthorizationHeader() throws Exception {
         String dateTime = Instant.now().toString();
         String salt = UUID.randomUUID().toString().replace("-", "");
-        String signature = generateHmacSignature(solapiProperties.getApiSecret(), dateTime, salt);
+        String signature = generateHmacSignature(solapiProperties.apiSecret(), dateTime, salt);
 
         return "%s apiKey=%s, date=%s, salt=%s, signature=%s".formatted(
             AUTH_SCHEME,
-            solapiProperties.getApiKey(),
+            solapiProperties.apiKey(),
             dateTime,
             salt,
             signature

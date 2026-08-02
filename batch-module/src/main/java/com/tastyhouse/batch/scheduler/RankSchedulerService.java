@@ -2,8 +2,8 @@ package com.tastyhouse.batch.scheduler;
 
 import java.time.LocalDate;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +19,16 @@ import com.tastyhouse.domain.rank.domain.service.RankSettlementService;
  * <p>타입별 집계는 각각 독립 트랜잭션이 아니라 한 트랜잭션에서 함께 처리한다 — 기존 동작
  * ({@code aggregateAllRanks}가 단일 {@code @Transactional} 안에서 세 타입을 순차 집계)을 보존한다.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class RankSchedulerService {
 
+    private static final Logger log = LoggerFactory.getLogger(RankSchedulerService.class);
+
     private final RankSettlementService rankSettlementService;
+
+    public RankSchedulerService(RankSettlementService rankSettlementService) {
+        this.rankSettlementService = rankSettlementService;
+    }
 
     /**
      * 오늘 기준으로 전체·월간·주간 랭킹을 모두 재집계한다.

@@ -67,7 +67,8 @@ configure(subprojects.findAll { it.name != 'domain-module' }) {
 // spring-boot-starter 주입 없이, 버전 관리(BOM)와 테스트 실행 설정만 물려준다.
 // io.spring.dependency-management는 의존을 추가하지 않고 버전만 고정하므로
 // (컴파일 클래스패스에 아무것도 올리지 않는다) 순수성을 해치지 않으면서
-// 'org.projectlombok:lombok' 같은 버전 없는 좌표를 그대로 쓸 수 있게 해 준다.
+// 버전 없는 좌표(현재는 테스트 의존인 junit-jupiter 등)를 그대로 쓸 수 있게 해 준다.
+// production 의존은 0개다 — Lombok까지 제거되어 접근자·생성자를 수기로 작성한다.
 project(':domain-module') {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'

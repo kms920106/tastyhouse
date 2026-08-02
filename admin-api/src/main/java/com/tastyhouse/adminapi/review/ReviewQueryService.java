@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.review;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,11 +35,15 @@ import com.tastyhouse.adminapi.review.response.ReviewReplyListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ReviewQueryService {
 
     private final ReviewManagementQueryDao reviewManagementQueryDao;
     private final ReviewQueryDao reviewQueryDao;
+
+    public ReviewQueryService(ReviewManagementQueryDao reviewManagementQueryDao, ReviewQueryDao reviewQueryDao) {
+        this.reviewManagementQueryDao = reviewManagementQueryDao;
+        this.reviewQueryDao = reviewQueryDao;
+    }
 
     /**
      * 리뷰 목록(숨김 포함) — 검색 조건으로 필터링한다.

@@ -10,9 +10,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
@@ -23,10 +20,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code PolicyDocument}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code PolicyDocumentMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "POLICY_DOCUMENT")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PolicyDocumentJpaEntity extends BaseEntity {
 
     @Id
@@ -60,6 +55,9 @@ public class PolicyDocumentJpaEntity extends BaseEntity {
 
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
+
+    protected PolicyDocumentJpaEntity() {
+    }
 
     private PolicyDocumentJpaEntity(
         PolicyType type,
@@ -110,5 +108,45 @@ public class PolicyDocumentJpaEntity extends BaseEntity {
         this.effectiveDate = effectiveDate;
         this.updatedBy = updatedBy;
         this.current = current;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public PolicyType getType() {
+        return this.type;
+    }
+
+    public String getVersion() {
+        return this.version;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public boolean isCurrent() {
+        return this.current;
+    }
+
+    public boolean isMandatory() {
+        return this.mandatory;
+    }
+
+    public LocalDateTime getEffectiveDate() {
+        return this.effectiveDate;
+    }
+
+    public String getCreatedBy() {
+        return this.createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return this.updatedBy;
     }
 }

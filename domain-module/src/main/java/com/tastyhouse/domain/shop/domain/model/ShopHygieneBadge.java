@@ -3,7 +3,6 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import lombok.Getter;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
@@ -13,7 +12,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * {@code ShopHygieneBadgeJpaEntity} + {@code ShopHygieneBadgeMapper}가 담당한다. 등록/삭제만
  * 있고 수정은 없는 애그리거트라 전 필드가 {@code final}이다.
  */
-@Getter
 public class ShopHygieneBadge {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -63,5 +61,29 @@ public class ShopHygieneBadge {
         LocalDateTime createdAt
     ) {
         return new ShopHygieneBadge(id, shopId, badgeType, certifiedDate, lastInspectionMonth, createdAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public HygieneBadgeType getBadgeType() {
+        return this.badgeType;
+    }
+
+    public LocalDate getCertifiedDate() {
+        return this.certifiedDate;
+    }
+
+    public String getLastInspectionMonth() {
+        return this.lastInspectionMonth;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

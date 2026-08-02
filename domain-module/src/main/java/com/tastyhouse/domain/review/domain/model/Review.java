@@ -2,8 +2,6 @@ package com.tastyhouse.domain.review.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
@@ -18,7 +16,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code ReviewRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Review {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -186,5 +183,69 @@ public class Review {
         this.kindnessRating = kindnessRating;
         this.hygieneRating = hygieneRating;
         this.willRevisit = willRevisit;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public Double getTotalRating() {
+        return this.totalRating;
+    }
+
+    public Double getTasteRating() {
+        return this.tasteRating;
+    }
+
+    public Double getAmountRating() {
+        return this.amountRating;
+    }
+
+    public Double getPriceRating() {
+        return this.priceRating;
+    }
+
+    public Double getAtmosphereRating() {
+        return this.atmosphereRating;
+    }
+
+    public Double getKindnessRating() {
+        return this.kindnessRating;
+    }
+
+    public Double getHygieneRating() {
+        return this.hygieneRating;
+    }
+
+    public boolean isWillRevisit() {
+        return this.willRevisit;
+    }
+
+    public OrderId getOrderId() {
+        return this.orderId;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

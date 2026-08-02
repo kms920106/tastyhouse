@@ -6,17 +6,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * 태그 JPA 영속 모델. 순수 도메인 모델 {@code Tag}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "TAG")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TagJpaEntity {
 
     @Id
@@ -26,11 +21,22 @@ public class TagJpaEntity {
     @Column(name = "tag_name", nullable = false)
     private String tagName; // 태그명
 
+    protected TagJpaEntity() {
+    }
+
     private TagJpaEntity(String tagName) {
         this.tagName = tagName;
     }
 
     static TagJpaEntity create(String tagName) {
         return new TagJpaEntity(tagName);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getTagName() {
+        return this.tagName;
     }
 }

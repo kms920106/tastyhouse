@@ -2,8 +2,6 @@ package com.tastyhouse.domain.partnership.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.partnership.domain.vo.PartnershipRequestId;
 
 /**
@@ -14,7 +12,6 @@ import com.tastyhouse.domain.partnership.domain.vo.PartnershipRequestId;
  * 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로
  * {@code PartnershipRepository#save}를 호출해야 한다.
  */
-@Getter
 public class PartnershipRequest {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -93,6 +90,50 @@ public class PartnershipRequest {
             id, businessName, address, addressDetail, contactName, contactPhone,
             consultationRequestedAt, status, deleted, createdAt, updatedAt
         );
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getBusinessName() {
+        return this.businessName;
+    }
+
+    public String getAddress() {
+        return this.address;
+    }
+
+    public String getAddressDetail() {
+        return this.addressDetail;
+    }
+
+    public String getContactName() {
+        return this.contactName;
+    }
+
+    public String getContactPhone() {
+        return this.contactPhone;
+    }
+
+    public LocalDateTime getConsultationRequestedAt() {
+        return this.consultationRequestedAt;
+    }
+
+    public PartnershipStatus getStatus() {
+        return this.status;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 
     public PartnershipRequestId getPartnershipRequestId() {

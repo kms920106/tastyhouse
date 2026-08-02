@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.domain.shop.domain.vo.TagId;
@@ -22,10 +19,8 @@ import com.tastyhouse.infrastructure.shop.persistence.TagIdConverter;
  * 담당하고 비즈니스 행위는 갖지 않는다. 원본 엔티티와 동일하게 감사 필드(BaseEntity)를 상속하지 않는다.
  * 도메인↔엔티티 변환은 {@code ReviewTagMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "REVIEW_TAG")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReviewTagJpaEntity {
 
     @Id
@@ -40,6 +35,9 @@ public class ReviewTagJpaEntity {
     @Column(name = "tag_id", nullable = false)
     private TagId tagId;
 
+    protected ReviewTagJpaEntity() {
+    }
+
     private ReviewTagJpaEntity(ReviewId reviewId, TagId tagId) {
         this.reviewId = reviewId;
         this.tagId = tagId;
@@ -50,5 +48,17 @@ public class ReviewTagJpaEntity {
      */
     static ReviewTagJpaEntity create(ReviewId reviewId, TagId tagId) {
         return new ReviewTagJpaEntity(reviewId, tagId);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ReviewId getReviewId() {
+        return this.reviewId;
+    }
+
+    public TagId getTagId() {
+        return this.tagId;
     }
 }

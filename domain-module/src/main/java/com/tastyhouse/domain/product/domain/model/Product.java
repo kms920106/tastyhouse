@@ -3,8 +3,6 @@ package com.tastyhouse.domain.product.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.domain.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
@@ -20,7 +18,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code ProductRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Product {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -165,6 +162,70 @@ public class Product {
             createdAt,
             updatedAt
         );
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public ProductCategoryId getProductCategoryId() {
+        return this.productCategoryId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public Integer getOriginalPrice() {
+        return this.originalPrice;
+    }
+
+    public ProductDiscountInfo getDiscountInfo() {
+        return this.discountInfo;
+    }
+
+    public Double getRating() {
+        return this.rating;
+    }
+
+    public Integer getReviewCount() {
+        return this.reviewCount;
+    }
+
+    public boolean isRepresentative() {
+        return this.representative;
+    }
+
+    public Integer getSpiciness() {
+        return this.spiciness;
+    }
+
+    public boolean isSoldOut() {
+        return this.soldOut;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 
     public ProductId getProductId() {

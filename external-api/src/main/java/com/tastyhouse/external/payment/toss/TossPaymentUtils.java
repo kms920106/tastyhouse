@@ -4,10 +4,12 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public final class TossPaymentUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(TossPaymentUtils.class);
 
     private TossPaymentUtils() {
     }

@@ -2,8 +2,6 @@ package com.tastyhouse.domain.shop.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -15,7 +13,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * {@code ShopSuspensionJpaEntity} + {@code ShopSuspensionMapper}가 담당한다. 상태전이는 즉시 해제(release)만
  * 존재한다.
  */
-@Getter
 public class ShopSuspension {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -96,5 +93,41 @@ public class ShopSuspension {
      */
     public boolean isActive(LocalDateTime now) {
         return releasedAt == null && !now.isBefore(startAt) && now.isBefore(endAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public SuspensionReason getReason() {
+        return this.reason;
+    }
+
+    public OrderMethod getOrderMethod() {
+        return this.orderMethod;
+    }
+
+    public LocalDateTime getStartAt() {
+        return this.startAt;
+    }
+
+    public LocalDateTime getEndAt() {
+        return this.endAt;
+    }
+
+    public LocalDateTime getReleasedAt() {
+        return this.releasedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

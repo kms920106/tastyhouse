@@ -2,17 +2,19 @@ package com.tastyhouse.infrastructure.search.persistence;
 
 import java.time.LocalDateTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.search.domain.model.SearchKeywordLog;
 import com.tastyhouse.domain.search.domain.repository.SearchKeywordLogRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class SearchKeywordLogRepositoryImpl implements SearchKeywordLogRepository {
 
     private final SearchKeywordLogJpaRepository jpaRepository;
+
+    public SearchKeywordLogRepositoryImpl(SearchKeywordLogJpaRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public SearchKeywordLog save(SearchKeywordLog log) {

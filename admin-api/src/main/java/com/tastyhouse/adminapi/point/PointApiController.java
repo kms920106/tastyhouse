@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,12 +25,16 @@ import com.tastyhouse.adminapi.point.response.PointHistoryResponse;
 
 @Tag(name = "Point Admin", description = "포인트 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/points")
 public class PointApiController {
 
     private final PointCommandService pointCommandService;
     private final PointQueryService pointQueryService;
+
+    public PointApiController(PointCommandService pointCommandService, PointQueryService pointQueryService) {
+        this.pointCommandService = pointCommandService;
+        this.pointQueryService = pointQueryService;
+    }
 
     @Operation(summary = "회원 포인트 잔액 조회", description = "회원의 사용 가능 포인트와 이번 달 소멸 예정 포인트를 조회합니다.")
     @GetMapping("/v1/members/{memberId}")

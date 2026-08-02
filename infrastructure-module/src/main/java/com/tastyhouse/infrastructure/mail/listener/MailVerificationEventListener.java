@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.mail.listener;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -18,9 +19,10 @@ import com.tastyhouse.domain.mail.domain.event.MailVerifiedEvent;
  * 시점에 필요하므로 시점이 다르다. 발송은 도메인 서비스 {@code MailVerificationService#issue}가
  * 발급과 원자적으로 수행한다.
  */
-@Slf4j
 @Component
 public class MailVerificationEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(MailVerificationEventListener.class);
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(MailVerifiedEvent event) {

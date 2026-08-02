@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.follow;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.shared.page.PageResult;
@@ -21,11 +20,15 @@ import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
  * 위임하는 것뿐이라 판정이 같다.
  */
 @Component
-@RequiredArgsConstructor
 public class FollowService {
 
     private final FollowCommandService followCommandService;
     private final FollowQueryService followQueryService;
+
+    public FollowService(FollowCommandService followCommandService, FollowQueryService followQueryService) {
+        this.followCommandService = followCommandService;
+        this.followQueryService = followQueryService;
+    }
 
     public Long follow(Long followerId, Long followingId) {
         return followCommandService.follow(followerId, followingId);

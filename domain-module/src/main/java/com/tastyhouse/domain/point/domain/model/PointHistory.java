@@ -2,8 +2,6 @@ package com.tastyhouse.domain.point.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 
 /**
@@ -13,7 +11,6 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
  * {@code PointHistoryJpaEntity} + {@code PointHistoryMapper}가 담당한다.
  * 변경 없이 신규 생성만 존재하는 insert 전용 이력이므로 상태전이 메서드는 없다.
  */
-@Getter
 public class PointHistory {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -59,5 +56,29 @@ public class PointHistory {
         LocalDateTime createdAt
     ) {
         return new PointHistory(id, memberId, pointType, pointAmount, reason, createdAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public PointType getPointType() {
+        return this.pointType;
+    }
+
+    public Integer getPointAmount() {
+        return this.pointAmount;
+    }
+
+    public String getReason() {
+        return this.reason;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

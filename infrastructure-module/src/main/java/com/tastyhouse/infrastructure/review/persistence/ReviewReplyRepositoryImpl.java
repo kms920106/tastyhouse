@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.review.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.domain.model.ReviewReply;
@@ -10,10 +9,13 @@ import com.tastyhouse.domain.review.domain.repository.ReviewReplyRepository;
 import com.tastyhouse.domain.review.domain.vo.ReviewReplyId;
 
 @Repository
-@RequiredArgsConstructor
 public class ReviewReplyRepositoryImpl implements ReviewReplyRepository {
 
     private final ReviewReplyJpaRepository reviewReplyJpaRepository;
+
+    public ReviewReplyRepositoryImpl(ReviewReplyJpaRepository reviewReplyJpaRepository) {
+        this.reviewReplyJpaRepository = reviewReplyJpaRepository;
+    }
 
     @Override
     public Optional<ReviewReply> findById(ReviewReplyId replyId) {

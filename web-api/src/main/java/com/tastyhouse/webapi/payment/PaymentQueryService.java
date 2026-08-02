@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.payment;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,10 +30,13 @@ import com.tastyhouse.webapi.payment.response.PaymentResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class PaymentQueryService {
 
     private final PaymentQueryDao paymentQueryDao;
+
+    public PaymentQueryService(PaymentQueryDao paymentQueryDao) {
+        this.paymentQueryDao = paymentQueryDao;
+    }
 
     /**
      * 결제 단건(PK) — 요청 회원의 결제가 아니면 {@code PAYMENT_ACCESS_DENIED}.

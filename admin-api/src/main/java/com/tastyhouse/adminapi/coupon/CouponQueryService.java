@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.coupon;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +27,13 @@ import com.tastyhouse.adminapi.coupon.response.MemberCouponItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class CouponQueryService {
 
     private final CouponQueryDao couponQueryDao;
+
+    public CouponQueryService(CouponQueryDao couponQueryDao) {
+        this.couponQueryDao = couponQueryDao;
+    }
 
     public PaginationResponse<CouponListItemResponse> getCoupons(
         String name,

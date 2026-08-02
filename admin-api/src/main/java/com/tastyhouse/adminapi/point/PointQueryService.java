@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.point;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +23,13 @@ import com.tastyhouse.adminapi.point.response.PointHistoryResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class PointQueryService {
 
     private final PointQueryDao pointQueryDao;
+
+    public PointQueryService(PointQueryDao pointQueryDao) {
+        this.pointQueryDao = pointQueryDao;
+    }
 
     public PointBalanceResponse getPointBalance(Long memberId) {
         return pointQueryDao.findBalanceByMemberId(MemberId.of(memberId))

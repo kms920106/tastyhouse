@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
@@ -16,13 +15,16 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
 
 @Repository
-@RequiredArgsConstructor
 public class ReservationSlotRepositoryImpl implements ReservationSlotRepository {
 
     private final ReservationSlotJpaRepository slotJpaRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    public ReservationSlotRepositoryImpl(ReservationSlotJpaRepository slotJpaRepository) {
+        this.slotJpaRepository = slotJpaRepository;
+    }
 
     @Override
     public Optional<ReservationSlot> findByShopAndDateAndTime(ShopId shopId, LocalDate date, LocalTime time) {

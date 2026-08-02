@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.reservation;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +23,13 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * {@link ReservationBookingService}가 갖고 있고, 이 클래스는 그 호출을 트랜잭션으로 감싸는 얇은 경계다.
  */
 @Component
-@RequiredArgsConstructor
 public class ReservationBookingExecutor {
 
     private final ReservationBookingService reservationBookingService;
+
+    public ReservationBookingExecutor(ReservationBookingService reservationBookingService) {
+        this.reservationBookingService = reservationBookingService;
+    }
 
     /**
      * 한 번의 예약 생성 시도를 독립 트랜잭션으로 실행한다.

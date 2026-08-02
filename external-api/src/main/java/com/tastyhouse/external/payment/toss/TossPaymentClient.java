@@ -4,8 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -16,20 +16,25 @@ import com.tastyhouse.external.payment.toss.dto.TossPaymentCancelRequest;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmRequest;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
 
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class TossPaymentClient {
+
+    private static final Logger log = LoggerFactory.getLogger(TossPaymentClient.class);
 
     private final WebClient.Builder webClientBuilder;
     private final TossPaymentProperties tossPaymentProperties;
 
     private WebClient webClient;
 
+    public TossPaymentClient(WebClient.Builder webClientBuilder, TossPaymentProperties tossPaymentProperties) {
+        this.webClientBuilder = webClientBuilder;
+        this.tossPaymentProperties = tossPaymentProperties;
+    }
+
     @PostConstruct
     private void init() {
         this.webClient = webClientBuilder
-            .baseUrl(tossPaymentProperties.getBaseUrl())
+            .baseUrl(tossPaymentProperties.baseUrl())
             .build();
     }
 
@@ -41,7 +46,7 @@ public class TossPaymentClient {
         try {
             TossPaymentConfirmResponse response = webClient
                 .post()
-                .uri(tossPaymentProperties.getConfirmPath())
+                .uri(tossPaymentProperties.confirmPath())
                 .header(HttpHeaders.AUTHORIZATION, createAuthorizationHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
@@ -78,7 +83,7 @@ public class TossPaymentClient {
     public TossPaymentConfirmResponse cancelPayment(String paymentKey, String cancelReason) {
         TossPaymentCancelRequest request = new TossPaymentCancelRequest(cancelReason);
 
-        String cancelUrl = tossPaymentProperties.getCancelPath().replace("{paymentKey}", paymentKey);
+        String cancelUrl = tossPaymentProperties.cancelPath().replace("{paymentKey}", paymentKey);
 
         log.info("토스 전액 취소하기 API 요청. paymentKey: {}, cancelReason: {}", paymentKey, cancelReason);
 
@@ -119,7 +124,7 @@ public class TossPaymentClient {
     }
 
     private String createAuthorizationHeader() {
-        String credentials = tossPaymentProperties.getSecretKey() + ":";
+        String credentials = tossPaymentProperties.secretKey() + ":";
         String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
         return "Basic " + encodedCredentials;
     }

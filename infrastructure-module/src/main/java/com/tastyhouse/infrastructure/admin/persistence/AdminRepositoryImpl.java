@@ -2,17 +2,19 @@ package com.tastyhouse.infrastructure.admin.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.admin.domain.model.Admin;
 import com.tastyhouse.domain.admin.domain.repository.AdminRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class AdminRepositoryImpl implements AdminRepository {
 
     private final AdminJpaRepository adminJpaRepository;
+
+    public AdminRepositoryImpl(AdminJpaRepository adminJpaRepository) {
+        this.adminJpaRepository = adminJpaRepository;
+    }
 
     @Override
     public Optional<Admin> findByUsername(String username) {

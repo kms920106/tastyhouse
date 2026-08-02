@@ -2,8 +2,6 @@ package com.tastyhouse.domain.event.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.event.domain.vo.EventId;
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
@@ -15,7 +13,6 @@ import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code EventRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Event {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -157,5 +154,57 @@ public class Event {
 
     public void delete() {
         this.deleted = true;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public String getSubtitle() {
+        return this.subtitle;
+    }
+
+    public UploadedFileId getThumbnailImageFileId() {
+        return this.thumbnailImageFileId;
+    }
+
+    public UploadedFileId getBannerImageFileId() {
+        return this.bannerImageFileId;
+    }
+
+    public String getContentHtml() {
+        return this.contentHtml;
+    }
+
+    public EventStatus getStatus() {
+        return this.status;
+    }
+
+    public LocalDateTime getStartAt() {
+        return this.startAt;
+    }
+
+    public LocalDateTime getEndAt() {
+        return this.endAt;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

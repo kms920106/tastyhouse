@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.admin.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.admin.domain.vo.AdminId;
 
 /**
@@ -12,7 +10,6 @@ import com.tastyhouse.domain.admin.domain.vo.AdminId;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code AdminRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Admin {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -59,5 +56,29 @@ public class Admin {
 
     public boolean isActive() {
         return this.status == AdminStatus.ACTIVE;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public AdminRole getRole() {
+        return this.role;
+    }
+
+    public AdminStatus getStatus() {
+        return this.status;
     }
 }

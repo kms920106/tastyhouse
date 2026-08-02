@@ -8,9 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * 검색 키워드 로그 JPA 영속 모델.
@@ -20,8 +17,6 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "SEARCH_KEYWORD_LOG")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class SearchKeywordLogJpaEntity {
 
     @Id
@@ -34,6 +29,9 @@ public class SearchKeywordLogJpaEntity {
     @Column(name = "searched_at", nullable = false)
     private LocalDateTime searchedAt;
 
+    protected SearchKeywordLogJpaEntity() {
+    }
+
     private SearchKeywordLogJpaEntity(String keyword, LocalDateTime searchedAt) {
         this.keyword = keyword;
         this.searchedAt = searchedAt;
@@ -44,5 +42,17 @@ public class SearchKeywordLogJpaEntity {
      */
     static SearchKeywordLogJpaEntity create(String keyword, LocalDateTime searchedAt) {
         return new SearchKeywordLogJpaEntity(keyword, searchedAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getKeyword() {
+        return this.keyword;
+    }
+
+    public LocalDateTime getSearchedAt() {
+        return this.searchedAt;
     }
 }

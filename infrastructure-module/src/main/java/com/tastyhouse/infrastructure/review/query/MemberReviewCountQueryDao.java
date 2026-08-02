@@ -6,7 +6,6 @@ import java.util.List;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
@@ -19,10 +18,13 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
  * 먼저 query 패키지로 분리한다. 나머지 리뷰 read model은 기존 {@code ReviewRepositoryImpl}에 잔류한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class MemberReviewCountQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public MemberReviewCountQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 기간 내 회원별 리뷰 수를 집계한다(리뷰 수 내림차순 → 마지막 작성 이른 순 → 회원 ID 순).

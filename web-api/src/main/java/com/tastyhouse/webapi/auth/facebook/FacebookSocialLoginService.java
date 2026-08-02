@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.auth.facebook;
 import java.util.Optional;
 import java.util.UUID;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,11 +32,9 @@ import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 
 @Service
-@RequiredArgsConstructor
 public class FacebookSocialLoginService {
 
     // SocialOAuthClient 구현이 제공자별로 4개이므로 빈 이름으로 명시 지정한다.
-    @Qualifier("facebookOAuthClient")
     private final SocialOAuthClient facebookOAuthClient;
     private final MemberCommandService memberCommandService;
     private final MemberRepository memberRepository;
@@ -45,6 +42,24 @@ public class FacebookSocialLoginService {
     private final TokenService tokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final FacebookTempTokenRedisRepository facebookTempTokenRedisRepository;
+
+    public FacebookSocialLoginService(
+        @Qualifier("facebookOAuthClient") SocialOAuthClient facebookOAuthClient,
+        MemberCommandService memberCommandService,
+        MemberRepository memberRepository,
+        MemberSocialAccountRepository memberSocialAccountRepository,
+        TokenService tokenService,
+        JwtTokenProvider jwtTokenProvider,
+        FacebookTempTokenRedisRepository facebookTempTokenRedisRepository
+    ) {
+        this.facebookOAuthClient = facebookOAuthClient;
+        this.memberCommandService = memberCommandService;
+        this.memberRepository = memberRepository;
+        this.memberSocialAccountRepository = memberSocialAccountRepository;
+        this.tokenService = tokenService;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.facebookTempTokenRedisRepository = facebookTempTokenRedisRepository;
+    }
 
     // JS SDK 액세스 토큰으로 페이스북 로그인 처리
     // - 토큰 서버 검증 후 사용자 정보 조회

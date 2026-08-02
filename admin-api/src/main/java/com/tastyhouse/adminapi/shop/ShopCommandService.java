@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.shop;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +51,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ShopCommandService {
 
     private final ShopLifecycleService shopLifecycleService;
@@ -60,6 +58,20 @@ public class ShopCommandService {
     private final ShopDetailRepository shopDetailRepository;
     private final ShopChoiceRepository shopChoiceRepository;
     private final TagRepository tagRepository;
+
+    public ShopCommandService(
+        ShopLifecycleService shopLifecycleService,
+        ShopBusinessHourService shopBusinessHourService,
+        ShopDetailRepository shopDetailRepository,
+        ShopChoiceRepository shopChoiceRepository,
+        TagRepository tagRepository
+    ) {
+        this.shopLifecycleService = shopLifecycleService;
+        this.shopBusinessHourService = shopBusinessHourService;
+        this.shopDetailRepository = shopDetailRepository;
+        this.shopChoiceRepository = shopChoiceRepository;
+        this.tagRepository = tagRepository;
+    }
 
     public Long createShop(
         Long ceoId,

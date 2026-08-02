@@ -2,7 +2,6 @@ package com.tastyhouse.ceoapi.ceo;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +19,13 @@ import com.tastyhouse.domain.ceo.domain.repository.CeoRepository;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class CeoQueryService {
 
     private final CeoRepository ceoRepository;
+
+    public CeoQueryService(CeoRepository ceoRepository) {
+        this.ceoRepository = ceoRepository;
+    }
 
     /**
      * 인증(UserDetails 로드·토큰 갱신 시 계정 상태 재검증)용 단건 조회.

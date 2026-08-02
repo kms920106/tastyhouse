@@ -3,8 +3,6 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
@@ -18,7 +16,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로
  * {@code ShopContentBoardRepository#save}를 호출해야 한다.
  */
-@Getter
 public class ShopContentBoard {
 
     private static final int MAX_DESCRIPTION_LENGTH = 50;
@@ -129,5 +126,45 @@ public class ShopContentBoard {
      */
     public static boolean isValidYoutubeUrl(String url) {
         return url != null && YOUTUBE_URL_PATTERN.matcher(url).matches();
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public ShopContentType getContentType() {
+        return this.contentType;
+    }
+
+    public ShopContentTopic getTopic() {
+        return this.topic;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public String getYoutubeUrl() {
+        return this.youtubeUrl;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

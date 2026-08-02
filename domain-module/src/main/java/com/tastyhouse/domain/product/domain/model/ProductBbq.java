@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.product.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.product.domain.vo.BbqCategoryId;
 import com.tastyhouse.domain.product.domain.vo.BbqMenuId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
@@ -12,7 +10,6 @@ import com.tastyhouse.domain.product.domain.vo.ProductId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code ProductBbqJpaEntity} + {@code ProductBbqMapper}가 담당한다.
  */
-@Getter
 public class ProductBbq {
 
     private final Long id;
@@ -48,5 +45,25 @@ public class ProductBbq {
 
     public void markOptionsSynced() {
         this.optionsSynced = true;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public BbqMenuId getBbqMenuId() {
+        return this.bbqMenuId;
+    }
+
+    public BbqCategoryId getBbqCategoryId() {
+        return this.bbqCategoryId;
+    }
+
+    public boolean isOptionsSynced() {
+        return this.optionsSynced;
     }
 }

@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.event;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +35,13 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class EventQueryService {
 
     private final EventQueryDao eventQueryDao;
+
+    public EventQueryService(EventQueryDao eventQueryDao) {
+        this.eventQueryDao = eventQueryDao;
+    }
 
     public PaginationResponse<EventListItemResponse> getEvents(String name, String status, int page, int size) {
         EventStatus eventStatus = status == null ? null : EventStatus.from(status);

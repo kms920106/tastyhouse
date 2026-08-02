@@ -2,8 +2,6 @@ package com.tastyhouse.domain.faq.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
 import com.tastyhouse.domain.faq.domain.vo.FaqId;
 
@@ -15,7 +13,6 @@ import com.tastyhouse.domain.faq.domain.vo.FaqId;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code FaqRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Faq {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -89,5 +86,41 @@ public class Faq {
 
     public void delete() {
         this.deleted = true;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public FaqCategoryId getFaqCategoryId() {
+        return this.faqCategoryId;
+    }
+
+    public String getQuestion() {
+        return this.question;
+    }
+
+    public String getAnswer() {
+        return this.answer;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

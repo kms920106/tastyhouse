@@ -1,10 +1,5 @@
 package com.tastyhouse.external.exception;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
 public enum ExternalApiErrorCode {
 
     // SMS
@@ -18,4 +13,22 @@ public enum ExternalApiErrorCode {
     private final int httpStatusCode;
     private final String code;
     private final String defaultMessage;
+
+    ExternalApiErrorCode(int httpStatusCode, String code, String defaultMessage) {
+        this.httpStatusCode = httpStatusCode;
+        this.code = code;
+        this.defaultMessage = defaultMessage;
+    }
+
+    public int getHttpStatusCode() {
+        return this.httpStatusCode;
+    }
+
+    public String getCode() {
+        return this.code;
+    }
+
+    public String getDefaultMessage() {
+        return this.defaultMessage;
+    }
 }

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.model.Member;
@@ -23,11 +22,15 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
  * 이관했다.
  */
 @Repository
-@RequiredArgsConstructor
 public class MemberRepositoryImpl implements MemberRepository {
 
     private final JPAQueryFactory queryFactory;
     private final MemberJpaRepository memberJpaRepository;
+
+    public MemberRepositoryImpl(JPAQueryFactory queryFactory, MemberJpaRepository memberJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.memberJpaRepository = memberJpaRepository;
+    }
 
     @Override
     public Optional<Member> findById(MemberId memberId) {

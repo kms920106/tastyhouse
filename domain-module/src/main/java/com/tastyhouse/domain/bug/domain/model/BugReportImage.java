@@ -1,11 +1,8 @@
 package com.tastyhouse.domain.bug.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
-@Getter
 public class BugReportImage {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -32,5 +29,21 @@ public class BugReportImage {
      */
     public static BugReportImage reconstitute(Long id, BugReportId bugReportId, UploadedFileId imageFileId, Integer sort) {
         return new BugReportImage(id, bugReportId, imageFileId, sort);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public BugReportId getBugReportId() {
+        return this.bugReportId;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
     }
 }

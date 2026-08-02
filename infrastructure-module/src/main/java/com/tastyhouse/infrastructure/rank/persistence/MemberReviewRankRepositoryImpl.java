@@ -7,7 +7,6 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -24,7 +23,6 @@ import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJp
  * 이관했다. 여기에는 랭킹 확정 트랜잭션의 일괄 삭제·적재와 등급 산정용 단건 로드만 남는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepository {
 
     private final JPAQueryFactory queryFactory;
@@ -32,6 +30,11 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    public MemberReviewRankRepositoryImpl(JPAQueryFactory queryFactory, MemberReviewRankJpaRepository memberReviewRankJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.memberReviewRankJpaRepository = memberReviewRankJpaRepository;
+    }
 
     @Override
     public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType) {

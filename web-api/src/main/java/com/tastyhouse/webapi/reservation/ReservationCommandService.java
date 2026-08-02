@@ -3,8 +3,8 @@ package com.tastyhouse.webapi.reservation;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,16 +41,26 @@ import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
  *
  * <p>HTTP 경계에서 받은 {@code Long}은 이 계층에서 {@code ReservationId}·{@code MemberId}로 승격한다.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class ReservationCommandService {
+
+    private static final Logger log = LoggerFactory.getLogger(ReservationCommandService.class);
 
     private static final int MAX_RETRY = 3;
 
     private final ReservationBookingExecutor reservationBookingExecutor;
     private final ReservationBookingService reservationBookingService;
     private final ReservationRepository reservationRepository;
+
+    public ReservationCommandService(
+        ReservationBookingExecutor reservationBookingExecutor,
+        ReservationBookingService reservationBookingService,
+        ReservationRepository reservationRepository
+    ) {
+        this.reservationBookingExecutor = reservationBookingExecutor;
+        this.reservationBookingService = reservationBookingService;
+        this.reservationRepository = reservationRepository;
+    }
 
     /**
      * 예약을 생성하고 생성된 예약 ID를 반환한다(비트랜잭션 — 낙관적 락 재시도 루프).

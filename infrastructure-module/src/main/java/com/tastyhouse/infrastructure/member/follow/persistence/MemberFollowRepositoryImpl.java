@@ -6,7 +6,6 @@ import java.util.Optional;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -26,7 +25,6 @@ import static com.tastyhouse.infrastructure.member.follow.persistence.QMemberFol
  * {@link Expressions#numberPath}로 raw Long 경로를 우회 노출해 사용한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class MemberFollowRepositoryImpl implements MemberFollowRepository {
 
     private static final NumberPath<Long> followingIdCol =
@@ -34,6 +32,11 @@ public class MemberFollowRepositoryImpl implements MemberFollowRepository {
 
     private final JPAQueryFactory queryFactory;
     private final MemberFollowJpaRepository memberFollowJpaRepository;
+
+    public MemberFollowRepositoryImpl(JPAQueryFactory queryFactory, MemberFollowJpaRepository memberFollowJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.memberFollowJpaRepository = memberFollowJpaRepository;
+    }
 
     @Override
     public Optional<MemberFollow> findByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId) {

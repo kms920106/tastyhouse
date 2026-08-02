@@ -2,7 +2,6 @@ package com.tastyhouse.security.token;
 
 import java.util.concurrent.TimeUnit;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -14,13 +13,16 @@ import org.springframework.stereotype.Repository;
  * - 회원가입(/signup/facebook) 또는 계정 연동(/link/facebook) 완료 시 삭제 (1회용)
  */
 @Repository
-@RequiredArgsConstructor
 public class FacebookTempTokenRedisRepository {
 
     private static final String PREFIX = "facebook_temp:";
     private static final long TTL_MINUTES = 10;
 
     private final StringRedisTemplate redisTemplate;
+
+    public FacebookTempTokenRedisRepository(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     public void save(String facebookTempToken, String facebookAccessToken) {
         redisTemplate.opsForValue().set(

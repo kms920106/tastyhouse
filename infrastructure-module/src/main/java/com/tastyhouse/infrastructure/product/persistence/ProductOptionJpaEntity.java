@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
@@ -20,8 +17,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code ProductOption}과 분리된 영속 전용 엔티티다. 도메인↔엔티티 변환은
  * {@code ProductOptionMapper}가 수행한다.
  */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 @Entity
 @Table(name = "PRODUCT_OPTION")
 public class ProductOptionJpaEntity extends BaseEntity {
@@ -48,6 +43,9 @@ public class ProductOptionJpaEntity extends BaseEntity {
 
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
+
+    protected ProductOptionJpaEntity() {
+    }
 
     private ProductOptionJpaEntity(
         ProductOptionGroupId optionGroupId,
@@ -88,5 +86,33 @@ public class ProductOptionJpaEntity extends BaseEntity {
         this.sort = sort;
         this.soldOut = soldOut;
         this.visible = visible;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ProductOptionGroupId getOptionGroupId() {
+        return this.optionGroupId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Integer getAdditionalPrice() {
+        return this.additionalPrice;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isSoldOut() {
+        return this.soldOut;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

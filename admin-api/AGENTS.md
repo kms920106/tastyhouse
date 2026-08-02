@@ -62,6 +62,6 @@
 - `external-api`, `logging-module`, `security-module`
 
 ### External
-- Spring Web, springdoc-openapi 2.3.0, Lombok
+- Spring Web, springdoc-openapi 2.3.0
 
 <!-- MANUAL: -->

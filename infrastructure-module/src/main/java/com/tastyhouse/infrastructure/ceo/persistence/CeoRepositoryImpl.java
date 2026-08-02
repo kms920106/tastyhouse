@@ -2,17 +2,19 @@ package com.tastyhouse.infrastructure.ceo.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.ceo.domain.model.Ceo;
 import com.tastyhouse.domain.ceo.domain.repository.CeoRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class CeoRepositoryImpl implements CeoRepository {
 
     private final CeoJpaRepository ceoJpaRepository;
+
+    public CeoRepositoryImpl(CeoJpaRepository ceoJpaRepository) {
+        this.ceoJpaRepository = ceoJpaRepository;
+    }
 
     @Override
     public Optional<Ceo> findByUsername(String username) {

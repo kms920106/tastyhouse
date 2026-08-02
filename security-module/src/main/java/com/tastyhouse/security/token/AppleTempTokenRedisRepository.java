@@ -2,7 +2,6 @@ package com.tastyhouse.security.token;
 
 import java.util.concurrent.TimeUnit;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -17,13 +16,16 @@ import org.springframework.stereotype.Repository;
  * id_token은 이미 서버에서 검증 완료된 상태이며, sub/email 재추출 시 재파싱된다.
  */
 @Repository
-@RequiredArgsConstructor
 public class AppleTempTokenRedisRepository {
 
     private static final String PREFIX = "apple_temp:";
     private static final long TTL_MINUTES = 10;
 
     private final StringRedisTemplate redisTemplate;
+
+    public AppleTempTokenRedisRepository(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     public void save(String appleTempToken, String appleIdToken) {
         redisTemplate.opsForValue().set(

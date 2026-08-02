@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.product.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
 
@@ -12,7 +10,6 @@ import com.tastyhouse.domain.product.domain.vo.ProductId;
  * {@code ProductImageJpaEntity} + {@code ProductImageMapper}가 담당한다. 상태전이 메서드가
  * 없는 불변 애그리거트라 전 필드가 {@code final}이다.
  */
-@Getter
 public class ProductImage {
 
     private final Long id;
@@ -44,5 +41,25 @@ public class ProductImage {
         boolean visible
     ) {
         return new ProductImage(id, productId, imageFileId, sort, visible);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ProductId getProductId() {
+        return this.productId;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

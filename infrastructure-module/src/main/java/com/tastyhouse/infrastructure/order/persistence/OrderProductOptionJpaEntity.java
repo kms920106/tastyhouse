@@ -7,9 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
@@ -24,10 +21,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code OrderProductOption}과 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code OrderProductOptionMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "ORDER_PRODUCT_OPTION")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderProductOptionJpaEntity extends BaseEntity {
 
     @Id
@@ -54,6 +49,9 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
 
     @Column(name = "additional_price", nullable = false)
     private Integer additionalPrice; // 옵션 추가 금액
+
+    protected OrderProductOptionJpaEntity() {
+    }
 
     private OrderProductOptionJpaEntity(
         OrderProductId orderProductId,
@@ -90,5 +88,33 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
             optionName,
             additionalPrice
         );
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public OrderProductId getOrderProductId() {
+        return this.orderProductId;
+    }
+
+    public ProductOptionGroupId getOptionGroupId() {
+        return this.optionGroupId;
+    }
+
+    public String getOptionGroupName() {
+        return this.optionGroupName;
+    }
+
+    public ProductOptionId getOptionId() {
+        return this.optionId;
+    }
+
+    public String getOptionName() {
+        return this.optionName;
+    }
+
+    public Integer getAdditionalPrice() {
+        return this.additionalPrice;
     }
 }

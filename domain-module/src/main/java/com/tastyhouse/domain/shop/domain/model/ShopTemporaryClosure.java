@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -17,7 +15,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * {@code ShopTemporaryClosureJpaEntity} + {@code ShopTemporaryClosureMapper}가 담당한다. 상태전이(update)가 없어
  * 생성과 삭제만 존재한다.
  */
-@Getter
 public class ShopTemporaryClosure {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -57,5 +54,25 @@ public class ShopTemporaryClosure {
      */
     public long days() {
         return ChronoUnit.DAYS.between(startDate, endDate) + 1;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public LocalDate getStartDate() {
+        return this.startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return this.endDate;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.banner;
 
 import java.time.LocalDateTime;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +25,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class BannerCommandService {
 
     private final BannerRepository bannerRepository;
+
+    public BannerCommandService(BannerRepository bannerRepository) {
+        this.bannerRepository = bannerRepository;
+    }
 
     public Long createBanner(
         String type,

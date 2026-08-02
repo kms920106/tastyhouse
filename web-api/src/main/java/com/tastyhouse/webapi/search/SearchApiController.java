@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -27,11 +26,14 @@ import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
 
 @RestController
 @RequestMapping("/api/search")
-@RequiredArgsConstructor
 @Tag(name = "Search", description = "검색 API")
 public class SearchApiController {
 
     private final SearchQueryService searchQueryService;
+
+    public SearchApiController(SearchQueryService searchQueryService) {
+        this.searchQueryService = searchQueryService;
+    }
 
     @Operation(summary = "인기 검색어 조회", description = "1~10위 인기 검색어 반환. 신규 진입 키워드는 isNew=true.")
     @GetMapping("/v1/popular-keywords")

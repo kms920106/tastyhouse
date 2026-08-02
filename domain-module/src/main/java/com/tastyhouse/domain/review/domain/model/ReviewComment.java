@@ -2,8 +2,6 @@ package com.tastyhouse.domain.review.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
@@ -16,7 +14,6 @@ import com.tastyhouse.domain.review.domain.vo.ReviewId;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code ReviewCommentRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class ReviewComment {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -74,5 +71,29 @@ public class ReviewComment {
 
     public void unhide() {
         this.hidden = false;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ReviewId getReviewId() {
+        return this.reviewId;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

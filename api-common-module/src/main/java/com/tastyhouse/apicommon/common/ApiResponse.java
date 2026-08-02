@@ -2,27 +2,51 @@ package com.tastyhouse.apicommon.common;
 
 import java.util.List;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-@Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiResponse<T> {
-    private boolean success;
-    private String message;
-    private T data;
-    private Pagination pagination;
+    private final boolean success;
+    private final String message;
+    private final T data;
+    private final Pagination pagination;
 
-    @Getter
-    @AllArgsConstructor
+    private ApiResponse(boolean success, String message, T data, Pagination pagination) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.pagination = pagination;
+    }
+
+    public boolean isSuccess() {
+        return this.success;
+    }
+
+    public String getMessage() {
+        return this.message;
+    }
+
     public static class Pagination {
-        private int page;
-        private int size;
-        private long totalElements;
-        private int totalPages;
+        private final int page;
+        private final int size;
+        private final long totalElements;
+        private final int totalPages;
+
+        public Pagination(int page, int size, long totalElements, int totalPages) {
+            this.page = page;
+            this.size = size;
+            this.totalElements = totalElements;
+            this.totalPages = totalPages;
+        }
+
+        public int getPage() {
+            return this.page;
+        }
+
+        public int getSize() {
+            return this.size;
+        }
+
+        public long getTotalElements() {
+            return this.totalElements;
+        }
     }
 
     public static <T> ApiResponse<T> success(T data) {

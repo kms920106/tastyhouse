@@ -2,8 +2,6 @@ package com.tastyhouse.domain.payment.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 
 /**
@@ -13,7 +11,6 @@ import com.tastyhouse.domain.payment.domain.vo.PaymentId;
  * {@code TossPaymentRecordJpaEntity} + {@code TossPaymentRecordMapper}가 담당한다. 상태전이
  * 메서드가 없는 insert 전용 레코드이므로 신규 생성 시에도 감사 시각을 요구하지 않는다.
  */
-@Getter
 public class TossPaymentRecord {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -231,5 +228,233 @@ public class TossPaymentRecord {
             transferSettlementStatus, easyPayProvider, easyPayAmount, easyPayDiscountAmount, receiptUrl, checkoutUrl,
             failureCode, failureMessage, country, createdAt
         );
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public PaymentId getPaymentId() {
+        return this.paymentId;
+    }
+
+    public String getVersion() {
+        return this.version;
+    }
+
+    public String getPaymentKey() {
+        return this.paymentKey;
+    }
+
+    public String getType() {
+        return this.type;
+    }
+
+    public String getOrderId() {
+        return this.orderId;
+    }
+
+    public String getOrderName() {
+        return this.orderName;
+    }
+
+    public String getMId() {
+        return this.mId;
+    }
+
+    public String getCurrency() {
+        return this.currency;
+    }
+
+    public String getMethod() {
+        return this.method;
+    }
+
+    public Integer getTotalAmount() {
+        return this.totalAmount;
+    }
+
+    public Integer getBalanceAmount() {
+        return this.balanceAmount;
+    }
+
+    public String getStatus() {
+        return this.status;
+    }
+
+    public LocalDateTime getRequestedAt() {
+        return this.requestedAt;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return this.approvedAt;
+    }
+
+    public boolean isUseEscrow() {
+        return this.useEscrow;
+    }
+
+    public String getLastTransactionKey() {
+        return this.lastTransactionKey;
+    }
+
+    public Integer getSuppliedAmount() {
+        return this.suppliedAmount;
+    }
+
+    public Integer getVat() {
+        return this.vat;
+    }
+
+    public boolean isCultureExpense() {
+        return this.cultureExpense;
+    }
+
+    public Integer getTaxFreeAmount() {
+        return this.taxFreeAmount;
+    }
+
+    public Integer getTaxExemptionAmount() {
+        return this.taxExemptionAmount;
+    }
+
+    public boolean isPartialCancelable() {
+        return this.partialCancelable;
+    }
+
+    public Integer getCardAmount() {
+        return this.cardAmount;
+    }
+
+    public String getCardIssuerCode() {
+        return this.cardIssuerCode;
+    }
+
+    public String getCardAcquirerCode() {
+        return this.cardAcquirerCode;
+    }
+
+    public String getCardNumber() {
+        return this.cardNumber;
+    }
+
+    public Integer getCardInstallmentPlanMonths() {
+        return this.cardInstallmentPlanMonths;
+    }
+
+    public String getCardApproveNo() {
+        return this.cardApproveNo;
+    }
+
+    public boolean isCardUseCardPoint() {
+        return this.cardUseCardPoint;
+    }
+
+    public String getCardType() {
+        return this.cardType;
+    }
+
+    public String getCardOwnerType() {
+        return this.cardOwnerType;
+    }
+
+    public String getCardAcquireStatus() {
+        return this.cardAcquireStatus;
+    }
+
+    public boolean isCardInterestFree() {
+        return this.cardInterestFree;
+    }
+
+    public String getCardInterestPayer() {
+        return this.cardInterestPayer;
+    }
+
+    public String getVirtualAccountType() {
+        return this.virtualAccountType;
+    }
+
+    public String getVirtualAccountNumber() {
+        return this.virtualAccountNumber;
+    }
+
+    public String getVirtualAccountBankCode() {
+        return this.virtualAccountBankCode;
+    }
+
+    public String getVirtualAccountCustomerName() {
+        return this.virtualAccountCustomerName;
+    }
+
+    public LocalDateTime getVirtualAccountDueDate() {
+        return this.virtualAccountDueDate;
+    }
+
+    public String getVirtualAccountRefundStatus() {
+        return this.virtualAccountRefundStatus;
+    }
+
+    public boolean isVirtualAccountExpired() {
+        return this.virtualAccountExpired;
+    }
+
+    public String getVirtualAccountSettlementStatus() {
+        return this.virtualAccountSettlementStatus;
+    }
+
+    public String getMobilePhoneCustomerMobilePhone() {
+        return this.mobilePhoneCustomerMobilePhone;
+    }
+
+    public String getMobilePhoneSettlementStatus() {
+        return this.mobilePhoneSettlementStatus;
+    }
+
+    public String getMobilePhoneReceiptUrl() {
+        return this.mobilePhoneReceiptUrl;
+    }
+
+    public String getTransferBankCode() {
+        return this.transferBankCode;
+    }
+
+    public String getTransferSettlementStatus() {
+        return this.transferSettlementStatus;
+    }
+
+    public String getReceiptUrl() {
+        return this.receiptUrl;
+    }
+
+    public String getCheckoutUrl() {
+        return this.checkoutUrl;
+    }
+
+    public String getEasyPayProvider() {
+        return this.easyPayProvider;
+    }
+
+    public Integer getEasyPayAmount() {
+        return this.easyPayAmount;
+    }
+
+    public Integer getEasyPayDiscountAmount() {
+        return this.easyPayDiscountAmount;
+    }
+
+    public String getCountry() {
+        return this.country;
+    }
+
+    public String getFailureCode() {
+        return this.failureCode;
+    }
+
+    public String getFailureMessage() {
+        return this.failureMessage;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.config.security;
 import java.io.Serial;
 import java.util.Collection;
 
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -15,7 +14,6 @@ public class CustomUserDetails extends User implements JwtPrincipal {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Getter
     private final Long memberId;
 
     public CustomUserDetails(Member member, Collection<? extends GrantedAuthority> authorities) {
@@ -31,5 +29,9 @@ public class CustomUserDetails extends User implements JwtPrincipal {
     @Override
     public Long getPrincipalId() {
         return memberId;
+    }
+
+    public Long getMemberId() {
+        return this.memberId;
     }
 }

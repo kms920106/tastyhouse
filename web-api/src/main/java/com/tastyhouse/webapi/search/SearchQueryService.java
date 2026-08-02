@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.search;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,13 +38,24 @@ import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class SearchQueryService {
 
     private final SearchQueryDao searchQueryDao;
     private final ProductQueryService productQueryService;
     private final ReviewQueryDao reviewQueryDao;
     private final ShopSearchQueryDao shopSearchQueryDao;
+
+    public SearchQueryService(
+        SearchQueryDao searchQueryDao,
+        ProductQueryService productQueryService,
+        ReviewQueryDao reviewQueryDao,
+        ShopSearchQueryDao shopSearchQueryDao
+    ) {
+        this.searchQueryDao = searchQueryDao;
+        this.productQueryService = productQueryService;
+        this.reviewQueryDao = reviewQueryDao;
+        this.shopSearchQueryDao = shopSearchQueryDao;
+    }
 
     public List<SearchPopularKeywordResponse> getPopularKeywords() {
         return searchQueryDao.findVisiblePopularKeywords().stream()

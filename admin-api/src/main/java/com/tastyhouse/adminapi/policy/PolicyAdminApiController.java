@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.policy;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,11 +18,14 @@ import com.tastyhouse.adminapi.policy.request.PolicyUpdateRequest;
 
 @Tag(name = "Policy Admin", description = "약관 및 정책 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/policies")
 public class PolicyAdminApiController {
 
     private final PolicyCommandService policyCommandService;
+
+    public PolicyAdminApiController(PolicyCommandService policyCommandService) {
+        this.policyCommandService = policyCommandService;
+    }
 
     @Operation(summary = "약관 생성", description = "새로운 약관을 생성합니다.")
     @PostMapping("/v1")

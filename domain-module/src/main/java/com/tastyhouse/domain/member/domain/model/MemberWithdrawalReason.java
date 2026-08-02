@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.member.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum MemberWithdrawalReason {
 
     LOW_USAGE_FREQUENCY("서비스 이용 빈도가 낮아서"),
@@ -17,6 +12,14 @@ public enum MemberWithdrawalReason {
     OTHER("기타");
 
     private final String description;
+
+    MemberWithdrawalReason(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 
     public static MemberWithdrawalReason from(String code) {
         try {

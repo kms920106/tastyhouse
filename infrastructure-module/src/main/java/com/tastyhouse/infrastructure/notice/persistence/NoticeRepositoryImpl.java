@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.notice.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.notice.domain.model.Notice;
@@ -19,11 +18,15 @@ import static com.tastyhouse.infrastructure.notice.persistence.QNoticeJpaEntity.
  * {@code notice/query/NoticeQueryDao}로 분리되어 있다.
  */
 @Repository
-@RequiredArgsConstructor
 public class NoticeRepositoryImpl implements NoticeRepository {
 
     private final JPAQueryFactory queryFactory;
     private final NoticeJpaRepository noticeJpaRepository;
+
+    public NoticeRepositoryImpl(JPAQueryFactory queryFactory, NoticeJpaRepository noticeJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.noticeJpaRepository = noticeJpaRepository;
+    }
 
     @Override
     public Optional<Notice> findById(NoticeId noticeId) {

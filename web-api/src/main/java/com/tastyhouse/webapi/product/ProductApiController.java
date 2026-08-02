@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -32,11 +31,14 @@ import com.tastyhouse.webapi.product.response.ProductTodayDiscountListItemRespon
 
 @RestController
 @RequestMapping("/api/products")
-@RequiredArgsConstructor
 @Tag(name = "Product", description = "상품 관리 API")
 public class ProductApiController {
 
     private final ProductQueryService productQueryService;
+
+    public ProductApiController(ProductQueryService productQueryService) {
+        this.productQueryService = productQueryService;
+    }
 
     @Operation(summary = "상품 목록 조회 (오늘의 할인)", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @GetMapping("/v1/today-discounts")

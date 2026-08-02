@@ -2,7 +2,6 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.domain.model.ProductOption;
@@ -13,10 +12,13 @@ import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
  * 상품 옵션 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class ProductOptionRepositoryImpl implements ProductOptionRepository {
 
     private final ProductOptionJpaRepository productOptionJpaRepository;
+
+    public ProductOptionRepositoryImpl(ProductOptionJpaRepository productOptionJpaRepository) {
+        this.productOptionJpaRepository = productOptionJpaRepository;
+    }
 
     @Override
     public Optional<ProductOption> findById(ProductOptionId id) {

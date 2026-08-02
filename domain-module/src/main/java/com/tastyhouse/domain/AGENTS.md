@@ -5,7 +5,7 @@
 
 ## Purpose
 
-DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거주하는 핵심 계층입니다. **프레임워크 의존이 전혀 없습니다** — Spring(Web/tx/orm)·JPA(`jakarta.persistence`)·QueryDSL(`com.querydsl`)을 import하지 않으며, 이 모듈의 production 의존은 Lombok 하나뿐입니다. 각 Bounded Context는 `<ctx>/domain/{model,vo,event,repository,service,port}` 구조를 가지며, 여기에 공유 커널(`shared/`)과 공통 예외(`exception/`)가 더해집니다.
+DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거주하는 핵심 계층입니다. **프레임워크 의존이 전혀 없습니다** — Spring(Web/tx/orm)·JPA(`jakarta.persistence`)·QueryDSL(`com.querydsl`)을 import하지 않으며, 이 모듈의 production 의존은 **하나도 없습니다**(Lombok까지 제거되어 접근자·생성자를 수기로 작성합니다). 각 Bounded Context는 `<ctx>/domain/{model,vo,event,repository,service,port}` 구조를 가지며, 여기에 공유 커널(`shared/`)과 공통 예외(`exception/`)가 더해집니다.
 
 > 과거 이 패키지는 `com.tastyhouse.core`였고 도메인마다 `application/`(서비스·DTO)과 `infrastructure/`(JPA 구현)를 함께 갖고 있었습니다. `core-module` → `domain-module` 전환으로 **`application/`은 해체**(조회는 infrastructure-module `<ctx>/query/`, 액터 특화 command는 각 소비 모듈의 CQRS 서비스, 불변식 오케스트레이션은 `domain/service/`로 하강)되고 **`infrastructure/`는 `infrastructure-module`로 이동**했습니다. 이 패키지에는 이제 domain·shared·exception만 남습니다.
 
@@ -197,9 +197,7 @@ public interface DomainEventPublisher {
 
 ### External
 
-| 의존성 | 용도 |
-|---|---|
-| **Lombok** | `@Getter`/`@RequiredArgsConstructor` 등 보일러플레이트 제거 — **production 의존은 이것뿐** |
+**production 의존 없음.** getter·생성자는 Lombok이 아니라 수기로 작성한다.
 
 > JPA/Hibernate·QueryDSL·MySQL·Spring Data 의존은 이 모듈에 없다. 전부 `infrastructure-module`이 소유한다.
 

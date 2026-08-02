@@ -3,14 +3,9 @@ package com.tastyhouse.domain.member.domain.model;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum MemberGrade {
     NEWCOMER(1, "신입멤버", 0),
     ACTIVE(2, "열심멤버", 100),
@@ -21,6 +16,12 @@ public enum MemberGrade {
     private final int level;
     private final String displayName;
     private final int minReviewCount;
+
+    MemberGrade(int level, String displayName, int minReviewCount) {
+        this.level = level;
+        this.displayName = displayName;
+        this.minReviewCount = minReviewCount;
+    }
 
     public static MemberGrade from(String code) {
         try {
@@ -54,5 +55,17 @@ public enum MemberGrade {
 
     public boolean isHigherThanOrEqual(MemberGrade other) {
         return this.level >= other.level;
+    }
+
+    public int getLevel() {
+        return this.level;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    public int getMinReviewCount() {
+        return this.minReviewCount;
     }
 }

@@ -2,8 +2,6 @@ package com.tastyhouse.domain.sms.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.sms.domain.vo.SmsVerificationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -21,7 +19,6 @@ import com.tastyhouse.domain.shared.vo.VerificationCode;
  * <p>타입명은 채널(SMS)을 따르지만 {@code phoneNumber} 필드는 검증 대상인 번호 값 자체이므로
  * 그 이름을 유지한다(공용 VO {@link PhoneNumber}).
  */
-@Getter
 public class SmsVerification {
 
     /**
@@ -103,5 +100,33 @@ public class SmsVerification {
         }
         this.status = SmsVerificationStatus.VERIFIED;
         this.verifiedAt = now;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public PhoneNumber getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public VerificationCode getVerificationCode() {
+        return this.verificationCode;
+    }
+
+    public SmsVerificationStatus getStatus() {
+        return this.status;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return this.expiresAt;
+    }
+
+    public LocalDateTime getVerifiedAt() {
+        return this.verifiedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

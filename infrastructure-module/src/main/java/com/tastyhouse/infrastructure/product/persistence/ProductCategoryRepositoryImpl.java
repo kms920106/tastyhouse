@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.domain.model.ProductCategory;
@@ -18,11 +17,15 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductCategory
  * 상품 카테고리 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class ProductCategoryRepositoryImpl implements ProductCategoryRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ProductCategoryJpaRepository productCategoryJpaRepository;
+
+    public ProductCategoryRepositoryImpl(JPAQueryFactory queryFactory, ProductCategoryJpaRepository productCategoryJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.productCategoryJpaRepository = productCategoryJpaRepository;
+    }
 
     @Override
     public Optional<ProductCategory> findById(ProductCategoryId id) {

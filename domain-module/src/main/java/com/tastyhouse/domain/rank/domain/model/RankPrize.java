@@ -2,8 +2,6 @@ package com.tastyhouse.domain.rank.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
@@ -16,7 +14,6 @@ import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code RankPrizeRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class RankPrize {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -89,5 +86,41 @@ public class RankPrize {
 
     public void delete() {
         this.deleted = true;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public RankPeriodId getRankId() {
+        return this.rankId;
+    }
+
+    public Integer getPrizeRank() {
+        return this.prizeRank;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getBrand() {
+        return this.brand;
+    }
+
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

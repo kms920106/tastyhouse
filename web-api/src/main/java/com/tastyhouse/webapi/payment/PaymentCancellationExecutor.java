@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.payment;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +19,13 @@ import com.tastyhouse.domain.payment.domain.vo.PaymentId;
  * (self-invocation으로는 {@code @Transactional}이 적용되지 않고, 도메인 서비스는 POJO라 가질 수 없다).
  */
 @Component
-@RequiredArgsConstructor
 public class PaymentCancellationExecutor {
 
     private final PaymentCancellationService paymentCancellationService;
+
+    public PaymentCancellationExecutor(PaymentCancellationService paymentCancellationService) {
+        this.paymentCancellationService = paymentCancellationService;
+    }
 
     /**
      * 1단(트랜잭션) — PG 취소 요청 전 판정. 읽기만 하므로 {@code readOnly}다.

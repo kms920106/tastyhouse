@@ -1,7 +1,7 @@
 package com.tastyhouse.external.payment.toss;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.payment.domain.port.PgPaymentGateway;
@@ -10,12 +10,16 @@ import com.tastyhouse.domain.payment.domain.port.dto.PgConfirmResult;
 import com.tastyhouse.domain.payment.domain.port.dto.TossPaymentDetail;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
 
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class TossPaymentGatewayAdapter implements PgPaymentGateway {
 
+    private static final Logger log = LoggerFactory.getLogger(TossPaymentGatewayAdapter.class);
+
     private final TossPaymentClient tossPaymentClient;
+
+    public TossPaymentGatewayAdapter(TossPaymentClient tossPaymentClient) {
+        this.tossPaymentClient = tossPaymentClient;
+    }
 
     @Override
     public PgConfirmResult confirmPayment(Long paymentId, String paymentKey, String pgOrderId, int amount) {

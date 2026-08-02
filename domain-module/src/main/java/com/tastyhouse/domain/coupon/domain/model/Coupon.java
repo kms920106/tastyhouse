@@ -2,8 +2,6 @@ package com.tastyhouse.domain.coupon.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -16,7 +14,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code CouponRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Coupon {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -300,5 +297,69 @@ public class Coupon {
         if (orderAmount < minOrderAmount) {
             throw new BusinessException(ErrorCode.ORDER_MINIMUM_AMOUNT_NOT_MET);
         }
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public DiscountType getDiscountType() {
+        return this.discountType;
+    }
+
+    public Integer getDiscountAmount() {
+        return this.discountAmount;
+    }
+
+    public Integer getMaxDiscountAmount() {
+        return this.maxDiscountAmount;
+    }
+
+    public Integer getMinOrderAmount() {
+        return this.minOrderAmount;
+    }
+
+    public Integer getMaxDiscountCount() {
+        return this.maxDiscountCount;
+    }
+
+    public LocalDateTime getIssueStartAt() {
+        return this.issueStartAt;
+    }
+
+    public LocalDateTime getIssueEndAt() {
+        return this.issueEndAt;
+    }
+
+    public LocalDateTime getUseStartAt() {
+        return this.useStartAt;
+    }
+
+    public LocalDateTime getUseEndAt() {
+        return this.useEndAt;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

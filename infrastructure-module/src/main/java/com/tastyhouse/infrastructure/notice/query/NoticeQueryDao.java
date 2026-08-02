@@ -4,7 +4,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -25,10 +24,13 @@ import static com.tastyhouse.infrastructure.notice.persistence.QNoticeJpaEntity.
  * 노출분만).
  */
 @Repository
-@RequiredArgsConstructor
 public class NoticeQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public NoticeQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 관리 목록 조회 — 비노출 공지를 포함하며 title/content 부분일치·visible 필터를 적용한다.

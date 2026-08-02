@@ -2,7 +2,6 @@ package com.tastyhouse.domain.shop.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
@@ -12,7 +11,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * {@code ShopOwnerMessageHistoryJpaEntity} + {@code ShopOwnerMessageHistoryMapper}가 담당한다.
  * 최신 메시지 조회가 {@code createdAt} 내림차순 정렬에 의존하므로 감사 시각을 필드로 유지한다.
  */
-@Getter
 public class ShopOwnerMessageHistory {
 
     private final Long id;
@@ -36,5 +34,21 @@ public class ShopOwnerMessageHistory {
      */
     public static ShopOwnerMessageHistory reconstitute(Long id, ShopId shopId, String message, LocalDateTime createdAt) {
         return new ShopOwnerMessageHistory(id, shopId, message, createdAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public String getMessage() {
+        return this.message;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
     }
 }

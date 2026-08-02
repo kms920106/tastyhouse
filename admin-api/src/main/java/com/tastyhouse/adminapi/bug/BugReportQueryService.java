@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.bug;
 import java.util.List;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,11 +42,15 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class BugReportQueryService {
 
     private final BugReportQueryDao bugReportQueryDao;
     private final MemberQueryDao memberQueryDao;
+
+    public BugReportQueryService(BugReportQueryDao bugReportQueryDao, MemberQueryDao memberQueryDao) {
+        this.bugReportQueryDao = bugReportQueryDao;
+        this.memberQueryDao = memberQueryDao;
+    }
 
     public PaginationResponse<BugReportListItemResponse> getBugReports(
         String title,

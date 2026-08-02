@@ -1,6 +1,5 @@
 package com.tastyhouse.ceoapi.shop;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.ceo.domain.vo.CeoId;
@@ -23,10 +22,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 투영만 제공하는 query DAO로는 대체할 수 없다.
  */
 @Component
-@RequiredArgsConstructor
 public class ShopOwnershipValidator {
 
     private final ShopRepository shopRepository;
+
+    public ShopOwnershipValidator(ShopRepository shopRepository) {
+        this.shopRepository = shopRepository;
+    }
 
     /**
      * 로그인 점주가 대상 가게의 소유자인지 검증하고, 소유 가게 도메인을 반환한다.

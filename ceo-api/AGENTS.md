@@ -58,6 +58,6 @@
 - `external-api`, `logging-module`, `security-module`
 
 ### External
-- Spring Web, Spring Security, springdoc-openapi 2.3.0, jjwt 0.13.0, Spring Data Redis, Lombok
+- Spring Web, Spring Security, springdoc-openapi 2.3.0, jjwt 0.13.0, Spring Data Redis
 
 <!-- MANUAL: -->

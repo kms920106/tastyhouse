@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,11 +26,14 @@ import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
 
 @RestController
 @RequestMapping("/api/follows")
-@RequiredArgsConstructor
 @Tag(name = "Follow", description = "팔로우 API")
 public class FollowApiController {
 
     private final FollowService followService;
+
+    public FollowApiController(FollowService followService) {
+        this.followService = followService;
+    }
 
     @Operation(summary = "팔로우", description = "특정 회원을 팔로우합니다. 생성된 팔로우 관계의 식별자(id)를 반환합니다.")
     @PostMapping("/v1/{memberId}")

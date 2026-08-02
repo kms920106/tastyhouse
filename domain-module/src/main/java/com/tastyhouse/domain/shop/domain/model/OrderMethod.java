@@ -1,13 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Getter
-@RequiredArgsConstructor
 public enum OrderMethod {
 
     TABLE("테이블 오더"),
@@ -16,6 +11,14 @@ public enum OrderMethod {
     TAKEOUT("포장");
 
     private final String displayName;
+
+    OrderMethod(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
 
     public static OrderMethod from(String code) {
         try {

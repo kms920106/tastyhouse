@@ -6,8 +6,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.file.domain.service.FileUploadCommand;
@@ -16,12 +16,16 @@ import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class RemoteImageDownloader {
 
+    private static final Logger log = LoggerFactory.getLogger(RemoteImageDownloader.class);
+
     private final FileUploadService fileUploadService;
+
+    public RemoteImageDownloader(FileUploadService fileUploadService) {
+        this.fileUploadService = fileUploadService;
+    }
 
     // 외부 URL에서 이미지를 다운로드하여 업로드하고 파일 ID를 반환한다.
     public Long uploadFromUrl(String imageUrl) {

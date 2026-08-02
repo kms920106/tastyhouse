@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,12 +26,16 @@ import com.tastyhouse.adminapi.review.response.ReviewManagementDetailResponse;
 
 @Tag(name = "Review Admin", description = "리뷰 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/reviews")
 public class ReviewApiController {
 
     private final ReviewCommandService reviewCommandService;
     private final ReviewQueryService reviewQueryService;
+
+    public ReviewApiController(ReviewCommandService reviewCommandService, ReviewQueryService reviewQueryService) {
+        this.reviewCommandService = reviewCommandService;
+        this.reviewQueryService = reviewQueryService;
+    }
 
     @Operation(summary = "리뷰 목록 조회", description = "리뷰 목록을 페이징 조회합니다. (숨김 리뷰 포함) shopId/productId/memberId/hidden/content/평점 범위로 필터링할 수 있습니다.")
     @GetMapping("/v1")

@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.member;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.member.domain.model.MemberGender;
@@ -46,7 +45,6 @@ import com.tastyhouse.webapi.member.service.MemberStatsQueryService;
  * 검사를 우회할 수 있다), 아니라면 굳이 묶지 않는다.
  */
 @Component
-@RequiredArgsConstructor
 public class MemberService {
 
     private final MemberQueryService memberQueryService;
@@ -57,6 +55,26 @@ public class MemberService {
     private final MemberReviewService memberReviewService;
     private final CouponQueryService couponQueryService;
     private final MemberGradeService memberGradeService;
+
+    public MemberService(
+        MemberQueryService memberQueryService,
+        MemberCommandService memberCommandService,
+        MemberAuthService memberAuthService,
+        MemberStatsQueryService memberStatsQueryService,
+        MemberShopService memberShopService,
+        MemberReviewService memberReviewService,
+        CouponQueryService couponQueryService,
+        MemberGradeService memberGradeService
+    ) {
+        this.memberQueryService = memberQueryService;
+        this.memberCommandService = memberCommandService;
+        this.memberAuthService = memberAuthService;
+        this.memberStatsQueryService = memberStatsQueryService;
+        this.memberShopService = memberShopService;
+        this.memberReviewService = memberReviewService;
+        this.couponQueryService = couponQueryService;
+        this.memberGradeService = memberGradeService;
+    }
 
     public void updateMyProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
         memberCommandService.updateProfile(memberId, nickname, statusMessage, profileImageFileId);

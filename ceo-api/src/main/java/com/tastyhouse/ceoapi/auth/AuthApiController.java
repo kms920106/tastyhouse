@@ -3,7 +3,6 @@ package com.tastyhouse.ceoapi.auth;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,11 +19,14 @@ import com.tastyhouse.ceoapi.auth.response.JwtResponse;
 
 @Tag(name = "Ceo Auth", description = "점주 인증 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthApiController {
 
     private final AuthService authService;
+
+    public AuthApiController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @Operation(summary = "점주 로그인", description = "아이디/비밀번호 인증 후 JWT(Access/Refresh)를 발급합니다.")
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:ceo_login")

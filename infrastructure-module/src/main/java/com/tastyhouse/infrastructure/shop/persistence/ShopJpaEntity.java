@@ -9,9 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 import com.tastyhouse.domain.ceo.domain.vo.CeoId;
@@ -26,10 +23,8 @@ import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
  * <p>순수 도메인 모델 {@code Shop}과 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code ShopMapper}가 수행한다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopJpaEntity extends BaseEntity {
 
     @Id
@@ -81,6 +76,9 @@ public class ShopJpaEntity extends BaseEntity {
 
     @Column(name = "is_closed_on_public_holidays", nullable = false)
     private boolean closedOnPublicHolidays; // 공휴일 휴무 여부
+
+    protected ShopJpaEntity() {
+    }
 
     private ShopJpaEntity(
         CeoId ceoId,
@@ -184,5 +182,65 @@ public class ShopJpaEntity extends BaseEntity {
         this.permanentlyClosed = permanentlyClosed;
         this.hidden = hidden;
         this.closedOnPublicHolidays = closedOnPublicHolidays;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public CeoId getCeoId() {
+        return this.ceoId;
+    }
+
+    public StationId getStationId() {
+        return this.stationId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public BigDecimal getLatitude() {
+        return this.latitude;
+    }
+
+    public BigDecimal getLongitude() {
+        return this.longitude;
+    }
+
+    public Double getRating() {
+        return this.rating;
+    }
+
+    public String getRoadAddress() {
+        return this.roadAddress;
+    }
+
+    public String getLotAddress() {
+        return this.lotAddress;
+    }
+
+    public String getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public UploadedFileId getThumbnailImageFileId() {
+        return this.thumbnailImageFileId;
+    }
+
+    public UploadedFileId getTrademarkImageFileId() {
+        return this.trademarkImageFileId;
+    }
+
+    public boolean isPermanentlyClosed() {
+        return this.permanentlyClosed;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
+    }
+
+    public boolean isClosedOnPublicHolidays() {
+        return this.closedOnPublicHolidays;
     }
 }

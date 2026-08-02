@@ -7,9 +7,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -22,8 +19,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 @Entity
 @Table(name = "POPULAR_KEYWORD",
     indexes = @Index(name = "idx_popular_keyword_active_rank", columnList = "is_visible, `rank`"))
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class PopularKeywordJpaEntity extends BaseEntity {
 
     @Id
@@ -42,6 +37,9 @@ public class PopularKeywordJpaEntity extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
+    protected PopularKeywordJpaEntity() {
+    }
+
     private PopularKeywordJpaEntity(String keyword, int rank, boolean newKeyword, boolean visible) {
         this.keyword = keyword;
         this.rank = rank;
@@ -54,5 +52,25 @@ public class PopularKeywordJpaEntity extends BaseEntity {
      */
     static PopularKeywordJpaEntity create(String keyword, int rank, boolean newKeyword, boolean visible) {
         return new PopularKeywordJpaEntity(keyword, rank, newKeyword, visible);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getKeyword() {
+        return this.keyword;
+    }
+
+    public int getRank() {
+        return this.rank;
+    }
+
+    public boolean isNewKeyword() {
+        return this.newKeyword;
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

@@ -93,6 +93,5 @@
 - spring-security-test — 통합 테스트 지원.
 - Redis (distributed rate limiting, JWT 블랙리스트 등).
 - p6spy — SQL 로깅.
-- Lombok.
 
 <!-- MANUAL: -->

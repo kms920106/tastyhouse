@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.review;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,13 +29,24 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ReviewCommandService {
 
     private final ReviewLifecycleService reviewLifecycleService;
     private final ReviewRepository reviewRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewReplyRepository reviewReplyRepository;
+
+    public ReviewCommandService(
+        ReviewLifecycleService reviewLifecycleService,
+        ReviewRepository reviewRepository,
+        ReviewCommentRepository reviewCommentRepository,
+        ReviewReplyRepository reviewReplyRepository
+    ) {
+        this.reviewLifecycleService = reviewLifecycleService;
+        this.reviewRepository = reviewRepository;
+        this.reviewCommentRepository = reviewCommentRepository;
+        this.reviewReplyRepository = reviewReplyRepository;
+    }
 
     /**
      * 리뷰 숨김/노출 전환.

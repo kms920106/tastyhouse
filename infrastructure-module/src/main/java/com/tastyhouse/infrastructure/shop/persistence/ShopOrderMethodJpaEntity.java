@@ -10,9 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -21,10 +18,8 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 /**
  * 상점-주문방식 배정 JPA 영속 모델. 순수 도메인 모델 {@code ShopOrderMethod}와 분리된 영속 전용 엔티티다.
  */
-@Getter
 @Entity
 @Table(name = "SHOP_ORDER_METHOD", uniqueConstraints = {@UniqueConstraint(columnNames = {"shop_id", "order_method"})})
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShopOrderMethodJpaEntity extends BaseEntity {
 
     @Id
@@ -39,6 +34,9 @@ public class ShopOrderMethodJpaEntity extends BaseEntity {
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
     private OrderMethod orderMethod; // 주문 방식
 
+    protected ShopOrderMethodJpaEntity() {
+    }
+
     private ShopOrderMethodJpaEntity(ShopId shopId, OrderMethod orderMethod) {
         this.shopId = shopId;
         this.orderMethod = orderMethod;
@@ -46,5 +44,17 @@ public class ShopOrderMethodJpaEntity extends BaseEntity {
 
     static ShopOrderMethodJpaEntity create(ShopId shopId, OrderMethod orderMethod) {
         return new ShopOrderMethodJpaEntity(shopId, orderMethod);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public OrderMethod getOrderMethod() {
+        return this.orderMethod;
     }
 }

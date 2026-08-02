@@ -1,6 +1,5 @@
 package com.tastyhouse.webapi.event;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +27,13 @@ import com.tastyhouse.webapi.event.response.EventListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class EventQueryService {
 
     private final EventQueryDao eventQueryDao;
+
+    public EventQueryService(EventQueryDao eventQueryDao) {
+        this.eventQueryDao = eventQueryDao;
+    }
 
     public PageResult<EventListItemResponse> getEventList(String status, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);

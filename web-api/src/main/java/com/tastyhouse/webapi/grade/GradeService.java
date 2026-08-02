@@ -4,14 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.webapi.grade.response.GradeInfoListItemResponse;
 
 @Service
-@RequiredArgsConstructor
 public class GradeService {
 
     /**

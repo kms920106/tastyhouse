@@ -7,8 +7,8 @@ import java.nio.charset.StandardCharsets;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.firebase.cloud.StorageClient;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,13 +17,17 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.external.file.FileStorageStrategy;
 
-@Slf4j
 @Component
 @ConditionalOnProperty(name = "file.provider", havingValue = "firebase")
-@RequiredArgsConstructor
 public class FirebaseFileStorage implements FileStorageStrategy {
 
+    private static final Logger log = LoggerFactory.getLogger(FirebaseFileStorage.class);
+
     private final FirebaseStorageProperties properties;
+
+    public FirebaseFileStorage(FirebaseStorageProperties properties) {
+        this.properties = properties;
+    }
 
     @Override
     public String store(MultipartFile file, String storedFilename, String datePath) {
@@ -41,7 +45,7 @@ public class FirebaseFileStorage implements FileStorageStrategy {
     @Override
     public String getFileUrl(String filePath) {
         String encodedPath = URLEncoder.encode(filePath, StandardCharsets.UTF_8).replace("+", "%20");
-        return properties.getBaseUrl() + "/" + encodedPath + "?alt=media";
+        return properties.baseUrl() + "/" + encodedPath + "?alt=media";
     }
 
     @Override

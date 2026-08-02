@@ -3,17 +3,19 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ShopSuspension;
 import com.tastyhouse.domain.shop.domain.repository.ShopSuspensionRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class ShopSuspensionRepositoryImpl implements ShopSuspensionRepository {
 
     private final ShopSuspensionJpaRepository shopSuspensionJpaRepository;
+
+    public ShopSuspensionRepositoryImpl(ShopSuspensionJpaRepository shopSuspensionJpaRepository) {
+        this.shopSuspensionJpaRepository = shopSuspensionJpaRepository;
+    }
 
     @Override
     public ShopSuspension save(ShopSuspension shopSuspension) {

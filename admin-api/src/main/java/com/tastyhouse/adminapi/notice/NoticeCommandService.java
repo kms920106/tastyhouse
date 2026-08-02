@@ -1,6 +1,5 @@
 package com.tastyhouse.adminapi.notice;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +20,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class NoticeCommandService {
 
     private final NoticeRepository noticeRepository;
+
+    public NoticeCommandService(NoticeRepository noticeRepository) {
+        this.noticeRepository = noticeRepository;
+    }
 
     public Long createNotice(String title, String content, boolean visible) {
         Notice notice = Notice.of(title, content, visible);

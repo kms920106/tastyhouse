@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +68,6 @@ import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ReviewQueryService {
 
     private final ReviewQueryDao reviewQueryDao;
@@ -77,6 +75,20 @@ public class ReviewQueryService {
     private final MemberFollowRepository memberFollowRepository;
     private final ProductQueryDao productQueryDao;
     private final OrderProductRepository orderProductRepository;
+
+    public ReviewQueryService(
+        ReviewQueryDao reviewQueryDao,
+        ReviewStatisticsQueryDao reviewStatisticsQueryDao,
+        MemberFollowRepository memberFollowRepository,
+        ProductQueryDao productQueryDao,
+        OrderProductRepository orderProductRepository
+    ) {
+        this.reviewQueryDao = reviewQueryDao;
+        this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
+        this.memberFollowRepository = memberFollowRepository;
+        this.productQueryDao = productQueryDao;
+        this.orderProductRepository = orderProductRepository;
+    }
 
     /**
      * 베스트 리뷰 목록.

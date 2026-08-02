@@ -1,16 +1,20 @@
 package com.tastyhouse.batch.scheduler;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class SearchKeywordScheduler {
 
+    private static final Logger log = LoggerFactory.getLogger(SearchKeywordScheduler.class);
+
     private final SearchKeywordSchedulerService searchKeywordSchedulerService;
+
+    public SearchKeywordScheduler(SearchKeywordSchedulerService searchKeywordSchedulerService) {
+        this.searchKeywordSchedulerService = searchKeywordSchedulerService;
+    }
 
     @Scheduled(cron = "0 0 3 * * *")
     public void aggregatePopularKeywords() {

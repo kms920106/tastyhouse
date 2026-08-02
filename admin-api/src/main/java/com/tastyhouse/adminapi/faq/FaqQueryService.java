@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.faq;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +29,13 @@ import com.tastyhouse.adminapi.faq.response.FaqListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class FaqQueryService {
 
     private final FaqQueryDao faqQueryDao;
+
+    public FaqQueryService(FaqQueryDao faqQueryDao) {
+        this.faqQueryDao = faqQueryDao;
+    }
 
     public List<FaqCategoryResponse> getCategories() {
         return faqQueryDao.findAllCategories().stream()

@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.rank;
 import java.time.LocalDate;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,10 +33,13 @@ import com.tastyhouse.adminapi.rank.response.RankPrizeListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class RankQueryService {
 
     private final RankQueryDao rankQueryDao;
+
+    public RankQueryService(RankQueryDao rankQueryDao) {
+        this.rankQueryDao = rankQueryDao;
+    }
 
     public List<RankMemberListItemResponse> getMemberRankList(String type, int limit) {
         RankType rankType = RankType.from(type);

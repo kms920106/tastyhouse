@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.auth.apple;
 import java.util.Optional;
 import java.util.UUID;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,11 +32,9 @@ import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialProfileResponse;
 
 @Service
-@RequiredArgsConstructor
 public class AppleSocialLoginService {
 
     // SocialOAuthClient 구현이 제공자별로 4개이므로 빈 이름으로 명시 지정한다.
-    @Qualifier("appleOAuthClient")
     private final SocialOAuthClient appleOAuthClient;
     private final MemberCommandService memberCommandService;
     private final MemberRepository memberRepository;
@@ -45,6 +42,24 @@ public class AppleSocialLoginService {
     private final TokenService tokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AppleTempTokenRedisRepository appleTempTokenRedisRepository;
+
+    public AppleSocialLoginService(
+        @Qualifier("appleOAuthClient") SocialOAuthClient appleOAuthClient,
+        MemberCommandService memberCommandService,
+        MemberRepository memberRepository,
+        MemberSocialAccountRepository memberSocialAccountRepository,
+        TokenService tokenService,
+        JwtTokenProvider jwtTokenProvider,
+        AppleTempTokenRedisRepository appleTempTokenRedisRepository
+    ) {
+        this.appleOAuthClient = appleOAuthClient;
+        this.memberCommandService = memberCommandService;
+        this.memberRepository = memberRepository;
+        this.memberSocialAccountRepository = memberSocialAccountRepository;
+        this.tokenService = tokenService;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.appleTempTokenRedisRepository = appleTempTokenRedisRepository;
+    }
 
     // 인가 코드로 Apple 로그인 처리
     // - 인가 코드 → Apple token 교환 → id_token 검증 및 사용자 식별

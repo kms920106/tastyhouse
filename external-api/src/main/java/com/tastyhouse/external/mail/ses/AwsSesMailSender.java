@@ -1,7 +1,7 @@
 package com.tastyhouse.external.mail.ses;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.Body;
 import software.amazon.awssdk.services.ses.model.Content;
@@ -14,12 +14,17 @@ import com.tastyhouse.domain.mail.domain.port.MailSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 
-@Slf4j
-@RequiredArgsConstructor
 public class AwsSesMailSender implements MailSender {
+
+    private static final Logger log = LoggerFactory.getLogger(AwsSesMailSender.class);
 
     private final SesClient sesClient;
     private final String senderEmail;
+
+    public AwsSesMailSender(SesClient sesClient, String senderEmail) {
+        this.sesClient = sesClient;
+        this.senderEmail = senderEmail;
+    }
 
     @Override
     public void send(String to, String subject, String content) {

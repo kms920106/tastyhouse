@@ -1,6 +1,5 @@
 package com.tastyhouse.domain.shop.domain.model;
 
-import lombok.Getter;
 import com.tastyhouse.domain.shop.domain.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
@@ -10,7 +9,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code ShopAmenityJpaEntity} + {@code ShopAmenityMapper}가 담당한다.
  */
-@Getter
 public class ShopAmenity {
 
     private final Long id;
@@ -32,5 +30,17 @@ public class ShopAmenity {
      */
     public static ShopAmenity reconstitute(Long id, ShopId shopId, ShopAmenityCategoryId shopAmenityCategoryId) {
         return new ShopAmenity(id, shopId, shopAmenityCategoryId);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public ShopId getShopId() {
+        return this.shopId;
+    }
+
+    public ShopAmenityCategoryId getShopAmenityCategoryId() {
+        return this.shopAmenityCategoryId;
     }
 }

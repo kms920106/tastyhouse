@@ -2,8 +2,6 @@ package com.tastyhouse.domain.shop.domain.model;
 
 import java.time.DayOfWeek;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -16,7 +14,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  *
  * <p><b>상수 이름 자체는 DB 저장값이다</b>({@code EnumType.STRING}) — 이름을 바꾸지 않는다.
  */
-@Getter
 public enum DayType {
 
     DAILY("매일", null),
@@ -39,6 +36,10 @@ public enum DayType {
     DayType(String description, DayOfWeek specificDayOfWeek) {
         this.description = description;
         this.specificDayOfWeek = specificDayOfWeek;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 
     /**

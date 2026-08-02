@@ -2,8 +2,6 @@ package com.tastyhouse.domain.member.domain.model;
 
 import java.time.LocalDateTime;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -18,7 +16,6 @@ import com.tastyhouse.domain.shared.vo.PhoneNumber;
  * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code MemberRepository#save}를
  * 호출해야 한다.
  */
-@Getter
 public class Member {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -212,5 +209,73 @@ public class Member {
             throw new BusinessException(ErrorCode.MEMBER_ALREADY_ACTIVE);
         }
         this.memberStatus = MemberStatus.ACTIVE;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public String getNickname() {
+        return this.nickname;
+    }
+
+    public String getFullName() {
+        return this.fullName;
+    }
+
+    public Integer getBirthDate() {
+        return this.birthDate;
+    }
+
+    public MemberGender getGender() {
+        return this.gender;
+    }
+
+    public PhoneNumber getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public MemberGrade getMemberGrade() {
+        return this.memberGrade;
+    }
+
+    public UploadedFileId getProfileImageFileId() {
+        return this.profileImageFileId;
+    }
+
+    public String getStatusMessage() {
+        return this.statusMessage;
+    }
+
+    public boolean isPushNotificationEnabled() {
+        return this.pushNotificationEnabled;
+    }
+
+    public boolean isMarketingInfoEnabled() {
+        return this.marketingInfoEnabled;
+    }
+
+    public boolean isEventInfoEnabled() {
+        return this.eventInfoEnabled;
+    }
+
+    public MemberStatus getMemberStatus() {
+        return this.memberStatus;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
     }
 }

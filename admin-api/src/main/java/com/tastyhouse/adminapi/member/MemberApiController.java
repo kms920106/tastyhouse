@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,12 +25,16 @@ import com.tastyhouse.adminapi.member.response.MemberListItemResponse;
 
 @Tag(name = "Member Admin", description = "회원 관리자 API")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/members")
 public class MemberApiController {
 
     private final MemberQueryService memberQueryService;
     private final MemberCommandService memberCommandService;
+
+    public MemberApiController(MemberQueryService memberQueryService, MemberCommandService memberCommandService) {
+        this.memberQueryService = memberQueryService;
+        this.memberCommandService = memberCommandService;
+    }
 
     @Operation(summary = "회원 목록 조회", description = "회원 목록을 페이징 조회합니다. nickname/username/phone은 부분 일치 검색, status/grade는 필터(미지정 시 전체)입니다.")
     @GetMapping("/v1")

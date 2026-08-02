@@ -11,9 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.model.MemberGender;
@@ -29,8 +26,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
  * <p>순수 도메인 모델 {@code Member}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
  * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code MemberMapper}가 수행한다.
  */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 @Entity
 @Table(name = "MEMBER")
 public class MemberJpaEntity extends BaseEntity {
@@ -85,6 +80,9 @@ public class MemberJpaEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private MemberStatus memberStatus;
+
+    protected MemberJpaEntity() {
+    }
 
     private MemberJpaEntity(
         String username,
@@ -173,5 +171,65 @@ public class MemberJpaEntity extends BaseEntity {
         this.marketingInfoEnabled = marketingInfoEnabled;
         this.eventInfoEnabled = eventInfoEnabled;
         this.memberStatus = memberStatus;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public String getNickname() {
+        return this.nickname;
+    }
+
+    public String getFullName() {
+        return this.fullName;
+    }
+
+    public Integer getBirthDate() {
+        return this.birthDate;
+    }
+
+    public MemberGender getGender() {
+        return this.gender;
+    }
+
+    public PhoneNumber getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public MemberGrade getMemberGrade() {
+        return this.memberGrade;
+    }
+
+    public UploadedFileId getProfileImageFileId() {
+        return this.profileImageFileId;
+    }
+
+    public String getStatusMessage() {
+        return this.statusMessage;
+    }
+
+    public boolean isPushNotificationEnabled() {
+        return this.pushNotificationEnabled;
+    }
+
+    public boolean isMarketingInfoEnabled() {
+        return this.marketingInfoEnabled;
+    }
+
+    public boolean isEventInfoEnabled() {
+        return this.eventInfoEnabled;
+    }
+
+    public MemberStatus getMemberStatus() {
+        return this.memberStatus;
     }
 }

@@ -13,7 +13,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.service.EditorChoicePolicy;
@@ -44,7 +43,6 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
  * 담당한다.
  */
 @Repository
-@RequiredArgsConstructor
 public class ShopChoiceQueryDao {
 
     /**
@@ -54,6 +52,11 @@ public class ShopChoiceQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+
+    public ShopChoiceQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
 
     /**
      * 에디터 추천 목록 — 가게 정보와 대표 상품 {@value EditorChoicePolicy#PRODUCT_LIMIT}건을 함께 채운다.

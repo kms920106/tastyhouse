@@ -1,16 +1,18 @@
 package com.tastyhouse.external.file;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.domain.file.domain.port.FileStoragePort;
 
 @Component
-@RequiredArgsConstructor
 public class FileStoragePortAdapter implements FileStoragePort {
 
     private final FileStorageStrategy fileStorageStrategy;
+
+    public FileStoragePortAdapter(FileStorageStrategy fileStorageStrategy) {
+        this.fileStorageStrategy = fileStorageStrategy;
+    }
 
     @Override
     public String store(byte[] content, String storedFilename, String datePath, String contentType) {

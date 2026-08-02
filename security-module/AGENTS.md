@@ -36,7 +36,7 @@
 - **`JwtAuthenticationFilter`도 POJO**다(`@Component` 아님). `JwtTokenProvider` + `BlacklistRedisRepository`(접두사 주입 빈) + `ObjectMapper`를 받아 각 API의 `config/jwt/JwtConfig`가 빈 등록한다. 블랙리스트 검사는 저장소를 직접 호출한다(과거 web이 `TokenService.isBlacklisted`를 경유하던 단순 위임을 필터 안으로 흡수).
 - **`JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler`는 `@Component`**다. 두 API의 `scanBasePackages`에 `com.tastyhouse.security`가 포함되어 자동 스캔되므로 별도 빈 등록이 불필요하다. `SecurityConfig`는 타입으로 주입만 받는다.
 - **`CustomUserDetails`는 각 API에 잔류**하되 `JwtPrincipal`을 구현해 `getPrincipalId()`(web=memberId, admin=adminId)를 노출한다. 공용 provider가 이 계약으로 식별자를 클레임에 싣고 재구성한다.
-- **시크릿은 각 API의 `application.yml`이 소유하며 web-api와 admin-api는 반드시 서로 다른 `jwt.secret`(예: `JWT_SECRET` vs `JWT_SECRET_ADMIN`)을 써야 한다.** 동일 시크릿이면 한쪽 access 토큰이 다른 쪽 인증을 통과해 권한 상승이 발생한다. 이는 `JwtProperties` Javadoc에도 명시되어 있다.
+- **시크릿은 각 API의 `application.yml`이 소유하며 web-api와 admin-api는 반드시 서로 다른 `jwt.secret`(`JWT_SECRET_WEB` vs `JWT_SECRET_ADMIN`, ceo는 `JWT_SECRET_CEO`)을 써야 한다.** 동일 시크릿이면 한쪽 access 토큰이 다른 쪽 인증을 통과해 권한 상승이 발생한다. 이는 `JwtProperties` Javadoc에도 명시되어 있다.
 - **의존성**: 이 패키지가 Spring Security·jjwt 타입에 의존하므로 `build.gradle`에 `spring-boot-starter-security`(api)와 `jjwt-api`(api)/`jjwt-impl`·`jjwt-jackson`(runtimeOnly)을 둔다.
 
 ### Testing Requirements
@@ -53,4 +53,3 @@
 - `spring-boot-starter-web`, `spring-boot-starter-aop`, `spring-boot-starter-data-redis`
 - `spring-boot-starter-security` (api) — 공용 JWT 필터/EntryPoint/AccessDeniedHandler/UserDetails 타입
 - `jjwt-api` (api) + `jjwt-impl`·`jjwt-jackson` (runtimeOnly) — 공용 `JwtTokenProvider` 서명/파싱
-- Lombok

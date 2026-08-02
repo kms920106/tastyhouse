@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,7 +90,6 @@ import com.tastyhouse.webapi.shop.response.ShopStationListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ShopQueryService {
 
     private final ShopRepository shopRepository;
@@ -102,6 +100,26 @@ public class ShopQueryService {
     private final ShopOperatingStatusService shopOperatingStatusService;
     private final ProductQueryService productQueryService;
     private final ReviewQueryService reviewQueryService;
+
+    public ShopQueryService(
+        ShopRepository shopRepository,
+        ShopBookmarkRepository shopBookmarkRepository,
+        ShopQueryDao shopQueryDao,
+        ShopSearchQueryDao shopSearchQueryDao,
+        ShopChoiceQueryDao shopChoiceQueryDao,
+        ShopOperatingStatusService shopOperatingStatusService,
+        ProductQueryService productQueryService,
+        ReviewQueryService reviewQueryService
+    ) {
+        this.shopRepository = shopRepository;
+        this.shopBookmarkRepository = shopBookmarkRepository;
+        this.shopQueryDao = shopQueryDao;
+        this.shopSearchQueryDao = shopSearchQueryDao;
+        this.shopChoiceQueryDao = shopChoiceQueryDao;
+        this.shopOperatingStatusService = shopOperatingStatusService;
+        this.productQueryService = productQueryService;
+        this.reviewQueryService = reviewQueryService;
+    }
 
     public List<ShopMapMarkerResponse> searchMapMarkers(Double latitude, Double longitude) {
         BigDecimal lat = BigDecimal.valueOf(latitude);

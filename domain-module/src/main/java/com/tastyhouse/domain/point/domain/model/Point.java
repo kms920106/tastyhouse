@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.point.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -14,7 +12,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 프레임워크-프리이므로 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로
  * {@code PointRepository#save}를 호출해야 한다.
  */
-@Getter
 public class Point {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -53,5 +50,21 @@ public class Point {
             throw new BusinessException(ErrorCode.POINT_INSUFFICIENT);
         }
         this.availablePoints -= amount;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public MemberId getMemberId() {
+        return this.memberId;
+    }
+
+    public Integer getAvailablePoints() {
+        return this.availablePoints;
+    }
+
+    public Integer getExpiredThisMonth() {
+        return this.expiredThisMonth;
     }
 }

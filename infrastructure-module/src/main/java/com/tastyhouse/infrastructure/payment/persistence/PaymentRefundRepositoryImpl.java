@@ -1,16 +1,18 @@
 package com.tastyhouse.infrastructure.payment.persistence;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.payment.domain.model.PaymentRefund;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRefundRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class PaymentRefundRepositoryImpl implements PaymentRefundRepository {
 
     private final PaymentRefundJpaRepository paymentRefundJpaRepository;
+
+    public PaymentRefundRepositoryImpl(PaymentRefundJpaRepository paymentRefundJpaRepository) {
+        this.paymentRefundJpaRepository = paymentRefundJpaRepository;
+    }
 
     @Override
     public PaymentRefund save(PaymentRefund paymentRefund) {

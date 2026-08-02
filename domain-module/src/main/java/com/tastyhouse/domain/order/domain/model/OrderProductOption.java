@@ -1,7 +1,5 @@
 package com.tastyhouse.domain.order.domain.model;
 
-import lombok.Getter;
-
 import com.tastyhouse.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
@@ -12,7 +10,6 @@ import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
  * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
  * {@code OrderProductOptionJpaEntity} + {@code OrderProductOptionMapper}가 담당한다.
  */
-@Getter
 public class OrderProductOption {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
@@ -85,5 +82,33 @@ public class OrderProductOption {
             optionName,
             additionalPrice
         );
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public OrderProductId getOrderProductId() {
+        return this.orderProductId;
+    }
+
+    public ProductOptionGroupId getOptionGroupId() {
+        return this.optionGroupId;
+    }
+
+    public String getOptionGroupName() {
+        return this.optionGroupName;
+    }
+
+    public ProductOptionId getOptionId() {
+        return this.optionId;
+    }
+
+    public String getOptionName() {
+        return this.optionName;
+    }
+
+    public Integer getAdditionalPrice() {
+        return this.additionalPrice;
     }
 }

@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -17,11 +16,15 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import static com.tastyhouse.infrastructure.reservation.persistence.QReservationJpaEntity.reservationJpaEntity;
 
 @Repository
-@RequiredArgsConstructor
 public class ReservationRepositoryImpl implements ReservationRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ReservationJpaRepository reservationJpaRepository;
+
+    public ReservationRepositoryImpl(JPAQueryFactory queryFactory, ReservationJpaRepository reservationJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.reservationJpaRepository = reservationJpaRepository;
+    }
 
     @Override
     public Optional<Reservation> findById(ReservationId id) {

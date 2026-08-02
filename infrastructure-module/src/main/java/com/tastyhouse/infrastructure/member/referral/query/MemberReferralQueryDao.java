@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.member.referral.query;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
@@ -18,10 +17,13 @@ import static com.tastyhouse.infrastructure.member.referral.persistence.QMemberR
  * 알지 않는다.
  */
 @Repository
-@RequiredArgsConstructor
 public class MemberReferralQueryDao {
 
     private final JPAQueryFactory queryFactory;
+
+    public MemberReferralQueryDao(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
 
     /**
      * 내가(referrerId) 추천한 회원 목록 — 최근 등록순.

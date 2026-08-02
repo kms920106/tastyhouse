@@ -2,17 +2,19 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.domain.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.domain.repository.ProhibitedWordRepository;
 
 @Repository
-@RequiredArgsConstructor
 public class ProhibitedWordRepositoryImpl implements ProhibitedWordRepository {
 
     private final ProhibitedWordJpaRepository jpaRepository;
+
+    public ProhibitedWordRepositoryImpl(ProhibitedWordJpaRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public List<ProhibitedWord> findAll() {

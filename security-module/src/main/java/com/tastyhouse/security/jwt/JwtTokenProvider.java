@@ -43,7 +43,7 @@ public class JwtTokenProvider {
         this.jwtProperties = jwtProperties;
         this.principalIdClaimName = principalIdClaimName;
         this.principalFactory = principalFactory;
-        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getSecret()));
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.secret()));
     }
 
     public String createToken(Authentication authentication, long expirationTime, String tokenType) {
@@ -70,24 +70,24 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(Authentication authentication) {
-        return createToken(authentication, jwtProperties.getAccessTokenExpiration(), TokenType.ACCESS.name());
+        return createToken(authentication, jwtProperties.accessTokenExpiration(), TokenType.ACCESS.name());
     }
 
     public String createRefreshToken(Authentication authentication) {
-        return createToken(authentication, jwtProperties.getRefreshTokenExpiration(), TokenType.REFRESH.name());
+        return createToken(authentication, jwtProperties.refreshTokenExpiration(), TokenType.REFRESH.name());
     }
 
     public String createRefreshToken(Authentication authentication, boolean rememberMe) {
         long ttl = rememberMe
-                ? jwtProperties.getRememberMeRefreshTokenExpiration()
-                : jwtProperties.getRefreshTokenExpiration();
+                ? jwtProperties.rememberMeRefreshTokenExpiration()
+                : jwtProperties.refreshTokenExpiration();
         return createToken(authentication, ttl, TokenType.REFRESH.name());
     }
 
     public long getRefreshTokenTtl(boolean rememberMe) {
         return rememberMe
-                ? jwtProperties.getRememberMeRefreshTokenExpiration()
-                : jwtProperties.getRefreshTokenExpiration();
+                ? jwtProperties.rememberMeRefreshTokenExpiration()
+                : jwtProperties.refreshTokenExpiration();
     }
 
     public Authentication getAuthentication(String token) {
