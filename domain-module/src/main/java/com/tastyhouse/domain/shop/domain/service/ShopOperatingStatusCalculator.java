@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import com.tastyhouse.domain.shop.domain.model.ClosedDayType;
 import com.tastyhouse.domain.shop.domain.model.DayType;
 import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.domain.shop.domain.model.ShopBreakTime;
@@ -21,6 +20,15 @@ import com.tastyhouse.domain.shop.domain.model.ShopTemporaryClosure;
  *
  * <p>리포지토리에 의존하지 않는 순수 로직이라 Spring/DB 없이 단위 테스트할 수 있다.
  * 조회·조립은 {@link ShopOperatingStatusService}가 담당하고, 이 계산기는 넘겨받은 값만으로 판정한다.
+ *
+ * <p><b>역할은 오케스트레이션 한 가지다</b> — 개별 자식 애그리거트의 판정은 각자가 소유한다:
+ * 영업시간 행은 {@link ShopBusinessHour#isOpenAt(LocalTime)}·
+ * {@link ShopBusinessHour#extendsIntoNextDayAt(LocalTime)}, 휴게시간은
+ * {@link ShopBreakTime#covers(LocalTime, DayOfWeek, boolean)}, 정기휴무는
+ * {@link com.tastyhouse.domain.shop.domain.model.ClosedDayType#matches(java.time.LocalDate)},
+ * 임시중지는 {@link ShopSuspension#isActive(LocalDateTime)}가 판정한다. 이 계산기에 남는 것은
+ * <b>여러 애그리거트를 가로지르는 판정</b>(우선순위 순서, 오늘 적용할 영업시간 행 선택)뿐이며, 이는
+ * 어느 한 애그리거트에도 속하지 않으므로 도메인 서비스 잔류가 정당하다.
  *
  * <p>판정 우선순위(하나라도 준비중 조건이면 즉시 PREPARING):
  * <ol>
@@ -89,7 +97,7 @@ public class ShopOperatingStatusCalculator {
 
     private boolean isRegularClosedDay(List<ShopClosedDay> closedDays, LocalDate today) {
         return closedDays.stream()
-            .anyMatch(closedDay -> matchesClosedDay(closedDay.getClosedDayType(), today));
+            .anyMatch(closedDay -> closedDay.getClosedDayType().matches(today));
     }
 
     /**
@@ -105,36 +113,20 @@ public class ShopOperatingStatusCalculator {
         LocalTime time = now.toLocalTime();
 
         ShopBusinessHour todayHour = selectApplicableHour(businessHours, now.getDayOfWeek(), publicHoliday);
-        boolean openToday = todayHour != null
-            && (Boolean.TRUE.equals(todayHour.getIs24Hours())
-                || (!Boolean.TRUE.equals(todayHour.getIsClosed())
-                    && todayHour.getOpenTime() != null && todayHour.getCloseTime() != null
-                    && isWithinRange(time, todayHour.getOpenTime(), todayHour.getCloseTime())));
+        boolean openToday = todayHour != null && todayHour.isOpenAt(time);
 
         // 전일 영업시간이 자정을 넘겨 오늘 새벽까지 이어지는 경우
         LocalDateTime yesterday = now.minusDays(1);
         ShopBusinessHour yesterdayHour = selectApplicableHour(businessHours, yesterday.getDayOfWeek(), false);
-        boolean openFromYesterday = yesterdayHour != null
-            && !Boolean.TRUE.equals(yesterdayHour.getIs24Hours())
-            && !Boolean.TRUE.equals(yesterdayHour.getIsClosed())
-            && yesterdayHour.getOpenTime() != null && yesterdayHour.getCloseTime() != null
-            && crossesMidnight(yesterdayHour.getOpenTime(), yesterdayHour.getCloseTime())
-            && time.isBefore(yesterdayHour.getCloseTime());
+        boolean openFromYesterday = yesterdayHour != null && yesterdayHour.extendsIntoNextDayAt(time);
 
         return openToday || openFromYesterday;
     }
 
     private boolean isWithinBreakTime(List<ShopBreakTime> breakTimes, LocalDateTime now, boolean publicHoliday) {
         LocalTime time = now.toLocalTime();
-        return breakTimes.stream().anyMatch(breakTime -> {
-            if (breakTime.getStartTime() == null || breakTime.getEndTime() == null) {
-                return false;
-            }
-            if (!matchesDayType(breakTime.getDayType(), now.getDayOfWeek(), publicHoliday)) {
-                return false;
-            }
-            return isWithinRange(time, breakTime.getStartTime(), breakTime.getEndTime());
-        });
+        return breakTimes.stream()
+            .anyMatch(breakTime -> breakTime.covers(time, now.getDayOfWeek(), publicHoliday));
     }
 
     /**
@@ -147,14 +139,14 @@ public class ShopOperatingStatusCalculator {
         ShopBusinessHour weekGroup = null;
         for (ShopBusinessHour hour : businessHours) {
             DayType dayType = hour.getDayType();
-            if (isSpecificDay(dayType, dayOfWeek)) {
+            if (dayType.isSpecificDay(dayOfWeek)) {
                 return hour;
             }
             if (dayType == DayType.HOLIDAY) {
                 holiday = hour;
-            } else if (dayType == DayType.WEEKEND && isWeekend(dayOfWeek)) {
+            } else if (dayType == DayType.WEEKEND && dayType.appliesTo(dayOfWeek, publicHoliday)) {
                 weekGroup = hour;
-            } else if (dayType == DayType.WEEKDAY && !isWeekend(dayOfWeek)) {
+            } else if (dayType == DayType.WEEKDAY && dayType.appliesTo(dayOfWeek, publicHoliday)) {
                 weekGroup = hour;
             } else if (dayType == DayType.DAILY) {
                 daily = hour;
@@ -167,131 +159,5 @@ public class ShopOperatingStatusCalculator {
             return holiday;
         }
         return daily;
-    }
-
-    private boolean matchesDayType(DayType dayType, DayOfWeek dayOfWeek, boolean publicHoliday) {
-        return switch (dayType) {
-            case DAILY -> true;
-            case WEEKDAY -> !isWeekend(dayOfWeek);
-            case WEEKEND -> isWeekend(dayOfWeek);
-            case HOLIDAY -> publicHoliday;
-            default -> isSpecificDay(dayType, dayOfWeek);
-        };
-    }
-
-    private boolean isSpecificDay(DayType dayType, DayOfWeek dayOfWeek) {
-        return switch (dayType) {
-            case MONDAY -> dayOfWeek == DayOfWeek.MONDAY;
-            case TUESDAY -> dayOfWeek == DayOfWeek.TUESDAY;
-            case WEDNESDAY -> dayOfWeek == DayOfWeek.WEDNESDAY;
-            case THURSDAY -> dayOfWeek == DayOfWeek.THURSDAY;
-            case FRIDAY -> dayOfWeek == DayOfWeek.FRIDAY;
-            case SATURDAY -> dayOfWeek == DayOfWeek.SATURDAY;
-            case SUNDAY -> dayOfWeek == DayOfWeek.SUNDAY;
-            default -> false;
-        };
-    }
-
-    private boolean isWeekend(DayOfWeek dayOfWeek) {
-        return dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
-    }
-
-    /**
-     * 시각이 [start, end) 구간에 드는지 판단한다. end &lt; start면 자정을 넘기는 구간으로 본다.
-     */
-    private boolean isWithinRange(LocalTime time, LocalTime start, LocalTime end) {
-        if (crossesMidnight(start, end)) {
-            return !time.isBefore(start) || time.isBefore(end);
-        }
-        return !time.isBefore(start) && time.isBefore(end);
-    }
-
-    private boolean crossesMidnight(LocalTime start, LocalTime end) {
-        return end.isBefore(start);
-    }
-
-    /**
-     * {@link ClosedDayType}이 오늘 날짜와 매칭되는지 판단한다.
-     * 매주 X요일, 매달 N째주 X요일(마지막 주 포함)을 지원한다.
-     */
-    private boolean matchesClosedDay(ClosedDayType type, LocalDate today) {
-        if (type == ClosedDayType.NO_CLOSED_DAYS) {
-            return false;
-        }
-
-        DayOfWeek targetDay = closedDayTargetDayOfWeek(type);
-        if (targetDay == null || today.getDayOfWeek() != targetDay) {
-            return false;
-        }
-
-        WeekOrdinal ordinal = closedDayWeekOrdinal(type);
-        if (ordinal == WeekOrdinal.EVERY) {
-            return true;
-        }
-
-        int weekOfMonth = ((today.getDayOfMonth() - 1) / 7) + 1;
-        boolean isLastWeek = today.plusWeeks(1).getMonthValue() != today.getMonthValue();
-
-        return switch (ordinal) {
-            case FIRST -> weekOfMonth == 1;
-            case SECOND -> weekOfMonth == 2;
-            case THIRD -> weekOfMonth == 3;
-            case FOURTH -> weekOfMonth == 4;
-            case LAST -> isLastWeek;
-            case EVERY -> throw new IllegalStateException("EVERY는 상위 분기에서 이미 처리됨");
-        };
-    }
-
-    private DayOfWeek closedDayTargetDayOfWeek(ClosedDayType type) {
-        String name = type.name();
-        if (name.endsWith("MONDAY")) {
-            return DayOfWeek.MONDAY;
-        }
-        if (name.endsWith("TUESDAY")) {
-            return DayOfWeek.TUESDAY;
-        }
-        if (name.endsWith("WEDNESDAY")) {
-            return DayOfWeek.WEDNESDAY;
-        }
-        if (name.endsWith("THURSDAY")) {
-            return DayOfWeek.THURSDAY;
-        }
-        if (name.endsWith("FRIDAY")) {
-            return DayOfWeek.FRIDAY;
-        }
-        if (name.endsWith("SATURDAY")) {
-            return DayOfWeek.SATURDAY;
-        }
-        if (name.endsWith("SUNDAY")) {
-            return DayOfWeek.SUNDAY;
-        }
-        return null;
-    }
-
-    private WeekOrdinal closedDayWeekOrdinal(ClosedDayType type) {
-        String name = type.name();
-        if (name.startsWith("EVERY_WEEK_")) {
-            return WeekOrdinal.EVERY;
-        }
-        if (name.contains("FIRST_WEEK")) {
-            return WeekOrdinal.FIRST;
-        }
-        if (name.contains("SECOND_WEEK")) {
-            return WeekOrdinal.SECOND;
-        }
-        if (name.contains("THIRD_WEEK")) {
-            return WeekOrdinal.THIRD;
-        }
-        if (name.contains("FOURTH_WEEK")) {
-            return WeekOrdinal.FOURTH;
-        }
-        if (name.contains("LAST_WEEK")) {
-            return WeekOrdinal.LAST;
-        }
-        return WeekOrdinal.EVERY;
-    }
-
-    private enum WeekOrdinal {
-        EVERY, FIRST, SECOND, THIRD, FOURTH, LAST
     }
 }

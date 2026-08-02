@@ -113,10 +113,10 @@ public class ShopBusinessHourService {
             .filter(bh -> bh.getDayType() == dayType)
             .findFirst()
             .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS));
-        if (Boolean.TRUE.equals(businessHour.getIsClosed())) {
+        if (businessHour.isClosed()) {
             throw new BusinessException(ErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
         }
-        if (Boolean.TRUE.equals(businessHour.getIs24Hours())) {
+        if (businessHour.is24Hours()) {
             return; // 24시간 영업이면 어떤 휴게시간도 범위 내
         }
         LocalTime open = businessHour.getOpenTime();

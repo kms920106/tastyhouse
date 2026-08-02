@@ -4,9 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -150,5 +153,89 @@ class ShopTest {
 
         assertThatThrownBy(shop::getShopId)
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Nested
+    @DisplayName("폐업 가드")
+    class PermanentClosureGuard {
+
+        private Shop openShop() {
+            return Shop.of(
+                1L,
+                "상점명",
+                BigDecimal.valueOf(37.5),
+                BigDecimal.valueOf(127.0),
+                "도로명 주소",
+                "지번 주소",
+                "010-1234-5678",
+                10L
+            );
+        }
+
+        private void update(Shop shop) {
+            shop.update(
+                2L,
+                "새 상점명",
+                BigDecimal.valueOf(37.6),
+                BigDecimal.valueOf(127.1),
+                "새 도로명",
+                "새 지번",
+                "010-9999-8888",
+                20L
+            );
+        }
+
+        @Test
+        @DisplayName("폐업 전에는 update·show가 정상 동작한다")
+        void beforeClosure() {
+            Shop shop = openShop();
+            shop.hide();
+
+            shop.show();
+            update(shop);
+
+            assertThat(shop.isHidden()).isFalse();
+            assertThat(shop.getName()).isEqualTo("새 상점명");
+        }
+
+        @Test
+        @DisplayName("폐업 후 update는 거부된다")
+        void updateAfterClosure() {
+            Shop shop = openShop();
+            shop.close();
+
+            assertThatThrownBy(() -> update(shop))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+
+            // 거부된 update는 기존 상태를 바꾸지 않는다
+            assertThat(shop.getName()).isEqualTo("상점명");
+        }
+
+        @Test
+        @DisplayName("폐업 후 show(재노출)는 거부된다")
+        void showAfterClosure() {
+            Shop shop = openShop();
+            shop.close();
+
+            assertThatThrownBy(shop::show)
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+        }
+
+        @Test
+        @DisplayName("폐업 후에도 hide(노출정지)와 close(멱등)는 허용된다")
+        void hideAndCloseRemainAllowed() {
+            Shop shop = openShop();
+            shop.close();
+
+            shop.hide();
+            shop.close();
+
+            assertThat(shop.isHidden()).isTrue();
+            assertThat(shop.isPermanentlyClosed()).isTrue();
+        }
     }
 }

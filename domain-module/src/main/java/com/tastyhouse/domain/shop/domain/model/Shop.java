@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 /**
  * 상점 순수 도메인 모델.
@@ -156,6 +158,12 @@ public class Shop {
         return ShopId.of(this.id);
     }
 
+    /**
+     * 가게 기본 정보를 수정한다.
+     *
+     * <p>폐업({@link #close()})한 가게는 수정할 수 없다 — 폐업을 되돌리는 API("폐업 취소")가 admin·ceo
+     * 어디에도 없어 폐업은 불가역이며, 되살릴 수 없는 가게의 정보를 계속 고치는 것은 업무상 오조작이다.
+     */
     public void update(
         Long stationId,
         String name,
@@ -166,6 +174,8 @@ public class Shop {
         String phoneNumber,
         Long thumbnailImageFileId
     ) {
+        validateNotPermanentlyClosed();
+
         this.stationId = stationId;
         this.name = name;
         this.latitude = latitude;
@@ -220,12 +230,33 @@ public class Shop {
 
     /**
      * 노출정지를 해제해 다시 노출한다.
+     *
+     * <p>폐업({@link #close()})한 가게는 다시 노출할 수 없다 — 폐업을 되돌리는 API("폐업 취소")가
+     * admin·ceo 어디에도 없으므로, 폐업 가게를 재노출하면 되돌릴 수 없는 상태로 회원에게 다시 보이게 된다.
      */
     public void show() {
+        validateNotPermanentlyClosed();
+
         this.hidden = false;
     }
 
+    /**
+     * 가게를 폐업 처리한다. <b>되돌릴 수 없다</b> — 폐업 취소 API가 없으므로 이후 {@link #show()}·
+     * {@link #update}는 {@link ErrorCode#SHOP_ALREADY_PERMANENTLY_CLOSED}로 거부된다.
+     */
     public void close() {
         this.permanentlyClosed = true;
+    }
+
+    /**
+     * 폐업 상태에서 금지된 동작을 막는다.
+     *
+     * <p>{@link #close()}(멱등)·{@link #hide()}(추가 은닉)에는 <b>적용하지 않는다</b> — 둘 다 폐업 상태를
+     * 되돌리거나 회원에게 다시 노출시키지 않으므로 막을 이유가 없고, 막으면 폐업 API의 멱등성이 깨진다.
+     */
+    private void validateNotPermanentlyClosed() {
+        if (permanentlyClosed) {
+            throw new BusinessException(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+        }
     }
 }

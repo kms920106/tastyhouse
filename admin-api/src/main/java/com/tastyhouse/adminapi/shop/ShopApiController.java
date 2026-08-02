@@ -104,7 +104,7 @@ public class ShopApiController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "가게 수정", description = "기존 가게를 수정합니다.")
+    @Operation(summary = "가게 수정", description = "기존 가게를 수정합니다. 폐업 처리된 가게는 수정할 수 없습니다.")
     @PutMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> updateShop(
         @PathVariable Long id,

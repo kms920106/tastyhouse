@@ -106,6 +106,65 @@ public class ShopBusinessHour {
     }
 
     /**
+     * 이 영업시간 행 기준으로 주어진 시각이 영업 중인지 판정한다.
+     *
+     * <p>24시간 영업이면 시각과 무관하게 영업중이고, 휴무 표시 행이거나 개점·폐점 시각이 없으면 영업이
+     * 아니다. 그 외에는 {@code [openTime, closeTime)} 반열림 구간으로 보며, 폐점이 개점보다 이르면
+     * 자정을 넘기는 영업으로 간주한다.
+     *
+     * <p>이 판정은 원래 {@code ShopOperatingStatusCalculator}가 {@code getIs24Hours()}/{@code getIsClosed()}
+     * /{@code getOpenTime()}/{@code getCloseTime()}을 꺼내 {@code Boolean.TRUE.equals(...)}로 4중 방어하며
+     * 수행했다. {@code Boolean} 래퍼의 null 3-상태 정규화는 애그리거트 <b>안 한 곳</b>에 있어야 호출부마다
+     * 방어 코드가 복제되지 않으므로 모델로 이식했다.
+     */
+    public boolean isOpenAt(LocalTime time) {
+        if (is24Hours()) {
+            return true;
+        }
+        if (isClosed() || openTime == null || closeTime == null) {
+            return false;
+        }
+        return isWithinRange(time, openTime, closeTime);
+    }
+
+    /**
+     * 이 영업시간이 자정을 넘겨 다음날 새벽까지 이어지는 경우, 주어진 시각이 그 <b>연장 구간</b>에 드는지
+     * 판정한다(전일 행을 오늘 새벽 시각으로 확인할 때 쓴다).
+     *
+     * <p>24시간·휴무 행은 연장 개념이 없으므로 항상 false다.
+     */
+    public boolean extendsIntoNextDayAt(LocalTime time) {
+        if (is24Hours() || isClosed() || openTime == null || closeTime == null) {
+            return false;
+        }
+        return crossesMidnight(openTime, closeTime) && time.isBefore(closeTime);
+    }
+
+    /** 휴무 표시 여부. {@code Boolean} 래퍼의 null은 false로 정규화한다. */
+    public boolean isClosed() {
+        return Boolean.TRUE.equals(isClosed);
+    }
+
+    /** 24시간 영업 여부. {@code Boolean} 래퍼의 null은 false로 정규화한다. */
+    public boolean is24Hours() {
+        return Boolean.TRUE.equals(is24Hours);
+    }
+
+    /**
+     * 시각이 {@code [start, end)} 구간에 드는지 판단한다. {@code end < start}면 자정을 넘기는 구간으로 본다.
+     */
+    private static boolean isWithinRange(LocalTime time, LocalTime start, LocalTime end) {
+        if (crossesMidnight(start, end)) {
+            return !time.isBefore(start) || time.isBefore(end);
+        }
+        return !time.isBefore(start) && time.isBefore(end);
+    }
+
+    private static boolean crossesMidnight(LocalTime start, LocalTime end) {
+        return end.isBefore(start);
+    }
+
+    /**
      * 영업시간 PDF 규격을 검증한다: 휴무/24시간이면 시간 검증 생략, 그 외에는 5분 단위·최소 1시간~최대
      * 23시간 55분. 자정 넘김(종료 &lt; 시작)은 허용하며 다음날로 넘어간 것으로 계산한다.
      *

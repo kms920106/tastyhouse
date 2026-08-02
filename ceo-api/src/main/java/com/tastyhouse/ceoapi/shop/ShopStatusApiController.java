@@ -37,7 +37,7 @@ public class ShopStatusApiController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "내 가게 노출 상태 변경", description = "로그인한 점주가 소유한 가게를 노출정지하거나 다시 노출합니다. 진행 중인 승인 요청이 있으면 변경이 차단됩니다.")
+    @Operation(summary = "내 가게 노출 상태 변경", description = "로그인한 점주가 소유한 가게를 노출정지하거나 다시 노출합니다. 진행 중인 승인 요청이 있으면 변경이 차단되며, 폐업 처리된 가게는 다시 노출할 수 없습니다.")
     @PutMapping("/v1/{id}/status")
     public ResponseEntity<ApiResponse<Void>> updateStatus(
         @AuthenticationPrincipal CustomUserDetails userDetails,

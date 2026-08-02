@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.time.LocalTime;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
@@ -149,5 +150,123 @@ class ShopBusinessHourTest {
 
         assertThat(businessHour.getOpenTime()).isEqualTo(LocalTime.of(9, 3));
         assertThat(businessHour.getCloseTime()).isEqualTo(LocalTime.of(9, 33));
+    }
+
+    @Nested
+    @DisplayName("isOpenAt — 영업 중 판정")
+    class IsOpenAt {
+
+        private ShopBusinessHour hour(LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours) {
+            return ShopBusinessHour.reconstitute(1L, 1L, DayType.DAILY, open, close, isClosed, is24Hours);
+        }
+
+        @Test
+        @DisplayName("24시간 영업은 어떤 시각에도 영업중")
+        void twentyFourHours() {
+            ShopBusinessHour businessHour = hour(null, null, false, true);
+
+            assertThat(businessHour.isOpenAt(LocalTime.of(0, 0))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(12, 0))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(23, 59))).isTrue();
+        }
+
+        @Test
+        @DisplayName("24시간 영업은 휴무 플래그보다 우선한다")
+        void twentyFourHoursWinsOverClosed() {
+            assertThat(hour(null, null, true, true).isOpenAt(LocalTime.of(12, 0))).isTrue();
+        }
+
+        @Test
+        @DisplayName("휴무 표시 행은 어떤 시각에도 영업이 아니다")
+        void closedRow() {
+            ShopBusinessHour businessHour = hour(LocalTime.of(9, 0), LocalTime.of(22, 0), true, false);
+
+            assertThat(businessHour.isOpenAt(LocalTime.of(12, 0))).isFalse();
+        }
+
+        @Test
+        @DisplayName("개점 시각은 포함하고 폐점 시각은 제외한다")
+        void halfOpenRange() {
+            ShopBusinessHour businessHour = hour(LocalTime.of(9, 0), LocalTime.of(22, 0), false, false);
+
+            assertThat(businessHour.isOpenAt(LocalTime.of(8, 59))).isFalse();
+            assertThat(businessHour.isOpenAt(LocalTime.of(9, 0))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(21, 59))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(22, 0))).isFalse();
+        }
+
+        @Test
+        @DisplayName("자정을 넘기는 영업시간은 양쪽 조각 모두 영업중")
+        void crossesMidnight() {
+            ShopBusinessHour businessHour = hour(LocalTime.of(20, 0), LocalTime.of(2, 0), false, false);
+
+            assertThat(businessHour.isOpenAt(LocalTime.of(19, 59))).isFalse();
+            assertThat(businessHour.isOpenAt(LocalTime.of(20, 0))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(23, 59))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(0, 0))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(1, 59))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(2, 0))).isFalse();
+        }
+
+        @Test
+        @DisplayName("Boolean 래퍼가 null이면 false로 정규화한다")
+        void nullBooleanNormalizedToFalse() {
+            ShopBusinessHour businessHour = hour(LocalTime.of(9, 0), LocalTime.of(22, 0), null, null);
+
+            assertThat(businessHour.isClosed()).isFalse();
+            assertThat(businessHour.is24Hours()).isFalse();
+            assertThat(businessHour.isOpenAt(LocalTime.of(12, 0))).isTrue();
+            assertThat(businessHour.isOpenAt(LocalTime.of(23, 0))).isFalse();
+        }
+
+        @Test
+        @DisplayName("개점·폐점 시각이 없고 24시간도 아니면 영업이 아니다")
+        void nullTimes() {
+            assertThat(hour(null, null, false, false).isOpenAt(LocalTime.of(12, 0))).isFalse();
+            assertThat(hour(LocalTime.of(9, 0), null, false, false).isOpenAt(LocalTime.of(12, 0))).isFalse();
+            assertThat(hour(null, LocalTime.of(22, 0), false, false).isOpenAt(LocalTime.of(12, 0))).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("extendsIntoNextDayAt — 전일 자정 넘김 연장 판정")
+    class ExtendsIntoNextDayAt {
+
+        private ShopBusinessHour hour(LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours) {
+            return ShopBusinessHour.reconstitute(1L, 1L, DayType.DAILY, open, close, isClosed, is24Hours);
+        }
+
+        @Test
+        @DisplayName("자정을 넘기는 행은 폐점 시각 전까지 연장 구간이다")
+        void crossesMidnight() {
+            ShopBusinessHour businessHour = hour(LocalTime.of(20, 0), LocalTime.of(2, 0), false, false);
+
+            assertThat(businessHour.extendsIntoNextDayAt(LocalTime.of(0, 0))).isTrue();
+            assertThat(businessHour.extendsIntoNextDayAt(LocalTime.of(1, 59))).isTrue();
+            assertThat(businessHour.extendsIntoNextDayAt(LocalTime.of(2, 0))).isFalse();
+            assertThat(businessHour.extendsIntoNextDayAt(LocalTime.of(21, 0))).isFalse();
+        }
+
+        @Test
+        @DisplayName("자정을 넘기지 않는 행은 연장 구간이 없다")
+        void doesNotCrossMidnight() {
+            ShopBusinessHour businessHour = hour(LocalTime.of(9, 0), LocalTime.of(22, 0), false, false);
+
+            assertThat(businessHour.extendsIntoNextDayAt(LocalTime.of(1, 0))).isFalse();
+        }
+
+        @Test
+        @DisplayName("24시간·휴무 행은 연장 개념이 없다")
+        void twentyFourHoursAndClosed() {
+            assertThat(hour(null, null, false, true).extendsIntoNextDayAt(LocalTime.of(1, 0))).isFalse();
+            assertThat(hour(LocalTime.of(20, 0), LocalTime.of(2, 0), true, false)
+                .extendsIntoNextDayAt(LocalTime.of(1, 0))).isFalse();
+        }
+
+        @Test
+        @DisplayName("개점·폐점 시각이 없으면 연장이 아니다")
+        void nullTimes() {
+            assertThat(hour(null, null, false, false).extendsIntoNextDayAt(LocalTime.of(1, 0))).isFalse();
+        }
     }
 }

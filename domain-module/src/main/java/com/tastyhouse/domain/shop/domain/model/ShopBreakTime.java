@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.shop.domain.model;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 import lombok.Getter;
@@ -42,5 +43,28 @@ public class ShopBreakTime {
         this.dayType = dayType;
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    /**
+     * 이 휴게시간이 주어진 시각을 포함하는지 판정한다.
+     *
+     * <p>요일 구분({@link DayType})이 오늘에 적용되지 않거나 시작·종료 시각이 없으면 포함하지 않는다.
+     * 포함 구간은 {@code [startTime, endTime)} 반열림이며, 종료가 시작보다 이르면 자정을 넘기는 구간으로
+     * 본다.
+     *
+     * <p>이 판정은 원래 {@code ShopOperatingStatusCalculator}가 {@code getStartTime()}/{@code getEndTime()}
+     * /{@code getDayType()}을 꺼내 수행했다 — 휴게시간이 스스로 답해야 할 질문이라 모델로 이식했다.
+     */
+    public boolean covers(LocalTime time, DayOfWeek dayOfWeek, boolean publicHoliday) {
+        if (startTime == null || endTime == null) {
+            return false;
+        }
+        if (!dayType.appliesTo(dayOfWeek, publicHoliday)) {
+            return false;
+        }
+        if (endTime.isBefore(startTime)) {
+            return !time.isBefore(startTime) || time.isBefore(endTime);
+        }
+        return !time.isBefore(startTime) && time.isBefore(endTime);
     }
 }
