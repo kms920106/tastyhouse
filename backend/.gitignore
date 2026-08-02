@@ -1,7 +1,6 @@
 # Gradle
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
 
 # IntelliJ IDEA
 *.iws
@@ -13,6 +12,9 @@ out/
 *.jar
 !**/src/main/**
 !**/src/test/**
+
+# Gradle wrapper (must come after *.jar to override it)
+!gradle/wrapper/gradle-wrapper.jar
 
 # Logs
 *.log
