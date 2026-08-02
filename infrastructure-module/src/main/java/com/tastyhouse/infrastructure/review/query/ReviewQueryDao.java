@@ -1,12 +1,15 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -102,7 +105,7 @@ public class ReviewQueryDao {
             .where(reviewJpaEntity.hidden.eq(false))
             .orderBy(reviewJpaEntity.totalRating.desc(), reviewJpaEntity.createdAt.desc());
 
-        long total = query.fetch().size();
+        long total = countBestReviews();
 
         List<BestReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -145,7 +148,7 @@ public class ReviewQueryDao {
             .where(reviewJpaEntity.hidden.eq(false))
             .orderBy(reviewJpaEntity.createdAt.desc());
 
-        long total = query.fetch().size();
+        long total = countLatestReviews(reviewJpaEntity.hidden.eq(false));
 
         List<LatestReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -199,7 +202,10 @@ public class ReviewQueryDao {
             )
             .orderBy(reviewJpaEntity.createdAt.desc());
 
-        long total = query.fetch().size();
+        long total = countLatestReviews(
+            Expressions.numberPath(Long.class, reviewJpaEntity, "memberId").in(followingMemberIds)
+                .and(reviewJpaEntity.hidden.eq(false))
+        );
 
         List<LatestReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -283,7 +289,7 @@ public class ReviewQueryDao {
 
         applySort(query, sortType);
 
-        long total = query.fetch().size();
+        long total = countLatestReviews(whereClause);
 
         List<LatestReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -367,7 +373,7 @@ public class ReviewQueryDao {
 
         applySort(query, sortType);
 
-        long total = query.fetch().size();
+        long total = countLatestReviews(whereClause);
 
         List<LatestReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -675,6 +681,32 @@ public class ReviewQueryDao {
     }
 
     /**
+     * 한 주문 안에서 그 회원이 이미 리뷰를 쓴 상품 식별자 집합.
+     *
+     * <p>주문 상세의 주문상품마다 {@link #existsByOrderIdAndProductIdAndMemberId}를 호출하면 상품 수만큼
+     * 쿼리가 나가므로(N+1), 상품 식별자를 모아 {@code IN} 한 번으로 조회하고 소비 모듈이 메모리에서
+     * 판정하도록 한다. 입력이 비어 있으면 조회하지 않는다.
+     */
+    public Set<Long> findReviewedProductIds(Long orderId, MemberId memberId, Collection<Long> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return Set.of();
+        }
+
+        return queryFactory
+            .select(reviewProductId())
+            .from(reviewJpaEntity)
+            .where(
+                reviewOrderId().eq(orderId),
+                reviewProductId().in(productIds),
+                reviewJpaEntity.memberId.eq(memberId)
+            )
+            .fetch()
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
      * 리뷰가 가리키는 상품 식별자. 리뷰 상세와 상품 정보를 함께 보여주는 화면에서 쓴다.
      */
     public Optional<Long> findProductIdByReviewId(Long reviewId) {
@@ -789,6 +821,49 @@ public class ReviewQueryDao {
             .from(tagJpaEntity)
             .where(tagJpaEntity.id.in(tagIds))
             .fetch();
+    }
+
+    /**
+     * 베스트 리뷰 총 건수.
+     *
+     * <p>목록 쿼리는 대표 이미지·파일·주문상품을 {@code leftJoin}하지만, 이미지 조인은 "정렬값이 가장 작은
+     * 1장"으로, 주문상품 조인은 (orderId, productId) 복합 동등으로 각각 리뷰당 최대 1행으로 좁혀지므로
+     * 행이 늘지 않는다. shop·station은 {@code innerJoin}이라 총 건수에 영향을 주므로 그대로 재현한다.
+     */
+    private long countBestReviews() {
+        Long total = queryFactory
+            .select(reviewJpaEntity.count())
+            .from(reviewJpaEntity)
+            .innerJoin(shopJpaEntity).on(reviewShopId().eq(shopJpaEntity.id))
+            .innerJoin(stationJpaEntity).on(shopStationId().eq(stationJpaEntity.id))
+            .where(reviewJpaEntity.hidden.eq(false))
+            .fetchOne();
+
+        return total == null ? 0L : total;
+    }
+
+    /**
+     * {@code LatestReviewListItemResult} 목록 계열(최신·팔로잉·가게별·상품별)의 공통 총 건수.
+     *
+     * <p>목록 쿼리와 동일한 {@code innerJoin}(shop·station·member)을 재현해야 총 건수가 일치한다 —
+     * inner join은 짝이 없는 리뷰를 제외하므로 리뷰 테이블만 세면 값이 달라진다. 반면 프로필 이미지
+     * {@code leftJoin}과 좋아요·댓글 수 스칼라 서브쿼리는 행 수를 바꾸지 않아 재현하지 않는다.
+     *
+     * <p>정렬(특히 추천순의 {@code groupBy})은 총 건수와 무관하므로 count 쿼리에는 적용하지 않는다.
+     * 추천순은 {@code groupBy(reviewJpaEntity.id, ...)}로 리뷰당 1행이 되므로 여기서 세는 리뷰 건수와
+     * 결과가 같다(기존 {@code fetch().size()}와 등가).
+     */
+    private long countLatestReviews(Predicate whereClause) {
+        Long total = queryFactory
+            .select(reviewJpaEntity.count())
+            .from(reviewJpaEntity)
+            .innerJoin(shopJpaEntity).on(reviewShopId().eq(shopJpaEntity.id))
+            .innerJoin(stationJpaEntity).on(shopStationId().eq(stationJpaEntity.id))
+            .innerJoin(memberJpaEntity).on(Expressions.numberPath(Long.class, reviewJpaEntity, "memberId").eq(memberJpaEntity.id))
+            .where(whereClause)
+            .fetchOne();
+
+        return total == null ? 0L : total;
     }
 
     /**

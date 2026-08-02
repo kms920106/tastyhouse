@@ -1,10 +1,12 @@
 package com.tastyhouse.webapi.review;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -363,10 +365,13 @@ public class ReviewQueryService {
     }
 
     /**
-     * 특정 주문의 특정 상품에 대해 회원이 이미 리뷰를 썼는지 여부.
+     * 한 주문 안에서 회원이 이미 리뷰를 쓴 상품 식별자 집합.
+     *
+     * <p>주문 상세처럼 주문상품이 여러 건인 화면이 상품마다 단건 조회를 부르면 상품 수만큼
+     * 쿼리가 나가므로(N+1), 호출부가 루프 전에 이 메서드로 1회 조회한 뒤 메모리에서 판정한다.
      */
-    public boolean isReviewedByOrderAndProduct(Long orderId, Long productId, Long memberId) {
-        return reviewQueryDao.existsByOrderIdAndProductIdAndMemberId(orderId, productId, MemberId.of(memberId));
+    public Set<Long> findReviewedProductIds(Long orderId, Long memberId, Collection<Long> productIds) {
+        return reviewQueryDao.findReviewedProductIds(orderId, MemberId.of(memberId), productIds);
     }
 
     /**

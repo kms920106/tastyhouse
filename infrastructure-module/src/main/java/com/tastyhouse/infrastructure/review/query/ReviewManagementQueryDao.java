@@ -78,7 +78,7 @@ public class ReviewManagementQueryDao {
             )
             .orderBy(reviewJpaEntity.createdAt.desc());
 
-        long total = query.fetch().size();
+        long total = countReviews(condition);
 
         List<ReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -179,6 +179,30 @@ public class ReviewManagementQueryDao {
             .where(replyCommentId().in(ids))
             .orderBy(reviewReplyJpaEntity.createdAt.asc())
             .fetch();
+    }
+
+    /**
+     * 리뷰 관리 목록의 총 건수 — 목록 쿼리와 같은 {@code innerJoin}(member)·같은 where를 재현한다.
+     *
+     * <p>회원 조인은 {@code innerJoin}이라 짝이 없는 리뷰를 제외하므로 리뷰 테이블만 세면 값이 달라진다.
+     * 조인이 1:1(회원 PK 동등)이라 행이 늘지 않아 {@code countDistinct}는 필요 없다.
+     */
+    private long countReviews(ReviewSearchCondition condition) {
+        Long total = queryFactory
+            .select(reviewJpaEntity.count())
+            .from(reviewJpaEntity)
+            .innerJoin(memberJpaEntity).on(Expressions.numberPath(Long.class, reviewJpaEntity, "memberId").eq(memberJpaEntity.id))
+            .where(
+                shopIdEq(condition.shopId()),
+                productIdEq(condition.productId()),
+                memberIdEq(condition.memberId()),
+                hiddenEq(condition.hidden()),
+                contentContains(condition.content()),
+                ratingBetween(condition.minRating(), condition.maxRating())
+            )
+            .fetchOne();
+
+        return total == null ? 0L : total;
     }
 
     private BooleanExpression shopIdEq(Long shopId) {

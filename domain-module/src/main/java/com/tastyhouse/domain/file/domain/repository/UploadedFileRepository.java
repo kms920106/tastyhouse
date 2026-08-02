@@ -1,5 +1,7 @@
 package com.tastyhouse.domain.file.domain.repository;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 import com.tastyhouse.domain.file.domain.model.UploadedFile;
@@ -22,4 +24,13 @@ public interface UploadedFileRepository {
         }
         return findById(id).map(UploadedFile::getFilePath);
     }
+
+    /**
+     * 여러 파일의 경로를 식별자별로 한 번에 조회한다. 목록 응답 조립처럼 파일 식별자가 N개인 경로에서
+     * {@link #findFilePath}를 반복 호출하면 N번 쿼리가 나가므로(N+1), 그 자리를 이 배치 조회로 대체한다.
+     *
+     * <p>입력이 비어 있으면 빈 맵을 돌려주며, 존재하지 않는 식별자는 결과 맵에 키가 없다(호출부는
+     * {@code get}이 {@code null}인 경우를 단건 조회의 {@code Optional.empty()}와 같게 다룬다).
+     */
+    Map<UploadedFileId, String> findFilePaths(Collection<UploadedFileId> ids);
 }

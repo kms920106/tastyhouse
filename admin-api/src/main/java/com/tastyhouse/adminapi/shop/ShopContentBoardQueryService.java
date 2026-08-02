@@ -1,5 +1,8 @@
 package com.tastyhouse.adminapi.shop;
 
+import java.util.Map;
+import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,30 +38,35 @@ public class ShopContentBoardQueryService {
     ) {
         ShopContentType type = contentType == null ? null : ShopContentType.from(contentType);
 
-        PageResult<ShopContentBoardListItemResponse> pageResult = shopQueryDao
-            .findContentBoardPage(shopId, hidden, type, PageQuery.of(page, size))
-            .map(this::toShopContentBoardListItemResponse);
-        return PaginationResponse.from(pageResult);
+        PageResult<ShopContentBoardResult> pageResult = shopQueryDao
+            .findContentBoardPage(shopId, hidden, type, PageQuery.of(page, size));
+
+        // 목록 항목마다 이미지 URL을 단건 조회하면 항목 수만큼 쿼리가 나가므로(N+1), 파일 식별자를 모아
+        // 한 번에 변환한 뒤 매핑한다.
+        Map<Long, String> imageUrls = fileService.getUrlsByFileIds(
+            pageResult.content().stream()
+                .map(ShopContentBoardResult::imageFileId)
+                .filter(Objects::nonNull)
+                .toList()
+        );
+
+        return PaginationResponse.from(pageResult.map(dto -> toShopContentBoardListItemResponse(dto, imageUrls)));
     }
 
-    private ShopContentBoardListItemResponse toShopContentBoardListItemResponse(ShopContentBoardResult dto) {
+    private ShopContentBoardListItemResponse toShopContentBoardListItemResponse(
+        ShopContentBoardResult dto,
+        Map<Long, String> imageUrls
+    ) {
         return ShopContentBoardListItemResponse.of(
             dto.id(),
             dto.shopId(),
             dto.contentType().name(),
             dto.topic().name(),
-            resolveImageUrl(dto.imageFileId()),
+            dto.imageFileId() == null ? null : imageUrls.get(dto.imageFileId()),
             dto.youtubeUrl(),
             dto.description(),
             dto.hidden(),
             dto.createdAt()
         );
-    }
-
-    private String resolveImageUrl(Long imageFileId) {
-        if (imageFileId == null) {
-            return null;
-        }
-        return fileService.getUrlByFileId(imageFileId);
     }
 }

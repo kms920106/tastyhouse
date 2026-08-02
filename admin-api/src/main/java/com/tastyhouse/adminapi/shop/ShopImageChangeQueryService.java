@@ -1,5 +1,8 @@
 package com.tastyhouse.adminapi.shop;
 
+import java.util.Map;
+import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,27 +39,32 @@ public class ShopImageChangeQueryService {
         ApprovalStatus approvalStatus = status == null ? null : ApprovalStatus.valueOf(status);
         ShopImageType type = imageType == null ? null : ShopImageType.from(imageType);
 
-        PageResult<ShopImageChangeRequestItemResponse> pageResult = shopQueryDao
-            .findImageChangeRequestPage(approvalStatus, type, PageQuery.of(page, size))
-            .map(this::toShopImageChangeRequestItemResponse);
-        return PaginationResponse.from(pageResult);
+        PageResult<ShopImageChangeRequestResult> pageResult = shopQueryDao
+            .findImageChangeRequestPage(approvalStatus, type, PageQuery.of(page, size));
+
+        // 목록 항목마다 이미지 URL을 단건 조회하면 항목 수만큼 쿼리가 나가므로(N+1), 파일 식별자를 모아
+        // 한 번에 변환한 뒤 매핑한다.
+        Map<Long, String> imageUrls = fileService.getUrlsByFileIds(
+            pageResult.content().stream()
+                .map(ShopImageChangeRequestResult::imageFileId)
+                .filter(Objects::nonNull)
+                .toList()
+        );
+
+        return PaginationResponse.from(pageResult.map(dto -> toShopImageChangeRequestItemResponse(dto, imageUrls)));
     }
 
-    private ShopImageChangeRequestItemResponse toShopImageChangeRequestItemResponse(ShopImageChangeRequestResult dto) {
+    private ShopImageChangeRequestItemResponse toShopImageChangeRequestItemResponse(
+        ShopImageChangeRequestResult dto,
+        Map<Long, String> imageUrls
+    ) {
         return ShopImageChangeRequestItemResponse.of(
             dto.id(),
             dto.shopId(),
             dto.imageType().name(),
-            resolveImageUrl(dto.imageFileId()),
+            dto.imageFileId() == null ? null : imageUrls.get(dto.imageFileId()),
             dto.status().name(),
             dto.rejectReason()
         );
-    }
-
-    private String resolveImageUrl(Long imageFileId) {
-        if (imageFileId == null) {
-            return null;
-        }
-        return fileService.getUrlByFileId(imageFileId);
     }
 }

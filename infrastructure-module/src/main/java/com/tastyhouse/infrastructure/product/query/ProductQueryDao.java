@@ -95,7 +95,7 @@ public class ProductQueryDao {
                 .and(productJpaEntity.visible.eq(true)))
             .orderBy(productJpaEntity.discountInfo.discountRate.desc());
 
-        long total = query.fetch().size();
+        long total = countTodayDiscountProducts();
 
         List<TodayDiscountProductResult> products = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -103,6 +103,25 @@ public class ProductQueryDao {
             .fetch();
 
         return PageResult.of(products, total, pageQuery.page(), pageQuery.size());
+    }
+
+    /**
+     * 오늘의 할인 상품 총 건수 — 목록 쿼리와 같은 {@code innerJoin}(shop)·같은 where를 재현한다.
+     *
+     * <p>대표 이미지·파일 {@code leftJoin}은 "노출 중 최소 sort 1장"으로 좁혀져 상품당 최대 1행이라
+     * 행이 늘지 않으므로 count 쿼리에서 생략한다. 가게 조인은 {@code innerJoin}이라 짝이 없는 상품을
+     * 제외하므로 총 건수에 영향을 주어 그대로 재현한다.
+     */
+    private long countTodayDiscountProducts() {
+        Long total = queryFactory
+            .select(productJpaEntity.count())
+            .from(productJpaEntity)
+            .innerJoin(shopJpaEntity).on(productShopId().eq(shopJpaEntity.id))
+            .where(productJpaEntity.discountInfo.discountPrice.isNotNull()
+                .and(productJpaEntity.visible.eq(true)))
+            .fetchOne();
+
+        return total == null ? 0L : total;
     }
 
     /**

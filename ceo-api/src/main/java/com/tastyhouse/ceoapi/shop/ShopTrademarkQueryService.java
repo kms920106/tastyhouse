@@ -1,6 +1,8 @@
 package com.tastyhouse.ceoapi.shop;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,17 +43,31 @@ public class ShopTrademarkQueryService {
     }
 
     private ShopImageStatusResponse toShopImageStatusResponse(String currentImageUrl, Long shopId) {
-        List<ShopImageChangeRequestItemResponse> requests = shopQueryDao.findImageChangeRequests(shopId).stream()
-            .map(this::toShopImageChangeRequestItemResponse)
+        List<ShopImageChangeRequestResult> changeRequests = shopQueryDao.findImageChangeRequests(shopId);
+
+        // 변경요청마다 이미지 URL을 단건 조회하면 요청 수만큼 쿼리가 나가므로(N+1), 파일 식별자를 모아
+        // 한 번에 변환한 뒤 매핑한다. 현재 적용 이미지는 단건이라 그대로 단건 변환을 쓴다.
+        Map<Long, String> imageUrls = fileService.getUrlsByFileIds(
+            changeRequests.stream()
+                .map(ShopImageChangeRequestResult::imageFileId)
+                .filter(Objects::nonNull)
+                .toList()
+        );
+
+        List<ShopImageChangeRequestItemResponse> requests = changeRequests.stream()
+            .map(dto -> toShopImageChangeRequestItemResponse(dto, imageUrls))
             .toList();
         return ShopImageStatusResponse.of(currentImageUrl, requests);
     }
 
-    private ShopImageChangeRequestItemResponse toShopImageChangeRequestItemResponse(ShopImageChangeRequestResult dto) {
+    private ShopImageChangeRequestItemResponse toShopImageChangeRequestItemResponse(
+        ShopImageChangeRequestResult dto,
+        Map<Long, String> imageUrls
+    ) {
         return ShopImageChangeRequestItemResponse.of(
             dto.id(),
             dto.imageType().name(),
-            resolveImageUrl(dto.imageFileId()),
+            dto.imageFileId() == null ? null : imageUrls.get(dto.imageFileId()),
             dto.status().name(),
             dto.rejectReason()
         );

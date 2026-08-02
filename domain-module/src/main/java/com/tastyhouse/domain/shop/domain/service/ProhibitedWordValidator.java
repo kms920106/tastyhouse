@@ -16,8 +16,10 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * <p>{@code @Component} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은 infrastructure-module의
  * {@code DomainServiceConfig}가 담당한다.
  *
- * <p>추후 캐싱 고려: 매 호출마다 {@link ProhibitedWordRepository#findAll()}을 호출하므로
- * 금칙어 수가 많아지면 비효율적일 수 있다. 현재는 단순 구현으로 둔다.
+ * <p>검증마다 {@link ProhibitedWordRepository#findAll()}로 금칙어를 전량 읽지만, 그 반복 로드는
+ * 도메인이 아니라 <b>어댑터 쪽</b>에서 흡수한다 — 빈 등록 지점({@code DomainServiceConfig})이 TTL 캐싱
+ * 데코레이터({@code CachingProhibitedWordRepository})로 감싼 포트를 주입하므로, 이 클래스는 캐시를
+ * 알지 않아도 되고 순수 POJO로 남는다.
  */
 public class ProhibitedWordValidator {
 

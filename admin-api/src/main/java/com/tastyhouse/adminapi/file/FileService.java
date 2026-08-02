@@ -1,6 +1,11 @@
 package com.tastyhouse.adminapi.file;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -84,6 +89,40 @@ public class FileService {
                 fileUploadService.getUrlByPath(file.getFilePath())
             ))
             .orElse(null);
+    }
+
+    /**
+     * 여러 파일 식별자를 표시용 URL로 한 번에 변환한다.
+     *
+     * <p>목록 응답 조립처럼 파일 식별자가 N개인 경로에서 {@link #getUrlByFileId(Long)}를 반복 호출하면
+     * N번 쿼리가 나가므로(N+1), 그 자리를 이 배치 변환으로 대체한다. 존재하지 않는 식별자는 결과 맵에
+     * 키가 없으므로, 호출부는 {@code get} 결과가 {@code null}이면 단건 변환과 동일하게 다룬다.
+     */
+    @Transactional(readOnly = true)
+    public Map<Long, String> getUrlsByFileIds(Collection<Long> fileIds) {
+        if (fileIds == null || fileIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<UploadedFileId> ids = fileIds.stream()
+            .filter(Objects::nonNull)
+            .distinct()
+            .map(UploadedFileId::of)
+            .toList();
+
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, String> urlByFileId = new LinkedHashMap<>();
+        uploadedFileRepository.findFilePaths(ids).forEach((fileId, filePath) -> {
+            String url = fileUploadService.getUrlByPath(filePath);
+            if (url != null) {
+                urlByFileId.put(fileId.value(), url);
+            }
+        });
+
+        return urlByFileId;
     }
 
     private byte[] readBytes(MultipartFile file) {

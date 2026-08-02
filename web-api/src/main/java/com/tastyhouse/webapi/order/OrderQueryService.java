@@ -1,6 +1,8 @@
 package com.tastyhouse.webapi.order;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -85,8 +87,17 @@ public class OrderQueryService {
     }
 
     private OrderDetailResponse toOrderDetailResponse(OrderDetailResult result, Long memberId) {
+        // 주문상품마다 리뷰 여부를 개별 조회하면 상품 수만큼 쿼리가 나가므로(N+1), 상품 식별자를 모아
+        // 한 번에 조회하고 아래 매핑 루프는 메모리에서 판정한다.
+        List<Long> productIds = result.orderProducts().stream()
+            .map(OrderProductResult::productId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Set<Long> reviewedProductIds = reviewQueryService.findReviewedProductIds(result.id(), memberId, productIds);
+
         List<OrderProductResponse> orderProducts = result.orderProducts().stream()
-            .map(orderProduct -> toOrderProductResponse(orderProduct, result.id(), memberId))
+            .map(orderProduct -> toOrderProductResponse(orderProduct, reviewedProductIds))
             .toList();
 
         PaymentSummaryResponse payment = result.payment() != null ? toPaymentSummaryResponse(result.payment()) : null;
@@ -126,8 +137,8 @@ public class OrderQueryService {
         return payment.paymentStatus().name();
     }
 
-    private OrderProductResponse toOrderProductResponse(OrderProductResult result, Long orderId, Long memberId) {
-        boolean reviewed = reviewQueryService.isReviewedByOrderAndProduct(orderId, result.productId(), memberId);
+    private OrderProductResponse toOrderProductResponse(OrderProductResult result, Set<Long> reviewedProductIds) {
+        boolean reviewed = reviewedProductIds.contains(result.productId());
         List<OrderProductOptionResponse> options = result.options().stream()
             .map(this::toOrderProductOptionResponse)
             .toList();
