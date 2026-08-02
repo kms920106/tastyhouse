@@ -39,10 +39,12 @@ export async function loginAction(values: LoginFormValues): Promise<AuthActionRe
   }
 
   const maxAge = rememberMe ? THIRTY_DAYS : SEVEN_DAYS;
+  // JWT 는 XSS 로 탈취되면 안 되므로 httpOnly 로 심는다.
+  const cookieOptions = { maxAge, httpOnly: true } as const;
 
   await Promise.all([
-    setValueToCookie(AUTH_COOKIE_KEYS.ACCESS_TOKEN, res.data.accessToken, { maxAge }),
-    setValueToCookie(AUTH_COOKIE_KEYS.REFRESH_TOKEN, res.data.refreshToken, { maxAge }),
+    setValueToCookie(AUTH_COOKIE_KEYS.ACCESS_TOKEN, res.data.accessToken, cookieOptions),
+    setValueToCookie(AUTH_COOKIE_KEYS.REFRESH_TOKEN, res.data.refreshToken, cookieOptions),
   ]);
 
   return { success: true };
@@ -67,8 +69,8 @@ export async function refreshAction(): Promise<AuthActionResult> {
   }
 
   await Promise.all([
-    setValueToCookie(AUTH_COOKIE_KEYS.ACCESS_TOKEN, res.data.accessToken),
-    setValueToCookie(AUTH_COOKIE_KEYS.REFRESH_TOKEN, res.data.refreshToken),
+    setValueToCookie(AUTH_COOKIE_KEYS.ACCESS_TOKEN, res.data.accessToken, { httpOnly: true }),
+    setValueToCookie(AUTH_COOKIE_KEYS.REFRESH_TOKEN, res.data.refreshToken, { httpOnly: true }),
   ]);
 
   return { success: true };
