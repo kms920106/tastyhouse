@@ -124,9 +124,10 @@ reference 구현: `admin-api`/`web-api` 공통 — `common/PaginationResponse.ja
 | `PageRequest` | `apicommon.common` | 3모듈 복제(diff 1줄) |
 | `FileService` | `apicommon.file` | 3모듈 복제(diff 1줄) |
 | `GlobalExceptionHandler` | `apicommon.exception` | admin↔ceo 복제(diff 1줄) — **web-api는 제외** |
+| `ProblemDetails` | `apicommon.exception` | web-api↔공용 핸들러의 `problemDetail(...)` private 헬퍼 복제(바이트 동일) — **web-api도 이것만은 공유** |
 | `ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse` | `apicommon.shop.response` | admin↔ceo 바이트 동일 |
 
-**스캔 주의**: `GlobalExceptionHandler`(`@RestControllerAdvice`)와 `FileService`(`@Service`)는 빈이므로 어느 앱이 무엇을 스캔하는지가 곧 동작입니다. admin/ceo는 `com.tastyhouse.apicommon` 전체를, **web-api는 `com.tastyhouse.apicommon.file`만** 스캔합니다(자체 핸들러를 쓰므로 `exception` 패키지를 스캔하면 핸들러가 2개가 됩니다).
+**스캔 주의**: `GlobalExceptionHandler`(`@RestControllerAdvice`)와 `FileService`(`@Service`)는 빈이므로 어느 앱이 무엇을 스캔하는지가 곧 동작입니다. admin/ceo는 `com.tastyhouse.apicommon` 전체를, **web-api는 `com.tastyhouse.apicommon.file`만** 스캔합니다(자체 핸들러를 쓰므로 `exception` 패키지를 스캔하면 핸들러가 2개가 됩니다). 반면 `ProblemDetails`는 **`@Component`가 아닌 static 유틸**이라 스캔 범위와 무관하며, web-api가 `exception` 패키지를 스캔하지 않고도 import해서 쓸 수 있습니다(핸들러 빈은 여전히 1개).
 
 ### 복제를 유지하는 것 (허용 목록 — 통합 금지)
 
@@ -134,7 +135,7 @@ reference 구현: `admin-api`/`web-api` 공통 — `common/PaginationResponse.ja
 
 | 타입 | 사유 |
 |---|---|
-| `GlobalExceptionHandler` (web-api) | web 전용 핸들러 4종(`ExternalApiException`·`NoHandlerFoundException`·`MissingServletRequestParameterException`·`MethodArgumentTypeMismatchException`) 보유 + 검증 실패 메시지 형식이 `"필드명: 메시지"`로 다름 → **응답 계약 차이** |
+| `GlobalExceptionHandler` (web-api) | 검증 실패 메시지 형식이 `"필드명: 메시지"`를 `", "`로 join(공용은 메시지만 공백 join)하고 인증 예외(`BadCredentials`/`Disabled`/`Locked`)를 각각 분리해 개별 문구를 내려주는 등 → **응답 계약 차이**. 조립 로직인 `ProblemDetails`는 공용을 쓴다 |
 | `TokenService` (admin/ceo) | 인증 주체(`Admin`/`Ceo`)·`ErrorCode`(`ADMIN_*`/`CEO_*`)·조회 서비스가 전부 다름. **JWT 시크릿도 분리**(`JWT_SECRET_ADMIN` 등)되어야 하므로 통합 시 권한 상승 위험 |
 | `AuthService` (admin/ceo) | 위와 동일(인증 주체 차이) |
 | `SecurityConfig` (3모듈) | 필터체인·인가 정책이 모듈마다 다름 |
@@ -145,6 +146,23 @@ reference 구현: `admin-api`/`web-api` 공통 — `common/PaginationResponse.ja
 | `ApiResponse`/`PageRequest`/`PaginationResponse`의 **모듈별 사본** | 없음 — 위 표대로 통합 완료 |
 
 reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 의존하는 3개 api 모듈, 스캔 범위를 좁힌 `WebApiApplication`.
+
+## 예외·에러코드 소유 규칙 (`ErrorCodeSpec` 공통 계약 + `BusinessException` 단일 계층)
+
+**HTTP 응답으로 나가는 모든 에러는 `ErrorCodeSpec`을 구현한 에러코드를 담은 `BusinessException`(또는 그 하위)으로 표현합니다.** 예외 타입을 새로 만들어 전역 핸들러에 전용 `@ExceptionHandler`를 추가하는 방식은 쓰지 않습니다. 과거 `ExternalApiErrorCode`가 `ErrorCode`와 구조(`httpStatusCode`/`code`/`defaultMessage`)가 완전히 같은데도 공통 추상이 없어, 각 api 모듈 핸들러가 예외 타입마다 같은 변환 코드를 복제해야 했고 **admin-api·ceo-api가 그 복제를 갖지 않아 502로 의도된 외부 연동 실패(SMS·메일 발송)가 `Exception` 폴백을 타고 500으로 응답되는 결함**이 실제로 있었습니다. 계약을 하나로 모으면 이런 누락이 구조적으로 불가능해집니다.
+
+- **`ErrorCodeSpec`** (`domain-module`의 `com.tastyhouse.domain.exception`): `int getHttpStatusCode()`·`String getCode()`·`String getDefaultMessage()` 세 메서드만 갖는 순수 Java 인터페이스입니다. `httpStatusCode`가 `HttpStatus`가 아니라 `int`인 이유는 domain-module이 프레임워크-프리(production 의존 0)이기 때문이며, HTTP 상태 해석은 api 모듈 핸들러가 담당합니다.
+- **에러코드 enum은 이 인터페이스를 구현합니다**: 비즈니스 에러 카탈로그 `ErrorCode`와 외부 연동 에러 `ExternalApiErrorCode`(external-api 소유)가 각각 구현합니다. **`BusinessException`의 필드·생성자·`getErrorCode()`는 `ErrorCodeSpec` 타입**이므로 호출부는 어느 계열이든 그대로 넘길 수 있습니다.
+- **새 예외 타입 대신 상속을 씁니다**: 외부 연동처럼 별도 예외 타입이 필요하면 `ExternalApiException extends BusinessException`처럼 **`BusinessException`을 상속**해, 기존 `BusinessException` 핸들러가 그대로 처리하게 합니다. 전용 핸들러를 모듈마다 추가하지 않습니다.
+- **`ErrorCode`는 도메인별로 쪼개지 않습니다**: 상수 230여 개의 단일 카탈로그이지만 이는 "비즈니스 에러 카탈로그"라는 단일 책임이며, 도메인별 enum으로 분리하면 이 enum을 import하는 167개 파일을 전면 수정해야 하는 데 비해 얻는 것이 파일 분할뿐입니다. 대신 아래 가드 테스트로 규약을 강제합니다.
+- **`ErrorCodeConventionTest`가 카탈로그 규약을 지킵니다** (`domain-module` 순수 단위 테스트): `code` 유일성, 상수명↔`code` 일치, `*_NOT_FOUND` 이름은 404, `httpStatusCode`는 4xx·5xx, `defaultMessage` 비어 있지 않음. **기존 위반은 wire 계약이라 고치지 않고 봉인 목록(`EnumSet`)으로 통과시키며, 그 목록이 낡으면(고쳐졌으면) 별도 테스트가 실패해 알려줍니다.** 봉인 목록에 새 항목을 추가하지 말고 신규 상수는 규약을 지킵니다.
+- **응답 `code` 문자열과 상태코드는 wire 계약입니다**: 프론트가 `code`로 분기하므로 기존 값을 바꾸지 않습니다. 신규 상수 추가는 additive라 안전합니다. 상수명과 `code`가 의도적으로 다른 경우(채널 어휘 통일로 상수명만 `SMS_`/`MAIL_`로 바꾼 6개)도 봉인 목록에 있습니다.
+- **`ResourceNotFoundException`은 존치, `AccessDeniedException`은 폐지했습니다**: 전자는 catch 구분·의도 표현 가치가 있어 남깁니다. 후자는 Spring Security의 `org.springframework.security.access.AccessDeniedException`과 **이름이 같아** 두 타입의 처리 경로가 다른데도(도메인판은 ErrorCode의 상태·code로, Spring판은 전용 핸들러로) 이름만으로 구분되지 않아 import 한 줄 실수로 응답 계약이 조용히 달라지는 위험이 있었고, 서브클래스가 HTTP 상태에 아무 영향을 주지 않아(상태는 ErrorCode에서만 옴) 존재 의의도 없었습니다. 사용처 14곳을 `BusinessException`으로 전환하고 파일을 삭제했습니다. **권한 예외는 `BusinessException`에 403 `ErrorCode`(`ACCESS_DENIED` 또는 도메인별 `*_ACCESS_DENIED`)를 직접 넘깁니다.**
+- **필터 단계와 advice 단계는 같은 `errorCode`를 냅니다**: 서블릿 필터(`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)는 advice를 타지 않아 `ProblemDetail`을 직접 직렬화하지만, `ErrorCode.AUTH_REQUIRED`(401)·`ErrorCode.ACCESS_DENIED`(403)의 `code`를 `setProperty("errorCode", ...)`로 담아 **클라이언트가 보는 계약을 advice 단계와 일치**시킵니다.
+- **`ProblemDetails`(api-common-module)가 조립을 담당합니다**: `HttpStatus.resolve()` null 폴백과 `errorCode` property 부착 로직은 두 전역 핸들러에 바이트 동일하게 복제돼 있었으므로 static 유틸 하나로 통합했습니다. **응답 계약 차이(검증 실패 메시지 형식 등)는 메시지를 만드는 쪽에 있고 조립에는 없으므로** 핸들러는 계속 모듈별로 유지합니다.
+- **batch-module은 이 체계를 쓰지 않습니다**: HTTP 경계가 없어 응답 계약이 존재하지 않으므로 `ErrorCode`를 강제하지 않고, raw `RuntimeException` 대신 `BatchJobException`(batch-module 로컬)을 던져 배치 실패를 식별합니다. 스케줄러가 이를 잡아 로그로 남기고 다음 주기에 재실행하는 잡 단위 격리는 정상 설계이므로 재던지도록 바꾸지 않습니다.
+
+reference 구현: `domain-module`의 `exception/ErrorCodeSpec`·`ErrorCode`·`BusinessException`·`ResourceNotFoundException`과 가드 테스트 `ErrorCodeConventionTest`, `external-api`의 `ExternalApiErrorCode`·`ExternalApiException`(BusinessException 상속), `api-common-module`의 `ProblemDetails`·`GlobalExceptionHandler`(admin/ceo 공용), `web-api`의 `GlobalExceptionHandler`(계약 차이로 자체 유지), `security-module`의 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `batch-module`의 `exception/BatchJobException`.
 
 ## 소셜 로그인 SPI 규칙 (`external.oauth.spi`)
 
@@ -778,7 +796,7 @@ reference 구현: `MailVerificationService#issue`(`MailSender` 주입 + `MailVer
 
 ## 점주 가게 관리(ceo-api) 소유권 검증 규칙
 
-**ceo-api의 모든 가게 관리 엔드포인트는 도메인 계층 호출 전에 소유권을 검증한다.** 점주(`ceoId`)는 자기 소유 가게(`shop.ceoId == ceoId`)에만 접근할 수 있어야 하므로, `ceoapi/shop/ShopOwnershipValidator`(@Component)의 `Shop validateOwnership(Long ceoId, Long shopId)`를 컨트롤러→Service 경로에서 먼저 호출하고, 불일치·미배정 시 `AccessDeniedException(ErrorCode.SHOP_ACCESS_DENIED)`(403)을 던진다. 이 검증기는 domain-module이 아니라 **presentation(ceo-api)에 둔다** — admin(무제한)·web(회원 관점)과 구분되는 ceo 고유의 인가 관심사이기 때문이다(모듈 경계 규칙의 "도메인 포트 없는 관심사는 presentation에" 원칙과 일관). `CustomUserDetails`는 `ceoId`만 노출하므로 `shopId`는 경로/바디로 받아 이 검증기로 확인한다.
+**ceo-api의 모든 가게 관리 엔드포인트는 도메인 계층 호출 전에 소유권을 검증한다.** 점주(`ceoId`)는 자기 소유 가게(`shop.ceoId == ceoId`)에만 접근할 수 있어야 하므로, `ceoapi/shop/ShopOwnershipValidator`(@Component)의 `Shop validateOwnership(Long ceoId, Long shopId)`를 컨트롤러→Service 경로에서 먼저 호출하고, 불일치·미배정 시 `BusinessException(ErrorCode.SHOP_ACCESS_DENIED)`(403)을 던진다. 이 검증기는 domain-module이 아니라 **presentation(ceo-api)에 둔다** — admin(무제한)·web(회원 관점)과 구분되는 ceo 고유의 인가 관심사이기 때문이다(모듈 경계 규칙의 "도메인 포트 없는 관심사는 presentation에" 원칙과 일관). `CustomUserDetails`는 `ceoId`만 노출하므로 `shopId`는 경로/바디로 받아 이 검증기로 확인한다.
 
 - **점주-가게 연결**: `Shop`에 `ceoId`(nullable, `@Convert` 없이 raw `Long` FK) 컬럼을 두어 1점주 N가게를 표현한다. 배정은 admin-api의 `ShopCreateCommand.ceoId`로 관리자가 수행하고, `Shop` 도메인은 `assignCeo(Long)`로 배정한다. `ShopSearchCondition.ceoId`로 "내 가게" 목록을 필터링한다.
 - **개별 리소스 삭제/변경 시 소유권 한계**: 하위 리소스 식별자만 경로에 있고(예: `/v1/phone-numbers/{phoneNumberId}`) infra query DAO에 해당 단건→shopId 역조회 메서드가 없으면 소유권 검증을 생략하고 그대로 위임한다. 이런 지점은 Service에 한계를 주석으로 명시하며, 향후 `shop/query/ShopQueryDao`에 `findXxxById`(shopId 포함) 조회를 추가해 검증을 강화할 수 있다. 역조회가 가능한 경우(영업시간/휴게시간)는 `ShopQueryService.findShopBusinessHourById`/`findShopBreakTimeById`로 대상의 shopId를 얻어 검증한다.

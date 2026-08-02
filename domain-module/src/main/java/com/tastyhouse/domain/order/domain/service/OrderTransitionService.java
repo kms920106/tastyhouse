@@ -5,7 +5,7 @@ import com.tastyhouse.domain.order.domain.model.Order;
 import com.tastyhouse.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
@@ -79,7 +79,7 @@ public class OrderTransitionService {
     public Order loadOwnedBy(OrderId orderId, MemberId memberId, ErrorCode accessDeniedCode) {
         Order order = load(orderId);
         if (!order.getMemberId().equals(memberId)) {
-            throw new AccessDeniedException(accessDeniedCode);
+            throw new BusinessException(accessDeniedCode);
         }
         return order;
     }

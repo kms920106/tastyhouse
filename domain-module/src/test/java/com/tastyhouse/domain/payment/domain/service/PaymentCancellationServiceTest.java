@@ -28,7 +28,6 @@ import com.tastyhouse.domain.payment.domain.repository.PaymentRefundRepository;
 import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.domain.payment.domain.vo.Amount;
 import com.tastyhouse.domain.payment.domain.vo.PaymentId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
@@ -153,12 +152,12 @@ class PaymentCancellationServiceTest {
     void cancel_rejectsOtherMember() {
         Fixture prepareFixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
         assertThatThrownBy(() -> prepareFixture.service.prepareCancellation(OTHER_MEMBER_ID, PAYMENT_ID))
-            .isInstanceOf(AccessDeniedException.class)
+            .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         Fixture applyFixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
         assertThatThrownBy(() -> applyFixture.service.applyCancellation(OTHER_MEMBER_ID, PAYMENT_ID, "사유"))
-            .isInstanceOf(AccessDeniedException.class)
+            .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         assertThat(applyFixture.paymentRepository.lastSaved).isNull();

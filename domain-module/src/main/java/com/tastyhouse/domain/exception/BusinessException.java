@@ -2,19 +2,24 @@ package com.tastyhouse.domain.exception;
 
 public class BusinessException extends RuntimeException {
 
-    private final ErrorCode errorCode;
+    private final ErrorCodeSpec errorCode;
 
-    public BusinessException(ErrorCode errorCode) {
+    public BusinessException(ErrorCodeSpec errorCode) {
         super(errorCode.getDefaultMessage());
         this.errorCode = errorCode;
     }
 
-    public BusinessException(ErrorCode errorCode, String message) {
+    public BusinessException(ErrorCodeSpec errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
     }
 
-    public ErrorCode getErrorCode() {
+    public BusinessException(ErrorCodeSpec errorCode, Throwable cause) {
+        super(errorCode.getDefaultMessage(), cause);
+        this.errorCode = errorCode;
+    }
+
+    public ErrorCodeSpec getErrorCode() {
         return this.errorCode;
     }
 }

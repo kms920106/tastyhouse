@@ -1,6 +1,8 @@
 package com.tastyhouse.external.exception;
 
-public enum ExternalApiErrorCode {
+import com.tastyhouse.domain.exception.ErrorCodeSpec;
+
+public enum ExternalApiErrorCode implements ErrorCodeSpec {
 
     // SMS
     SMS_SEND_NO_RESPONSE(502, "SMS_SEND_NO_RESPONSE", "SMS 발송 응답이 없습니다."),

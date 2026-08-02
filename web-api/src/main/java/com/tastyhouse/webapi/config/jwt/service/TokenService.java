@@ -8,12 +8,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.domain.model.Member;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.exception.UnauthorizedException;
 import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
 
 /**
@@ -76,13 +77,13 @@ public class TokenService {
      */
     public AuthJwtResponse refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new UnauthorizedException("유효하지 않은 Refresh Token입니다.");
+            throw new BusinessException(ErrorCode.AUTH_REFRESH_TOKEN_INVALID);
         }
 
         String username = jwtTokenProvider.getUsernameFromJWT(refreshToken);
 
         if (refreshTokenRepository.isInvalid(username, refreshToken)) {
-            throw new UnauthorizedException("만료되었거나 이미 로그아웃된 Refresh Token입니다.");
+            throw new BusinessException(ErrorCode.AUTH_REFRESH_TOKEN_EXPIRED);
         }
 
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
@@ -126,7 +127,7 @@ public class TokenService {
 
     private String extractToken(String bearerToken) {
         if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")) {
-            throw new UnauthorizedException("유효하지 않은 토큰입니다.");
+            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
         }
         return bearerToken.substring(7).trim();
     }

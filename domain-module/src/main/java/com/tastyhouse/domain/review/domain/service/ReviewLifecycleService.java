@@ -23,7 +23,7 @@ import com.tastyhouse.domain.shop.domain.model.Tag;
 import com.tastyhouse.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.shop.domain.vo.TagId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
@@ -153,7 +153,7 @@ public class ReviewLifecycleService {
         List<String> tags
     ) {
         Review review = reviewRepository.findByIdAndMemberId(reviewId, memberId)
-            .orElseThrow(() -> new AccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED));
+            .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED));
 
         review.updateContent(
             content,
@@ -182,7 +182,7 @@ public class ReviewLifecycleService {
      */
     public void removeOwnedBy(ReviewId reviewId, MemberId memberId, ProductId productId) {
         reviewRepository.findByIdAndMemberId(reviewId, memberId)
-            .orElseThrow(() -> new AccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED));
+            .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED));
 
         deleteWithChildren(reviewId);
 

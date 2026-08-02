@@ -13,6 +13,7 @@ import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;
 import com.tastyhouse.external.file.RemoteImageDownloader;
+import com.tastyhouse.batch.exception.BatchJobException;
 import com.tastyhouse.batch.crawling.bbq.response.BbqProductCategoryResponse;
 import com.tastyhouse.batch.crawling.bbq.response.BbqProductResponse;
 import com.tastyhouse.batch.crawling.bbq.response.BbqProductSubOptionResponse;
@@ -45,7 +46,7 @@ public class BbqService {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("BBQ 메뉴 카테고리 조회 중 오류 발생", e);
-            throw new RuntimeException("BBQ 메뉴 카테고리 조회 실패", e);
+            throw new BatchJobException("BBQ 메뉴 카테고리 조회 실패", e);
         }
     }
 
@@ -57,7 +58,7 @@ public class BbqService {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("BBQ 카테고리별 메뉴 조회 중 오류 발생: categoryId={}", categoryId, e);
-            throw new RuntimeException("BBQ 카테고리별 메뉴 조회 실패", e);
+            throw new BatchJobException("BBQ 카테고리별 메뉴 조회 실패", e);
         }
     }
 
@@ -77,7 +78,7 @@ public class BbqService {
             return convertToProductResponse(externalMenu);
         } catch (Exception e) {
             log.error("BBQ 메뉴 상세 조회 중 오류 발생: menuId={}", menuId, e);
-            throw new RuntimeException("BBQ 메뉴 상세 조회 실패", e);
+            throw new BatchJobException("BBQ 메뉴 상세 조회 실패", e);
         }
     }
 
@@ -104,7 +105,7 @@ public class BbqService {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("BBQ 메뉴 서브 옵션 조회 중 오류 발생: menuId={}", menuId, e);
-            throw new RuntimeException("BBQ 메뉴 서브 옵션 조회 실패", e);
+            throw new BatchJobException("BBQ 메뉴 서브 옵션 조회 실패", e);
         }
     }
 
@@ -164,10 +165,10 @@ public class BbqService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("크롤링 중 인터럽트 발생: shopId={}", shopId, e);
-            throw new RuntimeException("크롤링 중단됨", e);
+            throw new BatchJobException("크롤링 중단됨", e);
         } catch (Exception e) {
             log.error("BBQ 메뉴 크롤링 및 저장 중 오류 발생: shopId={}", shopId, e);
-            throw new RuntimeException("BBQ 메뉴 크롤링 및 저장 실패", e);
+            throw new BatchJobException("BBQ 메뉴 크롤링 및 저장 실패", e);
         }
     }
 

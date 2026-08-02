@@ -1,9 +1,18 @@
 package com.tastyhouse.domain.exception;
 
-public enum ErrorCode {
+public enum ErrorCode implements ErrorCodeSpec {
 
     // 공통 - 엔티티 미존재 (fallback: 도메인별 전용 NOT_FOUND 코드가 있으면 그쪽을 쓴다)
     ENTITY_NOT_FOUND(404, "ENTITY_NOT_FOUND", "요청한 데이터를 찾을 수 없습니다."),
+
+    // 공통 - 인증·인가 (필터 단계와 advice 단계가 같은 코드를 쓰도록 공용으로 둔다)
+    AUTH_REQUIRED(401, "AUTH_REQUIRED", "인증이 필요합니다."),
+    ACCESS_DENIED(403, "ACCESS_DENIED", "접근 권한이 없습니다."),
+    AUTH_TOKEN_INVALID(401, "AUTH_TOKEN_INVALID", "유효하지 않은 토큰입니다."),
+    AUTH_REFRESH_TOKEN_INVALID(401, "AUTH_REFRESH_TOKEN_INVALID", "유효하지 않은 Refresh Token입니다."),
+    AUTH_REFRESH_TOKEN_EXPIRED(401, "AUTH_REFRESH_TOKEN_EXPIRED", "만료되었거나 이미 로그아웃된 Refresh Token입니다."),
+    AUTH_VERIFICATION_MISMATCH(401, "AUTH_VERIFICATION_MISMATCH", "인증 정보가 일치하지 않습니다."),
+    AUTH_PHONE_VERIFICATION_MISMATCH(401, "AUTH_PHONE_VERIFICATION_MISMATCH", "휴대폰 인증 정보가 일치하지 않습니다."),
 
     // 주문
     ORDER_NOT_FOUND(404, "ORDER_NOT_FOUND", "주문을 찾을 수 없습니다."),
@@ -223,14 +232,12 @@ public enum ErrorCode {
 
     // 배너
     BANNER_NOT_FOUND(404, "BANNER_NOT_FOUND", "배너를 찾을 수 없습니다."),
+    BANNER_TYPE_UNKNOWN(400, "BANNER_TYPE_UNKNOWN", "알 수 없는 배너 유형입니다."),
 
     // 랭크
     RANK_TYPE_UNKNOWN(400, "RANK_TYPE_UNKNOWN", "알 수 없는 랭크 타입입니다."),
     RANK_PERIOD_NOT_FOUND(404, "RANK_PERIOD_NOT_FOUND", "랭킹 기간을 찾을 수 없습니다."),
     RANK_PRIZE_NOT_FOUND(404, "RANK_PRIZE_NOT_FOUND", "랭킹 경품을 찾을 수 없습니다."),
-
-    // 배너
-    BANNER_TYPE_UNKNOWN(400, "BANNER_TYPE_UNKNOWN", "알 수 없는 배너 유형입니다."),
 
     // 이벤트
     EVENT_STATUS_UNKNOWN(400, "EVENT_STATUS_UNKNOWN", "알 수 없는 이벤트 상태입니다."),
@@ -239,7 +246,7 @@ public enum ErrorCode {
     EVENT_ANNOUNCEMENT_ALREADY_EXISTS(409, "EVENT_ANNOUNCEMENT_ALREADY_EXISTS", "이미 당첨자 발표 공지가 등록된 이벤트입니다."),
     EVENT_WINNER_NOT_FOUND(404, "EVENT_WINNER_NOT_FOUND", "당첨자를 찾을 수 없습니다."),
 
-    // 가게
+    // 가게 enum (음식 종류·편의시설)
     FOOD_TYPE_UNKNOWN(400, "FOOD_TYPE_UNKNOWN", "알 수 없는 음식 종류입니다."),
     AMENITY_UNKNOWN(400, "AMENITY_UNKNOWN", "알 수 없는 편의시설입니다."),
 

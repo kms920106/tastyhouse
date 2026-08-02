@@ -11,7 +11,7 @@
 |---------|-------------|
 | `auth/` | JWT 발급/검증, OAuth 로그인(Apple/Facebook/Kakao/Naver), 인증 정보 추출. `service/`는 AuthService(일반 로그인), PhoneLoginService, AuthPasswordResetService 포함. OAuth 각 제공자별 하위 디렉토리. request/response 구분 저장. |
 | `config/` | Spring 설정 — SecurityConfig(필터체인, CORS), AsyncConfig(비동기), RedisConfig, WebClientConfig, OpenApiConfig(Swagger). jwt/ 하위에 JwtTokenProvider(발급/검증), JwtAuthenticationFilter, JwtProperties, TokenType. security/ 하위에 JwtAuthenticationEntryPoint, JwtAccessDeniedHandler, CustomUserDetailsService(UserDetailsService 구현), CustomUserDetails(UserDetails 래퍼). PublicPaths 에서 인증 불필요 경로 관리. |
-| `exception/` | 중앙화된 예외 처리. GlobalExceptionHandler가 BusinessException (domain-module `com.tastyhouse.domain.exception`), ExternalApiException (external-api), RateLimitException, Security 예외, 유효성 검사 예외를 처리하며 ApiResponse 형식으로 응답. UnauthorizedException (web-api 로컬)는 401 매핑. |
+| `exception/` | 중앙화된 예외 처리. GlobalExceptionHandler가 BusinessException (domain-module `com.tastyhouse.domain.exception`, `ExternalApiException`도 이를 상속하므로 같은 핸들러가 처리), RateLimitException, Security 예외, 유효성 검사 예외를 처리하며 RFC7807 `ProblemDetail` + `errorCode` property로 응답(조립은 공용 `apicommon.exception.ProblemDetails`). 레거시 `UnauthorizedException`은 제거되고 `ErrorCode.AUTH_*`(401)로 흡수됨. |
 | `logging/` | AOP 기반 요청/응답 로깅. ApiLoggingFilter (서블릿 필터로 전체 요청 추적), ApiLoggingAspect (컨트롤러 진입 로깅), SensitiveFieldMasker (민감정보 마스킹). |
 | `ratelimit/` | 분산 Rate Limiting. RateLimit 애노테이션, RateLimitAspect(AOP), RateLimiterService(Redis 기반), RateLimitKeyType(사용자/IP/전역). |
 | `security/` | Spring Security 보조 컴포넌트. CurrentUser (메서드 파라미터 주입 애노테이션). JwtAccessDeniedHandler, JwtAuthenticationEntryPoint, CustomUserDetailsService, CustomUserDetails는 config/security/ 에 위치. |
@@ -59,7 +59,7 @@
 - **도메인 enum은 컨트롤러/Request에 core 타입으로 노출하지 않는다** — HTTP 경계는 `String`(다중값 `List<String>`)으로 받고 `{도메인}CommandService`/`{도메인}QueryService`에서 domain enum의 `Enum.from(String)`으로 승격한다(ID를 `Long`으로 받아 `XxxId.of()`로 승격하는 것과 대칭). String 파라미터에는 `@Schema(allowableValues={...})`/`@Parameter(...)`로 Swagger 후보값을 명시하고, 변환 실패는 domain enum `from()`에서 `BusinessException(ErrorCode.XXX_TYPE_UNKNOWN)`으로 처리한다(reference: `event/EventQueryService`·`EventStatus`, `shop/ShopQueryService`·`FoodType`/`Amenity`). 상세는 루트 CLAUDE.md 참고.
 - **외부 API 호출은 external-api 모듈 어댑터로 위임** — OAuth, 결제, 파일 업로드, 크롤링 등.
 - **Spring Security + JWT 인증 흐름**: JwtAuthenticationFilter → JwtTokenProvider.validateToken() → CustomUserDetailsService → SecurityContext 설정.
-- **GlobalExceptionHandler로 모든 예외 통합 처리** — BusinessException의 httpStatusCode로 HTTP 상태 결정, UnauthorizedException → 401.
+- **GlobalExceptionHandler로 모든 예외 통합 처리** — BusinessException이 담은 `ErrorCodeSpec`의 httpStatusCode로 HTTP 상태 결정. 인증 실패는 `ErrorCode.AUTH_*`(401)를 담은 BusinessException으로 던진다(전용 예외 타입을 새로 만들지 않는다).
 - **Rate Limiting은 @RateLimit(keyType=USER/IP, limit=N, duration=...)로 메서드 레벨 선언** — RateLimitAspect가 인터셉트.
 - **API 로깅은 ApiLoggingFilter + ApiLoggingAspect로 자동 수행** — 민감정보는 SensitiveFieldMasker로 마스킹.
 
@@ -72,7 +72,7 @@
 
 ### Common Patterns
 - **Controller + Request/Response DTO**: `@RestController @RequestMapping("/api/{domain}")` → `Method(@Valid {Domain}Request) → ResponseEntity<ApiResponse<{Domain}Response>>`.
-- **ApiResponse 통일**: `ApiResponse.success(data)`, `ApiResponse.error(message)`, `ApiResponse.error(errorCode, message)` — success/errorCode/message/data 필드. 에러 시 `errorCode`에 ErrorCode.code(예: `DUPLICATE_RESERVATION`)가 실려 프론트 분기에 사용(BusinessException/ExternalApiException/RateLimit 핸들러).
+- **성공 응답은 `ApiResponse`, 에러 응답은 `ProblemDetail`**: `ApiResponse`는 `success(data)`·`success(data, page, size, totalElements)` 두 정적 팩토리만 갖는 **성공 전용** 타입이다(`error(...)`는 없다). 에러는 GlobalExceptionHandler가 RFC7807 `ProblemDetail`로 응답하며, `errorCode` property에 ErrorCode.code(예: `DUPLICATE_RESERVATION`)가 실려 프론트 분기에 사용된다.
 - **페이징**: `common/PageRequest`(size/page) → infra QueryDao가 `PageResult<T>`(domain-module `shared/page`) 반환 → 서비스가 `common/PaginationResponse.from(pageResult)`로 변환.
 - **@CurrentUser** 커스텀 애노테이션으로 인증된 사용자 주입 — SecurityContextHolder 간접화.
 - **CQS**: 트랜잭션 경계를 이 패키지가 소유한다 — `{도메인}CommandService`는 `@Transactional`, `{도메인}QueryService`는 `@Transactional(readOnly = true)`. domain-module의 도메인 서비스는 POJO라 `@Transactional`을 갖지 않는다.

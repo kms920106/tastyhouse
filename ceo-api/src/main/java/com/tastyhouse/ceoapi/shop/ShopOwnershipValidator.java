@@ -6,7 +6,7 @@ import com.tastyhouse.domain.ceo.domain.vo.CeoId;
 import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
@@ -33,13 +33,13 @@ public class ShopOwnershipValidator {
     /**
      * 로그인 점주가 대상 가게의 소유자인지 검증하고, 소유 가게 도메인을 반환한다.
      *
-     * @throws AccessDeniedException 가게의 소유 점주가 로그인 점주와 다르거나 미배정인 경우
+     * @throws BusinessException 가게의 소유 점주가 로그인 점주와 다르거나 미배정인 경우
      */
     public Shop validateOwnership(Long ceoId, Long shopId) {
         Shop shop = shopRepository.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         if (shop.getCeoId() == null || !shop.getCeoId().equals(CeoId.of(ceoId))) {
-            throw new AccessDeniedException(ErrorCode.SHOP_ACCESS_DENIED);
+            throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
         }
         return shop;
     }

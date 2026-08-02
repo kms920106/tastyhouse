@@ -7,7 +7,6 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -306,7 +305,7 @@ public class Order {
 
     public void validateOwnership(MemberId memberId) {
         if (!this.memberId.equals(memberId)) {
-            throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);
+            throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
         }
     }
 

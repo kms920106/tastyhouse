@@ -12,7 +12,6 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -322,13 +321,13 @@ class OrderTest {
     }
 
     @Test
-    @DisplayName("validateOwnership은 다른 회원이면 AccessDeniedException을 던진다")
+    @DisplayName("validateOwnership은 다른 회원이면 BusinessException을 던진다")
     void validateOwnership_throwsWhenNotOwner() {
         Order order = newOrder();
         MemberId otherMemberId = MemberId.of(2L);
 
         assertThatThrownBy(() -> order.validateOwnership(otherMemberId))
-            .isInstanceOf(AccessDeniedException.class);
+            .isInstanceOf(BusinessException.class);
     }
 
     @Test

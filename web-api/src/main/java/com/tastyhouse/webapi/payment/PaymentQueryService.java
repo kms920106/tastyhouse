@@ -7,7 +7,7 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.domain.payment.domain.vo.PaymentRefundId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.payment.query.PaymentQueryDao;
@@ -90,7 +90,7 @@ public class PaymentQueryService {
      */
     private PaymentResult validateOwnership(PaymentResult result, Long memberId, ErrorCode accessDeniedCode) {
         if (!result.memberId().equals(MemberId.of(memberId))) {
-            throw new AccessDeniedException(accessDeniedCode);
+            throw new BusinessException(accessDeniedCode);
         }
         return result;
     }

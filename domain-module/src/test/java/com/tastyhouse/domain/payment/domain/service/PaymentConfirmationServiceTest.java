@@ -27,7 +27,6 @@ import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
 import com.tastyhouse.domain.payment.domain.repository.TossPaymentRecordRepository;
 import com.tastyhouse.domain.payment.domain.vo.Amount;
 import com.tastyhouse.domain.payment.domain.vo.PaymentId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
@@ -160,12 +159,12 @@ class PaymentConfirmationServiceTest {
     void confirmTossPayment_rejectsOtherMember() {
         Fixture prepareFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         assertThatThrownBy(() -> prepareFixture.service.prepareTossConfirmation(OTHER_MEMBER_ID, "pg-order-1", 21000))
-            .isInstanceOf(AccessDeniedException.class)
+            .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         Fixture applyFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         assertThatThrownBy(() -> applyFixture.service.applyTossConfirmation(OTHER_MEMBER_ID, "pg-order-1", successConfirmResult()))
-            .isInstanceOf(AccessDeniedException.class)
+            .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         assertThat(applyFixture.paymentRepository.lastSaved).isNull();

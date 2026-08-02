@@ -19,7 +19,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.external.exception.ExternalApiException;
+import com.tastyhouse.apicommon.exception.ProblemDetails;
 import com.tastyhouse.security.ratelimit.RateLimitException;
 
 @RestControllerAdvice
@@ -30,12 +30,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ProblemDetail handleBusinessException(BusinessException e) {
         log.warn("BusinessException [{}]: {}", e.getErrorCode().getCode(), e.getMessage());
-        return problemDetail(e.getErrorCode().getHttpStatusCode(), e.getErrorCode().getCode(), e.getMessage());
-    }
-
-    @ExceptionHandler(ExternalApiException.class)
-    public ProblemDetail handleExternalApiException(ExternalApiException e) {
-        log.warn("ExternalApiException [{}]: {}", e.getErrorCode().getCode(), e.getMessage());
         return problemDetail(e.getErrorCode().getHttpStatusCode(), e.getErrorCode().getCode(), e.getMessage());
     }
 
@@ -65,12 +59,6 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleLockedException(LockedException e) {
         log.warn("LockedException: {}", e.getMessage());
         return problemDetail(HttpStatus.UNAUTHORIZED.value(), null, "잠긴 계정입니다.");
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    public ProblemDetail handleUnauthorizedException(UnauthorizedException e) {
-        log.warn("UnauthorizedException: {}", e.getMessage());
-        return problemDetail(HttpStatus.UNAUTHORIZED.value(), null, e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -116,14 +104,6 @@ public class GlobalExceptionHandler {
     }
 
     private ProblemDetail problemDetail(int statusCode, String errorCode, String message) {
-        HttpStatus status = HttpStatus.resolve(statusCode);
-        if (status == null) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, message);
-        if (errorCode != null) {
-            problemDetail.setProperty("errorCode", errorCode);
-        }
-        return problemDetail;
+        return ProblemDetails.of(statusCode, errorCode, message);
     }
 }

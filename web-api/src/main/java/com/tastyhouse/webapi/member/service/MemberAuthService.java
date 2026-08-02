@@ -10,7 +10,6 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
-import com.tastyhouse.webapi.exception.UnauthorizedException;
 
 @Service
 public class MemberAuthService {
@@ -50,7 +49,7 @@ public class MemberAuthService {
 
         Long verifiedMemberId = jwtTokenProvider.getMemberIdFromVerifyToken(verifyToken);
         if (!verifiedMemberId.equals(memberId)) {
-            throw new UnauthorizedException("인증 정보가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.AUTH_VERIFICATION_MISMATCH);
         }
     }
 
@@ -66,7 +65,7 @@ public class MemberAuthService {
 
         Long phoneVerifiedMemberId = jwtTokenProvider.getMemberIdFromSmsVerifyToken(smsVerifyToken);
         if (!phoneVerifiedMemberId.equals(memberId)) {
-            throw new UnauthorizedException("휴대폰 인증 정보가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.AUTH_PHONE_VERIFICATION_MISMATCH);
         }
 
         String verifiedPhoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);

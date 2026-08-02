@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.reservation.domain.service.SlotPolicy;
 import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.infrastructure.reservation.query.ReservationDetailResult;
@@ -154,7 +153,7 @@ public class ReservationQueryService {
      */
     private void validateOwnership(MemberId ownerId, Long requesterId) {
         if (!ownerId.equals(MemberId.of(requesterId))) {
-            throw new AccessDeniedException(ErrorCode.RESERVATION_ACCESS_DENIED);
+            throw new BusinessException(ErrorCode.RESERVATION_ACCESS_DENIED);
         }
     }
 

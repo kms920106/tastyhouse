@@ -11,7 +11,6 @@ import com.tastyhouse.domain.coupon.domain.repository.MemberCouponRepository;
 import com.tastyhouse.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -88,7 +87,7 @@ public class CouponIssueService {
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
 
         if (!memberCoupon.getMemberId().equals(memberId)) {
-            throw new AccessDeniedException(ErrorCode.COUPON_ACCESS_DENIED);
+            throw new BusinessException(ErrorCode.COUPON_ACCESS_DENIED);
         }
 
         Coupon coupon = couponRepository.findById(memberCoupon.getCouponId())

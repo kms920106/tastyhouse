@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -68,7 +68,7 @@ public class OrderQueryService {
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!result.memberId().equals(MemberId.of(memberId))) {
-            throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);
+            throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
         return toOrderDetailResponse(result, memberId);

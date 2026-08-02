@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -161,12 +160,12 @@ class ReservationTest {
     }
 
     @Test
-    @DisplayName("validateOwnership은 본인이 아니면 AccessDeniedException을 던진다")
+    @DisplayName("validateOwnership은 본인이 아니면 BusinessException을 던진다")
     void validateOwnership_onOtherMember_throws() {
         Reservation reservation = Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, 2, null);
 
         assertThatThrownBy(() -> reservation.validateOwnership(MemberId.of(999L)))
-            .isInstanceOf(AccessDeniedException.class);
+            .isInstanceOf(BusinessException.class);
     }
 
     @Test

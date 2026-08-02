@@ -14,7 +14,6 @@ import com.tastyhouse.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -61,7 +60,7 @@ class OrderTransitionServiceTest {
         Fixture fixture = new Fixture();
 
         assertThatThrownBy(() -> fixture.service.loadOwnedBy(OrderId.of(ORDER_ID), MemberId.of(OTHER_MEMBER_ID)))
-            .isInstanceOf(AccessDeniedException.class);
+            .isInstanceOf(BusinessException.class);
     }
 
     @Test
