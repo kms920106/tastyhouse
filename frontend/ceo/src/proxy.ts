@@ -28,6 +28,13 @@ function redirectToLogin(req: NextRequest, pathname: string) {
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Server Action 은 현재 페이지 URL 로 POST 된다. 이 요청을 리다이렉트로 가로채면
+  // Action 응답이 유실되어 브라우저가 "Failed to find Server Action" 을 만난다.
+  // (로그인 직후 쿠키가 심기기 전 네비게이션이 여기 걸리는 것이 대표 사례)
+  if (req.method !== "GET" || req.headers.has("next-action")) {
+    return NextResponse.next();
+  }
+
   // 인증 페이지(로그인/회원가입 등)는 통과시켜 리다이렉트 루프를 방지한다.
   if (pathname.startsWith("/auth")) {
     return NextResponse.next();
