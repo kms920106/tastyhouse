@@ -1,0 +1,23 @@
+.bannerSwiper :global(.swiper-pagination) {
+  bottom: 15px;
+  right: 15px;
+  left: auto;
+  width: auto;
+  padding: 6.5px 15.5px;
+  background-color: #000000;
+  font-size: 12px;
+  line-height: 12px;
+  letter-spacing: -1px;
+  color: #ffffff;
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.bannerSwiper:global(.swiper-initialized) :global(.swiper-pagination) {
+  opacity: 0.5;
+}
+
+.bannerSwiperSingleImage :global(.swiper-pagination) {
+  display: none;
+}

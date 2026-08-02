@@ -1,0 +1,49 @@
+.reviewSwiper :global(.swiper-pagination) {
+  bottom: 15px;
+  right: 15px;
+  left: auto;
+  width: auto;
+  padding: 6.5px 15.5px;
+  background-color: #000000;
+  font-size: 12px;
+  line-height: 12px;
+  letter-spacing: -1px;
+  color: #ffffff;
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.reviewSwiper:global(.swiper-initialized) :global(.swiper-pagination) {
+  opacity: 0.5;
+}
+
+.reviewSwiperSingleImage :global(.swiper-pagination) {
+  display: none;
+}
+
+.lightbox :global(.yarl__slide_image) {
+  max-height: 60% !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  object-fit: cover !important;
+}
+
+.lightbox :global(.yarl__toolbar) {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  left: auto;
+  background: none;
+  padding: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

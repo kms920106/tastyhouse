@@ -1,0 +1,3 @@
+export function FacilitySelectorLayout({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-4 gap-2.5">{children}</div>
+}
