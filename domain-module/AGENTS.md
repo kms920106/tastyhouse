@@ -13,7 +13,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + Lombok(production 유일). QueryDSL(`querydsl-core`/`querydsl-apt`·sourceSets/generated 블록)·`spring-tx`·`spring-orm` 의존 **전부 제거됨** — api 모듈로의 `com.querydsl.*` 전이를 원천 차단하는 지점이다. `bootJar` 비활성, 일반 `jar` 생성 |
+| `build.gradle` | `java-library` + Lombok(production 유일, `compileOnly`). QueryDSL(`querydsl-core`/`querydsl-apt`·sourceSets/generated 블록)·`spring-tx`·`spring-orm` 의존 **전부 제거됨** — api 모듈로의 `com.querydsl.*` 전이를 원천 차단하는 지점이다. **루트 `build.gradle`의 spring 주입 `subprojects` 블록에서도 제외**되어 컴파일 클래스패스에 `org.springframework.*`가 없다(순수성 컴파일 게이트). `org.springframework.boot` 플러그인 미적용 → `bootJar` 태스크 자체가 없으므로 `bootJar { enabled = false }`를 쓰면 스크립트 평가 에러, 일반 `jar`만 생성 |
 | `src/main/resources/` | 모듈 공용 리소스 |
 
 ## Subdirectories
@@ -57,7 +57,7 @@
 - 의존 없음 — 가장 안쪽 레이어. 다른 모듈을 참조하지 않는다.
 
 ### External
-- Lombok (production 유일 — `@Getter`/`@RequiredArgsConstructor` 등)
-- 테스트: `spring-boot-starter-test`, `testcontainers:junit-jupiter`(현재 도메인 테스트는 순수 JUnit만 사용)
+- Lombok (production 유일 — `@Getter`/`@RequiredArgsConstructor` 등). `compileOnly` + `annotationProcessor`로 선언해 런타임 산출물에 포함되지 않는다
+- 테스트: `junit-jupiter`, `assertj-core`, `archunit-junit5` — 실제로 쓰는 것만 선언한다. `spring-boot-starter-test`는 **의도적으로 제외**(도메인 테스트는 전부 순수 단위 테스트라 스프링 컨텍스트가 필요 없고, starter를 두면 테스트 클래스패스로 spring이 되돌아와 순수성 검증이 무뎌진다)
 
 <!-- MANUAL: -->

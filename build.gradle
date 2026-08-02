@@ -4,6 +4,12 @@ plugins {
     id 'java'
 }
 
+// domain-module은 org.springframework.boot 플러그인을 적용하지 않으므로 BOM이 자동 적용되지 않는다.
+// 아래 project(':domain-module') 블록이 이 버전으로 BOM을 직접 import 한다(위 플러그인 버전과 일치시킬 것).
+ext {
+    springBootVersion = '3.2.4'
+}
+
 allprojects {
     group = 'com.tastyhouse'
     version = '0.0.1-SNAPSHOT'
@@ -23,7 +29,12 @@ bootJar {
     enabled = false
 }
 
-subprojects {
+// domain-module은 프레임워크-프리 모듈이라 spring 주입 대상에서 제외한다(아래 별도 블록에서 설정).
+// subprojects가 spring-boot-starter를 일괄 주입하면 domain-module 컴파일 클래스패스에
+// spring-core/context/beans가 올라와 `import org.springframework.stereotype.Service;`가 통과해버린다.
+// 즉 "production 의존은 Lombok 하나뿐"이라는 원칙이 리뷰 규율로만 남고 빌드로 강제되지 않는다.
+// 제외해야 그 import가 실제 컴파일 에러가 되어 순수성이 빌드 게이트로 보장된다.
+configure(subprojects.findAll { it.name != 'domain-module' }) {
     apply plugin: 'java'
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
@@ -45,6 +56,30 @@ subprojects {
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}
+
+// domain-module 전용 설정 — 프레임워크-프리 유지를 위해 spring-boot 플러그인과
+// spring-boot-starter 주입 없이, 버전 관리(BOM)와 테스트 실행 설정만 물려준다.
+// io.spring.dependency-management는 의존을 추가하지 않고 버전만 고정하므로
+// (컴파일 클래스패스에 아무것도 올리지 않는다) 순수성을 해치지 않으면서
+// 'org.projectlombok:lombok' 같은 버전 없는 좌표를 그대로 쓸 수 있게 해 준다.
+project(':domain-module') {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+        }
     }
 
     tasks.named('test') {
