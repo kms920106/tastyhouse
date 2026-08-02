@@ -1,11 +1,12 @@
 package com.tastyhouse.domain.product.domain.model;
 
+import com.tastyhouse.domain.product.model.ProductImage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 /**
  * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다.

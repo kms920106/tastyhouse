@@ -7,7 +7,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 import software.amazon.awssdk.services.sns.model.SnsException;
 
-import com.tastyhouse.domain.sms.domain.port.SmsSender;
+import com.tastyhouse.domain.sms.port.SmsSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 

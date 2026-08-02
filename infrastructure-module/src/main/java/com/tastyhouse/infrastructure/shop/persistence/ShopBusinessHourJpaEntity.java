@@ -12,8 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.domain.model.DayType;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 상점 영업시간 JPA 영속 모델. 순수 도메인 모델 {@code ShopBusinessHour}와 분리된 영속 전용 엔티티다.

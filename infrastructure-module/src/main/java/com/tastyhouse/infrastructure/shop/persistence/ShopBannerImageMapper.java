@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.domain.model.ShopBannerImage;
+import com.tastyhouse.domain.shop.model.ShopBannerImage;
 
 final class ShopBannerImageMapper {
 

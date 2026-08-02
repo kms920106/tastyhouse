@@ -10,8 +10,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.domain.model.ClosedDayType;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 상점 정기 휴무 JPA 영속 모델. 순수 도메인 모델 {@code ShopClosedDay}와 분리된 영속 전용 엔티티다.

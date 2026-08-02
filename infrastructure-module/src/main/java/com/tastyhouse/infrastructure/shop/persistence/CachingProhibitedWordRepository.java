@@ -4,8 +4,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.tastyhouse.domain.shop.domain.model.ProhibitedWord;
-import com.tastyhouse.domain.shop.domain.repository.ProhibitedWordRepository;
+import com.tastyhouse.domain.shop.model.ProhibitedWord;
+import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 
 /**
  * 금칙어 전량 로드를 TTL 동안 재사용하는 캐싱 데코레이터(write 포트 어댑터 감싸기).

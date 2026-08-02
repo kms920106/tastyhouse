@@ -4,19 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.tastyhouse.domain.mail.service.MailVerificationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.mail.domain.model.MailVerification;
-import com.tastyhouse.domain.mail.domain.model.MailVerificationPurpose;
-import com.tastyhouse.domain.mail.domain.model.MailVerificationStatus;
-import com.tastyhouse.domain.mail.domain.port.MailSender;
-import com.tastyhouse.domain.mail.domain.repository.MailVerificationRepository;
-import com.tastyhouse.domain.member.domain.model.Member;
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.domain.member.domain.repository.MemberRepository;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.mail.model.MailVerification;
+import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
+import com.tastyhouse.domain.mail.model.MailVerificationStatus;
+import com.tastyhouse.domain.mail.port.MailSender;
+import com.tastyhouse.domain.mail.repository.MailVerificationRepository;
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.model.MemberStatus;
+import com.tastyhouse.domain.member.repository.MemberRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

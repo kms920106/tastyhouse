@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.bug.domain.model.BugReport;
-import com.tastyhouse.domain.bug.domain.repository.BugReportRepository;
-import com.tastyhouse.domain.bug.domain.vo.BugReportId;
+import com.tastyhouse.domain.bug.model.BugReport;
+import com.tastyhouse.domain.bug.repository.BugReportRepository;
+import com.tastyhouse.domain.bug.vo.BugReportId;
 
 /**
  * 버그 제보 write 어댑터.

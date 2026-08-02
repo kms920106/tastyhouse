@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.payment.domain.model.PaymentMethod;
-import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.domain.payment.domain.model.PgProvider;
-import com.tastyhouse.domain.payment.domain.vo.Amount;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.payment.model.PaymentMethod;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.payment.model.PgProvider;
+import com.tastyhouse.domain.payment.vo.Amount;
 
 /**
  * 결제 단건 조회 결과.

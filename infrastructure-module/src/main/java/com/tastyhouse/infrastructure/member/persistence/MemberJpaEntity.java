@@ -12,10 +12,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.member.domain.model.MemberGender;
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.member.model.MemberGender;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;

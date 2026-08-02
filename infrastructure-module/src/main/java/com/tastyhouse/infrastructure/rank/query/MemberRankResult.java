@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.rank.query;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 회원 랭킹 목록·단건 조회 결과 — 랭킹 행에 회원 닉네임·프로필 이미지 URL·등급을 join해 투영한다.

@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.partnership.domain.model.PartnershipRequest;
-import com.tastyhouse.domain.partnership.domain.repository.PartnershipRepository;
-import com.tastyhouse.domain.partnership.domain.vo.PartnershipRequestId;
+import com.tastyhouse.domain.partnership.model.PartnershipRequest;
+import com.tastyhouse.domain.partnership.repository.PartnershipRepository;
+import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
 
 import static com.tastyhouse.infrastructure.partnership.persistence.QPartnershipRequestJpaEntity.partnershipRequestJpaEntity;
 

@@ -1,7 +1,7 @@
 package com.tastyhouse.infrastructure.member.query;
 
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.domain.member.domain.model.MemberStatus;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.model.MemberStatus;
 
 /**
  * 회원 관리 목록 검색 조건.

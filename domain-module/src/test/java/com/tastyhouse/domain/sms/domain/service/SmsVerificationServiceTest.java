@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.tastyhouse.domain.sms.service.SmsVerificationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.sms.domain.model.SmsVerification;
-import com.tastyhouse.domain.sms.domain.model.SmsVerificationStatus;
-import com.tastyhouse.domain.sms.domain.port.SmsSender;
-import com.tastyhouse.domain.sms.domain.repository.SmsVerificationRepository;
+import com.tastyhouse.domain.sms.model.SmsVerification;
+import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
+import com.tastyhouse.domain.sms.port.SmsSender;
+import com.tastyhouse.domain.sms.repository.SmsVerificationRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;

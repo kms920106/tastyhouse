@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.model.MemberSocialAccount;
-import com.tastyhouse.domain.member.domain.model.MemberSocialProvider;
-import com.tastyhouse.domain.member.domain.repository.MemberSocialAccountRepository;
+import com.tastyhouse.domain.member.model.MemberSocialAccount;
+import com.tastyhouse.domain.member.model.MemberSocialProvider;
+import com.tastyhouse.domain.member.repository.MemberSocialAccountRepository;
 
 @Repository
 public class MemberSocialAccountRepositoryImpl implements MemberSocialAccountRepository {

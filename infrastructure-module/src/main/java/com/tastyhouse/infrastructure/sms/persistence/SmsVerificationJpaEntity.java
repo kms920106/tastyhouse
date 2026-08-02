@@ -14,7 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.sms.domain.model.SmsVerificationStatus;
+import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 

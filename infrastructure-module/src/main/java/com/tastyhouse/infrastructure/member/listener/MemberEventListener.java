@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.domain.member.domain.event.MemberRegisteredEvent;
-import com.tastyhouse.domain.member.domain.event.MemberWithdrawnEvent;
+import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
+import com.tastyhouse.domain.member.event.MemberWithdrawnEvent;
 
 /**
  * 회원 도메인 이벤트 리스너(크로스커팅).

@@ -10,7 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

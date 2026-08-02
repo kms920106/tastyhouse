@@ -3,11 +3,11 @@ package com.tastyhouse.adminapi.member;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.model.Member;
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.domain.member.domain.repository.MemberRepository;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.model.MemberStatus;
+import com.tastyhouse.domain.member.repository.MemberRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;

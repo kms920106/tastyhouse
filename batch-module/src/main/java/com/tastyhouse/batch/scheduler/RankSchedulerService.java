@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.rank.domain.service.RankSettlementService;
+import com.tastyhouse.domain.rank.service.RankSettlementService;
 
 /**
  * 랭킹 집계 배치 서비스.

@@ -2,16 +2,18 @@ package com.tastyhouse.domain.order.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.order.model.Order;
+import com.tastyhouse.domain.order.model.OrderStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.coupon.vo.MemberCouponId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

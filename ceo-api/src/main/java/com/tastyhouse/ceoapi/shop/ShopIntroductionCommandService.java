@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.service.ShopLifecycleService;
+import com.tastyhouse.domain.shop.service.ShopLifecycleService;
 
 /**
  * 점주용 가게소개(사장님 한마디) 등록 서비스(CQRS command 측).

@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.ceo.domain.model.Ceo;
-import com.tastyhouse.domain.ceo.domain.repository.CeoRepository;
+import com.tastyhouse.domain.ceo.model.Ceo;
+import com.tastyhouse.domain.ceo.repository.CeoRepository;
 
 @Repository
 public class CeoRepositoryImpl implements CeoRepository {

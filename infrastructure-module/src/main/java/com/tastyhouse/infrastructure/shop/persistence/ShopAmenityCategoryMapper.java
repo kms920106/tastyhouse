@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.domain.model.ShopAmenityCategory;
+import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
 
 final class ShopAmenityCategoryMapper {
 

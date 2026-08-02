@@ -2,11 +2,13 @@ package com.tastyhouse.domain.payment.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.payment.model.PaymentRefund;
+import com.tastyhouse.domain.payment.model.RefundStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.payment.domain.vo.Amount;
-import com.tastyhouse.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.payment.vo.Amount;
+import com.tastyhouse.domain.payment.vo.PaymentId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -3,7 +3,7 @@ package com.tastyhouse.domain.member.follow.domain.model;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

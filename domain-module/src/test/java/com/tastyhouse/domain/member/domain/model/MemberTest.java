@@ -2,11 +2,15 @@ package com.tastyhouse.domain.member.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.model.MemberGender;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.model.MemberStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 

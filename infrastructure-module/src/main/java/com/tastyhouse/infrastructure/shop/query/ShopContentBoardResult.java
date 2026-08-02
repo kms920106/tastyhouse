@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.shop.query;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.shop.domain.model.ShopContentType;
-import com.tastyhouse.domain.shop.domain.model.ShopContentTopic;
+import com.tastyhouse.domain.shop.model.ShopContentType;
+import com.tastyhouse.domain.shop.model.ShopContentTopic;
 
 public record ShopContentBoardResult(
     Long id,

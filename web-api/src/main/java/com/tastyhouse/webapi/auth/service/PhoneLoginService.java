@@ -5,9 +5,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.model.Member;
-import com.tastyhouse.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.model.MemberStatus;
+import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;

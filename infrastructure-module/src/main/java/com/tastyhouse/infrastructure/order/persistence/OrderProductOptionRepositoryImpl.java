@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.order.persistence;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.order.domain.model.OrderProductOption;
-import com.tastyhouse.domain.order.domain.repository.OrderProductOptionRepository;
+import com.tastyhouse.domain.order.model.OrderProductOption;
+import com.tastyhouse.domain.order.repository.OrderProductOptionRepository;
 
 /**
  * 주문 상품 라인 옵션 write 어댑터.

@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.bug.persistence;
 
-import com.tastyhouse.domain.bug.domain.model.BugReportImage;
+import com.tastyhouse.domain.bug.model.BugReportImage;
 
 /**
  * 버그 신고 이미지 도메인 모델 ↔ JPA 엔티티 변환기.

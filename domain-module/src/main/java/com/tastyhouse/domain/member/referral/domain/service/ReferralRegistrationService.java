@@ -2,16 +2,16 @@ package com.tastyhouse.domain.member.referral.domain.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.referral.domain.event.ReferralRegisteredEvent;
 import com.tastyhouse.domain.member.referral.domain.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.domain.repository.MemberReferralRepository;
-import com.tastyhouse.domain.point.domain.event.PointEarnedEvent;
-import com.tastyhouse.domain.point.domain.model.Point;
-import com.tastyhouse.domain.point.domain.model.PointHistory;
-import com.tastyhouse.domain.point.domain.model.PointType;
-import com.tastyhouse.domain.point.domain.repository.PointHistoryRepository;
-import com.tastyhouse.domain.point.domain.repository.PointRepository;
+import com.tastyhouse.domain.point.event.PointEarnedEvent;
+import com.tastyhouse.domain.point.model.Point;
+import com.tastyhouse.domain.point.model.PointHistory;
+import com.tastyhouse.domain.point.model.PointType;
+import com.tastyhouse.domain.point.repository.PointHistoryRepository;
+import com.tastyhouse.domain.point.repository.PointRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;

@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.member.follow.domain.service;
 
-import com.tastyhouse.domain.member.domain.repository.MemberRepository;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.repository.MemberRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.follow.domain.model.MemberFollow;
 import com.tastyhouse.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.domain.exception.BusinessException;

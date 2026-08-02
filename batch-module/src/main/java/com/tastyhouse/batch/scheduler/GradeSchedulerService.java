@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 

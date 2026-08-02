@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.point.domain.model.PointType;
+import com.tastyhouse.domain.point.model.PointType;
 
 /**
  * 포인트 변동 이력 조회 결과.

@@ -2,11 +2,12 @@ package com.tastyhouse.domain.shop.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 class ShopOwnerMessageHistoryTest {
 

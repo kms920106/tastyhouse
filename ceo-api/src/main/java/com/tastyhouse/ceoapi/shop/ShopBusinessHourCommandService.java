@@ -5,11 +5,11 @@ import java.time.LocalTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.model.DayType;
-import com.tastyhouse.domain.shop.domain.model.ShopBreakTime;
-import com.tastyhouse.domain.shop.domain.model.ShopBusinessHour;
-import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
-import com.tastyhouse.domain.shop.domain.service.ShopBusinessHourService;
+import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shop.model.ShopBreakTime;
+import com.tastyhouse.domain.shop.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

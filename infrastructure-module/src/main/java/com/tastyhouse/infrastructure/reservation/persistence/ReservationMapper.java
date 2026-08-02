@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.reservation.persistence;
 
-import com.tastyhouse.domain.reservation.domain.model.Reservation;
+import com.tastyhouse.domain.reservation.model.Reservation;
 
 /**
  * 예약 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.

@@ -5,10 +5,10 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.policy.domain.model.PolicyDocument;
-import com.tastyhouse.domain.policy.domain.model.PolicyType;
-import com.tastyhouse.domain.policy.domain.repository.PolicyDocumentRepository;
-import com.tastyhouse.domain.policy.domain.vo.PolicyDocumentId;
+import com.tastyhouse.domain.policy.model.PolicyDocument;
+import com.tastyhouse.domain.policy.model.PolicyType;
+import com.tastyhouse.domain.policy.repository.PolicyDocumentRepository;
+import com.tastyhouse.domain.policy.vo.PolicyDocumentId;
 
 import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJpaEntity.policyDocumentJpaEntity;
 

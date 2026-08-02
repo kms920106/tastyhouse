@@ -1,9 +1,10 @@
 package com.tastyhouse.domain.point.domain.model;
 
+import com.tastyhouse.domain.point.model.Point;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 
 import static org.assertj.core.api.Assertions.assertThat;

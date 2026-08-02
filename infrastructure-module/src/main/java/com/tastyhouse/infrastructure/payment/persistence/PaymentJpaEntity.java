@@ -12,11 +12,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.payment.domain.model.PaymentMethod;
-import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.domain.payment.domain.model.PgProvider;
-import com.tastyhouse.domain.payment.domain.vo.Amount;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.payment.model.PaymentMethod;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.payment.model.PgProvider;
+import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.infrastructure.order.persistence.OrderIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 

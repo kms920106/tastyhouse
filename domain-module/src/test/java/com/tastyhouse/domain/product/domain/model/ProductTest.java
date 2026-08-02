@@ -2,13 +2,14 @@ package com.tastyhouse.domain.product.domain.model;
 
 import java.math.BigDecimal;
 
+import com.tastyhouse.domain.product.model.Product;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
-import com.tastyhouse.domain.product.domain.vo.ProductDiscountInfo;
-import com.tastyhouse.domain.product.domain.vo.ProductId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.product.vo.ProductCategoryId;
+import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

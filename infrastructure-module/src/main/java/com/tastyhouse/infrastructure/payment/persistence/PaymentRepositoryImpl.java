@@ -5,10 +5,10 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.payment.domain.model.Payment;
-import com.tastyhouse.domain.payment.domain.repository.PaymentRepository;
-import com.tastyhouse.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.payment.model.Payment;
+import com.tastyhouse.domain.payment.repository.PaymentRepository;
+import com.tastyhouse.domain.payment.vo.PaymentId;
 
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
 

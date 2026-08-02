@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.domain.model.ProhibitedWord;
-import com.tastyhouse.domain.shop.domain.repository.ProhibitedWordRepository;
+import com.tastyhouse.domain.shop.model.ProhibitedWord;
+import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 
 @Repository
 public class ProhibitedWordRepositoryImpl implements ProhibitedWordRepository {

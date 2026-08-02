@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.point.persistence;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.point.domain.model.PointHistory;
-import com.tastyhouse.domain.point.domain.repository.PointHistoryRepository;
+import com.tastyhouse.domain.point.model.PointHistory;
+import com.tastyhouse.domain.point.repository.PointHistoryRepository;
 
 /**
  * 포인트 변동 이력 write 어댑터.

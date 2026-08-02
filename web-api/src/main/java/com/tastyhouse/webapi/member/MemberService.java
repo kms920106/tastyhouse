@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.member.domain.model.MemberGender;
-import com.tastyhouse.domain.member.domain.model.MemberWithdrawalReason;
+import com.tastyhouse.domain.member.model.MemberGender;
+import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.webapi.coupon.CouponQueryService;
 import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;

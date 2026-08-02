@@ -8,10 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.domain.payment.domain.event.PaymentCancelledEvent;
-import com.tastyhouse.domain.payment.domain.event.PaymentCompletedEvent;
-import com.tastyhouse.domain.payment.domain.service.PaymentConfirmationService;
-import com.tastyhouse.domain.point.domain.service.PointLedgerService;
+import com.tastyhouse.domain.payment.event.PaymentCancelledEvent;
+import com.tastyhouse.domain.payment.event.PaymentCompletedEvent;
+import com.tastyhouse.domain.payment.service.PaymentConfirmationService;
+import com.tastyhouse.domain.point.service.PointLedgerService;
 
 /**
  * 결제 완료·취소 이벤트를 받아 포인트를 연동하는 크로스커팅 리스너(분류 E).

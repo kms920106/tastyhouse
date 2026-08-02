@@ -4,10 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.payment.domain.port.PgPaymentGateway;
-import com.tastyhouse.domain.payment.domain.port.dto.PgCancelResult;
-import com.tastyhouse.domain.payment.domain.port.dto.PgConfirmResult;
-import com.tastyhouse.domain.payment.domain.port.dto.TossPaymentDetail;
+import com.tastyhouse.domain.payment.port.PgPaymentGateway;
+import com.tastyhouse.domain.payment.port.dto.PgCancelResult;
+import com.tastyhouse.domain.payment.port.dto.PgConfirmResult;
+import com.tastyhouse.domain.payment.port.dto.TossPaymentDetail;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmResponse;
 
 @Component

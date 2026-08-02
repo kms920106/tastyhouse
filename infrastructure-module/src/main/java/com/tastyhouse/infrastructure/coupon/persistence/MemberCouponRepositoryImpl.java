@@ -5,11 +5,11 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.coupon.domain.model.MemberCoupon;
-import com.tastyhouse.domain.coupon.domain.repository.MemberCouponRepository;
-import com.tastyhouse.domain.coupon.domain.vo.CouponId;
-import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.coupon.model.MemberCoupon;
+import com.tastyhouse.domain.coupon.repository.MemberCouponRepository;
+import com.tastyhouse.domain.coupon.vo.CouponId;
+import com.tastyhouse.domain.coupon.vo.MemberCouponId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 import static com.tastyhouse.infrastructure.coupon.persistence.QMemberCouponJpaEntity.memberCouponJpaEntity;
 

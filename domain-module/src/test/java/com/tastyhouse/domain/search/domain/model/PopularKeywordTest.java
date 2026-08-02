@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.search.domain.model;
 
+import com.tastyhouse.domain.search.model.PopularKeyword;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

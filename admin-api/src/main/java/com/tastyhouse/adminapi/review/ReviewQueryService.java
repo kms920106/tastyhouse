@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
-import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.review.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;

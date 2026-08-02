@@ -5,8 +5,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.admin.domain.model.Admin;
-import com.tastyhouse.domain.admin.domain.repository.AdminRepository;
+import com.tastyhouse.domain.admin.model.Admin;
+import com.tastyhouse.domain.admin.repository.AdminRepository;
 
 /**
  * 관리자 계정 조회 서비스.

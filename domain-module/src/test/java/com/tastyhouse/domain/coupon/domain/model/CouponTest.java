@@ -2,10 +2,12 @@ package com.tastyhouse.domain.coupon.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.coupon.model.Coupon;
+import com.tastyhouse.domain.coupon.model.DiscountType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.coupon.domain.vo.CouponId;
+import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

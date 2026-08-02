@@ -9,8 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.admin.domain.model.AdminRole;
-import com.tastyhouse.domain.admin.domain.model.AdminStatus;
+import com.tastyhouse.domain.admin.model.AdminRole;
+import com.tastyhouse.domain.admin.model.AdminStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

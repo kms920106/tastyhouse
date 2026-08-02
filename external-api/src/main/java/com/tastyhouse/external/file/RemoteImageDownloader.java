@@ -10,9 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.file.domain.service.FileUploadCommand;
-import com.tastyhouse.domain.file.domain.service.FileUploadService;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.file.service.FileUploadCommand;
+import com.tastyhouse.domain.file.service.FileUploadService;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.ceo.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.ceo.domain.vo.CeoId;
+import com.tastyhouse.domain.ceo.vo.CeoId;
 
 @Converter
 public class CeoIdConverter implements AttributeConverter<CeoId, Long> {

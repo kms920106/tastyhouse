@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.coupon.domain.model.DiscountType;
+import com.tastyhouse.domain.coupon.model.DiscountType;
 
 /**
  * 내 쿠폰 목록 아이템(web — 회원이 보유한 쿠폰 + 원본 쿠폰 정보 조인).

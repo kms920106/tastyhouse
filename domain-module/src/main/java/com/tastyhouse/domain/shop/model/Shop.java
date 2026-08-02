@@ -1,0 +1,330 @@
+package com.tastyhouse.domain.shop.model;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.StationId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+
+/**
+ * 상점 순수 도메인 모델.
+ *
+ * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
+ * {@code ShopJpaEntity} + {@code ShopMapper}가 담당한다. 도메인이 프레임워크-프리이므로
+ * 변경 후 저장은 더티 체킹이 아니라 command 서비스가 명시적으로 {@code ShopRepository#save}를
+ * 호출해야 한다.
+ */
+public class Shop {
+
+    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private CeoId ceoId; // 소유 점주 ID (CEO.id 참조, null이면 점주 미배정)
+    private StationId stationId; // 지하철역 ID (STATION.id 참조)
+    private String name; // 상호명
+    private BigDecimal latitude; // 위도
+    private BigDecimal longitude; // 경도
+    private final Double rating; // 평균 평점
+    private String roadAddress; // 도로명 주소
+    private String lotAddress; // 지번 주소
+    private String phoneNumber; // 대표 전화번호
+    private UploadedFileId thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
+    private UploadedFileId trademarkImageFileId; // 상표 이미지 파일 ID (승인 완료 시 반영, FILE.id 참조)
+    private boolean permanentlyClosed; // 폐업 여부 (true: 폐업)
+    private boolean hidden; // 노출정지 여부 (true: 배민앱 완전 비노출, 폐업과 별개)
+    private boolean closedOnPublicHolidays; // 공휴일 휴무 여부 (true: 공휴일 휴무)
+    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
+    private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
+
+    private Shop(
+        Long id,
+        CeoId ceoId,
+        StationId stationId,
+        String name,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        Double rating,
+        String roadAddress,
+        String lotAddress,
+        String phoneNumber,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId trademarkImageFileId,
+        boolean permanentlyClosed,
+        boolean hidden,
+        boolean closedOnPublicHolidays,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this.id = id;
+        this.ceoId = ceoId;
+        this.stationId = stationId;
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.rating = rating;
+        this.roadAddress = roadAddress;
+        this.lotAddress = lotAddress;
+        this.phoneNumber = phoneNumber;
+        this.thumbnailImageFileId = thumbnailImageFileId;
+        this.trademarkImageFileId = trademarkImageFileId;
+        this.permanentlyClosed = permanentlyClosed;
+        this.hidden = hidden;
+        this.closedOnPublicHolidays = closedOnPublicHolidays;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    /**
+     * 신규 상점을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     */
+    public static Shop of(
+        StationId stationId,
+        String name,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String roadAddress,
+        String lotAddress,
+        String phoneNumber,
+        UploadedFileId thumbnailImageFileId
+    ) {
+        return new Shop(
+            null,
+            null,
+            stationId,
+            name,
+            latitude,
+            longitude,
+            null,
+            roadAddress,
+            lotAddress,
+            phoneNumber,
+            thumbnailImageFileId,
+            null,
+            false,
+            false,
+            false,
+            null,
+            null
+        );
+    }
+
+    /**
+     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
+     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
+     */
+    public static Shop reconstitute(
+        Long id,
+        CeoId ceoId,
+        StationId stationId,
+        String name,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        Double rating,
+        String roadAddress,
+        String lotAddress,
+        String phoneNumber,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId trademarkImageFileId,
+        boolean permanentlyClosed,
+        boolean hidden,
+        boolean closedOnPublicHolidays,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        return new Shop(
+            id,
+            ceoId,
+            stationId,
+            name,
+            latitude,
+            longitude,
+            rating,
+            roadAddress,
+            lotAddress,
+            phoneNumber,
+            thumbnailImageFileId,
+            trademarkImageFileId,
+            permanentlyClosed,
+            hidden,
+            closedOnPublicHolidays,
+            createdAt,
+            updatedAt
+        );
+    }
+
+    public ShopId getShopId() {
+        return ShopId.of(this.id);
+    }
+
+    /**
+     * 가게 기본 정보를 수정한다.
+     *
+     * <p>폐업({@link #close()})한 가게는 수정할 수 없다 — 폐업을 되돌리는 API("폐업 취소")가 admin·ceo
+     * 어디에도 없어 폐업은 불가역이며, 되살릴 수 없는 가게의 정보를 계속 고치는 것은 업무상 오조작이다.
+     */
+    public void update(
+        StationId stationId,
+        String name,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String roadAddress,
+        String lotAddress,
+        String phoneNumber,
+        UploadedFileId thumbnailImageFileId
+    ) {
+        validateNotPermanentlyClosed();
+
+        this.stationId = stationId;
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.roadAddress = roadAddress;
+        this.lotAddress = lotAddress;
+        this.phoneNumber = phoneNumber;
+        this.thumbnailImageFileId = thumbnailImageFileId;
+    }
+
+    /**
+     * 소유 점주를 배정한다(관리자가 가게-점주 연결 시 사용). null이면 점주 미배정 상태로 되돌린다.
+     */
+    public void assignCeo(CeoId ceoId) {
+        this.ceoId = ceoId;
+    }
+
+    /**
+     * 대표 전화번호를 갱신한다. 전화번호 다건 관리에서 대표번호 변경 시 {@code Shop.phoneNumber}를 동기화한다.
+     */
+    public void changePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    /**
+     * 승인 완료된 상표 이미지를 반영한다.
+     */
+    public void changeTrademarkImage(UploadedFileId trademarkImageFileId) {
+        this.trademarkImageFileId = trademarkImageFileId;
+    }
+
+    /**
+     * 승인 완료된 대표(썸네일) 이미지를 반영한다.
+     */
+    public void changeThumbnailImage(UploadedFileId thumbnailImageFileId) {
+        this.thumbnailImageFileId = thumbnailImageFileId;
+    }
+
+    /**
+     * 공휴일 휴무 여부를 설정한다.
+     */
+    public void updateHolidayClosure(boolean closedOnPublicHolidays) {
+        this.closedOnPublicHolidays = closedOnPublicHolidays;
+    }
+
+    /**
+     * 배민앱에서 가게를 완전히 숨긴다(노출정지).
+     */
+    public void hide() {
+        this.hidden = true;
+    }
+
+    /**
+     * 노출정지를 해제해 다시 노출한다.
+     *
+     * <p>폐업({@link #close()})한 가게는 다시 노출할 수 없다 — 폐업을 되돌리는 API("폐업 취소")가
+     * admin·ceo 어디에도 없으므로, 폐업 가게를 재노출하면 되돌릴 수 없는 상태로 회원에게 다시 보이게 된다.
+     */
+    public void show() {
+        validateNotPermanentlyClosed();
+
+        this.hidden = false;
+    }
+
+    /**
+     * 가게를 폐업 처리한다. <b>되돌릴 수 없다</b> — 폐업 취소 API가 없으므로 이후 {@link #show()}·
+     * {@link #update}는 {@link ErrorCode#SHOP_ALREADY_PERMANENTLY_CLOSED}로 거부된다.
+     */
+    public void close() {
+        this.permanentlyClosed = true;
+    }
+
+    /**
+     * 폐업 상태에서 금지된 동작을 막는다.
+     *
+     * <p>{@link #close()}(멱등)·{@link #hide()}(추가 은닉)에는 <b>적용하지 않는다</b> — 둘 다 폐업 상태를
+     * 되돌리거나 회원에게 다시 노출시키지 않으므로 막을 이유가 없고, 막으면 폐업 API의 멱등성이 깨진다.
+     */
+    private void validateNotPermanentlyClosed() {
+        if (permanentlyClosed) {
+            throw new BusinessException(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+        }
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public CeoId getCeoId() {
+        return this.ceoId;
+    }
+
+    public StationId getStationId() {
+        return this.stationId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public BigDecimal getLatitude() {
+        return this.latitude;
+    }
+
+    public BigDecimal getLongitude() {
+        return this.longitude;
+    }
+
+    public Double getRating() {
+        return this.rating;
+    }
+
+    public String getRoadAddress() {
+        return this.roadAddress;
+    }
+
+    public String getLotAddress() {
+        return this.lotAddress;
+    }
+
+    public String getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public UploadedFileId getThumbnailImageFileId() {
+        return this.thumbnailImageFileId;
+    }
+
+    public UploadedFileId getTrademarkImageFileId() {
+        return this.trademarkImageFileId;
+    }
+
+    public boolean isPermanentlyClosed() {
+        return this.permanentlyClosed;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
+    }
+
+    public boolean isClosedOnPublicHolidays() {
+        return this.closedOnPublicHolidays;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
+    }
+}

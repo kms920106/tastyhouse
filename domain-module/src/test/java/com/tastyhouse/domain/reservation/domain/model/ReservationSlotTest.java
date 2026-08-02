@@ -3,11 +3,12 @@ package com.tastyhouse.domain.reservation.domain.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.reservation.domain.service.SlotPolicy;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.reservation.service.SlotPolicy;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

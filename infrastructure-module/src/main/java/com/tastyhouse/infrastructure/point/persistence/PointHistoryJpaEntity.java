@@ -11,8 +11,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.point.domain.model.PointType;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 

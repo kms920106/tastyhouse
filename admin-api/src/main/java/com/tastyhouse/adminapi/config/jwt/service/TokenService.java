@@ -4,7 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.admin.domain.model.Admin;
+import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.security.jwt.TokenType;

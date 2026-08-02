@@ -2,10 +2,11 @@ package com.tastyhouse.domain.event.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.event.model.EventAnnouncement;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.event.vo.EventId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

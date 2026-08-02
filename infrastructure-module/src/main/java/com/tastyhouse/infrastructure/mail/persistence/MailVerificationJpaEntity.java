@@ -14,7 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.mail.domain.model.MailVerificationStatus;
+import com.tastyhouse.domain.mail.model.MailVerificationStatus;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 
 /**

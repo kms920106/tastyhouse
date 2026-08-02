@@ -4,11 +4,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.payment.domain.model.PaymentCancelCode;
-import com.tastyhouse.domain.payment.domain.service.PaymentCancellationService;
-import com.tastyhouse.domain.payment.domain.service.PaymentCancellationTarget;
-import com.tastyhouse.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.payment.model.PaymentCancelCode;
+import com.tastyhouse.domain.payment.service.PaymentCancellationService;
+import com.tastyhouse.domain.payment.service.PaymentCancellationTarget;
+import com.tastyhouse.domain.payment.vo.PaymentId;
 
 /**
  * 결제 취소의 트랜잭션 경계 빈.

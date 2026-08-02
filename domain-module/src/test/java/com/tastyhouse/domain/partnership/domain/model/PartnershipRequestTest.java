@@ -2,10 +2,12 @@ package com.tastyhouse.domain.partnership.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.partnership.model.PartnershipRequest;
+import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.partnership.domain.vo.PartnershipRequestId;
+import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

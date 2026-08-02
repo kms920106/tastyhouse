@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.bug.domain.model.BugReport;
-import com.tastyhouse.domain.bug.domain.model.BugReportPlatform;
-import com.tastyhouse.domain.bug.domain.service.BugReportRegistrationService;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.bug.model.BugReport;
+import com.tastyhouse.domain.bug.model.BugReportPlatform;
+import com.tastyhouse.domain.bug.service.BugReportRegistrationService;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 회원 버그 제보 등록 서비스.

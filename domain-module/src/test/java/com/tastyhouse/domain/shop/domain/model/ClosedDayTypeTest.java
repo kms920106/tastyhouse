@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
+import com.tastyhouse.domain.shop.model.ClosedDayType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

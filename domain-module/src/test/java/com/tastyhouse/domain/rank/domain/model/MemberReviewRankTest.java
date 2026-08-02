@@ -3,10 +3,12 @@ package com.tastyhouse.domain.rank.domain.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.rank.model.MemberReviewRank;
+import com.tastyhouse.domain.rank.model.RankType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

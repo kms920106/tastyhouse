@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.domain.model.Tag;
+import com.tastyhouse.domain.shop.model.Tag;
 
 final class TagMapper {
 

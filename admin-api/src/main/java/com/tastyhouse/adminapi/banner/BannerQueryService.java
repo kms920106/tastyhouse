@@ -3,7 +3,7 @@ package com.tastyhouse.adminapi.banner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.banner.domain.model.BannerType;
+import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;

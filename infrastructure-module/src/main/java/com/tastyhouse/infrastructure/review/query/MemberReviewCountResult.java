@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 기간 내 회원별 리뷰 수 집계 결과 — 리뷰 테이블을 회원 단위로 그룹 투영한다.

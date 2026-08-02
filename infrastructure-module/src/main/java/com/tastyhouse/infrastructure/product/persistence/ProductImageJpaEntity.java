@@ -8,8 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 

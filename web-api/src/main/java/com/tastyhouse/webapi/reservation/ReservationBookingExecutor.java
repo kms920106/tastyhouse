@@ -6,10 +6,10 @@ import java.time.LocalTime;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.reservation.domain.service.ReservationBookingService;
-import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.reservation.service.ReservationBookingService;
+import com.tastyhouse.domain.reservation.vo.ReservationId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 예약 생성의 트랜잭션 단위.

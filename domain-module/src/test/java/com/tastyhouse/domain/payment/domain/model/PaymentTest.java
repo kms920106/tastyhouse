@@ -2,12 +2,16 @@ package com.tastyhouse.domain.payment.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.payment.model.Payment;
+import com.tastyhouse.domain.payment.model.PaymentMethod;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.payment.model.PgProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.payment.domain.vo.Amount;
-import com.tastyhouse.domain.payment.domain.vo.PgOrderId;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.payment.vo.Amount;
+import com.tastyhouse.domain.payment.vo.PgOrderId;
 import com.tastyhouse.domain.exception.BusinessException;
 
 import static org.assertj.core.api.Assertions.assertThat;

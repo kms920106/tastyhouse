@@ -6,7 +6,7 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import com.tastyhouse.domain.ceo.domain.model.Ceo;
+import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.security.jwt.JwtPrincipal;
 
 public class CustomUserDetails extends User implements JwtPrincipal {

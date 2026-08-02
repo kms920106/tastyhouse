@@ -6,23 +6,24 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.shop.domain.model.ClosedDayType;
-import com.tastyhouse.domain.shop.domain.model.DayType;
-import com.tastyhouse.domain.shop.domain.model.Shop;
-import com.tastyhouse.domain.shop.domain.model.ShopBreakTime;
-import com.tastyhouse.domain.shop.domain.model.ShopBusinessHour;
-import com.tastyhouse.domain.shop.domain.model.ShopClosedDay;
-import com.tastyhouse.domain.shop.domain.model.ShopOperatingStatus;
-import com.tastyhouse.domain.shop.domain.model.ShopSuspension;
-import com.tastyhouse.domain.shop.domain.model.ShopTemporaryClosure;
-import com.tastyhouse.domain.shop.domain.model.SuspensionReason;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
+import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.model.ShopBreakTime;
+import com.tastyhouse.domain.shop.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.model.ShopClosedDay;
+import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
+import com.tastyhouse.domain.shop.model.ShopSuspension;
+import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
+import com.tastyhouse.domain.shop.model.SuspensionReason;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.shop.domain.vo.StationId;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.StationId;
 
 /**
  * 영업 상태 계산기 순수 단위 테스트. Spring/JPA 컨텍스트 없이 우선순위·경계 케이스를 검증한다.

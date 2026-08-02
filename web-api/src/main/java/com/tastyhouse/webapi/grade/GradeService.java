@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
+import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.webapi.grade.response.GradeInfoListItemResponse;
 
 @Service

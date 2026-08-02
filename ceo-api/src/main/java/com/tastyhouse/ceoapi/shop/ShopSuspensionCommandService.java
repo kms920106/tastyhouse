@@ -7,11 +7,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
-import com.tastyhouse.domain.shop.domain.model.ShopSuspension;
-import com.tastyhouse.domain.shop.domain.model.SuspensionReason;
-import com.tastyhouse.domain.shop.domain.repository.ShopSuspensionRepository;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.ShopSuspension;
+import com.tastyhouse.domain.shop.model.SuspensionReason;
+import com.tastyhouse.domain.shop.repository.ShopSuspensionRepository;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

@@ -2,9 +2,9 @@ package com.tastyhouse.infrastructure.order.query;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.shop.model.OrderMethod;
 
 /**
  * 주문 관리 목록 검색 조건(admin-api용) — 모든 필드가 null 허용이며, null인 항목은 조건에서 제외된다.

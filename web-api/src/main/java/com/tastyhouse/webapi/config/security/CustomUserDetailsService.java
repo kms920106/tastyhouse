@@ -10,8 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.model.Member;
-import com.tastyhouse.domain.member.domain.repository.MemberRepository;
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.repository.MemberRepository;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {

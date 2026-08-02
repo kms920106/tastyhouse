@@ -15,7 +15,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.domain.service.EditorChoicePolicy;
+import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;

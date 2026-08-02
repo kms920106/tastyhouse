@@ -3,6 +3,8 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.shop.model.HygieneBadgeType;
+import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +12,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 class ShopHygieneBadgeTest {
 

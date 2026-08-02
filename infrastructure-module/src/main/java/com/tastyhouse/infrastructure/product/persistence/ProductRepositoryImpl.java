@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.product.domain.model.Product;
-import com.tastyhouse.domain.product.domain.repository.ProductRepository;
-import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.product.model.Product;
+import com.tastyhouse.domain.product.repository.ProductRepository;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 /**
  * 상품 write 어댑터. 표현 목적 조회는 {@code infrastructure/product/query/ProductQueryDao}가 담당한다.

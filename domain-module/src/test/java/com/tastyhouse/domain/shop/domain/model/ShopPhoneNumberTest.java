@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.shop.domain.model;
 
+import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -7,7 +8,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 class ShopPhoneNumberTest {
 

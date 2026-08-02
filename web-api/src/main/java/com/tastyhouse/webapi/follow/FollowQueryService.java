@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.follow;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;

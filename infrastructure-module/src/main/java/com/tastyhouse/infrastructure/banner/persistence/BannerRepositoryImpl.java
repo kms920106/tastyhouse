@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.banner.domain.model.Banner;
-import com.tastyhouse.domain.banner.domain.repository.BannerRepository;
-import com.tastyhouse.domain.banner.domain.vo.BannerId;
+import com.tastyhouse.domain.banner.model.Banner;
+import com.tastyhouse.domain.banner.repository.BannerRepository;
+import com.tastyhouse.domain.banner.vo.BannerId;
 
 /**
  * 배너 write 어댑터.

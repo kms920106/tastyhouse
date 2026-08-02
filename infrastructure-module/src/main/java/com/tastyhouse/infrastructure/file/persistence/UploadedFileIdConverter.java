@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.file.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 @Converter
 public class UploadedFileIdConverter implements AttributeConverter<UploadedFileId, Long> {

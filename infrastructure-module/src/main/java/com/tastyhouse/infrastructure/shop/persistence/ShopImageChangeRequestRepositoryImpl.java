@@ -8,9 +8,9 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.domain.model.ShopImageChangeRequest;
-import com.tastyhouse.domain.shop.domain.model.ShopImageType;
-import com.tastyhouse.domain.shop.domain.repository.ShopImageChangeRequestRepository;
+import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
+import com.tastyhouse.domain.shop.model.ShopImageType;
+import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;

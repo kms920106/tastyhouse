@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.domain.shop.domain.model.Amenity;
+import com.tastyhouse.domain.shop.model.Amenity;
 
 public record ShopAmenityCategoryResult(
     Long id,

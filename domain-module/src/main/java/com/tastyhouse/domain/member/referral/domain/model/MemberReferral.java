@@ -2,7 +2,7 @@ package com.tastyhouse.domain.member.referral.domain.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.referral.domain.vo.ReferralId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

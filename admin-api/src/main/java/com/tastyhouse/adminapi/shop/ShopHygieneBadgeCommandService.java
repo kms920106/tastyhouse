@@ -5,10 +5,10 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.model.HygieneBadgeType;
-import com.tastyhouse.domain.shop.domain.model.ShopHygieneBadge;
-import com.tastyhouse.domain.shop.domain.repository.ShopHygieneBadgeRepository;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.model.HygieneBadgeType;
+import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
+import com.tastyhouse.domain.shop.repository.ShopHygieneBadgeRepository;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

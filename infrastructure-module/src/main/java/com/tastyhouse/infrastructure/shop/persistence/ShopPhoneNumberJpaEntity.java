@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 가게 전화번호(다건) JPA 영속 모델. 순수 도메인 모델 {@code ShopPhoneNumber}와 분리된 영속 전용 엔티티다.

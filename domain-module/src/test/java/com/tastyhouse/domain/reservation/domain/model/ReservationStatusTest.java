@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.reservation.domain.model;
 
+import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

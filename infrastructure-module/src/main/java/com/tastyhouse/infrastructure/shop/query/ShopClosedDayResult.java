@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.domain.shop.domain.model.ClosedDayType;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
 
 /**
  * 가게 정기휴무 한 건(회원 가게정보·점주 설정·관리 화면 공용).

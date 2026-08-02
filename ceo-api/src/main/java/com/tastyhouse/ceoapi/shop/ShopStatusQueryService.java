@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.model.Shop;
+import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.ceoapi.shop.response.ShopStatusResponse;
 
 /**

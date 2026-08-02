@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.admin.domain.model.Admin;
-import com.tastyhouse.domain.admin.domain.repository.AdminRepository;
+import com.tastyhouse.domain.admin.model.Admin;
+import com.tastyhouse.domain.admin.repository.AdminRepository;
 
 @Repository
 public class AdminRepositoryImpl implements AdminRepository {

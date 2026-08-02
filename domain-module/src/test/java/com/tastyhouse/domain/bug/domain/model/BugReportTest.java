@@ -2,12 +2,13 @@ package com.tastyhouse.domain.bug.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.bug.model.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.admin.domain.vo.AdminId;
-import com.tastyhouse.domain.bug.domain.vo.BugReportId;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.admin.vo.AdminId;
+import com.tastyhouse.domain.bug.vo.BugReportId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 
 import static org.assertj.core.api.Assertions.assertThat;

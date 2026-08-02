@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.review.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.review.vo.ReviewId;
 
 @Converter
 public class ReviewIdConverter implements AttributeConverter<ReviewId, Long> {

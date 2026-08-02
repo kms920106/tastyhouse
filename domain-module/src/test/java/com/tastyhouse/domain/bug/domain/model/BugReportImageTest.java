@@ -1,10 +1,11 @@
 package com.tastyhouse.domain.bug.domain.model;
 
+import com.tastyhouse.domain.bug.model.BugReportImage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.bug.domain.vo.BugReportId;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.bug.vo.BugReportId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

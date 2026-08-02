@@ -2,10 +2,12 @@ package com.tastyhouse.domain.sms.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.sms.model.SmsVerification;
+import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.sms.domain.vo.SmsVerificationId;
+import com.tastyhouse.domain.sms.vo.SmsVerificationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;

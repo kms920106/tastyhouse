@@ -3,8 +3,8 @@ package com.tastyhouse.webapi.event;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.event.domain.model.EventStatus;
-import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.event.model.EventStatus;
+import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;

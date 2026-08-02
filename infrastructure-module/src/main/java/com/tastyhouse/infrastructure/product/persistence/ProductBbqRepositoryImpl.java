@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.product.domain.model.ProductBbq;
-import com.tastyhouse.domain.product.domain.repository.ProductBbqRepository;
-import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.product.model.ProductBbq;
+import com.tastyhouse.domain.product.repository.ProductBbqRepository;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 

@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.payment.persistence;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.payment.domain.model.TossPaymentRecord;
-import com.tastyhouse.domain.payment.domain.repository.TossPaymentRecordRepository;
+import com.tastyhouse.domain.payment.model.TossPaymentRecord;
+import com.tastyhouse.domain.payment.repository.TossPaymentRecordRepository;
 
 @Repository
 public class TossPaymentRecordRepositoryImpl implements TossPaymentRecordRepository {

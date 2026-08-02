@@ -4,12 +4,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.domain.model.ShopContentBoard;
-import com.tastyhouse.domain.shop.domain.model.ShopContentTopic;
-import com.tastyhouse.domain.shop.domain.model.ShopContentType;
-import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.ShopContentBoard;
+import com.tastyhouse.domain.shop.model.ShopContentTopic;
+import com.tastyhouse.domain.shop.model.ShopContentType;
+import com.tastyhouse.domain.shop.repository.ShopContentBoardRepository;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

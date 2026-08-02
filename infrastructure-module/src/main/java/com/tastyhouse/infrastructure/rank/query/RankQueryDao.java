@@ -9,10 +9,10 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.rank.domain.model.RankType;
-import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
-import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.domain.rank.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.vo.RankPrizeId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;

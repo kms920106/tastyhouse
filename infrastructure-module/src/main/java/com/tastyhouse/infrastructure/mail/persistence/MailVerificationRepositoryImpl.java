@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.mail.domain.model.MailVerification;
-import com.tastyhouse.domain.mail.domain.model.MailVerificationStatus;
-import com.tastyhouse.domain.mail.domain.repository.MailVerificationRepository;
+import com.tastyhouse.domain.mail.model.MailVerification;
+import com.tastyhouse.domain.mail.model.MailVerificationStatus;
+import com.tastyhouse.domain.mail.repository.MailVerificationRepository;
 
 import static com.tastyhouse.infrastructure.mail.persistence.QMailVerificationJpaEntity.mailVerificationJpaEntity;
 

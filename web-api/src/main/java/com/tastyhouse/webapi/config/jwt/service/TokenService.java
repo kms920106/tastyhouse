@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.member.domain.model.Member;
+import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;

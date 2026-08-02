@@ -13,8 +13,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.member.domain.model.MemberSocialProvider;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.model.MemberSocialProvider;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

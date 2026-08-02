@@ -3,7 +3,7 @@ package com.tastyhouse.domain.member.follow.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.follow.domain.model.MemberFollow;
 
 /**

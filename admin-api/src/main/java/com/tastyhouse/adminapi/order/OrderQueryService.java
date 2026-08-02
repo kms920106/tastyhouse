@@ -6,10 +6,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;

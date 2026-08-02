@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.service.ProhibitedWordValidator;
+import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.infrastructure.shop.query.ShopOwnerMessageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.ceoapi.shop.response.ShopIntroductionResponse;

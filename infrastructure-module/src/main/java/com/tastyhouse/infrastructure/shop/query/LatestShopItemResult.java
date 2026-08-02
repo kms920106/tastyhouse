@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.shop.query;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.shop.domain.model.FoodType;
+import com.tastyhouse.domain.shop.model.FoodType;
 
 public record LatestShopItemResult(
     Long id,

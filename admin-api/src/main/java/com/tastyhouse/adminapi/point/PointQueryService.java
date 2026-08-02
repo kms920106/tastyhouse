@@ -3,8 +3,8 @@ package com.tastyhouse.adminapi.point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.point.domain.model.PointType;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.point.query.PointBalanceResult;

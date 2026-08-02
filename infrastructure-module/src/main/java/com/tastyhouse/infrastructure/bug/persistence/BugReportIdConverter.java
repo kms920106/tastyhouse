@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.bug.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.bug.domain.vo.BugReportId;
+import com.tastyhouse.domain.bug.vo.BugReportId;
 
 @Converter
 public class BugReportIdConverter implements AttributeConverter<BugReportId, Long> {

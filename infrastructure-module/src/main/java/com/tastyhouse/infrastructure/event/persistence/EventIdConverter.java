@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.event.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.event.vo.EventId;
 
 @Converter
 public class EventIdConverter implements AttributeConverter<EventId, Long> {

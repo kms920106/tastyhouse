@@ -3,7 +3,7 @@ package com.tastyhouse.external.file;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.file.domain.port.FileStoragePort;
+import com.tastyhouse.domain.file.port.FileStoragePort;
 
 @Component
 public class FileStoragePortAdapter implements FileStoragePort {

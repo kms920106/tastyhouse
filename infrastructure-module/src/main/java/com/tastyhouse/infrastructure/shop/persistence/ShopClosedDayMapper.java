@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.domain.model.ShopClosedDay;
+import com.tastyhouse.domain.shop.model.ShopClosedDay;
 
 final class ShopClosedDayMapper {
 

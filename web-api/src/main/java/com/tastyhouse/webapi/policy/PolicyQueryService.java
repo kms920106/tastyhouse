@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.policy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.policy.domain.model.PolicyType;
+import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;

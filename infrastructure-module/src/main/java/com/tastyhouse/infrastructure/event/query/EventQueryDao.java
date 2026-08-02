@@ -11,8 +11,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.event.domain.model.EventStatus;
-import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.event.model.EventStatus;
+import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;

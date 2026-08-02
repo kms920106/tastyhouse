@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.shop.model.OrderMethod;
 
 /**
  * 주문 관리 목록 항목 조회 결과(admin-api용) — 주문번호·가게명·주문자명·주문방식·주문상태·결제상태와

@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
-import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
-import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.bug.model.BugReportCategory;
+import com.tastyhouse.domain.bug.model.BugReportPriority;
+import com.tastyhouse.domain.bug.model.BugReportStatus;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 버그 제보 관리 목록 항목 조회 결과.

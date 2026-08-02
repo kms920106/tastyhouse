@@ -5,9 +5,9 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.shop.domain.model.ShopBookmark;
-import com.tastyhouse.domain.shop.domain.repository.ShopBookmarkRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.shop.model.ShopBookmark;
+import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
 

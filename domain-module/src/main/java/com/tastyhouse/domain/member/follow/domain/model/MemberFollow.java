@@ -1,6 +1,6 @@
 package com.tastyhouse.domain.member.follow.domain.model;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 회원 팔로우 순수 도메인 모델.

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.partnership.domain.model.PartnershipStatus;
+import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 
 /**
  * 제휴 신청 상세 조회 결과.

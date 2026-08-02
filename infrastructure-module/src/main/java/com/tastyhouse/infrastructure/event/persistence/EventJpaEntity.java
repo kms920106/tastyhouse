@@ -13,8 +13,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.event.domain.model.EventStatus;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.event.model.EventStatus;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 

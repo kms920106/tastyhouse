@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.review.domain.model.ReviewReply;
-import com.tastyhouse.domain.review.domain.repository.ReviewReplyRepository;
-import com.tastyhouse.domain.review.domain.vo.ReviewReplyId;
+import com.tastyhouse.domain.review.model.ReviewReply;
+import com.tastyhouse.domain.review.repository.ReviewReplyRepository;
+import com.tastyhouse.domain.review.vo.ReviewReplyId;
 
 @Repository
 public class ReviewReplyRepositoryImpl implements ReviewReplyRepository {

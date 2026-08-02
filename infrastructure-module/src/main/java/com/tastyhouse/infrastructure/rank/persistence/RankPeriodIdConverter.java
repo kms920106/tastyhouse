@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.rank.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.vo.RankPeriodId;
 
 @Converter
 public class RankPeriodIdConverter implements AttributeConverter<RankPeriodId, Long> {

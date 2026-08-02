@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.member.referral.query.MemberReferralQueryDao;
 import com.tastyhouse.infrastructure.member.referral.query.MemberReferralResult;
 import com.tastyhouse.webapi.referral.response.ReferralMemberListItemResponse;

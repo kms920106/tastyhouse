@@ -2,14 +2,15 @@ package com.tastyhouse.domain.review.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.review.model.ReviewComment;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.review.vo.ReviewCommentId;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.review.vo.ReviewId;
 
 /**
  * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다.

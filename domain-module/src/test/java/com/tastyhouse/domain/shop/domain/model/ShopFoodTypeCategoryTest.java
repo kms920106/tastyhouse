@@ -1,10 +1,12 @@
 package com.tastyhouse.domain.shop.domain.model;
 
+import com.tastyhouse.domain.shop.model.FoodType;
+import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 class ShopFoodTypeCategoryTest {
 

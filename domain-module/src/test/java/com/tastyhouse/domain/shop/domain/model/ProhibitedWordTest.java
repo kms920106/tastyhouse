@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.shop.domain.model;
 
+import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

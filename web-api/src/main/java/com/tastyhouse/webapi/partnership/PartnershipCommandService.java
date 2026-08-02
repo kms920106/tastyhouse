@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.partnership.domain.model.PartnershipRequest;
-import com.tastyhouse.domain.partnership.domain.repository.PartnershipRepository;
+import com.tastyhouse.domain.partnership.model.PartnershipRequest;
+import com.tastyhouse.domain.partnership.repository.PartnershipRepository;
 
 /**
  * 제휴 신청 command 서비스.

@@ -3,8 +3,8 @@ package com.tastyhouse.adminapi.point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.point.domain.service.PointLedgerService;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.point.service.PointLedgerService;
 
 /**
  * 포인트 관리 command 서비스.

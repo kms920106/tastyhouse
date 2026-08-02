@@ -6,7 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.member.domain.model.MemberGender;
+import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
 import com.tastyhouse.webapi.member.service.MemberCommandService;

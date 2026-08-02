@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.banner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.banner.domain.model.BannerType;
+import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.banner.query.BannerListItemResult;

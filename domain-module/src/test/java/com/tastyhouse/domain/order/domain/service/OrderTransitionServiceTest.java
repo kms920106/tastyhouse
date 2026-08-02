@@ -4,16 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.tastyhouse.domain.order.service.OrderTransitionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.order.domain.model.Order;
-import com.tastyhouse.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.domain.order.domain.repository.OrderRepository;
-import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.model.Order;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.order.repository.OrderRepository;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

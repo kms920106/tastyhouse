@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.sms.domain.service.SmsVerificationService;
+import com.tastyhouse.domain.sms.service.SmsVerificationService;
 
 /**
  * SMS 인증 command 서비스(web-api).

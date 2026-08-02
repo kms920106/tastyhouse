@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.ses.model.Message;
 import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SesException;
 
-import com.tastyhouse.domain.mail.domain.port.MailSender;
+import com.tastyhouse.domain.mail.port.MailSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 

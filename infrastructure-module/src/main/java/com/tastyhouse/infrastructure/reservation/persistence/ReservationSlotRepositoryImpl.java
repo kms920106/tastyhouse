@@ -9,9 +9,9 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.reservation.domain.model.ReservationSlot;
-import com.tastyhouse.domain.reservation.domain.repository.ReservationSlotRepository;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.reservation.model.ReservationSlot;
+import com.tastyhouse.domain.reservation.repository.ReservationSlotRepository;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
 
 @Repository

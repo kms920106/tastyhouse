@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.coupon.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
+import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 
 @Converter
 public class MemberCouponIdConverter implements AttributeConverter<MemberCouponId, Long> {

@@ -4,11 +4,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.payment.domain.port.dto.PgConfirmResult;
-import com.tastyhouse.domain.payment.domain.service.PaymentConfirmationService;
-import com.tastyhouse.domain.payment.domain.service.TossConfirmationTarget;
-import com.tastyhouse.domain.payment.domain.vo.PaymentId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.payment.port.dto.PgConfirmResult;
+import com.tastyhouse.domain.payment.service.PaymentConfirmationService;
+import com.tastyhouse.domain.payment.service.TossConfirmationTarget;
+import com.tastyhouse.domain.payment.vo.PaymentId;
 
 /**
  * 토스 결제 승인의 트랜잭션 경계 빈.

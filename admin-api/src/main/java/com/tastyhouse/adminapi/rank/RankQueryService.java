@@ -6,9 +6,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.rank.domain.model.RankType;
-import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
-import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
+import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.domain.rank.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.vo.RankPrizeId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.rank.query.MemberRankResult;

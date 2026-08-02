@@ -3,16 +3,16 @@ package com.tastyhouse.adminapi.review;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.review.domain.model.ReviewComment;
-import com.tastyhouse.domain.review.domain.model.ReviewReply;
-import com.tastyhouse.domain.review.domain.model.Review;
-import com.tastyhouse.domain.review.domain.repository.ReviewCommentRepository;
-import com.tastyhouse.domain.review.domain.repository.ReviewReplyRepository;
-import com.tastyhouse.domain.review.domain.repository.ReviewRepository;
-import com.tastyhouse.domain.review.domain.service.ReviewLifecycleService;
-import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
-import com.tastyhouse.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.domain.review.domain.vo.ReviewReplyId;
+import com.tastyhouse.domain.review.model.ReviewComment;
+import com.tastyhouse.domain.review.model.ReviewReply;
+import com.tastyhouse.domain.review.model.Review;
+import com.tastyhouse.domain.review.repository.ReviewCommentRepository;
+import com.tastyhouse.domain.review.repository.ReviewReplyRepository;
+import com.tastyhouse.domain.review.repository.ReviewRepository;
+import com.tastyhouse.domain.review.service.ReviewLifecycleService;
+import com.tastyhouse.domain.review.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.domain.review.vo.ReviewReplyId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

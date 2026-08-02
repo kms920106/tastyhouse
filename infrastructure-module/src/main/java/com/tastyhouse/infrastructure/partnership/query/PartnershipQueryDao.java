@@ -9,7 +9,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.partnership.domain.model.PartnershipStatus;
+import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 

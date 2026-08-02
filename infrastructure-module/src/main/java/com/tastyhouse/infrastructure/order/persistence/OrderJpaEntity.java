@@ -10,11 +10,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.coupon.vo.MemberCouponId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.coupon.persistence.MemberCouponIdConverter;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;

@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.faq.domain.model.FaqCategory;
-import com.tastyhouse.domain.faq.domain.repository.FaqCategoryRepository;
-import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
+import com.tastyhouse.domain.faq.model.FaqCategory;
+import com.tastyhouse.domain.faq.repository.FaqCategoryRepository;
+import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 
 import static com.tastyhouse.infrastructure.faq.persistence.QFaqCategoryJpaEntity.faqCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpaEntity;

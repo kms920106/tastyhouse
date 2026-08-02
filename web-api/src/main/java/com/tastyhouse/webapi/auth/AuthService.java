@@ -2,8 +2,8 @@ package com.tastyhouse.webapi.auth;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.member.domain.model.MemberGender;
-import com.tastyhouse.domain.member.domain.model.MemberSocialProvider;
+import com.tastyhouse.domain.member.model.MemberGender;
+import com.tastyhouse.domain.member.model.MemberSocialProvider;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.webapi.auth.apple.AppleSocialLoginService;

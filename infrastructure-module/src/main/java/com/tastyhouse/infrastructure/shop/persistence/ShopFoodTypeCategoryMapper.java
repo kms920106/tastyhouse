@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.domain.model.ShopFoodTypeCategory;
+import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
 
 final class ShopFoodTypeCategoryMapper {
 

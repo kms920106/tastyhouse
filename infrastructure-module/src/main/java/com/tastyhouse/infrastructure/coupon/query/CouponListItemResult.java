@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.coupon.domain.model.DiscountType;
+import com.tastyhouse.domain.coupon.model.DiscountType;
 
 /**
  * 쿠폰 목록 조회 결과(admin 쿠폰 관리 목록).

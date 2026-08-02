@@ -3,8 +3,8 @@ package com.tastyhouse.ceoapi.shop;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.service.ShopLifecycleService;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.service.ShopLifecycleService;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 점주용 가게 노출 상태(노출정지) 변경 서비스(CQRS command 측).

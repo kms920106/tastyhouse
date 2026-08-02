@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.model.MemberSocialProvider;
+import com.tastyhouse.domain.member.model.MemberSocialProvider;
 
 @Repository
 public interface MemberSocialAccountJpaRepository extends JpaRepository<MemberSocialAccountJpaEntity, Long> {

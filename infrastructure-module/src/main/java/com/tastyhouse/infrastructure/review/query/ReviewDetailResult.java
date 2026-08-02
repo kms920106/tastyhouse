@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 public record ReviewDetailResult(
     Long id,

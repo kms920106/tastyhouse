@@ -5,11 +5,11 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.model.ShopAmenity;
-import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
-import com.tastyhouse.domain.shop.domain.vo.ShopAmenityCategoryId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.shop.domain.service.ShopConvenienceInfoService;
+import com.tastyhouse.domain.shop.model.ShopAmenity;
+import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

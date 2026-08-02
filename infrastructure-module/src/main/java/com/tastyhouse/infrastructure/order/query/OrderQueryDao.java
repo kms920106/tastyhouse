@@ -12,11 +12,11 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;

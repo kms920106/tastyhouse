@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.file.domain.model.UploadedFile;
-import com.tastyhouse.domain.file.domain.repository.UploadedFileRepository;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.file.model.UploadedFile;
+import com.tastyhouse.domain.file.repository.UploadedFileRepository;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 /**
  * 업로드 파일 write 어댑터.

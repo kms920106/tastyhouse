@@ -5,12 +5,12 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.coupon.domain.model.Coupon;
-import com.tastyhouse.domain.coupon.domain.model.DiscountType;
-import com.tastyhouse.domain.coupon.domain.repository.CouponRepository;
-import com.tastyhouse.domain.coupon.domain.service.CouponIssueService;
-import com.tastyhouse.domain.coupon.domain.vo.CouponId;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.coupon.model.Coupon;
+import com.tastyhouse.domain.coupon.model.DiscountType;
+import com.tastyhouse.domain.coupon.repository.CouponRepository;
+import com.tastyhouse.domain.coupon.service.CouponIssueService;
+import com.tastyhouse.domain.coupon.vo.CouponId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

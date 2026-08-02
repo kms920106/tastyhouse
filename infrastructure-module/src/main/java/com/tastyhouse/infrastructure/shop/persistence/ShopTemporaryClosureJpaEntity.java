@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 상점 임시 휴무 JPA 영속 모델. 순수 도메인 모델 {@code ShopTemporaryClosure}와 분리된 영속 전용 엔티티다.

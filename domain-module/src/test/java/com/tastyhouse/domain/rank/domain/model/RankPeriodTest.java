@@ -2,10 +2,11 @@ package com.tastyhouse.domain.rank.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.rank.model.RankPeriod;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.vo.RankPeriodId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

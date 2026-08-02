@@ -3,11 +3,11 @@ package com.tastyhouse.webapi.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.rank.domain.model.MemberReviewRank;
-import com.tastyhouse.domain.rank.domain.model.RankType;
-import com.tastyhouse.domain.rank.domain.repository.MemberReviewRankRepository;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.rank.model.MemberReviewRank;
+import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.domain.rank.repository.MemberReviewRankRepository;
 import com.tastyhouse.webapi.member.response.MyGradeResponse;
 
 @Service

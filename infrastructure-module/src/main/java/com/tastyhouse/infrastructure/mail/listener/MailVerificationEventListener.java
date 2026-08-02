@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.domain.mail.domain.event.MailVerifiedEvent;
+import com.tastyhouse.domain.mail.event.MailVerifiedEvent;
 
 /**
  * 메일 인증 완료 이벤트 리스너.

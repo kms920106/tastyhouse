@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.shop.domain.vo.ShopAmenityCategoryId;
+import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 
 @Converter
 public class ShopAmenityCategoryIdConverter implements AttributeConverter<ShopAmenityCategoryId, Long> {

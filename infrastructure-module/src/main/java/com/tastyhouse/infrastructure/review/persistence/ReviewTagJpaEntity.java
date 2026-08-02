@@ -8,8 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.domain.shop.domain.vo.TagId;
+import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.domain.shop.vo.TagId;
 import com.tastyhouse.infrastructure.shop.persistence.TagIdConverter;
 
 /**
@@ -56,9 +56,5 @@ public class ReviewTagJpaEntity {
 
     public ReviewId getReviewId() {
         return this.reviewId;
-    }
-
-    public TagId getTagId() {
-        return this.tagId;
     }
 }

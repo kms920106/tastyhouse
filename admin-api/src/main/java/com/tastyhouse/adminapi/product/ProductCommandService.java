@@ -5,15 +5,15 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.product.domain.model.Product;
-import com.tastyhouse.domain.product.domain.model.ProductCategory;
-import com.tastyhouse.domain.product.domain.model.ProductOptionGroup;
-import com.tastyhouse.domain.product.domain.service.ProductRegistrationService;
-import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
-import com.tastyhouse.domain.product.domain.vo.ProductId;
-import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.product.model.Product;
+import com.tastyhouse.domain.product.model.ProductCategory;
+import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.service.ProductRegistrationService;
+import com.tastyhouse.domain.product.vo.ProductCategoryId;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 관리자 상품 command 서비스. 트랜잭션 경계를 소유하고, 불변식·저장은 도메인 서비스

@@ -6,7 +6,7 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import com.tastyhouse.domain.admin.domain.model.Admin;
+import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.security.jwt.JwtPrincipal;
 
 public class CustomUserDetails extends User implements JwtPrincipal {
@@ -29,9 +29,5 @@ public class CustomUserDetails extends User implements JwtPrincipal {
     @Override
     public Long getPrincipalId() {
         return adminId;
-    }
-
-    public Long getAdminId() {
-        return this.adminId;
     }
 }

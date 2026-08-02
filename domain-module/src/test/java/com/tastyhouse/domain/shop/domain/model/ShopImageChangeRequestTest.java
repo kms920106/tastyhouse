@@ -2,6 +2,8 @@ package com.tastyhouse.domain.shop.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
+import com.tastyhouse.domain.shop.model.ShopImageType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -10,8 +12,8 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다

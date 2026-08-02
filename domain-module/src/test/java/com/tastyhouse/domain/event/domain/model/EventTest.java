@@ -2,11 +2,13 @@ package com.tastyhouse.domain.event.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.event.model.Event;
+import com.tastyhouse.domain.event.model.EventStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.event.domain.vo.EventId;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.event.vo.EventId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

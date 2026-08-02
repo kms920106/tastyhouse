@@ -5,9 +5,9 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.product.domain.model.ProductImage;
-import com.tastyhouse.domain.product.domain.repository.ProductImageRepository;
-import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.product.model.ProductImage;
+import com.tastyhouse.domain.product.repository.ProductImageRepository;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;

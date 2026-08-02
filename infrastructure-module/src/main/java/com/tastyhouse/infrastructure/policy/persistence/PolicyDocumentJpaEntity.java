@@ -11,7 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.policy.domain.model.PolicyType;
+import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

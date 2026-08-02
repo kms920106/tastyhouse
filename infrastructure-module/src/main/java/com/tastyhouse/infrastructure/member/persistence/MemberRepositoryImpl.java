@@ -6,11 +6,11 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.model.Member;
-import com.tastyhouse.domain.member.domain.model.MemberGrade;
-import com.tastyhouse.domain.member.domain.model.MemberStatus;
-import com.tastyhouse.domain.member.domain.repository.MemberRepository;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.model.MemberStatus;
+import com.tastyhouse.domain.member.repository.MemberRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
 

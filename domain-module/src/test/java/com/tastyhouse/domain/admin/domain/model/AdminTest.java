@@ -1,9 +1,12 @@
 package com.tastyhouse.domain.admin.domain.model;
 
+import com.tastyhouse.domain.admin.model.Admin;
+import com.tastyhouse.domain.admin.model.AdminRole;
+import com.tastyhouse.domain.admin.model.AdminStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.admin.domain.vo.AdminId;
+import com.tastyhouse.domain.admin.vo.AdminId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

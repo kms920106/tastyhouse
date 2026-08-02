@@ -1,10 +1,11 @@
 package com.tastyhouse.domain.shop.domain.model;
 
+import com.tastyhouse.domain.shop.model.ShopChoice;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 class ShopChoiceTest {
 

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.tastyhouse.domain.sms.domain.port.SmsSender;
+import com.tastyhouse.domain.sms.port.SmsSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 import com.tastyhouse.external.sms.solapi.request.SolapiMessageRequest;

@@ -3,7 +3,7 @@ package com.tastyhouse.batch.scheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.search.domain.service.PopularKeywordRefreshService;
+import com.tastyhouse.domain.search.service.PopularKeywordRefreshService;
 
 /**
  * 검색 키워드 배치 application 서비스.

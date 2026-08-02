@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.domain.model.ShopChoice;
-import com.tastyhouse.domain.shop.domain.repository.ShopChoiceRepository;
+import com.tastyhouse.domain.shop.model.ShopChoice;
+import com.tastyhouse.domain.shop.repository.ShopChoiceRepository;
 
 /**
  * 에디터 추천 write 어댑터.

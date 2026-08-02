@@ -6,10 +6,10 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.product.domain.model.ProductCategory;
-import com.tastyhouse.domain.product.domain.repository.ProductCategoryRepository;
-import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.product.model.ProductCategory;
+import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
+import com.tastyhouse.domain.product.vo.ProductCategoryId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 

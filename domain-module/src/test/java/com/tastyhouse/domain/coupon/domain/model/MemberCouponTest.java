@@ -2,12 +2,13 @@ package com.tastyhouse.domain.coupon.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.coupon.model.MemberCoupon;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.coupon.domain.vo.CouponId;
-import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.coupon.vo.CouponId;
+import com.tastyhouse.domain.coupon.vo.MemberCouponId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 
 import static org.assertj.core.api.Assertions.assertThat;

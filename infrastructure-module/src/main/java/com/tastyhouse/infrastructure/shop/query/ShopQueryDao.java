@@ -11,8 +11,8 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.domain.model.ShopContentType;
-import com.tastyhouse.domain.shop.domain.model.ShopImageType;
+import com.tastyhouse.domain.shop.model.ShopContentType;
+import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;

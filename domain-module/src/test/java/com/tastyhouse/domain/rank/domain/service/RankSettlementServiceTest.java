@@ -7,15 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.tastyhouse.domain.rank.service.RankSettlementService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.rank.domain.model.MemberReviewRank;
-import com.tastyhouse.domain.rank.domain.model.RankType;
-import com.tastyhouse.domain.rank.domain.port.MemberReviewCount;
-import com.tastyhouse.domain.rank.domain.port.MemberReviewCountPort;
-import com.tastyhouse.domain.rank.domain.repository.MemberReviewRankRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.rank.model.MemberReviewRank;
+import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.domain.rank.port.MemberReviewCount;
+import com.tastyhouse.domain.rank.port.MemberReviewCountPort;
+import com.tastyhouse.domain.rank.repository.MemberReviewRankRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

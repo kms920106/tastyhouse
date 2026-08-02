@@ -3,9 +3,9 @@ package com.tastyhouse.adminapi.order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.order.domain.model.OrderStatus;
-import com.tastyhouse.domain.order.domain.service.OrderTransitionService;
-import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.order.service.OrderTransitionService;
+import com.tastyhouse.domain.order.vo.OrderId;
 
 /**
  * 주문 관리 command 서비스(admin-api).

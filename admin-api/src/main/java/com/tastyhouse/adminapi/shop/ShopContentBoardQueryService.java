@@ -3,7 +3,7 @@ package com.tastyhouse.adminapi.shop;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.model.ShopContentType;
+import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopContentBoardResult;

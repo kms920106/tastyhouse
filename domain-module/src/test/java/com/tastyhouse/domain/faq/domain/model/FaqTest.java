@@ -2,11 +2,12 @@ package com.tastyhouse.domain.faq.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.faq.model.Faq;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
-import com.tastyhouse.domain.faq.domain.vo.FaqId;
+import com.tastyhouse.domain.faq.vo.FaqCategoryId;
+import com.tastyhouse.domain.faq.vo.FaqId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

@@ -2,10 +2,10 @@ package com.tastyhouse.ceoapi.shop;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.ceo.domain.vo.CeoId;
-import com.tastyhouse.domain.shop.domain.model.Shop;
-import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.repository.ShopRepository;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

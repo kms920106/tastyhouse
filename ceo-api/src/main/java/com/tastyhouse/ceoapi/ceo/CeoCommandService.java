@@ -3,8 +3,8 @@ package com.tastyhouse.ceoapi.ceo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.ceo.domain.model.Ceo;
-import com.tastyhouse.domain.ceo.domain.repository.CeoRepository;
+import com.tastyhouse.domain.ceo.model.Ceo;
+import com.tastyhouse.domain.ceo.repository.CeoRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

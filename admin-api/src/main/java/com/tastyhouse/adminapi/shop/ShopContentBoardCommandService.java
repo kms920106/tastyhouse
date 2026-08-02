@@ -3,8 +3,8 @@ package com.tastyhouse.adminapi.shop;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.model.ShopContentBoard;
-import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
+import com.tastyhouse.domain.shop.model.ShopContentBoard;
+import com.tastyhouse.domain.shop.repository.ShopContentBoardRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

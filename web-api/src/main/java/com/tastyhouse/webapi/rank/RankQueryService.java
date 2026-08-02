@@ -7,8 +7,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.rank.domain.model.RankType;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;

@@ -12,7 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.coupon.domain.model.DiscountType;
+import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

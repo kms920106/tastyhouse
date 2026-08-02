@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.sms.domain.model.SmsVerification;
-import com.tastyhouse.domain.sms.domain.model.SmsVerificationStatus;
-import com.tastyhouse.domain.sms.domain.repository.SmsVerificationRepository;
+import com.tastyhouse.domain.sms.model.SmsVerification;
+import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
+import com.tastyhouse.domain.sms.repository.SmsVerificationRepository;
 
 import static com.tastyhouse.infrastructure.sms.persistence.QSmsVerificationJpaEntity.smsVerificationJpaEntity;
 

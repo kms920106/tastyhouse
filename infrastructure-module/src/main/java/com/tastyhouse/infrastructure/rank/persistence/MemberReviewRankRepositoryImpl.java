@@ -9,10 +9,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.rank.domain.model.MemberReviewRank;
-import com.tastyhouse.domain.rank.domain.model.RankType;
-import com.tastyhouse.domain.rank.domain.repository.MemberReviewRankRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.rank.model.MemberReviewRank;
+import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.domain.rank.repository.MemberReviewRankRepository;
 
 import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJpaEntity.memberReviewRankJpaEntity;
 

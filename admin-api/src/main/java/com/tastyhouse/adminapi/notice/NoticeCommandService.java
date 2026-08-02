@@ -3,9 +3,9 @@ package com.tastyhouse.adminapi.notice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.notice.domain.model.Notice;
-import com.tastyhouse.domain.notice.domain.repository.NoticeRepository;
-import com.tastyhouse.domain.notice.domain.vo.NoticeId;
+import com.tastyhouse.domain.notice.model.Notice;
+import com.tastyhouse.domain.notice.repository.NoticeRepository;
+import com.tastyhouse.domain.notice.vo.NoticeId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

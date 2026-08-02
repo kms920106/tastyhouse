@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.domain.service.ShopPhoneNumberRegistryService;
+import com.tastyhouse.domain.shop.service.ShopPhoneNumberRegistryService;
 
 /**
  * 점주용 가게 전화번호 변경 서비스(CQRS command 측).

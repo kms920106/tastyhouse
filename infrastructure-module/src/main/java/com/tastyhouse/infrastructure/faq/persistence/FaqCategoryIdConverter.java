@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.faq.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
+import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 
 @Converter
 public class FaqCategoryIdConverter implements AttributeConverter<FaqCategoryId, Long> {

@@ -6,15 +6,15 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.rank.domain.model.RankPeriod;
-import com.tastyhouse.domain.rank.domain.model.RankPrize;
-import com.tastyhouse.domain.rank.domain.model.RankType;
-import com.tastyhouse.domain.rank.domain.repository.RankPeriodRepository;
-import com.tastyhouse.domain.rank.domain.repository.RankPrizeRepository;
-import com.tastyhouse.domain.rank.domain.service.RankSettlementService;
-import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
-import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.rank.model.RankPeriod;
+import com.tastyhouse.domain.rank.model.RankPrize;
+import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.domain.rank.repository.RankPeriodRepository;
+import com.tastyhouse.domain.rank.repository.RankPrizeRepository;
+import com.tastyhouse.domain.rank.service.RankSettlementService;
+import com.tastyhouse.domain.rank.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.vo.RankPrizeId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

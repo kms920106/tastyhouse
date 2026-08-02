@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.domain.shop.domain.model.FoodType;
+import com.tastyhouse.domain.shop.model.FoodType;
 
 public record ShopFoodTypeAssignmentResult(
     Long id,

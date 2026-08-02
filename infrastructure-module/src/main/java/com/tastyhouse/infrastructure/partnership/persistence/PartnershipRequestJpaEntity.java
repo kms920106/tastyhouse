@@ -11,7 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.partnership.domain.model.PartnershipStatus;
+import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

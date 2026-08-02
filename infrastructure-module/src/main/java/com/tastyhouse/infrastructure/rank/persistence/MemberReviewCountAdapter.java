@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.rank.domain.port.MemberReviewCount;
-import com.tastyhouse.domain.rank.domain.port.MemberReviewCountPort;
+import com.tastyhouse.domain.rank.port.MemberReviewCount;
+import com.tastyhouse.domain.rank.port.MemberReviewCountPort;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 

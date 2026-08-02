@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.event.domain.model.Event;
-import com.tastyhouse.domain.event.domain.repository.EventRepository;
-import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.event.model.Event;
+import com.tastyhouse.domain.event.repository.EventRepository;
+import com.tastyhouse.domain.event.vo.EventId;
 
 import static com.tastyhouse.infrastructure.event.persistence.QEventJpaEntity.eventJpaEntity;
 

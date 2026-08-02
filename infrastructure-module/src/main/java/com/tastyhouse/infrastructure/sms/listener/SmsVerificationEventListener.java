@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.domain.sms.domain.event.SmsVerifiedEvent;
+import com.tastyhouse.domain.sms.event.SmsVerifiedEvent;
 
 /**
  * SMS 인증 완료 이벤트 리스너.

@@ -3,14 +3,15 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.shop.model.Shop;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.ceo.domain.vo.CeoId;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.shop.domain.vo.StationId;
+import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.StationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

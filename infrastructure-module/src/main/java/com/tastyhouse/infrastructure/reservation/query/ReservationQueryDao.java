@@ -11,9 +11,9 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.reservation.domain.model.ReservationStatus;
-import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.reservation.model.ReservationStatus;
+import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;

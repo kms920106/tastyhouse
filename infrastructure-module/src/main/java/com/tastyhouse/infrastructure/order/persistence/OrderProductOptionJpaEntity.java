@@ -8,9 +8,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.order.domain.vo.OrderProductId;
-import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
-import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
+import com.tastyhouse.domain.order.vo.OrderProductId;
+import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.infrastructure.product.persistence.ProductOptionGroupIdConverter;
 import com.tastyhouse.infrastructure.product.persistence.ProductOptionIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
@@ -96,22 +96,6 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
 
     public OrderProductId getOrderProductId() {
         return this.orderProductId;
-    }
-
-    public ProductOptionGroupId getOptionGroupId() {
-        return this.optionGroupId;
-    }
-
-    public String getOptionGroupName() {
-        return this.optionGroupName;
-    }
-
-    public ProductOptionId getOptionId() {
-        return this.optionId;
-    }
-
-    public String getOptionName() {
-        return this.optionName;
     }
 
     public Integer getAdditionalPrice() {

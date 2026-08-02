@@ -3,11 +3,11 @@ package com.tastyhouse.infrastructure.bug.query;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
-import com.tastyhouse.domain.bug.domain.model.BugReportPlatform;
-import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
-import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.bug.model.BugReportCategory;
+import com.tastyhouse.domain.bug.model.BugReportPlatform;
+import com.tastyhouse.domain.bug.model.BugReportPriority;
+import com.tastyhouse.domain.bug.model.BugReportStatus;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 버그 제보 관리 상세 조회 결과.

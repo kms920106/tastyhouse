@@ -1,11 +1,12 @@
 package com.tastyhouse.domain.review.domain.model;
 
+import com.tastyhouse.domain.review.model.ReviewImage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.review.vo.ReviewId;
 
 /**
  * 불변 애그리거트 단위 테스트. of/reconstitute 왕복만 검증한다(상태전이 없음).

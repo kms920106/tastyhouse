@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.domain.model.ShopContentBoard;
-import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
+import com.tastyhouse.domain.shop.model.ShopContentBoard;
+import com.tastyhouse.domain.shop.repository.ShopContentBoardRepository;
 
 @Repository
 public class ShopContentBoardRepositoryImpl implements ShopContentBoardRepository {

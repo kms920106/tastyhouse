@@ -4,9 +4,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.admin.domain.model.Admin;
-import com.tastyhouse.domain.admin.domain.model.AdminRole;
-import com.tastyhouse.domain.admin.domain.repository.AdminRepository;
+import com.tastyhouse.domain.admin.model.Admin;
+import com.tastyhouse.domain.admin.model.AdminRole;
+import com.tastyhouse.domain.admin.repository.AdminRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 

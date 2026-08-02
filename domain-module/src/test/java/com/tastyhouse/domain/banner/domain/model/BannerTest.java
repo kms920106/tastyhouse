@@ -2,11 +2,13 @@ package com.tastyhouse.domain.banner.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.banner.model.Banner;
+import com.tastyhouse.domain.banner.model.BannerType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.banner.domain.vo.BannerId;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.banner.vo.BannerId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

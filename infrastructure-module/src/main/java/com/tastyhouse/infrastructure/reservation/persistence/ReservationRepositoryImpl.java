@@ -6,12 +6,12 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.reservation.domain.model.Reservation;
-import com.tastyhouse.domain.reservation.domain.model.ReservationStatus;
-import com.tastyhouse.domain.reservation.domain.repository.ReservationRepository;
-import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.reservation.model.Reservation;
+import com.tastyhouse.domain.reservation.model.ReservationStatus;
+import com.tastyhouse.domain.reservation.repository.ReservationRepository;
+import com.tastyhouse.domain.reservation.vo.ReservationId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static com.tastyhouse.infrastructure.reservation.persistence.QReservationJpaEntity.reservationJpaEntity;
 

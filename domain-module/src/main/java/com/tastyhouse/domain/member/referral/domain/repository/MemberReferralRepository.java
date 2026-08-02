@@ -2,7 +2,7 @@ package com.tastyhouse.domain.member.referral.domain.repository;
 
 import java.util.Optional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.referral.domain.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.domain.vo.ReferralId;
 

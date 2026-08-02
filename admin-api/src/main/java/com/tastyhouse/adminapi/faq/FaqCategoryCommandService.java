@@ -3,10 +3,10 @@ package com.tastyhouse.adminapi.faq;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.faq.domain.model.FaqCategory;
-import com.tastyhouse.domain.faq.domain.repository.FaqCategoryRepository;
-import com.tastyhouse.domain.faq.domain.service.FaqCategoryDeletionPolicy;
-import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
+import com.tastyhouse.domain.faq.model.FaqCategory;
+import com.tastyhouse.domain.faq.repository.FaqCategoryRepository;
+import com.tastyhouse.domain.faq.service.FaqCategoryDeletionPolicy;
+import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 

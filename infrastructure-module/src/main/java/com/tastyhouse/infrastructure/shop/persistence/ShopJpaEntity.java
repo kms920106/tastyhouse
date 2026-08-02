@@ -11,9 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
-import com.tastyhouse.domain.ceo.domain.vo.CeoId;
-import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.domain.vo.StationId;
+import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.vo.StationId;
 import com.tastyhouse.infrastructure.ceo.persistence.CeoIdConverter;
 import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 

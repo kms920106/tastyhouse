@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.mail.domain.service.MailVerificationService;
+import com.tastyhouse.domain.mail.service.MailVerificationService;
 
 /**
  * 메일 인증 command 서비스(web-api).

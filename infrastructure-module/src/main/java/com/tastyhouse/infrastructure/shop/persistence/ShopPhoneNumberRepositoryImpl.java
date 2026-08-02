@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.domain.model.ShopPhoneNumber;
-import com.tastyhouse.domain.shop.domain.repository.ShopPhoneNumberRepository;
+import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
+import com.tastyhouse.domain.shop.repository.ShopPhoneNumberRepository;
 
 @Repository
 public class ShopPhoneNumberRepositoryImpl implements ShopPhoneNumberRepository {

@@ -3,8 +3,8 @@ package com.tastyhouse.adminapi.coupon;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.coupon.domain.model.DiscountType;
-import com.tastyhouse.domain.coupon.domain.vo.CouponId;
+import com.tastyhouse.domain.coupon.model.DiscountType;
+import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;

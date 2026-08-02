@@ -2,6 +2,7 @@ package com.tastyhouse.domain.search.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.search.model.SearchKeywordLog;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

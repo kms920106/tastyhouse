@@ -8,7 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

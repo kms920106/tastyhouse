@@ -2,10 +2,12 @@ package com.tastyhouse.domain.mail.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.mail.model.MailVerification;
+import com.tastyhouse.domain.mail.model.MailVerificationStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.mail.domain.vo.MailVerificationId;
+import com.tastyhouse.domain.mail.vo.MailVerificationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.vo.VerificationCode;

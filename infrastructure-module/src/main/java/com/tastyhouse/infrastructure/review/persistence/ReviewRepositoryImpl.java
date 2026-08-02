@@ -5,10 +5,10 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.review.domain.model.Review;
-import com.tastyhouse.domain.review.domain.repository.ReviewRepository;
-import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.review.model.Review;
+import com.tastyhouse.domain.review.repository.ReviewRepository;
+import com.tastyhouse.domain.review.vo.ReviewId;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 

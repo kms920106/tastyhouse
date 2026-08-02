@@ -5,13 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.order.domain.service.OrderPlacement;
-import com.tastyhouse.domain.order.domain.service.OrderPlacementItem;
-import com.tastyhouse.domain.order.domain.service.OrderPlacementItemOption;
-import com.tastyhouse.domain.order.domain.service.OrderPlacementService;
-import com.tastyhouse.domain.order.domain.vo.OrderId;
-import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.service.OrderPlacement;
+import com.tastyhouse.domain.order.service.OrderPlacementItem;
+import com.tastyhouse.domain.order.service.OrderPlacementItemOption;
+import com.tastyhouse.domain.order.service.OrderPlacementService;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.webapi.order.request.OrderProductRequest;
 
 /**

@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.ceo.query;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.ceo.domain.model.CeoStatus;
+import com.tastyhouse.domain.ceo.model.CeoStatus;
 
 /**
  * 점주 목록 항목 조회 결과.

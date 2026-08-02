@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.order.domain.model.Order;
-import com.tastyhouse.domain.order.domain.repository.OrderRepository;
-import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.order.model.Order;
+import com.tastyhouse.domain.order.repository.OrderRepository;
+import com.tastyhouse.domain.order.vo.OrderId;
 
 /**
  * 주문 write 어댑터.

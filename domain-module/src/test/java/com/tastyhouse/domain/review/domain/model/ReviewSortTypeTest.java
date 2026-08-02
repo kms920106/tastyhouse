@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.review.domain.model;
 
+import com.tastyhouse.domain.review.model.ReviewSortType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

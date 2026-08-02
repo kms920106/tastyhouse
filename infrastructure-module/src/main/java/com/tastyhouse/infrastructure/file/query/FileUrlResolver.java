@@ -8,7 +8,7 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.file.domain.port.FileStoragePort;
+import com.tastyhouse.domain.file.port.FileStoragePort;
 
 /**
  * 저장 경로({@code filePath}) → 표시용 URL 변환의 단일 실행 지점(read 측 어셈블러).

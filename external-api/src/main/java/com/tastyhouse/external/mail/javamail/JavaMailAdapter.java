@@ -9,7 +9,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.mail.domain.port.MailSender;
+import com.tastyhouse.domain.mail.port.MailSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 import com.tastyhouse.external.mail.MailProperties;

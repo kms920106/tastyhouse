@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.tastyhouse.domain.product.service.ProductReviewStatsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.product.domain.model.Product;
-import com.tastyhouse.domain.product.domain.port.ProductReviewStatisticsPort;
-import com.tastyhouse.domain.product.domain.repository.ProductRepository;
-import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
-import com.tastyhouse.domain.product.domain.vo.ProductId;
-import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.product.model.Product;
+import com.tastyhouse.domain.product.port.ProductReviewStatisticsPort;
+import com.tastyhouse.domain.product.repository.ProductRepository;
+import com.tastyhouse.domain.product.vo.ProductCategoryId;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
