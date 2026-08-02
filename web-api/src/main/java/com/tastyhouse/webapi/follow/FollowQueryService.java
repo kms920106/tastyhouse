@@ -11,7 +11,6 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.member.follow.query.FollowMemberResult;
 import com.tastyhouse.infrastructure.member.follow.query.MemberFollowQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.follow.response.FollowMemberListItemResponse;
 import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
 
@@ -22,7 +21,7 @@ import com.tastyhouse.webapi.follow.response.FollowMemberSearchListItemResponse;
  * 닉네임 검색은 회원 DAO({@link MemberQueryDao})를 쓴다. 단건 팔로우 여부·카운트는 원시값 반환이라
  * write 포트의 검증용 메서드를 그대로 쓴다.
  *
- * <p>프로필 이미지 표시용 URL 조립은 이 서비스가 담당한다(DAO는 파일 경로만 투영한다).
+ * <p>프로필 이미지는 DAO가 표시용 URL까지 변환해 담으므로, 이 서비스는 그 값을 그대로 응답에 전달한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -32,7 +31,6 @@ public class FollowQueryService {
     private final MemberFollowQueryDao memberFollowQueryDao;
     private final MemberQueryDao memberQueryDao;
     private final MemberFollowRepository memberFollowRepository;
-    private final FileService fileService;
 
     public boolean isFollowing(Long viewerMemberId, Long targetMemberId) {
         return memberFollowRepository.existsByFollowerIdAndFollowingId(
@@ -71,7 +69,7 @@ public class FollowQueryService {
                 result.id(),
                 result.nickname(),
                 result.memberGrade().name(),
-                fileService.getUrlByPath(result.profileImageFilePath()),
+                result.profileImageUrl(),
                 viewerMemberId != null && isFollowing(viewerMemberId, result.id())
             ));
     }
@@ -85,7 +83,7 @@ public class FollowQueryService {
             result.memberId(),
             result.nickname(),
             result.memberGrade().name(),
-            fileService.getUrlByPath(result.profileImageFilePath()),
+            result.profileImageUrl(),
             result.following()
         );
     }

@@ -26,6 +26,11 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
  * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 이벤트 발행은 프레임워크-프리
  * 포트인 {@link DomainEventPublisher}를 통해 수행한다.
+ *
+ * <p>이 서비스는 쓰기(업로드)만 담당한다. 저장 경로를 표시용 URL로 바꾸는 읽기 측 변환은
+ * infrastructure-module의 {@code FileUrlResolver}가 {@link FileStoragePort}를 직접 사용해 수행하므로,
+ * 과거 여기 있던 {@code getUrlByPath}는 제거했다 — 조회 응답 조립에 도메인 서비스를 끌어들일 이유가
+ * 없고, 변환 지점을 read 어댑터 한 곳으로 모으는 편이 일관되기 때문이다.
  */
 public class FileUploadService {
 
@@ -78,16 +83,6 @@ public class FileUploadService {
             LocalDateTime.now()
         ));
         return fileId;
-    }
-
-    /**
-     * 저장된 파일 경로로부터 외부 노출용 URL을 만든다. 경로가 없으면 {@code null}을 반환한다.
-     */
-    public String getUrlByPath(String filePath) {
-        if (filePath == null) {
-            return null;
-        }
-        return fileStoragePort.getFileUrl(filePath);
     }
 
     private void validate(FileUploadCommand command) {

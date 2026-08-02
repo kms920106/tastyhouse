@@ -42,6 +42,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopChoiceQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
 import com.tastyhouse.infrastructure.shop.query.ShopConvenienceInfoResult;
 import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeCategoryResult;
+import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
 import com.tastyhouse.infrastructure.shop.query.ShopMapMarkerResult;
 import com.tastyhouse.infrastructure.shop.query.ShopOrderMethodResult;
 import com.tastyhouse.infrastructure.shop.query.ShopPhoneNumberResult;
@@ -49,7 +50,6 @@ import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryImageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.product.ProductQueryService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.review.ReviewQueryService;
@@ -102,7 +102,6 @@ public class ShopQueryService {
     private final ShopOperatingStatusService shopOperatingStatusService;
     private final ProductQueryService productQueryService;
     private final ReviewQueryService reviewQueryService;
-    private final FileService fileService;
 
     public List<ShopMapMarkerResponse> searchMapMarkers(Double latitude, Double longitude) {
         BigDecimal lat = BigDecimal.valueOf(latitude);
@@ -169,7 +168,7 @@ public class ShopQueryService {
         return ShopEditorChoiceResponse.from(
             dto.id(),
             dto.name(),
-            fileService.getUrlByPath(dto.shopImageUrl()),
+            dto.shopImageUrl(),
             dto.title(),
             dto.content(),
             productItems
@@ -182,7 +181,7 @@ public class ShopQueryService {
             dto.name(),
             dto.stationName(),
             dto.rating(),
-            fileService.getUrlByPath(dto.imageUrl()),
+            dto.imageUrl(),
             dto.foodTypes().stream().map(Enum::name).toList(),
             operatingStatusName(statusMap, dto.id())
         );
@@ -194,7 +193,7 @@ public class ShopQueryService {
             dto.name(),
             dto.stationName(),
             dto.rating(),
-            fileService.getUrlByPath(dto.imageUrl()),
+            dto.imageUrl(),
             dto.createdAt(),
             dto.reviewCount(),
             dto.bookmarkCount(),
@@ -208,7 +207,7 @@ public class ShopQueryService {
             dto.id(),
             dto.shopName(),
             dto.name(),
-            fileService.getUrlByPath(dto.imageUrl()),
+            dto.imageUrl(),
             dto.originalPrice(),
             dto.discountPrice(),
             dto.discountRate()
@@ -237,8 +236,8 @@ public class ShopQueryService {
         return ShopFoodTypeListItemResponse.from(
             category.foodType().name(),
             category.displayName(),
-            fileService.getUrlByPath(category.activeFilePath()),
-            fileService.getUrlByPath(category.inactiveFilePath())
+            category.activeIconUrl(),
+            category.inactiveIconUrl()
         );
     }
 
@@ -246,8 +245,8 @@ public class ShopQueryService {
         return ShopAmenityListItemResponse.from(
             category.amenity().name(),
             category.displayName(),
-            fileService.getUrlByPath(category.activeFilePath()),
-            fileService.getUrlByPath(category.inactiveFilePath())
+            category.activeIconUrl(),
+            category.inactiveIconUrl()
         );
     }
 
@@ -258,9 +257,9 @@ public class ShopQueryService {
             .map(this::convertToShopPhoneNumberItem)
             .toList();
 
-        String trademarkImageUrl = shop.getTrademarkImageFileId() == null
-            ? null
-            : fileService.getUrlByFileId(shop.getTrademarkImageFileId().value());
+        String trademarkImageUrl = shopQueryDao.findShopImageUrls(shopId)
+            .map(ShopImageUrlsResult::trademarkImageUrl)
+            .orElse(null);
 
         String operatingStatus = shopOperatingStatusService
             .findOperatingStatus(shopId, LocalDateTime.now())
@@ -396,7 +395,7 @@ public class ShopQueryService {
                 List<ShopPhotoCategoryImageResult> categoryImages =
                     imagesByCategory.getOrDefault(category.id(), new ArrayList<>());
                 List<String> imageUrls = categoryImages.stream()
-                    .map(image -> fileService.getUrlByPath(image.filePath()))
+                    .map(ShopPhotoCategoryImageResult::imageUrl)
                     .toList();
                 return ShopPhotoCategoryResponse.from(
                     category.name(),
@@ -430,16 +429,14 @@ public class ShopQueryService {
     }
 
     private ShopReviewListItemResponse convertToShopReviewListItemResponse(LatestReviewListItemResult dto) {
-        List<String> imageUrls = dto.imageUrls().stream().map(fileService::getUrlByPath).toList();
-
         return ShopReviewListItemResponse.from(
             dto.id(),
-            imageUrls,
+            dto.imageUrls(),
             dto.totalRating(),
             dto.content(),
             dto.memberId().value(),
             dto.memberNickname(),
-            fileService.getUrlByPath(dto.memberProfileImageUrl()),
+            dto.memberProfileImageUrl(),
             dto.createdAt(),
             dto.productId(),
             dto.productName()
@@ -501,14 +498,14 @@ public class ShopQueryService {
         return ShopAmenityItem.from(
             dto.amenity().name(),
             dto.displayName(),
-            fileService.getUrlByPath(dto.activeFilePath())
+            dto.activeIconUrl()
         );
     }
 
     private ShopBannerResponse convertToShopBannerResponse(ShopBannerImageResult image) {
         return ShopBannerResponse.from(
             image.id(),
-            fileService.getUrlByPath(image.filePath()),
+            image.imageUrl(),
             image.sort()
         );
     }
@@ -517,7 +514,7 @@ public class ShopQueryService {
         return ProductSummaryResponse.from(
             product.id(),
             product.name(),
-            fileService.getUrlByPath(product.imageFilePath()),
+            product.imageUrl(),
             product.originalPrice(),
             product.discountPrice(),
             product.discountRate(),

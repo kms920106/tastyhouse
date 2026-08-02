@@ -21,6 +21,7 @@ import com.tastyhouse.domain.shop.domain.model.Amenity;
 import com.tastyhouse.domain.shop.domain.model.FoodType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.shop.persistence.ShopJpaEntity;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -63,6 +64,7 @@ public class ShopSearchQueryDao {
     private static final double METERS_PER_DEGREE = 111000.0;
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 현재 위치 주변 가게 마커 목록. 폐업·노출정지 가게는 제외한다.
@@ -115,7 +117,7 @@ public class ShopSearchQueryDao {
 
         List<Long> shopIds = pagedShops.stream().map(ShopJpaEntity::getId).toList();
         var stationMap = stationNamesByShopId(shopIds);
-        var thumbnailMap = thumbnailFilePathsByShopId(shopIds);
+        var thumbnailMap = thumbnailUrlsByShopId(shopIds);
         var foodTypeMap = foodTypesByShopId(shopIds);
 
         List<BestShopItemResult> content = pagedShops.stream()
@@ -208,7 +210,7 @@ public class ShopSearchQueryDao {
 
         List<Long> shopIds = pagedShops.stream().map(ShopJpaEntity::getId).toList();
         var stationMap = stationNamesByShopId(shopIds);
-        var thumbnailMap = thumbnailFilePathsByShopId(shopIds);
+        var thumbnailMap = thumbnailUrlsByShopId(shopIds);
         var foodTypeMap = foodTypesByShopId(shopIds);
         var reviewCountMap = reviewCountsByShopId(shopIds);
         var bookmarkCountMap = bookmarkCountsByShopId(shopIds);
@@ -258,7 +260,7 @@ public class ShopSearchQueryDao {
 
         List<Long> shopIds = pagedShops.stream().map(ShopJpaEntity::getId).toList();
         var stationMap = stationNamesByShopId(shopIds);
-        var thumbnailMap = thumbnailFilePathsByShopId(shopIds);
+        var thumbnailMap = thumbnailUrlsByShopId(shopIds);
 
         Set<Long> bookmarkedShopIds = memberId == null
             ? Set.of()
@@ -320,7 +322,10 @@ public class ShopSearchQueryDao {
             .orderBy(shopBookmarkJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -385,8 +390,8 @@ public class ShopSearchQueryDao {
             ));
     }
 
-    private Map<Long, String> thumbnailFilePathsByShopId(List<Long> shopIds) {
-        return queryFactory
+    private Map<Long, String> thumbnailUrlsByShopId(List<Long> shopIds) {
+        Map<Long, String> filePathsByShopId = queryFactory
             .select(shopJpaEntity.id, uploadedFileJpaEntity.filePath)
             .from(shopJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
@@ -398,6 +403,8 @@ public class ShopSearchQueryDao {
                 tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)),
                 tuple -> Objects.requireNonNull(tuple.get(uploadedFileJpaEntity.filePath))
             ));
+
+        return fileUrlResolver.resolveAll(filePathsByShopId);
     }
 
     private Map<Long, List<FoodType>> foodTypesByShopId(List<Long> shopIds) {
@@ -475,6 +482,22 @@ public class ShopSearchQueryDao {
 
     private BooleanExpression shopIdIn(Set<Long> shopIds) {
         return shopIds != null ? shopJpaEntity.id.in(shopIds) : null;
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private ShopBookmarkedItemResult withResolvedImageUrl(ShopBookmarkedItemResult row) {
+        return new ShopBookmarkedItemResult(
+            row.shopId(),
+            row.bookmarkId(),
+            row.shopName(),
+            row.stationName(),
+            row.rating(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.bookmarked()
+        );
     }
 
     // ----------------------------------------------------- @Convert VO 컬럼 우회

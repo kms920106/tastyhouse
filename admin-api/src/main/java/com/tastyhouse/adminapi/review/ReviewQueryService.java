@@ -20,7 +20,6 @@ import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewReplyListItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewSearchCondition;
 import com.tastyhouse.adminapi.common.PaginationResponse;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.review.response.ReviewCommentListItemResponse;
 import com.tastyhouse.adminapi.review.response.ReviewListItemResponse;
 import com.tastyhouse.adminapi.review.response.ReviewManagementDetailResponse;
@@ -31,7 +30,7 @@ import com.tastyhouse.adminapi.review.response.ReviewReplyListItemResponse;
  *
  * <p>관리 화면은 숨김 리뷰·댓글·답글까지 모두 봐야 하므로 관리 전용 read 어댑터
  * ({@link ReviewManagementQueryDao})를 쓰고, 태그명처럼 web과 공유하는 조회만 {@link ReviewQueryDao}를
- * 쓴다. 파일 경로 → 표시용 URL 변환은 이 계층이 담당한다.
+ * 쓴다. 파일 경로 → 표시용 URL 변환은 DAO가 담당하므로 이 계층은 이미 URL이 된 필드를 그대로 조립한다.
  *
  * <p>명령 동작은 {@link ReviewCommandService}로 분리했다(CQRS).
  */
@@ -42,7 +41,6 @@ public class ReviewQueryService {
 
     private final ReviewManagementQueryDao reviewManagementQueryDao;
     private final ReviewQueryDao reviewQueryDao;
-    private final FileService fileService;
 
     /**
      * 리뷰 목록(숨김 포함) — 검색 조건으로 필터링한다.
@@ -129,9 +127,9 @@ public class ReviewQueryService {
             dto.hidden(),
             dto.memberId().value(),
             dto.memberNickname(),
-            fileService.getUrlByPath(dto.memberProfileImageUrl()),
+            dto.memberProfileImageUrl(),
             dto.createdAt(),
-            dto.imageUrls().stream().map(fileService::getUrlByPath).toList(),
+            dto.imageUrls(),
             dto.tagNames()
         );
     }

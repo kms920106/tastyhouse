@@ -7,7 +7,7 @@ public record ShopImageChangeRequestResult(
     Long id,
     Long shopId,
     ShopImageType imageType,
-    Long imageFileId,
+    String imageUrl,
     ApprovalStatus status,
     String rejectReason
 ) {

@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.bug;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,21 +11,21 @@ import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
 import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.infrastructure.bug.query.BugReportDetailResult;
+import com.tastyhouse.infrastructure.bug.query.BugReportImageResult;
+import com.tastyhouse.infrastructure.bug.query.BugReportListItemResult;
+import com.tastyhouse.infrastructure.bug.query.BugReportQueryDao;
+import com.tastyhouse.infrastructure.bug.query.BugReportSearchCondition;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.bug.query.BugReportDetailResult;
-import com.tastyhouse.infrastructure.bug.query.BugReportListItemResult;
-import com.tastyhouse.infrastructure.bug.query.BugReportQueryDao;
-import com.tastyhouse.infrastructure.bug.query.BugReportSearchCondition;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportDetailResponse;
 import com.tastyhouse.adminapi.bug.response.BugReportListItemResponse;
 import com.tastyhouse.adminapi.bug.response.MemberSummaryResponse;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.file.response.FileResponse;
 
 /**
@@ -35,8 +34,9 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  * <p>infra read 어댑터({@link BugReportQueryDao})만 주입해 제보를 조회하고 Response를 조립한다. write
  * 포트를 주입하지 않으며, 쓰기는 {@link BugReportCommandService}가 담당한다.
  *
- * <p>제보자 요약 정보와 첨부 파일 정보는 각각 다른 컨텍스트(member/file)의 조회 서비스에서 가져와
- * 이 서비스가 합성한다(제보 DAO는 자기 컨텍스트만 투영한다).
+ * <p>제보자 요약 정보는 다른 컨텍스트(member)의 조회 서비스에서 가져와 이 서비스가 합성한다. 첨부
+ * 이미지는 {@link BugReportQueryDao}가 이미 파일명·URL까지 join으로 함께 가져오므로 이 서비스는 추가
+ * 파일 조회 없이 그대로 매핑만 한다.
  *
  * <p>HTTP 경계에서 받은 {@code String} 필터값은 여기서 core enum으로 승격하고, Response로 내보낼 때는
  * 다시 {@code name()} 문자열로 되돌린다(api 모듈은 core enum을 노출하지 않는다).
@@ -48,7 +48,6 @@ public class BugReportQueryService {
 
     private final BugReportQueryDao bugReportQueryDao;
     private final MemberQueryDao memberQueryDao;
-    private final FileService fileService;
 
     public PaginationResponse<BugReportListItemResponse> getBugReports(
         String title,
@@ -89,7 +88,7 @@ public class BugReportQueryService {
             .map(this::toMemberSummaryResponse)
             .orElse(null);
 
-        List<FileResponse> images = toFileResponses(detail.imageFileIds());
+        List<FileResponse> images = toFileResponses(detail.images());
 
         return toBugReportDetailResponse(detail, member, images);
     }
@@ -137,13 +136,15 @@ public class BugReportQueryService {
         );
     }
 
-    private List<FileResponse> toFileResponses(List<Long> imageFileIds) {
-        if (imageFileIds == null || imageFileIds.isEmpty()) {
+    /**
+     * DAO가 join으로 함께 가져온 파일명·URL로 조립한다(추가 조회 없음).
+     */
+    private List<FileResponse> toFileResponses(List<BugReportImageResult> images) {
+        if (images == null || images.isEmpty()) {
             return List.of();
         }
-        return imageFileIds.stream()
-            .map(fileService::findFileResponse)
-            .filter(Objects::nonNull)
+        return images.stream()
+            .map(image -> FileResponse.of(image.fileId(), image.fileName(), image.imageUrl()))
             .toList();
     }
 }

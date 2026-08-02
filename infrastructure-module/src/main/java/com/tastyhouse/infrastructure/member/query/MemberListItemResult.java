@@ -13,6 +13,8 @@ import com.tastyhouse.domain.member.domain.model.MemberStatus;
  *
  * <p>비-admin 형제 Result가 같은 패키지에 없으므로 {@code Management} 한정어 없이 순수명을 쓴다
  * (admin 전용 네이밍 규칙).
+ *
+ * <p>프로필 이미지는 DAO가 표시용 URL까지 변환해 담으므로, 소비 모듈은 이 값을 그대로 응답에 전달한다.
  */
 public record MemberListItemResult(
     Long id,
@@ -23,7 +25,7 @@ public record MemberListItemResult(
     MemberGender gender,
     MemberGrade memberGrade,
     MemberStatus memberStatus,
-    String profileImageFilePath,
+    String profileImageUrl,
     LocalDateTime createdAt
 ) {
 

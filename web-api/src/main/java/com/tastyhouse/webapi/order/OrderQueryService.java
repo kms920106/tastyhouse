@@ -22,7 +22,6 @@ import com.tastyhouse.infrastructure.order.query.OrderProductOptionResult;
 import com.tastyhouse.infrastructure.order.query.OrderProductResult;
 import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
 import com.tastyhouse.webapi.common.PaginationResponse;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.member.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.response.OrderDetailResponse;
 import com.tastyhouse.webapi.order.response.OrderProductOptionResponse;
@@ -46,7 +45,6 @@ public class OrderQueryService {
 
     private final OrderQueryDao orderQueryDao;
     private final ReviewQueryService reviewQueryService;
-    private final FileService fileService;
 
     /**
      * 내 주문 목록.
@@ -77,7 +75,7 @@ public class OrderQueryService {
         return OrderListItemResponse.from(
             result.id(),
             result.shopName(),
-            fileService.getUrlByPath(result.shopThumbnailImageFilePath()),
+            result.shopThumbnailImageUrl(),
             result.firstProductName(),
             result.totalItemCount(),
             result.amount(),
@@ -146,7 +144,7 @@ public class OrderQueryService {
             result.orderProductId(),
             result.productId(),
             result.name(),
-            fileService.getUrlByPath(result.imageFilePath()),
+            result.imageUrl(),
             result.quantity(),
             result.originalPrice(),
             result.discountPrice(),

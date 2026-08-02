@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
@@ -45,7 +46,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * <p>소비자별 메서드 분리:
  * <ul>
  *   <li>web — {@link #findTodayDiscountProducts}, {@link #findProductOptions}, {@link #findProductsBatch},
- *       {@link #findProductImagePaths}, {@link #findShopProducts}, {@link #searchByKeyword}</li>
+ *       {@link #findProductImageUrls}, {@link #findShopProducts}, {@link #searchByKeyword}</li>
  *   <li>admin — {@link #findProducts}(관리 목록), {@link #findProductDetailById}, {@link #findProductCategories}</li>
  *   <li>batch — {@link #findFirstBbqSyncTarget}</li>
  * </ul>
@@ -58,6 +59,9 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 전부 {@code @Convert}로 VO에 매핑된 FK 필드라 QueryDSL이 VO 타입 path를 생성하므로,
  * {@link Expressions#numberPath}로 raw {@code Long} 컬럼 비교·투영을 우회한다
  * (ID VO 경계 규칙 — query DAO 계층은 항상 raw {@code Long}을 쓴다).
+ *
+ * <p>조인으로 얻은 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다 —
+ * {@code @QueryProjection}은 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
  */
 @Repository
 @RequiredArgsConstructor
@@ -70,6 +74,7 @@ public class ProductQueryDao {
         new com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity("subProductImage");
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     // ── web ────────────────────────────────────────────────────────────────
 
@@ -100,7 +105,10 @@ public class ProductQueryDao {
         List<TodayDiscountProductResult> products = query
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
 
         return PageResult.of(products, total, pageQuery.page(), pageQuery.size());
     }
@@ -167,7 +175,10 @@ public class ProductQueryDao {
             .orderBy(productJpaEntity.representative.desc().nullsLast(), productJpaEntity.rating.desc().nullsLast())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -398,7 +409,7 @@ public class ProductQueryDao {
                     product.get(productJpaEntity.id),
                     true,
                     product.get(productJpaEntity.name),
-                    imagePathByProductId.get(entry.getKey()),
+                    fileUrlResolver.resolve(imagePathByProductId.get(entry.getKey())),
                     product.get(productJpaEntity.originalPrice),
                     product.get(productJpaEntity.discountInfo.discountPrice),
                     product.get(productJpaEntity.discountInfo.discountRate),
@@ -535,16 +546,18 @@ public class ProductQueryDao {
     }
 
     /**
-     * 상품의 노출 이미지 파일 경로 목록(sort 오름차순). 화면 이미지 갤러리용.
+     * 상품의 노출 이미지 표시용 URL 목록(sort 오름차순). 화면 이미지 갤러리용.
      */
-    public List<String> findProductImagePaths(Long productId) {
-        return queryFactory
+    public List<String> findProductImageUrls(Long productId) {
+        List<String> filePaths = queryFactory
             .select(uploadedFileJpaEntity.filePath)
             .from(productImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(imageFileId().eq(uploadedFileJpaEntity.id))
             .where(imageProductId().eq(productId), productImageJpaEntity.visible.eq(true))
             .orderBy(productImageJpaEntity.sort.asc())
             .fetch();
+
+        return fileUrlResolver.resolveAll(filePaths);
     }
 
     /**
@@ -575,7 +588,10 @@ public class ProductQueryDao {
                 productJpaEntity.rating.desc(),
                 productJpaEntity.id.asc()
             )
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     // ── admin ──────────────────────────────────────────────────────────────
@@ -696,6 +712,55 @@ public class ProductQueryDao {
                 .innerJoin(productJpaEntity).on(bbqProductId().eq(productJpaEntity.id))
                 .where(productBbqJpaEntity.optionsSynced.eq(false))
                 .fetchFirst()
+        );
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}은 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private SearchProductItemResult withResolvedImageUrl(SearchProductItemResult row) {
+        return new SearchProductItemResult(
+            row.id(),
+            row.shopName(),
+            row.name(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.originalPrice(),
+            row.discountPrice(),
+            row.discountRate(),
+            row.rating(),
+            row.reviewCount(),
+            row.representative(),
+            row.spiciness()
+        );
+    }
+
+    private TodayDiscountProductResult withResolvedImageUrl(TodayDiscountProductResult row) {
+        return new TodayDiscountProductResult(
+            row.id(),
+            row.shopName(),
+            row.name(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.originalPrice(),
+            row.discountPrice(),
+            row.discountRate()
+        );
+    }
+
+    private ShopProductItemResult withResolvedImageUrl(ShopProductItemResult row) {
+        return new ShopProductItemResult(
+            row.id(),
+            row.productCategoryId(),
+            row.name(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.originalPrice(),
+            row.discountPrice(),
+            row.discountRate(),
+            row.rating(),
+            row.reviewCount(),
+            row.representative(),
+            row.spiciness(),
+            row.soldOut()
         );
     }
 

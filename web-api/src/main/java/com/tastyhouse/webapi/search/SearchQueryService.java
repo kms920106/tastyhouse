@@ -19,7 +19,6 @@ import com.tastyhouse.infrastructure.search.query.RecommendedKeywordResult;
 import com.tastyhouse.infrastructure.search.query.SearchQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopBookmarkedItemResult;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.product.ProductQueryService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.response.SearchPopularKeywordResponse;
@@ -47,7 +46,6 @@ public class SearchQueryService {
     private final ProductQueryService productQueryService;
     private final ReviewQueryDao reviewQueryDao;
     private final ShopSearchQueryDao shopSearchQueryDao;
-    private final FileService fileService;
 
     public List<SearchPopularKeywordResponse> getPopularKeywords() {
         return searchQueryDao.findVisiblePopularKeywords().stream()
@@ -108,7 +106,7 @@ public class SearchQueryService {
         return ProductSummaryResponse.from(
             dto.id(),
             dto.name(),
-            dto.imageFilePath() != null ? fileService.getUrlByPath(dto.imageFilePath()) : null,
+            dto.imageUrl(),
             dto.originalPrice(),
             dto.discountPrice(),
             dto.discountRate(),
@@ -120,7 +118,7 @@ public class SearchQueryService {
     }
 
     private SearchReviewListItemResponse toSearchReviewListItemResponse(SearchReviewItemResult dto) {
-        return SearchReviewListItemResponse.from(dto.id(), fileService.getUrlByPath(dto.imageFilePath()));
+        return SearchReviewListItemResponse.from(dto.id(), dto.imageUrl());
     }
 
     private SearchShopListItemResponse toSearchShopListItemResponse(ShopBookmarkedItemResult dto) {
@@ -129,7 +127,7 @@ public class SearchQueryService {
             dto.shopName(),
             dto.stationName(),
             dto.rating(),
-            dto.imageUrl() != null ? fileService.getUrlByPath(dto.imageUrl()) : null,
+            dto.imageUrl(),
             dto.bookmarked()
         );
     }

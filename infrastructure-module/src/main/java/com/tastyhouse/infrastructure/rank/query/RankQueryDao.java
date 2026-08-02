@@ -14,6 +14,7 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.rank.domain.model.RankType;
 import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -33,12 +34,16 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity
  * 붙이지 않고 순수 동작명을 쓰며, 진행 중 랭킹 조회({@code findActivePrizes})와 기간별 관리 조회
  * ({@code findPrizesByPeriodId})는 시그니처와 반환 타입으로 구분한다. 소프트 삭제 도메인이므로 모든
  * 조회 경로에 {@code deleted.isFalse()} 필터를 유지한다.
+ *
+ * <p>조인으로 얻은 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다 —
+ * {@code @QueryProjection}은 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
  */
 @Repository
 @RequiredArgsConstructor
 public class RankQueryDao {
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 현재 노출 중인 랭킹의 기간 — 시작일이 가장 늦은 1건. 노출 중인 기간이 없으면 비어 있다.
@@ -79,7 +84,10 @@ public class RankQueryDao {
                 rankPrizeJpaEntity.deleted.isFalse()
             )
             .orderBy(rankPeriodJpaEntity.startAt.desc(), rankPrizeJpaEntity.prizeRank.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -98,7 +106,10 @@ public class RankQueryDao {
             )
             .orderBy(memberReviewRankJpaEntity.rankNo.asc())
             .limit(limit)
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -117,7 +128,7 @@ public class RankQueryDao {
             )
             .fetchOne();
 
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(result).map(this::withResolvedImageUrl);
     }
 
     /**
@@ -155,7 +166,10 @@ public class RankQueryDao {
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(prizeImageFileId()))
             .where(prizeRankId().eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
             .orderBy(rankPrizeJpaEntity.prizeRank.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -169,7 +183,7 @@ public class RankQueryDao {
             .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())
             .fetchOne();
 
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(result).map(this::withResolvedImageUrl);
     }
 
     private QMemberRankResult memberRankProjection() {
@@ -204,6 +218,44 @@ public class RankQueryDao {
             prizeImageFileId(),
             uploadedFileJpaEntity.originalFilename,
             uploadedFileJpaEntity.filePath
+        );
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 세 메서드는 {@code @QueryProjection}이
+     * 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private MemberRankResult withResolvedImageUrl(MemberRankResult row) {
+        return new MemberRankResult(
+            row.memberId(),
+            row.nickname(),
+            fileUrlResolver.resolve(row.profileImageUrl()),
+            row.reviewCount(),
+            row.rankNo(),
+            row.grade()
+        );
+    }
+
+    private RankPrizeResult withResolvedImageUrl(RankPrizeResult row) {
+        return new RankPrizeResult(
+            row.id(),
+            row.prizeRank(),
+            row.name(),
+            row.brand(),
+            fileUrlResolver.resolve(row.imageUrl())
+        );
+    }
+
+    private RankPrizeManagementResult withResolvedImageUrl(RankPrizeManagementResult row) {
+        return new RankPrizeManagementResult(
+            row.id(),
+            row.periodId(),
+            row.prizeRank(),
+            row.name(),
+            row.brand(),
+            row.imageFileId(),
+            row.imageFileName(),
+            fileUrlResolver.resolve(row.imageUrl())
         );
     }
 

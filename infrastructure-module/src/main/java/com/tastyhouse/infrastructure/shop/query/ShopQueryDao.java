@@ -18,6 +18,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
@@ -35,6 +36,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeReq
 import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderMethodJpaEntity.shopOrderMethodJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopOwnerMessageHistoryJpaEntity.shopOwnerMessageHistoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhoneNumberJpaEntity.shopPhoneNumberJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhotoCategoryImageJpaEntity.shopPhotoCategoryImageJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhotoCategoryJpaEntity.shopPhotoCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopSuspensionJpaEntity.shopSuspensionJpaEntity;
@@ -65,7 +67,20 @@ public class ShopQueryDao {
     private static final QUploadedFileJpaEntity activeFile = new QUploadedFileJpaEntity("activeFile");
     private static final QUploadedFileJpaEntity inactiveFile = new QUploadedFileJpaEntity("inactiveFile");
 
+    /**
+     * 콘텐츠보드/이미지 변경요청 조회에서 이미지 파일을 조인하기 위한 파일 테이블 별칭.
+     */
+    private static final QUploadedFileJpaEntity contentBoardImageFile = new QUploadedFileJpaEntity("contentBoardImageFile");
+    private static final QUploadedFileJpaEntity imageChangeRequestImageFile = new QUploadedFileJpaEntity("imageChangeRequestImageFile");
+
+    /**
+     * 가게 상세 조립 시 썸네일/상표 이미지를 함께 조회하기 위한 파일 테이블 별칭.
+     */
+    private static final QUploadedFileJpaEntity shopThumbnailFile = new QUploadedFileJpaEntity("shopThumbnailFile");
+    private static final QUploadedFileJpaEntity shopTrademarkFile = new QUploadedFileJpaEntity("shopTrademarkFile");
+
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     // ---------------------------------------------------------------- 전화번호
 
@@ -85,6 +100,28 @@ public class ShopQueryDao {
             .where(phoneNumberShopId().eq(shopId))
             .orderBy(shopPhoneNumberJpaEntity.primary.desc(), shopPhoneNumberJpaEntity.id.asc())
             .fetch();
+    }
+
+    // ------------------------------------------------------------ 가게 상세 이미지
+
+    /**
+     * 가게 썸네일/상표 이미지 표시용 URL(가게 상세 조립용). 도메인 모델({@code Shop})은 다른 필드를
+     * 위해 계속 로드하되, 이미지 URL만 이 조회로 대체해 파일 단건 재조회를 없앤다.
+     */
+    public Optional<ShopImageUrlsResult> findShopImageUrls(Long shopId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(Projections.constructor(ShopImageUrlsResult.class,
+                    shopJpaEntity.id,
+                    shopThumbnailFile.filePath,
+                    shopTrademarkFile.filePath
+                ))
+                .from(shopJpaEntity)
+                .leftJoin(shopThumbnailFile).on(shopThumbnailFile.id.eq(shopThumbnailImageFileId()))
+                .leftJoin(shopTrademarkFile).on(shopTrademarkFile.id.eq(shopTrademarkImageFileId()))
+                .where(shopJpaEntity.id.eq(shopId))
+                .fetchOne()
+        ).map(this::withResolvedImageUrls);
     }
 
     // ---------------------------------------------------------------- 편의정보
@@ -121,7 +158,10 @@ public class ShopQueryDao {
         return contentBoardProjection()
             .where(contentBoardShopId().eq(shopId))
             .orderBy(shopContentBoardJpaEntity.id.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -156,7 +196,10 @@ public class ShopQueryDao {
             .orderBy(shopContentBoardJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -168,13 +211,14 @@ public class ShopQueryDao {
                 contentBoardShopId(),
                 shopContentBoardJpaEntity.contentType,
                 shopContentBoardJpaEntity.topic,
-                contentBoardImageFileId(),
+                contentBoardImageFile.filePath,
                 shopContentBoardJpaEntity.youtubeUrl,
                 shopContentBoardJpaEntity.description,
                 shopContentBoardJpaEntity.hidden,
                 shopContentBoardJpaEntity.createdAt
             ))
-            .from(shopContentBoardJpaEntity);
+            .from(shopContentBoardJpaEntity)
+            .leftJoin(contentBoardImageFile).on(contentBoardImageFile.id.eq(contentBoardImageFileId()));
     }
 
     private BooleanExpression contentBoardShopIdEq(Long shopId) {
@@ -218,7 +262,10 @@ public class ShopQueryDao {
         return imageChangeRequestProjection()
             .where(imageChangeRequestShopId().eq(shopId))
             .orderBy(shopImageChangeRequestJpaEntity.id.desc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -244,7 +291,10 @@ public class ShopQueryDao {
             .orderBy(shopImageChangeRequestJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -255,11 +305,12 @@ public class ShopQueryDao {
                 shopImageChangeRequestJpaEntity.id,
                 imageChangeRequestShopId(),
                 shopImageChangeRequestJpaEntity.imageType,
-                imageChangeRequestImageFileId(),
+                imageChangeRequestImageFile.filePath,
                 shopImageChangeRequestJpaEntity.status,
                 shopImageChangeRequestJpaEntity.rejectReason
             ))
-            .from(shopImageChangeRequestJpaEntity);
+            .from(shopImageChangeRequestJpaEntity)
+            .leftJoin(imageChangeRequestImageFile).on(imageChangeRequestImageFile.id.eq(imageChangeRequestImageFileId()));
     }
 
     private BooleanExpression imageChangeStatusEq(ApprovalStatus status) {
@@ -330,7 +381,10 @@ public class ShopQueryDao {
             .join(inactiveFile).on(inactiveFile.id.eq(foodTypeCategoryInactiveImageFileId()))
             .where(shopFoodTypeCategoryJpaEntity.visible.eq(true))
             .orderBy(shopFoodTypeCategoryJpaEntity.sort.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedIconUrls)
+            .toList();
     }
 
     /**
@@ -352,7 +406,10 @@ public class ShopQueryDao {
             .join(inactiveFile).on(inactiveFile.id.eq(amenityCategoryInactiveImageFileId()))
             .where(shopAmenityCategoryJpaEntity.visible.eq(true))
             .orderBy(shopAmenityCategoryJpaEntity.sort.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedIconUrls)
+            .toList();
     }
 
     /**
@@ -373,7 +430,10 @@ public class ShopQueryDao {
             .leftJoin(activeFile).on(activeFile.id.eq(amenityCategoryActiveImageFileId()))
             .leftJoin(inactiveFile).on(inactiveFile.id.eq(amenityCategoryInactiveImageFileId()))
             .orderBy(shopAmenityCategoryJpaEntity.sort.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedIconUrls)
+            .toList();
     }
 
     /**
@@ -394,7 +454,10 @@ public class ShopQueryDao {
             .leftJoin(activeFile).on(activeFile.id.eq(foodTypeCategoryActiveImageFileId()))
             .leftJoin(inactiveFile).on(inactiveFile.id.eq(foodTypeCategoryInactiveImageFileId()))
             .orderBy(shopFoodTypeCategoryJpaEntity.sort.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedIconUrls)
+            .toList();
     }
 
     // ------------------------------------------------------ 가게별 배정 목록
@@ -415,7 +478,10 @@ public class ShopQueryDao {
             .join(shopAmenityCategoryJpaEntity).on(shopAmenityCategoryJpaEntity.id.eq(amenityShopAmenityCategoryId()))
             .join(activeFile).on(activeFile.id.eq(amenityCategoryActiveImageFileId()))
             .where(amenityShopId().eq(shopId))
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedIconUrl)
+            .toList();
     }
 
     /**
@@ -432,7 +498,10 @@ public class ShopQueryDao {
             .join(shopAmenityCategoryJpaEntity).on(shopAmenityCategoryJpaEntity.id.eq(amenityShopAmenityCategoryId()))
             .join(activeFile).on(activeFile.id.eq(amenityCategoryActiveImageFileId()))
             .where(amenityShopId().eq(shopId))
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedIconUrl)
+            .toList();
     }
 
     /**
@@ -451,7 +520,10 @@ public class ShopQueryDao {
             .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeCategoryJpaEntity.id.eq(foodTypeShopFoodTypeCategoryId()))
             .join(activeFile).on(activeFile.id.eq(foodTypeCategoryActiveImageFileId()))
             .where(foodTypeShopId().eq(shopId))
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedIconUrl)
+            .toList();
     }
 
     // ------------------------------------------------------------ 배너·사진
@@ -470,7 +542,10 @@ public class ShopQueryDao {
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerImageImageFileId()))
             .where(bannerImageShopId().eq(shopId))
             .orderBy(shopBannerImageJpaEntity.sort.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -479,7 +554,10 @@ public class ShopQueryDao {
     public List<ShopPhotoCategoryImageResult> findAllPhotoCategoryImages() {
         return photoCategoryImageProjection()
             .orderBy(shopPhotoCategoryImageJpaEntity.sort.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -501,7 +579,10 @@ public class ShopQueryDao {
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(photoCategoryImageImageFileId()))
             .where(photoCategoryImageShopPhotoCategoryId().eq(shopPhotoCategoryId))
             .orderBy(shopPhotoCategoryImageJpaEntity.sort.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -627,10 +708,134 @@ public class ShopQueryDao {
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(photoCategoryImageImageFileId()));
     }
 
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 메서드들은 {@code Projections.constructor}가
+     * 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private ShopFoodTypeCategoryResult withResolvedIconUrls(ShopFoodTypeCategoryResult row) {
+        return new ShopFoodTypeCategoryResult(
+            row.id(),
+            row.foodType(),
+            row.displayName(),
+            fileUrlResolver.resolve(row.activeIconUrl()),
+            fileUrlResolver.resolve(row.inactiveIconUrl()),
+            row.sort(),
+            row.visible()
+        );
+    }
+
+    private ShopAmenityCategoryResult withResolvedIconUrls(ShopAmenityCategoryResult row) {
+        return new ShopAmenityCategoryResult(
+            row.id(),
+            row.amenity(),
+            row.displayName(),
+            fileUrlResolver.resolve(row.activeIconUrl()),
+            fileUrlResolver.resolve(row.inactiveIconUrl()),
+            row.sort(),
+            row.visible()
+        );
+    }
+
+    private ShopAmenityAssignmentResult withResolvedIconUrl(ShopAmenityAssignmentResult row) {
+        return new ShopAmenityAssignmentResult(
+            row.id(),
+            row.amenityCategoryId(),
+            row.amenity(),
+            row.displayName(),
+            fileUrlResolver.resolve(row.activeIconUrl())
+        );
+    }
+
+    private ShopAmenityWithCategoryResult withResolvedIconUrl(ShopAmenityWithCategoryResult row) {
+        return new ShopAmenityWithCategoryResult(
+            row.amenity(),
+            row.displayName(),
+            fileUrlResolver.resolve(row.activeIconUrl())
+        );
+    }
+
+    private ShopFoodTypeAssignmentResult withResolvedIconUrl(ShopFoodTypeAssignmentResult row) {
+        return new ShopFoodTypeAssignmentResult(
+            row.id(),
+            row.foodTypeCategoryId(),
+            row.foodType(),
+            row.displayName(),
+            fileUrlResolver.resolve(row.activeIconUrl())
+        );
+    }
+
+    private ShopContentBoardResult withResolvedImageUrl(ShopContentBoardResult row) {
+        return new ShopContentBoardResult(
+            row.id(),
+            row.shopId(),
+            row.contentType(),
+            row.topic(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.youtubeUrl(),
+            row.description(),
+            row.hidden(),
+            row.createdAt()
+        );
+    }
+
+    private ShopImageChangeRequestResult withResolvedImageUrl(ShopImageChangeRequestResult row) {
+        return new ShopImageChangeRequestResult(
+            row.id(),
+            row.shopId(),
+            row.imageType(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.status(),
+            row.rejectReason()
+        );
+    }
+
+    private ShopBannerImageResult withResolvedImageUrl(ShopBannerImageResult row) {
+        return new ShopBannerImageResult(
+            row.id(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.sort()
+        );
+    }
+
+    private ShopPhotoCategoryImageResult withResolvedImageUrl(ShopPhotoCategoryImageResult row) {
+        return new ShopPhotoCategoryImageResult(
+            row.id(),
+            row.shopPhotoCategoryId(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.sort()
+        );
+    }
+
+    private ShopPhotoCategoryImageManagementResult withResolvedImageUrl(ShopPhotoCategoryImageManagementResult row) {
+        return new ShopPhotoCategoryImageManagementResult(
+            row.id(),
+            row.shopPhotoCategoryId(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.sort(),
+            row.visible()
+        );
+    }
+
+    private ShopImageUrlsResult withResolvedImageUrls(ShopImageUrlsResult row) {
+        return new ShopImageUrlsResult(
+            row.shopId(),
+            fileUrlResolver.resolve(row.thumbnailImageUrl()),
+            fileUrlResolver.resolve(row.trademarkImageUrl())
+        );
+    }
+
     // ----------------------------------------------------- @Convert VO 컬럼 우회
     // 아래 필드들은 @Convert로 도메인 VO(ShopId/ShopAmenityCategoryId/ShopFoodTypeCategoryId/
     // ShopPhotoCategoryId/UploadedFileId)에 매핑되어 QueryDSL이 VO 타입 path를 생성한다.
     // query DAO 계층(Result/SearchCondition)은 항상 raw Long을 쓰므로 Expressions.numberPath로 우회한다.
+
+    private NumberPath<Long> shopThumbnailImageFileId() {
+        return Expressions.numberPath(Long.class, shopJpaEntity, "thumbnailImageFileId");
+    }
+
+    private NumberPath<Long> shopTrademarkImageFileId() {
+        return Expressions.numberPath(Long.class, shopJpaEntity, "trademarkImageFileId");
+    }
 
     private NumberPath<Long> phoneNumberShopId() {
         return Expressions.numberPath(Long.class, shopPhoneNumberJpaEntity, "shopId");

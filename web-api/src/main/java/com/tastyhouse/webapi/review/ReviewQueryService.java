@@ -38,7 +38,6 @@ import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
 import com.tastyhouse.webapi.common.PaginationResponse;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.review.response.ReviewBestListItemResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentListResponse;
 import com.tastyhouse.webapi.review.response.ReviewCommentResponse;
@@ -56,8 +55,8 @@ import com.tastyhouse.webapi.review.response.ReviewWriteInfoResponse;
  *
  * <p>infra read 어댑터({@link ReviewQueryDao}·{@link ReviewStatisticsQueryDao})만 주입해 조회하고
  * Response를 조립한다(private 매퍼).
- * DAO가 파일 경로 원본을 투영해 주므로 표시용 URL 변환은 이 계층에서 {@link FileService}로 수행한다
- * (응답에 파일 식별자·경로를 노출하지 않는다는 규칙).
+ * 파일 경로 → 표시용 URL 변환은 DAO({@code FileUrlResolver})가 담당하므로 이 계층은 이미 URL이 된
+ * 필드를 그대로 조립한다(응답에 파일 식별자·경로를 노출하지 않는다는 규칙).
  *
  * <p>과거 core 조회 서비스가 여러 조회를 조합해 만들던 값(리뷰 상세의 태그명)도 이 계층이 조합한다 —
  * DAO는 단일 조회 단위만 제공한다.
@@ -78,7 +77,6 @@ public class ReviewQueryService {
     private final MemberFollowRepository memberFollowRepository;
     private final ProductQueryDao productQueryDao;
     private final OrderProductRepository orderProductRepository;
-    private final FileService fileService;
 
     /**
      * 베스트 리뷰 목록.
@@ -137,7 +135,7 @@ public class ReviewQueryService {
             detail.priceRating(),
             detail.totalRating(),
             detail.content(),
-            toImageUrls(detail.imageUrls()),
+            detail.imageUrls(),
             detail.tagNames(),
             detail.createdAt()
         );
@@ -194,8 +192,8 @@ public class ReviewQueryService {
 
         ReviewDetailResult reviewDetail = reviewDetailOpt.get();
 
-        List<String> reviewImageUrls = toImageUrls(reviewDetail.imageUrls());
-        String reviewMemberProfileImageUrl = fileService.getUrlByPath(reviewDetail.memberProfileImageUrl());
+        List<String> reviewImageUrls = reviewDetail.imageUrls();
+        String reviewMemberProfileImageUrl = reviewDetail.memberProfileImageUrl();
 
         return productQueryDao.findProductDetailById(findProductIdOfReview(reviewId))
             .map(product -> {
@@ -285,7 +283,7 @@ public class ReviewQueryService {
             reviewQueryDao.findReviewsByMemberId(MemberId.of(memberId), PageQuery.of(page, size))
                 .map(dto -> ReviewMemberListItemResponse.from(
                     dto.id(),
-                    fileService.getUrlByPath(dto.imageUrl())
+                    dto.imageUrl()
                 ));
         return PaginationResponse.from(pageResult);
     }
@@ -418,7 +416,7 @@ public class ReviewQueryService {
     private ReviewBestListItemResponse toBestReviewListItemResponse(BestReviewListItemResult dto) {
         return ReviewBestListItemResponse.from(
             dto.id(),
-            fileService.getUrlByPath(dto.imageUrl()),
+            dto.imageUrl(),
             dto.stationName(),
             dto.shopName(),
             dto.productName(),
@@ -430,13 +428,13 @@ public class ReviewQueryService {
     private ReviewLatestListItemResponse toLatestReviewListItemResponse(LatestReviewListItemResult dto) {
         return ReviewLatestListItemResponse.from(
             dto.id(),
-            toImageUrls(dto.imageUrls()),
+            dto.imageUrls(),
             dto.stationName(),
             dto.totalRating(),
             dto.content(),
             dto.memberId().value(),
             dto.memberNickname(),
-            fileService.getUrlByPath(dto.memberProfileImageUrl()),
+            dto.memberProfileImageUrl(),
             dto.createdAt(),
             dto.likeCount(),
             dto.commentCount()
@@ -460,9 +458,9 @@ public class ReviewQueryService {
             dto.willRevisit(),
             dto.memberId().value(),
             dto.memberNickname(),
-            fileService.getUrlByPath(dto.memberProfileImageUrl()),
+            dto.memberProfileImageUrl(),
             dto.createdAt(),
-            toImageUrls(dto.imageUrls()),
+            dto.imageUrls(),
             dto.tagNames()
         );
     }
@@ -473,7 +471,7 @@ public class ReviewQueryService {
             dto.reviewId(),
             dto.memberId() != null ? dto.memberId().value() : null,
             dto.memberNickname(),
-            fileService.getUrlByPath(dto.memberProfileImageFilePath()),
+            dto.memberProfileImageUrl(),
             dto.content(),
             dto.createdAt(),
             replies
@@ -486,7 +484,7 @@ public class ReviewQueryService {
             dto.commentId(),
             dto.memberId() != null ? dto.memberId().value() : null,
             dto.memberNickname(),
-            fileService.getUrlByPath(dto.memberProfileImageFilePath()),
+            dto.memberProfileImageUrl(),
             dto.replyToMemberId() != null ? dto.replyToMemberId().value() : null,
             dto.replyToMemberNickname(),
             dto.content(),
@@ -495,22 +493,8 @@ public class ReviewQueryService {
     }
 
     private String getFirstImageUrl(Long productId) {
-        String firstImageFilePath = productQueryDao.findProductImagePaths(productId).stream()
+        return productQueryDao.findProductImageUrls(productId).stream()
             .findFirst()
             .orElse(null);
-        return fileService.getUrlByPath(firstImageFilePath);
-    }
-
-    /**
-     * 파일 경로 목록을 표시용 URL 목록으로 변환한다.
-     */
-    private List<String> toImageUrls(List<String> filePaths) {
-        if (filePaths == null) {
-            return List.of();
-        }
-
-        return filePaths.stream()
-            .map(fileService::getUrlByPath)
-            .toList();
     }
 }

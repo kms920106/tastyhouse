@@ -18,9 +18,11 @@ import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.bug.persistence.QBugReportImageJpaEntity.bugReportImageJpaEntity;
 import static com.tastyhouse.infrastructure.bug.persistence.QBugReportJpaEntity.bugReportJpaEntity;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 
 /**
  * 버그 제보 read 어댑터(CQRS query 측).
@@ -38,6 +40,7 @@ import static com.tastyhouse.infrastructure.bug.persistence.QBugReportJpaEntity.
 public class BugReportQueryDao {
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 관리 목록 조회 — 제목/내용 부분일치·회원·처리상태·분류·우선순위 필터를 적용하고 첨부 이미지 개수를
@@ -124,17 +127,37 @@ public class BugReportQueryDao {
             return Optional.empty();
         }
 
-        List<Long> imageFileIds = findImageFileIds(id);
-        return Optional.of(BugReportDetailResult.from(projection, imageFileIds));
+        List<BugReportImageResult> images = findImages(id);
+        return Optional.of(BugReportDetailResult.from(projection, images));
     }
 
-    private List<Long> findImageFileIds(Long bugReportId) {
+    /**
+     * 첨부 이미지를 정렬 순서대로 조회하며, {@code uploaded_file}을 join해 파일명·저장 경로를 함께
+     * 가져온 뒤 {@link FileUrlResolver}로 표시용 URL까지 변환한다(소비 측의 추가 파일 조회 제거).
+     */
+    private List<BugReportImageResult> findImages(Long bugReportId) {
         return queryFactory
-            .select(imageFileIdPath())
+            .select(new QBugReportImageResult(
+                imageFileIdPath(),
+                uploadedFileJpaEntity.originalFilename,
+                uploadedFileJpaEntity.filePath
+            ))
             .from(bugReportImageJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(imageFileIdPath()))
             .where(imageBugReportId().eq(bugReportId))
             .orderBy(bugReportImageJpaEntity.sort.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+    }
+
+    private BugReportImageResult withResolvedImageUrl(BugReportImageResult row) {
+        return new BugReportImageResult(
+            row.fileId(),
+            row.fileName(),
+            fileUrlResolver.resolve(row.imageUrl())
+        );
     }
 
     /**

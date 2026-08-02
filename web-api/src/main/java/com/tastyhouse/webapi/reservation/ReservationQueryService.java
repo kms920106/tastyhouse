@@ -22,7 +22,6 @@ import com.tastyhouse.infrastructure.reservation.query.ReservationDetailResult;
 import com.tastyhouse.infrastructure.reservation.query.ReservationQueryDao;
 import com.tastyhouse.infrastructure.reservation.query.ReservationResult;
 import com.tastyhouse.infrastructure.reservation.query.SlotOccupancyResult;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.reservation.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.response.ReservationResponse;
@@ -33,8 +32,7 @@ import com.tastyhouse.webapi.reservation.response.ReservationSlotAvailabilityRes
  * 예약 조회 서비스(web).
  *
  * <p>infra read 어댑터({@link ReservationQueryDao})만 주입해 조회하고 Response를 조립한다(private 매퍼).
- * 가게 썸네일은 DAO가 파일 경로 원본을 투영해 주므로, 표시용 URL 변환은 이 계층에서
- * {@link FileService}로 수행한다(응답에 파일 식별자·경로를 노출하지 않는다는 규칙).
+ * 가게 썸네일은 DAO가 표시용 URL까지 변환해 담으므로, 이 서비스는 그 값을 그대로 응답에 전달한다.
  *
  * <p>본인 예약 여부 검증은 조회 경로에서도 필요하다 — 도메인 모델을 거치지 않는 read 경로이므로
  * 조회 결과의 {@code memberId}를 요청자와 직접 비교해 남의 예약 조회를 차단한다.
@@ -50,7 +48,6 @@ public class ReservationQueryService {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ReservationQueryDao reservationQueryDao;
-    private final FileService fileService;
 
     /**
      * 특정 가게·날짜의 슬롯별 가용성. 슬롯 행이 없는 시간대는 예약 0건이므로 정원 전체가 잔여다.
@@ -116,7 +113,7 @@ public class ReservationQueryService {
         return ReservationCompleteDetailResponse.from(
             result.id(),
             result.shopName(),
-            fileService.getUrlByPath(result.shopImageFilePath()),
+            result.shopImageUrl(),
             LocalDateTime.of(result.reservationDate(), result.reservationTime()),
             result.partySize()
         );
@@ -134,7 +131,7 @@ public class ReservationQueryService {
             result.id(),
             result.shopId(),
             result.shopName(),
-            fileService.getUrlByPath(result.shopImageFilePath()),
+            result.shopImageUrl(),
             result.shopRoadAddress(),
             result.shopLotAddress(),
             result.memberId().value(),

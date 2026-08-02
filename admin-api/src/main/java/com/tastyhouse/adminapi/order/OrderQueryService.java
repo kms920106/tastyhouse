@@ -148,7 +148,7 @@ public class OrderQueryService {
             result.orderProductId(),
             result.productId(),
             result.name(),
-            result.imageFilePath(),
+            result.imageUrl(),
             result.quantity(),
             result.originalPrice(),
             result.discountPrice(),

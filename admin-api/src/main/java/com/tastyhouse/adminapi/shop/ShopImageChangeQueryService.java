@@ -1,8 +1,5 @@
 package com.tastyhouse.adminapi.shop;
 
-import java.util.Map;
-import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +11,6 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopImageChangeRequestResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.adminapi.common.PaginationResponse;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.shop.response.ShopImageChangeRequestItemResponse;
 
 /**
@@ -28,7 +24,6 @@ import com.tastyhouse.adminapi.shop.response.ShopImageChangeRequestItemResponse;
 public class ShopImageChangeQueryService {
 
     private final ShopQueryDao shopQueryDao;
-    private final FileService fileService;
 
     public PaginationResponse<ShopImageChangeRequestItemResponse> getImageChangeRequests(
         String status,
@@ -42,27 +37,15 @@ public class ShopImageChangeQueryService {
         PageResult<ShopImageChangeRequestResult> pageResult = shopQueryDao
             .findImageChangeRequestPage(approvalStatus, type, PageQuery.of(page, size));
 
-        // 목록 항목마다 이미지 URL을 단건 조회하면 항목 수만큼 쿼리가 나가므로(N+1), 파일 식별자를 모아
-        // 한 번에 변환한 뒤 매핑한다.
-        Map<Long, String> imageUrls = fileService.getUrlsByFileIds(
-            pageResult.content().stream()
-                .map(ShopImageChangeRequestResult::imageFileId)
-                .filter(Objects::nonNull)
-                .toList()
-        );
-
-        return PaginationResponse.from(pageResult.map(dto -> toShopImageChangeRequestItemResponse(dto, imageUrls)));
+        return PaginationResponse.from(pageResult.map(this::toShopImageChangeRequestItemResponse));
     }
 
-    private ShopImageChangeRequestItemResponse toShopImageChangeRequestItemResponse(
-        ShopImageChangeRequestResult dto,
-        Map<Long, String> imageUrls
-    ) {
+    private ShopImageChangeRequestItemResponse toShopImageChangeRequestItemResponse(ShopImageChangeRequestResult dto) {
         return ShopImageChangeRequestItemResponse.of(
             dto.id(),
             dto.shopId(),
             dto.imageType().name(),
-            dto.imageFileId() == null ? null : imageUrls.get(dto.imageFileId()),
+            dto.imageUrl(),
             dto.status().name(),
             dto.rejectReason()
         );

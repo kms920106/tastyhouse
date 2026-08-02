@@ -8,7 +8,6 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 
 /**
@@ -21,7 +20,6 @@ import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 public class MemberShopService {
 
     private final ShopSearchQueryDao shopSearchQueryDao;
-    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public PageResult<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
@@ -32,7 +30,7 @@ public class MemberShopService {
                 dto.shopName(),
                 dto.stationName(),
                 dto.rating(),
-                fileService.getUrlByPath(dto.imageUrl()),
+                dto.imageUrl(),
                 dto.bookmarked()
             ));
     }

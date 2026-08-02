@@ -10,7 +10,7 @@ public record ShopContentBoardResult(
     Long shopId,
     ShopContentType contentType,
     ShopContentTopic topic,
-    Long imageFileId,
+    String imageUrl,
     String youtubeUrl,
     String description,
     boolean hidden,

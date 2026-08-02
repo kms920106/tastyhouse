@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.shop.query;
 public record ShopPhotoCategoryImageResult(
     Long id,
     Long shopPhotoCategoryId,
-    String filePath,
+    String imageUrl,
     Integer sort
 ) {
 }

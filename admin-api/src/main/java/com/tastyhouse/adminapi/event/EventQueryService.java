@@ -23,7 +23,6 @@ import com.tastyhouse.adminapi.event.response.EventAnnouncementResponse;
 import com.tastyhouse.adminapi.event.response.EventDetailResponse;
 import com.tastyhouse.adminapi.event.response.EventListItemResponse;
 import com.tastyhouse.adminapi.event.response.EventWinnerResponse;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.file.response.FileResponse;
 
 /**
@@ -32,8 +31,8 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  * <p>infra read 어댑터({@link EventQueryDao})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 도메인
  * write 포트를 주입하지 않으므로 조회 경로가 도메인 모델을 거치지 않는다.
  *
- * <p>파일 URL 조립은 두 경로로 나뉜다 — 목록은 DAO가 join으로 함께 가져온 파일명·경로를 그대로 쓰고,
- * 상세는 파일 ID만 있으므로 {@link FileService}로 파일을 조회해 URL을 만든다.
+ * <p>파일 URL 조립은 DAO가 join으로 함께 파일명·URL까지 완성해 주므로(목록·상세 모두) 이 서비스는
+ * 추가 조회 없이 그대로 조립만 한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -41,7 +40,6 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
 public class EventQueryService {
 
     private final EventQueryDao eventQueryDao;
-    private final FileService fileService;
 
     public PaginationResponse<EventListItemResponse> getEvents(String name, String status, int page, int size) {
         EventStatus eventStatus = status == null ? null : EventStatus.from(status);
@@ -72,7 +70,7 @@ public class EventQueryService {
     }
 
     private EventListItemResponse toEventListItemResponse(EventManagementListItemResult dto) {
-        FileResponse file = toFileResponse(dto.thumbnailImageFileId(), dto.thumbnailFileName(), dto.thumbnailFilePath());
+        FileResponse file = toFileResponse(dto.thumbnailImageFileId(), dto.thumbnailFileName(), dto.thumbnailUrl());
         return EventListItemResponse.from(
             dto.id(),
             dto.name(),
@@ -84,8 +82,8 @@ public class EventQueryService {
     }
 
     private EventDetailResponse toEventDetailResponse(EventManagementDetailResult dto) {
-        FileResponse thumbnailFile = toFileResponse(dto.thumbnailImageFileId());
-        FileResponse bannerFile = toFileResponse(dto.bannerImageFileId());
+        FileResponse thumbnailFile = toEventDetailFileResponse(dto.thumbnailImageFileId(), dto.thumbnailFileName(), dto.thumbnailUrl());
+        FileResponse bannerFile = toEventDetailFileResponse(dto.bannerImageFileId(), dto.bannerFileName(), dto.bannerUrl());
         return EventDetailResponse.from(
             dto.id(),
             dto.name(),
@@ -124,26 +122,29 @@ public class EventQueryService {
     }
 
     /**
-     * 목록용 — DAO가 join으로 함께 가져온 파일명·경로로 조립한다(추가 조회 없음).
+     * 목록용 — DAO가 join으로 함께 가져온 파일명·URL로 조립한다(추가 조회 없음). fileId가 없으면(파일
+     * 미등록) {@code null}을 그대로 반환한다.
      */
-    private FileResponse toFileResponse(Long fileId, String fileName, String filePath) {
+    private FileResponse toFileResponse(Long fileId, String fileName, String imageUrl) {
         if (fileId == null) {
             return null;
         }
-        return FileResponse.of(fileId, fileName, fileService.getUrlByPath(filePath));
+        return FileResponse.of(fileId, fileName, imageUrl);
     }
 
     /**
-     * 상세용 — 파일 ID만 있으므로 파일을 조회해 파일명·URL을 얻는다.
+     * 상세용 — DAO가 join으로 함께 가져온 파일명·URL로 조립한다(추가 조회 없음). fileId가 없으면(파일
+     * 미등록) {@code null}을 그대로 반환하되, fileId는 있는데 left join이 URL을 못 찾았다면(참조 무결성
+     * 깨짐) 과거 {@code fileService.findFileResponse} 호출 시의 {@code FILE_NOT_FOUND} 동작을 그대로
+     * 보존한다 — 썸네일·배너는 필수 자산이므로 조용히 null을 내려보내지 않는다.
      */
-    private FileResponse toFileResponse(Long fileId) {
+    private FileResponse toEventDetailFileResponse(Long fileId, String fileName, String imageUrl) {
         if (fileId == null) {
             return null;
         }
-        FileResponse fileResponse = fileService.findFileResponse(fileId);
-        if (fileResponse == null) {
+        if (imageUrl == null) {
             throw new EntityNotFoundException(ErrorCode.FILE_NOT_FOUND);
         }
-        return fileResponse;
+        return FileResponse.of(fileId, fileName, imageUrl);
     }
 }

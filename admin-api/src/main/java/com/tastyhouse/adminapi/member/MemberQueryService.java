@@ -17,7 +17,6 @@ import com.tastyhouse.infrastructure.member.query.MemberListItemResult;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberSearchCondition;
 import com.tastyhouse.adminapi.common.PaginationResponse;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.member.response.MemberDetailResponse;
 import com.tastyhouse.adminapi.member.response.MemberListItemResponse;
 
@@ -38,7 +37,6 @@ public class MemberQueryService {
 
     private final MemberQueryDao memberQueryDao;
     private final MemberRepository memberRepository;
-    private final FileService fileService;
 
     public PaginationResponse<MemberListItemResponse> getMembers(
         String nickname,
@@ -71,6 +69,8 @@ public class MemberQueryService {
     }
 
     private MemberDetailResponse toMemberDetailResponse(Member member) {
+        String profileImageUrl = memberQueryDao.findProfileImageUrl(member.getMemberId()).orElse(null);
+
         return MemberDetailResponse.from(
             member.getId(),
             member.getUsername(),
@@ -82,7 +82,7 @@ public class MemberQueryService {
             member.getMemberGrade().name(),
             member.getMemberStatus().name(),
             member.getStatusMessage(),
-            resolveProfileImageUrl(member.getProfileImageFileId() == null ? null : member.getProfileImageFileId().value()),
+            profileImageUrl,
             member.isPushNotificationEnabled(),
             member.isMarketingInfoEnabled(),
             member.isEventInfoEnabled(),
@@ -100,15 +100,9 @@ public class MemberQueryService {
             result.gender().name(),
             result.memberGrade().name(),
             result.memberStatus().name(),
-            result.profileImageFilePath(),
+            result.profileImageUrl(),
             result.createdAt()
         );
     }
 
-    private String resolveProfileImageUrl(Long profileImageFileId) {
-        if (profileImageFileId == null) {
-            return null;
-        }
-        return fileService.getUrlByFileId(profileImageFileId);
-    }
 }

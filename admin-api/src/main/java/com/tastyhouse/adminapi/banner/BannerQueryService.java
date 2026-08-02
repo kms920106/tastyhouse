@@ -16,7 +16,6 @@ import com.tastyhouse.infrastructure.banner.query.BannerSearchCondition;
 import com.tastyhouse.adminapi.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.response.BannerListItemResponse;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.file.response.FileResponse;
 
 /**
@@ -26,8 +25,8 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  * 주입하지 않으며, 쓰기는 {@link BannerCommandService}가 담당한다.
  *
  * <p>HTTP 경계에서 {@code String}으로 받은 배너 유형은 여기서 {@code BannerType.from(String)}으로
- * 승격해 검색 조건에 담는다. 파일 정보는 DAO가 조인으로 함께 투영해 주므로 별도 파일 조회 없이
- * 경로만 표시용 URL로 변환한다.
+ * 승격해 검색 조건에 담는다. 파일 정보는 DAO가 조인으로 함께 투영하고 표시용 URL까지 완성해 주므로,
+ * 여기서는 파일을 다시 조회하지도 변환하지도 않고 {@code FileResponse}로 묶기만 한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -35,7 +34,6 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
 public class BannerQueryService {
 
     private final BannerQueryDao bannerQueryDao;
-    private final FileService fileService;
 
     public PaginationResponse<BannerListItemResponse> getBanners(String type, String title, Boolean visible, int page, int size) {
         BannerType bannerType = type == null ? null : BannerType.from(type);
@@ -57,7 +55,7 @@ public class BannerQueryService {
             dto.id(),
             dto.type().name(),
             dto.title(),
-            toFileResponse(dto.imageFileId(), dto.imageFileName(), dto.imageFilePath()),
+            toFileResponse(dto.imageFileId(), dto.imageFileName(), dto.imageUrl()),
             dto.linkUrl(),
             dto.startDate(),
             dto.endDate(),
@@ -71,7 +69,7 @@ public class BannerQueryService {
             dto.id(),
             dto.type().name(),
             dto.title(),
-            toFileResponse(dto.imageFileId(), dto.imageFileName(), dto.imageFilePath()),
+            toFileResponse(dto.imageFileId(), dto.imageFileName(), dto.imageUrl()),
             dto.linkUrl(),
             dto.startDate(),
             dto.endDate(),
@@ -82,10 +80,10 @@ public class BannerQueryService {
         );
     }
 
-    private FileResponse toFileResponse(Long imageFileId, String imageFileName, String imageFilePath) {
+    private FileResponse toFileResponse(Long imageFileId, String imageFileName, String imageUrl) {
         if (imageFileId == null) {
             return null;
         }
-        return FileResponse.of(imageFileId, imageFileName, fileService.getUrlByPath(imageFilePath));
+        return FileResponse.of(imageFileId, imageFileName, imageUrl);
     }
 }

@@ -21,6 +21,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopChoiceQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
 import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeAssignmentResult;
 import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeCategoryResult;
+import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
 import com.tastyhouse.infrastructure.shop.query.ShopListItemResult;
 import com.tastyhouse.infrastructure.shop.query.ShopOrderMethodResult;
 import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryImageManagementResult;
@@ -29,7 +30,6 @@ import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchCondition;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
 import com.tastyhouse.adminapi.common.PaginationResponse;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.shop.response.ShopAmenityCategoryResponse;
 import com.tastyhouse.adminapi.shop.response.ShopAmenityResponse;
 import com.tastyhouse.adminapi.shop.response.ShopBannerImageItemResponse;
@@ -63,7 +63,6 @@ public class ShopQueryService {
     private final ShopQueryDao shopQueryDao;
     private final ShopSearchQueryDao shopSearchQueryDao;
     private final ShopChoiceQueryDao shopChoiceQueryDao;
-    private final FileService fileService;
 
     public List<StationResponse> getStations() {
         return shopChoiceQueryDao.findAllStations().stream()
@@ -104,6 +103,10 @@ public class ShopQueryService {
     }
 
     private ShopDetailResponse toShopDetailResponse(Shop shop) {
+        String thumbnailImageUrl = shopQueryDao.findShopImageUrls(shop.getId())
+            .map(ShopImageUrlsResult::thumbnailImageUrl)
+            .orElse(null);
+
         return ShopDetailResponse.from(
             shop.getId(),
             shop.getStationId() == null ? null : shop.getStationId().value(),
@@ -114,7 +117,7 @@ public class ShopQueryService {
             shop.getRoadAddress(),
             shop.getLotAddress(),
             shop.getPhoneNumber(),
-            toImageUrl(shop.getThumbnailImageFileId() == null ? null : shop.getThumbnailImageFileId().value()),
+            thumbnailImageUrl,
             shop.isPermanentlyClosed(),
             shop.getCreatedAt(),
             shop.getUpdatedAt()
@@ -180,8 +183,8 @@ public class ShopQueryService {
             dto.id(),
             dto.amenity().name(),
             dto.displayName(),
-            fileService.getUrlByPath(dto.activeFilePath()),
-            fileService.getUrlByPath(dto.inactiveFilePath()),
+            dto.activeIconUrl(),
+            dto.inactiveIconUrl(),
             dto.sort(),
             dto.visible()
         );
@@ -198,8 +201,8 @@ public class ShopQueryService {
             dto.id(),
             dto.foodType().name(),
             dto.displayName(),
-            fileService.getUrlByPath(dto.activeFilePath()),
-            fileService.getUrlByPath(dto.inactiveFilePath()),
+            dto.activeIconUrl(),
+            dto.inactiveIconUrl(),
             dto.sort(),
             dto.visible()
         );
@@ -217,7 +220,7 @@ public class ShopQueryService {
             dto.amenityCategoryId(),
             dto.amenity().name(),
             dto.displayName(),
-            fileService.getUrlByPath(dto.activeFilePath())
+            dto.activeIconUrl()
         );
     }
 
@@ -233,7 +236,7 @@ public class ShopQueryService {
             dto.foodTypeCategoryId(),
             dto.foodType().name(),
             dto.displayName(),
-            fileService.getUrlByPath(dto.activeFilePath())
+            dto.activeIconUrl()
         );
     }
 
@@ -261,7 +264,7 @@ public class ShopQueryService {
         return shopQueryDao.findBannerImages(id).stream()
             .map(image -> ShopBannerImageItemResponse.from(
                 image.id(),
-                fileService.getUrlByPath(image.filePath()),
+                image.imageUrl(),
                 image.sort()
             ))
             .toList();
@@ -287,7 +290,7 @@ public class ShopQueryService {
         return ShopPhotoCategoryImageItemResponse.from(
             dto.id(),
             dto.shopPhotoCategoryId(),
-            fileService.getUrlByPath(dto.filePath()),
+            dto.imageUrl(),
             dto.sort(),
             dto.visible()
         );
@@ -306,13 +309,4 @@ public class ShopQueryService {
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
     }
 
-    /**
-     * 파일 식별자를 표시용 URL로 변환한다. 식별자가 없으면 null을 돌려준다.
-     */
-    private String toImageUrl(Long imageFileId) {
-        if (imageFileId == null) {
-            return null;
-        }
-        return fileService.getUrlByFileId(imageFileId);
-    }
 }

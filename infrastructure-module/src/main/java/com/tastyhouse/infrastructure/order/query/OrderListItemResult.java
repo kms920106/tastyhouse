@@ -11,11 +11,13 @@ import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
  *
  * <p>admin 관리 목록({@link OrderManagementListItemResult})과 필드 셋이 달라 통합하지 않는다 — 관리
  * 목록은 주문번호·주문자명·주문방식 등 운영 정보를 담고, 이 목록은 회원 화면에 필요한 가게·상품 정보를 담는다.
+ *
+ * <p>가게 대표 이미지는 DAO가 표시용 URL까지 변환해 담으므로, 소비 모듈은 이 값을 그대로 응답에 전달한다.
  */
 public record OrderListItemResult(
     Long id,
     String shopName,
-    String shopThumbnailImageFilePath,
+    String shopThumbnailImageUrl,
     String firstProductName,
     Integer totalItemCount,
     Integer amount,

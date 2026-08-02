@@ -7,6 +7,6 @@ public record ShopFoodTypeAssignmentResult(
     Long foodTypeCategoryId,
     FoodType foodType,
     String displayName,
-    String activeFilePath
+    String activeIconUrl
 ) {
 }

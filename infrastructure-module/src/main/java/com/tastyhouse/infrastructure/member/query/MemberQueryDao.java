@@ -20,6 +20,7 @@ import com.tastyhouse.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -35,13 +36,16 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
  * 붙이지 않고 순수 동작명을 쓰며, 소비자별로 필요한 필드 셋이 달라 Result를 통합하지 않는다
  * (회원 관리 목록은 {@link MemberListItemResult}, 프로필 요약은 {@link MemberWithProfileImageResult}).
  *
- * <p>프로필 이미지는 파일 경로만 투영하고 표시용 URL 조립은 소비 모듈이 담당한다.
+ * <p>프로필 이미지는 조인으로 얻은 저장 경로를 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에
+ * 담는다 — {@code @QueryProjection}은 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수 없어, fetch
+ * 직후 재조립한다.
  */
 @Repository
 @RequiredArgsConstructor
 public class MemberQueryDao {
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 회원 관리 목록 조회(admin) — 닉네임/아이디/휴대폰 부분일치와 상태·등급 필터를 적용한다.
@@ -72,7 +76,10 @@ public class MemberQueryDao {
             .orderBy(memberJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedProfileImageUrl)
+            .toList();
 
         Long total = queryFactory
             .select(memberJpaEntity.count())
@@ -101,7 +108,10 @@ public class MemberQueryDao {
             .orderBy(memberJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedProfileImageUrl)
+            .toList();
 
         Long total = queryFactory
             .select(memberJpaEntity.count())
@@ -117,13 +127,29 @@ public class MemberQueryDao {
      */
     public Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(MemberId memberId) {
         return Optional.ofNullable(
-            queryFactory
-                .select(memberWithProfileImageProjection())
-                .from(memberJpaEntity)
-                .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
-                .where(memberJpaEntity.id.eq(memberId.value()))
-                .fetchOne()
-        );
+                queryFactory
+                    .select(memberWithProfileImageProjection())
+                    .from(memberJpaEntity)
+                    .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
+                    .where(memberJpaEntity.id.eq(memberId.value()))
+                    .fetchOne()
+            )
+            .map(this::withResolvedProfileImageUrl);
+    }
+
+    /**
+     * 회원 상세 조립용 프로필 이미지 표시용 URL 단건 조회. 상세 응답은 도메인 모델({@code Member})을
+     * 그대로 써서 조립하지만, 프로필 이미지만은 이 조회로 대체해 파일 단건 재조회를 없앤다.
+     */
+    public Optional<String> findProfileImageUrl(MemberId memberId) {
+        String filePath = queryFactory
+            .select(uploadedFileJpaEntity.filePath)
+            .from(memberJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
+            .where(memberJpaEntity.id.eq(memberId.value()))
+            .fetchOne();
+
+        return Optional.ofNullable(fileUrlResolver.resolve(filePath));
     }
 
     /**
@@ -144,6 +170,7 @@ public class MemberQueryDao {
             .where(memberJpaEntity.id.in(distinctIds))
             .fetch()
             .stream()
+            .map(this::withResolvedProfileImageUrl)
             .collect(Collectors.toMap(
                 MemberWithProfileImageResult::id,
                 Function.identity(),
@@ -158,6 +185,35 @@ public class MemberQueryDao {
             memberJpaEntity.memberGrade,
             memberJpaEntity.statusMessage,
             uploadedFileJpaEntity.filePath
+        );
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private MemberListItemResult withResolvedProfileImageUrl(MemberListItemResult row) {
+        return new MemberListItemResult(
+            row.id(),
+            row.username(),
+            row.nickname(),
+            row.fullName(),
+            row.phoneNumber(),
+            row.gender(),
+            row.memberGrade(),
+            row.memberStatus(),
+            fileUrlResolver.resolve(row.profileImageUrl()),
+            row.createdAt()
+        );
+    }
+
+    private MemberWithProfileImageResult withResolvedProfileImageUrl(MemberWithProfileImageResult row) {
+        return new MemberWithProfileImageResult(
+            row.id(),
+            row.nickname(),
+            row.memberGrade(),
+            row.statusMessage(),
+            fileUrlResolver.resolve(row.profileImageUrl())
         );
     }
 

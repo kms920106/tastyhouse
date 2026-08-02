@@ -13,11 +13,12 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
  * 버그 제보 관리 상세 조회 결과.
  *
  * <p>비-admin 형제가 없어 {@code Management} 한정어 없이 순수명을 쓴다. 목록용 형제인
- * {@link BugReportListItemResult}와 달리 본문·처리 이력·첨부 파일 ID 목록까지 담는다.
+ * {@link BugReportListItemResult}와 달리 본문·처리 이력·첨부 이미지 목록까지 담는다.
  *
- * <p>{@code imageFileIds}는 별도 테이블(BUG_REPORT_IMAGE)의 다건이라 단일 QueryDSL 투영으로 채울 수
+ * <p>{@code images}는 별도 테이블(BUG_REPORT_IMAGE)의 다건이라 단일 QueryDSL 투영으로 채울 수
  * 없다. 따라서 스칼라 필드는 {@link BugReportDetailProjection}({@code @QueryProjection})으로 투영하고,
- * 이미지 ID는 DAO가 두 번째 조회로 모아 이 record의 {@code from} 팩토리로 합친다.
+ * 이미지는 DAO가 두 번째 조회(BUG_REPORT_IMAGE ⋈ UPLOADED_FILE)로 파일명·URL까지 모아 이 record의
+ * {@code from} 팩토리로 합친다(소비 측의 추가 파일 조회 제거).
  *
  * <p>{@code memberId}는 소비 모듈이 회원 요약 정보를 별도 조회하는 키로 쓰므로 도메인 VO
  * {@code MemberId}로 유지한다.
@@ -37,12 +38,12 @@ public record BugReportDetailResult(
     String appVersion,
     BugReportPlatform platform,
     String osVersion,
-    List<Long> imageFileIds,
+    List<BugReportImageResult> images,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
 
-    public static BugReportDetailResult from(BugReportDetailProjection projection, List<Long> imageFileIds) {
+    public static BugReportDetailResult from(BugReportDetailProjection projection, List<BugReportImageResult> images) {
         return new BugReportDetailResult(
             projection.id(),
             projection.memberId(),
@@ -58,7 +59,7 @@ public record BugReportDetailResult(
             projection.appVersion(),
             projection.platform(),
             projection.osVersion(),
-            imageFileIds,
+            images,
             projection.createdAt(),
             projection.updatedAt()
         );

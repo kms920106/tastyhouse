@@ -6,8 +6,8 @@ public record ShopAmenityCategoryResult(
     Long id,
     Amenity amenity,
     String displayName,
-    String activeFilePath,
-    String inactiveFilePath,
+    String activeIconUrl,
+    String inactiveIconUrl,
     Integer sort,
     boolean visible
 ) {

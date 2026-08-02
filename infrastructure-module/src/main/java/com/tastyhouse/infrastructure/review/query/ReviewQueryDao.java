@@ -25,6 +25,7 @@ import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewCommentJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity;
@@ -70,6 +71,7 @@ public class ReviewQueryDao {
     private static final QMemberJpaEntity replyToMember = new QMemberJpaEntity("replyToMember");
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 베스트 리뷰 목록 — 총점 높은 순 → 최신순. 대표 이미지(정렬값이 가장 작은 리뷰 이미지)를 함께 투영한다.
@@ -110,7 +112,10 @@ public class ReviewQueryDao {
         List<BestReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
 
         return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
@@ -160,6 +165,7 @@ public class ReviewQueryDao {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
+                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -217,6 +223,7 @@ public class ReviewQueryDao {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
+                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -301,6 +308,7 @@ public class ReviewQueryDao {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
+                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -385,6 +393,7 @@ public class ReviewQueryDao {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
+                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -442,6 +451,7 @@ public class ReviewQueryDao {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
+                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -499,6 +509,7 @@ public class ReviewQueryDao {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
+                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -542,7 +553,7 @@ public class ReviewQueryDao {
 
         if (result != null) {
             List<String> imageUrls = findImageUrlsByReviewId(reviewId.value());
-            result = result.withImageUrls(imageUrls);
+            result = withResolvedImageUrl(result.withImageUrls(imageUrls));
         }
 
         return Optional.ofNullable(result);
@@ -660,7 +671,10 @@ public class ReviewQueryDao {
             .orderBy(reviewJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -755,7 +769,10 @@ public class ReviewQueryDao {
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(commentReviewId().eq(reviewId.value()))
             .orderBy(reviewCommentJpaEntity.createdAt.desc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -794,7 +811,10 @@ public class ReviewQueryDao {
                 reviewReplyJpaEntity.hidden.eq(false)
             )
             .orderBy(reviewReplyJpaEntity.createdAt.asc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
     }
 
     /**
@@ -885,7 +905,8 @@ public class ReviewQueryDao {
     }
 
     /**
-     * 여러 리뷰의 이미지 URL을 리뷰 ID별로 묶어 조회한다(정렬값 오름차순).
+     * 여러 리뷰의 이미지 URL을 리뷰 ID별로 묶어 조회한다(정렬값 오름차순). 저장 경로는
+     * {@link FileUrlResolver}로 표시용 URL까지 변환한 뒤 돌려준다.
      */
     private Map<Long, List<String>> findImageUrlsByReviewIds(List<Long> reviewIds) {
         List<Tuple> results = queryFactory
@@ -901,27 +922,31 @@ public class ReviewQueryDao {
             .collect(Collectors.groupingBy(
                 tuple -> Objects.requireNonNull(tuple.get(imageReviewId())),
                 Collectors.mapping(
-                    tuple -> Objects.toString(tuple.get(uploadedFileJpaEntity.filePath), ""),
+                    tuple -> fileUrlResolver.resolve(Objects.toString(tuple.get(uploadedFileJpaEntity.filePath), "")),
                     Collectors.toList()
                 )
             ));
     }
 
     /**
-     * 단일 리뷰의 이미지 URL 목록(정렬값 오름차순).
+     * 단일 리뷰의 이미지 URL 목록(정렬값 오름차순). 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지
+     * 변환한 뒤 돌려준다.
      */
     private List<String> findImageUrlsByReviewId(Long reviewId) {
-        return queryFactory
+        List<String> filePaths = queryFactory
             .select(uploadedFileJpaEntity.filePath)
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(imageImageFileId().eq(uploadedFileJpaEntity.id))
             .where(imageReviewId().eq(reviewId))
             .orderBy(reviewImageJpaEntity.sort.asc())
             .fetch();
+
+        return fileUrlResolver.resolveAll(filePaths);
     }
 
     /**
-     * 여러 리뷰의 대표 이미지(정렬값이 가장 작은 1장) URL을 리뷰 ID별로 조회한다.
+     * 여러 리뷰의 대표 이미지(정렬값이 가장 작은 1장) URL을 리뷰 ID별로 조회한다. 저장 경로는
+     * {@link FileUrlResolver}로 표시용 URL까지 변환한 뒤 돌려준다.
      */
     private Map<Long, String> findFirstImageUrlsByReviewIds(List<Long> reviewIds) {
         if (reviewIds.isEmpty()) {
@@ -943,13 +968,106 @@ public class ReviewQueryDao {
             )
             .fetch();
 
-        return results.stream()
+        Map<Long, String> filePathByReviewId = results.stream()
             .filter(tuple -> tuple.get(imageReviewId()) != null && tuple.get(uploadedFileJpaEntity.filePath) != null)
             .collect(Collectors.toMap(
                 tuple -> Objects.requireNonNull(tuple.get(imageReviewId())),
                 tuple -> Objects.requireNonNull(tuple.get(uploadedFileJpaEntity.filePath)),
                 (existing, replacement) -> existing
             ));
+
+        return fileUrlResolver.resolveAll(filePathByReviewId);
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}은 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private SearchReviewItemResult withResolvedImageUrl(SearchReviewItemResult row) {
+        return new SearchReviewItemResult(
+            row.id(),
+            fileUrlResolver.resolve(row.imageUrl())
+        );
+    }
+
+    private BestReviewListItemResult withResolvedImageUrl(BestReviewListItemResult row) {
+        return new BestReviewListItemResult(
+            row.id(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.stationName(),
+            row.shopName(),
+            row.productName(),
+            row.totalRating(),
+            row.content()
+        );
+    }
+
+    private LatestReviewListItemResult withResolvedImageUrl(LatestReviewListItemResult row) {
+        return new LatestReviewListItemResult(
+            row.id(),
+            row.imageUrls(),
+            row.stationName(),
+            row.totalRating(),
+            row.content(),
+            row.memberId(),
+            row.memberNickname(),
+            fileUrlResolver.resolve(row.memberProfileImageUrl()),
+            row.createdAt(),
+            row.productId(),
+            row.productName(),
+            row.likeCount(),
+            row.commentCount()
+        );
+    }
+
+    private ReviewDetailResult withResolvedImageUrl(ReviewDetailResult row) {
+        return new ReviewDetailResult(
+            row.id(),
+            row.shopId(),
+            row.shopName(),
+            row.stationName(),
+            row.content(),
+            row.totalRating(),
+            row.tasteRating(),
+            row.amountRating(),
+            row.priceRating(),
+            row.atmosphereRating(),
+            row.kindnessRating(),
+            row.hygieneRating(),
+            row.willRevisit(),
+            row.memberId(),
+            row.memberNickname(),
+            fileUrlResolver.resolve(row.memberProfileImageUrl()),
+            row.createdAt(),
+            row.imageUrls(),
+            row.tagNames()
+        );
+    }
+
+    private ReviewCommentItemResult withResolvedImageUrl(ReviewCommentItemResult row) {
+        return new ReviewCommentItemResult(
+            row.id(),
+            row.reviewId(),
+            row.memberId(),
+            row.memberNickname(),
+            fileUrlResolver.resolve(row.memberProfileImageUrl()),
+            row.content(),
+            row.createdAt()
+        );
+    }
+
+    private ReviewReplyItemResult withResolvedImageUrl(ReviewReplyItemResult row) {
+        return new ReviewReplyItemResult(
+            row.id(),
+            row.commentId(),
+            row.memberId(),
+            row.memberNickname(),
+            fileUrlResolver.resolve(row.memberProfileImageUrl()),
+            row.replyToMemberId(),
+            row.replyToMemberNickname(),
+            row.content(),
+            row.createdAt()
+        );
     }
 
     // ----------------------------------------------------- @Convert VO 컬럼 우회

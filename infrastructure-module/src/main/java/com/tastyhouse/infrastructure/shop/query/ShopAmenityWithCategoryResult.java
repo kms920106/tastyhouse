@@ -5,6 +5,6 @@ import com.tastyhouse.domain.shop.domain.model.Amenity;
 public record ShopAmenityWithCategoryResult(
     Amenity amenity,
     String displayName,
-    String activeFilePath
+    String activeIconUrl
 ) {
 }

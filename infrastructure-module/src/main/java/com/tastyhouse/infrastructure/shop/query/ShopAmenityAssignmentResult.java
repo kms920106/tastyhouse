@@ -7,6 +7,6 @@ public record ShopAmenityAssignmentResult(
     Long amenityCategoryId,
     Amenity amenity,
     String displayName,
-    String activeFilePath
+    String activeIconUrl
 ) {
 }

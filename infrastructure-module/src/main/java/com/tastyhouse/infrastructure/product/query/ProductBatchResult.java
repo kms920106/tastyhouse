@@ -9,12 +9,15 @@ import java.util.List;
  * "판매 종료된 상품" 안내를 띄울 수 있게 합니다. (쿠팡 cartItemEnable 방식)
  * available=false 인 경우 name/price/options 는 비어 있습니다.
  * 요청한 옵션 중 조회에 실패하거나 해당 상품에 속하지 않는 옵션은 options 에서 제외됩니다.
+ *
+ * <p>이미지는 파일 조인으로 얻은 경로를 DAO가 표시용 URL까지 변환해 담으므로, 소비 모듈은 이 값을
+ * 그대로 응답에 전달한다.
  */
 public record ProductBatchResult(
     Long id,
     boolean available,
     String name,
-    String imageFilePath,
+    String imageUrl,
     Integer originalPrice,
     Integer discountPrice,
     BigDecimal discountRate,

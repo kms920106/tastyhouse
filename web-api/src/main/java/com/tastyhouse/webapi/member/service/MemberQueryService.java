@@ -12,7 +12,6 @@ import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
 import com.tastyhouse.webapi.member.response.MemberPhoneAvailabilityResponse;
@@ -26,8 +25,7 @@ import com.tastyhouse.webapi.member.response.MyProfileResponse;
  * 도메인 모델의 여러 필드를 그대로 노출해야 하므로 write 포트({@link MemberRepository})의 단건 로드를
  * 쓴다. 닉네임·휴대폰 사용 가능 여부는 원시 boolean 반환이라 write 포트의 중복 검증을 그대로 쓴다.
  *
- * <p>프로필 이미지는 DAO가 파일 경로만 투영하므로 표시용 URL 조립은 이 서비스가 담당한다
- * (응답 record 파일/이미지 필드 URL 규칙).
+ * <p>프로필 이미지는 DAO가 표시용 URL까지 변환해 담으므로, 이 서비스는 그 값을 그대로 응답에 전달한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -36,7 +34,6 @@ public class MemberQueryService {
 
     private final MemberQueryDao memberQueryDao;
     private final MemberRepository memberRepository;
-    private final FileService fileService;
 
     public MemberNicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
         boolean available = !memberRepository.existsByNickname(nickname);
@@ -55,7 +52,7 @@ public class MemberQueryService {
             result.nickname(),
             result.memberGrade().name(),
             result.statusMessage(),
-            fileService.getUrlByPath(result.profileImageFilePath())
+            result.profileImageUrl()
         );
     }
 
@@ -67,7 +64,7 @@ public class MemberQueryService {
             result.nickname(),
             result.memberGrade().name(),
             result.statusMessage(),
-            fileService.getUrlByPath(result.profileImageFilePath())
+            result.profileImageUrl()
         );
     }
 

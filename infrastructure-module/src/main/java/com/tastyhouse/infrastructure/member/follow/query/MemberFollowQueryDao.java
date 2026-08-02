@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.member.follow.persistence.QMemberFollowJpaEntity;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -29,6 +30,10 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
  * {@link MemberId} VO 경로이므로 raw {@code Long} PK({@code memberJpaEntity.id})와 직접 조인·비교할 수
  * 없다. {@link Expressions#numberPath}로 두 컬럼의 raw Long 경로를 우회 노출해 조인·비교에 사용한다
  * (write 어댑터 {@code MemberFollowRepositoryImpl}과 같은 이유의 같은 우회다).
+ *
+ * <p>프로필 이미지는 조인으로 얻은 저장 경로를 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에
+ * 담는다 — {@code @QueryProjection}은 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수 없어, fetch
+ * 직후 재조립한다.
  */
 @Repository
 @RequiredArgsConstructor
@@ -46,6 +51,7 @@ public class MemberFollowQueryDao {
         Expressions.numberPath(Long.class, viewerFollow, "followingId");
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 내가(memberId) 팔로우하는 회원 목록. {@code viewerMemberId}가 주어지면 각 항목에 뷰어의 팔로우
@@ -61,7 +67,10 @@ public class MemberFollowQueryDao {
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedProfileImageUrl)
+            .toList();
 
         Long total = queryFactory
             .select(memberFollowJpaEntity.count())
@@ -85,7 +94,10 @@ public class MemberFollowQueryDao {
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedProfileImageUrl)
+            .toList();
 
         Long total = queryFactory
             .select(memberFollowJpaEntity.count())
@@ -94,6 +106,20 @@ public class MemberFollowQueryDao {
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private FollowMemberResult withResolvedProfileImageUrl(FollowMemberResult row) {
+        return new FollowMemberResult(
+            row.memberId(),
+            row.nickname(),
+            row.memberGrade(),
+            fileUrlResolver.resolve(row.profileImageUrl()),
+            row.following()
+        );
     }
 
     private QFollowMemberResult followMemberProjection(MemberId viewerMemberId) {

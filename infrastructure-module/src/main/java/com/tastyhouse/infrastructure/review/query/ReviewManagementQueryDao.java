@@ -17,6 +17,7 @@ import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -49,6 +50,7 @@ public class ReviewManagementQueryDao {
     private static final QMemberJpaEntity replyToMember = new QMemberJpaEntity("replyToMember");
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 리뷰 목록(숨김 포함) — 검색 조건으로 동적 필터링, 최신순.
@@ -123,7 +125,7 @@ public class ReviewManagementQueryDao {
 
         if (result != null) {
             List<String> imageUrls = findImageUrlsByReviewId(reviewId.value());
-            result = result.withImageUrls(imageUrls);
+            result = withResolvedImageUrl(result.withImageUrls(imageUrls));
         }
 
         return Optional.ofNullable(result);
@@ -239,16 +241,48 @@ public class ReviewManagementQueryDao {
     }
 
     /**
-     * 단일 리뷰의 이미지 URL 목록(정렬값 오름차순).
+     * 단일 리뷰의 이미지 URL 목록(정렬값 오름차순). 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지
+     * 변환한 뒤 돌려준다.
      */
     private List<String> findImageUrlsByReviewId(Long reviewId) {
-        return queryFactory
+        List<String> filePaths = queryFactory
             .select(uploadedFileJpaEntity.filePath)
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(imageImageFileId().eq(uploadedFileJpaEntity.id))
             .where(imageReviewId().eq(reviewId))
             .orderBy(reviewImageJpaEntity.sort.asc())
             .fetch();
+
+        return fileUrlResolver.resolveAll(filePaths);
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}은 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private ReviewManagementDetailResult withResolvedImageUrl(ReviewManagementDetailResult row) {
+        return new ReviewManagementDetailResult(
+            row.id(),
+            row.shopId(),
+            row.shopName(),
+            row.stationName(),
+            row.content(),
+            row.totalRating(),
+            row.tasteRating(),
+            row.amountRating(),
+            row.priceRating(),
+            row.atmosphereRating(),
+            row.kindnessRating(),
+            row.hygieneRating(),
+            row.willRevisit(),
+            row.hidden(),
+            row.memberId(),
+            row.memberNickname(),
+            fileUrlResolver.resolve(row.memberProfileImageUrl()),
+            row.createdAt(),
+            row.imageUrls(),
+            row.tagNames()
+        );
     }
 
     /**

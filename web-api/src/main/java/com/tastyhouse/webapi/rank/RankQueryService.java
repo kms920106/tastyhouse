@@ -17,7 +17,6 @@ import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.infrastructure.rank.query.MemberRankResult;
 import com.tastyhouse.infrastructure.rank.query.RankPrizeResult;
 import com.tastyhouse.infrastructure.rank.query.RankQueryDao;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankMemberListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
@@ -27,10 +26,11 @@ import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
  *
  * <p>랭킹은 web에서 조회 전용이므로(집계·기간·경품 관리는 admin/batch 몫) CommandService 없이
  * QueryService만 둔다. infra read 어댑터({@link RankQueryDao})만 주입해 조회하고 Response를 조립한다
- * (패턴 2/3).
+ * (패턴 2/3). 랭킹 경품·회원 랭킹의 이미지 URL은 DAO가 완성해 주므로 여기서는 값을 그대로 응답에 전달한다.
  *
  * <p>내 랭킹 조회는 랭킹에 들지 못한 회원도 자기 정보를 볼 수 있어야 하므로, 랭킹 행이 없으면
- * {@link MemberQueryDao}로 회원 프로필만 읽어 리뷰 0건·순위 없음으로 응답한다.
+ * {@link MemberQueryDao}로 회원 프로필만 읽어 리뷰 0건·순위 없음으로 응답한다. 프로필 이미지는 그 DAO가
+ * 표시용 URL까지 변환해 담으므로 여기서는 값을 그대로 응답에 전달한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -39,7 +39,6 @@ public class RankQueryService {
 
     private final RankQueryDao rankQueryDao;
     private final MemberQueryDao memberQueryDao;
-    private final FileService fileService;
 
     public Optional<RankDurationResponse> getDuration() {
         return rankQueryDao.findActiveDuration()
@@ -81,7 +80,7 @@ public class RankQueryService {
         return RankMemberListItemResponse.of(
             memberId.value(),
             member.nickname(),
-            fileService.getUrlByPath(member.profileImageFilePath()),
+            member.profileImageUrl(),
             0,
             null,
             member.memberGrade().name()
@@ -92,7 +91,7 @@ public class RankQueryService {
         return RankMemberListItemResponse.of(
             dto.memberId().value(),
             dto.nickname(),
-            fileService.getUrlByPath(dto.profileImageFilePath()),
+            dto.profileImageUrl(),
             dto.reviewCount(),
             dto.rankNo(),
             dto.grade().name()
@@ -105,7 +104,7 @@ public class RankQueryService {
             dto.prizeRank(),
             dto.name(),
             dto.brand(),
-            fileService.getUrlByPath(dto.imageFilePath())
+            dto.imageUrl()
         );
     }
 

@@ -59,7 +59,7 @@ public class ShopConvenienceInfoQueryService {
             dto.amenityCategoryId(),
             dto.amenity().name(),
             dto.displayName(),
-            dto.activeFilePath()
+            dto.activeIconUrl()
         );
     }
 }

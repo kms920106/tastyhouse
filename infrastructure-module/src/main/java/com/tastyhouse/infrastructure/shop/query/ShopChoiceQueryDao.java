@@ -19,6 +19,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.shop.domain.service.EditorChoicePolicy;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity;
 import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
 import com.tastyhouse.infrastructure.product.query.QProductSimpleResult;
@@ -52,6 +53,7 @@ public class ShopChoiceQueryDao {
     private static final QProductImageJpaEntity subProductImage = new QProductImageJpaEntity("subProductImage");
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 에디터 추천 목록 — 가게 정보와 대표 상품 {@value EditorChoicePolicy#PRODUCT_LIMIT}건을 함께 채운다.
@@ -102,7 +104,7 @@ public class ShopChoiceQueryDao {
                     tuple.get(shopJpaEntity.name),
                     tuple.get(shopChoiceJpaEntity.title),
                     tuple.get(shopChoiceJpaEntity.content),
-                    tuple.get(uploadedFileJpaEntity.filePath),
+                    fileUrlResolver.resolve(tuple.get(uploadedFileJpaEntity.filePath)),
                     products
                 );
             })
@@ -165,19 +167,18 @@ public class ShopChoiceQueryDao {
             return Map.of();
         }
 
+        QProductSimpleResult productProjection = new QProductSimpleResult(
+            productJpaEntity.id,
+            shopJpaEntity.name,
+            productJpaEntity.name,
+            uploadedFileJpaEntity.filePath,
+            productJpaEntity.originalPrice,
+            productJpaEntity.discountInfo.discountPrice,
+            productJpaEntity.discountInfo.discountRate
+        );
+
         List<Tuple> productTuples = queryFactory
-            .select(
-                productShopId(),
-                new QProductSimpleResult(
-                    productJpaEntity.id,
-                    shopJpaEntity.name,
-                    productJpaEntity.name,
-                    uploadedFileJpaEntity.filePath,
-                    productJpaEntity.originalPrice,
-                    productJpaEntity.discountInfo.discountPrice,
-                    productJpaEntity.discountInfo.discountRate
-                )
-            )
+            .select(productShopId(), productProjection)
             .from(productJpaEntity)
             .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(productShopId()))
             .leftJoin(productImageJpaEntity).on(
@@ -200,7 +201,7 @@ public class ShopChoiceQueryDao {
             .collect(Collectors.groupingBy(
                 tuple -> Objects.requireNonNull(tuple.get(productShopId())),
                 Collectors.mapping(
-                    tuple -> tuple.get(1, ProductSimpleResult.class),
+                    tuple -> withResolvedImageUrl(Objects.requireNonNull(tuple.get(productProjection))),
                     Collectors.toList()
                 )
             ))
@@ -209,6 +210,22 @@ public class ShopChoiceQueryDao {
                 Map.Entry::getKey,
                 entry -> entry.getValue().stream().limit(EditorChoicePolicy.PRODUCT_LIMIT).toList()
             ));
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private ProductSimpleResult withResolvedImageUrl(ProductSimpleResult row) {
+        return new ProductSimpleResult(
+            row.id(),
+            row.shopName(),
+            row.name(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.originalPrice(),
+            row.discountPrice(),
+            row.discountRate()
+        );
     }
 
     // ----------------------------------------------------- @Convert VO 컬럼 우회

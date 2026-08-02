@@ -30,7 +30,6 @@ import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.webapi.common.PaginationResponse;
-import com.tastyhouse.webapi.file.FileService;
 import com.tastyhouse.webapi.product.request.ProductBatchRequest;
 import com.tastyhouse.webapi.product.response.ProductBatchOptionResponse;
 import com.tastyhouse.webapi.product.response.ProductBatchResponse;
@@ -64,7 +63,6 @@ public class ProductQueryService {
     private final ProductQueryDao productQueryDao;
     private final ReviewQueryDao reviewQueryDao;
     private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
-    private final FileService fileService;
 
     public PaginationResponse<ProductTodayDiscountListItemResponse> searchTodayDiscountProducts(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
@@ -79,7 +77,7 @@ public class ProductQueryService {
             dto.id(),
             dto.shopName(),
             dto.name(),
-            fileService.getUrlByPath(dto.imageUrl()),
+            dto.imageUrl(),
             dto.originalPrice(),
             dto.discountPrice(),
             dto.discountRate()
@@ -140,7 +138,7 @@ public class ProductQueryService {
             result.id(),
             result.available(),
             result.name(),
-            fileService.getUrlByPath(result.imageFilePath()),
+            result.imageUrl(),
             result.originalPrice(),
             result.discountPrice(),
             options
@@ -177,9 +175,7 @@ public class ProductQueryService {
 
     public ProductImagesResponse findProductImages(Long productId) {
         loadProductDetail(productId);
-        List<String> imageUrls = productQueryDao.findProductImagePaths(productId).stream()
-            .map(fileService::getUrlByPath)
-            .toList();
+        List<String> imageUrls = productQueryDao.findProductImageUrls(productId);
         return ProductImagesResponse.from(imageUrls);
     }
 
@@ -215,12 +211,12 @@ public class ProductQueryService {
     private ProductReviewListItemResponse toProductReviewListItemResponse(LatestReviewListItemResult dto) {
         return ProductReviewListItemResponse.from(
             dto.id(),
-            dto.imageUrls().stream().map(fileService::getUrlByPath).toList(),
+            dto.imageUrls(),
             dto.totalRating(),
             dto.content(),
             dto.memberId().value(),
             dto.memberNickname(),
-            fileService.getUrlByPath(dto.memberProfileImageUrl()),
+            dto.memberProfileImageUrl(),
             dto.createdAt(),
             dto.productId(),
             dto.productName()

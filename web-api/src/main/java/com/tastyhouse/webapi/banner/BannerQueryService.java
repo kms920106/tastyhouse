@@ -11,14 +11,13 @@ import com.tastyhouse.infrastructure.banner.query.BannerListItemResult;
 import com.tastyhouse.infrastructure.banner.query.BannerQueryDao;
 import com.tastyhouse.webapi.common.PaginationResponse;
 import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
-import com.tastyhouse.webapi.file.FileService;
 
 /**
  * 배너 조회 서비스.
  *
  * <p>회원 노출용 조회만 있는 도메인이라 command 서비스 없이 QueryService만 둔다. infra read
- * 어댑터({@link BannerQueryDao})를 주입해 현재 노출 중인 배너만 조회하고, 파일 경로를 표시용
- * URL로 변환해 Response를 조립한다.
+ * 어댑터({@link BannerQueryDao})를 주입해 현재 노출 중인 배너만 조회한다. 이미지 URL은 DAO가
+ * 완성해 주므로 여기서는 파일을 알지 않고 값을 그대로 응답에 전달한다.
  *
  * <p>배너 유형은 노출 위치별 전용 엔드포인트로 고정되어 있어 HTTP 파라미터로 받지 않고 이 서비스가
  * 직접 core enum 상수를 지정한다.
@@ -29,7 +28,6 @@ import com.tastyhouse.webapi.file.FileService;
 public class BannerQueryService {
 
     private final BannerQueryDao bannerQueryDao;
-    private final FileService fileService;
 
     public PaginationResponse<BannerListItemResponse> getHomeBanners(int page, int size) {
         return getBannersByType(BannerType.HOME, page, size);
@@ -50,7 +48,7 @@ public class BannerQueryService {
         return BannerListItemResponse.from(
             dto.id(),
             dto.title(),
-            fileService.getUrlByPath(dto.filePath()),
+            dto.imageUrl(),
             dto.linkUrl()
         );
     }

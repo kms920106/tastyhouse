@@ -20,6 +20,7 @@ import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
@@ -44,12 +45,17 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * {@code ORDER_PRODUCT_OPTION.order_product_id}는 전부 {@code @Convert}로 VO에 매핑된 FK 필드라 QueryDSL이
  * VO 타입 path를 생성하므로, {@link Expressions#numberPath}로 raw {@code Long} 컬럼 비교·투영을 우회한다
  * (ID VO 경계 규칙 — query DAO 계층은 항상 raw {@code Long}을 쓴다).
+ *
+ * <p>가게 대표 이미지(주문 목록)는 조인으로 얻은 저장 경로를 {@link FileUrlResolver}로 표시용 URL까지
+ * 변환해 Result에 담는다. 주문 상품 이미지({@code OrderProductResult#imageUrl})는 주문 생성 시점에 이미
+ * URL로 스냅샷된 값이라 이 변환 대상이 아니다.
  */
 @Repository
 @RequiredArgsConstructor
 public class OrderQueryDao {
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 내 주문 목록(web-api용) — 결제가 완료·취소된 주문만 최신순으로 보여준다.
@@ -89,7 +95,10 @@ public class OrderQueryDao {
             .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedShopThumbnailImageUrl)
+            .toList();
 
         Long total = queryFactory
             .select(orderJpaEntity.count())
@@ -99,6 +108,23 @@ public class OrderQueryDao {
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private OrderListItemResult withResolvedShopThumbnailImageUrl(OrderListItemResult row) {
+        return new OrderListItemResult(
+            row.id(),
+            row.shopName(),
+            fileUrlResolver.resolve(row.shopThumbnailImageUrl()),
+            row.firstProductName(),
+            row.totalItemCount(),
+            row.amount(),
+            row.paymentStatus(),
+            row.paymentDate()
+        );
     }
 
     /**

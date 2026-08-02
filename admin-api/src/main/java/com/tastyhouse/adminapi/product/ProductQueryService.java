@@ -19,7 +19,6 @@ import com.tastyhouse.infrastructure.product.query.ProductOptionsResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 import com.tastyhouse.infrastructure.product.query.ProductSearchCondition;
 import com.tastyhouse.adminapi.common.PaginationResponse;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.product.response.ProductCategoryResponse;
 import com.tastyhouse.adminapi.product.response.ProductDetailResponse;
 import com.tastyhouse.adminapi.product.response.ProductImagesResponse;
@@ -38,7 +37,6 @@ import com.tastyhouse.adminapi.product.response.ProductOptionResponse;
 public class ProductQueryService {
 
     private final ProductQueryDao productQueryDao;
-    private final FileService fileService;
 
     public PaginationResponse<ProductListItemResponse> getProducts(
         Long shopId,
@@ -129,9 +127,7 @@ public class ProductQueryService {
     }
 
     public ProductImagesResponse getProductImages(Long id) {
-        List<String> imageUrls = productQueryDao.findProductImagePaths(id).stream()
-            .map(fileService::getUrlByPath)
-            .toList();
+        List<String> imageUrls = productQueryDao.findProductImageUrls(id);
         return ProductImagesResponse.from(imageUrls);
     }
 

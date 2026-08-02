@@ -6,8 +6,8 @@ public record ShopFoodTypeCategoryResult(
     Long id,
     FoodType foodType,
     String displayName,
-    String activeFilePath,
-    String inactiveFilePath,
+    String activeIconUrl,
+    String inactiveIconUrl,
     Integer sort,
     boolean visible
 ) {

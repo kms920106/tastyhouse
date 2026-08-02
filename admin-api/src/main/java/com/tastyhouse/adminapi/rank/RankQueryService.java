@@ -16,7 +16,6 @@ import com.tastyhouse.infrastructure.rank.query.MemberRankResult;
 import com.tastyhouse.infrastructure.rank.query.RankPeriodResult;
 import com.tastyhouse.infrastructure.rank.query.RankPrizeManagementResult;
 import com.tastyhouse.infrastructure.rank.query.RankQueryDao;
-import com.tastyhouse.adminapi.file.FileService;
 import com.tastyhouse.adminapi.file.response.FileResponse;
 import com.tastyhouse.adminapi.rank.response.RankMemberListItemResponse;
 import com.tastyhouse.adminapi.rank.response.RankPeriodDetailResponse;
@@ -30,7 +29,7 @@ import com.tastyhouse.adminapi.rank.response.RankPrizeListItemResponse;
  * <p>infra read 어댑터({@link RankQueryDao})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 도메인
  * write 포트를 주입하지 않으므로 조회 경로가 도메인 모델을 거치지 않는다.
  *
- * <p>파일 URL은 DAO가 join으로 함께 가져온 파일 경로를 {@link FileService}로 표시용 URL로 바꿔 만든다
+ * <p>파일 URL은 DAO가 join으로 함께 표시용 URL까지 완성해 주므로 여기서는 값을 그대로 응답에 전달한다
  * (응답에 파일 ID 대신 URL을 노출하는 규칙).
  */
 @Service
@@ -39,7 +38,6 @@ import com.tastyhouse.adminapi.rank.response.RankPrizeListItemResponse;
 public class RankQueryService {
 
     private final RankQueryDao rankQueryDao;
-    private final FileService fileService;
 
     public List<RankMemberListItemResponse> getMemberRankList(String type, int limit) {
         RankType rankType = RankType.from(type);
@@ -78,7 +76,7 @@ public class RankQueryService {
         return RankMemberListItemResponse.of(
             dto.memberId().value(),
             dto.nickname(),
-            fileService.getUrlByPath(dto.profileImageFilePath()),
+            dto.profileImageUrl(),
             dto.reviewCount(),
             dto.rankNo(),
             dto.grade().name()
@@ -130,6 +128,6 @@ public class RankQueryService {
         if (dto.imageFileId() == null) {
             return null;
         }
-        return FileResponse.of(dto.imageFileId(), dto.imageFileName(), fileService.getUrlByPath(dto.imageFilePath()));
+        return FileResponse.of(dto.imageFileId(), dto.imageFileName(), dto.imageUrl());
     }
 }

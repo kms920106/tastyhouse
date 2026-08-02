@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.reservation.domain.model.ReservationStatus;
 import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -37,12 +38,17 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * <p>도메인당 DAO 1개 원칙에 따라 소비자별 메서드를 이 한 클래스에 둔다. 내 예약 목록
  * ({@code findReservationsByMemberId})과 가게별 예약 목록({@code findReservationsByShopId})은
  * 시그니처로 구분하며 점주/admin 마커는 붙이지 않는다.
+ *
+ * <p>가게 대표 이미지는 조인으로 얻은 저장 경로를 {@link FileUrlResolver}로 표시용 URL까지 변환해
+ * Result에 담는다 — {@code @QueryProjection}은 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수
+ * 없어, fetch 직후 재조립한다.
  */
 @Repository
 @RequiredArgsConstructor
 public class ReservationQueryDao {
 
     private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
 
     /**
      * 내 예약 목록 — 최근 예약 일시 순.
@@ -51,7 +57,10 @@ public class ReservationQueryDao {
         return reservationQuery()
             .where(reservationJpaEntity.memberId.eq(memberId))
             .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedShopImageUrl)
+            .toList();
     }
 
     /**
@@ -61,7 +70,10 @@ public class ReservationQueryDao {
         return reservationQuery()
             .where(reservationShopId().eq(shopId))
             .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(this::withResolvedShopImageUrl)
+            .toList();
     }
 
     /**
@@ -69,10 +81,11 @@ public class ReservationQueryDao {
      */
     public Optional<ReservationResult> findReservationById(ReservationId id) {
         return Optional.ofNullable(
-            reservationQuery()
-                .where(reservationJpaEntity.id.eq(id.value()))
-                .fetchOne()
-        );
+                reservationQuery()
+                    .where(reservationJpaEntity.id.eq(id.value()))
+                    .fetchOne()
+            )
+            .map(this::withResolvedShopImageUrl);
     }
 
     /**
@@ -105,7 +118,7 @@ public class ReservationQueryDao {
             .where(reservationJpaEntity.id.eq(id.value()))
             .fetchOne();
 
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(result).map(this::withResolvedShopImageUrl);
     }
 
     /**
@@ -169,6 +182,49 @@ public class ReservationQueryDao {
             reservationJpaEntity.status,
             reservationJpaEntity.request,
             reservationJpaEntity.createdAt
+        );
+    }
+
+    /**
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 두 메서드는 {@code @QueryProjection}이
+     * 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     */
+    private ReservationResult withResolvedShopImageUrl(ReservationResult row) {
+        return new ReservationResult(
+            row.id(),
+            row.shopId(),
+            row.shopName(),
+            fileUrlResolver.resolve(row.shopImageUrl()),
+            row.shopRoadAddress(),
+            row.shopLotAddress(),
+            row.memberId(),
+            row.reservationDate(),
+            row.reservationTime(),
+            row.partySize(),
+            row.status(),
+            row.request(),
+            row.createdAt()
+        );
+    }
+
+    private ReservationDetailResult withResolvedShopImageUrl(ReservationDetailResult row) {
+        return new ReservationDetailResult(
+            row.id(),
+            row.shopId(),
+            row.shopName(),
+            fileUrlResolver.resolve(row.shopImageUrl()),
+            row.shopRoadAddress(),
+            row.shopLotAddress(),
+            row.memberId(),
+            row.reserverName(),
+            row.reserverPhoneNumber(),
+            row.reserverEmail(),
+            row.reservationDate(),
+            row.reservationTime(),
+            row.partySize(),
+            row.status(),
+            row.request(),
+            row.createdAt()
         );
     }
 

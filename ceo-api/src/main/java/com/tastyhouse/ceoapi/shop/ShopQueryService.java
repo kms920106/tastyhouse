@@ -1,5 +1,7 @@
 package com.tastyhouse.ceoapi.shop;
 
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,11 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
 import com.tastyhouse.infrastructure.shop.query.ShopListItemResult;
+import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchCondition;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
 import com.tastyhouse.ceoapi.common.PaginationResponse;
-import com.tastyhouse.ceoapi.file.FileService;
 import com.tastyhouse.ceoapi.shop.response.ShopDetailResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopListItemResponse;
 
@@ -27,8 +30,8 @@ import com.tastyhouse.ceoapi.shop.response.ShopListItemResponse;
 public class ShopQueryService {
 
     private final ShopSearchQueryDao shopSearchQueryDao;
+    private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
-    private final FileService fileService;
 
     public PaginationResponse<ShopListItemResponse> getMyShops(
         Long ceoId,
@@ -62,6 +65,10 @@ public class ShopQueryService {
     }
 
     private ShopDetailResponse toShopDetailResponse(Shop shop) {
+        Optional<ShopImageUrlsResult> imageUrls = shopQueryDao.findShopImageUrls(shop.getId());
+        String thumbnailImageUrl = imageUrls.map(ShopImageUrlsResult::thumbnailImageUrl).orElse(null);
+        String trademarkImageUrl = imageUrls.map(ShopImageUrlsResult::trademarkImageUrl).orElse(null);
+
         return ShopDetailResponse.from(
             shop.getId(),
             shop.getStationId() == null ? null : shop.getStationId().value(),
@@ -72,18 +79,11 @@ public class ShopQueryService {
             shop.getRoadAddress(),
             shop.getLotAddress(),
             shop.getPhoneNumber(),
-            resolveImageUrl(shop.getThumbnailImageFileId() == null ? null : shop.getThumbnailImageFileId().value()),
-            resolveImageUrl(shop.getTrademarkImageFileId() == null ? null : shop.getTrademarkImageFileId().value()),
+            thumbnailImageUrl,
+            trademarkImageUrl,
             shop.isPermanentlyClosed(),
             shop.isHidden(),
             shop.isClosedOnPublicHolidays()
         );
-    }
-
-    private String resolveImageUrl(Long imageFileId) {
-        if (imageFileId == null) {
-            return null;
-        }
-        return fileService.getUrlByFileId(imageFileId);
     }
 }
