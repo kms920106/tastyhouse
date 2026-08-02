@@ -13,7 +13,10 @@ spring:
       - classpath:application-infrastructure.yml
       - classpath:application-external.yml
       - classpath:application-security.yml
+      # .env는 작업 디렉터리 기준 상대경로로 해석되므로, 모노레포 루트에서 실행하는 경우와
+      # backend/api에서 실행하는 경우를 모두 지원하도록 두 경로를 함께 선언한다.
       - optional:file:.env[.properties]
+      - optional:file:backend/api/.env[.properties]
   servlet:
     multipart:
       max-file-size: 10MB
