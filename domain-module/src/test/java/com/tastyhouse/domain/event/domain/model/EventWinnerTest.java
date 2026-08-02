@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.domain.event.domain.vo.EventId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,10 +22,10 @@ class EventWinnerTest {
     void of_createsTransientEventWinner() {
         LocalDateTime announcedAt = LocalDateTime.of(2026, 1, 1, 0, 0);
 
-        EventWinner winner = EventWinner.of(1L, 1, "당첨자", "01012345678", announcedAt);
+        EventWinner winner = EventWinner.of(EventId.of(1L), 1, "당첨자", "01012345678", announcedAt);
 
         assertThat(winner.getId()).isNull();
-        assertThat(winner.getEventId()).isEqualTo(1L);
+        assertThat(winner.getEventId()).isEqualTo(EventId.of(1L));
         assertThat(winner.getRankNo()).isEqualTo(1);
         assertThat(winner.getWinnerName()).isEqualTo("당첨자");
         assertThat(winner.getPhoneNumber().value()).isEqualTo("01012345678");
@@ -37,7 +38,7 @@ class EventWinnerTest {
     void of_withInvalidPhoneNumber_throws() {
         LocalDateTime announcedAt = LocalDateTime.of(2026, 1, 1, 0, 0);
 
-        assertThatThrownBy(() -> EventWinner.of(1L, 1, "당첨자", "invalid", announcedAt))
+        assertThatThrownBy(() -> EventWinner.of(EventId.of(1L), 1, "당첨자", "invalid", announcedAt))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -45,7 +46,7 @@ class EventWinnerTest {
     @DisplayName("delete는 삭제 플래그를 true로 만든다(soft delete)")
     void delete_marksDeleted() {
         LocalDateTime announcedAt = LocalDateTime.of(2026, 1, 1, 0, 0);
-        EventWinner winner = EventWinner.of(1L, 1, "당첨자", "01012345678", announcedAt);
+        EventWinner winner = EventWinner.of(EventId.of(1L), 1, "당첨자", "01012345678", announcedAt);
 
         winner.delete();
 
@@ -58,10 +59,10 @@ class EventWinnerTest {
         LocalDateTime announcedAt = LocalDateTime.of(2026, 1, 1, 0, 0);
         PhoneNumber phoneNumber = new PhoneNumber("01012345678");
 
-        EventWinner winner = EventWinner.reconstitute(1L, 2L, 1, "당첨자", phoneNumber, announcedAt, false);
+        EventWinner winner = EventWinner.reconstitute(1L, EventId.of(2L), 1, "당첨자", phoneNumber, announcedAt, false);
 
         assertThat(winner.getId()).isEqualTo(1L);
-        assertThat(winner.getEventId()).isEqualTo(2L);
+        assertThat(winner.getEventId()).isEqualTo(EventId.of(2L));
         assertThat(winner.getRankNo()).isEqualTo(1);
         assertThat(winner.getWinnerName()).isEqualTo("당첨자");
         assertThat(winner.getPhoneNumber()).isEqualTo(phoneNumber);

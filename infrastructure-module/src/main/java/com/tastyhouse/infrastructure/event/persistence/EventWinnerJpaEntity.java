@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.event.domain.vo.EventId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -40,8 +42,9 @@ public class EventWinnerJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
+    @Convert(converter = EventIdConverter.class)
     @Column(name = "event_id", nullable = false)
-    private Long eventId; // 이벤트 ID (EVENT.id 참조)
+    private EventId eventId; // 이벤트 ID (EVENT.id 참조)
 
     @Column(name = "rank_no", nullable = false)
     private Integer rankNo; // 당첨 순위
@@ -60,7 +63,7 @@ public class EventWinnerJpaEntity extends BaseEntity {
     private boolean deleted; // 삭제 여부 (Soft Delete)
 
     private EventWinnerJpaEntity(
-        Long eventId,
+        EventId eventId,
         Integer rankNo,
         String winnerName,
         PhoneNumber phoneNumber,
@@ -79,7 +82,7 @@ public class EventWinnerJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code EventWinnerMapper#toEntity}에서만 호출한다.
      */
     static EventWinnerJpaEntity create(
-        Long eventId,
+        EventId eventId,
         Integer rankNo,
         String winnerName,
         PhoneNumber phoneNumber,

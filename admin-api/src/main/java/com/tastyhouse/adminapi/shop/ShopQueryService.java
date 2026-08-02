@@ -106,7 +106,7 @@ public class ShopQueryService {
     private ShopDetailResponse toShopDetailResponse(Shop shop) {
         return ShopDetailResponse.from(
             shop.getId(),
-            shop.getStationId(),
+            shop.getStationId() == null ? null : shop.getStationId().value(),
             shop.getName(),
             shop.getLatitude(),
             shop.getLongitude(),
@@ -114,7 +114,7 @@ public class ShopQueryService {
             shop.getRoadAddress(),
             shop.getLotAddress(),
             shop.getPhoneNumber(),
-            toImageUrl(shop.getThumbnailImageFileId()),
+            toImageUrl(shop.getThumbnailImageFileId() == null ? null : shop.getThumbnailImageFileId().value()),
             shop.isPermanentlyClosed(),
             shop.getCreatedAt(),
             shop.getUpdatedAt()

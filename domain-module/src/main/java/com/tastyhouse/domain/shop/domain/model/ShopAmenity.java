@@ -1,6 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
 import lombok.Getter;
+import com.tastyhouse.domain.shop.domain.vo.ShopAmenityCategoryId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상점-편의시설 배정 순수 도메인 모델.
@@ -12,23 +14,23 @@ import lombok.Getter;
 public class ShopAmenity {
 
     private final Long id;
-    private final Long shopId;
-    private final Long shopAmenityCategoryId;
+    private final ShopId shopId;
+    private final ShopAmenityCategoryId shopAmenityCategoryId;
 
-    private ShopAmenity(Long id, Long shopId, Long shopAmenityCategoryId) {
+    private ShopAmenity(Long id, ShopId shopId, ShopAmenityCategoryId shopAmenityCategoryId) {
         this.id = id;
         this.shopId = shopId;
         this.shopAmenityCategoryId = shopAmenityCategoryId;
     }
 
-    public static ShopAmenity of(Long shopId, Long shopAmenityCategoryId) {
+    public static ShopAmenity of(ShopId shopId, ShopAmenityCategoryId shopAmenityCategoryId) {
         return new ShopAmenity(null, shopId, shopAmenityCategoryId);
     }
 
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ShopAmenity reconstitute(Long id, Long shopId, Long shopAmenityCategoryId) {
+    public static ShopAmenity reconstitute(Long id, ShopId shopId, ShopAmenityCategoryId shopAmenityCategoryId) {
         return new ShopAmenity(id, shopId, shopAmenityCategoryId);
     }
 }

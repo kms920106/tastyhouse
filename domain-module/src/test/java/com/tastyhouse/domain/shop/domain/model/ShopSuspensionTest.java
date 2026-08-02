@@ -10,6 +10,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
@@ -23,10 +24,10 @@ class ShopSuspensionTest {
         LocalDateTime startAt = LocalDateTime.of(2026, 8, 1, 10, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 8, 1, 12, 0);
 
-        ShopSuspension shopSuspension = ShopSuspension.of(1L, SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt);
+        ShopSuspension shopSuspension = ShopSuspension.of(ShopId.of(1L), SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt);
 
         assertThat(shopSuspension.getId()).isNull();
-        assertThat(shopSuspension.getShopId()).isEqualTo(1L);
+        assertThat(shopSuspension.getShopId()).isEqualTo(ShopId.of(1L));
         assertThat(shopSuspension.getReason()).isEqualTo(SuspensionReason.BAD_WEATHER);
         assertThat(shopSuspension.getOrderMethod()).isEqualTo(OrderMethod.DELIVERY);
         assertThat(shopSuspension.getStartAt()).isEqualTo(startAt);
@@ -41,7 +42,7 @@ class ShopSuspensionTest {
         LocalDateTime startAt = LocalDateTime.of(2026, 8, 1, 12, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 8, 1, 10, 0);
 
-        assertThatThrownBy(() -> ShopSuspension.of(1L, SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt))
+        assertThatThrownBy(() -> ShopSuspension.of(ShopId.of(1L), SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
             .isEqualTo(ErrorCode.SHOP_SUSPENSION_INVALID_PERIOD);
@@ -52,7 +53,7 @@ class ShopSuspensionTest {
     void release_setsReleasedAt_andIsActiveReturnsFalse() {
         LocalDateTime startAt = LocalDateTime.of(2026, 8, 1, 10, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 8, 1, 12, 0);
-        ShopSuspension shopSuspension = ShopSuspension.of(1L, SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt);
+        ShopSuspension shopSuspension = ShopSuspension.of(ShopId.of(1L), SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt);
         LocalDateTime releasedAt = LocalDateTime.of(2026, 8, 1, 11, 0);
 
         shopSuspension.release(releasedAt);
@@ -66,7 +67,7 @@ class ShopSuspensionTest {
     void isActive_returnsTrue_whenWithinPeriodAndNotReleased() {
         LocalDateTime startAt = LocalDateTime.of(2026, 8, 1, 10, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 8, 1, 12, 0);
-        ShopSuspension shopSuspension = ShopSuspension.of(1L, SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt);
+        ShopSuspension shopSuspension = ShopSuspension.of(ShopId.of(1L), SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt);
 
         assertThat(shopSuspension.isActive(LocalDateTime.of(2026, 8, 1, 11, 0))).isTrue();
     }
@@ -81,11 +82,11 @@ class ShopSuspensionTest {
         LocalDateTime updatedAt = LocalDateTime.of(2026, 7, 25, 10, 30);
 
         ShopSuspension shopSuspension = ShopSuspension.reconstitute(
-            1L, 2L, SuspensionReason.UNREACHABLE, null, startAt, endAt, releasedAt, createdAt, updatedAt
+            1L, ShopId.of(2L), SuspensionReason.UNREACHABLE, null, startAt, endAt, releasedAt, createdAt, updatedAt
         );
 
         assertThat(shopSuspension.getId()).isEqualTo(1L);
-        assertThat(shopSuspension.getShopId()).isEqualTo(2L);
+        assertThat(shopSuspension.getShopId()).isEqualTo(ShopId.of(2L));
         assertThat(shopSuspension.getReason()).isEqualTo(SuspensionReason.UNREACHABLE);
         assertThat(shopSuspension.getOrderMethod()).isNull();
         assertThat(shopSuspension.getReleasedAt()).isEqualTo(releasedAt);

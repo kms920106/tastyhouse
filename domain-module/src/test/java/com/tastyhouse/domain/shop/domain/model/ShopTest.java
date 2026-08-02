@@ -7,7 +7,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.domain.ceo.domain.vo.CeoId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.domain.vo.StationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -24,18 +27,18 @@ class ShopTest {
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 폐업하지 않은 상태다")
     void of_createsTransientShop() {
         Shop shop = Shop.of(
-            1L,
+            StationId.of(1L),
             "상점명",
             BigDecimal.valueOf(37.5),
             BigDecimal.valueOf(127.0),
             "도로명 주소",
             "지번 주소",
             "010-1234-5678",
-            10L
+            UploadedFileId.of(10L)
         );
 
         assertThat(shop.getId()).isNull();
-        assertThat(shop.getStationId()).isEqualTo(1L);
+        assertThat(shop.getStationId()).isEqualTo(StationId.of(1L));
         assertThat(shop.getName()).isEqualTo("상점명");
         assertThat(shop.getLatitude()).isEqualTo(BigDecimal.valueOf(37.5));
         assertThat(shop.getLongitude()).isEqualTo(BigDecimal.valueOf(127.0));
@@ -43,7 +46,7 @@ class ShopTest {
         assertThat(shop.getRoadAddress()).isEqualTo("도로명 주소");
         assertThat(shop.getLotAddress()).isEqualTo("지번 주소");
         assertThat(shop.getPhoneNumber()).isEqualTo("010-1234-5678");
-        assertThat(shop.getThumbnailImageFileId()).isEqualTo(10L);
+        assertThat(shop.getThumbnailImageFileId()).isEqualTo(UploadedFileId.of(10L));
         assertThat(shop.isPermanentlyClosed()).isFalse();
         assertThat(shop.getCreatedAt()).isNull();
         assertThat(shop.getUpdatedAt()).isNull();
@@ -53,49 +56,49 @@ class ShopTest {
     @DisplayName("update는 상점 정보를 변경한다")
     void update_changesFields() {
         Shop shop = Shop.of(
-            1L,
+            StationId.of(1L),
             "상점명",
             BigDecimal.valueOf(37.5),
             BigDecimal.valueOf(127.0),
             "도로명 주소",
             "지번 주소",
             "010-1234-5678",
-            10L
+            UploadedFileId.of(10L)
         );
 
         shop.update(
-            2L,
+            StationId.of(2L),
             "새 상점명",
             BigDecimal.valueOf(37.6),
             BigDecimal.valueOf(127.1),
             "새 도로명 주소",
             "새 지번 주소",
             "010-9876-5432",
-            20L
+            UploadedFileId.of(20L)
         );
 
-        assertThat(shop.getStationId()).isEqualTo(2L);
+        assertThat(shop.getStationId()).isEqualTo(StationId.of(2L));
         assertThat(shop.getName()).isEqualTo("새 상점명");
         assertThat(shop.getLatitude()).isEqualTo(BigDecimal.valueOf(37.6));
         assertThat(shop.getLongitude()).isEqualTo(BigDecimal.valueOf(127.1));
         assertThat(shop.getRoadAddress()).isEqualTo("새 도로명 주소");
         assertThat(shop.getLotAddress()).isEqualTo("새 지번 주소");
         assertThat(shop.getPhoneNumber()).isEqualTo("010-9876-5432");
-        assertThat(shop.getThumbnailImageFileId()).isEqualTo(20L);
+        assertThat(shop.getThumbnailImageFileId()).isEqualTo(UploadedFileId.of(20L));
     }
 
     @Test
     @DisplayName("close는 폐업 플래그를 true로 만든다")
     void close_marksPermanentlyClosed() {
         Shop shop = Shop.of(
-            1L,
+            StationId.of(1L),
             "상점명",
             BigDecimal.valueOf(37.5),
             BigDecimal.valueOf(127.0),
             "도로명 주소",
             "지번 주소",
             "010-1234-5678",
-            10L
+            UploadedFileId.of(10L)
         );
 
         shop.close();
@@ -111,8 +114,8 @@ class ShopTest {
 
         Shop shop = Shop.reconstitute(
             1L,
-            100L,
-            2L,
+            CeoId.of(100L),
+            StationId.of(2L),
             "상점명",
             BigDecimal.valueOf(37.5),
             BigDecimal.valueOf(127.0),
@@ -120,8 +123,8 @@ class ShopTest {
             "도로명 주소",
             "지번 주소",
             "010-1234-5678",
-            10L,
-            20L,
+            UploadedFileId.of(10L),
+            UploadedFileId.of(20L),
             true,
             false,
             false,
@@ -141,14 +144,14 @@ class ShopTest {
     @DisplayName("미영속 상태에서 getShopId를 호출하면 ShopId 불변식 위반으로 예외가 발생한다")
     void getShopId_onTransient_throws() {
         Shop shop = Shop.of(
-            1L,
+            StationId.of(1L),
             "상점명",
             BigDecimal.valueOf(37.5),
             BigDecimal.valueOf(127.0),
             "도로명 주소",
             "지번 주소",
             "010-1234-5678",
-            10L
+            UploadedFileId.of(10L)
         );
 
         assertThatThrownBy(shop::getShopId)
@@ -161,27 +164,27 @@ class ShopTest {
 
         private Shop openShop() {
             return Shop.of(
-                1L,
+                StationId.of(1L),
                 "상점명",
                 BigDecimal.valueOf(37.5),
                 BigDecimal.valueOf(127.0),
                 "도로명 주소",
                 "지번 주소",
                 "010-1234-5678",
-                10L
+                UploadedFileId.of(10L)
             );
         }
 
         private void update(Shop shop) {
             shop.update(
-                2L,
+                StationId.of(2L),
                 "새 상점명",
                 BigDecimal.valueOf(37.6),
                 BigDecimal.valueOf(127.1),
                 "새 도로명",
                 "새 지번",
                 "010-9999-8888",
-                20L
+                UploadedFileId.of(20L)
             );
         }
 

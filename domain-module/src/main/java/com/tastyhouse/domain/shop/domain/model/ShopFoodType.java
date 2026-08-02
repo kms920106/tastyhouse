@@ -1,6 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
 import lombok.Getter;
+import com.tastyhouse.domain.shop.domain.vo.ShopFoodTypeCategoryId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상점-음식유형 배정 순수 도메인 모델.
@@ -12,23 +14,23 @@ import lombok.Getter;
 public class ShopFoodType {
 
     private final Long id;
-    private final Long shopId;
-    private final Long shopFoodTypeCategoryId;
+    private final ShopId shopId;
+    private final ShopFoodTypeCategoryId shopFoodTypeCategoryId;
 
-    private ShopFoodType(Long id, Long shopId, Long shopFoodTypeCategoryId) {
+    private ShopFoodType(Long id, ShopId shopId, ShopFoodTypeCategoryId shopFoodTypeCategoryId) {
         this.id = id;
         this.shopId = shopId;
         this.shopFoodTypeCategoryId = shopFoodTypeCategoryId;
     }
 
-    public static ShopFoodType of(Long shopId, Long shopFoodTypeCategoryId) {
+    public static ShopFoodType of(ShopId shopId, ShopFoodTypeCategoryId shopFoodTypeCategoryId) {
         return new ShopFoodType(null, shopId, shopFoodTypeCategoryId);
     }
 
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ShopFoodType reconstitute(Long id, Long shopId, Long shopFoodTypeCategoryId) {
+    public static ShopFoodType reconstitute(Long id, ShopId shopId, ShopFoodTypeCategoryId shopFoodTypeCategoryId) {
         return new ShopFoodType(id, shopId, shopFoodTypeCategoryId);
     }
 }

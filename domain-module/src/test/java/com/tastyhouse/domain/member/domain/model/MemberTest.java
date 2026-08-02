@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
@@ -61,11 +62,11 @@ class MemberTest {
             "01012345678", true, true, true
         );
 
-        member.updateProfile("새닉네임", null, 100L);
+        member.updateProfile("새닉네임", null, UploadedFileId.of(100L));
 
         assertThat(member.getNickname()).isEqualTo("새닉네임");
         assertThat(member.getStatusMessage()).isNull();
-        assertThat(member.getProfileImageFileId()).isEqualTo(100L);
+        assertThat(member.getProfileImageFileId()).isEqualTo(UploadedFileId.of(100L));
     }
 
     @Test
@@ -162,7 +163,7 @@ class MemberTest {
 
         Member member = Member.reconstitute(
             1L, "user1", "pw", "닉네임", "홍길동", 19900101, MemberGender.MALE,
-            new PhoneNumber("01012345678"), MemberGrade.ACTIVE, 100L, "상태메시지",
+            new PhoneNumber("01012345678"), MemberGrade.ACTIVE, UploadedFileId.of(100L), "상태메시지",
             true, true, true, MemberStatus.ACTIVE, createdAt, updatedAt
         );
 

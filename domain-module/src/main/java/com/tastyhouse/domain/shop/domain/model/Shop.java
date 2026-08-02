@@ -5,7 +5,10 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.ceo.domain.vo.CeoId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.domain.vo.StationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -21,8 +24,8 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public class Shop {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private Long ceoId; // 소유 점주 ID (CEO.id 참조, null이면 점주 미배정)
-    private Long stationId; // 지하철역 ID (STATION.id 참조)
+    private CeoId ceoId; // 소유 점주 ID (CEO.id 참조, null이면 점주 미배정)
+    private StationId stationId; // 지하철역 ID (STATION.id 참조)
     private String name; // 상호명
     private BigDecimal latitude; // 위도
     private BigDecimal longitude; // 경도
@@ -30,8 +33,8 @@ public class Shop {
     private String roadAddress; // 도로명 주소
     private String lotAddress; // 지번 주소
     private String phoneNumber; // 대표 전화번호
-    private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
-    private Long trademarkImageFileId; // 상표 이미지 파일 ID (승인 완료 시 반영, FILE.id 참조)
+    private UploadedFileId thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
+    private UploadedFileId trademarkImageFileId; // 상표 이미지 파일 ID (승인 완료 시 반영, FILE.id 참조)
     private boolean permanentlyClosed; // 폐업 여부 (true: 폐업)
     private boolean hidden; // 노출정지 여부 (true: 배민앱 완전 비노출, 폐업과 별개)
     private boolean closedOnPublicHolidays; // 공휴일 휴무 여부 (true: 공휴일 휴무)
@@ -40,8 +43,8 @@ public class Shop {
 
     private Shop(
         Long id,
-        Long ceoId,
-        Long stationId,
+        CeoId ceoId,
+        StationId stationId,
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
@@ -49,8 +52,8 @@ public class Shop {
         String roadAddress,
         String lotAddress,
         String phoneNumber,
-        Long thumbnailImageFileId,
-        Long trademarkImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId trademarkImageFileId,
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays,
@@ -80,14 +83,14 @@ public class Shop {
      * 신규 상점을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
     public static Shop of(
-        Long stationId,
+        StationId stationId,
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
         String roadAddress,
         String lotAddress,
         String phoneNumber,
-        Long thumbnailImageFileId
+        UploadedFileId thumbnailImageFileId
     ) {
         return new Shop(
             null,
@@ -116,8 +119,8 @@ public class Shop {
      */
     public static Shop reconstitute(
         Long id,
-        Long ceoId,
-        Long stationId,
+        CeoId ceoId,
+        StationId stationId,
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
@@ -125,8 +128,8 @@ public class Shop {
         String roadAddress,
         String lotAddress,
         String phoneNumber,
-        Long thumbnailImageFileId,
-        Long trademarkImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId trademarkImageFileId,
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays,
@@ -165,14 +168,14 @@ public class Shop {
      * 어디에도 없어 폐업은 불가역이며, 되살릴 수 없는 가게의 정보를 계속 고치는 것은 업무상 오조작이다.
      */
     public void update(
-        Long stationId,
+        StationId stationId,
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
         String roadAddress,
         String lotAddress,
         String phoneNumber,
-        Long thumbnailImageFileId
+        UploadedFileId thumbnailImageFileId
     ) {
         validateNotPermanentlyClosed();
 
@@ -189,7 +192,7 @@ public class Shop {
     /**
      * 소유 점주를 배정한다(관리자가 가게-점주 연결 시 사용). null이면 점주 미배정 상태로 되돌린다.
      */
-    public void assignCeo(Long ceoId) {
+    public void assignCeo(CeoId ceoId) {
         this.ceoId = ceoId;
     }
 
@@ -203,14 +206,14 @@ public class Shop {
     /**
      * 승인 완료된 상표 이미지를 반영한다.
      */
-    public void changeTrademarkImage(Long trademarkImageFileId) {
+    public void changeTrademarkImage(UploadedFileId trademarkImageFileId) {
         this.trademarkImageFileId = trademarkImageFileId;
     }
 
     /**
      * 승인 완료된 대표(썸네일) 이미지를 반영한다.
      */
-    public void changeThumbnailImage(Long thumbnailImageFileId) {
+    public void changeThumbnailImage(UploadedFileId thumbnailImageFileId) {
         this.thumbnailImageFileId = thumbnailImageFileId;
     }
 

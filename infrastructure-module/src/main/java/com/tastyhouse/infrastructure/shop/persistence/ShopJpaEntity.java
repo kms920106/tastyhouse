@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +14,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.domain.ceo.domain.vo.CeoId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.domain.vo.StationId;
+import com.tastyhouse.infrastructure.ceo.persistence.CeoIdConverter;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 
 /**
  * 상점 JPA 영속 모델.
@@ -30,11 +36,13 @@ public class ShopJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
+    @Convert(converter = CeoIdConverter.class)
     @Column(name = "ceo_id")
-    private Long ceoId; // 소유 점주 ID (CEO.id 참조, null이면 점주 미배정)
+    private CeoId ceoId; // 소유 점주 ID (CEO.id 참조, null이면 점주 미배정)
 
+    @Convert(converter = StationIdConverter.class)
     @Column(name = "station_id", nullable = false)
-    private Long stationId; // 지하철역 ID (STATION.id 참조)
+    private StationId stationId; // 지하철역 ID (STATION.id 참조)
 
     @Column(name = "name", nullable = false, unique = true)
     private String name; // 상호명
@@ -57,11 +65,13 @@ public class ShopJpaEntity extends BaseEntity {
     @Column(name = "phone_number")
     private String phoneNumber; // 전화번호
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "thumbnail_image_file_id")
-    private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
+    private UploadedFileId thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "trademark_image_file_id")
-    private Long trademarkImageFileId; // 상표 이미지 파일 ID (FILE.id 참조)
+    private UploadedFileId trademarkImageFileId; // 상표 이미지 파일 ID (FILE.id 참조)
 
     @Column(name = "is_permanently_closed", nullable = false)
     private boolean permanentlyClosed; // 폐업 여부 (true: 폐업)
@@ -73,8 +83,8 @@ public class ShopJpaEntity extends BaseEntity {
     private boolean closedOnPublicHolidays; // 공휴일 휴무 여부
 
     private ShopJpaEntity(
-        Long ceoId,
-        Long stationId,
+        CeoId ceoId,
+        StationId stationId,
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
@@ -82,8 +92,8 @@ public class ShopJpaEntity extends BaseEntity {
         String roadAddress,
         String lotAddress,
         String phoneNumber,
-        Long thumbnailImageFileId,
-        Long trademarkImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId trademarkImageFileId,
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays
@@ -108,8 +118,8 @@ public class ShopJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopMapper#toEntity}에서만 호출한다.
      */
     static ShopJpaEntity create(
-        Long ceoId,
-        Long stationId,
+        CeoId ceoId,
+        StationId stationId,
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
@@ -117,8 +127,8 @@ public class ShopJpaEntity extends BaseEntity {
         String roadAddress,
         String lotAddress,
         String phoneNumber,
-        Long thumbnailImageFileId,
-        Long trademarkImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId trademarkImageFileId,
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays
@@ -145,8 +155,8 @@ public class ShopJpaEntity extends BaseEntity {
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자는 건드리지 않는다.
      */
     void applyChanges(
-        Long ceoId,
-        Long stationId,
+        CeoId ceoId,
+        StationId stationId,
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
@@ -154,8 +164,8 @@ public class ShopJpaEntity extends BaseEntity {
         String roadAddress,
         String lotAddress,
         String phoneNumber,
-        Long thumbnailImageFileId,
-        Long trademarkImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId trademarkImageFileId,
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays

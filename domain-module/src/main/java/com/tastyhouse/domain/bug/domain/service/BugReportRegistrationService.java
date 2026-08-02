@@ -7,6 +7,7 @@ import com.tastyhouse.domain.bug.domain.model.BugReportImage;
 import com.tastyhouse.domain.bug.domain.model.BugReportPlatform;
 import com.tastyhouse.domain.bug.domain.repository.BugReportImageRepository;
 import com.tastyhouse.domain.bug.domain.repository.BugReportRepository;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 
 /**
@@ -59,7 +60,9 @@ public class BugReportRegistrationService {
         }
 
         for (int sort = 0; sort < uploadedFileIds.size(); sort++) {
-            BugReportImage image = BugReportImage.of(saved.getId(), uploadedFileIds.get(sort), sort);
+            BugReportImage image = BugReportImage.of(
+                saved.getBugReportId(), UploadedFileId.of(uploadedFileIds.get(sort)), sort
+            );
             bugReportImageRepository.save(image);
         }
 

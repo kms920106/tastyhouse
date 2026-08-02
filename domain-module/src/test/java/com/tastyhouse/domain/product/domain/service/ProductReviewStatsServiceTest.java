@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import com.tastyhouse.domain.product.domain.model.Product;
 import com.tastyhouse.domain.product.domain.port.ProductReviewStatisticsPort;
 import com.tastyhouse.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -90,8 +92,8 @@ class ProductReviewStatsServiceTest {
     private Product product() {
         return Product.reconstitute(
             PRODUCT_ID,
-            1L,
-            2L,
+            ShopId.of(1L),
+            ProductCategoryId.of(2L),
             "황금올리브치킨",
             "바삭한 치킨",
             20000,

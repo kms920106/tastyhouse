@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.shop.domain.service;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.domain.shop.domain.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.domain.model.ShopImageType;
@@ -55,7 +56,7 @@ public class ShopImageApprovalService {
         }
 
         ShopImageChangeRequest saved = shopImageChangeRequestRepository.save(
-            ShopImageChangeRequest.of(shopId, imageType, imageFileId)
+            ShopImageChangeRequest.of(ShopId.of(shopId), imageType, UploadedFileId.of(imageFileId))
         );
         return saved.getId();
     }
@@ -69,7 +70,7 @@ public class ShopImageApprovalService {
         shopImageChangeRequest.approve();
         shopImageChangeRequestRepository.save(shopImageChangeRequest);
 
-        ShopId shopId = ShopId.of(shopImageChangeRequest.getShopId());
+        ShopId shopId = shopImageChangeRequest.getShopId();
         Shop shop = shopRepository.findById(shopId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         if (shopImageChangeRequest.getImageType() == ShopImageType.TRADEMARK) {

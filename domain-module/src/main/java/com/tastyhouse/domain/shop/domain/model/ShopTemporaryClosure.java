@@ -8,6 +8,7 @@ import lombok.Getter;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상점 임시 휴무 순수 도메인 모델.
@@ -20,12 +21,12 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public class ShopTemporaryClosure {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId;
+    private final ShopId shopId;
     private final LocalDate startDate;
     private final LocalDate endDate;
     private final LocalDateTime createdAt;
 
-    private ShopTemporaryClosure(Long id, Long shopId, LocalDate startDate, LocalDate endDate, LocalDateTime createdAt) {
+    private ShopTemporaryClosure(Long id, ShopId shopId, LocalDate startDate, LocalDate endDate, LocalDateTime createdAt) {
         this.id = id;
         this.shopId = shopId;
         this.startDate = startDate;
@@ -36,7 +37,7 @@ public class ShopTemporaryClosure {
     /**
      * 신규 임시 휴무를 생성한다. 아직 영속되지 않았으므로 식별자와 감사 시각은 없다.
      */
-    public static ShopTemporaryClosure of(Long shopId, LocalDate startDate, LocalDate endDate) {
+    public static ShopTemporaryClosure of(ShopId shopId, LocalDate startDate, LocalDate endDate) {
         if (endDate.isBefore(startDate)) {
             throw new BusinessException(ErrorCode.SHOP_TEMPORARY_CLOSURE_INVALID_PERIOD);
         }
@@ -47,7 +48,7 @@ public class ShopTemporaryClosure {
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ShopTemporaryClosure reconstitute(Long id, Long shopId, LocalDate startDate, LocalDate endDate, LocalDateTime createdAt) {
+    public static ShopTemporaryClosure reconstitute(Long id, ShopId shopId, LocalDate startDate, LocalDate endDate, LocalDateTime createdAt) {
         return new ShopTemporaryClosure(id, shopId, startDate, endDate, createdAt);
     }
 

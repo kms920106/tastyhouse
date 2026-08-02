@@ -3,6 +3,8 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -49,7 +51,7 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
             .selectOne()
             .from(shopImageChangeRequestJpaEntity)
             .where(
-                shopImageChangeRequestJpaEntity.shopId.eq(shopId),
+                shopId().eq(shopId),
                 imageTypeEq(imageType),
                 statusEq(status)
             )
@@ -63,11 +65,19 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
             .selectOne()
             .from(shopImageChangeRequestJpaEntity)
             .where(
-                shopImageChangeRequestJpaEntity.shopId.eq(shopId),
+                shopId().eq(shopId),
                 statusEq(status)
             )
             .fetchFirst();
         return result != null;
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code SHOP_IMAGE_CHANGE_REQUEST.shop_id}를 raw {@code Long}으로
+     * 비교하기 위한 path.
+     */
+    private NumberPath<Long> shopId() {
+        return Expressions.numberPath(Long.class, shopImageChangeRequestJpaEntity, "shopId");
     }
 
     private BooleanExpression statusEq(ApprovalStatus status) {

@@ -6,11 +6,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.product.domain.model.Product;
 import com.tastyhouse.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.domain.product.domain.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.domain.service.ProductRegistrationService;
+import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 관리자 상품 command 서비스. 트랜잭션 경계를 소유하고, 불변식·저장은 도메인 서비스
@@ -42,8 +46,8 @@ public class ProductCommandService {
         Integer sort
     ) {
         Product product = productRegistrationService.createProduct(
-            shopId,
-            productCategoryId,
+            ShopId.of(shopId),
+            ProductCategoryId.of(productCategoryId),
             name,
             description,
             originalPrice,
@@ -77,7 +81,7 @@ public class ProductCommandService {
         ProductId productId = ProductId.of(id);
         productRegistrationService.updateProduct(
             productId,
-            productCategoryId,
+            ProductCategoryId.of(productCategoryId),
             name,
             description,
             originalPrice,
@@ -113,7 +117,7 @@ public class ProductCommandService {
         boolean visible
     ) {
         ProductOptionGroup optionGroup = productRegistrationService.saveProductOptionGroup(
-            id,
+            ProductId.of(id),
             name,
             description,
             required,
@@ -134,15 +138,21 @@ public class ProductCommandService {
         boolean soldOut,
         boolean visible
     ) {
-        return productRegistrationService.saveProductOption(groupId, name, additionalPrice, sort, soldOut, visible);
+        return productRegistrationService.saveProductOption(
+            ProductOptionGroupId.of(groupId), name, additionalPrice, sort, soldOut, visible
+        );
     }
 
     public Long createProductImage(Long id, Long imageFileId, Integer sort, boolean visible) {
-        return productRegistrationService.saveProductImage(id, imageFileId, sort, visible);
+        return productRegistrationService.saveProductImage(
+            ProductId.of(id), UploadedFileId.of(imageFileId), sort, visible
+        );
     }
 
     public Long createProductCategory(Long shopId, String name, Integer sort, boolean visible) {
-        ProductCategory category = productRegistrationService.createProductCategory(shopId, name, sort, visible);
+        ProductCategory category = productRegistrationService.createProductCategory(
+            ShopId.of(shopId), name, sort, visible
+        );
         return category.getId();
     }
 }

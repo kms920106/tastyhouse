@@ -57,7 +57,7 @@ public class ShopPhoneNumberRegistryService {
 
         boolean primary = existingPhoneNumbers.isEmpty();
         ShopPhoneNumber saved = shopPhoneNumberRepository.save(
-            ShopPhoneNumber.of(shopId, phoneNumber, primary, virtual)
+            ShopPhoneNumber.of(ShopId.of(shopId), phoneNumber, primary, virtual)
         );
 
         if (primary) {
@@ -80,7 +80,7 @@ public class ShopPhoneNumberRegistryService {
             return;
         }
 
-        List<ShopPhoneNumber> remainingPhoneNumbers = shopPhoneNumberRepository.findByShopId(phoneNumber.getShopId());
+        List<ShopPhoneNumber> remainingPhoneNumbers = shopPhoneNumberRepository.findByShopId(phoneNumber.getShopId().value());
         if (remainingPhoneNumbers.isEmpty()) {
             return;
         }
@@ -88,7 +88,7 @@ public class ShopPhoneNumberRegistryService {
         ShopPhoneNumber newPrimary = remainingPhoneNumbers.getFirst();
         newPrimary.markPrimary();
         ShopPhoneNumber saved = shopPhoneNumberRepository.save(newPrimary);
-        syncShopPhoneNumber(phoneNumber.getShopId(), saved.getPhoneNumber());
+        syncShopPhoneNumber(phoneNumber.getShopId().value(), saved.getPhoneNumber());
     }
 
     /**
@@ -98,7 +98,7 @@ public class ShopPhoneNumberRegistryService {
         ShopPhoneNumber target = shopPhoneNumberRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
 
-        List<ShopPhoneNumber> phoneNumbers = shopPhoneNumberRepository.findByShopId(target.getShopId());
+        List<ShopPhoneNumber> phoneNumbers = shopPhoneNumberRepository.findByShopId(target.getShopId().value());
         for (ShopPhoneNumber phoneNumber : phoneNumbers) {
             if (phoneNumber.isPrimary() && !phoneNumber.getId().equals(target.getId())) {
                 phoneNumber.unmarkPrimary();
@@ -108,7 +108,7 @@ public class ShopPhoneNumberRegistryService {
 
         target.markPrimary();
         ShopPhoneNumber saved = shopPhoneNumberRepository.save(target);
-        syncShopPhoneNumber(saved.getShopId(), saved.getPhoneNumber());
+        syncShopPhoneNumber(saved.getShopId().value(), saved.getPhoneNumber());
     }
 
     /**

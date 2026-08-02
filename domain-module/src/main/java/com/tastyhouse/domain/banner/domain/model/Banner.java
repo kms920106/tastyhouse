@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 
 import com.tastyhouse.domain.banner.domain.vo.BannerId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
 /**
  * 배너 순수 도메인 모델.
@@ -20,7 +21,7 @@ public class Banner {
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
     private BannerType type;
     private String title;
-    private Long imageFileId;
+    private UploadedFileId imageFileId;
     private String linkUrl;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
@@ -34,7 +35,7 @@ public class Banner {
         Long id,
         BannerType type,
         String title,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String linkUrl,
         LocalDateTime startDate,
         LocalDateTime endDate,
@@ -64,7 +65,7 @@ public class Banner {
     public static Banner of(
         BannerType type,
         String title,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String linkUrl,
         LocalDateTime startDate,
         LocalDateTime endDate,
@@ -82,7 +83,7 @@ public class Banner {
         Long id,
         BannerType type,
         String title,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String linkUrl,
         LocalDateTime startDate,
         LocalDateTime endDate,
@@ -102,7 +103,7 @@ public class Banner {
     public void update(
         BannerType type,
         String title,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String linkUrl,
         LocalDateTime startDate,
         LocalDateTime endDate,

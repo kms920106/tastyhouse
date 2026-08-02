@@ -10,6 +10,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 class ShopHygieneBadgeTest {
 
@@ -18,10 +19,10 @@ class ShopHygieneBadgeTest {
     void of_createsTransientShopHygieneBadge() {
         LocalDate certifiedDate = LocalDate.of(2026, 7, 1);
 
-        ShopHygieneBadge badge = ShopHygieneBadge.of(1L, HygieneBadgeType.CESCO_BLUE, certifiedDate, "2026-03");
+        ShopHygieneBadge badge = ShopHygieneBadge.of(ShopId.of(1L), HygieneBadgeType.CESCO_BLUE, certifiedDate, "2026-03");
 
         assertThat(badge.getId()).isNull();
-        assertThat(badge.getShopId()).isEqualTo(1L);
+        assertThat(badge.getShopId()).isEqualTo(ShopId.of(1L));
         assertThat(badge.getBadgeType()).isEqualTo(HygieneBadgeType.CESCO_BLUE);
         assertThat(badge.getCertifiedDate()).isEqualTo(certifiedDate);
         assertThat(badge.getLastInspectionMonth()).isEqualTo("2026-03");
@@ -35,11 +36,11 @@ class ShopHygieneBadgeTest {
         LocalDateTime createdAt = LocalDateTime.of(2026, 1, 1, 0, 0);
 
         ShopHygieneBadge badge = ShopHygieneBadge.reconstitute(
-            1L, 2L, HygieneBadgeType.FOOD_SAFETY_CERTIFIED, certifiedDate, null, createdAt
+            1L, ShopId.of(2L), HygieneBadgeType.FOOD_SAFETY_CERTIFIED, certifiedDate, null, createdAt
         );
 
         assertThat(badge.getId()).isEqualTo(1L);
-        assertThat(badge.getShopId()).isEqualTo(2L);
+        assertThat(badge.getShopId()).isEqualTo(ShopId.of(2L));
         assertThat(badge.getBadgeType()).isEqualTo(HygieneBadgeType.FOOD_SAFETY_CERTIFIED);
         assertThat(badge.getCreatedAt()).isEqualTo(createdAt);
     }

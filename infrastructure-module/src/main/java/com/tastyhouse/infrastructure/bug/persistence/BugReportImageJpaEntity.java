@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.bug.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,6 +12,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.bug.domain.vo.BugReportId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -34,16 +38,18 @@ public class BugReportImageJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = BugReportIdConverter.class)
     @Column(name = "bug_report_id", nullable = false)
-    private Long bugReportId;
+    private BugReportId bugReportId;
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
+    private UploadedFileId imageFileId;
 
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    private BugReportImageJpaEntity(Long bugReportId, Long imageFileId, Integer sort) {
+    private BugReportImageJpaEntity(BugReportId bugReportId, UploadedFileId imageFileId, Integer sort) {
         this.bugReportId = bugReportId;
         this.imageFileId = imageFileId;
         this.sort = sort;
@@ -52,7 +58,7 @@ public class BugReportImageJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code BugReportImageMapper#toEntity}에서만 호출한다.
      */
-    static BugReportImageJpaEntity create(Long bugReportId, Long imageFileId, Integer sort) {
+    static BugReportImageJpaEntity create(BugReportId bugReportId, UploadedFileId imageFileId, Integer sort) {
         return new BugReportImageJpaEntity(bugReportId, imageFileId, sort);
     }
 }

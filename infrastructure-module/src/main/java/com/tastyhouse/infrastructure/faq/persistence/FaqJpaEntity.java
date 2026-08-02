@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.faq.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -28,8 +30,9 @@ public class FaqJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = FaqCategoryIdConverter.class)
     @Column(name = "faq_category_id", nullable = false)
-    private Long faqCategoryId;
+    private FaqCategoryId faqCategoryId;
 
     @Column(name = "question", nullable = false, length = 500)
     private String question;
@@ -46,7 +49,7 @@ public class FaqJpaEntity extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted;
 
-    private FaqJpaEntity(Long faqCategoryId, String question, String answer, Integer sort, boolean visible, boolean deleted) {
+    private FaqJpaEntity(FaqCategoryId faqCategoryId, String question, String answer, Integer sort, boolean visible, boolean deleted) {
         this.faqCategoryId = faqCategoryId;
         this.question = question;
         this.answer = answer;
@@ -58,14 +61,14 @@ public class FaqJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code FaqMapper#toEntity}에서만 호출한다.
      */
-    static FaqJpaEntity create(Long faqCategoryId, String question, String answer, Integer sort, boolean visible, boolean deleted) {
+    static FaqJpaEntity create(FaqCategoryId faqCategoryId, String question, String answer, Integer sort, boolean visible, boolean deleted) {
         return new FaqJpaEntity(faqCategoryId, question, answer, sort, visible, deleted);
     }
 
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자는 건드리지 않는다.
      */
-    void applyChanges(Long faqCategoryId, String question, String answer, Integer sort, boolean visible, boolean deleted) {
+    void applyChanges(FaqCategoryId faqCategoryId, String question, String answer, Integer sort, boolean visible, boolean deleted) {
         this.faqCategoryId = faqCategoryId;
         this.question = question;
         this.answer = answer;

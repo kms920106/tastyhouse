@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.domain.model.Amenity;
 import com.tastyhouse.domain.shop.domain.model.ClosedDayType;
 import com.tastyhouse.domain.shop.domain.model.DayType;
@@ -31,7 +32,10 @@ import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.domain.shop.domain.service.ShopBusinessHourService;
 import com.tastyhouse.domain.shop.domain.service.ShopLifecycleService;
+import com.tastyhouse.domain.shop.domain.vo.ShopAmenityCategoryId;
+import com.tastyhouse.domain.shop.domain.vo.ShopFoodTypeCategoryId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.domain.vo.ShopPhotoCategoryId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -160,7 +164,12 @@ public class ShopCommandService {
         Boolean visible
     ) {
         ShopAmenityCategory amenityCategory = ShopAmenityCategory.of(
-            Amenity.from(amenity), displayName, activeImageFileId, inactiveImageFileId, sort, visible
+            Amenity.from(amenity),
+            displayName,
+            UploadedFileId.of(activeImageFileId),
+            UploadedFileId.of(inactiveImageFileId),
+            sort,
+            visible
         );
         return shopDetailRepository.saveAmenityCategory(amenityCategory).getId();
     }
@@ -175,7 +184,13 @@ public class ShopCommandService {
     ) {
         ShopAmenityCategory amenityCategory = shopDetailRepository.findAmenityCategoryById(categoryId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
-        amenityCategory.update(displayName, activeImageFileId, inactiveImageFileId, sort, visible);
+        amenityCategory.update(
+            displayName,
+            UploadedFileId.of(activeImageFileId),
+            UploadedFileId.of(inactiveImageFileId),
+            sort,
+            visible
+        );
         shopDetailRepository.saveAmenityCategory(amenityCategory);
     }
 
@@ -188,7 +203,12 @@ public class ShopCommandService {
         Boolean visible
     ) {
         ShopFoodTypeCategory foodTypeCategory = ShopFoodTypeCategory.of(
-            FoodType.from(foodType), displayName, activeImageFileId, inactiveImageFileId, sort, visible
+            FoodType.from(foodType),
+            displayName,
+            UploadedFileId.of(activeImageFileId),
+            UploadedFileId.of(inactiveImageFileId),
+            sort,
+            visible
         );
         return shopDetailRepository.saveFoodTypeCategory(foodTypeCategory).getId();
     }
@@ -203,14 +223,20 @@ public class ShopCommandService {
     ) {
         ShopFoodTypeCategory foodTypeCategory = shopDetailRepository.findFoodTypeCategoryById(categoryId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
-        foodTypeCategory.update(displayName, activeImageFileId, inactiveImageFileId, sort, visible);
+        foodTypeCategory.update(
+            displayName,
+            UploadedFileId.of(activeImageFileId),
+            UploadedFileId.of(inactiveImageFileId),
+            sort,
+            visible
+        );
         shopDetailRepository.saveFoodTypeCategory(foodTypeCategory);
     }
 
     public Long assignAmenity(Long id, Long amenityCategoryId) {
         shopDetailRepository.findAmenityCategoryById(amenityCategoryId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
-        ShopAmenity amenity = shopDetailRepository.saveAmenity(ShopAmenity.of(id, amenityCategoryId));
+        ShopAmenity amenity = shopDetailRepository.saveAmenity(ShopAmenity.of(ShopId.of(id), ShopAmenityCategoryId.of(amenityCategoryId)));
         return amenity.getId();
     }
 
@@ -221,7 +247,7 @@ public class ShopCommandService {
     public Long assignFoodType(Long id, Long foodTypeCategoryId) {
         shopDetailRepository.findFoodTypeCategoryById(foodTypeCategoryId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
-        ShopFoodType foodType = shopDetailRepository.saveFoodType(ShopFoodType.of(id, foodTypeCategoryId));
+        ShopFoodType foodType = shopDetailRepository.saveFoodType(ShopFoodType.of(ShopId.of(id), ShopFoodTypeCategoryId.of(foodTypeCategoryId)));
         return foodType.getId();
     }
 
@@ -240,7 +266,7 @@ public class ShopCommandService {
 
     public Long assignOrderMethod(Long id, String orderMethod) {
         ShopOrderMethod saved = shopDetailRepository.saveOrderMethod(
-            ShopOrderMethod.of(id, OrderMethod.from(orderMethod))
+            ShopOrderMethod.of(ShopId.of(id), OrderMethod.from(orderMethod))
         );
         return saved.getId();
     }
@@ -251,7 +277,7 @@ public class ShopCommandService {
 
     public Long createBannerImage(Long id, Long imageFileId, Integer sort) {
         ShopBannerImage bannerImage = shopDetailRepository.saveBannerImage(
-            ShopBannerImage.of(id, imageFileId, sort)
+            ShopBannerImage.of(ShopId.of(id), UploadedFileId.of(imageFileId), sort)
         );
         return bannerImage.getId();
     }
@@ -261,7 +287,7 @@ public class ShopCommandService {
     }
 
     public Long createPhotoCategory(Long id, String name) {
-        ShopPhotoCategory photoCategory = shopDetailRepository.savePhotoCategory(ShopPhotoCategory.of(id, name));
+        ShopPhotoCategory photoCategory = shopDetailRepository.savePhotoCategory(ShopPhotoCategory.of(ShopId.of(id), name));
         return photoCategory.getId();
     }
 
@@ -278,7 +304,12 @@ public class ShopCommandService {
 
     public Long createPhotoCategoryImage(Long categoryId, Long imageFileId, Integer sort, Boolean visible) {
         ShopPhotoCategoryImage image = shopDetailRepository.savePhotoCategoryImage(
-            ShopPhotoCategoryImage.of(categoryId, imageFileId, sort, visible)
+            ShopPhotoCategoryImage.of(
+                ShopPhotoCategoryId.of(categoryId),
+                UploadedFileId.of(imageFileId),
+                sort,
+                visible
+            )
         );
         return image.getId();
     }
@@ -286,7 +317,7 @@ public class ShopCommandService {
     public void updatePhotoCategoryImage(Long imageId, Long imageFileId, Integer sort, Boolean visible) {
         ShopPhotoCategoryImage image = shopDetailRepository.findPhotoCategoryImageById(imageId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_IMAGE_NOT_FOUND));
-        image.update(imageFileId, sort, visible);
+        image.update(UploadedFileId.of(imageFileId), sort, visible);
         shopDetailRepository.savePhotoCategoryImage(image);
     }
 
@@ -295,7 +326,7 @@ public class ShopCommandService {
     }
 
     public Long createShopChoice(Long shopId, String title, String content) {
-        ShopChoice shopChoice = shopChoiceRepository.save(ShopChoice.of(shopId, title, content));
+        ShopChoice shopChoice = shopChoiceRepository.save(ShopChoice.of(ShopId.of(shopId), title, content));
         return shopChoice.getId();
     }
 

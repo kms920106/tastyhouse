@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,6 +16,9 @@ import lombok.NoArgsConstructor;
 import com.tastyhouse.domain.shop.domain.model.ShopContentType;
 import com.tastyhouse.domain.shop.domain.model.ShopContentTopic;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 
 /**
  * 가게 콘텐츠보드 JPA 영속 모델.
@@ -32,8 +36,9 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId;
+    private ShopId shopId;
 
     @Column(name = "content_type", nullable = false, length = 10, columnDefinition = "VARCHAR(10)")
     @Enumerated(EnumType.STRING)
@@ -43,8 +48,9 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ShopContentTopic topic;
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id")
-    private Long imageFileId;
+    private UploadedFileId imageFileId;
 
     @Column(name = "youtube_url", length = 500)
     private String youtubeUrl;
@@ -56,10 +62,10 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
     private boolean hidden;
 
     private ShopContentBoardJpaEntity(
-        Long shopId,
+        ShopId shopId,
         ShopContentType contentType,
         ShopContentTopic topic,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String youtubeUrl,
         String description,
         boolean hidden
@@ -77,10 +83,10 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopContentBoardMapper#toEntity}에서만 호출한다.
      */
     static ShopContentBoardJpaEntity create(
-        Long shopId,
+        ShopId shopId,
         ShopContentType contentType,
         ShopContentTopic topic,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String youtubeUrl,
         String description,
         boolean hidden
@@ -91,7 +97,7 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자·contentType은 건드리지 않는다.
      */
-    void applyChanges(ShopContentTopic topic, Long imageFileId, String youtubeUrl, String description, boolean hidden) {
+    void applyChanges(ShopContentTopic topic, UploadedFileId imageFileId, String youtubeUrl, String description, boolean hidden) {
         this.topic = topic;
         this.imageFileId = imageFileId;
         this.youtubeUrl = youtubeUrl;

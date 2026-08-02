@@ -16,11 +16,13 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.admin.domain.vo.AdminId;
 import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
 import com.tastyhouse.domain.bug.domain.model.BugReportPlatform;
 import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
 import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.infrastructure.admin.persistence.AdminIdConverter;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -71,8 +73,9 @@ public class BugReportJpaEntity extends BaseEntity {
     @Column(name = "priority", length = 20, columnDefinition = "VARCHAR(20)")
     private BugReportPriority priority;
 
+    @Convert(converter = AdminIdConverter.class)
     @Column(name = "assignee_admin_id")
-    private Long assigneeAdminId;
+    private AdminId assigneeAdminId;
 
     @Column(name = "admin_answer", columnDefinition = "TEXT")
     private String adminAnswer;
@@ -98,7 +101,7 @@ public class BugReportJpaEntity extends BaseEntity {
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority,
-        Long assigneeAdminId,
+        AdminId assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt,
         String appVersion,
@@ -131,7 +134,7 @@ public class BugReportJpaEntity extends BaseEntity {
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority,
-        Long assigneeAdminId,
+        AdminId assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt,
         String appVersion,
@@ -154,7 +157,7 @@ public class BugReportJpaEntity extends BaseEntity {
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority,
-        Long assigneeAdminId,
+        AdminId assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt
     ) {

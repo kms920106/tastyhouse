@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,6 +12,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 사장님 한마디 이력 JPA 영속 모델. 순수 도메인 모델 {@code ShopOwnerMessageHistory}와 분리된 영속 전용 엔티티다.
@@ -25,18 +28,19 @@ public class ShopOwnerMessageHistoryJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private ShopId shopId; // 가게 ID (SHOP.id 참조)
 
     @Column(name = "message", columnDefinition = "TEXT")
     private String message; // 사장님 한마디 메시지 내용
 
-    private ShopOwnerMessageHistoryJpaEntity(Long shopId, String message) {
+    private ShopOwnerMessageHistoryJpaEntity(ShopId shopId, String message) {
         this.shopId = shopId;
         this.message = message;
     }
 
-    static ShopOwnerMessageHistoryJpaEntity create(Long shopId, String message) {
+    static ShopOwnerMessageHistoryJpaEntity create(ShopId shopId, String message) {
         return new ShopOwnerMessageHistoryJpaEntity(shopId, message);
     }
 }

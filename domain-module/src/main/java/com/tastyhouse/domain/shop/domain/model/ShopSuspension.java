@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상점 영업 임시중지 순수 도메인 모델.
@@ -18,7 +19,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public class ShopSuspension {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId;
+    private final ShopId shopId;
     private final SuspensionReason reason;
     private final OrderMethod orderMethod; // null이면 전체 주문유형 대상
     private final LocalDateTime startAt;
@@ -29,7 +30,7 @@ public class ShopSuspension {
 
     private ShopSuspension(
         Long id,
-        Long shopId,
+        ShopId shopId,
         SuspensionReason reason,
         OrderMethod orderMethod,
         LocalDateTime startAt,
@@ -53,7 +54,7 @@ public class ShopSuspension {
      * 신규 영업 임시중지를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없고, 해제 시각도 없다.
      */
     public static ShopSuspension of(
-        Long shopId,
+        ShopId shopId,
         SuspensionReason reason,
         OrderMethod orderMethod,
         LocalDateTime startAt,
@@ -71,7 +72,7 @@ public class ShopSuspension {
      */
     public static ShopSuspension reconstitute(
         Long id,
-        Long shopId,
+        ShopId shopId,
         SuspensionReason reason,
         OrderMethod orderMethod,
         LocalDateTime startAt,

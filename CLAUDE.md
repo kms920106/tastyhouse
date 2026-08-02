@@ -192,11 +192,23 @@ reference 구현: `web-api`의 `NoticeListItemResponse`(`notice/response/`)와 `
 | domain-module 도메인 서비스(`<ctx>/domain/service/`) public 시그니처 | `XxxId` | 도메인 서비스에 넘기는 파라미터·반환도 동일 |
 | domain repository(write 포트) 인터페이스 (`findById` 등) | `XxxId` | |
 | infrastructure-module query DAO (`<ctx>/query/`) | `Long` | 표현 목적 조회는 도메인 모델을 거치지 않아 VO를 쓰지 않습니다(`SearchCondition` 필드도 `Long`) |
-| 도메인 모델 내부 / 도메인 이벤트 | `XxxId` | |
-| 엔티티 `@Id` 필드 | `Long` + `@GeneratedValue(IDENTITY)` | 유지 — VO로 바꾸지 않습니다 |
+| 도메인 모델 내부 / 도메인 이벤트 | `XxxId` | **모든 애그리거트 간 FK에 예외 없이 적용**(정책 A) — 자기 자신의 PK(`Long id`, 재구성 전 신규 상태를 null로 표현하는 필드)는 대상이 아니며, `getXxxId()`가 이를 VO로 래핑해 노출합니다 |
+| 엔티티 `@Id` 필드 | `Long` + `@GeneratedValue(IDENTITY)` | 유지 — VO로 바꾸지 않습니다(자기 PK는 이 규칙의 예외이며 혼동 방지 대상) |
 | 엔티티 자기 ID getter | `getXxxId(): XxxId` | 내부 `Long id`를 VO로 래핑해 노출 |
-| 엔티티 FK 필드(다른 애그리거트 참조) | 가능하면 `@Convert`로 `XxxId` | 일괄 강제 아님, 점진적으로 전환 |
+| 엔티티 FK 필드(다른 애그리거트 참조) | `@Convert`로 `XxxId` 필수 | 정책 A 채택 이후 전 도메인 일괄 적용(과거 "가능하면·점진적" 문구는 폐지) |
 | 결과 DTO(result record)에서 id 추출 | `entity.getXxxId()` | `getId()`(Long)를 응답에 직접 노출하지 않습니다 |
+
+**QueryDSL과 `@Convert` VO 컬럼의 충돌과 필수 우회**: infra query DAO는 표현 목적 조회를 위해 `Long`을 그대로 쓰지만, 엔티티 FK 필드 자체가 `@Convert`로 `XxxId` VO에 매핑되어 있으면 QueryDSL이 그 필드에 대해 `NumberPath<Long>`이 아닌 VO 타입 path를 생성합니다. 그 결과 해당 컬럼을 다른 엔티티의 raw `Long` PK와 조인하거나, `Long`-typed Result 필드로 직접 투영하는 코드가 컴파일되지 않습니다. 이 경우 아래 우회가 **필수**입니다.
+
+```java
+private NumberPath<Long> xxxShopId() {
+    return Expressions.numberPath(Long.class, xxxJpaEntity, "shopId");
+}
+```
+
+- 우회 대상 컬럼마다 헬퍼 메서드 하나(파일명 규칙: `{용도}{필드}` — 예: `reservationShopId()`, `shopThumbnailImageFileId()`)를 두고, join·where·투영 어디서든 이 헬퍼를 통해서만 그 컬럼에 접근합니다.
+- **크로스 도메인 회귀에 취약합니다**: 한 도메인의 FK 필드를 raw `Long`→VO로 전환하면, 그 컬럼을 조인·투영하던 **다른 도메인**의 query DAO가 컴파일 에러 없이(또는 타입 에러로) 깨질 수 있습니다(예: `shop.thumbnailImageFileId`를 VO로 바꾸면 `order`/`reservation`/`review` 등 그 컬럼을 조인하던 다른 도메인 query DAO가 함께 깨짐). 한 도메인을 전환할 때는 반드시 `grep -rn '{엔티티}\.{필드명}\b' infrastructure-module`으로 다른 도메인의 참조를 전수 확인합니다.
+- 문자열 필드명(`"shopId"`)은 컴파일러가 오타를 잡지 못하므로, 엔티티 필드명이 바뀌면 헬퍼도 함께 바꿔야 합니다.
 
 **`XxxId` VO 표준 형태** (`domain-module/src/main/java/com/tastyhouse/domain/<ctx>/domain/vo/XxxId.java`):
 

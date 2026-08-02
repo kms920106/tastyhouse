@@ -2,6 +2,7 @@ package com.tastyhouse.domain.product.domain.model;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
 
 /**
@@ -14,7 +15,7 @@ import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
 public class ProductOption {
 
     private final Long id;
-    private final Long optionGroupId;
+    private final ProductOptionGroupId optionGroupId;
     private String name;
     private Integer additionalPrice;
     private Integer sort;
@@ -23,7 +24,7 @@ public class ProductOption {
 
     private ProductOption(
         Long id,
-        Long optionGroupId,
+        ProductOptionGroupId optionGroupId,
         String name,
         Integer additionalPrice,
         Integer sort,
@@ -40,7 +41,7 @@ public class ProductOption {
     }
 
     public static ProductOption of(
-        Long optionGroupId,
+        ProductOptionGroupId optionGroupId,
         String name,
         Integer additionalPrice,
         Integer sort,
@@ -63,7 +64,7 @@ public class ProductOption {
      */
     public static ProductOption reconstitute(
         Long id,
-        Long optionGroupId,
+        ProductOptionGroupId optionGroupId,
         String name,
         Integer additionalPrice,
         Integer sort,

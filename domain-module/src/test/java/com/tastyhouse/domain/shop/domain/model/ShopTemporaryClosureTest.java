@@ -11,6 +11,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
@@ -24,10 +25,10 @@ class ShopTemporaryClosureTest {
         LocalDate startDate = LocalDate.of(2026, 8, 1);
         LocalDate endDate = LocalDate.of(2026, 8, 3);
 
-        ShopTemporaryClosure shopTemporaryClosure = ShopTemporaryClosure.of(1L, startDate, endDate);
+        ShopTemporaryClosure shopTemporaryClosure = ShopTemporaryClosure.of(ShopId.of(1L), startDate, endDate);
 
         assertThat(shopTemporaryClosure.getId()).isNull();
-        assertThat(shopTemporaryClosure.getShopId()).isEqualTo(1L);
+        assertThat(shopTemporaryClosure.getShopId()).isEqualTo(ShopId.of(1L));
         assertThat(shopTemporaryClosure.getStartDate()).isEqualTo(startDate);
         assertThat(shopTemporaryClosure.getEndDate()).isEqualTo(endDate);
         assertThat(shopTemporaryClosure.getCreatedAt()).isNull();
@@ -39,7 +40,7 @@ class ShopTemporaryClosureTest {
         LocalDate startDate = LocalDate.of(2026, 8, 3);
         LocalDate endDate = LocalDate.of(2026, 8, 1);
 
-        assertThatThrownBy(() -> ShopTemporaryClosure.of(1L, startDate, endDate))
+        assertThatThrownBy(() -> ShopTemporaryClosure.of(ShopId.of(1L), startDate, endDate))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
             .isEqualTo(ErrorCode.SHOP_TEMPORARY_CLOSURE_INVALID_PERIOD);
@@ -52,10 +53,10 @@ class ShopTemporaryClosureTest {
         LocalDate endDate = LocalDate.of(2026, 8, 3);
         LocalDateTime createdAt = LocalDateTime.of(2026, 7, 25, 10, 0);
 
-        ShopTemporaryClosure shopTemporaryClosure = ShopTemporaryClosure.reconstitute(1L, 2L, startDate, endDate, createdAt);
+        ShopTemporaryClosure shopTemporaryClosure = ShopTemporaryClosure.reconstitute(1L, ShopId.of(2L), startDate, endDate, createdAt);
 
         assertThat(shopTemporaryClosure.getId()).isEqualTo(1L);
-        assertThat(shopTemporaryClosure.getShopId()).isEqualTo(2L);
+        assertThat(shopTemporaryClosure.getShopId()).isEqualTo(ShopId.of(2L));
         assertThat(shopTemporaryClosure.getCreatedAt()).isEqualTo(createdAt);
     }
 
@@ -63,7 +64,7 @@ class ShopTemporaryClosureTest {
     @DisplayName("days()는 시작일과 종료일을 포함한 총 일수를 계산한다")
     void days_calculatesInclusiveTotalDays() {
         ShopTemporaryClosure shopTemporaryClosure = ShopTemporaryClosure.of(
-            1L,
+            ShopId.of(1L),
             LocalDate.of(2026, 8, 1),
             LocalDate.of(2026, 8, 3)
         );
@@ -76,7 +77,7 @@ class ShopTemporaryClosureTest {
     void days_returnsOne_whenStartDateEqualsEndDate() {
         LocalDate date = LocalDate.of(2026, 8, 1);
 
-        ShopTemporaryClosure shopTemporaryClosure = ShopTemporaryClosure.of(1L, date, date);
+        ShopTemporaryClosure shopTemporaryClosure = ShopTemporaryClosure.of(ShopId.of(1L), date, date);
 
         assertThat(shopTemporaryClosure.days()).isEqualTo(1);
     }

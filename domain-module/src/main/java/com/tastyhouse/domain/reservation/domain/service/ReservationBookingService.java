@@ -73,7 +73,7 @@ public class ReservationBookingService {
      */
     public ReservationId book(
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         LocalDate date,
         LocalTime time,
         Integer partySize,
@@ -96,7 +96,7 @@ public class ReservationBookingService {
         }
 
         // 4. 가게/회원 존재 검증
-        if (shopRepository.findById(ShopId.of(shopId)).isEmpty()) {
+        if (shopRepository.findById(shopId).isEmpty()) {
             throw new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND);
         }
         if (memberRepository.findById(memberId).isEmpty()) {

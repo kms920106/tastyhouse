@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상점 영업시간 순수 도메인 모델.
@@ -23,7 +24,7 @@ public class ShopBusinessHour {
     private static final long MAX_DURATION_MINUTES = 23 * 60 + 55;
 
     private final Long id;
-    private final Long shopId;
+    private final ShopId shopId;
     private DayType dayType;
     private LocalTime openTime;
     private LocalTime closeTime;
@@ -32,7 +33,7 @@ public class ShopBusinessHour {
 
     private ShopBusinessHour(
         Long id,
-        Long shopId,
+        ShopId shopId,
         DayType dayType,
         LocalTime openTime,
         LocalTime closeTime,
@@ -61,7 +62,7 @@ public class ShopBusinessHour {
      * 로드는 가능해야 하기 때문이다.
      */
     public static ShopBusinessHour of(
-        Long shopId,
+        ShopId shopId,
         DayType dayType,
         LocalTime openTime,
         LocalTime closeTime,
@@ -81,7 +82,7 @@ public class ShopBusinessHour {
      */
     public static ShopBusinessHour reconstitute(
         Long id,
-        Long shopId,
+        ShopId shopId,
         DayType dayType,
         LocalTime openTime,
         LocalTime closeTime,

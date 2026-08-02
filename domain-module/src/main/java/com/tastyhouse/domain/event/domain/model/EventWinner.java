@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.event.domain.vo.EventId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
 /**
@@ -18,7 +19,7 @@ import com.tastyhouse.domain.shared.vo.PhoneNumber;
 public class EventWinner {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long eventId; // 이벤트 ID (EVENT.id 참조)
+    private final EventId eventId; // 이벤트 ID (EVENT.id 참조)
     private final Integer rankNo; // 당첨 순위
     private final String winnerName; // 당첨자 이름
     private final PhoneNumber phoneNumber; // 휴대폰 번호 (값 객체)
@@ -27,7 +28,7 @@ public class EventWinner {
 
     private EventWinner(
         Long id,
-        Long eventId,
+        EventId eventId,
         Integer rankNo,
         String winnerName,
         PhoneNumber phoneNumber,
@@ -47,7 +48,7 @@ public class EventWinner {
      * 신규 당첨자를 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
      */
     public static EventWinner of(
-        Long eventId,
+        EventId eventId,
         Integer rankNo,
         String winnerName,
         String phoneNumber,
@@ -70,7 +71,7 @@ public class EventWinner {
      */
     public static EventWinner reconstitute(
         Long id,
-        Long eventId,
+        EventId eventId,
         Integer rankNo,
         String winnerName,
         PhoneNumber phoneNumber,

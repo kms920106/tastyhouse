@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
@@ -52,8 +53,9 @@ public class MemberCouponJpaEntity extends BaseEntity {
     @Column(name = "member_id", nullable = false)
     private MemberId memberId;
 
+    @Convert(converter = CouponIdConverter.class)
     @Column(name = "coupon_id", nullable = false)
-    private Long couponId;
+    private CouponId couponId;
 
     @Column(name = "is_used", nullable = false)
     private boolean used;
@@ -66,7 +68,7 @@ public class MemberCouponJpaEntity extends BaseEntity {
 
     private MemberCouponJpaEntity(
         MemberId memberId,
-        Long couponId,
+        CouponId couponId,
         boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt
@@ -83,7 +85,7 @@ public class MemberCouponJpaEntity extends BaseEntity {
      */
     static MemberCouponJpaEntity create(
         MemberId memberId,
-        Long couponId,
+        CouponId couponId,
         boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt

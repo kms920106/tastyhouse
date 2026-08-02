@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import lombok.Getter;
 
 import com.tastyhouse.domain.reservation.domain.service.SlotPolicy;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -23,7 +24,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public class ReservationSlot {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId; // 장소 ID
+    private final ShopId shopId; // 장소 ID
     private final LocalDate slotDate; // 슬롯 날짜
     private final LocalTime slotTime; // 슬롯 시간 (30분 단위)
     private final Integer capacity; // 슬롯당 정원 (팀 수)
@@ -32,7 +33,7 @@ public class ReservationSlot {
 
     private ReservationSlot(
         Long id,
-        Long shopId,
+        ShopId shopId,
         LocalDate slotDate,
         LocalTime slotTime,
         Integer capacity,
@@ -51,7 +52,7 @@ public class ReservationSlot {
     /**
      * 신규 슬롯을 생성한다. 아직 영속되지 않았으므로 식별자·버전은 없다. capacity가 null이면 기본 정원을 사용한다.
      */
-    public static ReservationSlot of(Long shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity) {
+    public static ReservationSlot of(ShopId shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity) {
         Integer resolvedCapacity = capacity != null ? capacity : SlotPolicy.CAPACITY_PER_SLOT;
         return new ReservationSlot(null, shopId, slotDate, slotTime, resolvedCapacity, 0, null);
     }
@@ -62,7 +63,7 @@ public class ReservationSlot {
      */
     public static ReservationSlot reconstitute(
         Long id,
-        Long shopId,
+        ShopId shopId,
         LocalDate slotDate,
         LocalTime slotTime,
         Integer capacity,

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.reservation.domain.service.ReservationBookingService;
 import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 예약 생성의 트랜잭션 단위.
@@ -35,7 +36,7 @@ public class ReservationBookingExecutor {
     @Transactional
     public ReservationId bookInNewTx(
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         LocalDate date,
         LocalTime time,
         Integer partySize,

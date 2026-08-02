@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.domain.model;
 import lombok.Getter;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상점 북마크 순수 도메인 모델.
@@ -14,23 +15,23 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 public class ShopBookmark {
 
     private final Long id;
-    private final Long shopId;
+    private final ShopId shopId;
     private final MemberId memberId;
 
-    private ShopBookmark(Long id, Long shopId, MemberId memberId) {
+    private ShopBookmark(Long id, ShopId shopId, MemberId memberId) {
         this.id = id;
         this.shopId = shopId;
         this.memberId = memberId;
     }
 
-    public static ShopBookmark of(Long shopId, MemberId memberId) {
+    public static ShopBookmark of(ShopId shopId, MemberId memberId) {
         return new ShopBookmark(null, shopId, memberId);
     }
 
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ShopBookmark reconstitute(Long id, Long shopId, MemberId memberId) {
+    public static ShopBookmark reconstitute(Long id, ShopId shopId, MemberId memberId) {
         return new ShopBookmark(id, shopId, memberId);
     }
 }

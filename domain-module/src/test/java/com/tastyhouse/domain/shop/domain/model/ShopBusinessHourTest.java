@@ -11,16 +11,17 @@ import com.tastyhouse.domain.exception.ErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 class ShopBusinessHourTest {
 
     @Test
     @DisplayName("of로 생성하면 미영속 상태다")
     void of_createsTransientBusinessHour() {
-        ShopBusinessHour businessHour = ShopBusinessHour.of(1L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false);
+        ShopBusinessHour businessHour = ShopBusinessHour.of(ShopId.of(1L), DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false);
 
         assertThat(businessHour.getId()).isNull();
-        assertThat(businessHour.getShopId()).isEqualTo(1L);
+        assertThat(businessHour.getShopId()).isEqualTo(ShopId.of(1L));
         assertThat(businessHour.getDayType()).isEqualTo(DayType.WEEKDAY);
         assertThat(businessHour.getOpenTime()).isEqualTo(LocalTime.of(9, 0));
         assertThat(businessHour.getCloseTime()).isEqualTo(LocalTime.of(22, 0));
@@ -31,7 +32,7 @@ class ShopBusinessHourTest {
     @Test
     @DisplayName("update는 영업시간 정보를 변경한다")
     void update_changesFields() {
-        ShopBusinessHour businessHour = ShopBusinessHour.of(1L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false);
+        ShopBusinessHour businessHour = ShopBusinessHour.of(ShopId.of(1L), DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false);
 
         businessHour.update(DayType.SUNDAY, LocalTime.of(10, 0), LocalTime.of(20, 0), true, false);
 
@@ -45,15 +46,15 @@ class ShopBusinessHourTest {
     @DisplayName("reconstitute는 DB 상태로부터 식별자를 포함해 재구성한다")
     void reconstitute_restoresPersistedState() {
         ShopBusinessHour businessHour = ShopBusinessHour.reconstitute(
-            1L, 2L, DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false
+            1L, ShopId.of(2L), DayType.WEEKDAY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false
         );
 
         assertThat(businessHour.getId()).isEqualTo(1L);
-        assertThat(businessHour.getShopId()).isEqualTo(2L);
+        assertThat(businessHour.getShopId()).isEqualTo(ShopId.of(2L));
     }
 
     private static ShopBusinessHour hourOf(LocalTime openTime, LocalTime closeTime) {
-        return ShopBusinessHour.of(1L, DayType.WEEKDAY, openTime, closeTime, false, false);
+        return ShopBusinessHour.of(ShopId.of(1L), DayType.WEEKDAY, openTime, closeTime, false, false);
     }
 
     @Test
@@ -112,8 +113,8 @@ class ShopBusinessHourTest {
     @Test
     @DisplayName("of는 휴무·24시간 영업이면 시간 검증을 생략한다(openTime/closeTime null 허용)")
     void of_closedOr24Hours_skipsTimeValidation() {
-        assertThat(ShopBusinessHour.of(1L, DayType.WEEKDAY, null, null, true, false).getIsClosed()).isTrue();
-        assertThat(ShopBusinessHour.of(1L, DayType.WEEKDAY, null, null, false, true).getIs24Hours()).isTrue();
+        assertThat(ShopBusinessHour.of(ShopId.of(1L), DayType.WEEKDAY, null, null, true, false).getIsClosed()).isTrue();
+        assertThat(ShopBusinessHour.of(ShopId.of(1L), DayType.WEEKDAY, null, null, false, true).getIs24Hours()).isTrue();
     }
 
     @Test
@@ -145,7 +146,7 @@ class ShopBusinessHourTest {
     @DisplayName("reconstitute는 규격 검증을 하지 않는다(불변식 위반 레거시 행도 로드 가능)")
     void reconstitute_bypassesSpecValidation() {
         ShopBusinessHour businessHour = ShopBusinessHour.reconstitute(
-            1L, 2L, DayType.WEEKDAY, LocalTime.of(9, 3), LocalTime.of(9, 33), false, false
+            1L, ShopId.of(2L), DayType.WEEKDAY, LocalTime.of(9, 3), LocalTime.of(9, 33), false, false
         );
 
         assertThat(businessHour.getOpenTime()).isEqualTo(LocalTime.of(9, 3));
@@ -157,7 +158,7 @@ class ShopBusinessHourTest {
     class IsOpenAt {
 
         private ShopBusinessHour hour(LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours) {
-            return ShopBusinessHour.reconstitute(1L, 1L, DayType.DAILY, open, close, isClosed, is24Hours);
+            return ShopBusinessHour.reconstitute(1L, ShopId.of(1L), DayType.DAILY, open, close, isClosed, is24Hours);
         }
 
         @Test
@@ -233,7 +234,7 @@ class ShopBusinessHourTest {
     class ExtendsIntoNextDayAt {
 
         private ShopBusinessHour hour(LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours) {
-            return ShopBusinessHour.reconstitute(1L, 1L, DayType.DAILY, open, close, isClosed, is24Hours);
+            return ShopBusinessHour.reconstitute(1L, ShopId.of(1L), DayType.DAILY, open, close, isClosed, is24Hours);
         }
 
         @Test

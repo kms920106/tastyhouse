@@ -8,6 +8,7 @@ import lombok.Getter;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -25,7 +26,7 @@ public class Reservation {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
     private final MemberId memberId; // 예약자 회원 ID
-    private final Long shopId; // 장소 ID
+    private final ShopId shopId; // 장소 ID
     private final LocalDate reservationDate; // 예약 날짜
     private final LocalTime reservationTime; // 예약 시간
     private final Integer partySize; // 방문 인원수
@@ -36,7 +37,7 @@ public class Reservation {
     private Reservation(
         Long id,
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,
@@ -70,7 +71,7 @@ public class Reservation {
      */
     public static Reservation of(
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,
@@ -95,7 +96,7 @@ public class Reservation {
     public static Reservation reconstitute(
         Long id,
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,

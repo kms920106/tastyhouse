@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +60,7 @@ public class EventQueryDao {
                 eventJpaEntity.endAt
             ))
             .from(eventJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(eventJpaEntity.thumbnailImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(eventThumbnailImageFileId().eq(uploadedFileJpaEntity.id))
             .where(eventJpaEntity.status.eq(status))
             .orderBy(eventJpaEntity.startAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -83,7 +85,7 @@ public class EventQueryDao {
                 uploadedFileJpaEntity.filePath
             ))
             .from(eventJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(eventJpaEntity.bannerImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(eventBannerImageFileId().eq(uploadedFileJpaEntity.id))
             .where(eventJpaEntity.id.eq(eventId.value()))
             .fetchOne();
 
@@ -109,14 +111,14 @@ public class EventQueryDao {
                 eventJpaEntity.id,
                 eventJpaEntity.name,
                 eventJpaEntity.status,
-                eventJpaEntity.thumbnailImageFileId,
+                eventThumbnailImageFileId(),
                 uploadedFileJpaEntity.originalFilename,
                 uploadedFileJpaEntity.filePath,
                 eventJpaEntity.startAt,
                 eventJpaEntity.endAt
             ))
             .from(eventJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(eventJpaEntity.thumbnailImageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(eventThumbnailImageFileId()))
             .where(
                 eventJpaEntity.deleted.isFalse(),
                 nameContains(condition.name()),
@@ -140,8 +142,8 @@ public class EventQueryDao {
                 eventJpaEntity.name,
                 eventJpaEntity.description,
                 eventJpaEntity.subtitle,
-                eventJpaEntity.thumbnailImageFileId,
-                eventJpaEntity.bannerImageFileId,
+                eventThumbnailImageFileId(),
+                eventBannerImageFileId(),
                 eventJpaEntity.contentHtml,
                 eventJpaEntity.status,
                 eventJpaEntity.startAt,
@@ -163,14 +165,14 @@ public class EventQueryDao {
         return queryFactory
             .select(new QEventWinnerResult(
                 eventWinnerJpaEntity.id,
-                eventWinnerJpaEntity.eventId,
+                winnerEventId(),
                 eventWinnerJpaEntity.rankNo,
                 eventWinnerJpaEntity.winnerName,
                 eventWinnerJpaEntity.phoneNumber.value,
                 eventWinnerJpaEntity.announcedAt
             ))
             .from(eventWinnerJpaEntity)
-            .where(eventWinnerJpaEntity.eventId.eq(eventId.value()), eventWinnerJpaEntity.deleted.isFalse())
+            .where(winnerEventId().eq(eventId.value()), eventWinnerJpaEntity.deleted.isFalse())
             .orderBy(eventWinnerJpaEntity.rankNo.asc())
             .fetch();
     }
@@ -180,7 +182,7 @@ public class EventQueryDao {
      */
     public Optional<EventAnnouncementResult> findAnnouncementByEventId(EventId eventId) {
         EventAnnouncementResult result = selectAnnouncement()
-            .where(eventAnnouncementJpaEntity.eventId.eq(eventId.value()))
+            .where(announcementEventId().eq(eventId.value()))
             .fetchOne();
 
         return Optional.ofNullable(result);
@@ -211,12 +213,43 @@ public class EventQueryDao {
         return queryFactory
             .select(new QEventAnnouncementResult(
                 eventAnnouncementJpaEntity.id,
-                eventAnnouncementJpaEntity.eventId,
+                announcementEventId(),
                 eventAnnouncementJpaEntity.name,
                 eventAnnouncementJpaEntity.content,
                 eventAnnouncementJpaEntity.announcedAt
             ))
             .from(eventAnnouncementJpaEntity);
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code EVENT.thumbnail_image_file_id}를 raw {@code Long}으로 비교·투영하기
+     * 위한 path.
+     */
+    private NumberPath<Long> eventThumbnailImageFileId() {
+        return Expressions.numberPath(Long.class, eventJpaEntity, "thumbnailImageFileId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code EVENT.banner_image_file_id}를 raw {@code Long}으로 비교·투영하기
+     * 위한 path.
+     */
+    private NumberPath<Long> eventBannerImageFileId() {
+        return Expressions.numberPath(Long.class, eventJpaEntity, "bannerImageFileId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code EVENT_WINNER.event_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
+     */
+    private NumberPath<Long> winnerEventId() {
+        return Expressions.numberPath(Long.class, eventWinnerJpaEntity, "eventId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code EVENT_ANNOUNCEMENT.event_id}를 raw {@code Long}으로 비교·투영하기
+     * 위한 path.
+     */
+    private NumberPath<Long> announcementEventId() {
+        return Expressions.numberPath(Long.class, eventAnnouncementJpaEntity, "eventId");
     }
 
     private BooleanExpression nameContains(String name) {

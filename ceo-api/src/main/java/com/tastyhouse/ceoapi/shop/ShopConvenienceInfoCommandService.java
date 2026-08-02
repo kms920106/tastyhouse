@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shop.domain.model.ShopAmenity;
 import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopAmenityCategoryId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.shop.domain.service.ShopConvenienceInfoService;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -56,7 +58,7 @@ public class ShopConvenienceInfoCommandService {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         shopDetailRepository.findAmenityCategoryById(amenityCategoryId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
-        ShopAmenity amenity = shopDetailRepository.saveAmenity(ShopAmenity.of(shopId, amenityCategoryId));
+        ShopAmenity amenity = shopDetailRepository.saveAmenity(ShopAmenity.of(ShopId.of(shopId), ShopAmenityCategoryId.of(amenityCategoryId)));
         return amenity.getId();
     }
 

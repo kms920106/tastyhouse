@@ -2,6 +2,9 @@ package com.tastyhouse.domain.review.domain.model;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
+
 /**
  * 리뷰 이미지 순수 도메인 모델.
  *
@@ -13,11 +16,11 @@ import lombok.Getter;
 public class ReviewImage {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long reviewId;
-    private final Long imageFileId;
+    private final ReviewId reviewId;
+    private final UploadedFileId imageFileId;
     private final Integer sort;
 
-    private ReviewImage(Long id, Long reviewId, Long imageFileId, Integer sort) {
+    private ReviewImage(Long id, ReviewId reviewId, UploadedFileId imageFileId, Integer sort) {
         this.id = id;
         this.reviewId = reviewId;
         this.imageFileId = imageFileId;
@@ -27,14 +30,14 @@ public class ReviewImage {
     /**
      * 신규 리뷰 이미지를 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
      */
-    public static ReviewImage of(Long reviewId, Long imageFileId, Integer sort) {
+    public static ReviewImage of(ReviewId reviewId, UploadedFileId imageFileId, Integer sort) {
         return new ReviewImage(null, reviewId, imageFileId, sort);
     }
 
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ReviewImage reconstitute(Long id, Long reviewId, Long imageFileId, Integer sort) {
+    public static ReviewImage reconstitute(Long id, ReviewId reviewId, UploadedFileId imageFileId, Integer sort) {
         return new ReviewImage(id, reviewId, imageFileId, sort);
     }
 }

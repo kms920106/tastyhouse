@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.admin.domain.vo.AdminId;
 import com.tastyhouse.domain.bug.domain.model.BugReport;
 import com.tastyhouse.domain.bug.domain.model.BugReportCategory;
 import com.tastyhouse.domain.bug.domain.model.BugReportPriority;
@@ -61,7 +62,8 @@ public class BugReportCommandService {
         BugReportId bugReportId = BugReportId.of(id);
         BugReport bugReport = findBugReportOrThrow(bugReportId);
 
-        bugReport.assignTo(assigneeAdminId);
+        AdminId adminId = AdminId.of(assigneeAdminId);
+        bugReport.assignTo(adminId);
         bugReportRepository.save(bugReport);
     }
 

@@ -2,6 +2,8 @@ package com.tastyhouse.domain.product.domain.model;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.product.domain.vo.ProductId;
+
 /**
  * 상품 공통 옵션 그룹 순수 도메인 모델.
  *
@@ -12,7 +14,7 @@ import lombok.Getter;
 public class ProductCommonOptionGroup {
 
     private final Long id;
-    private final Long productId;
+    private final ProductId productId;
     private String name;
     private String description;
     private boolean required;
@@ -24,7 +26,7 @@ public class ProductCommonOptionGroup {
 
     private ProductCommonOptionGroup(
         Long id,
-        Long productId,
+        ProductId productId,
         String name,
         String description,
         boolean required,
@@ -47,7 +49,7 @@ public class ProductCommonOptionGroup {
     }
 
     public static ProductCommonOptionGroup of(
-        Long productId,
+        ProductId productId,
         String name,
         String description,
         boolean required,
@@ -68,7 +70,7 @@ public class ProductCommonOptionGroup {
      */
     public static ProductCommonOptionGroup reconstitute(
         Long id,
-        Long productId,
+        ProductId productId,
         String name,
         String description,
         boolean required,

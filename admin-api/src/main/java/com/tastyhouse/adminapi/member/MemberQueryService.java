@@ -82,7 +82,7 @@ public class MemberQueryService {
             member.getMemberGrade().name(),
             member.getMemberStatus().name(),
             member.getStatusMessage(),
-            resolveProfileImageUrl(member.getProfileImageFileId()),
+            resolveProfileImageUrl(member.getProfileImageFileId() == null ? null : member.getProfileImageFileId().value()),
             member.isPushNotificationEnabled(),
             member.isMarketingInfoEnabled(),
             member.isEventInfoEnabled(),

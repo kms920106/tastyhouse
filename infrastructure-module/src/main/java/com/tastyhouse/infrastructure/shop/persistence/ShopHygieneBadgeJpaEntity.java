@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.HygieneBadgeType;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -30,8 +32,9 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private ShopId shopId; // 가게 ID (SHOP.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "badge_type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
@@ -43,7 +46,7 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     @Column(name = "last_inspection_month", length = 7)
     private String lastInspectionMonth; // 세스코 최근 점검월 ("2026-03" 형태, nullable)
 
-    private ShopHygieneBadgeJpaEntity(Long shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
+    private ShopHygieneBadgeJpaEntity(ShopId shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         this.shopId = shopId;
         this.badgeType = badgeType;
         this.certifiedDate = certifiedDate;
@@ -53,7 +56,7 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopHygieneBadgeMapper#toEntity}에서만 호출한다.
      */
-    static ShopHygieneBadgeJpaEntity create(Long shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
+    static ShopHygieneBadgeJpaEntity create(ShopId shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         return new ShopHygieneBadgeJpaEntity(shopId, badgeType, certifiedDate, lastInspectionMonth);
     }
 }

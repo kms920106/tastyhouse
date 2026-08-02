@@ -47,7 +47,7 @@ public class FaqCategoryRepositoryImpl implements FaqCategoryRepository {
         Integer result = queryFactory
             .selectOne()
             .from(faqJpaEntity)
-            .where(faqJpaEntity.faqCategoryId.eq(faqCategoryId.value()), faqJpaEntity.deleted.isFalse())
+            .where(faqJpaEntity.faqCategoryId.eq(faqCategoryId), faqJpaEntity.deleted.isFalse())
             .fetchFirst();
         return result != null;
     }

@@ -10,6 +10,7 @@ import com.tastyhouse.domain.banner.domain.model.Banner;
 import com.tastyhouse.domain.banner.domain.model.BannerType;
 import com.tastyhouse.domain.banner.domain.repository.BannerRepository;
 import com.tastyhouse.domain.banner.domain.vo.BannerId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -43,7 +44,7 @@ public class BannerCommandService {
         Banner banner = Banner.of(
             BannerType.from(type),
             title,
-            imageFileId,
+            UploadedFileId.of(imageFileId),
             linkUrl,
             startDate,
             endDate,
@@ -71,7 +72,7 @@ public class BannerCommandService {
         banner.update(
             BannerType.from(type),
             title,
-            imageFileId,
+            UploadedFileId.of(imageFileId),
             linkUrl,
             startDate,
             endDate,

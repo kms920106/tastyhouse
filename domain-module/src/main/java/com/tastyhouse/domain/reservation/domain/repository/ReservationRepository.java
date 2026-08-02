@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 예약 write 포트.
@@ -24,7 +25,7 @@ public interface ReservationRepository {
      * 동일 회원이 동일 가게의 동일 날짜에 재예약을 막는(PENDING/CONFIRMED/COMPLETED) 예약을 보유하고 있는지.
      * 예약 생성 불변식(회원당 1일 1예약)의 검증에 쓰이므로 write 포트에 남긴다. REJECTED/CANCELED는 제외.
      */
-    boolean existsBlockingByMemberShopDate(MemberId memberId, Long shopId, LocalDate date);
+    boolean existsBlockingByMemberShopDate(MemberId memberId, ShopId shopId, LocalDate date);
 
     Reservation save(Reservation reservation);
 }

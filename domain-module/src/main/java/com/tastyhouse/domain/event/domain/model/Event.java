@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 
 import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
 /**
  * 이벤트 순수 도메인 모델.
@@ -21,8 +22,8 @@ public class Event {
     private String name; // 이벤트명
     private String description; // 이벤트 설명
     private String subtitle; // 이벤트 부제목
-    private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
-    private Long bannerImageFileId; // 배너 이미지 파일 ID (FILE.id 참조)
+    private UploadedFileId thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
+    private UploadedFileId bannerImageFileId; // 배너 이미지 파일 ID (FILE.id 참조)
     private String contentHtml; // 이벤트 본문 HTML
     private EventStatus status; // 이벤트 상태 (예: SCHEDULED, ACTIVE, ENDED)
     private LocalDateTime startAt; // 이벤트 시작 일시
@@ -36,8 +37,8 @@ public class Event {
         String name,
         String description,
         String subtitle,
-        Long thumbnailImageFileId,
-        Long bannerImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId bannerImageFileId,
         String contentHtml,
         EventStatus status,
         LocalDateTime startAt,
@@ -68,8 +69,8 @@ public class Event {
         String name,
         String description,
         String subtitle,
-        Long thumbnailImageFileId,
-        Long bannerImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId bannerImageFileId,
         String contentHtml,
         EventStatus status,
         LocalDateTime startAt,
@@ -101,8 +102,8 @@ public class Event {
         String name,
         String description,
         String subtitle,
-        Long thumbnailImageFileId,
-        Long bannerImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId bannerImageFileId,
         String contentHtml,
         EventStatus status,
         LocalDateTime startAt,
@@ -136,8 +137,8 @@ public class Event {
         String name,
         String description,
         String subtitle,
-        Long thumbnailImageFileId,
-        Long bannerImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId bannerImageFileId,
         String contentHtml,
         EventStatus status,
         LocalDateTime startAt,

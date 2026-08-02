@@ -13,10 +13,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.infrastructure.coupon.persistence.MemberCouponIdConverter;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
+import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -39,8 +43,9 @@ public class OrderJpaEntity extends BaseEntity {
     @Column(name = "member_id", nullable = false)
     private MemberId memberId; // 주문자 회원 ID
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 주문 대상 가게 ID
+    private ShopId shopId; // 주문 대상 가게 ID
 
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
     private String orderNumber; // 주문 번호
@@ -80,8 +85,9 @@ public class OrderJpaEntity extends BaseEntity {
     @Column(name = "final_amount", nullable = false)
     private Integer finalAmount; // 최종 결제 금액
 
+    @Convert(converter = MemberCouponIdConverter.class)
     @Column(name = "member_coupon_id")
-    private Long memberCouponId; // 사용한 회원 쿠폰 ID
+    private MemberCouponId memberCouponId; // 사용한 회원 쿠폰 ID
 
     @Column(name = "used_point", nullable = false)
     private Integer usedPoint; // 사용한 포인트
@@ -94,7 +100,7 @@ public class OrderJpaEntity extends BaseEntity {
 
     private OrderJpaEntity(
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         String orderNumber,
         OrderMethod orderMethod,
         OrderStatus orderStatus,
@@ -107,7 +113,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        Long memberCouponId,
+        MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
         boolean deleted
@@ -137,7 +143,7 @@ public class OrderJpaEntity extends BaseEntity {
      */
     static OrderJpaEntity create(
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         String orderNumber,
         OrderMethod orderMethod,
         OrderStatus orderStatus,
@@ -150,7 +156,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        Long memberCouponId,
+        MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
         boolean deleted
@@ -188,7 +194,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        Long memberCouponId,
+        MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
         boolean deleted

@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 가게 편의정보 JPA 영속 모델. 순수 도메인 모델 {@code ShopConvenienceInfo}와 분리된 영속 전용 엔티티다.
@@ -27,8 +30,9 @@ public class ShopConvenienceInfoJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private ShopId shopId; // 가게 ID (SHOP.id 참조)
 
     @Column(name = "is_parking_available", nullable = false)
     private boolean parkingAvailable; // 주차 가능 여부
@@ -52,7 +56,7 @@ public class ShopConvenienceInfoJpaEntity extends BaseEntity {
     private BigDecimal displayLongitude; // 노출 위치 경도
 
     private ShopConvenienceInfoJpaEntity(
-        Long shopId,
+        ShopId shopId,
         boolean parkingAvailable,
         boolean parkingPaid,
         boolean valetAvailable,
@@ -75,7 +79,7 @@ public class ShopConvenienceInfoJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopConvenienceInfoMapper#toEntity}에서만 호출한다.
      */
     static ShopConvenienceInfoJpaEntity create(
-        Long shopId,
+        ShopId shopId,
         boolean parkingAvailable,
         boolean parkingPaid,
         boolean valetAvailable,

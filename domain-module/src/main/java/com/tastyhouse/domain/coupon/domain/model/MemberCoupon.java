@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -22,7 +23,7 @@ public class MemberCoupon {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
     private final MemberId memberId;
-    private final Long couponId;
+    private final CouponId couponId;
     private boolean used;
     private LocalDateTime usedAt;
     private final LocalDateTime expiredAt;
@@ -30,7 +31,7 @@ public class MemberCoupon {
     private MemberCoupon(
         Long id,
         MemberId memberId,
-        Long couponId,
+        CouponId couponId,
         boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt
@@ -48,7 +49,7 @@ public class MemberCoupon {
      */
     public static MemberCoupon of(
         MemberId memberId,
-        Long couponId,
+        CouponId couponId,
         boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt
@@ -63,7 +64,7 @@ public class MemberCoupon {
     public static MemberCoupon reconstitute(
         Long id,
         MemberId memberId,
-        Long couponId,
+        CouponId couponId,
         boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt

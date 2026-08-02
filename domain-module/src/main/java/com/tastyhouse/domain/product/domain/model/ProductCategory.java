@@ -3,6 +3,7 @@ package com.tastyhouse.domain.product.domain.model;
 import lombok.Getter;
 
 import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상품 카테고리 순수 도메인 모델.
@@ -14,12 +15,12 @@ import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 public class ProductCategory {
 
     private final Long id;
-    private final Long shopId;
+    private final ShopId shopId;
     private String name;
     private Integer sort;
     private boolean visible;
 
-    private ProductCategory(Long id, Long shopId, String name, Integer sort, boolean visible) {
+    private ProductCategory(Long id, ShopId shopId, String name, Integer sort, boolean visible) {
         this.id = id;
         this.shopId = shopId;
         this.name = name;
@@ -27,14 +28,14 @@ public class ProductCategory {
         this.visible = visible;
     }
 
-    public static ProductCategory of(Long shopId, String name, Integer sort, boolean visible) {
+    public static ProductCategory of(ShopId shopId, String name, Integer sort, boolean visible) {
         return new ProductCategory(null, shopId, name, sort, visible);
     }
 
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ProductCategory reconstitute(Long id, Long shopId, String name, Integer sort, boolean visible) {
+    public static ProductCategory reconstitute(Long id, ShopId shopId, String name, Integer sort, boolean visible) {
         return new ProductCategory(id, shopId, name, sort, visible);
     }
 

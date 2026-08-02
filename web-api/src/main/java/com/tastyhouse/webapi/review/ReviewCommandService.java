@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.domain.order.domain.repository.OrderProductRepository;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.domain.product.domain.model.Product;
 import com.tastyhouse.domain.product.domain.repository.ProductRepository;
@@ -72,7 +73,7 @@ public class ReviewCommandService {
         List<Long> uploadedFileIds,
         List<String> tags
     ) {
-        Long orderId = null;
+        OrderId orderId = null;
         if (orderProductId != null) {
             OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
@@ -84,7 +85,7 @@ public class ReviewCommandService {
 
         ReviewRegistration registration = reviewLifecycleService.register(
             product.getShopId(),
-            product.getId(),
+            product.getProductId(),
             MemberId.of(memberId),
             orderId,
             tasteRating,
@@ -153,7 +154,10 @@ public class ReviewCommandService {
      * @return 등록된 댓글 식별자
      */
     public Long createComment(Long reviewId, Long memberId, String content) {
-        ReviewComment comment = reviewCommentRepository.save(ReviewComment.of(reviewId, MemberId.of(memberId), content));
+        ReviewId targetReviewId = ReviewId.of(reviewId);
+        ReviewComment comment = reviewCommentRepository.save(
+            ReviewComment.of(targetReviewId, MemberId.of(memberId), content)
+        );
         return comment.getId();
     }
 
@@ -165,7 +169,7 @@ public class ReviewCommandService {
     public Long createReply(Long commentId, Long memberId, Long replyToMemberId, String content) {
         ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
         ReviewReply reply = reviewReplyRepository.save(ReviewReply.of(
-            reviewCommentId.value(),
+            reviewCommentId,
             MemberId.of(memberId),
             replyToMemberId == null ? null : MemberId.of(replyToMemberId),
             content

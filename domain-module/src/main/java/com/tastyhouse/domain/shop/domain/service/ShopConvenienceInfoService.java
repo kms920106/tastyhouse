@@ -77,7 +77,7 @@ public class ShopConvenienceInfoService {
                 return existing;
             })
             .orElseGet(() -> ShopConvenienceInfo.of(
-                shopId,
+                ShopId.of(shopId),
                 parkingAvailable,
                 parkingPaid,
                 valetAvailable,

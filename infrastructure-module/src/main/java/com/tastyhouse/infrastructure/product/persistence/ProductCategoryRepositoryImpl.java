@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.domain.product.domain.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 
@@ -29,7 +30,7 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
     }
 
     @Override
-    public List<ProductCategory> findCategoriesByNameAndShopId(String name, Long shopId) {
+    public List<ProductCategory> findCategoriesByNameAndShopId(String name, ShopId shopId) {
         return queryFactory
             .selectFrom(productCategoryJpaEntity)
             .where(productCategoryJpaEntity.name.eq(name), productCategoryJpaEntity.shopId.eq(shopId))

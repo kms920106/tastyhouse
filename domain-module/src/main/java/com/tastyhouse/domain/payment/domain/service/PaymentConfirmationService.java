@@ -181,7 +181,7 @@ public class PaymentConfirmationService {
             payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
         );
 
-        tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getId(), result.detail()));
+        tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getPaymentId(), result.detail()));
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
@@ -224,7 +224,7 @@ public class PaymentConfirmationService {
         Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
 
-        tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getId(), result.detail()));
+        tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getPaymentId(), result.detail()));
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             return;
@@ -314,7 +314,7 @@ public class PaymentConfirmationService {
     /**
      * PG 응답 상세를 원장 애그리거트로 변환한다.
      */
-    private TossPaymentRecord toTossPaymentRecord(Long paymentId, TossPaymentDetail detail) {
+    private TossPaymentRecord toTossPaymentRecord(PaymentId paymentId, TossPaymentDetail detail) {
         return TossPaymentRecord.create(
             paymentId,
             detail.version(),

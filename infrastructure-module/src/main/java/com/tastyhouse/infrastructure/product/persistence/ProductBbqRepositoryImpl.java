@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.domain.model.ProductBbq;
 import com.tastyhouse.domain.product.domain.repository.ProductBbqRepository;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 
@@ -22,7 +23,7 @@ public class ProductBbqRepositoryImpl implements ProductBbqRepository {
     private final ProductBbqJpaRepository productBbqJpaRepository;
 
     @Override
-    public Optional<ProductBbq> findByProductId(Long productId) {
+    public Optional<ProductBbq> findByProductId(ProductId productId) {
         return Optional.ofNullable(
             queryFactory
                 .selectFrom(productBbqJpaEntity)

@@ -1,11 +1,14 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.domain.model.ProductImage;
 import com.tastyhouse.domain.product.domain.repository.ProductImageRepository;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
@@ -21,14 +24,22 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
     private final ProductImageJpaRepository productImageJpaRepository;
 
     @Override
-    public String findRepresentativeImageFilePath(Long productId) {
+    public String findRepresentativeImageFilePath(ProductId productId) {
         return queryFactory
             .select(uploadedFileJpaEntity.filePath)
             .from(productImageJpaEntity)
-            .innerJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
+            .innerJoin(uploadedFileJpaEntity).on(imageFileId().eq(uploadedFileJpaEntity.id))
             .where(productImageJpaEntity.productId.eq(productId), productImageJpaEntity.visible.eq(true))
             .orderBy(productImageJpaEntity.sort.asc())
             .fetchFirst();
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code PRODUCT_IMAGE.image_file_id}를 raw {@code Long}으로
+     * 비교하기 위한 path.
+     */
+    private NumberPath<Long> imageFileId() {
+        return Expressions.numberPath(Long.class, productImageJpaEntity, "imageFileId");
     }
 
     @Override

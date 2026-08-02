@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shop.domain.model;
 
 import lombok.Getter;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
 /**
  * 음식 유형 카테고리 순수 도메인 모델.
@@ -14,8 +15,8 @@ public class ShopFoodTypeCategory {
     private final Long id;
     private final FoodType foodType;
     private String displayName;
-    private Long activeImageFileId;
-    private Long inactiveImageFileId;
+    private UploadedFileId activeImageFileId;
+    private UploadedFileId inactiveImageFileId;
     private Integer sort;
     private boolean visible;
 
@@ -23,8 +24,8 @@ public class ShopFoodTypeCategory {
         Long id,
         FoodType foodType,
         String displayName,
-        Long activeImageFileId,
-        Long inactiveImageFileId,
+        UploadedFileId activeImageFileId,
+        UploadedFileId inactiveImageFileId,
         Integer sort,
         boolean visible
     ) {
@@ -40,8 +41,8 @@ public class ShopFoodTypeCategory {
     public static ShopFoodTypeCategory of(
         FoodType foodType,
         String displayName,
-        Long activeImageFileId,
-        Long inactiveImageFileId,
+        UploadedFileId activeImageFileId,
+        UploadedFileId inactiveImageFileId,
         Integer sort,
         boolean visible
     ) {
@@ -55,15 +56,15 @@ public class ShopFoodTypeCategory {
         Long id,
         FoodType foodType,
         String displayName,
-        Long activeImageFileId,
-        Long inactiveImageFileId,
+        UploadedFileId activeImageFileId,
+        UploadedFileId inactiveImageFileId,
         Integer sort,
         boolean visible
     ) {
         return new ShopFoodTypeCategory(id, foodType, displayName, activeImageFileId, inactiveImageFileId, sort, visible);
     }
 
-    public void update(String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, boolean visible) {
+    public void update(String displayName, UploadedFileId activeImageFileId, UploadedFileId inactiveImageFileId, Integer sort, boolean visible) {
         this.displayName = displayName;
         this.activeImageFileId = activeImageFileId;
         this.inactiveImageFileId = inactiveImageFileId;

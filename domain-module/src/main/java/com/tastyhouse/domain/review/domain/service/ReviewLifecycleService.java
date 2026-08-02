@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.domain.review.domain.event.ReviewCreatedEvent;
 import com.tastyhouse.domain.review.domain.event.ReviewDeletedEvent;
 import com.tastyhouse.domain.review.domain.event.ReviewLikedEvent;
@@ -19,6 +22,8 @@ import com.tastyhouse.domain.review.domain.repository.ReviewTagRepository;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.domain.shop.domain.model.Tag;
 import com.tastyhouse.domain.shop.domain.repository.TagRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.domain.vo.TagId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -95,10 +100,10 @@ public class ReviewLifecycleService {
      * 리뷰 등록 — 본문 저장과 이미지·태그 적재, 통계 갱신 이벤트 발행이 함께 일어난다.
      */
     public ReviewRegistration register(
-        Long shopId,
-        Long productId,
+        ShopId shopId,
+        ProductId productId,
         MemberId memberId,
-        Long orderId,
+        OrderId orderId,
         Integer tasteRating,
         Integer amountRating,
         Integer priceRating,
@@ -121,8 +126,8 @@ public class ReviewLifecycleService {
 
         Review saved = reviewRepository.save(review);
 
-        List<Long> savedFileIds = saveImages(saved.getId(), uploadedFileIds);
-        List<String> savedTags = saveTags(saved.getId(), tags);
+        List<Long> savedFileIds = saveImages(saved.getReviewId(), uploadedFileIds);
+        List<String> savedTags = saveTags(saved.getReviewId(), tags);
 
         domainEventPublisher.publish(new ReviewCreatedEvent(
             saved.getReviewId(),
@@ -162,11 +167,11 @@ public class ReviewLifecycleService {
 
         Review saved = reviewRepository.save(review);
 
-        reviewImageRepository.deleteByReviewId(reviewId.value());
-        reviewTagRepository.deleteByReviewId(reviewId.value());
+        reviewImageRepository.deleteByReviewId(reviewId);
+        reviewTagRepository.deleteByReviewId(reviewId);
 
-        List<Long> savedFileIds = saveImages(reviewId.value(), uploadedFileIds);
-        List<String> savedTags = saveTags(reviewId.value(), tags);
+        List<Long> savedFileIds = saveImages(reviewId, uploadedFileIds);
+        List<String> savedTags = saveTags(reviewId, tags);
 
         return new ReviewRegistration(saved, savedFileIds, savedTags);
     }
@@ -176,7 +181,7 @@ public class ReviewLifecycleService {
      *
      * <p>{@code productId}는 호출부가 이미 알고 있는 값을 그대로 이벤트에 싣는다(삭제 전 재조회 불필요).
      */
-    public void removeOwnedBy(ReviewId reviewId, MemberId memberId, Long productId) {
+    public void removeOwnedBy(ReviewId reviewId, MemberId memberId, ProductId productId) {
         reviewRepository.findByIdAndMemberId(reviewId, memberId)
             .orElseThrow(() -> new AccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED));
 
@@ -214,7 +219,7 @@ public class ReviewLifecycleService {
         boolean liked = !reviewLikeRepository.existsByReviewIdAndMemberId(reviewId, memberId);
 
         if (liked) {
-            reviewLikeRepository.save(ReviewLike.of(reviewId.value(), memberId));
+            reviewLikeRepository.save(ReviewLike.of(reviewId, memberId));
         } else {
             reviewLikeRepository.deleteByReviewIdAndMemberId(reviewId, memberId);
         }
@@ -228,8 +233,8 @@ public class ReviewLifecycleService {
      * 리뷰 본문과 그에 딸린 이미지·태그를 함께 삭제한다(고아 행 방지).
      */
     private void deleteWithChildren(ReviewId reviewId) {
-        reviewImageRepository.deleteByReviewId(reviewId.value());
-        reviewTagRepository.deleteByReviewId(reviewId.value());
+        reviewImageRepository.deleteByReviewId(reviewId);
+        reviewTagRepository.deleteByReviewId(reviewId);
         reviewRepository.deleteById(reviewId);
     }
 
@@ -240,14 +245,14 @@ public class ReviewLifecycleService {
         return Math.round((tasteRating + amountRating + priceRating) / 3.0 * 10.0) / 10.0;
     }
 
-    private List<Long> saveImages(Long reviewId, List<Long> uploadedFileIds) {
+    private List<Long> saveImages(ReviewId reviewId, List<Long> uploadedFileIds) {
         if (uploadedFileIds == null || uploadedFileIds.isEmpty()) {
             return List.of();
         }
 
         List<ReviewImage> images = new ArrayList<>();
         for (int i = 0; i < uploadedFileIds.size(); i++) {
-            images.add(ReviewImage.of(reviewId, uploadedFileIds.get(i), i + 1));
+            images.add(ReviewImage.of(reviewId, UploadedFileId.of(uploadedFileIds.get(i)), i + 1));
         }
         reviewImageRepository.saveAll(images);
 
@@ -257,7 +262,7 @@ public class ReviewLifecycleService {
     /**
      * 태그 적재 — 태그명은 전역 {@code Tag} 사전에 없으면 새로 만들고, 리뷰-태그 연결만 리뷰별로 쌓는다.
      */
-    private List<String> saveTags(Long reviewId, List<String> tagNames) {
+    private List<String> saveTags(ReviewId reviewId, List<String> tagNames) {
         if (tagNames == null || tagNames.isEmpty()) {
             return List.of();
         }
@@ -266,7 +271,7 @@ public class ReviewLifecycleService {
             .map(tagName -> {
                 Tag tag = tagRepository.findByTagName(tagName)
                     .orElseGet(() -> tagRepository.save(Tag.of(tagName)));
-                return ReviewTag.of(reviewId, tag.getId());
+                return ReviewTag.of(reviewId, TagId.of(tag.getId()));
             })
             .toList();
         reviewTagRepository.saveAll(reviewTags);

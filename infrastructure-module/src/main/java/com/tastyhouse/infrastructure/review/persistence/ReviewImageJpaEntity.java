@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,6 +12,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -34,16 +38,18 @@ public class ReviewImageJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ReviewIdConverter.class)
     @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    private ReviewId reviewId;
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
+    private UploadedFileId imageFileId;
 
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    private ReviewImageJpaEntity(Long reviewId, Long imageFileId, Integer sort) {
+    private ReviewImageJpaEntity(ReviewId reviewId, UploadedFileId imageFileId, Integer sort) {
         this.reviewId = reviewId;
         this.imageFileId = imageFileId;
         this.sort = sort;
@@ -52,7 +58,7 @@ public class ReviewImageJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewImageMapper#toEntity}에서만 호출한다.
      */
-    static ReviewImageJpaEntity create(Long reviewId, Long imageFileId, Integer sort) {
+    static ReviewImageJpaEntity create(ReviewId reviewId, UploadedFileId imageFileId, Integer sort) {
         return new ReviewImageJpaEntity(reviewId, imageFileId, sort);
     }
 }

@@ -59,7 +59,7 @@ public class ReservationQueryDao {
      */
     public List<ReservationResult> findReservationsByShopId(Long shopId) {
         return reservationQuery()
-            .where(reservationJpaEntity.shopId.eq(shopId))
+            .where(reservationShopId().eq(shopId))
             .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
             .fetch();
     }
@@ -82,7 +82,7 @@ public class ReservationQueryDao {
         ReservationDetailResult result = queryFactory
             .select(new QReservationDetailResult(
                 reservationJpaEntity.id,
-                reservationJpaEntity.shopId,
+                reservationShopId(),
                 shopJpaEntity.name,
                 uploadedFileJpaEntity.filePath,
                 shopJpaEntity.roadAddress,
@@ -99,9 +99,9 @@ public class ReservationQueryDao {
                 reservationJpaEntity.createdAt
             ))
             .from(reservationJpaEntity)
-            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reservationJpaEntity.shopId))
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reservationShopId()))
             .innerJoin(memberJpaEntity).on(memberJpaEntity.id.eq(reservationMemberIdPath()))
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
             .where(reservationJpaEntity.id.eq(id.value()))
             .fetchOne();
 
@@ -120,7 +120,7 @@ public class ReservationQueryDao {
             ))
             .from(reservationSlotJpaEntity)
             .where(
-                reservationSlotJpaEntity.shopId.eq(shopId),
+                slotShopId().eq(shopId),
                 reservationSlotJpaEntity.slotDate.eq(date)
             )
             .fetch();
@@ -136,7 +136,7 @@ public class ReservationQueryDao {
             .from(reservationJpaEntity)
             .where(
                 reservationJpaEntity.memberId.eq(memberId),
-                reservationJpaEntity.shopId.eq(shopId),
+                reservationShopId().eq(shopId),
                 reservationJpaEntity.reservationDate.eq(date),
                 reservationJpaEntity.status.in(ReservationStatus.blockingStatuses())
             )
@@ -150,14 +150,14 @@ public class ReservationQueryDao {
         return queryFactory
             .select(reservationProjection())
             .from(reservationJpaEntity)
-            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reservationJpaEntity.shopId))
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId));
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reservationShopId()))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()));
     }
 
     private ConstructorExpression<ReservationResult> reservationProjection() {
         return new QReservationResult(
             reservationJpaEntity.id,
-            reservationJpaEntity.shopId,
+            reservationShopId(),
             shopJpaEntity.name,
             uploadedFileJpaEntity.filePath,
             shopJpaEntity.roadAddress,
@@ -173,10 +173,32 @@ public class ReservationQueryDao {
     }
 
     /**
+     * {@code @Convert} VO 컬럼인 {@code RESERVATION.shop_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
+     */
+    private NumberPath<Long> reservationShopId() {
+        return Expressions.numberPath(Long.class, reservationJpaEntity, "shopId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code RESERVATION_SLOT.shop_id}를 raw {@code Long}으로 비교하기 위한 path.
+     */
+    private NumberPath<Long> slotShopId() {
+        return Expressions.numberPath(Long.class, reservationSlotJpaEntity, "shopId");
+    }
+
+    /**
      * 예약의 {@code memberId}는 {@code @Convert}로 {@code MemberId} VO에 매핑돼 있어 회원 테이블의 raw
      * {@code Long} PK와 직접 join할 수 없다. 같은 컬럼을 {@code Long} 경로로 다시 노출해 join에 쓴다.
      */
     private NumberPath<Long> reservationMemberIdPath() {
         return Expressions.numberPath(Long.class, reservationJpaEntity, "memberId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code SHOP.thumbnail_image_file_id}를 raw {@code Long}으로 비교하기
+     * 위한 path(shop 도메인의 크로스 참조).
+     */
+    private NumberPath<Long> shopThumbnailImageFileId() {
+        return Expressions.numberPath(Long.class, shopJpaEntity, "thumbnailImageFileId");
     }
 }

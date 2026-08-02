@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
 
 /**
@@ -18,22 +20,22 @@ import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
 public class RankPrize {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long rankId; // 랭킹 기간 ID (RankPeriod 참조, raw FK)
+    private final RankPeriodId rankId; // 랭킹 기간 ID (RankPeriod 참조)
     private Integer prizeRank; // 수상 순위
     private String name; // 경품 이름
     private String brand; // 경품 브랜드
-    private Long imageFileId; // 경품 이미지 파일 ID
+    private UploadedFileId imageFileId; // 경품 이미지 파일 ID
     private boolean deleted; // 삭제 여부 (true: 삭제됨, Soft Delete)
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
     private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private RankPrize(
         Long id,
-        Long rankId,
+        RankPeriodId rankId,
         Integer prizeRank,
         String name,
         String brand,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         boolean deleted,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -52,7 +54,7 @@ public class RankPrize {
     /**
      * 신규 랭킹 경품을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
-    public static RankPrize of(Long rankId, Integer prizeRank, String name, String brand, Long imageFileId) {
+    public static RankPrize of(RankPeriodId rankId, Integer prizeRank, String name, String brand, UploadedFileId imageFileId) {
         return new RankPrize(null, rankId, prizeRank, name, brand, imageFileId, false, null, null);
     }
 
@@ -62,11 +64,11 @@ public class RankPrize {
      */
     public static RankPrize reconstitute(
         Long id,
-        Long rankId,
+        RankPeriodId rankId,
         Integer prizeRank,
         String name,
         String brand,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         boolean deleted,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -78,7 +80,7 @@ public class RankPrize {
         return RankPrizeId.of(this.id);
     }
 
-    public void update(Integer prizeRank, String name, String brand, Long imageFileId) {
+    public void update(Integer prizeRank, String name, String brand, UploadedFileId imageFileId) {
         this.prizeRank = prizeRank;
         this.name = name;
         this.brand = brand;

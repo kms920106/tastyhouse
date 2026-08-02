@@ -254,7 +254,7 @@ public class ReviewQueryService {
         OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
 
-        ProductDetailResult product = productQueryDao.findProductDetailById(orderProduct.getProductId())
+        ProductDetailResult product = productQueryDao.findProductDetailById(orderProduct.getProductId().value())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         Integer price = product.discountPrice() != null
@@ -262,7 +262,7 @@ public class ReviewQueryService {
             : product.originalPrice();
 
         boolean reviewed = reviewQueryDao.existsByOrderIdAndProductIdAndMemberId(
-            orderProduct.getOrderId(), orderProduct.getProductId(), MemberId.of(memberId)
+            orderProduct.getOrderId().value(), orderProduct.getProductId().value(), MemberId.of(memberId)
         );
 
         return ReviewWriteInfoResponse.from(
@@ -270,7 +270,7 @@ public class ReviewQueryService {
             product.name(),
             getFirstImageUrl(product.id()),
             price,
-            orderProduct.getOrderId(),
+            orderProduct.getOrderId().value(),
             reviewed
         );
     }

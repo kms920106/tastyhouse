@@ -14,6 +14,7 @@ import com.tastyhouse.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.domain.reservation.domain.repository.ReservationRepository;
 import com.tastyhouse.domain.reservation.domain.service.ReservationBookingService;
 import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
@@ -67,12 +68,13 @@ public class ReservationCommandService {
         boolean agreedRequiredTerms
     ) {
         MemberId memberIdVo = MemberId.of(memberId);
+        ShopId shopIdVo = ShopId.of(shopId);
 
         for (int attempt = 0; ; attempt++) {
             try {
                 ReservationId reservationId = reservationBookingExecutor.bookInNewTx(
                     memberIdVo,
-                    shopId,
+                    shopIdVo,
                     reservationDate,
                     reservationTime,
                     partySize,

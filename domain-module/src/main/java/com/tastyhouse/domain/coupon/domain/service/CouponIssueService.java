@@ -62,7 +62,7 @@ public class CouponIssueService {
         }
 
         MemberCoupon issued = memberCouponRepository.save(
-            MemberCoupon.of(memberId, couponId.value(), false, null, coupon.getUseEndAt())
+            MemberCoupon.of(memberId, couponId, false, null, coupon.getUseEndAt())
         );
         MemberCouponId memberCouponId = issued.getMemberCouponId();
 
@@ -91,7 +91,7 @@ public class CouponIssueService {
             throw new AccessDeniedException(ErrorCode.COUPON_ACCESS_DENIED);
         }
 
-        Coupon coupon = couponRepository.findById(CouponId.of(memberCoupon.getCouponId()))
+        Coupon coupon = couponRepository.findById(memberCoupon.getCouponId())
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
 
         coupon.validateMinOrderAmount(orderAmountAfterProductDiscount);

@@ -5,7 +5,10 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 리뷰 순수 도메인 모델.
@@ -19,8 +22,8 @@ import com.tastyhouse.domain.review.domain.vo.ReviewId;
 public class Review {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId;
-    private final Long productId;
+    private final ShopId shopId;
+    private final ProductId productId;
     private final MemberId memberId;
     private String content;
     private Double totalRating;
@@ -31,14 +34,14 @@ public class Review {
     private Double kindnessRating;
     private Double hygieneRating;
     private boolean willRevisit;
-    private final Long orderId;
+    private final OrderId orderId;
     private boolean hidden;
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private Review(
         Long id,
-        Long shopId,
-        Long productId,
+        ShopId shopId,
+        ProductId productId,
         MemberId memberId,
         String content,
         Double totalRating,
@@ -49,7 +52,7 @@ public class Review {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        Long orderId,
+        OrderId orderId,
         boolean hidden,
         LocalDateTime createdAt
     ) {
@@ -75,8 +78,8 @@ public class Review {
      * 신규 리뷰를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
     public static Review of(
-        Long shopId,
-        Long productId,
+        ShopId shopId,
+        ProductId productId,
         MemberId memberId,
         String content,
         Double totalRating,
@@ -87,7 +90,7 @@ public class Review {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        Long orderId
+        OrderId orderId
     ) {
         return new Review(
             null,
@@ -115,8 +118,8 @@ public class Review {
      */
     public static Review reconstitute(
         Long id,
-        Long shopId,
-        Long productId,
+        ShopId shopId,
+        ProductId productId,
         MemberId memberId,
         String content,
         Double totalRating,
@@ -127,7 +130,7 @@ public class Review {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        Long orderId,
+        OrderId orderId,
         boolean hidden,
         LocalDateTime createdAt
     ) {

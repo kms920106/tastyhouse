@@ -56,7 +56,7 @@ public class MemberFollowQueryDao {
             .select(followMemberProjection(viewerMemberId))
             .from(memberFollowJpaEntity)
             .join(memberJpaEntity).on(followingIdCol.eq(memberJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(memberFollowJpaEntity.followerId.eq(memberId))
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -80,7 +80,7 @@ public class MemberFollowQueryDao {
             .select(followMemberProjection(viewerMemberId))
             .from(memberFollowJpaEntity)
             .join(memberJpaEntity).on(followerIdCol.eq(memberJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(memberFollowJpaEntity.followingId.eq(memberId))
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -117,5 +117,13 @@ public class MemberFollowQueryDao {
                 viewerFollowingIdCol.eq(memberJpaEntity.id)
             )
             .exists();
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code MEMBER.profile_image_file_id}를 raw {@code Long}으로 비교하기
+     * 위한 path(member 도메인의 크로스 참조).
+     */
+    private NumberPath<Long> memberProfileImageFileId() {
+        return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
     }
 }

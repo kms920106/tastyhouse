@@ -7,6 +7,8 @@ import lombok.Getter;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 가게 콘텐츠보드 순수 도메인 모델.
@@ -24,10 +26,10 @@ public class ShopContentBoard {
         Pattern.compile("^https?://(www\\.)?(youtube\\.com/watch|youtu\\.be/).+$");
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId;
+    private final ShopId shopId;
     private final ShopContentType contentType; // 생성 이후 불변
     private ShopContentTopic topic;
-    private Long imageFileId;
+    private UploadedFileId imageFileId;
     private String youtubeUrl;
     private String description;
     private boolean hidden; // 관리자 숨김 조치
@@ -36,10 +38,10 @@ public class ShopContentBoard {
 
     private ShopContentBoard(
         Long id,
-        Long shopId,
+        ShopId shopId,
         ShopContentType contentType,
         ShopContentTopic topic,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String youtubeUrl,
         String description,
         boolean hidden,
@@ -62,10 +64,10 @@ public class ShopContentBoard {
      * 신규 콘텐츠보드를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
     public static ShopContentBoard of(
-        Long shopId,
+        ShopId shopId,
         ShopContentType contentType,
         ShopContentTopic topic,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String youtubeUrl,
         String description
     ) {
@@ -79,10 +81,10 @@ public class ShopContentBoard {
      */
     public static ShopContentBoard reconstitute(
         Long id,
-        Long shopId,
+        ShopId shopId,
         ShopContentType contentType,
         ShopContentTopic topic,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String youtubeUrl,
         String description,
         boolean hidden,
@@ -92,7 +94,7 @@ public class ShopContentBoard {
         return new ShopContentBoard(id, shopId, contentType, topic, imageFileId, youtubeUrl, description, hidden, createdAt, updatedAt);
     }
 
-    public void update(ShopContentTopic topic, Long imageFileId, String youtubeUrl, String description) {
+    public void update(ShopContentTopic topic, UploadedFileId imageFileId, String youtubeUrl, String description) {
         validate(this.contentType, imageFileId, youtubeUrl, description);
         this.topic = topic;
         this.imageFileId = imageFileId;
@@ -108,7 +110,7 @@ public class ShopContentBoard {
         this.hidden = false;
     }
 
-    private static void validate(ShopContentType contentType, Long imageFileId, String youtubeUrl, String description) {
+    private static void validate(ShopContentType contentType, UploadedFileId imageFileId, String youtubeUrl, String description) {
         if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
             throw new BusinessException(ErrorCode.SHOP_CONTENT_DESCRIPTION_TOO_LONG);
         }

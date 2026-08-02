@@ -10,6 +10,8 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
@@ -20,12 +22,12 @@ class ShopImageChangeRequestTest {
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 PENDING 상태다")
     void of_createsTransientShopImageChangeRequest() {
-        ShopImageChangeRequest request = ShopImageChangeRequest.of(1L, ShopImageType.TRADEMARK, 100L);
+        ShopImageChangeRequest request = ShopImageChangeRequest.of(ShopId.of(1L), ShopImageType.TRADEMARK, UploadedFileId.of(100L));
 
         assertThat(request.getId()).isNull();
-        assertThat(request.getShopId()).isEqualTo(1L);
+        assertThat(request.getShopId()).isEqualTo(ShopId.of(1L));
         assertThat(request.getImageType()).isEqualTo(ShopImageType.TRADEMARK);
-        assertThat(request.getImageFileId()).isEqualTo(100L);
+        assertThat(request.getImageFileId()).isEqualTo(UploadedFileId.of(100L));
         assertThat(request.getStatus()).isEqualTo(ApprovalStatus.PENDING);
         assertThat(request.getRejectReason()).isNull();
         assertThat(request.getCreatedAt()).isNull();
@@ -35,7 +37,7 @@ class ShopImageChangeRequestTest {
     @Test
     @DisplayName("PENDING 상태에서 approve하면 APPROVED로 전이한다")
     void approve_onPending_changesToApproved() {
-        ShopImageChangeRequest request = ShopImageChangeRequest.of(1L, ShopImageType.THUMBNAIL, 100L);
+        ShopImageChangeRequest request = ShopImageChangeRequest.of(ShopId.of(1L), ShopImageType.THUMBNAIL, UploadedFileId.of(100L));
 
         request.approve();
 
@@ -45,7 +47,7 @@ class ShopImageChangeRequestTest {
     @Test
     @DisplayName("PENDING이 아닌 상태에서 approve하면 예외가 발생한다")
     void approve_onNonPending_throws() {
-        ShopImageChangeRequest request = ShopImageChangeRequest.of(1L, ShopImageType.THUMBNAIL, 100L);
+        ShopImageChangeRequest request = ShopImageChangeRequest.of(ShopId.of(1L), ShopImageType.THUMBNAIL, UploadedFileId.of(100L));
         request.approve();
 
         assertThatThrownBy(request::approve)
@@ -55,7 +57,7 @@ class ShopImageChangeRequestTest {
     @Test
     @DisplayName("PENDING 상태에서 reject하면 REJECTED로 전이하고 반려 사유를 설정한다")
     void reject_onPending_changesToRejectedWithReason() {
-        ShopImageChangeRequest request = ShopImageChangeRequest.of(1L, ShopImageType.TRADEMARK, 100L);
+        ShopImageChangeRequest request = ShopImageChangeRequest.of(ShopId.of(1L), ShopImageType.TRADEMARK, UploadedFileId.of(100L));
 
         request.reject("이미지 규격 미충족");
 
@@ -66,7 +68,7 @@ class ShopImageChangeRequestTest {
     @Test
     @DisplayName("PENDING이 아닌 상태에서 reject하면 예외가 발생한다")
     void reject_onNonPending_throws() {
-        ShopImageChangeRequest request = ShopImageChangeRequest.of(1L, ShopImageType.TRADEMARK, 100L);
+        ShopImageChangeRequest request = ShopImageChangeRequest.of(ShopId.of(1L), ShopImageType.TRADEMARK, UploadedFileId.of(100L));
         request.reject("1차 반려");
 
         assertThatThrownBy(() -> request.reject("2차 반려"))
@@ -91,12 +93,12 @@ class ShopImageChangeRequestTest {
     @DisplayName("reconstitute는 DB 상태로부터 식별자·감사시각을 포함해 재구성한다")
     void reconstitute_restoresPersistedState() {
         ShopImageChangeRequest request = ShopImageChangeRequest.reconstitute(
-            1L, 2L, ShopImageType.TRADEMARK, 100L, ApprovalStatus.REJECTED, "사유",
+            1L, ShopId.of(2L), ShopImageType.TRADEMARK, UploadedFileId.of(100L), ApprovalStatus.REJECTED, "사유",
             LocalDateTime.of(2026, 1, 1, 0, 0), LocalDateTime.of(2026, 1, 2, 0, 0)
         );
 
         assertThat(request.getId()).isEqualTo(1L);
-        assertThat(request.getShopId()).isEqualTo(2L);
+        assertThat(request.getShopId()).isEqualTo(ShopId.of(2L));
         assertThat(request.getStatus()).isEqualTo(ApprovalStatus.REJECTED);
         assertThat(request.getRejectReason()).isEqualTo("사유");
         assertThat(request.getCreatedAt()).isEqualTo(LocalDateTime.of(2026, 1, 1, 0, 0));

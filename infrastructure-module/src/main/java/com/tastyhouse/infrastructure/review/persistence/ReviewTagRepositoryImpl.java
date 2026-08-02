@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.domain.model.ReviewTag;
 import com.tastyhouse.domain.review.domain.repository.ReviewTagRepository;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewTagJpaEntity.reviewTagJpaEntity;
 
@@ -27,7 +28,7 @@ public class ReviewTagRepositoryImpl implements ReviewTagRepository {
     }
 
     @Override
-    public void deleteByReviewId(Long reviewId) {
+    public void deleteByReviewId(ReviewId reviewId) {
         queryFactory
             .delete(reviewTagJpaEntity)
             .where(reviewTagJpaEntity.reviewId.eq(reviewId))

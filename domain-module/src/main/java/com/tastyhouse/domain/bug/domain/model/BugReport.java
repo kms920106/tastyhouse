@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.admin.domain.vo.AdminId;
 import com.tastyhouse.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -28,7 +29,7 @@ public class BugReport {
     private BugReportStatus status; // 처리 상태
     private BugReportCategory category; // 분류 (미분류 시 null)
     private BugReportPriority priority; // 우선순위 (미지정 시 null)
-    private Long assigneeAdminId; // 담당 관리자 ID (미배정 시 null)
+    private AdminId assigneeAdminId; // 담당 관리자 ID (미배정 시 null)
     private String adminAnswer; // 처리 결과/반려 사유 (미처리 시 null)
     private LocalDateTime resolvedAt; // 처리 완료 일시 (RESOLVED/REJECTED 시 기록)
     private final String appVersion; // 앱 버전 (제보자 입력, 선택)
@@ -46,7 +47,7 @@ public class BugReport {
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority,
-        Long assigneeAdminId,
+        AdminId assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt,
         String appVersion,
@@ -105,7 +106,7 @@ public class BugReport {
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority,
-        Long assigneeAdminId,
+        AdminId assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt,
         String appVersion,
@@ -136,7 +137,7 @@ public class BugReport {
     /**
      * 담당자 배정. 어떤 상태에서도 재배정 가능.
      */
-    public void assignTo(Long adminId) {
+    public void assignTo(AdminId adminId) {
         this.assigneeAdminId = adminId;
     }
 

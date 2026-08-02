@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +11,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -29,8 +33,9 @@ public class ProductImageJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ProductIdConverter.class)
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private ProductId productId;
 
     @Column(name = "sort", nullable = false)
     private Integer sort;
@@ -38,10 +43,11 @@ public class ProductImageJpaEntity extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
+    private UploadedFileId imageFileId;
 
-    private ProductImageJpaEntity(Long productId, Long imageFileId, Integer sort, boolean visible) {
+    private ProductImageJpaEntity(ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         this.productId = productId;
         this.imageFileId = imageFileId;
         this.sort = sort;
@@ -51,7 +57,7 @@ public class ProductImageJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductImageMapper#toEntity}에서만 호출한다.
      */
-    static ProductImageJpaEntity create(Long productId, Long imageFileId, Integer sort, boolean visible) {
+    static ProductImageJpaEntity create(ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         return new ProductImageJpaEntity(productId, imageFileId, sort, visible);
     }
 }

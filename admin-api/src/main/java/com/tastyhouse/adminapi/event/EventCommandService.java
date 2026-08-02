@@ -14,6 +14,7 @@ import com.tastyhouse.domain.event.domain.repository.EventAnnouncementRepository
 import com.tastyhouse.domain.event.domain.repository.EventRepository;
 import com.tastyhouse.domain.event.domain.repository.EventWinnerRepository;
 import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -55,8 +56,8 @@ public class EventCommandService {
             name,
             description,
             subtitle,
-            thumbnailImageFileId,
-            bannerImageFileId,
+            thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId),
+            bannerImageFileId == null ? null : UploadedFileId.of(bannerImageFileId),
             contentHtml,
             EventStatus.from(status),
             startAt,
@@ -85,8 +86,8 @@ public class EventCommandService {
             name,
             description,
             subtitle,
-            thumbnailImageFileId,
-            bannerImageFileId,
+            thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId),
+            bannerImageFileId == null ? null : UploadedFileId.of(bannerImageFileId),
             contentHtml,
             EventStatus.from(status),
             startAt,
@@ -114,7 +115,7 @@ public class EventCommandService {
             throw new BusinessException(ErrorCode.EVENT_ANNOUNCEMENT_ALREADY_EXISTS);
         }
 
-        EventAnnouncement announcement = EventAnnouncement.of(eventId.value(), name, content, announcedAt);
+        EventAnnouncement announcement = EventAnnouncement.of(eventId, name, content, announcedAt);
         EventAnnouncement saved = eventAnnouncementRepository.save(announcement);
         return saved.getId();
     }
@@ -132,7 +133,7 @@ public class EventCommandService {
         EventId eventId = EventId.of(id);
         findEventOrThrow(eventId);
 
-        EventWinner winner = EventWinner.of(eventId.value(), rankNo, winnerName, phoneNumber, announcedAt);
+        EventWinner winner = EventWinner.of(eventId, rankNo, winnerName, phoneNumber, announcedAt);
         EventWinner saved = eventWinnerRepository.save(winner);
         return saved.getId();
     }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.reservation.domain.model.ReservationSlot;
 import com.tastyhouse.domain.reservation.domain.repository.ReservationSlotRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
 
 @Repository
@@ -24,7 +25,7 @@ public class ReservationSlotRepositoryImpl implements ReservationSlotRepository 
     private EntityManager entityManager;
 
     @Override
-    public Optional<ReservationSlot> findByShopAndDateAndTime(Long shopId, LocalDate date, LocalTime time) {
+    public Optional<ReservationSlot> findByShopAndDateAndTime(ShopId shopId, LocalDate date, LocalTime time) {
         return slotJpaRepository.findByShopIdAndSlotDateAndSlotTime(shopId, date, time)
             .map(ReservationSlotMapper::toDomain);
     }

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.Getter;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 가게 위생 인증 뱃지 순수 도메인 모델.
@@ -16,7 +17,7 @@ import lombok.Getter;
 public class ShopHygieneBadge {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId; // 가게 ID (SHOP.id 참조)
+    private final ShopId shopId; // 가게 ID (SHOP.id 참조)
     private final HygieneBadgeType badgeType; // 위생 인증 유형
     private final LocalDate certifiedDate; // 인증일
     private final String lastInspectionMonth; // 세스코 최근 점검월 ("2026-03" 형태, nullable)
@@ -24,7 +25,7 @@ public class ShopHygieneBadge {
 
     private ShopHygieneBadge(
         Long id,
-        Long shopId,
+        ShopId shopId,
         HygieneBadgeType badgeType,
         LocalDate certifiedDate,
         String lastInspectionMonth,
@@ -42,7 +43,7 @@ public class ShopHygieneBadge {
      * 신규 위생 인증 뱃지를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
     public static ShopHygieneBadge of(
-        Long shopId,
+        ShopId shopId,
         HygieneBadgeType badgeType,
         LocalDate certifiedDate,
         String lastInspectionMonth
@@ -55,7 +56,7 @@ public class ShopHygieneBadge {
      */
     public static ShopHygieneBadge reconstitute(
         Long id,
-        Long shopId,
+        ShopId shopId,
         HygieneBadgeType badgeType,
         LocalDate certifiedDate,
         String lastInspectionMonth,

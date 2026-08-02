@@ -2,9 +2,12 @@ package com.tastyhouse.domain.product.domain.event;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+
 public record ProductSoldOutChangedEvent(
-    Long productId,
-    Long shopId,
+    ProductId productId,
+    ShopId shopId,
     boolean isSoldOut,
     LocalDateTime occurredAt
 ) {

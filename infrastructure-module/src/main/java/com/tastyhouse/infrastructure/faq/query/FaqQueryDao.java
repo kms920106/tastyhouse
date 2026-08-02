@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -98,7 +100,7 @@ public class FaqQueryDao {
         return queryFactory
             .select(new QFaqResult(
                 faqJpaEntity.id,
-                faqJpaEntity.faqCategoryId,
+                faqCategoryIdPath(),
                 faqJpaEntity.question,
                 faqJpaEntity.answer,
                 faqJpaEntity.sort
@@ -109,7 +111,7 @@ public class FaqQueryDao {
                 faqJpaEntity.visible.isTrue(),
                 categoryIdEq(categoryId)
             )
-            .orderBy(faqJpaEntity.faqCategoryId.asc(), faqJpaEntity.sort.asc())
+            .orderBy(faqCategoryIdPath().asc(), faqJpaEntity.sort.asc())
             .fetch();
     }
 
@@ -131,7 +133,7 @@ public class FaqQueryDao {
         List<FaqManagementListItemResult> items = queryFactory
             .select(new QFaqManagementListItemResult(
                 faqJpaEntity.id,
-                faqJpaEntity.faqCategoryId,
+                faqCategoryIdPath(),
                 faqJpaEntity.question,
                 faqJpaEntity.sort,
                 faqJpaEntity.visible,
@@ -144,7 +146,7 @@ public class FaqQueryDao {
                 visibleEq(condition.visible()),
                 faqJpaEntity.deleted.isFalse()
             )
-            .orderBy(faqJpaEntity.faqCategoryId.asc(), faqJpaEntity.sort.asc())
+            .orderBy(faqCategoryIdPath().asc(), faqJpaEntity.sort.asc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
@@ -163,7 +165,7 @@ public class FaqQueryDao {
         FaqDetailResult detail = queryFactory
             .select(new QFaqDetailResult(
                 faqJpaEntity.id,
-                faqJpaEntity.faqCategoryId,
+                faqCategoryIdPath(),
                 faqJpaEntity.question,
                 faqJpaEntity.answer,
                 faqJpaEntity.sort,
@@ -178,8 +180,15 @@ public class FaqQueryDao {
         return Optional.ofNullable(detail);
     }
 
+    /**
+     * {@code @Convert} VO 컬럼인 {@code FAQ.faq_category_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
+     */
+    private NumberPath<Long> faqCategoryIdPath() {
+        return Expressions.numberPath(Long.class, faqJpaEntity, "faqCategoryId");
+    }
+
     private BooleanExpression categoryIdEq(Long categoryId) {
-        return categoryId != null ? faqJpaEntity.faqCategoryId.eq(categoryId) : null;
+        return categoryId != null ? faqCategoryIdPath().eq(categoryId) : null;
     }
 
     private BooleanExpression questionContains(String question) {

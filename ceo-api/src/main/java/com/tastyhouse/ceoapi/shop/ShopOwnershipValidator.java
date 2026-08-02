@@ -3,6 +3,7 @@ package com.tastyhouse.ceoapi.shop;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.domain.ceo.domain.vo.CeoId;
 import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
@@ -35,7 +36,7 @@ public class ShopOwnershipValidator {
     public Shop validateOwnership(Long ceoId, Long shopId) {
         Shop shop = shopRepository.findById(ShopId.of(shopId))
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
-        if (shop.getCeoId() == null || !shop.getCeoId().equals(ceoId)) {
+        if (shop.getCeoId() == null || !shop.getCeoId().equals(CeoId.of(ceoId))) {
             throw new AccessDeniedException(ErrorCode.SHOP_ACCESS_DENIED);
         }
         return shop;

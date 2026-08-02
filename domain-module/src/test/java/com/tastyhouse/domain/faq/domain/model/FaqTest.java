@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
 import com.tastyhouse.domain.faq.domain.vo.FaqId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,10 +20,10 @@ class FaqTest {
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 삭제되지 않은 상태다")
     void of_createsTransientFaq() {
-        Faq faq = Faq.of(1L, "질문", "답변", 1, true);
+        Faq faq = Faq.of(FaqCategoryId.of(1L), "질문", "답변", 1, true);
 
         assertThat(faq.getId()).isNull();
-        assertThat(faq.getFaqCategoryId()).isEqualTo(1L);
+        assertThat(faq.getFaqCategoryId()).isEqualTo(FaqCategoryId.of(1L));
         assertThat(faq.getQuestion()).isEqualTo("질문");
         assertThat(faq.getAnswer()).isEqualTo("답변");
         assertThat(faq.getSort()).isEqualTo(1);
@@ -35,11 +36,11 @@ class FaqTest {
     @Test
     @DisplayName("update는 카테고리·질문·답변·정렬·노출여부를 변경한다")
     void update_changesFields() {
-        Faq faq = Faq.of(1L, "질문", "답변", 1, true);
+        Faq faq = Faq.of(FaqCategoryId.of(1L), "질문", "답변", 1, true);
 
-        faq.update(2L, "새 질문", "새 답변", 2, false);
+        faq.update(FaqCategoryId.of(2L), "새 질문", "새 답변", 2, false);
 
-        assertThat(faq.getFaqCategoryId()).isEqualTo(2L);
+        assertThat(faq.getFaqCategoryId()).isEqualTo(FaqCategoryId.of(2L));
         assertThat(faq.getQuestion()).isEqualTo("새 질문");
         assertThat(faq.getAnswer()).isEqualTo("새 답변");
         assertThat(faq.getSort()).isEqualTo(2);
@@ -49,7 +50,7 @@ class FaqTest {
     @Test
     @DisplayName("delete는 삭제 플래그를 true로 만든다(soft delete)")
     void delete_marksDeleted() {
-        Faq faq = Faq.of(1L, "질문", "답변", 1, true);
+        Faq faq = Faq.of(FaqCategoryId.of(1L), "질문", "답변", 1, true);
 
         faq.delete();
 
@@ -62,7 +63,7 @@ class FaqTest {
         LocalDateTime createdAt = LocalDateTime.of(2026, 1, 1, 0, 0);
         LocalDateTime updatedAt = LocalDateTime.of(2026, 1, 2, 0, 0);
 
-        Faq faq = Faq.reconstitute(1L, 2L, "질문", "답변", 1, true, false, createdAt, updatedAt);
+        Faq faq = Faq.reconstitute(1L, FaqCategoryId.of(2L), "질문", "답변", 1, true, false, createdAt, updatedAt);
 
         assertThat(faq.getId()).isEqualTo(1L);
         assertThat(faq.getFaqId()).isEqualTo(FaqId.of(1L));
@@ -73,7 +74,7 @@ class FaqTest {
     @Test
     @DisplayName("미영속 상태에서 getFaqId를 호출하면 FaqId 불변식 위반으로 예외가 발생한다")
     void getFaqId_onTransient_throws() {
-        Faq faq = Faq.of(1L, "질문", "답변", 1, true);
+        Faq faq = Faq.of(FaqCategoryId.of(1L), "질문", "답변", 1, true);
 
         assertThatThrownBy(faq::getFaqId)
             .isInstanceOf(IllegalArgumentException.class);

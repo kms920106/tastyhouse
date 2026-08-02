@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.product.domain.repository;
 
 import com.tastyhouse.domain.product.domain.model.ProductImage;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 
 /**
  * 상품 이미지 write 포트.
@@ -14,7 +15,7 @@ public interface ProductImageRepository {
     /**
      * 상품의 대표 이미지(노출 중 최소 sort) 파일 경로. 없으면 null.
      */
-    String findRepresentativeImageFilePath(Long productId);
+    String findRepresentativeImageFilePath(ProductId productId);
 
     ProductImage save(ProductImage productImage);
 }

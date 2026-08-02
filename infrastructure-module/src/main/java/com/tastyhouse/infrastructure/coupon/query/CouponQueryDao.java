@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -122,7 +124,7 @@ public class CouponQueryDao {
         Long total = queryFactory
             .select(memberCouponJpaEntity.id.count())
             .from(memberCouponJpaEntity)
-            .where(memberCouponJpaEntity.couponId.eq(couponId.value()))
+            .where(memberCouponIdCouponIdPath().eq(couponId.value()))
             .fetchOne();
 
         List<MemberCouponItemResult> content = queryFactory
@@ -135,7 +137,7 @@ public class CouponQueryDao {
                 memberCouponJpaEntity.createdAt
             ))
             .from(memberCouponJpaEntity)
-            .where(memberCouponJpaEntity.couponId.eq(couponId.value()))
+            .where(memberCouponIdCouponIdPath().eq(couponId.value()))
             .orderBy(memberCouponJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -187,7 +189,15 @@ public class CouponQueryDao {
                 memberCouponJpaEntity.usedAt
             ))
             .from(memberCouponJpaEntity)
-            .join(couponJpaEntity).on(couponJpaEntity.id.eq(memberCouponJpaEntity.couponId));
+            .join(couponJpaEntity).on(couponJpaEntity.id.eq(memberCouponIdCouponIdPath()));
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code MEMBER_COUPON.coupon_id}를 raw {@code Long}으로 비교·조인하기
+     * 위한 path.
+     */
+    private NumberPath<Long> memberCouponIdCouponIdPath() {
+        return Expressions.numberPath(Long.class, memberCouponJpaEntity, "couponId");
     }
 
     private BooleanExpression nameContains(String name) {

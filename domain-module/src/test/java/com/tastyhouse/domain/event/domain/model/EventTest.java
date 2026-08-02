@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.event.domain.vo.EventId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,15 +24,15 @@ class EventTest {
         LocalDateTime endAt = LocalDateTime.of(2026, 1, 31, 0, 0);
 
         Event event = Event.of(
-            "이벤트명", "설명", "부제목", 1L, 2L, "<p>본문</p>", EventStatus.SCHEDULED, startAt, endAt
+            "이벤트명", "설명", "부제목", UploadedFileId.of(1L), UploadedFileId.of(2L), "<p>본문</p>", EventStatus.SCHEDULED, startAt, endAt
         );
 
         assertThat(event.getId()).isNull();
         assertThat(event.getName()).isEqualTo("이벤트명");
         assertThat(event.getDescription()).isEqualTo("설명");
         assertThat(event.getSubtitle()).isEqualTo("부제목");
-        assertThat(event.getThumbnailImageFileId()).isEqualTo(1L);
-        assertThat(event.getBannerImageFileId()).isEqualTo(2L);
+        assertThat(event.getThumbnailImageFileId()).isEqualTo(UploadedFileId.of(1L));
+        assertThat(event.getBannerImageFileId()).isEqualTo(UploadedFileId.of(2L));
         assertThat(event.getContentHtml()).isEqualTo("<p>본문</p>");
         assertThat(event.getStatus()).isEqualTo(EventStatus.SCHEDULED);
         assertThat(event.getStartAt()).isEqualTo(startAt);
@@ -47,20 +48,20 @@ class EventTest {
         LocalDateTime startAt = LocalDateTime.of(2026, 1, 1, 0, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 1, 31, 0, 0);
         Event event = Event.of(
-            "이벤트명", "설명", "부제목", 1L, 2L, "<p>본문</p>", EventStatus.SCHEDULED, startAt, endAt
+            "이벤트명", "설명", "부제목", UploadedFileId.of(1L), UploadedFileId.of(2L), "<p>본문</p>", EventStatus.SCHEDULED, startAt, endAt
         );
 
         LocalDateTime newStartAt = LocalDateTime.of(2026, 2, 1, 0, 0);
         LocalDateTime newEndAt = LocalDateTime.of(2026, 2, 28, 0, 0);
         event.update(
-            "새 이벤트명", "새 설명", "새 부제목", 3L, 4L, "<p>새 본문</p>", EventStatus.ACTIVE, newStartAt, newEndAt
+            "새 이벤트명", "새 설명", "새 부제목", UploadedFileId.of(3L), UploadedFileId.of(4L), "<p>새 본문</p>", EventStatus.ACTIVE, newStartAt, newEndAt
         );
 
         assertThat(event.getName()).isEqualTo("새 이벤트명");
         assertThat(event.getDescription()).isEqualTo("새 설명");
         assertThat(event.getSubtitle()).isEqualTo("새 부제목");
-        assertThat(event.getThumbnailImageFileId()).isEqualTo(3L);
-        assertThat(event.getBannerImageFileId()).isEqualTo(4L);
+        assertThat(event.getThumbnailImageFileId()).isEqualTo(UploadedFileId.of(3L));
+        assertThat(event.getBannerImageFileId()).isEqualTo(UploadedFileId.of(4L));
         assertThat(event.getContentHtml()).isEqualTo("<p>새 본문</p>");
         assertThat(event.getStatus()).isEqualTo(EventStatus.ACTIVE);
         assertThat(event.getStartAt()).isEqualTo(newStartAt);
@@ -73,7 +74,7 @@ class EventTest {
         LocalDateTime startAt = LocalDateTime.of(2026, 1, 1, 0, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 1, 31, 0, 0);
         Event event = Event.of(
-            "이벤트명", "설명", "부제목", 1L, 2L, "<p>본문</p>", EventStatus.SCHEDULED, startAt, endAt
+            "이벤트명", "설명", "부제목", UploadedFileId.of(1L), UploadedFileId.of(2L), "<p>본문</p>", EventStatus.SCHEDULED, startAt, endAt
         );
 
         event.delete();
@@ -90,7 +91,7 @@ class EventTest {
         LocalDateTime updatedAt = LocalDateTime.of(2026, 1, 2, 0, 0);
 
         Event event = Event.reconstitute(
-            1L, "이벤트명", "설명", "부제목", 1L, 2L, "<p>본문</p>", EventStatus.ACTIVE,
+            1L, "이벤트명", "설명", "부제목", UploadedFileId.of(1L), UploadedFileId.of(2L), "<p>본문</p>", EventStatus.ACTIVE,
             startAt, endAt, false, createdAt, updatedAt
         );
 
@@ -106,7 +107,7 @@ class EventTest {
         LocalDateTime startAt = LocalDateTime.of(2026, 1, 1, 0, 0);
         LocalDateTime endAt = LocalDateTime.of(2026, 1, 31, 0, 0);
         Event event = Event.of(
-            "이벤트명", "설명", "부제목", 1L, 2L, "<p>본문</p>", EventStatus.SCHEDULED, startAt, endAt
+            "이벤트명", "설명", "부제목", UploadedFileId.of(1L), UploadedFileId.of(2L), "<p>본문</p>", EventStatus.SCHEDULED, startAt, endAt
         );
 
         assertThatThrownBy(event::getEventId)

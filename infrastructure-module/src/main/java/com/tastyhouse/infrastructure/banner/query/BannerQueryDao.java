@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -63,7 +65,7 @@ public class BannerQueryDao {
                 bannerJpaEntity.linkUrl
             ))
             .from(bannerJpaEntity)
-            .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerJpaEntity.imageFileId))
+            .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerImageFileId()))
             .where(
                 bannerJpaEntity.type.eq(type),
                 bannerJpaEntity.deleted.isFalse(),
@@ -110,7 +112,7 @@ public class BannerQueryDao {
                 bannerJpaEntity.visible
             ))
             .from(bannerJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerJpaEntity.imageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerImageFileId()))
             .where(
                 bannerJpaEntity.deleted.isFalse(),
                 typeEq(condition.type()),
@@ -150,11 +152,18 @@ public class BannerQueryDao {
                 bannerJpaEntity.updatedAt
             ))
             .from(bannerJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerJpaEntity.imageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerImageFileId()))
             .where(bannerJpaEntity.id.eq(id), bannerJpaEntity.deleted.isFalse())
             .fetchOne();
 
         return Optional.ofNullable(detail);
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code BANNER.image_file_id}를 raw {@code Long}으로 비교하기 위한 path.
+     */
+    private NumberPath<Long> bannerImageFileId() {
+        return Expressions.numberPath(Long.class, bannerJpaEntity, "imageFileId");
     }
 
     private BooleanExpression typeEq(BannerType type) {

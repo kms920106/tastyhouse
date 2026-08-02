@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.model.Member;
 import com.tastyhouse.domain.member.domain.model.MemberGender;
 import com.tastyhouse.domain.member.domain.model.MemberSocialAccount;
@@ -99,7 +100,8 @@ public class MemberCommandService {
 
     public void updateProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
         Member member = loadMember(memberId);
-        member.updateProfile(nickname, statusMessage, profileImageFileId);
+        UploadedFileId uploadedFileId = profileImageFileId == null ? null : UploadedFileId.of(profileImageFileId);
+        member.updateProfile(nickname, statusMessage, uploadedFileId);
         memberRepository.save(member);
     }
 

@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -29,19 +31,20 @@ public class ShopOrderMethodJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private ShopId shopId; // 가게 ID (SHOP.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
     private OrderMethod orderMethod; // 주문 방식
 
-    private ShopOrderMethodJpaEntity(Long shopId, OrderMethod orderMethod) {
+    private ShopOrderMethodJpaEntity(ShopId shopId, OrderMethod orderMethod) {
         this.shopId = shopId;
         this.orderMethod = orderMethod;
     }
 
-    static ShopOrderMethodJpaEntity create(Long shopId, OrderMethod orderMethod) {
+    static ShopOrderMethodJpaEntity create(ShopId shopId, OrderMethod orderMethod) {
         return new ShopOrderMethodJpaEntity(shopId, orderMethod);
     }
 }

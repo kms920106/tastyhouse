@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.rank.domain.model.RankPeriod;
 import com.tastyhouse.domain.rank.domain.model.RankPrize;
 import com.tastyhouse.domain.rank.domain.model.RankType;
@@ -79,8 +80,9 @@ public class RankCommandService {
 
     public Long createPrize(Long periodId, Integer prizeRank, String name, String brand, Long imageFileId) {
         RankPeriodId rankPeriodId = RankPeriodId.of(periodId);
+        UploadedFileId uploadedFileId = imageFileId == null ? null : UploadedFileId.of(imageFileId);
 
-        RankPrize prize = RankPrize.of(rankPeriodId.value(), prizeRank, name, brand, imageFileId);
+        RankPrize prize = RankPrize.of(rankPeriodId, prizeRank, name, brand, uploadedFileId);
         RankPrize saved = rankPrizeRepository.save(prize);
         return saved.getRankPrizeId().value();
     }
@@ -88,8 +90,9 @@ public class RankCommandService {
     public void updatePrize(Long id, Integer prizeRank, String name, String brand, Long imageFileId) {
         RankPrizeId prizeId = RankPrizeId.of(id);
         RankPrize prize = findPrizeOrThrow(prizeId);
+        UploadedFileId uploadedFileId = imageFileId == null ? null : UploadedFileId.of(imageFileId);
 
-        prize.update(prizeRank, name, brand, imageFileId);
+        prize.update(prizeRank, name, brand, uploadedFileId);
         rankPrizeRepository.save(prize);
     }
 

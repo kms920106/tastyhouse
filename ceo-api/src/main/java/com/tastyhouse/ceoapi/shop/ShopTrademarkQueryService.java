@@ -30,12 +30,14 @@ public class ShopTrademarkQueryService {
 
     public ShopImageStatusResponse getTrademarkStatus(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toShopImageStatusResponse(resolveImageUrl(shop.getTrademarkImageFileId()), shopId);
+        Long trademarkImageFileId = shop.getTrademarkImageFileId() == null ? null : shop.getTrademarkImageFileId().value();
+        return toShopImageStatusResponse(resolveImageUrl(trademarkImageFileId), shopId);
     }
 
     public ShopImageStatusResponse getThumbnailStatus(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toShopImageStatusResponse(resolveImageUrl(shop.getThumbnailImageFileId()), shopId);
+        Long thumbnailImageFileId = shop.getThumbnailImageFileId() == null ? null : shop.getThumbnailImageFileId().value();
+        return toShopImageStatusResponse(resolveImageUrl(thumbnailImageFileId), shopId);
     }
 
     private ShopImageStatusResponse toShopImageStatusResponse(String currentImageUrl, Long shopId) {

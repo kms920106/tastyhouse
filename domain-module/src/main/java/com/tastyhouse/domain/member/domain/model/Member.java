@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -29,7 +30,7 @@ public class Member {
     private MemberGender gender;
     private PhoneNumber phoneNumber;
     private final MemberGrade memberGrade;
-    private Long profileImageFileId;
+    private UploadedFileId profileImageFileId;
     private String statusMessage;
     private boolean pushNotificationEnabled;
     private boolean marketingInfoEnabled;
@@ -48,7 +49,7 @@ public class Member {
         MemberGender gender,
         PhoneNumber phoneNumber,
         MemberGrade memberGrade,
-        Long profileImageFileId,
+        UploadedFileId profileImageFileId,
         String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
@@ -137,7 +138,7 @@ public class Member {
         MemberGender gender,
         PhoneNumber phoneNumber,
         MemberGrade memberGrade,
-        Long profileImageFileId,
+        UploadedFileId profileImageFileId,
         String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
@@ -162,7 +163,7 @@ public class Member {
         this.password = encodedPassword;
     }
 
-    public void updateProfile(String nickname, String statusMessage, Long profileImageFileId) {
+    public void updateProfile(String nickname, String statusMessage, UploadedFileId profileImageFileId) {
         if (nickname != null) this.nickname = nickname;
         if (statusMessage != null) this.statusMessage = statusMessage;
         if (profileImageFileId != null) this.profileImageFileId = profileImageFileId;

@@ -24,7 +24,7 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
             .selectOne()
             .from(reviewLikeJpaEntity)
             .where(
-                reviewLikeJpaEntity.reviewId.eq(reviewId.value()),
+                reviewLikeJpaEntity.reviewId.eq(reviewId),
                 reviewLikeJpaEntity.memberId.eq(memberId)
             )
             .fetchFirst() != null;
@@ -35,7 +35,7 @@ public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
         queryFactory
             .delete(reviewLikeJpaEntity)
             .where(
-                reviewLikeJpaEntity.reviewId.eq(reviewId.value()),
+                reviewLikeJpaEntity.reviewId.eq(reviewId),
                 reviewLikeJpaEntity.memberId.eq(memberId)
             )
             .execute();

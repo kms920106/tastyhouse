@@ -35,7 +35,7 @@ public class FaqCommandService {
         FaqCategoryId faqCategoryId = FaqCategoryId.of(categoryId);
         validateCategoryExists(faqCategoryId);
 
-        Faq faq = Faq.of(faqCategoryId.value(), question, answer, sort, visible);
+        Faq faq = Faq.of(faqCategoryId, question, answer, sort, visible);
         Faq saved = faqRepository.save(faq);
         return saved.getFaqId().value();
     }
@@ -47,7 +47,7 @@ public class FaqCommandService {
         FaqId faqId = FaqId.of(id);
         Faq faq = findFaqOrThrow(faqId);
 
-        faq.update(faqCategoryId.value(), question, answer, sort, visible);
+        faq.update(faqCategoryId, question, answer, sort, visible);
         faqRepository.save(faq);
     }
 

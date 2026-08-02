@@ -2,6 +2,10 @@ package com.tastyhouse.domain.product.domain.model;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.product.domain.vo.BbqCategoryId;
+import com.tastyhouse.domain.product.domain.vo.BbqMenuId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
+
 /**
  * Product와 BBQ 메뉴 ID 매핑 순수 도메인 모델 — BBQ API 외부 메뉴 ID 임시 저장.
  *
@@ -12,12 +16,12 @@ import lombok.Getter;
 public class ProductBbq {
 
     private final Long id;
-    private final Long productId;
-    private final Long bbqMenuId;
-    private final Long bbqCategoryId;
+    private final ProductId productId;
+    private final BbqMenuId bbqMenuId;
+    private final BbqCategoryId bbqCategoryId;
     private boolean optionsSynced;
 
-    private ProductBbq(Long id, Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
+    private ProductBbq(Long id, ProductId productId, BbqMenuId bbqMenuId, BbqCategoryId bbqCategoryId, boolean optionsSynced) {
         this.id = id;
         this.productId = productId;
         this.bbqMenuId = bbqMenuId;
@@ -25,7 +29,7 @@ public class ProductBbq {
         this.optionsSynced = optionsSynced;
     }
 
-    public static ProductBbq of(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
+    public static ProductBbq of(ProductId productId, BbqMenuId bbqMenuId, BbqCategoryId bbqCategoryId, boolean optionsSynced) {
         return new ProductBbq(null, productId, bbqMenuId, bbqCategoryId, optionsSynced);
     }
 
@@ -34,9 +38,9 @@ public class ProductBbq {
      */
     public static ProductBbq reconstitute(
         Long id,
-        Long productId,
-        Long bbqMenuId,
-        Long bbqCategoryId,
+        ProductId productId,
+        BbqMenuId bbqMenuId,
+        BbqCategoryId bbqCategoryId,
         boolean optionsSynced
     ) {
         return new ProductBbq(id, productId, bbqMenuId, bbqCategoryId, optionsSynced);

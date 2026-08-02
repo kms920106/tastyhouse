@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shop.domain.model.HygieneBadgeType;
 import com.tastyhouse.domain.shop.domain.model.ShopHygieneBadge;
 import com.tastyhouse.domain.shop.domain.repository.ShopHygieneBadgeRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -38,7 +39,12 @@ public class ShopHygieneBadgeCommandService {
         String lastInspectionMonth
     ) {
         ShopHygieneBadge saved = shopHygieneBadgeRepository.save(
-            ShopHygieneBadge.of(shopId, HygieneBadgeType.from(badgeType), certifiedDate, lastInspectionMonth)
+            ShopHygieneBadge.of(
+                ShopId.of(shopId),
+                HygieneBadgeType.from(badgeType),
+                certifiedDate,
+                lastInspectionMonth
+            )
         );
         return saved.getId();
     }

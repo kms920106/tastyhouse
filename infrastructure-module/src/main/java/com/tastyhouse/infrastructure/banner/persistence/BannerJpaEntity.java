@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.banner.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.banner.domain.model.BannerType;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -40,8 +43,9 @@ public class BannerJpaEntity extends BaseEntity {
     @Column(name = "title", length = 100)
     private String title;
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id", nullable = false)
-    private Long imageFileId;
+    private UploadedFileId imageFileId;
 
     @Column(name = "link_url", length = 500)
     private String linkUrl;
@@ -64,7 +68,7 @@ public class BannerJpaEntity extends BaseEntity {
     private BannerJpaEntity(
         BannerType type,
         String title,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String linkUrl,
         LocalDateTime startDate,
         LocalDateTime endDate,
@@ -89,7 +93,7 @@ public class BannerJpaEntity extends BaseEntity {
     static BannerJpaEntity create(
         BannerType type,
         String title,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String linkUrl,
         LocalDateTime startDate,
         LocalDateTime endDate,
@@ -106,7 +110,7 @@ public class BannerJpaEntity extends BaseEntity {
     void applyChanges(
         BannerType type,
         String title,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         String linkUrl,
         LocalDateTime startDate,
         LocalDateTime endDate,

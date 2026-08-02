@@ -2,6 +2,9 @@ package com.tastyhouse.domain.order.domain.model;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.order.domain.vo.OrderProductId;
+import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
 
 /**
  * 주문 상품 옵션 순수 도메인 모델.
@@ -13,19 +16,19 @@ import lombok.Getter;
 public class OrderProductOption {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long orderProductId; // 주문 상품 ID (ORDER_PRODUCT.id 참조)
-    private final Long optionGroupId; // 옵션 그룹 ID (스냅샷, NULL 가능)
+    private final OrderProductId orderProductId; // 주문 상품 ID (ORDER_PRODUCT.id 참조)
+    private final ProductOptionGroupId optionGroupId; // 옵션 그룹 ID (스냅샷, NULL 가능)
     private final String optionGroupName; // 주문 시점 옵션 그룹 이름 (스냅샷)
-    private final Long optionId; // 옵션 ID (스냅샷, NULL 가능)
+    private final ProductOptionId optionId; // 옵션 ID (스냅샷, NULL 가능)
     private final String optionName; // 주문 시점 옵션 이름 (스냅샷)
     private final Integer additionalPrice; // 옵션 추가 금액
 
     private OrderProductOption(
         Long id,
-        Long orderProductId,
-        Long optionGroupId,
+        OrderProductId orderProductId,
+        ProductOptionGroupId optionGroupId,
         String optionGroupName,
-        Long optionId,
+        ProductOptionId optionId,
         String optionName,
         Integer additionalPrice
     ) {
@@ -42,10 +45,10 @@ public class OrderProductOption {
      * 신규 주문 상품 옵션을 생성한다. 아직 영속되지 않았으므로 식별자가 없다.
      */
     public static OrderProductOption of(
-        Long orderProductId,
-        Long optionGroupId,
+        OrderProductId orderProductId,
+        ProductOptionGroupId optionGroupId,
         String optionGroupName,
-        Long optionId,
+        ProductOptionId optionId,
         String optionName,
         Integer additionalPrice
     ) {
@@ -66,10 +69,10 @@ public class OrderProductOption {
      */
     public static OrderProductOption reconstitute(
         Long id,
-        Long orderProductId,
-        Long optionGroupId,
+        OrderProductId orderProductId,
+        ProductOptionGroupId optionGroupId,
         String optionGroupName,
-        Long optionId,
+        ProductOptionId optionId,
         String optionName,
         Integer additionalPrice
     ) {

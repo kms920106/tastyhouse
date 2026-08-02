@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
 import com.tastyhouse.domain.faq.domain.vo.FaqId;
 
 /**
@@ -18,7 +19,7 @@ import com.tastyhouse.domain.faq.domain.vo.FaqId;
 public class Faq {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private Long faqCategoryId;
+    private FaqCategoryId faqCategoryId;
     private String question;
     private String answer;
     private Integer sort;
@@ -29,7 +30,7 @@ public class Faq {
 
     private Faq(
         Long id,
-        Long faqCategoryId,
+        FaqCategoryId faqCategoryId,
         String question,
         String answer,
         Integer sort,
@@ -52,7 +53,7 @@ public class Faq {
     /**
      * 신규 FAQ를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
-    public static Faq of(Long faqCategoryId, String question, String answer, Integer sort, boolean visible) {
+    public static Faq of(FaqCategoryId faqCategoryId, String question, String answer, Integer sort, boolean visible) {
         return new Faq(null, faqCategoryId, question, answer, sort, visible, false, null, null);
     }
 
@@ -62,7 +63,7 @@ public class Faq {
      */
     public static Faq reconstitute(
         Long id,
-        Long faqCategoryId,
+        FaqCategoryId faqCategoryId,
         String question,
         String answer,
         Integer sort,
@@ -78,7 +79,7 @@ public class Faq {
         return FaqId.of(this.id);
     }
 
-    public void update(Long faqCategoryId, String question, String answer, Integer sort, boolean visible) {
+    public void update(FaqCategoryId faqCategoryId, String question, String answer, Integer sort, boolean visible) {
         this.faqCategoryId = faqCategoryId;
         this.question = question;
         this.answer = answer;

@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.payment.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -31,8 +33,9 @@ public class TossPaymentRecordJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = PaymentIdConverter.class)
     @Column(name = "payment_id", nullable = false)
-    private Long paymentId;
+    private PaymentId paymentId;
 
     @Column(name = "version", length = 20)
     private String version;
@@ -196,7 +199,7 @@ public class TossPaymentRecordJpaEntity extends BaseEntity {
     @Column(name = "failure_message", length = 510)
     private String failureMessage;
 
-    private TossPaymentRecordJpaEntity(Long paymentId, String version, String paymentKey, String type,
+    private TossPaymentRecordJpaEntity(PaymentId paymentId, String version, String paymentKey, String type,
                               String orderId, String orderName, String mId, String currency,
                               String method, Integer totalAmount, Integer balanceAmount, String status,
                               LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
@@ -275,7 +278,7 @@ public class TossPaymentRecordJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code TossPaymentRecordMapper#toEntity}에서만 호출한다.
      */
-    static TossPaymentRecordJpaEntity create(Long paymentId, String version, String paymentKey, String type,
+    static TossPaymentRecordJpaEntity create(PaymentId paymentId, String version, String paymentKey, String type,
                                            String orderId, String orderName, String mId, String currency,
                                            String method, Integer totalAmount, Integer balanceAmount, String status,
                                            LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,

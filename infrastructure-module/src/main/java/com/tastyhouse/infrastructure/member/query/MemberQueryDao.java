@@ -8,6 +8,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -59,7 +61,7 @@ public class MemberQueryDao {
                 memberJpaEntity.createdAt
             ))
             .from(memberJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(
                 nicknameContains(condition.nickname()),
                 usernameContains(condition.username()),
@@ -94,7 +96,7 @@ public class MemberQueryDao {
         List<MemberWithProfileImageResult> content = queryFactory
             .select(memberWithProfileImageProjection())
             .from(memberJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(memberJpaEntity.nickname.containsIgnoreCase(nickname))
             .orderBy(memberJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -118,7 +120,7 @@ public class MemberQueryDao {
             queryFactory
                 .select(memberWithProfileImageProjection())
                 .from(memberJpaEntity)
-                .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+                .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
                 .where(memberJpaEntity.id.eq(memberId.value()))
                 .fetchOne()
         );
@@ -138,7 +140,7 @@ public class MemberQueryDao {
         return queryFactory
             .select(memberWithProfileImageProjection())
             .from(memberJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(memberJpaEntity.id.in(distinctIds))
             .fetch()
             .stream()
@@ -157,6 +159,14 @@ public class MemberQueryDao {
             memberJpaEntity.statusMessage,
             uploadedFileJpaEntity.filePath
         );
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code MEMBER.profile_image_file_id}를 raw {@code Long}으로 비교하기
+     * 위한 path.
+     */
+    private NumberPath<Long> memberProfileImageFileId() {
+        return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
     }
 
     private BooleanExpression nicknameContains(String nickname) {

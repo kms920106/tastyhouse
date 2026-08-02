@@ -4,12 +4,15 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+
 
 /**
  * 주문 순수 도메인 모델.
@@ -24,7 +27,7 @@ public class Order {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
     private final MemberId memberId; // 주문자 회원 ID
-    private final Long shopId; // 주문 대상 가게 ID
+    private final ShopId shopId; // 주문 대상 가게 ID
     private final String orderNumber; // 주문 번호 (unique)
     private final OrderMethod orderMethod; // 주문 방식
     private OrderStatus orderStatus; // 주문 상태
@@ -37,7 +40,7 @@ public class Order {
     private Integer pointDiscountAmount; // 포인트 할인 금액
     private Integer totalDiscountAmount; // 총 할인 금액
     private Integer finalAmount; // 최종 결제 금액
-    private Long memberCouponId; // 사용한 회원 쿠폰 ID
+    private MemberCouponId memberCouponId; // 사용한 회원 쿠폰 ID
     private Integer usedPoint; // 사용한 포인트
     private Integer earnedPoint; // 적립된 포인트
     private boolean deleted; // 삭제 여부 (true: 삭제됨, Soft Delete)
@@ -47,7 +50,7 @@ public class Order {
     private Order(
         Long id,
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         String orderNumber,
         OrderMethod orderMethod,
         OrderStatus orderStatus,
@@ -60,7 +63,7 @@ public class Order {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        Long memberCouponId,
+        MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
         boolean deleted,
@@ -102,7 +105,7 @@ public class Order {
      */
     public static Order of(
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         String orderNumber,
         OrderMethod orderMethod,
         OrderStatus orderStatus,
@@ -115,7 +118,7 @@ public class Order {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        Long memberCouponId,
+        MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint
     ) {
@@ -172,7 +175,7 @@ public class Order {
     public static Order reconstitute(
         Long id,
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         String orderNumber,
         OrderMethod orderMethod,
         OrderStatus orderStatus,
@@ -185,7 +188,7 @@ public class Order {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        Long memberCouponId,
+        MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
         boolean deleted,
@@ -301,7 +304,7 @@ public class Order {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        Long memberCouponId,
+        MemberCouponId memberCouponId,
         Integer usedPoint
     ) {
         int normalizedTotalProduct = orZero(totalProductAmount);

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 
 /**
  * 리뷰 답글 순수 도메인 모델.
@@ -18,7 +19,7 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 public class ReviewReply {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long commentId;
+    private final ReviewCommentId commentId;
     private final MemberId memberId;
     private final MemberId replyToMemberId;
     private final String content;
@@ -27,7 +28,7 @@ public class ReviewReply {
 
     private ReviewReply(
         Long id,
-        Long commentId,
+        ReviewCommentId commentId,
         MemberId memberId,
         MemberId replyToMemberId,
         String content,
@@ -46,7 +47,7 @@ public class ReviewReply {
     /**
      * 신규 리뷰 답글을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
-    public static ReviewReply of(Long commentId, MemberId memberId, MemberId replyToMemberId, String content) {
+    public static ReviewReply of(ReviewCommentId commentId, MemberId memberId, MemberId replyToMemberId, String content) {
         return new ReviewReply(null, commentId, memberId, replyToMemberId, content, false, null);
     }
 
@@ -56,7 +57,7 @@ public class ReviewReply {
      */
     public static ReviewReply reconstitute(
         Long id,
-        Long commentId,
+        ReviewCommentId commentId,
         MemberId memberId,
         MemberId replyToMemberId,
         String content,

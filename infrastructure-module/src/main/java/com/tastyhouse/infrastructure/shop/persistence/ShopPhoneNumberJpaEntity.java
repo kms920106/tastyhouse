@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,6 +12,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 가게 전화번호(다건) JPA 영속 모델. 순수 도메인 모델 {@code ShopPhoneNumber}와 분리된 영속 전용 엔티티다.
@@ -25,8 +28,9 @@ public class ShopPhoneNumberJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private ShopId shopId; // 가게 ID (SHOP.id 참조)
 
     @Column(name = "phone_number", nullable = false, length = 20)
     private String phoneNumber; // 전화번호
@@ -37,14 +41,14 @@ public class ShopPhoneNumberJpaEntity extends BaseEntity {
     @Column(name = "is_virtual", nullable = false)
     private boolean virtual; // 가상번호 여부
 
-    private ShopPhoneNumberJpaEntity(Long shopId, String phoneNumber, boolean primary, boolean virtual) {
+    private ShopPhoneNumberJpaEntity(ShopId shopId, String phoneNumber, boolean primary, boolean virtual) {
         this.shopId = shopId;
         this.phoneNumber = phoneNumber;
         this.primary = primary;
         this.virtual = virtual;
     }
 
-    static ShopPhoneNumberJpaEntity create(Long shopId, String phoneNumber, boolean primary, boolean virtual) {
+    static ShopPhoneNumberJpaEntity create(ShopId shopId, String phoneNumber, boolean primary, boolean virtual) {
         return new ShopPhoneNumberJpaEntity(shopId, phoneNumber, primary, virtual);
     }
 

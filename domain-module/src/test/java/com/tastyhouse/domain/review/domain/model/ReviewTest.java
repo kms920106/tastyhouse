@@ -9,6 +9,9 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
@@ -20,17 +23,17 @@ class ReviewTest {
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 숨김 처리되지 않은 상태다")
     void of_createsTransientReview() {
         Review review = Review.of(
-            1L, 2L, MemberId.of(3L), "맛있어요",
+            ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, 10L
+            true, OrderId.of(10L)
         );
 
         assertThat(review.getId()).isNull();
-        assertThat(review.getShopId()).isEqualTo(1L);
-        assertThat(review.getProductId()).isEqualTo(2L);
+        assertThat(review.getShopId()).isEqualTo(ShopId.of(1L));
+        assertThat(review.getProductId()).isEqualTo(ProductId.of(2L));
         assertThat(review.getMemberId()).isEqualTo(MemberId.of(3L));
         assertThat(review.getContent()).isEqualTo("맛있어요");
-        assertThat(review.getOrderId()).isEqualTo(10L);
+        assertThat(review.getOrderId()).isEqualTo(OrderId.of(10L));
         assertThat(review.isWillRevisit()).isTrue();
         assertThat(review.isHidden()).isFalse();
         assertThat(review.getCreatedAt()).isNull();
@@ -40,9 +43,9 @@ class ReviewTest {
     @DisplayName("hide/unhide는 숨김 플래그를 전환한다")
     void hideUnhide_togglesHidden() {
         Review review = Review.of(
-            1L, 2L, MemberId.of(3L), "맛있어요",
+            ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, 10L
+            true, OrderId.of(10L)
         );
 
         review.hide();
@@ -56,9 +59,9 @@ class ReviewTest {
     @DisplayName("updateContent는 내용·평점·재방문 여부를 변경한다")
     void updateContent_changesFields() {
         Review review = Review.of(
-            1L, 2L, MemberId.of(3L), "맛있어요",
+            ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, 10L
+            true, OrderId.of(10L)
         );
 
         review.updateContent(
@@ -78,9 +81,9 @@ class ReviewTest {
         LocalDateTime createdAt = LocalDateTime.of(2026, 1, 1, 0, 0);
 
         Review review = Review.reconstitute(
-            1L, 2L, 3L, MemberId.of(4L), "맛있어요",
+            1L, ShopId.of(2L), ProductId.of(3L), MemberId.of(4L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, 10L, true, createdAt
+            true, OrderId.of(10L), true, createdAt
         );
 
         assertThat(review.getId()).isEqualTo(1L);

@@ -3,6 +3,7 @@ package com.tastyhouse.domain.review.domain.repository;
 import java.util.List;
 
 import com.tastyhouse.domain.review.domain.model.ReviewTag;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
 
 /**
  * 리뷰 태그 write 포트.
@@ -14,5 +15,5 @@ public interface ReviewTagRepository {
 
     void saveAll(List<ReviewTag> tags);
 
-    void deleteByReviewId(Long reviewId);
+    void deleteByReviewId(ReviewId reviewId);
 }

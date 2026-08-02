@@ -12,6 +12,7 @@ import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.shop.domain.model.ShopSuspension;
 import com.tastyhouse.domain.shop.domain.model.SuspensionReason;
 import com.tastyhouse.domain.shop.domain.repository.ShopSuspensionRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -47,7 +48,7 @@ public class ShopSuspensionCommandService {
 
         ShopSuspension shopSuspension = shopSuspensionRepository.findById(suspensionId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND));
-        if (!shopSuspension.getShopId().equals(shopId)) {
+        if (!shopSuspension.getShopId().equals(ShopId.of(shopId))) {
             throw new EntityNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND);
         }
 
@@ -84,9 +85,10 @@ public class ShopSuspensionCommandService {
             ? Collections.singletonList((OrderMethod) null)
             : orderMethods.stream().map(OrderMethod::from).toList();
 
+        ShopId shopIdVo = ShopId.of(shopId);
         return targetOrderMethods.stream()
             .map(orderMethod -> shopSuspensionRepository
-                .save(ShopSuspension.of(shopId, suspensionReason, orderMethod, startAt, endAt))
+                .save(ShopSuspension.of(shopIdVo, suspensionReason, orderMethod, startAt, endAt))
                 .getId())
             .toList();
     }

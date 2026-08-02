@@ -2,6 +2,9 @@ package com.tastyhouse.domain.product.domain.model;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
+
 /**
  * 상품 이미지 순수 도메인 모델.
  *
@@ -13,12 +16,12 @@ import lombok.Getter;
 public class ProductImage {
 
     private final Long id;
-    private final Long productId;
-    private final Long imageFileId;
+    private final ProductId productId;
+    private final UploadedFileId imageFileId;
     private final Integer sort;
     private final boolean visible;
 
-    private ProductImage(Long id, Long productId, Long imageFileId, Integer sort, boolean visible) {
+    private ProductImage(Long id, ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         this.id = id;
         this.productId = productId;
         this.imageFileId = imageFileId;
@@ -26,7 +29,7 @@ public class ProductImage {
         this.visible = visible;
     }
 
-    public static ProductImage of(Long productId, Long imageFileId, Integer sort, boolean visible) {
+    public static ProductImage of(ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         return new ProductImage(null, productId, imageFileId, sort, visible);
     }
 
@@ -35,8 +38,8 @@ public class ProductImage {
      */
     public static ProductImage reconstitute(
         Long id,
-        Long productId,
-        Long imageFileId,
+        ProductId productId,
+        UploadedFileId imageFileId,
         Integer sort,
         boolean visible
     ) {

@@ -7,12 +7,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.product.domain.model.Product;
 import com.tastyhouse.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.domain.product.domain.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.domain.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.domain.service.ProductRegistrationService;
+import com.tastyhouse.domain.product.domain.vo.BbqCategoryId;
+import com.tastyhouse.domain.product.domain.vo.BbqMenuId;
+import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.infrastructure.product.query.ProductBbqSyncTargetResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 
@@ -39,11 +45,12 @@ public class BbqProductSyncService {
      * 같은 가게에 같은 이름의 카테고리가 이미 있으면 재사용하고, 없으면 새로 등록한다.
      */
     public Long resolveCategoryId(Long shopId, String name, int sort) {
-        List<ProductCategory> existing = productCategoryRepository.findCategoriesByNameAndShopId(name, shopId);
+        ShopId targetShopId = ShopId.of(shopId);
+        List<ProductCategory> existing = productCategoryRepository.findCategoriesByNameAndShopId(name, targetShopId);
         if (!existing.isEmpty()) {
             return existing.getFirst().getId();
         }
-        return productRegistrationService.createProductCategory(shopId, name, sort, true).getId();
+        return productRegistrationService.createProductCategory(targetShopId, name, sort, true).getId();
     }
 
     /**
@@ -52,8 +59,8 @@ public class BbqProductSyncService {
      */
     public Long createCrawledProduct(BbqProductRegistration registration) {
         Product product = productRegistrationService.createProduct(
-            registration.shopId(),
-            registration.productCategoryId(),
+            ShopId.of(registration.shopId()),
+            ProductCategoryId.of(registration.productCategoryId()),
             registration.name(),
             registration.description(),
             registration.originalPrice(),
@@ -69,13 +76,15 @@ public class BbqProductSyncService {
         );
 
         if (registration.imageFileId() != null) {
-            productRegistrationService.saveProductImage(product.getId(), registration.imageFileId(), 0, true);
+            productRegistrationService.saveProductImage(
+                product.getProductId(), UploadedFileId.of(registration.imageFileId()), 0, true
+            );
         }
 
         productRegistrationService.saveProductBbq(
-            product.getId(),
-            registration.bbqMenuId(),
-            registration.bbqCategoryId(),
+            product.getProductId(),
+            BbqMenuId.of(registration.bbqMenuId()),
+            BbqCategoryId.of(registration.bbqCategoryId()),
             false
         );
 
@@ -109,7 +118,7 @@ public class BbqProductSyncService {
      */
     private void saveOptionGroupWithOptions(BbqOptionGroupRegistration registration) {
         ProductOptionGroup optionGroup = productRegistrationService.saveProductOptionGroup(
-            registration.productId(),
+            ProductId.of(registration.productId()),
             registration.name(),
             null,
             registration.required(),
@@ -124,7 +133,7 @@ public class BbqProductSyncService {
         for (int i = 0; i < options.size(); i++) {
             BbqOptionRegistration option = options.get(i);
             productRegistrationService.saveProductOption(
-                optionGroup.getId(),
+                ProductOptionGroupId.of(optionGroup.getId()),
                 option.name(),
                 option.additionalPrice(),
                 i,

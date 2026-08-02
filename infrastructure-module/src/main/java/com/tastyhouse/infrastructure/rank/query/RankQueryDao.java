@@ -71,8 +71,8 @@ public class RankQueryDao {
                 uploadedFileJpaEntity.filePath
             ))
             .from(rankPeriodJpaEntity)
-            .innerJoin(rankPrizeJpaEntity).on(rankPrizeJpaEntity.rankId.eq(rankPeriodJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(rankPrizeJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
+            .innerJoin(rankPrizeJpaEntity).on(prizeRankId().eq(rankPeriodJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(prizeImageFileId().eq(uploadedFileJpaEntity.id))
             .where(
                 rankPeriodJpaEntity.visible.isTrue(),
                 rankPeriodJpaEntity.deleted.isFalse(),
@@ -91,7 +91,7 @@ public class RankQueryDao {
             .select(memberRankProjection())
             .from(memberReviewRankJpaEntity)
             .innerJoin(memberJpaEntity).on(memberIdPath().eq(memberJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(
                 memberReviewRankJpaEntity.rankType.eq(rankType),
                 memberReviewRankJpaEntity.baseDate.eq(baseDate)
@@ -109,7 +109,7 @@ public class RankQueryDao {
             .select(memberRankProjection())
             .from(memberReviewRankJpaEntity)
             .innerJoin(memberJpaEntity).on(memberIdPath().eq(memberJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(
                 memberReviewRankJpaEntity.memberId.eq(memberId),
                 memberReviewRankJpaEntity.rankType.eq(rankType),
@@ -152,8 +152,8 @@ public class RankQueryDao {
         return queryFactory
             .select(rankPrizeManagementProjection())
             .from(rankPrizeJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
-            .where(rankPrizeJpaEntity.rankId.eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(prizeImageFileId()))
+            .where(prizeRankId().eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
             .orderBy(rankPrizeJpaEntity.prizeRank.asc())
             .fetch();
     }
@@ -165,7 +165,7 @@ public class RankQueryDao {
         RankPrizeManagementResult result = queryFactory
             .select(rankPrizeManagementProjection())
             .from(rankPrizeJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(prizeImageFileId()))
             .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())
             .fetchOne();
 
@@ -197,14 +197,28 @@ public class RankQueryDao {
     private QRankPrizeManagementResult rankPrizeManagementProjection() {
         return new QRankPrizeManagementResult(
             rankPrizeJpaEntity.id,
-            rankPrizeJpaEntity.rankId,
+            prizeRankId(),
             rankPrizeJpaEntity.prizeRank,
             rankPrizeJpaEntity.name,
             rankPrizeJpaEntity.brand,
-            rankPrizeJpaEntity.imageFileId,
+            prizeImageFileId(),
             uploadedFileJpaEntity.originalFilename,
             uploadedFileJpaEntity.filePath
         );
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code RANK_PRIZE.rank_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
+     */
+    private NumberPath<Long> prizeRankId() {
+        return Expressions.numberPath(Long.class, rankPrizeJpaEntity, "rankId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code RANK_PRIZE.image_file_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
+     */
+    private NumberPath<Long> prizeImageFileId() {
+        return Expressions.numberPath(Long.class, rankPrizeJpaEntity, "imageFileId");
     }
 
     /**
@@ -213,5 +227,13 @@ public class RankQueryDao {
      */
     private NumberPath<Long> memberIdPath() {
         return Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code MEMBER.profile_image_file_id}를 raw {@code Long}으로 비교하기
+     * 위한 path(member 도메인의 크로스 참조).
+     */
+    private NumberPath<Long> memberProfileImageFileId() {
+        return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
     }
 }

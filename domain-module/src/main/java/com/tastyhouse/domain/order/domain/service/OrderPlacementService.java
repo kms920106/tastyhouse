@@ -110,7 +110,8 @@ public class OrderPlacementService {
      * @return 생성된 주문 식별자
      */
     public OrderId place(MemberId memberId, OrderPlacement placement) {
-        if (shopRepository.findById(ShopId.of(placement.shopId())).isEmpty()) {
+        ShopId shopId = ShopId.of(placement.shopId());
+        if (shopRepository.findById(shopId).isEmpty()) {
             throw new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND);
         }
         Member member = memberRepository.findById(memberId)
@@ -118,7 +119,7 @@ public class OrderPlacementService {
 
         Order order = Order.of(
             memberId,
-            placement.shopId(),
+            shopId,
             generateOrderNumber(),
             placement.orderMethod(),
             OrderStatus.PENDING,
@@ -142,13 +143,13 @@ public class OrderPlacementService {
                     ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }
 
-            String productImageFilePath = productImageRepository.findRepresentativeImageFilePath(product.getId());
+            String productImageFilePath = productImageRepository.findRepresentativeImageFilePath(product.getProductId());
             int originalPrice = product.getOriginalPrice();
             Integer discountPrice = product.getDiscountPrice();
 
             OrderProduct orderProduct = OrderProduct.of(
-                savedOrder.getId(),
-                product.getId(),
+                savedOrder.getOrderId(),
+                product.getProductId(),
                 product.getName(),
                 productImageFilePath,
                 item.quantity(),
@@ -172,14 +173,14 @@ public class OrderPlacementService {
         }
 
         int couponDiscountAmount = 0;
-        Long memberCouponId = null;
+        MemberCouponId memberCouponId = null;
         if (placement.memberCouponId() != null) {
             int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
             CouponUseResult couponResult = couponIssueService.useCoupon(
                 MemberCouponId.of(placement.memberCouponId()), memberId, orderAmountAfterProductDiscount
             );
             couponDiscountAmount = couponResult.couponDiscountAmount();
-            memberCouponId = couponResult.memberCouponId();
+            memberCouponId = MemberCouponId.of(couponResult.memberCouponId());
         }
 
         int pointDiscountAmount = 0;
@@ -228,10 +229,10 @@ public class OrderPlacementService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
 
             orderProductOptionRepository.save(OrderProductOption.of(
-                savedOrderProduct.getId(),
-                optionGroup.getId(),
+                savedOrderProduct.getOrderProductId(),
+                optionGroup.getProductOptionGroupId(),
                 optionGroup.getName(),
-                option.getId(),
+                option.getProductOptionId(),
                 option.getName(),
                 option.getAdditionalPrice()
             ));

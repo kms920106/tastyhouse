@@ -7,9 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -24,11 +26,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class OrderTest {
 
     private static final MemberId MEMBER_ID = MemberId.of(1L);
+    private static final ShopId SHOP_ID = ShopId.of(10L);
 
     private Order newOrder() {
         return Order.of(
             MEMBER_ID,
-            10L,
+            SHOP_ID,
             "ORD-001",
             OrderMethod.TABLE,
             null,
@@ -62,7 +65,7 @@ class OrderTest {
         return Order.reconstitute(
             1L,
             MEMBER_ID,
-            10L,
+            SHOP_ID,
             "ORD-001",
             OrderMethod.TABLE,
             status,
@@ -199,7 +202,7 @@ class OrderTest {
     void updateAmounts_changesAmountFields() {
         Order order = newOrder();
 
-        order.updateAmounts(10000, 1000, 500, 300, 1800, 8200, 99L, 300);
+        order.updateAmounts(10000, 1000, 500, 300, 1800, 8200, MemberCouponId.of(99L), 300);
 
         assertThat(order.getTotalProductAmount()).isEqualTo(10000);
         assertThat(order.getProductDiscountAmount()).isEqualTo(1000);
@@ -207,7 +210,7 @@ class OrderTest {
         assertThat(order.getPointDiscountAmount()).isEqualTo(300);
         assertThat(order.getTotalDiscountAmount()).isEqualTo(1800);
         assertThat(order.getFinalAmount()).isEqualTo(8200);
-        assertThat(order.getMemberCouponId()).isEqualTo(99L);
+        assertThat(order.getMemberCouponId()).isEqualTo(MemberCouponId.of(99L));
         assertThat(order.getUsedPoint()).isEqualTo(300);
     }
 
@@ -217,7 +220,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 1000 + 500 + 300 = 1800 인데 총 할인을 1700으로 보냄
-        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1700, 8300, 99L, 300))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1700, 8300, MemberCouponId.of(99L), 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
@@ -231,7 +234,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 10000 - 1800 = 8200 인데 최종 금액을 9000으로 보냄
-        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1800, 9000, 99L, 300))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1800, 9000, MemberCouponId.of(99L), 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
@@ -267,7 +270,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 10000원 주문에 15000원 정액 쿠폰 → finalAmount -5000 (합산 정합 자체는 성립)
-        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 15000, 0, 15000, -5000, 99L, 0))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 15000, 0, 15000, -5000, MemberCouponId.of(99L), 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
@@ -345,7 +348,7 @@ class OrderTest {
         Order order = Order.reconstitute(
             1L,
             MEMBER_ID,
-            10L,
+            SHOP_ID,
             "ORD-001",
             OrderMethod.TABLE,
             OrderStatus.CONFIRMED,
@@ -353,7 +356,7 @@ class OrderTest {
             "010-1234-5678",
             "hong@test.com",
             10000, 1000, 500, 300, 1800, 8200,
-            99L,
+            MemberCouponId.of(99L),
             300,
             500,
             false,
@@ -383,7 +386,7 @@ class OrderTest {
     ) {
         return Order.of(
             MEMBER_ID,
-            10L,
+            SHOP_ID,
             "ORD-001",
             OrderMethod.TABLE,
             null,
@@ -454,7 +457,7 @@ class OrderTest {
         Order order = Order.reconstitute(
             1L,
             MEMBER_ID,
-            10L,
+            SHOP_ID,
             "ORD-001",
             OrderMethod.TABLE,
             OrderStatus.CONFIRMED,

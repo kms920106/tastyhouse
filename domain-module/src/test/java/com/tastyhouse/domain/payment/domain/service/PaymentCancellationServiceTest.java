@@ -14,6 +14,7 @@ import com.tastyhouse.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.domain.order.domain.service.OrderTransitionService;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.payment.domain.event.PaymentCancelledEvent;
 import com.tastyhouse.domain.payment.domain.event.RefundRequestedEvent;
 import com.tastyhouse.domain.payment.domain.model.Payment;
@@ -245,7 +246,7 @@ class PaymentCancellationServiceTest {
 
         private static Order order(OrderStatus orderStatus) {
             return Order.reconstitute(
-                ORDER_ID.value(), MEMBER_ID, 1L, "ORD-1", null, orderStatus,
+                ORDER_ID.value(), MEMBER_ID, ShopId.of(1L), "ORD-1", null, orderStatus,
                 "주문자", "01012345678", "orderer@tastyhouse.com",
                 21000, 0, 0, 500, 500, 21000, null, 500, 300,
                 false, LocalDateTime.of(2026, 7, 31, 9, 0), LocalDateTime.of(2026, 7, 31, 9, 0)

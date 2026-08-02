@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +69,7 @@ public class BugReportQueryDao {
                 JPAExpressions
                     .select(bugReportImageJpaEntity.count())
                     .from(bugReportImageJpaEntity)
-                    .where(bugReportImageJpaEntity.bugReportId.eq(bugReportJpaEntity.id)),
+                    .where(imageBugReportId().eq(bugReportJpaEntity.id)),
                 bugReportJpaEntity.createdAt
             ))
             .from(bugReportJpaEntity)
@@ -105,7 +107,7 @@ public class BugReportQueryDao {
                 bugReportJpaEntity.status,
                 bugReportJpaEntity.category,
                 bugReportJpaEntity.priority,
-                bugReportJpaEntity.assigneeAdminId,
+                reportAssigneeAdminId(),
                 bugReportJpaEntity.adminAnswer,
                 bugReportJpaEntity.resolvedAt,
                 bugReportJpaEntity.appVersion,
@@ -128,11 +130,35 @@ public class BugReportQueryDao {
 
     private List<Long> findImageFileIds(Long bugReportId) {
         return queryFactory
-            .select(bugReportImageJpaEntity.imageFileId)
+            .select(imageFileIdPath())
             .from(bugReportImageJpaEntity)
-            .where(bugReportImageJpaEntity.bugReportId.eq(bugReportId))
+            .where(imageBugReportId().eq(bugReportId))
             .orderBy(bugReportImageJpaEntity.sort.asc())
             .fetch();
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code BUG_REPORT.assignee_admin_id}를 raw {@code Long}으로 투영하기
+     * 위한 path.
+     */
+    private NumberPath<Long> reportAssigneeAdminId() {
+        return Expressions.numberPath(Long.class, bugReportJpaEntity, "assigneeAdminId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code BUG_REPORT_IMAGE.bug_report_id}를 raw {@code Long}으로 비교하기
+     * 위한 path.
+     */
+    private NumberPath<Long> imageBugReportId() {
+        return Expressions.numberPath(Long.class, bugReportImageJpaEntity, "bugReportId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code BUG_REPORT_IMAGE.image_file_id}를 raw {@code Long}으로 투영하기
+     * 위한 path.
+     */
+    private NumberPath<Long> imageFileIdPath() {
+        return Expressions.numberPath(Long.class, bugReportImageJpaEntity, "imageFileId");
     }
 
     private BooleanExpression titleContains(String title) {

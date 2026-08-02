@@ -19,7 +19,9 @@ import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.reservation.domain.model.ReservationStatus;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
+import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -48,8 +50,9 @@ public class ReservationJpaEntity extends BaseEntity {
     @Column(name = "member_id", nullable = false)
     private MemberId memberId;
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId;
+    private ShopId shopId;
 
     @Column(name = "reservation_date", nullable = false)
     private LocalDate reservationDate;
@@ -69,7 +72,7 @@ public class ReservationJpaEntity extends BaseEntity {
 
     private ReservationJpaEntity(
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,
@@ -90,7 +93,7 @@ public class ReservationJpaEntity extends BaseEntity {
      */
     static ReservationJpaEntity create(
         MemberId memberId,
-        Long shopId,
+        ShopId shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,

@@ -3,8 +3,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.domain.shop.domain.vo.ShopFoodTypeCategoryId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+
 @Repository
 public interface ShopFoodTypeJpaRepository extends JpaRepository<ShopFoodTypeJpaEntity, Long> {
 
-    void deleteByShopIdAndShopFoodTypeCategoryId(Long shopId, Long shopFoodTypeCategoryId);
+    void deleteByShopIdAndShopFoodTypeCategoryId(ShopId shopId, ShopFoodTypeCategoryId shopFoodTypeCategoryId);
 }

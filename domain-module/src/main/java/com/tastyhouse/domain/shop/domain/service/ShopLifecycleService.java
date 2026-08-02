@@ -2,6 +2,8 @@ package com.tastyhouse.domain.shop.domain.service;
 
 import java.math.BigDecimal;
 
+import com.tastyhouse.domain.ceo.domain.vo.CeoId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.domain.shop.domain.model.ShopBookmark;
@@ -11,6 +13,7 @@ import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.repository.StationRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.domain.vo.StationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -73,16 +76,16 @@ public class ShopLifecycleService {
     ) {
         validateStationExists(stationId);
         Shop shop = Shop.of(
-            stationId,
+            StationId.of(stationId),
             name,
             latitude,
             longitude,
             roadAddress,
             lotAddress,
             phoneNumber,
-            thumbnailImageFileId
+            thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId)
         );
-        shop.assignCeo(ceoId);
+        shop.assignCeo(ceoId == null ? null : CeoId.of(ceoId));
         return shopRepository.save(shop);
     }
 
@@ -103,14 +106,14 @@ public class ShopLifecycleService {
         validateStationExists(stationId);
         Shop shop = loadShop(shopId);
         shop.update(
-            stationId,
+            StationId.of(stationId),
             name,
             latitude,
             longitude,
             roadAddress,
             lotAddress,
             phoneNumber,
-            thumbnailImageFileId
+            thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId)
         );
         shopRepository.save(shop);
     }
@@ -155,7 +158,7 @@ public class ShopLifecycleService {
             throw new BusinessException(ErrorCode.SHOP_INTRODUCTION_TOO_LONG);
         }
         prohibitedWordValidator.validate(message);
-        ShopOwnerMessageHistory ownerMessageHistory = ShopOwnerMessageHistory.of(shopId, message);
+        ShopOwnerMessageHistory ownerMessageHistory = ShopOwnerMessageHistory.of(ShopId.of(shopId), message);
         shopDetailRepository.saveOwnerMessage(ownerMessageHistory);
     }
 
@@ -170,7 +173,7 @@ public class ShopLifecycleService {
             return false;
         }
         loadShop(ShopId.of(shopId));
-        shopBookmarkRepository.save(ShopBookmark.of(shopId, memberId));
+        shopBookmarkRepository.save(ShopBookmark.of(ShopId.of(shopId), memberId));
         return true;
     }
 

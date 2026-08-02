@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,6 +10,10 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.shop.domain.vo.TagId;
+import com.tastyhouse.infrastructure.shop.persistence.TagIdConverter;
 
 /**
  * 리뷰 태그 JPA 영속 모델.
@@ -27,13 +32,15 @@ public class ReviewTagJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ReviewIdConverter.class)
     @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    private ReviewId reviewId;
 
+    @Convert(converter = TagIdConverter.class)
     @Column(name = "tag_id", nullable = false)
-    private Long tagId;
+    private TagId tagId;
 
-    private ReviewTagJpaEntity(Long reviewId, Long tagId) {
+    private ReviewTagJpaEntity(ReviewId reviewId, TagId tagId) {
         this.reviewId = reviewId;
         this.tagId = tagId;
     }
@@ -41,7 +48,7 @@ public class ReviewTagJpaEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewTagMapper#toEntity}에서만 호출한다.
      */
-    static ReviewTagJpaEntity create(Long reviewId, Long tagId) {
+    static ReviewTagJpaEntity create(ReviewId reviewId, TagId tagId) {
         return new ReviewTagJpaEntity(reviewId, tagId);
     }
 }

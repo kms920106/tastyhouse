@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.payment.domain.vo.PaymentId;
+
 /**
  * 토스페이먼츠 결제 원장(raw) 순수 도메인 모델.
  *
@@ -15,7 +17,7 @@ import lombok.Getter;
 public class TossPaymentRecord {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long paymentId;
+    private final PaymentId paymentId;
     private final String version;
     private final String paymentKey;
     private final String type;
@@ -73,7 +75,7 @@ public class TossPaymentRecord {
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private TossPaymentRecord(
-        Long id, Long paymentId, String version, String paymentKey, String type,
+        Long id, PaymentId paymentId, String version, String paymentKey, String type,
         String orderId, String orderName, String mId, String currency,
         String method, Integer totalAmount, Integer balanceAmount, String status,
         LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
@@ -157,7 +159,7 @@ public class TossPaymentRecord {
      * 신규 토스 결제 원장을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
     public static TossPaymentRecord create(
-        Long paymentId, String version, String paymentKey, String type,
+        PaymentId paymentId, String version, String paymentKey, String type,
         String orderId, String orderName, String mId, String currency,
         String method, Integer totalAmount, Integer balanceAmount, String status,
         LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
@@ -196,7 +198,7 @@ public class TossPaymentRecord {
      * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
      */
     public static TossPaymentRecord reconstitute(
-        Long id, Long paymentId, String version, String paymentKey, String type,
+        Long id, PaymentId paymentId, String version, String paymentKey, String type,
         String orderId, String orderName, String mId, String currency,
         String method, Integer totalAmount, Integer balanceAmount, String status,
         LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,

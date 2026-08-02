@@ -12,6 +12,7 @@ import com.tastyhouse.domain.reservation.domain.model.Reservation;
 import com.tastyhouse.domain.reservation.domain.model.ReservationStatus;
 import com.tastyhouse.domain.reservation.domain.repository.ReservationRepository;
 import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 import static com.tastyhouse.infrastructure.reservation.persistence.QReservationJpaEntity.reservationJpaEntity;
 
@@ -28,7 +29,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public boolean existsBlockingByMemberShopDate(MemberId memberId, Long shopId, LocalDate date) {
+    public boolean existsBlockingByMemberShopDate(MemberId memberId, ShopId shopId, LocalDate date) {
         return queryFactory.selectOne()
             .from(reservationJpaEntity)
             .where(

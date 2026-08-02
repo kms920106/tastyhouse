@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
 
 /**
  * 리뷰 댓글 순수 도메인 모델.
@@ -19,7 +20,7 @@ import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 public class ReviewComment {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long reviewId;
+    private final ReviewId reviewId;
     private final MemberId memberId;
     private final String content;
     private boolean hidden;
@@ -27,7 +28,7 @@ public class ReviewComment {
 
     private ReviewComment(
         Long id,
-        Long reviewId,
+        ReviewId reviewId,
         MemberId memberId,
         String content,
         boolean hidden,
@@ -44,7 +45,7 @@ public class ReviewComment {
     /**
      * 신규 리뷰 댓글을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
-    public static ReviewComment of(Long reviewId, MemberId memberId, String content) {
+    public static ReviewComment of(ReviewId reviewId, MemberId memberId, String content) {
         return new ReviewComment(null, reviewId, memberId, content, false, null);
     }
 
@@ -54,7 +55,7 @@ public class ReviewComment {
      */
     public static ReviewComment reconstitute(
         Long id,
-        Long reviewId,
+        ReviewId reviewId,
         MemberId memberId,
         String content,
         boolean hidden,

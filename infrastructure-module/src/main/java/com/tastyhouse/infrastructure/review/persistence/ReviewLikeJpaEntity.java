@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -31,14 +32,15 @@ public class ReviewLikeJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ReviewIdConverter.class)
     @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    private ReviewId reviewId;
 
     @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
     private MemberId memberId;
 
-    private ReviewLikeJpaEntity(Long reviewId, MemberId memberId) {
+    private ReviewLikeJpaEntity(ReviewId reviewId, MemberId memberId) {
         this.reviewId = reviewId;
         this.memberId = memberId;
     }
@@ -46,7 +48,7 @@ public class ReviewLikeJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewLikeMapper#toEntity}에서만 호출한다.
      */
-    static ReviewLikeJpaEntity create(Long reviewId, MemberId memberId) {
+    static ReviewLikeJpaEntity create(ReviewId reviewId, MemberId memberId) {
         return new ReviewLikeJpaEntity(reviewId, memberId);
     }
 }

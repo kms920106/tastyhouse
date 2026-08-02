@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +11,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.product.domain.vo.BbqCategoryId;
+import com.tastyhouse.domain.product.domain.vo.BbqMenuId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -28,19 +32,22 @@ public class ProductBbqJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ProductIdConverter.class)
     @Column(name = "product_id", nullable = false, unique = true)
-    private Long productId;
+    private ProductId productId;
 
+    @Convert(converter = BbqMenuIdConverter.class)
     @Column(name = "bbq_menu_id", nullable = false)
-    private Long bbqMenuId;
+    private BbqMenuId bbqMenuId;
 
+    @Convert(converter = BbqCategoryIdConverter.class)
     @Column(name = "bbq_category_id")
-    private Long bbqCategoryId;
+    private BbqCategoryId bbqCategoryId;
 
     @Column(name = "is_options_synced", nullable = false)
     private boolean optionsSynced;
 
-    private ProductBbqJpaEntity(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
+    private ProductBbqJpaEntity(ProductId productId, BbqMenuId bbqMenuId, BbqCategoryId bbqCategoryId, boolean optionsSynced) {
         this.productId = productId;
         this.bbqMenuId = bbqMenuId;
         this.bbqCategoryId = bbqCategoryId;
@@ -50,7 +57,7 @@ public class ProductBbqJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductBbqMapper#toEntity}에서만 호출한다.
      */
-    static ProductBbqJpaEntity create(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
+    static ProductBbqJpaEntity create(ProductId productId, BbqMenuId bbqMenuId, BbqCategoryId bbqCategoryId, boolean optionsSynced) {
         return new ProductBbqJpaEntity(productId, bbqMenuId, bbqCategoryId, optionsSynced);
     }
 

@@ -2,6 +2,7 @@ package com.tastyhouse.infrastructure.member.persistence;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,10 +15,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.member.domain.model.MemberGender;
 import com.tastyhouse.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -63,8 +66,9 @@ public class MemberJpaEntity extends BaseEntity {
     @Column(name = "member_grade", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private MemberGrade memberGrade;
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "profile_image_file_id")
-    private Long profileImageFileId;
+    private UploadedFileId profileImageFileId;
 
     @Column(name = "status_message", length = 200)
     private String statusMessage;
@@ -91,7 +95,7 @@ public class MemberJpaEntity extends BaseEntity {
         MemberGender gender,
         PhoneNumber phoneNumber,
         MemberGrade memberGrade,
-        Long profileImageFileId,
+        UploadedFileId profileImageFileId,
         String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
@@ -126,7 +130,7 @@ public class MemberJpaEntity extends BaseEntity {
         MemberGender gender,
         PhoneNumber phoneNumber,
         MemberGrade memberGrade,
-        Long profileImageFileId,
+        UploadedFileId profileImageFileId,
         String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
@@ -150,7 +154,7 @@ public class MemberJpaEntity extends BaseEntity {
         Integer birthDate,
         MemberGender gender,
         PhoneNumber phoneNumber,
-        Long profileImageFileId,
+        UploadedFileId profileImageFileId,
         String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,

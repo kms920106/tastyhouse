@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -28,8 +30,9 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ProductIdConverter.class)
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private ProductId productId;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -56,7 +59,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
     private boolean visible;
 
     private ProductOptionGroupJpaEntity(
-        Long productId,
+        ProductId productId,
         String name,
         String description,
         boolean required,
@@ -81,7 +84,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductOptionGroupMapper#toEntity}에서만 호출한다.
      */
     static ProductOptionGroupJpaEntity create(
-        Long productId,
+        ProductId productId,
         String name,
         String description,
         boolean required,

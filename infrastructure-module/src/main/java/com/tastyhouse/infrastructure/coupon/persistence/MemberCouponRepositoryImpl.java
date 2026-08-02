@@ -39,7 +39,7 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
             .from(memberCouponJpaEntity)
             .where(
                 memberCouponJpaEntity.memberId.eq(memberId),
-                memberCouponJpaEntity.couponId.eq(couponId.value())
+                memberCouponJpaEntity.couponId.eq(couponId)
             )
             .fetchFirst();
         return found != null;

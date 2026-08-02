@@ -13,6 +13,7 @@ import com.tastyhouse.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
@@ -186,7 +187,7 @@ class OrderTransitionServiceTest {
             return Order.reconstitute(
                 ORDER_ID,
                 MemberId.of(MEMBER_ID),
-                1L,
+                ShopId.of(1L),
                 "ORD-20260731000000-ABCDEF123456",
                 OrderMethod.DELIVERY,
                 status,

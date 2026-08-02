@@ -5,8 +5,10 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.domain.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -22,8 +24,8 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public class Product {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId;
-    private Long productCategoryId;
+    private final ShopId shopId;
+    private ProductCategoryId productCategoryId;
     private String name;
     private String description;
     private Integer originalPrice;
@@ -40,8 +42,8 @@ public class Product {
 
     private Product(
         Long id,
-        Long shopId,
-        Long productCategoryId,
+        ShopId shopId,
+        ProductCategoryId productCategoryId,
         String name,
         String description,
         Integer originalPrice,
@@ -83,8 +85,8 @@ public class Product {
      * 로드는 가능해야 하기 때문이다.
      */
     public static Product of(
-        Long shopId,
-        Long productCategoryId,
+        ShopId shopId,
+        ProductCategoryId productCategoryId,
         String name,
         String description,
         Integer originalPrice,
@@ -129,8 +131,8 @@ public class Product {
      */
     public static Product reconstitute(
         Long id,
-        Long shopId,
-        Long productCategoryId,
+        ShopId shopId,
+        ProductCategoryId productCategoryId,
         String name,
         String description,
         Integer originalPrice,
@@ -218,7 +220,7 @@ public class Product {
     }
 
     public void update(
-        Long productCategoryId,
+        ProductCategoryId productCategoryId,
         String name,
         String description,
         Integer originalPrice,

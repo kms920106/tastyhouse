@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.event.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,6 +17,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.event.domain.model.EventStatus;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -49,11 +52,13 @@ public class EventJpaEntity extends BaseEntity {
     @Column(name = "subtitle", length = 200)
     private String subtitle; // 이벤트 부제목
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "thumbnail_image_file_id")
-    private Long thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
+    private UploadedFileId thumbnailImageFileId; // 썸네일 이미지 파일 ID (FILE.id 참조)
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "banner_image_file_id")
-    private Long bannerImageFileId; // 배너 이미지 파일 ID (FILE.id 참조)
+    private UploadedFileId bannerImageFileId; // 배너 이미지 파일 ID (FILE.id 참조)
 
     @Column(name = "content_html", columnDefinition = "TEXT")
     private String contentHtml; // 이벤트 본문 HTML
@@ -75,8 +80,8 @@ public class EventJpaEntity extends BaseEntity {
         String name,
         String description,
         String subtitle,
-        Long thumbnailImageFileId,
-        Long bannerImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId bannerImageFileId,
         String contentHtml,
         EventStatus status,
         LocalDateTime startAt,
@@ -102,8 +107,8 @@ public class EventJpaEntity extends BaseEntity {
         String name,
         String description,
         String subtitle,
-        Long thumbnailImageFileId,
-        Long bannerImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId bannerImageFileId,
         String contentHtml,
         EventStatus status,
         LocalDateTime startAt,
@@ -131,8 +136,8 @@ public class EventJpaEntity extends BaseEntity {
         String name,
         String description,
         String subtitle,
-        Long thumbnailImageFileId,
-        Long bannerImageFileId,
+        UploadedFileId thumbnailImageFileId,
+        UploadedFileId bannerImageFileId,
         String contentHtml,
         EventStatus status,
         LocalDateTime startAt,

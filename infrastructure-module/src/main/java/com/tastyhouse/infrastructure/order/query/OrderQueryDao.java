@@ -40,9 +40,10 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 동작명을 쓰고 시그니처(회원 스코프 {@code MemberId} 유무)로 구별한다. 상세 조회는 두 화면이 같은 필드
  * 셋을 쓰므로 {@link #findOrderDetail(OrderId)} 하나를 공유한다.
  *
- * <p>{@code PAYMENT.order_id}는 {@code @Convert}로 {@link OrderId} VO에 매핑된 필드라 QueryDSL이 VO
- * 타입 path를 생성하므로, {@link Expressions#numberPath}로 raw {@code Long} 컬럼 비교를 우회한다
- * ({@code ORDER_PRODUCT_OPTION.order_product_id} 등 raw {@code Long} FK는 우회가 필요 없다).
+ * <p>{@code PAYMENT.order_id}·{@code ORDERS.shop_id}·{@code ORDER_PRODUCT.order_id}/{@code product_id}·
+ * {@code ORDER_PRODUCT_OPTION.order_product_id}는 전부 {@code @Convert}로 VO에 매핑된 FK 필드라 QueryDSL이
+ * VO 타입 path를 생성하므로, {@link Expressions#numberPath}로 raw {@code Long} 컬럼 비교·투영을 우회한다
+ * (ID VO 경계 규칙 — query DAO 계층은 항상 raw {@code Long}을 쓴다).
  */
 @Repository
 @RequiredArgsConstructor
@@ -73,9 +74,9 @@ public class OrderQueryDao {
             ))
             .from(orderJpaEntity)
             .innerJoin(paymentJpaEntity).on(paymentJoinCondition)
-            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
-            .leftJoin(orderProductJpaEntity).on(orderProductJpaEntity.orderId.eq(orderJpaEntity.id))
+            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderShopId()))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
+            .leftJoin(orderProductJpaEntity).on(orderProductOrderId().eq(orderJpaEntity.id))
             .where(orderJpaEntity.memberId.eq(memberId))
             .groupBy(
                 orderJpaEntity.id,
@@ -127,8 +128,8 @@ public class OrderQueryDao {
             ))
             .from(orderJpaEntity)
             .leftJoin(paymentJpaEntity).on(paymentJoinCondition)
-            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
-            .leftJoin(orderProductJpaEntity).on(orderProductJpaEntity.orderId.eq(orderJpaEntity.id))
+            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderShopId()))
+            .leftJoin(orderProductJpaEntity).on(orderProductOrderId().eq(orderJpaEntity.id))
             .where(
                 orderJpaEntity.deleted.isFalse(),
                 shopIdEq(condition.shopId()),
@@ -206,7 +207,7 @@ public class OrderQueryDao {
                 orderJpaEntity.createdAt
             ))
             .from(orderJpaEntity)
-            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
+            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderShopId()))
             .where(orderJpaEntity.id.eq(orderId.value()))
             .fetchOne();
 
@@ -228,7 +229,7 @@ public class OrderQueryDao {
         List<OrderProductResult> orderProducts = queryFactory
             .select(new QOrderProductResult(
                 orderProductJpaEntity.id,
-                orderProductJpaEntity.productId,
+                orderProductProductId(),
                 orderProductJpaEntity.name,
                 orderProductJpaEntity.imageUrl,
                 orderProductJpaEntity.quantity,
@@ -238,7 +239,7 @@ public class OrderQueryDao {
                 orderProductJpaEntity.totalPrice
             ))
             .from(orderProductJpaEntity)
-            .where(orderProductJpaEntity.orderId.eq(orderId.value()))
+            .where(orderProductOrderId().eq(orderId.value()))
             .orderBy(orderProductJpaEntity.id.asc())
             .fetch();
 
@@ -252,14 +253,14 @@ public class OrderQueryDao {
 
         Map<Long, List<OrderProductOptionResult>> optionsByOrderProductId = queryFactory
             .select(new QOrderProductOptionResult(
-                orderProductOptionJpaEntity.orderProductId,
+                optionOrderProductId(),
                 orderProductOptionJpaEntity.id,
                 orderProductOptionJpaEntity.optionGroupName,
                 orderProductOptionJpaEntity.optionName,
                 orderProductOptionJpaEntity.additionalPrice
             ))
             .from(orderProductOptionJpaEntity)
-            .where(orderProductOptionJpaEntity.orderProductId.in(orderProductIds))
+            .where(optionOrderProductId().in(orderProductIds))
             .orderBy(orderProductOptionJpaEntity.id.asc())
             .fetch()
             .stream()
@@ -303,8 +304,45 @@ public class OrderQueryDao {
         return Expressions.numberPath(Long.class, paymentJpaEntity, "orderId");
     }
 
+    /**
+     * {@code @Convert} VO 컬럼인 {@code ORDERS.shop_id}를 raw {@code Long}으로 비교하기 위한 path.
+     */
+    private NumberPath<Long> orderShopId() {
+        return Expressions.numberPath(Long.class, orderJpaEntity, "shopId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code ORDER_PRODUCT.order_id}를 raw {@code Long}으로 비교하기 위한 path.
+     */
+    private NumberPath<Long> orderProductOrderId() {
+        return Expressions.numberPath(Long.class, orderProductJpaEntity, "orderId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code ORDER_PRODUCT.product_id}를 raw {@code Long}으로 투영하기 위한 path.
+     */
+    private NumberPath<Long> orderProductProductId() {
+        return Expressions.numberPath(Long.class, orderProductJpaEntity, "productId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code ORDER_PRODUCT_OPTION.order_product_id}를 raw {@code Long}으로
+     * 비교·투영하기 위한 path.
+     */
+    private NumberPath<Long> optionOrderProductId() {
+        return Expressions.numberPath(Long.class, orderProductOptionJpaEntity, "orderProductId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code SHOP.thumbnail_image_file_id}를 raw {@code Long}으로 비교하기
+     * 위한 path(shop 도메인의 크로스 참조).
+     */
+    private NumberPath<Long> shopThumbnailImageFileId() {
+        return Expressions.numberPath(Long.class, shopJpaEntity, "thumbnailImageFileId");
+    }
+
     private BooleanExpression shopIdEq(Long shopId) {
-        return shopId != null ? orderJpaEntity.shopId.eq(shopId) : null;
+        return shopId != null ? orderShopId().eq(shopId) : null;
     }
 
     private BooleanExpression orderStatusEq(OrderStatus orderStatus) {

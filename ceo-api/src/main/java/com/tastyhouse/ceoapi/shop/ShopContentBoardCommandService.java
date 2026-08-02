@@ -5,10 +5,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.domain.model.ShopContentBoard;
 import com.tastyhouse.domain.shop.domain.model.ShopContentTopic;
 import com.tastyhouse.domain.shop.domain.model.ShopContentType;
 import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -52,10 +54,10 @@ public class ShopContentBoardCommandService {
         }
 
         ShopContentType type = ShopContentType.from(contentType);
-        Long imageFileId = uploadIfImage(type, file);
+        UploadedFileId imageFileId = uploadIfImage(type, file);
 
         ShopContentBoard shopContentBoard = ShopContentBoard.of(
-            shopId, type, ShopContentTopic.from(topic), imageFileId, youtubeUrl, description
+            ShopId.of(shopId), type, ShopContentTopic.from(topic), imageFileId, youtubeUrl, description
         );
         return shopContentBoardRepository.save(shopContentBoard).getId();
     }
@@ -72,7 +74,7 @@ public class ShopContentBoardCommandService {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopContentBoard shopContentBoard = loadOwnedContentBoard(shopId, contentBoardId);
-        Long imageFileId = file != null && !file.isEmpty()
+        UploadedFileId imageFileId = file != null && !file.isEmpty()
             ? uploadIfImage(shopContentBoard.getContentType(), file)
             : shopContentBoard.getImageFileId();
 
@@ -92,7 +94,7 @@ public class ShopContentBoardCommandService {
     private ShopContentBoard loadOwnedContentBoard(Long shopId, Long contentBoardId) {
         ShopContentBoard shopContentBoard = shopContentBoardRepository.findById(contentBoardId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
-        if (!shopContentBoard.getShopId().equals(shopId)) {
+        if (!shopContentBoard.getShopId().equals(ShopId.of(shopId))) {
             throw new EntityNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND);
         }
         return shopContentBoard;
@@ -101,11 +103,11 @@ public class ShopContentBoardCommandService {
     /**
      * 영상 콘텐츠는 파일 업로드가 없고, 이미지·GIF는 규격 검증 후 업로드한다.
      */
-    private Long uploadIfImage(ShopContentType contentType, MultipartFile file) {
+    private UploadedFileId uploadIfImage(ShopContentType contentType, MultipartFile file) {
         if (contentType == ShopContentType.VIDEO) {
             return null;
         }
         shopImageSpecValidator.validateContentImage(file, contentType == ShopContentType.GIF);
-        return fileService.upload(file);
+        return UploadedFileId.of(fileService.upload(file));
     }
 }

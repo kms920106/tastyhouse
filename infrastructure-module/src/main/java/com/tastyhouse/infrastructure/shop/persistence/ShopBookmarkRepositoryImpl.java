@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -22,7 +24,7 @@ public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
         return queryFactory
             .selectOne()
             .from(shopBookmarkJpaEntity)
-            .where(shopBookmarkJpaEntity.shopId.eq(shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
+            .where(shopId().eq(shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
             .fetchFirst() != null;
     }
 
@@ -30,8 +32,15 @@ public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
     public void deleteByShopIdAndMemberId(Long shopId, MemberId memberId) {
         queryFactory
             .delete(shopBookmarkJpaEntity)
-            .where(shopBookmarkJpaEntity.shopId.eq(shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
+            .where(shopId().eq(shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
             .execute();
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code SHOP_BOOKMARK.shop_id}를 raw {@code Long}으로 비교하기 위한 path.
+     */
+    private NumberPath<Long> shopId() {
+        return Expressions.numberPath(Long.class, shopBookmarkJpaEntity, "shopId");
     }
 
     @Override

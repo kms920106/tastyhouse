@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,14 +21,14 @@ class RankPrizeTest {
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 삭제되지 않은 상태다")
     void of_createsTransientRankPrize() {
-        RankPrize prize = RankPrize.of(1L, 1, "경품명", "브랜드", 10L);
+        RankPrize prize = RankPrize.of(RankPeriodId.of(1L), 1, "경품명", "브랜드", UploadedFileId.of(10L));
 
         assertThat(prize.getId()).isNull();
-        assertThat(prize.getRankId()).isEqualTo(1L);
+        assertThat(prize.getRankId()).isEqualTo(RankPeriodId.of(1L));
         assertThat(prize.getPrizeRank()).isEqualTo(1);
         assertThat(prize.getName()).isEqualTo("경품명");
         assertThat(prize.getBrand()).isEqualTo("브랜드");
-        assertThat(prize.getImageFileId()).isEqualTo(10L);
+        assertThat(prize.getImageFileId()).isEqualTo(UploadedFileId.of(10L));
         assertThat(prize.isDeleted()).isFalse();
         assertThat(prize.getCreatedAt()).isNull();
         assertThat(prize.getUpdatedAt()).isNull();
@@ -35,21 +37,21 @@ class RankPrizeTest {
     @Test
     @DisplayName("update는 순위·이름·브랜드·이미지파일ID를 변경하고 rankId는 보존한다")
     void update_changesFieldsAndPreservesRankId() {
-        RankPrize prize = RankPrize.of(1L, 1, "경품명", "브랜드", 10L);
+        RankPrize prize = RankPrize.of(RankPeriodId.of(1L), 1, "경품명", "브랜드", UploadedFileId.of(10L));
 
-        prize.update(2, "새 경품명", "새 브랜드", 20L);
+        prize.update(2, "새 경품명", "새 브랜드", UploadedFileId.of(20L));
 
-        assertThat(prize.getRankId()).isEqualTo(1L);
+        assertThat(prize.getRankId()).isEqualTo(RankPeriodId.of(1L));
         assertThat(prize.getPrizeRank()).isEqualTo(2);
         assertThat(prize.getName()).isEqualTo("새 경품명");
         assertThat(prize.getBrand()).isEqualTo("새 브랜드");
-        assertThat(prize.getImageFileId()).isEqualTo(20L);
+        assertThat(prize.getImageFileId()).isEqualTo(UploadedFileId.of(20L));
     }
 
     @Test
     @DisplayName("delete는 삭제 플래그를 true로 만든다(soft delete)")
     void delete_marksDeleted() {
-        RankPrize prize = RankPrize.of(1L, 1, "경품명", "브랜드", 10L);
+        RankPrize prize = RankPrize.of(RankPeriodId.of(1L), 1, "경품명", "브랜드", UploadedFileId.of(10L));
 
         prize.delete();
 
@@ -62,7 +64,9 @@ class RankPrizeTest {
         LocalDateTime createdAt = LocalDateTime.of(2026, 1, 1, 0, 0);
         LocalDateTime updatedAt = LocalDateTime.of(2026, 1, 2, 0, 0);
 
-        RankPrize prize = RankPrize.reconstitute(1L, 2L, 1, "경품명", "브랜드", 10L, false, createdAt, updatedAt);
+        RankPrize prize = RankPrize.reconstitute(
+            1L, RankPeriodId.of(2L), 1, "경품명", "브랜드", UploadedFileId.of(10L), false, createdAt, updatedAt
+        );
 
         assertThat(prize.getId()).isEqualTo(1L);
         assertThat(prize.getRankPrizeId()).isEqualTo(RankPrizeId.of(1L));
@@ -73,7 +77,7 @@ class RankPrizeTest {
     @Test
     @DisplayName("미영속 상태에서 getRankPrizeId를 호출하면 RankPrizeId 불변식 위반으로 예외가 발생한다")
     void getRankPrizeId_onTransient_throws() {
-        RankPrize prize = RankPrize.of(1L, 1, "경품명", "브랜드", 10L);
+        RankPrize prize = RankPrize.of(RankPeriodId.of(1L), 1, "경품명", "브랜드", UploadedFileId.of(10L));
 
         assertThatThrownBy(prize::getRankPrizeId)
             .isInstanceOf(IllegalArgumentException.class);

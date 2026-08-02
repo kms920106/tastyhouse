@@ -7,6 +7,7 @@ import lombok.Getter;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 가게 전화번호(다건) 순수 도메인 모델.
@@ -28,7 +29,7 @@ public class ShopPhoneNumber {
     private static final int VIRTUAL_NUMBER_MAX_LENGTH = 13;
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId; // 가게 ID (SHOP.id 참조)
+    private final ShopId shopId; // 가게 ID (SHOP.id 참조)
     private final String phoneNumber; // 전화번호
     private boolean primary; // 대표 여부 (상태전이로 재대입됨)
     private final boolean virtual; // 가상번호 여부
@@ -37,7 +38,7 @@ public class ShopPhoneNumber {
 
     private ShopPhoneNumber(
         Long id,
-        Long shopId,
+        ShopId shopId,
         String phoneNumber,
         boolean primary,
         boolean virtual,
@@ -57,7 +58,7 @@ public class ShopPhoneNumber {
      * 신규 가게 전화번호를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      * 가상번호로 등록 요청이면 발급 조건(지정 국번, 8~13자리)을 검증한다.
      */
-    public static ShopPhoneNumber of(Long shopId, String phoneNumber, boolean primary, boolean virtual) {
+    public static ShopPhoneNumber of(ShopId shopId, String phoneNumber, boolean primary, boolean virtual) {
         if (virtual && !isValidVirtualNumber(phoneNumber)) {
             throw new BusinessException(ErrorCode.SHOP_VIRTUAL_NUMBER_INVALID);
         }
@@ -70,7 +71,7 @@ public class ShopPhoneNumber {
      */
     public static ShopPhoneNumber reconstitute(
         Long id,
-        Long shopId,
+        ShopId shopId,
         String phoneNumber,
         boolean primary,
         boolean virtual,

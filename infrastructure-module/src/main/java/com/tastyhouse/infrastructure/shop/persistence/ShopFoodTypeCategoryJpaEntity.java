@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,6 +15,8 @@ import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.shop.domain.model.FoodType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 
 /**
  * 음식 유형 카테고리 JPA 영속 모델. 순수 도메인 모델 {@code ShopFoodTypeCategory}와 분리된 영속 전용 엔티티다.
@@ -35,11 +38,13 @@ public class ShopFoodTypeCategoryJpaEntity extends BaseEntity {
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName; // 화면 표시명
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "active_image_file_id", nullable = false)
-    private Long activeImageFileId; // 활성 상태 아이콘 파일 ID (FILE.id 참조)
+    private UploadedFileId activeImageFileId; // 활성 상태 아이콘 파일 ID (FILE.id 참조)
 
+    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "inactive_image_file_id", nullable = false)
-    private Long inactiveImageFileId; // 비활성 상태 아이콘 파일 ID (FILE.id 참조)
+    private UploadedFileId inactiveImageFileId; // 비활성 상태 아이콘 파일 ID (FILE.id 참조)
 
     @Column(name = "sort", nullable = false)
     private Integer sort; // 정렬 순서
@@ -50,8 +55,8 @@ public class ShopFoodTypeCategoryJpaEntity extends BaseEntity {
     private ShopFoodTypeCategoryJpaEntity(
         FoodType foodType,
         String displayName,
-        Long activeImageFileId,
-        Long inactiveImageFileId,
+        UploadedFileId activeImageFileId,
+        UploadedFileId inactiveImageFileId,
         Integer sort,
         boolean visible
     ) {
@@ -66,15 +71,15 @@ public class ShopFoodTypeCategoryJpaEntity extends BaseEntity {
     static ShopFoodTypeCategoryJpaEntity create(
         FoodType foodType,
         String displayName,
-        Long activeImageFileId,
-        Long inactiveImageFileId,
+        UploadedFileId activeImageFileId,
+        UploadedFileId inactiveImageFileId,
         Integer sort,
         boolean visible
     ) {
         return new ShopFoodTypeCategoryJpaEntity(foodType, displayName, activeImageFileId, inactiveImageFileId, sort, visible);
     }
 
-    void applyChanges(String displayName, Long activeImageFileId, Long inactiveImageFileId, Integer sort, boolean visible) {
+    void applyChanges(String displayName, UploadedFileId activeImageFileId, UploadedFileId inactiveImageFileId, Integer sort, boolean visible) {
         this.displayName = displayName;
         this.activeImageFileId = activeImageFileId;
         this.inactiveImageFileId = inactiveImageFileId;

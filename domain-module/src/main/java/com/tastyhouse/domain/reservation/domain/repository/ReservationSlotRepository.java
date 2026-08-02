@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import java.util.Optional;
 
 import com.tastyhouse.domain.reservation.domain.model.ReservationSlot;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 예약 슬롯 write 포트.
@@ -17,7 +18,7 @@ public interface ReservationSlotRepository {
     /**
      * 정원을 차감·반납할 슬롯 단건 로드(get-or-create의 get 측).
      */
-    Optional<ReservationSlot> findByShopAndDateAndTime(Long shopId, LocalDate date, LocalTime time);
+    Optional<ReservationSlot> findByShopAndDateAndTime(ShopId shopId, LocalDate date, LocalTime time);
 
     ReservationSlot save(ReservationSlot slot);
 

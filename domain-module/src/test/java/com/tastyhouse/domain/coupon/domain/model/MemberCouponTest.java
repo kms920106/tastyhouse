@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -22,12 +23,12 @@ class MemberCouponTest {
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)다")
     void of_createsTransientMemberCoupon() {
         MemberCoupon memberCoupon = MemberCoupon.of(
-            MemberId.of(1L), 10L, false, null, LocalDateTime.now().plusDays(7)
+            MemberId.of(1L), CouponId.of(10L), false, null, LocalDateTime.now().plusDays(7)
         );
 
         assertThat(memberCoupon.getId()).isNull();
         assertThat(memberCoupon.getMemberId()).isEqualTo(MemberId.of(1L));
-        assertThat(memberCoupon.getCouponId()).isEqualTo(10L);
+        assertThat(memberCoupon.getCouponId()).isEqualTo(CouponId.of(10L));
         assertThat(memberCoupon.isUsed()).isFalse();
     }
 
@@ -35,7 +36,7 @@ class MemberCouponTest {
     @DisplayName("use는 사용 가능한 쿠폰을 사용 처리하고 사용 시각을 기록한다")
     void use_marksUsed() {
         MemberCoupon memberCoupon = MemberCoupon.of(
-            MemberId.of(1L), 10L, false, null, LocalDateTime.now().plusDays(7)
+            MemberId.of(1L), CouponId.of(10L), false, null, LocalDateTime.now().plusDays(7)
         );
 
         memberCoupon.use();
@@ -48,7 +49,7 @@ class MemberCouponTest {
     @DisplayName("이미 사용된 쿠폰을 다시 use하면 예외가 발생한다")
     void use_onAlreadyUsed_throws() {
         MemberCoupon memberCoupon = MemberCoupon.of(
-            MemberId.of(1L), 10L, false, null, LocalDateTime.now().plusDays(7)
+            MemberId.of(1L), CouponId.of(10L), false, null, LocalDateTime.now().plusDays(7)
         );
         memberCoupon.use();
 
@@ -60,7 +61,7 @@ class MemberCouponTest {
     @DisplayName("만료된 쿠폰을 use하면 예외가 발생한다")
     void use_onExpired_throws() {
         MemberCoupon memberCoupon = MemberCoupon.of(
-            MemberId.of(1L), 10L, false, null, LocalDateTime.now().minusDays(1)
+            MemberId.of(1L), CouponId.of(10L), false, null, LocalDateTime.now().minusDays(1)
         );
 
         assertThatThrownBy(memberCoupon::use)
@@ -71,10 +72,10 @@ class MemberCouponTest {
     @DisplayName("isExpired/isAvailable은 만료 시각과 사용 여부로 판단한다")
     void isExpiredAndIsAvailable_reflectState() {
         MemberCoupon available = MemberCoupon.of(
-            MemberId.of(1L), 10L, false, null, LocalDateTime.now().plusDays(1)
+            MemberId.of(1L), CouponId.of(10L), false, null, LocalDateTime.now().plusDays(1)
         );
         MemberCoupon expired = MemberCoupon.of(
-            MemberId.of(1L), 10L, false, null, LocalDateTime.now().minusDays(1)
+            MemberId.of(1L), CouponId.of(10L), false, null, LocalDateTime.now().minusDays(1)
         );
 
         assertThat(available.isExpired()).isFalse();
@@ -90,7 +91,7 @@ class MemberCouponTest {
         LocalDateTime expiredAt = LocalDateTime.of(2026, 2, 1, 0, 0);
 
         MemberCoupon memberCoupon = MemberCoupon.reconstitute(
-            1L, MemberId.of(2L), 10L, true, usedAt, expiredAt
+            1L, MemberId.of(2L), CouponId.of(10L), true, usedAt, expiredAt
         );
 
         assertThat(memberCoupon.getId()).isEqualTo(1L);
@@ -103,7 +104,7 @@ class MemberCouponTest {
     @Test
     @DisplayName("expiredAt이 null이면 isExpired가 NPE 없이 false(무기한)를 반환한다")
     void isExpired_withNullExpiredAt_returnsFalseWithoutNpe() {
-        MemberCoupon unlimited = MemberCoupon.of(MemberId.of(1L), 10L, false, null, null);
+        MemberCoupon unlimited = MemberCoupon.of(MemberId.of(1L), CouponId.of(10L), false, null, null);
 
         assertThat(unlimited.isExpired()).isFalse();
         assertThat(unlimited.isAvailable()).isTrue();
@@ -112,7 +113,7 @@ class MemberCouponTest {
     @Test
     @DisplayName("expiredAt이 null인 레거시 행을 reconstitute해도 만료 판정이 NPE 없이 동작한다")
     void isExpired_withNullExpiredAtOnReconstituted_doesNotThrow() {
-        MemberCoupon legacy = MemberCoupon.reconstitute(1L, MemberId.of(2L), 10L, false, null, null);
+        MemberCoupon legacy = MemberCoupon.reconstitute(1L, MemberId.of(2L), CouponId.of(10L), false, null, null);
 
         assertThat(legacy.isExpired()).isFalse();
         assertThat(legacy.isAvailable()).isTrue();
@@ -121,7 +122,7 @@ class MemberCouponTest {
     @Test
     @DisplayName("expiredAt이 null이면 무기한이므로 use가 만료로 막히지 않는다")
     void use_withNullExpiredAt_succeeds() {
-        MemberCoupon unlimited = MemberCoupon.of(MemberId.of(1L), 10L, false, null, null);
+        MemberCoupon unlimited = MemberCoupon.of(MemberId.of(1L), CouponId.of(10L), false, null, null);
 
         unlimited.use();
 

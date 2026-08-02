@@ -1,6 +1,8 @@
 package com.tastyhouse.domain.shop.domain.model;
 
 import lombok.Getter;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.domain.vo.ShopPhotoCategoryId;
 
 /**
  * 상점 사진 카테고리 이미지 순수 도메인 모델.
@@ -12,15 +14,15 @@ import lombok.Getter;
 public class ShopPhotoCategoryImage {
 
     private final Long id;
-    private final Long shopPhotoCategoryId;
-    private Long imageFileId;
+    private final ShopPhotoCategoryId shopPhotoCategoryId;
+    private UploadedFileId imageFileId;
     private Integer sort;
     private boolean visible;
 
     private ShopPhotoCategoryImage(
         Long id,
-        Long shopPhotoCategoryId,
-        Long imageFileId,
+        ShopPhotoCategoryId shopPhotoCategoryId,
+        UploadedFileId imageFileId,
         Integer sort,
         boolean visible
     ) {
@@ -32,8 +34,8 @@ public class ShopPhotoCategoryImage {
     }
 
     public static ShopPhotoCategoryImage of(
-        Long shopPhotoCategoryId,
-        Long imageFileId,
+        ShopPhotoCategoryId shopPhotoCategoryId,
+        UploadedFileId imageFileId,
         Integer sort,
         boolean visible
     ) {
@@ -45,15 +47,15 @@ public class ShopPhotoCategoryImage {
      */
     public static ShopPhotoCategoryImage reconstitute(
         Long id,
-        Long shopPhotoCategoryId,
-        Long imageFileId,
+        ShopPhotoCategoryId shopPhotoCategoryId,
+        UploadedFileId imageFileId,
         Integer sort,
         boolean visible
     ) {
         return new ShopPhotoCategoryImage(id, shopPhotoCategoryId, imageFileId, sort, visible);
     }
 
-    public void update(Long imageFileId, Integer sort, boolean visible) {
+    public void update(UploadedFileId imageFileId, Integer sort, boolean visible) {
         this.imageFileId = imageFileId;
         this.sort = sort;
         this.visible = visible;

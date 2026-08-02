@@ -4,6 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 import lombok.Getter;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상점 브레이크타임 순수 도메인 모델.
@@ -15,12 +16,12 @@ import lombok.Getter;
 public class ShopBreakTime {
 
     private final Long id;
-    private final Long shopId;
+    private final ShopId shopId;
     private DayType dayType;
     private LocalTime startTime;
     private LocalTime endTime;
 
-    private ShopBreakTime(Long id, Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
+    private ShopBreakTime(Long id, ShopId shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
         this.id = id;
         this.shopId = shopId;
         this.dayType = dayType;
@@ -28,14 +29,14 @@ public class ShopBreakTime {
         this.endTime = endTime;
     }
 
-    public static ShopBreakTime of(Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
+    public static ShopBreakTime of(ShopId shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
         return new ShopBreakTime(null, shopId, dayType, startTime, endTime);
     }
 
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ShopBreakTime reconstitute(Long id, Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
+    public static ShopBreakTime reconstitute(Long id, ShopId shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
         return new ShopBreakTime(id, shopId, dayType, startTime, endTime);
     }
 

@@ -19,6 +19,8 @@ import com.tastyhouse.domain.shop.domain.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.domain.model.ShopOperatingStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.domain.shop.domain.vo.StationId;
 
 /**
  * 영업 상태 계산기 <b>골든 테스트</b>.
@@ -44,7 +46,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
 
     private Shop shop(boolean permanentlyClosed, boolean closedOnPublicHolidays) {
         return Shop.reconstitute(
-            1L, null, 1L, "가게", BigDecimal.valueOf(37.5), BigDecimal.valueOf(127.0),
+            1L, null, StationId.of(1L), "가게", BigDecimal.valueOf(37.5), BigDecimal.valueOf(127.0),
             4.5, "도로명", "지번", "02-000-0000", null, null,
             permanentlyClosed, false, closedOnPublicHolidays, LocalDateTime.now(), LocalDateTime.now()
         );
@@ -63,7 +65,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
     }
 
     private ShopBusinessHour hour(DayType dayType, LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours) {
-        return ShopBusinessHour.reconstitute(1L, 1L, dayType, open, close, isClosed, is24Hours);
+        return ShopBusinessHour.reconstitute(1L, ShopId.of(1L), dayType, open, close, isClosed, is24Hours);
     }
 
     @Nested
@@ -224,7 +226,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
         @DisplayName("시작 시각 포함, 종료 시각 제외")
         void breakRangeIsHalfOpen() {
             List<ShopBreakTime> breaks = List.of(
-                ShopBreakTime.reconstitute(1L, 1L, DayType.DAILY, LocalTime.of(15, 0), LocalTime.of(17, 0))
+                ShopBreakTime.reconstitute(1L, ShopId.of(1L), DayType.DAILY, LocalTime.of(15, 0), LocalTime.of(17, 0))
             );
 
             assertThat(statusAt(allDayHours(), breaks, List.of(), false, MONDAY.atTime(15, 0)))
@@ -239,7 +241,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
         @DisplayName("시작·종료 시각이 null이면 휴게시간으로 보지 않는다")
         void nullTimesAreNotBreak() {
             List<ShopBreakTime> breaks = List.of(
-                ShopBreakTime.reconstitute(1L, 1L, DayType.DAILY, null, null)
+                ShopBreakTime.reconstitute(1L, ShopId.of(1L), DayType.DAILY, null, null)
             );
 
             assertThat(statusAt(allDayHours(), breaks, List.of(), false, MONDAY.atTime(15, 0)))
@@ -250,7 +252,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
         @DisplayName("요일 구분(dayType)이 오늘과 맞지 않으면 휴게시간이 적용되지 않는다")
         void dayTypeMustMatch() {
             List<ShopBreakTime> weekendBreak = List.of(
-                ShopBreakTime.reconstitute(1L, 1L, DayType.WEEKEND, LocalTime.of(15, 0), LocalTime.of(17, 0))
+                ShopBreakTime.reconstitute(1L, ShopId.of(1L), DayType.WEEKEND, LocalTime.of(15, 0), LocalTime.of(17, 0))
             );
 
             // 월요일에는 주말 휴게시간이 적용되지 않음
@@ -258,7 +260,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
                 .isEqualTo(ShopOperatingStatus.OPEN);
 
             List<ShopBreakTime> mondayBreak = List.of(
-                ShopBreakTime.reconstitute(1L, 1L, DayType.MONDAY, LocalTime.of(15, 0), LocalTime.of(17, 0))
+                ShopBreakTime.reconstitute(1L, ShopId.of(1L), DayType.MONDAY, LocalTime.of(15, 0), LocalTime.of(17, 0))
             );
 
             assertThat(statusAt(allDayHours(), mondayBreak, List.of(), false, MONDAY.atTime(15, 0)))
@@ -269,7 +271,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
         @DisplayName("공휴일 휴게시간은 공휴일일 때만 적용된다")
         void holidayBreakAppliesOnlyOnHoliday() {
             List<ShopBreakTime> holidayBreak = List.of(
-                ShopBreakTime.reconstitute(1L, 1L, DayType.HOLIDAY, LocalTime.of(15, 0), LocalTime.of(17, 0))
+                ShopBreakTime.reconstitute(1L, ShopId.of(1L), DayType.HOLIDAY, LocalTime.of(15, 0), LocalTime.of(17, 0))
             );
 
             assertThat(statusAt(allDayHours(), holidayBreak, List.of(), false, MONDAY.atTime(15, 0)))
@@ -285,7 +287,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
                 hour(DayType.DAILY, null, null, false, true)
             );
             List<ShopBreakTime> breaks = List.of(
-                ShopBreakTime.reconstitute(1L, 1L, DayType.DAILY, LocalTime.of(23, 0), LocalTime.of(1, 0))
+                ShopBreakTime.reconstitute(1L, ShopId.of(1L), DayType.DAILY, LocalTime.of(23, 0), LocalTime.of(1, 0))
             );
 
             assertThat(statusAt(hours, breaks, List.of(), false, MONDAY.atTime(23, 30)))
@@ -306,7 +308,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
                 hour(DayType.DAILY, LocalTime.of(0, 0), LocalTime.of(23, 55), false, false)
             );
             return statusAt(hours, List.of(),
-                List.of(ShopClosedDay.reconstitute(1L, 1L, type)), false, date.atTime(12, 0));
+                List.of(ShopClosedDay.reconstitute(1L, ShopId.of(1L), type)), false, date.atTime(12, 0));
         }
 
         @Test

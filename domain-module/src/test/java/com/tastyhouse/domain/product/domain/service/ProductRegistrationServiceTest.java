@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.product.domain.event.ProductCreatedEvent;
 import com.tastyhouse.domain.product.domain.event.ProductDeactivatedEvent;
 import com.tastyhouse.domain.product.domain.event.ProductSoldOutChangedEvent;
@@ -22,10 +23,14 @@ import com.tastyhouse.domain.product.domain.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.domain.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.domain.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.domain.product.domain.vo.BbqCategoryId;
+import com.tastyhouse.domain.product.domain.vo.BbqMenuId;
 import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
+import com.tastyhouse.domain.product.domain.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
@@ -40,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class ProductRegistrationServiceTest {
 
-    private static final Long SHOP_ID = 1L;
+    private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final Long PRODUCT_ID = 7L;
 
     @Test
@@ -49,7 +54,7 @@ class ProductRegistrationServiceTest {
         Fixture fixture = new Fixture(null);
 
         Product created = fixture.service.createProduct(
-            SHOP_ID, 2L, "황금올리브치킨", "바삭한 치킨",
+            SHOP_ID, ProductCategoryId.of(2L), "황금올리브치킨", "바삭한 치킨",
             20000, null, null, null, 0, true, 1, false, true, 0
         );
 
@@ -65,7 +70,7 @@ class ProductRegistrationServiceTest {
         Fixture fixture = new Fixture(product());
 
         fixture.service.updateProduct(
-            ProductId.of(PRODUCT_ID), 3L, "변경된 이름", "변경된 설명",
+            ProductId.of(PRODUCT_ID), ProductCategoryId.of(3L), "변경된 이름", "변경된 설명",
             25000, 20000, null, false, 2, false, true, 1
         );
 
@@ -104,7 +109,7 @@ class ProductRegistrationServiceTest {
         Fixture fixture = new Fixture(null);
 
         assertThatThrownBy(() -> fixture.service.updateProduct(
-            ProductId.of(PRODUCT_ID), 3L, "이름", null,
+            ProductId.of(PRODUCT_ID), ProductCategoryId.of(3L), "이름", null,
             1000, null, null, false, null, false, true, 0
         )).isInstanceOf(EntityNotFoundException.class);
     }
@@ -113,7 +118,7 @@ class ProductRegistrationServiceTest {
     @DisplayName("BBQ 옵션 동기화 완료를 표시한 뒤 명시적으로 저장한다")
     void markBbqOptionsSynced_savesExplicitly() {
         Fixture fixture = new Fixture(product());
-        fixture.bbqRepository.stored = ProductBbq.reconstitute(5L, PRODUCT_ID, 100L, 200L, false);
+        fixture.bbqRepository.stored = ProductBbq.reconstitute(5L, ProductId.of(PRODUCT_ID), BbqMenuId.of(100L), BbqCategoryId.of(200L), false);
 
         fixture.service.markBbqOptionsSynced(ProductId.of(PRODUCT_ID));
 
@@ -136,10 +141,10 @@ class ProductRegistrationServiceTest {
         Fixture fixture = new Fixture(null);
 
         fixture.service.createProductCategory(SHOP_ID, "치킨", 0, true);
-        fixture.service.saveProductImage(PRODUCT_ID, 99L, 0, true);
-        fixture.service.saveProductOptionGroup(PRODUCT_ID, "맛 선택", null, true, false, 1, 1, 0, true);
-        fixture.service.saveProductOption(11L, "순살", 2000, 0, false, true);
-        fixture.service.saveProductBbq(PRODUCT_ID, 100L, 200L, false);
+        fixture.service.saveProductImage(ProductId.of(PRODUCT_ID), UploadedFileId.of(99L), 0, true);
+        fixture.service.saveProductOptionGroup(ProductId.of(PRODUCT_ID), "맛 선택", null, true, false, 1, 1, 0, true);
+        fixture.service.saveProductOption(ProductOptionGroupId.of(11L), "순살", 2000, 0, false, true);
+        fixture.service.saveProductBbq(ProductId.of(PRODUCT_ID), BbqMenuId.of(100L), BbqCategoryId.of(200L), false);
 
         assertThat(fixture.categoryRepository.saved).hasSize(1);
         assertThat(fixture.imageRepository.saved).hasSize(1);
@@ -150,7 +155,7 @@ class ProductRegistrationServiceTest {
 
     private Product product() {
         return Product.reconstitute(
-            PRODUCT_ID, SHOP_ID, 2L, "황금올리브치킨", "바삭한 치킨",
+            PRODUCT_ID, SHOP_ID, ProductCategoryId.of(2L), "황금올리브치킨", "바삭한 치킨",
             20000, null, null, 0, true, 1, false, true, 0, null, null
         );
     }
@@ -197,10 +202,35 @@ class ProductRegistrationServiceTest {
             return Optional.ofNullable(existing);
         }
 
+        /**
+         * 실제 어댑터 계약을 모사한다 — 신규(id null) 저장이면 PK를 부여한 인스턴스를 반환하고,
+         * 기존 상품이면 그대로 돌려준다. 생성 직후 발행되는 {@code ProductCreatedEvent}가
+         * {@code getProductId()}를 읽으므로 id 부여를 생략하면 실제 동작과 달라진다.
+         */
         @Override
         public Product save(Product product) {
             saved.add(product);
-            return product;
+            if (product.getId() != null) {
+                return product;
+            }
+            return Product.reconstitute(
+                PRODUCT_ID,
+                product.getShopId(),
+                product.getProductCategoryId(),
+                product.getName(),
+                product.getDescription(),
+                product.getOriginalPrice(),
+                ProductDiscountInfo.of(product.getDiscountPrice(), product.getDiscountRate()),
+                product.getRating(),
+                product.getReviewCount(),
+                product.isRepresentative(),
+                product.getSpiciness(),
+                product.isSoldOut(),
+                product.isVisible(),
+                product.getSort(),
+                null,
+                null
+            );
         }
     }
 
@@ -214,7 +244,7 @@ class ProductRegistrationServiceTest {
         }
 
         @Override
-        public List<ProductCategory> findCategoriesByNameAndShopId(String name, Long shopId) {
+        public List<ProductCategory> findCategoriesByNameAndShopId(String name, ShopId shopId) {
             return List.of();
         }
 
@@ -262,7 +292,7 @@ class ProductRegistrationServiceTest {
         private final List<ProductImage> saved = new ArrayList<>();
 
         @Override
-        public String findRepresentativeImageFilePath(Long productId) {
+        public String findRepresentativeImageFilePath(ProductId productId) {
             return null;
         }
 
@@ -279,7 +309,7 @@ class ProductRegistrationServiceTest {
         private ProductBbq stored;
 
         @Override
-        public Optional<ProductBbq> findByProductId(Long productId) {
+        public Optional<ProductBbq> findByProductId(ProductId productId) {
             return Optional.ofNullable(stored);
         }
 

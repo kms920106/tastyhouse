@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.domain.admin.domain.vo.AdminId;
 import com.tastyhouse.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -56,9 +57,9 @@ class BugReportTest {
     void assignTo_setsAssigneeAdminId() {
         BugReport bugReport = createBugReport();
 
-        bugReport.assignTo(99L);
+        bugReport.assignTo(AdminId.of(99L));
 
-        assertThat(bugReport.getAssigneeAdminId()).isEqualTo(99L);
+        assertThat(bugReport.getAssigneeAdminId()).isEqualTo(AdminId.of(99L));
     }
 
     @Test
@@ -167,7 +168,7 @@ class BugReportTest {
         BugReport bugReport = BugReport.reconstitute(
             1L, memberId, "iPhone 15", "제목", "내용",
             BugReportStatus.RESOLVED, BugReportCategory.PAYMENT, BugReportPriority.HIGH,
-            99L, "처리 결과", resolvedAt,
+            AdminId.of(99L), "처리 결과", resolvedAt,
             "1.0.0", BugReportPlatform.IOS, "17.0",
             createdAt, updatedAt
         );
@@ -178,7 +179,7 @@ class BugReportTest {
         assertThat(bugReport.getStatus()).isEqualTo(BugReportStatus.RESOLVED);
         assertThat(bugReport.getCategory()).isEqualTo(BugReportCategory.PAYMENT);
         assertThat(bugReport.getPriority()).isEqualTo(BugReportPriority.HIGH);
-        assertThat(bugReport.getAssigneeAdminId()).isEqualTo(99L);
+        assertThat(bugReport.getAssigneeAdminId()).isEqualTo(AdminId.of(99L));
         assertThat(bugReport.getAdminAnswer()).isEqualTo("처리 결과");
         assertThat(bugReport.getResolvedAt()).isEqualTo(resolvedAt);
         assertThat(bugReport.getPlatform()).isEqualTo(BugReportPlatform.IOS);

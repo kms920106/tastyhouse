@@ -94,7 +94,7 @@ public class ShopBusinessHourCommandService {
     private void validateBusinessHourOwnership(Long ceoId, Long businessHourId) {
         ShopBusinessHour businessHour = shopDetailRepository.findBusinessHourById(businessHourId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
-        shopOwnershipValidator.validateOwnership(ceoId, businessHour.getShopId());
+        shopOwnershipValidator.validateOwnership(ceoId, businessHour.getShopId().value());
     }
 
     /**
@@ -103,6 +103,6 @@ public class ShopBusinessHourCommandService {
     private void validateBreakTimeOwnership(Long ceoId, Long breakTimeId) {
         ShopBreakTime breakTime = shopDetailRepository.findBreakTimeById(breakTimeId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
-        shopOwnershipValidator.validateOwnership(ceoId, breakTime.getShopId());
+        shopOwnershipValidator.validateOwnership(ceoId, breakTime.getShopId().value());
     }
 }

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -144,9 +145,9 @@ public class ShopSearchQueryDao {
         Set<Long> foodTypeShopIds = null;
         if (foodTypes != null && !foodTypes.isEmpty()) {
             foodTypeShopIds = new HashSet<>(queryFactory
-                .select(shopFoodTypeJpaEntity.shopId)
+                .select(foodTypeShopId())
                 .from(shopFoodTypeJpaEntity)
-                .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeJpaEntity.shopFoodTypeCategoryId.eq(shopFoodTypeCategoryJpaEntity.id))
+                .join(shopFoodTypeCategoryJpaEntity).on(foodTypeShopFoodTypeCategoryId().eq(shopFoodTypeCategoryJpaEntity.id))
                 .where(shopFoodTypeCategoryJpaEntity.foodType.in(foodTypes))
                 .fetch());
 
@@ -158,12 +159,12 @@ public class ShopSearchQueryDao {
         Set<Long> amenityShopIds = null;
         if (amenities != null && !amenities.isEmpty()) {
             amenityShopIds = new HashSet<>(queryFactory
-                .select(shopAmenityJpaEntity.shopId)
+                .select(amenityShopId())
                 .from(shopAmenityJpaEntity)
-                .join(shopAmenityCategoryJpaEntity).on(shopAmenityJpaEntity.shopAmenityCategoryId.eq(shopAmenityCategoryJpaEntity.id))
+                .join(shopAmenityCategoryJpaEntity).on(amenityShopAmenityCategoryId().eq(shopAmenityCategoryJpaEntity.id))
                 .where(shopAmenityCategoryJpaEntity.amenity.in(amenities))
-                .groupBy(shopAmenityJpaEntity.shopId)
-                .having(shopAmenityJpaEntity.shopId.count().goe((long) amenities.size()))
+                .groupBy(amenityShopId())
+                .having(amenityShopId().count().goe((long) amenities.size()))
                 .fetch());
 
             if (amenityShopIds.isEmpty()) {
@@ -262,9 +263,9 @@ public class ShopSearchQueryDao {
         Set<Long> bookmarkedShopIds = memberId == null
             ? Set.of()
             : new HashSet<>(queryFactory
-                .select(shopBookmarkJpaEntity.shopId)
+                .select(bookmarkShopId())
                 .from(shopBookmarkJpaEntity)
-                .where(shopBookmarkJpaEntity.shopId.in(shopIds), shopBookmarkJpaEntity.memberId.eq(memberId))
+                .where(bookmarkShopId().in(shopIds), shopBookmarkJpaEntity.memberId.eq(memberId))
                 .fetch());
 
         List<ShopBookmarkedItemResult> content = pagedShops.stream()
@@ -289,7 +290,7 @@ public class ShopSearchQueryDao {
         Long total = queryFactory
             .select(shopBookmarkJpaEntity.count())
             .from(shopBookmarkJpaEntity)
-            .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id)
+            .join(shopJpaEntity).on(bookmarkShopId().eq(shopJpaEntity.id)
                 .and(shopJpaEntity.permanentlyClosed.eq(false))
                 .and(shopJpaEntity.hidden.eq(false)))
             .where(shopBookmarkJpaEntity.memberId.eq(memberId))
@@ -310,11 +311,11 @@ public class ShopSearchQueryDao {
                 Expressions.asBoolean(true)
             ))
             .from(shopBookmarkJpaEntity)
-            .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id)
+            .join(shopJpaEntity).on(bookmarkShopId().eq(shopJpaEntity.id)
                 .and(shopJpaEntity.permanentlyClosed.eq(false))
                 .and(shopJpaEntity.hidden.eq(false)))
-            .join(stationJpaEntity).on(shopJpaEntity.stationId.eq(stationJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
+            .join(stationJpaEntity).on(shopStationId().eq(stationJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
             .where(shopBookmarkJpaEntity.memberId.eq(memberId))
             .orderBy(shopBookmarkJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -353,7 +354,7 @@ public class ShopSearchQueryDao {
                 shopJpaEntity.permanentlyClosed
             ))
             .from(shopJpaEntity)
-            .leftJoin(stationJpaEntity).on(stationJpaEntity.id.eq(shopJpaEntity.stationId))
+            .leftJoin(stationJpaEntity).on(stationJpaEntity.id.eq(shopStationId()))
             .where(
                 nameContains(condition.name()),
                 stationIdEq(condition.stationId()),
@@ -374,7 +375,7 @@ public class ShopSearchQueryDao {
         return queryFactory
             .select(shopJpaEntity.id, stationJpaEntity.stationName)
             .from(shopJpaEntity)
-            .join(stationJpaEntity).on(stationJpaEntity.id.eq(shopJpaEntity.stationId))
+            .join(stationJpaEntity).on(stationJpaEntity.id.eq(shopStationId()))
             .where(shopJpaEntity.id.in(shopIds))
             .fetch()
             .stream()
@@ -388,7 +389,7 @@ public class ShopSearchQueryDao {
         return queryFactory
             .select(shopJpaEntity.id, uploadedFileJpaEntity.filePath)
             .from(shopJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
             .where(shopJpaEntity.id.in(shopIds))
             .fetch()
             .stream()
@@ -401,42 +402,42 @@ public class ShopSearchQueryDao {
 
     private Map<Long, List<FoodType>> foodTypesByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(shopFoodTypeJpaEntity.shopId, shopFoodTypeCategoryJpaEntity.foodType)
+            .select(foodTypeShopId(), shopFoodTypeCategoryJpaEntity.foodType)
             .from(shopFoodTypeJpaEntity)
-            .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeJpaEntity.shopFoodTypeCategoryId.eq(shopFoodTypeCategoryJpaEntity.id))
-            .where(shopFoodTypeJpaEntity.shopId.in(shopIds))
+            .join(shopFoodTypeCategoryJpaEntity).on(foodTypeShopFoodTypeCategoryId().eq(shopFoodTypeCategoryJpaEntity.id))
+            .where(foodTypeShopId().in(shopIds))
             .fetch()
             .stream()
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(shopFoodTypeJpaEntity.shopId)),
+                tuple -> Objects.requireNonNull(tuple.get(foodTypeShopId())),
                 Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategoryJpaEntity.foodType), Collectors.toList())
             ));
     }
 
     private Map<Long, Long> reviewCountsByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(reviewJpaEntity.shopId, reviewJpaEntity.shopId.count())
+            .select(reviewShopId(), reviewShopId().count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.in(shopIds), reviewJpaEntity.hidden.eq(false))
-            .groupBy(reviewJpaEntity.shopId)
+            .where(reviewShopId().in(shopIds), reviewJpaEntity.hidden.eq(false))
+            .groupBy(reviewShopId())
             .fetch()
             .stream()
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(reviewJpaEntity.shopId)),
-                tuple -> Objects.requireNonNull(tuple.get(reviewJpaEntity.shopId.count()))
+                tuple -> Objects.requireNonNull(tuple.get(reviewShopId())),
+                tuple -> Objects.requireNonNull(tuple.get(reviewShopId().count()))
             ));
     }
 
     private Map<Long, Long> bookmarkCountsByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(shopBookmarkJpaEntity.shopId, shopBookmarkJpaEntity.count())
+            .select(bookmarkShopId(), shopBookmarkJpaEntity.count())
             .from(shopBookmarkJpaEntity)
-            .where(shopBookmarkJpaEntity.shopId.in(shopIds))
-            .groupBy(shopBookmarkJpaEntity.shopId)
+            .where(bookmarkShopId().in(shopIds))
+            .groupBy(bookmarkShopId())
             .fetch()
             .stream()
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.shopId)),
+                tuple -> Objects.requireNonNull(tuple.get(bookmarkShopId())),
                 tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.count()))
             ));
     }
@@ -465,14 +466,52 @@ public class ShopSearchQueryDao {
     }
 
     private BooleanExpression stationIdEq(Long stationId) {
-        return stationId != null ? shopJpaEntity.stationId.eq(stationId) : null;
+        return stationId != null ? shopStationId().eq(stationId) : null;
     }
 
     private BooleanExpression ceoIdEq(Long ceoId) {
-        return ceoId != null ? shopJpaEntity.ceoId.eq(ceoId) : null;
+        return ceoId != null ? shopCeoId().eq(ceoId) : null;
     }
 
     private BooleanExpression shopIdIn(Set<Long> shopIds) {
         return shopIds != null ? shopJpaEntity.id.in(shopIds) : null;
+    }
+
+    // ----------------------------------------------------- @Convert VO 컬럼 우회
+
+    private NumberPath<Long> foodTypeShopId() {
+        return Expressions.numberPath(Long.class, shopFoodTypeJpaEntity, "shopId");
+    }
+
+    private NumberPath<Long> foodTypeShopFoodTypeCategoryId() {
+        return Expressions.numberPath(Long.class, shopFoodTypeJpaEntity, "shopFoodTypeCategoryId");
+    }
+
+    private NumberPath<Long> amenityShopId() {
+        return Expressions.numberPath(Long.class, shopAmenityJpaEntity, "shopId");
+    }
+
+    private NumberPath<Long> amenityShopAmenityCategoryId() {
+        return Expressions.numberPath(Long.class, shopAmenityJpaEntity, "shopAmenityCategoryId");
+    }
+
+    private NumberPath<Long> bookmarkShopId() {
+        return Expressions.numberPath(Long.class, shopBookmarkJpaEntity, "shopId");
+    }
+
+    private NumberPath<Long> shopStationId() {
+        return Expressions.numberPath(Long.class, shopJpaEntity, "stationId");
+    }
+
+    private NumberPath<Long> shopThumbnailImageFileId() {
+        return Expressions.numberPath(Long.class, shopJpaEntity, "thumbnailImageFileId");
+    }
+
+    private NumberPath<Long> shopCeoId() {
+        return Expressions.numberPath(Long.class, shopJpaEntity, "ceoId");
+    }
+
+    private NumberPath<Long> reviewShopId() {
+        return Expressions.numberPath(Long.class, reviewJpaEntity, "shopId");
     }
 }

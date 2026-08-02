@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.tastyhouse.domain.product.domain.model.ProductCategory;
 import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 상품 카테고리 write 포트.
@@ -17,7 +18,7 @@ public interface ProductCategoryRepository {
 
     Optional<ProductCategory> findById(ProductCategoryId id);
 
-    List<ProductCategory> findCategoriesByNameAndShopId(String name, Long shopId);
+    List<ProductCategory> findCategoriesByNameAndShopId(String name, ShopId shopId);
 
     ProductCategory save(ProductCategory productCategory);
 }

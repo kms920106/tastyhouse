@@ -7,6 +7,8 @@ import lombok.Getter;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 가게 이미지(상표/대표이미지) 변경 승인요청 순수 도메인 모델.
@@ -20,9 +22,9 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 public class ShopImageChangeRequest {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId;
+    private final ShopId shopId;
     private final ShopImageType imageType;
-    private final Long imageFileId; // 요청된 새 이미지 파일 ID
+    private final UploadedFileId imageFileId; // 요청된 새 이미지 파일 ID
     private ApprovalStatus status;
     private String rejectReason; // nullable
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
@@ -30,9 +32,9 @@ public class ShopImageChangeRequest {
 
     private ShopImageChangeRequest(
         Long id,
-        Long shopId,
+        ShopId shopId,
         ShopImageType imageType,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         ApprovalStatus status,
         String rejectReason,
         LocalDateTime createdAt,
@@ -51,7 +53,7 @@ public class ShopImageChangeRequest {
     /**
      * 신규 이미지 변경 요청을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
-    public static ShopImageChangeRequest of(Long shopId, ShopImageType imageType, Long imageFileId) {
+    public static ShopImageChangeRequest of(ShopId shopId, ShopImageType imageType, UploadedFileId imageFileId) {
         return new ShopImageChangeRequest(
             null, shopId, imageType, imageFileId, ApprovalStatus.PENDING, null, null, null
         );
@@ -63,9 +65,9 @@ public class ShopImageChangeRequest {
      */
     public static ShopImageChangeRequest reconstitute(
         Long id,
-        Long shopId,
+        ShopId shopId,
         ShopImageType imageType,
-        Long imageFileId,
+        UploadedFileId imageFileId,
         ApprovalStatus status,
         String rejectReason,
         LocalDateTime createdAt,

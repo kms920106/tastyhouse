@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.banner.domain.vo.BannerId;
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,12 +22,13 @@ class BannerTest {
         LocalDateTime startDate = LocalDateTime.of(2026, 1, 1, 0, 0);
         LocalDateTime endDate = LocalDateTime.of(2026, 12, 31, 0, 0);
 
-        Banner banner = Banner.of(BannerType.HOME, "제목", 1L, "https://example.com", startDate, endDate, 1, true);
+        Banner banner = Banner.of(
+            BannerType.HOME, "제목", UploadedFileId.of(1L), "https://example.com", startDate, endDate, 1, true);
 
         assertThat(banner.getId()).isNull();
         assertThat(banner.getType()).isEqualTo(BannerType.HOME);
         assertThat(banner.getTitle()).isEqualTo("제목");
-        assertThat(banner.getImageFileId()).isEqualTo(1L);
+        assertThat(banner.getImageFileId()).isEqualTo(UploadedFileId.of(1L));
         assertThat(banner.getLinkUrl()).isEqualTo("https://example.com");
         assertThat(banner.getStartDate()).isEqualTo(startDate);
         assertThat(banner.getEndDate()).isEqualTo(endDate);
@@ -41,17 +43,17 @@ class BannerTest {
     @DisplayName("update는 배너 필드 전체를 변경한다")
     void update_changesFields() {
         Banner banner = Banner.of(
-            BannerType.HOME, "제목", 1L, "https://example.com",
+            BannerType.HOME, "제목", UploadedFileId.of(1L), "https://example.com",
             LocalDateTime.of(2026, 1, 1, 0, 0), LocalDateTime.of(2026, 12, 31, 0, 0), 1, true
         );
 
         LocalDateTime newStartDate = LocalDateTime.of(2027, 1, 1, 0, 0);
         LocalDateTime newEndDate = LocalDateTime.of(2027, 6, 30, 0, 0);
-        banner.update(BannerType.SIDEBAR, "새 제목", 2L, "https://new.example.com", newStartDate, newEndDate, 2, false);
+        banner.update(BannerType.SIDEBAR, "새 제목", UploadedFileId.of(2L), "https://new.example.com", newStartDate, newEndDate, 2, false);
 
         assertThat(banner.getType()).isEqualTo(BannerType.SIDEBAR);
         assertThat(banner.getTitle()).isEqualTo("새 제목");
-        assertThat(banner.getImageFileId()).isEqualTo(2L);
+        assertThat(banner.getImageFileId()).isEqualTo(UploadedFileId.of(2L));
         assertThat(banner.getLinkUrl()).isEqualTo("https://new.example.com");
         assertThat(banner.getStartDate()).isEqualTo(newStartDate);
         assertThat(banner.getEndDate()).isEqualTo(newEndDate);
@@ -63,7 +65,7 @@ class BannerTest {
     @DisplayName("delete는 삭제 플래그를 true로 만든다(soft delete)")
     void delete_marksDeleted() {
         Banner banner = Banner.of(
-            BannerType.HOME, "제목", 1L, "https://example.com",
+            BannerType.HOME, "제목", UploadedFileId.of(1L), "https://example.com",
             LocalDateTime.of(2026, 1, 1, 0, 0), LocalDateTime.of(2026, 12, 31, 0, 0), 1, true
         );
 
@@ -81,7 +83,7 @@ class BannerTest {
         LocalDateTime updatedAt = LocalDateTime.of(2026, 1, 2, 0, 0);
 
         Banner banner = Banner.reconstitute(
-            1L, BannerType.HOME, "제목", 1L, "https://example.com",
+            1L, BannerType.HOME, "제목", UploadedFileId.of(1L), "https://example.com",
             startDate, endDate, 1, true, false, createdAt, updatedAt
         );
 
@@ -95,7 +97,7 @@ class BannerTest {
     @DisplayName("미영속 상태에서 getBannerId를 호출하면 BannerId 불변식 위반으로 예외가 발생한다")
     void getBannerId_onTransient_throws() {
         Banner banner = Banner.of(
-            BannerType.HOME, "제목", 1L, "https://example.com",
+            BannerType.HOME, "제목", UploadedFileId.of(1L), "https://example.com",
             LocalDateTime.of(2026, 1, 1, 0, 0), LocalDateTime.of(2026, 12, 31, 0, 0), 1, true
         );
 

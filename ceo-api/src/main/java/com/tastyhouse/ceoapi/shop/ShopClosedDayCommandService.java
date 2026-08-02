@@ -65,7 +65,7 @@ public class ShopClosedDayCommandService {
     public Long createTemporaryClosure(Long ceoId, Long shopId, LocalDate startDate, LocalDate endDate) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ShopTemporaryClosure temporaryClosure = ShopTemporaryClosure.of(shopId, startDate, endDate);
+        ShopTemporaryClosure temporaryClosure = ShopTemporaryClosure.of(ShopId.of(shopId), startDate, endDate);
 
         long accumulatedDays = shopTemporaryClosureRepository.findByShopId(shopId).stream()
             .mapToLong(ShopTemporaryClosure::days)

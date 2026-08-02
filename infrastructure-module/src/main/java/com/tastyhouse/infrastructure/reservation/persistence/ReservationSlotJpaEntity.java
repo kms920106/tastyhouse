@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,6 +16,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
+import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -40,8 +43,9 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId;
+    private ShopId shopId;
 
     @Column(name = "slot_date", nullable = false)
     private LocalDate slotDate;
@@ -59,7 +63,7 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     @Column(name = "version")
     private Long version;
 
-    private ReservationSlotJpaEntity(Long shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
+    private ReservationSlotJpaEntity(ShopId shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
         this.shopId = shopId;
         this.slotDate = slotDate;
         this.slotTime = slotTime;
@@ -70,7 +74,7 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자·버전 없음). {@code ReservationSlotMapper#toEntity}에서만 호출한다.
      */
-    static ReservationSlotJpaEntity create(Long shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
+    static ReservationSlotJpaEntity create(ShopId shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
         return new ReservationSlotJpaEntity(shopId, slotDate, slotTime, capacity, reservedCount);
     }
 

@@ -12,8 +12,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.order.domain.vo.OrderId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
+import com.tastyhouse.infrastructure.order.persistence.OrderIdConverter;
+import com.tastyhouse.infrastructure.product.persistence.ProductIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 리뷰 JPA 영속 모델.
@@ -31,11 +37,13 @@ public class ReviewJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private Long shopId;
+    private ShopId shopId;
 
+    @Convert(converter = ProductIdConverter.class)
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private ProductId productId;
 
     @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
@@ -68,15 +76,16 @@ public class ReviewJpaEntity extends BaseEntity {
     @Column(name = "will_revisit", nullable = false)
     private boolean willRevisit;
 
+    @Convert(converter = OrderIdConverter.class)
     @Column(name = "order_id")
-    private Long orderId;
+    private OrderId orderId;
 
     @Column(name = "is_hidden", nullable = false)
     private boolean hidden;
 
     private ReviewJpaEntity(
-        Long shopId,
-        Long productId,
+        ShopId shopId,
+        ProductId productId,
         MemberId memberId,
         String content,
         Double totalRating,
@@ -87,7 +96,7 @@ public class ReviewJpaEntity extends BaseEntity {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        Long orderId,
+        OrderId orderId,
         boolean hidden
     ) {
         this.shopId = shopId;
@@ -110,8 +119,8 @@ public class ReviewJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewMapper#toEntity}에서만 호출한다.
      */
     static ReviewJpaEntity create(
-        Long shopId,
-        Long productId,
+        ShopId shopId,
+        ProductId productId,
         MemberId memberId,
         String content,
         Double totalRating,
@@ -122,7 +131,7 @@ public class ReviewJpaEntity extends BaseEntity {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        Long orderId,
+        OrderId orderId,
         boolean hidden
     ) {
         return new ReviewJpaEntity(

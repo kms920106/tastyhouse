@@ -258,7 +258,9 @@ public class ShopQueryService {
             .map(this::convertToShopPhoneNumberItem)
             .toList();
 
-        String trademarkImageUrl = fileService.getUrlByFileId(shop.getTrademarkImageFileId());
+        String trademarkImageUrl = shop.getTrademarkImageFileId() == null
+            ? null
+            : fileService.getUrlByFileId(shop.getTrademarkImageFileId().value());
 
         String operatingStatus = shopOperatingStatusService
             .findOperatingStatus(shopId, LocalDateTime.now())

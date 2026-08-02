@@ -2,6 +2,9 @@ package com.tastyhouse.domain.review.domain.model;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
+import com.tastyhouse.domain.shop.domain.vo.TagId;
+
 /**
  * 리뷰 태그 순수 도메인 모델.
  *
@@ -13,10 +16,10 @@ import lombok.Getter;
 public class ReviewTag {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long reviewId;
-    private final Long tagId;
+    private final ReviewId reviewId;
+    private final TagId tagId;
 
-    private ReviewTag(Long id, Long reviewId, Long tagId) {
+    private ReviewTag(Long id, ReviewId reviewId, TagId tagId) {
         this.id = id;
         this.reviewId = reviewId;
         this.tagId = tagId;
@@ -25,14 +28,14 @@ public class ReviewTag {
     /**
      * 신규 리뷰 태그를 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
      */
-    public static ReviewTag of(Long reviewId, Long tagId) {
+    public static ReviewTag of(ReviewId reviewId, TagId tagId) {
         return new ReviewTag(null, reviewId, tagId);
     }
 
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ReviewTag reconstitute(Long id, Long reviewId, Long tagId) {
+    public static ReviewTag reconstitute(Long id, ReviewId reviewId, TagId tagId) {
         return new ReviewTag(id, reviewId, tagId);
     }
 }

@@ -3,6 +3,7 @@ package com.tastyhouse.domain.product.domain.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.product.domain.event.ProductCreatedEvent;
 import com.tastyhouse.domain.product.domain.event.ProductDeactivatedEvent;
 import com.tastyhouse.domain.product.domain.event.ProductSoldOutChangedEvent;
@@ -18,7 +19,12 @@ import com.tastyhouse.domain.product.domain.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.domain.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.domain.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.domain.repository.ProductRepository;
+import com.tastyhouse.domain.product.domain.vo.BbqCategoryId;
+import com.tastyhouse.domain.product.domain.vo.BbqMenuId;
+import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
+import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
@@ -67,8 +73,8 @@ public class ProductRegistrationService {
      * 상품 등록. 저장 직후 {@link ProductCreatedEvent}를 발행한다.
      */
     public Product createProduct(
-        Long shopId,
-        Long productCategoryId,
+        ShopId shopId,
+        ProductCategoryId productCategoryId,
         String name,
         String description,
         Integer originalPrice,
@@ -100,7 +106,7 @@ public class ProductRegistrationService {
         );
         Product saved = productRepository.save(product);
         domainEventPublisher.publish(new ProductCreatedEvent(
-            saved.getId(),
+            saved.getProductId(),
             saved.getShopId(),
             LocalDateTime.now()
         ));
@@ -112,7 +118,7 @@ public class ProductRegistrationService {
      */
     public void updateProduct(
         ProductId productId,
-        Long productCategoryId,
+        ProductCategoryId productCategoryId,
         String name,
         String description,
         Integer originalPrice,
@@ -149,7 +155,7 @@ public class ProductRegistrationService {
         product.markSoldOut();
         productRepository.save(product);
         domainEventPublisher.publish(new ProductSoldOutChangedEvent(
-            product.getId(),
+            product.getProductId(),
             product.getShopId(),
             true,
             LocalDateTime.now()
@@ -164,7 +170,7 @@ public class ProductRegistrationService {
         product.deactivate();
         productRepository.save(product);
         domainEventPublisher.publish(new ProductDeactivatedEvent(
-            product.getId(),
+            product.getProductId(),
             product.getShopId(),
             LocalDateTime.now()
         ));
@@ -173,7 +179,7 @@ public class ProductRegistrationService {
     /**
      * 상품 카테고리 등록.
      */
-    public ProductCategory createProductCategory(Long shopId, String name, Integer sort, boolean visible) {
+    public ProductCategory createProductCategory(ShopId shopId, String name, Integer sort, boolean visible) {
         ProductCategory category = ProductCategory.of(shopId, name, sort, visible);
         return productCategoryRepository.save(category);
     }
@@ -181,7 +187,7 @@ public class ProductRegistrationService {
     /**
      * 상품 이미지 등록.
      */
-    public Long saveProductImage(Long productId, Long imageFileId, Integer sort, boolean visible) {
+    public Long saveProductImage(ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         ProductImage image = ProductImage.of(productId, imageFileId, sort, visible);
         ProductImage saved = productImageRepository.save(image);
         return saved.getId();
@@ -191,7 +197,7 @@ public class ProductRegistrationService {
      * 상품 옵션 그룹 등록.
      */
     public ProductOptionGroup saveProductOptionGroup(
-        Long productId,
+        ProductId productId,
         String name,
         String description,
         boolean required,
@@ -219,7 +225,7 @@ public class ProductRegistrationService {
      * 상품 옵션 등록.
      */
     public Long saveProductOption(
-        Long optionGroupId,
+        ProductOptionGroupId optionGroupId,
         String name,
         Integer additionalPrice,
         Integer sort,
@@ -234,7 +240,7 @@ public class ProductRegistrationService {
     /**
      * 상품 ↔ BBQ 메뉴 매핑 등록.
      */
-    public void saveProductBbq(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
+    public void saveProductBbq(ProductId productId, BbqMenuId bbqMenuId, BbqCategoryId bbqCategoryId, boolean optionsSynced) {
         ProductBbq bbq = ProductBbq.of(productId, bbqMenuId, bbqCategoryId, optionsSynced);
         productBbqRepository.save(bbq);
     }
@@ -243,7 +249,7 @@ public class ProductRegistrationService {
      * BBQ 옵션 동기화 완료 표시.
      */
     public void markBbqOptionsSynced(ProductId productId) {
-        ProductBbq bbq = productBbqRepository.findByProductId(productId.value())
+        ProductBbq bbq = productBbqRepository.findByProductId(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         bbq.markOptionsSynced();
         productBbqRepository.save(bbq);

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -38,7 +40,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(shopId().eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -50,7 +52,7 @@ public class ReviewStatisticsQueryDao {
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
             .where(
-                reviewJpaEntity.shopId.eq(shopId),
+                shopId().eq(shopId),
                 reviewJpaEntity.hidden.eq(false),
                 reviewJpaEntity.willRevisit.eq(true)
             )
@@ -64,7 +66,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.tasteRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(shopId().eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -75,7 +77,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.amountRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(shopId().eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -86,7 +88,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.priceRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(shopId().eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -97,7 +99,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.atmosphereRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(shopId().eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -108,7 +110,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.kindnessRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(shopId().eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -119,7 +121,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.hygieneRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(shopId().eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -130,7 +132,7 @@ public class ReviewStatisticsQueryDao {
         List<Tuple> results = queryFactory
             .select(reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(shopId().eq(shopId), reviewJpaEntity.hidden.eq(false))
             .groupBy(reviewJpaEntity.totalRating.floor().intValue())
             .fetch();
 
@@ -149,7 +151,7 @@ public class ReviewStatisticsQueryDao {
             .select(reviewJpaEntity.createdAt.month(), reviewJpaEntity.count())
             .from(reviewJpaEntity)
             .where(
-                reviewJpaEntity.shopId.eq(shopId),
+                shopId().eq(shopId),
                 reviewJpaEntity.hidden.eq(false),
                 reviewJpaEntity.createdAt.year().eq(year)
             )
@@ -170,7 +172,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
+            .where(productId().eq(productId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -181,7 +183,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.tasteRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
+            .where(productId().eq(productId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -192,7 +194,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.amountRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
+            .where(productId().eq(productId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -203,7 +205,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.priceRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
+            .where(productId().eq(productId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -217,5 +219,19 @@ public class ReviewStatisticsQueryDao {
             .where(reviewJpaEntity.memberId.eq(memberId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
         return count != null ? count : 0L;
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code REVIEW.shop_id}를 raw {@code Long}으로 비교하기 위한 path.
+     */
+    private NumberPath<Long> shopId() {
+        return Expressions.numberPath(Long.class, reviewJpaEntity, "shopId");
+    }
+
+    /**
+     * {@code @Convert} VO 컬럼인 {@code REVIEW.product_id}를 raw {@code Long}으로 비교하기 위한 path.
+     */
+    private NumberPath<Long> productId() {
+        return Expressions.numberPath(Long.class, reviewJpaEntity, "productId");
     }
 }

@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.event.domain.vo.EventId;
+
 /**
  * 이벤트 당첨자 발표 순수 도메인 모델.
  *
@@ -16,14 +18,14 @@ import lombok.Getter;
 public class EventAnnouncement {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long eventId; // 이벤트 ID (EVENT.id 참조)
+    private final EventId eventId; // 이벤트 ID (EVENT.id 참조)
     private String name; // 당첨자 발표 제목
     private String content; // 당첨자 발표 내용
     private LocalDateTime announcedAt; // 당첨자 발표 일시
 
     private EventAnnouncement(
         Long id,
-        Long eventId,
+        EventId eventId,
         String name,
         String content,
         LocalDateTime announcedAt
@@ -39,7 +41,7 @@ public class EventAnnouncement {
      * 신규 발표를 생성한다. 아직 영속되지 않았으므로 식별자는 없다.
      */
     public static EventAnnouncement of(
-        Long eventId,
+        EventId eventId,
         String name,
         String content,
         LocalDateTime announcedAt
@@ -53,7 +55,7 @@ public class EventAnnouncement {
      */
     public static EventAnnouncement reconstitute(
         Long id,
-        Long eventId,
+        EventId eventId,
         String name,
         String content,
         LocalDateTime announcedAt

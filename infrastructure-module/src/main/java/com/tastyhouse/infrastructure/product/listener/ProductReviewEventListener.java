@@ -35,7 +35,7 @@ public class ProductReviewEventListener {
         if (event.productId() == null) {
             return;
         }
-        productReviewStatsService.updateReviewStats(event.productId());
+        productReviewStatsService.updateReviewStats(event.productId().value());
     }
 
     @Async
@@ -45,6 +45,6 @@ public class ProductReviewEventListener {
         if (event.productId() == null) {
             return;
         }
-        productReviewStatsService.updateReviewStats(event.productId());
+        productReviewStatsService.updateReviewStats(event.productId().value());
     }
 }

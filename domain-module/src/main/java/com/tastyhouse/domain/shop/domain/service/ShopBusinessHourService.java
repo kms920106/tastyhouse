@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.domain.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.domain.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -47,7 +48,9 @@ public class ShopBusinessHourService {
         Boolean isClosed,
         Boolean is24Hours
     ) {
-        ShopBusinessHour businessHour = ShopBusinessHour.of(shopId, dayType, openTime, closeTime, isClosed, is24Hours);
+        ShopBusinessHour businessHour = ShopBusinessHour.of(
+            ShopId.of(shopId), dayType, openTime, closeTime, isClosed, is24Hours
+        );
         return shopDetailRepository.saveBusinessHour(businessHour);
     }
 
@@ -71,14 +74,14 @@ public class ShopBusinessHourService {
 
     public ShopBreakTime createBreakTime(Long shopId, DayType dayType, LocalTime startTime, LocalTime endTime) {
         validateBreakTimeWithinBusinessHours(shopId, dayType, startTime, endTime);
-        ShopBreakTime breakTime = ShopBreakTime.of(shopId, dayType, startTime, endTime);
+        ShopBreakTime breakTime = ShopBreakTime.of(ShopId.of(shopId), dayType, startTime, endTime);
         return shopDetailRepository.saveBreakTime(breakTime);
     }
 
     public void updateBreakTime(Long id, DayType dayType, LocalTime startTime, LocalTime endTime) {
         ShopBreakTime breakTime = shopDetailRepository.findBreakTimeById(id)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
-        validateBreakTimeWithinBusinessHours(breakTime.getShopId(), dayType, startTime, endTime);
+        validateBreakTimeWithinBusinessHours(breakTime.getShopId().value(), dayType, startTime, endTime);
         breakTime.update(dayType, startTime, endTime);
         shopDetailRepository.saveBreakTime(breakTime);
     }
@@ -94,7 +97,7 @@ public class ShopBusinessHourService {
         if (shopDetailRepository.findClosedDaysByShopId(shopId).size() >= MAX_REGULAR_CLOSED_DAY_COUNT) {
             throw new BusinessException(ErrorCode.SHOP_REGULAR_CLOSED_DAY_LIMIT_EXCEEDED);
         }
-        ShopClosedDay closedDay = ShopClosedDay.of(shopId, closedDayType);
+        ShopClosedDay closedDay = ShopClosedDay.of(ShopId.of(shopId), closedDayType);
         return shopDetailRepository.saveClosedDay(closedDay);
     }
 

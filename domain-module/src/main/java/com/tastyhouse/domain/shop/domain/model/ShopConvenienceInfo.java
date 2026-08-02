@@ -7,6 +7,7 @@ import lombok.Getter;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shop.domain.vo.ShopId;
 
 /**
  * 가게 편의정보(주차/발렛/찾아오는길/노출위치) 순수 도메인 모델.
@@ -22,7 +23,7 @@ public class ShopConvenienceInfo {
     private static final int DIRECTIONS_GUIDE_MAX_LENGTH = 200;
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long shopId;
+    private final ShopId shopId;
     private boolean parkingAvailable; // 주차 가능 여부 (상태전이로 재대입됨)
     private boolean parkingPaid; // 주차 유료 여부 (상태전이로 재대입됨)
     private boolean valetAvailable; // 발렛 가능 여부 (상태전이로 재대입됨)
@@ -35,7 +36,7 @@ public class ShopConvenienceInfo {
 
     private ShopConvenienceInfo(
         Long id,
-        Long shopId,
+        ShopId shopId,
         boolean parkingAvailable,
         boolean parkingPaid,
         boolean valetAvailable,
@@ -63,7 +64,7 @@ public class ShopConvenienceInfo {
      * 신규 편의정보를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      */
     public static ShopConvenienceInfo of(
-        Long shopId,
+        ShopId shopId,
         boolean parkingAvailable,
         boolean parkingPaid,
         boolean valetAvailable,
@@ -84,7 +85,7 @@ public class ShopConvenienceInfo {
      */
     public static ShopConvenienceInfo reconstitute(
         Long id,
-        Long shopId,
+        ShopId shopId,
         boolean parkingAvailable,
         boolean parkingPaid,
         boolean valetAvailable,

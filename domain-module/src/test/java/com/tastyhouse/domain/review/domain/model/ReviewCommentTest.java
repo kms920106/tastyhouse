@@ -9,6 +9,7 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.tastyhouse.domain.review.domain.vo.ReviewId;
 
 /**
  * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다.
@@ -18,10 +19,10 @@ class ReviewCommentTest {
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 숨김 처리되지 않은 상태다")
     void of_createsTransientComment() {
-        ReviewComment comment = ReviewComment.of(1L, MemberId.of(2L), "좋은 리뷰네요");
+        ReviewComment comment = ReviewComment.of(ReviewId.of(1L), MemberId.of(2L), "좋은 리뷰네요");
 
         assertThat(comment.getId()).isNull();
-        assertThat(comment.getReviewId()).isEqualTo(1L);
+        assertThat(comment.getReviewId()).isEqualTo(ReviewId.of(1L));
         assertThat(comment.getMemberId()).isEqualTo(MemberId.of(2L));
         assertThat(comment.getContent()).isEqualTo("좋은 리뷰네요");
         assertThat(comment.isHidden()).isFalse();
@@ -31,7 +32,7 @@ class ReviewCommentTest {
     @Test
     @DisplayName("hide/unhide는 숨김 플래그를 전환한다")
     void hideUnhide_togglesHidden() {
-        ReviewComment comment = ReviewComment.of(1L, MemberId.of(2L), "좋은 리뷰네요");
+        ReviewComment comment = ReviewComment.of(ReviewId.of(1L), MemberId.of(2L), "좋은 리뷰네요");
 
         comment.hide();
         assertThat(comment.isHidden()).isTrue();
@@ -46,7 +47,7 @@ class ReviewCommentTest {
         LocalDateTime createdAt = LocalDateTime.of(2026, 1, 1, 0, 0);
 
         ReviewComment comment = ReviewComment.reconstitute(
-            5L, 1L, MemberId.of(2L), "좋은 리뷰네요", true, createdAt
+            5L, ReviewId.of(1L), MemberId.of(2L), "좋은 리뷰네요", true, createdAt
         );
 
         assertThat(comment.getId()).isEqualTo(5L);

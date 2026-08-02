@@ -3,6 +3,7 @@ package com.tastyhouse.domain.product.domain.repository;
 import java.util.Optional;
 
 import com.tastyhouse.domain.product.domain.model.ProductBbq;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 
 /**
  * 상품 ↔ BBQ 메뉴 매핑 write 포트.
@@ -12,7 +13,7 @@ import com.tastyhouse.domain.product.domain.model.ProductBbq;
  */
 public interface ProductBbqRepository {
 
-    Optional<ProductBbq> findByProductId(Long productId);
+    Optional<ProductBbq> findByProductId(ProductId productId);
 
     ProductBbq save(ProductBbq productBbq);
 }

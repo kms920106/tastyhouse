@@ -2,7 +2,9 @@ package com.tastyhouse.domain.order.domain.model;
 
 import lombok.Getter;
 
+import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.order.domain.vo.OrderProductId;
+import com.tastyhouse.domain.product.domain.vo.ProductId;
 
 /**
  * 주문 상품 순수 도메인 모델.
@@ -16,8 +18,8 @@ import com.tastyhouse.domain.order.domain.vo.OrderProductId;
 public class OrderProduct {
 
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
-    private final Long orderId; // 주문 ID (ORDERS.id 참조)
-    private final Long productId; // 상품 ID (PRODUCT.id 참조)
+    private final OrderId orderId; // 주문 ID (ORDERS.id 참조)
+    private final ProductId productId; // 상품 ID (PRODUCT.id 참조)
     private final String name; // 주문 시점 상품명 (스냅샷)
     private final String imageUrl; // 주문 시점 상품 이미지 URL (스냅샷)
     private final Integer quantity; // 수량
@@ -28,8 +30,8 @@ public class OrderProduct {
 
     private OrderProduct(
         Long id,
-        Long orderId,
-        Long productId,
+        OrderId orderId,
+        ProductId productId,
         String name,
         String imageUrl,
         Integer quantity,
@@ -54,8 +56,8 @@ public class OrderProduct {
      * 신규 주문 상품을 생성한다. 아직 영속되지 않았으므로 식별자가 없다.
      */
     public static OrderProduct of(
-        Long orderId,
-        Long productId,
+        OrderId orderId,
+        ProductId productId,
         String name,
         String imageUrl,
         Integer quantity,
@@ -84,8 +86,8 @@ public class OrderProduct {
      */
     public static OrderProduct reconstitute(
         Long id,
-        Long orderId,
-        Long productId,
+        OrderId orderId,
+        ProductId productId,
         String name,
         String imageUrl,
         Integer quantity,
