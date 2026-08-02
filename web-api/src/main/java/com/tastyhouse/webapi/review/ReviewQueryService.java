@@ -16,6 +16,7 @@ import com.tastyhouse.domain.member.follow.domain.repository.MemberFollowReposit
 import com.tastyhouse.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.domain.order.domain.repository.OrderProductRepository;
 import com.tastyhouse.domain.order.domain.vo.OrderProductId;
+import com.tastyhouse.domain.review.domain.model.ReviewSortType;
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
@@ -298,7 +299,7 @@ public class ReviewQueryService {
 
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<LatestReviewListItemResult> allReviewsPage =
-            reviewQueryDao.findLatestReviewsByShopId(shopId, null, pageQuery, hasImage, "LATEST");
+            reviewQueryDao.findLatestReviewsByShopId(shopId, null, pageQuery, hasImage, ReviewSortType.LATEST);
 
         Long totalReviewCount = reviewStatisticsQueryDao.countByShopIdAndHiddenFalse(shopId);
 

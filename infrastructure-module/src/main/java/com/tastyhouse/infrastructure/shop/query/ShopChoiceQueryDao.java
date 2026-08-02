@@ -14,6 +14,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.domain.shop.domain.service.EditorChoicePolicy;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity;
@@ -48,15 +49,10 @@ public class ShopChoiceQueryDao {
      */
     private static final QProductImageJpaEntity subProductImage = new QProductImageJpaEntity("subProductImage");
 
-    /**
-     * 에디터 추천 카드에 함께 노출하는 상품 수.
-     */
-    private static final int EDITOR_CHOICE_PRODUCT_LIMIT = 2;
-
     private final JPAQueryFactory queryFactory;
 
     /**
-     * 에디터 추천 목록 — 가게 정보와 대표 상품 {@value #EDITOR_CHOICE_PRODUCT_LIMIT}건을 함께 채운다.
+     * 에디터 추천 목록 — 가게 정보와 대표 상품 {@value EditorChoicePolicy#PRODUCT_LIMIT}건을 함께 채운다.
      * 폐업·노출정지 가게의 추천은 제외한다.
      */
     public PageResult<EditorChoiceResult> findEditorChoices(PageQuery pageQuery) {
@@ -209,7 +205,7 @@ public class ShopChoiceQueryDao {
             .entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> entry.getValue().stream().limit(EDITOR_CHOICE_PRODUCT_LIMIT).toList()
+                entry -> entry.getValue().stream().limit(EditorChoicePolicy.PRODUCT_LIMIT).toList()
             ));
     }
 }

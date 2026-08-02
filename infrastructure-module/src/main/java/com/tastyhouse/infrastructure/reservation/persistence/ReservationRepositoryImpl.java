@@ -35,7 +35,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
                 reservationJpaEntity.memberId.eq(memberId),
                 reservationJpaEntity.shopId.eq(shopId),
                 reservationJpaEntity.reservationDate.eq(date),
-                reservationJpaEntity.status.in(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED)
+                reservationJpaEntity.status.in(ReservationStatus.blockingStatuses())
             )
             .fetchFirst() != null;
     }

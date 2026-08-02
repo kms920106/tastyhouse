@@ -42,15 +42,6 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
 @RequiredArgsConstructor
 public class ReservationQueryDao {
 
-    /**
-     * 재예약을 차단하는 예약 상태 — 취소·거절분은 차단 대상이 아니다.
-     */
-    private static final List<ReservationStatus> BLOCKING_STATUSES = List.of(
-        ReservationStatus.PENDING,
-        ReservationStatus.CONFIRMED,
-        ReservationStatus.COMPLETED
-    );
-
     private final JPAQueryFactory queryFactory;
 
     /**
@@ -136,8 +127,9 @@ public class ReservationQueryDao {
     }
 
     /**
-     * 회원이 그 가게·날짜에 재예약을 막는 예약(PENDING/CONFIRMED/COMPLETED)을 이미 갖고 있는지.
-     * 가용성 화면에서 그 날짜 전체 슬롯을 비활성화할지 판정하는 데 쓴다.
+     * 회원이 그 가게·날짜에 재예약을 막는 예약을 이미 갖고 있는지. 가용성 화면에서 그 날짜 전체 슬롯을
+     * 비활성화할지 판정하는 데 쓴다. 차단 대상 상태는 도메인이 소유하므로
+     * {@link ReservationStatus#blockingStatuses()}를 그대로 참조한다(실제 차단 로직과 단일 원천 공유).
      */
     public boolean existsBlockingReservation(MemberId memberId, Long shopId, LocalDate date) {
         return queryFactory.selectOne()
@@ -146,7 +138,7 @@ public class ReservationQueryDao {
                 reservationJpaEntity.memberId.eq(memberId),
                 reservationJpaEntity.shopId.eq(shopId),
                 reservationJpaEntity.reservationDate.eq(date),
-                reservationJpaEntity.status.in(BLOCKING_STATUSES)
+                reservationJpaEntity.status.in(ReservationStatus.blockingStatuses())
             )
             .fetchFirst() != null;
     }

@@ -53,6 +53,10 @@ public class ShopSearchQueryDao {
 
     /**
      * 지도 마커 조회 반경(m). 위·경도 1도 ≈ 111km 근사로 사각 범위를 계산한다.
+     *
+     * <p>도메인 정책이 아니라 <b>지리 계산 구현 세부</b>라 DAO에 잔류한다 — 이 값은 "가게가 어떠해야
+     * 하는가"가 아니라 "지도 뷰포트 질의를 어떤 사각 범위로 근사할 것인가"를 정하며, 정밀 거리 계산
+     * (하버사인)이나 공간 인덱스로 구현이 바뀌면 함께 사라진다. 도메인 어휘에 대응 개념이 없다.
      */
     private static final double MAP_MARKER_RADIUS_METERS = 200.0;
     private static final double METERS_PER_DEGREE = 111000.0;

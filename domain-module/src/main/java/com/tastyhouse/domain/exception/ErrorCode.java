@@ -134,6 +134,7 @@ public enum ErrorCode {
     REVIEW_ORDER_PRODUCT_NOT_FOUND(404, "REVIEW_ORDER_PRODUCT_NOT_FOUND", "주문 상품을 찾을 수 없습니다."),
     REVIEW_ORDER_ACCESS_DENIED(403, "REVIEW_ORDER_ACCESS_DENIED", "본인의 주문에 대해서만 리뷰를 작성할 수 있습니다."),
     REVIEW_LIST_TYPE_UNKNOWN(400, "REVIEW_LIST_TYPE_UNKNOWN", "알 수 없는 리뷰 목록 조회 타입입니다."),
+    REVIEW_SORT_TYPE_UNKNOWN(400, "REVIEW_SORT_TYPE_UNKNOWN", "알 수 없는 리뷰 정렬 방식입니다."),
     REVIEW_COMMENT_NOT_FOUND(404, "REVIEW_COMMENT_NOT_FOUND", "댓글을 찾을 수 없습니다."),
     REVIEW_REPLY_NOT_FOUND(404, "REVIEW_REPLY_NOT_FOUND", "답글을 찾을 수 없습니다."),
 

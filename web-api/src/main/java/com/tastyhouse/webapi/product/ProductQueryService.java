@@ -3,13 +3,13 @@ package com.tastyhouse.webapi.product;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.review.domain.model.ReviewSortType;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -262,13 +262,6 @@ public class ProductQueryService {
         return productQueryDao.findProductCategories(shopId);
     }
 
-    /**
-     * 다른 도메인(review 등)이 상품 정보를 곁들여 조립할 때 쓰는 단건 조회. 없으면 빈 Optional.
-     */
-    public Optional<ProductDetailResult> findProductDetail(Long productId) {
-        return productQueryDao.findProductDetailById(productId);
-    }
-
     private ProductDetailResult loadProductDetail(Long productId) {
         return productQueryDao.findProductDetailById(productId)
             .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
@@ -303,7 +296,7 @@ public class ProductQueryService {
 
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<LatestReviewListItemResult> allReviewsPage =
-            reviewQueryDao.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, "LATEST");
+            reviewQueryDao.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, ReviewSortType.LATEST);
 
         Long totalReviewCount = reviewStatisticsQueryDao.countByProductIdAndHiddenFalse(productId);
 

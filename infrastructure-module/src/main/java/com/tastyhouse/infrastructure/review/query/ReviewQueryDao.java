@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
+import com.tastyhouse.domain.review.domain.model.ReviewSortType;
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -216,9 +217,9 @@ public class ReviewQueryDao {
     }
 
     /**
-     * 가게별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식(RECOMMENDED/OLDEST/기본 최신순)을 지원한다.
+     * 가게별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식({@link ReviewSortType})을 지원한다.
      */
-    public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
         var whereClause = reviewJpaEntity.shopId.eq(shopId).and(reviewJpaEntity.hidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
@@ -279,17 +280,7 @@ public class ReviewQueryDao {
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
             .where(whereClause);
 
-        if ("RECOMMENDED".equals(sortType)) {
-            query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
-                .groupBy(reviewJpaEntity.id, stationJpaEntity.stationName, reviewJpaEntity.totalRating, reviewJpaEntity.content,
-                    memberJpaEntity.id, memberJpaEntity.nickname, uploadedFileJpaEntity.filePath, reviewJpaEntity.createdAt,
-                    productJpaEntity.id, productJpaEntity.name)
-                .orderBy(sortReviewLike.count().desc(), reviewJpaEntity.createdAt.desc());
-        } else if ("OLDEST".equals(sortType)) {
-            query.orderBy(reviewJpaEntity.createdAt.asc());
-        } else {
-            query.orderBy(reviewJpaEntity.createdAt.desc());
-        }
+        applySort(query, sortType);
 
         long total = query.fetch().size();
 
@@ -312,7 +303,7 @@ public class ReviewQueryDao {
     /**
      * 상품별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식을 지원한다.
      */
-    public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
         var whereClause = reviewJpaEntity.productId.eq(productId).and(reviewJpaEntity.hidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
@@ -373,17 +364,7 @@ public class ReviewQueryDao {
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
             .where(whereClause);
 
-        if ("RECOMMENDED".equals(sortType)) {
-            query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
-                .groupBy(reviewJpaEntity.id, stationJpaEntity.stationName, reviewJpaEntity.totalRating, reviewJpaEntity.content,
-                    memberJpaEntity.id, memberJpaEntity.nickname, uploadedFileJpaEntity.filePath, reviewJpaEntity.createdAt,
-                    productJpaEntity.id, productJpaEntity.name)
-                .orderBy(sortReviewLike.count().desc(), reviewJpaEntity.createdAt.desc());
-        } else if ("OLDEST".equals(sortType)) {
-            query.orderBy(reviewJpaEntity.createdAt.asc());
-        } else {
-            query.orderBy(reviewJpaEntity.createdAt.desc());
-        }
+        applySort(query, sortType);
 
         long total = query.fetch().size();
 
@@ -807,6 +788,24 @@ public class ReviewQueryDao {
             .from(tagJpaEntity)
             .where(tagJpaEntity.id.in(tagIds))
             .fetch();
+    }
+
+    /**
+     * 리뷰 목록 정렬 적용 — 가게별·상품별 목록이 공유한다.
+     *
+     * <p>추천순은 좋아요 수 집계가 필요해 별칭 조인 + {@code groupBy}가 따라붙고, 동수일 때는 최신순으로
+     * 갈린다. 정렬 후보는 도메인 enum({@link ReviewSortType})이 소유하며 승격은 소비 모듈 Service가 한다.
+     */
+    private void applySort(JPAQuery<LatestReviewListItemResult> query, ReviewSortType sortType) {
+        switch (sortType) {
+            case RECOMMENDED -> query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
+                .groupBy(reviewJpaEntity.id, stationJpaEntity.stationName, reviewJpaEntity.totalRating, reviewJpaEntity.content,
+                    memberJpaEntity.id, memberJpaEntity.nickname, uploadedFileJpaEntity.filePath, reviewJpaEntity.createdAt,
+                    productJpaEntity.id, productJpaEntity.name)
+                .orderBy(sortReviewLike.count().desc(), reviewJpaEntity.createdAt.desc());
+            case OLDEST -> query.orderBy(reviewJpaEntity.createdAt.asc());
+            case LATEST -> query.orderBy(reviewJpaEntity.createdAt.desc());
+        }
     }
 
     /**
