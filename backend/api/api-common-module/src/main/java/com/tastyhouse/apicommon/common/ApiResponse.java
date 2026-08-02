@@ -23,6 +23,14 @@ public class ApiResponse<T> {
         return this.message;
     }
 
+    public T getData() {
+        return this.data;
+    }
+
+    public Pagination getPagination() {
+        return this.pagination;
+    }
+
     public static class Pagination {
         private final int page;
         private final int size;
@@ -46,6 +54,10 @@ public class ApiResponse<T> {
 
         public long getTotalElements() {
             return this.totalElements;
+        }
+
+        public int getTotalPages() {
+            return this.totalPages;
         }
     }
 
