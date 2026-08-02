@@ -10,7 +10,6 @@ import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.model.Member;
 import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.order.domain.event.OrderCreatedEvent;
 import com.tastyhouse.domain.order.domain.model.Order;
 import com.tastyhouse.domain.order.domain.model.OrderProduct;
 import com.tastyhouse.domain.order.domain.model.OrderProductOption;
@@ -35,7 +34,6 @@ import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
  * 주문 접수 불변식(도메인 서비스).
@@ -51,8 +49,10 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 command 서비스(web-api {@code OrderCommandService})가 선언한다.
  *
- * <p>이벤트 발행은 Spring {@code ApplicationEventPublisher}가 아니라 프레임워크-프리 포트
- * {@link DomainEventPublisher}를 쓴다.
+ * <p>주문 접수는 도메인 이벤트를 발행하지 않는다 — 과거 {@code OrderCreatedEvent}를 발행했으나 수신
+ * 리스너가 없는 no-op이어서 P9(도메인 이벤트 정비)에서 제거했다. 접수 이후 비동기 후처리(알림·집계)가
+ * 필요해지면 이 메서드 말미에 발행을 다시 추가하면 된다. 상태 전이({@code confirm}/{@code cancel})
+ * 이벤트도 소비 수요가 생길 때 {@code OrderTransitionService}의 전이 지점에 추가한다(현재는 YAGNI).
  *
  * <p>도메인 모델이 순수 POJO라 더티 체킹이 없으므로 변경 후 명시적으로 {@code save}를 호출한다
  * (헤더는 신규 저장 후 금액 갱신으로 2회, 상품 라인은 신규 저장 후 가격 갱신으로 2회 저장한다).
@@ -73,7 +73,6 @@ public class OrderPlacementService {
     private final ProductImageRepository productImageRepository;
     private final CouponIssueService couponIssueService;
     private final PointLedgerService pointLedgerService;
-    private final DomainEventPublisher domainEventPublisher;
 
     public OrderPlacementService(
         OrderRepository orderRepository,
@@ -86,8 +85,7 @@ public class OrderPlacementService {
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
         CouponIssueService couponIssueService,
-        PointLedgerService pointLedgerService,
-        DomainEventPublisher domainEventPublisher
+        PointLedgerService pointLedgerService
     ) {
         this.orderRepository = orderRepository;
         this.orderProductRepository = orderProductRepository;
@@ -100,12 +98,11 @@ public class OrderPlacementService {
         this.productImageRepository = productImageRepository;
         this.couponIssueService = couponIssueService;
         this.pointLedgerService = pointLedgerService;
-        this.domainEventPublisher = domainEventPublisher;
     }
 
     /**
      * 주문을 접수한다 — 가게·회원 존재 확인 → 주문 헤더 생성 → 상품 라인·옵션 생성과 금액 집계 →
-     * 쿠폰·포인트 사용 → 금액 대조 검증 → 헤더 금액 반영 → 접수 이벤트 발행.
+     * 쿠폰·포인트 사용 → 금액 대조 검증 → 헤더 금액 반영.
      *
      * @return 생성된 주문 식별자
      */
@@ -198,14 +195,6 @@ public class OrderPlacementService {
         savedOrder.updateAmounts(totalProductAmount, productDiscountAmount, couponDiscountAmount,
             pointDiscountAmount, totalDiscountAmount, finalAmount, memberCouponId, pointDiscountAmount);
         orderRepository.save(savedOrder);
-
-        domainEventPublisher.publish(new OrderCreatedEvent(
-            savedOrder.getOrderId(),
-            memberId,
-            savedOrder.getShopId(),
-            savedOrder.getFinalAmount(),
-            savedOrder.getCreatedAt()
-        ));
 
         return savedOrder.getOrderId();
     }

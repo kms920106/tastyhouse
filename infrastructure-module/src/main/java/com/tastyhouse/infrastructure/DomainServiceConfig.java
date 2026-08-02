@@ -167,8 +167,7 @@ public class DomainServiceConfig {
         ProductOptionGroupRepository productOptionGroupRepository,
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
-        ProductBbqRepository productBbqRepository,
-        DomainEventPublisher domainEventPublisher
+        ProductBbqRepository productBbqRepository
     ) {
         return new ProductRegistrationService(
             productRepository,
@@ -176,8 +175,7 @@ public class DomainServiceConfig {
             productOptionGroupRepository,
             productOptionRepository,
             productImageRepository,
-            productBbqRepository,
-            domainEventPublisher
+            productBbqRepository
         );
     }
 
@@ -344,8 +342,7 @@ public class DomainServiceConfig {
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
         CouponIssueService couponIssueService,
-        PointLedgerService pointLedgerService,
-        DomainEventPublisher domainEventPublisher
+        PointLedgerService pointLedgerService
     ) {
         return new OrderPlacementService(
             orderRepository,
@@ -358,8 +355,7 @@ public class DomainServiceConfig {
             productOptionRepository,
             productImageRepository,
             couponIssueService,
-            pointLedgerService,
-            domainEventPublisher
+            pointLedgerService
         );
     }
 

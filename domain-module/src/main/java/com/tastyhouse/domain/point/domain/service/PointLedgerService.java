@@ -98,6 +98,15 @@ public class PointLedgerService {
     /**
      * 결제 취소로 이미 적립된 포인트를 회수한다. 회수 시점에 잔액이 적립액보다 적을 수 있으므로
      * 남은 잔액만큼만 차감한다(잔액 부족으로 실패시키지 않는다).
+     *
+     * <p><b>{@code deduct}와 함께 {@link PointUsedEvent}를 발행하지만 두 경로는 배타적이다</b>
+     * (P9에서 호출 경로 역추적으로 확정). 이 메서드의 유일한 호출부는
+     * {@code PaymentEventListener#onPaymentCancelled}(결제 <b>취소</b> 후처리)이고,
+     * {@code deduct}의 호출부는 {@code OrderPlacementService#place}(주문 <b>접수</b>)와 관리자 수동
+     * 차감 API뿐이다. 접수와 취소는 서로 다른 요청·다른 트랜잭션이며 어느 쪽도 상대를 호출하지 않으므로,
+     * 한 트랜잭션에서 {@code PointUsedEvent}가 두 번 발행되는 경로는 존재하지 않는다.
+     * (취소 후처리 트랜잭션은 {@code refundPoints}와 이 메서드를 함께 호출하지만, 전자가 발행하는 것은
+     * {@link PointRefundedEvent}라 중복이 아니다.)
      */
     public void reclaimEarnedPoints(MemberId memberId, int pointAmount) {
         Point point = findPointOrThrow(memberId);
@@ -113,6 +122,11 @@ public class PointLedgerService {
         domainEventPublisher.publish(new PointUsedEvent(memberId, deductAmount, LocalDateTime.now()));
     }
 
+    /**
+     * 잔액 차감 공통 경로 — {@link #usePoints}(주문 결제)와 {@link #deductPoints}(관리자 수동 차감)의
+     * 공통 구현이다. 여기서 발행하는 {@link PointUsedEvent}가 {@link #reclaimEarnedPoints}의 발행과
+     * 중복되지 않는 근거는 그 메서드 Javadoc 참고.
+     */
     private void deduct(MemberId memberId, int pointAmount, String reason) {
         Point point = findPointOrThrow(memberId);
 

@@ -8,9 +8,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.product.domain.event.ProductCreatedEvent;
-import com.tastyhouse.domain.product.domain.event.ProductDeactivatedEvent;
-import com.tastyhouse.domain.product.domain.event.ProductSoldOutChangedEvent;
 import com.tastyhouse.domain.product.domain.model.Product;
 import com.tastyhouse.domain.product.domain.model.ProductBbq;
 import com.tastyhouse.domain.product.domain.model.ProductCategory;
@@ -32,7 +29,6 @@ import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
-import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,8 +36,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * 상품 등록·구성 도메인 서비스 단위 테스트.
  *
- * <p>순수 POJO이므로 Spring 컨텍스트·JPA 없이 write 포트와 이벤트 발행 포트를 손으로 만든 스텁으로
- * 대체해 검증한다. 특히 <b>도메인 모델 변경 후 명시적 save 호출</b>(더티 체킹 없음)과 이벤트 발행을 확인한다.
+ * <p>순수 POJO이므로 Spring 컨텍스트·JPA 없이 write 포트를 손으로 만든 스텁으로 대체해 검증한다.
+ * 특히 <b>도메인 모델 변경 후 명시적 save 호출</b>(더티 체킹 없음)을 확인한다.
+ *
+ * <p>이 서비스는 도메인 이벤트를 발행하지 않으므로 발행 스텁도 두지 않는다 — 사유는
+ * {@link ProductRegistrationService} Javadoc 참고(P9에서 수신자 없는 발행 3종 제거).
  */
 class ProductRegistrationServiceTest {
 
@@ -49,8 +48,8 @@ class ProductRegistrationServiceTest {
     private static final Long PRODUCT_ID = 7L;
 
     @Test
-    @DisplayName("상품을 저장하고 생성 이벤트를 발행한다")
-    void createProduct_savesAndPublishesEvent() {
+    @DisplayName("상품을 저장한다")
+    void createProduct_saves() {
         Fixture fixture = new Fixture(null);
 
         Product created = fixture.service.createProduct(
@@ -60,8 +59,6 @@ class ProductRegistrationServiceTest {
 
         assertThat(created.getName()).isEqualTo("황금올리브치킨");
         assertThat(fixture.productRepository.saved).hasSize(1);
-        assertThat(fixture.publisher.published).hasSize(1);
-        assertThat(fixture.publisher.published.getFirst()).isInstanceOf(ProductCreatedEvent.class);
     }
 
     @Test
@@ -76,31 +73,28 @@ class ProductRegistrationServiceTest {
 
         assertThat(fixture.productRepository.saved).hasSize(1);
         assertThat(fixture.productRepository.saved.getFirst().getName()).isEqualTo("변경된 이름");
-        assertThat(fixture.publisher.published).isEmpty();
     }
 
     @Test
-    @DisplayName("품절 처리 시 상태를 전이하고 저장한 뒤 품절 이벤트를 발행한다")
-    void markSoldOut_transitionsSavesAndPublishes() {
+    @DisplayName("품절 처리 시 상태를 전이하고 명시적으로 저장한다")
+    void markSoldOut_transitionsAndSaves() {
         Fixture fixture = new Fixture(product());
 
         fixture.service.markSoldOut(ProductId.of(PRODUCT_ID));
 
         assertThat(fixture.productRepository.saved).hasSize(1);
         assertThat(fixture.productRepository.saved.getFirst().isSoldOut()).isTrue();
-        assertThat(fixture.publisher.published.getFirst()).isInstanceOf(ProductSoldOutChangedEvent.class);
     }
 
     @Test
-    @DisplayName("비활성화 시 노출을 끄고 저장한 뒤 비활성 이벤트를 발행한다")
-    void deactivateProduct_transitionsSavesAndPublishes() {
+    @DisplayName("비활성화 시 노출을 끄고 명시적으로 저장한다")
+    void deactivateProduct_transitionsAndSaves() {
         Fixture fixture = new Fixture(product());
 
         fixture.service.deactivateProduct(ProductId.of(PRODUCT_ID));
 
         assertThat(fixture.productRepository.saved).hasSize(1);
         assertThat(fixture.productRepository.saved.getFirst().isVisible()).isFalse();
-        assertThat(fixture.publisher.published.getFirst()).isInstanceOf(ProductDeactivatedEvent.class);
     }
 
     @Test
@@ -171,7 +165,6 @@ class ProductRegistrationServiceTest {
         private final ProductOptionRepositoryStub optionRepository = new ProductOptionRepositoryStub();
         private final ProductImageRepositoryStub imageRepository = new ProductImageRepositoryStub();
         private final ProductBbqRepositoryStub bbqRepository = new ProductBbqRepositoryStub();
-        private final DomainEventPublisherStub publisher = new DomainEventPublisherStub();
         private final ProductRegistrationService service;
 
         private Fixture(Product existing) {
@@ -182,8 +175,7 @@ class ProductRegistrationServiceTest {
                 optionGroupRepository,
                 optionRepository,
                 imageRepository,
-                bbqRepository,
-                publisher
+                bbqRepository
             );
         }
     }
@@ -204,8 +196,8 @@ class ProductRegistrationServiceTest {
 
         /**
          * 실제 어댑터 계약을 모사한다 — 신규(id null) 저장이면 PK를 부여한 인스턴스를 반환하고,
-         * 기존 상품이면 그대로 돌려준다. 생성 직후 발행되는 {@code ProductCreatedEvent}가
-         * {@code getProductId()}를 읽으므로 id 부여를 생략하면 실제 동작과 달라진다.
+         * 기존 상품이면 그대로 돌려준다. 호출부가 반환된 인스턴스의 {@code getProductId()}를 읽으므로
+         * id 부여를 생략하면 실제 동작과 달라진다.
          */
         @Override
         public Product save(Product product) {
@@ -317,16 +309,6 @@ class ProductRegistrationServiceTest {
         public ProductBbq save(ProductBbq productBbq) {
             saved.add(productBbq);
             return productBbq;
-        }
-    }
-
-    private static final class DomainEventPublisherStub implements DomainEventPublisher {
-
-        private final List<Object> published = new ArrayList<>();
-
-        @Override
-        public void publish(Object event) {
-            published.add(event);
         }
     }
 }

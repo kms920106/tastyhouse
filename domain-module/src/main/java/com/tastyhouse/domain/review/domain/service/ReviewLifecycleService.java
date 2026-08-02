@@ -10,7 +10,6 @@ import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.domain.review.domain.event.ReviewCreatedEvent;
 import com.tastyhouse.domain.review.domain.event.ReviewDeletedEvent;
-import com.tastyhouse.domain.review.domain.event.ReviewLikedEvent;
 import com.tastyhouse.domain.review.domain.model.Review;
 import com.tastyhouse.domain.review.domain.model.ReviewImage;
 import com.tastyhouse.domain.review.domain.model.ReviewLike;
@@ -35,9 +34,8 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * <p>리뷰 등록·수정·삭제는 {@code Review} 본문과 첨부 이미지({@code ReviewImage})·태그
  * ({@code ReviewTag}/{@code Tag}) 여러 애그리거트를 한 트랜잭션에서 함께 저장·정리해야 하는 원자
  * 연산이다. 등록 시 이미지·태그가 함께 남지 않으면 리뷰가 반쪽으로 저장되고, 삭제 시 이미지·태그를
- * 함께 지우지 않으면 고아 행이 남는다. 좋아요 토글도 좋아요 애그리거트 생성·삭제와 통계 갱신 이벤트
- * 발행이 함께 일어나야 한다. 이런 크로스 애그리거트 불변식 오케스트레이션(분류 C)이므로 도메인 계층에
- * 두어, 트리거 액터(회원 본인 · 관리자)가 달라도 규칙이 갈리지 않게 한다.
+ * 함께 지우지 않으면 고아 행이 남는다. 이런 크로스 애그리거트 불변식 오케스트레이션(분류 C)이므로
+ * 도메인 계층에 두어, 트리거 액터(회원 본인 · 관리자)가 달라도 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
  * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
@@ -46,6 +44,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * <p>이벤트 발행은 Spring {@code ApplicationEventPublisher}가 아니라 프레임워크-프리 포트
  * {@link DomainEventPublisher}를 쓴다. 발행된 {@link ReviewCreatedEvent}/{@link ReviewDeletedEvent}는
  * 상품 리뷰 통계를 갱신하는 리스너가 수신한다(리스너 개편은 32-product 소관 — 아래 인계 메모 참고).
+ * 좋아요 토글은 이벤트를 발행하지 않는다 — 사유는 {@link #toggleLike} Javadoc 참고.
  *
  * <p>도메인 모델이 순수 POJO라 더티 체킹이 없으므로 변경 후 명시적으로 {@code save}를 호출한다.
  *
@@ -214,6 +213,11 @@ public class ReviewLifecycleService {
 
     /**
      * 좋아요 토글 — 이미 눌렀으면 취소, 아니면 등록한다. 반환값은 토글 <b>후</b> 좋아요 상태다.
+     *
+     * <p>이벤트를 발행하지 않는다 — 과거 {@code ReviewLikedEvent}를 발행했으나 수신 리스너가 없는
+     * no-op이어서 P9(도메인 이벤트 정비)에서 제거했다. 형제 이벤트인 {@link ReviewCreatedEvent}/
+     * {@link ReviewDeletedEvent}가 소비되는 이유는 상품 리뷰 통계(평점·리뷰 수) 갱신인데, 좋아요는 그
+     * 통계에 포함되지 않아 같은 계열이어도 소비 수요가 없다.
      */
     public boolean toggleLike(ReviewId reviewId, MemberId memberId) {
         boolean liked = !reviewLikeRepository.existsByReviewIdAndMemberId(reviewId, memberId);
@@ -223,8 +227,6 @@ public class ReviewLifecycleService {
         } else {
             reviewLikeRepository.deleteByReviewIdAndMemberId(reviewId, memberId);
         }
-
-        domainEventPublisher.publish(new ReviewLikedEvent(reviewId, memberId, liked, LocalDateTime.now()));
 
         return liked;
     }

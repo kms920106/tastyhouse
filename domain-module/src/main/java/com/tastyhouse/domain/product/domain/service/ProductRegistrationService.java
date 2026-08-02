@@ -1,12 +1,8 @@
 package com.tastyhouse.domain.product.domain.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
-import com.tastyhouse.domain.product.domain.event.ProductCreatedEvent;
-import com.tastyhouse.domain.product.domain.event.ProductDeactivatedEvent;
-import com.tastyhouse.domain.product.domain.event.ProductSoldOutChangedEvent;
 import com.tastyhouse.domain.product.domain.model.Product;
 import com.tastyhouse.domain.product.domain.model.ProductBbq;
 import com.tastyhouse.domain.product.domain.model.ProductCategory;
@@ -27,7 +23,6 @@ import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
  * 상품 등록·구성 오케스트레이션 도메인 서비스(순수 POJO).
@@ -38,8 +33,12 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  *
  * <p>{@code @Service}/{@code @Transactional}을 갖지 않는다 — 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 {@code ProductCommandService}가 소유하고, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다. 이벤트 발행은 프레임워크-프리 포트
- * {@link DomainEventPublisher}를 쓴다.
+ * {@code DomainServiceConfig}가 담당한다.
+ *
+ * <p>이 서비스는 도메인 이벤트를 발행하지 않는다 — 과거 {@code ProductCreatedEvent} ·
+ * {@code ProductSoldOutChangedEvent} · {@code ProductDeactivatedEvent} 세 종을 발행했으나 수신
+ * 리스너가 없는 no-op이어서 P9(도메인 이벤트 정비)에서 제거했다. 상품 등록·품절·비노출은 모두 호출부
+ * 트랜잭션 안에서 완결되므로 비동기 후처리 수요가 생기기 전까지 발행을 되살리지 않는다(YAGNI).
  */
 public class ProductRegistrationService {
 
@@ -49,7 +48,6 @@ public class ProductRegistrationService {
     private final ProductOptionRepository productOptionRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductBbqRepository productBbqRepository;
-    private final DomainEventPublisher domainEventPublisher;
 
     public ProductRegistrationService(
         ProductRepository productRepository,
@@ -57,8 +55,7 @@ public class ProductRegistrationService {
         ProductOptionGroupRepository productOptionGroupRepository,
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
-        ProductBbqRepository productBbqRepository,
-        DomainEventPublisher domainEventPublisher
+        ProductBbqRepository productBbqRepository
     ) {
         this.productRepository = productRepository;
         this.productCategoryRepository = productCategoryRepository;
@@ -66,11 +63,10 @@ public class ProductRegistrationService {
         this.productOptionRepository = productOptionRepository;
         this.productImageRepository = productImageRepository;
         this.productBbqRepository = productBbqRepository;
-        this.domainEventPublisher = domainEventPublisher;
     }
 
     /**
-     * 상품 등록. 저장 직후 {@link ProductCreatedEvent}를 발행한다.
+     * 상품 등록.
      */
     public Product createProduct(
         ShopId shopId,
@@ -104,13 +100,7 @@ public class ProductRegistrationService {
             visible,
             sort
         );
-        Product saved = productRepository.save(product);
-        domainEventPublisher.publish(new ProductCreatedEvent(
-            saved.getProductId(),
-            saved.getShopId(),
-            LocalDateTime.now()
-        ));
-        return saved;
+        return productRepository.save(product);
     }
 
     /**
@@ -148,32 +138,21 @@ public class ProductRegistrationService {
     }
 
     /**
-     * 상품 품절 처리. 상태 전이 후 {@link ProductSoldOutChangedEvent}를 발행한다.
+     * 상품 품절 처리.
      */
     public void markSoldOut(ProductId productId) {
         Product product = loadProduct(productId);
         product.markSoldOut();
         productRepository.save(product);
-        domainEventPublisher.publish(new ProductSoldOutChangedEvent(
-            product.getProductId(),
-            product.getShopId(),
-            true,
-            LocalDateTime.now()
-        ));
     }
 
     /**
-     * 상품 비노출 처리. 상태 전이 후 {@link ProductDeactivatedEvent}를 발행한다.
+     * 상품 비노출 처리.
      */
     public void deactivateProduct(ProductId productId) {
         Product product = loadProduct(productId);
         product.deactivate();
         productRepository.save(product);
-        domainEventPublisher.publish(new ProductDeactivatedEvent(
-            product.getProductId(),
-            product.getShopId(),
-            LocalDateTime.now()
-        ));
     }
 
     /**
