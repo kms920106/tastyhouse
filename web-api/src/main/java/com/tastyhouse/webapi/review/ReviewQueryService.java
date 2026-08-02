@@ -20,8 +20,8 @@ import com.tastyhouse.domain.order.domain.vo.OrderProductId;
 import com.tastyhouse.domain.review.domain.model.ReviewSortType;
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
@@ -137,7 +137,7 @@ public class ReviewQueryService {
      */
     public ReviewResponse getReviewResponse(Long reviewId) {
         ReviewDetailResult detail = findReviewDetailResult(ReviewId.of(reviewId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         return ReviewResponse.from(
             detail.id(),
@@ -264,10 +264,10 @@ public class ReviewQueryService {
      */
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderProductId, Long memberId) {
         OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
 
         ProductDetailResult product = productQueryDao.findProductDetailById(orderProduct.getProductId().value())
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         Integer price = product.discountPrice() != null
             ? product.discountPrice()
@@ -409,7 +409,7 @@ public class ReviewQueryService {
      */
     private Long findProductIdOfReview(Long reviewId) {
         return reviewQueryDao.findProductIdByReviewId(reviewId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
     }
 
     /**

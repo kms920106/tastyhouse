@@ -15,8 +15,8 @@ import com.tastyhouse.domain.shop.domain.repository.StationRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.shop.domain.vo.StationId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 가게 애그리거트 생애주기 불변식(도메인 서비스).
@@ -179,12 +179,12 @@ public class ShopLifecycleService {
 
     private Shop loadShop(ShopId shopId) {
         return shopRepository.findById(shopId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
     private void validateStationExists(Long stationId) {
         if (!stationRepository.existsById(stationId)) {
-            throw new EntityNotFoundException(ErrorCode.STATION_NOT_FOUND);
+            throw new ResourceNotFoundException(ErrorCode.STATION_NOT_FOUND);
         }
     }
 }

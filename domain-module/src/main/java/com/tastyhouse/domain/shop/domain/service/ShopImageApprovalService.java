@@ -8,8 +8,8 @@ import com.tastyhouse.domain.shop.domain.repository.ShopImageChangeRequestReposi
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 /**
@@ -66,13 +66,13 @@ public class ShopImageApprovalService {
      */
     public void approveImageChange(Long id) {
         ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.approve();
         shopImageChangeRequestRepository.save(shopImageChangeRequest);
 
         ShopId shopId = shopImageChangeRequest.getShopId();
         Shop shop = shopRepository.findById(shopId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         if (shopImageChangeRequest.getImageType() == ShopImageType.TRADEMARK) {
             shop.changeTrademarkImage(shopImageChangeRequest.getImageFileId());
         } else {
@@ -86,7 +86,7 @@ public class ShopImageApprovalService {
      */
     public void rejectImageChange(Long id, String reason) {
         ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.reject(reason);
         shopImageChangeRequestRepository.save(shopImageChangeRequest);
     }

@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.policy.domain.model.PolicyType;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.policy.query.PolicyDocumentResult;
@@ -85,13 +85,13 @@ public class PolicyQueryService {
 
     private PolicyDetailResponse getLatestByType(PolicyType type) {
         PolicyDocumentResult result = policyQueryDao.findCurrentByType(type)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POLICY_CURRENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_CURRENT_NOT_FOUND));
         return toPolicyDetailResponse(result);
     }
 
     private PolicyDetailResponse getByTypeAndVersion(PolicyType type, String version) {
         PolicyDocumentResult result = policyQueryDao.findByTypeAndVersion(type, version)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POLICY_VERSION_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_VERSION_NOT_FOUND));
         return toPolicyDetailResponse(result);
     }
 

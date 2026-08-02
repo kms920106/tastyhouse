@@ -28,7 +28,7 @@ import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -105,7 +105,7 @@ class ProductRegistrationServiceTest {
         assertThatThrownBy(() -> fixture.service.updateProduct(
             ProductId.of(PRODUCT_ID), ProductCategoryId.of(3L), "이름", null,
             1000, null, null, false, null, false, true, 0
-        )).isInstanceOf(EntityNotFoundException.class);
+        )).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -126,7 +126,7 @@ class ProductRegistrationServiceTest {
         Fixture fixture = new Fixture(product());
 
         assertThatThrownBy(() -> fixture.service.markBbqOptionsSynced(ProductId.of(PRODUCT_ID)))
-            .isInstanceOf(EntityNotFoundException.class);
+            .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

@@ -8,8 +8,8 @@ import com.tastyhouse.domain.shop.domain.repository.ShopConvenienceInfoRepositor
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 가게 편의정보(주차·발렛·찾아오는길·표시위치) 불변식(도메인 서비스).
@@ -92,7 +92,7 @@ public class ShopConvenienceInfoService {
 
     private void validateDisplayLocation(Long shopId, BigDecimal displayLatitude, BigDecimal displayLongitude) {
         Shop shop = shopRepository.findById(ShopId.of(shopId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
         double distanceMeters = distanceMeters(displayLatitude, displayLongitude, shop.getLatitude(), shop.getLongitude());
         if (distanceMeters > MAX_DISPLAY_LOCATION_DISTANCE_METERS) {

@@ -11,8 +11,8 @@ import com.tastyhouse.domain.coupon.domain.repository.CouponRepository;
 import com.tastyhouse.domain.coupon.domain.service.CouponIssueService;
 import com.tastyhouse.domain.coupon.domain.vo.CouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 쿠폰 관리 명령 서비스(admin).
@@ -124,6 +124,6 @@ public class CouponCommandService {
 
     private Coupon findCouponOrThrow(CouponId couponId) {
         return couponRepository.findById(couponId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
     }
 }

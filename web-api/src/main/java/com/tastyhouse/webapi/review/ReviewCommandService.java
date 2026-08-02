@@ -23,8 +23,8 @@ import com.tastyhouse.domain.review.domain.service.ReviewLifecycleService;
 import com.tastyhouse.domain.review.domain.service.ReviewRegistration;
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 리뷰 명령 서비스(web).
@@ -90,12 +90,12 @@ public class ReviewCommandService {
         OrderId orderId = null;
         if (orderProductId != null) {
             OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
             orderId = orderProduct.getOrderId();
         }
 
         Product product = productRepository.findById(ProductId.of(productId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewRegistration registration = reviewLifecycleService.register(
             product.getShopId(),
@@ -149,7 +149,7 @@ public class ReviewCommandService {
     public void deleteReview(Long reviewId, Long memberId) {
         ReviewId targetReviewId = ReviewId.of(reviewId);
         Review review = reviewRepository.findById(targetReviewId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         reviewLifecycleService.removeOwnedBy(targetReviewId, MemberId.of(memberId), review.getProductId());
     }

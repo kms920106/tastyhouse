@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.faq.query.FaqCategoryManagementResult;
@@ -45,7 +45,7 @@ public class FaqQueryService {
 
     public FaqCategoryResponse getCategory(Long categoryId) {
         FaqCategoryManagementResult categoryDetail = faqQueryDao.findCategoryDetailById(categoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
         return toFaqCategoryResponse(categoryDetail);
     }
 
@@ -59,7 +59,7 @@ public class FaqQueryService {
 
     public FaqDetailResponse getFaq(Long id) {
         FaqDetailResult faqDetail = faqQueryDao.findFaqDetailById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_NOT_FOUND));
         return toFaqDetailResponse(faqDetail);
     }
 

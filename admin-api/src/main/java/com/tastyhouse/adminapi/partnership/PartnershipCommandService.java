@@ -7,8 +7,8 @@ import com.tastyhouse.domain.partnership.domain.model.PartnershipRequest;
 import com.tastyhouse.domain.partnership.domain.model.PartnershipStatus;
 import com.tastyhouse.domain.partnership.domain.repository.PartnershipRepository;
 import com.tastyhouse.domain.partnership.domain.vo.PartnershipRequestId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 제휴 신청 관리 command 서비스.
@@ -48,6 +48,6 @@ public class PartnershipCommandService {
 
     private PartnershipRequest findPartnershipRequestOrThrow(PartnershipRequestId partnershipRequestId) {
         return partnershipRepository.findById(partnershipRequestId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
     }
 }

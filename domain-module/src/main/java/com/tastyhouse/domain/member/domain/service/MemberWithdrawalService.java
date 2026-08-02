@@ -9,8 +9,8 @@ import com.tastyhouse.domain.member.domain.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.domain.member.domain.repository.MemberWithdrawalRepository;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
@@ -44,7 +44,7 @@ public class MemberWithdrawalService {
 
     public void withdraw(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
         Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         member.withdraw();
         memberRepository.save(member);

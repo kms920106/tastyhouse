@@ -12,8 +12,8 @@ import com.tastyhouse.domain.shop.domain.model.ShopSuspension;
 import com.tastyhouse.domain.shop.domain.model.SuspensionReason;
 import com.tastyhouse.domain.shop.domain.repository.ShopSuspensionRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 점주용 가게 영업 임시중지 변경 서비스(CQRS command 측).
@@ -50,9 +50,9 @@ public class ShopSuspensionCommandService {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopSuspension shopSuspension = shopSuspensionRepository.findById(suspensionId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND));
         if (!shopSuspension.getShopId().equals(ShopId.of(shopId))) {
-            throw new EntityNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND);
+            throw new ResourceNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND);
         }
 
         shopSuspension.release(LocalDateTime.now());

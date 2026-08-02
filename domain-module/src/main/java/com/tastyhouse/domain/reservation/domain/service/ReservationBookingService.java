@@ -15,8 +15,8 @@ import com.tastyhouse.domain.reservation.domain.vo.ReservationId;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 예약 예약/취소 불변식(도메인 서비스).
@@ -97,10 +97,10 @@ public class ReservationBookingService {
 
         // 4. 가게/회원 존재 검증
         if (shopRepository.findById(shopId).isEmpty()) {
-            throw new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND);
+            throw new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND);
         }
         if (memberRepository.findById(memberId).isEmpty()) {
-            throw new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND);
+            throw new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
         // 5. 본인 중복 차단 (같은 가게 + 같은 날짜에 차단 예약 1건 제한)

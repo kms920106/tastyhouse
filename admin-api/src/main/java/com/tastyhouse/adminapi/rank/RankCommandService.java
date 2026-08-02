@@ -15,8 +15,8 @@ import com.tastyhouse.domain.rank.domain.repository.RankPrizeRepository;
 import com.tastyhouse.domain.rank.domain.service.RankSettlementService;
 import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 랭킹 관리 명령 서비스(admin).
@@ -113,11 +113,11 @@ public class RankCommandService {
 
     private RankPeriod findPeriodOrThrow(RankPeriodId periodId) {
         return rankPeriodRepository.findById(periodId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
     }
 
     private RankPrize findPrizeOrThrow(RankPrizeId prizeId) {
         return rankPrizeRepository.findById(prizeId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
     }
 }

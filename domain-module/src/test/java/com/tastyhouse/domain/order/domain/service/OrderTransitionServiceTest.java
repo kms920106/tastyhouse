@@ -16,8 +16,8 @@ import com.tastyhouse.domain.shop.domain.model.OrderMethod;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,7 +52,7 @@ class OrderTransitionServiceTest {
         fixture.orderRepository.stored = null;
 
         assertThatThrownBy(() -> fixture.service.load(OrderId.of(ORDER_ID)))
-            .isInstanceOf(EntityNotFoundException.class);
+            .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

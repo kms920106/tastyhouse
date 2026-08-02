@@ -2,7 +2,7 @@ package com.tastyhouse.domain.exception;
 
 public enum ErrorCode {
 
-    // 공통 - 엔티티 미존재
+    // 공통 - 엔티티 미존재 (fallback: 도메인별 전용 NOT_FOUND 코드가 있으면 그쪽을 쓴다)
     ENTITY_NOT_FOUND(404, "ENTITY_NOT_FOUND", "요청한 데이터를 찾을 수 없습니다."),
 
     // 주문
@@ -42,6 +42,8 @@ public enum ErrorCode {
     COUPON_USE_END_AT_REQUIRED(400, "COUPON_USE_END_AT_REQUIRED", "쿠폰 사용 종료 일시는 필수입니다."),
 
     // 결제
+    PAYMENT_NOT_FOUND(404, "PAYMENT_NOT_FOUND", "결제를 찾을 수 없습니다."),
+    PAYMENT_REFUND_NOT_FOUND(404, "PAYMENT_REFUND_NOT_FOUND", "환불 정보를 찾을 수 없습니다."),
     PAYMENT_ORDER_ACCESS_DENIED(403, "PAYMENT_ORDER_ACCESS_DENIED", "본인의 주문만 결제할 수 있습니다."),
     PAYMENT_ACCESS_DENIED(403, "PAYMENT_ACCESS_DENIED", "본인의 결제만 처리할 수 있습니다."),
     PAYMENT_INVALID_ORDER_STATUS(400, "PAYMENT_INVALID_ORDER_STATUS", "결제할 수 없는 주문 상태입니다."),

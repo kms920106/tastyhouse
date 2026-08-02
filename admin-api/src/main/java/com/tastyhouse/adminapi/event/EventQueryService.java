@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.event.domain.model.EventStatus;
 import com.tastyhouse.domain.event.domain.vo.EventId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.event.query.EventAnnouncementResult;
@@ -55,13 +55,13 @@ public class EventQueryService {
 
     public EventDetailResponse getEvent(Long id) {
         EventManagementDetailResult detail = eventQueryDao.findEventDetailById(EventId.of(id))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
         return toEventDetailResponse(detail);
     }
 
     public EventAnnouncementResponse getAnnouncement(Long id) {
         EventAnnouncementResult announcement = eventQueryDao.findAnnouncementByEventId(EventId.of(id))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
         return toEventAnnouncementResponse(announcement);
     }
 
@@ -145,7 +145,7 @@ public class EventQueryService {
             return null;
         }
         if (imageUrl == null) {
-            throw new EntityNotFoundException(ErrorCode.FILE_NOT_FOUND);
+            throw new ResourceNotFoundException(ErrorCode.FILE_NOT_FOUND);
         }
         return FileResponse.of(fileId, fileName, imageUrl);
     }

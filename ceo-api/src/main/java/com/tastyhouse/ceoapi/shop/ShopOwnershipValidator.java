@@ -7,8 +7,8 @@ import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 점주가 자기 소유 가게에만 접근하도록 강제하는 검증기.
@@ -37,7 +37,7 @@ public class ShopOwnershipValidator {
      */
     public Shop validateOwnership(Long ceoId, Long shopId) {
         Shop shop = shopRepository.findById(ShopId.of(shopId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         if (shop.getCeoId() == null || !shop.getCeoId().equals(CeoId.of(ceoId))) {
             throw new AccessDeniedException(ErrorCode.SHOP_ACCESS_DENIED);
         }

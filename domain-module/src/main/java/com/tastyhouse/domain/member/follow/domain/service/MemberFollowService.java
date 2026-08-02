@@ -5,8 +5,8 @@ import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.member.follow.domain.model.MemberFollow;
 import com.tastyhouse.domain.member.follow.domain.repository.MemberFollowRepository;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 팔로우 관계 등록·해제(도메인 서비스).
@@ -41,7 +41,7 @@ public class MemberFollowService {
         }
 
         if (memberRepository.findById(followingId).isEmpty()) {
-            throw new EntityNotFoundException(ErrorCode.FOLLOW_TARGET_NOT_FOUND);
+            throw new ResourceNotFoundException(ErrorCode.FOLLOW_TARGET_NOT_FOUND);
         }
 
         if (memberFollowRepository.existsByFollowerIdAndFollowingId(followerId, followingId)) {

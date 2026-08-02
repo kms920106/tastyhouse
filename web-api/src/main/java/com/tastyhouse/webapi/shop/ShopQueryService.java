@@ -20,8 +20,8 @@ import com.tastyhouse.domain.shop.domain.repository.ShopBookmarkRepository;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
@@ -567,7 +567,7 @@ public class ShopQueryService {
      */
     private Shop findVisibleShop(Long shopId) {
         return shopRepository.findVisibleById(ShopId.of(shopId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
 }

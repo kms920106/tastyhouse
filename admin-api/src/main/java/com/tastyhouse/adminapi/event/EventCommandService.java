@@ -15,8 +15,8 @@ import com.tastyhouse.domain.event.domain.repository.EventWinnerRepository;
 import com.tastyhouse.domain.event.domain.vo.EventId;
 import com.tastyhouse.domain.file.domain.vo.UploadedFileId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 이벤트 관리 명령 서비스(admin).
@@ -131,7 +131,7 @@ public class EventCommandService {
     public void updateAnnouncement(Long id, String name, String content, LocalDateTime announcedAt) {
         EventId eventId = EventId.of(id);
         EventAnnouncement announcement = eventAnnouncementRepository.findByEventId(eventId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
 
         announcement.update(name, content, announcedAt);
         eventAnnouncementRepository.save(announcement);
@@ -152,7 +152,7 @@ public class EventCommandService {
      */
     public void deleteWinner(Long winnerId) {
         EventWinner winner = eventWinnerRepository.findById(winnerId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_WINNER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_WINNER_NOT_FOUND));
 
         winner.delete();
         eventWinnerRepository.save(winner);
@@ -160,6 +160,6 @@ public class EventCommandService {
 
     private Event findEventOrThrow(EventId eventId) {
         return eventRepository.findById(eventId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.EVENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
     }
 }

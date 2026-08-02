@@ -13,8 +13,8 @@ import com.tastyhouse.domain.review.domain.service.ReviewLifecycleService;
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
 import com.tastyhouse.domain.review.domain.vo.ReviewReplyId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 리뷰 관리 명령 서비스(admin).
@@ -54,7 +54,7 @@ public class ReviewCommandService {
     public void changeReviewHidden(Long id, boolean hidden) {
         ReviewId reviewId = ReviewId.of(id);
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         if (hidden) {
             review.hide();
@@ -79,7 +79,7 @@ public class ReviewCommandService {
     public void changeCommentHidden(Long commentId, boolean hidden) {
         ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
         ReviewComment comment = reviewCommentRepository.findById(reviewCommentId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND));
 
         if (hidden) {
             comment.hide();
@@ -96,7 +96,7 @@ public class ReviewCommandService {
     public void deleteComment(Long commentId) {
         ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
         reviewCommentRepository.findById(reviewCommentId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND));
 
         reviewCommentRepository.deleteById(reviewCommentId);
     }
@@ -107,7 +107,7 @@ public class ReviewCommandService {
     public void changeReplyHidden(Long replyId, boolean hidden) {
         ReviewReplyId reviewReplyId = ReviewReplyId.of(replyId);
         ReviewReply reply = reviewReplyRepository.findById(reviewReplyId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_REPLY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_REPLY_NOT_FOUND));
 
         if (hidden) {
             reply.hide();
@@ -124,7 +124,7 @@ public class ReviewCommandService {
     public void deleteReply(Long replyId) {
         ReviewReplyId reviewReplyId = ReviewReplyId.of(replyId);
         reviewReplyRepository.findById(reviewReplyId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_REPLY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_REPLY_NOT_FOUND));
 
         reviewReplyRepository.deleteById(reviewReplyId);
     }

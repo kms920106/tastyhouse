@@ -32,8 +32,8 @@ import com.tastyhouse.domain.product.domain.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 주문 접수 불변식(도메인 서비스).
@@ -109,10 +109,10 @@ public class OrderPlacementService {
     public OrderId place(MemberId memberId, OrderPlacement placement) {
         ShopId shopId = ShopId.of(placement.shopId());
         if (shopRepository.findById(shopId).isEmpty()) {
-            throw new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND);
+            throw new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND);
         }
         Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         Order order = Order.of(
             memberId,
@@ -132,7 +132,7 @@ public class OrderPlacementService {
 
         for (OrderPlacementItem item : placement.items()) {
             Product product = productRepository.findById(ProductId.of(item.productId()))
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
                     ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + item.productId()));
 
             if (product.isSoldOut()) {
@@ -211,11 +211,11 @@ public class OrderPlacementService {
         for (OrderPlacementItemOption selectedOption : item.selectedOptions()) {
             ProductOptionGroup optionGroup = productOptionGroupRepository
                 .findById(ProductOptionGroupId.of(selectedOption.groupId()))
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
 
             ProductOption option = productOptionRepository
                 .findById(ProductOptionId.of(selectedOption.optionId()))
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
 
             orderProductOptionRepository.save(OrderProductOption.of(
                 savedOrderProduct.getOrderProductId(),

@@ -10,8 +10,8 @@ import com.tastyhouse.domain.shop.domain.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 가게 영업시간·휴게시간·정기휴무 규격 불변식(도메인 서비스).
@@ -63,7 +63,7 @@ public class ShopBusinessHourService {
         Boolean is24Hours
     ) {
         ShopBusinessHour businessHour = shopDetailRepository.findBusinessHourById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
         businessHour.update(dayType, openTime, closeTime, isClosed, is24Hours);
         shopDetailRepository.saveBusinessHour(businessHour);
     }
@@ -80,7 +80,7 @@ public class ShopBusinessHourService {
 
     public void updateBreakTime(Long id, DayType dayType, LocalTime startTime, LocalTime endTime) {
         ShopBreakTime breakTime = shopDetailRepository.findBreakTimeById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
         validateBreakTimeWithinBusinessHours(breakTime.getShopId().value(), dayType, startTime, endTime);
         breakTime.update(dayType, startTime, endTime);
         shopDetailRepository.saveBreakTime(breakTime);

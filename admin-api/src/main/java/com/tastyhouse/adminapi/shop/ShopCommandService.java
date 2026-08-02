@@ -35,8 +35,8 @@ import com.tastyhouse.domain.shop.domain.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.domain.vo.ShopFoodTypeCategoryId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.shop.domain.vo.ShopPhotoCategoryId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * admin용 가게 관리 변경 서비스(CQRS command 측).
@@ -195,7 +195,7 @@ public class ShopCommandService {
         Boolean visible
     ) {
         ShopAmenityCategory amenityCategory = shopDetailRepository.findAmenityCategoryById(categoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
         amenityCategory.update(
             displayName,
             UploadedFileId.of(activeImageFileId),
@@ -234,7 +234,7 @@ public class ShopCommandService {
         Boolean visible
     ) {
         ShopFoodTypeCategory foodTypeCategory = shopDetailRepository.findFoodTypeCategoryById(categoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
         foodTypeCategory.update(
             displayName,
             UploadedFileId.of(activeImageFileId),
@@ -247,7 +247,7 @@ public class ShopCommandService {
 
     public Long assignAmenity(Long id, Long amenityCategoryId) {
         shopDetailRepository.findAmenityCategoryById(amenityCategoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
         ShopAmenity amenity = shopDetailRepository.saveAmenity(ShopAmenity.of(ShopId.of(id), ShopAmenityCategoryId.of(amenityCategoryId)));
         return amenity.getId();
     }
@@ -258,7 +258,7 @@ public class ShopCommandService {
 
     public Long assignFoodType(Long id, Long foodTypeCategoryId) {
         shopDetailRepository.findFoodTypeCategoryById(foodTypeCategoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
         ShopFoodType foodType = shopDetailRepository.saveFoodType(ShopFoodType.of(ShopId.of(id), ShopFoodTypeCategoryId.of(foodTypeCategoryId)));
         return foodType.getId();
     }
@@ -305,7 +305,7 @@ public class ShopCommandService {
 
     public void updatePhotoCategory(Long categoryId, String name) {
         ShopPhotoCategory photoCategory = shopDetailRepository.findPhotoCategoryById(categoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_NOT_FOUND));
         photoCategory.update(name);
         shopDetailRepository.savePhotoCategory(photoCategory);
     }
@@ -328,7 +328,7 @@ public class ShopCommandService {
 
     public void updatePhotoCategoryImage(Long imageId, Long imageFileId, Integer sort, Boolean visible) {
         ShopPhotoCategoryImage image = shopDetailRepository.findPhotoCategoryImageById(imageId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_IMAGE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_IMAGE_NOT_FOUND));
         image.update(UploadedFileId.of(imageFileId), sort, visible);
         shopDetailRepository.savePhotoCategoryImage(image);
     }
@@ -344,7 +344,7 @@ public class ShopCommandService {
 
     public void updateShopChoice(Long id, String title, String content) {
         ShopChoice shopChoice = shopChoiceRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
         shopChoice.update(title, content);
         shopChoiceRepository.save(shopChoice);
     }

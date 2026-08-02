@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.event.domain.model.EventStatus;
 import com.tastyhouse.domain.event.domain.vo.EventId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.event.query.EventAnnouncementResult;
@@ -43,7 +43,7 @@ public class EventQueryService {
 
     public EventDetailResponse getEventDetail(Long eventId) {
         EventDetailResult detail = eventQueryDao.findEventBannerById(EventId.of(eventId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "이벤트를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
 
         return EventDetailResponse.from(detail.bannerUrl());
     }

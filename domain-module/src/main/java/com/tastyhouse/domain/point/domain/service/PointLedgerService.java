@@ -11,8 +11,8 @@ import com.tastyhouse.domain.point.domain.model.PointHistory;
 import com.tastyhouse.domain.point.domain.model.PointType;
 import com.tastyhouse.domain.point.domain.repository.PointHistoryRepository;
 import com.tastyhouse.domain.point.domain.repository.PointRepository;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
@@ -140,7 +140,7 @@ public class PointLedgerService {
 
     private Point findPointOrThrow(MemberId memberId) {
         return pointRepository.findByMemberId(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POINT_NOT_FOUND,
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POINT_NOT_FOUND,
                 "포인트 정보를 찾을 수 없습니다. memberId=" + memberId.value()));
     }
 }

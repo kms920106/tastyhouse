@@ -7,8 +7,8 @@ import com.tastyhouse.domain.member.domain.model.Member;
 import com.tastyhouse.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
@@ -91,11 +91,11 @@ public class MemberQueryService {
      */
     public Member getMember(Long memberId) {
         return memberRepository.findById(MemberId.of(memberId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     private MemberWithProfileImageResult findProfile(Long memberId) {
         return memberQueryDao.findMemberWithProfileImageById(MemberId.of(memberId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

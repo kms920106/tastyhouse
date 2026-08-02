@@ -11,8 +11,8 @@ import com.tastyhouse.domain.bug.domain.model.BugReportStatus;
 import com.tastyhouse.domain.bug.domain.repository.BugReportRepository;
 import com.tastyhouse.domain.bug.domain.vo.BugReportId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 버그 제보 관리 command 서비스.
@@ -71,6 +71,6 @@ public class BugReportCommandService {
 
     private BugReport findBugReportOrThrow(BugReportId bugReportId) {
         return bugReportRepository.findById(bugReportId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
     }
 }

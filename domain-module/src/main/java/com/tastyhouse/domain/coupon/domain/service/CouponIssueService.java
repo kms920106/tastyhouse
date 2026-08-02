@@ -13,8 +13,8 @@ import com.tastyhouse.domain.coupon.domain.vo.MemberCouponId;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
@@ -85,14 +85,14 @@ public class CouponIssueService {
      */
     public CouponUseResult useCoupon(MemberCouponId memberCouponId, MemberId memberId, int orderAmountAfterProductDiscount) {
         MemberCoupon memberCoupon = memberCouponRepository.findById(memberCouponId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
 
         if (!memberCoupon.getMemberId().equals(memberId)) {
             throw new AccessDeniedException(ErrorCode.COUPON_ACCESS_DENIED);
         }
 
         Coupon coupon = couponRepository.findById(memberCoupon.getCouponId())
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
 
         coupon.validateMinOrderAmount(orderAmountAfterProductDiscount);
         int discountAmount = coupon.calculateDiscount(orderAmountAfterProductDiscount);
@@ -112,6 +112,6 @@ public class CouponIssueService {
 
     private Coupon findCouponOrThrow(CouponId couponId) {
         return couponRepository.findById(couponId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
     }
 }

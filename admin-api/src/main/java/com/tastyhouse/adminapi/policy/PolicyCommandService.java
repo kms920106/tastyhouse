@@ -10,8 +10,8 @@ import com.tastyhouse.domain.policy.domain.model.PolicyType;
 import com.tastyhouse.domain.policy.domain.repository.PolicyDocumentRepository;
 import com.tastyhouse.domain.policy.domain.service.PolicyActivationService;
 import com.tastyhouse.domain.policy.domain.vo.PolicyDocumentId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 약관·정책 관리 command 서비스.
@@ -85,6 +85,6 @@ public class PolicyCommandService {
 
     private PolicyDocument findPolicyDocumentOrThrow(PolicyDocumentId policyDocumentId) {
         return policyDocumentRepository.findById(policyDocumentId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.POLICY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_NOT_FOUND));
     }
 }

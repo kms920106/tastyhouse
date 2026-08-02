@@ -17,8 +17,8 @@ import com.tastyhouse.infrastructure.bug.query.BugReportQueryDao;
 import com.tastyhouse.infrastructure.bug.query.BugReportSearchCondition;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -85,7 +85,7 @@ public class BugReportQueryService {
 
     public BugReportDetailResponse getBugReport(Long id) {
         BugReportDetailResult detail = bugReportQueryDao.findDetailById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
 
         MemberSummaryResponse member = memberQueryDao.findMemberWithProfileImageById(detail.memberId())
             .map(this::toMemberSummaryResponse)

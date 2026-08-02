@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.rank.domain.model.RankType;
 import com.tastyhouse.domain.rank.domain.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.domain.vo.RankPrizeId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.rank.query.MemberRankResult;
 import com.tastyhouse.infrastructure.rank.query.RankPeriodResult;
 import com.tastyhouse.infrastructure.rank.query.RankPrizeManagementResult;
@@ -58,7 +58,7 @@ public class RankQueryService {
 
     public RankPeriodDetailResponse getPeriod(Long id) {
         RankPeriodResult period = rankQueryDao.findPeriodById(RankPeriodId.of(id))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
         return toPeriodDetailResponse(period);
     }
 
@@ -70,7 +70,7 @@ public class RankQueryService {
 
     public RankPrizeDetailResponse getPrize(Long prizeId) {
         RankPrizeManagementResult prize = rankQueryDao.findPrizeById(RankPrizeId.of(prizeId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
         return toPrizeDetailResponse(prize);
     }
 

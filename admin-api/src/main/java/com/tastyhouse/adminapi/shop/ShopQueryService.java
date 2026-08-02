@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shop.domain.model.Shop;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopAmenityAssignmentResult;
@@ -108,7 +108,7 @@ public class ShopQueryService {
     public ShopDetailResponse getShop(Long id) {
         ShopId shopId = ShopId.of(id);
         Shop shop = shopRepository.findById(shopId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         return toShopDetailResponse(shop);
     }
 
@@ -316,7 +316,7 @@ public class ShopQueryService {
     public ShopChoiceDetailResponse getShopChoice(Long id) {
         return shopChoiceQueryDao.findShopChoiceById(id)
             .map(dto -> ShopChoiceDetailResponse.from(dto.id(), dto.shopId(), dto.title(), dto.content()))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
     }
 
 }

@@ -18,8 +18,8 @@ import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.repository.ShopSuspensionRepository;
 import com.tastyhouse.domain.shop.domain.repository.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 가게 실시간 영업 상태(영업중/준비중) 판정 오케스트레이션(도메인 서비스).
@@ -61,7 +61,7 @@ public class ShopOperatingStatusService {
 
     public ShopOperatingStatus findOperatingStatus(Long shopId, LocalDateTime now) {
         Shop shop = shopRepository.findById(ShopId.of(shopId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         return calculate(shop, shopId, now);
     }
 

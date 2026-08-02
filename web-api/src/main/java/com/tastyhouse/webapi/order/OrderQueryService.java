@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.order.query.OrderDetailResult;
@@ -65,7 +65,7 @@ public class OrderQueryService {
      */
     public OrderDetailResponse getOrderDetail(Long memberId, Long orderId) {
         OrderDetailResult result = orderQueryDao.findOrderDetail(OrderId.of(orderId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!result.memberId().equals(MemberId.of(memberId))) {
             throw new AccessDeniedException(ErrorCode.ORDER_ACCESS_DENIED);

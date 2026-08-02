@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.review.domain.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.domain.vo.ReviewId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.review.query.ReviewCommentListItemResult;
@@ -71,7 +71,7 @@ public class ReviewQueryService {
     public ReviewManagementDetailResponse getReview(Long id) {
         ReviewId reviewId = ReviewId.of(id);
         ReviewManagementDetailResult detail = reviewManagementQueryDao.findReviewManagementDetail(reviewId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         List<Long> tagIds = reviewQueryDao.findTagIdsByReviewId(reviewId.value());
         if (!tagIds.isEmpty()) {

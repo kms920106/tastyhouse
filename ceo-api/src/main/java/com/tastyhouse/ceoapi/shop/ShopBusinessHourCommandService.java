@@ -10,8 +10,8 @@ import com.tastyhouse.domain.shop.domain.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.domain.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.domain.service.ShopBusinessHourService;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 점주용 영업시간·휴게시간 변경 서비스(CQRS command 측).
@@ -101,7 +101,7 @@ public class ShopBusinessHourCommandService {
      */
     private void validateBusinessHourOwnership(Long ceoId, Long businessHourId) {
         ShopBusinessHour businessHour = shopDetailRepository.findBusinessHourById(businessHourId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, businessHour.getShopId().value());
     }
 
@@ -110,7 +110,7 @@ public class ShopBusinessHourCommandService {
      */
     private void validateBreakTimeOwnership(Long ceoId, Long breakTimeId) {
         ShopBreakTime breakTime = shopDetailRepository.findBreakTimeById(breakTimeId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, breakTime.getShopId().value());
     }
 }

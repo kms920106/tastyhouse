@@ -19,8 +19,8 @@ import com.tastyhouse.domain.payment.domain.vo.Amount;
 import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.domain.payment.domain.vo.PaymentRefundId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
@@ -182,7 +182,7 @@ public class PaymentCancellationService {
 
     private Payment loadPayment(PaymentId paymentId) {
         return paymentRepository.findById(paymentId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
     }
 
     /**

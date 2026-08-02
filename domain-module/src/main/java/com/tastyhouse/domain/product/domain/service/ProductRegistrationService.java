@@ -21,8 +21,8 @@ import com.tastyhouse.domain.product.domain.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.domain.vo.ProductId;
 import com.tastyhouse.domain.product.domain.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 상품 등록·구성 오케스트레이션 도메인 서비스(순수 POJO).
@@ -229,13 +229,13 @@ public class ProductRegistrationService {
      */
     public void markBbqOptionsSynced(ProductId productId) {
         ProductBbq bbq = productBbqRepository.findByProductId(productId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         bbq.markOptionsSynced();
         productBbqRepository.save(bbq);
     }
 
     private Product loadProduct(ProductId productId) {
         return productRepository.findById(productId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 }

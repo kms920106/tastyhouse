@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.partnership.domain.model.PartnershipStatus;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.partnership.query.PartnershipQueryDao;
@@ -57,7 +57,7 @@ public class PartnershipQueryService {
 
     public PartnershipRequestDetailResponse getPartnershipRequest(Long id) {
         PartnershipRequestDetailResult detail = partnershipQueryDao.findDetailById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
         return toPartnershipRequestDetailResponse(detail);
     }
 

@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.rank.domain.model.RankType;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.infrastructure.rank.query.MemberRankResult;
@@ -78,7 +78,7 @@ public class RankQueryService {
      */
     private RankMemberListItemResponse toUnrankedMemberResponse(MemberId memberId) {
         MemberWithProfileImageResult member = memberQueryDao.findMemberWithProfileImageById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return RankMemberListItemResponse.of(
             memberId.value(),

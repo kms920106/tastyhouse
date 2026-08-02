@@ -8,8 +8,8 @@ import com.tastyhouse.domain.member.domain.model.MemberGrade;
 import com.tastyhouse.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.member.query.MemberListItemResult;
@@ -66,7 +66,7 @@ public class MemberQueryService {
     public MemberDetailResponse getMember(Long id) {
         MemberId memberId = MemberId.of(id);
         Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return toMemberDetailResponse(member);
     }

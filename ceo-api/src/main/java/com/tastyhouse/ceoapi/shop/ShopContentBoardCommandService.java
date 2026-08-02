@@ -11,8 +11,8 @@ import com.tastyhouse.domain.shop.domain.model.ShopContentType;
 import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.apicommon.file.FileService;
 
 /**
@@ -103,9 +103,9 @@ public class ShopContentBoardCommandService {
      */
     private ShopContentBoard loadOwnedContentBoard(Long shopId, Long contentBoardId) {
         ShopContentBoard shopContentBoard = shopContentBoardRepository.findById(contentBoardId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
         if (!shopContentBoard.getShopId().equals(ShopId.of(shopId))) {
-            throw new EntityNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND);
+            throw new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND);
         }
         return shopContentBoard;
     }

@@ -10,8 +10,8 @@ import com.tastyhouse.domain.shop.domain.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.shop.domain.service.ShopConvenienceInfoService;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 점주용 가게 편의정보·편의시설 변경 서비스(CQRS command 측).
@@ -65,7 +65,7 @@ public class ShopConvenienceInfoCommandService {
     public Long assignAmenity(Long ceoId, Long shopId, Long amenityCategoryId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         shopDetailRepository.findAmenityCategoryById(amenityCategoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
         ShopAmenity amenity = shopDetailRepository.saveAmenity(ShopAmenity.of(ShopId.of(shopId), ShopAmenityCategoryId.of(amenityCategoryId)));
         return amenity.getId();
     }

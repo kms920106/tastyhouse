@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.banner.domain.model.BannerType;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.banner.query.BannerDetailResult;
@@ -48,7 +48,7 @@ public class BannerQueryService {
 
     public BannerDetailResponse getBanner(Long id) {
         BannerDetailResult bannerDetail = bannerQueryDao.findDetailById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.BANNER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BANNER_NOT_FOUND));
         return toBannerDetailResponse(bannerDetail);
     }
 

@@ -10,8 +10,8 @@ import com.tastyhouse.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.payment.domain.model.PaymentStatus;
 import com.tastyhouse.domain.shop.domain.model.OrderMethod;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.order.query.OrderDetailResult;
@@ -83,7 +83,7 @@ public class OrderQueryService {
      */
     public OrderDetailResponse getOrder(Long id) {
         OrderDetailResult result = orderQueryDao.findOrderDetail(OrderId.of(id))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
         return toOrderDetailResponse(result);
     }
 

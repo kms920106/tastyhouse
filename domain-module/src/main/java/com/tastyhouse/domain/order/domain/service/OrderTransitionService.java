@@ -6,8 +6,8 @@ import com.tastyhouse.domain.order.domain.model.OrderStatus;
 import com.tastyhouse.domain.order.domain.repository.OrderRepository;
 import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 주문 상태전이(도메인 서비스).
@@ -57,7 +57,7 @@ public class OrderTransitionService {
      */
     public Order load(OrderId orderId) {
         return orderRepository.findById(orderId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
     }
 
     /**

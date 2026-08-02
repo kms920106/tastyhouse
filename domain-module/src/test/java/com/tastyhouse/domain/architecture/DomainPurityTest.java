@@ -17,12 +17,10 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * POJO({@code @Service}/{@code @Transactional} 미사용)이고 빈 등록은 infrastructure-module의
  * {@code DomainServiceConfig}가 {@code @Bean} 팩토리 메서드로 수행한다.
  *
- * <p>이 순수성은 지금까지 {@code build.gradle}의 의존 목록(= 컴파일 실패)으로만 지켜지고 있었는데,
- * 루트 {@code build.gradle}의 {@code subprojects} 블록이 전 모듈에
- * {@code spring-boot-starter}를 주입하고 있어(P10 담당) 실제로는 스프링 타입이 컴파일 클래스패스에
- * 올라온다. 즉 컴파일만으로는 이 원칙이 강제되지 않으므로 ArchUnit 게이트로 명시한다.
- *
- * <p>여기서는 게이트만 세운다 — 루트 빌드의 스프링 주입 제거 자체는 P10 태스크 담당이다.
+ * <p>이 순수성은 두 겹으로 강제된다 — 루트 {@code build.gradle}이 domain-module을 spring 주입
+ * {@code subprojects} 블록에서 제외해 컴파일 클래스패스에 {@code org.springframework.*}가 아예
+ * 없고(컴파일 게이트), 그 위에 이 ArchUnit 규칙이 선다. 컴파일 게이트는 "클래스패스에 없어서 못 쓴다"를,
+ * ArchUnit은 "클래스패스에 있어도(예: 테스트 의존으로 들어온 타입) 쓰면 안 된다"를 각각 막는다.
  *
  * <p>모든 규칙은 {@code allowEmptyShould(true)} 없이 선언한다. 이 모듈은 도메인 클래스가 다수
  * 존재하므로 대상 0건이면 그 자체가 실패로 드러나야 한다(과거 공허 통과가 실제 문제였다).

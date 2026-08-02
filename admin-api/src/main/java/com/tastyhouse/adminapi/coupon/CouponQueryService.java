@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.coupon.domain.model.DiscountType;
 import com.tastyhouse.domain.coupon.domain.vo.CouponId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.coupon.query.CouponDetailResult;
@@ -53,7 +53,7 @@ public class CouponQueryService {
 
     public CouponDetailResponse getCoupon(Long id) {
         CouponDetailResult couponDetail = couponQueryDao.findCouponDetailById(CouponId.of(id))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
         return toCouponDetailResponse(couponDetail);
     }
 

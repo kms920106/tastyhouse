@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.notice.domain.model.Notice;
 import com.tastyhouse.domain.notice.domain.repository.NoticeRepository;
 import com.tastyhouse.domain.notice.domain.vo.NoticeId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 공지사항 관리 command 서비스.
@@ -52,6 +52,6 @@ public class NoticeCommandService {
 
     private Notice findNoticeOrThrow(NoticeId noticeId) {
         return noticeRepository.findById(noticeId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
     }
 }

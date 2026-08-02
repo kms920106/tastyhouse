@@ -8,8 +8,8 @@ import com.tastyhouse.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.domain.faq.domain.repository.FaqRepository;
 import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
 import com.tastyhouse.domain.faq.domain.vo.FaqId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * FAQ 항목 관리 command 서비스.
@@ -64,11 +64,11 @@ public class FaqCommandService {
 
     private Faq findFaqOrThrow(FaqId faqId) {
         return faqRepository.findById(faqId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_NOT_FOUND));
     }
 
     private void validateCategoryExists(FaqCategoryId faqCategoryId) {
         faqCategoryRepository.findById(faqCategoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

@@ -8,8 +8,8 @@ import com.tastyhouse.domain.shop.domain.repository.ShopPhoneNumberRepository;
 import com.tastyhouse.domain.shop.domain.repository.ShopRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 가게 전화번호 목록 불변식(도메인 서비스).
@@ -73,7 +73,7 @@ public class ShopPhoneNumberRegistryService {
      */
     public void deletePhoneNumber(Long id) {
         ShopPhoneNumber phoneNumber = shopPhoneNumberRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
         shopPhoneNumberRepository.deleteById(id);
 
         if (!phoneNumber.isPrimary()) {
@@ -96,7 +96,7 @@ public class ShopPhoneNumberRegistryService {
      */
     public void designatePrimary(Long id) {
         ShopPhoneNumber target = shopPhoneNumberRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
 
         List<ShopPhoneNumber> phoneNumbers = shopPhoneNumberRepository.findByShopId(target.getShopId().value());
         for (ShopPhoneNumber phoneNumber : phoneNumbers) {
@@ -117,7 +117,7 @@ public class ShopPhoneNumberRegistryService {
     private void syncShopPhoneNumber(Long shopId, String phoneNumber) {
         ShopId targetShopId = ShopId.of(shopId);
         Shop shop = shopRepository.findById(targetShopId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         shop.changePhoneNumber(phoneNumber);
         shopRepository.save(shop);
     }

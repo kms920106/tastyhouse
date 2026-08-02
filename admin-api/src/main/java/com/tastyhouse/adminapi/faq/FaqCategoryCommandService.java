@@ -7,8 +7,8 @@ import com.tastyhouse.domain.faq.domain.model.FaqCategory;
 import com.tastyhouse.domain.faq.domain.repository.FaqCategoryRepository;
 import com.tastyhouse.domain.faq.domain.service.FaqCategoryDeletionPolicy;
 import com.tastyhouse.domain.faq.domain.vo.FaqCategoryId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * FAQ 카테고리 관리 command 서비스.
@@ -57,6 +57,6 @@ public class FaqCategoryCommandService {
 
     private FaqCategory findCategoryOrThrow(FaqCategoryId faqCategoryId) {
         return faqCategoryRepository.findById(faqCategoryId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

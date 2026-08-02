@@ -9,8 +9,8 @@ import com.tastyhouse.domain.shop.domain.model.HygieneBadgeType;
 import com.tastyhouse.domain.shop.domain.model.ShopHygieneBadge;
 import com.tastyhouse.domain.shop.domain.repository.ShopHygieneBadgeRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * admin용 가게 위생 인증 뱃지 등록·삭제 서비스(CQRS command 측).
@@ -53,7 +53,7 @@ public class ShopHygieneBadgeCommandService {
 
     public void deleteHygieneBadge(Long hygieneBadgeId) {
         shopHygieneBadgeRepository.findById(hygieneBadgeId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_HYGIENE_BADGE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_HYGIENE_BADGE_NOT_FOUND));
         shopHygieneBadgeRepository.deleteById(hygieneBadgeId);
     }
 }

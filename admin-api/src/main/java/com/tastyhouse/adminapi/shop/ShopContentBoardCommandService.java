@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shop.domain.model.ShopContentBoard;
 import com.tastyhouse.domain.shop.domain.repository.ShopContentBoardRepository;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * admin용 가게 콘텐츠보드 검수 변경 서비스(CQRS command 측).
@@ -42,6 +42,6 @@ public class ShopContentBoardCommandService {
 
     private ShopContentBoard loadContentBoard(Long contentBoardId) {
         return shopContentBoardRepository.findById(contentBoardId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
     }
 }

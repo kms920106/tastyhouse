@@ -3,8 +3,8 @@ package com.tastyhouse.adminapi.notice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.notice.query.NoticeDetailResult;
@@ -41,7 +41,7 @@ public class NoticeQueryService {
 
     public NoticeDetailResponse getNotice(Long id) {
         NoticeDetailResult noticeDetail = noticeQueryDao.findDetailById(id)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
         return toNoticeDetailResponse(noticeDetail);
     }
 

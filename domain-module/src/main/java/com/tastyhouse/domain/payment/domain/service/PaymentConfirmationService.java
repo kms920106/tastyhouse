@@ -21,8 +21,8 @@ import com.tastyhouse.domain.payment.domain.vo.Amount;
 import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.domain.payment.domain.vo.PgOrderId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
@@ -140,7 +140,7 @@ public class PaymentConfirmationService {
      * 토스 승인 1단 — PG 호출 <b>전에</b> 소유권·상태·금액을 검증하고, PG 요청에 필요한 값만 확정해 돌려준다.
      *
      * <p>검증 순서·예외 코드는 PG 호출을 트랜잭션 안에서 하던 기존 구현과 동일하다(미존재 →
-     * {@code ENTITY_NOT_FOUND}, 소유권 → {@code PAYMENT_ACCESS_DENIED}, 상태 →
+     * {@code PAYMENT_NOT_FOUND}, 소유권 → {@code PAYMENT_ACCESS_DENIED}, 상태 →
      * {@code PAYMENT_NOT_PENDING_APPROVAL}, 금액 → {@code PAYMENT_AMOUNT_MISMATCH}). 즉 <b>PG를 호출하기 전에
      * 걸러지던 실패는 여전히 PG 호출 없이 같은 코드로 걸러진다.</b>
      *
@@ -148,7 +148,7 @@ public class PaymentConfirmationService {
      */
     public TossConfirmationTarget prepareTossConfirmation(MemberId memberId, String pgOrderId, int amount) {
         Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         orderTransitionService.loadOwnedBy(payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED);
 
@@ -175,7 +175,7 @@ public class PaymentConfirmationService {
      */
     public PaymentId applyTossConfirmation(MemberId memberId, String pgOrderId, PgConfirmResult result) {
         Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         Order order = orderTransitionService.loadOwnedBy(
             payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
@@ -222,7 +222,7 @@ public class PaymentConfirmationService {
      */
     public void failTossConfirmation(String pgOrderId, PgConfirmResult result) {
         Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getPaymentId(), result.detail()));
 
@@ -245,7 +245,7 @@ public class PaymentConfirmationService {
      */
     public PaymentId completeOnSitePayment(MemberId memberId, PaymentId paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         Order order = orderTransitionService.loadOwnedBy(
             payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
@@ -299,7 +299,7 @@ public class PaymentConfirmationService {
      */
     private Payment loadPendingPayment(PaymentId paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);

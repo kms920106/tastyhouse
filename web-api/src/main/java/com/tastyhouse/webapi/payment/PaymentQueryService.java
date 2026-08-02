@@ -8,8 +8,8 @@ import com.tastyhouse.domain.order.domain.vo.OrderId;
 import com.tastyhouse.domain.payment.domain.vo.PaymentId;
 import com.tastyhouse.domain.payment.domain.vo.PaymentRefundId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.payment.query.PaymentQueryDao;
 import com.tastyhouse.infrastructure.payment.query.PaymentRefundResult;
 import com.tastyhouse.infrastructure.payment.query.PaymentResult;
@@ -59,18 +59,18 @@ public class PaymentQueryService {
 
     private PaymentResult loadPayment(Long id) {
         return paymentQueryDao.findPaymentById(PaymentId.of(id))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
     }
 
     /**
      * 주문별 결제 조회 — 요청 회원의 주문이 아니면 {@code ORDER_ACCESS_DENIED}.
      *
      * <p>주문 자체가 없어도 결제가 조회되지 않으므로(DAO의 inner join) 주문 미존재와 결제 미존재를 모두
-     * "결제 정보를 찾을 수 없습니다"로 응답한다.
+     * {@code PAYMENT_NOT_FOUND}로 응답한다.
      */
     public PaymentResponse getPaymentByOrderId(Long memberId, Long orderId) {
         PaymentResult result = paymentQueryDao.findPaymentByOrderId(OrderId.of(orderId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
         return toPaymentResponse(validateOwnership(result, memberId, ErrorCode.ORDER_ACCESS_DENIED));
     }
 
@@ -81,7 +81,7 @@ public class PaymentQueryService {
      */
     public PaymentRefundResponse getRefund(Long refundId) {
         PaymentRefundResult result = paymentQueryDao.findRefundById(PaymentRefundId.of(refundId))
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ENTITY_NOT_FOUND, "환불 정보를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_REFUND_NOT_FOUND));
         return toPaymentRefundResponse(result);
     }
 

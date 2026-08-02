@@ -8,8 +8,8 @@ import com.tastyhouse.domain.member.domain.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.domain.member.domain.vo.MemberId;
 import com.tastyhouse.domain.member.domain.service.MemberWithdrawalService;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 회원 관리 명령 서비스.
@@ -53,6 +53,6 @@ public class MemberCommandService {
 
     private Member loadMember(MemberId memberId) {
         return memberRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

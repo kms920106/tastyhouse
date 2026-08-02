@@ -13,8 +13,8 @@ import com.tastyhouse.domain.shop.domain.service.ShopBusinessHourService;
 import com.tastyhouse.domain.shop.domain.service.ShopLifecycleService;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 /**
  * 점주용 휴무(공휴일 토글·정기 휴무·임시 휴무) 변경 서비스(CQRS command 측).
@@ -89,7 +89,7 @@ public class ShopClosedDayCommandService {
 
     public void deleteTemporaryClosure(Long temporaryClosureId) {
         shopTemporaryClosureRepository.findById(temporaryClosureId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.SHOP_TEMPORARY_CLOSURE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_TEMPORARY_CLOSURE_NOT_FOUND));
         shopTemporaryClosureRepository.deleteById(temporaryClosureId);
     }
 }

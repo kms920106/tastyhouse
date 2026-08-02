@@ -16,8 +16,8 @@ import com.tastyhouse.domain.member.domain.model.MemberStatus;
 import com.tastyhouse.domain.member.domain.repository.MemberRepository;
 import com.tastyhouse.domain.member.domain.repository.MemberSocialAccountRepository;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.external.oauth.spi.SocialAuthorization;
 import com.tastyhouse.external.oauth.spi.SocialCredential;
 import com.tastyhouse.external.oauth.spi.SocialOAuthClient;
@@ -82,7 +82,7 @@ public class FacebookSocialLoginService {
             memberCommandService.saveSocialAccount(socialAccount);
 
             Member member = memberRepository.findById(socialAccount.getMemberId())
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
             return AuthSocialLoginResponse.ofLogin(issueJwt(member));
         }
 

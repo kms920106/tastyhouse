@@ -20,7 +20,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | `shared/exception/OptimisticLockConflictException.java` | 낙관적 락 충돌의 프레임워크-프리 표현. 스프링 `ObjectOptimisticLockingFailureException` → 이 예외 번역은 infrastructure-module의 `RepositoryImpl` 담당 |
 | `exception/ErrorCode.java` | 도메인 에러 코드 enum. `httpStatusCode`(int)/`code`(String)/`defaultMessage`(String). Spring Web 비의존이므로 `HttpStatus` 대신 int 사용 |
 | `exception/BusinessException.java` | 기본 비즈니스 예외. 모든 도메인 예외의 부모 |
-| `exception/EntityNotFoundException.java` | 엔티티 미존재 예외 (BusinessException 상속) |
+| `exception/ResourceNotFoundException.java` | 리소스(애그리거트) 미존재 예외 (BusinessException 상속). 과거 `EntityNotFoundException`이었으나 `jakarta.persistence.EntityNotFoundException`과 동명이라 JPA 관심사로 오해될 수 있어 리네이밍 |
 | `exception/AccessDeniedException.java` | 권한 없는 접근 예외 (BusinessException 상속) |
 
 > JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지가 아니라 infrastructure-module의 `DomainServiceConfig` 소관입니다.

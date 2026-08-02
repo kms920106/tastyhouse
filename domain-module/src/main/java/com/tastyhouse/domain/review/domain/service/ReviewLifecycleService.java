@@ -24,8 +24,8 @@ import com.tastyhouse.domain.shop.domain.repository.TagRepository;
 import com.tastyhouse.domain.shop.domain.vo.ShopId;
 import com.tastyhouse.domain.shop.domain.vo.TagId;
 import com.tastyhouse.domain.exception.AccessDeniedException;
-import com.tastyhouse.domain.exception.EntityNotFoundException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 /**
@@ -199,7 +199,7 @@ public class ReviewLifecycleService {
      */
     public void remove(ReviewId reviewId) {
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new EntityNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         deleteWithChildren(reviewId);
 
