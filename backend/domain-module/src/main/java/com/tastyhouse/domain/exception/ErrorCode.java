@@ -181,6 +181,9 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_VIRTUAL_NUMBER_INVALID(400, "SHOP_VIRTUAL_NUMBER_INVALID", "가상번호 발급 조건(지정 국번, 8~13자리)을 충족하지 않습니다."),
     SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST(409, "SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST", "진행 중인 승인 요청이 있어 가게 상태를 변경할 수 없습니다."),
     SHOP_ALREADY_PERMANENTLY_CLOSED(400, "SHOP_ALREADY_PERMANENTLY_CLOSED", "폐업한 가게는 정보를 수정하거나 다시 노출할 수 없습니다."),
+    SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE(400, "SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE", "최소주문금액은 5,000원 이상 30,000원 이하여야 합니다."),
+    // 쿠폰 최소주문금액 미달(ORDER_MINIMUM_AMOUNT_NOT_MET)과 다른 검증이다. 프론트가 code로 원인을 구분하므로 별도 코드로 둔다.
+    SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET(400, "SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET", "가게 최소주문금액을 충족하지 않습니다."),
     SHOP_TEXT_PROHIBITED_WORD(400, "SHOP_TEXT_PROHIBITED_WORD", "등록할 수 없는 문구가 포함되어 있습니다."),
     SHOP_INTRODUCTION_TOO_LONG(400, "SHOP_INTRODUCTION_TOO_LONG", "가게 소개는 최대 500자까지 입력할 수 있습니다."),
     SHOP_DIRECTIONS_GUIDE_TOO_LONG(400, "SHOP_DIRECTIONS_GUIDE_TOO_LONG", "찾아오는 길 안내는 최대 200자까지 입력할 수 있습니다."),

@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.ShopBookmark;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
 
@@ -27,7 +27,7 @@ public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
         return queryFactory
             .selectOne()
             .from(shopBookmarkJpaEntity)
-            .where(shopId().eq(shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
+            .where(ConvertedIdPaths.eq(shopBookmarkJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
             .fetchFirst() != null;
     }
 
@@ -35,15 +35,8 @@ public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
     public void deleteByShopIdAndMemberId(Long shopId, MemberId memberId) {
         queryFactory
             .delete(shopBookmarkJpaEntity)
-            .where(shopId().eq(shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
+            .where(ConvertedIdPaths.eq(shopBookmarkJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
             .execute();
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code SHOP_BOOKMARK.shop_id}를 raw {@code Long}으로 비교하기 위한 path.
-     */
-    private NumberPath<Long> shopId() {
-        return Expressions.numberPath(Long.class, shopBookmarkJpaEntity, "shopId");
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -12,12 +13,16 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.bug.model.BugReportCategory;
+import com.tastyhouse.domain.admin.vo.AdminId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
+import com.tastyhouse.domain.bug.vo.BugReportId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.bug.persistence.QBugReportImageJpaEntity.bugReportImageJpaEntity;
 import static com.tastyhouse.infrastructure.bug.persistence.QBugReportJpaEntity.bugReportJpaEntity;
@@ -113,7 +118,7 @@ public class BugReportQueryDao {
                 bugReportJpaEntity.status,
                 bugReportJpaEntity.category,
                 bugReportJpaEntity.priority,
-                reportAssigneeAdminId(),
+                reportAssigneeAdminIdValue(),
                 bugReportJpaEntity.adminAnswer,
                 bugReportJpaEntity.resolvedAt,
                 bugReportJpaEntity.appVersion,
@@ -141,13 +146,13 @@ public class BugReportQueryDao {
     private List<BugReportImageResult> findImages(Long bugReportId) {
         return queryFactory
             .select(new QBugReportImageResult(
-                imageFileIdPath(),
+                imageFileIdPathValue(),
                 uploadedFileJpaEntity.originalFilename,
                 uploadedFileJpaEntity.filePath
             ))
             .from(bugReportImageJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(imageFileIdPath()))
-            .where(imageBugReportId().eq(bugReportId))
+            .where(ConvertedIdPaths.eq(bugReportImageJpaEntity, "bugReportId", BugReportId.class, BugReportId::of, bugReportId))
             .orderBy(bugReportImageJpaEntity.sort.asc())
             .fetch()
             .stream()
@@ -161,14 +166,6 @@ public class BugReportQueryDao {
             row.fileName(),
             fileUrlResolver.resolve(row.imageUrl())
         );
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code BUG_REPORT.assignee_admin_id}를 raw {@code Long}으로 투영하기
-     * 위한 path.
-     */
-    private NumberPath<Long> reportAssigneeAdminId() {
-        return Expressions.numberPath(Long.class, bugReportJpaEntity, "assigneeAdminId");
     }
 
     /**
@@ -209,5 +206,21 @@ public class BugReportQueryDao {
 
     private BooleanExpression priorityEq(BugReportPriority priority) {
         return priority != null ? bugReportJpaEntity.priority.eq(priority) : null;
+    }
+
+    /**
+     * {@code imageFileId}({@code @Convert} UploadedFileId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> imageFileIdPathValue() {
+        return ConvertedIdPaths.longValue(bugReportImageJpaEntity, "imageFileId", UploadedFileId.class);
+    }
+
+    /**
+     * {@code assigneeAdminId}({@code @Convert} AdminId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> reportAssigneeAdminIdValue() {
+        return ConvertedIdPaths.longValue(bugReportJpaEntity, "assigneeAdminId", AdminId.class);
     }
 }

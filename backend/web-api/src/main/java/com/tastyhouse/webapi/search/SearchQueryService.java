@@ -138,7 +138,8 @@ public class SearchQueryService {
             dto.stationName(),
             dto.rating(),
             dto.imageUrl(),
-            dto.bookmarked()
+            dto.bookmarked(),
+            dto.minOrderAmount()
         );
     }
 }

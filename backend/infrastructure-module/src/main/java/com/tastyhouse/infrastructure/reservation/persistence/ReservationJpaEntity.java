@@ -18,8 +18,8 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 예약 JPA 영속 모델.

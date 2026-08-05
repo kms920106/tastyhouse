@@ -1,4 +1,4 @@
-import type { OrderMethodType, OrderStatusCode } from './order.types'
+import type { OrderErrorCode, OrderMethodType, OrderStatusCode } from './order.types'
 
 const ORDER_STATUS_NAMES: Record<OrderStatusCode, string> = {
   PENDING: '주문대기',
@@ -10,6 +10,20 @@ const ORDER_STATUS_NAMES: Record<OrderStatusCode, string> = {
 
 export const getOrderStatusName = (status: OrderStatusCode): string => {
   return ORDER_STATUS_NAMES[status]
+}
+
+// 주문 생성 에러 코드 → 사용자 노출 메시지 (백엔드 message가 없을 때의 폴백)
+const ORDER_ERROR_MESSAGES: Record<OrderErrorCode, string> = {
+  SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET: '가게 최소주문금액을 충족하지 않습니다.',
+  ORDER_MINIMUM_AMOUNT_NOT_MET: '쿠폰 최소주문금액을 충족하지 않습니다.',
+  ORDER_PRODUCT_SOLD_OUT: '품절된 상품이 포함되어 있습니다. 장바구니를 확인해 주세요.',
+  ORDER_PRODUCT_NOT_FOUND: '판매하지 않는 상품이 포함되어 있습니다. 장바구니를 확인해 주세요.',
+  SHOP_NOT_FOUND: '존재하지 않는 가게입니다.',
+}
+
+export const getOrderErrorMessage = (errorCode: string | undefined): string | null => {
+  if (!errorCode) return null
+  return ORDER_ERROR_MESSAGES[errorCode as OrderErrorCode] ?? null
 }
 
 const ORDER_METHOD_TYPES: OrderMethodType[] = ['TABLE', 'RESERVATION', 'DELIVERY', 'TAKEOUT']

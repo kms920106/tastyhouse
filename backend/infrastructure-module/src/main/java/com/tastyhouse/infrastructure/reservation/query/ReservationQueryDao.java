@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -14,7 +15,9 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -71,7 +74,7 @@ public class ReservationQueryDao {
      */
     public List<ReservationResult> findReservationsByShopId(Long shopId) {
         return reservationQuery()
-            .where(reservationShopId().eq(shopId))
+            .where(ConvertedIdPaths.eq(reservationJpaEntity, "shopId", ShopId.class, ShopId::of, shopId))
             .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
             .fetch()
             .stream()
@@ -98,7 +101,7 @@ public class ReservationQueryDao {
         ReservationDetailResult result = queryFactory
             .select(new QReservationDetailResult(
                 reservationJpaEntity.id,
-                reservationShopId(),
+                reservationShopIdValue(),
                 shopJpaEntity.name,
                 uploadedFileJpaEntity.filePath,
                 shopJpaEntity.roadAddress,
@@ -136,7 +139,7 @@ public class ReservationQueryDao {
             ))
             .from(reservationSlotJpaEntity)
             .where(
-                slotShopId().eq(shopId),
+                ConvertedIdPaths.eq(reservationSlotJpaEntity, "shopId", ShopId.class, ShopId::of, shopId),
                 reservationSlotJpaEntity.slotDate.eq(date)
             )
             .fetch();
@@ -152,7 +155,7 @@ public class ReservationQueryDao {
             .from(reservationJpaEntity)
             .where(
                 reservationJpaEntity.memberId.eq(memberId),
-                reservationShopId().eq(shopId),
+                ConvertedIdPaths.eq(reservationJpaEntity, "shopId", ShopId.class, ShopId::of, shopId),
                 reservationJpaEntity.reservationDate.eq(date),
                 reservationJpaEntity.status.in(ReservationStatus.blockingStatuses())
             )
@@ -173,7 +176,7 @@ public class ReservationQueryDao {
     private ConstructorExpression<ReservationResult> reservationProjection() {
         return new QReservationResult(
             reservationJpaEntity.id,
-            reservationShopId(),
+            reservationShopIdValue(),
             shopJpaEntity.name,
             uploadedFileJpaEntity.filePath,
             shopJpaEntity.roadAddress,
@@ -239,13 +242,6 @@ public class ReservationQueryDao {
     }
 
     /**
-     * {@code @Convert} VO 컬럼인 {@code RESERVATION_SLOT.shop_id}를 raw {@code Long}으로 비교하기 위한 path.
-     */
-    private NumberPath<Long> slotShopId() {
-        return Expressions.numberPath(Long.class, reservationSlotJpaEntity, "shopId");
-    }
-
-    /**
      * 예약의 {@code memberId}는 {@code @Convert}로 {@code MemberId} VO에 매핑돼 있어 회원 테이블의 raw
      * {@code Long} PK와 직접 join할 수 없다. 같은 컬럼을 {@code Long} 경로로 다시 노출해 join에 쓴다.
      */
@@ -259,5 +255,13 @@ public class ReservationQueryDao {
      */
     private NumberPath<Long> shopThumbnailImageFileId() {
         return Expressions.numberPath(Long.class, shopJpaEntity, "thumbnailImageFileId");
+    }
+
+    /**
+     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> reservationShopIdValue() {
+        return ConvertedIdPaths.longValue(reservationJpaEntity, "shopId", ShopId.class);
     }
 }

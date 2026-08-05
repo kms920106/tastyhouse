@@ -49,7 +49,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
         return Shop.reconstitute(
             1L, null, StationId.of(1L), "가게", BigDecimal.valueOf(37.5), BigDecimal.valueOf(127.0),
             4.5, "도로명", "지번", "02-000-0000", null, null,
-            permanentlyClosed, false, closedOnPublicHolidays, LocalDateTime.now(), LocalDateTime.now()
+            permanentlyClosed, false, closedOnPublicHolidays, 0, LocalDateTime.now(), LocalDateTime.now()
         );
     }
 

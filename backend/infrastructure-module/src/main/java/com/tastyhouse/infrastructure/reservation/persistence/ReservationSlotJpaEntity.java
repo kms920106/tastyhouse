@@ -14,8 +14,8 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 가게 예약 슬롯 JPA 영속 모델.

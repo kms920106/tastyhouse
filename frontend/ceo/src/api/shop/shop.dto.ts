@@ -37,6 +37,14 @@ export interface ShopDetailResponse {
   permanentlyClosed: boolean;
   hidden: boolean;
   closedOnPublicHolidays: boolean;
+  /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
+  minOrderAmount: number;
+}
+
+// ===== 최소주문금액 =====
+
+export interface ShopMinOrderAmountUpdateRequest {
+  minOrderAmount: number;
 }
 
 // ===== 영업시간 · 휴게시간 =====

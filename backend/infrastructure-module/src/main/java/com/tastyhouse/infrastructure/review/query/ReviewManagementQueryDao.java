@@ -6,18 +6,23 @@ import java.util.Optional;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -62,8 +67,8 @@ public class ReviewManagementQueryDao {
         JPAQuery<ReviewListItemResult> query = queryFactory
             .select(new QReviewListItemResult(
                 reviewJpaEntity.id,
-                reviewShopId(),
-                reviewProductId(),
+                reviewShopIdValue(),
+                reviewProductIdValue(),
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
                 reviewJpaEntity.totalRating,
@@ -149,7 +154,7 @@ public class ReviewManagementQueryDao {
             ))
             .from(reviewCommentJpaEntity)
             .leftJoin(memberJpaEntity).on(commentMemberIdPath().eq(memberJpaEntity.id))
-            .where(commentReviewId().eq(reviewId.value()))
+            .where(ConvertedIdPaths.eq(reviewCommentJpaEntity, "reviewId", ReviewId.class, ReviewId::of, reviewId.value()))
             .orderBy(reviewCommentJpaEntity.createdAt.desc())
             .fetch();
     }
@@ -169,10 +174,10 @@ public class ReviewManagementQueryDao {
         return queryFactory
             .select(Projections.constructor(ReviewReplyListItemResult.class,
                 reviewReplyJpaEntity.id,
-                replyCommentId(),
+                ConvertedIdPaths.longValue(reviewReplyJpaEntity, "commentId", ReviewCommentId.class),
                 reviewReplyJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                replyReplyToMemberId(),
+                ConvertedIdPaths.longValue(reviewReplyJpaEntity, "replyToMemberId", MemberId.class),
                 replyToMember.nickname,
                 reviewReplyJpaEntity.content,
                 reviewReplyJpaEntity.hidden,
@@ -181,7 +186,7 @@ public class ReviewManagementQueryDao {
             .from(reviewReplyJpaEntity)
             .leftJoin(memberJpaEntity).on(replyMemberIdPath().eq(memberJpaEntity.id))
             .leftJoin(replyToMember).on(replyToMemberIdPath().eq(replyToMember.id))
-            .where(replyCommentId().in(ids))
+            .where(ConvertedIdPaths.in(reviewReplyJpaEntity, "commentId", ReviewCommentId.class, ReviewCommentId::of, ids))
             .orderBy(reviewReplyJpaEntity.createdAt.asc())
             .fetch();
     }
@@ -211,11 +216,11 @@ public class ReviewManagementQueryDao {
     }
 
     private BooleanExpression shopIdEq(Long shopId) {
-        return shopId != null ? reviewShopId().eq(shopId) : null;
+        return shopId != null ? ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId) : null;
     }
 
     private BooleanExpression productIdEq(Long productId) {
-        return productId != null ? reviewProductId().eq(productId) : null;
+        return productId != null ? ConvertedIdPaths.eq(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productId) : null;
     }
 
     private BooleanExpression memberIdEq(Long memberId) {
@@ -252,7 +257,7 @@ public class ReviewManagementQueryDao {
             .select(uploadedFileJpaEntity.filePath)
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(imageImageFileId().eq(uploadedFileJpaEntity.id))
-            .where(imageReviewId().eq(reviewId))
+            .where(ConvertedIdPaths.eq(reviewImageJpaEntity, "reviewId", ReviewId.class, ReviewId::of, reviewId))
             .orderBy(reviewImageJpaEntity.sort.asc())
             .fetch();
 
@@ -318,45 +323,10 @@ public class ReviewManagementQueryDao {
     }
 
     /**
-     * {@code @Convert} VO 컬럼인 {@code REVIEW.product_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> reviewProductId() {
-        return Expressions.numberPath(Long.class, reviewJpaEntity, "productId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code REVIEW_COMMENT.review_id}를 raw {@code Long}으로 비교하기 위한 path.
-     */
-    private NumberPath<Long> commentReviewId() {
-        return Expressions.numberPath(Long.class, reviewCommentJpaEntity, "reviewId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code REVIEW_REPLY.comment_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> replyCommentId() {
-        return Expressions.numberPath(Long.class, reviewReplyJpaEntity, "commentId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code REVIEW_REPLY.reply_to_member_id}를 raw {@code Long}으로 투영하기 위한 path.
-     */
-    private NumberPath<Long> replyReplyToMemberId() {
-        return Expressions.numberPath(Long.class, reviewReplyJpaEntity, "replyToMemberId");
-    }
-
-    /**
      * {@code @Convert} VO 컬럼인 {@code REVIEW_IMAGE.image_file_id}를 raw {@code Long}으로 비교하기 위한 path.
      */
     private NumberPath<Long> imageImageFileId() {
         return Expressions.numberPath(Long.class, reviewImageJpaEntity, "imageFileId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code REVIEW_IMAGE.review_id}를 raw {@code Long}으로 비교하기 위한 path.
-     */
-    private NumberPath<Long> imageReviewId() {
-        return Expressions.numberPath(Long.class, reviewImageJpaEntity, "reviewId");
     }
 
     /**
@@ -373,5 +343,21 @@ public class ReviewManagementQueryDao {
      */
     private NumberPath<Long> memberProfileImageFileId() {
         return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
+    }
+
+    /**
+     * {@code productId}({@code @Convert} ProductId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> reviewProductIdValue() {
+        return ConvertedIdPaths.longValue(reviewJpaEntity, "productId", ProductId.class);
+    }
+
+    /**
+     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> reviewShopIdValue() {
+        return ConvertedIdPaths.longValue(reviewJpaEntity, "shopId", ShopId.class);
     }
 }

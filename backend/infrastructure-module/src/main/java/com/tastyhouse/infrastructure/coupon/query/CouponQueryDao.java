@@ -17,6 +17,7 @@ import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.couponJpaEntity;
 import static com.tastyhouse.infrastructure.coupon.persistence.QMemberCouponJpaEntity.memberCouponJpaEntity;
@@ -126,7 +127,7 @@ public class CouponQueryDao {
         Long total = queryFactory
             .select(memberCouponJpaEntity.id.count())
             .from(memberCouponJpaEntity)
-            .where(memberCouponIdCouponIdPath().eq(couponId.value()))
+            .where(ConvertedIdPaths.eq(memberCouponJpaEntity, "couponId", CouponId.class, CouponId::of, couponId.value()))
             .fetchOne();
 
         List<MemberCouponItemResult> content = queryFactory
@@ -139,7 +140,7 @@ public class CouponQueryDao {
                 memberCouponJpaEntity.createdAt
             ))
             .from(memberCouponJpaEntity)
-            .where(memberCouponIdCouponIdPath().eq(couponId.value()))
+            .where(ConvertedIdPaths.eq(memberCouponJpaEntity, "couponId", CouponId.class, CouponId::of, couponId.value()))
             .orderBy(memberCouponJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())

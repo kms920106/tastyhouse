@@ -10,12 +10,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.ShopImageType;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 가게 이미지 변경 승인요청 JPA 영속 모델.

@@ -10,9 +10,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
-
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 가게 편의정보 JPA 영속 모델. 순수 도메인 모델 {@code ShopConvenienceInfo}와 분리된 영속 전용 엔티티다.

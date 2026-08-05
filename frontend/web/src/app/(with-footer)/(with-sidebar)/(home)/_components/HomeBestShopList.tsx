@@ -35,6 +35,7 @@ export default async function HomeBestShopList() {
             stationName={shop.stationName}
             rating={shop.rating}
             foodTypes={shop.foodTypes}
+            minOrderAmount={shop.minOrderAmount}
           />
         ))}
       </ul>

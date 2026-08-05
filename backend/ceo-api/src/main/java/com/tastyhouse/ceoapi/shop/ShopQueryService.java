@@ -91,7 +91,8 @@ public class ShopQueryService {
             trademarkImageUrl,
             shop.isPermanentlyClosed(),
             shop.isHidden(),
-            shop.isClosedOnPublicHolidays()
+            shop.isClosedOnPublicHolidays(),
+            shop.getMinOrderAmount()
         );
     }
 }

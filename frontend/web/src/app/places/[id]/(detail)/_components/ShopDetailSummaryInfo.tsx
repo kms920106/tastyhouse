@@ -1,7 +1,7 @@
 'use client'
 
 import { toast } from '@/components/ui/AppToaster'
-import { formatDecimal } from '@/lib/number'
+import { formatDecimal, formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
 import { copyToClipboard } from '@/lib/share'
 import Link from 'next/link'
@@ -15,6 +15,8 @@ interface Props {
   roadAddress: string
   lotAddress: string
   rating: number
+  /** 가게 최소주문금액. 0이면 미설정이라 노출하지 않는다 */
+  minOrderAmount: number
   bookmarkButton: ReactNode
 }
 
@@ -24,6 +26,7 @@ export default function ShopDetailSummaryInfo({
   roadAddress,
   lotAddress,
   rating,
+  minOrderAmount,
   bookmarkButton,
 }: Props) {
   const handleCopyAddress = async () => {
@@ -61,6 +64,11 @@ export default function ShopDetailSummaryInfo({
         </div>
         {bookmarkButton}
       </div>
+      {minOrderAmount > 0 && (
+        <div className="mt-[7px] text-xs leading-[12px] text-[#aaaaaa]">
+          최소주문금액 {formatNumber(minOrderAmount)}원
+        </div>
+      )}
     </>
   )
 }

@@ -111,6 +111,8 @@ export interface ShopBestListItemResponse {
   stationName: string
   rating: number
   foodTypes: ShopFoodType[]
+  /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
+  minOrderAmount: number
 }
 
 export interface ShopChoiceListItemResponse {
@@ -132,6 +134,8 @@ export interface ShopLatestListItemResponse {
   bookmarkCount: number
   createdAt: string
   foodTypes: ShopFoodType[]
+  /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
+  minOrderAmount: number
 }
 
 export interface ShopMapListItemResponse {
@@ -154,4 +158,6 @@ export interface ShopDetailResponse {
   roadAddress: string
   lotAddress: string
   phoneNumber: string
+  /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
+  minOrderAmount: number
 }

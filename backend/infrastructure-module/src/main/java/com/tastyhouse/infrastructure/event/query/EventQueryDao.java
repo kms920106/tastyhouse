@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -12,11 +13,13 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.event.model.EventStatus;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.event.persistence.QEventAnnouncementJpaEntity.eventAnnouncementJpaEntity;
 import static com.tastyhouse.infrastructure.event.persistence.QEventJpaEntity.eventJpaEntity;
@@ -122,7 +125,7 @@ public class EventQueryDao {
                 eventJpaEntity.id,
                 eventJpaEntity.name,
                 eventJpaEntity.status,
-                eventThumbnailImageFileId(),
+                eventThumbnailImageFileIdValue(),
                 uploadedFileJpaEntity.originalFilename,
                 uploadedFileJpaEntity.filePath,
                 eventJpaEntity.startAt,
@@ -160,10 +163,10 @@ public class EventQueryDao {
                 eventJpaEntity.name,
                 eventJpaEntity.description,
                 eventJpaEntity.subtitle,
-                eventThumbnailImageFileId(),
+                eventThumbnailImageFileIdValue(),
                 thumbnailFile.originalFilename,
                 thumbnailFile.filePath,
-                eventBannerImageFileId(),
+                eventBannerImageFileIdValue(),
                 bannerFile.originalFilename,
                 bannerFile.filePath,
                 eventJpaEntity.contentHtml,
@@ -189,14 +192,14 @@ public class EventQueryDao {
         return queryFactory
             .select(new QEventWinnerResult(
                 eventWinnerJpaEntity.id,
-                winnerEventId(),
+                winnerEventIdValue(),
                 eventWinnerJpaEntity.rankNo,
                 eventWinnerJpaEntity.winnerName,
                 eventWinnerJpaEntity.phoneNumber.value,
                 eventWinnerJpaEntity.announcedAt
             ))
             .from(eventWinnerJpaEntity)
-            .where(winnerEventId().eq(eventId.value()), eventWinnerJpaEntity.deleted.isFalse())
+            .where(ConvertedIdPaths.eq(eventWinnerJpaEntity, "eventId", EventId.class, EventId::of, eventId.value()), eventWinnerJpaEntity.deleted.isFalse())
             .orderBy(eventWinnerJpaEntity.rankNo.asc())
             .fetch();
     }
@@ -206,7 +209,7 @@ public class EventQueryDao {
      */
     public Optional<EventAnnouncementResult> findAnnouncementByEventId(EventId eventId) {
         EventAnnouncementResult result = selectAnnouncement()
-            .where(announcementEventId().eq(eventId.value()))
+            .where(ConvertedIdPaths.eq(eventAnnouncementJpaEntity, "eventId", EventId.class, EventId::of, eventId.value()))
             .fetchOne();
 
         return Optional.ofNullable(result);
@@ -237,7 +240,7 @@ public class EventQueryDao {
         return queryFactory
             .select(new QEventAnnouncementResult(
                 eventAnnouncementJpaEntity.id,
-                announcementEventId(),
+                announcementEventIdValue(),
                 eventAnnouncementJpaEntity.name,
                 eventAnnouncementJpaEntity.content,
                 eventAnnouncementJpaEntity.announcedAt
@@ -315,26 +318,43 @@ public class EventQueryDao {
         return Expressions.numberPath(Long.class, eventJpaEntity, "bannerImageFileId");
     }
 
-    /**
-     * {@code @Convert} VO 컬럼인 {@code EVENT_WINNER.event_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> winnerEventId() {
-        return Expressions.numberPath(Long.class, eventWinnerJpaEntity, "eventId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code EVENT_ANNOUNCEMENT.event_id}를 raw {@code Long}으로 비교·투영하기
-     * 위한 path.
-     */
-    private NumberPath<Long> announcementEventId() {
-        return Expressions.numberPath(Long.class, eventAnnouncementJpaEntity, "eventId");
-    }
-
     private BooleanExpression nameContains(String name) {
         return StringUtils.hasText(name) ? eventJpaEntity.name.containsIgnoreCase(name) : null;
     }
 
     private BooleanExpression statusEq(EventStatus status) {
         return status != null ? eventJpaEntity.status.eq(status) : null;
+    }
+
+    /**
+     * {@code eventId}({@code @Convert} EventId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> announcementEventIdValue() {
+        return ConvertedIdPaths.longValue(eventAnnouncementJpaEntity, "eventId", EventId.class);
+    }
+
+    /**
+     * {@code bannerImageFileId}({@code @Convert} UploadedFileId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> eventBannerImageFileIdValue() {
+        return ConvertedIdPaths.longValue(eventJpaEntity, "bannerImageFileId", UploadedFileId.class);
+    }
+
+    /**
+     * {@code thumbnailImageFileId}({@code @Convert} UploadedFileId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> eventThumbnailImageFileIdValue() {
+        return ConvertedIdPaths.longValue(eventJpaEntity, "thumbnailImageFileId", UploadedFileId.class);
+    }
+
+    /**
+     * {@code eventId}({@code @Convert} EventId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> winnerEventIdValue() {
+        return ConvertedIdPaths.longValue(eventWinnerJpaEntity, "eventId", EventId.class);
     }
 }

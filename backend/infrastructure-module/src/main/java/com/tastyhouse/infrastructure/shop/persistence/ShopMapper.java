@@ -30,6 +30,7 @@ final class ShopMapper {
             entity.isPermanentlyClosed(),
             entity.isHidden(),
             entity.isClosedOnPublicHolidays(),
+            entity.getMinOrderAmount(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
@@ -53,7 +54,8 @@ final class ShopMapper {
             domain.getTrademarkImageFileId(),
             domain.isPermanentlyClosed(),
             domain.isHidden(),
-            domain.isClosedOnPublicHolidays()
+            domain.isClosedOnPublicHolidays(),
+            domain.getMinOrderAmount()
         );
     }
 
@@ -75,7 +77,8 @@ final class ShopMapper {
             domain.getTrademarkImageFileId(),
             domain.isPermanentlyClosed(),
             domain.isHidden(),
-            domain.isClosedOnPublicHolidays()
+            domain.isClosedOnPublicHolidays(),
+            domain.getMinOrderAmount()
         );
     }
 }

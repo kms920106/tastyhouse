@@ -9,9 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 import com.tastyhouse.domain.shop.vo.ShopFoodTypeCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 상점-음식유형 배정 JPA 영속 모델. 순수 도메인 모델 {@code ShopFoodType}과 분리된 영속 전용 엔티티다.

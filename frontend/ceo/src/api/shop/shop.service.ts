@@ -142,6 +142,7 @@ export const shopService = {
         hidden: detail.hidden,
         permanentlyClosed: detail.permanentlyClosed,
         closedOnPublicHolidays: detail.closedOnPublicHolidays,
+        minOrderAmount: detail.minOrderAmount,
         introduction: introductionRes.data?.message ?? "",
         thumbnailImageUrl: detail.thumbnailImageUrl,
         trademarkImageUrl: detail.trademarkImageUrl,

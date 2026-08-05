@@ -375,6 +375,7 @@ CREATE TABLE SHOP
     is_permanently_closed      TINYINT(1)    NOT NULL DEFAULT 0, -- 폐업 여부 (1: 폐업)
     is_hidden                  TINYINT(1)    NOT NULL DEFAULT 0, -- 노출정지 여부 (1: 배민앱 완전 비노출)
     is_closed_on_public_holidays TINYINT(1)  NOT NULL DEFAULT 0, -- 공휴일 휴무 여부
+    min_order_amount           INT           NOT NULL DEFAULT 0, -- 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
     created_at        DATETIME      NOT NULL,            -- 생성 일시
     updated_at        DATETIME      NOT NULL,            -- 수정 일시
     INDEX idx_shop_ceo_id (ceo_id)

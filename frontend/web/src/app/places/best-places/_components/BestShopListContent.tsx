@@ -45,6 +45,7 @@ export default function BestShopListContent() {
                 stationName={place.stationName}
                 rating={place.rating}
                 foodTypes={place.foodTypes}
+                minOrderAmount={place.minOrderAmount}
               />
             ))}
           </ul>

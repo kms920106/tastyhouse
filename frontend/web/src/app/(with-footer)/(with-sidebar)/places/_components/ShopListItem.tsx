@@ -5,6 +5,7 @@ import {
   ShopCardContent,
   ShopCardHeader,
   ShopCardImage,
+  ShopCardMinOrder,
   ShopCardName,
   ShopCardRating,
   ShopCardStation,
@@ -23,6 +24,8 @@ interface Props {
   reviewCount: number
   bookmarkCount: number
   foodTypes: ShopFoodType[]
+  /** 가게 최소주문금액. 0이면 미설정이라 노출하지 않는다 */
+  minOrderAmount: number
 }
 
 export default function ShopListItem({
@@ -34,6 +37,7 @@ export default function ShopListItem({
   reviewCount,
   bookmarkCount,
   foodTypes,
+  minOrderAmount,
 }: Props) {
   const foodNames = foodTypes.map((foodType) => getShopFoodTypeCodeName(foodType))
 
@@ -48,6 +52,7 @@ export default function ShopListItem({
           </ShopCardHeader>
           <ShopCardName>{name}</ShopCardName>
           <ShopCardStats reviewCount={reviewCount} bookmarkCount={bookmarkCount} />
+          <ShopCardMinOrder value={minOrderAmount} />
           <ShopCardTags tags={foodNames} variant="secondary" />
         </ShopCardContent>
       </ShopCard>

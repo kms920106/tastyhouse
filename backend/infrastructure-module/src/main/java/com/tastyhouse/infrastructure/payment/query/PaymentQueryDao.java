@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.payment.query;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
@@ -54,7 +56,7 @@ public class PaymentQueryDao {
     public Optional<PaymentResult> findPaymentByOrderId(OrderId orderId) {
         return Optional.ofNullable(
             selectPayment()
-                .where(paymentOrderId().eq(orderId.value()))
+                .where(ConvertedIdPaths.eq(paymentJpaEntity, "orderId", OrderId.class, OrderId::of, orderId.value()))
                 .fetchOne()
         );
     }
@@ -84,7 +86,7 @@ public class PaymentQueryDao {
             queryFactory
                 .select(new QPaymentRefundResult(
                     paymentRefundJpaEntity.id,
-                    refundPaymentId(),
+                    refundPaymentIdValue(),
                     paymentRefundJpaEntity.refundAmount,
                     paymentRefundJpaEntity.refundReason,
                     paymentRefundJpaEntity.refundStatus,
@@ -105,7 +107,7 @@ public class PaymentQueryDao {
         return queryFactory
             .select(new QPaymentResult(
                 paymentJpaEntity.id,
-                paymentOrderId(),
+                paymentOrderIdValue(),
                 orderJpaEntity.memberId,
                 paymentJpaEntity.paymentMethod,
                 paymentJpaEntity.paymentStatus,
@@ -134,9 +136,18 @@ public class PaymentQueryDao {
     }
 
     /**
-     * {@code @Convert} VO 컬럼인 {@code PAYMENT_REFUND.payment_id}를 raw {@code Long}으로 다루기 위한 path.
+     * {@code orderId}({@code @Convert} OrderId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
      */
-    private NumberPath<Long> refundPaymentId() {
-        return Expressions.numberPath(Long.class, paymentRefundJpaEntity, "paymentId");
+    private NumberExpression<Long> paymentOrderIdValue() {
+        return ConvertedIdPaths.longValue(paymentJpaEntity, "orderId", OrderId.class);
+    }
+
+    /**
+     * {@code paymentId}({@code @Convert} PaymentId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> refundPaymentIdValue() {
+        return ConvertedIdPaths.longValue(paymentRefundJpaEntity, "paymentId", PaymentId.class);
     }
 }

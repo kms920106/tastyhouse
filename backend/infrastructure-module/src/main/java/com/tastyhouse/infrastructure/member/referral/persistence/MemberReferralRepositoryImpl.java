@@ -5,10 +5,10 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.referral.domain.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.domain.repository.MemberReferralRepository;
 import com.tastyhouse.domain.member.referral.domain.vo.ReferralId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 import static com.tastyhouse.infrastructure.member.referral.persistence.QMemberReferralJpaEntity.memberReferralJpaEntity;
 

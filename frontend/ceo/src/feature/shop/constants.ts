@@ -13,6 +13,15 @@ export const CONTENT_BOARD_MAX_COUNT = 4;
 export const TEMPORARY_CLOSURE_MAX_DAYS = 30;
 export const REGULAR_CLOSED_DAY_MAX_COUNT = 15;
 
+/** 최소주문금액 미설정 값 — 제한 없음 */
+export const MIN_ORDER_AMOUNT_UNSET = 0;
+/** 최소주문금액을 설정할 때의 하한(원) */
+export const MIN_ORDER_AMOUNT_LOWER_BOUND = 5000;
+/** 최소주문금액을 설정할 때의 상한(원) */
+export const MIN_ORDER_AMOUNT_UPPER_BOUND = 30000;
+/** 최소주문금액 입력 단위(원) */
+export const MIN_ORDER_AMOUNT_STEP = 1000;
+
 /** 노출 위치가 허용되는 실제 위치 기준 반경(m) */
 export const DISPLAY_LOCATION_MAX_DISTANCE_M = 1000;
 

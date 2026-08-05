@@ -14,6 +14,7 @@ public record LatestShopItemResult(
     LocalDateTime createdAt,
     Long reviewCount,
     Long bookmarkCount,
-    List<FoodType> foodTypes
+    List<FoodType> foodTypes,
+    int minOrderAmount
 ) {
 }

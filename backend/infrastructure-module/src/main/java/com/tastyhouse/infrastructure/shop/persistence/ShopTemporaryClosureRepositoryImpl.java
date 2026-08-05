@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.repository.ShopTemporaryClosureRepository;
 
 @Repository
@@ -25,7 +26,7 @@ public class ShopTemporaryClosureRepositoryImpl implements ShopTemporaryClosureR
 
     @Override
     public List<ShopTemporaryClosure> findByShopId(Long shopId) {
-        return shopTemporaryClosureJpaRepository.findByShopId(shopId)
+        return shopTemporaryClosureJpaRepository.findByShopId(ShopId.of(shopId))
             .stream()
             .map(ShopTemporaryClosureMapper::toDomain)
             .toList();

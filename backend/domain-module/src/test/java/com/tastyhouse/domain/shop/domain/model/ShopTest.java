@@ -3,10 +3,14 @@ package com.tastyhouse.domain.shop.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
@@ -129,6 +133,7 @@ class ShopTest {
             true,
             false,
             false,
+            10000,
             createdAt,
             updatedAt
         );
@@ -137,6 +142,7 @@ class ShopTest {
         assertThat(shop.getShopId()).isEqualTo(ShopId.of(1L));
         assertThat(shop.getRating()).isEqualTo(4.5);
         assertThat(shop.isPermanentlyClosed()).isTrue();
+        assertThat(shop.getMinOrderAmount()).isEqualTo(10000);
         assertThat(shop.getCreatedAt()).isEqualTo(createdAt);
         assertThat(shop.getUpdatedAt()).isEqualTo(updatedAt);
     }
@@ -240,6 +246,114 @@ class ShopTest {
 
             assertThat(shop.isHidden()).isTrue();
             assertThat(shop.isPermanentlyClosed()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("최소주문금액")
+    class MinOrderAmount {
+
+        private Shop shop() {
+            return Shop.of(
+                StationId.of(1L),
+                "상점명",
+                BigDecimal.valueOf(37.5),
+                BigDecimal.valueOf(127.0),
+                "도로명 주소",
+                "지번 주소",
+                "010-1234-5678",
+                UploadedFileId.of(10L)
+            );
+        }
+
+        private Shop shopWithMinOrderAmount(int minOrderAmount) {
+            Shop shop = shop();
+            shop.changeMinOrderAmount(minOrderAmount);
+            return shop;
+        }
+
+        @Test
+        @DisplayName("of로 생성한 가게는 최소주문금액이 미설정(0)이다")
+        void of_startsUnset() {
+            assertThat(shop().getMinOrderAmount()).isEqualTo(Shop.MIN_ORDER_AMOUNT_UNSET);
+        }
+
+        @ParameterizedTest
+        @DisplayName("0(미설정)과 5,000~30,000 범위의 값은 설정할 수 있다")
+        @ValueSource(ints = {0, 5000, 5001, 10000, 29999, 30000})
+        void changeMinOrderAmount_acceptsValidValues(int amount) {
+            Shop shop = shop();
+
+            shop.changeMinOrderAmount(amount);
+
+            assertThat(shop.getMinOrderAmount()).isEqualTo(amount);
+        }
+
+        @ParameterizedTest
+        @DisplayName("0이 아니면서 5,000~30,000 범위를 벗어난 값은 거부된다")
+        @ValueSource(ints = {-1, 1, 4999, 30001, 100000})
+        void changeMinOrderAmount_rejectsOutOfRange(int amount) {
+            Shop shop = shop();
+
+            assertThatThrownBy(() -> shop.changeMinOrderAmount(amount))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE);
+
+            // 거부된 변경은 기존 값을 바꾸지 않는다
+            assertThat(shop.getMinOrderAmount()).isEqualTo(Shop.MIN_ORDER_AMOUNT_UNSET);
+        }
+
+        @Test
+        @DisplayName("폐업한 가게의 최소주문금액은 변경할 수 없다")
+        void changeMinOrderAmount_afterClosure_throws() {
+            Shop shop = shopWithMinOrderAmount(10000);
+            shop.close();
+
+            assertThatThrownBy(() -> shop.changeMinOrderAmount(20000))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+
+            assertThat(shop.getMinOrderAmount()).isEqualTo(10000);
+        }
+
+        @Test
+        @DisplayName("배달 주문이 최소주문금액에 미달하면 거부된다")
+        void validate_delivery_belowThreshold_throws() {
+            Shop shop = shopWithMinOrderAmount(10000);
+
+            assertThatThrownBy(() -> shop.validateMinOrderAmount(OrderMethod.DELIVERY, 9999))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET);
+        }
+
+        @ParameterizedTest
+        @DisplayName("배달 주문이 최소주문금액 이상이면 통과한다(경계값 포함)")
+        @ValueSource(ints = {10000, 10001, 50000})
+        void validate_delivery_atOrAboveThreshold_passes(int amount) {
+            Shop shop = shopWithMinOrderAmount(10000);
+
+            shop.validateMinOrderAmount(OrderMethod.DELIVERY, amount);
+        }
+
+        @ParameterizedTest
+        @DisplayName("배달 외 주문방식은 금액과 무관하게 면제된다(픽업 포함)")
+        @EnumSource(value = OrderMethod.class, names = {"TAKEOUT", "TABLE", "RESERVATION"})
+        void validate_nonDelivery_isExempt(OrderMethod orderMethod) {
+            Shop shop = shopWithMinOrderAmount(10000);
+
+            shop.validateMinOrderAmount(orderMethod, 1000);
+        }
+
+        @ParameterizedTest
+        @DisplayName("최소주문금액이 미설정(0)이면 모든 주문방식·금액이 통과한다")
+        @EnumSource(OrderMethod.class)
+        void validate_whenUnset_passes(OrderMethod orderMethod) {
+            Shop shop = shop();
+
+            shop.validateMinOrderAmount(orderMethod, 0);
         }
     }
 }

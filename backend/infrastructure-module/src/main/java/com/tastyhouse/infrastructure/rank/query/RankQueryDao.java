@@ -5,15 +5,18 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.vo.RankPrizeId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -167,7 +170,7 @@ public class RankQueryDao {
             .select(rankPrizeManagementProjection())
             .from(rankPrizeJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(prizeImageFileId()))
-            .where(prizeRankId().eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
+            .where(ConvertedIdPaths.eq(rankPrizeJpaEntity, "rankId", RankPeriodId.class, RankPeriodId::of, periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
             .orderBy(rankPrizeJpaEntity.prizeRank.asc())
             .fetch()
             .stream()
@@ -214,11 +217,11 @@ public class RankQueryDao {
     private QRankPrizeManagementResult rankPrizeManagementProjection() {
         return new QRankPrizeManagementResult(
             rankPrizeJpaEntity.id,
-            prizeRankId(),
+            prizeRankIdValue(),
             rankPrizeJpaEntity.prizeRank,
             rankPrizeJpaEntity.name,
             rankPrizeJpaEntity.brand,
-            prizeImageFileId(),
+            prizeImageFileIdValue(),
             uploadedFileJpaEntity.originalFilename,
             uploadedFileJpaEntity.filePath
         );
@@ -290,5 +293,21 @@ public class RankQueryDao {
      */
     private NumberPath<Long> memberProfileImageFileId() {
         return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
+    }
+
+    /**
+     * {@code imageFileId}({@code @Convert} UploadedFileId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> prizeImageFileIdValue() {
+        return ConvertedIdPaths.longValue(rankPrizeJpaEntity, "imageFileId", UploadedFileId.class);
+    }
+
+    /**
+     * {@code rankId}({@code @Convert} RankPeriodId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> prizeRankIdValue() {
+        return ConvertedIdPaths.longValue(rankPrizeJpaEntity, "rankId", RankPeriodId.class);
     }
 }

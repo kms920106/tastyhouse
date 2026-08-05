@@ -11,13 +11,18 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.model.ShopContentType;
-import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.domain.shop.model.ShopContentType;
+import com.tastyhouse.domain.shop.model.ShopImageType;
+import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
+import com.tastyhouse.domain.shop.vo.ShopFoodTypeCategoryId;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
@@ -94,13 +99,13 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopPhoneNumberResult.class,
                 shopPhoneNumberJpaEntity.id,
-                phoneNumberShopId(),
+                ConvertedIdPaths.longValue(shopPhoneNumberJpaEntity, "shopId", ShopId.class),
                 shopPhoneNumberJpaEntity.phoneNumber,
                 shopPhoneNumberJpaEntity.primary,
                 shopPhoneNumberJpaEntity.virtual
             ))
             .from(shopPhoneNumberJpaEntity)
-            .where(phoneNumberShopId().eq(shopId))
+            .where(phoneNumberShopIdEq(shopId))
             .orderBy(shopPhoneNumberJpaEntity.primary.desc(), shopPhoneNumberJpaEntity.id.asc())
             .fetch();
     }
@@ -137,7 +142,7 @@ public class ShopQueryDao {
             queryFactory
                 .select(Projections.constructor(ShopConvenienceInfoResult.class,
                     shopConvenienceInfoJpaEntity.id,
-                    convenienceInfoShopId(),
+                    ConvertedIdPaths.longValue(shopConvenienceInfoJpaEntity, "shopId", ShopId.class),
                     shopConvenienceInfoJpaEntity.parkingAvailable,
                     shopConvenienceInfoJpaEntity.parkingPaid,
                     shopConvenienceInfoJpaEntity.valetAvailable,
@@ -147,7 +152,7 @@ public class ShopQueryDao {
                     shopConvenienceInfoJpaEntity.displayLongitude
                 ))
                 .from(shopConvenienceInfoJpaEntity)
-                .where(convenienceInfoShopId().eq(shopId))
+                .where(convenienceInfoShopIdEq(shopId))
                 .fetchFirst()
         );
     }
@@ -159,7 +164,7 @@ public class ShopQueryDao {
      */
     public List<ShopContentBoardResult> findContentBoards(Long shopId) {
         return contentBoardProjection()
-            .where(contentBoardShopId().eq(shopId))
+            .where(contentBoardShopIdEq(shopId))
             .orderBy(shopContentBoardJpaEntity.id.asc())
             .fetch()
             .stream()
@@ -211,7 +216,7 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopContentBoardResult.class,
                 shopContentBoardJpaEntity.id,
-                contentBoardShopId(),
+                ConvertedIdPaths.longValue(shopContentBoardJpaEntity, "shopId", ShopId.class),
                 shopContentBoardJpaEntity.contentType,
                 shopContentBoardJpaEntity.topic,
                 contentBoardImageFile.filePath,
@@ -222,10 +227,6 @@ public class ShopQueryDao {
             ))
             .from(shopContentBoardJpaEntity)
             .leftJoin(contentBoardImageFile).on(contentBoardImageFile.id.eq(contentBoardImageFileId()));
-    }
-
-    private BooleanExpression contentBoardShopIdEq(Long shopId) {
-        return shopId != null ? contentBoardShopId().eq(shopId) : null;
     }
 
     private BooleanExpression contentBoardHiddenEq(Boolean hidden) {
@@ -245,13 +246,13 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopHygieneBadgeResult.class,
                 shopHygieneBadgeJpaEntity.id,
-                hygieneBadgeShopId(),
+                ConvertedIdPaths.longValue(shopHygieneBadgeJpaEntity, "shopId", ShopId.class),
                 shopHygieneBadgeJpaEntity.badgeType,
                 shopHygieneBadgeJpaEntity.certifiedDate,
                 shopHygieneBadgeJpaEntity.lastInspectionMonth
             ))
             .from(shopHygieneBadgeJpaEntity)
-            .where(hygieneBadgeShopId().eq(shopId))
+            .where(hygieneBadgeShopIdEq(shopId))
             .orderBy(shopHygieneBadgeJpaEntity.certifiedDate.desc())
             .fetch();
     }
@@ -263,7 +264,7 @@ public class ShopQueryDao {
      */
     public List<ShopImageChangeRequestResult> findImageChangeRequests(Long shopId) {
         return imageChangeRequestProjection()
-            .where(imageChangeRequestShopId().eq(shopId))
+            .where(imageChangeRequestShopIdEq(shopId))
             .orderBy(shopImageChangeRequestJpaEntity.id.desc())
             .fetch()
             .stream()
@@ -306,7 +307,7 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopImageChangeRequestResult.class,
                 shopImageChangeRequestJpaEntity.id,
-                imageChangeRequestShopId(),
+                ConvertedIdPaths.longValue(shopImageChangeRequestJpaEntity, "shopId", ShopId.class),
                 shopImageChangeRequestJpaEntity.imageType,
                 imageChangeRequestImageFile.filePath,
                 shopImageChangeRequestJpaEntity.status,
@@ -333,7 +334,7 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopSuspensionResult.class,
                 shopSuspensionJpaEntity.id,
-                suspensionShopId(),
+                ConvertedIdPaths.longValue(shopSuspensionJpaEntity, "shopId", ShopId.class),
                 shopSuspensionJpaEntity.reason,
                 shopSuspensionJpaEntity.orderMethod,
                 shopSuspensionJpaEntity.startAt,
@@ -341,7 +342,7 @@ public class ShopQueryDao {
                 shopSuspensionJpaEntity.releasedAt
             ))
             .from(shopSuspensionJpaEntity)
-            .where(suspensionShopId().eq(shopId))
+            .where(suspensionShopIdEq(shopId))
             .orderBy(shopSuspensionJpaEntity.startAt.desc())
             .fetch();
     }
@@ -353,12 +354,12 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopTemporaryClosureResult.class,
                 shopTemporaryClosureJpaEntity.id,
-                temporaryClosureShopId(),
+                ConvertedIdPaths.longValue(shopTemporaryClosureJpaEntity, "shopId", ShopId.class),
                 shopTemporaryClosureJpaEntity.startDate,
                 shopTemporaryClosureJpaEntity.endDate
             ))
             .from(shopTemporaryClosureJpaEntity)
-            .where(temporaryClosureShopId().eq(shopId))
+            .where(temporaryClosureShopIdEq(shopId))
             .orderBy(shopTemporaryClosureJpaEntity.startDate.asc())
             .fetch();
     }
@@ -472,7 +473,7 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopAmenityAssignmentResult.class,
                 shopAmenityJpaEntity.id,
-                amenityShopAmenityCategoryId(),
+                ConvertedIdPaths.longValue(shopAmenityJpaEntity, "shopAmenityCategoryId", ShopAmenityCategoryId.class),
                 shopAmenityCategoryJpaEntity.amenity,
                 shopAmenityCategoryJpaEntity.displayName,
                 activeFile.filePath
@@ -480,7 +481,7 @@ public class ShopQueryDao {
             .from(shopAmenityJpaEntity)
             .join(shopAmenityCategoryJpaEntity).on(shopAmenityCategoryJpaEntity.id.eq(amenityShopAmenityCategoryId()))
             .join(activeFile).on(activeFile.id.eq(amenityCategoryActiveImageFileId()))
-            .where(amenityShopId().eq(shopId))
+            .where(amenityShopIdEq(shopId))
             .fetch()
             .stream()
             .map(this::withResolvedIconUrl)
@@ -500,7 +501,7 @@ public class ShopQueryDao {
             .from(shopAmenityJpaEntity)
             .join(shopAmenityCategoryJpaEntity).on(shopAmenityCategoryJpaEntity.id.eq(amenityShopAmenityCategoryId()))
             .join(activeFile).on(activeFile.id.eq(amenityCategoryActiveImageFileId()))
-            .where(amenityShopId().eq(shopId))
+            .where(amenityShopIdEq(shopId))
             .fetch()
             .stream()
             .map(this::withResolvedIconUrl)
@@ -514,7 +515,7 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopFoodTypeAssignmentResult.class,
                 shopFoodTypeJpaEntity.id,
-                foodTypeShopFoodTypeCategoryId(),
+                ConvertedIdPaths.longValue(shopFoodTypeJpaEntity, "shopFoodTypeCategoryId", ShopFoodTypeCategoryId.class),
                 shopFoodTypeCategoryJpaEntity.foodType,
                 shopFoodTypeCategoryJpaEntity.displayName,
                 activeFile.filePath
@@ -522,7 +523,7 @@ public class ShopQueryDao {
             .from(shopFoodTypeJpaEntity)
             .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeCategoryJpaEntity.id.eq(foodTypeShopFoodTypeCategoryId()))
             .join(activeFile).on(activeFile.id.eq(foodTypeCategoryActiveImageFileId()))
-            .where(foodTypeShopId().eq(shopId))
+            .where(foodTypeShopIdEq(shopId))
             .fetch()
             .stream()
             .map(this::withResolvedIconUrl)
@@ -543,7 +544,7 @@ public class ShopQueryDao {
             ))
             .from(shopBannerImageJpaEntity)
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerImageImageFileId()))
-            .where(bannerImageShopId().eq(shopId))
+            .where(bannerImageShopIdEq(shopId))
             .orderBy(shopBannerImageJpaEntity.sort.asc())
             .fetch()
             .stream()
@@ -573,14 +574,14 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopPhotoCategoryImageManagementResult.class,
                 shopPhotoCategoryImageJpaEntity.id,
-                photoCategoryImageShopPhotoCategoryId(),
+                ConvertedIdPaths.longValue(shopPhotoCategoryImageJpaEntity, "shopPhotoCategoryId", ShopPhotoCategoryId.class),
                 uploadedFileJpaEntity.filePath,
                 shopPhotoCategoryImageJpaEntity.sort,
                 shopPhotoCategoryImageJpaEntity.visible
             ))
             .from(shopPhotoCategoryImageJpaEntity)
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(photoCategoryImageImageFileId()))
-            .where(photoCategoryImageShopPhotoCategoryId().eq(shopPhotoCategoryId))
+            .where(ConvertedIdPaths.eq(shopPhotoCategoryImageJpaEntity, "shopPhotoCategoryId", ShopPhotoCategoryId.class, ShopPhotoCategoryId::of, shopPhotoCategoryId))
             .orderBy(shopPhotoCategoryImageJpaEntity.sort.asc())
             .fetch()
             .stream()
@@ -598,7 +599,7 @@ public class ShopQueryDao {
                 shopPhotoCategoryJpaEntity.name
             ))
             .from(shopPhotoCategoryJpaEntity)
-            .where(photoCategoryShopId().eq(shopId))
+            .where(photoCategoryShopIdEq(shopId))
             .orderBy(shopPhotoCategoryJpaEntity.id.asc())
             .fetch();
     }
@@ -615,7 +616,7 @@ public class ShopQueryDao {
                 shopOrderMethodJpaEntity.orderMethod
             ))
             .from(shopOrderMethodJpaEntity)
-            .where(orderMethodShopId().eq(shopId))
+            .where(orderMethodShopIdEq(shopId))
             .orderBy(shopOrderMethodJpaEntity.id.asc())
             .fetch();
     }
@@ -633,7 +634,7 @@ public class ShopQueryDao {
                     shopOwnerMessageHistoryJpaEntity.createdAt
                 ))
                 .from(shopOwnerMessageHistoryJpaEntity)
-                .where(ownerMessageHistoryShopId().eq(shopId))
+                .where(ownerMessageHistoryShopIdEq(shopId))
                 .orderBy(shopOwnerMessageHistoryJpaEntity.createdAt.desc())
                 .fetchFirst()
         );
@@ -658,7 +659,7 @@ public class ShopQueryDao {
                 shopBusinessHourJpaEntity.is24Hours
             ))
             .from(shopBusinessHourJpaEntity)
-            .where(businessHourShopId().eq(shopId))
+            .where(businessHourShopIdEq(shopId))
             .orderBy(shopBusinessHourJpaEntity.dayType.asc())
             .fetch();
     }
@@ -677,7 +678,7 @@ public class ShopQueryDao {
                 shopBreakTimeJpaEntity.endTime
             ))
             .from(shopBreakTimeJpaEntity)
-            .where(breakTimeShopId().eq(shopId))
+            .where(breakTimeShopIdEq(shopId))
             .orderBy(shopBreakTimeJpaEntity.dayType.asc())
             .fetch();
     }
@@ -694,7 +695,7 @@ public class ShopQueryDao {
                 shopClosedDayJpaEntity.closedDayType
             ))
             .from(shopClosedDayJpaEntity)
-            .where(closedDayShopId().eq(shopId))
+            .where(closedDayShopIdEq(shopId))
             .orderBy(shopClosedDayJpaEntity.id.asc())
             .fetch();
     }
@@ -703,7 +704,7 @@ public class ShopQueryDao {
         return queryFactory
             .select(Projections.constructor(ShopPhotoCategoryImageResult.class,
                 shopPhotoCategoryImageJpaEntity.id,
-                photoCategoryImageShopPhotoCategoryId(),
+                ConvertedIdPaths.longValue(shopPhotoCategoryImageJpaEntity, "shopPhotoCategoryId", ShopPhotoCategoryId.class),
                 uploadedFileJpaEntity.filePath,
                 shopPhotoCategoryImageJpaEntity.sort
             ))
@@ -840,40 +841,12 @@ public class ShopQueryDao {
         return Expressions.numberPath(Long.class, shopJpaEntity, "trademarkImageFileId");
     }
 
-    private NumberPath<Long> phoneNumberShopId() {
-        return Expressions.numberPath(Long.class, shopPhoneNumberJpaEntity, "shopId");
-    }
-
-    private NumberPath<Long> convenienceInfoShopId() {
-        return Expressions.numberPath(Long.class, shopConvenienceInfoJpaEntity, "shopId");
-    }
-
-    private NumberPath<Long> contentBoardShopId() {
-        return Expressions.numberPath(Long.class, shopContentBoardJpaEntity, "shopId");
-    }
-
     private NumberPath<Long> contentBoardImageFileId() {
         return Expressions.numberPath(Long.class, shopContentBoardJpaEntity, "imageFileId");
     }
 
-    private NumberPath<Long> hygieneBadgeShopId() {
-        return Expressions.numberPath(Long.class, shopHygieneBadgeJpaEntity, "shopId");
-    }
-
-    private NumberPath<Long> imageChangeRequestShopId() {
-        return Expressions.numberPath(Long.class, shopImageChangeRequestJpaEntity, "shopId");
-    }
-
     private NumberPath<Long> imageChangeRequestImageFileId() {
         return Expressions.numberPath(Long.class, shopImageChangeRequestJpaEntity, "imageFileId");
-    }
-
-    private NumberPath<Long> suspensionShopId() {
-        return Expressions.numberPath(Long.class, shopSuspensionJpaEntity, "shopId");
-    }
-
-    private NumberPath<Long> temporaryClosureShopId() {
-        return Expressions.numberPath(Long.class, shopTemporaryClosureJpaEntity, "shopId");
     }
 
     private NumberPath<Long> foodTypeCategoryActiveImageFileId() {
@@ -892,60 +865,87 @@ public class ShopQueryDao {
         return Expressions.numberPath(Long.class, shopAmenityCategoryJpaEntity, "inactiveImageFileId");
     }
 
-    private NumberPath<Long> amenityShopId() {
-        return Expressions.numberPath(Long.class, shopAmenityJpaEntity, "shopId");
-    }
-
     private NumberPath<Long> amenityShopAmenityCategoryId() {
         return Expressions.numberPath(Long.class, shopAmenityJpaEntity, "shopAmenityCategoryId");
-    }
-
-    private NumberPath<Long> foodTypeShopId() {
-        return Expressions.numberPath(Long.class, shopFoodTypeJpaEntity, "shopId");
     }
 
     private NumberPath<Long> foodTypeShopFoodTypeCategoryId() {
         return Expressions.numberPath(Long.class, shopFoodTypeJpaEntity, "shopFoodTypeCategoryId");
     }
 
-    private NumberPath<Long> bannerImageShopId() {
-        return Expressions.numberPath(Long.class, shopBannerImageJpaEntity, "shopId");
-    }
-
     private NumberPath<Long> bannerImageImageFileId() {
         return Expressions.numberPath(Long.class, shopBannerImageJpaEntity, "imageFileId");
-    }
-
-    private NumberPath<Long> photoCategoryImageShopPhotoCategoryId() {
-        return Expressions.numberPath(Long.class, shopPhotoCategoryImageJpaEntity, "shopPhotoCategoryId");
     }
 
     private NumberPath<Long> photoCategoryImageImageFileId() {
         return Expressions.numberPath(Long.class, shopPhotoCategoryImageJpaEntity, "imageFileId");
     }
 
-    private NumberPath<Long> photoCategoryShopId() {
-        return Expressions.numberPath(Long.class, shopPhotoCategoryJpaEntity, "shopId");
+    // ------------------------------------------- @Convert VO 컬럼 값 비교(raw Long 바인딩 금지)
+    // 조인·투영은 위 numberPath 헬퍼를 그대로 쓰고, raw Long 값을 바인딩하는 비교만 아래 헬퍼로
+    // VO 승격해 비교한다 — numberPath에 값을 직접 바인딩하면 QueryArgumentException으로 500이 된다.
+
+    private BooleanExpression amenityShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopAmenityJpaEntity, "shopId", ShopId.class, ShopId::of, value);
     }
 
-    private NumberPath<Long> orderMethodShopId() {
-        return Expressions.numberPath(Long.class, shopOrderMethodJpaEntity, "shopId");
+    private BooleanExpression bannerImageShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopBannerImageJpaEntity, "shopId", ShopId.class, ShopId::of, value);
     }
 
-    private NumberPath<Long> ownerMessageHistoryShopId() {
-        return Expressions.numberPath(Long.class, shopOwnerMessageHistoryJpaEntity, "shopId");
+    private BooleanExpression breakTimeShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopBreakTimeJpaEntity, "shopId", ShopId.class, ShopId::of, value);
     }
 
-    private NumberPath<Long> businessHourShopId() {
-        return Expressions.numberPath(Long.class, shopBusinessHourJpaEntity, "shopId");
+    private BooleanExpression businessHourShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopBusinessHourJpaEntity, "shopId", ShopId.class, ShopId::of, value);
     }
 
-    private NumberPath<Long> breakTimeShopId() {
-        return Expressions.numberPath(Long.class, shopBreakTimeJpaEntity, "shopId");
+    private BooleanExpression closedDayShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopClosedDayJpaEntity, "shopId", ShopId.class, ShopId::of, value);
     }
 
-    private NumberPath<Long> closedDayShopId() {
-        return Expressions.numberPath(Long.class, shopClosedDayJpaEntity, "shopId");
+    private BooleanExpression contentBoardShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopContentBoardJpaEntity, "shopId", ShopId.class, ShopId::of, value);
     }
 
+    private BooleanExpression convenienceInfoShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopConvenienceInfoJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression foodTypeShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopFoodTypeJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression hygieneBadgeShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopHygieneBadgeJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression imageChangeRequestShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopImageChangeRequestJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression orderMethodShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopOrderMethodJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression ownerMessageHistoryShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopOwnerMessageHistoryJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression phoneNumberShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopPhoneNumberJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression photoCategoryShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopPhotoCategoryJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression suspensionShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopSuspensionJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
+
+    private BooleanExpression temporaryClosureShopIdEq(Long value) {
+        return ConvertedIdPaths.eq(shopTemporaryClosureJpaEntity, "shopId", ShopId.class, ShopId::of, value);
+    }
 }

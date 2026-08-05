@@ -23,7 +23,10 @@ public record SearchShopListItemResponse(
     String imageUrl,
 
     @Schema(description = "북마크 여부", example = "false")
-    boolean bookmarked
+    boolean bookmarked,
+
+    @Schema(description = "최소주문금액 (0: 미설정, 제한 없음). 배달 주문에만 적용됩니다.", example = "10000")
+    int minOrderAmount
 ) {
     public static SearchShopListItemResponse from(
         Long shopId,
@@ -31,7 +34,8 @@ public record SearchShopListItemResponse(
         String stationName,
         Double rating,
         String imageUrl,
-        boolean bookmarked
+        boolean bookmarked,
+        int minOrderAmount
     ) {
         return new SearchShopListItemResponse(
             shopId,
@@ -40,7 +44,8 @@ public record SearchShopListItemResponse(
             stationName,
             rating,
             imageUrl,
-            bookmarked
+            bookmarked,
+            minOrderAmount
         );
     }
 }

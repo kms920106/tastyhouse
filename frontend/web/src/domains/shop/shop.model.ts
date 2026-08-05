@@ -9,6 +9,8 @@ export interface Shop {
   roadAddress: string
   lotAddress: string
   phoneNumber: string
+  /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
+  minOrderAmount: number
 }
 
 export interface ShopBusinessHour {

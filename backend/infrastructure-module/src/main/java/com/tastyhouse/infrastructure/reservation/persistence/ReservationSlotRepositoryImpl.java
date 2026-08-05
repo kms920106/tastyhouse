@@ -11,8 +11,8 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.reservation.repository.ReservationSlotRepository;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository
 public class ReservationSlotRepositoryImpl implements ReservationSlotRepository {

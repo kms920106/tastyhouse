@@ -8,13 +8,14 @@ import BorderedSection from '@/components/ui/BorderedSection'
 import SectionStack from '@/components/ui/SectionStack'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
 import type { MemberCoupon, MemberPersonalInfo } from '@/domains/member'
-import type { OrderMethodType } from '@/domains/order'
+import { getOrderErrorMessage, type OrderMethodType } from '@/domains/order'
 import type { PaymentMethod } from '@/domains/payment'
 import { Shop } from '@/domains/shop'
 import { useCartInfo } from '@/hooks/useCartInfo'
 import { useTossPayments } from '@/hooks/useTossPayments'
+import { formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
-import { calculatePaymentSummary } from '@/lib/paymentCalculation'
+import { calculateMinOrderShortfall, calculatePaymentSummary } from '@/lib/paymentCalculation'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import CustomerInfoSection from './CustomerInfoSection'
@@ -62,6 +63,17 @@ export default function ShopOrderCheckoutContentClient({
     calculatePaymentSummary(totalProductAmount, totalProductDiscount, selectedCoupon, pointInput)
 
   const handlePayment = async () => {
+    // 장바구니에서 이미 차단하지만, 링크 직접 진입·탭 방치 후 재시도를 대비해 결제 직전에도 확인한다.
+    const minOrderShortfall = calculateMinOrderShortfall(
+      totalProductAmount - totalProductDiscount,
+      shop.minOrderAmount,
+      orderMethod,
+    )
+    if (minOrderShortfall > 0) {
+      toast(`최소주문금액까지 ${formatNumber(minOrderShortfall)}원 부족합니다.`)
+      return
+    }
+
     if (!agreedToTerms) {
       toast('약관에 동의해 주세요.')
       return
@@ -102,7 +114,11 @@ export default function ShopOrderCheckoutContentClient({
     })
 
     if (orderResult.error) {
-      toast(orderResult.error)
+      toast(
+        orderResult.message ??
+          getOrderErrorMessage(orderResult.errorCode) ??
+          orderResult.error,
+      )
       return
     }
 

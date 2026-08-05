@@ -64,6 +64,12 @@ Husky + lint-staged run `biome check --write` on staged `.js/.ts/.jsx/.tsx` file
 
 - 테스트 계정 정보는 `.env.local`의 `E2E_USERNAME`, `E2E_PASSWORD`를 사용합니다.
 - 개발 서버(`npm run dev`, 3010 포트)가 실행 중이어야 합니다.
+- Playwright MCP 서버는 **리포지토리 루트의 `.mcp.json`**(프로젝트 스코프)에 등록되어 있습니다. 개인 설정(`~/.claude.json`)에 의존하지 않으므로 클론 경로가 바뀌어도 유지됩니다.
+- 세션에 `mcp__playwright__*` 도구가 보이지 않으면 서버가 연결되지 않은 상태입니다. 이때는 검증을 생략하지 말고 다음을 확인합니다.
+  1. `claude mcp list`로 `playwright` 상태를 확인합니다.
+  2. `⏸ Pending approval`이면 프로젝트 스코프 서버의 최초 신뢰 승인이 필요합니다. 대화형 `claude` 세션에서 승인한 뒤 세션을 재시작합니다.
+  3. 그래도 연결되지 않으면 `npx -y @playwright/mcp@latest --version`으로 패키지 설치 가능 여부를 확인합니다.
+  4. 위 조치로도 연결되지 않으면, 브라우저 검증을 수행하지 못했다는 사실과 원인을 작업 보고에 명시합니다.
 
 ## Architecture
 

@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.domain.shop.vo.ShopId;
+
 @Repository
 public interface ShopTemporaryClosureJpaRepository extends JpaRepository<ShopTemporaryClosureJpaEntity, Long> {
 
-    List<ShopTemporaryClosureJpaEntity> findByShopId(Long shopId);
+    List<ShopTemporaryClosureJpaEntity> findByShopId(ShopId shopId);
 }

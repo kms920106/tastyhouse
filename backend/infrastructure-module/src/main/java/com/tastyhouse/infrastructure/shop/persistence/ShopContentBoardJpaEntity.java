@@ -10,12 +10,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.ShopContentType;
-import com.tastyhouse.domain.shop.model.ShopContentTopic;
-import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.ShopContentTopic;
+import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 가게 콘텐츠보드 JPA 영속 모델.

@@ -7,6 +7,7 @@ import {
   CLOSED_DAY_TYPE_LABEL,
   type ClosedDayTypeOption,
   DAY_TYPE_LABEL,
+  MIN_ORDER_AMOUNT_UNSET,
   WEEKDAY_OPTIONS,
   type WeekdayOption,
 } from "@/feature/shop/constants";
@@ -17,16 +18,22 @@ import { formatTimeLabel } from "@/feature/shop/time";
 import { BusinessHoursSheet } from "./business-hours-sheet";
 import { ClosedDaysSheet } from "./closed-days-sheet";
 import { HygieneInfoCard } from "./hygiene-info-card";
+import { MinOrderAmountSheet } from "./min-order-amount-sheet";
 import { SettingRow } from "./setting-row";
 
 interface OperationInfoTabProps {
   shopId: number;
   operationInfo: ShopOperationInfo;
+  /** 가게 상세(basicInfo)에서 전달받는 최소주문금액. 0이면 미설정(제한 없음) */
+  minOrderAmount?: number;
 }
 
-export function OperationInfoTab({ shopId, operationInfo }: OperationInfoTabProps) {
+export function OperationInfoTab({ shopId, operationInfo, minOrderAmount }: OperationInfoTabProps) {
   const [editingDay, setEditingDay] = React.useState<WeekdayOption | null>(null);
   const [closedDaysOpen, setClosedDaysOpen] = React.useState(false);
+  const [minOrderAmountOpen, setMinOrderAmountOpen] = React.useState(false);
+
+  const currentMinOrderAmount = minOrderAmount ?? MIN_ORDER_AMOUNT_UNSET;
 
   const businessHourByDay = React.useMemo(
     () => new Map(operationInfo.businessHours.map((item) => [item.dayType, item])),
@@ -100,6 +107,19 @@ export function OperationInfoTab({ shopId, operationInfo }: OperationInfoTabProp
 
       <Separator />
 
+      <SettingRow
+        title={SHOP_OPERATION_COPY.MIN_ORDER_AMOUNT_TITLE}
+        description={SHOP_OPERATION_COPY.MIN_ORDER_AMOUNT_DESCRIPTION}
+        summary={
+          currentMinOrderAmount > MIN_ORDER_AMOUNT_UNSET
+            ? `${currentMinOrderAmount.toLocaleString("ko-KR")}원`
+            : SHOP_OPERATION_COPY.MIN_ORDER_AMOUNT_UNSET_LABEL
+        }
+        onAction={() => setMinOrderAmountOpen(true)}
+      />
+
+      <Separator />
+
       <HygieneInfoCard badges={operationInfo.hygieneBadges} />
 
       {editingDay && (
@@ -120,6 +140,13 @@ export function OperationInfoTab({ shopId, operationInfo }: OperationInfoTabProp
         onOpenChange={setClosedDaysOpen}
         shopId={shopId}
         closedDays={operationInfo.closedDays}
+      />
+
+      <MinOrderAmountSheet
+        open={minOrderAmountOpen}
+        onOpenChange={setMinOrderAmountOpen}
+        shopId={shopId}
+        minOrderAmount={currentMinOrderAmount}
       />
     </div>
   );

@@ -8,9 +8,9 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.follow.domain.model.MemberFollow;
 import com.tastyhouse.domain.member.follow.domain.repository.MemberFollowRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 import static com.tastyhouse.infrastructure.member.follow.persistence.QMemberFollowJpaEntity.memberFollowJpaEntity;
 

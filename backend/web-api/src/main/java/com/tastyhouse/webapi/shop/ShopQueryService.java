@@ -201,7 +201,8 @@ public class ShopQueryService {
             dto.rating(),
             dto.imageUrl(),
             dto.foodTypes().stream().map(Enum::name).toList(),
-            operatingStatusName(statusMap, dto.id())
+            operatingStatusName(statusMap, dto.id()),
+            dto.minOrderAmount()
         );
     }
 
@@ -216,7 +217,8 @@ public class ShopQueryService {
             dto.reviewCount(),
             dto.bookmarkCount(),
             dto.foodTypes().stream().map(Enum::name).toList(),
-            operatingStatusName(statusMap, dto.id())
+            operatingStatusName(statusMap, dto.id()),
+            dto.minOrderAmount()
         );
     }
 
@@ -294,7 +296,8 @@ public class ShopQueryService {
             shop.getPhoneNumber(),
             phoneNumbers,
             trademarkImageUrl,
-            operatingStatus
+            operatingStatus,
+            shop.getMinOrderAmount()
         );
     }
 

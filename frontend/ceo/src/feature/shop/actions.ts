@@ -33,9 +33,11 @@ import {
   type PhoneNumberFormValues,
   phoneNumberSchema,
   type ShopIntroductionFormValues,
+  type ShopMinOrderAmountFormValues,
   type ShopStatusFormValues,
   type SuspensionFormValues,
   shopIntroductionSchema,
+  shopMinOrderAmountSchema,
   shopStatusSchema,
   suspensionSchema,
   type TemporaryClosureFormValues,
@@ -355,6 +357,20 @@ export async function updateShopStatusAction(shopId: number, values: ShopStatusF
 
   revalidatePath(SHOP_PATH);
   revalidatePath(SHOP_STATUS_PATH);
+  return { success: true };
+}
+
+export async function updateShopMinOrderAmountAction(
+  shopId: number,
+  values: ShopMinOrderAmountFormValues,
+): Promise<ActionResult> {
+  const parsed = shopMinOrderAmountSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.updateMinOrderAmount(shopId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
   return { success: true };
 }
 

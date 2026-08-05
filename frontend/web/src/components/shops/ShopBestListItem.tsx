@@ -3,6 +3,7 @@ import {
   ShopCardContent,
   ShopCardHeader,
   ShopCardImage,
+  ShopCardMinOrder,
   ShopCardName,
   ShopCardRating,
   ShopCardStation,
@@ -17,9 +18,19 @@ type Props = {
   stationName: string
   rating: number
   foodTypes: ShopFoodType[]
+  /** 가게 최소주문금액. 0이면 미설정이라 노출하지 않는다 */
+  minOrderAmount: number
 }
 
-export function ShopBestListItem({ id, name, imageUrl, stationName, rating, foodTypes }: Props) {
+export function ShopBestListItem({
+  id,
+  name,
+  imageUrl,
+  stationName,
+  rating,
+  foodTypes,
+  minOrderAmount,
+}: Props) {
   const foodNames = foodTypes.map((foodType) => getShopFoodTypeCodeName(foodType))
 
   return (
@@ -32,6 +43,7 @@ export function ShopBestListItem({ id, name, imageUrl, stationName, rating, food
             <ShopCardRating value={rating} />
           </ShopCardHeader>
           <ShopCardName>{name}</ShopCardName>
+          <ShopCardMinOrder value={minOrderAmount} />
           <ShopCardTags tags={foodNames} />
         </ShopCardContent>
       </ShopCard>

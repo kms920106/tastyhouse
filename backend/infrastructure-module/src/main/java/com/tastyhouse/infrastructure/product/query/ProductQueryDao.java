@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -20,9 +21,15 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.domain.product.vo.ProductCategoryId;
+import com.tastyhouse.domain.product.vo.BbqMenuId;
+import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
@@ -209,7 +216,7 @@ public class ProductQueryDao {
                 productOptionGroupJpaEntity.maxSelect
             )
             .from(productOptionGroupJpaEntity)
-            .where(optionGroupProductId().eq(productId), productOptionGroupJpaEntity.visible.eq(true))
+            .where(ConvertedIdPaths.eq(productOptionGroupJpaEntity, "productId", ProductId.class, ProductId::of, productId), productOptionGroupJpaEntity.visible.eq(true))
             .orderBy(productOptionGroupJpaEntity.sort.asc())
             .fetch();
 
@@ -219,7 +226,7 @@ public class ProductQueryDao {
 
         List<Long> groupIds = groups.stream().map(tuple -> tuple.get(productOptionGroupJpaEntity.id)).toList();
         // select와 Tuple.get이 같은 표현식을 참조하도록 numberPath를 지역 변수로 추출한다.
-        NumberPath<Long> optionGroupId = optionGroupId();
+        NumberExpression<Long> optionGroupId = optionGroupIdValue();
         Map<Long, List<OptionResult>> optionsByGroupId = queryFactory
             .select(
                 optionGroupId,
@@ -276,7 +283,7 @@ public class ProductQueryDao {
             )
             .from(productCommonOptionGroupJpaEntity)
             .where(
-                commonOptionGroupProductId().eq(productId),
+                ConvertedIdPaths.eq(productCommonOptionGroupJpaEntity, "productId", ProductId.class, ProductId::of, productId),
                 productCommonOptionGroupJpaEntity.visible.eq(true)
             )
             .orderBy(productCommonOptionGroupJpaEntity.sort.asc())
@@ -288,7 +295,7 @@ public class ProductQueryDao {
 
         List<Long> groupIds = groups.stream().map(tuple -> tuple.get(productCommonOptionGroupJpaEntity.id)).toList();
         // select와 Tuple.get이 같은 표현식을 참조하도록 numberPath를 지역 변수로 추출한다.
-        NumberPath<Long> commonOptionGroupId = commonOptionGroupId();
+        NumberExpression<Long> commonOptionGroupId = commonOptionGroupIdValue();
         Map<Long, List<OptionResult>> optionsByGroupId = queryFactory
             .select(
                 commonOptionGroupId,
@@ -453,8 +460,8 @@ public class ProductQueryDao {
         Map<Long, BatchOptionInfo> optionById = new HashMap<>();
 
         // select와 Tuple.get이 같은 표현식을 참조하도록 numberPath를 지역 변수로 추출한다.
-        NumberPath<Long> optionGroupId = optionGroupId();
-        NumberPath<Long> commonOptionGroupId = commonOptionGroupId();
+        NumberExpression<Long> optionGroupId = optionGroupIdValue();
+        NumberExpression<Long> commonOptionGroupId = commonOptionGroupIdValue();
 
         queryFactory
             .select(
@@ -518,8 +525,8 @@ public class ProductQueryDao {
         Map<Long, Long> ownerByGroupKey = new HashMap<>();
 
         // select와 Tuple.get이 같은 표현식을 참조하도록 numberPath를 지역 변수로 추출한다.
-        NumberPath<Long> optionGroupProductId = optionGroupProductId();
-        NumberPath<Long> commonOptionGroupProductId = commonOptionGroupProductId();
+        NumberExpression<Long> optionGroupProductId = optionGroupProductIdValue();
+        NumberExpression<Long> commonOptionGroupProductId = commonOptionGroupProductIdValue();
 
         if (!normalGroupIds.isEmpty()) {
             queryFactory
@@ -556,7 +563,7 @@ public class ProductQueryDao {
             .select(uploadedFileJpaEntity.filePath)
             .from(productImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(imageFileId().eq(uploadedFileJpaEntity.id))
-            .where(imageProductId().eq(productId), productImageJpaEntity.visible.eq(true))
+            .where(ConvertedIdPaths.eq(productImageJpaEntity, "productId", ProductId.class, ProductId::of, productId), productImageJpaEntity.visible.eq(true))
             .orderBy(productImageJpaEntity.sort.asc())
             .fetch();
 
@@ -570,7 +577,7 @@ public class ProductQueryDao {
         return queryFactory
             .select(new QShopProductItemResult(
                 productJpaEntity.id,
-                productCategoryId(),
+                productCategoryIdValue(),
                 productJpaEntity.name,
                 uploadedFileJpaEntity.filePath,
                 productJpaEntity.originalPrice,
@@ -585,7 +592,7 @@ public class ProductQueryDao {
             .from(productJpaEntity)
             .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(imageFileId().eq(uploadedFileJpaEntity.id))
-            .where(productShopId().eq(shopId), productJpaEntity.visible.eq(true))
+            .where(ConvertedIdPaths.eq(productJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), productJpaEntity.visible.eq(true))
             .orderBy(
                 productJpaEntity.representative.desc(),
                 productJpaEntity.rating.desc(),
@@ -657,8 +664,8 @@ public class ProductQueryDao {
             queryFactory
                 .select(new QProductDetailResult(
                     productJpaEntity.id,
-                    productShopId(),
-                    productCategoryId(),
+                    productShopIdValue(),
+                    productCategoryIdValue(),
                     productJpaEntity.name,
                     productJpaEntity.description,
                     productJpaEntity.originalPrice,
@@ -687,13 +694,13 @@ public class ProductQueryDao {
         return queryFactory
             .select(new QProductCategoryResult(
                 productCategoryJpaEntity.id,
-                categoryShopId(),
+                categoryShopIdValue(),
                 productCategoryJpaEntity.name,
                 productCategoryJpaEntity.sort,
                 productCategoryJpaEntity.visible
             ))
             .from(productCategoryJpaEntity)
-            .where(categoryShopId().eq(shopId), productCategoryJpaEntity.visible.eq(true))
+            .where(ConvertedIdPaths.eq(productCategoryJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), productCategoryJpaEntity.visible.eq(true))
             .orderBy(productCategoryJpaEntity.sort.asc())
             .fetch();
     }
@@ -707,8 +714,8 @@ public class ProductQueryDao {
         return Optional.ofNullable(
             queryFactory
                 .select(new QProductBbqSyncTargetResult(
-                    bbqProductId(),
-                    bbqMenuId(),
+                    bbqProductIdValue(),
+                    bbqMenuIdValue(),
                     productJpaEntity.name
                 ))
                 .from(productBbqJpaEntity)
@@ -773,7 +780,7 @@ public class ProductQueryDao {
      * 상품의 대표 이미지(노출 중 최소 sort) 한 건만 조인하기 위한 on 조건.
      */
     private BooleanExpression representativeImageOf(NumberPath<Long> productIdPath) {
-        return imageProductId().eq(productIdPath)
+        return imageProductIdValue().eq(productIdPath)
             .and(productImageJpaEntity.visible.eq(true))
             .and(productImageJpaEntity.sort.eq(
                 JPAExpressions
@@ -789,7 +796,7 @@ public class ProductQueryDao {
             return Map.of();
         }
         // select와 Tuple.get이 같은 표현식을 참조하도록 numberPath를 지역 변수로 추출한다.
-        NumberPath<Long> imageProductId = imageProductId();
+        NumberExpression<Long> imageProductId = imageProductIdValue();
         return queryFactory
             .select(imageProductId, uploadedFileJpaEntity.filePath)
             .from(productImageJpaEntity)
@@ -817,11 +824,11 @@ public class ProductQueryDao {
     }
 
     private BooleanExpression shopIdEq(Long shopId) {
-        return shopId != null ? productShopId().eq(shopId) : null;
+        return shopId != null ? ConvertedIdPaths.eq(productJpaEntity, "shopId", ShopId.class, ShopId::of, shopId) : null;
     }
 
     private BooleanExpression categoryIdEq(Long productCategoryId) {
-        return productCategoryId != null ? productCategoryId().eq(productCategoryId) : null;
+        return productCategoryId != null ? ConvertedIdPaths.eq(productJpaEntity, "productCategoryId", ProductCategoryId.class, ProductCategoryId::of, productCategoryId) : null;
     }
 
     private BooleanExpression nameContains(String name) {
@@ -843,62 +850,6 @@ public class ProductQueryDao {
      */
     private NumberPath<Long> productShopId() {
         return Expressions.numberPath(Long.class, productJpaEntity, "shopId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT.product_category_id}를 raw {@code Long}으로
-     * 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> productCategoryId() {
-        return Expressions.numberPath(Long.class, productJpaEntity, "productCategoryId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT_CATEGORY.shop_id}를 raw {@code Long}으로
-     * 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> categoryShopId() {
-        return Expressions.numberPath(Long.class, productCategoryJpaEntity, "shopId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT_OPTION_GROUP.product_id}를 raw {@code Long}으로
-     * 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> optionGroupProductId() {
-        return Expressions.numberPath(Long.class, productOptionGroupJpaEntity, "productId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT_COMMON_OPTION_GROUP.product_id}를 raw {@code Long}으로
-     * 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> commonOptionGroupProductId() {
-        return Expressions.numberPath(Long.class, productCommonOptionGroupJpaEntity, "productId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT_OPTION.option_group_id}를 raw {@code Long}으로
-     * 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> optionGroupId() {
-        return Expressions.numberPath(Long.class, productOptionJpaEntity, "optionGroupId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT_COMMON_OPTION.option_group_id}를 raw {@code Long}으로
-     * 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> commonOptionGroupId() {
-        return Expressions.numberPath(Long.class, productCommonOptionJpaEntity, "optionGroupId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT_IMAGE.product_id}를 raw {@code Long}으로
-     * 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> imageProductId() {
-        return Expressions.numberPath(Long.class, productImageJpaEntity, "productId");
     }
 
     /**
@@ -926,14 +877,6 @@ public class ProductQueryDao {
     }
 
     /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT_BBQ.bbq_menu_id}를 raw {@code Long}으로
-     * 투영하기 위한 path.
-     */
-    private NumberPath<Long> bbqMenuId() {
-        return Expressions.numberPath(Long.class, productBbqJpaEntity, "bbqMenuId");
-    }
-
-    /**
      * 배치 조회 내부 계산용 옵션 정보(개별/공통 구분 포함). DAO 밖으로 나가지 않는다.
      */
     private record BatchOptionInfo(Long groupId, String name, Integer additionalPrice, boolean common) {
@@ -948,5 +891,85 @@ public class ProductQueryDao {
         static Long groupKey(Long groupId, boolean common) {
             return common ? -groupId : groupId;
         }
+    }
+
+    /**
+     * {@code bbqMenuId}({@code @Convert} BbqMenuId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> bbqMenuIdValue() {
+        return ConvertedIdPaths.longValue(productBbqJpaEntity, "bbqMenuId", BbqMenuId.class);
+    }
+
+    /**
+     * {@code productId}({@code @Convert} ProductId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> bbqProductIdValue() {
+        return ConvertedIdPaths.longValue(productBbqJpaEntity, "productId", ProductId.class);
+    }
+
+    /**
+     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> categoryShopIdValue() {
+        return ConvertedIdPaths.longValue(productCategoryJpaEntity, "shopId", ShopId.class);
+    }
+
+    /**
+     * {@code optionGroupId}({@code @Convert} ProductOptionGroupId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> commonOptionGroupIdValue() {
+        return ConvertedIdPaths.longValue(productCommonOptionJpaEntity, "optionGroupId", ProductOptionGroupId.class);
+    }
+
+    /**
+     * {@code productId}({@code @Convert} ProductId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> commonOptionGroupProductIdValue() {
+        return ConvertedIdPaths.longValue(productCommonOptionGroupJpaEntity, "productId", ProductId.class);
+    }
+
+    /**
+     * {@code productId}({@code @Convert} ProductId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> imageProductIdValue() {
+        return ConvertedIdPaths.longValue(productImageJpaEntity, "productId", ProductId.class);
+    }
+
+    /**
+     * {@code optionGroupId}({@code @Convert} ProductOptionGroupId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> optionGroupIdValue() {
+        return ConvertedIdPaths.longValue(productOptionJpaEntity, "optionGroupId", ProductOptionGroupId.class);
+    }
+
+    /**
+     * {@code productId}({@code @Convert} ProductId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> optionGroupProductIdValue() {
+        return ConvertedIdPaths.longValue(productOptionGroupJpaEntity, "productId", ProductId.class);
+    }
+
+    /**
+     * {@code productCategoryId}({@code @Convert} ProductCategoryId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> productCategoryIdValue() {
+        return ConvertedIdPaths.longValue(productJpaEntity, "productCategoryId", ProductCategoryId.class);
+    }
+
+    /**
+     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> productShopIdValue() {
+        return ConvertedIdPaths.longValue(productJpaEntity, "shopId", ShopId.class);
     }
 }

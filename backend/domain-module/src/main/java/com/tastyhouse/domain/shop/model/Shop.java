@@ -20,6 +20,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 public class Shop {
 
+    /** 최소주문금액 미설정 값 — 제한 없음을 뜻한다. */
+    public static final int MIN_ORDER_AMOUNT_UNSET = 0;
+    /** 최소주문금액을 설정할 때의 하한(원). */
+    public static final int MIN_ORDER_AMOUNT_LOWER_BOUND = 5000;
+    /** 최소주문금액을 설정할 때의 상한(원). */
+    public static final int MIN_ORDER_AMOUNT_UPPER_BOUND = 30000;
+
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
     private CeoId ceoId; // 소유 점주 ID (CEO.id 참조, null이면 점주 미배정)
     private StationId stationId; // 지하철역 ID (STATION.id 참조)
@@ -35,6 +42,7 @@ public class Shop {
     private boolean permanentlyClosed; // 폐업 여부 (true: 폐업)
     private boolean hidden; // 노출정지 여부 (true: 배민앱 완전 비노출, 폐업과 별개)
     private boolean closedOnPublicHolidays; // 공휴일 휴무 여부 (true: 공휴일 휴무)
+    private int minOrderAmount; // 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
     private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
@@ -54,6 +62,7 @@ public class Shop {
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays,
+        int minOrderAmount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -72,12 +81,16 @@ public class Shop {
         this.permanentlyClosed = permanentlyClosed;
         this.hidden = hidden;
         this.closedOnPublicHolidays = closedOnPublicHolidays;
+        this.minOrderAmount = minOrderAmount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
     /**
      * 신규 상점을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     *
+     * <p>최소주문금액은 {@link #MIN_ORDER_AMOUNT_UNSET}(미설정)으로 시작한다 — 관리자의 가게 등록 화면은
+     * 이 값을 다루지 않고, 점주가 {@link #changeMinOrderAmount(int)}로 직접 설정한다.
      */
     public static Shop of(
         StationId stationId,
@@ -105,6 +118,7 @@ public class Shop {
             false,
             false,
             false,
+            MIN_ORDER_AMOUNT_UNSET,
             null,
             null
         );
@@ -130,6 +144,7 @@ public class Shop {
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays,
+        int minOrderAmount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -149,6 +164,7 @@ public class Shop {
             permanentlyClosed,
             hidden,
             closedOnPublicHolidays,
+            minOrderAmount,
             createdAt,
             updatedAt
         );
@@ -219,6 +235,44 @@ public class Shop {
      */
     public void updateHolidayClosure(boolean closedOnPublicHolidays) {
         this.closedOnPublicHolidays = closedOnPublicHolidays;
+    }
+
+    /**
+     * 최소주문금액을 변경한다.
+     *
+     * <p>{@link #MIN_ORDER_AMOUNT_UNSET}(0)은 "미설정"(제한 없음)이고, 값을 설정할 때는
+     * {@link #MIN_ORDER_AMOUNT_LOWER_BOUND}원 이상 {@link #MIN_ORDER_AMOUNT_UPPER_BOUND}원 이하여야 한다.
+     * 폐업한 가게는 {@link #update}와 마찬가지로 변경할 수 없다.
+     */
+    public void changeMinOrderAmount(int minOrderAmount) {
+        validateNotPermanentlyClosed();
+
+        if (minOrderAmount != MIN_ORDER_AMOUNT_UNSET
+            && (minOrderAmount < MIN_ORDER_AMOUNT_LOWER_BOUND || minOrderAmount > MIN_ORDER_AMOUNT_UPPER_BOUND)) {
+            throw new BusinessException(ErrorCode.SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE);
+        }
+
+        this.minOrderAmount = minOrderAmount;
+    }
+
+    /**
+     * 주문 금액이 가게 최소주문금액을 충족하는지 검증한다.
+     *
+     * <p>기준 금액은 상품 할인까지 반영한 금액(쿠폰·포인트 차감 전)이다 — 고객이 장바구니에 담는 시점의
+     * 금액이 판정 대상이고, 쿠폰·포인트는 결제 단계에서만 적용되기 때문이다. 따라서 쿠폰·포인트로 최종
+     * 결제금액이 최소주문금액 아래로 내려가도 주문은 거부되지 않는다.
+     *
+     * <p>최소주문금액이 미설정(0)이거나 배달 외 주문방식이면 검증하지 않는다 — 배민 가이드상 픽업(포장)에는
+     * 가게 최소주문금액이 적용되지 않으며, 매장 테이블 오더·예약에도 적용 근거가 없다.
+     */
+    public void validateMinOrderAmount(OrderMethod orderMethod, int orderAmountAfterProductDiscount) {
+        if (minOrderAmount == MIN_ORDER_AMOUNT_UNSET || orderMethod != OrderMethod.DELIVERY) {
+            return;
+        }
+
+        if (orderAmountAfterProductDiscount < minOrderAmount) {
+            throw new BusinessException(ErrorCode.SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET);
+        }
     }
 
     /**
@@ -318,6 +372,10 @@ public class Shop {
 
     public boolean isClosedOnPublicHolidays() {
         return this.closedOnPublicHolidays;
+    }
+
+    public int getMinOrderAmount() {
+        return this.minOrderAmount;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -17,8 +17,8 @@ import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.coupon.persistence.MemberCouponIdConverter;
 import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 주문 JPA 영속 모델.

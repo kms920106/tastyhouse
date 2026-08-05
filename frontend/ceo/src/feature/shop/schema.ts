@@ -9,6 +9,9 @@ import {
   CONTENT_BOARD_TOPIC_OPTIONS,
   CONTENT_BOARD_TYPE_OPTIONS,
   DAY_TYPE_OPTIONS,
+  MIN_ORDER_AMOUNT_LOWER_BOUND,
+  MIN_ORDER_AMOUNT_UNSET,
+  MIN_ORDER_AMOUNT_UPPER_BOUND,
   ORDER_METHOD_OPTIONS,
   SHOP_DIRECTIONS_MAX,
   SHOP_INTRODUCTION_MAX,
@@ -58,6 +61,25 @@ export const shopStatusSchema = z.object({
   status: z.enum(SHOP_STATUS_OPTIONS),
 });
 export type ShopStatusFormValues = z.infer<typeof shopStatusSchema>;
+
+// 최소주문금액은 0(미설정, 제한 없음) 또는 5,000~30,000원만 허용한다 — 서버의 도메인 불변식과 동일한 규칙.
+const MIN_ORDER_AMOUNT_RANGE_MESSAGE =
+  `최소주문금액은 ${MIN_ORDER_AMOUNT_LOWER_BOUND.toLocaleString("ko-KR")}원 이상 ` +
+  `${MIN_ORDER_AMOUNT_UPPER_BOUND.toLocaleString("ko-KR")}원 이하로 입력해 주세요. ` +
+  `설정하지 않으려면 0을 입력해 주세요.`;
+
+export const shopMinOrderAmountSchema = z.object({
+  minOrderAmount: z
+    .number({ message: "최소주문금액을 입력해 주세요." })
+    .int({ message: MIN_ORDER_AMOUNT_RANGE_MESSAGE })
+    .superRefine((value, ctx) => {
+      if (value === MIN_ORDER_AMOUNT_UNSET) return;
+      if (value < MIN_ORDER_AMOUNT_LOWER_BOUND || value > MIN_ORDER_AMOUNT_UPPER_BOUND) {
+        ctx.addIssue({ code: "custom", message: MIN_ORDER_AMOUNT_RANGE_MESSAGE });
+      }
+    }),
+});
+export type ShopMinOrderAmountFormValues = z.infer<typeof shopMinOrderAmountSchema>;
 
 export const convenienceInfoSchema = z.object({
   parkingAvailable: z.boolean(),

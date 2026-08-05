@@ -98,6 +98,8 @@ export interface ShopBasicInfo {
   hidden: boolean;
   permanentlyClosed: boolean;
   closedOnPublicHolidays: boolean;
+  /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
+  minOrderAmount: number;
   introduction: string;
   thumbnailImageUrl: string | null;
   trademarkImageUrl: string | null;

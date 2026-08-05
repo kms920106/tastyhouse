@@ -1,5 +1,5 @@
 import type { MemberCoupon } from '@/domains/member'
-import type { OrderProduct } from '@/domains/order'
+import type { OrderMethodType, OrderProduct } from '@/domains/order'
 
 export interface PaymentSummary {
   totalDiscountAmount: number
@@ -36,6 +36,30 @@ export function calculateTotalProductDiscount(items: OrderProduct[]): number {
  */
 export function calculateTotalProductPaymentAmount(items: OrderProduct[]): number {
   return calculateTotalProductAmount(items) - calculateTotalProductDiscount(items)
+}
+
+/**
+ * 가게 최소주문금액까지 부족한 금액을 계산합니다.
+ *
+ * 판정 기준은 상품 할인까지 반영한 금액(쿠폰·포인트 차감 전)으로, 서버의 검증 기준과 동일합니다.
+ * 최소주문금액이 미설정(0)이거나 배달 외 주문방식이면 항상 0을 반환합니다 — 픽업(포장)에는
+ * 가게 최소주문금액이 적용되지 않습니다.
+ *
+ * @param productPaymentAmount - 상품 할인 후 금액
+ * @param minOrderAmount - 가게 최소주문금액 (0이면 미설정)
+ * @param orderMethod - 주문 방식
+ * @returns 부족한 금액. 0이면 최소주문금액을 충족했거나 적용 대상이 아님
+ */
+export function calculateMinOrderShortfall(
+  productPaymentAmount: number,
+  minOrderAmount: number,
+  orderMethod: OrderMethodType,
+): number {
+  if (minOrderAmount <= 0 || orderMethod !== 'DELIVERY') {
+    return 0
+  }
+
+  return Math.max(minOrderAmount - productPaymentAmount, 0)
 }
 
 /**

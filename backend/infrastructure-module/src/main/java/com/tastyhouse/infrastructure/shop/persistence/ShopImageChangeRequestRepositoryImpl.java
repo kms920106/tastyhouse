@@ -3,15 +3,15 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 
@@ -54,7 +54,7 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
             .selectOne()
             .from(shopImageChangeRequestJpaEntity)
             .where(
-                shopId().eq(shopId),
+                ConvertedIdPaths.eq(shopImageChangeRequestJpaEntity, "shopId", ShopId.class, ShopId::of, shopId),
                 imageTypeEq(imageType),
                 statusEq(status)
             )
@@ -68,19 +68,11 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
             .selectOne()
             .from(shopImageChangeRequestJpaEntity)
             .where(
-                shopId().eq(shopId),
+                ConvertedIdPaths.eq(shopImageChangeRequestJpaEntity, "shopId", ShopId.class, ShopId::of, shopId),
                 statusEq(status)
             )
             .fetchFirst();
         return result != null;
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code SHOP_IMAGE_CHANGE_REQUEST.shop_id}를 raw {@code Long}으로
-     * 비교하기 위한 path.
-     */
-    private NumberPath<Long> shopId() {
-        return Expressions.numberPath(Long.class, shopImageChangeRequestJpaEntity, "shopId");
     }
 
     private BooleanExpression statusEq(ApprovalStatus status) {

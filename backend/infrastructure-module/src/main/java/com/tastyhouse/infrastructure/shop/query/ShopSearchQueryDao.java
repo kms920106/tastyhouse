@@ -10,17 +10,23 @@ import java.util.stream.Collectors;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.shop.model.Amenity;
-import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.domain.shop.model.Amenity;
+import com.tastyhouse.domain.shop.model.FoodType;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.StationId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 import com.tastyhouse.infrastructure.shop.persistence.ShopJpaEntity;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -130,7 +136,8 @@ public class ShopSearchQueryDao {
                 stationMap.get(shop.getId()),
                 shop.getRating(),
                 thumbnailMap.get(shop.getId()),
-                foodTypeMap.getOrDefault(shop.getId(), List.of())
+                foodTypeMap.getOrDefault(shop.getId(), List.of()),
+                shop.getMinOrderAmount()
             ))
             .toList();
 
@@ -150,7 +157,7 @@ public class ShopSearchQueryDao {
         Set<Long> foodTypeShopIds = null;
         if (foodTypes != null && !foodTypes.isEmpty()) {
             foodTypeShopIds = new HashSet<>(queryFactory
-                .select(foodTypeShopId())
+                .select(foodTypeShopIdValue())
                 .from(shopFoodTypeJpaEntity)
                 .join(shopFoodTypeCategoryJpaEntity).on(foodTypeShopFoodTypeCategoryId().eq(shopFoodTypeCategoryJpaEntity.id))
                 .where(shopFoodTypeCategoryJpaEntity.foodType.in(foodTypes))
@@ -164,12 +171,12 @@ public class ShopSearchQueryDao {
         Set<Long> amenityShopIds = null;
         if (amenities != null && !amenities.isEmpty()) {
             amenityShopIds = new HashSet<>(queryFactory
-                .select(amenityShopId())
+                .select(amenityShopIdValue())
                 .from(shopAmenityJpaEntity)
                 .join(shopAmenityCategoryJpaEntity).on(amenityShopAmenityCategoryId().eq(shopAmenityCategoryJpaEntity.id))
                 .where(shopAmenityCategoryJpaEntity.amenity.in(amenities))
-                .groupBy(amenityShopId())
-                .having(amenityShopId().count().goe((long) amenities.size()))
+                .groupBy(amenityShopIdValue())
+                .having(amenityShopIdValue().count().goe((long) amenities.size()))
                 .fetch());
 
             if (amenityShopIds.isEmpty()) {
@@ -228,7 +235,8 @@ public class ShopSearchQueryDao {
                 shop.getCreatedAt(),
                 reviewCountMap.getOrDefault(shop.getId(), 0L),
                 bookmarkCountMap.getOrDefault(shop.getId(), 0L),
-                foodTypeMap.getOrDefault(shop.getId(), List.of())
+                foodTypeMap.getOrDefault(shop.getId(), List.of()),
+                shop.getMinOrderAmount()
             ))
             .toList();
 
@@ -268,9 +276,9 @@ public class ShopSearchQueryDao {
         Set<Long> bookmarkedShopIds = memberId == null
             ? Set.of()
             : new HashSet<>(queryFactory
-                .select(bookmarkShopId())
+                .select(bookmarkShopIdValue())
                 .from(shopBookmarkJpaEntity)
-                .where(bookmarkShopId().in(shopIds), shopBookmarkJpaEntity.memberId.eq(memberId))
+                .where(ConvertedIdPaths.in(shopBookmarkJpaEntity, "shopId", ShopId.class, ShopId::of, shopIds), shopBookmarkJpaEntity.memberId.eq(memberId))
                 .fetch());
 
         List<ShopBookmarkedItemResult> content = pagedShops.stream()
@@ -281,7 +289,8 @@ public class ShopSearchQueryDao {
                 stationMap.get(shop.getId()),
                 shop.getRating(),
                 thumbnailMap.get(shop.getId()),
-                bookmarkedShopIds.contains(shop.getId())
+                bookmarkedShopIds.contains(shop.getId()),
+                shop.getMinOrderAmount()
             ))
             .toList();
 
@@ -313,13 +322,14 @@ public class ShopSearchQueryDao {
                 stationJpaEntity.stationName,
                 shopJpaEntity.rating,
                 uploadedFileJpaEntity.filePath,
-                Expressions.asBoolean(true)
+                Expressions.asBoolean(true),
+                shopJpaEntity.minOrderAmount
             ))
             .from(shopBookmarkJpaEntity)
             .join(shopJpaEntity).on(bookmarkShopId().eq(shopJpaEntity.id)
                 .and(shopJpaEntity.permanentlyClosed.eq(false))
                 .and(shopJpaEntity.hidden.eq(false)))
-            .join(stationJpaEntity).on(shopStationId().eq(stationJpaEntity.id))
+            .join(stationJpaEntity).on(shopStationIdValue().eq(stationJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
             .where(shopBookmarkJpaEntity.memberId.eq(memberId))
             .orderBy(shopBookmarkJpaEntity.createdAt.desc())
@@ -362,7 +372,7 @@ public class ShopSearchQueryDao {
                 shopJpaEntity.permanentlyClosed
             ))
             .from(shopJpaEntity)
-            .leftJoin(stationJpaEntity).on(stationJpaEntity.id.eq(shopStationId()))
+            .leftJoin(stationJpaEntity).on(stationJpaEntity.id.eq(shopStationIdValue()))
             .where(
                 nameContains(condition.name()),
                 stationIdEq(condition.stationId()),
@@ -383,7 +393,7 @@ public class ShopSearchQueryDao {
         return queryFactory
             .select(shopJpaEntity.id, stationJpaEntity.stationName)
             .from(shopJpaEntity)
-            .join(stationJpaEntity).on(stationJpaEntity.id.eq(shopStationId()))
+            .join(stationJpaEntity).on(stationJpaEntity.id.eq(shopStationIdValue()))
             .where(shopJpaEntity.id.in(shopIds))
             .fetch()
             .stream()
@@ -412,42 +422,42 @@ public class ShopSearchQueryDao {
 
     private Map<Long, List<FoodType>> foodTypesByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(foodTypeShopId(), shopFoodTypeCategoryJpaEntity.foodType)
+            .select(foodTypeShopIdValue(), shopFoodTypeCategoryJpaEntity.foodType)
             .from(shopFoodTypeJpaEntity)
             .join(shopFoodTypeCategoryJpaEntity).on(foodTypeShopFoodTypeCategoryId().eq(shopFoodTypeCategoryJpaEntity.id))
-            .where(foodTypeShopId().in(shopIds))
+            .where(ConvertedIdPaths.in(shopFoodTypeJpaEntity, "shopId", ShopId.class, ShopId::of, shopIds))
             .fetch()
             .stream()
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(foodTypeShopId())),
+                tuple -> Objects.requireNonNull(tuple.get(foodTypeShopIdValue())),
                 Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategoryJpaEntity.foodType), Collectors.toList())
             ));
     }
 
     private Map<Long, Long> reviewCountsByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(reviewShopId(), reviewShopId().count())
+            .select(reviewShopIdValue(), reviewShopIdValue().count())
             .from(reviewJpaEntity)
-            .where(reviewShopId().in(shopIds), reviewJpaEntity.hidden.eq(false))
-            .groupBy(reviewShopId())
+            .where(ConvertedIdPaths.in(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopIds), reviewJpaEntity.hidden.eq(false))
+            .groupBy(reviewShopIdValue())
             .fetch()
             .stream()
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(reviewShopId())),
-                tuple -> Objects.requireNonNull(tuple.get(reviewShopId().count()))
+                tuple -> Objects.requireNonNull(tuple.get(reviewShopIdValue())),
+                tuple -> Objects.requireNonNull(tuple.get(reviewShopIdValue().count()))
             ));
     }
 
     private Map<Long, Long> bookmarkCountsByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(bookmarkShopId(), shopBookmarkJpaEntity.count())
+            .select(bookmarkShopIdValue(), shopBookmarkJpaEntity.count())
             .from(shopBookmarkJpaEntity)
-            .where(bookmarkShopId().in(shopIds))
-            .groupBy(bookmarkShopId())
+            .where(ConvertedIdPaths.in(shopBookmarkJpaEntity, "shopId", ShopId.class, ShopId::of, shopIds))
+            .groupBy(bookmarkShopIdValue())
             .fetch()
             .stream()
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(bookmarkShopId())),
+                tuple -> Objects.requireNonNull(tuple.get(bookmarkShopIdValue())),
                 tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.count()))
             ));
     }
@@ -476,11 +486,11 @@ public class ShopSearchQueryDao {
     }
 
     private BooleanExpression stationIdEq(Long stationId) {
-        return stationId != null ? shopStationId().eq(stationId) : null;
+        return stationId != null ? shopStationId().eq(StationId.of(stationId)) : null;
     }
 
     private BooleanExpression ceoIdEq(Long ceoId) {
-        return ceoId != null ? shopCeoId().eq(ceoId) : null;
+        return ceoId != null ? shopCeoId().eq(CeoId.of(ceoId)) : null;
     }
 
     private BooleanExpression shopIdIn(Set<Long> shopIds) {
@@ -499,22 +509,15 @@ public class ShopSearchQueryDao {
             row.stationName(),
             row.rating(),
             fileUrlResolver.resolve(row.imageUrl()),
-            row.bookmarked()
+            row.bookmarked(),
+            row.minOrderAmount()
         );
     }
 
     // ----------------------------------------------------- @Convert VO 컬럼 우회
 
-    private NumberPath<Long> foodTypeShopId() {
-        return Expressions.numberPath(Long.class, shopFoodTypeJpaEntity, "shopId");
-    }
-
     private NumberPath<Long> foodTypeShopFoodTypeCategoryId() {
         return Expressions.numberPath(Long.class, shopFoodTypeJpaEntity, "shopFoodTypeCategoryId");
-    }
-
-    private NumberPath<Long> amenityShopId() {
-        return Expressions.numberPath(Long.class, shopAmenityJpaEntity, "shopId");
     }
 
     private NumberPath<Long> amenityShopAmenityCategoryId() {
@@ -525,7 +528,20 @@ public class ShopSearchQueryDao {
         return Expressions.numberPath(Long.class, shopBookmarkJpaEntity, "shopId");
     }
 
-    private NumberPath<Long> shopStationId() {
+    /**
+     * {@code stationId}는 {@code StationIdConverter}로 매핑된 VO 컬럼이라 Hibernate가 파라미터 타입을
+     * {@code StationId}로 해석한다. 따라서 비교(where)는 VO path로, 조인 대상 raw {@code Long} PK와의
+     * 비교는 {@link #shopStationIdValue()}로 각각 나눠 쓴다.
+     */
+    private SimpleExpression<StationId> shopStationId() {
+        return Expressions.path(StationId.class, shopJpaEntity, "stationId");
+    }
+
+    /**
+     * {@code STATION.id}(raw {@code Long}) 조인용 경로. VO path와 달리 컬럼 값을 그대로 {@code Long}으로
+     * 다루므로 다른 엔티티의 raw PK와 비교할 수 있다.
+     */
+    private NumberPath<Long> shopStationIdValue() {
         return Expressions.numberPath(Long.class, shopJpaEntity, "stationId");
     }
 
@@ -533,11 +549,44 @@ public class ShopSearchQueryDao {
         return Expressions.numberPath(Long.class, shopJpaEntity, "thumbnailImageFileId");
     }
 
-    private NumberPath<Long> shopCeoId() {
-        return Expressions.numberPath(Long.class, shopJpaEntity, "ceoId");
+    /**
+     * {@code ceoId}는 {@code CeoIdConverter}로 매핑된 VO 컬럼이라 Hibernate가 파라미터 타입을
+     * {@code CeoId}로 해석한다. raw {@code Long}으로 바인딩하면 조회 시점에
+     * {@code QueryArgumentException}이 발생하므로 VO path로 비교한다.
+     */
+    private SimpleExpression<CeoId> shopCeoId() {
+        return Expressions.path(CeoId.class, shopJpaEntity, "ceoId");
     }
 
-    private NumberPath<Long> reviewShopId() {
-        return Expressions.numberPath(Long.class, reviewJpaEntity, "shopId");
+    /**
+     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> amenityShopIdValue() {
+        return ConvertedIdPaths.longValue(shopAmenityJpaEntity, "shopId", ShopId.class);
+    }
+
+    /**
+     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> bookmarkShopIdValue() {
+        return ConvertedIdPaths.longValue(shopBookmarkJpaEntity, "shopId", ShopId.class);
+    }
+
+    /**
+     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> foodTypeShopIdValue() {
+        return ConvertedIdPaths.longValue(shopFoodTypeJpaEntity, "shopId", ShopId.class);
+    }
+
+    /**
+     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> reviewShopIdValue() {
+        return ConvertedIdPaths.longValue(reviewJpaEntity, "shopId", ShopId.class);
     }
 }

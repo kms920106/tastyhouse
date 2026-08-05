@@ -10,12 +10,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.StationId;
 import com.tastyhouse.infrastructure.ceo.persistence.CeoIdConverter;
 import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
+import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
  * 상점 JPA 영속 모델.
@@ -77,6 +77,9 @@ public class ShopJpaEntity extends BaseEntity {
     @Column(name = "is_closed_on_public_holidays", nullable = false)
     private boolean closedOnPublicHolidays; // 공휴일 휴무 여부
 
+    @Column(name = "min_order_amount", nullable = false)
+    private int minOrderAmount; // 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
+
     protected ShopJpaEntity() {
     }
 
@@ -94,7 +97,8 @@ public class ShopJpaEntity extends BaseEntity {
         UploadedFileId trademarkImageFileId,
         boolean permanentlyClosed,
         boolean hidden,
-        boolean closedOnPublicHolidays
+        boolean closedOnPublicHolidays,
+        int minOrderAmount
     ) {
         this.ceoId = ceoId;
         this.stationId = stationId;
@@ -110,6 +114,7 @@ public class ShopJpaEntity extends BaseEntity {
         this.permanentlyClosed = permanentlyClosed;
         this.hidden = hidden;
         this.closedOnPublicHolidays = closedOnPublicHolidays;
+        this.minOrderAmount = minOrderAmount;
     }
 
     /**
@@ -129,7 +134,8 @@ public class ShopJpaEntity extends BaseEntity {
         UploadedFileId trademarkImageFileId,
         boolean permanentlyClosed,
         boolean hidden,
-        boolean closedOnPublicHolidays
+        boolean closedOnPublicHolidays,
+        int minOrderAmount
     ) {
         return new ShopJpaEntity(
             ceoId,
@@ -145,7 +151,8 @@ public class ShopJpaEntity extends BaseEntity {
             trademarkImageFileId,
             permanentlyClosed,
             hidden,
-            closedOnPublicHolidays
+            closedOnPublicHolidays,
+            minOrderAmount
         );
     }
 
@@ -166,7 +173,8 @@ public class ShopJpaEntity extends BaseEntity {
         UploadedFileId trademarkImageFileId,
         boolean permanentlyClosed,
         boolean hidden,
-        boolean closedOnPublicHolidays
+        boolean closedOnPublicHolidays,
+        int minOrderAmount
     ) {
         this.ceoId = ceoId;
         this.stationId = stationId;
@@ -182,6 +190,7 @@ public class ShopJpaEntity extends BaseEntity {
         this.permanentlyClosed = permanentlyClosed;
         this.hidden = hidden;
         this.closedOnPublicHolidays = closedOnPublicHolidays;
+        this.minOrderAmount = minOrderAmount;
     }
 
     public Long getId() {
@@ -242,5 +251,9 @@ public class ShopJpaEntity extends BaseEntity {
 
     public boolean isClosedOnPublicHolidays() {
         return this.closedOnPublicHolidays;
+    }
+
+    public int getMinOrderAmount() {
+        return this.minOrderAmount;
     }
 }

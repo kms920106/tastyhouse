@@ -12,6 +12,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -19,16 +20,21 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.shop.vo.TagId;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewCommentJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEntity;
+import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -237,7 +243,7 @@ public class ReviewQueryDao {
      * 가게별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식({@link ReviewSortType})을 지원한다.
      */
     public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
-        var whereClause = reviewShopId().eq(shopId).and(reviewJpaEntity.hidden.eq(false));
+        var whereClause = ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId).and(reviewJpaEntity.hidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
                 whereClause = whereClause.and(reviewJpaEntity.totalRating.eq(5.0));
@@ -322,7 +328,7 @@ public class ReviewQueryDao {
      * 상품별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식을 지원한다.
      */
     public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
-        var whereClause = reviewProductId().eq(productId).and(reviewJpaEntity.hidden.eq(false));
+        var whereClause = ConvertedIdPaths.eq(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productId).and(reviewJpaEntity.hidden.eq(false));
         if (rating != null) {
             if (rating == 5) {
                 whereClause = whereClause.and(reviewJpaEntity.totalRating.eq(5.0));
@@ -407,7 +413,7 @@ public class ReviewQueryDao {
      * 가게의 특정 평점대 리뷰를 제한 건수만큼 조회한다(평점별 미리보기).
      */
     public List<LatestReviewListItemResult> findReviewsByShopIdAndRating(Long shopId, Integer rating, int limit) {
-        var whereClause = reviewShopId().eq(shopId).and(reviewJpaEntity.hidden.eq(false));
+        var whereClause = ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId).and(reviewJpaEntity.hidden.eq(false));
 
         if (rating == 5) {
             whereClause = whereClause.and(reviewJpaEntity.totalRating.eq(5.0));
@@ -465,7 +471,7 @@ public class ReviewQueryDao {
      * 상품의 특정 평점대 리뷰를 제한 건수만큼 조회한다(평점별 미리보기).
      */
     public List<LatestReviewListItemResult> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit) {
-        var whereClause = reviewProductId().eq(productId).and(reviewJpaEntity.hidden.eq(false));
+        var whereClause = ConvertedIdPaths.eq(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productId).and(reviewJpaEntity.hidden.eq(false));
 
         if (rating == 5) {
             whereClause = whereClause.and(reviewJpaEntity.totalRating.eq(5.0));
@@ -690,8 +696,8 @@ public class ReviewQueryDao {
             .selectOne()
             .from(reviewJpaEntity)
             .where(
-                reviewOrderId().eq(orderId),
-                reviewProductId().eq(productId),
+                ConvertedIdPaths.eq(reviewJpaEntity, "orderId", OrderId.class, OrderId::of, orderId),
+                ConvertedIdPaths.eq(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productId),
                 reviewJpaEntity.memberId.eq(memberId)
             )
             .fetchFirst() != null;
@@ -710,11 +716,11 @@ public class ReviewQueryDao {
         }
 
         return queryFactory
-            .select(reviewProductId())
+            .select(reviewProductIdValue())
             .from(reviewJpaEntity)
             .where(
-                reviewOrderId().eq(orderId),
-                reviewProductId().in(productIds),
+                ConvertedIdPaths.eq(reviewJpaEntity, "orderId", OrderId.class, OrderId::of, orderId),
+                ConvertedIdPaths.in(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productIds),
                 reviewJpaEntity.memberId.eq(memberId)
             )
             .fetch()
@@ -728,7 +734,7 @@ public class ReviewQueryDao {
      */
     public Optional<Long> findProductIdByReviewId(Long reviewId) {
         return Optional.ofNullable(queryFactory
-            .select(reviewProductId())
+            .select(reviewProductIdValue())
             .from(reviewJpaEntity)
             .where(reviewJpaEntity.id.eq(reviewId))
             .fetchOne());
@@ -742,7 +748,7 @@ public class ReviewQueryDao {
             .selectOne()
             .from(reviewLikeJpaEntity)
             .where(
-                likeReviewId().eq(reviewId.value()),
+                ConvertedIdPaths.eq(reviewLikeJpaEntity, "reviewId", ReviewId.class, ReviewId::of, reviewId.value()),
                 reviewLikeJpaEntity.memberId.eq(memberId)
             )
             .fetchFirst() != null;
@@ -759,7 +765,7 @@ public class ReviewQueryDao {
         return queryFactory
             .select(new QReviewCommentItemResult(
                 reviewCommentJpaEntity.id,
-                commentReviewId(),
+                commentReviewIdValue(),
                 reviewCommentJpaEntity.memberId,
                 memberJpaEntity.nickname,
                 uploadedFileJpaEntity.filePath,
@@ -770,7 +776,7 @@ public class ReviewQueryDao {
             .leftJoin(memberJpaEntity)
             .on(Expressions.numberPath(Long.class, reviewCommentJpaEntity, "memberId").eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
-            .where(commentReviewId().eq(reviewId.value()))
+            .where(ConvertedIdPaths.eq(reviewCommentJpaEntity, "reviewId", ReviewId.class, ReviewId::of, reviewId.value()))
             .orderBy(reviewCommentJpaEntity.createdAt.desc())
             .fetch()
             .stream()
@@ -794,7 +800,7 @@ public class ReviewQueryDao {
         return queryFactory
             .select(new QReviewReplyItemResult(
                 reviewReplyJpaEntity.id,
-                replyCommentId(),
+                replyCommentIdValue(),
                 reviewReplyJpaEntity.memberId,
                 memberJpaEntity.nickname,
                 uploadedFileJpaEntity.filePath,
@@ -810,7 +816,7 @@ public class ReviewQueryDao {
             .leftJoin(replyToMember)
             .on(Expressions.numberPath(Long.class, reviewReplyJpaEntity, "replyToMemberId").eq(replyToMember.id))
             .where(
-                replyCommentId().in(ids),
+                ConvertedIdPaths.in(reviewReplyJpaEntity, "commentId", ReviewCommentId.class, ReviewCommentId::of, ids),
                 reviewReplyJpaEntity.hidden.eq(false)
             )
             .orderBy(reviewReplyJpaEntity.createdAt.asc())
@@ -825,9 +831,9 @@ public class ReviewQueryDao {
      */
     public List<Long> findTagIdsByReviewId(Long reviewId) {
         return queryFactory
-            .select(tagTagId())
+            .select(tagTagIdValue())
             .from(reviewTagJpaEntity)
-            .where(tagReviewId().eq(reviewId))
+            .where(ConvertedIdPaths.eq(reviewTagJpaEntity, "reviewId", ReviewId.class, ReviewId::of, reviewId))
             .fetch();
     }
 
@@ -913,17 +919,17 @@ public class ReviewQueryDao {
      */
     private Map<Long, List<String>> findImageUrlsByReviewIds(List<Long> reviewIds) {
         List<Tuple> results = queryFactory
-            .select(imageReviewId(), uploadedFileJpaEntity.filePath)
+            .select(imageReviewIdValue(), uploadedFileJpaEntity.filePath)
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(imageImageFileId().eq(uploadedFileJpaEntity.id))
-            .where(imageReviewId().in(reviewIds))
+            .where(ConvertedIdPaths.in(reviewImageJpaEntity, "reviewId", ReviewId.class, ReviewId::of, reviewIds))
             .orderBy(reviewImageJpaEntity.sort.asc())
             .fetch();
 
         return results.stream()
-            .filter(tuple -> tuple.get(imageReviewId()) != null)
+            .filter(tuple -> tuple.get(imageReviewIdValue()) != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(imageReviewId())),
+                tuple -> Objects.requireNonNull(tuple.get(imageReviewIdValue())),
                 Collectors.mapping(
                     tuple -> fileUrlResolver.resolve(Objects.toString(tuple.get(uploadedFileJpaEntity.filePath), "")),
                     Collectors.toList()
@@ -940,7 +946,7 @@ public class ReviewQueryDao {
             .select(uploadedFileJpaEntity.filePath)
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(imageImageFileId().eq(uploadedFileJpaEntity.id))
-            .where(imageReviewId().eq(reviewId))
+            .where(ConvertedIdPaths.eq(reviewImageJpaEntity, "reviewId", ReviewId.class, ReviewId::of, reviewId))
             .orderBy(reviewImageJpaEntity.sort.asc())
             .fetch();
 
@@ -957,24 +963,24 @@ public class ReviewQueryDao {
         }
 
         List<Tuple> results = queryFactory
-            .select(imageReviewId(), uploadedFileJpaEntity.filePath)
+            .select(imageReviewIdValue(), uploadedFileJpaEntity.filePath)
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(imageImageFileId().eq(uploadedFileJpaEntity.id))
             .where(
-                imageReviewId().in(reviewIds),
+                ConvertedIdPaths.in(reviewImageJpaEntity, "reviewId", ReviewId.class, ReviewId::of, reviewIds),
                 reviewImageJpaEntity.sort.eq(
                     JPAExpressions
                         .select(subReviewImage.sort.min())
                         .from(subReviewImage)
-                        .where(subImageReviewId().eq(imageReviewId()))
+                        .where(subImageReviewId().eq(imageReviewIdValue()))
                 )
             )
             .fetch();
 
         Map<Long, String> filePathByReviewId = results.stream()
-            .filter(tuple -> tuple.get(imageReviewId()) != null && tuple.get(uploadedFileJpaEntity.filePath) != null)
+            .filter(tuple -> tuple.get(imageReviewIdValue()) != null && tuple.get(uploadedFileJpaEntity.filePath) != null)
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(imageReviewId())),
+                tuple -> Objects.requireNonNull(tuple.get(imageReviewIdValue())),
                 tuple -> Objects.requireNonNull(tuple.get(uploadedFileJpaEntity.filePath)),
                 (existing, replacement) -> existing
             ));
@@ -1114,26 +1120,6 @@ public class ReviewQueryDao {
         return Expressions.numberPath(Long.class, subReviewImage, "reviewId");
     }
 
-    private NumberPath<Long> likeReviewId() {
-        return Expressions.numberPath(Long.class, reviewLikeJpaEntity, "reviewId");
-    }
-
-    private NumberPath<Long> commentReviewId() {
-        return Expressions.numberPath(Long.class, reviewCommentJpaEntity, "reviewId");
-    }
-
-    private NumberPath<Long> replyCommentId() {
-        return Expressions.numberPath(Long.class, reviewReplyJpaEntity, "commentId");
-    }
-
-    private NumberPath<Long> tagReviewId() {
-        return Expressions.numberPath(Long.class, reviewTagJpaEntity, "reviewId");
-    }
-
-    private NumberPath<Long> tagTagId() {
-        return Expressions.numberPath(Long.class, reviewTagJpaEntity, "tagId");
-    }
-
     /**
      * {@code @Convert} VO 컬럼인 {@code SHOP.station_id}를 raw {@code Long}으로 비교하기 위한
      * path(shop 도메인의 크로스 참조).
@@ -1148,5 +1134,45 @@ public class ReviewQueryDao {
      */
     private NumberPath<Long> memberProfileImageFileId() {
         return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
+    }
+
+    /**
+     * {@code reviewId}({@code @Convert} ReviewId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> commentReviewIdValue() {
+        return ConvertedIdPaths.longValue(reviewCommentJpaEntity, "reviewId", ReviewId.class);
+    }
+
+    /**
+     * {@code reviewId}({@code @Convert} ReviewId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> imageReviewIdValue() {
+        return ConvertedIdPaths.longValue(reviewImageJpaEntity, "reviewId", ReviewId.class);
+    }
+
+    /**
+     * {@code commentId}({@code @Convert} ReviewCommentId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> replyCommentIdValue() {
+        return ConvertedIdPaths.longValue(reviewReplyJpaEntity, "commentId", ReviewCommentId.class);
+    }
+
+    /**
+     * {@code productId}({@code @Convert} ProductId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> reviewProductIdValue() {
+        return ConvertedIdPaths.longValue(reviewJpaEntity, "productId", ProductId.class);
+    }
+
+    /**
+     * {@code tagId}({@code @Convert} TagId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
+     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
+     */
+    private NumberExpression<Long> tagTagIdValue() {
+        return ConvertedIdPaths.longValue(reviewTagJpaEntity, "tagId", TagId.class);
     }
 }

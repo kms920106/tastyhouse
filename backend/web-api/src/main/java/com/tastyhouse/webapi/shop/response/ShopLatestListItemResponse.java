@@ -27,7 +27,10 @@ public record ShopLatestListItemResponse(
     List<String> foodTypes,
 
     @Schema(description = "실시간 영업 상태(OPEN: 영업중, PREPARING: 준비중)", example = "OPEN")
-    String operatingStatus
+    String operatingStatus,
+
+    @Schema(description = "최소주문금액 (0: 미설정, 제한 없음). 배달 주문에만 적용됩니다.", example = "10000")
+    int minOrderAmount
 ) {
     public static ShopLatestListItemResponse from(
         Long id,
@@ -39,7 +42,8 @@ public record ShopLatestListItemResponse(
         Long reviewCount,
         Long bookmarkCount,
         List<String> foodTypes,
-        String operatingStatus
+        String operatingStatus,
+        int minOrderAmount
     ) {
         return new ShopLatestListItemResponse(
             id,
@@ -51,7 +55,8 @@ public record ShopLatestListItemResponse(
             reviewCount,
             bookmarkCount,
             foodTypes,
-            operatingStatus
+            operatingStatus,
+            minOrderAmount
         );
     }
 }

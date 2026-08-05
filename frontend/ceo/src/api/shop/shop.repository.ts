@@ -30,6 +30,7 @@ import type {
   ShopIntroductionValidateResponse,
   ShopListItemResponse,
   ShopListQueryRequest,
+  ShopMinOrderAmountUpdateRequest,
   ShopStatusResponse,
   ShopStatusUpdateRequest,
   SuspensionBulkCreateRequest,
@@ -168,6 +169,13 @@ export const shopRepository = {
 
   updateStatus(shopId: number, body: ShopStatusUpdateRequest): Promise<ApiResponse<null>> {
     return api.put<null>(`${ENDPOINT}/v1/${shopId}/status`, body);
+  },
+
+  // ===== 최소주문금액 =====
+  // 조회 전용 엔드포인트는 없다 — 값은 가게 상세(getDetail)의 minOrderAmount 로 함께 내려온다.
+
+  updateMinOrderAmount(shopId: number, body: ShopMinOrderAmountUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/min-order-amount`, body);
   },
 
   // ===== 가게 소개 =====

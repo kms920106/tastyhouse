@@ -29,6 +29,7 @@ import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
+import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -102,15 +103,18 @@ public class OrderPlacementService {
 
     /**
      * 주문을 접수한다 — 가게·회원 존재 확인 → 주문 헤더 생성 → 상품 라인·옵션 생성과 금액 집계 →
-     * 쿠폰·포인트 사용 → 금액 대조 검증 → 헤더 금액 반영.
+     * 가게 최소주문금액 검증 → 쿠폰·포인트 사용 → 금액 대조 검증 → 헤더 금액 반영.
+     *
+     * <p>가게 최소주문금액 검증은 상품 할인까지 반영한 금액을 기준으로 쿠폰·포인트 사용 <b>전에</b> 수행한다
+     * (판정 기준과 면제 조건은 {@code Shop#validateMinOrderAmount} 참고). 이 검증은 쿠폰 자체의 최소주문금액
+     * 검증({@code Coupon#validateMinOrderAmount})과 별개다.
      *
      * @return 생성된 주문 식별자
      */
     public OrderId place(MemberId memberId, OrderPlacement placement) {
         ShopId shopId = ShopId.of(placement.shopId());
-        if (shopRepository.findById(shopId).isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND);
-        }
+        Shop shop = shopRepository.findById(shopId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -169,10 +173,12 @@ public class OrderPlacementService {
             productDiscountAmount += itemDiscount;
         }
 
+        int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
+        shop.validateMinOrderAmount(placement.orderMethod(), orderAmountAfterProductDiscount);
+
         int couponDiscountAmount = 0;
         MemberCouponId memberCouponId = null;
         if (placement.memberCouponId() != null) {
-            int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
             CouponUseResult couponResult = couponIssueService.useCoupon(
                 MemberCouponId.of(placement.memberCouponId()), memberId, orderAmountAfterProductDiscount
             );
