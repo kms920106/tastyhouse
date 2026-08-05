@@ -13,6 +13,10 @@ out/
 !**/src/main/**
 !**/src/test/**
 
+# oh-my-claudecode state (must come after src/main, src/test un-ignore)
+**/src/main/**/.omc/
+**/src/test/**/.omc/
+
 # Gradle wrapper (must come after *.jar to override it)
 !gradle/wrapper/gradle-wrapper.jar
 
