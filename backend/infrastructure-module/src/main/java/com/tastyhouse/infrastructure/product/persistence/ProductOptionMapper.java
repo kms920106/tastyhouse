@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import com.tastyhouse.domain.product.model.ProductOption;
+import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 상품 옵션 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,7 +18,7 @@ final class ProductOptionMapper {
     static ProductOption toDomain(ProductOptionJpaEntity entity) {
         return ProductOption.reconstitute(
             entity.getId(),
-            entity.getOptionGroupId(),
+            IdMapping.vo(entity.getOptionGroupId(), ProductOptionGroupId::of),
             entity.getName(),
             entity.getAdditionalPrice(),
             entity.getSort(),
@@ -30,7 +32,7 @@ final class ProductOptionMapper {
      */
     static ProductOptionJpaEntity toEntity(ProductOption domain) {
         return ProductOptionJpaEntity.create(
-            domain.getOptionGroupId(),
+            IdMapping.raw(domain.getOptionGroupId(), ProductOptionGroupId::value),
             domain.getName(),
             domain.getAdditionalPrice(),
             domain.getSort(),

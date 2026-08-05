@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.point.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,8 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -32,9 +29,8 @@ public class PointJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false, unique = true)
-    private MemberId memberId;
+    private Long memberId;
 
     @Column(name = "available_points", nullable = false)
     private Integer availablePoints;
@@ -45,7 +41,7 @@ public class PointJpaEntity extends BaseEntity {
     protected PointJpaEntity() {
     }
 
-    private PointJpaEntity(MemberId memberId, Integer availablePoints, Integer expiredThisMonth) {
+    private PointJpaEntity(Long memberId, Integer availablePoints, Integer expiredThisMonth) {
         this.memberId = memberId;
         this.availablePoints = availablePoints;
         this.expiredThisMonth = expiredThisMonth;
@@ -54,7 +50,7 @@ public class PointJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code PointMapper#toEntity}에서만 호출한다.
      */
-    static PointJpaEntity create(MemberId memberId, Integer availablePoints, Integer expiredThisMonth) {
+    static PointJpaEntity create(Long memberId, Integer availablePoints, Integer expiredThisMonth) {
         return new PointJpaEntity(memberId, availablePoints, expiredThisMonth);
     }
 
@@ -70,7 +66,7 @@ public class PointJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 

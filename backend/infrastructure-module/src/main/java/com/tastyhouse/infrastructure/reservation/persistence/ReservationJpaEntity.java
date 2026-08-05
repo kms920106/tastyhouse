@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,12 +13,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 예약 JPA 영속 모델.
@@ -41,13 +36,11 @@ public class ReservationJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId;
+    private Long shopId;
 
     @Column(name = "reservation_date", nullable = false)
     private LocalDate reservationDate;
@@ -69,8 +62,8 @@ public class ReservationJpaEntity extends BaseEntity {
     }
 
     private ReservationJpaEntity(
-        MemberId memberId,
-        ShopId shopId,
+        Long memberId,
+        Long shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,
@@ -90,8 +83,8 @@ public class ReservationJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReservationMapper#toEntity}에서만 호출한다.
      */
     static ReservationJpaEntity create(
-        MemberId memberId,
-        ShopId shopId,
+        Long memberId,
+        Long shopId,
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,
@@ -112,11 +105,11 @@ public class ReservationJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

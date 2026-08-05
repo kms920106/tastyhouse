@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -12,7 +11,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 import com.tastyhouse.domain.shop.model.OrderMethod;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -26,9 +24,8 @@ public class ShopOrderMethodJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
@@ -37,12 +34,12 @@ public class ShopOrderMethodJpaEntity extends BaseEntity {
     protected ShopOrderMethodJpaEntity() {
     }
 
-    private ShopOrderMethodJpaEntity(ShopId shopId, OrderMethod orderMethod) {
+    private ShopOrderMethodJpaEntity(Long shopId, OrderMethod orderMethod) {
         this.shopId = shopId;
         this.orderMethod = orderMethod;
     }
 
-    static ShopOrderMethodJpaEntity create(ShopId shopId, OrderMethod orderMethod) {
+    static ShopOrderMethodJpaEntity create(Long shopId, OrderMethod orderMethod) {
         return new ShopOrderMethodJpaEntity(shopId, orderMethod);
     }
 
@@ -50,7 +47,7 @@ public class ShopOrderMethodJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

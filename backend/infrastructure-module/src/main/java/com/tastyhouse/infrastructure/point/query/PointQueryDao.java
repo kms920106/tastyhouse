@@ -7,7 +7,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
@@ -39,7 +38,7 @@ public class PointQueryDao {
     /**
      * 회원 포인트 잔액 조회 — 포인트 계정이 없는 회원이면 비어 있다(소비 측에서 0으로 대체).
      */
-    public Optional<PointBalanceResult> findBalanceByMemberId(MemberId memberId) {
+    public Optional<PointBalanceResult> findBalanceByMemberId(Long memberId) {
         PointBalanceResult balance = queryFactory
             .select(new QPointBalanceResult(
                 pointJpaEntity.availablePoints,
@@ -55,7 +54,7 @@ public class PointQueryDao {
     /**
      * 회원 포인트 이력 전체 조회(최신순) — web의 내 포인트 내역 화면이 페이징 없이 전체를 소비한다.
      */
-    public List<PointHistoryResult> findPointHistories(MemberId memberId) {
+    public List<PointHistoryResult> findPointHistories(Long memberId) {
         return queryFactory
             .select(new QPointHistoryResult(
                 pointHistoryJpaEntity.pointType,

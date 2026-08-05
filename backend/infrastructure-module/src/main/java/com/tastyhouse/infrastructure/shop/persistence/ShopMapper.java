@@ -1,6 +1,10 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
+import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.vo.StationId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 상점 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,8 +20,8 @@ final class ShopMapper {
     static Shop toDomain(ShopJpaEntity entity) {
         return Shop.reconstitute(
             entity.getId(),
-            entity.getCeoId(),
-            entity.getStationId(),
+            IdMapping.vo(entity.getCeoId(), CeoId::of),
+            IdMapping.vo(entity.getStationId(), StationId::of),
             entity.getName(),
             entity.getLatitude(),
             entity.getLongitude(),
@@ -25,8 +29,8 @@ final class ShopMapper {
             entity.getRoadAddress(),
             entity.getLotAddress(),
             entity.getPhoneNumber(),
-            entity.getThumbnailImageFileId(),
-            entity.getTrademarkImageFileId(),
+            IdMapping.vo(entity.getThumbnailImageFileId(), UploadedFileId::of),
+            IdMapping.vo(entity.getTrademarkImageFileId(), UploadedFileId::of),
             entity.isPermanentlyClosed(),
             entity.isHidden(),
             entity.isClosedOnPublicHolidays(),
@@ -41,8 +45,8 @@ final class ShopMapper {
      */
     static ShopJpaEntity toEntity(Shop domain) {
         return ShopJpaEntity.create(
-            domain.getCeoId(),
-            domain.getStationId(),
+            IdMapping.raw(domain.getCeoId(), CeoId::value),
+            IdMapping.raw(domain.getStationId(), StationId::value),
             domain.getName(),
             domain.getLatitude(),
             domain.getLongitude(),
@@ -50,8 +54,8 @@ final class ShopMapper {
             domain.getRoadAddress(),
             domain.getLotAddress(),
             domain.getPhoneNumber(),
-            domain.getThumbnailImageFileId(),
-            domain.getTrademarkImageFileId(),
+            IdMapping.raw(domain.getThumbnailImageFileId(), UploadedFileId::value),
+            IdMapping.raw(domain.getTrademarkImageFileId(), UploadedFileId::value),
             domain.isPermanentlyClosed(),
             domain.isHidden(),
             domain.isClosedOnPublicHolidays(),
@@ -64,8 +68,8 @@ final class ShopMapper {
      */
     static void applyChanges(ShopJpaEntity entity, Shop domain) {
         entity.applyChanges(
-            domain.getCeoId(),
-            domain.getStationId(),
+            IdMapping.raw(domain.getCeoId(), CeoId::value),
+            IdMapping.raw(domain.getStationId(), StationId::value),
             domain.getName(),
             domain.getLatitude(),
             domain.getLongitude(),
@@ -73,8 +77,8 @@ final class ShopMapper {
             domain.getRoadAddress(),
             domain.getLotAddress(),
             domain.getPhoneNumber(),
-            domain.getThumbnailImageFileId(),
-            domain.getTrademarkImageFileId(),
+            IdMapping.raw(domain.getThumbnailImageFileId(), UploadedFileId::value),
+            IdMapping.raw(domain.getTrademarkImageFileId(), UploadedFileId::value),
             domain.isPermanentlyClosed(),
             domain.isHidden(),
             domain.isClosedOnPublicHolidays(),

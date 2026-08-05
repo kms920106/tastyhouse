@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 final class ShopBusinessHourMapper {
 
@@ -10,7 +12,7 @@ final class ShopBusinessHourMapper {
     static ShopBusinessHour toDomain(ShopBusinessHourJpaEntity entity) {
         return ShopBusinessHour.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            IdMapping.vo(entity.getShopId(), ShopId::of),
             entity.getDayType(),
             entity.getOpenTime(),
             entity.getCloseTime(),
@@ -21,7 +23,7 @@ final class ShopBusinessHourMapper {
 
     static ShopBusinessHourJpaEntity toEntity(ShopBusinessHour domain) {
         return ShopBusinessHourJpaEntity.create(
-            domain.getShopId(),
+            IdMapping.raw(domain.getShopId(), ShopId::value),
             domain.getDayType(),
             domain.getOpenTime(),
             domain.getCloseTime(),

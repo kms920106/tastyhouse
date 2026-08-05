@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 가게 이미지 변경 승인요청 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,9 +19,9 @@ final class ShopImageChangeRequestMapper {
     static ShopImageChangeRequest toDomain(ShopImageChangeRequestJpaEntity entity) {
         return ShopImageChangeRequest.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            IdMapping.vo(entity.getShopId(), ShopId::of),
             entity.getImageType(),
-            entity.getImageFileId(),
+            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
             entity.getStatus(),
             entity.getRejectReason(),
             entity.getCreatedAt(),
@@ -31,9 +34,9 @@ final class ShopImageChangeRequestMapper {
      */
     static ShopImageChangeRequestJpaEntity toEntity(ShopImageChangeRequest domain) {
         return ShopImageChangeRequestJpaEntity.create(
-            domain.getShopId(),
+            IdMapping.raw(domain.getShopId(), ShopId::value),
             domain.getImageType(),
-            domain.getImageFileId(),
+            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
             domain.getStatus(),
             domain.getRejectReason()
         );

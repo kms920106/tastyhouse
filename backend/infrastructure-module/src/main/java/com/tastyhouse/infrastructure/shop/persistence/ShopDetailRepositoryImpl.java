@@ -20,10 +20,6 @@ import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
-import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
-import com.tastyhouse.domain.shop.vo.ShopFoodTypeCategoryId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBreakTimeJpaEntity.shopBreakTimeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBusinessHourJpaEntity.shopBusinessHourJpaEntity;
@@ -74,7 +70,7 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     public List<ShopBusinessHour> findBusinessHoursByShopId(Long shopId) {
         return queryFactory
             .selectFrom(shopBusinessHourJpaEntity)
-            .where(ConvertedIdPaths.eq(shopBusinessHourJpaEntity, "shopId", ShopId.class, ShopId::of, shopId))
+            .where(shopBusinessHourJpaEntity.shopId.eq(shopId))
             .orderBy(shopBusinessHourJpaEntity.dayType.asc())
             .fetch()
             .stream()
@@ -109,7 +105,7 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     public List<ShopBreakTime> findBreakTimesByShopId(Long shopId) {
         return queryFactory
             .selectFrom(shopBreakTimeJpaEntity)
-            .where(ConvertedIdPaths.eq(shopBreakTimeJpaEntity, "shopId", ShopId.class, ShopId::of, shopId))
+            .where(shopBreakTimeJpaEntity.shopId.eq(shopId))
             .orderBy(shopBreakTimeJpaEntity.dayType.asc())
             .fetch()
             .stream()
@@ -144,7 +140,7 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     public List<ShopClosedDay> findClosedDaysByShopId(Long shopId) {
         return queryFactory
             .selectFrom(shopClosedDayJpaEntity)
-            .where(ConvertedIdPaths.eq(shopClosedDayJpaEntity, "shopId", ShopId.class, ShopId::of, shopId))
+            .where(shopClosedDayJpaEntity.shopId.eq(shopId))
             .fetch()
             .stream()
             .map(ShopClosedDayMapper::toDomain)
@@ -220,7 +216,7 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
 
     @Override
     public void deleteAmenityByShopIdAndCategoryId(Long shopId, Long shopAmenityCategoryId) {
-        shopAmenityJpaRepository.deleteByShopIdAndShopAmenityCategoryId(ShopId.of(shopId), ShopAmenityCategoryId.of(shopAmenityCategoryId));
+        shopAmenityJpaRepository.deleteByShopIdAndShopAmenityCategoryId(shopId, shopAmenityCategoryId);
     }
 
     @Override
@@ -238,7 +234,7 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
 
     @Override
     public void deleteFoodTypeByShopIdAndCategoryId(Long shopId, Long shopFoodTypeCategoryId) {
-        shopFoodTypeJpaRepository.deleteByShopIdAndShopFoodTypeCategoryId(ShopId.of(shopId), ShopFoodTypeCategoryId.of(shopFoodTypeCategoryId));
+        shopFoodTypeJpaRepository.deleteByShopIdAndShopFoodTypeCategoryId(shopId, shopFoodTypeCategoryId);
     }
 
     @Override
@@ -256,7 +252,7 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
 
     @Override
     public void deleteOrderMethodByShopIdAndOrderMethod(Long shopId, OrderMethod orderMethod) {
-        shopOrderMethodJpaRepository.deleteByShopIdAndOrderMethod(ShopId.of(shopId), orderMethod);
+        shopOrderMethodJpaRepository.deleteByShopIdAndOrderMethod(shopId, orderMethod);
     }
 
     @Override

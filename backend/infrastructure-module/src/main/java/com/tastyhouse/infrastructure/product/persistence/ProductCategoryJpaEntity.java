@@ -1,16 +1,13 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 상품 카테고리 JPA 영속 모델.
@@ -26,9 +23,8 @@ public class ProductCategoryJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId;
+    private Long shopId;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -42,7 +38,7 @@ public class ProductCategoryJpaEntity extends BaseEntity {
     protected ProductCategoryJpaEntity() {
     }
 
-    private ProductCategoryJpaEntity(ShopId shopId, String name, Integer sort, boolean visible) {
+    private ProductCategoryJpaEntity(Long shopId, String name, Integer sort, boolean visible) {
         this.shopId = shopId;
         this.name = name;
         this.sort = sort;
@@ -52,7 +48,7 @@ public class ProductCategoryJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductCategoryMapper#toEntity}에서만 호출한다.
      */
-    static ProductCategoryJpaEntity create(ShopId shopId, String name, Integer sort, boolean visible) {
+    static ProductCategoryJpaEntity create(Long shopId, String name, Integer sort, boolean visible) {
         return new ProductCategoryJpaEntity(shopId, name, sort, visible);
     }
 
@@ -69,7 +65,7 @@ public class ProductCategoryJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

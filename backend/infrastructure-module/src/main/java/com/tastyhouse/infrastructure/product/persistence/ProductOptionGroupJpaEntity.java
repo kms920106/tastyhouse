@@ -1,14 +1,12 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -25,9 +23,8 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ProductIdConverter.class)
     @Column(name = "product_id", nullable = false)
-    private ProductId productId;
+    private Long productId;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -57,7 +54,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
     }
 
     private ProductOptionGroupJpaEntity(
-        ProductId productId,
+        Long productId,
         String name,
         String description,
         boolean required,
@@ -82,7 +79,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductOptionGroupMapper#toEntity}에서만 호출한다.
      */
     static ProductOptionGroupJpaEntity create(
-        ProductId productId,
+        Long productId,
         String name,
         String description,
         boolean required,
@@ -124,7 +121,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ProductId getProductId() {
+    public Long getProductId() {
         return this.productId;
     }
 

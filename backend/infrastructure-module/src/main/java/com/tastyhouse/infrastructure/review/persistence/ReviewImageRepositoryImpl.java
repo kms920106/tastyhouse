@@ -34,7 +34,7 @@ public class ReviewImageRepositoryImpl implements ReviewImageRepository {
     public void deleteByReviewId(ReviewId reviewId) {
         queryFactory
             .delete(reviewImageJpaEntity)
-            .where(reviewImageJpaEntity.reviewId.eq(reviewId))
+            .where(reviewImageJpaEntity.reviewId.eq(reviewId.value()))
             .execute();
     }
 }

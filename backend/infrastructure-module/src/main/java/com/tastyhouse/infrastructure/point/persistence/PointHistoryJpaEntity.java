@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.point.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,9 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.model.PointType;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -36,9 +33,8 @@ public class PointHistoryJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "point_type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
@@ -53,7 +49,7 @@ public class PointHistoryJpaEntity extends BaseEntity {
     protected PointHistoryJpaEntity() {
     }
 
-    private PointHistoryJpaEntity(MemberId memberId, PointType pointType, Integer pointAmount, String reason) {
+    private PointHistoryJpaEntity(Long memberId, PointType pointType, Integer pointAmount, String reason) {
         this.memberId = memberId;
         this.pointType = pointType;
         this.pointAmount = pointAmount;
@@ -63,7 +59,7 @@ public class PointHistoryJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음, insert 전용). {@code PointHistoryMapper#toEntity}에서만 호출한다.
      */
-    static PointHistoryJpaEntity create(MemberId memberId, PointType pointType, Integer pointAmount, String reason) {
+    static PointHistoryJpaEntity create(Long memberId, PointType pointType, Integer pointAmount, String reason) {
         return new PointHistoryJpaEntity(memberId, pointType, pointAmount, reason);
     }
 
@@ -71,7 +67,7 @@ public class PointHistoryJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 

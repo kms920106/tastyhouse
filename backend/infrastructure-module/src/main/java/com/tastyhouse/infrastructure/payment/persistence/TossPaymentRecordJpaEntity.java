@@ -3,14 +3,12 @@ package com.tastyhouse.infrastructure.payment.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -28,9 +26,8 @@ public class TossPaymentRecordJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = PaymentIdConverter.class)
     @Column(name = "payment_id", nullable = false)
-    private PaymentId paymentId;
+    private Long paymentId;
 
     @Column(name = "version", length = 20)
     private String version;
@@ -197,7 +194,7 @@ public class TossPaymentRecordJpaEntity extends BaseEntity {
     protected TossPaymentRecordJpaEntity() {
     }
 
-    private TossPaymentRecordJpaEntity(PaymentId paymentId, String version, String paymentKey, String type,
+    private TossPaymentRecordJpaEntity(Long paymentId, String version, String paymentKey, String type,
                               String orderId, String orderName, String mId, String currency,
                               String method, Integer totalAmount, Integer balanceAmount, String status,
                               LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
@@ -276,7 +273,7 @@ public class TossPaymentRecordJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code TossPaymentRecordMapper#toEntity}에서만 호출한다.
      */
-    static TossPaymentRecordJpaEntity create(PaymentId paymentId, String version, String paymentKey, String type,
+    static TossPaymentRecordJpaEntity create(Long paymentId, String version, String paymentKey, String type,
                                            String orderId, String orderName, String mId, String currency,
                                            String method, Integer totalAmount, Integer balanceAmount, String status,
                                            LocalDateTime requestedAt, LocalDateTime approvedAt, boolean useEscrow,
@@ -311,7 +308,7 @@ public class TossPaymentRecordJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public PaymentId getPaymentId() {
+    public Long getPaymentId() {
         return this.paymentId;
     }
 

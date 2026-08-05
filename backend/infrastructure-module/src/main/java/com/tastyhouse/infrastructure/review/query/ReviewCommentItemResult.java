@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-
 /**
  * 리뷰 댓글 read model(web 노출용).
  *
@@ -16,7 +14,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 public record ReviewCommentItemResult(
     Long id,
     Long reviewId,
-    MemberId memberId,
+    Long memberId,
     String memberNickname,
     String memberProfileImageUrl,
     String content,

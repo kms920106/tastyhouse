@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.coupon.persistence;
 
 import com.tastyhouse.domain.coupon.model.MemberCoupon;
+import com.tastyhouse.domain.coupon.vo.CouponId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 회원 쿠폰 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,8 +19,8 @@ final class MemberCouponMapper {
     static MemberCoupon toDomain(MemberCouponJpaEntity entity) {
         return MemberCoupon.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
-            entity.getCouponId(),
+            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            IdMapping.vo(entity.getCouponId(), CouponId::of),
             entity.isUsed(),
             entity.getUsedAt(),
             entity.getExpiredAt()
@@ -29,8 +32,8 @@ final class MemberCouponMapper {
      */
     static MemberCouponJpaEntity toEntity(MemberCoupon domain) {
         return MemberCouponJpaEntity.create(
-            domain.getMemberId(),
-            domain.getCouponId(),
+            IdMapping.raw(domain.getMemberId(), MemberId::value),
+            IdMapping.raw(domain.getCouponId(), CouponId::value),
             domain.isUsed(),
             domain.getUsedAt(),
             domain.getExpiredAt()

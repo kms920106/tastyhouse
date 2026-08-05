@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 final class ShopPhotoCategoryMapper {
 
@@ -10,14 +12,14 @@ final class ShopPhotoCategoryMapper {
     static ShopPhotoCategory toDomain(ShopPhotoCategoryJpaEntity entity) {
         return ShopPhotoCategory.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            IdMapping.vo(entity.getShopId(), ShopId::of),
             entity.getName()
         );
     }
 
     static ShopPhotoCategoryJpaEntity toEntity(ShopPhotoCategory domain) {
         return ShopPhotoCategoryJpaEntity.create(
-            domain.getShopId(),
+            IdMapping.raw(domain.getShopId(), ShopId::value),
             domain.getName()
         );
     }

@@ -7,7 +7,6 @@ import com.tastyhouse.domain.bug.model.BugReportCategory;
 import com.tastyhouse.domain.bug.model.BugReportPlatform;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
-import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 버그 제보 관리 상세 조회 결과.
@@ -20,12 +19,12 @@ import com.tastyhouse.domain.member.vo.MemberId;
  * 이미지는 DAO가 두 번째 조회(BUG_REPORT_IMAGE ⋈ UPLOADED_FILE)로 파일명·URL까지 모아 이 record의
  * {@code from} 팩토리로 합친다(소비 측의 추가 파일 조회 제거).
  *
- * <p>{@code memberId}는 소비 모듈이 회원 요약 정보를 별도 조회하는 키로 쓰므로 도메인 VO
- * {@code MemberId}로 유지한다.
+ * <p>{@code memberId}는 소비 모듈이 회원 요약 정보를 별도 조회하는 키로 쓰지만, query 계층 규약대로
+ * raw {@code Long}으로 유지한다(소비 측에서 필요하면 VO로 승격한다).
  */
 public record BugReportDetailResult(
     Long id,
-    MemberId memberId,
+    Long memberId,
     String device,
     String title,
     String content,

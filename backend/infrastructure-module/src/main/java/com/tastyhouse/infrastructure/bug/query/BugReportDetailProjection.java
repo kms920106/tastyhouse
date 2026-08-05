@@ -8,7 +8,6 @@ import com.tastyhouse.domain.bug.model.BugReportCategory;
 import com.tastyhouse.domain.bug.model.BugReportPlatform;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
-import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 버그 제보 상세의 스칼라 필드 QueryDSL 투영 전용 record.
@@ -19,7 +18,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
  */
 public record BugReportDetailProjection(
     Long id,
-    MemberId memberId,
+    Long memberId,
     String device,
     String title,
     String content,

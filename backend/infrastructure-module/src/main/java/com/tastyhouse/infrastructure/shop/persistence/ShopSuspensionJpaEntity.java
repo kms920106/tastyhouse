@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,7 +13,6 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.SuspensionReason;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -28,9 +26,8 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reason", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
@@ -53,7 +50,7 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
     }
 
     private ShopSuspensionJpaEntity(
-        ShopId shopId,
+        Long shopId,
         SuspensionReason reason,
         OrderMethod orderMethod,
         LocalDateTime startAt,
@@ -72,7 +69,7 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopSuspensionMapper#toEntity}에서만 호출한다.
      */
     static ShopSuspensionJpaEntity create(
-        ShopId shopId,
+        Long shopId,
         SuspensionReason reason,
         OrderMethod orderMethod,
         LocalDateTime startAt,
@@ -93,7 +90,7 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

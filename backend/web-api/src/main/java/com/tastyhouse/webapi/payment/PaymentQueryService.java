@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.payment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
@@ -89,7 +88,7 @@ public class PaymentQueryService {
      * 조회된 결제가 요청 회원의 것인지 대조한다 — 위반 시 호출 경로에 맞는 에러 코드로 실패시킨다.
      */
     private PaymentResult validateOwnership(PaymentResult result, Long memberId, ErrorCode accessDeniedCode) {
-        if (!result.memberId().equals(MemberId.of(memberId))) {
+        if (!memberId.equals(result.memberId())) {
             throw new BusinessException(accessDeniedCode);
         }
         return result;

@@ -30,7 +30,7 @@ public class ProductBbqRepositoryImpl implements ProductBbqRepository {
         return Optional.ofNullable(
             queryFactory
                 .selectFrom(productBbqJpaEntity)
-                .where(productBbqJpaEntity.productId.eq(productId))
+                .where(productBbqJpaEntity.productId.eq(productId.value()))
                 .fetchOne()
         ).map(ProductBbqMapper::toDomain);
     }

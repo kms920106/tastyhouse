@@ -76,7 +76,7 @@ public class RankQueryService {
 
     private RankMemberListItemResponse toMemberListItemResponse(MemberRankResult dto) {
         return RankMemberListItemResponse.of(
-            dto.memberId().value(),
+            dto.memberId(),
             dto.nickname(),
             dto.profileImageUrl(),
             dto.reviewCount(),

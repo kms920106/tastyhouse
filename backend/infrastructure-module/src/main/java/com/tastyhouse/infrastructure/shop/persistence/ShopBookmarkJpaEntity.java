@@ -1,16 +1,12 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -24,23 +20,21 @@ public class ShopBookmarkJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId; // 회원 ID (MEMBER.id 참조)
+    private Long memberId; // 회원 ID (MEMBER.id 참조)
 
     protected ShopBookmarkJpaEntity() {
     }
 
-    private ShopBookmarkJpaEntity(ShopId shopId, MemberId memberId) {
+    private ShopBookmarkJpaEntity(Long shopId, Long memberId) {
         this.shopId = shopId;
         this.memberId = memberId;
     }
 
-    static ShopBookmarkJpaEntity create(ShopId shopId, MemberId memberId) {
+    static ShopBookmarkJpaEntity create(Long shopId, Long memberId) {
         return new ShopBookmarkJpaEntity(shopId, memberId);
     }
 
@@ -48,11 +42,11 @@ public class ShopBookmarkJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 }

@@ -10,8 +10,6 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 
@@ -54,7 +52,7 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
             .selectOne()
             .from(shopImageChangeRequestJpaEntity)
             .where(
-                ConvertedIdPaths.eq(shopImageChangeRequestJpaEntity, "shopId", ShopId.class, ShopId::of, shopId),
+                shopImageChangeRequestJpaEntity.shopId.eq(shopId),
                 imageTypeEq(imageType),
                 statusEq(status)
             )
@@ -68,7 +66,7 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
             .selectOne()
             .from(shopImageChangeRequestJpaEntity)
             .where(
-                ConvertedIdPaths.eq(shopImageChangeRequestJpaEntity, "shopId", ShopId.class, ShopId::of, shopId),
+                shopImageChangeRequestJpaEntity.shopId.eq(shopId),
                 statusEq(status)
             )
             .fetchFirst();

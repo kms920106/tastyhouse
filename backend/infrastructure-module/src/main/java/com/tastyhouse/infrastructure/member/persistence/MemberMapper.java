@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 회원 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -24,7 +26,7 @@ final class MemberMapper {
             entity.getGender(),
             entity.getPhoneNumber(),
             entity.getMemberGrade(),
-            entity.getProfileImageFileId(),
+            IdMapping.vo(entity.getProfileImageFileId(), UploadedFileId::of),
             entity.getStatusMessage(),
             entity.isPushNotificationEnabled(),
             entity.isMarketingInfoEnabled(),
@@ -48,7 +50,7 @@ final class MemberMapper {
             domain.getGender(),
             domain.getPhoneNumber(),
             domain.getMemberGrade(),
-            domain.getProfileImageFileId(),
+            IdMapping.raw(domain.getProfileImageFileId(), UploadedFileId::value),
             domain.getStatusMessage(),
             domain.isPushNotificationEnabled(),
             domain.isMarketingInfoEnabled(),
@@ -68,7 +70,7 @@ final class MemberMapper {
             domain.getBirthDate(),
             domain.getGender(),
             domain.getPhoneNumber(),
-            domain.getProfileImageFileId(),
+            IdMapping.raw(domain.getProfileImageFileId(), UploadedFileId::value),
             domain.getStatusMessage(),
             domain.isPushNotificationEnabled(),
             domain.isMarketingInfoEnabled(),

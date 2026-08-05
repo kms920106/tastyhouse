@@ -266,22 +266,25 @@ reference 구현: `web-api`의 `NoticeListItemResponse`(`notice/response/`)와 `
 | 도메인 모델 내부 / 도메인 이벤트 | `XxxId` | **모든 애그리거트 간 FK에 예외 없이 적용**(정책 A) — 자기 자신의 PK(`Long id`, 재구성 전 신규 상태를 null로 표현하는 필드)는 대상이 아니며, `getXxxId()`가 이를 VO로 래핑해 노출합니다 |
 | 엔티티 `@Id` 필드 | `Long` + `@GeneratedValue(IDENTITY)` | 유지 — VO로 바꾸지 않습니다(자기 PK는 이 규칙의 예외이며 혼동 방지 대상) |
 | 엔티티 자기 ID getter | `getXxxId(): XxxId` | 내부 `Long id`를 VO로 래핑해 노출 |
-| 엔티티 FK 필드(다른 애그리거트 참조) | `@Convert`로 `XxxId` 필수 | 정책 A 채택 이후 전 도메인 일괄 적용(과거 "가능하면·점진적" 문구는 폐지) |
+| **엔티티 FK 필드(다른 애그리거트 참조)** | **raw `Long`** (`@Convert` 미사용) | 정책 B(개정) — 아래 "엔티티 FK는 raw `Long`" 절 참고 |
 | 결과 DTO(result record)에서 id 추출 | `entity.getXxxId()` | `getId()`(Long)를 응답에 직접 노출하지 않습니다 |
 
-**QueryDSL과 `@Convert` VO 컬럼의 충돌과 필수 우회**: infra query DAO는 표현 목적 조회를 위해 `Long`을 그대로 쓰지만, 엔티티 FK 필드 자체가 `@Convert`로 `XxxId` VO에 매핑되어 있으면 QueryDSL이 그 필드에 대해 `NumberPath<Long>`이 아닌 VO 타입 path를 생성합니다. 그 결과 해당 컬럼을 다른 엔티티의 raw `Long` PK와 조인하거나, `Long`-typed Result 필드로 직접 투영하는 코드가 컴파일되지 않습니다. 이 경우 아래 우회가 **필수**입니다.
+### 엔티티 FK는 raw `Long`, 매퍼에서 `IdMapping`으로 승격/언패킹 (정책 B)
 
-```java
-private NumberPath<Long> xxxShopId() {
-    return Expressions.numberPath(Long.class, xxxJpaEntity, "shopId");
-}
-```
+**JPA 엔티티의 크로스-애그리거트 FK 필드는 `@Convert`로 VO에 매핑하지 않고 raw `Long`으로 둡니다.** 도메인 모델·domain repository·도메인 서비스는 이 규칙과 무관하게 그대로 `XxxId` VO를 유지합니다(위 표의 나머지 행은 변경 없음) — 변경 대상은 JPA 엔티티와 매퍼뿐입니다.
 
-- 우회 대상 컬럼마다 헬퍼 메서드 하나(파일명 규칙: `{용도}{필드}` — 예: `reservationShopId()`, `shopThumbnailImageFileId()`)를 두고, join·where·투영 어디서든 이 헬퍼를 통해서만 그 컬럼에 접근합니다.
-- **크로스 도메인 회귀에 취약합니다**: 한 도메인의 FK 필드를 raw `Long`→VO로 전환하면, 그 컬럼을 조인·투영하던 **다른 도메인**의 query DAO가 컴파일 에러 없이(또는 타입 에러로) 깨질 수 있습니다(예: `shop.thumbnailImageFileId`를 VO로 바꾸면 `order`/`reservation`/`review` 등 그 컬럼을 조인하던 다른 도메인 query DAO가 함께 깨짐). 한 도메인을 전환할 때는 반드시 `grep -rn '{엔티티}\.{필드명}\b' infrastructure-module`으로 다른 도메인의 참조를 전수 확인합니다.
-- 문자열 필드명(`"shopId"`)은 컴파일러가 오타를 잡지 못하므로, 엔티티 필드명이 바뀌면 헬퍼도 함께 바꿔야 합니다.
+**왜 정책 A(엔티티 FK도 `@Convert`로 VO)에서 정책 B로 전환했는가**: 엔티티 FK를 VO로 매핑하면 QueryDSL이 그 필드에 대해 `NumberPath<Long>`이 아닌 VO 타입 path를 생성합니다. query DAO 계층은 항상 raw `Long`을 쓰므로(위 표), 그 컬럼을 다른 엔티티의 raw `Long` PK와 조인하거나 `Long`-typed Result 필드로 투영하는 코드가 컴파일되지 않아 문자열 필드명 기반 우회 유틸(`ConvertedIdPaths`, 폐지됨)이 필수였습니다. 이 우회는 (1) 파라미터 바인딩 시 VO/Long 타입 불일치로 `QueryArgumentException`, (2) 투영 시 컨버터가 VO 인스턴스를 돌려줘 `Long`-typed Result 생성자와 불일치 — 이 두 번째 결함은 **해당 FK의 행이 실제로 존재할 때만** 터져 빈 테이블 테스트로는 잡히지 않고 오래 숨어 있었습니다. 한 도메인의 FK를 VO로 전환하면 그 컬럼을 조인하던 **다른 도메인**의 query DAO가 함께 깨지는 크로스 도메인 회귀도 반복됐습니다. 엔티티 FK를 raw `Long`으로 두면 이 세 결함 유형이 구조적으로 사라집니다 — QueryDSL이 애초에 VO path를 만들 일이 없기 때문입니다.
 
-**`XxxId` VO 표준 형태** (`domain-module/src/main/java/com/tastyhouse/domain/<ctx>/domain/vo/XxxId.java`):
+**매퍼(`<ctx>/persistence/XxxMapper.java`)의 VO↔raw 변환은 `infrastructure/shared/persistence/IdMapping`으로 통일**합니다. `toDomain`에서는 `IdMapping.vo(entity.getXxxId(), XxxId::of)`로 승격하고, `toEntity`/`applyChanges`에서는 `IdMapping.raw(domain.getXxxId(), XxxId::value)`로 언패킹합니다. `CeoId.of(entity.getCeoId())`처럼 직접 호출하지 않습니다.
+
+- **이유**: 모든 `XxxId` VO는 compact constructor에서 null을 거부하는데, 일부 FK 컬럼은 nullable입니다(예: `Shop.ceo_id` — 점주 미배정, `BugReport.assignee_admin_id` — 미배정). 직접 호출하면 컴파일은 통과하고 **해당 FK가 실제로 null인 행을 읽을 때만** `IllegalArgumentException`으로 실패합니다 — 위와 같은 "행이 존재할 때만 터지는" 결함 유형입니다. `IdMapping`은 이 판단을 호출부에서 없애 nullable 여부를 몰라도 항상 안전한 형태를 기본값으로 만듭니다.
+- **NOT NULL 컬럼에서도 예외 없이 통일**합니다. "NOT NULL이면 직접 호출, nullable이면 헬퍼만"처럼 컬럼별로 형태를 나누지 않습니다 — 혼재하면 작성자·리뷰어가 매번 엔티티의 nullable 여부를 확인해야 하고, 위험한 직접 호출 형태가 흔해 보여 눈에 띄지 않게 됩니다.
+- **`raw(...)`는 NOT NULL 컬럼에서도 죽은 코드가 아닙니다** — 도메인 모델이 아직 배정되지 않은 상태(예: 점주 미배정 `Shop`)를 null VO로 들고 있을 수 있으므로, `domain.getCeoId().value()`를 직접 호출하면 VO가 null일 때 NPE로 실패합니다.
+- **`Xxx.of(...)` 위임 규칙의 예외가 아닙니다**: `IdMapping.vo(raw, CeoId::of)`의 메서드 레퍼런스가 `of()` 팩토리를 경유하므로 `new`는 여전히 팩토리 내부에만 남습니다.
+
+**query DAO의 Result record·SearchCondition도 raw `Long`을 예외 없이 씁니다.** 정책 A 시절 일부 Result record가 `@Convert`가 투영해 주는 VO를 그대로 필드 타입으로 삼은 사례가 있었으나(예: `MemberReferralResult.referrerId : MemberId`), 이는 "query DAO 계층은 항상 raw Long" 규칙 위반이었고 정책 B 전환으로 전부 `Long`으로 교정했습니다. 도메인/write 포트로 값을 넘겨야 하는 소비 지점(예: 랭킹 도메인 포트 `MemberReviewCount.of(MemberId, ...)`)은 그 호출부에서 `MemberId.of(result.memberId())`로 승격합니다 — 승격 책임은 query 결과가 아니라 그 결과를 도메인 포트에 넘기는 어댑터가 집니다.
+
+**`XxxId` VO 표준 형태** (`domain-module/src/main/java/com/tastyhouse/domain/<ctx>/domain/vo/XxxId.java`, 변경 없음):
 
 ```java
 public record XxxId(Long value) {
@@ -299,9 +302,9 @@ public record XxxId(Long value) {
 ```
 
 - `Long → XxxId` 승격도 위 DTO 조립 규칙과 동일하게 `new XxxId(id)` 대신 `XxxId.of(id)`를 사용합니다. `new`는 `of()` 팩토리 내부에만 남습니다.
-- FK를 VO로 매핑할 때는 `AttributeConverter<XxxId, Long>` 컨버터를 두고 엔티티 필드에 `@Convert`를 적용합니다.
+- **엔티티 FK에는 더 이상 `AttributeConverter`/`@Convert`를 두지 않습니다** — `AttributeConverter<XxxId, Long>` 컨버터 클래스(`*IdConverter`)는 정책 B 전환으로 전부 삭제되었습니다. `@Convert`는 ID가 아닌 값 객체(예: `AmountConverter`)에만 계속 사용합니다.
 
-reference 구현: `policy` 도메인 — `PolicyDocumentId`, `PolicyCommandService`(파라미터/반환이 `PolicyDocumentId`), `PolicyDocumentRepository.findById(PolicyDocumentId)`, `PolicyService`(admin-api, `Long↔VO` 승격 담당). FK `@Convert` 레퍼런스: `payment` 도메인의 `Payment.orderId : OrderId`.
+reference 구현: `infrastructure-module`의 `shared/persistence/IdMapping`(vo/raw 헬퍼), `shop/persistence/ShopMapper`(nullable FK 3개 — `ceoId`/`thumbnailImageFileId`/`trademarkImageFileId` — 를 포함한 대표 사례), `payment` 도메인의 `PaymentJpaEntity.orderId`(raw `Long`, `AmountConverter`만 계속 `@Convert` 사용). VO 승격이 query 결과 소비 지점에서 이뤄지는 사례: `rank` 도메인의 `MemberReviewCountAdapter`(`MemberId.of(result.memberId())`).
 
 ## 도메인 enum 경계 규칙
 

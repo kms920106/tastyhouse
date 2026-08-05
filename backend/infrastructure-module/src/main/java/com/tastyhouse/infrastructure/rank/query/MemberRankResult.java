@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.rank.query;
 import com.querydsl.core.annotations.QueryProjection;
 
 import com.tastyhouse.domain.member.model.MemberGrade;
-import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 회원 랭킹 목록·단건 조회 결과 — 랭킹 행에 회원 닉네임·프로필 이미지 URL·등급을 join해 투영한다.
@@ -13,7 +12,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
  * <p>조인으로 얻은 저장 경로는 DAO가 {@code FileUrlResolver}로 표시용 URL까지 변환해 담는다.
  */
 public record MemberRankResult(
-    MemberId memberId,
+    Long memberId,
     String nickname,
     String profileImageUrl,
     Integer reviewCount,

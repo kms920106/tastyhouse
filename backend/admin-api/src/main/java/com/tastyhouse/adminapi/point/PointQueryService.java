@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
@@ -32,14 +31,14 @@ public class PointQueryService {
     }
 
     public PointBalanceResponse getPointBalance(Long memberId) {
-        return pointQueryDao.findBalanceByMemberId(MemberId.of(memberId))
+        return pointQueryDao.findBalanceByMemberId(memberId)
             .map(result -> toPointBalanceResponse(memberId, result))
             .orElseGet(() -> PointBalanceResponse.zero(memberId));
     }
 
     public PaginationResponse<PointHistoryResponse> getPointHistories(Long memberId, String type, int page, int size) {
         PointType pointType = type == null ? null : PointType.from(type);
-        PointSearchCondition condition = PointSearchCondition.of(MemberId.of(memberId), pointType);
+        PointSearchCondition condition = PointSearchCondition.of(memberId, pointType);
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<PointHistoryResponse> pageResult = pointQueryDao.findPointHistoryPage(condition, pageQuery)
             .map(this::toPointHistoryResponse);

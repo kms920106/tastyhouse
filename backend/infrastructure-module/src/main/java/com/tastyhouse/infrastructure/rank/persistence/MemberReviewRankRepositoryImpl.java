@@ -41,7 +41,7 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
         MemberReviewRankJpaEntity entity = queryFactory
             .selectFrom(memberReviewRankJpaEntity)
             .where(
-                memberReviewRankJpaEntity.memberId.eq(memberId),
+                memberReviewRankJpaEntity.memberId.eq(memberId.value()),
                 memberReviewRankJpaEntity.rankType.eq(rankType)
             )
             .orderBy(memberReviewRankJpaEntity.baseDate.desc())

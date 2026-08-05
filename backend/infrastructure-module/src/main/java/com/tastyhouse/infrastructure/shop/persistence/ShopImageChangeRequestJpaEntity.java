@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,11 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopImageType;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -31,17 +27,15 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId;
+    private Long shopId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "image_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private ShopImageType imageType;
 
-    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id", nullable = false)
-    private UploadedFileId imageFileId;
+    private Long imageFileId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
@@ -54,9 +48,9 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
     }
 
     private ShopImageChangeRequestJpaEntity(
-        ShopId shopId,
+        Long shopId,
         ShopImageType imageType,
-        UploadedFileId imageFileId,
+        Long imageFileId,
         ApprovalStatus status,
         String rejectReason
     ) {
@@ -71,9 +65,9 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopImageChangeRequestMapper#toEntity}에서만 호출한다.
      */
     static ShopImageChangeRequestJpaEntity create(
-        ShopId shopId,
+        Long shopId,
         ShopImageType imageType,
-        UploadedFileId imageFileId,
+        Long imageFileId,
         ApprovalStatus status,
         String rejectReason
     ) {
@@ -92,7 +86,7 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 
@@ -100,7 +94,7 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
         return this.imageType;
     }
 
-    public UploadedFileId getImageFileId() {
+    public Long getImageFileId() {
         return this.imageFileId;
     }
 

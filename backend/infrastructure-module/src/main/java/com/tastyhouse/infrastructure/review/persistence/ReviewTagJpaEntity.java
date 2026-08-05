@@ -1,16 +1,11 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.domain.shop.vo.TagId;
-import com.tastyhouse.infrastructure.shop.persistence.TagIdConverter;
 
 /**
  * 리뷰 태그 JPA 영속 모델.
@@ -27,18 +22,20 @@ public class ReviewTagJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ReviewIdConverter.class)
     @Column(name = "review_id", nullable = false)
-    private ReviewId reviewId;
+    private Long reviewId;
 
-    @Convert(converter = TagIdConverter.class)
+    /**
+     * 태그 FK. insert 시에만 쓰이고 도메인으로 되읽는 경로가 없어 getter가 없다 — IDE가 "assigned but never
+     * accessed"로 경고하지만, JPA가 flush 시 리플렉션으로 읽는 컬럼 매핑이므로 제거하면 컬럼이 저장되지 않는다.
+     */
     @Column(name = "tag_id", nullable = false)
-    private TagId tagId;
+    private Long tagId;
 
     protected ReviewTagJpaEntity() {
     }
 
-    private ReviewTagJpaEntity(ReviewId reviewId, TagId tagId) {
+    private ReviewTagJpaEntity(Long reviewId, Long tagId) {
         this.reviewId = reviewId;
         this.tagId = tagId;
     }
@@ -46,7 +43,7 @@ public class ReviewTagJpaEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewTagMapper#toEntity}에서만 호출한다.
      */
-    static ReviewTagJpaEntity create(ReviewId reviewId, TagId tagId) {
+    static ReviewTagJpaEntity create(Long reviewId, Long tagId) {
         return new ReviewTagJpaEntity(reviewId, tagId);
     }
 
@@ -54,7 +51,7 @@ public class ReviewTagJpaEntity {
         return this.id;
     }
 
-    public ReviewId getReviewId() {
+    public Long getReviewId() {
         return this.reviewId;
     }
 }

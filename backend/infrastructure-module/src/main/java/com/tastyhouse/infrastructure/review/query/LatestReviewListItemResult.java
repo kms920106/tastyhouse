@@ -5,15 +5,13 @@ import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-
 public record LatestReviewListItemResult(
     Long id,
     List<String> imageUrls,
     String stationName,
     Double totalRating,
     String content,
-    MemberId memberId,
+    Long memberId,
     String memberNickname,
     String memberProfileImageUrl,
     LocalDateTime createdAt,
@@ -28,7 +26,7 @@ public record LatestReviewListItemResult(
         String stationName,
         Double totalRating,
         String content,
-        MemberId memberId,
+        Long memberId,
         String memberNickname,
         String memberProfileImageUrl,
         LocalDateTime createdAt,

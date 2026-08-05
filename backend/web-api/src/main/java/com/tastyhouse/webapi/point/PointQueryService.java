@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.point.query.PointBalanceResult;
 import com.tastyhouse.infrastructure.point.query.PointHistoryResult;
 import com.tastyhouse.infrastructure.point.query.PointQueryDao;
@@ -32,7 +31,7 @@ public class PointQueryService {
     }
 
     public PointResponse getMemberPoint(Long memberId) {
-        return pointQueryDao.findBalanceByMemberId(MemberId.of(memberId))
+        return pointQueryDao.findBalanceByMemberId(memberId)
             .map(this::toPointResponse)
             .orElseGet(() -> PointResponse.of(0, 0));
     }
@@ -40,7 +39,7 @@ public class PointQueryService {
     public PointHistoryResponse getPointHistory(Long memberId) {
         PointResponse pointResponse = getMemberPoint(memberId);
 
-        List<PointHistoryItemResponse> histories = pointQueryDao.findPointHistories(MemberId.of(memberId))
+        List<PointHistoryItemResponse> histories = pointQueryDao.findPointHistories(memberId)
             .stream()
             .map(this::toPointHistoryItemResponse)
             .toList();
@@ -53,7 +52,7 @@ public class PointQueryService {
     }
 
     public PointUsableResponse getUsablePoint(Long memberId) {
-        return pointQueryDao.findBalanceByMemberId(MemberId.of(memberId))
+        return pointQueryDao.findBalanceByMemberId(memberId)
             .map(result -> PointUsableResponse.of(result.availablePoints()))
             .orElseGet(() -> PointUsableResponse.of(0));
     }

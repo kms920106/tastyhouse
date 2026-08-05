@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
 import com.tastyhouse.domain.order.model.OrderProduct;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 주문 상품 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,8 +19,8 @@ final class OrderProductMapper {
     static OrderProduct toDomain(OrderProductJpaEntity entity) {
         return OrderProduct.reconstitute(
             entity.getId(),
-            entity.getOrderId(),
-            entity.getProductId(),
+            IdMapping.vo(entity.getOrderId(), OrderId::of),
+            IdMapping.vo(entity.getProductId(), ProductId::of),
             entity.getName(),
             entity.getImageUrl(),
             entity.getQuantity(),
@@ -33,8 +36,8 @@ final class OrderProductMapper {
      */
     static OrderProductJpaEntity toEntity(OrderProduct domain) {
         return OrderProductJpaEntity.create(
-            domain.getOrderId(),
-            domain.getProductId(),
+            IdMapping.raw(domain.getOrderId(), OrderId::value),
+            IdMapping.raw(domain.getProductId(), ProductId::value),
             domain.getName(),
             domain.getImageUrl(),
             domain.getQuantity(),

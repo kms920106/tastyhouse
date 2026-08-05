@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -85,7 +84,7 @@ public class SearchQueryService {
     public PageResult<SearchShopListItemResponse> searchShopsPaged(String query, Long memberId, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
-        return shopSearchQueryDao.searchByKeywordWithBookmark(keyword, MemberId.of(memberId), pageQuery)
+        return shopSearchQueryDao.searchByKeywordWithBookmark(keyword, memberId, pageQuery)
             .map(this::toSearchShopListItemResponse);
     }
 

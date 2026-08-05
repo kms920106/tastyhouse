@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.shop.model.OrderMethod;
 
@@ -23,7 +22,7 @@ import com.tastyhouse.domain.shop.model.OrderMethod;
  */
 public record OrderDetailResult(
     Long id,
-    MemberId memberId,
+    Long memberId,
     String orderNumber,
     OrderMethod orderMethod,
     OrderStatus orderStatus,
@@ -44,10 +43,15 @@ public record OrderDetailResult(
     List<OrderProductResult> orderProducts,
     OrderPaymentResult payment
 ) {
+    /**
+     * QueryDSL 투영 전용 생성자 — 1:N인 상품 라인과 0..1인 결제를 제외한 좁은 시그니처다. 호출부는 생성된
+     * {@code QOrderDetailResult}({@code OrderQueryDao#findOrderDetail})이므로 IDE가 "never used"로
+     * 경고하지만, 제거하면 Q타입이 생성되지 않아 빌드가 깨진다.
+     */
     @QueryProjection
     public OrderDetailResult(
         Long id,
-        MemberId memberId,
+        Long memberId,
         String orderNumber,
         OrderMethod orderMethod,
         OrderStatus orderStatus,

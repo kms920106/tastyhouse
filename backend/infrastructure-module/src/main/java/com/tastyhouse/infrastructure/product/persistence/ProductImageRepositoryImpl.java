@@ -1,7 +1,5 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
@@ -31,18 +29,10 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
         return queryFactory
             .select(uploadedFileJpaEntity.filePath)
             .from(productImageJpaEntity)
-            .innerJoin(uploadedFileJpaEntity).on(imageFileId().eq(uploadedFileJpaEntity.id))
-            .where(productImageJpaEntity.productId.eq(productId), productImageJpaEntity.visible.eq(true))
+            .innerJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
+            .where(productImageJpaEntity.productId.eq(productId.value()), productImageJpaEntity.visible.eq(true))
             .orderBy(productImageJpaEntity.sort.asc())
             .fetchFirst();
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PRODUCT_IMAGE.image_file_id}를 raw {@code Long}으로
-     * 비교하기 위한 path.
-     */
-    private NumberPath<Long> imageFileId() {
-        return Expressions.numberPath(Long.class, productImageJpaEntity, "imageFileId");
     }
 
     @Override

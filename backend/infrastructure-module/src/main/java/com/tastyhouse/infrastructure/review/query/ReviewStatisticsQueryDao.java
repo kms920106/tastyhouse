@@ -8,10 +8,6 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 
@@ -43,7 +39,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -55,7 +51,7 @@ public class ReviewStatisticsQueryDao {
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
             .where(
-                ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId),
+                reviewJpaEntity.shopId.eq(shopId),
                 reviewJpaEntity.hidden.eq(false),
                 reviewJpaEntity.willRevisit.eq(true)
             )
@@ -69,7 +65,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.tasteRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -80,7 +76,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.amountRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -91,7 +87,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.priceRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -102,7 +98,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.atmosphereRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -113,7 +109,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.kindnessRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -124,7 +120,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.hygieneRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -135,7 +131,7 @@ public class ReviewStatisticsQueryDao {
         List<Tuple> results = queryFactory
             .select(reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
             .groupBy(reviewJpaEntity.totalRating.floor().intValue())
             .fetch();
 
@@ -154,7 +150,7 @@ public class ReviewStatisticsQueryDao {
             .select(reviewJpaEntity.createdAt.month(), reviewJpaEntity.count())
             .from(reviewJpaEntity)
             .where(
-                ConvertedIdPaths.eq(reviewJpaEntity, "shopId", ShopId.class, ShopId::of, shopId),
+                reviewJpaEntity.shopId.eq(shopId),
                 reviewJpaEntity.hidden.eq(false),
                 reviewJpaEntity.createdAt.year().eq(year)
             )
@@ -175,7 +171,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -186,7 +182,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.tasteRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -197,7 +193,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.amountRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
@@ -208,14 +204,14 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.priceRating.avg())
             .from(reviewJpaEntity)
-            .where(ConvertedIdPaths.eq(reviewJpaEntity, "productId", ProductId.class, ProductId::of, productId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
             .fetchOne();
     }
 
     /**
      * 회원이 쓴 노출 리뷰 수(회원 등급·랭킹 산정용).
      */
-    public long countVisibleReviewsByMemberId(MemberId memberId) {
+    public long countVisibleReviewsByMemberId(Long memberId) {
         Long count = queryFactory
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)

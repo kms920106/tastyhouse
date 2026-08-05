@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.payment.persistence;
 
+import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.model.Payment;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 결제 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,7 +18,7 @@ final class PaymentMapper {
     static Payment toDomain(PaymentJpaEntity entity) {
         return Payment.reconstitute(
             entity.getId(),
-            entity.getOrderId(),
+            IdMapping.vo(entity.getOrderId(), OrderId::of),
             entity.getPaymentMethod(),
             entity.getPaymentStatus(),
             entity.getAmount(),
@@ -39,7 +41,7 @@ final class PaymentMapper {
      */
     static PaymentJpaEntity toEntity(Payment domain) {
         return PaymentJpaEntity.create(
-            domain.getOrderId(),
+            IdMapping.raw(domain.getOrderId(), OrderId::value),
             domain.getPaymentMethod(),
             domain.getPaymentStatus(),
             domain.getAmount(),

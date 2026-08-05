@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,9 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -33,13 +29,11 @@ public class ReviewImageJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ReviewIdConverter.class)
     @Column(name = "review_id", nullable = false)
-    private ReviewId reviewId;
+    private Long reviewId;
 
-    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id", nullable = false)
-    private UploadedFileId imageFileId;
+    private Long imageFileId;
 
     @Column(name = "sort", nullable = false)
     private Integer sort;
@@ -47,7 +41,7 @@ public class ReviewImageJpaEntity extends BaseEntity {
     protected ReviewImageJpaEntity() {
     }
 
-    private ReviewImageJpaEntity(ReviewId reviewId, UploadedFileId imageFileId, Integer sort) {
+    private ReviewImageJpaEntity(Long reviewId, Long imageFileId, Integer sort) {
         this.reviewId = reviewId;
         this.imageFileId = imageFileId;
         this.sort = sort;
@@ -56,7 +50,7 @@ public class ReviewImageJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewImageMapper#toEntity}에서만 호출한다.
      */
-    static ReviewImageJpaEntity create(ReviewId reviewId, UploadedFileId imageFileId, Integer sort) {
+    static ReviewImageJpaEntity create(Long reviewId, Long imageFileId, Integer sort) {
         return new ReviewImageJpaEntity(reviewId, imageFileId, sort);
     }
 
@@ -64,11 +58,11 @@ public class ReviewImageJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ReviewId getReviewId() {
+    public Long getReviewId() {
         return this.reviewId;
     }
 
-    public UploadedFileId getImageFileId() {
+    public Long getImageFileId() {
         return this.imageFileId;
     }
 

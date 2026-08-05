@@ -28,7 +28,7 @@ public class ReservationSlotRepositoryImpl implements ReservationSlotRepository 
 
     @Override
     public Optional<ReservationSlot> findByShopAndDateAndTime(ShopId shopId, LocalDate date, LocalTime time) {
-        return slotJpaRepository.findByShopIdAndSlotDateAndSlotTime(shopId, date, time)
+        return slotJpaRepository.findByShopIdAndSlotDateAndSlotTime(shopId.value(), date, time)
             .map(ReservationSlotMapper::toDomain);
     }
 

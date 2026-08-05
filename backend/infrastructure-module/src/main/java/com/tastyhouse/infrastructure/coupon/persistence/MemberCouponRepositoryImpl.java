@@ -41,8 +41,8 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepository {
             .selectOne()
             .from(memberCouponJpaEntity)
             .where(
-                memberCouponJpaEntity.memberId.eq(memberId),
-                memberCouponJpaEntity.couponId.eq(couponId)
+                memberCouponJpaEntity.memberId.eq(memberId.value()),
+                memberCouponJpaEntity.couponId.eq(couponId.value())
             )
             .fetchFirst();
         return found != null;

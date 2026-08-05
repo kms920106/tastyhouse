@@ -1,6 +1,10 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import com.tastyhouse.domain.product.model.ProductBbq;
+import com.tastyhouse.domain.product.vo.BbqCategoryId;
+import com.tastyhouse.domain.product.vo.BbqMenuId;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * Product-BBQ 매핑 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,9 +20,9 @@ final class ProductBbqMapper {
     static ProductBbq toDomain(ProductBbqJpaEntity entity) {
         return ProductBbq.reconstitute(
             entity.getId(),
-            entity.getProductId(),
-            entity.getBbqMenuId(),
-            entity.getBbqCategoryId(),
+            IdMapping.vo(entity.getProductId(), ProductId::of),
+            IdMapping.vo(entity.getBbqMenuId(), BbqMenuId::of),
+            IdMapping.vo(entity.getBbqCategoryId(), BbqCategoryId::of),
             entity.isOptionsSynced()
         );
     }
@@ -28,9 +32,9 @@ final class ProductBbqMapper {
      */
     static ProductBbqJpaEntity toEntity(ProductBbq domain) {
         return ProductBbqJpaEntity.create(
-            domain.getProductId(),
-            domain.getBbqMenuId(),
-            domain.getBbqCategoryId(),
+            IdMapping.raw(domain.getProductId(), ProductId::value),
+            IdMapping.raw(domain.getBbqMenuId(), BbqMenuId::value),
+            IdMapping.raw(domain.getBbqCategoryId(), BbqCategoryId::value),
             domain.isOptionsSynced()
         );
     }

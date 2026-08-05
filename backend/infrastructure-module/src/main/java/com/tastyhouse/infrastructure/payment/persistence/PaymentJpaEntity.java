@@ -12,12 +12,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.model.PaymentMethod;
 import com.tastyhouse.domain.payment.model.PaymentStatus;
 import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.domain.payment.vo.Amount;
-import com.tastyhouse.infrastructure.order.persistence.OrderIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -34,9 +32,8 @@ public class PaymentJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = OrderIdConverter.class)
     @Column(name = "order_id", nullable = false, unique = true)
-    private OrderId orderId;
+    private Long orderId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
@@ -85,7 +82,7 @@ public class PaymentJpaEntity extends BaseEntity {
     }
 
     private PaymentJpaEntity(
-        OrderId orderId,
+        Long orderId,
         PaymentMethod paymentMethod,
         PaymentStatus paymentStatus,
         Amount amount,
@@ -120,7 +117,7 @@ public class PaymentJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code PaymentMapper#toEntity}에서만 호출한다.
      */
     static PaymentJpaEntity create(
-        OrderId orderId,
+        Long orderId,
         PaymentMethod paymentMethod,
         PaymentStatus paymentStatus,
         Amount amount,
@@ -186,7 +183,7 @@ public class PaymentJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public OrderId getOrderId() {
+    public Long getOrderId() {
         return this.orderId;
     }
 

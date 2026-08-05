@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 상품 공통 옵션 그룹 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,7 +18,7 @@ final class ProductCommonOptionGroupMapper {
     static ProductCommonOptionGroup toDomain(ProductCommonOptionGroupJpaEntity entity) {
         return ProductCommonOptionGroup.reconstitute(
             entity.getId(),
-            entity.getProductId(),
+            IdMapping.vo(entity.getProductId(), ProductId::of),
             entity.getName(),
             entity.getDescription(),
             entity.isRequired(),
@@ -33,7 +35,7 @@ final class ProductCommonOptionGroupMapper {
      */
     static ProductCommonOptionGroupJpaEntity toEntity(ProductCommonOptionGroup domain) {
         return ProductCommonOptionGroupJpaEntity.create(
-            domain.getProductId(),
+            IdMapping.raw(domain.getProductId(), ProductId::value),
             domain.getName(),
             domain.getDescription(),
             domain.isRequired(),

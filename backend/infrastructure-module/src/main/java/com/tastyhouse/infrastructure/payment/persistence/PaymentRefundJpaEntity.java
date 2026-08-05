@@ -14,7 +14,6 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.payment.model.RefundStatus;
 import com.tastyhouse.domain.payment.vo.Amount;
-import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -32,9 +31,8 @@ public class PaymentRefundJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = PaymentIdConverter.class)
     @Column(name = "payment_id", nullable = false)
-    private PaymentId paymentId;
+    private Long paymentId;
 
     @Convert(converter = AmountConverter.class)
     @Column(name = "refund_amount", nullable = false)
@@ -57,7 +55,7 @@ public class PaymentRefundJpaEntity extends BaseEntity {
     }
 
     private PaymentRefundJpaEntity(
-        PaymentId paymentId,
+        Long paymentId,
         Amount refundAmount,
         String refundReason,
         RefundStatus refundStatus,
@@ -76,7 +74,7 @@ public class PaymentRefundJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code PaymentRefundMapper#toEntity}에서만 호출한다.
      */
     static PaymentRefundJpaEntity create(
-        PaymentId paymentId,
+        Long paymentId,
         Amount refundAmount,
         String refundReason,
         RefundStatus refundStatus,
@@ -90,7 +88,7 @@ public class PaymentRefundJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public PaymentId getPaymentId() {
+    public Long getPaymentId() {
         return this.paymentId;
     }
 

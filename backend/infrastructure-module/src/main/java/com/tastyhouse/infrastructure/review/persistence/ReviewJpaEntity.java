@@ -1,22 +1,13 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
-import com.tastyhouse.infrastructure.order.persistence.OrderIdConverter;
-import com.tastyhouse.infrastructure.product.persistence.ProductIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 리뷰 JPA 영속 모델.
@@ -32,17 +23,14 @@ public class ReviewJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId;
+    private Long shopId;
 
-    @Convert(converter = ProductIdConverter.class)
     @Column(name = "product_id", nullable = false)
-    private ProductId productId;
+    private Long productId;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content;
@@ -71,9 +59,8 @@ public class ReviewJpaEntity extends BaseEntity {
     @Column(name = "will_revisit", nullable = false)
     private boolean willRevisit;
 
-    @Convert(converter = OrderIdConverter.class)
     @Column(name = "order_id")
-    private OrderId orderId;
+    private Long orderId;
 
     @Column(name = "is_hidden", nullable = false)
     private boolean hidden;
@@ -82,9 +69,9 @@ public class ReviewJpaEntity extends BaseEntity {
     }
 
     private ReviewJpaEntity(
-        ShopId shopId,
-        ProductId productId,
-        MemberId memberId,
+        Long shopId,
+        Long productId,
+        Long memberId,
         String content,
         Double totalRating,
         Double tasteRating,
@@ -94,7 +81,7 @@ public class ReviewJpaEntity extends BaseEntity {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        OrderId orderId,
+        Long orderId,
         boolean hidden
     ) {
         this.shopId = shopId;
@@ -117,9 +104,9 @@ public class ReviewJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewMapper#toEntity}에서만 호출한다.
      */
     static ReviewJpaEntity create(
-        ShopId shopId,
-        ProductId productId,
-        MemberId memberId,
+        Long shopId,
+        Long productId,
+        Long memberId,
         String content,
         Double totalRating,
         Double tasteRating,
@@ -129,7 +116,7 @@ public class ReviewJpaEntity extends BaseEntity {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        OrderId orderId,
+        Long orderId,
         boolean hidden
     ) {
         return new ReviewJpaEntity(
@@ -181,15 +168,15 @@ public class ReviewJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 
-    public ProductId getProductId() {
+    public Long getProductId() {
         return this.productId;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 
@@ -229,7 +216,7 @@ public class ReviewJpaEntity extends BaseEntity {
         return this.willRevisit;
     }
 
-    public OrderId getOrderId() {
+    public Long getOrderId() {
         return this.orderId;
     }
 

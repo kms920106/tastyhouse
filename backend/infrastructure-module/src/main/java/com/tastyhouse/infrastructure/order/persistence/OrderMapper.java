@@ -1,6 +1,10 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
+import com.tastyhouse.domain.coupon.vo.MemberCouponId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 주문 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,8 +20,8 @@ final class OrderMapper {
     static Order toDomain(OrderJpaEntity entity) {
         return Order.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
-            entity.getShopId(),
+            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            IdMapping.vo(entity.getShopId(), ShopId::of),
             entity.getOrderNumber(),
             entity.getOrderMethod(),
             entity.getOrderStatus(),
@@ -30,7 +34,7 @@ final class OrderMapper {
             entity.getPointDiscountAmount(),
             entity.getTotalDiscountAmount(),
             entity.getFinalAmount(),
-            entity.getMemberCouponId(),
+            IdMapping.vo(entity.getMemberCouponId(), MemberCouponId::of),
             entity.getUsedPoint(),
             entity.getEarnedPoint(),
             entity.isDeleted(),
@@ -44,8 +48,8 @@ final class OrderMapper {
      */
     static OrderJpaEntity toEntity(Order domain) {
         return OrderJpaEntity.create(
-            domain.getMemberId(),
-            domain.getShopId(),
+            IdMapping.raw(domain.getMemberId(), MemberId::value),
+            IdMapping.raw(domain.getShopId(), ShopId::value),
             domain.getOrderNumber(),
             domain.getOrderMethod(),
             domain.getOrderStatus(),
@@ -58,7 +62,7 @@ final class OrderMapper {
             domain.getPointDiscountAmount(),
             domain.getTotalDiscountAmount(),
             domain.getFinalAmount(),
-            domain.getMemberCouponId(),
+            IdMapping.raw(domain.getMemberCouponId(), MemberCouponId::value),
             domain.getUsedPoint(),
             domain.getEarnedPoint(),
             domain.isDeleted()
@@ -77,7 +81,7 @@ final class OrderMapper {
             domain.getPointDiscountAmount(),
             domain.getTotalDiscountAmount(),
             domain.getFinalAmount(),
-            domain.getMemberCouponId(),
+            IdMapping.raw(domain.getMemberCouponId(), MemberCouponId::value),
             domain.getUsedPoint(),
             domain.getEarnedPoint(),
             domain.isDeleted()

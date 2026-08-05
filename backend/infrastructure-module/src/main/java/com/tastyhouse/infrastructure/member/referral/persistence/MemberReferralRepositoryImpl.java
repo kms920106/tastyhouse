@@ -28,7 +28,7 @@ public class MemberReferralRepositoryImpl implements MemberReferralRepository {
         return queryFactory
             .selectOne()
             .from(memberReferralJpaEntity)
-            .where(memberReferralJpaEntity.refereeId.eq(refereeId))
+            .where(memberReferralJpaEntity.refereeId.eq(refereeId.value()))
             .fetchFirst() != null;
     }
 

@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-
 /**
  * 쿠폰 발급 현황 아이템(admin — 특정 쿠폰을 보유한 회원 목록).
  *
@@ -14,7 +12,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
  */
 public record MemberCouponItemResult(
     Long id,
-    MemberId memberId,
+    Long memberId,
     boolean used,
     LocalDateTime usedAt,
     LocalDateTime expiredAt,

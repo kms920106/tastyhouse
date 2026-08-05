@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,15 +9,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.coupon.vo.MemberCouponId;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.shop.model.OrderMethod;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.coupon.persistence.MemberCouponIdConverter;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 주문 JPA 영속 모델.
@@ -34,13 +27,11 @@ public class OrderJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId; // 주문자 회원 ID
+    private Long memberId; // 주문자 회원 ID
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 주문 대상 가게 ID
+    private Long shopId; // 주문 대상 가게 ID
 
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
     private String orderNumber; // 주문 번호
@@ -80,9 +71,8 @@ public class OrderJpaEntity extends BaseEntity {
     @Column(name = "final_amount", nullable = false)
     private Integer finalAmount; // 최종 결제 금액
 
-    @Convert(converter = MemberCouponIdConverter.class)
     @Column(name = "member_coupon_id")
-    private MemberCouponId memberCouponId; // 사용한 회원 쿠폰 ID
+    private Long memberCouponId; // 사용한 회원 쿠폰 ID
 
     @Column(name = "used_point", nullable = false)
     private Integer usedPoint; // 사용한 포인트
@@ -97,8 +87,8 @@ public class OrderJpaEntity extends BaseEntity {
     }
 
     private OrderJpaEntity(
-        MemberId memberId,
-        ShopId shopId,
+        Long memberId,
+        Long shopId,
         String orderNumber,
         OrderMethod orderMethod,
         OrderStatus orderStatus,
@@ -111,7 +101,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        MemberCouponId memberCouponId,
+        Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
         boolean deleted
@@ -140,8 +130,8 @@ public class OrderJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code OrderMapper#toEntity}에서만 호출한다.
      */
     static OrderJpaEntity create(
-        MemberId memberId,
-        ShopId shopId,
+        Long memberId,
+        Long shopId,
         String orderNumber,
         OrderMethod orderMethod,
         OrderStatus orderStatus,
@@ -154,7 +144,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        MemberCouponId memberCouponId,
+        Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
         boolean deleted
@@ -192,7 +182,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer finalAmount,
-        MemberCouponId memberCouponId,
+        Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
         boolean deleted
@@ -214,11 +204,11 @@ public class OrderJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 
@@ -270,7 +260,7 @@ public class OrderJpaEntity extends BaseEntity {
         return this.finalAmount;
     }
 
-    public MemberCouponId getMemberCouponId() {
+    public Long getMemberCouponId() {
         return this.memberCouponId;
     }
 

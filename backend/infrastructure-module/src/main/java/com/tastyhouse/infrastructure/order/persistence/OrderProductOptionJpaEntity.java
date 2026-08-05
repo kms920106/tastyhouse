@@ -1,18 +1,12 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.order.vo.OrderProductId;
-import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
-import com.tastyhouse.domain.product.vo.ProductOptionId;
-import com.tastyhouse.infrastructure.product.persistence.ProductOptionGroupIdConverter;
-import com.tastyhouse.infrastructure.product.persistence.ProductOptionIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -29,20 +23,21 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = OrderProductIdConverter.class)
     @Column(name = "order_product_id", nullable = false)
-    private OrderProductId orderProductId; // 주문 상품 ID (ORDER_PRODUCT.id 참조)
+    private Long orderProductId; // 주문 상품 ID (ORDER_PRODUCT.id 참조)
 
-    @Convert(converter = ProductOptionGroupIdConverter.class)
+    // 아래 옵션 스냅샷 4필드는 insert 시에만 쓰이고 도메인으로 되읽는 경로가 없어 getter가 없다 — IDE가
+    // "assigned but never accessed"로 경고하지만, JPA가 flush 시 리플렉션으로 읽는 컬럼 매핑이므로
+    // 제거하면 주문 시점 옵션 스냅샷이 저장되지 않는다.
+
     @Column(name = "option_group_id")
-    private ProductOptionGroupId optionGroupId; // 옵션 그룹 ID (스냅샷, NULL 가능)
+    private Long optionGroupId; // 옵션 그룹 ID (스냅샷, NULL 가능)
 
     @Column(name = "option_group_name", nullable = false, length = 100)
     private String optionGroupName; // 주문 시점 옵션 그룹 이름 (스냅샷)
 
-    @Convert(converter = ProductOptionIdConverter.class)
     @Column(name = "option_id")
-    private ProductOptionId optionId; // 옵션 ID (스냅샷, NULL 가능)
+    private Long optionId; // 옵션 ID (스냅샷, NULL 가능)
 
     @Column(name = "option_name", nullable = false, length = 100)
     private String optionName; // 주문 시점 옵션 이름 (스냅샷)
@@ -54,10 +49,10 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
     }
 
     private OrderProductOptionJpaEntity(
-        OrderProductId orderProductId,
-        ProductOptionGroupId optionGroupId,
+        Long orderProductId,
+        Long optionGroupId,
         String optionGroupName,
-        ProductOptionId optionId,
+        Long optionId,
         String optionName,
         Integer additionalPrice
     ) {
@@ -73,10 +68,10 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code OrderProductOptionMapper#toEntity}에서만 호출한다.
      */
     static OrderProductOptionJpaEntity create(
-        OrderProductId orderProductId,
-        ProductOptionGroupId optionGroupId,
+        Long orderProductId,
+        Long optionGroupId,
         String optionGroupName,
-        ProductOptionId optionId,
+        Long optionId,
         String optionName,
         Integer additionalPrice
     ) {
@@ -94,7 +89,7 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public OrderProductId getOrderProductId() {
+    public Long getOrderProductId() {
         return this.orderProductId;
     }
 

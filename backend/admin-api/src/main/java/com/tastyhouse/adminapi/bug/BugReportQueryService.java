@@ -65,7 +65,7 @@ public class BugReportQueryService {
         BugReportSearchCondition condition = BugReportSearchCondition.of(
             title,
             content,
-            memberId == null ? null : MemberId.of(memberId),
+            memberId,
             status == null ? null : BugReportStatus.from(status),
             category == null ? null : BugReportCategory.from(category),
             priority == null ? null : BugReportPriority.from(priority)
@@ -74,11 +74,11 @@ public class BugReportQueryService {
         PageResult<BugReportListItemResult> pageResult = bugReportQueryDao.findBugReports(condition, pageQuery);
 
         Map<Long, MemberWithProfileImageResult> membersById = memberQueryDao.findMemberWithProfileImagesByIds(
-            pageResult.content().stream().map(dto -> dto.memberId().value()).toList()
+            pageResult.content().stream().map(BugReportListItemResult::memberId).toList()
         );
 
         PageResult<BugReportListItemResponse> responsePage = pageResult.map(
-            dto -> toBugReportListItemResponse(dto, toMemberSummaryResponse(membersById.get(dto.memberId().value())))
+            dto -> toBugReportListItemResponse(dto, toMemberSummaryResponse(membersById.get(dto.memberId())))
         );
         return PaginationResponse.from(responsePage);
     }
@@ -87,7 +87,7 @@ public class BugReportQueryService {
         BugReportDetailResult detail = bugReportQueryDao.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
 
-        MemberSummaryResponse member = memberQueryDao.findMemberWithProfileImageById(detail.memberId())
+        MemberSummaryResponse member = memberQueryDao.findMemberWithProfileImageById(MemberId.of(detail.memberId()))
             .map(this::toMemberSummaryResponse)
             .orElse(null);
 

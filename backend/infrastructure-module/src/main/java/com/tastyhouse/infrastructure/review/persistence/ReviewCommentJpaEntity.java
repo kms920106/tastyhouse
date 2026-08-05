@@ -1,16 +1,12 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -27,13 +23,11 @@ public class ReviewCommentJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ReviewIdConverter.class)
     @Column(name = "review_id", nullable = false)
-    private ReviewId reviewId;
+    private Long reviewId;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content;
@@ -45,8 +39,8 @@ public class ReviewCommentJpaEntity extends BaseEntity {
     }
 
     private ReviewCommentJpaEntity(
-        ReviewId reviewId,
-        MemberId memberId,
+        Long reviewId,
+        Long memberId,
         String content,
         boolean hidden
     ) {
@@ -60,8 +54,8 @@ public class ReviewCommentJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewCommentMapper#toEntity}에서만 호출한다.
      */
     static ReviewCommentJpaEntity create(
-        ReviewId reviewId,
-        MemberId memberId,
+        Long reviewId,
+        Long memberId,
         String content,
         boolean hidden
     ) {
@@ -79,11 +73,11 @@ public class ReviewCommentJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ReviewId getReviewId() {
+    public Long getReviewId() {
         return this.reviewId;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 

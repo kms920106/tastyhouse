@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
 import com.tastyhouse.domain.member.model.MemberSocialAccount;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 회원 소셜 계정 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,7 +18,7 @@ final class MemberSocialAccountMapper {
     static MemberSocialAccount toDomain(MemberSocialAccountJpaEntity entity) {
         return MemberSocialAccount.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
+            IdMapping.vo(entity.getMemberId(), MemberId::of),
             entity.getProvider(),
             entity.getProviderId(),
             entity.getProviderEmail(),
@@ -33,7 +35,7 @@ final class MemberSocialAccountMapper {
      */
     static MemberSocialAccountJpaEntity toEntity(MemberSocialAccount domain) {
         return MemberSocialAccountJpaEntity.create(
-            domain.getMemberId(),
+            IdMapping.raw(domain.getMemberId(), MemberId::value),
             domain.getProvider(),
             domain.getProviderId(),
             domain.getProviderEmail(),

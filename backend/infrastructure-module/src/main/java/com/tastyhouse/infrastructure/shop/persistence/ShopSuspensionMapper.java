@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import com.tastyhouse.domain.shop.model.ShopSuspension;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 상점 영업 임시중지 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,7 +18,7 @@ final class ShopSuspensionMapper {
     static ShopSuspension toDomain(ShopSuspensionJpaEntity entity) {
         return ShopSuspension.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            IdMapping.vo(entity.getShopId(), ShopId::of),
             entity.getReason(),
             entity.getOrderMethod(),
             entity.getStartAt(),
@@ -32,7 +34,7 @@ final class ShopSuspensionMapper {
      */
     static ShopSuspensionJpaEntity toEntity(ShopSuspension domain) {
         return ShopSuspensionJpaEntity.create(
-            domain.getShopId(),
+            IdMapping.raw(domain.getShopId(), ShopId::value),
             domain.getReason(),
             domain.getOrderMethod(),
             domain.getStartAt(),

@@ -32,7 +32,7 @@ public class EventAnnouncementRepositoryImpl implements EventAnnouncementReposit
     public Optional<EventAnnouncement> findByEventId(EventId eventId) {
         EventAnnouncementJpaEntity entity = queryFactory
             .selectFrom(eventAnnouncementJpaEntity)
-            .where(eventAnnouncementJpaEntity.eventId.eq(eventId))
+            .where(eventAnnouncementJpaEntity.eventId.eq(eventId.value()))
             .fetchOne();
         return Optional.ofNullable(entity).map(EventAnnouncementMapper::toDomain);
     }
@@ -42,7 +42,7 @@ public class EventAnnouncementRepositoryImpl implements EventAnnouncementReposit
         Integer result = queryFactory
             .selectOne()
             .from(eventAnnouncementJpaEntity)
-            .where(eventAnnouncementJpaEntity.eventId.eq(eventId))
+            .where(eventAnnouncementJpaEntity.eventId.eq(eventId.value()))
             .fetchFirst();
         return result != null;
     }

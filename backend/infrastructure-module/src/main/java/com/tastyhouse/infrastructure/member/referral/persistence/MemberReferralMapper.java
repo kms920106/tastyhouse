@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.member.referral.persistence;
 
 import com.tastyhouse.domain.member.referral.domain.model.MemberReferral;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 회원 추천 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,8 +18,8 @@ final class MemberReferralMapper {
     static MemberReferral toDomain(MemberReferralJpaEntity entity) {
         return MemberReferral.reconstitute(
             entity.getId(),
-            entity.getReferrerId(),
-            entity.getRefereeId(),
+            IdMapping.vo(entity.getReferrerId(), MemberId::of),
+            IdMapping.vo(entity.getRefereeId(), MemberId::of),
             entity.getStatus(),
             entity.getCreatedAt()
         );
@@ -28,8 +30,8 @@ final class MemberReferralMapper {
      */
     static MemberReferralJpaEntity toEntity(MemberReferral domain) {
         return MemberReferralJpaEntity.create(
-            domain.getReferrerId(),
-            domain.getRefereeId(),
+            IdMapping.raw(domain.getReferrerId(), MemberId::value),
+            IdMapping.raw(domain.getRefereeId(), MemberId::value),
             domain.getStatus()
         );
     }

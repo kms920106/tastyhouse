@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.repository.ShopPhoneNumberRepository;
 
 @Repository
@@ -35,7 +34,7 @@ public class ShopPhoneNumberRepositoryImpl implements ShopPhoneNumberRepository 
 
     @Override
     public List<ShopPhoneNumber> findByShopId(Long shopId) {
-        return shopPhoneNumberJpaRepository.findByShopId(ShopId.of(shopId)).stream()
+        return shopPhoneNumberJpaRepository.findByShopId(shopId).stream()
             .map(ShopPhoneNumberMapper::toDomain)
             .toList();
     }

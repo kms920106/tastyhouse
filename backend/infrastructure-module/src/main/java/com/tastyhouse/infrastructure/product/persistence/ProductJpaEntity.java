@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.product.persistence;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,11 +10,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 상품 JPA 영속 모델.
@@ -31,13 +27,11 @@ public class ProductJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId;
+    private Long shopId;
 
-    @Convert(converter = ProductCategoryIdConverter.class)
     @Column(name = "product_category_id")
-    private ProductCategoryId productCategoryId;
+    private Long productCategoryId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -80,8 +74,8 @@ public class ProductJpaEntity extends BaseEntity {
     }
 
     private ProductJpaEntity(
-        ShopId shopId,
-        ProductCategoryId productCategoryId,
+        Long shopId,
+        Long productCategoryId,
         String name,
         String description,
         Integer originalPrice,
@@ -113,8 +107,8 @@ public class ProductJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductMapper#toEntity}에서만 호출한다.
      */
     static ProductJpaEntity create(
-        ShopId shopId,
-        ProductCategoryId productCategoryId,
+        Long shopId,
+        Long productCategoryId,
         String name,
         String description,
         Integer originalPrice,
@@ -137,7 +131,7 @@ public class ProductJpaEntity extends BaseEntity {
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자·shopId는 건드리지 않는다.
      */
     void applyChanges(
-        ProductCategoryId productCategoryId,
+        Long productCategoryId,
         String name,
         String description,
         Integer originalPrice,
@@ -168,11 +162,11 @@ public class ProductJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 
-    public ProductCategoryId getProductCategoryId() {
+    public Long getProductCategoryId() {
         return this.productCategoryId;
     }
 

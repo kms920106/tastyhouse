@@ -1,16 +1,12 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.review.vo.ReviewCommentId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -27,17 +23,14 @@ public class ReviewReplyJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ReviewCommentIdConverter.class)
     @Column(name = "comment_id", nullable = false)
-    private ReviewCommentId commentId;
+    private Long commentId;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "reply_to_member_id")
-    private MemberId replyToMemberId;
+    private Long replyToMemberId;
 
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content;
@@ -49,9 +42,9 @@ public class ReviewReplyJpaEntity extends BaseEntity {
     }
 
     private ReviewReplyJpaEntity(
-        ReviewCommentId commentId,
-        MemberId memberId,
-        MemberId replyToMemberId,
+        Long commentId,
+        Long memberId,
+        Long replyToMemberId,
         String content,
         boolean hidden
     ) {
@@ -66,9 +59,9 @@ public class ReviewReplyJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewReplyMapper#toEntity}에서만 호출한다.
      */
     static ReviewReplyJpaEntity create(
-        ReviewCommentId commentId,
-        MemberId memberId,
-        MemberId replyToMemberId,
+        Long commentId,
+        Long memberId,
+        Long replyToMemberId,
         String content,
         boolean hidden
     ) {
@@ -86,15 +79,15 @@ public class ReviewReplyJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ReviewCommentId getCommentId() {
+    public Long getCommentId() {
         return this.commentId;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 
-    public MemberId getReplyToMemberId() {
+    public Long getReplyToMemberId() {
         return this.replyToMemberId;
     }
 

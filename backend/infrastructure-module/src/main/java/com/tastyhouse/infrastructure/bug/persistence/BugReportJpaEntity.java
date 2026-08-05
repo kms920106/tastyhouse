@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.bug.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,14 +12,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.admin.vo.AdminId;
 import com.tastyhouse.domain.bug.model.BugReportCategory;
 import com.tastyhouse.domain.bug.model.BugReportPlatform;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.admin.persistence.AdminIdConverter;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -43,9 +38,8 @@ public class BugReportJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
     @Column(name = "device", nullable = false, length = 100)
     private String device;
@@ -68,9 +62,8 @@ public class BugReportJpaEntity extends BaseEntity {
     @Column(name = "priority", length = 20, columnDefinition = "VARCHAR(20)")
     private BugReportPriority priority;
 
-    @Convert(converter = AdminIdConverter.class)
     @Column(name = "assignee_admin_id")
-    private AdminId assigneeAdminId;
+    private Long assigneeAdminId;
 
     @Column(name = "admin_answer", columnDefinition = "TEXT")
     private String adminAnswer;
@@ -92,14 +85,14 @@ public class BugReportJpaEntity extends BaseEntity {
     }
 
     private BugReportJpaEntity(
-        MemberId memberId,
+        Long memberId,
         String device,
         String title,
         String content,
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority,
-        AdminId assigneeAdminId,
+        Long assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt,
         String appVersion,
@@ -125,14 +118,14 @@ public class BugReportJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code BugReportMapper#toEntity}에서만 호출한다.
      */
     static BugReportJpaEntity create(
-        MemberId memberId,
+        Long memberId,
         String device,
         String title,
         String content,
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority,
-        AdminId assigneeAdminId,
+        Long assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt,
         String appVersion,
@@ -155,7 +148,7 @@ public class BugReportJpaEntity extends BaseEntity {
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority,
-        AdminId assigneeAdminId,
+        Long assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt
     ) {
@@ -173,7 +166,7 @@ public class BugReportJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 
@@ -201,7 +194,7 @@ public class BugReportJpaEntity extends BaseEntity {
         return this.priority;
     }
 
-    public AdminId getAssigneeAdminId() {
+    public Long getAssigneeAdminId() {
         return this.assigneeAdminId;
     }
 

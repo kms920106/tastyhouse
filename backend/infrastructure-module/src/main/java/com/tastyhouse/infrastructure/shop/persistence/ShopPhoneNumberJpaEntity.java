@@ -1,14 +1,12 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -22,9 +20,8 @@ public class ShopPhoneNumberJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
     @Column(name = "phone_number", nullable = false, length = 20)
     private String phoneNumber; // 전화번호
@@ -38,14 +35,14 @@ public class ShopPhoneNumberJpaEntity extends BaseEntity {
     protected ShopPhoneNumberJpaEntity() {
     }
 
-    private ShopPhoneNumberJpaEntity(ShopId shopId, String phoneNumber, boolean primary, boolean virtual) {
+    private ShopPhoneNumberJpaEntity(Long shopId, String phoneNumber, boolean primary, boolean virtual) {
         this.shopId = shopId;
         this.phoneNumber = phoneNumber;
         this.primary = primary;
         this.virtual = virtual;
     }
 
-    static ShopPhoneNumberJpaEntity create(ShopId shopId, String phoneNumber, boolean primary, boolean virtual) {
+    static ShopPhoneNumberJpaEntity create(Long shopId, String phoneNumber, boolean primary, boolean virtual) {
         return new ShopPhoneNumberJpaEntity(shopId, phoneNumber, primary, virtual);
     }
 
@@ -57,7 +54,7 @@ public class ShopPhoneNumberJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

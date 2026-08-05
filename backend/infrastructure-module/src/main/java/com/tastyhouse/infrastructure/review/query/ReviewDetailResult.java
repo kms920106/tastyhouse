@@ -5,8 +5,6 @@ import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-
 public record ReviewDetailResult(
     Long id,
     Long shopId,
@@ -21,13 +19,18 @@ public record ReviewDetailResult(
     Double kindnessRating,
     Double hygieneRating,
     boolean willRevisit,
-    MemberId memberId,
+    Long memberId,
     String memberNickname,
     String memberProfileImageUrl,
     LocalDateTime createdAt,
     List<String> imageUrls,
     List<String> tagNames
 ) {
+    /**
+     * QueryDSL 투영 전용 생성자 — 1:N인 이미지·태그를 제외한 좁은 시그니처다. 호출부는 생성된
+     * {@code QReviewDetailResult}(`ReviewQueryDao#findReviewDetail`)이므로 IDE가 "never used"로
+     * 경고하지만, 제거하면 Q타입이 생성되지 않아 빌드가 깨진다.
+     */
     @QueryProjection
     public ReviewDetailResult(
         Long id,
@@ -43,7 +46,7 @@ public record ReviewDetailResult(
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        MemberId memberId,
+        Long memberId,
         String memberNickname,
         String memberProfileImageUrl,
         LocalDateTime createdAt

@@ -1,6 +1,11 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.Review;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 리뷰 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,9 +21,9 @@ final class ReviewMapper {
     static Review toDomain(ReviewJpaEntity entity) {
         return Review.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getProductId(),
-            entity.getMemberId(),
+            IdMapping.vo(entity.getShopId(), ShopId::of),
+            IdMapping.vo(entity.getProductId(), ProductId::of),
+            IdMapping.vo(entity.getMemberId(), MemberId::of),
             entity.getContent(),
             entity.getTotalRating(),
             entity.getTasteRating(),
@@ -28,7 +33,7 @@ final class ReviewMapper {
             entity.getKindnessRating(),
             entity.getHygieneRating(),
             entity.isWillRevisit(),
-            entity.getOrderId(),
+            IdMapping.vo(entity.getOrderId(), OrderId::of),
             entity.isHidden(),
             entity.getCreatedAt()
         );
@@ -39,9 +44,9 @@ final class ReviewMapper {
      */
     static ReviewJpaEntity toEntity(Review domain) {
         return ReviewJpaEntity.create(
-            domain.getShopId(),
-            domain.getProductId(),
-            domain.getMemberId(),
+            IdMapping.raw(domain.getShopId(), ShopId::value),
+            IdMapping.raw(domain.getProductId(), ProductId::value),
+            IdMapping.raw(domain.getMemberId(), MemberId::value),
             domain.getContent(),
             domain.getTotalRating(),
             domain.getTasteRating(),
@@ -51,7 +56,7 @@ final class ReviewMapper {
             domain.getKindnessRating(),
             domain.getHygieneRating(),
             domain.isWillRevisit(),
-            domain.getOrderId(),
+            IdMapping.raw(domain.getOrderId(), OrderId::value),
             domain.isHidden()
         );
     }

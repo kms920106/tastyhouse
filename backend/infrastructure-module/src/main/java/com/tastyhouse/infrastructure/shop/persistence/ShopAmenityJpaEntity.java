@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,8 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -24,23 +21,21 @@ public class ShopAmenityJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
-    @Convert(converter = ShopAmenityCategoryIdConverter.class)
     @Column(name = "shop_amenity_category_id", nullable = false)
-    private ShopAmenityCategoryId shopAmenityCategoryId; // 편의시설 카테고리 ID (SHOP_AMENITY_CATEGORY.id 참조)
+    private Long shopAmenityCategoryId; // 편의시설 카테고리 ID (SHOP_AMENITY_CATEGORY.id 참조)
 
     protected ShopAmenityJpaEntity() {
     }
 
-    private ShopAmenityJpaEntity(ShopId shopId, ShopAmenityCategoryId shopAmenityCategoryId) {
+    private ShopAmenityJpaEntity(Long shopId, Long shopAmenityCategoryId) {
         this.shopId = shopId;
         this.shopAmenityCategoryId = shopAmenityCategoryId;
     }
 
-    static ShopAmenityJpaEntity create(ShopId shopId, ShopAmenityCategoryId shopAmenityCategoryId) {
+    static ShopAmenityJpaEntity create(Long shopId, Long shopAmenityCategoryId) {
         return new ShopAmenityJpaEntity(shopId, shopAmenityCategoryId);
     }
 
@@ -48,11 +43,11 @@ public class ShopAmenityJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 
-    public ShopAmenityCategoryId getShopAmenityCategoryId() {
+    public Long getShopAmenityCategoryId() {
         return this.shopAmenityCategoryId;
     }
 }

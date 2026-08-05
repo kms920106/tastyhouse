@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
 import com.tastyhouse.domain.member.model.MemberWithdrawal;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 회원 탈퇴 이력 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -17,7 +19,7 @@ final class MemberWithdrawalMapper {
     static MemberWithdrawal toDomain(MemberWithdrawalJpaEntity entity) {
         return MemberWithdrawal.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
+            IdMapping.vo(entity.getMemberId(), MemberId::of),
             entity.getReason(),
             entity.getReasonDetail(),
             entity.getCreatedAt(),
@@ -30,7 +32,7 @@ final class MemberWithdrawalMapper {
      */
     static MemberWithdrawalJpaEntity toEntity(MemberWithdrawal domain) {
         return MemberWithdrawalJpaEntity.create(
-            domain.getMemberId(),
+            IdMapping.raw(domain.getMemberId(), MemberId::value),
             domain.getReason(),
             domain.getReasonDetail()
         );

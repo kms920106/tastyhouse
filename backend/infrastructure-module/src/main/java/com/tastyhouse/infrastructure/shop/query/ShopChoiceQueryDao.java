@@ -9,9 +9,6 @@ import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
@@ -19,12 +16,10 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity;
 import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
 import com.tastyhouse.infrastructure.product.query.QProductSimpleResult;
-import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
@@ -78,23 +73,23 @@ public class ShopChoiceQueryDao {
         List<Tuple> shopChoices = queryFactory
             .select(
                 shopChoiceJpaEntity.id,
-                shopChoiceShopIdValue(),
+                shopChoiceJpaEntity.shopId,
                 shopJpaEntity.name,
                 shopChoiceJpaEntity.title,
                 shopChoiceJpaEntity.content,
                 uploadedFileJpaEntity.filePath
             )
             .from(shopChoiceJpaEntity)
-            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopChoiceShopId())
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopChoiceJpaEntity.shopId)
                 .and(shopJpaEntity.permanentlyClosed.eq(false))
                 .and(shopJpaEntity.hidden.eq(false)))
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
             .fetch();
 
         List<Long> shopIds = shopChoices.stream()
-            .map(tuple -> tuple.get(shopChoiceShopIdValue()))
+            .map(tuple -> tuple.get(shopChoiceJpaEntity.shopId))
             .distinct()
             .toList();
 
@@ -102,7 +97,7 @@ public class ShopChoiceQueryDao {
 
         List<EditorChoiceResult> content = shopChoices.stream()
             .map(tuple -> {
-                Long shopIdValue = tuple.get(shopChoiceShopIdValue());
+                Long shopIdValue = tuple.get(shopChoiceJpaEntity.shopId);
                 List<ProductSimpleResult> products = productsByShopId.getOrDefault(shopIdValue, new ArrayList<>());
                 return new EditorChoiceResult(
                     tuple.get(shopChoiceJpaEntity.id),
@@ -127,7 +122,7 @@ public class ShopChoiceQueryDao {
             queryFactory
                 .select(Projections.constructor(ShopChoiceDetailResult.class,
                     shopChoiceJpaEntity.id,
-                    ConvertedIdPaths.longValue(shopChoiceJpaEntity, "shopId", ShopId.class),
+                    shopChoiceJpaEntity.shopId,
                     shopChoiceJpaEntity.title,
                     shopChoiceJpaEntity.content
                 ))
@@ -184,28 +179,28 @@ public class ShopChoiceQueryDao {
         );
 
         List<Tuple> productTuples = queryFactory
-            .select(productShopIdValue(), productProjection)
+            .select(productJpaEntity.shopId, productProjection)
             .from(productJpaEntity)
-            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(productShopId()))
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(productJpaEntity.shopId))
             .leftJoin(productImageJpaEntity).on(
-                productImageProductId().eq(productJpaEntity.id)
+                productImageJpaEntity.productId.eq(productJpaEntity.id)
                     .and(productImageJpaEntity.visible.eq(true))
                     .and(productImageJpaEntity.sort.eq(
                         JPAExpressions
                             .select(subProductImage.sort.min())
                             .from(subProductImage)
-                            .where(subProductImageProductId().eq(productJpaEntity.id)
+                            .where(subProductImage.productId.eq(productJpaEntity.id)
                                 .and(subProductImage.visible.eq(true)))
                     ))
             )
-            .leftJoin(uploadedFileJpaEntity).on(productImageImageFileId().eq(uploadedFileJpaEntity.id))
-            .where(ConvertedIdPaths.in(productJpaEntity, "shopId", ShopId.class, ShopId::of, shopIds))
+            .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
+            .where(productJpaEntity.shopId.in(shopIds))
             .fetch();
 
         return productTuples.stream()
-            .filter(tuple -> tuple.get(productShopIdValue()) != null)
+            .filter(tuple -> tuple.get(productJpaEntity.shopId) != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(productShopIdValue())),
+                tuple -> Objects.requireNonNull(tuple.get(productJpaEntity.shopId)),
                 Collectors.mapping(
                     tuple -> withResolvedImageUrl(Objects.requireNonNull(tuple.get(productProjection))),
                     Collectors.toList()
@@ -232,47 +227,5 @@ public class ShopChoiceQueryDao {
             row.discountPrice(),
             row.discountRate()
         );
-    }
-
-    // ----------------------------------------------------- @Convert VO 컬럼 우회
-
-    private NumberPath<Long> shopChoiceShopId() {
-        return Expressions.numberPath(Long.class, shopChoiceJpaEntity, "shopId");
-    }
-
-    private NumberPath<Long> shopThumbnailImageFileId() {
-        return Expressions.numberPath(Long.class, shopJpaEntity, "thumbnailImageFileId");
-    }
-
-    private NumberPath<Long> productShopId() {
-        return Expressions.numberPath(Long.class, productJpaEntity, "shopId");
-    }
-
-    private NumberPath<Long> productImageProductId() {
-        return Expressions.numberPath(Long.class, productImageJpaEntity, "productId");
-    }
-
-    private NumberPath<Long> productImageImageFileId() {
-        return Expressions.numberPath(Long.class, productImageJpaEntity, "imageFileId");
-    }
-
-    private NumberPath<Long> subProductImageProductId() {
-        return Expressions.numberPath(Long.class, subProductImage, "productId");
-    }
-
-    /**
-     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
-     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
-     */
-    private NumberExpression<Long> productShopIdValue() {
-        return ConvertedIdPaths.longValue(productJpaEntity, "shopId", ShopId.class);
-    }
-
-    /**
-     * {@code shopId}({@code @Convert} ShopId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
-     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
-     */
-    private NumberExpression<Long> shopChoiceShopIdValue() {
-        return ConvertedIdPaths.longValue(shopChoiceJpaEntity, "shopId", ShopId.class);
     }
 }

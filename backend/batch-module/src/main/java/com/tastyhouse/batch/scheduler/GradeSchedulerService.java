@@ -75,7 +75,7 @@ public class GradeSchedulerService {
         for (MemberGrade grade : MemberGrade.values()) {
             gradeGroups.put(grade, reviewCounts.stream()
                 .filter(dto -> MemberGrade.fromReviewCount(dto.reviewCount().intValue()) == grade)
-                .map(dto -> dto.memberId().value())
+                .map(MemberReviewCountResult::memberId)
                 .collect(Collectors.toList()));
         }
 

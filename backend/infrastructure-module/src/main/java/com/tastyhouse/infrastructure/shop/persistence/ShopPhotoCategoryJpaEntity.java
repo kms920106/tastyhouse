@@ -1,14 +1,12 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -22,9 +20,8 @@ public class ShopPhotoCategoryJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
     @Column(name = "name", nullable = false, length = 100)
     private String name; // 사진 카테고리명 (예: 가게 외관, 메뉴, 내부 인테리어)
@@ -32,12 +29,12 @@ public class ShopPhotoCategoryJpaEntity extends BaseEntity {
     protected ShopPhotoCategoryJpaEntity() {
     }
 
-    private ShopPhotoCategoryJpaEntity(ShopId shopId, String name) {
+    private ShopPhotoCategoryJpaEntity(Long shopId, String name) {
         this.shopId = shopId;
         this.name = name;
     }
 
-    static ShopPhotoCategoryJpaEntity create(ShopId shopId, String name) {
+    static ShopPhotoCategoryJpaEntity create(Long shopId, String name) {
         return new ShopPhotoCategoryJpaEntity(shopId, name);
     }
 
@@ -49,7 +46,7 @@ public class ShopPhotoCategoryJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

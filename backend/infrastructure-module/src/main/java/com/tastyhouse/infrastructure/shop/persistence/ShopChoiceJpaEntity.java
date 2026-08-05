@@ -1,14 +1,12 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -22,9 +20,8 @@ public class ShopChoiceJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
     @Column(name = "title", nullable = false, length = 200)
     private String title; // 선택지 제목
@@ -35,13 +32,13 @@ public class ShopChoiceJpaEntity extends BaseEntity {
     protected ShopChoiceJpaEntity() {
     }
 
-    private ShopChoiceJpaEntity(ShopId shopId, String title, String content) {
+    private ShopChoiceJpaEntity(Long shopId, String title, String content) {
         this.shopId = shopId;
         this.title = title;
         this.content = content;
     }
 
-    static ShopChoiceJpaEntity create(ShopId shopId, String title, String content) {
+    static ShopChoiceJpaEntity create(Long shopId, String title, String content) {
         return new ShopChoiceJpaEntity(shopId, title, content);
     }
 
@@ -54,7 +51,7 @@ public class ShopChoiceJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

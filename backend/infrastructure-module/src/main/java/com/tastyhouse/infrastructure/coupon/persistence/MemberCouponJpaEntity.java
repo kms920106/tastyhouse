@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.coupon.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,9 +11,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -44,13 +40,11 @@ public class MemberCouponJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
-    @Convert(converter = CouponIdConverter.class)
     @Column(name = "coupon_id", nullable = false)
-    private CouponId couponId;
+    private Long couponId;
 
     @Column(name = "is_used", nullable = false)
     private boolean used;
@@ -65,8 +59,8 @@ public class MemberCouponJpaEntity extends BaseEntity {
     }
 
     private MemberCouponJpaEntity(
-        MemberId memberId,
-        CouponId couponId,
+        Long memberId,
+        Long couponId,
         boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt
@@ -82,8 +76,8 @@ public class MemberCouponJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code MemberCouponMapper#toEntity}에서만 호출한다.
      */
     static MemberCouponJpaEntity create(
-        MemberId memberId,
-        CouponId couponId,
+        Long memberId,
+        Long couponId,
         boolean used,
         LocalDateTime usedAt,
         LocalDateTime expiredAt
@@ -103,11 +97,11 @@ public class MemberCouponJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 
-    public CouponId getCouponId() {
+    public Long getCouponId() {
         return this.couponId;
     }
 

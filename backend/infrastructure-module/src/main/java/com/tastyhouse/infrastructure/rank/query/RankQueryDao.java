@@ -5,18 +5,14 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.vo.RankPrizeId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
-import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -82,8 +78,8 @@ public class RankQueryDao {
                 uploadedFileJpaEntity.filePath
             ))
             .from(rankPeriodJpaEntity)
-            .innerJoin(rankPrizeJpaEntity).on(prizeRankId().eq(rankPeriodJpaEntity.id))
-            .leftJoin(uploadedFileJpaEntity).on(prizeImageFileId().eq(uploadedFileJpaEntity.id))
+            .innerJoin(rankPrizeJpaEntity).on(rankPrizeJpaEntity.rankId.eq(rankPeriodJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(rankPrizeJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(
                 rankPeriodJpaEntity.visible.isTrue(),
                 rankPeriodJpaEntity.deleted.isFalse(),
@@ -104,7 +100,7 @@ public class RankQueryDao {
         return queryFactory
             .select(memberRankProjection())
             .from(memberReviewRankJpaEntity)
-            .innerJoin(memberJpaEntity).on(memberIdPath().eq(memberJpaEntity.id))
+            .innerJoin(memberJpaEntity).on(memberReviewRankJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(
                 memberReviewRankJpaEntity.rankType.eq(rankType),
@@ -121,11 +117,11 @@ public class RankQueryDao {
     /**
      * 기준일의 특정 회원 랭킹 1건 — 랭킹에 들지 못한 회원이면 비어 있다(소비 측에서 0위 응답으로 대체).
      */
-    public Optional<MemberRankResult> findMemberRank(MemberId memberId, RankType rankType, LocalDate baseDate) {
+    public Optional<MemberRankResult> findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
         MemberRankResult result = queryFactory
             .select(memberRankProjection())
             .from(memberReviewRankJpaEntity)
-            .innerJoin(memberJpaEntity).on(memberIdPath().eq(memberJpaEntity.id))
+            .innerJoin(memberJpaEntity).on(memberReviewRankJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(
                 memberReviewRankJpaEntity.memberId.eq(memberId),
@@ -169,8 +165,8 @@ public class RankQueryDao {
         return queryFactory
             .select(rankPrizeManagementProjection())
             .from(rankPrizeJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(prizeImageFileId()))
-            .where(ConvertedIdPaths.eq(rankPrizeJpaEntity, "rankId", RankPeriodId.class, RankPeriodId::of, periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
+            .where(rankPrizeJpaEntity.rankId.eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
             .orderBy(rankPrizeJpaEntity.prizeRank.asc())
             .fetch()
             .stream()
@@ -185,7 +181,7 @@ public class RankQueryDao {
         RankPrizeManagementResult result = queryFactory
             .select(rankPrizeManagementProjection())
             .from(rankPrizeJpaEntity)
-            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(prizeImageFileId()))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
             .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())
             .fetchOne();
 
@@ -217,11 +213,11 @@ public class RankQueryDao {
     private QRankPrizeManagementResult rankPrizeManagementProjection() {
         return new QRankPrizeManagementResult(
             rankPrizeJpaEntity.id,
-            prizeRankIdValue(),
+            rankPrizeJpaEntity.rankId,
             rankPrizeJpaEntity.prizeRank,
             rankPrizeJpaEntity.name,
             rankPrizeJpaEntity.brand,
-            prizeImageFileIdValue(),
+            rankPrizeJpaEntity.imageFileId,
             uploadedFileJpaEntity.originalFilename,
             uploadedFileJpaEntity.filePath
         );
@@ -266,48 +262,10 @@ public class RankQueryDao {
     }
 
     /**
-     * {@code @Convert} VO 컬럼인 {@code RANK_PRIZE.rank_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> prizeRankId() {
-        return Expressions.numberPath(Long.class, rankPrizeJpaEntity, "rankId");
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code RANK_PRIZE.image_file_id}를 raw {@code Long}으로 비교·투영하기 위한 path.
-     */
-    private NumberPath<Long> prizeImageFileId() {
-        return Expressions.numberPath(Long.class, rankPrizeJpaEntity, "imageFileId");
-    }
-
-    /**
-     * {@code memberId}는 {@code @Convert}로 {@code MemberId} VO에 매핑돼 있어 raw {@code Long} PK와
-     * 직접 비교할 수 없으므로, join 조건에서는 원시 경로로 우회한다.
-     */
-    private NumberPath<Long> memberIdPath() {
-        return Expressions.numberPath(Long.class, memberReviewRankJpaEntity, "memberId");
-    }
-
-    /**
      * {@code @Convert} VO 컬럼인 {@code MEMBER.profile_image_file_id}를 raw {@code Long}으로 비교하기
      * 위한 path(member 도메인의 크로스 참조).
      */
     private NumberPath<Long> memberProfileImageFileId() {
         return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
-    }
-
-    /**
-     * {@code imageFileId}({@code @Convert} UploadedFileId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
-     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
-     */
-    private NumberExpression<Long> prizeImageFileIdValue() {
-        return ConvertedIdPaths.longValue(rankPrizeJpaEntity, "imageFileId", UploadedFileId.class);
-    }
-
-    /**
-     * {@code rankId}({@code @Convert} RankPeriodId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
-     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
-     */
-    private NumberExpression<Long> prizeRankIdValue() {
-        return ConvertedIdPaths.longValue(rankPrizeJpaEntity, "rankId", RankPeriodId.class);
     }
 }

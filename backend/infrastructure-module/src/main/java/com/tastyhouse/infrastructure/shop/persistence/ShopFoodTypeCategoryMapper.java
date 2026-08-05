@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 final class ShopFoodTypeCategoryMapper {
 
@@ -12,8 +14,8 @@ final class ShopFoodTypeCategoryMapper {
             entity.getId(),
             entity.getFoodType(),
             entity.getDisplayName(),
-            entity.getActiveImageFileId(),
-            entity.getInactiveImageFileId(),
+            IdMapping.vo(entity.getActiveImageFileId(), UploadedFileId::of),
+            IdMapping.vo(entity.getInactiveImageFileId(), UploadedFileId::of),
             entity.getSort(),
             entity.isVisible()
         );
@@ -23,8 +25,8 @@ final class ShopFoodTypeCategoryMapper {
         return ShopFoodTypeCategoryJpaEntity.create(
             domain.getFoodType(),
             domain.getDisplayName(),
-            domain.getActiveImageFileId(),
-            domain.getInactiveImageFileId(),
+            IdMapping.raw(domain.getActiveImageFileId(), UploadedFileId::value),
+            IdMapping.raw(domain.getInactiveImageFileId(), UploadedFileId::value),
             domain.getSort(),
             domain.isVisible()
         );
@@ -33,8 +35,8 @@ final class ShopFoodTypeCategoryMapper {
     static void applyChanges(ShopFoodTypeCategoryJpaEntity entity, ShopFoodTypeCategory domain) {
         entity.applyChanges(
             domain.getDisplayName(),
-            domain.getActiveImageFileId(),
-            domain.getInactiveImageFileId(),
+            IdMapping.raw(domain.getActiveImageFileId(), UploadedFileId::value),
+            IdMapping.raw(domain.getInactiveImageFileId(), UploadedFileId::value),
             domain.getSort(),
             domain.isVisible()
         );

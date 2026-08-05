@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-
 /**
  * 리뷰 답글 read model(web 노출용).
  *
@@ -16,10 +14,10 @@ import com.tastyhouse.domain.member.vo.MemberId;
 public record ReviewReplyItemResult(
     Long id,
     Long commentId,
-    MemberId memberId,
+    Long memberId,
     String memberNickname,
     String memberProfileImageUrl,
-    MemberId replyToMemberId,
+    Long replyToMemberId,
     String replyToMemberNickname,
     String content,
     LocalDateTime createdAt

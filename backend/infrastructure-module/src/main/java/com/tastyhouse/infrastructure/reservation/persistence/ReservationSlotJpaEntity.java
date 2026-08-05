@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,9 +12,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
-import com.tastyhouse.infrastructure.shop.persistence.ShopIdConverter;
 
 /**
  * 가게 예약 슬롯 JPA 영속 모델.
@@ -38,9 +35,8 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId;
+    private Long shopId;
 
     @Column(name = "slot_date", nullable = false)
     private LocalDate slotDate;
@@ -54,6 +50,11 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     @Column(name = "reserved_count", nullable = false)
     private Integer reservedCount;
 
+    /**
+     * 낙관적 락 버전. 애플리케이션 코드가 대입하지 않고 Hibernate가 flush 시점에 검증·증가시킨다 — IDE가
+     * "never assigned"로 경고하지만 정상이다. 읽기는 {@code ReservationSlotMapper}가 도메인 재구성 시
+     * {@link #getVersion()}으로 수행한다.
+     */
     @Version
     @Column(name = "version")
     private Long version;
@@ -61,7 +62,7 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     protected ReservationSlotJpaEntity() {
     }
 
-    private ReservationSlotJpaEntity(ShopId shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
+    private ReservationSlotJpaEntity(Long shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
         this.shopId = shopId;
         this.slotDate = slotDate;
         this.slotTime = slotTime;
@@ -72,7 +73,7 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자·버전 없음). {@code ReservationSlotMapper#toEntity}에서만 호출한다.
      */
-    static ReservationSlotJpaEntity create(ShopId shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
+    static ReservationSlotJpaEntity create(Long shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
         return new ReservationSlotJpaEntity(shopId, slotDate, slotTime, capacity, reservedCount);
     }
 
@@ -88,7 +89,7 @@ public class ReservationSlotJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

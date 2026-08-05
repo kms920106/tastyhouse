@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.review.query;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
@@ -32,7 +31,7 @@ public class MemberReviewCountQueryDao {
      * <p>기간은 시작 시각 이상, 종료 시각 미만(반열림 구간)이다.
      */
     public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
-        NumberPath<Long> memberIdPath = Expressions.numberPath(Long.class, reviewJpaEntity, "memberId");
+        NumberPath<Long> memberIdPath = reviewJpaEntity.memberId;
 
         return queryFactory
             .select(new QMemberReviewCountResult(

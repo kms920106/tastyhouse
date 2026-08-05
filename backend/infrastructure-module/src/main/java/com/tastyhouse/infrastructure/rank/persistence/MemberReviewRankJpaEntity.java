@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,9 +14,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.RankType;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -47,9 +44,8 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
     @Column(name = "review_count", nullable = false)
     private Integer reviewCount;
@@ -71,7 +67,7 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
     }
 
     private MemberReviewRankJpaEntity(
-        MemberId memberId,
+        Long memberId,
         Integer reviewCount,
         Integer rankNo,
         RankType rankType,
@@ -90,7 +86,7 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code MemberReviewRankMapper#toEntity}에서만 호출한다.
      */
     static MemberReviewRankJpaEntity create(
-        MemberId memberId,
+        Long memberId,
         Integer reviewCount,
         Integer rankNo,
         RankType rankType,
@@ -104,7 +100,7 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 

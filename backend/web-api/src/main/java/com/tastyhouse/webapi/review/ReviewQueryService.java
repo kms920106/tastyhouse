@@ -157,7 +157,7 @@ public class ReviewQueryService {
      * 리뷰 좋아요 여부.
      */
     public ReviewLikeStatusResponse isLiked(Long reviewId, Long memberId) {
-        boolean liked = reviewQueryDao.existsLike(ReviewId.of(reviewId), MemberId.of(memberId));
+        boolean liked = reviewQueryDao.existsLike(ReviewId.of(reviewId), memberId);
         return ReviewLikeStatusResponse.from(liked);
     }
 
@@ -228,7 +228,7 @@ public class ReviewQueryService {
                     reviewDetail.kindnessRating(),
                     reviewDetail.hygieneRating(),
                     reviewDetail.willRevisit(),
-                    reviewDetail.memberId().value(),
+                    reviewDetail.memberId(),
                     reviewDetail.memberNickname(),
                     reviewMemberProfileImageUrl,
                     reviewDetail.createdAt(),
@@ -249,7 +249,7 @@ public class ReviewQueryService {
                     reviewDetail.kindnessRating(),
                     reviewDetail.hygieneRating(),
                     reviewDetail.willRevisit(),
-                    reviewDetail.memberId().value(),
+                    reviewDetail.memberId(),
                     reviewDetail.memberNickname(),
                     reviewMemberProfileImageUrl,
                     reviewDetail.createdAt(),
@@ -274,7 +274,7 @@ public class ReviewQueryService {
             : product.originalPrice();
 
         boolean reviewed = reviewQueryDao.existsByOrderIdAndProductIdAndMemberId(
-            orderProduct.getOrderId().value(), orderProduct.getProductId().value(), MemberId.of(memberId)
+            orderProduct.getOrderId().value(), orderProduct.getProductId().value(), memberId
         );
 
         return ReviewWriteInfoResponse.from(
@@ -292,7 +292,7 @@ public class ReviewQueryService {
      */
     public PaginationResponse<ReviewMemberListItemResponse> findMemberReviews(Long memberId, int page, int size) {
         PageResult<ReviewMemberListItemResponse> pageResult =
-            reviewQueryDao.findReviewsByMemberId(MemberId.of(memberId), PageQuery.of(page, size))
+            reviewQueryDao.findReviewsByMemberId(memberId, PageQuery.of(page, size))
                 .map(dto -> ReviewMemberListItemResponse.from(
                     dto.id(),
                     dto.imageUrl()
@@ -371,7 +371,7 @@ public class ReviewQueryService {
      * 회원이 쓴 노출 리뷰 수.
      */
     public long countVisibleReviewsByMemberId(Long memberId) {
-        return reviewStatisticsQueryDao.countVisibleReviewsByMemberId(MemberId.of(memberId));
+        return reviewStatisticsQueryDao.countVisibleReviewsByMemberId(memberId);
     }
 
     /**
@@ -381,14 +381,14 @@ public class ReviewQueryService {
      * 쿼리가 나가므로(N+1), 호출부가 루프 전에 이 메서드로 1회 조회한 뒤 메모리에서 판정한다.
      */
     public Set<Long> findReviewedProductIds(Long orderId, Long memberId, Collection<Long> productIds) {
-        return reviewQueryDao.findReviewedProductIds(orderId, MemberId.of(memberId), productIds);
+        return reviewQueryDao.findReviewedProductIds(orderId, memberId, productIds);
     }
 
     /**
      * 내가 쓴 리뷰 목록(원본 result 반환 — 호출부가 Response를 조립한다).
      */
     public PageResult<MyReviewListItemResult> findMyReviews(Long memberId, int page, int size) {
-        return reviewQueryDao.findMyReviews(MemberId.of(memberId), PageQuery.of(page, size));
+        return reviewQueryDao.findMyReviews(memberId, PageQuery.of(page, size));
     }
 
     /**
@@ -444,7 +444,7 @@ public class ReviewQueryService {
             dto.stationName(),
             dto.totalRating(),
             dto.content(),
-            dto.memberId().value(),
+            dto.memberId(),
             dto.memberNickname(),
             dto.memberProfileImageUrl(),
             dto.createdAt(),
@@ -468,7 +468,7 @@ public class ReviewQueryService {
             dto.kindnessRating(),
             dto.hygieneRating(),
             dto.willRevisit(),
-            dto.memberId().value(),
+            dto.memberId(),
             dto.memberNickname(),
             dto.memberProfileImageUrl(),
             dto.createdAt(),
@@ -481,7 +481,7 @@ public class ReviewQueryService {
         return ReviewCommentResponse.from(
             dto.id(),
             dto.reviewId(),
-            dto.memberId() != null ? dto.memberId().value() : null,
+            dto.memberId(),
             dto.memberNickname(),
             dto.memberProfileImageUrl(),
             dto.content(),
@@ -494,10 +494,10 @@ public class ReviewQueryService {
         return ReviewReplyResponse.from(
             dto.id(),
             dto.commentId(),
-            dto.memberId() != null ? dto.memberId().value() : null,
+            dto.memberId(),
             dto.memberNickname(),
             dto.memberProfileImageUrl(),
-            dto.replyToMemberId() != null ? dto.replyToMemberId().value() : null,
+            dto.replyToMemberId(),
             dto.replyToMemberNickname(),
             dto.content(),
             dto.createdAt()

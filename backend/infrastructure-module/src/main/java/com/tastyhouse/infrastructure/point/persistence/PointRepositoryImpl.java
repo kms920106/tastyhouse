@@ -26,7 +26,7 @@ public class PointRepositoryImpl implements PointRepository {
     public Optional<Point> findByMemberId(MemberId memberId) {
         PointJpaEntity result = queryFactory
             .selectFrom(pointJpaEntity)
-            .where(pointJpaEntity.memberId.eq(memberId))
+            .where(pointJpaEntity.memberId.eq(memberId.value()))
             .fetchOne();
         return Optional.ofNullable(result).map(PointMapper::toDomain);
     }

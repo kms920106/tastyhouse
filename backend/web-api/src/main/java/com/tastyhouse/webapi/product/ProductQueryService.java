@@ -222,7 +222,7 @@ public class ProductQueryService {
             dto.imageUrls(),
             dto.totalRating(),
             dto.content(),
-            dto.memberId().value(),
+            dto.memberId(),
             dto.memberNickname(),
             dto.memberProfileImageUrl(),
             dto.createdAt(),

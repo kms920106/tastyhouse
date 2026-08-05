@@ -103,7 +103,7 @@ public class ReviewQueryService {
             dto.id(),
             dto.shopId(),
             dto.productId(),
-            dto.memberId().value(),
+            dto.memberId(),
             dto.memberNickname(),
             dto.totalRating(),
             dto.content(),
@@ -128,7 +128,7 @@ public class ReviewQueryService {
             dto.hygieneRating(),
             dto.willRevisit(),
             dto.hidden(),
-            dto.memberId().value(),
+            dto.memberId(),
             dto.memberNickname(),
             dto.memberProfileImageUrl(),
             dto.createdAt(),
@@ -148,7 +148,7 @@ public class ReviewQueryService {
 
         return ReviewCommentListItemResponse.from(
             comment.id(),
-            comment.memberId().value(),
+            comment.memberId(),
             comment.memberNickname(),
             comment.content(),
             comment.hidden(),
@@ -160,9 +160,9 @@ public class ReviewQueryService {
     private ReviewReplyListItemResponse toReviewReplyListItemResponse(ReviewReplyListItemResult dto) {
         return ReviewReplyListItemResponse.from(
             dto.id(),
-            dto.memberId().value(),
+            dto.memberId(),
             dto.memberNickname(),
-            dto.replyToMemberId() != null ? dto.replyToMemberId().value() : null,
+            dto.replyToMemberId(),
             dto.replyToMemberNickname(),
             dto.content(),
             dto.hidden(),

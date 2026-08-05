@@ -46,7 +46,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public boolean existsByOrderId(OrderId orderId) {
         return queryFactory.selectOne().from(paymentJpaEntity)
-            .where(paymentJpaEntity.orderId.eq(orderId))
+            .where(paymentJpaEntity.orderId.eq(orderId.value()))
             .fetchFirst() != null;
     }
 

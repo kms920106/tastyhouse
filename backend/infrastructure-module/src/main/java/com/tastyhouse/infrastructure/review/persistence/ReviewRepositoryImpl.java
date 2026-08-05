@@ -34,7 +34,7 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             .selectFrom(reviewJpaEntity)
             .where(
                 reviewJpaEntity.id.eq(reviewId.value()),
-                reviewJpaEntity.memberId.eq(memberId)
+                reviewJpaEntity.memberId.eq(memberId.value())
             )
             .fetchOne();
         return Optional.ofNullable(result).map(ReviewMapper::toDomain);

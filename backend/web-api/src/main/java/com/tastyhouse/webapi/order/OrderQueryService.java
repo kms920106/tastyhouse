@@ -67,7 +67,7 @@ public class OrderQueryService {
         OrderDetailResult result = orderQueryDao.findOrderDetail(OrderId.of(orderId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
-        if (!result.memberId().equals(MemberId.of(memberId))) {
+        if (!memberId.equals(result.memberId())) {
             throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 

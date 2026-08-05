@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import com.tastyhouse.domain.shop.model.ShopChoice;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 final class ShopChoiceMapper {
 
@@ -10,7 +12,7 @@ final class ShopChoiceMapper {
     static ShopChoice toDomain(ShopChoiceJpaEntity entity) {
         return ShopChoice.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            IdMapping.vo(entity.getShopId(), ShopId::of),
             entity.getTitle(),
             entity.getContent()
         );
@@ -18,7 +20,7 @@ final class ShopChoiceMapper {
 
     static ShopChoiceJpaEntity toEntity(ShopChoice domain) {
         return ShopChoiceJpaEntity.create(
-            domain.getShopId(),
+            IdMapping.raw(domain.getShopId(), ShopId::value),
             domain.getTitle(),
             domain.getContent()
         );

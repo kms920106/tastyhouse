@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.member.referral.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,8 +12,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 import com.tastyhouse.domain.member.referral.domain.model.MemberReferralStatus;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -41,13 +38,11 @@ public class MemberReferralJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "referrer_id", nullable = false)
-    private MemberId referrerId;
+    private Long referrerId;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "referee_id", nullable = false)
-    private MemberId refereeId;
+    private Long refereeId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
@@ -56,7 +51,7 @@ public class MemberReferralJpaEntity extends BaseEntity {
     protected MemberReferralJpaEntity() {
     }
 
-    private MemberReferralJpaEntity(MemberId referrerId, MemberId refereeId, MemberReferralStatus status) {
+    private MemberReferralJpaEntity(Long referrerId, Long refereeId, MemberReferralStatus status) {
         this.referrerId = referrerId;
         this.refereeId = refereeId;
         this.status = status;
@@ -65,7 +60,7 @@ public class MemberReferralJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code MemberReferralMapper#toEntity}에서만 호출한다.
      */
-    static MemberReferralJpaEntity create(MemberId referrerId, MemberId refereeId, MemberReferralStatus status) {
+    static MemberReferralJpaEntity create(Long referrerId, Long refereeId, MemberReferralStatus status) {
         return new MemberReferralJpaEntity(referrerId, refereeId, status);
     }
 
@@ -80,11 +75,11 @@ public class MemberReferralJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getReferrerId() {
+    public Long getReferrerId() {
         return this.referrerId;
     }
 
-    public MemberId getRefereeId() {
+    public Long getRefereeId() {
         return this.refereeId;
     }
 

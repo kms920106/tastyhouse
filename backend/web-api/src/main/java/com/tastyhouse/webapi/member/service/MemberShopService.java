@@ -3,7 +3,6 @@ package com.tastyhouse.webapi.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
@@ -25,7 +24,7 @@ public class MemberShopService {
 
     @Transactional(readOnly = true)
     public PageResult<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
-        return shopSearchQueryDao.findMyBookmarkedShops(MemberId.of(memberId), PageQuery.of(page, size))
+        return shopSearchQueryDao.findMyBookmarkedShops(memberId, PageQuery.of(page, size))
             .map(dto -> ShopBookmarkListItemResponse.from(
                 dto.shopId(),
                 dto.bookmarkId(),

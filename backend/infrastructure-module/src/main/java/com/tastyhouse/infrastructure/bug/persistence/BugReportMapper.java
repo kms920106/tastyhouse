@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.bug.persistence;
 
+import com.tastyhouse.domain.admin.vo.AdminId;
 import com.tastyhouse.domain.bug.model.BugReport;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 버그 신고 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,14 +19,14 @@ final class BugReportMapper {
     static BugReport toDomain(BugReportJpaEntity entity) {
         return BugReport.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
+            IdMapping.vo(entity.getMemberId(), MemberId::of),
             entity.getDevice(),
             entity.getTitle(),
             entity.getContent(),
             entity.getStatus(),
             entity.getCategory(),
             entity.getPriority(),
-            entity.getAssigneeAdminId(),
+            IdMapping.vo(entity.getAssigneeAdminId(), AdminId::of),
             entity.getAdminAnswer(),
             entity.getResolvedAt(),
             entity.getAppVersion(),
@@ -39,14 +42,14 @@ final class BugReportMapper {
      */
     static BugReportJpaEntity toEntity(BugReport domain) {
         return BugReportJpaEntity.create(
-            domain.getMemberId(),
+            IdMapping.raw(domain.getMemberId(), MemberId::value),
             domain.getDevice(),
             domain.getTitle(),
             domain.getContent(),
             domain.getStatus(),
             domain.getCategory(),
             domain.getPriority(),
-            domain.getAssigneeAdminId(),
+            IdMapping.raw(domain.getAssigneeAdminId(), AdminId::value),
             domain.getAdminAnswer(),
             domain.getResolvedAt(),
             domain.getAppVersion(),
@@ -65,7 +68,7 @@ final class BugReportMapper {
             domain.getStatus(),
             domain.getCategory(),
             domain.getPriority(),
-            domain.getAssigneeAdminId(),
+            IdMapping.raw(domain.getAssigneeAdminId(), AdminId::value),
             domain.getAdminAnswer(),
             domain.getResolvedAt()
         );

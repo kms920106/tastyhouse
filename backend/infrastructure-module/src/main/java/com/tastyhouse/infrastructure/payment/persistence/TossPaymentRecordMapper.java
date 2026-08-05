@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.payment.persistence;
 
 import com.tastyhouse.domain.payment.model.TossPaymentRecord;
+import com.tastyhouse.domain.payment.vo.PaymentId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 토스페이먼츠 결제 원장 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -19,7 +21,7 @@ final class TossPaymentRecordMapper {
     static TossPaymentRecord toDomain(TossPaymentRecordJpaEntity entity) {
         return TossPaymentRecord.reconstitute(
             entity.getId(),
-            entity.getPaymentId(),
+            IdMapping.vo(entity.getPaymentId(), PaymentId::of),
             entity.getVersion(),
             entity.getPaymentKey(),
             entity.getType(),
@@ -83,7 +85,7 @@ final class TossPaymentRecordMapper {
      */
     static TossPaymentRecordJpaEntity toEntity(TossPaymentRecord domain) {
         return TossPaymentRecordJpaEntity.create(
-            domain.getPaymentId(),
+            IdMapping.raw(domain.getPaymentId(), PaymentId::value),
             domain.getVersion(),
             domain.getPaymentKey(),
             domain.getType(),

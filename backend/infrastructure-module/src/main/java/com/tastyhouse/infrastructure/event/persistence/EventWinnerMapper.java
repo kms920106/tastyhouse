@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
 import com.tastyhouse.domain.event.model.EventWinner;
+import com.tastyhouse.domain.event.vo.EventId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 이벤트 당첨자 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,7 +18,7 @@ final class EventWinnerMapper {
     static EventWinner toDomain(EventWinnerJpaEntity entity) {
         return EventWinner.reconstitute(
             entity.getId(),
-            entity.getEventId(),
+            IdMapping.vo(entity.getEventId(), EventId::of),
             entity.getRankNo(),
             entity.getWinnerName(),
             entity.getPhoneNumber(),
@@ -30,7 +32,7 @@ final class EventWinnerMapper {
      */
     static EventWinnerJpaEntity toEntity(EventWinner domain) {
         return EventWinnerJpaEntity.create(
-            domain.getEventId(),
+            IdMapping.raw(domain.getEventId(), EventId::value),
             domain.getRankNo(),
             domain.getWinnerName(),
             domain.getPhoneNumber(),

@@ -1,14 +1,12 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -25,9 +23,8 @@ public class ProductCommonOptionJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = ProductOptionGroupIdConverter.class)
     @Column(name = "option_group_id", nullable = false)
-    private ProductOptionGroupId optionGroupId;
+    private Long optionGroupId;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -48,7 +45,7 @@ public class ProductCommonOptionJpaEntity extends BaseEntity {
     }
 
     private ProductCommonOptionJpaEntity(
-        ProductOptionGroupId optionGroupId,
+        Long optionGroupId,
         String name,
         Integer additionalPrice,
         Integer sort,
@@ -67,7 +64,7 @@ public class ProductCommonOptionJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductCommonOptionMapper#toEntity}에서만 호출한다.
      */
     static ProductCommonOptionJpaEntity create(
-        ProductOptionGroupId optionGroupId,
+        Long optionGroupId,
         String name,
         Integer additionalPrice,
         Integer sort,
@@ -92,7 +89,7 @@ public class ProductCommonOptionJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ProductOptionGroupId getOptionGroupId() {
+    public Long getOptionGroupId() {
         return this.optionGroupId;
     }
 

@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.repository.ShopConvenienceInfoRepository;
 
 @Repository
@@ -19,7 +18,7 @@ public class ShopConvenienceInfoRepositoryImpl implements ShopConvenienceInfoRep
 
     @Override
     public Optional<ShopConvenienceInfo> findByShopId(Long shopId) {
-        return shopConvenienceInfoJpaRepository.findByShopId(ShopId.of(shopId)).map(ShopConvenienceInfoMapper::toDomain);
+        return shopConvenienceInfoJpaRepository.findByShopId(shopId).map(ShopConvenienceInfoMapper::toDomain);
     }
 
     @Override

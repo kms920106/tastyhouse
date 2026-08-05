@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.review.model.ReviewImage;
+import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 리뷰 이미지 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -15,8 +18,8 @@ final class ReviewImageMapper {
      */
     static ReviewImageJpaEntity toEntity(ReviewImage domain) {
         return ReviewImageJpaEntity.create(
-            domain.getReviewId(),
-            domain.getImageFileId(),
+            IdMapping.raw(domain.getReviewId(), ReviewId::value),
+            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
             domain.getSort()
         );
     }

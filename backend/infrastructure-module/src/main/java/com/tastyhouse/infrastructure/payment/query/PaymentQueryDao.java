@@ -2,9 +2,6 @@ package com.tastyhouse.infrastructure.payment.query;
 
 import java.util.Optional;
 
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
@@ -12,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
-import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
@@ -29,10 +25,6 @@ import static com.tastyhouse.infrastructure.payment.persistence.QPaymentRefundJp
  * 회원의 결제 확인 화면)와 PK 조회({@link #findPaymentById}, command 커밋 후 응답 조립용 재조회). 공통
  * 지침 패턴 3의 "소비 모듈이 실제 쓰는 메서드·필드만 이관" 원칙에 따른다. 관리자 결제·환불 내역 조회는
  * admin-api에 결제 소비자가 생길 때 이 DAO에 메서드로 추가한다(호출부 없는 조회를 미리 만들지 않는다).
- *
- * <p>{@code PAYMENT.order_id}는 {@code @Convert}로 {@link OrderId} VO에 매핑된 필드라 QueryDSL이 VO
- * 타입 path를 생성하므로, {@link Expressions#numberPath}로 raw {@code Long} 컬럼 비교를 우회한다
- * ({@code OrderQueryDao}와 동일한 우회).
  */
 @Repository
 public class PaymentQueryDao {
@@ -56,7 +48,7 @@ public class PaymentQueryDao {
     public Optional<PaymentResult> findPaymentByOrderId(OrderId orderId) {
         return Optional.ofNullable(
             selectPayment()
-                .where(ConvertedIdPaths.eq(paymentJpaEntity, "orderId", OrderId.class, OrderId::of, orderId.value()))
+                .where(paymentJpaEntity.orderId.eq(orderId.value()))
                 .fetchOne()
         );
     }
@@ -86,7 +78,7 @@ public class PaymentQueryDao {
             queryFactory
                 .select(new QPaymentRefundResult(
                     paymentRefundJpaEntity.id,
-                    refundPaymentIdValue(),
+                    paymentRefundJpaEntity.paymentId,
                     paymentRefundJpaEntity.refundAmount,
                     paymentRefundJpaEntity.refundReason,
                     paymentRefundJpaEntity.refundStatus,
@@ -107,7 +99,7 @@ public class PaymentQueryDao {
         return queryFactory
             .select(new QPaymentResult(
                 paymentJpaEntity.id,
-                paymentOrderIdValue(),
+                paymentJpaEntity.orderId,
                 orderJpaEntity.memberId,
                 paymentJpaEntity.paymentMethod,
                 paymentJpaEntity.paymentStatus,
@@ -125,29 +117,6 @@ public class PaymentQueryDao {
                 paymentJpaEntity.createdAt
             ))
             .from(paymentJpaEntity)
-            .innerJoin(orderJpaEntity).on(orderJpaEntity.id.eq(paymentOrderId()));
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code PAYMENT.order_id}를 raw {@code Long}으로 다루기 위한 path.
-     */
-    private NumberPath<Long> paymentOrderId() {
-        return Expressions.numberPath(Long.class, paymentJpaEntity, "orderId");
-    }
-
-    /**
-     * {@code orderId}({@code @Convert} OrderId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
-     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
-     */
-    private NumberExpression<Long> paymentOrderIdValue() {
-        return ConvertedIdPaths.longValue(paymentJpaEntity, "orderId", OrderId.class);
-    }
-
-    /**
-     * {@code paymentId}({@code @Convert} PaymentId) 컬럼을 raw {@code Long}으로 읽기 위한 경로.
-     * 투영·tuple 조회·groupBy에 쓴다 — VO 그대로 읽으면 Result 생성자/Map 키 타입이 어긋난다.
-     */
-    private NumberExpression<Long> refundPaymentIdValue() {
-        return ConvertedIdPaths.longValue(paymentRefundJpaEntity, "paymentId", PaymentId.class);
+            .innerJoin(orderJpaEntity).on(orderJpaEntity.id.eq(paymentJpaEntity.orderId));
     }
 }

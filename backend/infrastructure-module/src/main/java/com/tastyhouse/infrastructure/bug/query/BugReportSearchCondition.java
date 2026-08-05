@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.bug.query;
 import com.tastyhouse.domain.bug.model.BugReportCategory;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
-import com.tastyhouse.domain.member.vo.MemberId;
 
 /**
  * 버그 제보 관리 목록 검색 조건.
@@ -16,7 +15,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 public record BugReportSearchCondition(
     String title,
     String content,
-    MemberId memberId,
+    Long memberId,
     BugReportStatus status,
     BugReportCategory category,
     BugReportPriority priority
@@ -25,7 +24,7 @@ public record BugReportSearchCondition(
     public static BugReportSearchCondition of(
         String title,
         String content,
-        MemberId memberId,
+        Long memberId,
         BugReportStatus status,
         BugReportCategory category,
         BugReportPriority priority

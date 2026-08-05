@@ -6,12 +6,12 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.service.SlotPolicy;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -58,7 +58,7 @@ public class ReservationQueryService {
             .collect(Collectors.toMap(SlotOccupancyResult::slotTime, SlotOccupancyResult::remaining));
 
         // 회원+가게+날짜당 차단 예약은 최대 1건. 존재 여부로 그 날짜 전체 슬롯 비활성화를 판단한다.
-        boolean hasMyReservation = reservationQueryDao.existsBlockingReservation(MemberId.of(memberId), shopId, date);
+        boolean hasMyReservation = reservationQueryDao.existsBlockingReservation(memberId, shopId, date);
 
         LocalDateTime now = LocalDateTime.now(KST);
 
@@ -79,7 +79,7 @@ public class ReservationQueryService {
      * 내 예약 목록.
      */
     public List<ReservationResponse> getMyReservations(Long memberId) {
-        return reservationQueryDao.findReservationsByMemberId(MemberId.of(memberId)).stream()
+        return reservationQueryDao.findReservationsByMemberId(memberId).stream()
             .map(this::toReservationResponse)
             .toList();
     }
@@ -135,7 +135,7 @@ public class ReservationQueryService {
             result.shopImageUrl(),
             result.shopRoadAddress(),
             result.shopLotAddress(),
-            result.memberId().value(),
+            result.memberId(),
             result.reserverName(),
             result.reserverPhoneNumber(),
             result.reserverEmail(),
@@ -151,8 +151,8 @@ public class ReservationQueryService {
      * 예약자 본인 검증. 도메인 모델을 거치지 않는 read 경로이므로 조회 결과의 예약자 ID를 직접 비교한다
      * (도메인 모델의 {@code Reservation#validateOwnership}과 같은 규칙·같은 에러코드).
      */
-    private void validateOwnership(MemberId ownerId, Long requesterId) {
-        if (!ownerId.equals(MemberId.of(requesterId))) {
+    private void validateOwnership(Long ownerId, Long requesterId) {
+        if (!Objects.equals(ownerId, requesterId)) {
             throw new BusinessException(ErrorCode.RESERVATION_ACCESS_DENIED);
         }
     }
@@ -162,7 +162,7 @@ public class ReservationQueryService {
             result.id(),
             result.shopId(),
             result.shopName(),
-            result.memberId().value(),
+            result.memberId(),
             result.reservationDate(),
             result.reservationTime(),
             result.partySize(),

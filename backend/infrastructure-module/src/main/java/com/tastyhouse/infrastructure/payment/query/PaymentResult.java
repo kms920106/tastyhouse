@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.payment.model.PaymentMethod;
 import com.tastyhouse.domain.payment.model.PaymentStatus;
 import com.tastyhouse.domain.payment.model.PgProvider;
@@ -23,7 +22,7 @@ import com.tastyhouse.domain.payment.vo.Amount;
 public record PaymentResult(
     Long id,
     Long orderId,
-    MemberId memberId,
+    Long memberId,
     PaymentMethod paymentMethod,
     PaymentStatus paymentStatus,
     Amount amount,

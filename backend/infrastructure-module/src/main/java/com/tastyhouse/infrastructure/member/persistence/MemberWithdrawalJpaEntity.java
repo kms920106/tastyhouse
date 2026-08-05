@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -29,9 +27,8 @@ public class MemberWithdrawalJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reason", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
@@ -43,7 +40,7 @@ public class MemberWithdrawalJpaEntity extends BaseEntity {
     protected MemberWithdrawalJpaEntity() {
     }
 
-    private MemberWithdrawalJpaEntity(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
+    private MemberWithdrawalJpaEntity(Long memberId, MemberWithdrawalReason reason, String reasonDetail) {
         this.memberId = memberId;
         this.reason = reason;
         this.reasonDetail = reasonDetail;
@@ -52,7 +49,7 @@ public class MemberWithdrawalJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code MemberWithdrawalMapper#toEntity}에서만 호출한다.
      */
-    static MemberWithdrawalJpaEntity create(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
+    static MemberWithdrawalJpaEntity create(Long memberId, MemberWithdrawalReason reason, String reasonDetail) {
         return new MemberWithdrawalJpaEntity(memberId, reason, reasonDetail);
     }
 
@@ -60,7 +57,7 @@ public class MemberWithdrawalJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 

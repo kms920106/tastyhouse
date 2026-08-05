@@ -36,7 +36,7 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
     public List<ProductCategory> findCategoriesByNameAndShopId(String name, ShopId shopId) {
         return queryFactory
             .selectFrom(productCategoryJpaEntity)
-            .where(productCategoryJpaEntity.name.eq(name), productCategoryJpaEntity.shopId.eq(shopId))
+            .where(productCategoryJpaEntity.name.eq(name), productCategoryJpaEntity.shopId.eq(shopId.value()))
             .fetch()
             .stream()
             .map(ProductCategoryMapper::toDomain)

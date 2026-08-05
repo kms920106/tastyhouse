@@ -38,7 +38,7 @@ public class MemberReferralQueryDao {
                 memberReferralJpaEntity.createdAt
             ))
             .from(memberReferralJpaEntity)
-            .where(memberReferralJpaEntity.referrerId.eq(referrerId))
+            .where(memberReferralJpaEntity.referrerId.eq(referrerId.value()))
             .orderBy(memberReferralJpaEntity.createdAt.desc())
             .fetch();
     }

@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.faq.persistence;
 
 import com.tastyhouse.domain.faq.model.Faq;
+import com.tastyhouse.domain.faq.vo.FaqCategoryId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * FAQ 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,7 +18,7 @@ final class FaqMapper {
     static Faq toDomain(FaqJpaEntity entity) {
         return Faq.reconstitute(
             entity.getId(),
-            entity.getFaqCategoryId(),
+            IdMapping.vo(entity.getFaqCategoryId(), FaqCategoryId::of),
             entity.getQuestion(),
             entity.getAnswer(),
             entity.getSort(),
@@ -32,7 +34,7 @@ final class FaqMapper {
      */
     static FaqJpaEntity toEntity(Faq domain) {
         return FaqJpaEntity.create(
-            domain.getFaqCategoryId(),
+            IdMapping.raw(domain.getFaqCategoryId(), FaqCategoryId::value),
             domain.getQuestion(),
             domain.getAnswer(),
             domain.getSort(),
@@ -46,7 +48,7 @@ final class FaqMapper {
      */
     static void applyChanges(FaqJpaEntity entity, Faq domain) {
         entity.applyChanges(
-            domain.getFaqCategoryId(),
+            IdMapping.raw(domain.getFaqCategoryId(), FaqCategoryId::value),
             domain.getQuestion(),
             domain.getAnswer(),
             domain.getSort(),

@@ -1,16 +1,12 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
-import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -24,13 +20,11 @@ public class ShopPhotoCategoryImageJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopPhotoCategoryIdConverter.class)
     @Column(name = "shop_photo_category_id", nullable = false)
-    private ShopPhotoCategoryId shopPhotoCategoryId; // 사진 카테고리 ID (SHOP_PHOTO_CATEGORY.id 참조)
+    private Long shopPhotoCategoryId; // 사진 카테고리 ID (SHOP_PHOTO_CATEGORY.id 참조)
 
-    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id", nullable = false)
-    private UploadedFileId imageFileId; // 이미지 파일 ID (FILE.id 참조)
+    private Long imageFileId; // 이미지 파일 ID (FILE.id 참조)
 
     @Column(name = "sort", nullable = false)
     private Integer sort; // 정렬 순서
@@ -42,8 +36,8 @@ public class ShopPhotoCategoryImageJpaEntity extends BaseEntity {
     }
 
     private ShopPhotoCategoryImageJpaEntity(
-        ShopPhotoCategoryId shopPhotoCategoryId,
-        UploadedFileId imageFileId,
+        Long shopPhotoCategoryId,
+        Long imageFileId,
         Integer sort,
         boolean visible
     ) {
@@ -54,15 +48,15 @@ public class ShopPhotoCategoryImageJpaEntity extends BaseEntity {
     }
 
     static ShopPhotoCategoryImageJpaEntity create(
-        ShopPhotoCategoryId shopPhotoCategoryId,
-        UploadedFileId imageFileId,
+        Long shopPhotoCategoryId,
+        Long imageFileId,
         Integer sort,
         boolean visible
     ) {
         return new ShopPhotoCategoryImageJpaEntity(shopPhotoCategoryId, imageFileId, sort, visible);
     }
 
-    void applyChanges(UploadedFileId imageFileId, Integer sort, boolean visible) {
+    void applyChanges(Long imageFileId, Integer sort, boolean visible) {
         this.imageFileId = imageFileId;
         this.sort = sort;
         this.visible = visible;
@@ -72,11 +66,11 @@ public class ShopPhotoCategoryImageJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopPhotoCategoryId getShopPhotoCategoryId() {
+    public Long getShopPhotoCategoryId() {
         return this.shopPhotoCategoryId;
     }
 
-    public UploadedFileId getImageFileId() {
+    public Long getImageFileId() {
         return this.imageFileId;
     }
 

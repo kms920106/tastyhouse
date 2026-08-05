@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
 import com.tastyhouse.domain.event.model.Event;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 이벤트 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -19,8 +21,8 @@ final class EventMapper {
             entity.getName(),
             entity.getDescription(),
             entity.getSubtitle(),
-            entity.getThumbnailImageFileId(),
-            entity.getBannerImageFileId(),
+            IdMapping.vo(entity.getThumbnailImageFileId(), UploadedFileId::of),
+            IdMapping.vo(entity.getBannerImageFileId(), UploadedFileId::of),
             entity.getContentHtml(),
             entity.getStatus(),
             entity.getStartAt(),
@@ -39,8 +41,8 @@ final class EventMapper {
             domain.getName(),
             domain.getDescription(),
             domain.getSubtitle(),
-            domain.getThumbnailImageFileId(),
-            domain.getBannerImageFileId(),
+            IdMapping.raw(domain.getThumbnailImageFileId(), UploadedFileId::value),
+            IdMapping.raw(domain.getBannerImageFileId(), UploadedFileId::value),
             domain.getContentHtml(),
             domain.getStatus(),
             domain.getStartAt(),
@@ -57,8 +59,8 @@ final class EventMapper {
             domain.getName(),
             domain.getDescription(),
             domain.getSubtitle(),
-            domain.getThumbnailImageFileId(),
-            domain.getBannerImageFileId(),
+            IdMapping.raw(domain.getThumbnailImageFileId(), UploadedFileId::value),
+            IdMapping.raw(domain.getBannerImageFileId(), UploadedFileId::value),
             domain.getContentHtml(),
             domain.getStatus(),
             domain.getStartAt(),

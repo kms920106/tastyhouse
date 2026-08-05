@@ -1,14 +1,12 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -22,9 +20,8 @@ public class ShopOwnerMessageHistoryJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
     @Column(name = "message", columnDefinition = "TEXT")
     private String message; // 사장님 한마디 메시지 내용
@@ -32,12 +29,12 @@ public class ShopOwnerMessageHistoryJpaEntity extends BaseEntity {
     protected ShopOwnerMessageHistoryJpaEntity() {
     }
 
-    private ShopOwnerMessageHistoryJpaEntity(ShopId shopId, String message) {
+    private ShopOwnerMessageHistoryJpaEntity(Long shopId, String message) {
         this.shopId = shopId;
         this.message = message;
     }
 
-    static ShopOwnerMessageHistoryJpaEntity create(ShopId shopId, String message) {
+    static ShopOwnerMessageHistoryJpaEntity create(Long shopId, String message) {
         return new ShopOwnerMessageHistoryJpaEntity(shopId, message);
     }
 
@@ -45,7 +42,7 @@ public class ShopOwnerMessageHistoryJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

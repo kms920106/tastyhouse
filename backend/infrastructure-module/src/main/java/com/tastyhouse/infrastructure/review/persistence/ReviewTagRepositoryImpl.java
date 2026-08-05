@@ -34,7 +34,7 @@ public class ReviewTagRepositoryImpl implements ReviewTagRepository {
     public void deleteByReviewId(ReviewId reviewId) {
         queryFactory
             .delete(reviewTagJpaEntity)
-            .where(reviewTagJpaEntity.reviewId.eq(reviewId))
+            .where(reviewTagJpaEntity.reviewId.eq(reviewId.value()))
             .execute();
     }
 }

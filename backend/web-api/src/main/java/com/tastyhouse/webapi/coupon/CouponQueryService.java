@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.coupon.query.CouponQueryDao;
 import com.tastyhouse.infrastructure.coupon.query.MemberCouponResult;
 import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
@@ -35,7 +34,7 @@ public class CouponQueryService {
      * 내 쿠폰함 — 사용·만료분까지 전부 조회한다.
      */
     public List<MyCouponListItemResponse> getMyCoupons(Long memberId) {
-        return couponQueryDao.findMemberCoupons(MemberId.of(memberId))
+        return couponQueryDao.findMemberCoupons(memberId)
             .stream()
             .map(this::toMyCouponListItemResponse)
             .toList();
@@ -45,7 +44,7 @@ public class CouponQueryService {
      * 지금 사용할 수 있는 내 쿠폰만 조회한다(주문 화면 쿠폰 선택).
      */
     public List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
-        return couponQueryDao.findAvailableMemberCoupons(MemberId.of(memberId), LocalDateTime.now())
+        return couponQueryDao.findAvailableMemberCoupons(memberId, LocalDateTime.now())
             .stream()
             .map(this::toMyCouponListItemResponse)
             .toList();

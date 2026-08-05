@@ -6,8 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.ShopBookmark;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
 
@@ -27,7 +25,7 @@ public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
         return queryFactory
             .selectOne()
             .from(shopBookmarkJpaEntity)
-            .where(ConvertedIdPaths.eq(shopBookmarkJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
+            .where(shopBookmarkJpaEntity.shopId.eq(shopId), shopBookmarkJpaEntity.memberId.eq(memberId.value()))
             .fetchFirst() != null;
     }
 
@@ -35,7 +33,7 @@ public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
     public void deleteByShopIdAndMemberId(Long shopId, MemberId memberId) {
         queryFactory
             .delete(shopBookmarkJpaEntity)
-            .where(ConvertedIdPaths.eq(shopBookmarkJpaEntity, "shopId", ShopId.class, ShopId::of, shopId), shopBookmarkJpaEntity.memberId.eq(memberId))
+            .where(shopBookmarkJpaEntity.shopId.eq(shopId), shopBookmarkJpaEntity.memberId.eq(memberId.value()))
             .execute();
     }
 

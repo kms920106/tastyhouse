@@ -36,8 +36,8 @@ public class ReservationRepositoryImpl implements ReservationRepository {
         return queryFactory.selectOne()
             .from(reservationJpaEntity)
             .where(
-                reservationJpaEntity.memberId.eq(memberId),
-                reservationJpaEntity.shopId.eq(shopId),
+                reservationJpaEntity.memberId.eq(memberId.value()),
+                reservationJpaEntity.shopId.eq(shopId.value()),
                 reservationJpaEntity.reservationDate.eq(date),
                 reservationJpaEntity.status.in(ReservationStatus.blockingStatuses())
             )

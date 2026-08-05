@@ -2,14 +2,12 @@ package com.tastyhouse.infrastructure.review.query;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-
 public record ReviewReplyListItemResult(
     Long id,
     Long commentId,
-    MemberId memberId,
+    Long memberId,
     String memberNickname,
-    MemberId replyToMemberId,
+    Long replyToMemberId,
     String replyToMemberNickname,
     String content,
     boolean hidden,
@@ -19,9 +17,9 @@ public record ReviewReplyListItemResult(
     public static ReviewReplyListItemResult of(
         Long id,
         Long commentId,
-        MemberId memberId,
+        Long memberId,
         String memberNickname,
-        MemberId replyToMemberId,
+        Long replyToMemberId,
         String replyToMemberNickname,
         String content,
         boolean hidden,

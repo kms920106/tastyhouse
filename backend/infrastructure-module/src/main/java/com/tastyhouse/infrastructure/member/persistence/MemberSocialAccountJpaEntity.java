@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.member.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,7 +13,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 import com.tastyhouse.domain.member.model.MemberSocialProvider;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -37,9 +35,8 @@ public class MemberSocialAccountJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "member_id", nullable = false)
-    private MemberId memberId;
+    private Long memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "provider", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
@@ -64,7 +61,7 @@ public class MemberSocialAccountJpaEntity extends BaseEntity {
     }
 
     private MemberSocialAccountJpaEntity(
-        MemberId memberId,
+        Long memberId,
         MemberSocialProvider provider,
         String providerId,
         String providerEmail,
@@ -85,7 +82,7 @@ public class MemberSocialAccountJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code MemberSocialAccountMapper#toEntity}에서만 호출한다.
      */
     static MemberSocialAccountJpaEntity create(
-        MemberId memberId,
+        Long memberId,
         MemberSocialProvider provider,
         String providerId,
         String providerEmail,
@@ -117,7 +114,7 @@ public class MemberSocialAccountJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getMemberId() {
+    public Long getMemberId() {
         return this.memberId;
     }
 

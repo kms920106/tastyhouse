@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.event.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -34,9 +32,8 @@ public class EventAnnouncementJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = EventIdConverter.class)
     @Column(name = "event_id", nullable = false, unique = true)
-    private EventId eventId; // 이벤트 ID (EVENT.id 참조)
+    private Long eventId; // 이벤트 ID (EVENT.id 참조)
 
     @Column(name = "name", nullable = false, length = 200)
     private String name; // 당첨자 발표 제목
@@ -51,7 +48,7 @@ public class EventAnnouncementJpaEntity extends BaseEntity {
     }
 
     private EventAnnouncementJpaEntity(
-        EventId eventId,
+        Long eventId,
         String name,
         String content,
         LocalDateTime announcedAt
@@ -66,7 +63,7 @@ public class EventAnnouncementJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code EventAnnouncementMapper#toEntity}에서만 호출한다.
      */
     static EventAnnouncementJpaEntity create(
-        EventId eventId,
+        Long eventId,
         String name,
         String content,
         LocalDateTime announcedAt
@@ -91,7 +88,7 @@ public class EventAnnouncementJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public EventId getEventId() {
+    public Long getEventId() {
         return this.eventId;
     }
 

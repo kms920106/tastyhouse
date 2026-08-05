@@ -68,7 +68,7 @@ public class RankQueryService {
         LocalDate baseDate = LocalDate.now();
         MemberId id = MemberId.of(memberId);
 
-        return rankQueryDao.findMemberRank(id, type, baseDate)
+        return rankQueryDao.findMemberRank(memberId, type, baseDate)
             .map(this::toMemberListItemResponse)
             .orElseGet(() -> toUnrankedMemberResponse(id));
     }
@@ -92,7 +92,7 @@ public class RankQueryService {
 
     private RankMemberListItemResponse toMemberListItemResponse(MemberRankResult dto) {
         return RankMemberListItemResponse.of(
-            dto.memberId().value(),
+            dto.memberId(),
             dto.nickname(),
             dto.profileImageUrl(),
             dto.reviewCount(),

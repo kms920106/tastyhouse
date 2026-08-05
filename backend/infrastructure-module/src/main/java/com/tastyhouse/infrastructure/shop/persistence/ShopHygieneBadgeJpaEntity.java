@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,7 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.shop.model.HygieneBadgeType;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -27,9 +25,8 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "badge_type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
@@ -44,7 +41,7 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     protected ShopHygieneBadgeJpaEntity() {
     }
 
-    private ShopHygieneBadgeJpaEntity(ShopId shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
+    private ShopHygieneBadgeJpaEntity(Long shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         this.shopId = shopId;
         this.badgeType = badgeType;
         this.certifiedDate = certifiedDate;
@@ -54,7 +51,7 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopHygieneBadgeMapper#toEntity}에서만 호출한다.
      */
-    static ShopHygieneBadgeJpaEntity create(ShopId shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
+    static ShopHygieneBadgeJpaEntity create(Long shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         return new ShopHygieneBadgeJpaEntity(shopId, badgeType, certifiedDate, lastInspectionMonth);
     }
 
@@ -62,7 +59,7 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

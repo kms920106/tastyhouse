@@ -106,7 +106,7 @@ public class CouponQueryService {
     private MemberCouponItemResponse toMemberCouponItemResponse(MemberCouponItemResult dto) {
         return MemberCouponItemResponse.from(
             dto.id(),
-            dto.memberId().value(),
+            dto.memberId(),
             dto.used(),
             dto.usedAt(),
             dto.expiredAt(),

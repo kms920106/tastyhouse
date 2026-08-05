@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.member.follow.persistence;
 
 import com.tastyhouse.domain.member.follow.domain.model.MemberFollow;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 회원 팔로우 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,8 +18,8 @@ final class MemberFollowMapper {
     static MemberFollow toDomain(MemberFollowJpaEntity entity) {
         return MemberFollow.reconstitute(
             entity.getId(),
-            entity.getFollowerId(),
-            entity.getFollowingId()
+            IdMapping.vo(entity.getFollowerId(), MemberId::of),
+            IdMapping.vo(entity.getFollowingId(), MemberId::of)
         );
     }
 
@@ -26,8 +28,8 @@ final class MemberFollowMapper {
      */
     static MemberFollowJpaEntity toEntity(MemberFollow domain) {
         return MemberFollowJpaEntity.create(
-            domain.getFollowerId(),
-            domain.getFollowingId()
+            IdMapping.raw(domain.getFollowerId(), MemberId::value),
+            IdMapping.raw(domain.getFollowingId(), MemberId::value)
         );
     }
 }

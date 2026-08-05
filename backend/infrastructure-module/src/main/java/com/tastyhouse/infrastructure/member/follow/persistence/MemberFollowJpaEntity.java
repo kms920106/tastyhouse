@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.member.follow.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,8 +9,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.member.persistence.MemberIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -38,18 +35,16 @@ public class MemberFollowJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "follower_id", nullable = false)
-    private MemberId followerId;
+    private Long followerId;
 
-    @Convert(converter = MemberIdConverter.class)
     @Column(name = "following_id", nullable = false)
-    private MemberId followingId;
+    private Long followingId;
 
     protected MemberFollowJpaEntity() {
     }
 
-    private MemberFollowJpaEntity(MemberId followerId, MemberId followingId) {
+    private MemberFollowJpaEntity(Long followerId, Long followingId) {
         this.followerId = followerId;
         this.followingId = followingId;
     }
@@ -57,7 +52,7 @@ public class MemberFollowJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code MemberFollowMapper#toEntity}에서만 호출한다.
      */
-    static MemberFollowJpaEntity create(MemberId followerId, MemberId followingId) {
+    static MemberFollowJpaEntity create(Long followerId, Long followingId) {
         return new MemberFollowJpaEntity(followerId, followingId);
     }
 
@@ -65,11 +60,11 @@ public class MemberFollowJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public MemberId getFollowerId() {
+    public Long getFollowerId() {
         return this.followerId;
     }
 
-    public MemberId getFollowingId() {
+    public Long getFollowingId() {
         return this.followingId;
     }
 }

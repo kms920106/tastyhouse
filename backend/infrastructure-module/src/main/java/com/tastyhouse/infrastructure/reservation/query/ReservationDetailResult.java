@@ -6,7 +6,6 @@ import java.time.LocalTime;
 
 import com.querydsl.core.annotations.QueryProjection;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
 
 /**
@@ -24,7 +23,7 @@ public record ReservationDetailResult(
     String shopImageUrl,
     String shopRoadAddress,
     String shopLotAddress,
-    MemberId memberId,
+    Long memberId,
     String reserverName,
     String reserverPhoneNumber,
     String reserverEmail,

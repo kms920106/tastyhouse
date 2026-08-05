@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.shop.model.ClosedDayType;
-import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 상점 정기 휴무 JPA 영속 모델. 순수 도메인 모델 {@code ShopClosedDay}와 분리된 영속 전용 엔티티다.
@@ -24,9 +22,8 @@ public class ShopClosedDayJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = ShopIdConverter.class)
     @Column(name = "shop_id", nullable = false)
-    private ShopId shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId; // 가게 ID (SHOP.id 참조)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "closed_day_type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
@@ -35,12 +32,12 @@ public class ShopClosedDayJpaEntity {
     protected ShopClosedDayJpaEntity() {
     }
 
-    private ShopClosedDayJpaEntity(ShopId shopId, ClosedDayType closedDayType) {
+    private ShopClosedDayJpaEntity(Long shopId, ClosedDayType closedDayType) {
         this.shopId = shopId;
         this.closedDayType = closedDayType;
     }
 
-    static ShopClosedDayJpaEntity create(ShopId shopId, ClosedDayType closedDayType) {
+    static ShopClosedDayJpaEntity create(Long shopId, ClosedDayType closedDayType) {
         return new ShopClosedDayJpaEntity(shopId, closedDayType);
     }
 
@@ -48,7 +45,7 @@ public class ShopClosedDayJpaEntity {
         return this.id;
     }
 
-    public ShopId getShopId() {
+    public Long getShopId() {
         return this.shopId;
     }
 

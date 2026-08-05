@@ -38,7 +38,7 @@ public class ReferralService {
     private ReferralMemberListItemResponse toReferralMemberListItemResponse(MemberReferralResult result) {
         return ReferralMemberListItemResponse.from(
             result.id(),
-            result.refereeId().value(),
+            result.refereeId(),
             result.status().name(),
             result.createdAt()
         );

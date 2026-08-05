@@ -1,16 +1,12 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.infrastructure.product.persistence.ProductIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -27,13 +23,11 @@ public class OrderProductJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Convert(converter = OrderIdConverter.class)
     @Column(name = "order_id", nullable = false)
-    private OrderId orderId; // 주문 ID (ORDERS.id 참조)
+    private Long orderId; // 주문 ID (ORDERS.id 참조)
 
-    @Convert(converter = ProductIdConverter.class)
     @Column(name = "product_id", nullable = false)
-    private ProductId productId; // 상품 ID (PRODUCT.id 참조)
+    private Long productId; // 상품 ID (PRODUCT.id 참조)
 
     @Column(name = "name", nullable = false)
     private String name; // 주문 시점 상품명 (스냅샷)
@@ -60,8 +54,8 @@ public class OrderProductJpaEntity extends BaseEntity {
     }
 
     private OrderProductJpaEntity(
-        OrderId orderId,
-        ProductId productId,
+        Long orderId,
+        Long productId,
         String name,
         String imageUrl,
         Integer quantity,
@@ -85,8 +79,8 @@ public class OrderProductJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code OrderProductMapper#toEntity}에서만 호출한다.
      */
     static OrderProductJpaEntity create(
-        OrderId orderId,
-        ProductId productId,
+        Long orderId,
+        Long productId,
         String name,
         String imageUrl,
         Integer quantity,
@@ -120,11 +114,11 @@ public class OrderProductJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public OrderId getOrderId() {
+    public Long getOrderId() {
         return this.orderId;
     }
 
-    public ProductId getProductId() {
+    public Long getProductId() {
         return this.productId;
     }
 

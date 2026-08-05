@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.point.persistence;
 
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.model.Point;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 회원 포인트 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,7 +18,7 @@ final class PointMapper {
     static Point toDomain(PointJpaEntity entity) {
         return Point.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
+            IdMapping.vo(entity.getMemberId(), MemberId::of),
             entity.getAvailablePoints(),
             entity.getExpiredThisMonth()
         );
@@ -27,7 +29,7 @@ final class PointMapper {
      */
     static PointJpaEntity toEntity(Point domain) {
         return PointJpaEntity.create(
-            domain.getMemberId(),
+            IdMapping.raw(domain.getMemberId(), MemberId::value),
             domain.getAvailablePoints(),
             domain.getExpiredThisMonth()
         );

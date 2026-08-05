@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.banner.persistence;
 
 import com.tastyhouse.domain.banner.model.Banner;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 배너 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -18,7 +20,7 @@ final class BannerMapper {
             entity.getId(),
             entity.getType(),
             entity.getTitle(),
-            entity.getImageFileId(),
+            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
             entity.getLinkUrl(),
             entity.getStartDate(),
             entity.getEndDate(),
@@ -37,7 +39,7 @@ final class BannerMapper {
         return BannerJpaEntity.create(
             domain.getType(),
             domain.getTitle(),
-            domain.getImageFileId(),
+            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
             domain.getLinkUrl(),
             domain.getStartDate(),
             domain.getEndDate(),
@@ -54,7 +56,7 @@ final class BannerMapper {
         entity.applyChanges(
             domain.getType(),
             domain.getTitle(),
-            domain.getImageFileId(),
+            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
             domain.getLinkUrl(),
             domain.getStartDate(),
             domain.getEndDate(),

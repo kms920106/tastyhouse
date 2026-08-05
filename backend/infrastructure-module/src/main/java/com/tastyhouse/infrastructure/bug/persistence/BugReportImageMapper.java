@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.bug.persistence;
 
 import com.tastyhouse.domain.bug.model.BugReportImage;
+import com.tastyhouse.domain.bug.vo.BugReportId;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 버그 신고 이미지 도메인 모델 ↔ JPA 엔티티 변환기.
@@ -16,8 +19,8 @@ final class BugReportImageMapper {
     static BugReportImage toDomain(BugReportImageJpaEntity entity) {
         return BugReportImage.reconstitute(
             entity.getId(),
-            entity.getBugReportId(),
-            entity.getImageFileId(),
+            IdMapping.vo(entity.getBugReportId(), BugReportId::of),
+            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
             entity.getSort()
         );
     }
@@ -27,8 +30,8 @@ final class BugReportImageMapper {
      */
     static BugReportImageJpaEntity toEntity(BugReportImage domain) {
         return BugReportImageJpaEntity.create(
-            domain.getBugReportId(),
-            domain.getImageFileId(),
+            IdMapping.raw(domain.getBugReportId(), BugReportId::value),
+            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
             domain.getSort()
         );
     }

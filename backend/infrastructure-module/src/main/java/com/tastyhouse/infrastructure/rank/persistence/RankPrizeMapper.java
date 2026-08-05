@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.rank.persistence;
 
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.rank.model.RankPrize;
+import com.tastyhouse.domain.rank.vo.RankPeriodId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 /**
  * 랭킹 경품 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
@@ -16,11 +19,11 @@ final class RankPrizeMapper {
     static RankPrize toDomain(RankPrizeJpaEntity entity) {
         return RankPrize.reconstitute(
             entity.getId(),
-            entity.getRankId(),
+            IdMapping.vo(entity.getRankId(), RankPeriodId::of),
             entity.getPrizeRank(),
             entity.getName(),
             entity.getBrand(),
-            entity.getImageFileId(),
+            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
             entity.isDeleted(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
@@ -32,11 +35,11 @@ final class RankPrizeMapper {
      */
     static RankPrizeJpaEntity toEntity(RankPrize domain) {
         return RankPrizeJpaEntity.create(
-            domain.getRankId(),
+            IdMapping.raw(domain.getRankId(), RankPeriodId::value),
             domain.getPrizeRank(),
             domain.getName(),
             domain.getBrand(),
-            domain.getImageFileId(),
+            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
             domain.isDeleted()
         );
     }
@@ -49,7 +52,7 @@ final class RankPrizeMapper {
             domain.getPrizeRank(),
             domain.getName(),
             domain.getBrand(),
-            domain.getImageFileId(),
+            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
             domain.isDeleted()
         );
     }

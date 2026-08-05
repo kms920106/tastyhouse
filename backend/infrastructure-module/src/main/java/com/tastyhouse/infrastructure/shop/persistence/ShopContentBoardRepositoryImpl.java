@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopContentBoard;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.repository.ShopContentBoardRepository;
 
 @Repository
@@ -44,7 +43,7 @@ public class ShopContentBoardRepositoryImpl implements ShopContentBoardRepositor
 
     @Override
     public long countByShopId(Long shopId) {
-        return shopContentBoardJpaRepository.countByShopId(ShopId.of(shopId));
+        return shopContentBoardJpaRepository.countByShopId(shopId);
     }
 
 }

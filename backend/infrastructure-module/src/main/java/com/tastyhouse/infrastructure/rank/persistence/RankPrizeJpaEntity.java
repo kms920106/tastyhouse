@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.rank.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,9 +9,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.rank.vo.RankPeriodId;
-import com.tastyhouse.infrastructure.file.persistence.UploadedFileIdConverter;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -37,9 +33,8 @@ public class RankPrizeJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = RankPeriodIdConverter.class)
     @Column(name = "rank_id", nullable = false)
-    private RankPeriodId rankId;
+    private Long rankId;
 
     @Column(name = "prize_rank", nullable = false)
     private Integer prizeRank;
@@ -50,9 +45,8 @@ public class RankPrizeJpaEntity extends BaseEntity {
     @Column(name = "brand", nullable = false, length = 100)
     private String brand;
 
-    @Convert(converter = UploadedFileIdConverter.class)
     @Column(name = "image_file_id")
-    private UploadedFileId imageFileId;
+    private Long imageFileId;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted;
@@ -61,11 +55,11 @@ public class RankPrizeJpaEntity extends BaseEntity {
     }
 
     private RankPrizeJpaEntity(
-        RankPeriodId rankId,
+        Long rankId,
         Integer prizeRank,
         String name,
         String brand,
-        UploadedFileId imageFileId,
+        Long imageFileId,
         boolean deleted
     ) {
         this.rankId = rankId;
@@ -80,11 +74,11 @@ public class RankPrizeJpaEntity extends BaseEntity {
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code RankPrizeMapper#toEntity}에서만 호출한다.
      */
     static RankPrizeJpaEntity create(
-        RankPeriodId rankId,
+        Long rankId,
         Integer prizeRank,
         String name,
         String brand,
-        UploadedFileId imageFileId,
+        Long imageFileId,
         boolean deleted
     ) {
         return new RankPrizeJpaEntity(rankId, prizeRank, name, brand, imageFileId, deleted);
@@ -93,7 +87,7 @@ public class RankPrizeJpaEntity extends BaseEntity {
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자는 건드리지 않는다.
      */
-    void applyChanges(Integer prizeRank, String name, String brand, UploadedFileId imageFileId, boolean deleted) {
+    void applyChanges(Integer prizeRank, String name, String brand, Long imageFileId, boolean deleted) {
         this.prizeRank = prizeRank;
         this.name = name;
         this.brand = brand;
@@ -105,7 +99,7 @@ public class RankPrizeJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public RankPeriodId getRankId() {
+    public Long getRankId() {
         return this.rankId;
     }
 
@@ -121,7 +115,7 @@ public class RankPrizeJpaEntity extends BaseEntity {
         return this.brand;
     }
 
-    public UploadedFileId getImageFileId() {
+    public Long getImageFileId() {
         return this.imageFileId;
     }
 

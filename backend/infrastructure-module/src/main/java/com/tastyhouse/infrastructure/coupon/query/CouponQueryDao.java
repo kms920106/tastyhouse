@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
@@ -14,10 +12,8 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.shared.query.ConvertedIdPaths;
 
 import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.couponJpaEntity;
 import static com.tastyhouse.infrastructure.coupon.persistence.QMemberCouponJpaEntity.memberCouponJpaEntity;
@@ -127,7 +123,7 @@ public class CouponQueryDao {
         Long total = queryFactory
             .select(memberCouponJpaEntity.id.count())
             .from(memberCouponJpaEntity)
-            .where(ConvertedIdPaths.eq(memberCouponJpaEntity, "couponId", CouponId.class, CouponId::of, couponId.value()))
+            .where(memberCouponJpaEntity.couponId.eq(couponId.value()))
             .fetchOne();
 
         List<MemberCouponItemResult> content = queryFactory
@@ -140,7 +136,7 @@ public class CouponQueryDao {
                 memberCouponJpaEntity.createdAt
             ))
             .from(memberCouponJpaEntity)
-            .where(ConvertedIdPaths.eq(memberCouponJpaEntity, "couponId", CouponId.class, CouponId::of, couponId.value()))
+            .where(memberCouponJpaEntity.couponId.eq(couponId.value()))
             .orderBy(memberCouponJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -152,7 +148,7 @@ public class CouponQueryDao {
     /**
      * 회원이 보유한 쿠폰 전체 조회(web 내 쿠폰함) — 사용·만료분도 함께 보여준다.
      */
-    public List<MemberCouponResult> findMemberCoupons(MemberId memberId) {
+    public List<MemberCouponResult> findMemberCoupons(Long memberId) {
         return selectMemberCoupons()
             .where(memberCouponJpaEntity.memberId.eq(memberId))
             .fetch();
@@ -161,7 +157,7 @@ public class CouponQueryDao {
     /**
      * 회원이 지금 사용할 수 있는 쿠폰만 조회(web 주문 화면의 쿠폰 선택) — 미사용 &amp; 미만료분.
      */
-    public List<MemberCouponResult> findAvailableMemberCoupons(MemberId memberId, LocalDateTime now) {
+    public List<MemberCouponResult> findAvailableMemberCoupons(Long memberId, LocalDateTime now) {
         return selectMemberCoupons()
             .where(
                 memberCouponJpaEntity.memberId.eq(memberId),
@@ -192,15 +188,7 @@ public class CouponQueryDao {
                 memberCouponJpaEntity.usedAt
             ))
             .from(memberCouponJpaEntity)
-            .join(couponJpaEntity).on(couponJpaEntity.id.eq(memberCouponIdCouponIdPath()));
-    }
-
-    /**
-     * {@code @Convert} VO 컬럼인 {@code MEMBER_COUPON.coupon_id}를 raw {@code Long}으로 비교·조인하기
-     * 위한 path.
-     */
-    private NumberPath<Long> memberCouponIdCouponIdPath() {
-        return Expressions.numberPath(Long.class, memberCouponJpaEntity, "couponId");
+            .join(couponJpaEntity).on(couponJpaEntity.id.eq(memberCouponJpaEntity.couponId));
     }
 
     private BooleanExpression nameContains(String name) {
