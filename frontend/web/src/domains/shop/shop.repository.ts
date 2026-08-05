@@ -105,7 +105,15 @@ export const shopRepository = {
   async getMapMarkers(params: { latitude: number; longitude: number }) {
     return publicApi.get<ShopMapMarker[]>(`${ENDPOINT}/v1/map/markers`, { params })
   },
+  /**
+   * 가게 상세를 조회한다.
+   *
+   * 목록 API와 달리 CACHE_OPTIONS(force-cache, revalidate 3600)를 쓰지 않는다.
+   * 응답에 주문 가능 여부를 가르는 판정 기준(minOrderAmount, operatingStatus)이 포함되어
+   * 있어, 값이 낡으면 최소주문금액 차단이 fail-open으로 뒤집힌다.
+   * (minOrderAmount가 0으로 낡으면 "제한 없음"으로 판정되어 미달 주문이 통과한다.)
+   */
   async getShopDetail(shopId: number) {
-    return publicApi.get<ShopDetailResponse>(`${ENDPOINT}/v1/${shopId}`, CACHE_OPTIONS)
+    return publicApi.get<ShopDetailResponse>(`${ENDPOINT}/v1/${shopId}`)
   },
 }
