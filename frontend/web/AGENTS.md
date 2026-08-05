@@ -16,7 +16,7 @@
 | `eslint.config.mjs` / `prettier.config.cjs` | 린트·포맷 설정 |
 | `components.json` | shadcn/ui 설정 |
 | `instrumentation.ts` / `instrumentation-client.ts` | 런타임 계측 (로깅 등) |
-| `CLAUDE.md` | AI 작업 규칙 (한국어 답변, `npm run build` 금지, `NO_COMMIT_OR_ROLLBACK`) |
+| `../../CLAUDE.md` (리포 루트) | AI 작업 규칙 (한국어 답변, `npm run build` 금지, `NO_COMMIT_OR_ROLLBACK`) — 리포 전체 공통 |
 
 ## Subdirectories
 | Directory | Purpose |
@@ -31,7 +31,7 @@
 
 ### Working In This Directory
 - **답변은 한국어로 작성합니다.**
-- 로직 구현 후 `npm run build`를 실행하지 않습니다 (`CLAUDE.md` 규칙). 타입 검증이 필요하면 `npm run type-check`를 사용하세요.
+- 로직 구현 후 `npm run build`를 실행하지 않습니다 (리포 루트 `CLAUDE.md` 규칙). 타입 검증이 필요하면 `npm run type-check`를 사용하세요.
 - **커밋·롤백 금지** (`NO_COMMIT_OR_ROLLBACK`). 사용자가 명시적으로 요청할 때만 git 작업을 수행합니다.
 - 네이밍은 명확하고 의미 있는 이름을 선택합니다.
 

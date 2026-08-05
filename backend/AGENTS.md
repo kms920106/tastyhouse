@@ -16,7 +16,7 @@
 | `settings.gradle` | 멀티모듈 정의 (`web-api`, `admin-api`, `ceo-api`, `domain-module`, `infrastructure-module`, `external-api`, `security-module`, `api-common-module`, `logging-module`, `batch-module`) |
 | `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인, AWS BOM) |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
-| `CLAUDE.md` | AI 작업 규칙 (한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지) |
+| `CLAUDE.md` | backend 고유 코딩 컨벤션 (네이밍·DTO·레이어 경계 등). AI 작업 규칙(한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지)은 리포 루트 `../CLAUDE.md` |
 | `create.sql` / `insert.sql` / `alter.sql` | 스키마 및 시드 데이터 (DDL은 `ddl-auto=validate` 전제) |
 | `.env`, `.env-copy` | 환경 변수 (외부 연동 키 등) |
 
