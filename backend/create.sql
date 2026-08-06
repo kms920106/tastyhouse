@@ -837,7 +837,15 @@ CREATE TABLE ORDERS
     coupon_discount_amount  INT          NOT NULL DEFAULT 0,     -- 쿠폰 할인 금액
     point_discount_amount   INT          NOT NULL DEFAULT 0,     -- 포인트 할인 금액
     total_discount_amount   INT          NOT NULL DEFAULT 0,     -- 총 할인 금액
-    final_amount            INT          NOT NULL DEFAULT 0,     -- 최종 결제 금액
+    delivery_tip_amount     INT          NOT NULL DEFAULT 0,     -- 배달팁 (final_amount에 가산되는 유일한 항목)
+    final_amount            INT          NOT NULL DEFAULT 0,     -- 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁)
+    delivery_road_address   VARCHAR(500),                        -- 주문 시점 배달 도로명 주소 (스냅샷)
+    delivery_lot_address    VARCHAR(500),                        -- 주문 시점 배달 지번 주소 (스냅샷)
+    delivery_detail_address VARCHAR(200),                        -- 주문 시점 상세 주소 (스냅샷)
+    delivery_admin_dong_id  BIGINT,                              -- 주문 시점 행정동 ID (스냅샷)
+    delivery_latitude       DECIMAL(9, 6),                       -- 주문 시점 배달지 위도 (스냅샷)
+    delivery_longitude      DECIMAL(9, 6),                       -- 주문 시점 배달지 경도 (스냅샷)
+    delivery_distance_meters INT,                                -- 주문 시점 직선거리(m) — 배달팁 산출 근거
     member_coupon_id        BIGINT,                              -- 사용한 회원 쿠폰 ID (MEMBER_COUPON.id 참조)
     used_point              INT          NOT NULL DEFAULT 0,     -- 사용 포인트
     earned_point            INT          NOT NULL DEFAULT 0,     -- 적립 포인트
@@ -1173,6 +1181,137 @@ CREATE TABLE RESERVATION
     updated_at       DATETIME    NOT NULL,                                         -- 수정 일시
     INDEX idx_reservation_shop_slot (shop_id, reservation_date, reservation_time), -- 인덱스: 가게·날짜·시간 복합 조회
     INDEX idx_reservation_member (member_id)                                       -- 인덱스: 회원별 조회
+);
+
+-- ============================================================
+-- 배달팁 선행 기반 (행정동·배달가능지역·공휴일·회원 배달주소록)
+-- ============================================================
+
+-- 행정동 마스터 (행정표준코드 시드, Java 생성 경로 없음 — STATION과 동일 성격)
+CREATE TABLE ADMIN_DONG
+(
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,              -- 행정동 ID (PK)
+    code         VARCHAR(10) NOT NULL,                           -- 행정동 코드(10자리)
+    sido_name    VARCHAR(50) NOT NULL,                           -- 시/도
+    sigungu_name VARCHAR(50) NOT NULL,                           -- 시/군/구
+    dong_name    VARCHAR(50) NOT NULL,                           -- 행정동
+    is_active    TINYINT(1)  NOT NULL DEFAULT 1,                 -- 사용 여부
+    UNIQUE KEY uk_admin_dong_code (code),                        -- 유니크: 행정동 코드
+    INDEX idx_admin_dong_name (sido_name, sigungu_name, dong_name) -- 인덱스: 주소 문자열 매칭
+);
+
+-- 가게 배달가능지역 (행정동 단위)
+CREATE TABLE SHOP_DELIVERY_AREA
+(
+    id            BIGINT   AUTO_INCREMENT PRIMARY KEY,           -- 배달가능지역 ID (PK)
+    shop_id       BIGINT   NOT NULL,                             -- 장소 ID (SHOP.id 참조)
+    admin_dong_id BIGINT   NOT NULL,                             -- 행정동 ID (ADMIN_DONG.id 참조)
+    created_at    DATETIME NOT NULL,                             -- 생성 일시
+    updated_at    DATETIME NOT NULL,                             -- 수정 일시
+    INDEX idx_shop_delivery_area_shop_id (shop_id),              -- 인덱스: 가게별 조회
+    UNIQUE KEY uk_shop_delivery_area (shop_id, admin_dong_id)    -- 유니크: 가게·행정동 중복 방지
+);
+
+-- 법정 공휴일 캘린더.
+-- 일요일 자체는 담지 않는다 — 이 데이터 규칙 하나가 "일요일은 공휴일 배달팁 대상 아님"과
+-- "법정공휴일과 일요일이 겹치면 공휴일 배달팁 부과"를 코드 분기 없이 동시에 만족시킨다.
+CREATE TABLE PUBLIC_HOLIDAY
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 공휴일 ID (PK)
+    holiday_date  DATE        NOT NULL,                          -- 공휴일 날짜
+    name          VARCHAR(50) NOT NULL,                          -- 공휴일 명칭
+    is_substitute TINYINT(1)  NOT NULL DEFAULT 0,                -- 대체공휴일 여부
+    UNIQUE KEY uk_public_holiday_date (holiday_date)             -- 유니크: 날짜당 1건
+);
+
+-- 회원 배달 주소록
+CREATE TABLE MEMBER_DELIVERY_ADDRESS
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,            -- 배달 주소 ID (PK)
+    member_id      BIGINT        NOT NULL,                       -- 회원 ID (MEMBER.id 참조)
+    alias          VARCHAR(50),                                  -- 주소 별칭 (집/회사 등)
+    road_address   VARCHAR(500)  NOT NULL,                       -- 도로명 주소
+    lot_address    VARCHAR(500),                                 -- 지번 주소
+    detail_address VARCHAR(200),                                 -- 상세 주소
+    admin_dong_id  BIGINT,                                       -- 행정동 ID (ADMIN_DONG.id 참조, 매칭 실패 시 NULL)
+    latitude       DECIMAL(9, 6) NOT NULL,                       -- 위도 (SHOP과 동일 정밀도)
+    longitude      DECIMAL(9, 6) NOT NULL,                       -- 경도
+    is_default     TINYINT(1)    NOT NULL DEFAULT 0,             -- 기본 배송지 여부
+    created_at     DATETIME      NOT NULL,                       -- 생성 일시
+    updated_at     DATETIME      NOT NULL,                       -- 수정 일시
+    INDEX idx_member_delivery_address_member_id (member_id)      -- 인덱스: 회원별 조회
+);
+
+-- ============================================================
+-- 가게배달 배달팁
+-- ============================================================
+
+-- 가게 배달팁 설정 헤더 (가게당 1건).
+-- '거리별↔지역별 상호배타'의 단일 소유자이며, 거리별 설정은 가게당 1건이라
+-- 별도 테이블 없이 여기에 인라인한다.
+CREATE TABLE SHOP_DELIVERY_TIP_SETTING
+(
+    id                   BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 배달팁 설정 ID (PK)
+    shop_id              BIGINT      NOT NULL,                   -- 장소 ID (SHOP.id 참조)
+    extra_tip_type       VARCHAR(20) NOT NULL DEFAULT 'NONE',    -- 추가 배달팁 방식 (NONE, DISTANCE, REGION)
+    base_distance_meters INT,                                    -- 기본배달거리(m). 1000/1500/2000/2500/3000, DISTANCE일 때만
+    surcharge_unit       VARCHAR(20),                            -- 할증 단위 (PER_100M, PER_500M), DISTANCE일 때만
+    surcharge_amount     INT,                                    -- 단위당 할증액(원). PER_100M:100~300, PER_500M:100~1500
+    created_at           DATETIME    NOT NULL,                   -- 생성 일시
+    updated_at           DATETIME    NOT NULL,                   -- 수정 일시
+    UNIQUE KEY uk_shop_delivery_tip_setting_shop_id (shop_id)    -- 유니크: 가게당 1건
+);
+
+-- 기본(구간별) 배달팁. 기본 1 + 추가 2 = 최대 3구간
+CREATE TABLE SHOP_DELIVERY_TIP_TIER
+(
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,          -- 구간 ID (PK)
+    shop_id          BIGINT   NOT NULL,                          -- 장소 ID (SHOP.id 참조)
+    tier_order       INT      NOT NULL,                          -- 구간 순서 (0=기본, 1~2=추가)
+    min_order_amount INT      NOT NULL,                          -- 구간 하한 주문금액 (상품 할인 후 기준)
+    tip_amount       INT      NOT NULL,                          -- 배달팁 (0 이상 5,000 미만)
+    created_at       DATETIME NOT NULL,                          -- 생성 일시
+    updated_at       DATETIME NOT NULL,                          -- 수정 일시
+    INDEX idx_shop_delivery_tip_tier_shop_id (shop_id),          -- 인덱스: 가게별 조회
+    UNIQUE KEY uk_shop_delivery_tip_tier (shop_id, tier_order)   -- 유니크: 가게·순서 중복 방지
+);
+
+-- 지역별 추가 배달팁 (가게 배달가능지역으로 설정된 행정동만 선택 가능)
+CREATE TABLE SHOP_DELIVERY_TIP_REGION
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 지역별 배달팁 ID (PK)
+    shop_id       BIGINT   NOT NULL,                             -- 장소 ID (SHOP.id 참조)
+    admin_dong_id BIGINT   NOT NULL,                             -- 행정동 ID (ADMIN_DONG.id 참조)
+    tip_amount    INT      NOT NULL,                             -- 추가 배달팁 (0~10,000)
+    created_at    DATETIME NOT NULL,                             -- 생성 일시
+    updated_at    DATETIME NOT NULL,                             -- 수정 일시
+    INDEX idx_shop_delivery_tip_region_shop_id (shop_id),        -- 인덱스: 가게별 조회
+    UNIQUE KEY uk_shop_delivery_tip_region (shop_id, admin_dong_id) -- 유니크: 가게·행정동 중복 방지
+);
+
+-- 시간별 추가 배달팁 (요일 구분 + 시간대). day_type은 DayType 재사용
+CREATE TABLE SHOP_DELIVERY_TIP_SCHEDULE
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 시간별 배달팁 ID (PK)
+    shop_id    BIGINT      NOT NULL,                             -- 장소 ID (SHOP.id 참조)
+    day_type   VARCHAR(20) NOT NULL,                             -- 요일 구분 (DAILY, WEEKDAY, WEEKEND, MONDAY~SUNDAY / HOLIDAY 사용 금지)
+    start_time TIME        NOT NULL,                             -- 시작 시각
+    end_time   TIME        NOT NULL,                             -- 종료 시각 (시작보다 이르면 자정 넘김)
+    tip_amount INT         NOT NULL,                             -- 추가 배달팁 (0~10,000)
+    created_at DATETIME    NOT NULL,                             -- 생성 일시
+    updated_at DATETIME    NOT NULL,                             -- 수정 일시
+    INDEX idx_shop_delivery_tip_schedule_shop_id (shop_id)       -- 인덱스: 가게별 조회
+);
+
+-- 공휴일 추가 배달팁 (법정 공휴일 일괄 부과, 가게당 1건)
+CREATE TABLE SHOP_DELIVERY_TIP_HOLIDAY
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 공휴일 배달팁 ID (PK)
+    shop_id    BIGINT   NOT NULL,                                -- 장소 ID (SHOP.id 참조)
+    tip_amount INT      NOT NULL,                                -- 추가 배달팁 (0~10,000)
+    created_at DATETIME NOT NULL,                                -- 생성 일시
+    updated_at DATETIME NOT NULL,                                -- 수정 일시
+    UNIQUE KEY uk_shop_delivery_tip_holiday_shop_id (shop_id)    -- 유니크: 가게당 1건
 );
 
 -- 금칙어 시드 (가게소개/찾아오는길 검수용, 배민 가이드 등록 불가 기준)

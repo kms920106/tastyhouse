@@ -47,10 +47,12 @@ public class OrderCommandService {
         List<OrderProductRequest> orderProducts,
         Long memberCouponId,
         Integer usePoint,
+        Long deliveryAddressId,
         Integer totalProductAmount,
         Integer totalDiscountAmount,
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount
     ) {
         MemberId memberIdVo = MemberId.of(memberId);
@@ -60,10 +62,12 @@ public class OrderCommandService {
             orderProducts,
             memberCouponId,
             usePoint,
+            deliveryAddressId,
             totalProductAmount,
             totalDiscountAmount,
             productDiscountAmount,
             couponDiscountAmount,
+            deliveryTipAmount,
             finalAmount
         );
         OrderId orderId = orderPlacementService.place(memberIdVo, placement);
@@ -76,10 +80,12 @@ public class OrderCommandService {
         List<OrderProductRequest> orderProducts,
         Long memberCouponId,
         Integer usePoint,
+        Long deliveryAddressId,
         Integer totalProductAmount,
         Integer totalDiscountAmount,
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount
     ) {
         List<OrderPlacementItem> items = orderProducts.stream()
@@ -91,10 +97,12 @@ public class OrderCommandService {
             items,
             memberCouponId,
             usePoint,
+            deliveryAddressId,
             totalProductAmount,
             totalDiscountAmount,
             productDiscountAmount,
             couponDiscountAmount,
+            deliveryTipAmount,
             finalAmount
         );
     }

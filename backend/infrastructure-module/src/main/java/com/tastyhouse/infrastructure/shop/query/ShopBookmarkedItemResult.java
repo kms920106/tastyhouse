@@ -10,7 +10,9 @@ public record ShopBookmarkedItemResult(
     Double rating,
     String imageUrl,
     boolean bookmarked,
-    int minOrderAmount
+    int minOrderAmount,
+    int minDeliveryTip,
+    int maxDeliveryTip
 ) {
     @QueryProjection
     public ShopBookmarkedItemResult {

@@ -13,7 +13,9 @@ public record BestShopItemResult(
     Double rating,
     String imageUrl,
     List<FoodType> foodTypes,
-    int minOrderAmount
+    int minOrderAmount,
+    int minDeliveryTip,
+    int maxDeliveryTip
 ) {
     @QueryProjection
     public BestShopItemResult {

@@ -49,10 +49,12 @@ public class OrderApiController {
             request.orderProducts(),
             request.memberCouponId(),
             request.usePoint(),
+            request.deliveryAddressId(),
             request.totalProductAmount(),
             request.totalDiscountAmount(),
             request.productDiscountAmount(),
             request.couponDiscountAmount(),
+            request.deliveryTipAmount(),
             request.finalAmount()
         );
         return ResponseEntity.ok(ApiResponse.success(orderId));

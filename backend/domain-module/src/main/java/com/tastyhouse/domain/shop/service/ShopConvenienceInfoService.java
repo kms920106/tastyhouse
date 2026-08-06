@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
 import com.tastyhouse.domain.shop.repository.ShopConvenienceInfoRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -25,7 +26,6 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  */
 public class ShopConvenienceInfoService {
 
-    private static final double EARTH_RADIUS_METERS = 6371000;
     private static final double MAX_DISPLAY_LOCATION_DISTANCE_METERS = 1000;
 
     private final ShopConvenienceInfoRepository shopConvenienceInfoRepository;
@@ -94,28 +94,11 @@ public class ShopConvenienceInfoService {
         Shop shop = shopRepository.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
-        double distanceMeters = distanceMeters(displayLatitude, displayLongitude, shop.getLatitude(), shop.getLongitude());
+        double distanceMeters = GeoDistance.distanceMeters(
+            displayLatitude, displayLongitude, shop.getLatitude(), shop.getLongitude()
+        );
         if (distanceMeters > MAX_DISPLAY_LOCATION_DISTANCE_METERS) {
             throw new BusinessException(ErrorCode.SHOP_DISPLAY_LOCATION_OUT_OF_RANGE);
         }
-    }
-
-    /**
-     * 두 좌표 간의 하버사인(Haversine) 거리를 미터 단위로 계산한다.
-     */
-    private static double distanceMeters(BigDecimal lat1, BigDecimal lon1, BigDecimal lat2, BigDecimal lon2) {
-        double lat1Rad = Math.toRadians(lat1.doubleValue());
-        double lon1Rad = Math.toRadians(lon1.doubleValue());
-        double lat2Rad = Math.toRadians(lat2.doubleValue());
-        double lon2Rad = Math.toRadians(lon2.doubleValue());
-
-        double deltaLat = lat2Rad - lat1Rad;
-        double deltaLon = lon2Rad - lon1Rad;
-
-        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
-            + Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return EARTH_RADIUS_METERS * c;
     }
 }

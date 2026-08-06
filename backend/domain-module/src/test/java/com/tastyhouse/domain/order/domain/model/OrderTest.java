@@ -5,12 +5,14 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -39,7 +41,10 @@ class OrderTest {
             "홍길동",
             "010-1234-5678",
             "hong@test.com",
-            null, null, null, null, null, null,
+            null, null, null, null, null,
+            null,
+            null,
+            null,
             null,
             null,
             null
@@ -73,7 +78,10 @@ class OrderTest {
             "홍길동",
             "010-1234-5678",
             "hong@test.com",
-            10000, 0, 0, 0, 0, 10000,
+            10000, 0, 0, 0, 0,
+            0,
+            10000,
+            OrderDeliveryDestination.none(),
             null,
             0,
             0,
@@ -203,7 +211,7 @@ class OrderTest {
     void updateAmounts_changesAmountFields() {
         Order order = newOrder();
 
-        order.updateAmounts(10000, 1000, 500, 300, 1800, 8200, MemberCouponId.of(99L), 300);
+        order.updateAmounts(10000, 1000, 500, 300, 1800, 0, 8200, OrderDeliveryDestination.none(), MemberCouponId.of(99L), 300);
 
         assertThat(order.getTotalProductAmount()).isEqualTo(10000);
         assertThat(order.getProductDiscountAmount()).isEqualTo(1000);
@@ -221,7 +229,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 1000 + 500 + 300 = 1800 인데 총 할인을 1700으로 보냄
-        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1700, 8300, MemberCouponId.of(99L), 300))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1700, 0, 8300, OrderDeliveryDestination.none(), MemberCouponId.of(99L), 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
@@ -235,7 +243,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 10000 - 1800 = 8200 인데 최종 금액을 9000으로 보냄
-        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1800, 9000, MemberCouponId.of(99L), 300))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1800, 0, 9000, OrderDeliveryDestination.none(), MemberCouponId.of(99L), 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
@@ -247,19 +255,19 @@ class OrderTest {
         Order order = newOrder();
 
         // 상품 금액 음수 (합산 정합 자체는 성립: -100 - 0 = -100)
-        assertThatThrownBy(() -> order.updateAmounts(-100, 0, 0, 0, 0, -100, null, 0))
+        assertThatThrownBy(() -> order.updateAmounts(-100, 0, 0, 0, 0, 0, -100, null, null, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
 
         // 할인 항목 음수 (합산 정합 성립: -500 + 0 + 0 = -500, 10000 - (-500) = 10500)
-        assertThatThrownBy(() -> order.updateAmounts(10000, -500, 0, 0, -500, 10500, null, 0))
+        assertThatThrownBy(() -> order.updateAmounts(10000, -500, 0, 0, -500, 0, 10500, null, null, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
 
         // 사용 포인트 음수
-        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 0, 0, 0, 10000, null, -1))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 0, 0, 0, 0, 10000, null, null, -1))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
@@ -271,7 +279,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 10000원 주문에 15000원 정액 쿠폰 → finalAmount -5000 (합산 정합 자체는 성립)
-        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 15000, 0, 15000, -5000, MemberCouponId.of(99L), 0))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 15000, 0, 15000, 0, -5000, OrderDeliveryDestination.none(), MemberCouponId.of(99L), 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
@@ -282,7 +290,7 @@ class OrderTest {
     void updateAmounts_normalizesNullToZero() {
         Order order = newOrder();
 
-        order.updateAmounts(null, null, null, null, null, null, null, null);
+        order.updateAmounts(null, null, null, null, null, null, null, null, null, null);
 
         // 검증만 0으로 보고 저장은 raw null을 넣으면 불변식을 위반한 상태가 저장된다 — 저장값도 0이어야 한다
         assertThat(order.getTotalProductAmount()).isEqualTo(0);
@@ -300,13 +308,13 @@ class OrderTest {
         Order order = newOrder();
 
         // 총 할인·항목 할인을 null로 보내면 0으로 정규화되어 10000 - 0 = 10000과 정합해야 통과
-        order.updateAmounts(10000, null, null, null, null, 10000, null, null);
+        order.updateAmounts(10000, null, null, null, null, null, 10000, null, null, null);
 
         assertThat(order.getTotalDiscountAmount()).isEqualTo(0);
         assertThat(order.getFinalAmount()).isEqualTo(10000);
 
         // 같은 부분 null 입력이지만 최종 금액이 정합하지 않으면 거부한다
-        assertThatThrownBy(() -> order.updateAmounts(10000, null, null, null, null, 9000, null, null))
+        assertThatThrownBy(() -> order.updateAmounts(10000, null, null, null, null, null, 9000, null, null, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
@@ -356,7 +364,10 @@ class OrderTest {
             "홍길동",
             "010-1234-5678",
             "hong@test.com",
-            10000, 1000, 500, 300, 1800, 8200,
+            10000, 1000, 500, 300, 1800,
+            0,
+            8200,
+            OrderDeliveryDestination.none(),
             MemberCouponId.of(99L),
             300,
             500,
@@ -399,7 +410,9 @@ class OrderTest {
             couponDiscountAmount,
             pointDiscountAmount,
             totalDiscountAmount,
+            0,
             finalAmount,
+            OrderDeliveryDestination.none(),
             null,
             usedPoint,
             0
@@ -465,7 +478,10 @@ class OrderTest {
             "홍길동",
             "010-1234-5678",
             "hong@test.com",
-            -1, 0, 0, 0, 9999, -12345,
+            -1, 0, 0, 0, 9999,
+            0,
+            -12345,
+            OrderDeliveryDestination.none(),
             null,
             0,
             0,
@@ -476,5 +492,132 @@ class OrderTest {
 
         assertThat(order.getFinalAmount()).isEqualTo(-12345);
         assertThat(order.getTotalDiscountAmount()).isEqualTo(9999);
+    }
+
+    /**
+     * 배달팁 도입으로 확장된 금액 정합 계약 —
+     * {@code finalAmount == totalProductAmount - totalDiscountAmount + deliveryTipAmount}.
+     */
+    @Nested
+    @DisplayName("배달팁 금액 정합")
+    class DeliveryTipAmount {
+
+        @Test
+        @DisplayName("최종 금액이 상품금액 − 할인 + 배달팁이면 통과한다")
+        void of_finalAmountIncludingDeliveryTip_passes() {
+            Order order = orderWithDeliveryTip(10000, 1000, 500, 300, 1800, 3000, 11200);
+
+            assertThat(order.getDeliveryTipAmount()).isEqualTo(3000);
+            assertThat(order.getFinalAmount()).isEqualTo(11200);
+        }
+
+        @Test
+        @DisplayName("배달팁을 빼먹은 최종 금액은 ORDER_AMOUNT_NOT_CONSISTENT로 거부한다")
+        void of_finalAmountMissingDeliveryTip_throws() {
+            // 10000 - 1800 + 3000 = 11200 인데 배달팁을 빠뜨린 8200을 보냄
+            assertThatThrownBy(() -> orderWithDeliveryTip(10000, 1000, 500, 300, 1800, 3000, 8200))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+        }
+
+        @Test
+        @DisplayName("배달팁이 음수면 ORDER_AMOUNT_NEGATIVE로 거부한다")
+        void of_negativeDeliveryTip_throws() {
+            // 합산 정합 자체는 성립: 10000 - 0 + (-500) = 9500
+            assertThatThrownBy(() -> orderWithDeliveryTip(10000, 0, 0, 0, 0, -500, 9500))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+        }
+
+        @Test
+        @DisplayName("updateAmounts도 배달팁을 포함한 정합을 강제한다")
+        void updateAmounts_enforcesDeliveryTipConsistency() {
+            Order order = newOrder();
+
+            order.updateAmounts(10000, 1000, 500, 300, 1800, 3000, 11200, OrderDeliveryDestination.none(), null, 300);
+
+            assertThat(order.getDeliveryTipAmount()).isEqualTo(3000);
+            assertThat(order.getFinalAmount()).isEqualTo(11200);
+
+            assertThatThrownBy(() -> order.updateAmounts(
+                10000, 1000, 500, 300, 1800, 3000, 8200, OrderDeliveryDestination.none(), null, 300
+            ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+        }
+
+        @Test
+        @DisplayName("배달팁이 0이면 기존 식(상품 − 할인)과 동일하게 성립한다 — 하위호환 회귀 방어")
+        void of_zeroDeliveryTip_matchesLegacyFormula() {
+            Order order = orderWithDeliveryTip(10000, 1000, 500, 300, 1800, 0, 8200);
+
+            assertThat(order.getDeliveryTipAmount()).isZero();
+            assertThat(order.getFinalAmount()).isEqualTo(8200);
+        }
+
+        @Test
+        @DisplayName("reconstitute는 배달팁 정합을 검증하지 않는다 — 배달팁 0원인 기존 행도 그대로 로드된다")
+        void reconstitute_passesLegacyZeroDeliveryTipRow() {
+            Order legacy = Order.reconstitute(
+                1L,
+                MEMBER_ID,
+                SHOP_ID,
+                "ORD-LEGACY",
+                OrderMethod.DELIVERY,
+                OrderStatus.COMPLETED,
+                "홍길동",
+                "010-1234-5678",
+                "hong@test.com",
+                10000, 1000, 500, 300, 1800,
+                0,
+                8200,
+                OrderDeliveryDestination.none(),
+                null,
+                300,
+                0,
+                false,
+                null,
+                null
+            );
+
+            assertThat(legacy.getDeliveryTipAmount()).isZero();
+            assertThat(legacy.getFinalAmount()).isEqualTo(8200);
+            assertThat(legacy.getDeliveryDestination().isPresent()).isFalse();
+        }
+
+        private Order orderWithDeliveryTip(
+            Integer totalProductAmount,
+            Integer productDiscountAmount,
+            Integer couponDiscountAmount,
+            Integer pointDiscountAmount,
+            Integer totalDiscountAmount,
+            Integer deliveryTipAmount,
+            Integer finalAmount
+        ) {
+            return Order.of(
+                MEMBER_ID,
+                SHOP_ID,
+                "ORD-001",
+                OrderMethod.DELIVERY,
+                null,
+                "홍길동",
+                "010-1234-5678",
+                "hong@test.com",
+                totalProductAmount,
+                productDiscountAmount,
+                couponDiscountAmount,
+                pointDiscountAmount,
+                totalDiscountAmount,
+                deliveryTipAmount,
+                finalAmount,
+                OrderDeliveryDestination.none(),
+                null,
+                0,
+                0
+            );
+        }
     }
 }

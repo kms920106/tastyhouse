@@ -15,6 +15,8 @@ public record LatestShopItemResult(
     Long reviewCount,
     Long bookmarkCount,
     List<FoodType> foodTypes,
-    int minOrderAmount
+    int minOrderAmount,
+    int minDeliveryTip,
+    int maxDeliveryTip
 ) {
 }

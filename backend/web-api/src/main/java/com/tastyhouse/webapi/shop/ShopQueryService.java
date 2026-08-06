@@ -4,24 +4,38 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.holiday.service.PublicHolidayCalendar;
+import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
+import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.Amenity;
+import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.domain.shop.model.FoodType;
+import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
+import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
@@ -40,6 +54,12 @@ import com.tastyhouse.infrastructure.shop.query.ShopBusinessHourResult;
 import com.tastyhouse.infrastructure.shop.query.ShopChoiceQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
 import com.tastyhouse.infrastructure.shop.query.ShopConvenienceInfoResult;
+import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipQueryDao;
+import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipRangeResult;
+import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipRegionResult;
+import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipScheduleResult;
+import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipSettingResult;
+import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipTierResult;
 import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeCategoryResult;
 import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
 import com.tastyhouse.infrastructure.shop.query.ShopMapMarkerResult;
@@ -60,6 +80,12 @@ import com.tastyhouse.webapi.shop.response.ShopBookmarkResponse;
 import com.tastyhouse.webapi.shop.response.ShopBreakTimeItem;
 import com.tastyhouse.webapi.shop.response.ShopBusinessHourItem;
 import com.tastyhouse.webapi.shop.response.ShopClosedDayItem;
+import com.tastyhouse.webapi.shop.response.ShopDeliveryTipBreakdownItem;
+import com.tastyhouse.webapi.shop.response.ShopDeliveryTipDistanceItem;
+import com.tastyhouse.webapi.shop.response.ShopDeliveryTipRegionItem;
+import com.tastyhouse.webapi.shop.response.ShopDeliveryTipResponse;
+import com.tastyhouse.webapi.shop.response.ShopDeliveryTipScheduleItem;
+import com.tastyhouse.webapi.shop.response.ShopDeliveryTipTierItem;
 import com.tastyhouse.webapi.shop.response.ShopDetailResponse;
 import com.tastyhouse.webapi.shop.response.ShopEditorChoiceProductItem;
 import com.tastyhouse.webapi.shop.response.ShopEditorChoiceResponse;
@@ -94,29 +120,44 @@ public class ShopQueryService {
 
     private final ShopRepository shopRepository;
     private final ShopBookmarkRepository shopBookmarkRepository;
+    private final MemberDeliveryAddressRepository memberDeliveryAddressRepository;
+    private final ShopDeliveryTipRepository shopDeliveryTipRepository;
     private final ShopQueryDao shopQueryDao;
     private final ShopSearchQueryDao shopSearchQueryDao;
     private final ShopChoiceQueryDao shopChoiceQueryDao;
+    private final ShopDeliveryTipQueryDao shopDeliveryTipQueryDao;
     private final ShopOperatingStatusService shopOperatingStatusService;
+    private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
+    private final PublicHolidayCalendar publicHolidayCalendar;
     private final ProductQueryService productQueryService;
     private final ReviewQueryService reviewQueryService;
 
     public ShopQueryService(
         ShopRepository shopRepository,
         ShopBookmarkRepository shopBookmarkRepository,
+        MemberDeliveryAddressRepository memberDeliveryAddressRepository,
+        ShopDeliveryTipRepository shopDeliveryTipRepository,
         ShopQueryDao shopQueryDao,
         ShopSearchQueryDao shopSearchQueryDao,
         ShopChoiceQueryDao shopChoiceQueryDao,
+        ShopDeliveryTipQueryDao shopDeliveryTipQueryDao,
         ShopOperatingStatusService shopOperatingStatusService,
+        ShopDeliveryTipCalculator shopDeliveryTipCalculator,
+        PublicHolidayCalendar publicHolidayCalendar,
         ProductQueryService productQueryService,
         ReviewQueryService reviewQueryService
     ) {
         this.shopRepository = shopRepository;
         this.shopBookmarkRepository = shopBookmarkRepository;
+        this.memberDeliveryAddressRepository = memberDeliveryAddressRepository;
+        this.shopDeliveryTipRepository = shopDeliveryTipRepository;
         this.shopQueryDao = shopQueryDao;
         this.shopSearchQueryDao = shopSearchQueryDao;
         this.shopChoiceQueryDao = shopChoiceQueryDao;
+        this.shopDeliveryTipQueryDao = shopDeliveryTipQueryDao;
         this.shopOperatingStatusService = shopOperatingStatusService;
+        this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
+        this.publicHolidayCalendar = publicHolidayCalendar;
         this.productQueryService = productQueryService;
         this.reviewQueryService = reviewQueryService;
     }
@@ -202,7 +243,9 @@ public class ShopQueryService {
             dto.imageUrl(),
             dto.foodTypes().stream().map(Enum::name).toList(),
             operatingStatusName(statusMap, dto.id()),
-            dto.minOrderAmount()
+            dto.minOrderAmount(),
+            dto.minDeliveryTip(),
+            dto.maxDeliveryTip()
         );
     }
 
@@ -218,7 +261,9 @@ public class ShopQueryService {
             dto.bookmarkCount(),
             dto.foodTypes().stream().map(Enum::name).toList(),
             operatingStatusName(statusMap, dto.id()),
-            dto.minOrderAmount()
+            dto.minOrderAmount(),
+            dto.minDeliveryTip(),
+            dto.maxDeliveryTip()
         );
     }
 
@@ -285,6 +330,11 @@ public class ShopQueryService {
             .findOperatingStatus(shopId, LocalDateTime.now())
             .name();
 
+        // 배달팁·공휴일은 시각 의존 값이라 이 응답에는 캐시를 두지 않는다(최소주문금액 최신화를 위해
+        // 가게 상세 캐시를 제거한 선례와 같은 이유) — 범위 값 자체는 시각에 의존하지 않지만, 점주가
+        // 설정을 바꾼 직후 상세 화면이 옛 금액을 보여주면 팝업의 확정 금액과 어긋난다.
+        ShopDeliveryTipRangeResult tipRange = shopDeliveryTipQueryDao.findTipRange(shopId);
+
         return ShopDetailResponse.of(
             shop.getId(),
             shop.getName(),
@@ -297,7 +347,245 @@ public class ShopQueryService {
             phoneNumbers,
             trademarkImageUrl,
             operatingStatus,
-            shop.getMinOrderAmount()
+            shop.getMinOrderAmount(),
+            tipRange.minDeliveryTip(),
+            tipRange.maxDeliveryTip()
+        );
+    }
+
+    /**
+     * 배달팁 팝업·재견적 조회.
+     *
+     * <p>{@code memberId}·{@code deliveryAddressId}·{@code orderAmount}가 모두 있으면 <b>확정 모드</b>다 —
+     * 주소를 로드해 소유권을 검증하고, 가게 좌표와의 직선거리·공휴일 여부를 해석해
+     * {@link ShopDeliveryTipCalculator}에 넘긴다. 하나라도 없으면 <b>범위 모드</b>로 떨어뜨려
+     * {@code deliveryTip}을 {@code null}로 둔다(비로그인 사용자도 팝업을 열 수 있어야 한다).
+     *
+     * <p>확정 계산 입력은 write 포트({@code ShopDeliveryTipRepository})에서 도메인 모델로 읽는다 —
+     * 계산기가 도메인 모델을 받으므로 표현용 Result를 도메인으로 되돌리는 변환을 두지 않기 위함이다.
+     * 화면 표기용 목록(지역 이름 조립 등)만 infra query DAO에서 받는다.
+     */
+    public ShopDeliveryTipResponse getShopDeliveryTip(
+        Long shopId,
+        Long memberId,
+        Long deliveryAddressId,
+        Integer orderAmount,
+        String orderMethod
+    ) {
+        Shop shop = findVisibleShop(shopId);
+
+        ShopDeliveryTipRangeResult tipRange = shopDeliveryTipQueryDao.findTipRange(shopId);
+        ShopDeliveryTipSettingResult setting = shopDeliveryTipQueryDao.findSetting(shopId).orElse(null);
+
+        // 구간 Result는 응답 매핑과 breakdown 문구(적용 구간의 하한 금액) 양쪽이 쓰므로 지역 변수로 잡는다.
+        List<ShopDeliveryTipTierResult> tierResults = shopDeliveryTipQueryDao.findTiers(shopId);
+        List<ShopDeliveryTipTierItem> tiers = tierResults.stream()
+            .map(this::toShopDeliveryTipTierItem)
+            .toList();
+        List<ShopDeliveryTipRegionItem> regions = shopDeliveryTipQueryDao.findRegionTips(shopId).stream()
+            .map(this::toShopDeliveryTipRegionItem)
+            .toList();
+        List<ShopDeliveryTipScheduleItem> schedules = shopDeliveryTipQueryDao.findScheduleTips(shopId).stream()
+            .map(this::toShopDeliveryTipScheduleItem)
+            .toList();
+
+        ShopDeliveryTipBreakdown breakdown = calculateDeliveryTip(
+            shop, memberId, deliveryAddressId, orderAmount, orderMethod
+        );
+
+        return ShopDeliveryTipResponse.of(
+            breakdown == null ? null : breakdown.totalTipAmount(),
+            tipRange.minDeliveryTip(),
+            tipRange.maxDeliveryTip(),
+            toShopDeliveryTipBreakdownItems(breakdown, orderAmount, setting, tierResults),
+            tiers,
+            setting == null ? DeliveryTipExtraType.NONE.name() : setting.extraTipType(),
+            toShopDeliveryTipDistanceItem(setting),
+            regions,
+            schedules,
+            shopDeliveryTipQueryDao.findHolidayTipAmount(shopId)
+        );
+    }
+
+    /**
+     * 확정 배달팁을 산출한다 — 확정에 필요한 입력이 하나라도 없으면 {@code null}을 돌려 범위 모드로
+     * 떨어뜨린다. 주소가 본인 것이 아니면 남의 주소로 배달팁을 떠보는 경로가 되므로 거절한다.
+     */
+    private ShopDeliveryTipBreakdown calculateDeliveryTip(
+        Shop shop,
+        Long memberId,
+        Long deliveryAddressId,
+        Integer orderAmount,
+        String orderMethod
+    ) {
+        if (memberId == null || deliveryAddressId == null || orderAmount == null) {
+            return null;
+        }
+
+        MemberDeliveryAddress deliveryAddress = memberDeliveryAddressRepository.findById(deliveryAddressId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
+        if (!deliveryAddress.isOwnedBy(MemberId.of(memberId))) {
+            throw new BusinessException(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        ShopId typedShopId = ShopId.of(shop.getId());
+
+        return shopDeliveryTipCalculator.calculate(ShopDeliveryTipContext.of(
+            OrderMethod.from(orderMethod),
+            orderAmount,
+            deliveryDistanceMeters(shop, deliveryAddress),
+            deliveryAddress.getAdminDongId(),
+            now,
+            publicHolidayCalendar.isPublicHoliday(now.toLocalDate()),
+            shopDeliveryTipRepository.findSettingByShopId(typedShopId).orElse(null),
+            shopDeliveryTipRepository.findTiersByShopId(typedShopId),
+            shopDeliveryTipRepository.findRegionTipsByShopId(typedShopId),
+            shopDeliveryTipRepository.findScheduleTipsByShopId(typedShopId),
+            shopDeliveryTipRepository.findHolidayTipByShopId(typedShopId).orElse(null)
+        ));
+    }
+
+    /**
+     * 가게~배달지 직선거리(m). 어느 한쪽 좌표라도 없으면 {@code null}을 돌려 거리별 할증을 0으로 둔다 —
+     * 좌표 없는 주소는 저장 단계에서 막지만, 불변식 도입 이전 데이터가 남아 있을 수 있다.
+     */
+    private Double deliveryDistanceMeters(Shop shop, MemberDeliveryAddress deliveryAddress) {
+        if (shop.getLatitude() == null || shop.getLongitude() == null
+            || deliveryAddress.getLatitude() == null || deliveryAddress.getLongitude() == null) {
+            return null;
+        }
+        return GeoDistance.distanceMeters(
+            shop.getLatitude(),
+            shop.getLongitude(),
+            deliveryAddress.getLatitude(),
+            deliveryAddress.getLongitude()
+        );
+    }
+
+    /**
+     * 항목별 금액을 사람이 읽는 근거 문구와 함께 나열한다. <b>금액이 0인 항목은 넣지 않는다</b> —
+     * "지역별 추가 0원" 같은 줄은 근거가 아니라 잡음이다.
+     *
+     * <p>문구를 서버가 만드는 것은 어떤 설정이 그 금액을 만들었는지(어느 구간·어느 기본배달거리)가
+     * 계산 결과와 함께여야 의미를 갖기 때문이다. 문구 안의 숫자는 <b>천 단위 콤마까지 서버가 넣는다</b> —
+     * 이 값은 응답의 금액 필드가 아니라 이미 완성된 문장의 일부라, 프론트가 문자열을 뜯어 다시 포맷할
+     * 수 없기 때문이다(금액 필드 자체의 표기 포맷은 그대로 프론트 담당이다).
+     */
+    private List<ShopDeliveryTipBreakdownItem> toShopDeliveryTipBreakdownItems(
+        ShopDeliveryTipBreakdown breakdown,
+        Integer orderAmount,
+        ShopDeliveryTipSettingResult setting,
+        List<ShopDeliveryTipTierResult> tiers
+    ) {
+        if (breakdown == null) {
+            return List.of();
+        }
+
+        List<ShopDeliveryTipBreakdownItem> items = new ArrayList<>();
+        addBreakdownItem(items, baseTipLabel(orderAmount, tiers), breakdown.baseTipAmount());
+        addBreakdownItem(items, distanceTipLabel(setting), breakdown.distanceTipAmount());
+        addBreakdownItem(items, "지역별 추가", breakdown.regionTipAmount());
+        addBreakdownItem(items, "시간대 할증", breakdown.scheduleTipAmount());
+        addBreakdownItem(items, "공휴일 할증", breakdown.holidayTipAmount());
+        return List.copyOf(items);
+    }
+
+    private void addBreakdownItem(List<ShopDeliveryTipBreakdownItem> items, String label, int amount) {
+        if (amount > 0) {
+            items.add(ShopDeliveryTipBreakdownItem.from(label, amount));
+        }
+    }
+
+    /**
+     * 구간별 항목 문구 — <b>실제로 적용된 구간의 하한 금액</b>을 담는다("주문금액 15,000원 이상").
+     *
+     * <p>손님이 입력한 주문금액이 아니라 적용 구간의 경계를 쓰는 이유는, 근거로서 의미 있는 값이
+     * "얼마를 주문했는가"가 아니라 "어느 구간에 걸렸는가"이기 때문이다. 구간 선택 규칙은
+     * {@code ShopDeliveryTipCalculator}와 같아야 하므로 동일하게 <b>조건을 만족하는 구간 중 하한이
+     * 가장 큰 것</b>을 고르고, 최저 구간에도 미달하면 최저 구간을 고른다.
+     */
+    private String baseTipLabel(Integer orderAmount, List<ShopDeliveryTipTierResult> tiers) {
+        if (orderAmount == null || tiers == null || tiers.isEmpty()) {
+            return "기본 배달팁";
+        }
+
+        return tiers.stream()
+            .filter(tier -> orderAmount >= tier.minOrderAmount())
+            .max(Comparator.comparingInt(ShopDeliveryTipTierResult::minOrderAmount))
+            .or(() -> tiers.stream().min(Comparator.comparingInt(ShopDeliveryTipTierResult::minOrderAmount)))
+            .map(tier -> "주문금액 " + formatAmount(tier.minOrderAmount()) + "원 이상")
+            .orElse("기본 배달팁");
+    }
+
+    /**
+     * 거리별 항목 문구 — 기본배달거리를 넘겨야 붙는 할증이므로 그 거리를 문구에 담는다("3km 초과 거리 할증").
+     *
+     * <p>기본배달거리 허용값이 1 / 1.5 / 2 / 2.5 / 3km라 km 환산 시 소수점 한 자리가 필요하며,
+     * 정수로 떨어지면 소수점을 붙이지 않는다(1500m → "1.5km", 3000m → "3km").
+     */
+    private String distanceTipLabel(ShopDeliveryTipSettingResult setting) {
+        if (setting == null || setting.baseDistanceMeters() == null) {
+            return "거리 할증";
+        }
+        return formatKilometers(setting.baseDistanceMeters()) + "km 초과 거리 할증";
+    }
+
+    /** 문구에 들어갈 금액에 천 단위 콤마를 넣는다. */
+    private String formatAmount(int amount) {
+        return String.format(Locale.KOREA, "%,d", amount);
+    }
+
+    /** 미터를 km 문구로 바꾼다 — 정수로 떨어지면 소수점을 생략한다(3000 → "3", 1500 → "1.5"). */
+    private String formatKilometers(int meters) {
+        return meters % 1000 == 0
+            ? String.valueOf(meters / 1000)
+            : String.format(Locale.KOREA, "%.1f", meters / 1000.0);
+    }
+
+    private ShopDeliveryTipTierItem toShopDeliveryTipTierItem(ShopDeliveryTipTierResult dto) {
+        return ShopDeliveryTipTierItem.from(
+            dto.minOrderAmount(),
+            dto.tipAmount()
+        );
+    }
+
+    private ShopDeliveryTipRegionItem toShopDeliveryTipRegionItem(ShopDeliveryTipRegionResult dto) {
+        return ShopDeliveryTipRegionItem.from(
+            dto.regionName(),
+            dto.tipAmount()
+        );
+    }
+
+    private ShopDeliveryTipScheduleItem toShopDeliveryTipScheduleItem(ShopDeliveryTipScheduleResult dto) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        DayType dayType = DayType.from(dto.dayType());
+
+        return ShopDeliveryTipScheduleItem.from(
+            dayType.name(),
+            dayType.getDescription(),
+            dto.startTime() != null ? dto.startTime().format(formatter) : null,
+            dto.endTime() != null ? dto.endTime().format(formatter) : null,
+            dto.tipAmount()
+        );
+    }
+
+    /**
+     * 거리별 설정 3필드를 응답으로 조립한다 — 거리별을 쓰지 않는 가게는 {@code null}을 반환해
+     * 응답의 {@code distance} 필드를 비운다(거리별↔지역별 상호 배타).
+     */
+    private ShopDeliveryTipDistanceItem toShopDeliveryTipDistanceItem(ShopDeliveryTipSettingResult dto) {
+        if (dto == null
+            || !DeliveryTipExtraType.DISTANCE.name().equals(dto.extraTipType())
+            || dto.baseDistanceMeters() == null
+            || dto.surchargeUnit() == null
+            || dto.surchargeAmount() == null) {
+            return null;
+        }
+        return ShopDeliveryTipDistanceItem.from(
+            dto.baseDistanceMeters(),
+            dto.surchargeUnit(),
+            dto.surchargeAmount()
         );
     }
 

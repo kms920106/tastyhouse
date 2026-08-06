@@ -7,7 +7,10 @@ import java.util.UUID;
 import com.tastyhouse.domain.coupon.service.CouponIssueService;
 import com.tastyhouse.domain.coupon.service.CouponUseResult;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
+import com.tastyhouse.domain.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
+import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
@@ -17,6 +20,7 @@ import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.repository.OrderProductOptionRepository;
 import com.tastyhouse.domain.order.repository.OrderProductRepository;
 import com.tastyhouse.domain.order.repository.OrderRepository;
+import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.point.service.PointLedgerService;
 import com.tastyhouse.domain.product.model.Product;
@@ -29,9 +33,16 @@ import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
+import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
+import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -74,7 +85,30 @@ public class OrderPlacementService {
     private final ProductImageRepository productImageRepository;
     private final CouponIssueService couponIssueService;
     private final PointLedgerService pointLedgerService;
+    private final ShopDeliveryTipRepository shopDeliveryTipRepository;
+    private final ShopDeliveryAreaRepository shopDeliveryAreaRepository;
+    private final MemberDeliveryAddressRepository memberDeliveryAddressRepository;
+    private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
+    private final PublicHolidayCalendar publicHolidayCalendar;
 
+    /**
+     * @param orderRepository                 주문 헤더 저장·재저장(금액 확정 반영)
+     * @param orderProductRepository          상품 라인 저장·가격 갱신
+     * @param orderProductOptionRepository    라인 옵션 저장
+     * @param shopRepository                  가게 존재 확인과 최소주문금액·좌표 조회
+     * @param memberRepository                주문자 정보(이름·연락처) 조회
+     * @param productRepository               상품 존재·판매중지·가격 조회
+     * @param productOptionGroupRepository    선택 옵션의 그룹 존재 확인
+     * @param productOptionRepository         선택 옵션 존재·추가금 조회
+     * @param productImageRepository          상품 대표 이미지 경로 스냅샷
+     * @param couponIssueService              쿠폰 사용 처리(할인액 산출·상태 전이)
+     * @param pointLedgerService              포인트 차감 원장 기록
+     * @param shopDeliveryTipRepository       배달팁 설정 5종 조회(계산기 입력 구성)
+     * @param shopDeliveryAreaRepository      배달가능지역 등록 여부·포함 여부 판정
+     * @param memberDeliveryAddressRepository 배달 주소 로드(좌표는 여기서만 읽는다 — 위조 방지)
+     * @param shopDeliveryTipCalculator       배달팁 산출(리포지토리 없는 순수 계산기)
+     * @param publicHolidayCalendar           접수 시각의 공휴일 여부 판정
+     */
     public OrderPlacementService(
         OrderRepository orderRepository,
         OrderProductRepository orderProductRepository,
@@ -86,7 +120,12 @@ public class OrderPlacementService {
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
         CouponIssueService couponIssueService,
-        PointLedgerService pointLedgerService
+        PointLedgerService pointLedgerService,
+        ShopDeliveryTipRepository shopDeliveryTipRepository,
+        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
+        MemberDeliveryAddressRepository memberDeliveryAddressRepository,
+        ShopDeliveryTipCalculator shopDeliveryTipCalculator,
+        PublicHolidayCalendar publicHolidayCalendar
     ) {
         this.orderRepository = orderRepository;
         this.orderProductRepository = orderProductRepository;
@@ -99,15 +138,25 @@ public class OrderPlacementService {
         this.productImageRepository = productImageRepository;
         this.couponIssueService = couponIssueService;
         this.pointLedgerService = pointLedgerService;
+        this.shopDeliveryTipRepository = shopDeliveryTipRepository;
+        this.shopDeliveryAreaRepository = shopDeliveryAreaRepository;
+        this.memberDeliveryAddressRepository = memberDeliveryAddressRepository;
+        this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
+        this.publicHolidayCalendar = publicHolidayCalendar;
     }
 
     /**
-     * 주문을 접수한다 — 가게·회원 존재 확인 → 주문 헤더 생성 → 상품 라인·옵션 생성과 금액 집계 →
-     * 가게 최소주문금액 검증 → 쿠폰·포인트 사용 → 금액 대조 검증 → 헤더 금액 반영.
+     * 주문을 접수한다(9단계) — 가게·회원 존재 확인 → 주문 헤더 생성 → 상품 라인·옵션 생성과 금액 집계 →
+     * 가게 최소주문금액 검증 → <b>배달 목적지 확정과 배달팁 산출</b> → 쿠폰·포인트 사용 → 금액 대조 검증
+     * → 헤더 금액 반영.
      *
      * <p>가게 최소주문금액 검증은 상품 할인까지 반영한 금액을 기준으로 쿠폰·포인트 사용 <b>전에</b> 수행한다
      * (판정 기준과 면제 조건은 {@code Shop#validateMinOrderAmount} 참고). 이 검증은 쿠폰 자체의 최소주문금액
-     * 검증({@code Coupon#validateMinOrderAmount})과 별개다.
+     * 검증({@code Coupon#validateMinOrderAmount})과 별개이며, <b>배달팁은 그 판정 기준에 포함되지 않는다</b> —
+     * 포함하면 팁이 비싼 가게일수록 최소주문 문턱이 낮아지는 역설이 생긴다.
+     *
+     * <p>쿠폰·포인트의 할인 기준과 상한에도 배달팁은 <b>포함되지 않는다</b> — 팁만 남기고 상품값을 0으로
+     * 만드는 조합을 차단하고, 팁은 프로모션 재원과 성격이 다르기 때문이다.
      *
      * @return 생성된 주문 식별자
      */
@@ -127,7 +176,7 @@ public class OrderPlacementService {
             member.getFullName(),
             member.getPhoneNumber().value(),
             member.getUsername(),
-            0, 0, 0, 0, 0, 0, null, 0, 0
+            0, 0, 0, 0, 0, 0, 0, OrderDeliveryDestination.none(), null, 0, 0
         );
         Order savedOrder = orderRepository.save(order);
 
@@ -176,6 +225,10 @@ public class OrderPlacementService {
         int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
         shop.validateMinOrderAmount(placement.orderMethod(), orderAmountAfterProductDiscount);
 
+        DeliveryTipResolution deliveryTip = resolveDeliveryTip(shop, shopId, memberId, placement,
+            orderAmountAfterProductDiscount);
+        int deliveryTipAmount = deliveryTip.breakdown().totalTipAmount();
+
         int couponDiscountAmount = 0;
         MemberCouponId memberCouponId = null;
         if (placement.memberCouponId() != null) {
@@ -193,16 +246,96 @@ public class OrderPlacementService {
         }
 
         int totalDiscountAmount = productDiscountAmount + couponDiscountAmount + pointDiscountAmount;
-        int finalAmount = totalProductAmount - totalDiscountAmount;
+        // 배달팁은 이 도메인에서 유일하게 더해지는 금액 항목이다(나머지는 전부 차감).
+        int finalAmount = totalProductAmount - totalDiscountAmount + deliveryTipAmount;
 
         validateAmounts(placement, totalProductAmount, totalDiscountAmount, productDiscountAmount,
-            couponDiscountAmount, pointDiscountAmount, finalAmount);
+            couponDiscountAmount, pointDiscountAmount, deliveryTipAmount, finalAmount);
 
         savedOrder.updateAmounts(totalProductAmount, productDiscountAmount, couponDiscountAmount,
-            pointDiscountAmount, totalDiscountAmount, finalAmount, memberCouponId, pointDiscountAmount);
+            pointDiscountAmount, totalDiscountAmount, deliveryTipAmount, finalAmount,
+            deliveryTip.destination(), memberCouponId, pointDiscountAmount);
         orderRepository.save(savedOrder);
 
         return savedOrder.getOrderId();
+    }
+
+    /**
+     * 5단계 — 배달 목적지를 확정하고 배달팁을 산출한다(배달이 아닌 주문은 목적지 없음 · 팁 0원).
+     *
+     * <p>이 단계를 쿠폰·포인트보다 <b>앞</b>에 두는 이유는 주소 누락·배달불가 지역 실패가 쿠폰이 소모되기
+     * 전에 터져야 진단이 단순하기 때문이다(롤백은 되지만 실패 지점이 앞설수록 좋다).
+     *
+     * <p><b>좌표는 저장된 주소에서만 읽는다.</b> 클라이언트는 {@code deliveryAddressId}만 보내며,
+     * 좌표를 요청 본문으로 받으면 가짜 좌표로 거리별 팁을 0원까지 낮출 수 있다.
+     *
+     * <p>확정 시각은 <b>주문 접수 시점의 서버 시각</b>이다. 주문서 진입 시점과 시간별 팁 구간이 달라지면
+     * 8단계 금액 대조에서 거절되고 프론트가 재견적 후 재시도한다 — "화면에서 본 시점이 아니라 결제하는
+     * 시점이 기준"이라는 기존 품절 검사 철학과 같은 선택이며, 조용히 다른 금액을 결제시키지 않는다.
+     */
+    private DeliveryTipResolution resolveDeliveryTip(
+        Shop shop,
+        ShopId shopId,
+        MemberId memberId,
+        OrderPlacement placement,
+        int orderAmountAfterProductDiscount
+    ) {
+        if (placement.orderMethod() != OrderMethod.DELIVERY) {
+            return new DeliveryTipResolution(OrderDeliveryDestination.none(), ShopDeliveryTipBreakdown.none());
+        }
+
+        if (placement.deliveryAddressId() == null) {
+            throw new BusinessException(ErrorCode.ORDER_DELIVERY_ADDRESS_REQUIRED);
+        }
+
+        MemberDeliveryAddress address = memberDeliveryAddressRepository.findById(placement.deliveryAddressId())
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
+        if (!address.isOwnedBy(memberId)) {
+            throw new BusinessException(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
+        }
+
+        validateDeliveryArea(shopId, address);
+
+        double meters = GeoDistance.distanceMeters(
+            shop.getLatitude(), shop.getLongitude(), address.getLatitude(), address.getLongitude()
+        );
+        LocalDateTime orderedAt = LocalDateTime.now();
+
+        ShopDeliveryTipBreakdown breakdown = shopDeliveryTipCalculator.calculate(ShopDeliveryTipContext.of(
+            placement.orderMethod(),
+            orderAmountAfterProductDiscount,
+            meters,
+            address.getAdminDongId(),
+            orderedAt,
+            publicHolidayCalendar.isPublicHoliday(orderedAt.toLocalDate()),
+            shopDeliveryTipRepository.findSettingByShopId(shopId).orElse(null),
+            shopDeliveryTipRepository.findTiersByShopId(shopId),
+            shopDeliveryTipRepository.findRegionTipsByShopId(shopId),
+            shopDeliveryTipRepository.findScheduleTipsByShopId(shopId),
+            shopDeliveryTipRepository.findHolidayTipByShopId(shopId).orElse(null)
+        ));
+
+        return new DeliveryTipResolution(
+            OrderDeliveryDestination.of(address, (int) Math.round(meters)),
+            breakdown
+        );
+    }
+
+    /**
+     * 배달지가 가게의 배달가능지역에 드는지 검증한다.
+     *
+     * <p><b>배달가능지역을 하나도 등록하지 않은 가게는 검사를 생략한다.</b> 기존 데이터의 모든 가게가
+     * 0건이므로, 항상 거절하면 배포 즉시 전 가게의 배달 주문이 막힌다. "정보를 안 넣은 것을 닫힌 것으로
+     * 보지 않는다"는 이 도메인의 기존 원칙(영업시간 미입력을 준비중으로 오판하지 않는 것)과도 일치한다.
+     */
+    private void validateDeliveryArea(ShopId shopId, MemberDeliveryAddress address) {
+        if (shopDeliveryAreaRepository.countByShopId(shopId) == 0) {
+            return;
+        }
+        if (address.getAdminDongId() == null
+            || !shopDeliveryAreaRepository.existsByShopIdAndAdminDongId(shopId, address.getAdminDongId())) {
+            throw new BusinessException(ErrorCode.ORDER_DELIVERY_AREA_NOT_COVERED);
+        }
     }
 
     /**
@@ -247,6 +380,7 @@ public class OrderPlacementService {
         int productDiscountAmount,
         int couponDiscountAmount,
         int pointDiscountAmount,
+        int deliveryTipAmount,
         int finalAmount
     ) {
         if (!placement.totalProductAmount().equals(totalProductAmount)) {
@@ -269,10 +403,26 @@ public class OrderPlacementService {
             throw new BusinessException(ErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH,
                 ErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.totalDiscountAmount() + ", 계산: " + totalDiscountAmount);
         }
+        if (!placement.deliveryTipAmount().equals(deliveryTipAmount)) {
+            throw new BusinessException(ErrorCode.ORDER_DELIVERY_TIP_AMOUNT_MISMATCH,
+                ErrorCode.ORDER_DELIVERY_TIP_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.deliveryTipAmount() + ", 계산: " + deliveryTipAmount);
+        }
         if (!placement.finalAmount().equals(finalAmount)) {
             throw new BusinessException(ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH,
                 ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.finalAmount() + ", 계산: " + finalAmount);
         }
+    }
+
+    /**
+     * 5단계 산출 결과 — 배달 목적지 스냅샷과 배달팁 내역을 함께 나른다.
+     *
+     * <p>둘은 같은 조회(주소 로드 + 거리 산출)에서 함께 나오고 9단계에서 함께 소비되므로, 둘을 따로
+     * 돌려주면 호출부가 두 값을 짝지어 들고 다녀야 한다.
+     */
+    private record DeliveryTipResolution(
+        OrderDeliveryDestination destination,
+        ShopDeliveryTipBreakdown breakdown
+    ) {
     }
 
     private String generateOrderNumber() {

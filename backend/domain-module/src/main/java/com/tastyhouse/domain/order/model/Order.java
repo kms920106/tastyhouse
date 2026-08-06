@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -34,7 +35,9 @@ public class Order {
     private Integer couponDiscountAmount; // 쿠폰 할인 금액
     private Integer pointDiscountAmount; // 포인트 할인 금액
     private Integer totalDiscountAmount; // 총 할인 금액
-    private Integer finalAmount; // 최종 결제 금액
+    private Integer deliveryTipAmount; // 배달팁 (finalAmount에 가산되는 유일한 항목)
+    private Integer finalAmount; // 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁)
+    private OrderDeliveryDestination deliveryDestination; // 주문 시점 배달 목적지 스냅샷 (배달 외 주문은 빈 값)
     private MemberCouponId memberCouponId; // 사용한 회원 쿠폰 ID
     private Integer usedPoint; // 사용한 포인트
     private Integer earnedPoint; // 적립된 포인트
@@ -57,7 +60,9 @@ public class Order {
         Integer couponDiscountAmount,
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount,
+        OrderDeliveryDestination deliveryDestination,
         MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -79,7 +84,9 @@ public class Order {
         this.couponDiscountAmount = couponDiscountAmount;
         this.pointDiscountAmount = pointDiscountAmount;
         this.totalDiscountAmount = totalDiscountAmount;
+        this.deliveryTipAmount = deliveryTipAmount;
         this.finalAmount = finalAmount;
+        this.deliveryDestination = deliveryDestination;
         this.memberCouponId = memberCouponId;
         this.usedPoint = usedPoint;
         this.earnedPoint = earnedPoint;
@@ -112,7 +119,9 @@ public class Order {
         Integer couponDiscountAmount,
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount,
+        OrderDeliveryDestination deliveryDestination,
         MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint
@@ -122,6 +131,7 @@ public class Order {
         int normalizedCouponDiscount = orZero(couponDiscountAmount);
         int normalizedPointDiscount = orZero(pointDiscountAmount);
         int normalizedTotalDiscount = orZero(totalDiscountAmount);
+        int normalizedDeliveryTip = orZero(deliveryTipAmount);
         int normalizedFinalAmount = orZero(finalAmount);
         int normalizedUsedPoint = orZero(usedPoint);
 
@@ -131,6 +141,7 @@ public class Order {
             normalizedCouponDiscount,
             normalizedPointDiscount,
             normalizedTotalDiscount,
+            normalizedDeliveryTip,
             normalizedFinalAmount,
             normalizedUsedPoint
         );
@@ -150,7 +161,9 @@ public class Order {
             normalizedCouponDiscount,
             normalizedPointDiscount,
             normalizedTotalDiscount,
+            normalizedDeliveryTip,
             normalizedFinalAmount,
+            deliveryDestination != null ? deliveryDestination : OrderDeliveryDestination.none(),
             memberCouponId,
             normalizedUsedPoint,
             orZero(earnedPoint),
@@ -182,7 +195,9 @@ public class Order {
         Integer couponDiscountAmount,
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount,
+        OrderDeliveryDestination deliveryDestination,
         MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -205,7 +220,9 @@ public class Order {
             couponDiscountAmount,
             pointDiscountAmount,
             totalDiscountAmount,
+            deliveryTipAmount,
             finalAmount,
+            deliveryDestination,
             memberCouponId,
             usedPoint,
             earnedPoint,
@@ -271,8 +288,21 @@ public class Order {
         return this.totalDiscountAmount;
     }
 
+    /** 배달팁. 이 도메인에서 {@code finalAmount}에 유일하게 가산되는 항목이다. */
+    public Integer getDeliveryTipAmount() {
+        return this.deliveryTipAmount;
+    }
+
     public Integer getFinalAmount() {
         return this.finalAmount;
+    }
+
+    /**
+     * 주문 시점 배달 목적지 스냅샷. 배달이 아닌 주문은 전 필드가 null인 빈 값이다
+     * ({@link OrderDeliveryDestination#none()}).
+     */
+    public OrderDeliveryDestination getDeliveryDestination() {
+        return this.deliveryDestination;
     }
 
     public MemberCouponId getMemberCouponId() {
@@ -370,7 +400,7 @@ public class Order {
      * 확정된 주문 금액을 반영한다 — 애그리거트 불변식으로 금액 정합을 스스로 검증한다.
      *
      * <p>검증 항목: 모든 금액 음수 금지, {@code totalDiscountAmount == productDiscount + couponDiscount +
-     * pointDiscount}, {@code finalAmount == totalProductAmount - totalDiscountAmount}.
+     * pointDiscount}, {@code finalAmount == totalProductAmount - totalDiscountAmount + deliveryTipAmount}.
      *
      * <p>{@code OrderPlacementService#validateAmounts}의 검증과 역할이 다르다 — 그쪽은 "클라이언트가 보낸
      * 금액과 서버 계산이 같은지" 대조(위조 방지)이고, 이쪽은 "저장되는 금액 자체가 성립하는지"를 보는
@@ -382,7 +412,9 @@ public class Order {
         Integer couponDiscountAmount,
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount,
+        OrderDeliveryDestination deliveryDestination,
         MemberCouponId memberCouponId,
         Integer usedPoint
     ) {
@@ -391,6 +423,7 @@ public class Order {
         int normalizedCouponDiscount = orZero(couponDiscountAmount);
         int normalizedPointDiscount = orZero(pointDiscountAmount);
         int normalizedTotalDiscount = orZero(totalDiscountAmount);
+        int normalizedDeliveryTip = orZero(deliveryTipAmount);
         int normalizedFinalAmount = orZero(finalAmount);
         int normalizedUsedPoint = orZero(usedPoint);
 
@@ -400,6 +433,7 @@ public class Order {
             normalizedCouponDiscount,
             normalizedPointDiscount,
             normalizedTotalDiscount,
+            normalizedDeliveryTip,
             normalizedFinalAmount,
             normalizedUsedPoint
         );
@@ -409,7 +443,9 @@ public class Order {
         this.couponDiscountAmount = normalizedCouponDiscount;
         this.pointDiscountAmount = normalizedPointDiscount;
         this.totalDiscountAmount = normalizedTotalDiscount;
+        this.deliveryTipAmount = normalizedDeliveryTip;
         this.finalAmount = normalizedFinalAmount;
+        this.deliveryDestination = deliveryDestination != null ? deliveryDestination : OrderDeliveryDestination.none();
         this.memberCouponId = memberCouponId;
         this.usedPoint = normalizedUsedPoint;
     }
@@ -430,11 +466,13 @@ public class Order {
         int couponDiscountAmount,
         int pointDiscountAmount,
         int totalDiscountAmount,
+        int deliveryTipAmount,
         int finalAmount,
         int usedPoint
     ) {
         if (totalProductAmount < 0 || productDiscountAmount < 0 || couponDiscountAmount < 0
-            || pointDiscountAmount < 0 || totalDiscountAmount < 0 || finalAmount < 0 || usedPoint < 0) {
+            || pointDiscountAmount < 0 || totalDiscountAmount < 0 || deliveryTipAmount < 0
+            || finalAmount < 0 || usedPoint < 0) {
             throw new BusinessException(ErrorCode.ORDER_AMOUNT_NEGATIVE);
         }
 
@@ -445,11 +483,14 @@ public class Order {
                     + " 총 할인: " + totalDiscountAmount + ", 항목 합: " + discountSum);
         }
 
-        if (finalAmount != totalProductAmount - totalDiscountAmount) {
+        // 배달팁은 이 코드베이스에서 유일하게 finalAmount에 '더해지는' 항목이다.
+        // 기존 행은 delivery_tip_amount = 0이라 식이 '+0'으로 그대로 성립한다(기존 데이터 무손상).
+        int expectedFinal = totalProductAmount - totalDiscountAmount + deliveryTipAmount;
+        if (finalAmount != expectedFinal) {
             throw new BusinessException(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT,
                 ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT.getDefaultMessage()
                     + " 결제 금액: " + finalAmount
-                    + ", 상품 금액 - 총 할인: " + (totalProductAmount - totalDiscountAmount));
+                    + ", 상품 금액 - 총 할인 + 배달팁: " + expectedFinal);
         }
     }
 

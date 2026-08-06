@@ -138,7 +138,9 @@ public class SearchQueryService {
             dto.rating(),
             dto.imageUrl(),
             dto.bookmarked(),
-            dto.minOrderAmount()
+            dto.minOrderAmount(),
+            dto.minDeliveryTip(),
+            dto.maxDeliveryTip()
         );
     }
 }

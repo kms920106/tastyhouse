@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -68,8 +72,30 @@ public class OrderJpaEntity extends BaseEntity {
     @Column(name = "total_discount_amount", nullable = false)
     private Integer totalDiscountAmount; // 총 할인 금액
 
+    @Column(name = "delivery_tip_amount", nullable = false)
+    private Integer deliveryTipAmount; // 배달팁 (final_amount에 가산되는 유일한 항목)
+
     @Column(name = "final_amount", nullable = false)
-    private Integer finalAmount; // 최종 결제 금액
+    private Integer finalAmount; // 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁)
+
+    /**
+     * 주문 시점 배달 목적지 스냅샷 7컬럼.
+     *
+     * <p>주소를 FK가 아니라 복사하는 이유는 이 도메인의 원칙(주문 당시 값 고정)과 일치시키기 위해서다 —
+     * 회원이 주소록을 수정·삭제해도 과거 주문의 배달팁 산출 근거가 사라지면 안 된다. 배달이 아닌 주문은
+     * 7컬럼이 전부 null이므로 모두 nullable이다.
+     */
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "roadAddress", column = @Column(name = "delivery_road_address", length = 500)),
+        @AttributeOverride(name = "lotAddress", column = @Column(name = "delivery_lot_address", length = 500)),
+        @AttributeOverride(name = "detailAddress", column = @Column(name = "delivery_detail_address", length = 200)),
+        @AttributeOverride(name = "adminDongId", column = @Column(name = "delivery_admin_dong_id")),
+        @AttributeOverride(name = "latitude", column = @Column(name = "delivery_latitude", precision = 9, scale = 6)),
+        @AttributeOverride(name = "longitude", column = @Column(name = "delivery_longitude", precision = 9, scale = 6)),
+        @AttributeOverride(name = "distanceMeters", column = @Column(name = "delivery_distance_meters"))
+    })
+    private OrderDeliveryDestination deliveryDestination; // 주문 시점 배달 목적지 스냅샷
 
     @Column(name = "member_coupon_id")
     private Long memberCouponId; // 사용한 회원 쿠폰 ID
@@ -100,7 +126,9 @@ public class OrderJpaEntity extends BaseEntity {
         Integer couponDiscountAmount,
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount,
+        OrderDeliveryDestination deliveryDestination,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -119,7 +147,9 @@ public class OrderJpaEntity extends BaseEntity {
         this.couponDiscountAmount = couponDiscountAmount;
         this.pointDiscountAmount = pointDiscountAmount;
         this.totalDiscountAmount = totalDiscountAmount;
+        this.deliveryTipAmount = deliveryTipAmount;
         this.finalAmount = finalAmount;
+        this.deliveryDestination = deliveryDestination;
         this.memberCouponId = memberCouponId;
         this.usedPoint = usedPoint;
         this.earnedPoint = earnedPoint;
@@ -143,7 +173,9 @@ public class OrderJpaEntity extends BaseEntity {
         Integer couponDiscountAmount,
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount,
+        OrderDeliveryDestination deliveryDestination,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -163,7 +195,9 @@ public class OrderJpaEntity extends BaseEntity {
             couponDiscountAmount,
             pointDiscountAmount,
             totalDiscountAmount,
+            deliveryTipAmount,
             finalAmount,
+            deliveryDestination,
             memberCouponId,
             usedPoint,
             earnedPoint,
@@ -181,7 +215,9 @@ public class OrderJpaEntity extends BaseEntity {
         Integer couponDiscountAmount,
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
+        Integer deliveryTipAmount,
         Integer finalAmount,
+        OrderDeliveryDestination deliveryDestination,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -193,7 +229,9 @@ public class OrderJpaEntity extends BaseEntity {
         this.couponDiscountAmount = couponDiscountAmount;
         this.pointDiscountAmount = pointDiscountAmount;
         this.totalDiscountAmount = totalDiscountAmount;
+        this.deliveryTipAmount = deliveryTipAmount;
         this.finalAmount = finalAmount;
+        this.deliveryDestination = deliveryDestination;
         this.memberCouponId = memberCouponId;
         this.usedPoint = usedPoint;
         this.earnedPoint = earnedPoint;
@@ -258,6 +296,14 @@ public class OrderJpaEntity extends BaseEntity {
 
     public Integer getFinalAmount() {
         return this.finalAmount;
+    }
+
+    public Integer getDeliveryTipAmount() {
+        return this.deliveryTipAmount;
+    }
+
+    public OrderDeliveryDestination getDeliveryDestination() {
+        return this.deliveryDestination;
     }
 
     public Long getMemberCouponId() {

@@ -61,10 +61,16 @@ public class ShopSearchQueryDao {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+    private final ShopDeliveryTipQueryDao shopDeliveryTipQueryDao;
 
-    public ShopSearchQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+    public ShopSearchQueryDao(
+        JPAQueryFactory queryFactory,
+        FileUrlResolver fileUrlResolver,
+        ShopDeliveryTipQueryDao shopDeliveryTipQueryDao
+    ) {
         this.queryFactory = queryFactory;
         this.fileUrlResolver = fileUrlResolver;
+        this.shopDeliveryTipQueryDao = shopDeliveryTipQueryDao;
     }
 
     /**
@@ -120,6 +126,7 @@ public class ShopSearchQueryDao {
         var stationMap = stationNamesByShopId(shopIds);
         var thumbnailMap = thumbnailUrlsByShopId(shopIds);
         var foodTypeMap = foodTypesByShopId(shopIds);
+        var tipRangeMap = shopDeliveryTipQueryDao.findTipRanges(shopIds);
 
         List<BestShopItemResult> content = pagedShops.stream()
             .map(shop -> new BestShopItemResult(
@@ -129,7 +136,9 @@ public class ShopSearchQueryDao {
                 shop.getRating(),
                 thumbnailMap.get(shop.getId()),
                 foodTypeMap.getOrDefault(shop.getId(), List.of()),
-                shop.getMinOrderAmount()
+                shop.getMinOrderAmount(),
+                minDeliveryTip(tipRangeMap, shop.getId()),
+                maxDeliveryTip(tipRangeMap, shop.getId())
             ))
             .toList();
 
@@ -216,6 +225,7 @@ public class ShopSearchQueryDao {
         var foodTypeMap = foodTypesByShopId(shopIds);
         var reviewCountMap = reviewCountsByShopId(shopIds);
         var bookmarkCountMap = bookmarkCountsByShopId(shopIds);
+        var tipRangeMap = shopDeliveryTipQueryDao.findTipRanges(shopIds);
 
         List<LatestShopItemResult> content = pagedShops.stream()
             .map(shop -> new LatestShopItemResult(
@@ -228,7 +238,9 @@ public class ShopSearchQueryDao {
                 reviewCountMap.getOrDefault(shop.getId(), 0L),
                 bookmarkCountMap.getOrDefault(shop.getId(), 0L),
                 foodTypeMap.getOrDefault(shop.getId(), List.of()),
-                shop.getMinOrderAmount()
+                shop.getMinOrderAmount(),
+                minDeliveryTip(tipRangeMap, shop.getId()),
+                maxDeliveryTip(tipRangeMap, shop.getId())
             ))
             .toList();
 
@@ -273,6 +285,8 @@ public class ShopSearchQueryDao {
                 .where(shopBookmarkJpaEntity.shopId.in(shopIds), shopBookmarkJpaEntity.memberId.eq(memberId))
                 .fetch());
 
+        var tipRangeMap = shopDeliveryTipQueryDao.findTipRanges(shopIds);
+
         List<ShopBookmarkedItemResult> content = pagedShops.stream()
             .map(shop -> new ShopBookmarkedItemResult(
                 shop.getId(),
@@ -282,7 +296,9 @@ public class ShopSearchQueryDao {
                 shop.getRating(),
                 thumbnailMap.get(shop.getId()),
                 bookmarkedShopIds.contains(shop.getId()),
-                shop.getMinOrderAmount()
+                shop.getMinOrderAmount(),
+                minDeliveryTip(tipRangeMap, shop.getId()),
+                maxDeliveryTip(tipRangeMap, shop.getId())
             ))
             .toList();
 
@@ -306,7 +322,7 @@ public class ShopSearchQueryDao {
             return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
-        List<ShopBookmarkedItemResult> content = queryFactory
+        List<ShopBookmarkedItemResult> rows = queryFactory
             .select(new QShopBookmarkedItemResult(
                 shopJpaEntity.id,
                 shopBookmarkJpaEntity.id,
@@ -315,7 +331,9 @@ public class ShopSearchQueryDao {
                 shopJpaEntity.rating,
                 uploadedFileJpaEntity.filePath,
                 Expressions.asBoolean(true),
-                shopJpaEntity.minOrderAmount
+                shopJpaEntity.minOrderAmount,
+                Expressions.asNumber(0),
+                Expressions.asNumber(0)
             ))
             .from(shopBookmarkJpaEntity)
             .join(shopJpaEntity).on(shopBookmarkJpaEntity.shopId.eq(shopJpaEntity.id)
@@ -327,9 +345,14 @@ public class ShopSearchQueryDao {
             .orderBy(shopBookmarkJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
+            .fetch();
+
+        var tipRangeMap = shopDeliveryTipQueryDao.findTipRanges(
+            rows.stream().map(ShopBookmarkedItemResult::shopId).toList()
+        );
+
+        List<ShopBookmarkedItemResult> content = rows.stream()
+            .map(row -> withResolvedImageUrlAndTipRange(row, tipRangeMap))
             .toList();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
@@ -490,10 +513,15 @@ public class ShopSearchQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
-     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
+     * 투영된 저장 경로를 표시용 URL로 바꾸고 배달팁 하한/상한을 채워 재조립한다.
+     * {@code @QueryProjection}이 생성자 직접 투영이라 두 변환 모두 투영식에 넣을 수 없어 fetch 직후
+     * 호출한다(배달팁 범위는 올림 계산이 섞여 SQL 집계로 표현되지 않는다 —
+     * {@link ShopDeliveryTipQueryDao#findTipRanges} 참고).
      */
-    private ShopBookmarkedItemResult withResolvedImageUrl(ShopBookmarkedItemResult row) {
+    private ShopBookmarkedItemResult withResolvedImageUrlAndTipRange(
+        ShopBookmarkedItemResult row,
+        Map<Long, ShopDeliveryTipRangeResult> tipRangeMap
+    ) {
         return new ShopBookmarkedItemResult(
             row.shopId(),
             row.bookmarkId(),
@@ -502,7 +530,21 @@ public class ShopSearchQueryDao {
             row.rating(),
             fileUrlResolver.resolve(row.imageUrl()),
             row.bookmarked(),
-            row.minOrderAmount()
+            row.minOrderAmount(),
+            minDeliveryTip(tipRangeMap, row.shopId()),
+            maxDeliveryTip(tipRangeMap, row.shopId())
         );
+    }
+
+    /** 배달팁 하한. 설정이 없는 가게는 0이다. */
+    private int minDeliveryTip(Map<Long, ShopDeliveryTipRangeResult> tipRangeMap, Long shopId) {
+        ShopDeliveryTipRangeResult range = tipRangeMap.get(shopId);
+        return range == null ? 0 : range.minDeliveryTip();
+    }
+
+    /** 배달팁 상한. 설정이 없는 가게는 0이다. */
+    private int maxDeliveryTip(Map<Long, ShopDeliveryTipRangeResult> tipRangeMap, Long shopId) {
+        ShopDeliveryTipRangeResult range = tipRangeMap.get(shopId);
+        return range == null ? 0 : range.maxDeliveryTip();
     }
 }

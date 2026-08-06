@@ -14,6 +14,8 @@ import com.tastyhouse.domain.faq.service.FaqCategoryDeletionPolicy;
 import com.tastyhouse.domain.file.port.FileStoragePort;
 import com.tastyhouse.domain.file.repository.UploadedFileRepository;
 import com.tastyhouse.domain.file.service.FileUploadService;
+import com.tastyhouse.domain.holiday.repository.PublicHolidayRepository;
+import com.tastyhouse.domain.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.domain.mail.port.MailSender;
 import com.tastyhouse.domain.mail.repository.MailVerificationRepository;
 import com.tastyhouse.domain.mail.service.MailVerificationService;
@@ -21,8 +23,10 @@ import com.tastyhouse.domain.member.follow.domain.repository.MemberFollowReposit
 import com.tastyhouse.domain.member.follow.domain.service.MemberFollowService;
 import com.tastyhouse.domain.member.referral.domain.repository.MemberReferralRepository;
 import com.tastyhouse.domain.member.referral.domain.service.ReferralRegistrationService;
+import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.member.repository.MemberWithdrawalRepository;
+import com.tastyhouse.domain.member.service.MemberDeliveryAddressService;
 import com.tastyhouse.domain.member.service.MemberRegistrationService;
 import com.tastyhouse.domain.member.service.MemberWithdrawalService;
 import com.tastyhouse.domain.order.repository.OrderProductOptionRepository;
@@ -52,6 +56,7 @@ import com.tastyhouse.domain.product.service.ProductReviewStatsService;
 import com.tastyhouse.domain.rank.port.MemberReviewCountPort;
 import com.tastyhouse.domain.rank.repository.MemberReviewRankRepository;
 import com.tastyhouse.domain.rank.service.RankSettlementService;
+import com.tastyhouse.domain.region.repository.AdminDongRepository;
 import com.tastyhouse.domain.reservation.repository.ReservationRepository;
 import com.tastyhouse.domain.reservation.repository.ReservationSlotRepository;
 import com.tastyhouse.domain.reservation.service.ReservationBookingService;
@@ -68,6 +73,9 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
 import com.tastyhouse.domain.shop.repository.ShopConvenienceInfoRepository;
+import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
+import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.shop.repository.ShopPhoneNumberRepository;
@@ -79,6 +87,9 @@ import com.tastyhouse.domain.shop.repository.TagRepository;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
 import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
+import com.tastyhouse.domain.shop.service.ShopDeliveryAreaService;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipService;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
@@ -343,7 +354,12 @@ public class DomainServiceConfig {
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
         CouponIssueService couponIssueService,
-        PointLedgerService pointLedgerService
+        PointLedgerService pointLedgerService,
+        ShopDeliveryTipRepository shopDeliveryTipRepository,
+        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
+        MemberDeliveryAddressRepository memberDeliveryAddressRepository,
+        ShopDeliveryTipCalculator shopDeliveryTipCalculator,
+        PublicHolidayCalendar publicHolidayCalendar
     ) {
         return new OrderPlacementService(
             orderRepository,
@@ -356,7 +372,12 @@ public class DomainServiceConfig {
             productOptionRepository,
             productImageRepository,
             couponIssueService,
-            pointLedgerService
+            pointLedgerService,
+            shopDeliveryTipRepository,
+            shopDeliveryAreaRepository,
+            memberDeliveryAddressRepository,
+            shopDeliveryTipCalculator,
+            publicHolidayCalendar
         );
     }
 
@@ -504,6 +525,64 @@ public class DomainServiceConfig {
     @Bean
     public ShopBusinessHourService shopBusinessHourService(ShopDetailRepository shopDetailRepository) {
         return new ShopBusinessHourService(shopDetailRepository);
+    }
+
+    /**
+     * 가게 배달팁 컬렉션 불변식 — 구간 개수·정렬·단조성, 거리별↔지역별 상호 배타, 지역별 팁의 행정동이
+     * 배달가능지역에 속하는지, 같은 요일 시간대 겹침을 검증한다. 컬렉션 3종은 replace-all로 교체한다.
+     */
+    @Bean
+    public ShopDeliveryTipService shopDeliveryTipService(
+        ShopDeliveryTipRepository shopDeliveryTipRepository,
+        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
+        AdminDongRepository adminDongRepository
+    ) {
+        return new ShopDeliveryTipService(shopDeliveryTipRepository, shopDeliveryAreaRepository, adminDongRepository);
+    }
+
+    /**
+     * 배달팁 산출 — 리포지토리 주입 0개·인스턴스 상태 0개의 순수 계산기.
+     * 좌표→거리, 날짜→공휴일 변환은 호출부가 끝내고 이미 해석된 값으로 넘긴다.
+     */
+    @Bean
+    public ShopDeliveryTipCalculator shopDeliveryTipCalculator() {
+        return new ShopDeliveryTipCalculator();
+    }
+
+    /**
+     * 가게 배달가능지역 불변식 — 행정동 존재·중복 등록을 검증하고, 지역별 배달팁이 참조 중인 지역의
+     * 삭제를 차단한다(지역별 팁이 배달불가 지역을 가리키는 상태 방지).
+     */
+    @Bean
+    public ShopDeliveryAreaService shopDeliveryAreaService(
+        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
+        AdminDongRepository adminDongRepository,
+        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup
+    ) {
+        return new ShopDeliveryAreaService(
+            shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup
+        );
+    }
+
+    /**
+     * 법정 공휴일 판정 — 배달팁 공휴일 부과 여부를 캘린더 테이블로 답한다.
+     * 영업상태 판정({@code ShopOperatingStatusService})에는 아직 연결하지 않는다(파급 격리).
+     */
+    @Bean
+    public PublicHolidayCalendar publicHolidayCalendar(PublicHolidayRepository publicHolidayRepository) {
+        return new PublicHolidayCalendar(publicHolidayRepository);
+    }
+
+    /**
+     * 회원 배달 주소록 불변식 — 기본 배송지 유일성, 회원당 10건 한도, 소유권 검증,
+     * 주소 문자열의 행정동 매칭을 담당한다.
+     */
+    @Bean
+    public MemberDeliveryAddressService memberDeliveryAddressService(
+        MemberDeliveryAddressRepository memberDeliveryAddressRepository,
+        AdminDongRepository adminDongRepository
+    ) {
+        return new MemberDeliveryAddressService(memberDeliveryAddressRepository, adminDongRepository);
     }
 
     /**

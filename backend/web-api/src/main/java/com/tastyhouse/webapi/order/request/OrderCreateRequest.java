@@ -27,6 +27,9 @@ public record OrderCreateRequest(
     @Schema(description = "사용할 회원 쿠폰 ID", example = "5")
     Long memberCouponId,
 
+    @Schema(description = "배달 주소 ID. 주문 방법이 DELIVERY면 필수입니다. 서버는 이 주소에 저장된 좌표로만 거리를 계산합니다", example = "12")
+    Long deliveryAddressId,
+
     @NotNull(message = "포인트 사용 금액은 필수입니다")
     @Min(value = 0, message = "포인트 사용 금액은 0 이상이어야 합니다")
     @Schema(description = "포인트 사용 금액", example = "1000", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -52,9 +55,14 @@ public record OrderCreateRequest(
     @Schema(description = "쿠폰 사용 금액", example = "1000", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer couponDiscountAmount,
 
+    @NotNull(message = "배달팁은 필수입니다")
+    @Min(value = 0, message = "배달팁은 0 이상이어야 합니다")
+    @Schema(description = "배달팁(가산 항목). 배달 외 주문 방법은 0", example = "3000", requiredMode = Schema.RequiredMode.REQUIRED)
+    Integer deliveryTipAmount,
+
     @NotNull(message = "결제 금액은 필수입니다")
     @Min(value = 0, message = "결제 금액은 0 이상이어야 합니다")
-    @Schema(description = "최종 결제 금액", example = "21000", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "최종 결제 금액(= 상품 금액 - 총 할인 + 배달팁)", example = "24000", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer finalAmount
 ) {
 }

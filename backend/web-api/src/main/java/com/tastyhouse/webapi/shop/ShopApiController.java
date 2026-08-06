@@ -17,6 +17,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.shop.request.ShopDeliveryTipSearchRequest;
 import com.tastyhouse.webapi.shop.request.ShopMapMarkerSearchRequest;
 import com.tastyhouse.webapi.shop.request.ShopReviewSearchRequest;
 import com.tastyhouse.webapi.shop.request.ShopSearchRequest;
@@ -26,6 +27,7 @@ import com.tastyhouse.webapi.shop.response.ShopEditorChoiceResponse;
 import com.tastyhouse.webapi.shop.response.ShopFoodTypeListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopBannerResponse;
 import com.tastyhouse.webapi.shop.response.ShopBookmarkResponse;
+import com.tastyhouse.webapi.shop.response.ShopDeliveryTipResponse;
 import com.tastyhouse.webapi.shop.response.ShopDetailResponse;
 import com.tastyhouse.webapi.shop.response.ShopInfoResponse;
 import com.tastyhouse.webapi.shop.response.ShopLatestListItemResponse;
@@ -201,6 +203,35 @@ public class ShopApiController {
         }
         boolean bookmarked = shopCommandService.toggleBookmark(id, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(ShopBookmarkResponse.from(bookmarked)));
+    }
+
+    /**
+     * 배달팁 조회·재견적.
+     *
+     * <p><b>상세 초기 렌더 비용이 0</b>이다 — 배달팁 표·지역 목록·시간대 목록은 팝업을 열 때만
+     * 필요하므로 가게 상세({@code /v1/{id}})에 싣지 않고 이 엔드포인트로 분리했다. 상세는 하한/상한
+     * 2필드만 갖는다.
+     *
+     * <p><b>{@code userDetails}는 null일 수 있다.</b> 이 컨트롤러의 경로들은 {@code PublicPaths}에
+     * 등록된 공개 경로이고, 비로그인 사용자도 가게 상세에서 배달팁 팝업을 열 수 있어야 한다. 따라서
+     * 인증을 요구하지 않고, 로그인하지 않았으면 확정 계산을 시도하지 않고 <b>범위 모드</b>로
+     * 떨어뜨린다(배달 주소는 로그인 회원의 주소록에만 있으므로 비로그인은 애초에 확정할 수 없다).
+     */
+    @Operation(summary = "배달팁 조회", description = "가게의 배달팁 설정과 하한/상한을 조회합니다. 로그인 회원이 배달 주소 ID와 주문금액을 함께 주면 확정 배달팁과 산출 근거를 반환합니다.")
+    @GetMapping("/v1/{id}/delivery-tip")
+    public ResponseEntity<ApiResponse<ShopDeliveryTipResponse>> getShopDeliveryTip(
+        @PathVariable Long id,
+        @Valid @ModelAttribute ShopDeliveryTipSearchRequest search,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        ShopDeliveryTipResponse deliveryTip = shopQueryService.getShopDeliveryTip(
+            id,
+            userDetails == null ? null : userDetails.getMemberId(),
+            search.deliveryAddressId(),
+            search.orderAmount(),
+            search.orderMethod()
+        );
+        return ResponseEntity.ok(ApiResponse.success(deliveryTip));
     }
 
     @Operation(summary = "주문 수단 조회", description = "가게에서 주문 가능한 수단을 조회합니다. 테이블 오더, 예약, 포장 정보를 포함합니다.")

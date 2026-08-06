@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.repository.OrderRepository;
 import com.tastyhouse.domain.order.service.OrderTransitionService;
 import com.tastyhouse.domain.order.vo.OrderId;
@@ -249,7 +250,7 @@ class PaymentCancellationServiceTest {
             return Order.reconstitute(
                 ORDER_ID.value(), MEMBER_ID, ShopId.of(1L), "ORD-1", null, orderStatus,
                 "주문자", "01012345678", "orderer@tastyhouse.com",
-                21000, 0, 0, 500, 500, 21000, null, 500, 300,
+                21000, 0, 0, 500, 500, 0, 21000, OrderDeliveryDestination.none(), null, 500, 300,
                 false, LocalDateTime.of(2026, 7, 31, 9, 0), LocalDateTime.of(2026, 7, 31, 9, 0)
             );
         }
