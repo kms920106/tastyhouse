@@ -41,7 +41,7 @@ export default function PaymentSummary({
             {formatNumber(totalDiscountAmount)}원
           </span>
         </div>
-        {maxDeliveryTip > 0 && (
+        {(minDeliveryTip > 0 || maxDeliveryTip > 0) && (
           <div className="flex justify-between items-center">
             <button
               type="button"

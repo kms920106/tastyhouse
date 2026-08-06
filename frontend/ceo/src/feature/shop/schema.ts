@@ -172,7 +172,6 @@ export const deliveryTipDistanceSchema = z
       ],
       { message: "기본배달거리를 선택해 주세요." },
     ),
-    baseTipAmount: extraDeliveryTipAmount,
     surchargeUnit: z.enum(["PER_100M", "PER_500M"], { message: "할증 단위를 선택해 주세요." }),
     surchargeAmount: z.number({ message: "할증 금액을 입력해 주세요." }).int({ message: "할증 금액을 입력해 주세요." }),
   })

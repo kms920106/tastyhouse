@@ -71,8 +71,7 @@ interface DeliveryTipExtraSheetProps {
 
 const DEFAULT_BASE_DISTANCE_METERS = DELIVERY_TIP_BASE_DISTANCE_OPTIONS[1];
 const DEFAULT_SURCHARGE_UNIT: DeliveryTipSurchargeUnit = "PER_500M";
-/** 거리별 미설정 상태에서 시작할 기본 배달팁·할증액 — PDF 예시(1.5km 2,500원 + 500m당 500원) 기준 */
-const DEFAULT_BASE_TIP_AMOUNT = 2500;
+/** 거리별 미설정 상태에서 시작할 기본 할증액 — PDF 예시(1.5km 2,500원 + 500m당 500원) 기준 */
 const DEFAULT_SURCHARGE_AMOUNT = 500;
 const DEFAULT_SCHEDULE_ROW = {
   dayType: "MONDAY" as const,
@@ -101,7 +100,6 @@ export function DeliveryTipExtraSheet({
     resolver: zodResolver(deliveryTipDistanceSchema),
     defaultValues: {
       baseDistanceMeters: DEFAULT_BASE_DISTANCE_METERS,
-      baseTipAmount: 2500,
       surchargeUnit: DEFAULT_SURCHARGE_UNIT,
       surchargeAmount: 500,
     },
@@ -129,19 +127,18 @@ export function DeliveryTipExtraSheet({
 
     setExtraTipType(deliveryTip.extraTipType);
     // 거리별 미설정(distance === null)이면 편집 기본값으로 시작한다.
-    // 기본배달거리 구간의 기본 배달팁은 조회 응답에 없으므로 첫 구간 배달팁을 초기값으로 제안한다.
-    const { distance, tiers } = deliveryTip;
+    // 기본 배달팁은 서버에 전송하는 필드가 아니라 배달팁 구간 설정의 첫 구간을 그대로 보여주는
+    // 읽기 전용 값이므로 이 폼에는 포함하지 않는다.
+    const { distance } = deliveryTip;
     distanceForm.reset(
       distance
         ? {
             baseDistanceMeters: distance.baseDistanceMeters,
-            baseTipAmount: tiers.length > 0 ? tiers[0].tipAmount : DEFAULT_BASE_TIP_AMOUNT,
             surchargeUnit: distance.surchargeUnit,
             surchargeAmount: distance.surchargeAmount,
           }
         : {
             baseDistanceMeters: DEFAULT_BASE_DISTANCE_METERS,
-            baseTipAmount: tiers.length > 0 ? tiers[0].tipAmount : DEFAULT_BASE_TIP_AMOUNT,
             surchargeUnit: DEFAULT_SURCHARGE_UNIT,
             surchargeAmount: DEFAULT_SURCHARGE_AMOUNT,
           },
@@ -269,27 +266,17 @@ export function DeliveryTipExtraSheet({
                   )}
                 />
 
-                <Controller
-                  control={distanceForm.control}
-                  name="baseTipAmount"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="delivery-tip-base-amount">기본 배달팁</FieldLabel>
-                      <Input
-                        id="delivery-tip-base-amount"
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        max={DELIVERY_TIP_EXTRA_UPPER_BOUND}
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                        aria-invalid={fieldState.invalid}
-                        disabled={isPending}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <Field className="gap-1.5">
+                  <FieldLabel>기본 배달팁</FieldLabel>
+                  <p className="text-muted-foreground text-sm">
+                    {(deliveryTip.tiers.length > 0
+                      ? deliveryTip.tiers[0].tipAmount
+                      : DELIVERY_TIP_UNSET
+                    ).toLocaleString("ko-KR")}
+                    원
+                  </p>
+                  <FieldDescription>기본 배달팁은 배달팁 구간 설정의 첫 구간 금액을 따릅니다.</FieldDescription>
+                </Field>
 
                 <Controller
                   control={distanceForm.control}

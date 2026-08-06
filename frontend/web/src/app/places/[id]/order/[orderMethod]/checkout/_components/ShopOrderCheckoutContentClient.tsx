@@ -141,9 +141,11 @@ export default function ShopOrderCheckoutContentClient({
         return
       }
 
+      // 재견적 금액은 서버가 인정하는 최신 값이므로 그대로 채택해 진행한다.
+      // 표시값과 달라졌다면 안내만 하고 결제를 막지 않는다 — 여기서 막으면 시간대 경계를
+      // 넘길 때마다 결제가 무한정 반복 거부될 수 있다.
       if (requotedAmount !== confirmedDeliveryTipAmount) {
-        toast(getOrderErrorMessage('ORDER_DELIVERY_TIP_AMOUNT_MISMATCH') ?? '')
-        return
+        toast(`배달팁이 ${formatNumber(requotedAmount)}원으로 변경되어 최신 금액으로 결제합니다.`)
       }
 
       confirmedDeliveryTipAmount = requotedAmount
