@@ -1,6 +1,6 @@
 'use server'
 
-import type { ShopMapMarker } from '@/domains/shop'
+import type { ShopDeliveryTipQuery, ShopMapMarker } from '@/domains/shop'
 import { shopRepository } from '@/domains/shop/shop.repository'
 import { shopService } from '@/domains/shop/shop.service'
 
@@ -30,6 +30,10 @@ export async function getShopInfo(shopId: number) {
 
 export async function getShopDetail(shopId: number) {
   return shopRepository.getShopDetail(shopId)
+}
+
+export async function getShopDeliveryTip(shopId: number, params: ShopDeliveryTipQuery = {}) {
+  return shopRepository.getShopDeliveryTip(shopId, params)
 }
 
 export async function getShopMenus(shopId: number) {

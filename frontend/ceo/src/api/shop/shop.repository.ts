@@ -23,6 +23,14 @@ import type {
   ShopClosedDaysResponse,
   ShopConvenienceInfoResponse,
   ShopConvenienceInfoUpdateRequest,
+  ShopDeliveryAreaCreateRequest,
+  ShopDeliveryAreaItemResponse,
+  ShopDeliveryTipDistanceUpdateRequest,
+  ShopDeliveryTipHolidayUpdateRequest,
+  ShopDeliveryTipRegionsUpdateRequest,
+  ShopDeliveryTipSchedulesUpdateRequest,
+  ShopDeliveryTipSettingResponse,
+  ShopDeliveryTipTiersUpdateRequest,
   ShopDetailResponse,
   ShopImageStatusResponse,
   ShopIntroductionResponse,
@@ -176,6 +184,56 @@ export const shopRepository = {
 
   updateMinOrderAmount(shopId: number, body: ShopMinOrderAmountUpdateRequest): Promise<ApiResponse<null>> {
     return api.put<null>(`${ENDPOINT}/v1/${shopId}/min-order-amount`, body);
+  },
+
+  // ===== 배달팁 =====
+  // 컬렉션은 모두 replace-all PUT 이다 — 구간 단조성·거리↔지역 배타가 집합 전체를 봐야 판정되는 불변식이라서
+  // 부분 저장을 제공하지 않는다.
+
+  getDeliveryTips(shopId: number): Promise<ApiResponse<ShopDeliveryTipSettingResponse>> {
+    return api.get<ShopDeliveryTipSettingResponse>(`${ENDPOINT}/v1/${shopId}/delivery-tips`);
+  },
+
+  updateDeliveryTipTiers(shopId: number, body: ShopDeliveryTipTiersUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/delivery-tips/tiers`, body);
+  },
+
+  updateDeliveryTipDistance(shopId: number, body: ShopDeliveryTipDistanceUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/delivery-tips/distance`, body);
+  },
+
+  deleteDeliveryTipDistance(shopId: number): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/${shopId}/delivery-tips/distance`);
+  },
+
+  updateDeliveryTipRegions(shopId: number, body: ShopDeliveryTipRegionsUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/delivery-tips/regions`, body);
+  },
+
+  deleteDeliveryTipRegions(shopId: number): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/${shopId}/delivery-tips/regions`);
+  },
+
+  updateDeliveryTipSchedules(shopId: number, body: ShopDeliveryTipSchedulesUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/delivery-tips/schedules`, body);
+  },
+
+  updateDeliveryTipHoliday(shopId: number, body: ShopDeliveryTipHolidayUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/delivery-tips/holiday`, body);
+  },
+
+  // ===== 배달가능지역 =====
+
+  getDeliveryAreas(shopId: number): Promise<ApiResponse<ShopDeliveryAreaItemResponse[]>> {
+    return api.get<ShopDeliveryAreaItemResponse[]>(`${ENDPOINT}/v1/${shopId}/delivery-areas`);
+  },
+
+  createDeliveryArea(shopId: number, body: ShopDeliveryAreaCreateRequest): Promise<ApiResponse<number>> {
+    return api.post<number>(`${ENDPOINT}/v1/${shopId}/delivery-areas`, body);
+  },
+
+  deleteDeliveryArea(deliveryAreaId: number): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/delivery-areas/${deliveryAreaId}`);
   },
 
   // ===== 가게 소개 =====

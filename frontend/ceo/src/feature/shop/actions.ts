@@ -10,6 +10,8 @@ import type {
   BusinessHour,
   ContentBoardItem,
   PhoneNumber,
+  ShopDeliveryArea,
+  ShopDeliveryTipSetting,
   ShopOperationInfo,
   ShopSummary,
   Suspension,
@@ -27,7 +29,17 @@ import {
   contentBoardSchema,
   convenienceInfoSchema,
   type DayTimeRangeValues,
+  type DeliveryTipDistanceFormValues,
+  type DeliveryTipHolidayFormValues,
+  type DeliveryTipRegionsFormValues,
+  type DeliveryTipSchedulesFormValues,
+  type DeliveryTipTiersFormValues,
   dayTimeRangeSchema,
+  deliveryTipDistanceSchema,
+  deliveryTipHolidaySchema,
+  deliveryTipRegionsSchema,
+  deliveryTipSchedulesSchema,
+  deliveryTipTiersSchema,
   type HolidayClosedFormValues,
   holidayClosedSchema,
   type PhoneNumberFormValues,
@@ -368,6 +380,187 @@ export async function updateShopMinOrderAmountAction(
   if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
 
   const { error } = await shopRepository.updateMinOrderAmount(shopId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+// ===== 배달팁 =====
+// 컬렉션은 서버가 replace-all PUT 으로만 받으므로, 시트의 섹션별 저장 버튼이 해당 PUT 하나에 대응한다.
+
+export async function getDeliveryTipsAction(shopId: number): Promise<DataResult<ShopDeliveryTipSetting>> {
+  const { data, error } = await shopRepository.getDeliveryTips(shopId);
+  if (error !== undefined) return { success: false, message: error };
+  if (!data) return { success: false, message: SHOP_MESSAGE.CREATE_UPDATE_FAILED };
+
+  return {
+    success: true,
+    data: {
+      tiers: data.tiers.map((item) => ({
+        id: item.id,
+        tierOrder: item.tierOrder,
+        minOrderAmount: item.minOrderAmount,
+        tipAmount: item.tipAmount,
+      })),
+      extraTipType: data.extraTipType,
+      distance: data.distance
+        ? {
+            baseDistanceMeters: data.distance.baseDistanceMeters,
+            surchargeUnit: data.distance.surchargeUnit,
+            surchargeAmount: data.distance.surchargeAmount,
+          }
+        : null,
+      regions: data.regions.map((item) => ({
+        id: item.id,
+        adminDongId: item.adminDongId,
+        regionName: item.regionName,
+        tipAmount: item.tipAmount,
+      })),
+      schedules: data.schedules.map((item) => ({
+        id: item.id,
+        dayType: item.dayType,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        tipAmount: item.tipAmount,
+      })),
+      holidayTipAmount: data.holidayTipAmount,
+    },
+  };
+}
+
+export async function updateDeliveryTipTiersAction(
+  shopId: number,
+  values: DeliveryTipTiersFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryTipTiersSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.updateDeliveryTipTiers(shopId, {
+    tiers: parsed.data.tiers.map((tier) => ({ minOrderAmount: tier.minOrderAmount, tipAmount: tier.tipAmount })),
+  });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+export async function updateDeliveryTipDistanceAction(
+  shopId: number,
+  values: DeliveryTipDistanceFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryTipDistanceSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  // 거리별을 저장하면 서버가 지역별을 자동 해제한다 — 프론트가 먼저 DELETE 를 호출하지 않는다.
+  const { error } = await shopRepository.updateDeliveryTipDistance(shopId, {
+    baseDistanceMeters: parsed.data.baseDistanceMeters,
+    surchargeUnit: parsed.data.surchargeUnit,
+    surchargeAmount: parsed.data.surchargeAmount,
+  });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+export async function deleteDeliveryTipDistanceAction(shopId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.deleteDeliveryTipDistance(shopId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+export async function updateDeliveryTipRegionsAction(
+  shopId: number,
+  values: DeliveryTipRegionsFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryTipRegionsSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  // 지역별을 저장하면 서버가 거리별을 자동 해제한다.
+  const { error } = await shopRepository.updateDeliveryTipRegions(shopId, {
+    regions: parsed.data.regions.map((region) => ({
+      adminDongId: region.adminDongId,
+      tipAmount: region.tipAmount,
+    })),
+  });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+export async function deleteDeliveryTipRegionsAction(shopId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.deleteDeliveryTipRegions(shopId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+export async function updateDeliveryTipSchedulesAction(
+  shopId: number,
+  values: DeliveryTipSchedulesFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryTipSchedulesSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.updateDeliveryTipSchedules(shopId, {
+    schedules: parsed.data.schedules.map((schedule) => ({
+      dayType: schedule.dayType,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      tipAmount: schedule.tipAmount,
+    })),
+  });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+export async function updateDeliveryTipHolidayAction(
+  shopId: number,
+  values: DeliveryTipHolidayFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryTipHolidaySchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.updateDeliveryTipHoliday(shopId, { tipAmount: parsed.data.tipAmount });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+// ===== 배달가능지역 =====
+
+export async function getDeliveryAreasAction(shopId: number): Promise<DataResult<ShopDeliveryArea[]>> {
+  const { data, error } = await shopRepository.getDeliveryAreas(shopId);
+  if (error !== undefined) return { success: false, message: error };
+
+  return {
+    success: true,
+    data: (data ?? []).map((item) => ({
+      id: item.id,
+      adminDongId: item.adminDongId,
+      regionName: item.regionName,
+    })),
+  };
+}
+
+export async function createDeliveryAreaAction(shopId: number, adminDongId: number): Promise<ActionResult> {
+  const { data, error } = await shopRepository.createDeliveryArea(shopId, { adminDongId });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true, id: data ?? undefined };
+}
+
+export async function deleteDeliveryAreaAction(deliveryAreaId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.deleteDeliveryArea(deliveryAreaId);
   if (error !== undefined) return { success: false, message: error };
 
   revalidatePath(SHOP_PATH);

@@ -17,6 +17,10 @@ export interface SearchShopListItemResponse {
   rating: number
   imageUrl: string
   bookmarked: boolean
+  /** 배달팁 하한. 0이면 배달팁 없음 */
+  minDeliveryTip: number
+  /** 배달팁 상한 (고객 주소 확정 전) */
+  maxDeliveryTip: number
 }
 
 export interface SearchMenuListItemResponse {

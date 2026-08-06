@@ -1,6 +1,8 @@
 'use server'
 
 import type {
+  MemberDeliveryAddressCreateRequest,
+  MemberDeliveryAddressUpdateRequest,
   UpdatePasswordRequest,
   UpdatePersonalInfoRequest,
   UpdateProfileRequest,
@@ -70,6 +72,29 @@ export async function updateMemberPersonalInfo(
 
 export async function updateMemberPassword(data: UpdatePasswordRequest, verifyToken: string) {
   return memberRepository.updateMyPassword(data, verifyToken)
+}
+
+export async function getMemberDeliveryAddresses() {
+  return memberRepository.getMyDeliveryAddresses()
+}
+
+export async function createMemberDeliveryAddress(data: MemberDeliveryAddressCreateRequest) {
+  return memberRepository.createMyDeliveryAddress(data)
+}
+
+export async function updateMemberDeliveryAddress(
+  deliveryAddressId: number,
+  data: MemberDeliveryAddressUpdateRequest,
+) {
+  return memberRepository.updateMyDeliveryAddress(deliveryAddressId, data)
+}
+
+export async function deleteMemberDeliveryAddress(deliveryAddressId: number) {
+  return memberRepository.deleteMyDeliveryAddress(deliveryAddressId)
+}
+
+export async function updateMemberDefaultDeliveryAddress(deliveryAddressId: number) {
+  return memberRepository.updateMyDefaultDeliveryAddress(deliveryAddressId)
 }
 
 export async function checkNicknameAvailability(nickname: string) {

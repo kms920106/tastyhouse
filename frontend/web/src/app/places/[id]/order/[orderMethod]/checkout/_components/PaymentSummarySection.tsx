@@ -6,6 +6,8 @@ interface Props {
   totalProductDiscountAmount: number
   couponDiscount: number
   pointsUsed: number
+  /** 배달팁. 할인과 부호가 반대인 가산 항목이라 상품금액과 할인금액 사이에 표기한다 */
+  deliveryTip: number
   finalTotal: number
 }
 
@@ -15,6 +17,7 @@ export default function PaymentSummarySection({
   totalProductDiscountAmount,
   couponDiscount,
   pointsUsed,
+  deliveryTip,
   finalTotal,
 }: Props) {
   return (
@@ -27,6 +30,12 @@ export default function PaymentSummarySection({
           <span className="text-sm leading-[14px]">상품금액</span>
           <span className="text-sm leading-[14px]">{formatNumber(totalProductAmount)}원</span>
         </div>
+        {deliveryTip > 0 && (
+          <div className="flex justify-between">
+            <span className="text-sm leading-[14px]">배달팁</span>
+            <span className="text-sm leading-[14px]">+ {formatNumber(deliveryTip)}원</span>
+          </div>
+        )}
         <div>
           <div className="flex justify-between">
             <span className="text-sm leading-[14px]">할인금액</span>
@@ -65,9 +74,7 @@ export default function PaymentSummarySection({
         </div>
         <div className="flex justify-between">
           <span className="text-sm leading-[14px]">최종 결제금액</span>
-          <span className="text-sm leading-[14px] text-main">
-            {formatNumber(finalTotal)}원
-          </span>
+          <span className="text-sm leading-[14px] text-main">{formatNumber(finalTotal)}원</span>
         </div>
       </div>
     </div>

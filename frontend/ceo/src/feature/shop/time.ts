@@ -76,6 +76,27 @@ export function isSameRange(startA: string, endA: string, startB: string, endB: 
 }
 
 /**
+ * 두 시간대가 겹치는지 판정한다.
+ * 자정 넘김 구간(예: 23:00~02:00)은 시작 시각 기준으로 펼쳐 하루를 넘어가는 절대 구간으로 비교하며,
+ * 다음 날로 넘어간 부분이 상대 구간의 앞부분과 겹치는 경우까지 잡아내기 위해 하루를 더한 사본과도 비교한다.
+ * 경계가 맞닿는 경우(A 종료 == B 시작)는 겹침이 아니다.
+ * 형식이 잘못된 입력이나 길이 0 구간은 판정 대상이 아니라 false 를 반환한다.
+ */
+export function isRangeOverlapping(startA: string, endA: string, startB: string, endB: string): boolean {
+  const fromA = parseTimeToMinutes(startA);
+  const fromB = parseTimeToMinutes(startB);
+  const lengthA = getDurationMinutes(startA, endA);
+  const lengthB = getDurationMinutes(startB, endB);
+  if (fromA === null || fromB === null || lengthA === null || lengthB === null) return false;
+  if (lengthA === 0 || lengthB === 0) return false;
+
+  // 자정을 넘겨 펼친 구간은 최대 2일 범위에 걸치므로, B 를 하루 뒤로 민 사본까지 비교해야 누락이 없다.
+  return [fromB, fromB + MINUTES_PER_DAY, fromB - MINUTES_PER_DAY].some(
+    (shiftedFromB) => fromA < shiftedFromB + lengthB && shiftedFromB < fromA + lengthA,
+  );
+}
+
+/**
  * 영업시간이 축소되면 그 범위를 벗어난 휴게시간을 새 범위로 당겨 맞춘다.
  * 이미 범위 안이면 원본을 그대로 돌려준다.
  * 휴게시간은 영업시간과 완전히 동일할 수 없으므로, 클램프 결과가 영업시간 전체를 채우는 경우

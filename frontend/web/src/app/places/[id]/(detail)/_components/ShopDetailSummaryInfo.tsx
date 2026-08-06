@@ -1,11 +1,12 @@
 'use client'
 
+import ShopDeliveryTipDialog from '@/components/shops/ShopDeliveryTipDialog'
 import { toast } from '@/components/ui/AppToaster'
 import { formatDecimal, formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
 import { copyToClipboard } from '@/lib/share'
 import Link from 'next/link'
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 import { GrCopy } from 'react-icons/gr'
 import { TfiLocationPin } from 'react-icons/tfi'
 
@@ -17,6 +18,10 @@ interface Props {
   rating: number
   /** 가게 최소주문금액. 0이면 미설정이라 노출하지 않는다 */
   minOrderAmount: number
+  /** 배달팁 하한. 상한과 함께 0이면 노출하지 않는다 */
+  minDeliveryTip: number
+  /** 배달팁 상한 (고객 주소 확정 전) */
+  maxDeliveryTip: number
   bookmarkButton: ReactNode
 }
 
@@ -27,8 +32,17 @@ export default function ShopDetailSummaryInfo({
   lotAddress,
   rating,
   minOrderAmount,
+  minDeliveryTip,
+  maxDeliveryTip,
   bookmarkButton,
 }: Props) {
+  const [isDeliveryTipDialogOpen, setIsDeliveryTipDialogOpen] = useState(false)
+
+  const deliveryTipLabel =
+    minDeliveryTip === maxDeliveryTip
+      ? `${formatNumber(minDeliveryTip)}원`
+      : `${formatNumber(minDeliveryTip)}~${formatNumber(maxDeliveryTip)}원`
+
   const handleCopyAddress = async () => {
     const success = await copyToClipboard(roadAddress)
     if (success) {
@@ -69,6 +83,22 @@ export default function ShopDetailSummaryInfo({
           최소주문금액 {formatNumber(minOrderAmount)}원
         </div>
       )}
+      {maxDeliveryTip > 0 && (
+        <div className="mt-[7px] text-xs leading-[12px] text-[#aaaaaa]">
+          <button
+            type="button"
+            className="cursor-pointer underline"
+            onClick={() => setIsDeliveryTipDialogOpen(true)}
+          >
+            배달팁 {deliveryTipLabel}
+          </button>
+        </div>
+      )}
+      <ShopDeliveryTipDialog
+        open={isDeliveryTipDialogOpen}
+        onOpenChange={setIsDeliveryTipDialogOpen}
+        shopId={id}
+      />
     </>
   )
 }

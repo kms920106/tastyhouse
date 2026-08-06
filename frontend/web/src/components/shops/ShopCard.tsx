@@ -68,6 +68,7 @@ export function ShopCardName({
   )
 }
 
+export { ShopCardDeliveryTip } from './ShopCardDeliveryTip'
 export { ShopCardImage } from './ShopCardImage'
 export { ShopCardMinOrder } from './ShopCardMinOrder'
 export { ShopCardRating } from './ShopCardRating'

@@ -47,6 +47,106 @@ export interface ShopMinOrderAmountUpdateRequest {
   minOrderAmount: number;
 }
 
+// ===== 배달팁 =====
+
+/** 추가 배달팁 방식 — 거리별과 지역별은 상호 배타이므로 서버가 단일 값으로 내려준다 */
+export type ExtraDeliveryTipType = "NONE" | "DISTANCE" | "REGION";
+
+/** 추가 거리 할증 단위 */
+export type DeliveryTipSurchargeUnit = "PER_100M" | "PER_500M";
+
+export interface ShopDeliveryTipTierItemResponse {
+  id: number;
+  tierOrder: number;
+  minOrderAmount: number;
+  tipAmount: number;
+}
+
+export interface ShopDeliveryTipDistanceResponse {
+  baseDistanceMeters: number;
+  surchargeUnit: DeliveryTipSurchargeUnit;
+  surchargeAmount: number;
+}
+
+export interface ShopDeliveryTipRegionItemResponse {
+  id: number;
+  adminDongId: number;
+  /** "서울특별시 강남구 역삼1동" 형태로 서버가 완성해서 내려준다 — 프론트가 조립하지 않는다 */
+  regionName: string;
+  tipAmount: number;
+}
+
+export interface ShopDeliveryTipScheduleItemResponse {
+  id: number;
+  dayType: DayType;
+  /** "HH:mm:ss" */
+  startTime: string;
+  /** "HH:mm:ss" */
+  endTime: string;
+  tipAmount: number;
+}
+
+export interface ShopDeliveryTipSettingResponse {
+  tiers: ShopDeliveryTipTierItemResponse[];
+  extraTipType: ExtraDeliveryTipType;
+  distance: ShopDeliveryTipDistanceResponse | null;
+  regions: ShopDeliveryTipRegionItemResponse[];
+  schedules: ShopDeliveryTipScheduleItemResponse[];
+  /** 0이면 미설정 */
+  holidayTipAmount: number;
+}
+
+export interface ShopDeliveryAreaItemResponse {
+  id: number;
+  adminDongId: number;
+  regionName: string;
+}
+
+export interface ShopDeliveryTipTierItemRequest {
+  minOrderAmount: number;
+  tipAmount: number;
+}
+
+/** 구간 저장은 replace-all — 단조성 불변식이 집합 전체를 봐야 판정된다 */
+export interface ShopDeliveryTipTiersUpdateRequest {
+  tiers: ShopDeliveryTipTierItemRequest[];
+}
+
+export interface ShopDeliveryTipDistanceUpdateRequest {
+  baseDistanceMeters: number;
+  surchargeUnit: DeliveryTipSurchargeUnit;
+  surchargeAmount: number;
+}
+
+export interface ShopDeliveryTipRegionItemRequest {
+  adminDongId: number;
+  tipAmount: number;
+}
+
+export interface ShopDeliveryTipRegionsUpdateRequest {
+  regions: ShopDeliveryTipRegionItemRequest[];
+}
+
+export interface ShopDeliveryTipScheduleItemRequest {
+  dayType: DayType;
+  startTime: string;
+  endTime: string;
+  tipAmount: number;
+}
+
+export interface ShopDeliveryTipSchedulesUpdateRequest {
+  schedules: ShopDeliveryTipScheduleItemRequest[];
+}
+
+export interface ShopDeliveryTipHolidayUpdateRequest {
+  /** 0이면 해제 */
+  tipAmount: number;
+}
+
+export interface ShopDeliveryAreaCreateRequest {
+  adminDongId: number;
+}
+
 // ===== 영업시간 · 휴게시간 =====
 
 // dayType — 스펙 §11 enum 참조 카탈로그 기준

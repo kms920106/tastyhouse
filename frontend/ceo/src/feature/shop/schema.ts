@@ -9,6 +9,14 @@ import {
   CONTENT_BOARD_TOPIC_OPTIONS,
   CONTENT_BOARD_TYPE_OPTIONS,
   DAY_TYPE_OPTIONS,
+  DELIVERY_TIP_BASE_DISTANCE_OPTIONS,
+  DELIVERY_TIP_EXTRA_UPPER_BOUND,
+  DELIVERY_TIP_SCHEDULE_DISALLOWED_DAY_TYPES,
+  DELIVERY_TIP_SURCHARGE_RULES,
+  DELIVERY_TIP_SURCHARGE_UNIT_LABEL,
+  DELIVERY_TIP_TIER_MAX_COUNT,
+  DELIVERY_TIP_UNSET,
+  DELIVERY_TIP_UPPER_BOUND_EXCLUSIVE,
   MIN_ORDER_AMOUNT_LOWER_BOUND,
   MIN_ORDER_AMOUNT_UNSET,
   MIN_ORDER_AMOUNT_UPPER_BOUND,
@@ -24,10 +32,12 @@ import {
 import {
   countInclusiveDays,
   getDurationMinutes,
+  isRangeOverlapping,
   isRangeWithin,
   isSameRange,
   isTimeStepValid,
   isValidCalendarDate,
+  parseTimeToMinutes,
 } from "./time";
 
 /** 5분 단위 "HH:mm[:ss]" 시간 문자열 */
@@ -80,6 +90,192 @@ export const shopMinOrderAmountSchema = z.object({
     }),
 });
 export type ShopMinOrderAmountFormValues = z.infer<typeof shopMinOrderAmountSchema>;
+
+// ===== 배달팁 =====
+// 서버 도메인 불변식을 그대로 미러링한다. 어긋나면 저장 시 SHOP_DELIVERY_TIP_* 에러로 거절된다.
+
+const DELIVERY_TIP_RANGE_MESSAGE =
+  `배달팁은 0원 이상 ${(DELIVERY_TIP_UPPER_BOUND_EXCLUSIVE - 1).toLocaleString("ko-KR")}원 이하로 입력해 주세요. ` +
+  `${DELIVERY_TIP_UPPER_BOUND_EXCLUSIVE.toLocaleString("ko-KR")}원은 입력할 수 없습니다.`;
+
+const EXTRA_DELIVERY_TIP_RANGE_MESSAGE = `추가 배달팁은 0원 이상 ${DELIVERY_TIP_EXTRA_UPPER_BOUND.toLocaleString("ko-KR")}원 이하로 입력해 주세요.`;
+
+/** 기본 배달팁 금액 — 5,000원 미만만 허용(5,000원 자체 불가) */
+const deliveryTipAmount = z
+  .number({ message: "배달팁을 입력해 주세요." })
+  .int({ message: DELIVERY_TIP_RANGE_MESSAGE })
+  .min(DELIVERY_TIP_UNSET, { message: DELIVERY_TIP_RANGE_MESSAGE })
+  .lt(DELIVERY_TIP_UPPER_BOUND_EXCLUSIVE, { message: DELIVERY_TIP_RANGE_MESSAGE });
+
+/** 추가 배달팁 금액 — 10,000원 이하 허용 */
+const extraDeliveryTipAmount = z
+  .number({ message: "추가 배달팁을 입력해 주세요." })
+  .int({ message: EXTRA_DELIVERY_TIP_RANGE_MESSAGE })
+  .min(DELIVERY_TIP_UNSET, { message: EXTRA_DELIVERY_TIP_RANGE_MESSAGE })
+  .max(DELIVERY_TIP_EXTRA_UPPER_BOUND, { message: EXTRA_DELIVERY_TIP_RANGE_MESSAGE });
+
+const deliveryTipTierSchema = z.object({
+  minOrderAmount: z
+    .number({ message: "주문금액을 입력해 주세요." })
+    .int({ message: "주문금액은 0원 이상으로 입력해 주세요." })
+    .min(0, { message: "주문금액은 0원 이상으로 입력해 주세요." }),
+  tipAmount: deliveryTipAmount,
+});
+
+/**
+ * 기본 배달팁 구간 — 최대 3구간.
+ * 주문금액은 strict 오름차순, 배달팁은 strict 내림차순이어야 한다
+ * (주문금액이 높아질수록 배달팁이 낮아져야 한다는 PDF 규칙).
+ */
+export const deliveryTipTiersSchema = z.object({
+  tiers: z
+    .array(deliveryTipTierSchema)
+    .min(1, { message: "배달팁 구간을 최소 1개 입력해 주세요." })
+    .max(DELIVERY_TIP_TIER_MAX_COUNT, {
+      message: `배달팁 구간은 최대 ${DELIVERY_TIP_TIER_MAX_COUNT}개까지 설정할 수 있습니다.`,
+    })
+    .superRefine((tiers, ctx) => {
+      tiers.forEach((tier, index) => {
+        if (index === 0) return;
+        const previous = tiers[index - 1];
+
+        if (tier.minOrderAmount <= previous.minOrderAmount) {
+          ctx.addIssue({
+            code: "custom",
+            path: [index, "minOrderAmount"],
+            message: "주문금액은 앞 구간보다 커야 합니다.",
+          });
+        }
+        if (tier.tipAmount >= previous.tipAmount) {
+          ctx.addIssue({
+            code: "custom",
+            path: [index, "tipAmount"],
+            message: "주문금액이 높은 구간의 배달팁은 앞 구간보다 낮아야 합니다.",
+          });
+        }
+      });
+    }),
+});
+export type DeliveryTipTiersFormValues = z.infer<typeof deliveryTipTiersSchema>;
+
+/**
+ * 거리별 추가 배달팁.
+ * 할증 금액의 허용 범위가 단위에 따라 달라진다 — 100m당 100~300원, 500m당 100~1,500원.
+ */
+export const deliveryTipDistanceSchema = z
+  .object({
+    baseDistanceMeters: z.union(
+      DELIVERY_TIP_BASE_DISTANCE_OPTIONS.map((option) => z.literal(option)) as [
+        z.ZodLiteral<number>,
+        z.ZodLiteral<number>,
+        ...z.ZodLiteral<number>[],
+      ],
+      { message: "기본배달거리를 선택해 주세요." },
+    ),
+    baseTipAmount: extraDeliveryTipAmount,
+    surchargeUnit: z.enum(["PER_100M", "PER_500M"], { message: "할증 단위를 선택해 주세요." }),
+    surchargeAmount: z.number({ message: "할증 금액을 입력해 주세요." }).int({ message: "할증 금액을 입력해 주세요." }),
+  })
+  .superRefine((values, ctx) => {
+    const rule = DELIVERY_TIP_SURCHARGE_RULES[values.surchargeUnit];
+    if (values.surchargeAmount < rule.min || values.surchargeAmount > rule.max) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["surchargeAmount"],
+        message:
+          `${DELIVERY_TIP_SURCHARGE_UNIT_LABEL[values.surchargeUnit]} 할증 금액은 ` +
+          `${rule.min.toLocaleString("ko-KR")}원 이상 ${rule.max.toLocaleString("ko-KR")}원 이하로 입력해 주세요.`,
+      });
+    }
+  });
+export type DeliveryTipDistanceFormValues = z.infer<typeof deliveryTipDistanceSchema>;
+
+/** 지역별 추가 배달팁 — 같은 행정동을 중복 선택할 수 없다 */
+export const deliveryTipRegionsSchema = z.object({
+  regions: z
+    .array(
+      z.object({
+        adminDongId: z
+          .number({ message: "지역을 선택해 주세요." })
+          .int()
+          .positive({ message: "지역을 선택해 주세요." }),
+        tipAmount: extraDeliveryTipAmount,
+      }),
+    )
+    .min(1, { message: "지역을 최소 1개 선택해 주세요." })
+    .superRefine((regions, ctx) => {
+      const seen = new Map<number, number>();
+      regions.forEach((region, index) => {
+        const firstIndex = seen.get(region.adminDongId);
+        if (firstIndex !== undefined) {
+          ctx.addIssue({
+            code: "custom",
+            path: [index, "adminDongId"],
+            message: "이미 선택한 지역입니다.",
+          });
+          return;
+        }
+        seen.set(region.adminDongId, index);
+      });
+    }),
+});
+export type DeliveryTipRegionsFormValues = z.infer<typeof deliveryTipRegionsSchema>;
+
+/**
+ * 시간별 추가 배달팁.
+ * 일요일·공휴일은 시간별에서 사용할 수 없고(서버가 거부), 같은 요일 구분 안에서 시간대가 겹칠 수 없다.
+ * 자정을 넘기는 구간도 겹침 판정 대상이다.
+ */
+export const deliveryTipSchedulesSchema = z.object({
+  schedules: z
+    .array(
+      z.object({
+        dayType: z
+          .enum(DAY_TYPE_OPTIONS, { message: "요일을 선택해 주세요." })
+          .refine((dayType) => !(DELIVERY_TIP_SCHEDULE_DISALLOWED_DAY_TYPES as readonly string[]).includes(dayType), {
+            message: "선택할 수 없는 요일 구분입니다. 공휴일은 공휴일 배달팁으로 설정해 주세요.",
+          }),
+        startTime: timeString,
+        endTime: timeString,
+        tipAmount: extraDeliveryTipAmount,
+      }),
+    )
+    .min(1, { message: "시간대를 최소 1개 입력해 주세요." })
+    .superRefine((schedules, ctx) => {
+      schedules.forEach((schedule, index) => {
+        if (parseTimeToMinutes(schedule.startTime) === parseTimeToMinutes(schedule.endTime)) {
+          ctx.addIssue({
+            code: "custom",
+            path: [index, "endTime"],
+            message: "시작 시간과 종료 시간이 같을 수 없습니다.",
+          });
+        }
+      });
+
+      // 같은 요일 구분끼리만 겹침을 판정한다 (평일/주말 같은 묶음과 개별 요일의 교차는 서버가 판정)
+      schedules.forEach((schedule, index) => {
+        for (let other = 0; other < index; other += 1) {
+          const previous = schedules[other];
+          if (previous.dayType !== schedule.dayType) continue;
+          if (isRangeOverlapping(previous.startTime, previous.endTime, schedule.startTime, schedule.endTime)) {
+            ctx.addIssue({
+              code: "custom",
+              path: [index, "startTime"],
+              message: "같은 요일에 이미 설정한 시간대와 겹칩니다.",
+            });
+            return;
+          }
+        }
+      });
+    }),
+});
+export type DeliveryTipSchedulesFormValues = z.infer<typeof deliveryTipSchedulesSchema>;
+
+/** 공휴일 추가 배달팁 — 0이면 해제 */
+export const deliveryTipHolidaySchema = z.object({
+  tipAmount: extraDeliveryTipAmount,
+});
+export type DeliveryTipHolidayFormValues = z.infer<typeof deliveryTipHolidaySchema>;
 
 export const convenienceInfoSchema = z.object({
   parkingAvailable: z.boolean(),

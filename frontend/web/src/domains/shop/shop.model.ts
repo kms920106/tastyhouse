@@ -1,4 +1,4 @@
-import { ShopAmenityCode, ShopFoodType } from '.'
+import { ShopAmenityCode, ShopDeliveryTipDayType, ShopExtraDeliveryTipType, ShopFoodType } from '.'
 
 export interface Shop {
   id: number
@@ -11,6 +11,57 @@ export interface Shop {
   phoneNumber: string
   /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
   minOrderAmount: number
+  /** 배달팁 하한. 0이면 배달팁 없음 */
+  minDeliveryTip: number
+  /** 배달팁 상한 (고객 주소 확정 전) */
+  maxDeliveryTip: number
+}
+
+/** 배달팁 상세 안내 팝업·재견적에 쓰는 배달팁 견적. */
+export interface ShopDeliveryTip {
+  /** 확정 배달팁. 확정 불가(주소 미확정 등)면 null */
+  deliveryTip: number | null
+  minDeliveryTip: number
+  maxDeliveryTip: number
+  breakdown: ShopDeliveryTipBreakdown[]
+  tiers: ShopDeliveryTipTier[]
+  extraTipType: ShopExtraDeliveryTipType
+  distance: ShopDeliveryTipDistance | null
+  regions: ShopDeliveryTipRegion[]
+  schedules: ShopDeliveryTipSchedule[]
+  /** 공휴일 배달팁. 0이면 미설정 */
+  holidayTipAmount: number
+}
+
+export interface ShopDeliveryTipBreakdown {
+  /** 계산 근거 문구. 서버가 완성해서 내려주므로 프론트가 조립하지 않는다 */
+  label: string
+  amount: number
+}
+
+export interface ShopDeliveryTipTier {
+  minOrderAmount: number
+  tipAmount: number
+}
+
+export interface ShopDeliveryTipDistance {
+  baseDistanceMeters: number
+  surchargeUnit: string
+  surchargeAmount: number
+}
+
+export interface ShopDeliveryTipRegion {
+  regionName: string
+  tipAmount: number
+}
+
+export interface ShopDeliveryTipSchedule {
+  dayType: ShopDeliveryTipDayType
+  /** `"HH:mm:ss"` */
+  startTime: string
+  /** `"HH:mm:ss"` */
+  endTime: string
+  tipAmount: number
 }
 
 export interface ShopBusinessHour {

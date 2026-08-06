@@ -4,6 +4,9 @@ import { api } from '@/lib/api'
 import { PaginationParams } from '@/types/common'
 import type {
   MemberCouponListItemResponse,
+  MemberDeliveryAddressCreateRequest,
+  MemberDeliveryAddressItemResponse,
+  MemberDeliveryAddressUpdateRequest,
   MemberProfileResponse,
   MemberStatsResponse,
   MyBookmarkedShopListItemResponse,
@@ -123,6 +126,29 @@ export const memberRepository = {
         'X-Verify-Token': verifyToken,
       },
     })
+  },
+  // 배달 주소 목록 조회
+  async getMyDeliveryAddresses() {
+    return api.get<MemberDeliveryAddressItemResponse[]>(`${ENDPOINT}/v1/me/delivery-addresses`)
+  },
+  // 배달 주소 등록 (생성된 id 반환)
+  async createMyDeliveryAddress(data: MemberDeliveryAddressCreateRequest) {
+    return api.post<number>(`${ENDPOINT}/v1/me/delivery-addresses`, data)
+  },
+  // 배달 주소 수정
+  async updateMyDeliveryAddress(
+    deliveryAddressId: number,
+    data: MemberDeliveryAddressUpdateRequest,
+  ) {
+    return api.put<void>(`${ENDPOINT}/v1/me/delivery-addresses/${deliveryAddressId}`, data)
+  },
+  // 배달 주소 삭제
+  async deleteMyDeliveryAddress(deliveryAddressId: number) {
+    return api.delete<void>(`${ENDPOINT}/v1/me/delivery-addresses/${deliveryAddressId}`)
+  },
+  // 기본 배달 주소 지정
+  async updateMyDefaultDeliveryAddress(deliveryAddressId: number) {
+    return api.patch<void>(`${ENDPOINT}/v1/me/delivery-addresses/${deliveryAddressId}/default`)
   },
   // 회원 탈퇴
   async withdrawMember(data: WithdrawRequest) {

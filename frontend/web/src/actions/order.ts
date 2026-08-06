@@ -15,6 +15,8 @@ export async function createOrder({
   couponDiscountAmount,
   finalAmount,
   request,
+  deliveryAddressId,
+  deliveryTipAmount,
 }: {
   shopId: number
   orderMethod: OrderMethodType
@@ -27,6 +29,8 @@ export async function createOrder({
   couponDiscountAmount: number
   finalAmount: number
   request: string
+  deliveryAddressId: number | null
+  deliveryTipAmount: number
 }) {
   return orderRepository.createOrder({
     shopId,
@@ -40,6 +44,8 @@ export async function createOrder({
     couponDiscountAmount,
     finalAmount,
     request,
+    deliveryAddressId,
+    deliveryTipAmount,
   })
 }
 

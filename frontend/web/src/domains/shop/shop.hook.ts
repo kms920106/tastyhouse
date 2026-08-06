@@ -3,6 +3,7 @@
 import {
   getBestShops,
   getLatestShops,
+  getShopDeliveryTip,
   getShopDetail,
   getShopFoodTypes,
   getShopInfo,
@@ -14,6 +15,8 @@ import {
 } from '@/actions/shop'
 import { toast } from '@/components/ui/AppToaster'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
+import type { ShopDeliveryTipQuery } from '@/domains/shop/shop.dto'
+import type { ShopDeliveryTip } from '@/domains/shop/shop.model'
 import type { ShopAmenityCode, ShopFoodType } from '@/domains/shop/shop.types'
 import type { ApiResponse } from '@/lib/api'
 import {
@@ -44,6 +47,8 @@ export const shopQueryKeys = {
   photos: (shopId: number) => ['place', shopId, 'place-detail-photos'] as const,
   reviewStatistics: (shopId: number) => ['place', shopId, 'place-review-statistics'] as const,
   reviews: (shopId: number) => ['place', shopId, 'place-detail-reviews'] as const,
+  deliveryTip: (shopId: number, params: ShopDeliveryTipQuery) =>
+    ['place', shopId, 'delivery-tip', params] as const,
 }
 
 export function useBestShops() {
@@ -104,10 +109,7 @@ export function useShopInfoDetail(shopId: number) {
   return useQuery({
     queryKey: shopQueryKeys.infoDetail(shopId),
     queryFn: async () => {
-      const [infoRes, detailRes] = await Promise.all([
-        getShopInfo(shopId),
-        getShopDetail(shopId),
-      ])
+      const [infoRes, detailRes] = await Promise.all([getShopInfo(shopId), getShopDetail(shopId)])
       return { infoRes, detailRes }
     },
   })
@@ -118,6 +120,38 @@ export function useShopMenus(shopId: number) {
     queryKey: shopQueryKeys.menus(shopId),
     queryFn: () => getShopMenus(shopId),
   })
+}
+
+interface UseShopDeliveryTipOptions extends ShopDeliveryTipQuery {
+  /** 배달팁 팝업처럼 열릴 때만 조회해야 하는 화면을 위한 lazy fetch 스위치 */
+  enabled?: boolean
+}
+
+/**
+ * 가게 배달팁을 조회합니다.
+ *
+ * 파라미터 없이 호출하면 범위 모드(하한~상한), `deliveryAddressId`·`orderAmount`를 넘기면 확정 모드입니다.
+ * 시간별 배달팁 때문에 시간이 지나면 값이 달라질 수 있어 캐시를 유지하지 않습니다(`staleTime: 0`).
+ */
+export function useShopDeliveryTip(
+  shopId: number,
+  { enabled = true, ...params }: UseShopDeliveryTipOptions = {},
+) {
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: shopQueryKeys.deliveryTip(shopId, params),
+    queryFn: async () => {
+      const response = await getShopDeliveryTip(shopId, params)
+      if (response.error) throw new Error(response.error)
+      return response.data ?? null
+    },
+    enabled: enabled && shopId > 0,
+    staleTime: 0,
+    gcTime: 0,
+  })
+
+  const deliveryTip: ShopDeliveryTip | null = data ?? null
+
+  return { deliveryTip, isLoading, isError, refetch }
 }
 
 export function useShopPhotos(shopId: number) {

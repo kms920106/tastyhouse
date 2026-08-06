@@ -175,3 +175,40 @@ export interface WithdrawRequest {
   reason: WithdrawReason
   reasonDetail?: string
 }
+
+export interface MemberDeliveryAddressItemResponse {
+  id: number
+  alias: string | null
+  roadAddress: string
+  lotAddress: string | null
+  detailAddress: string | null
+  regionName: string | null
+  latitude: number
+  longitude: number
+  isDefault: boolean
+}
+
+export interface MemberDeliveryAddressCreateRequest {
+  alias?: string
+  roadAddress: string
+  lotAddress?: string
+  detailAddress?: string
+  /** 필수 — 좌표가 없으면 서버가 저장을 거부한다. 카카오 로컬 API로 변환해서 채운다 */
+  latitude: number
+  /** 필수 — 좌표가 없으면 서버가 저장을 거부한다 */
+  longitude: number
+  isDefault?: boolean
+}
+
+/** 수정 요청은 생성 요청과 필드가 동일하다(replace 방식). */
+export interface MemberDeliveryAddressUpdateRequest {
+  alias?: string
+  roadAddress: string
+  lotAddress?: string
+  detailAddress?: string
+  /** 필수 — 좌표가 없으면 서버가 저장을 거부한다 */
+  latitude: number
+  /** 필수 — 좌표가 없으면 서버가 저장을 거부한다 */
+  longitude: number
+  isDefault?: boolean
+}

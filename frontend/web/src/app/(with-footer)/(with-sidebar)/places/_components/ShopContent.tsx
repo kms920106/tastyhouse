@@ -84,6 +84,8 @@ export default function ShopContent({ stationId, foodTypes, amenities }: Props) 
             bookmarkCount={shop.bookmarkCount}
             foodTypes={shop.foodTypes}
             minOrderAmount={shop.minOrderAmount}
+            minDeliveryTip={shop.minDeliveryTip}
+            maxDeliveryTip={shop.maxDeliveryTip}
           />
         ))}
         {isFetchingNextPage && <LoadingIndicator />}

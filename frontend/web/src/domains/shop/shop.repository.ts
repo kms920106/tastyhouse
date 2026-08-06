@@ -8,6 +8,8 @@ import {
   ShopBestListItemResponse,
   ShopBookmarkResponse,
   ShopChoiceListItemResponse,
+  ShopDeliveryTipQuery,
+  ShopDeliveryTipResponse,
   ShopDetailResponse,
   ShopFoodTypeListItemResponse,
   ShopInfoResponse,
@@ -115,5 +117,18 @@ export const shopRepository = {
    */
   async getShopDetail(shopId: number) {
     return publicApi.get<ShopDetailResponse>(`${ENDPOINT}/v1/${shopId}`)
+  },
+  /**
+   * 가게 배달팁을 조회한다.
+   *
+   * 파라미터가 없으면 범위 모드(하한~상한), `deliveryAddressId`·`orderAmount`를 주면 확정 모드다.
+   * 시간별 배달팁 때문에 호출 시각에 따라 값이 달라지므로 캐시하지 않는다 — 낡은 값으로 주문하면
+   * 서버 재계산과 어긋나 `ORDER_DELIVERY_TIP_AMOUNT_MISMATCH`로 주문이 거절된다.
+   */
+  async getShopDeliveryTip(shopId: number, params: ShopDeliveryTipQuery) {
+    return publicApi.get<ShopDeliveryTipResponse, ShopDeliveryTipQuery>(
+      `${ENDPOINT}/v1/${shopId}/delivery-tip`,
+      { params },
+    )
   },
 }

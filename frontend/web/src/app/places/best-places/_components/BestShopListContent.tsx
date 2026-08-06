@@ -46,6 +46,8 @@ export default function BestShopListContent() {
                 rating={place.rating}
                 foodTypes={place.foodTypes}
                 minOrderAmount={place.minOrderAmount}
+                minDeliveryTip={place.minDeliveryTip}
+                maxDeliveryTip={place.maxDeliveryTip}
               />
             ))}
           </ul>

@@ -8,17 +8,20 @@ import BorderedSection from '@/components/ui/BorderedSection'
 import SectionStack from '@/components/ui/SectionStack'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
 import type { MemberCoupon, MemberPersonalInfo } from '@/domains/member'
+import { useMyDeliveryAddresses } from '@/domains/member/member.hook'
 import { getOrderErrorMessage, type OrderMethodType } from '@/domains/order'
 import type { PaymentMethod } from '@/domains/payment'
 import { Shop } from '@/domains/shop'
+import { useShopDeliveryTip } from '@/domains/shop/shop.hook'
 import { useCartInfo } from '@/hooks/useCartInfo'
 import { useTossPayments } from '@/hooks/useTossPayments'
 import { formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
 import { calculateMinOrderShortfall, calculatePaymentSummary } from '@/lib/paymentCalculation'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import CustomerInfoSection from './CustomerInfoSection'
+import DeliveryAddressSection from './DeliveryAddressSection'
 import DiscountApplicationSection from './DiscountApplicationSection'
 import OrderInfoSection from './OrderInfoSection'
 import OrderTermsAgreement from './OrderTermsAgreement'
@@ -56,11 +59,48 @@ export default function ShopOrderCheckoutContentClient({
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [request, setRequest] = useState('')
+  const [selectedDeliveryAddressId, setSelectedDeliveryAddressId] = useState<number | null>(null)
+
+  const isDeliveryOrder = orderMethod === 'DELIVERY'
+
+  const { deliveryAddresses, isLoading: isDeliveryAddressesLoading } = useMyDeliveryAddresses({
+    enabled: isDeliveryOrder,
+  })
+
+  // 기본 배송지가 있으면 초기 선택. 없으면 첫 번째 주소를 선택한다.
+  useEffect(() => {
+    if (!isDeliveryOrder || selectedDeliveryAddressId !== null || deliveryAddresses.length === 0) {
+      return
+    }
+    const defaultAddress = deliveryAddresses.find((address) => address.isDefault)
+    setSelectedDeliveryAddressId((defaultAddress ?? deliveryAddresses[0]).id)
+  }, [isDeliveryOrder, selectedDeliveryAddressId, deliveryAddresses])
 
   const { tossPayment } = useTossPayments()
 
-  const { totalDiscountAmount, couponDiscount, pointsUsed, paymentAmount } =
-    calculatePaymentSummary(totalProductAmount, totalProductDiscount, selectedCoupon, pointInput)
+  // 배달팁 확정 조회. 주소가 바뀌거나 상품 할인 후 금액이 바뀌면 queryKey가 달라져 자동 재조회된다.
+  // 배달 외 주문 방법은 조회하지 않고 배달팁 0으로 처리한다.
+  const productPaymentAmount = totalProductAmount - totalProductDiscount
+  const { deliveryTip: deliveryTipQuote, refetch: refetchDeliveryTip } = useShopDeliveryTip(
+    shopId,
+    {
+      enabled: isDeliveryOrder && selectedDeliveryAddressId !== null,
+      deliveryAddressId: selectedDeliveryAddressId ?? undefined,
+      orderAmount: productPaymentAmount,
+      orderMethod,
+    },
+  )
+
+  const deliveryTipAmount = isDeliveryOrder ? (deliveryTipQuote?.deliveryTip ?? 0) : 0
+
+  const { totalDiscountAmount, couponDiscount, pointsUsed, deliveryTip, paymentAmount } =
+    calculatePaymentSummary(
+      totalProductAmount,
+      totalProductDiscount,
+      deliveryTipAmount,
+      selectedCoupon,
+      pointInput,
+    )
 
   const handlePayment = async () => {
     // 장바구니에서 이미 차단하지만, 링크 직접 진입·탭 방치 후 재시도를 대비해 결제 직전에도 확인한다.
@@ -84,6 +124,39 @@ export default function ShopOrderCheckoutContentClient({
       return
     }
 
+    if (isDeliveryOrder && selectedDeliveryAddressId === null) {
+      toast('배달 주소를 입력해 주세요.')
+      return
+    }
+
+    // 서버는 주문 접수 시점에 배달팁을 다시 계산한다. 주문서 진입 후 시간별 배달팁 구간을 넘겼으면
+    // 표시값과 어긋나 주문이 거절되므로, 결제 직전에 재견적을 받아 최신 값으로 주문한다.
+    let confirmedDeliveryTipAmount = deliveryTipAmount
+    if (isDeliveryOrder) {
+      const { data: requotedDeliveryTip } = await refetchDeliveryTip()
+      const requotedAmount = requotedDeliveryTip?.deliveryTip ?? null
+
+      if (requotedAmount === null) {
+        toast('배달팁을 확인할 수 없습니다. 배달 주소를 다시 확인해 주세요.')
+        return
+      }
+
+      if (requotedAmount !== confirmedDeliveryTipAmount) {
+        toast(getOrderErrorMessage('ORDER_DELIVERY_TIP_AMOUNT_MISMATCH') ?? '')
+        return
+      }
+
+      confirmedDeliveryTipAmount = requotedAmount
+    }
+
+    const confirmedPaymentSummary = calculatePaymentSummary(
+      totalProductAmount,
+      totalProductDiscount,
+      confirmedDeliveryTipAmount,
+      selectedCoupon,
+      pointInput,
+    )
+
     const trimmedRequest = request.trim()
 
     // 1. 주문 생성 (PENDING)
@@ -104,21 +177,25 @@ export default function ShopOrderCheckoutContentClient({
       orderMethod,
       orderProducts,
       memberCouponId: selectedCoupon?.id ?? null,
-      usePoint: pointsUsed,
+      usePoint: confirmedPaymentSummary.pointsUsed,
       totalProductAmount,
-      totalDiscountAmount,
+      totalDiscountAmount: confirmedPaymentSummary.totalDiscountAmount,
       productDiscountAmount: totalProductDiscount,
-      couponDiscountAmount: couponDiscount,
-      finalAmount: paymentAmount,
+      couponDiscountAmount: confirmedPaymentSummary.couponDiscount,
+      finalAmount: confirmedPaymentSummary.paymentAmount,
       request: trimmedRequest,
+      // 좌표는 보내지 않는다. 서버가 이 id로 저장된 주소에서만 좌표를 읽는다.
+      deliveryAddressId: isDeliveryOrder ? selectedDeliveryAddressId : null,
+      deliveryTipAmount: confirmedDeliveryTipAmount,
     })
 
     if (orderResult.error) {
-      toast(
-        orderResult.message ??
-          getOrderErrorMessage(orderResult.errorCode) ??
-          orderResult.error,
-      )
+      // 배달팁 불일치는 토스트만으로 끝내지 않고 재견적을 받아 표시 금액을 갱신한다.
+      if (orderResult.errorCode === 'ORDER_DELIVERY_TIP_AMOUNT_MISMATCH') {
+        await refetchDeliveryTip()
+      }
+
+      toast(orderResult.message ?? getOrderErrorMessage(orderResult.errorCode) ?? orderResult.error)
       return
     }
 
@@ -181,7 +258,7 @@ export default function ShopOrderCheckoutContentClient({
         method: 'CARD',
         amount: {
           currency: 'KRW',
-          value: paymentAmount,
+          value: confirmedPaymentSummary.paymentAmount,
         },
         orderId: paymentResult.data.pgOrderId,
         orderName,
@@ -214,6 +291,17 @@ export default function ShopOrderCheckoutContentClient({
         <BorderedSection>
           <CustomerInfoSection fullName={fullName} phoneNumber={phoneNumber} email={email} />
         </BorderedSection>
+        {/* 포장 등 배달 외 주문 방법에는 배달 주소가 필요하지 않으므로 섹션 자체를 렌더하지 않는다 */}
+        {isDeliveryOrder && (
+          <BorderedSection>
+            <DeliveryAddressSection
+              deliveryAddresses={deliveryAddresses}
+              isLoading={isDeliveryAddressesLoading}
+              selectedDeliveryAddressId={selectedDeliveryAddressId}
+              onDeliveryAddressSelect={setSelectedDeliveryAddressId}
+            />
+          </BorderedSection>
+        )}
         <BorderedSection>
           <OrderRequestField value={request} onChange={setRequest} maxLength={MAX_REQUEST_LENGTH} />
         </BorderedSection>
@@ -236,6 +324,7 @@ export default function ShopOrderCheckoutContentClient({
             totalDiscountAmount={totalDiscountAmount}
             couponDiscount={couponDiscount}
             pointsUsed={pointsUsed}
+            deliveryTip={deliveryTip}
             finalTotal={paymentAmount}
           />
         </BorderedSection>

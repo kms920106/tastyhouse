@@ -5,6 +5,8 @@ export interface PaymentSummary {
   totalDiscountAmount: number
   couponDiscount: number
   pointsUsed: number
+  /** 배달팁. 할인과 달리 결제 금액에 가산되는 항목이다 */
+  deliveryTip: number
   paymentAmount: number
 }
 
@@ -44,6 +46,8 @@ export function calculateTotalProductPaymentAmount(items: OrderProduct[]): numbe
  * 판정 기준은 상품 할인까지 반영한 금액(쿠폰·포인트 차감 전)으로, 서버의 검증 기준과 동일합니다.
  * 최소주문금액이 미설정(0)이거나 배달 외 주문방식이면 항상 0을 반환합니다 — 픽업(포장)에는
  * 가게 최소주문금액이 적용되지 않습니다.
+ * 배달팁은 이 판정에 포함하지 않습니다 — 포함하면 팁이 비싼 가게일수록 최소주문 문턱이 낮아지는
+ * 역설이 생기고, 서버의 판정 기준과도 어긋납니다.
  *
  * @param productPaymentAmount - 상품 할인 후 금액
  * @param minOrderAmount - 가게 최소주문금액 (0이면 미설정)
@@ -65,19 +69,25 @@ export function calculateMinOrderShortfall(
 /**
  * 결제 금액을 계산합니다.
  *
+ * 배달팁은 **가산 항목**이므로 최종 결제 금액에만 더합니다. 쿠폰 할인 상한(`amountAfterProductDiscount`)과
+ * 포인트 사용 상한(`amountAfterCoupon`)의 기준 금액에는 절대 포함하지 않습니다 — 서버도 같은 기준으로
+ * 항목별 대조를 하므로, 여기에 배달팁을 더하면 정상 주문이 `ORDER_*_MISMATCH`로 전량 거절됩니다.
+ *
  * @param productTotal - 상품 총액
  * @param productDiscount - 상품 할인 총액
+ * @param deliveryTip - 배달팁 (배달 외 주문 방법은 0)
  * @param selectedCoupon - 선택된 쿠폰 (선택 사항)
  * @param pointInput - 사용할 포인트 입력값
- * @returns 상품 할인, 배송 할인, 쿠폰 할인, 사용 포인트, 최종 결제 금액을 포함한 객체
+ * @returns 상품 할인, 쿠폰 할인, 사용 포인트, 배달팁, 최종 결제 금액을 포함한 객체
  */
 export function calculatePaymentSummary(
   productTotal: number,
   productDiscount: number,
+  deliveryTip: number,
   selectedCoupon: MemberCoupon | null,
   pointInput: string,
 ): PaymentSummary {
-  // 상품 금액에서 상품 할인을 제외한 금액
+  // 상품 금액에서 상품 할인을 제외한 금액 (배달팁을 더하지 않는다 — 쿠폰 할인 상한의 기준)
   const amountAfterProductDiscount = productTotal - productDiscount
 
   const rawCouponDiscount = selectedCoupon
@@ -90,16 +100,18 @@ export function calculatePaymentSummary(
     : 0
   const couponDiscount = Math.min(rawCouponDiscount, amountAfterProductDiscount)
 
+  // 포인트 사용 상한의 기준 금액. 여기에도 배달팁을 더하지 않는다
   const amountAfterCoupon = amountAfterProductDiscount - couponDiscount
   const pointsUsed = Math.min(Math.max(parseInt(pointInput) || 0, 0), amountAfterCoupon)
 
   const totalDiscount = productDiscount + couponDiscount + pointsUsed
-  const paymentAmount = Math.max(productTotal - totalDiscount, 0)
+  const paymentAmount = Math.max(productTotal + deliveryTip - totalDiscount, 0)
 
   return {
     totalDiscountAmount: totalDiscount,
     couponDiscount,
     pointsUsed,
+    deliveryTip,
     paymentAmount,
   }
 }

@@ -1,4 +1,4 @@
-import type { ShopFoodType, ShopAmenityCode } from './shop.types'
+import type { ShopAmenityCode, ShopDeliveryTipDayType, ShopFoodType } from './shop.types'
 
 const SHOP_FOOD_TYPE_NAMES: Record<ShopFoodType, string> = {
   KOREAN: '한식',
@@ -26,6 +26,23 @@ export const getShopFoodTypeCodeName = (foodType: ShopFoodType): string => {
   return SHOP_FOOD_TYPE_NAMES[foodType] || foodType
 }
 
+const SHOP_DELIVERY_TIP_DAY_TYPE_NAMES: Record<ShopDeliveryTipDayType, string> = {
+  DAILY: '매일',
+  WEEKDAY: '평일',
+  WEEKEND: '주말',
+  MONDAY: '월요일',
+  TUESDAY: '화요일',
+  WEDNESDAY: '수요일',
+  THURSDAY: '목요일',
+  FRIDAY: '금요일',
+  SATURDAY: '토요일',
+  SUNDAY: '일요일',
+}
+
 export const getShopAmenityCodeName = (amenityCode: ShopAmenityCode): string => {
   return SHOP_AMENITY_CODE_NAMES[amenityCode]
+}
+
+export const getShopDeliveryTipDayTypeName = (dayType: ShopDeliveryTipDayType): string => {
+  return SHOP_DELIVERY_TIP_DAY_TYPE_NAMES[dayType] || dayType
 }

@@ -22,6 +22,53 @@ export const MIN_ORDER_AMOUNT_UPPER_BOUND = 30000;
 /** 최소주문금액 입력 단위(원) */
 export const MIN_ORDER_AMOUNT_STEP = 1000;
 
+/** 기본 배달팁 구간 최대 개수 */
+export const DELIVERY_TIP_TIER_MAX_COUNT = 3;
+/** 기본 배달팁 상한(원) — 미만만 허용 */
+export const DELIVERY_TIP_UPPER_BOUND_EXCLUSIVE = 5000;
+/** 추가 배달팁 상한(원) — 이하 허용 */
+export const DELIVERY_TIP_EXTRA_UPPER_BOUND = 10000;
+/** 배달팁 미설정 값 */
+export const DELIVERY_TIP_UNSET = 0;
+/** 기본배달거리 선택지(m) */
+export const DELIVERY_TIP_BASE_DISTANCE_OPTIONS = [1000, 1500, 2000, 2500, 3000] as const;
+/** 추가 거리 할증 단위별 허용 금액 범위(원) */
+export const DELIVERY_TIP_SURCHARGE_RULES = {
+  PER_100M: { unitMeters: 100, min: 100, max: 300 },
+  PER_500M: { unitMeters: 500, min: 100, max: 1500 },
+} as const;
+/** 추가 배달팁 방식 */
+export const EXTRA_DELIVERY_TIP_TYPES = ["NONE", "DISTANCE", "REGION"] as const;
+/** 시간별 배달팁에서 선택할 수 없는 요일 구분 — 일요일은 공휴일 설정 대상이 아니라 시간별로 처리한다 */
+export const DELIVERY_TIP_SCHEDULE_DISALLOWED_DAY_TYPES = ["SUNDAY", "HOLIDAY"] as const;
+
+/** 추가 배달팁 방식 라벨 */
+export const EXTRA_DELIVERY_TIP_TYPE_LABEL: Record<(typeof EXTRA_DELIVERY_TIP_TYPES)[number], string> = {
+  NONE: "사용 안 함",
+  DISTANCE: "거리별",
+  REGION: "지역별",
+};
+
+/** 추가 거리 할증 단위 라벨 */
+export const DELIVERY_TIP_SURCHARGE_UNIT_LABEL: Record<keyof typeof DELIVERY_TIP_SURCHARGE_RULES, string> = {
+  PER_100M: "100m당",
+  PER_500M: "500m당",
+};
+
+/** 시간별 배달팁 요일 칩 — 금지 요일(SUNDAY·HOLIDAY)을 제외한 목록 */
+export const DELIVERY_TIP_SCHEDULE_DAY_TYPE_OPTIONS = [
+  "DAILY",
+  "WEEKDAY",
+  "WEEKEND",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+  "SUNDAY",
+] as const;
+
 /** 노출 위치가 허용되는 실제 위치 기준 반경(m) */
 export const DISPLAY_LOCATION_MAX_DISTANCE_M = 1000;
 

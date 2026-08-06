@@ -36,6 +36,8 @@ export default async function HomeBestShopList() {
             rating={shop.rating}
             foodTypes={shop.foodTypes}
             minOrderAmount={shop.minOrderAmount}
+            minDeliveryTip={shop.minDeliveryTip}
+            maxDeliveryTip={shop.maxDeliveryTip}
           />
         ))}
       </ul>

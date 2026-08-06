@@ -1,5 +1,6 @@
 'use client'
 
+import ShopDeliveryTipDialog from '@/components/shops/ShopDeliveryTipDialog'
 import BorderedSection from '@/components/ui/BorderedSection'
 import SectionStack from '@/components/ui/SectionStack'
 import StickyFooter from '@/components/ui/StickyFooter'
@@ -25,6 +26,10 @@ interface Props {
   shopName: string
   orderMethod: OrderMethodType
   minOrderAmount: number
+  /** 배달팁 하한. 상한과 함께 0이면 노출하지 않는다 */
+  minDeliveryTip: number
+  /** 배달팁 상한 (고객 주소 확정 전) */
+  maxDeliveryTip: number
 }
 
 export default function ShopOrderCartContentClient({
@@ -32,11 +37,14 @@ export default function ShopOrderCartContentClient({
   shopName,
   orderMethod,
   minOrderAmount,
+  minDeliveryTip,
+  maxDeliveryTip,
 }: Props) {
   const { items: initialItems, isLoading } = useCartInfo()
 
   const [cartItems, setCartItems] = useState<OrderProduct[]>([])
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
+  const [isDeliveryTipDialogOpen, setIsDeliveryTipDialogOpen] = useState(false)
 
   useEffect(() => {
     setCartItems(initialItems)
@@ -138,6 +146,16 @@ export default function ShopOrderCartContentClient({
         totalProductAmount={totalProductAmount}
         totalDiscountAmount={totalDiscountAmount}
         totalProductPaymentAmount={totalProductPaymentAmount}
+        minDeliveryTip={minDeliveryTip}
+        maxDeliveryTip={maxDeliveryTip}
+        onDeliveryTipClick={() => setIsDeliveryTipDialogOpen(true)}
+      />
+      <ShopDeliveryTipDialog
+        open={isDeliveryTipDialogOpen}
+        onOpenChange={setIsDeliveryTipDialogOpen}
+        shopId={shopId}
+        orderAmount={totalProductPaymentAmount}
+        orderMethod={orderMethod}
       />
       <StickyFooter>
         <div className="px-[15px] py-2.5 bg-[#f9f9f9]">

@@ -40,6 +40,19 @@ export interface MemberPersonalInfo {
   eventInfoEnabled: boolean
 }
 
+/** 회원 배달 주소록 항목. 좌표는 서버가 저장해 두고 배달팁 계산에만 사용한다. */
+export interface MemberDeliveryAddress {
+  id: number
+  alias: string | null
+  roadAddress: string
+  lotAddress: string | null
+  detailAddress: string | null
+  regionName: string | null
+  latitude: number
+  longitude: number
+  isDefault: boolean
+}
+
 export interface SocialMember {
   memberId: number
   nickname: string

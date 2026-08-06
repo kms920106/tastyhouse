@@ -7,6 +7,7 @@ import {
   CLOSED_DAY_TYPE_LABEL,
   type ClosedDayTypeOption,
   DAY_TYPE_LABEL,
+  DELIVERY_TIP_UNSET,
   MIN_ORDER_AMOUNT_UNSET,
   WEEKDAY_OPTIONS,
   type WeekdayOption,
@@ -17,6 +18,8 @@ import { formatTimeLabel } from "@/feature/shop/time";
 
 import { BusinessHoursSheet } from "./business-hours-sheet";
 import { ClosedDaysSheet } from "./closed-days-sheet";
+import { DeliveryTipExtraSheet } from "./delivery-tip-extra-sheet";
+import { DeliveryTipTiersSheet } from "./delivery-tip-tiers-sheet";
 import { HygieneInfoCard } from "./hygiene-info-card";
 import { MinOrderAmountSheet } from "./min-order-amount-sheet";
 import { SettingRow } from "./setting-row";
@@ -32,6 +35,8 @@ export function OperationInfoTab({ shopId, operationInfo, minOrderAmount }: Oper
   const [editingDay, setEditingDay] = React.useState<WeekdayOption | null>(null);
   const [closedDaysOpen, setClosedDaysOpen] = React.useState(false);
   const [minOrderAmountOpen, setMinOrderAmountOpen] = React.useState(false);
+  const [deliveryTipTiersOpen, setDeliveryTipTiersOpen] = React.useState(false);
+  const [deliveryTipExtraOpen, setDeliveryTipExtraOpen] = React.useState(false);
 
   const currentMinOrderAmount = minOrderAmount ?? MIN_ORDER_AMOUNT_UNSET;
 
@@ -45,6 +50,26 @@ export function OperationInfoTab({ shopId, operationInfo, minOrderAmount }: Oper
   );
 
   const { closedOnPublicHolidays, regularClosedDays, temporaryClosures } = operationInfo.closedDays;
+
+  const { deliveryTip, deliveryAreas } = operationInfo;
+
+  // 배달팁 요약 — 첫 구간(가장 낮은 주문금액) 배달팁과 구간 수를 함께 보여준다
+  const deliveryTipSummary =
+    deliveryTip.tiers.length > 0
+      ? [`${deliveryTip.tiers[0].tipAmount.toLocaleString("ko-KR")}원`, `${deliveryTip.tiers.length}구간`].join(" · ")
+      : SHOP_OPERATION_COPY.DELIVERY_TIP_UNSET_LABEL;
+
+  const extraDeliveryTipParts: string[] = [];
+  if (deliveryTip.extraTipType === "DISTANCE") extraDeliveryTipParts.push("거리별");
+  if (deliveryTip.extraTipType === "REGION") {
+    extraDeliveryTipParts.push(`지역별 ${deliveryTip.regions.length}건`);
+  }
+  if (deliveryTip.schedules.length > 0) extraDeliveryTipParts.push(`시간별 ${deliveryTip.schedules.length}건`);
+  if (deliveryTip.holidayTipAmount > DELIVERY_TIP_UNSET) {
+    extraDeliveryTipParts.push(`공휴일 ${deliveryTip.holidayTipAmount.toLocaleString("ko-KR")}원`);
+  }
+  const extraDeliveryTipSummary =
+    extraDeliveryTipParts.length > 0 ? extraDeliveryTipParts.join(" · ") : SHOP_OPERATION_COPY.DELIVERY_TIP_UNSET_LABEL;
 
   const closedDaySummaryParts: string[] = [];
   if (closedOnPublicHolidays) closedDaySummaryParts.push(SHOP_OPERATION_COPY.HOLIDAY_CLOSED_ON);
@@ -120,6 +145,24 @@ export function OperationInfoTab({ shopId, operationInfo, minOrderAmount }: Oper
 
       <Separator />
 
+      <SettingRow
+        title={SHOP_OPERATION_COPY.DELIVERY_TIP_TITLE}
+        description={SHOP_OPERATION_COPY.DELIVERY_TIP_DESCRIPTION}
+        summary={deliveryTipSummary}
+        onAction={() => setDeliveryTipTiersOpen(true)}
+      />
+
+      <Separator />
+
+      <SettingRow
+        title={SHOP_OPERATION_COPY.EXTRA_DELIVERY_TIP_TITLE}
+        description={SHOP_OPERATION_COPY.EXTRA_DELIVERY_TIP_DESCRIPTION}
+        summary={extraDeliveryTipSummary}
+        onAction={() => setDeliveryTipExtraOpen(true)}
+      />
+
+      <Separator />
+
       <HygieneInfoCard badges={operationInfo.hygieneBadges} />
 
       {editingDay && (
@@ -147,6 +190,21 @@ export function OperationInfoTab({ shopId, operationInfo, minOrderAmount }: Oper
         onOpenChange={setMinOrderAmountOpen}
         shopId={shopId}
         minOrderAmount={currentMinOrderAmount}
+      />
+
+      <DeliveryTipTiersSheet
+        open={deliveryTipTiersOpen}
+        onOpenChange={setDeliveryTipTiersOpen}
+        shopId={shopId}
+        tiers={deliveryTip.tiers}
+      />
+
+      <DeliveryTipExtraSheet
+        open={deliveryTipExtraOpen}
+        onOpenChange={setDeliveryTipExtraOpen}
+        shopId={shopId}
+        deliveryTip={deliveryTip}
+        deliveryAreas={deliveryAreas}
       />
     </div>
   );

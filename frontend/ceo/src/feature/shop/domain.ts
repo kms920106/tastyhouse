@@ -3,6 +3,8 @@ import type {
   ContentBoardTopic,
   ContentBoardType,
   DayType,
+  DeliveryTipSurchargeUnit,
+  ExtraDeliveryTipType,
   HygieneBadgeType,
   ImageType,
   OrderMethod,
@@ -17,6 +19,8 @@ export type {
   ContentBoardTopic,
   ContentBoardType,
   DayType,
+  DeliveryTipSurchargeUnit,
+  ExtraDeliveryTipType,
   HygieneBadgeType,
   ImageType,
   OrderMethod,
@@ -155,12 +159,61 @@ export interface HygieneBadge {
   lastInspectionMonth: string;
 }
 
+export interface ShopDeliveryTipTier {
+  id: number;
+  tierOrder: number;
+  minOrderAmount: number;
+  tipAmount: number;
+}
+
+export interface ShopDeliveryTipDistance {
+  baseDistanceMeters: number;
+  surchargeUnit: DeliveryTipSurchargeUnit;
+  surchargeAmount: number;
+}
+
+export interface ShopDeliveryTipRegion {
+  id: number;
+  adminDongId: number;
+  /** 서버가 완성해 내려주는 행정동 전체 이름 */
+  regionName: string;
+  tipAmount: number;
+}
+
+export interface ShopDeliveryTipSchedule {
+  id: number;
+  dayType: DayType;
+  startTime: string;
+  endTime: string;
+  tipAmount: number;
+}
+
+export interface ShopDeliveryArea {
+  id: number;
+  adminDongId: number;
+  regionName: string;
+}
+
+export interface ShopDeliveryTipSetting {
+  tiers: ShopDeliveryTipTier[];
+  /** 거리별·지역별은 상호 배타이며 서버가 단일 값으로 판정해 내려준다 */
+  extraTipType: ExtraDeliveryTipType;
+  distance: ShopDeliveryTipDistance | null;
+  regions: ShopDeliveryTipRegion[];
+  schedules: ShopDeliveryTipSchedule[];
+  /** 0이면 미설정 */
+  holidayTipAmount: number;
+}
+
 export interface ShopOperationInfo {
   shopId: number;
   businessHours: BusinessHour[];
   breakTimes: BreakTime[];
   closedDays: ShopClosedDays;
   hygieneBadges: HygieneBadge[];
+  deliveryTip: ShopDeliveryTipSetting;
+  /** 지역별 배달팁의 선택 후보 — 가게에 등록된 배달가능지역 */
+  deliveryAreas: ShopDeliveryArea[];
 }
 
 export interface Suspension {

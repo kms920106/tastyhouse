@@ -19,6 +19,9 @@ const ORDER_ERROR_MESSAGES: Record<OrderErrorCode, string> = {
   ORDER_PRODUCT_SOLD_OUT: '품절된 상품이 포함되어 있습니다. 장바구니를 확인해 주세요.',
   ORDER_PRODUCT_NOT_FOUND: '판매하지 않는 상품이 포함되어 있습니다. 장바구니를 확인해 주세요.',
   SHOP_NOT_FOUND: '존재하지 않는 가게입니다.',
+  ORDER_DELIVERY_TIP_AMOUNT_MISMATCH: '배달팁이 변경되었습니다. 결제 금액을 다시 확인해 주세요.',
+  ORDER_DELIVERY_ADDRESS_REQUIRED: '배달 주소를 입력해 주세요.',
+  ORDER_DELIVERY_AREA_NOT_COVERED: '선택하신 주소는 이 가게의 배달 가능 지역이 아닙니다.',
 }
 
 export const getOrderErrorMessage = (errorCode: string | undefined): string | null => {

@@ -7,6 +7,7 @@ import AppInputText from '@/components/ui/AppInputText'
 import AppSubmitButton from '@/components/ui/AppSubmitButton'
 import { toast } from '@/components/ui/AppToaster'
 import CircleCheckbox from '@/components/ui/CircleCheckbox'
+import PostcodeModal from '@/components/ui/PostcodeModal'
 import { PHONE_ERROR_MESSAGES, PHONE_REGEX } from '@/constants/validation'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
 import { getTodayString } from '@/lib/date'
@@ -16,7 +17,6 @@ import { createPartnershipRequest } from '@/actions/partnership'
 import { useState } from 'react'
 import type { Address } from 'react-daum-postcode'
 import { z } from 'zod'
-import PostcodeModal from './PostcodeModal'
 
 const CONSULTATION_HOURS = ['09', '10', '11', '14', '15', '16', '17'] as const
 

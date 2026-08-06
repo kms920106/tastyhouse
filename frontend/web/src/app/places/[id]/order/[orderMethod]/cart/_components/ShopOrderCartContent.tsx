@@ -22,6 +22,8 @@ export default async function ShopOrderCartContent({ shopId, orderMethod }: Prop
       shopName={data.name}
       orderMethod={orderMethod}
       minOrderAmount={data.minOrderAmount}
+      minDeliveryTip={data.minDeliveryTip}
+      maxDeliveryTip={data.maxDeliveryTip}
     />
   )
 }

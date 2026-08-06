@@ -3,6 +3,7 @@
 import {
   ShopCard,
   ShopCardContent,
+  ShopCardDeliveryTip,
   ShopCardHeader,
   ShopCardImage,
   ShopCardMinOrder,
@@ -26,6 +27,10 @@ interface Props {
   foodTypes: ShopFoodType[]
   /** 가게 최소주문금액. 0이면 미설정이라 노출하지 않는다 */
   minOrderAmount: number
+  /** 배달팁 하한. 상한과 함께 0이면 노출하지 않는다 */
+  minDeliveryTip: number
+  /** 배달팁 상한 (고객 주소 확정 전) */
+  maxDeliveryTip: number
 }
 
 export default function ShopListItem({
@@ -38,6 +43,8 @@ export default function ShopListItem({
   bookmarkCount,
   foodTypes,
   minOrderAmount,
+  minDeliveryTip,
+  maxDeliveryTip,
 }: Props) {
   const foodNames = foodTypes.map((foodType) => getShopFoodTypeCodeName(foodType))
 
@@ -53,6 +60,7 @@ export default function ShopListItem({
           <ShopCardName>{name}</ShopCardName>
           <ShopCardStats reviewCount={reviewCount} bookmarkCount={bookmarkCount} />
           <ShopCardMinOrder value={minOrderAmount} />
+          <ShopCardDeliveryTip min={minDeliveryTip} max={maxDeliveryTip} />
           <ShopCardTags tags={foodNames} variant="secondary" />
         </ShopCardContent>
       </ShopCard>

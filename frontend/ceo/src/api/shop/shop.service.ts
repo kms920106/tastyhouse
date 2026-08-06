@@ -11,6 +11,7 @@ import type {
   ShopOperationInfo,
   ShopSummary,
 } from "@/feature/shop/domain";
+import logger from "@/lib/logger";
 
 import type {
   BusinessHourResponse,
@@ -164,19 +165,33 @@ export const shopService = {
     };
   },
 
-  // 운영정보 탭 1회 렌더에 필요한 데이터를 병합 조회 — 하나라도 실패하면 그 error 를 그대로 올린다
+  // 운영정보 탭 1회 렌더에 필요한 데이터를 병합 조회 — 하나라도 실패하면 그 error 를 그대로 올린다.
+  // 배달팁·배달가능지역도 운영정보 탭에서 함께 노출하므로 같은 병합 조회에 포함한다.
   async getShopOperationInfo(shopId: number): Promise<ApiResponse<ShopOperationInfo>> {
-    const [businessHourRes, breakTimeRes, closedDaysRes, hygieneRes] = await Promise.all([
-      shopRepository.getBusinessHours(shopId),
-      shopRepository.getBreakTimes(shopId),
-      shopRepository.getClosedDays(shopId),
-      shopRepository.getHygieneBadges(shopId),
-    ]);
+    const [businessHourRes, breakTimeRes, closedDaysRes, hygieneRes, deliveryTipRes, deliveryAreaRes] =
+      await Promise.all([
+        shopRepository.getBusinessHours(shopId),
+        shopRepository.getBreakTimes(shopId),
+        shopRepository.getClosedDays(shopId),
+        shopRepository.getHygieneBadges(shopId),
+        shopRepository.getDeliveryTips(shopId),
+        shopRepository.getDeliveryAreas(shopId),
+      ]);
 
     const failed = [businessHourRes, breakTimeRes, closedDaysRes, hygieneRes].find((res) => res.error !== undefined);
     if (failed) return { error: failed.error, status: failed.status };
 
+    // 배달팁·배달가능지역 조회 실패는 탭 전체를 막지 않는다.
+    // 두 항목은 운영정보 탭의 부가 설정이므로, 실패 시 '미설정' 상태로 렌더해 영업시간·휴무일 편집을 계속 쓸 수 있게 한다.
+    if (deliveryTipRes.error !== undefined) {
+      logger.warn({ reason: deliveryTipRes.error, shopId }, "가게 배달팁 조회 실패 — 미설정으로 렌더");
+    }
+    if (deliveryAreaRes.error !== undefined) {
+      logger.warn({ reason: deliveryAreaRes.error, shopId }, "가게 배달가능지역 조회 실패 — 빈 목록으로 렌더");
+    }
+
     const closedDays = closedDaysRes.data;
+    const deliveryTip = deliveryTipRes.data;
 
     return {
       status: businessHourRes.status,
@@ -208,6 +223,41 @@ export const shopService = {
           badgeType: item.badgeType,
           certifiedDate: item.certifiedDate,
           lastInspectionMonth: item.lastInspectionMonth,
+        })),
+        deliveryTip: {
+          tiers: (deliveryTip?.tiers ?? []).map((item) => ({
+            id: item.id,
+            tierOrder: item.tierOrder,
+            minOrderAmount: item.minOrderAmount,
+            tipAmount: item.tipAmount,
+          })),
+          extraTipType: deliveryTip?.extraTipType ?? "NONE",
+          distance: deliveryTip?.distance
+            ? {
+                baseDistanceMeters: deliveryTip.distance.baseDistanceMeters,
+                surchargeUnit: deliveryTip.distance.surchargeUnit,
+                surchargeAmount: deliveryTip.distance.surchargeAmount,
+              }
+            : null,
+          regions: (deliveryTip?.regions ?? []).map((item) => ({
+            id: item.id,
+            adminDongId: item.adminDongId,
+            regionName: item.regionName,
+            tipAmount: item.tipAmount,
+          })),
+          schedules: (deliveryTip?.schedules ?? []).map((item) => ({
+            id: item.id,
+            dayType: item.dayType,
+            startTime: item.startTime,
+            endTime: item.endTime,
+            tipAmount: item.tipAmount,
+          })),
+          holidayTipAmount: deliveryTip?.holidayTipAmount ?? 0,
+        },
+        deliveryAreas: (deliveryAreaRes.data ?? []).map((item) => ({
+          id: item.id,
+          adminDongId: item.adminDongId,
+          regionName: item.regionName,
         })),
       },
     };

@@ -20,7 +20,16 @@ export default async function ShopDetailSummaryServer({ shopId, bookmarkButton }
     return <FetchErrorState message={COMMON_ERROR_MESSAGES.API_FETCH_ERROR} />
   }
 
-  const { id, name, roadAddress, lotAddress, rating, minOrderAmount } = data
+  const {
+    id,
+    name,
+    roadAddress,
+    lotAddress,
+    rating,
+    minOrderAmount,
+    minDeliveryTip,
+    maxDeliveryTip,
+  } = data
 
   return (
     <ShopDetailSummaryInfo
@@ -30,6 +39,8 @@ export default async function ShopDetailSummaryServer({ shopId, bookmarkButton }
       lotAddress={lotAddress}
       rating={rating}
       minOrderAmount={minOrderAmount}
+      minDeliveryTip={minDeliveryTip}
+      maxDeliveryTip={maxDeliveryTip}
       bookmarkButton={bookmarkButton}
     />
   )

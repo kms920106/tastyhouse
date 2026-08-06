@@ -1,5 +1,10 @@
 import { PaginationParams } from '@/types/common'
-import type { ShopAmenityCode, ShopFoodType } from '.'
+import type {
+  ShopAmenityCode,
+  ShopDeliveryTipDayType,
+  ShopExtraDeliveryTipType,
+  ShopFoodType,
+} from '.'
 import { ShopAmenity, ShopBreakTime, ShopBusinessHour, ShopClosedDay } from '.'
 import type { OrderMethod } from '../order'
 import { ProductListItemResponse } from '../product'
@@ -113,6 +118,10 @@ export interface ShopBestListItemResponse {
   foodTypes: ShopFoodType[]
   /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
   minOrderAmount: number
+  /** 배달팁 하한. 0이면 배달팁 없음 */
+  minDeliveryTip: number
+  /** 배달팁 상한 (고객 주소 확정 전) */
+  maxDeliveryTip: number
 }
 
 export interface ShopChoiceListItemResponse {
@@ -136,6 +145,10 @@ export interface ShopLatestListItemResponse {
   foodTypes: ShopFoodType[]
   /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
   minOrderAmount: number
+  /** 배달팁 하한. 0이면 배달팁 없음 */
+  minDeliveryTip: number
+  /** 배달팁 상한 (고객 주소 확정 전) */
+  maxDeliveryTip: number
 }
 
 export interface ShopMapListItemResponse {
@@ -160,4 +173,64 @@ export interface ShopDetailResponse {
   phoneNumber: string
   /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
   minOrderAmount: number
+  /** 배달팁 하한. 0이면 배달팁 없음 */
+  minDeliveryTip: number
+  /** 배달팁 상한 (고객 주소 확정 전) */
+  maxDeliveryTip: number
+}
+
+export interface ShopDeliveryTipQuery {
+  /** 확정 계산용 배달 주소 id. 없으면 범위 모드 */
+  deliveryAddressId?: number
+  /** 상품 할인 후 금액. 구간 확정용 */
+  orderAmount?: number
+  /** 주문 방법. 기본 DELIVERY */
+  orderMethod?: string
+}
+
+export interface ShopDeliveryTipBreakdownItemResponse {
+  /** 계산 근거 문구. 서버가 완성해서 내려주므로 프론트가 조립하지 않는다 */
+  label: string
+  amount: number
+}
+
+export interface ShopDeliveryTipTierItemResponse {
+  minOrderAmount: number
+  tipAmount: number
+}
+
+export interface ShopDeliveryTipDistanceResponse {
+  baseDistanceMeters: number
+  surchargeUnit: string
+  surchargeAmount: number
+}
+
+export interface ShopDeliveryTipRegionItemResponse {
+  /** `"서울특별시 강남구 역삼1동"` 형태로 서버가 완성해서 내려준다 */
+  regionName: string
+  tipAmount: number
+}
+
+export interface ShopDeliveryTipScheduleItemResponse {
+  dayType: ShopDeliveryTipDayType
+  /** `"HH:mm:ss"` */
+  startTime: string
+  /** `"HH:mm:ss"` */
+  endTime: string
+  tipAmount: number
+}
+
+export interface ShopDeliveryTipResponse {
+  /** 확정 배달팁. 확정 불가(주소 미확정 등)면 null */
+  deliveryTip: number | null
+  minDeliveryTip: number
+  maxDeliveryTip: number
+  breakdown: ShopDeliveryTipBreakdownItemResponse[]
+  tiers: ShopDeliveryTipTierItemResponse[]
+  extraTipType: ShopExtraDeliveryTipType
+  distance: ShopDeliveryTipDistanceResponse | null
+  regions: ShopDeliveryTipRegionItemResponse[]
+  schedules: ShopDeliveryTipScheduleItemResponse[]
+  /** 공휴일 배달팁. 0이면 미설정 */
+  holidayTipAmount: number
 }
