@@ -56,16 +56,16 @@ src/app/
 
 ### 2.2. 파일 역할 한눈에 보기
 
-| 파일 | 필수 여부 | 역할 |
-| --- | --- | --- |
-| `page.tsx` | 라우트당 필수 | params/searchParams 파싱 → 루트 컴포넌트 렌더링 |
-| `layout.tsx` | 공유 레이아웃이 필요할 때 | children wrap, 레이아웃 UI |
-| `loading.tsx` | 선택 | 라우트 전환 시 전체 페이지 Skeleton |
-| `error.tsx` | 선택 | 라우트 레벨 에러 바운더리 |
-| `not-found.tsx` | 선택 | `notFound()` 호출 시 렌더링 |
-| `route.ts` | API 라우트 | HTTP 핸들러 (`GET`, `POST`, ...) |
-| `_components/` | 거의 항상 | page가 위임하는 실제 컴포넌트들 |
-| `_lib/` | 선택 | 해당 라우트 전용 순수 유틸·헬퍼 |
+| 파일            | 필수 여부                 | 역할                                            |
+| --------------- | ------------------------- | ----------------------------------------------- |
+| `page.tsx`      | 라우트당 필수             | params/searchParams 파싱 → 루트 컴포넌트 렌더링 |
+| `layout.tsx`    | 공유 레이아웃이 필요할 때 | children wrap, 레이아웃 UI                      |
+| `loading.tsx`   | 선택                      | 라우트 전환 시 전체 페이지 Skeleton             |
+| `error.tsx`     | 선택                      | 라우트 레벨 에러 바운더리                       |
+| `not-found.tsx` | 선택                      | `notFound()` 호출 시 렌더링                     |
+| `route.ts`      | API 라우트                | HTTP 핸들러 (`GET`, `POST`, ...)                |
+| `_components/`  | 거의 항상                 | page가 위임하는 실제 컴포넌트들                 |
+| `_lib/`         | 선택                      | 해당 라우트 전용 순수 유틸·헬퍼                 |
 
 ### 2.3. `page.tsx` 골격
 
@@ -128,22 +128,22 @@ export default function Layout({ children }: Props) {
 
 ## 3. 책임 매트릭스
 
-| 책임 | `src/app/`에서 처리 | 처리 금지 |
-| --- | --- | --- |
-| params / searchParams 파싱 및 타입 변환 | ✅ `page.tsx` | |
-| `generateMetadata` 작성 | ✅ `page.tsx` | |
-| 라우트 레벨 레이아웃 | ✅ `layout.tsx` | |
-| 인증 여부 확인 후 redirect | ✅ `page.tsx` 또는 `XxxServer.tsx` | |
-| 데이터 페칭 (Server) | ✅ `[Feature]Server.tsx` (repository 직접 호출) | |
-| 데이터 페칭 (Client) | ✅ `[Feature]Fetcher.tsx` (domain hook 사용) | |
-| 사용자 상호작용, 이벤트 핸들러 | ✅ `[Feature]Client.tsx` | |
-| Suspense + Skeleton 배치 | ✅ `[Feature]Section.tsx` | |
-| 에러 분기 렌더링 | ✅ `[Feature]Server.tsx` / `Fetcher.tsx` | |
-| HTTP 호출 (`api.get` 등) | | ❌ → repository로 |
-| 도메인 가공 로직 | | ❌ → service로 |
-| TanStack Query (`useQuery`, `useMutation`) 직접 사용 | | ❌ → domain hook으로 |
-| queryKey 직접 선언 | | ❌ → `[domain].hook.ts`로 |
-| DTO 타입을 컴포넌트 Props에 직접 사용 | | ❌ → model 타입으로 |
+| 책임                                                 | `src/app/`에서 처리                             | 처리 금지                 |
+| ---------------------------------------------------- | ----------------------------------------------- | ------------------------- |
+| params / searchParams 파싱 및 타입 변환              | ✅ `page.tsx`                                   |                           |
+| `generateMetadata` 작성                              | ✅ `page.tsx`                                   |                           |
+| 라우트 레벨 레이아웃                                 | ✅ `layout.tsx`                                 |                           |
+| 인증 여부 확인 후 redirect                           | ✅ `page.tsx` 또는 `XxxServer.tsx`              |                           |
+| 데이터 페칭 (Server)                                 | ✅ `[Feature]Server.tsx` (repository 직접 호출) |                           |
+| 데이터 페칭 (Client)                                 | ✅ `[Feature]Fetcher.tsx` (domain hook 사용)    |                           |
+| 사용자 상호작용, 이벤트 핸들러                       | ✅ `[Feature]Client.tsx`                        |                           |
+| Suspense + Skeleton 배치                             | ✅ `[Feature]Section.tsx`                       |                           |
+| 에러 분기 렌더링                                     | ✅ `[Feature]Server.tsx` / `Fetcher.tsx`        |                           |
+| HTTP 호출 (`api.get` 등)                             |                                                 | ❌ → repository로         |
+| 도메인 가공 로직                                     |                                                 | ❌ → service로            |
+| TanStack Query (`useQuery`, `useMutation`) 직접 사용 |                                                 | ❌ → domain hook으로      |
+| queryKey 직접 선언                                   |                                                 | ❌ → `[domain].hook.ts`로 |
+| DTO 타입을 컴포넌트 Props에 직접 사용                |                                                 | ❌ → model 타입으로       |
 
 > 한 줄 요약: `page.tsx`는 **파싱 + 위임**만, `_components/`는 **렌더링 + 페칭**을, 비즈니스 로직은 **domains 계층**이 담당합니다.
 
@@ -438,9 +438,15 @@ export default function XxxTabs({ tab }: { tab: XxxTab }) {
           </TabsTrigger>
         ))}
       </TabsList>
-      <TabsContent value="all" className="mt-0">...</TabsContent>
-      <TabsContent value="menu" className="mt-0">...</TabsContent>
-      <TabsContent value="review" className="mt-0">...</TabsContent>
+      <TabsContent value="all" className="mt-0">
+        ...
+      </TabsContent>
+      <TabsContent value="menu" className="mt-0">
+        ...
+      </TabsContent>
+      <TabsContent value="review" className="mt-0">
+        ...
+      </TabsContent>
     </Tabs>
   )
 }
@@ -501,10 +507,10 @@ const RANK_PERIOD_TO_TYPE: Record<RankTab, RankType> = { ... }
 
 URL-driven 탭 패턴에서 prop명은 모든 계층에서 `tab`으로 통일합니다:
 
-| 전달 방향 | prop명 | 이유 |
-|-----------|--------|------|
-| `page.tsx` → `XxxPage` | `tab` | page가 파싱한 현재 값 |
-| `XxxPage` → `XxxTabs` | `tab` | URL-driven controlled 컴포넌트이므로 모든 계층에서 통일 |
+| 전달 방향              | prop명 | 이유                                                    |
+| ---------------------- | ------ | ------------------------------------------------------- |
+| `page.tsx` → `XxxPage` | `tab`  | page가 파싱한 현재 값                                   |
+| `XxxPage` → `XxxTabs`  | `tab`  | URL-driven controlled 컴포넌트이므로 모든 계층에서 통일 |
 
 ```tsx
 // page.tsx
@@ -615,8 +621,12 @@ export default function Loading() {
   return (
     <section className="min-h-screen flex flex-col">
       <Header>
-        <HeaderLeft><BackButton /></HeaderLeft>
-        <HeaderCenter><Skeleton className="w-20 h-4" /></HeaderCenter>
+        <HeaderLeft>
+          <BackButton />
+        </HeaderLeft>
+        <HeaderCenter>
+          <Skeleton className="w-20 h-4" />
+        </HeaderCenter>
       </Header>
       {/* 페이지 구조와 동일한 Skeleton 배치 */}
     </section>
@@ -632,20 +642,20 @@ export default function Loading() {
 
 ## 5. Naming Convention
 
-| 대상 | 규칙 | 예시 |
-| --- | --- | --- |
-| 라우트 파일 | Next.js 약속 파일명 고정 | `page.tsx`, `layout.tsx`, `loading.tsx` |
-| Route Group | 소문자 괄호 | `(with-footer)`, `(detail)`, `(list)` |
-| 동적 세그먼트 | `[param]` | `[id]`, `[menuId]` |
-| 페이지 루트 컴포넌트 | `[Feature]Page` | `PlaceDetailPage`, `OrderMethodPage` |
-| 데이터 페칭 Server | `[Feature]Server` | `PlaceDetailHeaderServer`, `PlaceSummaryServer` |
-| Client 상호작용 | `[Feature]Client` | `PlaceBookmarkButtonClient`, `ShareButtonClient` |
-| TanStack Query Fetcher | `[Feature]Fetcher` | `PlaceMenuListFetcher`, `PlaceInfoDetailFetcher` |
-| Skeleton | `[Feature]Skeleton` | `PlaceDetailHeaderSkeleton`, `PlaceSummarySkeleton` |
-| Section 조합 | `[Feature]Section` | `PlaceSummarySection`, `PlaceMenuListSection` |
-| 라우트 전용 유틸 | `_lib/[name].ts` | `_lib/socialLoginHandlers.ts` |
-| Props 인터페이스 | `interface Props { ... }` | 파일 로컬 선언, export 불필요 |
-| Tab 타입 | `[Feature]Tab` — Tabs 컴포넌트 파일에서 export | `ReviewTab`, `MemberFollowTab`, `PlaceTab` |
+| 대상                   | 규칙                                           | 예시                                                |
+| ---------------------- | ---------------------------------------------- | --------------------------------------------------- |
+| 라우트 파일            | Next.js 약속 파일명 고정                       | `page.tsx`, `layout.tsx`, `loading.tsx`             |
+| Route Group            | 소문자 괄호                                    | `(with-footer)`, `(detail)`, `(list)`               |
+| 동적 세그먼트          | `[param]`                                      | `[id]`, `[menuId]`                                  |
+| 페이지 루트 컴포넌트   | `[Feature]Page`                                | `PlaceDetailPage`, `OrderMethodPage`                |
+| 데이터 페칭 Server     | `[Feature]Server`                              | `PlaceDetailHeaderServer`, `PlaceSummaryServer`     |
+| Client 상호작용        | `[Feature]Client`                              | `PlaceBookmarkButtonClient`, `ShareButtonClient`    |
+| TanStack Query Fetcher | `[Feature]Fetcher`                             | `PlaceMenuListFetcher`, `PlaceInfoDetailFetcher`    |
+| Skeleton               | `[Feature]Skeleton`                            | `PlaceDetailHeaderSkeleton`, `PlaceSummarySkeleton` |
+| Section 조합           | `[Feature]Section`                             | `PlaceSummarySection`, `PlaceMenuListSection`       |
+| 라우트 전용 유틸       | `_lib/[name].ts`                               | `_lib/socialLoginHandlers.ts`                       |
+| Props 인터페이스       | `interface Props { ... }`                      | 파일 로컬 선언, export 불필요                       |
+| Tab 타입               | `[Feature]Tab` — Tabs 컴포넌트 파일에서 export | `ReviewTab`, `MemberFollowTab`, `PlaceTab`          |
 
 **파일명 접미사 의사결정 기준**:
 
@@ -659,11 +669,11 @@ export default function Loading() {
 
 ## 6. Route Groups 활용 기준
 
-| 패턴 | 용도 | 예시 |
-| --- | --- | --- |
-| `(레이아웃명)` | 같은 레이아웃을 공유하는 페이지 그룹화 | `(with-footer)`, `(with-sidebar)` |
-| `(detail)`, `(list)` | URL에 영향 없이 파일 구조를 논리적으로 정리 | `places/[id]/(detail)/page.tsx` |
-| `(page)` | 하위에 `layout.tsx` + `page.tsx`를 분리할 때 | `auth/signup/(page)/` |
+| 패턴                 | 용도                                         | 예시                              |
+| -------------------- | -------------------------------------------- | --------------------------------- |
+| `(레이아웃명)`       | 같은 레이아웃을 공유하는 페이지 그룹화       | `(with-footer)`, `(with-sidebar)` |
+| `(detail)`, `(list)` | URL에 영향 없이 파일 구조를 논리적으로 정리  | `places/[id]/(detail)/page.tsx`   |
+| `(page)`             | 하위에 `layout.tsx` + `page.tsx`를 분리할 때 | `auth/signup/(page)/`             |
 
 - ✅ `layout.tsx`를 라우트 그룹에 추가하면 해당 그룹 내 페이지에만 레이아웃 적용
 - ✅ URL이 같은 두 페이지가 다른 레이아웃을 써야 할 때 Route Group으로 분리
@@ -702,7 +712,7 @@ export default async function Page({ params }: Props) {
 ```tsx
 // ❌ 금지 — Next.js 15에서 런타임 에러 발생
 export default async function Page({ params }: { params: { id: string } }) {
-  const { id } = params   // ← await 없음
+  const { id } = params // ← await 없음
 }
 
 // ✅ 권장
@@ -713,7 +723,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
 ---
 
-### 7.3. _components에서 @tanstack/react-query 직접 import (금지)
+### 7.3. \_components에서 @tanstack/react-query 직접 import (금지)
 
 ```tsx
 // ❌ 금지 — domain hook 정책 우회, repository는 server-only라 빌드 에러 발생
@@ -734,7 +744,7 @@ import { usePlaceMenus } from '@/domains/place/place.hook'
 import type { PlaceInfoResponse } from '@/domains/place'
 
 interface Props {
-  placeInfo: PlaceInfoResponse   // ← Response suffix가 붙은 DTO 타입
+  placeInfo: PlaceInfoResponse // ← Response suffix가 붙은 DTO 타입
 }
 
 // ✅ 권장 — model 타입 사용 (src/domains/CLAUDE.md 참조)
@@ -754,13 +764,13 @@ interface Props {
 export default function PlaceDetailPage({ placeId }: Props) {
   return (
     <div>
-      <PlaceDetailHeaderServer placeId={placeId} />  {/* Suspense 없음 */}
+      <PlaceDetailHeaderServer placeId={placeId} /> {/* Suspense 없음 */}
     </div>
   )
 }
 
 // ✅ 권장
-<Suspense fallback={<PlaceDetailHeaderSkeleton />}>
+;<Suspense fallback={<PlaceDetailHeaderSkeleton />}>
   <PlaceDetailHeaderServer placeId={placeId} />
 </Suspense>
 ```
@@ -781,7 +791,7 @@ export default async function PlaceDetailPage({ placeId }: Props) {
 
 ---
 
-### 7.7. _components/에 공용 컴포넌트 배치 (지양)
+### 7.7. \_components/에 공용 컴포넌트 배치 (지양)
 
 ```
 // ❌ 지양 — 여러 라우트에서 공용으로 쓰는 컴포넌트를 특정 라우트 _components에 배치
@@ -855,10 +865,10 @@ const TABS = [{ label: '전체', value: 'all' }, { label: '메뉴', value: 'menu
 
 ```tsx
 // ❌ active 탭 밑줄 두께 border-b-2 사용 금지
-className="... data-[state=active]:border-b-2 ..."
+className = '... data-[state=active]:border-b-2 ...'
 
 // ✅ border-b-[1.5px] 사용
-className="... data-[state=active]:border-b-[1.5px] ..."
+className = '... data-[state=active]:border-b-[1.5px] ...'
 ```
 
 ```tsx
@@ -930,7 +940,7 @@ export default async function RankMemberList({ tab }: { tab: RankTab }) { ... }
 - [ ] 레이아웃 UI와 children 전달만 담당하는가?
 - [ ] 데이터 페칭이 없는가?
 
-### _components
+### \_components
 
 - [ ] 비동기 Server Component는 `<Suspense fallback={<...Skeleton />}>`으로 감쌌는가?
 - [ ] Client Component 파일 최상단에 `'use client'`가 있는가?
@@ -973,24 +983,24 @@ export default async function RankMemberList({ tab }: { tab: RankTab }) { ... }
 
 ## 9. 빠른 참조 (Quick Reference)
 
-> **Best Practice 레퍼런스**: [`src/app/places/[id]/(detail)/`](places/[id]/(detail)/)
+> **Best Practice 레퍼런스**: [`src/app/places/[id]/(detail)/`](<places/[id]/(detail)/>)
 >
 > 새 페이지를 만들거나 기존 페이지를 수정할 때 항상 places detail 디렉토리를 먼저 보세요.
 
 **컴포넌트 유형별 파일 매핑**:
 
-| 유형 | 대표 파일 |
-| --- | --- |
-| page.tsx (params + generateMetadata) | [places/\[id\]/(detail)/page.tsx](places/[id]/(detail)/page.tsx) |
-| XxxPage (섹션 조합) | [PlaceDetailPage.tsx](<places/[id]/(detail)/_components/PlaceDetailPage.tsx>) |
-| Server (데이터 페칭) | [PlaceSummaryServer.tsx](<places/[id]/(detail)/_components/PlaceSummaryServer.tsx>) |
-| Client (인터랙션) | [PlaceBookmarkButtonClient.tsx](<places/[id]/(detail)/_components/PlaceBookmarkButtonClient.tsx>) |
-| Fetcher (TanStack Query) | [PlaceMenuListFetcher.tsx](<places/[id]/(detail)/_components/PlaceMenuListFetcher.tsx>) |
-| Section (Suspense 조합) | [PlaceSummarySection.tsx](<places/[id]/(detail)/_components/PlaceSummarySection.tsx>) |
-| 중첩 Suspense (ReactNode prop) | [PlaceSummarySection.tsx](<places/[id]/(detail)/_components/PlaceSummarySection.tsx>) |
-| 인증 체크 (컴포넌트 레벨) | [PlaceBookmarkButtonServer.tsx](<places/[id]/(detail)/_components/PlaceBookmarkButtonServer.tsx>) |
-| Tabs 컴포넌트 | [SearchResultTabs.tsx](search/result/_components/SearchResultTabs.tsx) |
-| Route Handler | [api/payments/tosspayments/success/route.ts](api/payments/tosspayments/success/route.ts) |
+| 유형                                 | 대표 파일                                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| page.tsx (params + generateMetadata) | [places/\[id\]/(detail)/page.tsx](<places/[id]/(detail)/page.tsx>)                                |
+| XxxPage (섹션 조합)                  | [PlaceDetailPage.tsx](<places/[id]/(detail)/_components/PlaceDetailPage.tsx>)                     |
+| Server (데이터 페칭)                 | [PlaceSummaryServer.tsx](<places/[id]/(detail)/_components/PlaceSummaryServer.tsx>)               |
+| Client (인터랙션)                    | [PlaceBookmarkButtonClient.tsx](<places/[id]/(detail)/_components/PlaceBookmarkButtonClient.tsx>) |
+| Fetcher (TanStack Query)             | [PlaceMenuListFetcher.tsx](<places/[id]/(detail)/_components/PlaceMenuListFetcher.tsx>)           |
+| Section (Suspense 조합)              | [PlaceSummarySection.tsx](<places/[id]/(detail)/_components/PlaceSummarySection.tsx>)             |
+| 중첩 Suspense (ReactNode prop)       | [PlaceSummarySection.tsx](<places/[id]/(detail)/_components/PlaceSummarySection.tsx>)             |
+| 인증 체크 (컴포넌트 레벨)            | [PlaceBookmarkButtonServer.tsx](<places/[id]/(detail)/_components/PlaceBookmarkButtonServer.tsx>) |
+| Tabs 컴포넌트                        | [SearchResultTabs.tsx](search/result/_components/SearchResultTabs.tsx)                            |
+| Route Handler                        | [api/payments/tosspayments/success/route.ts](api/payments/tosspayments/success/route.ts)          |
 
 **핵심 한 줄 요약**:
 
@@ -998,4 +1008,4 @@ export default async function RankMemberList({ tab }: { tab: RankTab }) { ... }
 - Server Component = repository 직접 호출 + 에러 분기 + Suspense로 감싸기
 - Client Component = domain hook + `isLoading → error → data` 분기
 - 데이터 없음: `FetchErrorState` / 전체 없음: `notFound()` / 전역: `error.tsx`
-- 의심되면 [`places/[id]/(detail)/`](places/[id]/(detail)/)를 보고 결정
+- 의심되면 [`places/[id]/(detail)/`](<places/[id]/(detail)/>)를 보고 결정

@@ -38,7 +38,10 @@ export default function CartItemCount({ shopId }: Props) {
 
   return (
     <>
-      장바구니 <span>(<span className="font-bold">{count}</span>)</span>
+      장바구니{' '}
+      <span>
+        (<span className="font-bold">{count}</span>)
+      </span>
     </>
   )
 }

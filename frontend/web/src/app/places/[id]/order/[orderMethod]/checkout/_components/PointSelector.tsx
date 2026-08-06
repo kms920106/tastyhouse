@@ -11,11 +11,7 @@ interface Props {
   onPointInputChange: (value: string) => void
 }
 
-export default function PointSelector({
-  availablePoints,
-  pointInput,
-  onPointInputChange,
-}: Props) {
+export default function PointSelector({ availablePoints, pointInput, onPointInputChange }: Props) {
   const handleApplyAllPoints = () => {
     onPointInputChange(availablePoints.toString())
   }
@@ -42,11 +38,7 @@ export default function PointSelector({
       <h3 className="text-xs leading-[12px] mb-2.5">포인트</h3>
       <div className="flex gap-2">
         <div className="flex-1 relative">
-          <AppInputAmount
-            value={pointInput}
-            onChange={handlePointChange}
-            placeholder="0"
-          />
+          <AppInputAmount value={pointInput} onChange={handlePointChange} placeholder="0" />
           {pointInput && (
             <button
               onClick={handleClearPoints}

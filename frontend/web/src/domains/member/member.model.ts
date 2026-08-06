@@ -47,10 +47,13 @@ export interface MemberDeliveryAddress {
   roadAddress: string
   lotAddress: string | null
   detailAddress: string | null
+  /** 행정동 ID. 주소 문자열 매칭에 실패하면 null이며, 그 주소는 지역별 배달팁만 적용되지 않는다 */
+  adminDongId: number | null
   regionName: string | null
   latitude: number
   longitude: number
-  isDefault: boolean
+  /** 기본 배송지 여부. 응답 필드명이 `defaultAddress`라 model도 같은 이름을 쓴다 */
+  defaultAddress: boolean
 }
 
 export interface SocialMember {

@@ -49,7 +49,11 @@ export default function Footer() {
                   aria-current={active ? 'page' : undefined}
                 >
                   <div className="relative w-6 h-6 flex items-center justify-center">
-                    <Icon name={getLayoutTabIcon(item.tabKey, active)} fill style={{ objectFit: 'contain' }} />
+                    <Icon
+                      name={getLayoutTabIcon(item.tabKey, active)}
+                      fill
+                      style={{ objectFit: 'contain' }}
+                    />
                   </div>
                   <span
                     className={cn(

@@ -144,7 +144,7 @@ export default function DeliveryAddressSection({
                               {address.alias}
                             </span>
                           )}
-                          {address.isDefault && (
+                          {address.defaultAddress && (
                             <span className="text-xs leading-[12px] text-[#aaaaaa]">
                               기본 배송지
                             </span>

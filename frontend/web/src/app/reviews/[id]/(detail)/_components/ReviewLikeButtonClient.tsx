@@ -11,10 +11,7 @@ interface Props {
   reviewId: number
 }
 
-export default function ReviewLikeButtonClient({
-  initialIsLiked,
-  reviewId,
-}: Props) {
+export default function ReviewLikeButtonClient({ initialIsLiked, reviewId }: Props) {
   const [isLiked, setIsLiked] = useState(initialIsLiked)
   const [isPending, startTransition] = useTransition()
 

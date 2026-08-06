@@ -10,7 +10,11 @@ export async function register() {
 // 참고: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation#onrequesterror
 export async function onRequestError(
   error: unknown,
-  request: Readonly<{ path: string; method: string; headers: Record<string, string | string[] | undefined> }>,
+  request: Readonly<{
+    path: string
+    method: string
+    headers: Record<string, string | string[] | undefined>
+  }>,
   context: Readonly<{ routerKind: string; routePath: string; routeType: string }>,
 ) {
   if (process.env.NEXT_RUNTIME === 'nodejs') {

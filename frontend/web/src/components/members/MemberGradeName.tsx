@@ -17,11 +17,7 @@ interface Props {
   bold?: boolean
 }
 
-export default function MemberGradeName({
-  grade,
-  size = 'xs',
-  bold = false,
-}: Props) {
+export default function MemberGradeName({ grade, size = 'xs', bold = false }: Props) {
   const gradeName = getMemberGradeName(grade)
   const gradeColor = getMemberGradeColor(grade)
 

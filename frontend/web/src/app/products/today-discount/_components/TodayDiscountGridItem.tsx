@@ -25,9 +25,7 @@ export default function TodayDiscountGridItem({
   return (
     <Link href={PAGE_PATHS.PRODUCT_DETAIL(id)} className="block">
       <div className="relative w-full aspect-square overflow-hidden bg-[#f5f5f5]">
-        {imageUrl && (
-          <Image src={imageUrl} alt={name} fill className="object-cover" sizes="50vw" />
-        )}
+        {imageUrl && <Image src={imageUrl} alt={name} fill className="object-cover" sizes="50vw" />}
       </div>
       <div className="pt-2.5">
         <p className="text-xs leading-[12px] text-[#aaaaaa] truncate mb-1.5">{shopName}</p>

@@ -30,7 +30,5 @@ function CouponListItemSkeleton() {
 }
 
 export function CouponListSkeleton() {
-  return Array.from({ length: 5 }).map((_, index) => (
-    <CouponListItemSkeleton key={index} />
-  ))
+  return Array.from({ length: 5 }).map((_, index) => <CouponListItemSkeleton key={index} />)
 }

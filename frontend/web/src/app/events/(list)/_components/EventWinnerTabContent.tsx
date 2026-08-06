@@ -9,7 +9,8 @@ import { useEffect } from 'react'
 import { AnnouncementListSkeleton } from './AnnouncementListSkeleton'
 
 export default function EventWinnerTabContent() {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useEventAnnouncements()
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useEventAnnouncements()
 
   const { targetRef, isIntersecting, resetIntersecting } = useIntersectionObserver({
     threshold: 0.1,

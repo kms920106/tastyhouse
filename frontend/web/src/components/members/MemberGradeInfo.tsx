@@ -2,7 +2,10 @@ import { getMemberGradeColor, getMemberGradeIcon, getMemberGradeName } from '@/d
 import { MemberGradeCode } from '@/domains/member'
 import { cn } from '@/lib/utils'
 import Icon from '@/components/ui/Icon'
-import { getMemberGradeIconNameBySize, type MemberGradeIconCode } from '@/components/ui/icon-helpers'
+import {
+  getMemberGradeIconNameBySize,
+  type MemberGradeIconCode,
+} from '@/components/ui/icon-helpers'
 
 interface Props {
   memberGrade: MemberGradeCode | null | undefined

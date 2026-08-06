@@ -24,15 +24,15 @@
 
 ### 2.1. 파일별 책임 요약
 
-| 파일                     | 필수 여부 | 책임                                                      | 의존하는 파일                                          |
-| ------------------------ | --------- | --------------------------------------------------------- | ------------------------------------------------------ |
-| `index.ts`               | **필수**  | 도메인의 모든 public API를 barrel export                  | (없음)                                                 |
-| `[domain].types.ts`      | **필수**  | Backend enum ↔ Union 리터럴 타입 정의                    | (없음)                                                 |
-| `[domain].constants.ts`  | 조건부    | 코드 ↔ 한국어 매핑 + getter 함수                         | `types`                                                |
-| `[domain].model.ts`      | 조건부    | 도메인 내부에서 재사용되는 엔티티 인터페이스              | `types`                                                |
-| `[domain].dto.ts`        | **필수**  | API Request/Response 타입 (네트워크 통신용)               | `types`, `model`, `@/types/common`                     |
-| `[domain].repository.ts` | **필수**  | HTTP 호출 (순수 통신만)                                   | `@/lib/api`, `dto`                                     |
-| `[domain].service.ts`    | 조건부    | repository 응답 가공·조합·비즈니스 로직                  | `repository`, `constants`                              |
+| 파일                     | 필수 여부 | 책임                                                          | 의존하는 파일                                                   |
+| ------------------------ | --------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
+| `index.ts`               | **필수**  | 도메인의 모든 public API를 barrel export                      | (없음)                                                          |
+| `[domain].types.ts`      | **필수**  | Backend enum ↔ Union 리터럴 타입 정의                        | (없음)                                                          |
+| `[domain].constants.ts`  | 조건부    | 코드 ↔ 한국어 매핑 + getter 함수                             | `types`                                                         |
+| `[domain].model.ts`      | 조건부    | 도메인 내부에서 재사용되는 엔티티 인터페이스                  | `types`                                                         |
+| `[domain].dto.ts`        | **필수**  | API Request/Response 타입 (네트워크 통신용)                   | `types`, `model`, `@/types/common`                              |
+| `[domain].repository.ts` | **필수**  | HTTP 호출 (순수 통신만)                                       | `@/lib/api`, `dto`                                              |
+| `[domain].service.ts`    | 조건부    | repository 응답 가공·조합·비즈니스 로직                       | `repository`, `constants`                                       |
 | `[domain].hook.ts`       | 조건부    | client component용 TanStack Query custom hook + queryKey 관리 | `@/actions/[domain]` (server action만), `@tanstack/react-query` |
 
 ### 2.2. 의존성 다이어그램
@@ -168,6 +168,7 @@ export interface PlaceAmenity {
 - ❌ Response/Query/Request suffix가 붙는 타입은 dto.ts로
 
 **언제 생성?**: 다음 중 하나라도 해당하면 생성.
+
 - 같은 객체 구조가 여러 DTO에 중첩되는 경우
 - `src/app/` 내 컴포넌트에서 해당 타입을 직접 사용하는 경우 (Props 타입 등)
 - 도메인 로직에서 별도 인터페이스가 필요한 경우
@@ -342,8 +343,9 @@ export function usePlaceReviewStatistics(placeId: number) {
 - ❌ `index.ts`에 hook export 금지 — `'use client'` 코드이므로 barrel에 포함하면 Server Component에서 빌드 에러 발생
 - ❌ `src/hooks/`에 신규 hook 파일 생성 금지 — hook은 반드시 `src/domains/[domain]/[domain].hook.ts`에 작성
 
-**언제 생성?**: **`src/app/**` 또는 `src/components/**`에서 TanStack Query가 필요한 경우 반드시 생성.**
+**언제 생성?**: **`src/app/**`또는`src/components/**`에서 TanStack Query가 필요한 경우 반드시 생성.**
 구체적으로는 다음 중 하나라도 해당하면 생성:
+
 - `useQuery` / `useInfiniteQuery` / `useMutation`이 필요한 경우 (단일 사용이라도 예외 없음)
 - `invalidateQueries` / `setQueryData` 등 캐시 조작이 필요한 경우
 - 동일 `queryKey`를 여러 컴포넌트에서 공유해야 하는 경우
@@ -352,23 +354,23 @@ export function usePlaceReviewStatistics(placeId: number) {
 
 ## 4. Naming Convention
 
-| 대상              | 규칙                        | 예시                                     |
-| ----------------- | --------------------------- | ---------------------------------------- |
-| 파일명            | `[domain].[layer].ts`       | `place.repository.ts`                    |
-| Union Type        | `Type` / `Code` suffix      | `PlaceFoodType`, `PlaceAmenityCode`      |
-| Model interface   | suffix 없음                 | `PlaceBusinessHour`, `PlaceAmenity`      |
-| Response DTO      | `Response` suffix           | `PlaceInfoResponse`                      |
-| 리스트 아이템 DTO | `[Context]ListItemResponse` | `PlaceLatestListItemResponse`            |
-| Query DTO         | `Query` suffix              | `PlaceLatestQuery`                       |
-| Request DTO       | `Request` suffix            | `PlaceBookmarkRequest`                   |
-| Repository 객체   | `[domain]Repository`        | `placeRepository`                        |
-| Repository 메서드 | HTTP 동사 + 리소스          | `getLatestPlaces`, `togglePlaceBookmark` |
-| Service 객체      | `[domain]Service`           | `placeService`                           |
-| Constants 맵      | SCREAMING_SNAKE_CASE        | `PLACE_FOOD_TYPE_NAMES`                  |
-| Constants getter  | `get` + 타입명 + `Name`     | `getPlaceFoodTypeCodeName`               |
-| Endpoint 상수     | `ENDPOINT` (파일 상단)      | `const ENDPOINT = '/api/places'`         |
-| Hook QueryKeys 객체 | `[domain]QueryKeys`       | `placeQueryKeys`, `memberQueryKeys`      |
-| Hook 함수         | `use` + 동사 + 리소스       | `usePlaceMenus`, `useMemberStats`        |
+| 대상                | 규칙                        | 예시                                     |
+| ------------------- | --------------------------- | ---------------------------------------- |
+| 파일명              | `[domain].[layer].ts`       | `place.repository.ts`                    |
+| Union Type          | `Type` / `Code` suffix      | `PlaceFoodType`, `PlaceAmenityCode`      |
+| Model interface     | suffix 없음                 | `PlaceBusinessHour`, `PlaceAmenity`      |
+| Response DTO        | `Response` suffix           | `PlaceInfoResponse`                      |
+| 리스트 아이템 DTO   | `[Context]ListItemResponse` | `PlaceLatestListItemResponse`            |
+| Query DTO           | `Query` suffix              | `PlaceLatestQuery`                       |
+| Request DTO         | `Request` suffix            | `PlaceBookmarkRequest`                   |
+| Repository 객체     | `[domain]Repository`        | `placeRepository`                        |
+| Repository 메서드   | HTTP 동사 + 리소스          | `getLatestPlaces`, `togglePlaceBookmark` |
+| Service 객체        | `[domain]Service`           | `placeService`                           |
+| Constants 맵        | SCREAMING_SNAKE_CASE        | `PLACE_FOOD_TYPE_NAMES`                  |
+| Constants getter    | `get` + 타입명 + `Name`     | `getPlaceFoodTypeCodeName`               |
+| Endpoint 상수       | `ENDPOINT` (파일 상단)      | `const ENDPOINT = '/api/places'`         |
+| Hook QueryKeys 객체 | `[domain]QueryKeys`         | `placeQueryKeys`, `memberQueryKeys`      |
+| Hook 함수           | `use` + 동사 + 리소스       | `usePlaceMenus`, `useMemberStats`        |
 
 ---
 
@@ -721,7 +723,7 @@ import { getPlaceFoodTypeCodeName } from '@/domains/place'
 import type { BannerResponse } from '@/domains/banner'
 
 interface Props {
-  banners: BannerResponse[]  // ← DTO를 Props에 사용하면 안 됨
+  banners: BannerResponse[] // ← DTO를 Props에 사용하면 안 됨
 }
 ```
 
@@ -730,7 +732,7 @@ interface Props {
 import type { Banner } from '@/domains/banner'
 
 interface Props {
-  banners: Banner[]  // ← model 타입 사용
+  banners: Banner[] // ← model 타입 사용
 }
 ```
 
@@ -747,6 +749,7 @@ interface Props {
 `src/app/` 컴포넌트에서 직접 사용되는 객체 인터페이스는 반드시 `[domain].model.ts`로 분리하고, `dto.ts`는 model을 import해서 조립하는 방식으로 작성합니다.
 
 **판단 흐름**:
+
 1. `dto.ts`의 인터페이스를 `src/app/` 컴포넌트가 참조하고 있는가? → **model.ts로 이동**
 2. `dto.ts`는 이동된 model 타입을 `import type { Xxx } from './[domain].model'` 형식으로 가져와 사용
 3. `index.ts`에 `export * from './[domain].model'` 추가 → 컴포넌트의 barrel import 경로는 그대로 유지
@@ -768,7 +771,7 @@ export interface SocialProfile {
 import type { SocialProfile } from './auth.model'
 
 export interface SocialLinkResponse {
-  socialProfile: SocialProfile | null  // ← model 재사용
+  socialProfile: SocialProfile | null // ← model 재사용
 }
 
 // ✅ src/app/auth/signup/social/page.tsx — barrel 경로 유지, model에서 옴
@@ -793,6 +796,7 @@ import { useUpdateMemberProfile } from '@/domains/member/member.hook'
 > 모든 TanStack Query 로직은 `src/domains/[domain]/[domain].hook.ts`에 집중합니다.
 
 **예외**:
+
 - `prefetchQuery`: Next.js App Router의 Server Component / 레이아웃에서 실행되므로 `'use client'` 제약상 domain hook 사용 불가 → 직접 사용 허용
 - `queryClient.clear()` (로그아웃): 전역 캐시 초기화이므로 `auth.hook.ts`의 `useLogout` mutation hook 내부에 포함
 

@@ -27,7 +27,11 @@ export default function ImageSwiper({ imageUrls, onImageClick }: Props) {
         formatFractionCurrent: (number) => number,
         formatFractionTotal: (number) => number,
       }}
-      className={cn('aspect-[345/190]', styles.reviewSwiper, imageUrls.length === 1 && styles.reviewSwiperSingleImage)}
+      className={cn(
+        'aspect-[345/190]',
+        styles.reviewSwiper,
+        imageUrls.length === 1 && styles.reviewSwiperSingleImage,
+      )}
     >
       {imageUrls.map((imageUrl: string, index: number) => (
         <SwiperSlide key={index}>

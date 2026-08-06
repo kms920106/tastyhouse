@@ -35,7 +35,9 @@ test.describe('로그인 페이지', () => {
     await loginPage.passwordInput.fill('password123')
     await loginPage.submitButton.click()
     /* HTML5 required 속성 또는 서버 유효성 검사 오류 확인 */
-    const isInvalid = await loginPage.usernameInput.evaluate((el: HTMLInputElement) => !el.validity.valid)
+    const isInvalid = await loginPage.usernameInput.evaluate(
+      (el: HTMLInputElement) => !el.validity.valid,
+    )
     expect(isInvalid).toBe(true)
   })
 

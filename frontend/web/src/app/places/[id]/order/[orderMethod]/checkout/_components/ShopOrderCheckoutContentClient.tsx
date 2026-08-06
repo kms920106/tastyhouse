@@ -1,7 +1,7 @@
 'use client'
 
 import { createOrder } from '@/actions/order'
-import { completeOnSitePayment, createPayment } from '@/actions/payment'
+import { completeOnSitePayment, createPayment, getPaymentByOrderId } from '@/actions/payment'
 import OrderRequestField from '@/components/orders/OrderRequestField'
 import { toast } from '@/components/ui/AppToaster'
 import BorderedSection from '@/components/ui/BorderedSection'
@@ -72,7 +72,7 @@ export default function ShopOrderCheckoutContentClient({
     if (!isDeliveryOrder || selectedDeliveryAddressId !== null || deliveryAddresses.length === 0) {
       return
     }
-    const defaultAddress = deliveryAddresses.find((address) => address.isDefault)
+    const defaultAddress = deliveryAddresses.find((address) => address.defaultAddress)
     setSelectedDeliveryAddressId((defaultAddress ?? deliveryAddresses[0]).id)
   }, [isDeliveryOrder, selectedDeliveryAddressId, deliveryAddresses])
 
@@ -201,8 +201,9 @@ export default function ShopOrderCheckoutContentClient({
       return
     }
 
-    const orderId = orderResult.data?.id
-    if (!orderId) {
+    // 서버는 생성된 주문 ID를 스칼라로 내려준다(ApiResponse<Long>). 객체로 감싸 오지 않는다.
+    const orderId = orderResult.data
+    if (orderId == null) {
       toast(COMMON_ERROR_MESSAGES.MUTATION_ERROR)
       return
     }
@@ -218,13 +219,9 @@ export default function ShopOrderCheckoutContentClient({
       return
     }
 
-    if (!paymentResult.data) {
-      toast(COMMON_ERROR_MESSAGES.MUTATION_ERROR)
-      return
-    }
-
-    const paymentId = paymentResult.data.id
-    if (!paymentId) {
+    // 결제 생성도 주문과 마찬가지로 생성된 결제 ID를 스칼라로 내려준다.
+    const paymentId = paymentResult.data
+    if (paymentId == null) {
       toast(COMMON_ERROR_MESSAGES.MUTATION_ERROR)
       return
     }
@@ -253,6 +250,15 @@ export default function ShopOrderCheckoutContentClient({
         return
       }
 
+      // 결제 생성 응답은 결제 ID뿐이므로, PG 결제창에 넘길 pgOrderId는 주문별 결제 조회로 받는다.
+      const paymentDetailResult = await getPaymentByOrderId(orderId)
+      const pgOrderId = paymentDetailResult.data?.pgOrderId
+
+      if (!pgOrderId) {
+        toast(COMMON_ERROR_MESSAGES.MUTATION_ERROR)
+        return
+      }
+
       const orderName =
         totalItemCount > 1 ? `${firstProductName} 외 ${totalItemCount - 1}건` : firstProductName
 
@@ -262,7 +268,7 @@ export default function ShopOrderCheckoutContentClient({
           currency: 'KRW',
           value: confirmedPaymentSummary.paymentAmount,
         },
-        orderId: paymentResult.data.pgOrderId,
+        orderId: pgOrderId,
         orderName,
         successUrl: `${window.location.origin}/api/payments/tosspayments/success`,
         failUrl: `${window.location.origin}/api/payments/tosspayments/fail`,

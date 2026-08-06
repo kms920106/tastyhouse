@@ -1,6 +1,11 @@
 'use client'
 
-import { getSearchMenus, getSearchShops, getSearchPublicShops, getSearchReviews } from '@/actions/search'
+import {
+  getSearchMenus,
+  getSearchShops,
+  getSearchPublicShops,
+  getSearchReviews,
+} from '@/actions/search'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
 const SEARCH_MENU_PREVIEW_SIZE = 3

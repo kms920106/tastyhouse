@@ -16,12 +16,7 @@ interface Props {
   createdAt: string
 }
 
-export default function ShopOwnerMessageModal({
-  open,
-  onOpenChange,
-  message,
-  createdAt,
-}: Props) {
+export default function ShopOwnerMessageModal({ open, onOpenChange, message, createdAt }: Props) {
   const createdAtFormatted = formatDate(createdAt, 'YYYY년 M월 D일')
 
   return (

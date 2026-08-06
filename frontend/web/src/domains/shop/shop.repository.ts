@@ -124,9 +124,14 @@ export const shopRepository = {
    * 파라미터가 없으면 범위 모드(하한~상한), `deliveryAddressId`·`orderAmount`를 주면 확정 모드다.
    * 시간별 배달팁 때문에 호출 시각에 따라 값이 달라지므로 캐시하지 않는다 — 낡은 값으로 주문하면
    * 서버 재계산과 어긋나 `ORDER_DELIVERY_TIP_AMOUNT_MISMATCH`로 주문이 거절된다.
+   *
+   * `publicApi`가 아니라 `api`를 쓴다. 확정 모드는 서버가 `deliveryAddressId`로 회원 주소록을
+   * 조회해 좌표를 읽으므로 인증이 필요하고, 토큰이 없으면 `deliveryTip`이 `null`로 내려와
+   * 결제 화면 배달팁이 0원으로 표기된다. `api`는 토큰이 있을 때만 헤더를 붙이므로
+   * 비로그인 범위 모드(가게 카드·상세)도 그대로 동작한다.
    */
   async getShopDeliveryTip(shopId: number, params: ShopDeliveryTipQuery) {
-    return publicApi.get<ShopDeliveryTipResponse, ShopDeliveryTipQuery>(
+    return api.get<ShopDeliveryTipResponse, ShopDeliveryTipQuery>(
       `${ENDPOINT}/v1/${shopId}/delivery-tip`,
       { params },
     )

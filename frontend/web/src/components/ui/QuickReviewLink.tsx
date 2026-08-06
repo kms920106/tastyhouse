@@ -10,13 +10,7 @@ export default function QuickReviewLink() {
       aria-label="빠른 리뷰 작성하기"
     >
       <div className="relative w-[26px] h-[26px]">
-        <Icon
-          name="home/fast-review"
-          alt=""
-          fill
-          width={26}
-          style={{ objectFit: 'contain' }}
-        />
+        <Icon name="home/fast-review" alt="" fill width={26} style={{ objectFit: 'contain' }} />
       </div>
     </Link>
   )

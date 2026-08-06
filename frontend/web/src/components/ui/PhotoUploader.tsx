@@ -39,11 +39,7 @@ export default function PhotoUploader({
           disabled={isUploading || uploadedFiles.length >= maxCount}
         />
         <div className="flex flex-col items-center gap-2.5">
-          {isUploading ? (
-            <Spinner />
-          ) : (
-            <Icon name="camera" />
-          )}
+          {isUploading ? <Spinner /> : <Icon name="camera" />}
           <span className="text-[11px] leading-[11px] text-[#999999]">
             {uploadedFiles.length}/{maxCount}
           </span>

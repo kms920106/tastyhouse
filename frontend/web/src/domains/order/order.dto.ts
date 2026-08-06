@@ -34,10 +34,6 @@ export interface OrderCreateRequest {
   deliveryTipAmount: number
 }
 
-export interface OrderCreateResponse {
-  id: number
-}
-
 export interface OrderListItemResponse {
   id: number
   shopName: string

@@ -36,9 +36,8 @@ export const searchRepository = {
     })
   },
   async searchPublicShops(params: SearchQuery) {
-    return publicApi.get<SearchShopListItemResponse[], SearchQuery>(
-      `${ENDPOINT}/v1/shops/public`,
-      { params },
-    )
+    return publicApi.get<SearchShopListItemResponse[], SearchQuery>(`${ENDPOINT}/v1/shops/public`, {
+      params,
+    })
   },
 }

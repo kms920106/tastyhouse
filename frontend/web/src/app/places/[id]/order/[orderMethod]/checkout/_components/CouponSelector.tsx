@@ -31,9 +31,7 @@ export default function CouponSelector({
   onCouponSelect,
 }: Props) {
   const [couponDrawerOpen, setCouponDrawerOpen] = useState(false)
-  const [tempSelectedCoupon, setTempSelectedCoupon] = useState<MemberCoupon | null>(
-    null,
-  )
+  const [tempSelectedCoupon, setTempSelectedCoupon] = useState<MemberCoupon | null>(null)
 
   // 상품 금액에서 상품 할인을 제외한 금액
   const amountAfterProductDiscount = totalProductAmount - totalProductDiscountAmount
@@ -92,7 +90,10 @@ export default function CouponSelector({
             className="w-full h-[50px] px-[15px] py-[17px] flex items-center justify-between border box-border border-line"
           >
             <span
-              className={cn('text-sm leading-[14px]', selectedCoupon ? 'text-black' : 'text-[#aaaaaa]')}
+              className={cn(
+                'text-sm leading-[14px]',
+                selectedCoupon ? 'text-black' : 'text-[#aaaaaa]',
+              )}
             >
               {selectedCoupon
                 ? selectedCoupon.discountType === 'AMOUNT'
@@ -164,9 +165,7 @@ export default function CouponSelector({
               })}
             </div>
             <div className="mt-5">
-              <AppPrimaryButton onClick={handleApplyCoupon}>
-                {getButtonText()}
-              </AppPrimaryButton>
+              <AppPrimaryButton onClick={handleApplyCoupon}>{getButtonText()}</AppPrimaryButton>
             </div>
           </div>
         </DrawerContent>

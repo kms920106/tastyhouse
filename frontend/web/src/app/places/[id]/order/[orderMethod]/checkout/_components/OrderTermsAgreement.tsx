@@ -5,10 +5,7 @@ interface Props {
   onAgreementChange: (agreed: boolean) => void
 }
 
-export default function OrderTermsAgreement({
-  agreed,
-  onAgreementChange,
-}: Props) {
+export default function OrderTermsAgreement({ agreed, onAgreementChange }: Props) {
   return (
     <div className="px-[15px] py-5">
       <label className="flex items-center gap-2.5 cursor-pointer">

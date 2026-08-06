@@ -12,11 +12,7 @@ export default function AppFormField({ label, required, error, children }: Props
     <div className="flex flex-col gap-2.5">
       <h3 className="flex items-center text-xs h-3 overflow-hidden">
         {label}
-        {required && (
-          <span className="text-[17px] leading-3 text-[#bc4040] ml-[5px]">
-            *
-          </span>
-        )}
+        {required && <span className="text-[17px] leading-3 text-[#bc4040] ml-[5px]">*</span>}
       </h3>
       {children({ className: inputClassName })}
       {error && <p className="text-xs leading-[12px] text-[#bc4040]">{error}</p>}

@@ -8,7 +8,11 @@ interface Props {
   productPrice: number
 }
 
-export default function ReviewDetailProductCard({ productImageUrl, productName, productPrice }: Props) {
+export default function ReviewDetailProductCard({
+  productImageUrl,
+  productName,
+  productPrice,
+}: Props) {
   return (
     <BorderedSection>
       <div className="px-[15px] py-5 flex items-center gap-4">
@@ -23,9 +27,7 @@ export default function ReviewDetailProductCard({ productImageUrl, productName, 
         </div>
         <div className="flex-1 flex flex-col min-w-0">
           <h3 className="text-sm leading-[14px] truncate">{productName}</h3>
-          <span className="mt-2.5 text-sm leading-[14px]">
-            {formatNumber(productPrice)}원
-          </span>
+          <span className="mt-2.5 text-sm leading-[14px]">{formatNumber(productPrice)}원</span>
         </div>
       </div>
     </BorderedSection>

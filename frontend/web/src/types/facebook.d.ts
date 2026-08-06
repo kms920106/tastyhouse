@@ -17,12 +17,7 @@ interface FBLoginOptions {
 }
 
 interface FacebookSDK {
-  init(params: {
-    appId: string
-    cookie?: boolean
-    xfbml?: boolean
-    version: string
-  }): void
+  init(params: { appId: string; cookie?: boolean; xfbml?: boolean; version: string }): void
   login(callback: (response: FBLoginResponse) => void, options?: FBLoginOptions): void
   logout(callback: (response: FBLoginResponse) => void): void
   getLoginStatus(callback: (response: FBLoginResponse) => void): void

@@ -34,17 +34,13 @@ export default function PaymentBreakdownAccordion({
             <div className="space-y-[15px]">
               <div className="flex justify-between">
                 <span className="text-sm leading-[14px]">상품금액</span>
-                <span className="text-sm leading-[14px]">
-                  {formatNumber(totalProductAmount)}원
-                </span>
+                <span className="text-sm leading-[14px]">{formatNumber(totalProductAmount)}원</span>
               </div>
               <div>
                 <div className="flex justify-between">
                   <span className="text-sm leading-[14px]">할인금액</span>
                   <span className="text-sm leading-[14px]">
-                    {totalDiscountAmount > 0
-                      ? `- ${formatNumber(totalDiscountAmount)}원`
-                      : '0원'}
+                    {totalDiscountAmount > 0 ? `- ${formatNumber(totalDiscountAmount)}원` : '0원'}
                   </span>
                 </div>
                 {totalDiscountAmount > 0 && (

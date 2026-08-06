@@ -12,7 +12,6 @@ const TABS: { label: string; value: ReviewTab }[] = [
   { label: '팔로잉', value: 'following' },
 ]
 
-
 interface Props {
   tab: ReviewTab
 }

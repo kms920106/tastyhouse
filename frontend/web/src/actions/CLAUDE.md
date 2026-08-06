@@ -59,17 +59,17 @@ export async function createXxx(...) { ... }
 
 ## 3. 책임 매트릭스
 
-| 책임 | server action에서 처리 | 처리 금지 |
-| --- | --- | --- |
-| HTTP 호출 (`api.get` 등) | | ❌ → repository로 |
-| 데이터 가공 (코드↔한국어, 여러 API 조합) | | ❌ → service로 |
-| `response.data ?? []` 같은 단순 unwrap | ✅ (호출자 편의용) | |
-| `revalidatePath` (mutation 성공 후) | ✅ | |
-| `redirect` (인증/완료 페이지 이동) | ✅ | |
-| `cookies()` 조작 | ✅ (인증 토큰 한정) | |
-| FormData 파싱 + 간단한 입력 검증 | ✅ (`useActionState` 진입점) | |
-| React state, UI 렌더링 | | ❌ |
-| 도메인 비즈니스 로직 | | ❌ → service로 |
+| 책임                                      | server action에서 처리       | 처리 금지         |
+| ----------------------------------------- | ---------------------------- | ----------------- |
+| HTTP 호출 (`api.get` 등)                  |                              | ❌ → repository로 |
+| 데이터 가공 (코드↔한국어, 여러 API 조합) |                              | ❌ → service로    |
+| `response.data ?? []` 같은 단순 unwrap    | ✅ (호출자 편의용)           |                   |
+| `revalidatePath` (mutation 성공 후)       | ✅                           |                   |
+| `redirect` (인증/완료 페이지 이동)        | ✅                           |                   |
+| `cookies()` 조작                          | ✅ (인증 토큰 한정)          |                   |
+| FormData 파싱 + 간단한 입력 검증          | ✅ (`useActionState` 진입점) |                   |
+| React state, UI 렌더링                    |                              | ❌                |
+| 도메인 비즈니스 로직                      |                              | ❌ → service로    |
 
 > 한 줄 요약: server action은 **호출 → (선택) 캐시/쿠키/리다이렉트** 외에는 아무것도 하지 않습니다.
 
@@ -79,10 +79,10 @@ export async function createXxx(...) { ... }
 
 ```typescript
 // ✅ 권장
-import { reviewRepository, ReviewLatestQuery } from '@/domains/review'      // ❌ 비권장 — repository는 명시 경로
-import type { PlaceMapMarkerResponse } from '@/domains/place'               // ✅ 타입은 barrel
-import { placeRepository } from '@/domains/place/place.repository'          // ✅ repository는 명시 경로
-import { placeService } from '@/domains/place/place.service'                // ✅ service는 명시 경로
+import { reviewRepository, ReviewLatestQuery } from '@/domains/review' // ❌ 비권장 — repository는 명시 경로
+import type { PlaceMapMarkerResponse } from '@/domains/place' // ✅ 타입은 barrel
+import { placeRepository } from '@/domains/place/place.repository' // ✅ repository는 명시 경로
+import { placeService } from '@/domains/place/place.service' // ✅ service는 명시 경로
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -235,9 +235,7 @@ export async function loginFormAction(
 - ✅ 결과 타입은 **discriminated union 강제**:
 
 ```typescript
-export type LoginResult =
-  | { success: true }
-  | { success: false; error: string }
+export type LoginResult = { success: true } | { success: false; error: string }
 ```
 
 - ✅ 검증 로직이 길어지면 같은 파일에 private helper로 분리 (export 금지)
@@ -258,7 +256,7 @@ hook 파일은 `src/domains/[domain]/[domain].hook.ts`에 위치합니다.
 // src/domains/place/place.hook.ts
 'use client'
 
-import { getPlaceMenus } from '@/actions/place'   // ← server action import
+import { getPlaceMenus } from '@/actions/place' // ← server action import
 import { useQuery } from '@tanstack/react-query'
 
 export const placeQueryKeys = {
@@ -268,7 +266,7 @@ export const placeQueryKeys = {
 export function usePlaceMenus(placeId: number) {
   return useQuery({
     queryKey: placeQueryKeys.menus(placeId),
-    queryFn: () => getPlaceMenus(placeId),   // ← server action을 queryFn으로 호출
+    queryFn: () => getPlaceMenus(placeId), // ← server action을 queryFn으로 호출
   })
 }
 ```
@@ -296,14 +294,14 @@ Server Component에서 `await`으로 처리할 수 있다면 server action을 �
 
 ## 6. Naming Convention
 
-| 대상 | 규칙 | 예시 |
-| --- | --- | --- |
-| 파일명 | `[domain].ts` | `place.ts`, `auth.ts`, `member.ts` |
-| 조회 함수 | `get` + 리소스 | `getLatestPlaces`, `getMemberMe` |
+| 대상                | 규칙                                               | 예시                                                  |
+| ------------------- | -------------------------------------------------- | ----------------------------------------------------- |
+| 파일명              | `[domain].ts`                                      | `place.ts`, `auth.ts`, `member.ts`                    |
+| 조회 함수           | `get` + 리소스                                     | `getLatestPlaces`, `getMemberMe`                      |
 | 생성/수정/삭제 함수 | `create` / `update` / `toggle` / `delete` + 리소스 | `createComment`, `toggleReviewLike`, `withdrawMember` |
-| FormData 액션 | 동작 + `FormAction` suffix | `loginFormAction`, `signupFormAction` |
-| 결과 타입 | `[Action]Result` (discriminated union) | `LoginResult`, `SignupResult`, `PhoneLoginResult` |
-| private helper | 동사 + 명사, export 안 함 | `validateLoginInput`, `setAuthCookies` |
+| FormData 액션       | 동작 + `FormAction` suffix                         | `loginFormAction`, `signupFormAction`                 |
+| 결과 타입           | `[Action]Result` (discriminated union)             | `LoginResult`, `SignupResult`, `PhoneLoginResult`     |
+| private helper      | 동사 + 명사, export 안 함                          | `validateLoginInput`, `setAuthCookies`                |
 
 ---
 
@@ -471,7 +469,7 @@ export async function getSignupPolicies() {
 import { api } from '@/lib/api'
 
 export async function getXxx() {
-  return api.get('/api/xxx')   // ← repository를 거쳐야 함
+  return api.get('/api/xxx') // ← repository를 거쳐야 함
 }
 ```
 
@@ -485,7 +483,7 @@ export async function getXxx() {
 // ❌ 지양
 export async function getActivePlaces() {
   const response = await placeRepository.getLatestPlaces({ page: 0, size: 10 })
-  return response.data?.filter((p) => p.rating >= 4.0) ?? []   // ← 가공 NO
+  return response.data?.filter((p) => p.rating >= 4.0) ?? [] // ← 가공 NO
 }
 ```
 
@@ -499,7 +497,7 @@ export async function getActivePlaces() {
 // ❌ 지양
 export async function createComment(reviewId: number, request: CommentCreateRequest) {
   const result = await reviewRepository.createReviewComment(reviewId, request)
-  revalidatePath(`/reviews/${reviewId}`)   // ← 실패해도 캐시를 비움
+  revalidatePath(`/reviews/${reviewId}`) // ← 실패해도 캐시를 비움
   return result
 }
 ```
@@ -565,7 +563,7 @@ export async function createComment(reviewId: number, request: CommentCreateRequ
   try {
     return await reviewRepository.createReviewComment(reviewId, request)
   } catch (e) {
-    return null   // ← 호출자가 에러를 알 수 없음
+    return null // ← 호출자가 에러를 알 수 없음
   }
 }
 ```
@@ -661,12 +659,12 @@ export async function getLatestPlaces({ page, size }: { page: number; size: numb
 
 **파일별 패턴 매핑**:
 
-| 패턴 | 대표 파일 |
-| --- | --- |
-| A — 순수 read wrapper | [place.ts](place.ts), [banner.ts](banner.ts), [notice.ts](notice.ts), [faq.ts](faq.ts) |
-| B — unwrap된 read wrapper | [place.ts:7-13](place.ts) (`getMapMarkers`), [signup.ts:15-33](signup.ts) (`fetch*Content`) |
-| C — mutation + revalidate | [review.ts](review.ts), [rank.ts](rank.ts) |
-| D — FormData + cookies + redirect | [auth.ts](auth.ts), [signup.ts](signup.ts) |
+| 패턴                              | 대표 파일                                                                                   |
+| --------------------------------- | ------------------------------------------------------------------------------------------- |
+| A — 순수 read wrapper             | [place.ts](place.ts), [banner.ts](banner.ts), [notice.ts](notice.ts), [faq.ts](faq.ts)      |
+| B — unwrap된 read wrapper         | [place.ts:7-13](place.ts) (`getMapMarkers`), [signup.ts:15-33](signup.ts) (`fetch*Content`) |
+| C — mutation + revalidate         | [review.ts](review.ts), [rank.ts](rank.ts)                                                  |
+| D — FormData + cookies + redirect | [auth.ts](auth.ts), [signup.ts](signup.ts)                                                  |
 
 **핵심 한 줄 요약**:
 

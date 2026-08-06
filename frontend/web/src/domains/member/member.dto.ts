@@ -182,10 +182,18 @@ export interface MemberDeliveryAddressItemResponse {
   roadAddress: string
   lotAddress: string | null
   detailAddress: string | null
+  /** 행정동 ID. 주소 문자열 매칭에 실패하면 null이며, 그래도 등록은 성공한다 */
+  adminDongId: number | null
   regionName: string | null
   latitude: number
   longitude: number
-  isDefault: boolean
+  /**
+   * 기본 배송지 여부.
+   *
+   * 요청 필드명은 `isDefault`인데 응답은 `defaultAddress`다 — 서버가 boolean 필드를
+   * record 접근자 이름 그대로 직렬화하기 때문이며, 프론트가 맞춰야 하는 쪽이다.
+   */
+  defaultAddress: boolean
 }
 
 export interface MemberDeliveryAddressCreateRequest {
@@ -200,7 +208,13 @@ export interface MemberDeliveryAddressCreateRequest {
   isDefault?: boolean
 }
 
-/** 수정 요청은 생성 요청과 필드가 동일하다(replace 방식). */
+/**
+ * 배달 주소 수정 요청.
+ *
+ * 생성 요청과 필드가 같되 `isDefault`만 없다 — 기본 배송지 지정은 전용 엔드포인트
+ * (`PATCH /v1/me/delivery-addresses/{id}/default`)가 단독으로 담당하므로 여기에 실어도
+ * 서버가 무시한다. 수정 폼에서 기본 배송지를 함께 바꾸려면 PUT 후 PATCH를 순서대로 호출한다.
+ */
 export interface MemberDeliveryAddressUpdateRequest {
   alias?: string
   roadAddress: string
@@ -210,5 +224,4 @@ export interface MemberDeliveryAddressUpdateRequest {
   latitude: number
   /** 필수 — 좌표가 없으면 서버가 저장을 거부한다 */
   longitude: number
-  isDefault?: boolean
 }

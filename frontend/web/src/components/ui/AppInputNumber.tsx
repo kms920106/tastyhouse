@@ -1,10 +1,7 @@
 import { cn } from '@/lib/utils'
 import AppInput from './AppInput'
 
-type Props = Omit<
-  React.ComponentProps<typeof AppInput>,
-  'type' | 'onKeyDown' | 'onPaste'
->
+type Props = Omit<React.ComponentProps<typeof AppInput>, 'type' | 'onKeyDown' | 'onPaste'>
 
 export default function AppInputNumber(props: Props) {
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {

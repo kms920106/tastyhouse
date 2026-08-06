@@ -18,6 +18,10 @@ export default function ShopOrderMenuDetailCartButtonClient({ shopId, orderMetho
   }, [shopId])
 
   return (
-    <ShopOrderMenuDetailCartButton shopId={shopId} count={cartItemCount} orderMethod={orderMethod} />
+    <ShopOrderMenuDetailCartButton
+      shopId={shopId}
+      count={cartItemCount}
+      orderMethod={orderMethod}
+    />
   )
 }

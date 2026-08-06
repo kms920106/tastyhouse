@@ -28,16 +28,16 @@ export function getRankPodiumIconName(rankNo: RankTopNo): IconName {
   return `rank/rank-0${rankNo}` as IconName
 }
 
-const ORDER_METHOD_ICON_SLUG: Record<OrderMethodType, 'table' | 'reservation' | 'delivery' | 'packaging'> = {
+const ORDER_METHOD_ICON_SLUG: Record<
+  OrderMethodType,
+  'table' | 'reservation' | 'delivery' | 'packaging'
+> = {
   TABLE: 'table',
   RESERVATION: 'reservation',
-  DELIVERY:    'delivery',
-  TAKEOUT:     'packaging',
+  DELIVERY: 'delivery',
+  TAKEOUT: 'packaging',
 }
 
-export function getOrderMethodIconName(
-  method: OrderMethodType,
-  active: boolean,
-): IconName {
+export function getOrderMethodIconName(method: OrderMethodType, active: boolean): IconName {
   return `place/order-method/${ORDER_METHOD_ICON_SLUG[method]}-${active ? 'on' : 'off'}` as IconName
 }

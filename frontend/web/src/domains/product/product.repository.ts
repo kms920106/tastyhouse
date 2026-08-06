@@ -48,7 +48,10 @@ export const productRepository = {
   },
   // 상품 옵션 조회
   async getProductOptions(productId: number) {
-    return publicApi.get<ProductOptionsResponse>(`${ENDPOINT}/v1/${productId}/options`, CACHE_OPTIONS)
+    return publicApi.get<ProductOptionsResponse>(
+      `${ENDPOINT}/v1/${productId}/options`,
+      CACHE_OPTIONS,
+    )
   },
   // 상품 리뷰 통계 조회
   async getProductReviewStatistics(productId: number) {

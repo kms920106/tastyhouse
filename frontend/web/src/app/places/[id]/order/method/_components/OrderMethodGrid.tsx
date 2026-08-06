@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 const METHOD_CONFIG: Record<OrderMethodType, { title: string }> = {
   TABLE: { title: '바로 주문하기' },
   RESERVATION: { title: '예약하기' },
-  DELIVERY:    { title: '배달하기' },
-  TAKEOUT:     { title: '포장하기' },
+  DELIVERY: { title: '배달하기' },
+  TAKEOUT: { title: '포장하기' },
 }
 
 const METHOD_ORDER: OrderMethodType[] = ['TABLE', 'RESERVATION', 'DELIVERY', 'TAKEOUT']

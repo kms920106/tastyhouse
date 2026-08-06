@@ -17,7 +17,12 @@ function StatValue({ children }: { children: ReactNode }) {
   return <span className="text-xs leading-[12px] font-bold">{children}</span>
 }
 
-export default function MemberProfileStats({ memberId, reviewCount, followingCount, followerCount }: Props) {
+export default function MemberProfileStats({
+  memberId,
+  reviewCount,
+  followingCount,
+  followerCount,
+}: Props) {
   return (
     <div className="flex items-center justify-center gap-10 mt-[53px] mb-[30px]">
       <div className="flex items-center gap-1">

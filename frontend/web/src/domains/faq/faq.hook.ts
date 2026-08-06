@@ -29,8 +29,7 @@ export function useFaqCategories() {
 export function useFaqList(categoryId: number) {
   return useQuery({
     queryKey: faqQueryKeys.list(categoryId),
-    queryFn: () =>
-      getFaqList(categoryId !== ALL_CATEGORY_ID ? { categoryId } : undefined),
+    queryFn: () => getFaqList(categoryId !== ALL_CATEGORY_ID ? { categoryId } : undefined),
   })
 }
 

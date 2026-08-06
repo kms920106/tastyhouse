@@ -58,10 +58,7 @@ export default function CouponListItem({ memberCoupon }: Props) {
         </div>
         <div className="flex items-center justify-center w-[30%]">
           <span
-            className={cn(
-              'text-base leading-[16px]',
-              expired ? 'text-gray-400' : 'text-[#666666]',
-            )}
+            className={cn('text-base leading-[16px]', expired ? 'text-gray-400' : 'text-[#666666]')}
           >
             {expired ? '만료' : `D-${daysRemaining}`}
           </span>

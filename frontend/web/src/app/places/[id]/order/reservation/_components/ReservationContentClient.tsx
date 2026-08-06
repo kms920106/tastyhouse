@@ -137,7 +137,9 @@ export default function ReservationContentClient({ shopId }: Props) {
     }
     // 이미 그 날짜·매장에 예약이 있으면 제출 차단 (선제 가드 — 서버 409와 이중 방어)
     if (hasMyReservation) {
-      toast('이미 이 날짜에 예약이 있어요.\n예약 내역에서 기존 예약을 취소한 뒤 다시 시도해 주세요.')
+      toast(
+        '이미 이 날짜에 예약이 있어요.\n예약 내역에서 기존 예약을 취소한 뒤 다시 시도해 주세요.',
+      )
       return
     }
     if (!selectedTime) {

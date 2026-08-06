@@ -31,10 +31,7 @@ export default function ReviewRatingSection({ ratings, error, onRatingChange }: 
                 onClick={() => onRatingChange(key, star)}
                 className="cursor-pointer transition-transform hover:scale-110"
               >
-                <FaStar
-                  size={40}
-                  className={star <= ratings[key] ? 'text-main' : 'text-line'}
-                />
+                <FaStar size={40} className={star <= ratings[key] ? 'text-main' : 'text-line'} />
               </button>
             ))}
           </div>

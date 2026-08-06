@@ -2,11 +2,17 @@
 
 import { followRepository } from '@/domains/follow/follow.repository'
 
-export async function getFollowingList(memberId: number, { page, size }: { page: number; size: number }) {
+export async function getFollowingList(
+  memberId: number,
+  { page, size }: { page: number; size: number },
+) {
   return followRepository.getFollowingList(memberId, { page, size })
 }
 
-export async function getFollowerList(memberId: number, { page, size }: { page: number; size: number }) {
+export async function getFollowerList(
+  memberId: number,
+  { page, size }: { page: number; size: number },
+) {
   return followRepository.getFollowerList(memberId, { page, size })
 }
 

@@ -17,12 +17,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           };
         `}
       </Script>
-      <Script
-        src="https://connect.facebook.net/en_US/sdk.js"
-        strategy="lazyOnload"
-        async
-        defer
-      />
+      <Script src="https://connect.facebook.net/en_US/sdk.js" strategy="lazyOnload" async defer />
       {children}
     </>
   )

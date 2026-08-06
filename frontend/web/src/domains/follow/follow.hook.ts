@@ -1,10 +1,26 @@
 'use client'
 
-import { followMember, getFollowerList, getIsFollowing, getPublicFollowerList, getPublicFollowingList, getFollowingList, removeFollower, searchMembersByNickname, unfollowMember } from '@/actions/follow'
+import {
+  followMember,
+  getFollowerList,
+  getIsFollowing,
+  getPublicFollowerList,
+  getPublicFollowingList,
+  getFollowingList,
+  removeFollower,
+  searchMembersByNickname,
+  unfollowMember,
+} from '@/actions/follow'
 import { toast } from '@/components/ui/AppToaster'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
 import type { IsFollowingResponse } from '@/domains/follow/follow.dto'
-import { InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 const PAGE_SIZE = 10
 
@@ -12,8 +28,10 @@ export const followQueryKeys = {
   allFollowers: () => ['followers'] as const,
   allFollowing: () => ['following'] as const,
   allMemberSearch: () => ['memberSearch'] as const,
-  followers: (memberId: number, isLoggedIn: boolean) => ['followers', memberId, isLoggedIn] as const,
-  following: (memberId: number, isLoggedIn: boolean) => ['following', memberId, isLoggedIn] as const,
+  followers: (memberId: number, isLoggedIn: boolean) =>
+    ['followers', memberId, isLoggedIn] as const,
+  following: (memberId: number, isLoggedIn: boolean) =>
+    ['following', memberId, isLoggedIn] as const,
   isFollowing: (memberId: number) => ['member', memberId, 'is-following'] as const,
   memberSearch: (searchQuery: string) => ['memberSearch', searchQuery] as const,
 }
@@ -22,10 +40,9 @@ export function useFollowers(memberId: number, isLoggedIn: boolean) {
   return useInfiniteQuery({
     queryKey: followQueryKeys.followers(memberId, isLoggedIn),
     queryFn: async ({ pageParam }) => {
-      const response = isLoggedIn
+      return isLoggedIn
         ? await getFollowerList(memberId, { page: pageParam as number, size: PAGE_SIZE })
         : await getPublicFollowerList(memberId, { page: pageParam as number, size: PAGE_SIZE })
-      return response
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
@@ -40,10 +57,9 @@ export function useFollowing(memberId: number, isLoggedIn: boolean) {
   return useInfiniteQuery({
     queryKey: followQueryKeys.following(memberId, isLoggedIn),
     queryFn: async ({ pageParam }) => {
-      const response = isLoggedIn
+      return isLoggedIn
         ? await getFollowingList(memberId, { page: pageParam as number, size: PAGE_SIZE })
         : await getPublicFollowingList(memberId, { page: pageParam as number, size: PAGE_SIZE })
-      return response
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
@@ -90,9 +106,7 @@ function updateFollowingStateInCache<T extends FollowableMember>(
     ...cache,
     pages: cache.pages.map((page) => ({
       ...page,
-      data: page.data?.map((m) =>
-        m.memberId === targetMemberId ? { ...m, following } : m,
-      ),
+      data: page.data?.map((m) => (m.memberId === targetMemberId ? { ...m, following } : m)),
     })),
   }
 }
@@ -118,7 +132,7 @@ export function useFollowMutation() {
 
     queryClient.setQueryData<IsFollowingResponse>(
       followQueryKeys.isFollowing(targetMemberId),
-      (old) => old ? { ...old, following } : old,
+      (old) => (old ? { ...old, following } : old),
     )
   }
 

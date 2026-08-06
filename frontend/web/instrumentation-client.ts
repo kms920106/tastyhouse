@@ -7,20 +7,12 @@ import browserLogger from '@/lib/logger-browser'
 
 // 처리되지 않은 JS 런타임 오류 캐치
 window.addEventListener('error', (event) => {
-  browserLogger.error(
-    { type: 'uncaught_error' },
-    '[CLIENT ERROR] %s',
-    event.message,
-  )
+  browserLogger.error({ type: 'uncaught_error' }, '[CLIENT ERROR] %s', event.message)
 })
 
 // 처리되지 않은 Promise rejection 캐치
 window.addEventListener('unhandledrejection', (event) => {
-  browserLogger.error(
-    { type: 'unhandled_rejection' },
-    '[CLIENT ERROR] %s',
-    String(event.reason),
-  )
+  browserLogger.error({ type: 'unhandled_rejection' }, '[CLIENT ERROR] %s', String(event.reason))
 })
 
 // React 렌더링 중 발생하는 에러 캐치
@@ -29,16 +21,10 @@ const originalConsoleError = console.error
 console.error = (...args: unknown[]) => {
   originalConsoleError.apply(console, args)
 
-  const message = args
-    .map((arg) => (arg instanceof Error ? arg.message : String(arg)))
-    .join(' ')
+  const message = args.map((arg) => (arg instanceof Error ? arg.message : String(arg))).join(' ')
 
   // pino write에서 출력한 포맷된 메시지의 재귀 호출 방지
   if (message.startsWith('[') && message.includes('] ERROR:')) return
 
-  browserLogger.error(
-    { type: 'console_error' },
-    '[CLIENT ERROR] %s',
-    message,
-  )
+  browserLogger.error({ type: 'console_error' }, '[CLIENT ERROR] %s', message)
 }

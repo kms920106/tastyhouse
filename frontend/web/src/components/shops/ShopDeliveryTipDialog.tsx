@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/Modal'
 import AppPrimaryButton from '@/components/ui/AppPrimaryButton'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
-import { getShopDeliveryTipDayTypeName } from '@/domains/shop'
 import type { ShopDeliveryTip } from '@/domains/shop'
 import { useShopDeliveryTip } from '@/domains/shop/shop.hook'
 import { formatNumber } from '@/lib/number'
@@ -25,11 +24,6 @@ interface Props {
   orderAmount?: number
   /** 주문 방법. 기본 DELIVERY */
   orderMethod?: string
-}
-
-/** `"HH:mm:ss"` 형태의 서버 시간 문자열을 `"HH:mm"`으로 줄인다. */
-function formatTime(time: string): string {
-  return time.slice(0, 5)
 }
 
 /**
@@ -139,10 +133,10 @@ function DeliveryTipDetail({ deliveryTip }: { deliveryTip: ShopDeliveryTip }) {
       )}
       {schedules.length > 0 && (
         <DeliveryTipSection title="시간별 추가 배달팁">
-          {schedules.map(({ dayType, startTime, endTime, tipAmount }) => (
+          {schedules.map(({ dayType, dayTypeDescription, startTime, endTime, tipAmount }) => (
             <DeliveryTipRow
               key={`${dayType}-${startTime}-${endTime}`}
-              label={`${getShopDeliveryTipDayTypeName(dayType)} ${formatTime(startTime)}~${formatTime(endTime)}`}
+              label={`${dayTypeDescription} ${startTime}~${endTime}`}
               amount={tipAmount}
             />
           ))}

@@ -19,11 +19,5 @@ export default async function Page({ searchParams }: Props) {
   const foodTypes = foodTypesParam?.split(',').filter(Boolean) ?? []
   const amenities = amenitiesParam?.split(',').filter(Boolean) ?? []
 
-  return (
-    <ShopFilterPage
-      stationId={stationId}
-      foodTypes={foodTypes}
-      amenities={amenities}
-    />
-  )
+  return <ShopFilterPage stationId={stationId} foodTypes={foodTypes} amenities={amenities} />
 }

@@ -1,7 +1,12 @@
 'use client'
 
 import { Accordion } from '@/components/ui/shadcn/accordion'
-import { ALL_CATEGORY_ID, useFaqCategories, useFaqList, useFaqSelectedCategory } from '@/domains/faq/faq.hook'
+import {
+  ALL_CATEGORY_ID,
+  useFaqCategories,
+  useFaqList,
+  useFaqSelectedCategory,
+} from '@/domains/faq/faq.hook'
 import FaqAccordionItem from './FaqAccordionItem'
 import FaqListItemSkeleton from './FaqListItemSkeleton'
 

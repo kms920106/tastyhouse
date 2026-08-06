@@ -28,7 +28,6 @@ export default function ReviewInfoSection({
   tagNames,
   isLoggedIn,
 }: Props) {
-
   return (
     <section className="px-[15px] pt-5 pb-8 border-b border-line box-border">
       <ReviewInfo

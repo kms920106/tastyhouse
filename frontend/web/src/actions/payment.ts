@@ -13,6 +13,10 @@ export async function createPayment({
   return paymentRepository.createPayment({ orderId, paymentMethod })
 }
 
+export async function getPaymentByOrderId(orderId: number) {
+  return paymentRepository.getPaymentByOrderId(orderId)
+}
+
 export async function completeOnSitePayment(paymentId: number) {
   return paymentRepository.completeOnSitePayment(paymentId)
 }
@@ -31,9 +35,7 @@ export async function confirmPaymentToss({
   return paymentRepository.confirmPaymentToss({ paymentKey, pgOrderId, amount }, accessToken)
 }
 
-export type CancelPaymentResult =
-  | { success: true; code: PaymentCancelCode }
-  | { success: false }
+export type CancelPaymentResult = { success: true; code: PaymentCancelCode } | { success: false }
 
 export async function cancelPayment({
   paymentId,

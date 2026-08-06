@@ -48,12 +48,7 @@ const disableEscapeKeyPlugin = ({
   addModule(createModule('DisableEscapeKey', DisableEscapeKey))
 }
 
-export default function ImageLightbox({
-  imageUrls,
-  isOpen,
-  currentIndex,
-  onClose,
-}: Props) {
+export default function ImageLightbox({ imageUrls, isOpen, currentIndex, onClose }: Props) {
   const slides = imageUrls.map((url, index) => ({ src: url, key: index }))
 
   return (

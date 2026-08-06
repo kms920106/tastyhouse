@@ -17,10 +17,7 @@ test.describe('오늘의 할인 - 뷰/정렬 URL 상태 유지', () => {
 
     // PRODUCT_DETAIL 경로: /products/{id} (숫자 ID)
     // 상품 카드는 가격(원)을 포함하므로 hasText로 today-discount 링크와 구분
-    const firstProduct = page
-      .locator('a[href^="/products/"]')
-      .filter({ hasText: /원$/ })
-      .first()
+    const firstProduct = page.locator('a[href^="/products/"]').filter({ hasText: /원$/ }).first()
     await firstProduct.click()
     await page.waitForURL(/\/products\/\d+(\?|$)/)
 
@@ -35,10 +32,7 @@ test.describe('오늘의 할인 - 뷰/정렬 URL 상태 유지', () => {
     await page.getByRole('button', { name: '할인율 높은순' }).click()
     await expect(page).toHaveURL(/sort=DISCOUNT_RATE/)
 
-    const firstProduct = page
-      .locator('a[href^="/products/"]')
-      .filter({ hasText: /원$/ })
-      .first()
+    const firstProduct = page.locator('a[href^="/products/"]').filter({ hasText: /원$/ }).first()
     await firstProduct.click()
     await page.waitForURL(/\/products\/\d+(\?|$)/)
     await page.goBack()

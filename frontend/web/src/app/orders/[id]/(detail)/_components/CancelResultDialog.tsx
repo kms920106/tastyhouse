@@ -57,11 +57,7 @@ interface Props {
   onClose: () => void
 }
 
-export default function CancelResultDialog({
-  cancelResultCode,
-  phoneNumber,
-  onClose,
-}: Props) {
+export default function CancelResultDialog({ cancelResultCode, phoneNumber, onClose }: Props) {
   const router = useRouter()
 
   if (!cancelResultCode) return null

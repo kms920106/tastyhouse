@@ -1,9 +1,6 @@
 'use client'
 
-import {
-  requestPasswordReset,
-  verifyPasswordResetForEmailField,
-} from '@/actions/auth'
+import { requestPasswordReset, verifyPasswordResetForEmailField } from '@/actions/auth'
 import EmailVerificationField from '@/components/ui/EmailVerificationField'
 import { useEmailVerification } from '@/hooks/useEmailVerification'
 import { useEffect } from 'react'

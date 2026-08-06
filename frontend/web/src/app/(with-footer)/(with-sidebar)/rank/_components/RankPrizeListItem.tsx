@@ -21,10 +21,7 @@ export default function RankPrizeListItem({ prize }: Props) {
     <div className="flex flex-col flex-1 items-center min-w-0">
       <div className="relative w-full max-w-[144px] mb-[15px] aspect-square">
         <div className="absolute top-0 left-0 z-10 w-[25%]">
-          <Icon
-            name={getRankPodiumIconName(prizeRank as RankTopNo)}
-            className="w-full h-auto"
-          />
+          <Icon name={getRankPodiumIconName(prizeRank as RankTopNo)} className="w-full h-auto" />
         </div>
         <div className="flex items-center justify-center w-full h-full bg-white border border-line rounded-full">
           <Image src={imageUrl} alt={name} width={80} height={80} className="w-[55%] h-auto" />

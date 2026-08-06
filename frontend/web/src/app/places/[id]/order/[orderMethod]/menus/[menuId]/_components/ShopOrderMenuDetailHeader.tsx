@@ -11,11 +11,7 @@ interface Props {
   orderMethod: OrderMethodType
 }
 
-export default async function ShopOrderMenuDetailHeader({
-  shopId,
-  productId,
-  orderMethod,
-}: Props) {
+export default async function ShopOrderMenuDetailHeader({ shopId, productId, orderMethod }: Props) {
   const { error, data } = await productRepository.getProductById(productId)
 
   if (error || !data) {

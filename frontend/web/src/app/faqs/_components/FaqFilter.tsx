@@ -5,7 +5,12 @@ import 'swiper/css'
 import FetchErrorState from '@/components/ui/FetchErrorState'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
 import { FaqCategory } from '@/domains/faq'
-import { ALL_CATEGORY_ID, useFaqCategories, useFaqSelectedCategory, useSelectFaqCategory } from '@/domains/faq/faq.hook'
+import {
+  ALL_CATEGORY_ID,
+  useFaqCategories,
+  useFaqSelectedCategory,
+  useSelectFaqCategory,
+} from '@/domains/faq/faq.hook'
 import { cn } from '@/lib/utils'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { FaqFilterSkeleton } from './FaqFilterSkeleton'

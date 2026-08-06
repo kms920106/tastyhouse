@@ -57,9 +57,11 @@ export interface ShopDeliveryTipRegion {
 
 export interface ShopDeliveryTipSchedule {
   dayType: ShopDeliveryTipDayType
-  /** `"HH:mm:ss"` */
+  /** 요일 구분 설명. 서버가 완성해서 내려주므로 프론트가 코드를 라벨로 변환하지 않는다 */
+  dayTypeDescription: string
+  /** `"HH:mm"` — 영업시간·휴게시간 응답과 같은 포맷이다 */
   startTime: string
-  /** `"HH:mm:ss"` */
+  /** `"HH:mm"` */
   endTime: string
   tipAmount: number
 }

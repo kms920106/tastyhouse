@@ -8,7 +8,10 @@ export default function LoginNavLinks() {
         회원가입
       </Link>
       <span className="text-sm leading-[14px] text-[#666666]">|</span>
-      <Link href={PAGE_PATHS.AUTH_FORGOT_PASSWORD} className="text-sm leading-[14px] text-[#666666]">
+      <Link
+        href={PAGE_PATHS.AUTH_FORGOT_PASSWORD}
+        className="text-sm leading-[14px] text-[#666666]"
+      >
         비밀번호 찾기
       </Link>
     </div>

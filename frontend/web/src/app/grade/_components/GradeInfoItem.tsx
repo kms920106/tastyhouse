@@ -3,7 +3,10 @@ import { getMemberGradeColor, getMemberGradeIcon } from '@/domains/member'
 import { formatNumber } from '@/lib/number'
 import { cn } from '@/lib/utils'
 import Icon from '@/components/ui/Icon'
-import { getMemberGradeIconNameBySize, type MemberGradeIconCode } from '@/components/ui/icon-helpers'
+import {
+  getMemberGradeIconNameBySize,
+  type MemberGradeIconCode,
+} from '@/components/ui/icon-helpers'
 
 interface GradeInfo {
   grade: MemberGradeCode

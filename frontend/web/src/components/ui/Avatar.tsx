@@ -18,13 +18,7 @@ const sizeMap = {
   bg: { dimension: 125, className: 'size-[125px]', defaultImage: DEFAULT_PROFILE_IMAGE_BG },
 } as const
 
-export default function Avatar({
-  src,
-  alt,
-  size = 'md',
-  className = '',
-  priority = false,
-}: Props) {
+export default function Avatar({ src, alt, size = 'md', className = '', priority = false }: Props) {
   const { dimension, className: sizeClassName, defaultImage } = sizeMap[size]
   return (
     <Image
