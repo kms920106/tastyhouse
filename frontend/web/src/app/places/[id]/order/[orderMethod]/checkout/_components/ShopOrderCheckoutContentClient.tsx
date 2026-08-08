@@ -279,6 +279,20 @@ export default function ShopOrderCheckoutContentClient({
         await refetchScheduledOrderSlots()
       }
 
+      // 가게·주문방식 자체가 주문 불가면 이 화면에서 재시도해도 계속 실패한다.
+      // 다른 주문방식을 고를 수 있게 주문방식 선택 화면으로 되돌린다.
+      if (
+        orderResult.errorCode === 'SHOP_NOT_ORDERABLE' ||
+        orderResult.errorCode === 'SHOP_ORDER_METHOD_SUSPENDED' ||
+        orderResult.errorCode === 'SHOP_ORDER_METHOD_NOT_SUPPORTED'
+      ) {
+        toast(
+          orderResult.message ?? getOrderErrorMessage(orderResult.errorCode) ?? orderResult.error,
+        )
+        router.push(PAGE_PATHS.ORDER_METHOD(shopId))
+        return
+      }
+
       toast(orderResult.message ?? getOrderErrorMessage(orderResult.errorCode) ?? orderResult.error)
       return
     }

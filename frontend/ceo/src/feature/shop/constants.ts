@@ -99,6 +99,7 @@ export const BUSINESS_HOUR_MAX_MINUTES = 23 * 60 + 55;
 export const SHOP_MANAGE_TABS = {
   BASIC: "basic",
   OPERATION: "operation",
+  ORDER: "order",
 } as const;
 export type ShopManageTab = (typeof SHOP_MANAGE_TABS)[keyof typeof SHOP_MANAGE_TABS];
 

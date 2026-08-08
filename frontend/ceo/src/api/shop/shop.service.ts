@@ -9,6 +9,7 @@ import type {
   ShopBasicInfo,
   ShopImageStatus,
   ShopOperationInfo,
+  ShopOrderAvailability,
   ShopSummary,
 } from "@/feature/shop/domain";
 import logger from "@/lib/logger";
@@ -259,6 +260,31 @@ export const shopService = {
           id: item.id,
           adminDongId: item.adminDongId,
           regionName: item.regionName,
+        })),
+      },
+    };
+  },
+
+  // 주문정보 탭 — 가게 주문가능 상태와 주문유형별 상태를 조회한다.
+  // 실시간 값이라 캐시하지 않으며, 표시 문구(orderMethodName·unavailableReasonName)는 서버 값을 그대로 옮긴다.
+  async getShopOrderAvailability(shopId: number): Promise<ApiResponse<ShopOrderAvailability>> {
+    const res = await shopRepository.getOrderAvailability(shopId);
+    if (res.error !== undefined || !res.data) return { error: res.error, status: res.status };
+
+    const { orderable, unavailableReason, unavailableReasonName, orderMethods } = res.data;
+
+    return {
+      status: res.status,
+      data: {
+        orderable,
+        unavailableReason,
+        unavailableReasonName,
+        orderMethods: orderMethods.map((item) => ({
+          orderMethod: item.orderMethod,
+          orderMethodName: item.orderMethodName,
+          orderable: item.orderable,
+          unavailableReason: item.unavailableReason,
+          unavailableReasonName: item.unavailableReasonName,
         })),
       },
     };

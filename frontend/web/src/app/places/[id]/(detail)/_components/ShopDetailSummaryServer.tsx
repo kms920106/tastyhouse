@@ -29,6 +29,8 @@ export default async function ShopDetailSummaryServer({ shopId, bookmarkButton }
     minOrderAmount,
     minDeliveryTip,
     maxDeliveryTip,
+    operatingStatus,
+    unavailableReasonName,
   } = data
 
   return (
@@ -41,6 +43,8 @@ export default async function ShopDetailSummaryServer({ shopId, bookmarkButton }
       minOrderAmount={minOrderAmount}
       minDeliveryTip={minDeliveryTip}
       maxDeliveryTip={maxDeliveryTip}
+      operatingStatus={operatingStatus}
+      unavailableReasonName={unavailableReasonName}
       bookmarkButton={bookmarkButton}
     />
   )

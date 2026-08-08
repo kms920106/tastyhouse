@@ -100,11 +100,15 @@ export const shopRepository = {
       params,
     })
   },
+  /**
+   * 가게가 지원하는 주문방식과 각 방식의 주문가능 여부를 조회한다.
+   *
+   * 가게 상세와 같은 이유로 CACHE_OPTIONS(force-cache, revalidate 3600)를 쓰지 않는다.
+   * 응답의 orderable은 영업시간·휴무·임시중지로 판정되는 실시간 값이라, 캐시하면 점주가
+   * 임시중지를 걸어도 최대 1시간 동안 회원 화면에 반영되지 않는다.
+   */
   async getShopOrderMethods(shopId: number) {
-    return publicApi.get<ShopOrderMethodResponse>(
-      `${ENDPOINT}/v1/${shopId}/order-methods`,
-      CACHE_OPTIONS,
-    )
+    return publicApi.get<ShopOrderMethodResponse>(`${ENDPOINT}/v1/${shopId}/order-methods`)
   },
   async getMapMarkers(params: { latitude: number; longitude: number }) {
     return publicApi.get<ShopMapMarker[]>(`${ENDPOINT}/v1/map/markers`, { params })

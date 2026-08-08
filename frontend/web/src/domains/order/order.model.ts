@@ -1,9 +1,16 @@
 import type { PaymentMethod, PaymentStatus } from '../payment'
+import type { OrderUnavailableReasonCode } from '../shop'
 import type { OrderMethodType } from './order.types'
 
 export interface OrderMethod {
   code: OrderMethodType
   name: string
+  /** 이 주문방식으로 지금 주문할 수 있는지 */
+  orderable: boolean
+  /** 화면에 표시하지 않고 사유별 분기에만 쓴다. orderable 이 true 면 null */
+  unavailableReason: OrderUnavailableReasonCode | null
+  /** 서버가 완성해 내려주는 한글 사유 문구 — 그대로 표시한다. orderable 이 true 면 null */
+  unavailableReasonName: string | null
 }
 
 export interface OrderProductOption {

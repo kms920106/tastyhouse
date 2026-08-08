@@ -25,7 +25,29 @@ const ORDER_ERROR_MESSAGES: Record<OrderErrorCode, string> = {
   SHOP_SCHEDULED_ORDER_DISABLED: '이 가게는 예약주문을 받고 있지 않아요',
   ORDER_SCHEDULE_METHOD_NOT_SUPPORTED: '이 주문방식은 예약할 수 없어요',
   ORDER_SCHEDULED_AT_UNAVAILABLE: '선택한 수령시간이 마감되었어요. 다시 선택해주세요',
+  SHOP_NOT_ORDERABLE: '현재 주문할 수 없는 가게입니다.',
+  SHOP_ORDER_METHOD_NOT_SUPPORTED: '이 가게가 지원하지 않는 주문방식입니다.',
+  SHOP_ORDER_METHOD_SUSPENDED: '해당 주문방식은 현재 일시적으로 중단되었습니다.',
 }
+
+/**
+ * 주문방식 선택 화면 안내 문구.
+ *
+ * 개별 주문방식의 불가 사유는 서버가 `unavailableReasonName` 으로 내려주므로 프론트에 매핑을 두지 않는다.
+ */
+export const ORDER_METHOD_COPY = {
+  SELECT_TITLE: '원하시는 주문방법을 선택해 주세요.',
+  SELECT_DESCRIPTION_LINE1: '가게 사정에 따라 가능한 주문방법이 달라질 수 있으며,',
+  SELECT_DESCRIPTION_LINE2: '자세한 사항은 가게 정보를 확인해 주세요.',
+  NEXT_BUTTON: '다음',
+  // 배정된 주문방식이 있으나 전부 불가 — 일시적 상태이므로 재확인을 안내한다
+  ALL_UNAVAILABLE_TITLE: '지금은 주문할 수 없어요',
+  ALL_UNAVAILABLE_DESCRIPTION:
+    '가게 사정에 따라 주문이 일시적으로 중단되었습니다. 잠시 후 다시 확인해 주세요.',
+  // 배정된 주문방식이 0건 — 기다려도 해결되지 않으므로 위와 다른 문구를 쓴다
+  NONE_ASSIGNED_TITLE: '주문을 받지 않는 가게예요',
+  NONE_ASSIGNED_DESCRIPTION: '이 가게는 온라인 주문을 운영하지 않습니다.',
+} as const
 
 export const getOrderErrorMessage = (errorCode: string | undefined): string | null => {
   if (!errorCode) return null

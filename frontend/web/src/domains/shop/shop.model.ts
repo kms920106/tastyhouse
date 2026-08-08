@@ -1,4 +1,5 @@
 import { ShopAmenityCode, ShopDeliveryTipDayType, ShopExtraDeliveryTipType, ShopFoodType } from '.'
+import type { OrderUnavailableReasonCode, ShopOperatingStatus } from './shop.types'
 
 export interface Shop {
   id: number
@@ -15,6 +16,12 @@ export interface Shop {
   minDeliveryTip: number
   /** 배달팁 상한 (고객 주소 확정 전) */
   maxDeliveryTip: number
+  /** 가게 영업 상태. PREPARING이면 지금 주문을 받지 않는다 */
+  operatingStatus: ShopOperatingStatus
+  /** 주문불가 사유 코드. operatingStatus가 OPEN이면 null */
+  unavailableReason: OrderUnavailableReasonCode | null
+  /** 서버가 완성해 내려주는 한글 사유 문구 — 그대로 표시한다. operatingStatus가 OPEN이면 null */
+  unavailableReasonName: string | null
 }
 
 /** 수령시간 예약 슬롯 1개. `label`·`dayLabel`은 서버가 완성해 내려주므로 프론트가 조립하지 않는다. */

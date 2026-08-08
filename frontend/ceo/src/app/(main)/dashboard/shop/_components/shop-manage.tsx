@@ -10,11 +10,12 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SHOP_MANAGE_TABS, type ShopManageTab } from "@/feature/shop/constants";
-import type { ShopBasicInfo, ShopOperationInfo, ShopSummary } from "@/feature/shop/domain";
+import type { ShopBasicInfo, ShopOperationInfo, ShopOrderAvailability, ShopSummary } from "@/feature/shop/domain";
 import { SHOP_PAGE_COPY } from "@/feature/shop/message";
 
 import { BasicInfoTab } from "./basic-info-tab";
 import { OperationInfoTab } from "./operation-info-tab";
+import { OrderInfoTab } from "./order-info-tab";
 import { ShopSelector } from "./shop-selector";
 
 interface ShopManageProps {
@@ -23,9 +24,11 @@ interface ShopManageProps {
   tab: ShopManageTab;
   basicInfo?: ShopBasicInfo;
   operationInfo?: ShopOperationInfo;
+  /** 주문정보 탭 데이터. 이 조회만 실패하면 undefined 로 넘어와 해당 탭에서만 실패를 알린다 */
+  orderAvailability?: ShopOrderAvailability;
 }
 
-export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo }: ShopManageProps) {
+export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo, orderAvailability }: ShopManageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = React.useTransition();
@@ -71,6 +74,7 @@ export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo }: Sho
             <TabsList>
               <TabsTrigger value={SHOP_MANAGE_TABS.BASIC}>{SHOP_PAGE_COPY.BASIC_TAB}</TabsTrigger>
               <TabsTrigger value={SHOP_MANAGE_TABS.OPERATION}>{SHOP_PAGE_COPY.OPERATION_TAB}</TabsTrigger>
+              <TabsTrigger value={SHOP_MANAGE_TABS.ORDER}>{SHOP_PAGE_COPY.ORDER_TAB}</TabsTrigger>
             </TabsList>
             <TabsContent value={SHOP_MANAGE_TABS.BASIC}>
               <BasicInfoTab shopId={shopId} basicInfo={basicInfo} />
@@ -83,6 +87,9 @@ export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo }: Sho
                 minOrderAmount={basicInfo?.minOrderAmount}
                 scheduledOrderEnabled={basicInfo?.scheduledOrderEnabled}
               />
+            </TabsContent>
+            <TabsContent value={SHOP_MANAGE_TABS.ORDER}>
+              <OrderInfoTab orderAvailability={orderAvailability} />
             </TabsContent>
           </Tabs>
         )}

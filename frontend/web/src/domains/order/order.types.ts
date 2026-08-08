@@ -14,3 +14,6 @@ export type OrderErrorCode =
   | 'SHOP_SCHEDULED_ORDER_DISABLED' // 가게가 예약주문 미운영
   | 'ORDER_SCHEDULE_METHOD_NOT_SUPPORTED' // DELIVERY/TAKEOUT이 아닌 주문방식
   | 'ORDER_SCHEDULED_AT_UNAVAILABLE' // 서버 재계산 결과 유효 슬롯이 아님
+  | 'SHOP_NOT_ORDERABLE' // 가게가 주문 불가 상태 (임시중지·휴무·영업시간 밖·휴게시간)
+  | 'SHOP_ORDER_METHOD_NOT_SUPPORTED' // 요청한 주문유형을 가게가 취급하지 않음
+  | 'SHOP_ORDER_METHOD_SUSPENDED' // 그 주문유형이 임시중지 중

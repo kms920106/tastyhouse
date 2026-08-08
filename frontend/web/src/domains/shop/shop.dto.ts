@@ -5,8 +5,9 @@ import type {
   ShopExtraDeliveryTipType,
   ShopFoodType,
 } from '.'
+import type { OrderUnavailableReasonCode, ShopOperatingStatus } from './shop.types'
 import { ShopAmenity, ShopBreakTime, ShopBusinessHour, ShopClosedDay } from '.'
-import type { OrderMethod, OrderMethodType } from '../order'
+import type { OrderMethodType } from '../order'
 import { ProductListItemResponse } from '../product'
 
 export interface ShopReviewListQuery extends PaginationParams {
@@ -158,8 +159,22 @@ export interface ShopMapListItemResponse {
   longitude: number
 }
 
+/**
+ * 주문방식 1건.
+ *
+ * `code`/`name` 은 기존 wire 계약이라 `orderMethod`/`orderMethodName` 으로 개명하지 않는다.
+ * 주문가능 여부 3필드는 additive 확장이다.
+ */
+export interface ShopOrderMethodItemResponse {
+  code: OrderMethodType
+  name: string
+  orderable: boolean
+  unavailableReason: OrderUnavailableReasonCode | null
+  unavailableReasonName: string | null
+}
+
 export interface ShopOrderMethodResponse {
-  orderMethods: OrderMethod[]
+  orderMethods: ShopOrderMethodItemResponse[]
 }
 
 export interface ShopDetailResponse {
@@ -179,6 +194,12 @@ export interface ShopDetailResponse {
   maxDeliveryTip: number
   /** 예약주문 운영 여부. false면 수령시간 예약 진입 자체를 노출하지 않는다 */
   scheduledOrderEnabled: boolean
+  /** 가게 영업 상태. PREPARING이면 지금 주문을 받지 않는다 */
+  operatingStatus: ShopOperatingStatus
+  /** 주문불가 사유 코드. operatingStatus가 OPEN이면 null */
+  unavailableReason: OrderUnavailableReasonCode | null
+  /** 서버가 완성해 내려주는 한글 사유 문구. operatingStatus가 OPEN이면 null */
+  unavailableReasonName: string | null
 }
 
 export interface ScheduledOrderSlotsQuery {

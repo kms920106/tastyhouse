@@ -1,4 +1,9 @@
-import type { ShopAmenityCode, ShopDeliveryTipDayType, ShopFoodType } from './shop.types'
+import type {
+  ShopAmenityCode,
+  ShopDeliveryTipDayType,
+  ShopFoodType,
+  ShopOperatingStatus,
+} from './shop.types'
 
 const SHOP_FOOD_TYPE_NAMES: Record<ShopFoodType, string> = {
   KOREAN: '한식',
@@ -45,4 +50,14 @@ export const getShopAmenityCodeName = (amenityCode: ShopAmenityCode): string => 
 
 export const getShopDeliveryTipDayTypeName = (dayType: ShopDeliveryTipDayType): string => {
   return SHOP_DELIVERY_TIP_DAY_TYPE_NAMES[dayType] || dayType
+}
+
+// 가게 영업 상태 라벨. 주문 상태의 '준비 중'과 문자열이 겹치는 별개 개념이다.
+const SHOP_OPERATING_STATUS_NAMES: Record<ShopOperatingStatus, string> = {
+  OPEN: '영업중',
+  PREPARING: '준비중',
+}
+
+export const getShopOperatingStatusName = (status: ShopOperatingStatus): string => {
+  return SHOP_OPERATING_STATUS_NAMES[status] || status
 }

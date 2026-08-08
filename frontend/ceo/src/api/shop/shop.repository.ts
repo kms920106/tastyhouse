@@ -39,6 +39,7 @@ import type {
   ShopListItemResponse,
   ShopListQueryRequest,
   ShopMinOrderAmountUpdateRequest,
+  ShopOrderAvailabilityResponse,
   ShopScheduledOrderUpdateRequest,
   ShopStatusResponse,
   ShopStatusUpdateRequest,
@@ -360,6 +361,13 @@ export const shopRepository = {
   // 해제 — 경로가 shopId 가 아닌 suspensionId 기준임에 주의
   releaseSuspension(shopId: number, suspensionId: number): Promise<ApiResponse<null>> {
     return api.patch<null>(`${ENDPOINT}/v1/${shopId}/suspensions/${suspensionId}/release`);
+  },
+
+  // ===== 주문가능 상태 (조회 전용) =====
+  // 실시간 값이므로 캐시하지 않는다 — client.ts 기본값이 cache: "no-store" 라 별도 옵션이 필요 없다.
+
+  getOrderAvailability(shopId: number): Promise<ApiResponse<ShopOrderAvailabilityResponse>> {
+    return api.get<ShopOrderAvailabilityResponse>(`${ENDPOINT}/v1/${shopId}/order-availability`);
   },
 
   // ===== 위생 인증 (조회 전용) =====

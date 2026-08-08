@@ -8,7 +8,9 @@ import { ShopManage } from "./_components/shop-manage";
 
 function parseTab(value: string | string[] | undefined): ShopManageTab {
   const raw = parseSearchString(value);
-  return raw === SHOP_MANAGE_TABS.OPERATION ? SHOP_MANAGE_TABS.OPERATION : SHOP_MANAGE_TABS.BASIC;
+  if (raw === SHOP_MANAGE_TABS.OPERATION) return SHOP_MANAGE_TABS.OPERATION;
+  if (raw === SHOP_MANAGE_TABS.ORDER) return SHOP_MANAGE_TABS.ORDER;
+  return SHOP_MANAGE_TABS.BASIC;
 }
 
 export default async function Page({ searchParams }: PageProps<"/dashboard/shop">) {
@@ -31,9 +33,10 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop"
   // shopId 미지정 또는 보유하지 않은 가게면 첫 가게로 대체한다.
   const selectedShop = shops.find((shop) => shop.id === requestedShopId) ?? shops[0];
 
-  const [basicInfoResult, operationInfoResult] = await Promise.all([
+  const [basicInfoResult, operationInfoResult, orderAvailabilityResult] = await Promise.all([
     shopService.getShopBasicInfo(selectedShop.id),
     shopService.getShopOperationInfo(selectedShop.id),
+    shopService.getShopOrderAvailability(selectedShop.id),
   ]);
 
   if (basicInfoResult.error || !basicInfoResult.data) {
@@ -46,6 +49,14 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop"
     throw new Error(SHOP_MESSAGE.OPERATION_INFO_LOAD_FAILED);
   }
 
+  // 주문가능 상태 조회 실패는 화면 전체를 막지 않는다 — 주문정보 탭에서만 실패 문구를 보여준다.
+  if (orderAvailabilityResult.error || !orderAvailabilityResult.data) {
+    logger.error(
+      { reason: orderAvailabilityResult.error, shopId: selectedShop.id },
+      "가게 주문가능 상태 조회 실패 — 주문정보 탭만 실패로 렌더",
+    );
+  }
+
   return (
     <ShopManage
       shops={shops}
@@ -53,6 +64,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop"
       tab={tab}
       basicInfo={basicInfoResult.data}
       operationInfo={operationInfoResult.data}
+      orderAvailability={orderAvailabilityResult.data}
     />
   );
 }

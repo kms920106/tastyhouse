@@ -16,7 +16,9 @@ export default function ShopLoading() {
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        {/* 기본정보 · 운영정보 · 주문정보 3개 탭 */}
         <div className="flex gap-2">
+          <Skeleton className="h-9 w-24" />
           <Skeleton className="h-9 w-24" />
           <Skeleton className="h-9 w-24" />
         </div>

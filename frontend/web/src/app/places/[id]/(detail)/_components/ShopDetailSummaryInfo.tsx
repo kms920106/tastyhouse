@@ -2,9 +2,11 @@
 
 import ShopDeliveryTipDialog from '@/components/shops/ShopDeliveryTipDialog'
 import { toast } from '@/components/ui/AppToaster'
+import { getShopOperatingStatusName, type ShopOperatingStatus } from '@/domains/shop'
 import { formatDecimal, formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
 import { copyToClipboard } from '@/lib/share'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { ReactNode, useState } from 'react'
 import { GrCopy } from 'react-icons/gr'
@@ -22,6 +24,10 @@ interface Props {
   minDeliveryTip: number
   /** 배달팁 상한 (고객 주소 확정 전) */
   maxDeliveryTip: number
+  /** 가게 영업 상태. PREPARING이면 지금 주문을 받지 않는다 */
+  operatingStatus: ShopOperatingStatus
+  /** 서버가 완성해 내려주는 한글 사유 문구. 영업중이면 null */
+  unavailableReasonName: string | null
   bookmarkButton: ReactNode
 }
 
@@ -34,6 +40,8 @@ export default function ShopDetailSummaryInfo({
   minOrderAmount,
   minDeliveryTip,
   maxDeliveryTip,
+  operatingStatus,
+  unavailableReasonName,
   bookmarkButton,
 }: Props) {
   const [isDeliveryTipDialogOpen, setIsDeliveryTipDialogOpen] = useState(false)
@@ -53,7 +61,23 @@ export default function ShopDetailSummaryInfo({
   return (
     <>
       <div className="flex items-start justify-between mb-5">
-        <h2 className="text-lg leading-[18px]">{name}</h2>
+        <div className="flex flex-col gap-[7px] min-w-0">
+          <h2 className="text-lg leading-[18px]">{name}</h2>
+          <div className="flex flex-wrap items-center gap-[5px]">
+            <span
+              className={cn(
+                'text-xs leading-[12px]',
+                operatingStatus === 'OPEN' ? 'text-main' : 'text-[#999999]',
+              )}
+            >
+              {getShopOperatingStatusName(operatingStatus)}
+            </span>
+            {/* 사유 문구는 서버가 완성해 내려주므로 그대로 표시한다 */}
+            {operatingStatus !== 'OPEN' && unavailableReasonName && (
+              <span className="text-xs leading-[12px] text-[#aaaaaa]">{unavailableReasonName}</span>
+            )}
+          </div>
+        </div>
         <span className="text-[19px] leading-[18px] text-main">{formatDecimal(rating, 1)}</span>
       </div>
       <div className="flex justify-between gap-3">

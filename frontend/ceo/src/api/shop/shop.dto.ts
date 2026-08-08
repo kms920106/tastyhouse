@@ -431,6 +431,39 @@ export interface SuspensionBulkCreateRequest {
   endAt: string;
 }
 
+// ===== 주문가능 상태 (조회 전용) =====
+
+// 주문불가 사유 코드. 화면 표시는 서버가 함께 내려주는 unavailableReasonName 을 쓰고,
+// 이 코드는 향후 사유별 분기(예: SUSPENDED 면 임시중지 해제 유도)에 사용한다.
+export type OrderUnavailableReason =
+  | "PERMANENTLY_CLOSED"
+  | "HIDDEN"
+  | "SUSPENDED"
+  | "TEMPORARILY_CLOSED"
+  | "REGULAR_CLOSED_DAY"
+  | "PUBLIC_HOLIDAY_CLOSED"
+  | "BREAK_TIME"
+  | "OUT_OF_BUSINESS_HOURS"
+  | "ORDER_METHOD_NOT_SUPPORTED";
+
+export interface ShopOrderMethodAvailabilityResponse {
+  orderMethod: OrderMethod;
+  orderMethodName: string;
+  orderable: boolean;
+  /** orderable 이 true 면 null */
+  unavailableReason: OrderUnavailableReason | null;
+  /** 서버가 완성해 내려주는 한글 사유 문구. orderable 이 true 면 null */
+  unavailableReasonName: string | null;
+}
+
+export interface ShopOrderAvailabilityResponse {
+  orderable: boolean;
+  unavailableReason: OrderUnavailableReason | null;
+  unavailableReasonName: string | null;
+  /** 배정된 주문유형별 상태. 배정이 없으면 빈 배열 */
+  orderMethods: ShopOrderMethodAvailabilityResponse[];
+}
+
 // ===== 위생 인증 (조회 전용) =====
 
 export type HygieneBadgeType = "FOOD_SAFETY_CERTIFIED" | "CESCO_BLUE" | "CESCO_WHITE";

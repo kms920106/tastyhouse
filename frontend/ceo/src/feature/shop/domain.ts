@@ -8,6 +8,7 @@ import type {
   HygieneBadgeType,
   ImageType,
   OrderMethod,
+  OrderUnavailableReason,
   ShopStatusValue,
   SuspensionReason,
 } from "@/api/shop/shop.dto";
@@ -24,6 +25,7 @@ export type {
   HygieneBadgeType,
   ImageType,
   OrderMethod,
+  OrderUnavailableReason,
   ShopStatusValue,
   SuspensionReason,
 };
@@ -216,6 +218,25 @@ export interface ShopOperationInfo {
   deliveryTip: ShopDeliveryTipSetting;
   /** 지역별 배달팁의 선택 후보 — 가게에 등록된 배달가능지역 */
   deliveryAreas: ShopDeliveryArea[];
+}
+
+export interface ShopOrderMethodAvailability {
+  orderMethod: OrderMethod;
+  /** 서버가 내려주는 주문유형 한글명. 프론트에서 코드를 라벨로 변환하지 않는다 */
+  orderMethodName: string;
+  orderable: boolean;
+  /** 화면에 표시하지 않고 향후 사유별 분기에 사용한다 */
+  unavailableReason: OrderUnavailableReason | null;
+  /** 서버가 완성해 내려주는 한글 사유 문구 — 그대로 렌더한다 */
+  unavailableReasonName: string | null;
+}
+
+export interface ShopOrderAvailability {
+  orderable: boolean;
+  unavailableReason: OrderUnavailableReason | null;
+  unavailableReasonName: string | null;
+  /** 배정된 주문유형별 상태. 배정이 없으면 빈 배열 */
+  orderMethods: ShopOrderMethodAvailability[];
 }
 
 export interface Suspension {

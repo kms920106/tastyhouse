@@ -4,6 +4,7 @@ export const SHOP_PAGE_COPY = {
   DESCRIPTION: "가게의 기본정보와 운영정보를 등록하고 관리합니다.",
   BASIC_TAB: "기본정보",
   OPERATION_TAB: "운영정보",
+  ORDER_TAB: "주문정보",
   EMPTY_TITLE: "보유한 가게가 없습니다",
   EMPTY_DESCRIPTION: "가게가 등록되면 이 화면에서 기본정보와 운영정보를 관리할 수 있습니다.",
 } as const;
@@ -93,6 +94,24 @@ export const SHOP_OPERATION_COPY = {
   BREAK_TIME_TOGGLE: "휴게시간 사용",
   HOLIDAY_CLOSED_TOGGLE: "공휴일 휴무",
   HOLIDAY_CLOSED_ON: "공휴일 휴무",
+} as const;
+
+/**
+ * 주문정보 탭 문구.
+ *
+ * 주문불가 사유는 서버가 `unavailableReasonName` 으로 한글 문구를 내려주므로 이 파일에 사유 매핑을 두지 않는다.
+ * 사유가 추가돼도 프론트를 고칠 필요가 없다.
+ */
+export const SHOP_ORDER_COPY = {
+  SHOP_STATUS_TITLE: "가게 주문가능 상태",
+  SHOP_STATUS_DESCRIPTION: "가게 전체의 주문 접수 가능 여부입니다. 영업시간·휴무일·임시중지에 따라 자동으로 바뀝니다.",
+  ORDER_METHOD_TITLE: "주문유형별 주문가능 상태",
+  ORDER_METHOD_DESCRIPTION: "가게에 배정된 주문유형별 접수 가능 여부입니다. 배정 변경은 담당자에게 문의해 주세요.",
+  AVAILABLE_BADGE: "가능",
+  UNAVAILABLE_BADGE: "불가",
+  ORDER_METHOD_EMPTY_TITLE: "배정된 주문유형이 없습니다",
+  ORDER_METHOD_EMPTY_DESCRIPTION: "주문유형이 배정되면 이 화면에서 유형별 주문가능 상태를 확인할 수 있습니다.",
+  ORDER_AVAILABILITY_LOAD_FAILED: "주문가능 상태를 확인할 수 없습니다",
 } as const;
 
 /** 가게 사용자 피드백 메시지 (동적/토스트/에러 폴백) */
