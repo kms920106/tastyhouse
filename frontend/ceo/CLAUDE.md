@@ -1,6 +1,6 @@
 # CLAUDE.md (tastyhouse-ceo)
 
-> AI 규칙(한국어 답변·빌드 미실행·브라우저 검증 절차), GIT 규칙, 플랜 작성 규칙(e2e 시나리오 명시), 네이밍 규칙, MCP Playwright 사용·트러블슈팅 등 리포 전체 공통 규칙은 **리포지토리 루트의 `CLAUDE.md`** 를 참조합니다. 이 파일은 ceo 앱 고유 내용만 다룹니다.
+> AI 규칙, GIT 규칙, 플랜 작성 규칙, 네이밍 규칙, E2E 검증 규칙 등 리포 전체 공통 규칙은 **리포지토리 루트의 `CLAUDE.md`** 를 참조합니다. 이 파일은 ceo 앱 고유 내용만 다룹니다.
 
 ## Commands
 
@@ -20,10 +20,6 @@ npm run test:e2e:ui   # Playwright e2e tests, UI mode
 Run a single Playwright spec: `npx playwright test e2e/<file>.spec.ts`.
 
 Husky + lint-staged run `biome check --write` on staged `.js/.ts/.jsx/.tsx` files pre-commit.
-
-## E2E 검증 (앱 고유 정보)
-
-루트 `CLAUDE.md`의 MCP Playwright 절차를 따르되, 이 앱은 **3020 포트**에서 기동하고 로그인 계정은 `frontend/ceo/.env.local`의 `E2E_USERNAME`/`E2E_PASSWORD`를 사용합니다.
 
 ## Architecture
 
