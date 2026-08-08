@@ -2,7 +2,14 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--output-dir",
+        "/tmp/playwright-mcp-tastyhouse",
+        "--output-max-size",
+        "52428800"
+      ]
     }
   }
 }
