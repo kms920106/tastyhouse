@@ -36,7 +36,8 @@ class ShopMapperTest {
             false,
             false,
             false,
-            0
+            0,
+            false
         );
 
         assertThatCode(() -> ShopMapper.toDomain(entity)).doesNotThrowAnyException();
@@ -67,6 +68,7 @@ class ShopMapperTest {
             false,
             false,
             0,
+            false,
             null,
             null
         );

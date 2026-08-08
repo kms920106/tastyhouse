@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.shop;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,11 +23,14 @@ import com.tastyhouse.domain.shop.model.DayType;
 import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.ScheduledOrderPolicy;
+import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
+import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
@@ -72,6 +76,8 @@ import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
 import com.tastyhouse.webapi.product.ProductQueryService;
 import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.review.ReviewQueryService;
+import com.tastyhouse.webapi.shop.response.ScheduledOrderSlotItemResponse;
+import com.tastyhouse.webapi.shop.response.ScheduledOrderSlotsResponse;
 import com.tastyhouse.webapi.shop.response.ShopAmenityItem;
 import com.tastyhouse.webapi.shop.response.ShopAmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopBannerResponse;
@@ -127,6 +133,7 @@ public class ShopQueryService {
     private final ShopChoiceQueryDao shopChoiceQueryDao;
     private final ShopDeliveryTipQueryDao shopDeliveryTipQueryDao;
     private final ShopOperatingStatusService shopOperatingStatusService;
+    private final ScheduledOrderSlotService scheduledOrderSlotService;
     private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
     private final PublicHolidayCalendar publicHolidayCalendar;
     private final ProductQueryService productQueryService;
@@ -142,6 +149,7 @@ public class ShopQueryService {
         ShopChoiceQueryDao shopChoiceQueryDao,
         ShopDeliveryTipQueryDao shopDeliveryTipQueryDao,
         ShopOperatingStatusService shopOperatingStatusService,
+        ScheduledOrderSlotService scheduledOrderSlotService,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
         PublicHolidayCalendar publicHolidayCalendar,
         ProductQueryService productQueryService,
@@ -156,6 +164,7 @@ public class ShopQueryService {
         this.shopChoiceQueryDao = shopChoiceQueryDao;
         this.shopDeliveryTipQueryDao = shopDeliveryTipQueryDao;
         this.shopOperatingStatusService = shopOperatingStatusService;
+        this.scheduledOrderSlotService = scheduledOrderSlotService;
         this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
         this.publicHolidayCalendar = publicHolidayCalendar;
         this.productQueryService = productQueryService;
@@ -349,8 +358,71 @@ public class ShopQueryService {
             operatingStatus,
             shop.getMinOrderAmount(),
             tipRange.minDeliveryTip(),
-            tipRange.maxDeliveryTip()
+            tipRange.maxDeliveryTip(),
+            shop.isScheduledOrderEnabled()
         );
+    }
+
+    /**
+     * 예약 가능한 수령시간 슬롯 목록 조회.
+     *
+     * <p><b>캐시를 두지 않는다</b> — 시각 의존 응답이라 30분만 지나도 첫 슬롯이 달라진다.
+     *
+     * <p>예약할 수 없는 상태(미운영·미지원 주문방식·영업 종료 등)는 예외가 아니라
+     * {@code available:false} + 빈 목록으로 내려간다. 그래도 리드타임·슬롯 단위·범위 여부는 함께 주어
+     * 프론트가 안내 문구를 띄울 때 상수를 복제하지 않게 한다.
+     *
+     * <p>가게가 없으면 도메인 서비스가 {@code SHOP_NOT_FOUND}(404)를 던진다.
+     */
+    public ScheduledOrderSlotsResponse getScheduledOrderSlots(Long shopId, String orderMethod) {
+        OrderMethod method = OrderMethod.from(orderMethod);
+        List<ScheduledOrderSlot> slots = scheduledOrderSlotService.findAvailableSlots(
+            ShopId.of(shopId), method, LocalDateTime.now()
+        );
+
+        // 미지원 주문방식(TABLE·RESERVATION)은 계산기가 빈 목록을 주므로 리드타임을 물을 수 없다.
+        // 이때는 안내할 리드타임 자체가 없으므로 0으로 내린다.
+        int leadTimeMinutes = ScheduledOrderPolicy.supports(method)
+            ? ScheduledOrderPolicy.leadTimeMinutes(method)
+            : 0;
+
+        return ScheduledOrderSlotsResponse.from(
+            !slots.isEmpty(),
+            leadTimeMinutes,
+            ScheduledOrderPolicy.SLOT_UNIT_MINUTES,
+            ScheduledOrderPolicy.isRangeSlot(method),
+            slots.stream().map(slot -> toScheduledOrderSlotItemResponse(slot, method)).toList()
+        );
+    }
+
+    /**
+     * 슬롯 하나를 표시 문구까지 완성해 응답으로 조립한다.
+     *
+     * <p>배달은 범위({@code "오후 6:00~오후 6:30"}), 포장은 단일 시각({@code "오후 6:00"})으로 표기한다 —
+     * 프론트가 이 분기를 복제하지 않도록 서버가 문구를 완성한다({@code ShopDeliveryTipResponse#breakdown} 선례).
+     * 날짜 구분은 오늘 기준 상대 표기이며, 자정 넘김 영업·24시간 가게에서 "내일"이 나온다.
+     */
+    private ScheduledOrderSlotItemResponse toScheduledOrderSlotItemResponse(
+        ScheduledOrderSlot slot,
+        OrderMethod orderMethod
+    ) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("a h:mm", Locale.KOREAN);
+        String startLabel = slot.startAt().format(formatter);
+        String label = ScheduledOrderPolicy.isRangeSlot(orderMethod)
+            ? startLabel + "~" + slot.endAt().format(formatter)
+            : startLabel;
+
+        return ScheduledOrderSlotItemResponse.from(
+            slot.startAt(),
+            slot.endAt(),
+            label,
+            toDayLabel(slot.startAt())
+        );
+    }
+
+    /** 오늘 기준 날짜 구분 문구. 하루를 넘어가는 슬롯은 24시간 가게에서만 나오므로 "내일"까지만 표기한다. */
+    private String toDayLabel(LocalDateTime slotStartAt) {
+        return slotStartAt.toLocalDate().isEqual(LocalDate.now()) ? "오늘" : "내일";
     }
 
     /**

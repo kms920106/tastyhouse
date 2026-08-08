@@ -34,7 +34,10 @@ public record OrderListItemResponse(
     Integer totalItemCount,
 
     @Schema(description = "주문 생성 일시", example = "2026-01-01T00:00:00")
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+
+    @Schema(description = "수령 예약 시각(슬롯 시작). null이면 즉시 주문이며, 점주 화면에는 이 시작 시각만 표시합니다.", example = "2026-08-08T18:00:00")
+    LocalDateTime scheduledAt
 ) {
     public static OrderListItemResponse from(
         Long id,
@@ -46,7 +49,8 @@ public record OrderListItemResponse(
         String paymentStatus,
         Integer finalAmount,
         Integer totalItemCount,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime scheduledAt
     ) {
         return new OrderListItemResponse(
             id,
@@ -58,7 +62,8 @@ public record OrderListItemResponse(
             paymentStatus,
             finalAmount,
             totalItemCount,
-            createdAt
+            createdAt,
+            scheduledAt
         );
     }
 }

@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.order.model;
 
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -18,7 +19,7 @@ public class OrderProduct {
     private final OrderId orderId; // 주문 ID (ORDERS.id 참조)
     private final ProductId productId; // 상품 ID (PRODUCT.id 참조)
     private final String name; // 주문 시점 상품명 (스냅샷)
-    private final String imageUrl; // 주문 시점 상품 이미지 URL (스냅샷)
+    private final UploadedFileId imageFileId; // 주문 시점 상품 이미지 파일 ID (스냅샷). 이미지 없으면 null
     private final Integer quantity; // 수량
     private final Integer originalPrice; // 정가
     private final Integer discountPrice; // 할인가
@@ -30,7 +31,7 @@ public class OrderProduct {
         OrderId orderId,
         ProductId productId,
         String name,
-        String imageUrl,
+        UploadedFileId imageFileId,
         Integer quantity,
         Integer originalPrice,
         Integer discountPrice,
@@ -41,7 +42,7 @@ public class OrderProduct {
         this.orderId = orderId;
         this.productId = productId;
         this.name = name;
-        this.imageUrl = imageUrl;
+        this.imageFileId = imageFileId;
         this.quantity = quantity;
         this.originalPrice = originalPrice;
         this.discountPrice = discountPrice;
@@ -56,7 +57,7 @@ public class OrderProduct {
         OrderId orderId,
         ProductId productId,
         String name,
-        String imageUrl,
+        UploadedFileId imageFileId,
         Integer quantity,
         Integer originalPrice,
         Integer discountPrice,
@@ -68,7 +69,7 @@ public class OrderProduct {
             orderId,
             productId,
             name,
-            imageUrl,
+            imageFileId,
             quantity != null ? quantity : 1,
             originalPrice != null ? originalPrice : 0,
             discountPrice,
@@ -86,7 +87,7 @@ public class OrderProduct {
         OrderId orderId,
         ProductId productId,
         String name,
-        String imageUrl,
+        UploadedFileId imageFileId,
         Integer quantity,
         Integer originalPrice,
         Integer discountPrice,
@@ -98,7 +99,7 @@ public class OrderProduct {
             orderId,
             productId,
             name,
-            imageUrl,
+            imageFileId,
             quantity,
             originalPrice,
             discountPrice,
@@ -128,8 +129,8 @@ public class OrderProduct {
         return this.name;
     }
 
-    public String getImageUrl() {
-        return this.imageUrl;
+    public UploadedFileId getImageFileId() {
+        return this.imageFileId;
     }
 
     public Integer getQuantity() {

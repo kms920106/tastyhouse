@@ -17,7 +17,7 @@
 | `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인, AWS BOM) |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
 | `CLAUDE.md` | backend 고유 코딩 컨벤션 (네이밍·DTO·레이어 경계 등). AI 작업 규칙(한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지)은 리포 루트 `../CLAUDE.md` |
-| `create.sql` / `insert.sql` / `alter.sql` | 스키마 및 시드 데이터 (DDL은 `ddl-auto=validate` 전제) |
+| `schema.sql` / `insert.sql` / `alter.sql` | 스키마 및 시드 데이터 (DDL은 `ddl-auto=validate` 전제) |
 | `.env`, `.env-copy` | 환경 변수 (외부 연동 키 등) |
 
 ## Subdirectories
@@ -85,7 +85,7 @@ domain-module → 의존 없음 (production 의존 0개)
 - **소셜 로그인은 `external.oauth.spi` SPI로만 사용**한다: web-api는 제공자별 패키지(`..oauth.kakao..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClient`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI를 domain-module이 아니라 external-api가 소유하는 이유는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다(security-module 선례와 동일 판단). 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-externaloauthspi) 참고.
 
 ### Testing Requirements
-- 스키마 무변경 보장: `hibernate.ddl-auto=validate` 기준. JPA 엔티티(`infrastructure-module`) 변경 시 `create.sql`과 정합성 확인.
+- 스키마 무변경 보장: `hibernate.ddl-auto=validate` 기준. JPA 엔티티(`infrastructure-module`) 변경 시 `schema.sql`과 정합성 확인.
 - QueryDSL Q클래스는 `infrastructure-module`에서만 생성된다(`infrastructure-module/build/generated/...`) — 경로 변경 시 `./gradlew clean compileJava` 필요. `domain-module`에는 apt가 없어 Q타입이 생성되지 않는다.
 - 도메인 불변식은 `domain-module/src/test`의 **순수 단위 테스트**로 검증한다(스프링 컨텍스트·DB 불필요).
 - 레이어 경계는 api 4개 모듈의 `architecture/LayerRulesTest`(ArchUnit)로 검증한다. 이 규칙들은 `allowEmptyShould(true)`를 쓰지 않으므로, 대상 클래스가 0건이면 **공허 통과가 아니라 실패**로 드러난다(batch-module만 CQRS 서비스가 없어 해당 규칙에 한해 유지).

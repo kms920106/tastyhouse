@@ -6,6 +6,7 @@ import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -38,6 +39,7 @@ public class Order {
     private Integer deliveryTipAmount; // 배달팁 (finalAmount에 가산되는 유일한 항목)
     private Integer finalAmount; // 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁)
     private OrderDeliveryDestination deliveryDestination; // 주문 시점 배달 목적지 스냅샷 (배달 외 주문은 빈 값)
+    private OrderSchedule schedule; // 주문 시점 확정된 수령 예약시간 스냅샷 (즉시 주문은 빈 값)
     private MemberCouponId memberCouponId; // 사용한 회원 쿠폰 ID
     private Integer usedPoint; // 사용한 포인트
     private Integer earnedPoint; // 적립된 포인트
@@ -63,6 +65,7 @@ public class Order {
         Integer deliveryTipAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
+        OrderSchedule schedule,
         MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -87,6 +90,7 @@ public class Order {
         this.deliveryTipAmount = deliveryTipAmount;
         this.finalAmount = finalAmount;
         this.deliveryDestination = deliveryDestination;
+        this.schedule = schedule;
         this.memberCouponId = memberCouponId;
         this.usedPoint = usedPoint;
         this.earnedPoint = earnedPoint;
@@ -122,6 +126,7 @@ public class Order {
         Integer deliveryTipAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
+        OrderSchedule schedule,
         MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint
@@ -164,6 +169,7 @@ public class Order {
             normalizedDeliveryTip,
             normalizedFinalAmount,
             deliveryDestination != null ? deliveryDestination : OrderDeliveryDestination.none(),
+            schedule != null ? schedule : OrderSchedule.none(),
             memberCouponId,
             normalizedUsedPoint,
             orZero(earnedPoint),
@@ -198,6 +204,7 @@ public class Order {
         Integer deliveryTipAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
+        OrderSchedule schedule,
         MemberCouponId memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -223,6 +230,7 @@ public class Order {
             deliveryTipAmount,
             finalAmount,
             deliveryDestination,
+            schedule,
             memberCouponId,
             usedPoint,
             earnedPoint,
@@ -303,6 +311,14 @@ public class Order {
      */
     public OrderDeliveryDestination getDeliveryDestination() {
         return this.deliveryDestination;
+    }
+
+    /**
+     * 주문 시점 확정된 수령 예약시간 스냅샷. 즉시 주문은 두 값이 null인 빈 값이다
+     * ({@link OrderSchedule#none()}).
+     */
+    public OrderSchedule getSchedule() {
+        return this.schedule;
     }
 
     public MemberCouponId getMemberCouponId() {
@@ -415,6 +431,7 @@ public class Order {
         Integer deliveryTipAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
+        OrderSchedule schedule,
         MemberCouponId memberCouponId,
         Integer usedPoint
     ) {
@@ -446,6 +463,7 @@ public class Order {
         this.deliveryTipAmount = normalizedDeliveryTip;
         this.finalAmount = normalizedFinalAmount;
         this.deliveryDestination = deliveryDestination != null ? deliveryDestination : OrderDeliveryDestination.none();
+        this.schedule = schedule != null ? schedule : OrderSchedule.none();
         this.memberCouponId = memberCouponId;
         this.usedPoint = normalizedUsedPoint;
     }

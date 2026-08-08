@@ -376,6 +376,7 @@ CREATE TABLE SHOP
     is_hidden                  TINYINT(1)    NOT NULL DEFAULT 0, -- 노출정지 여부 (1: 배민앱 완전 비노출)
     is_closed_on_public_holidays TINYINT(1)  NOT NULL DEFAULT 0, -- 공휴일 휴무 여부
     min_order_amount           INT           NOT NULL DEFAULT 0, -- 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
+    scheduled_order_enabled    TINYINT(1)    NOT NULL DEFAULT 0, -- 예약주문 운영 여부 (0: 미운영, 1: 운영)
     created_at        DATETIME      NOT NULL,            -- 생성 일시
     updated_at        DATETIME      NOT NULL,            -- 수정 일시
     INDEX idx_shop_ceo_id (ceo_id)
@@ -846,6 +847,8 @@ CREATE TABLE ORDERS
     delivery_latitude       DECIMAL(9, 6),                       -- 주문 시점 배달지 위도 (스냅샷)
     delivery_longitude      DECIMAL(9, 6),                       -- 주문 시점 배달지 경도 (스냅샷)
     delivery_distance_meters INT,                                -- 주문 시점 직선거리(m) — 배달팁 산출 근거
+    scheduled_at            DATETIME,                            -- 수령 예약 시각(슬롯 시작). NULL이면 즉시 주문
+    scheduled_slot_end_at   DATETIME,                            -- 수령 예약 슬롯 종료 시각(배달 30분 범위). 포장은 scheduled_at과 동일
     member_coupon_id        BIGINT,                              -- 사용한 회원 쿠폰 ID (MEMBER_COUPON.id 참조)
     used_point              INT          NOT NULL DEFAULT 0,     -- 사용 포인트
     earned_point            INT          NOT NULL DEFAULT 0,     -- 적립 포인트
@@ -855,7 +858,8 @@ CREATE TABLE ORDERS
     INDEX idx_orders_member_id (member_id),                      -- 인덱스: 회원별 조회
     INDEX idx_orders_shop_id (shop_id),                        -- 인덱스: 장소별 조회
     INDEX idx_orders_order_status (order_status),                -- 인덱스: 주문 상태별 조회
-    INDEX idx_orders_created_at (created_at)                     -- 인덱스: 생성 일시별 조회
+    INDEX idx_orders_created_at (created_at),                    -- 인덱스: 생성 일시별 조회
+    INDEX idx_orders_scheduled_at (scheduled_at)                 -- 인덱스: 수령 예약 시각별 조회
 );
 
 CREATE TABLE ORDER_PRODUCT
@@ -864,7 +868,7 @@ CREATE TABLE ORDER_PRODUCT
     order_id          BIGINT       NOT NULL,                     -- 주문 ID (ORDERS.id 참조)
     product_id        BIGINT       NOT NULL,                     -- 상품 ID (PRODUCT.id 참조)
     name              VARCHAR(255) NOT NULL,                     -- 주문 시점 상품명 (스냅샷)
-    image_url         VARCHAR(500),                              -- 주문 시점 상품 이미지 URL (스냅샷)
+    image_file_id     BIGINT,                                    -- 주문 시점 상품 이미지 파일 ID (UPLOADED_FILE.id 스냅샷)
     quantity          INT          NOT NULL DEFAULT 1,           -- 수량
     original_price    INT          NOT NULL DEFAULT 0,           -- 정가
     discount_price    INT,                                       -- 할인가
@@ -873,7 +877,8 @@ CREATE TABLE ORDER_PRODUCT
     created_at        DATETIME     NOT NULL,                     -- 생성 일시
     updated_at        DATETIME     NOT NULL,                     -- 수정 일시
     INDEX idx_order_product_order_id (order_id),                 -- 인덱스: 주문별 조회
-    INDEX idx_order_product_product_id (product_id)              -- 인덱스: 상품별 조회
+    INDEX idx_order_product_product_id (product_id),             -- 인덱스: 상품별 조회
+    INDEX idx_order_product_image_file_id (image_file_id)        -- 인덱스: 이미지 파일 조인
 );
 
 CREATE TABLE ORDER_PRODUCT_OPTION

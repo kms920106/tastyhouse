@@ -68,7 +68,13 @@ public record OrderDetailResponse(
     LocalDateTime approvedAt,
 
     @Schema(description = "주문 생성 일시", example = "2026-01-01T00:00:00")
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+
+    @Schema(description = "수령 예약 시각(슬롯 시작). null이면 즉시 주문이며, 점주 화면에는 이 시작 시각만 표시합니다.", example = "2026-08-08T18:00:00")
+    LocalDateTime scheduledAt,
+
+    @Schema(description = "수령 예약 슬롯 종료 시각. 포장은 scheduledAt과 동일하며, 즉시 주문은 null입니다.", example = "2026-08-08T18:30:00")
+    LocalDateTime scheduledSlotEndAt
 ) {
     public static OrderDetailResponse from(
         Long id,
@@ -91,7 +97,9 @@ public record OrderDetailResponse(
         List<OrderProductResponse> orderProducts,
         PaymentSummaryResponse payment,
         LocalDateTime approvedAt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime scheduledAt,
+        LocalDateTime scheduledSlotEndAt
     ) {
         return new OrderDetailResponse(
             id,
@@ -114,7 +122,9 @@ public record OrderDetailResponse(
             orderProducts,
             payment,
             approvedAt,
-            createdAt
+            createdAt,
+            scheduledAt,
+            scheduledSlotEndAt
         );
     }
 }

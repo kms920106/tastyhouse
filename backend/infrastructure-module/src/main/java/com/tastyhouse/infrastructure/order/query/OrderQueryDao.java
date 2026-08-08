@@ -17,6 +17,7 @@ import com.tastyhouse.domain.payment.model.PaymentStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -39,12 +40,20 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 셋을 쓰므로 {@link #findOrderDetail(OrderId)} 하나를 공유한다.
  *
  *
- * <p>가게 대표 이미지(주문 목록)는 조인으로 얻은 저장 경로를 {@link FileUrlResolver}로 표시용 URL까지
- * 변환해 Result에 담는다. 주문 상품 이미지({@code OrderProductResult#imageUrl})는 주문 생성 시점에 이미
- * URL로 스냅샷된 값이라 이 변환 대상이 아니다.
+ * <p>가게 대표 이미지(주문 목록)와 주문 상품 이미지 모두 {@code UPLOADED_FILE}을 join해 얻은 저장 경로를
+ * {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다. 주문 상품은 주문 시점의
+ * {@code UPLOADED_FILE.id}를 스냅샷해 두므로(={@code ORDER_PRODUCT.image_file_id}), 이후 상품 대표
+ * 이미지가 교체돼도 과거 주문은 주문 당시 이미지를 그대로 보여준다.
+ *
+ * <p>두 이미지가 같은 테이블을 각각 join하므로 {@link #ORDER_PRODUCT_IMAGE_FILE} 별칭을 따로 둔다 —
+ * 기본 별칭 하나로는 두 join이 충돌한다({@code EventQueryDao#findEventDetailById} 선례와 동일).
  */
 @Repository
 public class OrderQueryDao {
+
+    /** 주문 상품 이미지용 {@code UPLOADED_FILE} 별칭 — 가게 썸네일 join과 구분한다. */
+    private static final QUploadedFileJpaEntity ORDER_PRODUCT_IMAGE_FILE =
+        new QUploadedFileJpaEntity("orderProductImageFile");
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -73,7 +82,8 @@ public class OrderQueryDao {
                 orderProductJpaEntity.id.count().castToNum(Integer.class),
                 orderJpaEntity.finalAmount,
                 paymentJpaEntity.paymentStatus,
-                paymentJpaEntity.approvedAt
+                paymentJpaEntity.approvedAt,
+                orderJpaEntity.schedule.scheduledAt
             ))
             .from(orderJpaEntity)
             .innerJoin(paymentJpaEntity).on(paymentJoinCondition)
@@ -87,7 +97,8 @@ public class OrderQueryDao {
                 uploadedFileJpaEntity.filePath,
                 orderJpaEntity.finalAmount,
                 paymentJpaEntity.paymentStatus,
-                paymentJpaEntity.approvedAt
+                paymentJpaEntity.approvedAt,
+                orderJpaEntity.schedule.scheduledAt
             )
             .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -120,7 +131,8 @@ public class OrderQueryDao {
             row.totalItemCount(),
             row.amount(),
             row.paymentStatus(),
-            row.paymentDate()
+            row.paymentDate(),
+            row.scheduledAt()
         );
     }
 
@@ -147,7 +159,8 @@ public class OrderQueryDao {
                 paymentJpaEntity.paymentStatus,
                 orderJpaEntity.finalAmount,
                 orderProductJpaEntity.id.count().castToNum(Integer.class),
-                orderJpaEntity.createdAt
+                orderJpaEntity.createdAt,
+                orderJpaEntity.schedule.scheduledAt
             ))
             .from(orderJpaEntity)
             .leftJoin(paymentJpaEntity).on(paymentJoinCondition)
@@ -172,7 +185,8 @@ public class OrderQueryDao {
                 orderJpaEntity.orderStatus,
                 paymentJpaEntity.paymentStatus,
                 orderJpaEntity.finalAmount,
-                orderJpaEntity.createdAt
+                orderJpaEntity.createdAt,
+                orderJpaEntity.schedule.scheduledAt
             )
             .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -227,7 +241,9 @@ public class OrderQueryDao {
                 orderJpaEntity.finalAmount,
                 orderJpaEntity.usedPoint,
                 orderJpaEntity.earnedPoint,
-                orderJpaEntity.createdAt
+                orderJpaEntity.createdAt,
+                orderJpaEntity.schedule.scheduledAt,
+                orderJpaEntity.schedule.scheduledSlotEndAt
             ))
             .from(orderJpaEntity)
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
@@ -254,7 +270,7 @@ public class OrderQueryDao {
                 orderProductJpaEntity.id,
                 orderProductJpaEntity.productId,
                 orderProductJpaEntity.name,
-                orderProductJpaEntity.imageUrl,
+                ORDER_PRODUCT_IMAGE_FILE.filePath,
                 orderProductJpaEntity.quantity,
                 orderProductJpaEntity.originalPrice,
                 orderProductJpaEntity.discountPrice,
@@ -262,6 +278,8 @@ public class OrderQueryDao {
                 orderProductJpaEntity.totalPrice
             ))
             .from(orderProductJpaEntity)
+            .leftJoin(ORDER_PRODUCT_IMAGE_FILE)
+                .on(ORDER_PRODUCT_IMAGE_FILE.id.eq(orderProductJpaEntity.imageFileId))
             .where(orderProductJpaEntity.orderId.eq(orderId.value()))
             .orderBy(orderProductJpaEntity.id.asc())
             .fetch();
@@ -290,7 +308,8 @@ public class OrderQueryDao {
             .collect(Collectors.groupingBy(OrderProductOptionResult::orderProductId));
 
         return orderProducts.stream()
-            .map(orderProduct -> orderProduct.withOptions(
+            .map(orderProduct -> orderProduct.withResolvedImageUrl(
+                fileUrlResolver.resolve(orderProduct.imageUrl()),
                 optionsByOrderProductId.getOrDefault(orderProduct.orderProductId(), List.of())
             ))
             .toList();

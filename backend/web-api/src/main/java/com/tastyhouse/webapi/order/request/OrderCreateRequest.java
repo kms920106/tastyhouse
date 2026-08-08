@@ -1,5 +1,6 @@
 package com.tastyhouse.webapi.order.request;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -63,6 +64,13 @@ public record OrderCreateRequest(
     @NotNull(message = "결제 금액은 필수입니다")
     @Min(value = 0, message = "결제 금액은 0 이상이어야 합니다")
     @Schema(description = "최종 결제 금액(= 상품 금액 - 총 할인 + 배달팁)", example = "24000", requiredMode = Schema.RequiredMode.REQUIRED)
-    Integer finalAmount
+    Integer finalAmount,
+
+    @Schema(
+        description = "수령 예약 시각. 예약 가능 슬롯 조회에서 받은 slots[].startAt을 그대로 보냅니다. "
+            + "미전송이면 즉시 주문입니다. DELIVERY·TAKEOUT만 지원하며, 서버가 슬롯을 재계산해 대조합니다.",
+        example = "2026-08-08T18:00:00"
+    )
+    LocalDateTime scheduledAt
 ) {
 }

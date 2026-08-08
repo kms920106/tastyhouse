@@ -32,8 +32,8 @@ public class OrderProductJpaEntity extends BaseEntity {
     @Column(name = "name", nullable = false)
     private String name; // 주문 시점 상품명 (스냅샷)
 
-    @Column(name = "image_url", length = 500)
-    private String imageUrl; // 주문 시점 상품 이미지 URL (스냅샷)
+    @Column(name = "image_file_id")
+    private Long imageFileId; // 주문 시점 상품 이미지 파일 ID (UPLOADED_FILE.id 스냅샷). 이미지 없으면 null
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity; // 수량
@@ -57,7 +57,7 @@ public class OrderProductJpaEntity extends BaseEntity {
         Long orderId,
         Long productId,
         String name,
-        String imageUrl,
+        Long imageFileId,
         Integer quantity,
         Integer originalPrice,
         Integer discountPrice,
@@ -67,7 +67,7 @@ public class OrderProductJpaEntity extends BaseEntity {
         this.orderId = orderId;
         this.productId = productId;
         this.name = name;
-        this.imageUrl = imageUrl;
+        this.imageFileId = imageFileId;
         this.quantity = quantity;
         this.originalPrice = originalPrice;
         this.discountPrice = discountPrice;
@@ -82,7 +82,7 @@ public class OrderProductJpaEntity extends BaseEntity {
         Long orderId,
         Long productId,
         String name,
-        String imageUrl,
+        Long imageFileId,
         Integer quantity,
         Integer originalPrice,
         Integer discountPrice,
@@ -93,7 +93,7 @@ public class OrderProductJpaEntity extends BaseEntity {
             orderId,
             productId,
             name,
-            imageUrl,
+            imageFileId,
             quantity,
             originalPrice,
             discountPrice,
@@ -126,8 +126,8 @@ public class OrderProductJpaEntity extends BaseEntity {
         return this.name;
     }
 
-    public String getImageUrl() {
-        return this.imageUrl;
+    public Long getImageFileId() {
+        return this.imageFileId;
     }
 
     public Integer getQuantity() {

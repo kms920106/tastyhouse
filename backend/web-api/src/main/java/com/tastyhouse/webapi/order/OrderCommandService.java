@@ -1,5 +1,6 @@
 package com.tastyhouse.webapi.order;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -53,7 +54,8 @@ public class OrderCommandService {
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
         Integer deliveryTipAmount,
-        Integer finalAmount
+        Integer finalAmount,
+        LocalDateTime scheduledAt
     ) {
         MemberId memberIdVo = MemberId.of(memberId);
         OrderPlacement placement = toPlacement(
@@ -68,7 +70,8 @@ public class OrderCommandService {
             productDiscountAmount,
             couponDiscountAmount,
             deliveryTipAmount,
-            finalAmount
+            finalAmount,
+            scheduledAt
         );
         OrderId orderId = orderPlacementService.place(memberIdVo, placement);
         return orderId.value();
@@ -86,7 +89,8 @@ public class OrderCommandService {
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
         Integer deliveryTipAmount,
-        Integer finalAmount
+        Integer finalAmount,
+        LocalDateTime scheduledAt
     ) {
         List<OrderPlacementItem> items = orderProducts.stream()
             .map(this::toPlacementItem)
@@ -103,7 +107,8 @@ public class OrderCommandService {
             productDiscountAmount,
             couponDiscountAmount,
             deliveryTipAmount,
-            finalAmount
+            finalAmount,
+            scheduledAt
         );
     }
 

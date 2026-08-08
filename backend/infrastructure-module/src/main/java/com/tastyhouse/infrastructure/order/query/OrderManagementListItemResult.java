@@ -25,7 +25,10 @@ public record OrderManagementListItemResult(
     PaymentStatus paymentStatus,
     Integer finalAmount,
     Integer totalItemCount,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+
+    // 수령 예약 시각(슬롯 시작). null이면 즉시 주문.
+    LocalDateTime scheduledAt
 ) {
     @QueryProjection
     public OrderManagementListItemResult {

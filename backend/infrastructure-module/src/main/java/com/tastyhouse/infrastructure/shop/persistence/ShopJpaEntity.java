@@ -70,6 +70,9 @@ public class ShopJpaEntity extends BaseEntity {
     @Column(name = "min_order_amount", nullable = false)
     private int minOrderAmount; // 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
 
+    @Column(name = "scheduled_order_enabled", nullable = false)
+    private boolean scheduledOrderEnabled; // 예약주문 운영 여부 (true: 고객이 수령시간을 예약할 수 있음)
+
     protected ShopJpaEntity() {
     }
 
@@ -88,7 +91,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays,
-        int minOrderAmount
+        int minOrderAmount,
+        boolean scheduledOrderEnabled
     ) {
         this.ceoId = ceoId;
         this.stationId = stationId;
@@ -105,6 +109,7 @@ public class ShopJpaEntity extends BaseEntity {
         this.hidden = hidden;
         this.closedOnPublicHolidays = closedOnPublicHolidays;
         this.minOrderAmount = minOrderAmount;
+        this.scheduledOrderEnabled = scheduledOrderEnabled;
     }
 
     /**
@@ -125,7 +130,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays,
-        int minOrderAmount
+        int minOrderAmount,
+        boolean scheduledOrderEnabled
     ) {
         return new ShopJpaEntity(
             ceoId,
@@ -142,7 +148,8 @@ public class ShopJpaEntity extends BaseEntity {
             permanentlyClosed,
             hidden,
             closedOnPublicHolidays,
-            minOrderAmount
+            minOrderAmount,
+            scheduledOrderEnabled
         );
     }
 
@@ -164,7 +171,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays,
-        int minOrderAmount
+        int minOrderAmount,
+        boolean scheduledOrderEnabled
     ) {
         this.ceoId = ceoId;
         this.stationId = stationId;
@@ -181,6 +189,7 @@ public class ShopJpaEntity extends BaseEntity {
         this.hidden = hidden;
         this.closedOnPublicHolidays = closedOnPublicHolidays;
         this.minOrderAmount = minOrderAmount;
+        this.scheduledOrderEnabled = scheduledOrderEnabled;
     }
 
     public Long getId() {
@@ -245,5 +254,9 @@ public class ShopJpaEntity extends BaseEntity {
 
     public int getMinOrderAmount() {
         return this.minOrderAmount;
+    }
+
+    public boolean isScheduledOrderEnabled() {
+        return this.scheduledOrderEnabled;
     }
 }

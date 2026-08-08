@@ -43,6 +43,7 @@ public class Shop {
     private boolean hidden; // 노출정지 여부 (true: 배민앱 완전 비노출, 폐업과 별개)
     private boolean closedOnPublicHolidays; // 공휴일 휴무 여부 (true: 공휴일 휴무)
     private int minOrderAmount; // 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
+    private boolean scheduledOrderEnabled; // 예약주문 운영 여부 (true: 고객이 수령시간을 예약할 수 있음)
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
     private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
@@ -63,6 +64,7 @@ public class Shop {
         boolean hidden,
         boolean closedOnPublicHolidays,
         int minOrderAmount,
+        boolean scheduledOrderEnabled,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -82,6 +84,7 @@ public class Shop {
         this.hidden = hidden;
         this.closedOnPublicHolidays = closedOnPublicHolidays;
         this.minOrderAmount = minOrderAmount;
+        this.scheduledOrderEnabled = scheduledOrderEnabled;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -90,7 +93,8 @@ public class Shop {
      * 신규 상점을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
      *
      * <p>최소주문금액은 {@link #MIN_ORDER_AMOUNT_UNSET}(미설정)으로 시작한다 — 관리자의 가게 등록 화면은
-     * 이 값을 다루지 않고, 점주가 {@link #changeMinOrderAmount(int)}로 직접 설정한다.
+     * 이 값을 다루지 않고, 점주가 {@link #changeMinOrderAmount(int)}로 직접 설정한다. 예약주문도 같은
+     * 이유로 미운영({@code false})으로 시작하고 점주가 {@link #changeScheduledOrderEnabled(boolean)}로 켠다.
      */
     public static Shop of(
         StationId stationId,
@@ -119,6 +123,7 @@ public class Shop {
             false,
             false,
             MIN_ORDER_AMOUNT_UNSET,
+            false,
             null,
             null
         );
@@ -145,6 +150,7 @@ public class Shop {
         boolean hidden,
         boolean closedOnPublicHolidays,
         int minOrderAmount,
+        boolean scheduledOrderEnabled,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -165,6 +171,7 @@ public class Shop {
             hidden,
             closedOnPublicHolidays,
             minOrderAmount,
+            scheduledOrderEnabled,
             createdAt,
             updatedAt
         );
@@ -276,6 +283,22 @@ public class Shop {
     }
 
     /**
+     * 예약주문 운영 여부를 변경한다.
+     *
+     * <p>설정 단위는 <b>가게 하나</b>이며 주문유형별로 나누지 않는다(PDF 규격). 리드타임·슬롯 단위는
+     * {@code ScheduledOrderPolicy} 상수로 고정되어 점주가 조정하지 않는다.
+     *
+     * <p><b>끄더라도 이미 접수된 예약주문은 건드리지 않는다</b> — "금액·시간은 결제 시점 기준 확정"이라는
+     * 이 도메인의 원칙상, OFF는 신규 예약만 차단한다. 폐업한 가게는 {@link #changeMinOrderAmount(int)}와
+     * 마찬가지로 변경할 수 없다.
+     */
+    public void changeScheduledOrderEnabled(boolean scheduledOrderEnabled) {
+        validateNotPermanentlyClosed();
+
+        this.scheduledOrderEnabled = scheduledOrderEnabled;
+    }
+
+    /**
      * 배민앱에서 가게를 완전히 숨긴다(노출정지).
      */
     public void hide() {
@@ -376,6 +399,11 @@ public class Shop {
 
     public int getMinOrderAmount() {
         return this.minOrderAmount;
+    }
+
+    /** 예약주문 운영 여부. {@code false}면 수령시간 예약을 신규로 받지 않는다. */
+    public boolean isScheduledOrderEnabled() {
+        return this.scheduledOrderEnabled;
     }
 
     public LocalDateTime getCreatedAt() {

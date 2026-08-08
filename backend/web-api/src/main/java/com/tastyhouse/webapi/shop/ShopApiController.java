@@ -17,10 +17,12 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.shop.request.ScheduledOrderSlotSearchRequest;
 import com.tastyhouse.webapi.shop.request.ShopDeliveryTipSearchRequest;
 import com.tastyhouse.webapi.shop.request.ShopMapMarkerSearchRequest;
 import com.tastyhouse.webapi.shop.request.ShopReviewSearchRequest;
 import com.tastyhouse.webapi.shop.request.ShopSearchRequest;
+import com.tastyhouse.webapi.shop.response.ScheduledOrderSlotsResponse;
 import com.tastyhouse.webapi.shop.response.ShopAmenityListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopBestListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopEditorChoiceResponse;
@@ -232,6 +234,28 @@ public class ShopApiController {
             search.orderMethod()
         );
         return ResponseEntity.ok(ApiResponse.success(deliveryTip));
+    }
+
+    /**
+     * 예약 가능 수령시간 슬롯 조회.
+     *
+     * <p>비로그인도 조회할 수 있다 — 슬롯은 가게 설정과 영업시간만으로 정해지고 회원별로 달라지지 않는다.
+     *
+     * <p>예약할 수 없는 상태여도 404가 아니라 200 + {@code available:false}로 응답한다(배달팁 조회 선례).
+     * 시각 의존 응답이라 캐시하지 않는다.
+     */
+    @Operation(
+        summary = "예약 가능 수령시간 조회",
+        description = "가게의 예약 가능한 수령시간 슬롯을 30분 단위로 조회합니다. 예약주문 미운영이거나 "
+            + "예약 가능한 시간이 없으면 available=false와 빈 목록을 반환합니다."
+    )
+    @GetMapping("/v1/{id}/scheduled-order-slots")
+    public ResponseEntity<ApiResponse<ScheduledOrderSlotsResponse>> getScheduledOrderSlots(
+        @PathVariable Long id,
+        @Valid @ModelAttribute ScheduledOrderSlotSearchRequest search
+    ) {
+        ScheduledOrderSlotsResponse slots = shopQueryService.getScheduledOrderSlots(id, search.orderMethod());
+        return ResponseEntity.ok(ApiResponse.success(slots));
     }
 
     @Operation(summary = "주문 수단 조회", description = "가게에서 주문 가능한 수단을 조회합니다. 테이블 오더, 예약, 포장 정보를 포함합니다.")

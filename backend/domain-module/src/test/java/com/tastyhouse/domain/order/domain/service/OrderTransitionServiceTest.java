@@ -12,6 +12,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
+import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.order.repository.OrderRepository;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.shop.model.OrderMethod;
@@ -195,7 +196,7 @@ class OrderTransitionServiceTest {
                 "홍길동",
                 "01012345678",
                 "hong@example.com",
-                20000, 0, 0, 0, 0, 0, 20000, OrderDeliveryDestination.none(), null, 0, 0,
+                20000, 0, 0, 0, 0, 0, 20000, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0,
                 false,
                 null,
                 null

@@ -55,7 +55,8 @@ public class OrderApiController {
             request.productDiscountAmount(),
             request.couponDiscountAmount(),
             request.deliveryTipAmount(),
-            request.finalAmount()
+            request.finalAmount(),
+            request.scheduledAt()
         );
         return ResponseEntity.ok(ApiResponse.success(orderId));
     }

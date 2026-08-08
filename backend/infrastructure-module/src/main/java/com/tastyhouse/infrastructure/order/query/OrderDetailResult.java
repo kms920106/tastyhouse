@@ -40,6 +40,13 @@ public record OrderDetailResult(
     Integer usedPoint,
     Integer earnedPoint,
     LocalDateTime createdAt,
+
+    // 수령 예약 시각(슬롯 시작). null이면 즉시 주문.
+    LocalDateTime scheduledAt,
+
+    // 수령 예약 슬롯 종료 시각. 포장은 scheduledAt과 동일.
+    LocalDateTime scheduledSlotEndAt,
+
     List<OrderProductResult> orderProducts,
     OrderPaymentResult payment
 ) {
@@ -68,7 +75,9 @@ public record OrderDetailResult(
         Integer finalAmount,
         Integer usedPoint,
         Integer earnedPoint,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime scheduledAt,
+        LocalDateTime scheduledSlotEndAt
     ) {
         this(
             id,
@@ -90,6 +99,8 @@ public record OrderDetailResult(
             usedPoint,
             earnedPoint,
             createdAt,
+            scheduledAt,
+            scheduledSlotEndAt,
             List.of(),
             null
         );
@@ -116,6 +127,8 @@ public record OrderDetailResult(
             usedPoint,
             earnedPoint,
             createdAt,
+            scheduledAt,
+            scheduledSlotEndAt,
             orderProducts,
             payment
         );
@@ -142,6 +155,8 @@ public record OrderDetailResult(
             usedPoint,
             earnedPoint,
             createdAt,
+            scheduledAt,
+            scheduledSlotEndAt,
             orderProducts,
             payment
         );

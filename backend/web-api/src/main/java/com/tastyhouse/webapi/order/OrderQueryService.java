@@ -83,7 +83,8 @@ public class OrderQueryService {
             result.totalItemCount(),
             result.amount(),
             result.paymentStatus().name(),
-            result.paymentDate()
+            result.paymentDate(),
+            result.scheduledAt()
         );
     }
 
@@ -124,7 +125,9 @@ public class OrderQueryService {
             orderProducts,
             payment,
             result.payment() == null ? null : result.payment().approvedAt(),
-            result.createdAt()
+            result.createdAt(),
+            result.scheduledAt(),
+            result.scheduledSlotEndAt()
         );
     }
 

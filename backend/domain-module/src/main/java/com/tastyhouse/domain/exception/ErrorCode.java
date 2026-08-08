@@ -243,6 +243,11 @@ public enum ErrorCode implements ErrorCodeSpec {
     ORDER_DELIVERY_AREA_NOT_COVERED(400, "ORDER_DELIVERY_AREA_NOT_COVERED", "배달 가능 지역이 아닙니다."),
     ORDER_DELIVERY_TIP_AMOUNT_MISMATCH(400, "ORDER_DELIVERY_TIP_AMOUNT_MISMATCH", "배달팁이 일치하지 않습니다."),
 
+    // 예약주문(수령 예약시간)
+    SHOP_SCHEDULED_ORDER_DISABLED(400, "SHOP_SCHEDULED_ORDER_DISABLED", "이 가게는 예약주문을 운영하지 않습니다."),
+    ORDER_SCHEDULE_METHOD_NOT_SUPPORTED(400, "ORDER_SCHEDULE_METHOD_NOT_SUPPORTED", "이 주문 방법은 예약주문을 지원하지 않습니다."),
+    ORDER_SCHEDULED_AT_UNAVAILABLE(400, "ORDER_SCHEDULED_AT_UNAVAILABLE", "예약할 수 없는 수령 시간입니다."),
+
     // 정책
     POLICY_NOT_FOUND(404, "POLICY_NOT_FOUND", "정책 문서를 찾을 수 없습니다."),
     POLICY_CURRENT_NOT_FOUND(404, "POLICY_CURRENT_NOT_FOUND", "현재 유효한 정책을 찾을 수 없습니다."),

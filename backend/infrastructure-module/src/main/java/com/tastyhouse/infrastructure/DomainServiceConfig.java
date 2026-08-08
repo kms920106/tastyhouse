@@ -85,6 +85,8 @@ import com.tastyhouse.domain.shop.repository.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.shop.repository.StationRepository;
 import com.tastyhouse.domain.shop.repository.TagRepository;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
+import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
+import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
 import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaService;
@@ -359,7 +361,8 @@ public class DomainServiceConfig {
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
         MemberDeliveryAddressRepository memberDeliveryAddressRepository,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
-        PublicHolidayCalendar publicHolidayCalendar
+        PublicHolidayCalendar publicHolidayCalendar,
+        ScheduledOrderSlotService scheduledOrderSlotService
     ) {
         return new OrderPlacementService(
             orderRepository,
@@ -377,7 +380,8 @@ public class DomainServiceConfig {
             shopDeliveryAreaRepository,
             memberDeliveryAddressRepository,
             shopDeliveryTipCalculator,
-            publicHolidayCalendar
+            publicHolidayCalendar,
+            scheduledOrderSlotService
         );
     }
 
@@ -493,6 +497,39 @@ public class DomainServiceConfig {
             shopTemporaryClosureRepository,
             shopSuspensionRepository,
             shopOperatingStatusCalculator
+        );
+    }
+
+    /**
+     * 예약주문 슬롯 계산기 — 리포지토리 주입 0개의 순수 판정 로직.
+     * 영업 판정을 새로 짜지 않고 {@link ShopOperatingStatusCalculator}에 미래 시각을 넘겨 재사용한다.
+     */
+    @Bean
+    public ScheduledOrderSlotCalculator scheduledOrderSlotCalculator(
+        ShopOperatingStatusCalculator shopOperatingStatusCalculator
+    ) {
+        return new ScheduledOrderSlotCalculator(shopOperatingStatusCalculator);
+    }
+
+    /**
+     * 예약주문 슬롯 조회·확정 — 가게·영업시간·휴게시간·정기휴무·임시휴무·임시중지 여섯 애그리거트를 읽어
+     * 계산기에 위임하는 오케스트레이션. 주문 접수({@link OrderPlacementService})는 이 서비스 하나만
+     * 주입받아 클라이언트가 보낸 수령 시각을 재계산·대조한다.
+     */
+    @Bean
+    public ScheduledOrderSlotService scheduledOrderSlotService(
+        ShopRepository shopRepository,
+        ShopDetailRepository shopDetailRepository,
+        ShopTemporaryClosureRepository shopTemporaryClosureRepository,
+        ShopSuspensionRepository shopSuspensionRepository,
+        ScheduledOrderSlotCalculator scheduledOrderSlotCalculator
+    ) {
+        return new ScheduledOrderSlotService(
+            shopRepository,
+            shopDetailRepository,
+            shopTemporaryClosureRepository,
+            shopSuspensionRepository,
+            scheduledOrderSlotCalculator
         );
     }
 

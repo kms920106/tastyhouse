@@ -285,7 +285,7 @@ class ProductRegistrationServiceTest {
         private final List<ProductImage> saved = new ArrayList<>();
 
         @Override
-        public String findRepresentativeImageFilePath(ProductId productId) {
+        public UploadedFileId findRepresentativeImageFileId(ProductId productId) {
             return null;
         }
 

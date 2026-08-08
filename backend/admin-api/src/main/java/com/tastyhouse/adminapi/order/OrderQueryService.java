@@ -98,7 +98,8 @@ public class OrderQueryService {
             result.paymentStatus() != null ? result.paymentStatus().name() : null,
             result.finalAmount(),
             result.totalItemCount(),
-            result.createdAt()
+            result.createdAt(),
+            result.scheduledAt()
         );
     }
 
@@ -128,7 +129,9 @@ public class OrderQueryService {
             orderProducts,
             payment,
             result.payment() == null ? null : result.payment().approvedAt(),
-            result.createdAt()
+            result.createdAt(),
+            result.scheduledAt(),
+            result.scheduledSlotEndAt()
         );
     }
 

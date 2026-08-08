@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import com.tastyhouse.domain.coupon.service.CouponIssueService;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.coupon.service.CouponUseResult;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.holiday.service.PublicHolidayCalendar;
@@ -22,6 +23,7 @@ import com.tastyhouse.domain.order.repository.OrderProductRepository;
 import com.tastyhouse.domain.order.repository.OrderRepository;
 import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.point.service.PointLedgerService;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOption;
@@ -34,12 +36,14 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.ScheduledOrderPolicy;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
+import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
@@ -90,6 +94,7 @@ public class OrderPlacementService {
     private final MemberDeliveryAddressRepository memberDeliveryAddressRepository;
     private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
     private final PublicHolidayCalendar publicHolidayCalendar;
+    private final ScheduledOrderSlotService scheduledOrderSlotService;
 
     /**
      * @param orderRepository                 주문 헤더 저장·재저장(금액 확정 반영)
@@ -108,6 +113,8 @@ public class OrderPlacementService {
      * @param memberDeliveryAddressRepository 배달 주소 로드(좌표는 여기서만 읽는다 — 위조 방지)
      * @param shopDeliveryTipCalculator       배달팁 산출(리포지토리 없는 순수 계산기)
      * @param publicHolidayCalendar           접수 시각의 공휴일 여부 판정
+     * @param scheduledOrderSlotService       수령 예약시간 슬롯 재계산·확정. 리포지토리 5개를 직접 받지 않고
+     *                                        이 서비스 하나만 주입해 의존 폭증을 막는다
      */
     public OrderPlacementService(
         OrderRepository orderRepository,
@@ -125,7 +132,8 @@ public class OrderPlacementService {
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
         MemberDeliveryAddressRepository memberDeliveryAddressRepository,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
-        PublicHolidayCalendar publicHolidayCalendar
+        PublicHolidayCalendar publicHolidayCalendar,
+        ScheduledOrderSlotService scheduledOrderSlotService
     ) {
         this.orderRepository = orderRepository;
         this.orderProductRepository = orderProductRepository;
@@ -143,12 +151,16 @@ public class OrderPlacementService {
         this.memberDeliveryAddressRepository = memberDeliveryAddressRepository;
         this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
         this.publicHolidayCalendar = publicHolidayCalendar;
+        this.scheduledOrderSlotService = scheduledOrderSlotService;
     }
 
     /**
-     * 주문을 접수한다(9단계) — 가게·회원 존재 확인 → 주문 헤더 생성 → 상품 라인·옵션 생성과 금액 집계 →
-     * 가게 최소주문금액 검증 → <b>배달 목적지 확정과 배달팁 산출</b> → 쿠폰·포인트 사용 → 금액 대조 검증
-     * → 헤더 금액 반영.
+     * 주문을 접수한다(10단계) — 가게·회원 존재 확인 → 주문 헤더 생성 → 상품 라인·옵션 생성과 금액 집계 →
+     * 가게 최소주문금액 검증 → <b>배달 목적지 확정과 배달팁 산출</b> → <b>수령 예약시간 확정</b> →
+     * 쿠폰·포인트 사용 → 금액 대조 검증 → 헤더 금액 반영.
+     *
+     * <p>수령 예약시간(5.5단계)은 <b>금액에 영향을 주지 않는다</b> — 예약주문이든 즉시 주문이든 배달팁·
+     * 최소주문금액·쿠폰/포인트 계산이 동일하다.
      *
      * <p>가게 최소주문금액 검증은 상품 할인까지 반영한 금액을 기준으로 쿠폰·포인트 사용 <b>전에</b> 수행한다
      * (판정 기준과 면제 조건은 {@code Shop#validateMinOrderAmount} 참고). 이 검증은 쿠폰 자체의 최소주문금액
@@ -176,7 +188,7 @@ public class OrderPlacementService {
             member.getFullName(),
             member.getPhoneNumber().value(),
             member.getUsername(),
-            0, 0, 0, 0, 0, 0, 0, OrderDeliveryDestination.none(), null, 0, 0
+            0, 0, 0, 0, 0, 0, 0, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0
         );
         Order savedOrder = orderRepository.save(order);
 
@@ -193,7 +205,7 @@ public class OrderPlacementService {
                     ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
             }
 
-            String productImageFilePath = productImageRepository.findRepresentativeImageFilePath(product.getProductId());
+            UploadedFileId productImageFileId = productImageRepository.findRepresentativeImageFileId(product.getProductId());
             int originalPrice = product.getOriginalPrice();
             Integer discountPrice = product.getDiscountPrice();
 
@@ -201,7 +213,7 @@ public class OrderPlacementService {
                 savedOrder.getOrderId(),
                 product.getProductId(),
                 product.getName(),
-                productImageFilePath,
+                productImageFileId,
                 item.quantity(),
                 originalPrice,
                 discountPrice,
@@ -229,6 +241,8 @@ public class OrderPlacementService {
             orderAmountAfterProductDiscount);
         int deliveryTipAmount = deliveryTip.breakdown().totalTipAmount();
 
+        OrderSchedule schedule = resolveSchedule(shop, shopId, placement);
+
         int couponDiscountAmount = 0;
         MemberCouponId memberCouponId = null;
         if (placement.memberCouponId() != null) {
@@ -254,7 +268,7 @@ public class OrderPlacementService {
 
         savedOrder.updateAmounts(totalProductAmount, productDiscountAmount, couponDiscountAmount,
             pointDiscountAmount, totalDiscountAmount, deliveryTipAmount, finalAmount,
-            deliveryTip.destination(), memberCouponId, pointDiscountAmount);
+            deliveryTip.destination(), schedule, memberCouponId, pointDiscountAmount);
         orderRepository.save(savedOrder);
 
         return savedOrder.getOrderId();
@@ -318,6 +332,37 @@ public class OrderPlacementService {
         return new DeliveryTipResolution(
             OrderDeliveryDestination.of(address, (int) Math.round(meters)),
             breakdown
+        );
+    }
+
+    /**
+     * 5.5단계 — 수령 예약시간을 확정한다(즉시 주문은 빈 값).
+     *
+     * <p>이 단계를 배달팁 뒤·쿠폰 앞에 두는 이유는 배달팁과 같다 — 예약 불가 실패가 쿠폰이 소모되기 전에
+     * 터져야 진단이 단순하다. <b>금액에는 영향이 없다</b>: 배달팁·최소주문금액·쿠폰/포인트 상한 계산이
+     * 그대로이고 {@code finalAmount} 공식도 바뀌지 않는다.
+     *
+     * <p>배달팁 기준 시각도 <b>수령 시각이 아니라 주문(결제) 시각</b>을 그대로 유지한다 — PDF의 "금액은
+     * 결제 시점 기준 확정" 원칙상, 미래의 수령 시각으로 시간별 팁을 매기면 결제 후 팁이 달라지는 것과 같은
+     * 효과가 난다.
+     *
+     * <p>클라이언트가 보낸 시각을 신뢰하지 않고 서버가 슬롯을 재계산해 대조한다 — 배달팁 7항목 금액 대조와
+     * 같은 원칙이며, 대조는 {@code ScheduledOrderSlotService#resolveSlot}가 수행한다.
+     */
+    private OrderSchedule resolveSchedule(Shop shop, ShopId shopId, OrderPlacement placement) {
+        if (placement.scheduledAt() == null) {
+            return OrderSchedule.none();
+        }
+        if (!shop.isScheduledOrderEnabled()) {
+            throw new BusinessException(ErrorCode.SHOP_SCHEDULED_ORDER_DISABLED);
+        }
+        if (!ScheduledOrderPolicy.supports(placement.orderMethod())) {
+            throw new BusinessException(ErrorCode.ORDER_SCHEDULE_METHOD_NOT_SUPPORTED,
+                ErrorCode.ORDER_SCHEDULE_METHOD_NOT_SUPPORTED.getDefaultMessage() + ": " + placement.orderMethod());
+        }
+
+        return scheduledOrderSlotService.resolveSlot(
+            shopId, placement.orderMethod(), placement.scheduledAt(), LocalDateTime.now()
         );
     }
 

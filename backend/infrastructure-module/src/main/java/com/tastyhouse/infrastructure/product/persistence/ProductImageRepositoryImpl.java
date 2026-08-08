@@ -3,11 +3,12 @@ package com.tastyhouse.infrastructure.product.persistence;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
-import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 
 /**
@@ -25,14 +26,15 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
     }
 
     @Override
-    public String findRepresentativeImageFilePath(ProductId productId) {
-        return queryFactory
-            .select(uploadedFileJpaEntity.filePath)
+    public UploadedFileId findRepresentativeImageFileId(ProductId productId) {
+        Long imageFileId = queryFactory
+            .select(productImageJpaEntity.imageFileId)
             .from(productImageJpaEntity)
-            .innerJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(productImageJpaEntity.productId.eq(productId.value()), productImageJpaEntity.visible.eq(true))
             .orderBy(productImageJpaEntity.sort.asc())
             .fetchFirst();
+
+        return IdMapping.vo(imageFileId, UploadedFileId::of);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.order.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.tastyhouse.domain.shop.model.OrderMethod;
@@ -16,8 +17,12 @@ import com.tastyhouse.domain.shop.model.OrderMethod;
  * <p><b>배달 주소는 좌표가 아니라 {@code deliveryAddressId}만 받는다.</b> 좌표를 요청 본문으로 받으면
  * 가짜 좌표를 보내 거리별 배달팁을 0원까지 낮출 수 있다 — 서버는 <b>저장된 주소에서만</b> 좌표를 읽는다.
  *
+ * <p><b>수령 예약시간({@code scheduledAt})도 클라이언트 값을 그대로 신뢰하지 않는다</b> — 서버가 유효
+ * 슬롯을 재계산해 대조하고, 일치하는 슬롯이 없으면 접수를 거절한다(배달팁 금액 대조와 같은 원칙).
+ *
  * @param deliveryAddressId 배달 주소 ID(입력). 주문 방법이 {@code DELIVERY}면 필수
  * @param deliveryTipAmount 클라이언트가 계산한 배달팁(대조용). 서버 계산값과 다르면 접수를 거절한다
+ * @param scheduledAt       수령 예약 시각(슬롯 시작). {@code null}이면 즉시 주문
  */
 public record OrderPlacement(
     Long shopId,
@@ -31,7 +36,8 @@ public record OrderPlacement(
     Integer productDiscountAmount,
     Integer couponDiscountAmount,
     Integer deliveryTipAmount,
-    Integer finalAmount
+    Integer finalAmount,
+    LocalDateTime scheduledAt
 ) {
 
     public static OrderPlacement of(
@@ -46,7 +52,8 @@ public record OrderPlacement(
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
         Integer deliveryTipAmount,
-        Integer finalAmount
+        Integer finalAmount,
+        LocalDateTime scheduledAt
     ) {
         return new OrderPlacement(
             shopId,
@@ -60,7 +67,8 @@ public record OrderPlacement(
             productDiscountAmount,
             couponDiscountAmount,
             deliveryTipAmount,
-            finalAmount
+            finalAmount,
+            scheduledAt
         );
     }
 }

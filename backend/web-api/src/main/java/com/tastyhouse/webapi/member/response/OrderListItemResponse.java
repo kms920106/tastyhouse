@@ -28,7 +28,10 @@ public record OrderListItemResponse(
     String paymentStatus,
 
     @Schema(description = "결제 일시", example = "2026-01-01T00:00:00")
-    LocalDateTime paymentDate
+    LocalDateTime paymentDate,
+
+    @Schema(description = "수령 예약 시각(슬롯 시작). null이면 즉시 주문입니다.", example = "2026-08-08T18:00:00")
+    LocalDateTime scheduledAt
 ) {
     public static OrderListItemResponse from(
         Long id,
@@ -38,7 +41,8 @@ public record OrderListItemResponse(
         Integer totalItemCount,
         Integer amount,
         String paymentStatus,
-        LocalDateTime paymentDate
+        LocalDateTime paymentDate,
+        LocalDateTime scheduledAt
     ) {
         return new OrderListItemResponse(
             id,
@@ -48,7 +52,8 @@ public record OrderListItemResponse(
             totalItemCount,
             amount,
             paymentStatus,
-            paymentDate
+            paymentDate,
+            scheduledAt
         );
     }
 }

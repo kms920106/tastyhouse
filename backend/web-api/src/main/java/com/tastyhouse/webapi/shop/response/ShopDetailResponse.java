@@ -47,7 +47,10 @@ public record ShopDetailResponse(
     int minDeliveryTip,
 
     @Schema(description = "배달팁 최대 금액(원). 고객 주소가 확정되기 전 상한", example = "4000")
-    int maxDeliveryTip
+    int maxDeliveryTip,
+
+    @Schema(description = "예약주문 운영 여부 (true: 수령시간을 예약할 수 있음)", example = "true")
+    boolean scheduledOrderEnabled
 ) {
     public static ShopDetailResponse of(
         Long id,
@@ -63,7 +66,8 @@ public record ShopDetailResponse(
         String operatingStatus,
         int minOrderAmount,
         int minDeliveryTip,
-        int maxDeliveryTip
+        int maxDeliveryTip,
+        boolean scheduledOrderEnabled
     ) {
         return new ShopDetailResponse(
             id,
@@ -79,7 +83,8 @@ public record ShopDetailResponse(
             operatingStatus,
             minOrderAmount,
             minDeliveryTip,
-            maxDeliveryTip
+            maxDeliveryTip,
+            scheduledOrderEnabled
         );
     }
 }

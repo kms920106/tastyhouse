@@ -49,7 +49,10 @@ public record ShopDetailResponse(
     boolean closedOnPublicHolidays,
 
     @Schema(description = "최소주문금액 (0: 미설정, 설정 시 5000~30000). 배달 주문에만 적용됩니다.", example = "10000")
-    int minOrderAmount
+    int minOrderAmount,
+
+    @Schema(description = "예약주문 운영 여부 (true: 고객이 수령시간을 예약할 수 있음)", example = "true")
+    boolean scheduledOrderEnabled
 ) {
     public static ShopDetailResponse from(
         Long id,
@@ -66,7 +69,8 @@ public record ShopDetailResponse(
         boolean permanentlyClosed,
         boolean hidden,
         boolean closedOnPublicHolidays,
-        int minOrderAmount
+        int minOrderAmount,
+        boolean scheduledOrderEnabled
     ) {
         return new ShopDetailResponse(
             id,
@@ -83,7 +87,8 @@ public record ShopDetailResponse(
             permanentlyClosed,
             hidden,
             closedOnPublicHolidays,
-            minOrderAmount
+            minOrderAmount,
+            scheduledOrderEnabled
         );
     }
 }

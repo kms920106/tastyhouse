@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.order.model.OrderProduct;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -22,7 +23,7 @@ final class OrderProductMapper {
             IdMapping.vo(entity.getOrderId(), OrderId::of),
             IdMapping.vo(entity.getProductId(), ProductId::of),
             entity.getName(),
-            entity.getImageUrl(),
+            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
             entity.getQuantity(),
             entity.getOriginalPrice(),
             entity.getDiscountPrice(),
@@ -39,7 +40,7 @@ final class OrderProductMapper {
             IdMapping.raw(domain.getOrderId(), OrderId::value),
             IdMapping.raw(domain.getProductId(), ProductId::value),
             domain.getName(),
-            domain.getImageUrl(),
+            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
             domain.getQuantity(),
             domain.getOriginalPrice(),
             domain.getDiscountPrice(),

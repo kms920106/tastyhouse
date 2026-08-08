@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
+import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -97,6 +98,19 @@ public class OrderJpaEntity extends BaseEntity {
     })
     private OrderDeliveryDestination deliveryDestination; // 주문 시점 배달 목적지 스냅샷
 
+    /**
+     * 주문 시점 확정된 수령 예약시간 스냅샷 2컬럼.
+     *
+     * <p>즉시 주문은 두 컬럼이 모두 null이므로 nullable이다 — 기존 주문 행은 전부 null이라 "즉시 주문"으로
+     * 정확히 해석된다(무손상 마이그레이션). 포장 주문은 슬롯이 단일 시각이라 두 컬럼 값이 같다.
+     */
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "scheduledAt", column = @Column(name = "scheduled_at")),
+        @AttributeOverride(name = "scheduledSlotEndAt", column = @Column(name = "scheduled_slot_end_at"))
+    })
+    private OrderSchedule schedule; // 주문 시점 확정된 수령 예약시간 스냅샷
+
     @Column(name = "member_coupon_id")
     private Long memberCouponId; // 사용한 회원 쿠폰 ID
 
@@ -129,6 +143,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer deliveryTipAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
+        OrderSchedule schedule,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -150,6 +165,7 @@ public class OrderJpaEntity extends BaseEntity {
         this.deliveryTipAmount = deliveryTipAmount;
         this.finalAmount = finalAmount;
         this.deliveryDestination = deliveryDestination;
+        this.schedule = schedule;
         this.memberCouponId = memberCouponId;
         this.usedPoint = usedPoint;
         this.earnedPoint = earnedPoint;
@@ -176,6 +192,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer deliveryTipAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
+        OrderSchedule schedule,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -198,6 +215,7 @@ public class OrderJpaEntity extends BaseEntity {
             deliveryTipAmount,
             finalAmount,
             deliveryDestination,
+            schedule,
             memberCouponId,
             usedPoint,
             earnedPoint,
@@ -218,6 +236,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer deliveryTipAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
+        OrderSchedule schedule,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -232,6 +251,7 @@ public class OrderJpaEntity extends BaseEntity {
         this.deliveryTipAmount = deliveryTipAmount;
         this.finalAmount = finalAmount;
         this.deliveryDestination = deliveryDestination;
+        this.schedule = schedule;
         this.memberCouponId = memberCouponId;
         this.usedPoint = usedPoint;
         this.earnedPoint = earnedPoint;
@@ -304,6 +324,10 @@ public class OrderJpaEntity extends BaseEntity {
 
     public OrderDeliveryDestination getDeliveryDestination() {
         return this.deliveryDestination;
+    }
+
+    public OrderSchedule getSchedule() {
+        return this.schedule;
     }
 
     public Long getMemberCouponId() {

@@ -133,8 +133,13 @@ public class ShopOperatingStatusCalculator {
     /**
      * 주어진 요일에 적용할 영업시간 행을 구체성 우선으로 선택한다:
      * 개별 요일 &gt; 주말/평일 &gt; 공휴일(공휴일일 때) &gt; 매일. 없으면 null.
+     *
+     * <p><b>{@code public}인 이유</b>: 예약주문 슬롯 계산({@link ScheduledOrderSlotCalculator})이 "오늘의
+     * 영업 시작·종료 시각"을 알아야 리드타임 하한과 예약 상한을 구할 수 있는데, 그 선택 규칙(구체성 우선
+     * 순위)은 이 계산기가 이미 소유하고 있다. 복제하면 규칙이 두 벌이 되어 요일 구분을 추가할 때 한쪽만
+     * 고쳐지므로, 소유자를 그대로 두고 노출만 넓힌다.
      */
-    private ShopBusinessHour selectApplicableHour(List<ShopBusinessHour> businessHours, DayOfWeek dayOfWeek, boolean publicHoliday) {
+    public ShopBusinessHour selectApplicableHour(List<ShopBusinessHour> businessHours, DayOfWeek dayOfWeek, boolean publicHoliday) {
         ShopBusinessHour daily = null;
         ShopBusinessHour holiday = null;
         ShopBusinessHour weekGroup = null;
