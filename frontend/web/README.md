@@ -177,7 +177,8 @@ tastyhouse-web/
 │   └── favicon.ico
 │
 ├── .vscode/                              # VS Code 설정
-├── .env                                  # 환경 변수
+├── .env.example                          # 환경 변수 템플릿 (커밋 대상)
+├── .env.local                            # 환경 변수 실제 값 (gitignore)
 ├── next.config.ts                        # Next.js 설정
 ├── tsconfig.json                         # TypeScript 설정
 ├── tailwind.config.ts                    # Tailwind CSS 설정
