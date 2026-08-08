@@ -22,3 +22,7 @@ Thumbs.db
 
 # Playwright MCP
 .playwright-mcp/
+
+# docs/tasks 폴더의 파일들은 커밋하지 않음 (폴더 자체는 추적)
+docs/tasks/*
+!docs/tasks/.gitkeep
