@@ -13,6 +13,7 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
+import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
@@ -105,6 +106,7 @@ public class ScheduledOrderSlotService {
         List<ShopClosedDay> closedDays = shopDetailRepository.findClosedDaysByShopId(rawShopId);
         List<ShopTemporaryClosure> temporaryClosures = shopTemporaryClosureRepository.findByShopId(rawShopId);
         List<ShopSuspension> suspensions = shopSuspensionRepository.findByShopId(rawShopId);
+        List<ShopOrderMethod> shopOrderMethods = shopDetailRepository.findOrderMethodsByShopId(rawShopId);
 
         return ScheduledOrderSlotContext.of(
             shop,
@@ -114,7 +116,8 @@ public class ScheduledOrderSlotService {
             breakTimes,
             closedDays,
             temporaryClosures,
-            suspensions
+            suspensions,
+            shopOrderMethods
         );
     }
 }

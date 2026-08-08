@@ -40,6 +40,12 @@ public record ShopDetailResponse(
     @Schema(description = "실시간 영업 상태(OPEN: 영업중, PREPARING: 준비중)", example = "OPEN")
     String operatingStatus,
 
+    @Schema(description = "준비중 사유 코드. 영업중이면 null", example = "BREAK_TIME")
+    String unavailableReason,
+
+    @Schema(description = "준비중 사유 한글 문구. 영업중이면 null", example = "휴게시간입니다")
+    String unavailableReasonName,
+
     @Schema(description = "최소주문금액 (0: 미설정, 제한 없음). 배달 주문에만 적용됩니다.", example = "10000")
     int minOrderAmount,
 
@@ -64,6 +70,8 @@ public record ShopDetailResponse(
         List<ShopPhoneNumberItem> phoneNumbers,
         String trademarkImageUrl,
         String operatingStatus,
+        String unavailableReason,
+        String unavailableReasonName,
         int minOrderAmount,
         int minDeliveryTip,
         int maxDeliveryTip,
@@ -81,6 +89,8 @@ public record ShopDetailResponse(
             phoneNumbers,
             trademarkImageUrl,
             operatingStatus,
+            unavailableReason,
+            unavailableReasonName,
             minOrderAmount,
             minDeliveryTip,
             maxDeliveryTip,

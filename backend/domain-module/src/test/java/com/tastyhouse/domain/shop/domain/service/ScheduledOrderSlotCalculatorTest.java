@@ -17,6 +17,7 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
+import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.model.SuspensionReason;
@@ -61,6 +62,14 @@ class ScheduledOrderSlotCalculatorTest {
         return LocalDateTime.of(MONDAY, LocalTime.of(hour, minute));
     }
 
+    /** 배달·포장 둘 다 배정된 가게 — 대부분의 케이스가 쓰는 기본 배정. */
+    private List<ShopOrderMethod> allOrderMethodsAssigned() {
+        return List.of(
+            ShopOrderMethod.reconstitute(1L, SHOP_ID, OrderMethod.DELIVERY),
+            ShopOrderMethod.reconstitute(2L, SHOP_ID, OrderMethod.TAKEOUT)
+        );
+    }
+
     private List<ScheduledOrderSlot> calculate(
         Shop shop,
         OrderMethod orderMethod,
@@ -71,8 +80,24 @@ class ScheduledOrderSlotCalculatorTest {
         List<ShopTemporaryClosure> temporaryClosures,
         List<ShopSuspension> suspensions
     ) {
+        return calculate(shop, orderMethod, now, businessHours, breakTimes, closedDays, temporaryClosures,
+            suspensions, allOrderMethodsAssigned());
+    }
+
+    private List<ScheduledOrderSlot> calculate(
+        Shop shop,
+        OrderMethod orderMethod,
+        LocalDateTime now,
+        List<ShopBusinessHour> businessHours,
+        List<ShopBreakTime> breakTimes,
+        List<ShopClosedDay> closedDays,
+        List<ShopTemporaryClosure> temporaryClosures,
+        List<ShopSuspension> suspensions,
+        List<ShopOrderMethod> shopOrderMethods
+    ) {
         return calculator.calculate(ScheduledOrderSlotContext.of(
-            shop, orderMethod, now, businessHours, breakTimes, closedDays, temporaryClosures, suspensions
+            shop, orderMethod, now, businessHours, breakTimes, closedDays, temporaryClosures, suspensions,
+            shopOrderMethods
         ));
     }
 
@@ -253,5 +278,56 @@ class ScheduledOrderSlotCalculatorTest {
         assertThat(startAts).contains(at(12, 0), at(12, 30));
         assertThat(startAts).doesNotContain(at(13, 0), at(14, 0), at(14, 30));
         assertThat(startAts).contains(at(15, 0));
+    }
+
+    /** 13:00~15:00 배달만 임시중지. */
+    private List<ShopSuspension> deliveryOnlySuspension() {
+        return List.of(
+            ShopSuspension.reconstitute(
+                1L, SHOP_ID, SuspensionReason.SHOP_CIRCUMSTANCE, OrderMethod.DELIVERY,
+                at(13, 0), at(15, 0), null, LocalDateTime.now(), LocalDateTime.now()
+            )
+        );
+    }
+
+    @Test
+    @DisplayName("배달만 임시중지해도 포장 슬롯은 그대로 유지된다 — 결함 A′의 회귀 방어선")
+    void deliverySuspension_doesNotRemoveTakeoutSlots() {
+        List<ScheduledOrderSlot> slots = calculate(shop(true), OrderMethod.TAKEOUT, at(10, 0),
+            List.of(hours(LocalTime.of(9, 0), LocalTime.of(22, 0))),
+            List.of(), List.of(), List.of(), deliveryOnlySuspension());
+
+        List<LocalDateTime> startAts = slots.stream().map(ScheduledOrderSlot::startAt).toList();
+        assertThat(startAts).contains(at(13, 0), at(14, 0), at(14, 30));
+    }
+
+    @Test
+    @DisplayName("배달만 임시중지하면 배달 슬롯에서는 중지 구간이 배제된다")
+    void deliverySuspension_removesDeliverySlots() {
+        List<ScheduledOrderSlot> slots = calculate(shop(true), OrderMethod.DELIVERY, at(10, 0),
+            List.of(hours(LocalTime.of(9, 0), LocalTime.of(22, 0))),
+            List.of(), List.of(), List.of(), deliveryOnlySuspension());
+
+        List<LocalDateTime> startAts = slots.stream().map(ScheduledOrderSlot::startAt).toList();
+        assertThat(startAts).doesNotContain(at(13, 0), at(14, 0), at(14, 30));
+        assertThat(startAts).contains(at(12, 0), at(15, 0));
+    }
+
+    @Test
+    @DisplayName("배달을 배정하지 않은 가게는 배달 슬롯이 빈 목록 — 결함 F의 회귀 방어선")
+    void empty_whenOrderMethodNotAssignedToShop() {
+        List<ShopOrderMethod> takeoutOnly = List.of(
+            ShopOrderMethod.reconstitute(1L, SHOP_ID, OrderMethod.TAKEOUT)
+        );
+
+        List<ScheduledOrderSlot> deliverySlots = calculate(shop(true), OrderMethod.DELIVERY, at(10, 0),
+            List.of(hours(LocalTime.of(9, 0), LocalTime.of(22, 0))),
+            List.of(), List.of(), List.of(), List.of(), takeoutOnly);
+        List<ScheduledOrderSlot> takeoutSlots = calculate(shop(true), OrderMethod.TAKEOUT, at(10, 0),
+            List.of(hours(LocalTime.of(9, 0), LocalTime.of(22, 0))),
+            List.of(), List.of(), List.of(), List.of(), takeoutOnly);
+
+        assertThat(deliverySlots).isEmpty();
+        assertThat(takeoutSlots).isNotEmpty();
     }
 }

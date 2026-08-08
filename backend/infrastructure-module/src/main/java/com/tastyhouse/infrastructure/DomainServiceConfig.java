@@ -96,6 +96,7 @@ import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
+import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
 import com.tastyhouse.domain.shop.service.ShopPhoneNumberRegistryService;
 import com.tastyhouse.domain.sms.port.SmsSender;
 import com.tastyhouse.domain.sms.repository.SmsVerificationRepository;
@@ -226,13 +227,15 @@ public class DomainServiceConfig {
         ReservationRepository reservationRepository,
         ReservationSlotRepository reservationSlotRepository,
         ShopRepository shopRepository,
-        MemberRepository memberRepository
+        MemberRepository memberRepository,
+        ShopOrderAvailabilityService shopOrderAvailabilityService
     ) {
         return new ReservationBookingService(
             reservationRepository,
             reservationSlotRepository,
             shopRepository,
-            memberRepository
+            memberRepository,
+            shopOrderAvailabilityService
         );
     }
 
@@ -362,7 +365,8 @@ public class DomainServiceConfig {
         MemberDeliveryAddressRepository memberDeliveryAddressRepository,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
         PublicHolidayCalendar publicHolidayCalendar,
-        ScheduledOrderSlotService scheduledOrderSlotService
+        ScheduledOrderSlotService scheduledOrderSlotService,
+        ShopOrderAvailabilityService shopOrderAvailabilityService
     ) {
         return new OrderPlacementService(
             orderRepository,
@@ -381,7 +385,8 @@ public class DomainServiceConfig {
             memberDeliveryAddressRepository,
             shopDeliveryTipCalculator,
             publicHolidayCalendar,
-            scheduledOrderSlotService
+            scheduledOrderSlotService,
+            shopOrderAvailabilityService
         );
     }
 
@@ -497,6 +502,22 @@ public class DomainServiceConfig {
             shopTemporaryClosureRepository,
             shopSuspensionRepository,
             shopOperatingStatusCalculator
+        );
+    }
+
+    /**
+     * 주문 접수 게이트 — 영업상태·주문유형 배정·유형별 임시중지 검증. 주문 접수
+     * ({@link OrderPlacementService})와 예약 생성({@link ReservationBookingService})이 같은 규칙을
+     * 쓰도록 검증을 이 서비스 하나에 모았다.
+     */
+    @Bean
+    public ShopOrderAvailabilityService shopOrderAvailabilityService(
+        ShopOperatingStatusService shopOperatingStatusService,
+        ShopDetailRepository shopDetailRepository
+    ) {
+        return new ShopOrderAvailabilityService(
+            shopOperatingStatusService,
+            shopDetailRepository
         );
     }
 

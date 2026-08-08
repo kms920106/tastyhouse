@@ -23,6 +23,7 @@ import com.tastyhouse.domain.shop.model.DayType;
 import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.model.ScheduledOrderPolicy;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
 import com.tastyhouse.domain.shop.model.Shop;
@@ -34,6 +35,7 @@ import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
+import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -99,7 +101,7 @@ import com.tastyhouse.webapi.shop.response.ShopFoodTypeListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopInfoResponse;
 import com.tastyhouse.webapi.shop.response.ShopLatestListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopMapMarkerResponse;
-import com.tastyhouse.webapi.shop.response.ShopOrderMethodItem;
+import com.tastyhouse.webapi.shop.response.ShopOrderMethodItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodResponse;
 import com.tastyhouse.webapi.shop.response.ShopPhoneNumberItem;
 import com.tastyhouse.webapi.shop.response.ShopPhotoCategoryResponse;
@@ -335,9 +337,9 @@ public class ShopQueryService {
             .map(ShopImageUrlsResult::trademarkImageUrl)
             .orElse(null);
 
-        String operatingStatus = shopOperatingStatusService
-            .findOperatingStatus(shopId, LocalDateTime.now())
-            .name();
+        ShopOperatingStatusResult operatingStatus =
+            shopOperatingStatusService.findOrderAvailability(shopId, LocalDateTime.now());
+        OrderUnavailableReason unavailableReason = operatingStatus.unavailableReason();
 
         // 배달팁·공휴일은 시각 의존 값이라 이 응답에는 캐시를 두지 않는다(최소주문금액 최신화를 위해
         // 가게 상세 캐시를 제거한 선례와 같은 이유) — 범위 값 자체는 시각에 의존하지 않지만, 점주가
@@ -355,7 +357,9 @@ public class ShopQueryService {
             shop.getPhoneNumber(),
             phoneNumbers,
             trademarkImageUrl,
-            operatingStatus,
+            operatingStatus.status().name(),
+            unavailableReason == null ? null : unavailableReason.name(),
+            unavailableReason == null ? null : unavailableReason.getDisplayName(),
             shop.getMinOrderAmount(),
             tipRange.minDeliveryTip(),
             tipRange.maxDeliveryTip(),
@@ -913,16 +917,31 @@ public class ShopQueryService {
 
     public ShopOrderMethodResponse getShopOrderMethods(Long shopId) {
         findVisibleShop(shopId);
-        List<ShopOrderMethodResult> shopOrderMethods = shopQueryDao.findOrderMethods(shopId);
 
-        List<ShopOrderMethodItem> orderMethodItems =
-            shopOrderMethods.stream()
-                .map(som -> ShopOrderMethodItem.from(
-                    som.orderMethod().name(),
-                    som.orderMethod().getDisplayName()))
-                .toList();
+        // 배정 목록은 표시 순서를 위해 query DAO에서, 주문가능 여부는 도메인 판정에서 얻는다.
+        // 배정된 유형만 판정 대상이므로 두 목록의 키 집합이 같다.
+        Map<OrderMethod, ShopOperatingStatusResult> availabilities =
+            shopOperatingStatusService.findOrderMethodAvailabilities(shopId, LocalDateTime.now());
+
+        List<ShopOrderMethodItemResponse> orderMethodItems = shopQueryDao.findOrderMethods(shopId).stream()
+            .map(dto -> toShopOrderMethodItemResponse(dto, availabilities.get(dto.orderMethod())))
+            .toList();
 
         return ShopOrderMethodResponse.from(orderMethodItems);
+    }
+
+    private ShopOrderMethodItemResponse toShopOrderMethodItemResponse(
+        ShopOrderMethodResult dto,
+        ShopOperatingStatusResult availability
+    ) {
+        OrderUnavailableReason reason = availability == null ? null : availability.unavailableReason();
+        return ShopOrderMethodItemResponse.from(
+            dto.orderMethod().name(),
+            dto.orderMethod().getDisplayName(),
+            availability != null && availability.isOpen(),
+            reason == null ? null : reason.name(),
+            reason == null ? null : reason.getDisplayName()
+        );
     }
 
     /**

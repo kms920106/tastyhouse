@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
+import com.tastyhouse.domain.shop.service.ShopOperatingStatusContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -60,9 +61,26 @@ class ShopOperatingStatusCalculatorGoldenTest {
         boolean publicHoliday,
         LocalDateTime now
     ) {
-        return calculator.calculate(
-            shop(), hours, breakTimes, closedDays, List.of(), List.of(), publicHoliday, now
-        );
+        return statusAt(shop(), hours, breakTimes, closedDays, publicHoliday, now);
+    }
+
+    /**
+     * 가게 전체 판정({@code orderMethod = null})으로 상태만 꺼낸다.
+     *
+     * <p>이 골든 테스트는 Context/Result 전환 <b>전후로 동일한 결과</b>여야 하므로, 사유가 붙은 뒤에도
+     * 단언 대상은 그대로 {@link ShopOperatingStatus}로 유지한다.
+     */
+    private ShopOperatingStatus statusAt(
+        Shop shop,
+        List<ShopBusinessHour> hours,
+        List<ShopBreakTime> breakTimes,
+        List<ShopClosedDay> closedDays,
+        boolean publicHoliday,
+        LocalDateTime now
+    ) {
+        return calculator.calculate(ShopOperatingStatusContext.of(
+            shop, hours, breakTimes, closedDays, List.of(), List.of(), null, publicHoliday, now
+        )).status();
     }
 
     private ShopBusinessHour hour(DayType dayType, LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours) {
@@ -454,9 +472,8 @@ class ShopOperatingStatusCalculatorGoldenTest {
         @Test
         @DisplayName("폐업 가게는 영업시간과 무관하게 준비중")
         void permanentlyClosedShop() {
-            ShopOperatingStatus status = calculator.calculate(
-                shop(true, false), allDayHours(), List.of(), List.of(), List.of(), List.of(),
-                false, MONDAY.atTime(12, 0)
+            ShopOperatingStatus status = statusAt(
+                shop(true, false), allDayHours(), List.of(), List.of(), false, MONDAY.atTime(12, 0)
             );
 
             assertThat(status).isEqualTo(ShopOperatingStatus.PREPARING);
@@ -465,23 +482,20 @@ class ShopOperatingStatusCalculatorGoldenTest {
         @Test
         @DisplayName("공휴일 휴무 설정 가게는 공휴일에만 준비중")
         void closedOnPublicHolidays() {
-            assertThat(calculator.calculate(
-                shop(false, true), allDayHours(), List.of(), List.of(), List.of(), List.of(),
-                true, MONDAY.atTime(12, 0)
+            assertThat(statusAt(
+                shop(false, true), allDayHours(), List.of(), List.of(), true, MONDAY.atTime(12, 0)
             )).isEqualTo(ShopOperatingStatus.PREPARING);
 
-            assertThat(calculator.calculate(
-                shop(false, true), allDayHours(), List.of(), List.of(), List.of(), List.of(),
-                false, MONDAY.atTime(12, 0)
+            assertThat(statusAt(
+                shop(false, true), allDayHours(), List.of(), List.of(), false, MONDAY.atTime(12, 0)
             )).isEqualTo(ShopOperatingStatus.OPEN);
         }
 
         @Test
         @DisplayName("공휴일이어도 가게가 공휴일 휴무 설정이 아니면 영업중")
         void publicHolidayWithoutSetting() {
-            assertThat(calculator.calculate(
-                shop(false, false), allDayHours(), List.of(), List.of(), List.of(), List.of(),
-                true, MONDAY.atTime(12, 0)
+            assertThat(statusAt(
+                shop(false, false), allDayHours(), List.of(), List.of(), true, MONDAY.atTime(12, 0)
             )).isEqualTo(ShopOperatingStatus.OPEN);
         }
     }

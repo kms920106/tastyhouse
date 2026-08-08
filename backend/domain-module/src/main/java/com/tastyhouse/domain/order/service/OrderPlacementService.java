@@ -45,6 +45,7 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
+import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -95,6 +96,7 @@ public class OrderPlacementService {
     private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
     private final PublicHolidayCalendar publicHolidayCalendar;
     private final ScheduledOrderSlotService scheduledOrderSlotService;
+    private final ShopOrderAvailabilityService shopOrderAvailabilityService;
 
     /**
      * @param orderRepository                 주문 헤더 저장·재저장(금액 확정 반영)
@@ -115,6 +117,8 @@ public class OrderPlacementService {
      * @param publicHolidayCalendar           접수 시각의 공휴일 여부 판정
      * @param scheduledOrderSlotService       수령 예약시간 슬롯 재계산·확정. 리포지토리 5개를 직접 받지 않고
      *                                        이 서비스 하나만 주입해 의존 폭증을 막는다
+     * @param shopOrderAvailabilityService    주문 접수 게이트(영업상태·유형배정·유형중지 검증). 예약 생성과
+     *                                        같은 규칙을 쓰도록 검증을 이 서비스 하나에 모았다
      */
     public OrderPlacementService(
         OrderRepository orderRepository,
@@ -133,7 +137,8 @@ public class OrderPlacementService {
         MemberDeliveryAddressRepository memberDeliveryAddressRepository,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
         PublicHolidayCalendar publicHolidayCalendar,
-        ScheduledOrderSlotService scheduledOrderSlotService
+        ScheduledOrderSlotService scheduledOrderSlotService,
+        ShopOrderAvailabilityService shopOrderAvailabilityService
     ) {
         this.orderRepository = orderRepository;
         this.orderProductRepository = orderProductRepository;
@@ -152,15 +157,27 @@ public class OrderPlacementService {
         this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
         this.publicHolidayCalendar = publicHolidayCalendar;
         this.scheduledOrderSlotService = scheduledOrderSlotService;
+        this.shopOrderAvailabilityService = shopOrderAvailabilityService;
     }
 
     /**
-     * 주문을 접수한다(10단계) — 가게·회원 존재 확인 → 주문 헤더 생성 → 상품 라인·옵션 생성과 금액 집계 →
+     * 주문을 접수한다(10단계) — <b>가게 존재·주문가능 검증</b> → 회원 존재 확인 → 주문 헤더 생성 →
+     * 상품 라인·옵션 생성과 금액 집계 →
      * 가게 최소주문금액 검증 → <b>배달 목적지 확정과 배달팁 산출</b> → <b>수령 예약시간 확정</b> →
      * 쿠폰·포인트 사용 → 금액 대조 검증 → 헤더 금액 반영.
      *
      * <p>수령 예약시간(5.5단계)은 <b>금액에 영향을 주지 않는다</b> — 예약주문이든 즉시 주문이든 배달팁·
      * 최소주문금액·쿠폰/포인트 계산이 동일하다.
+     *
+     * <p><b>주문가능 검증(1단계)은 상품·금액 계산 전에 수행한다</b> — 거절될 주문에 조회·계산 자원을 쓰지
+     * 않기 위함이다. 가게 조회가 {@code findVisibleById}이므로 폐업·노출정지 가게는 404가 되고
+     * (서버 측 유일한 게이트이므로 장바구니 없는 이 서비스에서 반드시 막아야 한다), 영업상태·유형배정·
+     * 유형중지 위반은 각각 다른 400 에러코드로 거절된다.
+     *
+     * <p><b>이 검증의 기준 시각은 "지금"이다</b>(예약 생성이 슬롯 시각으로 판정하는 것과 다르다). 예약주문
+     * (수령시간 지정)의 <b>미래 시각 판정은 5.5단계의 {@code ScheduledOrderSlotService#resolveSlot}이
+     * 담당</b>한다 — 그 슬롯 재계산이 같은 영업상태 계산기에 주문유형과 미래 시각을 함께 넘기므로, 수령
+     * 시각에 걸린 유형별 중지·휴게시간은 그쪽에서 걸러진다. 즉 두 시각을 각자 맞는 단계에서 본다.
      *
      * <p>가게 최소주문금액 검증은 상품 할인까지 반영한 금액을 기준으로 쿠폰·포인트 사용 <b>전에</b> 수행한다
      * (판정 기준과 면제 조건은 {@code Shop#validateMinOrderAmount} 참고). 이 검증은 쿠폰 자체의 최소주문금액
@@ -174,8 +191,11 @@ public class OrderPlacementService {
      */
     public OrderId place(MemberId memberId, OrderPlacement placement) {
         ShopId shopId = ShopId.of(placement.shopId());
-        Shop shop = shopRepository.findById(shopId)
+        // 회원 경로이므로 findVisibleById — 폐업·노출정지 가게는 404가 되어 딥링크 진입이 차단된다.
+        Shop shop = shopRepository.findVisibleById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+        shopOrderAvailabilityService.validateOrderable(shop, placement.orderMethod(), LocalDateTime.now());
+
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 

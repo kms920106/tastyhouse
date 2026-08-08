@@ -232,6 +232,13 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_DELIVERY_AREA_IN_USE(409, "SHOP_DELIVERY_AREA_IN_USE", "지역별 배달팁이 설정된 지역은 삭제할 수 없습니다."),
     ADMIN_DONG_NOT_FOUND(404, "ADMIN_DONG_NOT_FOUND", "행정동을 찾을 수 없습니다."),
 
+    // 주문가능 상태(주문 접수·예약 생성 게이트)
+    // SHOP_ORDER_METHOD_NOT_SUPPORTED(400)는 위 SHOP_ORDER_METHOD_NOT_FOUND(404)와 용도가 다르다 —
+    // 후자는 admin이 배정 행을 찾을 때, 전자는 주문을 거절할 때 쓴다.
+    SHOP_NOT_ORDERABLE(400, "SHOP_NOT_ORDERABLE", "현재 주문할 수 없는 가게입니다."),
+    SHOP_ORDER_METHOD_NOT_SUPPORTED(400, "SHOP_ORDER_METHOD_NOT_SUPPORTED", "이 가게가 지원하지 않는 주문유형입니다."),
+    SHOP_ORDER_METHOD_SUSPENDED(400, "SHOP_ORDER_METHOD_SUSPENDED", "해당 주문유형은 현재 임시중지 중입니다."),
+
     // 회원 배달 주소
     MEMBER_DELIVERY_ADDRESS_NOT_FOUND(404, "MEMBER_DELIVERY_ADDRESS_NOT_FOUND", "배달 주소를 찾을 수 없습니다."),
     MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED(400, "MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED", "배달 주소는 최대 10개까지 등록할 수 있습니다."),

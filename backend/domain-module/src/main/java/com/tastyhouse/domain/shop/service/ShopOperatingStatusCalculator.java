@@ -7,11 +7,12 @@ import java.time.LocalTime;
 import java.util.List;
 
 import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
-import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.model.ClosedDayType;
@@ -27,14 +28,15 @@ import com.tastyhouse.domain.shop.model.ClosedDayType;
  * {@link ShopBusinessHour#extendsIntoNextDayAt(LocalTime)}, 휴게시간은
  * {@link ShopBreakTime#covers(LocalTime, DayOfWeek, boolean)}, 정기휴무는
  * {@link ClosedDayType#matches(java.time.LocalDate)},
- * 임시중지는 {@link ShopSuspension#isActive(LocalDateTime)}가 판정한다. 이 계산기에 남는 것은
+ * 임시중지는 {@link ShopSuspension#isActive(LocalDateTime, OrderMethod)}가 판정한다. 이 계산기에 남는 것은
  * <b>여러 애그리거트를 가로지르는 판정</b>(우선순위 순서, 오늘 적용할 영업시간 행 선택)뿐이며, 이는
  * 어느 한 애그리거트에도 속하지 않으므로 도메인 서비스 잔류가 정당하다.
  *
- * <p>판정 우선순위(하나라도 준비중 조건이면 즉시 PREPARING):
+ * <p>판정 우선순위(하나라도 준비중 조건이면 즉시 PREPARING, 그 사유 하나만 반환):
  * <ol>
  *   <li>폐업/노출정지 (방어적 — 목록·상세 조회에서 이미 필터됨)</li>
- *   <li>활성 임시중지({@link ShopSuspension#isActive(LocalDateTime)})</li>
+ *   <li>활성 임시중지({@link ShopSuspension#isActive(LocalDateTime, OrderMethod)}) —
+ *       판정 대상 주문유형에 적용되는 건만 본다</li>
  *   <li>공휴일 휴무 (공휴일이고 {@link Shop#isClosedOnPublicHolidays()})</li>
  *   <li>임시휴무 기간 내</li>
  *   <li>정기휴무 요일 매칭</li>
@@ -42,53 +44,62 @@ import com.tastyhouse.domain.shop.model.ClosedDayType;
  *   <li>휴게시간 구간 내</li>
  *   <li>그 외 → 영업중</li>
  * </ol>
+ *
+ * <p>입력은 {@link ShopOperatingStatusContext}로 묶어 받고, 결과는 사유를 동반한
+ * {@link ShopOperatingStatusResult}로 돌려준다.
  */
 public class ShopOperatingStatusCalculator {
 
-    public ShopOperatingStatus calculate(
-        Shop shop,
-        List<ShopBusinessHour> businessHours,
-        List<ShopBreakTime> breakTimes,
-        List<ShopClosedDay> closedDays,
-        List<ShopTemporaryClosure> temporaryClosures,
-        List<ShopSuspension> suspensions,
-        boolean publicHoliday,
-        LocalDateTime now
-    ) {
-        if (shop.isPermanentlyClosed() || shop.isHidden()) {
-            return ShopOperatingStatus.PREPARING;
+    /**
+     * 영업 상태와 그 사유를 판정한다. 첫 번째로 걸린 준비중 조건 하나만 사유로 돌려준다.
+     *
+     * <p>{@code context.orderMethod()}가 null이면 <b>가게 전체</b> 판정이며, 이때 유형별 임시중지
+     * ({@code ShopSuspension#orderMethod != null})는 가게 상태를 멈추지 않는다. 유형을 넘기면 그 유형에
+     * 걸린 중지와 전체 대상 중지를 함께 본다.
+     */
+    public ShopOperatingStatusResult calculate(ShopOperatingStatusContext context) {
+        Shop shop = context.shop();
+        LocalDateTime now = context.now();
+        boolean publicHoliday = context.publicHoliday();
+
+        if (shop.isPermanentlyClosed()) {
+            return ShopOperatingStatusResult.preparing(OrderUnavailableReason.PERMANENTLY_CLOSED);
         }
 
-        if (hasActiveSuspension(suspensions, now)) {
-            return ShopOperatingStatus.PREPARING;
+        if (shop.isHidden()) {
+            return ShopOperatingStatusResult.preparing(OrderUnavailableReason.HIDDEN);
+        }
+
+        if (hasActiveSuspension(context.suspensions(), now, context.orderMethod())) {
+            return ShopOperatingStatusResult.preparing(OrderUnavailableReason.SUSPENDED);
         }
 
         if (publicHoliday && shop.isClosedOnPublicHolidays()) {
-            return ShopOperatingStatus.PREPARING;
+            return ShopOperatingStatusResult.preparing(OrderUnavailableReason.PUBLIC_HOLIDAY_CLOSED);
         }
 
         LocalDate today = now.toLocalDate();
-        if (isTemporarilyClosed(temporaryClosures, today)) {
-            return ShopOperatingStatus.PREPARING;
+        if (isTemporarilyClosed(context.temporaryClosures(), today)) {
+            return ShopOperatingStatusResult.preparing(OrderUnavailableReason.TEMPORARILY_CLOSED);
         }
 
-        if (isRegularClosedDay(closedDays, today)) {
-            return ShopOperatingStatus.PREPARING;
+        if (isRegularClosedDay(context.closedDays(), today)) {
+            return ShopOperatingStatusResult.preparing(OrderUnavailableReason.REGULAR_CLOSED_DAY);
         }
 
-        if (!isWithinBusinessHours(businessHours, now, publicHoliday)) {
-            return ShopOperatingStatus.PREPARING;
+        if (!isWithinBusinessHours(context.businessHours(), now, publicHoliday)) {
+            return ShopOperatingStatusResult.preparing(OrderUnavailableReason.OUT_OF_BUSINESS_HOURS);
         }
 
-        if (isWithinBreakTime(breakTimes, now, publicHoliday)) {
-            return ShopOperatingStatus.PREPARING;
+        if (isWithinBreakTime(context.breakTimes(), now, publicHoliday)) {
+            return ShopOperatingStatusResult.preparing(OrderUnavailableReason.BREAK_TIME);
         }
 
-        return ShopOperatingStatus.OPEN;
+        return ShopOperatingStatusResult.open();
     }
 
-    private boolean hasActiveSuspension(List<ShopSuspension> suspensions, LocalDateTime now) {
-        return suspensions.stream().anyMatch(suspension -> suspension.isActive(now));
+    private boolean hasActiveSuspension(List<ShopSuspension> suspensions, LocalDateTime now, OrderMethod orderMethod) {
+        return suspensions.stream().anyMatch(suspension -> suspension.isActive(now, orderMethod));
     }
 
     private boolean isTemporarilyClosed(List<ShopTemporaryClosure> temporaryClosures, LocalDate today) {

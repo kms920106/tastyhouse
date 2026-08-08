@@ -98,6 +98,66 @@ class ShopSuspensionTest {
     }
 
     @Test
+    @DisplayName("전체 대상 중지(orderMethod=null)는 어떤 주문유형에도 적용된다")
+    void appliesTo_returnsTrue_whenSuspensionTargetsAllOrderMethods() {
+        ShopSuspension shopSuspension = suspension(null);
+
+        assertThat(shopSuspension.appliesTo(OrderMethod.DELIVERY)).isTrue();
+        assertThat(shopSuspension.appliesTo(OrderMethod.TAKEOUT)).isTrue();
+        // target=null은 가게 전체 판정 — 전체 대상 중지는 가게 전체를 멈춘다
+        assertThat(shopSuspension.appliesTo(null)).isTrue();
+    }
+
+    @Test
+    @DisplayName("유형별 중지는 같은 유형에만 적용되고, 가게 전체 판정(target=null)에는 걸리지 않는다")
+    void appliesTo_matchesOnlySameOrderMethod_andNeverShopWide() {
+        ShopSuspension shopSuspension = suspension(OrderMethod.DELIVERY);
+
+        assertThat(shopSuspension.appliesTo(OrderMethod.DELIVERY)).isTrue();
+        assertThat(shopSuspension.appliesTo(OrderMethod.TAKEOUT)).isFalse();
+        // 배달만 멈춰도 가게 전체는 멈추지 않는다 — 결함 A 수정의 핵심
+        assertThat(shopSuspension.appliesTo(null)).isFalse();
+    }
+
+    @Test
+    @DisplayName("해제된 중지는 유형이 일치해도 isActive(now, target)이 false다")
+    void isActiveWithOrderMethod_returnsFalse_whenReleased() {
+        ShopSuspension shopSuspension = suspension(OrderMethod.DELIVERY);
+        shopSuspension.release(LocalDateTime.of(2026, 8, 1, 10, 30));
+
+        assertThat(shopSuspension.isActive(LocalDateTime.of(2026, 8, 1, 11, 0), OrderMethod.DELIVERY)).isFalse();
+    }
+
+    @Test
+    @DisplayName("기간 밖이면 유형이 일치해도 isActive(now, target)이 false다")
+    void isActiveWithOrderMethod_returnsFalse_whenOutsidePeriod() {
+        ShopSuspension shopSuspension = suspension(OrderMethod.DELIVERY);
+
+        assertThat(shopSuspension.isActive(LocalDateTime.of(2026, 8, 1, 13, 0), OrderMethod.DELIVERY)).isFalse();
+    }
+
+    @Test
+    @DisplayName("기간 내이고 유형이 일치하면 isActive(now, target)이 true다")
+    void isActiveWithOrderMethod_returnsTrue_whenWithinPeriodAndMatchingOrderMethod() {
+        ShopSuspension shopSuspension = suspension(OrderMethod.DELIVERY);
+
+        assertThat(shopSuspension.isActive(LocalDateTime.of(2026, 8, 1, 11, 0), OrderMethod.DELIVERY)).isTrue();
+        assertThat(shopSuspension.isActive(LocalDateTime.of(2026, 8, 1, 11, 0), OrderMethod.TAKEOUT)).isFalse();
+        assertThat(shopSuspension.isActive(LocalDateTime.of(2026, 8, 1, 11, 0), null)).isFalse();
+    }
+
+    /** 2026-08-01 10:00 ~ 12:00 활성 중지. */
+    private ShopSuspension suspension(OrderMethod orderMethod) {
+        return ShopSuspension.of(
+            ShopId.of(1L),
+            SuspensionReason.BAD_WEATHER,
+            orderMethod,
+            LocalDateTime.of(2026, 8, 1, 10, 0),
+            LocalDateTime.of(2026, 8, 1, 12, 0)
+        );
+    }
+
+    @Test
     @DisplayName("SuspensionReason.from은 유효한 코드로 enum 상수를 반환한다")
     void suspensionReasonFrom_returnsEnumConstant_forValidCode() {
         assertThat(SuspensionReason.from("EARLY_CLOSE")).isEqualTo(SuspensionReason.EARLY_CLOSE);

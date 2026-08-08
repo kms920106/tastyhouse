@@ -24,6 +24,7 @@ import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBreakTimeJpaEntity.shopBreakTimeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBusinessHourJpaEntity.shopBusinessHourJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopClosedDayJpaEntity.shopClosedDayJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderMethodJpaEntity.shopOrderMethodJpaEntity;
 
 /**
  * 가게 자식 애그리거트 write 어댑터.
@@ -235,6 +236,18 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     @Override
     public void deleteFoodTypeByShopIdAndCategoryId(Long shopId, Long shopFoodTypeCategoryId) {
         shopFoodTypeJpaRepository.deleteByShopIdAndShopFoodTypeCategoryId(shopId, shopFoodTypeCategoryId);
+    }
+
+    @Override
+    public List<ShopOrderMethod> findOrderMethodsByShopId(Long shopId) {
+        return queryFactory
+            .selectFrom(shopOrderMethodJpaEntity)
+            .where(shopOrderMethodJpaEntity.shopId.eq(shopId))
+            .orderBy(shopOrderMethodJpaEntity.id.asc())
+            .fetch()
+            .stream()
+            .map(ShopOrderMethodMapper::toDomain)
+            .toList();
     }
 
     @Override

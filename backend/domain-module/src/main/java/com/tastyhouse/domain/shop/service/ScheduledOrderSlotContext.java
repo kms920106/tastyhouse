@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
+import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 
@@ -31,6 +32,9 @@ import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
  * @param closedDays        정기휴무 전체
  * @param temporaryClosures 임시휴무 전체
  * @param suspensions       영업 임시중지 전체
+ * @param shopOrderMethods  가게에 배정된 주문유형 전체. {@code orderMethod}가 여기에 없으면 슬롯 없음 —
+ *                          전역 정책 {@code ScheduledOrderPolicy.supports}는 "서비스가 예약주문을 지원하는
+ *                          유형인가"만 보고 <b>그 가게가 그 유형을 취급하는가</b>는 보지 않기 때문이다
  */
 public record ScheduledOrderSlotContext(
     Shop shop,
@@ -40,7 +44,8 @@ public record ScheduledOrderSlotContext(
     List<ShopBreakTime> breakTimes,
     List<ShopClosedDay> closedDays,
     List<ShopTemporaryClosure> temporaryClosures,
-    List<ShopSuspension> suspensions
+    List<ShopSuspension> suspensions,
+    List<ShopOrderMethod> shopOrderMethods
 ) {
 
     /** 컬렉션 인자의 {@code null}은 빈 목록으로 정규화한다 — 계산기에 null 분기를 남기지 않기 위함. */
@@ -50,6 +55,7 @@ public record ScheduledOrderSlotContext(
         closedDays = closedDays == null ? List.of() : List.copyOf(closedDays);
         temporaryClosures = temporaryClosures == null ? List.of() : List.copyOf(temporaryClosures);
         suspensions = suspensions == null ? List.of() : List.copyOf(suspensions);
+        shopOrderMethods = shopOrderMethods == null ? List.of() : List.copyOf(shopOrderMethods);
     }
 
     public static ScheduledOrderSlotContext of(
@@ -60,7 +66,8 @@ public record ScheduledOrderSlotContext(
         List<ShopBreakTime> breakTimes,
         List<ShopClosedDay> closedDays,
         List<ShopTemporaryClosure> temporaryClosures,
-        List<ShopSuspension> suspensions
+        List<ShopSuspension> suspensions,
+        List<ShopOrderMethod> shopOrderMethods
     ) {
         return new ScheduledOrderSlotContext(
             shop,
@@ -70,7 +77,14 @@ public record ScheduledOrderSlotContext(
             breakTimes,
             closedDays,
             temporaryClosures,
-            suspensions
+            suspensions,
+            shopOrderMethods
         );
+    }
+
+    /** 이 가게가 판정 대상 주문유형을 취급하는지 — 배정 목록에 그 유형의 행이 있으면 취급한다. */
+    public boolean supportsOrderMethod() {
+        return shopOrderMethods.stream()
+            .anyMatch(assigned -> assigned.getOrderMethod() == orderMethod);
     }
 }

@@ -11,7 +11,6 @@ import com.tastyhouse.domain.shop.model.ScheduledOrderPolicy;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
-import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
 
 /**
  * 예약 가능한 수령 시간 슬롯 목록을 계산하는 순수 계산기.
@@ -67,6 +66,11 @@ public class ScheduledOrderSlotCalculator {
         OrderMethod orderMethod = context.orderMethod();
 
         if (!shop.isScheduledOrderEnabled() || !ScheduledOrderPolicy.supports(orderMethod)) {
+            return List.of();
+        }
+        // 전역 정책이 지원하는 유형이어도 그 가게가 취급하지 않으면 슬롯이 없다 —
+        // 배달을 하지 않는 가게에 배달 예약 슬롯을 돌려주지 않기 위함.
+        if (!context.supportsOrderMethod()) {
             return List.of();
         }
         // 영업시간이 없으면 "영업 시작 + 리드타임" 하한을 구할 수 없다. 영업상태 판정은 정보 미입력을
@@ -163,18 +167,24 @@ public class ScheduledOrderSlotCalculator {
 
     /**
      * 기존 영업상태 계산기에 미래 시각을 그대로 넘겨 판정한다 — 8단계 우선순위를 통째로 재사용하는 지점이다.
+     *
+     * <p><b>주문유형을 함께 넘기는 것이 핵심이다</b> — 넘기지 않으면 배달만 임시중지한 가게에서 포장
+     * 예약 슬롯까지 사라진다. 재사용 지점의 입력을 정확히 맞춰야 유형별 중지가 그 유형에만 걸린다.
      */
     private boolean isOpenAt(ScheduledOrderSlotContext context, LocalDateTime at) {
         return shopOperatingStatusCalculator.calculate(
-            context.shop(),
-            context.businessHours(),
-            context.breakTimes(),
-            context.closedDays(),
-            context.temporaryClosures(),
-            context.suspensions(),
-            PUBLIC_HOLIDAY,
-            at
-        ) == ShopOperatingStatus.OPEN;
+            ShopOperatingStatusContext.of(
+                context.shop(),
+                context.businessHours(),
+                context.breakTimes(),
+                context.closedDays(),
+                context.temporaryClosures(),
+                context.suspensions(),
+                context.orderMethod(),
+                PUBLIC_HOLIDAY,
+                at
+            )
+        ).isOpen();
     }
 
     /**

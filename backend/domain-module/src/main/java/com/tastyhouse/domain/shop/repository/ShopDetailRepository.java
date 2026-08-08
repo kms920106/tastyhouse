@@ -81,6 +81,15 @@ public interface ShopDetailRepository {
 
     void deleteClosedDayById(Long id);
 
+    /**
+     * 가게에 배정된 주문유형 전체. 주문 접수·예약 생성의 "지원하는 주문유형인가" 불변식 검증과
+     * 예약주문 슬롯 판정에 쓰인다.
+     *
+     * <p>표현 목적 조회인 {@code ShopQueryDao#findOrderMethods}와 목적(불변식 vs 표현)·반환 타입이 달라
+     * 중복이 아니다 — {@link #findBusinessHoursByShopId(Long)}가 같은 근거로 이 포트에 남아 있는 것과 동일하다.
+     */
+    List<ShopOrderMethod> findOrderMethodsByShopId(Long shopId);
+
     ShopOrderMethod saveOrderMethod(ShopOrderMethod orderMethod);
 
     void deleteOrderMethodByShopIdAndOrderMethod(Long shopId, OrderMethod orderMethod);

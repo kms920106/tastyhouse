@@ -12,7 +12,10 @@ import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.reservation.repository.ReservationRepository;
 import com.tastyhouse.domain.reservation.repository.ReservationSlotRepository;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
+import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
+import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -51,21 +54,28 @@ public class ReservationBookingService {
     private final ReservationSlotRepository slotRepository;
     private final ShopRepository shopRepository;
     private final MemberRepository memberRepository;
+    private final ShopOrderAvailabilityService shopOrderAvailabilityService;
 
     public ReservationBookingService(
         ReservationRepository reservationRepository,
         ReservationSlotRepository slotRepository,
         ShopRepository shopRepository,
-        MemberRepository memberRepository
+        MemberRepository memberRepository,
+        ShopOrderAvailabilityService shopOrderAvailabilityService
     ) {
         this.reservationRepository = reservationRepository;
         this.slotRepository = slotRepository;
         this.shopRepository = shopRepository;
         this.memberRepository = memberRepository;
+        this.shopOrderAvailabilityService = shopOrderAvailabilityService;
     }
 
     /**
      * 예약을 생성한다. 슬롯 정원 차감과 예약 저장이 한 트랜잭션에서 함께 일어난다.
+     *
+     * <p><b>주문가능 검증의 기준 시각은 예약 슬롯 시각이다</b>(4.5단계) — 지금이 영업시간 밖이어도
+     * 영업시간 안의 미래 예약은 받아야 하기 때문이다. 반대로 폐업·노출정지는 시각과 무관하므로 4단계의
+     * {@code findVisibleById}가 언제나 먼저 막는다.
      *
      * <p>슬롯이 마감이면 {@code RESERVATION_SLOT_FULL}로 즉시 실패하며(재시도 대상 아님), 동시 경합
      * (신규 슬롯 동시 insert = 유니크 충돌 / 기존 슬롯 동시 update = 낙관적 락 충돌)은 예외로 올라가
@@ -96,12 +106,18 @@ public class ReservationBookingService {
         }
 
         // 4. 가게/회원 존재 검증
-        if (shopRepository.findById(shopId).isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND);
-        }
+        //    회원 경로이므로 findVisibleById — 폐업·노출정지 가게 예약은 404가 된다(시각과 무관하게 차단).
+        Shop shop = shopRepository.findVisibleById(shopId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         if (memberRepository.findById(memberId).isEmpty()) {
             throw new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND);
         }
+
+        // 4.5. 주문가능 검증 — 기준 시각은 "지금"이 아니라 예약 슬롯 시각이다.
+        //      지금이 휴게시간·영업시간 밖이라고 3시간 뒤 예약을 막으면 안 된다.
+        shopOrderAvailabilityService.validateOrderable(
+            shop, OrderMethod.RESERVATION, LocalDateTime.of(date, time)
+        );
 
         // 5. 본인 중복 차단 (같은 가게 + 같은 날짜에 차단 예약 1건 제한)
         if (reservationRepository.existsBlockingByMemberShopDate(memberId, shopId, date)) {

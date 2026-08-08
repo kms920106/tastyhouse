@@ -90,9 +90,35 @@ public class ShopSuspension {
 
     /**
      * 주어진 시각 기준으로 이 임시중지가 활성 상태인지 판단한다(해제되지 않았고, 기간 내인 경우).
+     *
+     * <p>주문유형을 보지 않으므로 <b>유형과 무관한 표시 경로</b>(점주 화면의 임시중지 목록 등)에서 쓴다.
+     * 주문가능 여부 판정에는 {@link #isActive(LocalDateTime, OrderMethod)}를 쓴다.
      */
     public boolean isActive(LocalDateTime now) {
         return releasedAt == null && !now.isBefore(startAt) && now.isBefore(endAt);
+    }
+
+    /**
+     * 이 임시중지가 주어진 주문유형에 적용되는지 판단한다.
+     *
+     * <p>{@code orderMethod}가 null이면 전체 주문유형이 대상이므로 항상 true다. {@code target}이 null이면
+     * "가게 전체" 판정이므로 전체 대상 중지에만 걸린다 — 유형별 중지({@code orderMethod != null})는
+     * {@code target == null}과 절대 같지 않아 가게 전체 상태를 멈추지 않는다. "배달만 멈추고 포장은 계속
+     * 받는다"는 도메인 규칙이 이 한 줄로 성립한다.
+     */
+    public boolean appliesTo(OrderMethod target) {
+        if (this.orderMethod == null) {
+            return true;
+        }
+        return this.orderMethod == target;
+    }
+
+    /**
+     * 주어진 시각·주문유형 기준으로 이 임시중지가 활성인지 판단한다.
+     * {@code target}이 null이면 가게 전체 판정이며, 유형별 중지는 가게 전체를 멈추지 않는다.
+     */
+    public boolean isActive(LocalDateTime now, OrderMethod target) {
+        return isActive(now) && appliesTo(target);
     }
 
     public Long getId() {
