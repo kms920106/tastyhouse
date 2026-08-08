@@ -32,6 +32,12 @@ export interface OrderCreateRequest {
   deliveryAddressId: number | null
   /** 배달팁. 필수이며 배달 외 주문 방법은 0 */
   deliveryTipAmount: number
+  /**
+   * 수령 예약 시각(슬롯 startAt). null이면 즉시 주문.
+   *
+   * 서버가 슬롯을 재계산해 대조하므로 임의 시각을 보내면 `ORDER_SCHEDULED_AT_UNAVAILABLE`로 거절된다.
+   */
+  scheduledAt: string | null
 }
 
 export interface OrderListItemResponse {
@@ -43,4 +49,6 @@ export interface OrderListItemResponse {
   amount: number
   paymentStatus: PaymentStatus
   paymentDate: string
+  /** 수령 예약 시각(슬롯 시작). null이면 즉시 주문 */
+  scheduledAt: string | null
 }

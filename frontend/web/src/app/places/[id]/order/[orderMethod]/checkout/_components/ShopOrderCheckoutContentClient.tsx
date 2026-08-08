@@ -3,6 +3,7 @@
 import { createOrder } from '@/actions/order'
 import { completeOnSitePayment, createPayment, getPaymentByOrderId } from '@/actions/payment'
 import OrderRequestField from '@/components/orders/OrderRequestField'
+import ScheduledOrderSheet from '@/components/shops/ScheduledOrderSheet'
 import { toast } from '@/components/ui/AppToaster'
 import BorderedSection from '@/components/ui/BorderedSection'
 import SectionStack from '@/components/ui/SectionStack'
@@ -12,18 +13,20 @@ import { useMyDeliveryAddresses } from '@/domains/member/member.hook'
 import { getOrderErrorMessage, type OrderMethodType } from '@/domains/order'
 import type { PaymentMethod } from '@/domains/payment'
 import { Shop } from '@/domains/shop'
-import { useShopDeliveryTip } from '@/domains/shop/shop.hook'
+import type { ScheduledOrderSlot } from '@/domains/shop'
+import { useScheduledOrderSlots, useShopDeliveryTip } from '@/domains/shop/shop.hook'
 import { useCartInfo } from '@/hooks/useCartInfo'
 import { useTossPayments } from '@/hooks/useTossPayments'
 import { formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
 import { calculateMinOrderShortfall, calculatePaymentSummary } from '@/lib/paymentCalculation'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import CustomerInfoSection from './CustomerInfoSection'
 import DeliveryAddressSection from './DeliveryAddressSection'
 import DiscountApplicationSection from './DiscountApplicationSection'
 import OrderInfoSection from './OrderInfoSection'
+import ScheduledOrderSection from './ScheduledOrderSection'
 import OrderTermsAgreement from './OrderTermsAgreement'
 import PaymentActionBar from './PaymentActionBar'
 import PaymentMethodSelector from './PaymentMethodSelector'
@@ -35,9 +38,16 @@ interface Props {
   availableCoupons: MemberCoupon[]
   usablePoints: number
   orderMethod: OrderMethodType
+  /** 가게의 예약주문 운영 여부. false면 수령시간 섹션 자체를 렌더하지 않는다 */
+  scheduledOrderEnabled: boolean
+  /** 장바구니에서 URL로 넘어온 수령 예약 시각. 슬롯 재조회로 유효성을 확인한다 */
+  initialScheduledAt: string | null
 }
 
 const MAX_REQUEST_LENGTH = 200
+
+/** 수령시간을 예약할 수 있는 주문 방법. 테이블·매장예약은 수령 시각 개념이 없다. */
+const SCHEDULABLE_ORDER_METHODS: OrderMethodType[] = ['DELIVERY', 'TAKEOUT']
 
 export default function ShopOrderCheckoutContentClient({
   shop,
@@ -45,6 +55,8 @@ export default function ShopOrderCheckoutContentClient({
   availableCoupons,
   usablePoints,
   orderMethod,
+  scheduledOrderEnabled,
+  initialScheduledAt,
 }: Props) {
   const router = useRouter()
 
@@ -61,7 +73,46 @@ export default function ShopOrderCheckoutContentClient({
   const [request, setRequest] = useState('')
   const [selectedDeliveryAddressId, setSelectedDeliveryAddressId] = useState<number | null>(null)
 
+  const [scheduledSlot, setScheduledSlot] = useState<ScheduledOrderSlot | null>(null)
+  const [isScheduledOrderSheetOpen, setIsScheduledOrderSheetOpen] = useState(false)
+
   const isDeliveryOrder = orderMethod === 'DELIVERY'
+  const canScheduleOrder = scheduledOrderEnabled && SCHEDULABLE_ORDER_METHODS.includes(orderMethod)
+
+  // 슬롯은 시간이 지나면 사라지므로 캐시하지 않는다. 결제 직전 재검증도 이 쿼리를 refetch한다.
+  const {
+    availability: scheduledOrderAvailability,
+    isLoading: isScheduledOrderSlotsLoading,
+    refetch: refetchScheduledOrderSlots,
+  } = useScheduledOrderSlots(shopId, {
+    orderMethod,
+    enabled: canScheduleOrder,
+  })
+
+  // URL로 넘어온 시각을 그대로 믿지 않는다. 슬롯 목록에 없으면(경계 경과·URL 조작) 선택을 해제한다.
+  // 조회 결과가 도착한 뒤 한 번만 판정하면 되므로 처리 여부를 ref로 기억한다.
+  const hasResolvedInitialScheduledAt = useRef(false)
+  useEffect(() => {
+    if (!canScheduleOrder || isScheduledOrderSlotsLoading || !scheduledOrderAvailability) return
+    if (hasResolvedInitialScheduledAt.current) return
+    hasResolvedInitialScheduledAt.current = true
+
+    if (initialScheduledAt === null) return
+
+    const matched = scheduledOrderAvailability.slots.find(
+      (slot) => slot.startAt === initialScheduledAt,
+    )
+    if (matched) {
+      setScheduledSlot(matched)
+    } else {
+      toast('선택한 수령시간을 사용할 수 없어 예약 없이 진행합니다. 수령시간을 다시 선택해 주세요.')
+    }
+  }, [
+    canScheduleOrder,
+    isScheduledOrderSlotsLoading,
+    scheduledOrderAvailability,
+    initialScheduledAt,
+  ])
 
   const { deliveryAddresses, isLoading: isDeliveryAddressesLoading } = useMyDeliveryAddresses({
     enabled: isDeliveryOrder,
@@ -151,6 +202,26 @@ export default function ShopOrderCheckoutContentClient({
       confirmedDeliveryTipAmount = requotedAmount
     }
 
+    // 예약 시각도 서버가 접수 시점에 슬롯을 다시 계산한다. 다만 배달팁과 달리 최신 값으로 갈아끼울
+    // 수 없다 — 슬롯이 사라졌다는 것은 그 시각에 받을 수 없다는 뜻이라 주문 자체가 성립하지 않는다.
+    // 그래서 여기서는 결제를 중단하고 시트를 열어 재선택을 유도한다.
+    let confirmedScheduledAt: string | null = null
+    if (canScheduleOrder && scheduledSlot !== null) {
+      const { data: requotedSlots } = await refetchScheduledOrderSlots()
+      const stillAvailable = requotedSlots?.slots.some(
+        (slot) => slot.startAt === scheduledSlot.startAt,
+      )
+
+      if (!stillAvailable) {
+        setScheduledSlot(null)
+        setIsScheduledOrderSheetOpen(true)
+        toast('선택한 수령시간이 마감되었어요. 다시 선택해주세요')
+        return
+      }
+
+      confirmedScheduledAt = scheduledSlot.startAt
+    }
+
     const confirmedPaymentSummary = calculatePaymentSummary(
       totalProductAmount,
       totalProductDiscount,
@@ -189,12 +260,23 @@ export default function ShopOrderCheckoutContentClient({
       // 좌표는 보내지 않는다. 서버가 이 id로 저장된 주소에서만 좌표를 읽는다.
       deliveryAddressId: isDeliveryOrder ? selectedDeliveryAddressId : null,
       deliveryTipAmount: confirmedDeliveryTipAmount,
+      scheduledAt: confirmedScheduledAt,
     })
 
     if (orderResult.error) {
       // 배달팁 불일치는 토스트만으로 끝내지 않고 재견적을 받아 표시 금액을 갱신한다.
       if (orderResult.errorCode === 'ORDER_DELIVERY_TIP_AMOUNT_MISMATCH') {
         await refetchDeliveryTip()
+      }
+
+      // 예약 관련 거절은 선택을 비우고 슬롯을 다시 받아 재선택할 수 있게 한다.
+      if (
+        orderResult.errorCode === 'SHOP_SCHEDULED_ORDER_DISABLED' ||
+        orderResult.errorCode === 'ORDER_SCHEDULE_METHOD_NOT_SUPPORTED' ||
+        orderResult.errorCode === 'ORDER_SCHEDULED_AT_UNAVAILABLE'
+      ) {
+        setScheduledSlot(null)
+        await refetchScheduledOrderSlots()
       }
 
       toast(orderResult.message ?? getOrderErrorMessage(orderResult.errorCode) ?? orderResult.error)
@@ -310,6 +392,15 @@ export default function ShopOrderCheckoutContentClient({
             />
           </BorderedSection>
         )}
+        {/* 배달주소 아래, 요청사항 위에 수령시간을 둔다 — 언제 받을지가 무엇을 요청할지보다 앞선다 */}
+        {canScheduleOrder && (
+          <BorderedSection>
+            <ScheduledOrderSection
+              selectedSlot={scheduledSlot}
+              onChangeClick={() => setIsScheduledOrderSheetOpen(true)}
+            />
+          </BorderedSection>
+        )}
         <BorderedSection>
           <OrderRequestField value={request} onChange={setRequest} maxLength={MAX_REQUEST_LENGTH} />
         </BorderedSection>
@@ -346,6 +437,16 @@ export default function ShopOrderCheckoutContentClient({
           <OrderTermsAgreement agreed={agreedToTerms} onAgreementChange={setAgreedToTerms} />
         </BorderedSection>
       </SectionStack>
+      {canScheduleOrder && (
+        <ScheduledOrderSheet
+          open={isScheduledOrderSheetOpen}
+          onOpenChange={setIsScheduledOrderSheetOpen}
+          shopId={shopId}
+          orderMethod={orderMethod}
+          selectedStartAt={scheduledSlot?.startAt ?? null}
+          onSelect={setScheduledSlot}
+        />
+      )}
       <PaymentActionBar onPaymentClick={handlePayment} />
     </>
   )

@@ -81,6 +81,33 @@ export function paymentStatusBadgeVariant(
   }
 }
 
+/**
+ * 수령 예약시간 표시: "2026. 08. 08 18:00". 즉시 주문이면 "-".
+ *
+ * PDF 규칙에 따라 슬롯 **시작 시각만** 표기한다. 배달은 30분 범위 슬롯이지만 점주에게는
+ * 범위가 아니라 시작 시각만 보여준다(18:00~18:30 → "18:00"). 그래서 API가 함께 내려주는
+ * `scheduledSlotEndAt`은 화면에서 쓰지 않는다.
+ */
+export function formatScheduledAt(scheduledAt: string | null): string {
+  if (scheduledAt == null) return "-";
+
+  const parsed = new Date(scheduledAt);
+  if (Number.isNaN(parsed.getTime())) return "-";
+
+  const date = parsed.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const time = parsed.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `${date} ${time}`;
+}
+
 /** 금액 표시: "21,000원" */
 export function formatWon(amount: number | null | undefined): string {
   if (amount == null) return "-";

@@ -57,6 +57,8 @@ export interface Order {
   amount: number
   paymentStatus: PaymentStatus
   paymentDate: string
+  /** 수령 예약 시각(슬롯 시작). null이면 즉시 주문 */
+  scheduledAt: string | null
 }
 
 export interface OrderDetail {
@@ -79,6 +81,10 @@ export interface OrderDetail {
   orderProducts: OrderedProduct[]
   payment: OrderPayment
   createdAt: string
+  /** 수령 예약 시각(슬롯 시작). null이면 즉시 주문 */
+  scheduledAt: string | null
+  /** 수령 예약 슬롯 종료 시각. 포장은 scheduledAt과 동일 */
+  scheduledSlotEndAt: string | null
 }
 
 export interface OrderPayment {

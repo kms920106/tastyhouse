@@ -1,5 +1,6 @@
 'use server'
 
+import type { OrderMethodType } from '@/domains/order'
 import type { ShopDeliveryTipQuery, ShopMapMarker } from '@/domains/shop'
 import { shopRepository } from '@/domains/shop/shop.repository'
 import { shopService } from '@/domains/shop/shop.service'
@@ -34,6 +35,13 @@ export async function getShopDetail(shopId: number) {
 
 export async function getShopDeliveryTip(shopId: number, params: ShopDeliveryTipQuery = {}) {
   return shopRepository.getShopDeliveryTip(shopId, params)
+}
+
+export async function getScheduledOrderSlots(
+  shopId: number,
+  { orderMethod }: { orderMethod: OrderMethodType },
+) {
+  return shopRepository.getScheduledOrderSlots(shopId, { orderMethod })
 }
 
 export async function getShopMenus(shopId: number) {

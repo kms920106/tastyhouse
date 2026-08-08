@@ -17,6 +17,7 @@ export async function createOrder({
   request,
   deliveryAddressId,
   deliveryTipAmount,
+  scheduledAt,
 }: {
   shopId: number
   orderMethod: OrderMethodType
@@ -31,6 +32,7 @@ export async function createOrder({
   request: string
   deliveryAddressId: number | null
   deliveryTipAmount: number
+  scheduledAt: string | null
 }) {
   return orderRepository.createOrder({
     shopId,
@@ -46,6 +48,7 @@ export async function createOrder({
     request,
     deliveryAddressId,
     deliveryTipAmount,
+    scheduledAt,
   })
 }
 

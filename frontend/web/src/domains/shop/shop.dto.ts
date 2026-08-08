@@ -6,7 +6,7 @@ import type {
   ShopFoodType,
 } from '.'
 import { ShopAmenity, ShopBreakTime, ShopBusinessHour, ShopClosedDay } from '.'
-import type { OrderMethod } from '../order'
+import type { OrderMethod, OrderMethodType } from '../order'
 import { ProductListItemResponse } from '../product'
 
 export interface ShopReviewListQuery extends PaginationParams {
@@ -177,6 +177,34 @@ export interface ShopDetailResponse {
   minDeliveryTip: number
   /** 배달팁 상한 (고객 주소 확정 전) */
   maxDeliveryTip: number
+  /** 예약주문 운영 여부. false면 수령시간 예약 진입 자체를 노출하지 않는다 */
+  scheduledOrderEnabled: boolean
+}
+
+export interface ScheduledOrderSlotsQuery {
+  /** 예약 슬롯을 계산할 주문 방법. DELIVERY / TAKEOUT 외에는 빈 목록이 내려온다 */
+  orderMethod: OrderMethodType
+}
+
+export interface ScheduledOrderSlotItemResponse {
+  startAt: string
+  endAt: string
+  /** 표시용 문구. 서버가 완성해서 내려주므로 프론트가 조립하지 않는다 */
+  label: string
+  /** `"오늘"` | `"내일"` */
+  dayLabel: string
+}
+
+export interface ScheduledOrderSlotsResponse {
+  /** 예약주문 운영 중 AND 슬롯 1개 이상 */
+  available: boolean
+  /** 안내 문구용 리드타임(분). 배달 120 / 포장 60 */
+  leadTimeMinutes: number
+  /** 슬롯 단위(분). 30 고정 */
+  slotUnitMinutes: number
+  /** DELIVERY면 범위 슬롯(true), TAKEOUT이면 단일 시각(false) */
+  rangeSlot: boolean
+  slots: ScheduledOrderSlotItemResponse[]
 }
 
 export interface ShopDeliveryTipQuery {

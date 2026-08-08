@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { OrderListItem } from "@/feature/order/domain";
 import {
+  formatScheduledAt,
   formatWon,
   orderMethodLabel,
   orderStatusBadgeVariant,
@@ -112,6 +113,19 @@ export const ordersColumns: ColumnDef<OrderListItem>[] = [
     cell: ({ row }) => (
       <span className="whitespace-nowrap text-muted-foreground text-sm tabular-nums">
         {formatDateTime(row.original.createdAt)}
+      </span>
+    ),
+    enableSorting: false,
+    size: 160,
+    minSize: 140,
+    maxSize: 180,
+  },
+  {
+    accessorKey: "scheduledAt",
+    header: "수령 예약",
+    cell: ({ row }) => (
+      <span className="whitespace-nowrap text-muted-foreground text-sm tabular-nums">
+        {formatScheduledAt(row.original.scheduledAt)}
       </span>
     ),
     enableSorting: false,

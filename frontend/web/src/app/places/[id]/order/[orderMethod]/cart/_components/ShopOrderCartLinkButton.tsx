@@ -9,6 +9,8 @@ interface Props {
   orderMethod: OrderMethodType
   /** 가게 최소주문금액까지 부족한 금액. 0이면 주문 가능 */
   minOrderShortfall: number
+  /** 선택된 수령 예약 시각(슬롯 startAt). 미선택(즉시 주문)이면 null */
+  scheduledAt: string | null
 }
 
 /**
@@ -16,7 +18,12 @@ interface Props {
  *
  * 가게 최소주문금액이 부족하면 링크 없이 비활성 버튼을 렌더하고 부족 금액을 안내합니다.
  */
-export default function ShopOrderCartLinkButton({ shopId, orderMethod, minOrderShortfall }: Props) {
+export default function ShopOrderCartLinkButton({
+  shopId,
+  orderMethod,
+  minOrderShortfall,
+  scheduledAt,
+}: Props) {
   if (minOrderShortfall > 0) {
     return (
       <div className="flex flex-col gap-2">
@@ -29,7 +36,7 @@ export default function ShopOrderCartLinkButton({ shopId, orderMethod, minOrderS
   }
 
   return (
-    <Link href={PAGE_PATHS.ORDER_CHECKOUT(shopId, orderMethod)}>
+    <Link href={PAGE_PATHS.ORDER_CHECKOUT(shopId, orderMethod, scheduledAt ?? undefined)}>
       <AppPrimaryButton>주문하기</AppPrimaryButton>
     </Link>
   )

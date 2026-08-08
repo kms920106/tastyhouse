@@ -8,9 +8,15 @@ import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
 interface Props {
   shopId: number
   orderMethod: OrderMethodType
+  /** 장바구니에서 넘어온 수령 예약 시각(슬롯 startAt). 미선택이면 null */
+  scheduledAt: string | null
 }
 
-export default async function ShopOrderCheckoutContent({ shopId, orderMethod }: Props) {
+export default async function ShopOrderCheckoutContent({
+  shopId,
+  orderMethod,
+  scheduledAt,
+}: Props) {
   const [shopResult, memberResult, couponsResult, usablePointResult] = await Promise.all([
     shopRepository.getShopDetail(shopId),
     memberRepository.getMyPersonalInfo(),
@@ -38,6 +44,8 @@ export default async function ShopOrderCheckoutContent({ shopId, orderMethod }: 
       availableCoupons={couponsResult.data}
       usablePoints={usablePointResult.data.usablePoints}
       orderMethod={orderMethod}
+      scheduledOrderEnabled={shopResult.data.scheduledOrderEnabled}
+      initialScheduledAt={scheduledAt}
     />
   )
 }

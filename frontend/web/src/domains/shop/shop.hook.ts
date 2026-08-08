@@ -3,6 +3,7 @@
 import {
   getBestShops,
   getLatestShops,
+  getScheduledOrderSlots,
   getShopDeliveryTip,
   getShopDetail,
   getShopFoodTypes,
@@ -15,8 +16,9 @@ import {
 } from '@/actions/shop'
 import { toast } from '@/components/ui/AppToaster'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
+import type { OrderMethodType } from '@/domains/order'
 import type { ShopDeliveryTipQuery } from '@/domains/shop/shop.dto'
-import type { ShopDeliveryTip } from '@/domains/shop/shop.model'
+import type { ScheduledOrderAvailability, ShopDeliveryTip } from '@/domains/shop/shop.model'
 import type { ShopAmenityCode, ShopFoodType } from '@/domains/shop/shop.types'
 import type { ApiResponse } from '@/lib/api'
 import {
@@ -49,6 +51,8 @@ export const shopQueryKeys = {
   reviews: (shopId: number) => ['place', shopId, 'place-detail-reviews'] as const,
   deliveryTip: (shopId: number, params: ShopDeliveryTipQuery) =>
     ['place', shopId, 'delivery-tip', params] as const,
+  scheduledOrderSlots: (shopId: number, orderMethod: OrderMethodType) =>
+    ['place', shopId, 'scheduled-order-slots', orderMethod] as const,
 }
 
 export function useBestShops() {
@@ -152,6 +156,46 @@ export function useShopDeliveryTip(
   const deliveryTip: ShopDeliveryTip | null = data ?? null
 
   return { deliveryTip, isLoading, isError, refetch }
+}
+
+interface UseScheduledOrderSlotsOptions {
+  orderMethod: OrderMethodType
+  /** 시트가 열릴 때만 조회하거나, 예약주문 미운영 가게에서 조회를 막기 위한 스위치 */
+  enabled?: boolean
+}
+
+/**
+ * 수령시간 예약 가능 슬롯을 조회합니다.
+ *
+ * 배달팁과 같은 이유로 캐시하지 않습니다(`staleTime: 0, gcTime: 0`) — 시간이 지나면 리드타임
+ * 하한을 넘긴 슬롯이 사라지므로, 낡은 목록에서 고른 시각은 주문 시 서버 재계산에서 거절됩니다.
+ */
+export function useScheduledOrderSlots(
+  shopId: number,
+  { orderMethod, enabled = true }: UseScheduledOrderSlotsOptions,
+) {
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: shopQueryKeys.scheduledOrderSlots(shopId, orderMethod),
+    queryFn: async () => {
+      const response = await getScheduledOrderSlots(shopId, { orderMethod })
+      if (response.error) throw new Error(response.error)
+      return response.data ?? null
+    },
+    enabled: enabled && shopId > 0,
+    staleTime: 0,
+    gcTime: 0,
+  })
+
+  const availability: ScheduledOrderAvailability | null = data
+    ? {
+        available: data.available,
+        leadTimeMinutes: data.leadTimeMinutes,
+        rangeSlot: data.rangeSlot,
+        slots: data.slots,
+      }
+    : null
+
+  return { availability, isLoading, isError, refetch }
 }
 
 export function useShopPhotos(shopId: number) {

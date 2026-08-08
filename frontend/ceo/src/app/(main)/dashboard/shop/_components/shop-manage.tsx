@@ -76,11 +76,12 @@ export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo }: Sho
               <BasicInfoTab shopId={shopId} basicInfo={basicInfo} />
             </TabsContent>
             <TabsContent value={SHOP_MANAGE_TABS.OPERATION}>
-              {/* 최소주문금액은 가게 상세(basicInfo)에서 오지만 주문 운영 설정이므로 운영정보 탭에서 노출한다 */}
+              {/* 최소주문금액·예약주문은 가게 상세(basicInfo)에서 오지만 주문 운영 설정이므로 운영정보 탭에서 노출한다 */}
               <OperationInfoTab
                 shopId={shopId}
                 operationInfo={operationInfo}
                 minOrderAmount={basicInfo?.minOrderAmount}
+                scheduledOrderEnabled={basicInfo?.scheduledOrderEnabled}
               />
             </TabsContent>
           </Tabs>

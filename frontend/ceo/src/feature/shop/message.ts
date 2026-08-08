@@ -65,6 +65,12 @@ export const SHOP_OPERATION_COPY = {
     "고객이 주문할 수 있는 최소 금액입니다. 할인 후 금액을 기준으로 적용되며, 포장 주문에는 적용되지 않습니다.",
   MIN_ORDER_AMOUNT_UNSET_LABEL: "미설정 (제한 없음)",
   MIN_ORDER_AMOUNT_GUIDE: "5,000원 ~ 30,000원 내에서 입력할 수 있습니다. 0을 입력하면 제한이 없습니다.",
+  SCHEDULED_ORDER_TITLE: "예약주문",
+  SCHEDULED_ORDER_DESCRIPTION: "고객이 음식을 받을 시간을 미리 정해 주문할 수 있습니다. 배달·포장 주문에만 적용됩니다.",
+  SCHEDULED_ORDER_ON_LABEL: "설정함",
+  SCHEDULED_ORDER_OFF_LABEL: "설정안함",
+  SCHEDULED_ORDER_GUIDE:
+    "배달은 영업 시작 2시간 이후, 포장은 1시간 이후부터 예약을 받습니다. 당일 영업시간 내에서만 예약할 수 있습니다(24시간 운영 가게는 24시간 이후까지). 예약주문을 해제해도 이미 접수된 예약은 그대로 진행됩니다.",
   DELIVERY_TIP_TITLE: "배달팁",
   DELIVERY_TIP_DESCRIPTION:
     "주문금액 구간에 따라 배달팁을 다르게 받을 수 있습니다. 판정 기준은 상품 할인 후 금액입니다.",
@@ -103,6 +109,7 @@ export const SHOP_MESSAGE = {
   PHONE_NUMBER_DELETE_SUCCESS: "전화번호가 삭제되었습니다.",
   STATUS_UPDATE_SUCCESS: "가게 상태가 변경되었습니다.",
   MIN_ORDER_AMOUNT_UPDATE_SUCCESS: "최소주문금액이 저장되었습니다.",
+  SCHEDULED_ORDER_UPDATE_SUCCESS: "예약주문 설정이 저장되었습니다.",
   DELIVERY_TIP_UPDATE_SUCCESS: "배달팁이 저장되었습니다.",
   EXTRA_DELIVERY_TIP_UPDATE_SUCCESS: "추가 배달팁이 저장되었습니다.",
   DELIVERY_TIP_REMOVE_SUCCESS: "배달팁 설정이 해제되었습니다.",

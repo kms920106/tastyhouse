@@ -11,3 +11,6 @@ export type OrderErrorCode =
   | 'ORDER_DELIVERY_TIP_AMOUNT_MISMATCH' // 클라이언트가 보낸 배달팁 ≠ 서버 계산값
   | 'ORDER_DELIVERY_ADDRESS_REQUIRED' // 배달 주문인데 주소가 없음
   | 'ORDER_DELIVERY_AREA_NOT_COVERED' // 가게의 배달 가능 지역이 아님
+  | 'SHOP_SCHEDULED_ORDER_DISABLED' // 가게가 예약주문 미운영
+  | 'ORDER_SCHEDULE_METHOD_NOT_SUPPORTED' // DELIVERY/TAKEOUT이 아닌 주문방식
+  | 'ORDER_SCHEDULED_AT_UNAVAILABLE' // 서버 재계산 결과 유효 슬롯이 아님

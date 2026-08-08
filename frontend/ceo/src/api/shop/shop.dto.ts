@@ -39,12 +39,20 @@ export interface ShopDetailResponse {
   closedOnPublicHolidays: boolean;
   /** 최소주문금액. 0이면 미설정(제한 없음)이며, 배달 주문에만 적용된다. */
   minOrderAmount: number;
+  /** 예약주문 운영 여부. 배달·포장 주문의 수령시간 예약을 받는지 여부다. */
+  scheduledOrderEnabled: boolean;
 }
 
 // ===== 최소주문금액 =====
 
 export interface ShopMinOrderAmountUpdateRequest {
   minOrderAmount: number;
+}
+
+// ===== 예약주문 =====
+
+export interface ShopScheduledOrderUpdateRequest {
+  enabled: boolean;
 }
 
 // ===== 배달팁 =====

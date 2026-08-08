@@ -3,6 +3,8 @@ import 'server-only'
 import { api, publicApi } from '@/lib/api'
 import { PaginationParams } from '@/types/common'
 import {
+  ScheduledOrderSlotsQuery,
+  ScheduledOrderSlotsResponse,
   ShopAmenityResponse,
   ShopBannerListItemResponse,
   ShopBestListItemResponse,
@@ -133,6 +135,21 @@ export const shopRepository = {
   async getShopDeliveryTip(shopId: number, params: ShopDeliveryTipQuery) {
     return api.get<ShopDeliveryTipResponse, ShopDeliveryTipQuery>(
       `${ENDPOINT}/v1/${shopId}/delivery-tip`,
+      { params },
+    )
+  },
+  /**
+   * 수령시간 예약 가능 슬롯을 조회한다.
+   *
+   * 배달팁과 같은 이유로 캐시하지 않는다 — 시간이 지나면 리드타임 하한을 넘긴 슬롯이 사라지므로
+   * 낡은 목록으로 주문하면 서버 재계산과 어긋나 `ORDER_SCHEDULED_AT_UNAVAILABLE`로 거절된다.
+   *
+   * `publicApi`가 아니라 `api`를 쓴다. 비로그인 조회도 허용되지만(인증 선택), 토큰이 있으면
+   * 그대로 실어 보내는 `api` 쪽이 다른 가게 조회 경로와 일관된다.
+   */
+  async getScheduledOrderSlots(shopId: number, params: ScheduledOrderSlotsQuery) {
+    return api.get<ScheduledOrderSlotsResponse, ScheduledOrderSlotsQuery>(
+      `${ENDPOINT}/v1/${shopId}/scheduled-order-slots`,
       { params },
     )
   },

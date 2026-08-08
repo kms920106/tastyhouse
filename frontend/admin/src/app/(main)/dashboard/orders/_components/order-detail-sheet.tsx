@@ -19,6 +19,7 @@ import { fetchOrderAction } from "@/feature/order/actions";
 import type { OrderDetail } from "@/feature/order/domain";
 import {
   formatPoint,
+  formatScheduledAt,
   formatWon,
   orderMethodLabel,
   paymentStatusBadgeVariant,
@@ -225,6 +226,9 @@ export function OrderDetailSheet({ orderId, onOpenChange }: OrderDetailSheetProp
                 <dd className="tabular-nums">{formatDateTime(detail.approvedAt)}</dd>
                 <dt className="text-muted-foreground">주문 생성 일시</dt>
                 <dd className="tabular-nums">{formatDateTime(detail.createdAt)}</dd>
+                {/* 배달은 30분 범위 슬롯이지만 PDF 규칙대로 시작 시각만 노출한다 */}
+                <dt className="text-muted-foreground">수령 예약시간</dt>
+                <dd className="tabular-nums">{formatScheduledAt(detail.scheduledAt)}</dd>
               </dl>
             </>
           ) : null}

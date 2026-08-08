@@ -42,13 +42,18 @@ export default async function OrderDetailContent({ orderId }: Props) {
     totalDiscountAmount,
     finalAmount,
     payment,
+    scheduledAt,
   } = data
 
   return (
     <>
       <SectionStack>
         <BorderedSection>
-          <OrderStatusHeader orderNumber={orderNumber} paymentStatus={paymentStatus} />
+          <OrderStatusHeader
+            orderNumber={orderNumber}
+            paymentStatus={paymentStatus}
+            scheduledAt={scheduledAt}
+          />
         </BorderedSection>
         <BorderedSection>
           <OrderedProductList shopName={shopName} orderProducts={orderProducts} />

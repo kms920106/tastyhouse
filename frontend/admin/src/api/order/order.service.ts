@@ -1,8 +1,8 @@
 import "server-only";
 
 import type { ApiPageRequest, ApiResponse } from "@/api/shared/types";
+import type { OrderDetail, OrderListItem } from "@/feature/order/domain";
 
-import type { OrderDetail, OrderListItem } from "../../feature/order/domain";
 import type { OrderListQueryRequest } from "./order.dto";
 import { orderRepository } from "./order.repository";
 
@@ -24,6 +24,7 @@ export const orderService = {
         finalAmount: item.finalAmount,
         totalItemCount: item.totalItemCount,
         createdAt: item.createdAt,
+        scheduledAt: item.scheduledAt,
       })),
     };
   },
@@ -85,6 +86,8 @@ export const orderService = {
           : null,
         approvedAt: res.data.approvedAt,
         createdAt: res.data.createdAt,
+        scheduledAt: res.data.scheduledAt,
+        scheduledSlotEndAt: res.data.scheduledSlotEndAt,
       },
     };
   },

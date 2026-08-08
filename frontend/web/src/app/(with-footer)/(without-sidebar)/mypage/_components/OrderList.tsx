@@ -33,6 +33,7 @@ export default function OrderList({ orders, hasMoreOrders }: Props) {
             price={order.amount}
             date={order.paymentDate}
             paymentStatus={order.paymentStatus}
+            scheduledAt={order.scheduledAt}
           />
         ))}
       </div>

@@ -22,6 +22,7 @@ import { DeliveryTipExtraSheet } from "./delivery-tip-extra-sheet";
 import { DeliveryTipTiersSheet } from "./delivery-tip-tiers-sheet";
 import { HygieneInfoCard } from "./hygiene-info-card";
 import { MinOrderAmountSheet } from "./min-order-amount-sheet";
+import { ScheduledOrderSheet } from "./scheduled-order-sheet";
 import { SettingRow } from "./setting-row";
 
 interface OperationInfoTabProps {
@@ -29,16 +30,25 @@ interface OperationInfoTabProps {
   operationInfo: ShopOperationInfo;
   /** 가게 상세(basicInfo)에서 전달받는 최소주문금액. 0이면 미설정(제한 없음) */
   minOrderAmount?: number;
+  /** 가게 상세(basicInfo)에서 전달받는 예약주문 운영 여부 */
+  scheduledOrderEnabled?: boolean;
 }
 
-export function OperationInfoTab({ shopId, operationInfo, minOrderAmount }: OperationInfoTabProps) {
+export function OperationInfoTab({
+  shopId,
+  operationInfo,
+  minOrderAmount,
+  scheduledOrderEnabled,
+}: OperationInfoTabProps) {
   const [editingDay, setEditingDay] = React.useState<WeekdayOption | null>(null);
   const [closedDaysOpen, setClosedDaysOpen] = React.useState(false);
   const [minOrderAmountOpen, setMinOrderAmountOpen] = React.useState(false);
+  const [scheduledOrderOpen, setScheduledOrderOpen] = React.useState(false);
   const [deliveryTipTiersOpen, setDeliveryTipTiersOpen] = React.useState(false);
   const [deliveryTipExtraOpen, setDeliveryTipExtraOpen] = React.useState(false);
 
   const currentMinOrderAmount = minOrderAmount ?? MIN_ORDER_AMOUNT_UNSET;
+  const currentScheduledOrderEnabled = scheduledOrderEnabled ?? false;
 
   const businessHourByDay = React.useMemo(
     () => new Map(operationInfo.businessHours.map((item) => [item.dayType, item])),
@@ -146,6 +156,19 @@ export function OperationInfoTab({ shopId, operationInfo, minOrderAmount }: Oper
       <Separator />
 
       <SettingRow
+        title={SHOP_OPERATION_COPY.SCHEDULED_ORDER_TITLE}
+        description={SHOP_OPERATION_COPY.SCHEDULED_ORDER_DESCRIPTION}
+        summary={
+          currentScheduledOrderEnabled
+            ? SHOP_OPERATION_COPY.SCHEDULED_ORDER_ON_LABEL
+            : SHOP_OPERATION_COPY.SCHEDULED_ORDER_OFF_LABEL
+        }
+        onAction={() => setScheduledOrderOpen(true)}
+      />
+
+      <Separator />
+
+      <SettingRow
         title={SHOP_OPERATION_COPY.DELIVERY_TIP_TITLE}
         description={SHOP_OPERATION_COPY.DELIVERY_TIP_DESCRIPTION}
         summary={deliveryTipSummary}
@@ -190,6 +213,13 @@ export function OperationInfoTab({ shopId, operationInfo, minOrderAmount }: Oper
         onOpenChange={setMinOrderAmountOpen}
         shopId={shopId}
         minOrderAmount={currentMinOrderAmount}
+      />
+
+      <ScheduledOrderSheet
+        open={scheduledOrderOpen}
+        onOpenChange={setScheduledOrderOpen}
+        shopId={shopId}
+        enabled={currentScheduledOrderEnabled}
       />
 
       <DeliveryTipTiersSheet

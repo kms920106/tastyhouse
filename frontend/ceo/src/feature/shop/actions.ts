@@ -46,10 +46,12 @@ import {
   phoneNumberSchema,
   type ShopIntroductionFormValues,
   type ShopMinOrderAmountFormValues,
+  type ShopScheduledOrderFormValues,
   type ShopStatusFormValues,
   type SuspensionFormValues,
   shopIntroductionSchema,
   shopMinOrderAmountSchema,
+  shopScheduledOrderSchema,
   shopStatusSchema,
   suspensionSchema,
   type TemporaryClosureFormValues,
@@ -380,6 +382,22 @@ export async function updateShopMinOrderAmountAction(
   if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
 
   const { error } = await shopRepository.updateMinOrderAmount(shopId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+// ===== 예약주문 =====
+
+export async function updateShopScheduledOrderAction(
+  shopId: number,
+  values: ShopScheduledOrderFormValues,
+): Promise<ActionResult> {
+  const parsed = shopScheduledOrderSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.updateScheduledOrder(shopId, parsed.data);
   if (error !== undefined) return { success: false, message: error };
 
   revalidatePath(SHOP_PATH);

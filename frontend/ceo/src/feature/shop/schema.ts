@@ -91,6 +91,13 @@ export const shopMinOrderAmountSchema = z.object({
 });
 export type ShopMinOrderAmountFormValues = z.infer<typeof shopMinOrderAmountSchema>;
 
+// ===== 예약주문 =====
+
+export const shopScheduledOrderSchema = z.object({
+  enabled: z.boolean(),
+});
+export type ShopScheduledOrderFormValues = z.infer<typeof shopScheduledOrderSchema>;
+
 // ===== 배달팁 =====
 // 서버 도메인 불변식을 그대로 미러링한다. 어긋나면 저장 시 SHOP_DELIVERY_TIP_* 에러로 거절된다.
 

@@ -3,7 +3,7 @@ import { getPaymentStatusColor, getPaymentStatusName } from '@/domains/payment'
 import { PaymentStatus } from '@/domains/payment'
 import { formatDate } from '@/lib/date'
 import { formatNumber } from '@/lib/number'
-import { formatOrderSummary } from '@/lib/order'
+import { formatOrderSummary, formatScheduledPickupLabel } from '@/lib/order'
 import { PAGE_PATHS } from '@/lib/paths'
 import Link from 'next/link'
 
@@ -16,6 +16,8 @@ interface Props {
   price: number
   date: string
   paymentStatus: PaymentStatus
+  /** 수령 예약 시각. null이면 즉시 주문이라 배지를 노출하지 않는다 */
+  scheduledAt: string | null
 }
 
 export default function OrderListItem({
@@ -27,10 +29,12 @@ export default function OrderListItem({
   price,
   date,
   paymentStatus,
+  scheduledAt,
 }: Props) {
   const statusColor = getPaymentStatusColor(paymentStatus)
   const statusName = getPaymentStatusName(paymentStatus)
   const formattedDate = formatDate(date, 'YY.MM.DD')
+  const scheduledPickupLabel = formatScheduledPickupLabel(scheduledAt)
 
   return (
     <Link href={PAGE_PATHS.ORDER_DETAIL(id)} className="block">
@@ -43,6 +47,11 @@ export default function OrderListItem({
               {formatOrderSummary(firstProductName, totalItemCount)}
             </p>
             <p className="text-sm leading-[14px] mt-2.5">{formatNumber(price)}원</p>
+            {scheduledPickupLabel && (
+              <p className="text-[11px] leading-[11px] text-main mt-[7px] truncate">
+                {scheduledPickupLabel}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex flex-col items-end gap-[7px] justify-between">

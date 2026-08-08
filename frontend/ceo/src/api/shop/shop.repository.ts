@@ -39,6 +39,7 @@ import type {
   ShopListItemResponse,
   ShopListQueryRequest,
   ShopMinOrderAmountUpdateRequest,
+  ShopScheduledOrderUpdateRequest,
   ShopStatusResponse,
   ShopStatusUpdateRequest,
   SuspensionBulkCreateRequest,
@@ -184,6 +185,14 @@ export const shopRepository = {
 
   updateMinOrderAmount(shopId: number, body: ShopMinOrderAmountUpdateRequest): Promise<ApiResponse<null>> {
     return api.put<null>(`${ENDPOINT}/v1/${shopId}/min-order-amount`, body);
+  },
+
+  // ===== 예약주문 =====
+  // 최소주문금액과 동일하게 조회 전용 엔드포인트는 없다 — 현재 값은 가게 상세(getDetail)의
+  // scheduledOrderEnabled 로 함께 내려온다.
+
+  updateScheduledOrder(shopId: number, body: ShopScheduledOrderUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/scheduled-order`, body);
   },
 
   // ===== 배달팁 =====

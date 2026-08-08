@@ -144,6 +144,7 @@ export const shopService = {
         permanentlyClosed: detail.permanentlyClosed,
         closedOnPublicHolidays: detail.closedOnPublicHolidays,
         minOrderAmount: detail.minOrderAmount,
+        scheduledOrderEnabled: detail.scheduledOrderEnabled,
         introduction: introductionRes.data?.message ?? "",
         thumbnailImageUrl: detail.thumbnailImageUrl,
         trademarkImageUrl: detail.trademarkImageUrl,

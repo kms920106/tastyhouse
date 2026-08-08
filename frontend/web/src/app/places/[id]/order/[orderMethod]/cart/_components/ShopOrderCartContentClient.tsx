@@ -1,5 +1,6 @@
 'use client'
 
+import ScheduledOrderSheet from '@/components/shops/ScheduledOrderSheet'
 import ShopDeliveryTipDialog from '@/components/shops/ShopDeliveryTipDialog'
 import BorderedSection from '@/components/ui/BorderedSection'
 import SectionStack from '@/components/ui/SectionStack'
@@ -15,10 +16,12 @@ import {
 import CartItemList from './CartItemList'
 import CartSelectionControl from './CartSelectionControl'
 import PaymentSummary from './PaymentSummary'
+import ScheduledOrderTrigger from './ScheduledOrderTrigger'
 import ShopOrderCartContentSkeleton from './ShopOrderCartContentSkeleton'
 import ShopOrderCartLinkButton from './ShopOrderCartLinkButton'
 
 import type { OrderMethodType, OrderProduct } from '@/domains/order'
+import type { ScheduledOrderSlot } from '@/domains/shop'
 import { useEffect, useMemo, useState } from 'react'
 
 interface Props {
@@ -30,7 +33,12 @@ interface Props {
   minDeliveryTip: number
   /** 배달팁 상한 (고객 주소 확정 전) */
   maxDeliveryTip: number
+  /** 가게의 예약주문 운영 여부. false면 예약 진입 버튼 자체를 렌더하지 않는다 */
+  scheduledOrderEnabled: boolean
 }
+
+/** 수령시간을 예약할 수 있는 주문 방법. 테이블·매장예약은 수령 시각 개념이 없다. */
+const SCHEDULABLE_ORDER_METHODS: OrderMethodType[] = ['DELIVERY', 'TAKEOUT']
 
 export default function ShopOrderCartContentClient({
   shopId,
@@ -39,12 +47,17 @@ export default function ShopOrderCartContentClient({
   minOrderAmount,
   minDeliveryTip,
   maxDeliveryTip,
+  scheduledOrderEnabled,
 }: Props) {
   const { items: initialItems, isLoading } = useCartInfo()
 
   const [cartItems, setCartItems] = useState<OrderProduct[]>([])
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
   const [isDeliveryTipDialogOpen, setIsDeliveryTipDialogOpen] = useState(false)
+  const [isScheduledOrderSheetOpen, setIsScheduledOrderSheetOpen] = useState(false)
+  const [scheduledSlot, setScheduledSlot] = useState<ScheduledOrderSlot | null>(null)
+
+  const canScheduleOrder = scheduledOrderEnabled && SCHEDULABLE_ORDER_METHODS.includes(orderMethod)
 
   useEffect(() => {
     setCartItems(initialItems)
@@ -122,6 +135,15 @@ export default function ShopOrderCartContentClient({
   return (
     <>
       <SectionStack>
+        {/* PDF 「적용 화면」과 동일하게 수령방법 목록 위에 예약 진입 버튼을 둔다 */}
+        {canScheduleOrder && (
+          <BorderedSection>
+            <ScheduledOrderTrigger
+              selectedSlot={scheduledSlot}
+              onClick={() => setIsScheduledOrderSheetOpen(true)}
+            />
+          </BorderedSection>
+        )}
         <BorderedSection>
           <CartSelectionControl
             selectedCount={selectedCount}
@@ -157,12 +179,23 @@ export default function ShopOrderCartContentClient({
         orderAmount={totalProductPaymentAmount}
         orderMethod={orderMethod}
       />
+      {canScheduleOrder && (
+        <ScheduledOrderSheet
+          open={isScheduledOrderSheetOpen}
+          onOpenChange={setIsScheduledOrderSheetOpen}
+          shopId={shopId}
+          orderMethod={orderMethod}
+          selectedStartAt={scheduledSlot?.startAt ?? null}
+          onSelect={setScheduledSlot}
+        />
+      )}
       <StickyFooter>
         <div className="px-[15px] py-2.5 bg-[#f9f9f9]">
           <ShopOrderCartLinkButton
             shopId={shopId}
             orderMethod={orderMethod}
             minOrderShortfall={minOrderShortfall}
+            scheduledAt={canScheduleOrder ? (scheduledSlot?.startAt ?? null) : null}
           />
         </div>
       </StickyFooter>

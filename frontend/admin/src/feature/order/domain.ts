@@ -18,6 +18,8 @@ export interface OrderListItem {
   finalAmount: number;
   totalItemCount: number;
   createdAt: string;
+  /** 수령 예약 시각(슬롯 시작). null이면 즉시 주문 */
+  scheduledAt: string | null;
 }
 
 export interface OrderProductOption {
@@ -74,4 +76,8 @@ export interface OrderDetail {
   payment: PaymentSummary | null;
   approvedAt: string | null;
   createdAt: string;
+  /** 수령 예약 시각(슬롯 시작). null이면 즉시 주문 */
+  scheduledAt: string | null;
+  /** 수령 예약 슬롯 종료 시각. 화면에는 표시하지 않는다(PDF: 시작 시각만 노출) */
+  scheduledSlotEndAt: string | null;
 }

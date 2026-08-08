@@ -22,6 +22,9 @@ const ORDER_ERROR_MESSAGES: Record<OrderErrorCode, string> = {
   ORDER_DELIVERY_TIP_AMOUNT_MISMATCH: '배달팁이 변경되었습니다. 결제 금액을 다시 확인해 주세요.',
   ORDER_DELIVERY_ADDRESS_REQUIRED: '배달 주소를 입력해 주세요.',
   ORDER_DELIVERY_AREA_NOT_COVERED: '선택하신 주소는 이 가게의 배달 가능 지역이 아닙니다.',
+  SHOP_SCHEDULED_ORDER_DISABLED: '이 가게는 예약주문을 받고 있지 않아요',
+  ORDER_SCHEDULE_METHOD_NOT_SUPPORTED: '이 주문방식은 예약할 수 없어요',
+  ORDER_SCHEDULED_AT_UNAVAILABLE: '선택한 수령시간이 마감되었어요. 다시 선택해주세요',
 }
 
 export const getOrderErrorMessage = (errorCode: string | undefined): string | null => {

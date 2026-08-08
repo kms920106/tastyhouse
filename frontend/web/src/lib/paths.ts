@@ -66,8 +66,12 @@ export const PAGE_PATHS = {
     `/places/${shopId}/order/${toOrderMethodSlug(orderMethod)}/menus/${menuId}`,
   ORDER_CART: (shopId: string | number, orderMethod: OrderMethodType) =>
     `/places/${shopId}/order/${toOrderMethodSlug(orderMethod)}/cart`,
-  ORDER_CHECKOUT: (shopId: string | number, orderMethod: OrderMethodType) =>
-    `/places/${shopId}/order/${toOrderMethodSlug(orderMethod)}/checkout`,
+  // scheduledAt은 장바구니에서 고른 수령 예약 시각(슬롯 startAt)이다. 체크아웃이 슬롯을 다시
+  // 조회해 대조하고 서버도 재계산하므로, URL을 조작해 임의 시각을 넣어도 주문으로 이어지지 않는다.
+  ORDER_CHECKOUT: (shopId: string | number, orderMethod: OrderMethodType, scheduledAt?: string) =>
+    `/places/${shopId}/order/${toOrderMethodSlug(orderMethod)}/checkout${
+      scheduledAt ? `?scheduledAt=${encodeURIComponent(scheduledAt)}` : ''
+    }`,
   ORDER_RESERVATION: (shopId: string | number) => `/places/${shopId}/order/reservation`,
   ORDER_DETAIL: (orderId: string | number) => `/orders/${orderId}`,
   ORDER_COMPLETE: (orderId: string | number) => `/orders/${orderId}/complete`,

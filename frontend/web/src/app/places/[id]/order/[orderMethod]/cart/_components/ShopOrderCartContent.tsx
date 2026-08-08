@@ -24,6 +24,7 @@ export default async function ShopOrderCartContent({ shopId, orderMethod }: Prop
       minOrderAmount={data.minOrderAmount}
       minDeliveryTip={data.minDeliveryTip}
       maxDeliveryTip={data.maxDeliveryTip}
+      scheduledOrderEnabled={data.scheduledOrderEnabled}
     />
   )
 }
