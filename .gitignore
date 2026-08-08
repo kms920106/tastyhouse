@@ -4,8 +4,8 @@
 *.iml
 *.ipr
 
-# oh-my-claudecode state
-.omc/
+# oh-my-claudecode state (어느 깊이에 생겨도 추적하지 않음)
+**/.omc/
 
 # VSCode / Cursor
 .vscode/
