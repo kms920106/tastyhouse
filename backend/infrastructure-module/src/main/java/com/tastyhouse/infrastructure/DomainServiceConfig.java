@@ -80,6 +80,7 @@ import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.shop.repository.ShopPhoneNumberRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
+import com.tastyhouse.domain.shop.repository.ShopRiderGuideRepository;
 import com.tastyhouse.domain.shop.repository.ShopSuspensionRepository;
 import com.tastyhouse.domain.shop.repository.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.shop.repository.StationRepository;
@@ -98,6 +99,8 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
 import com.tastyhouse.domain.shop.service.ShopPhoneNumberRegistryService;
+import com.tastyhouse.domain.shop.service.ShopRiderGuideService;
+import com.tastyhouse.domain.shop.service.ShopRiderGuideValidator;
 import com.tastyhouse.domain.sms.port.SmsSender;
 import com.tastyhouse.domain.sms.repository.SmsVerificationRepository;
 import com.tastyhouse.domain.sms.service.SmsVerificationService;
@@ -675,5 +678,26 @@ public class DomainServiceConfig {
         ProhibitedWordValidator prohibitedWordValidator
     ) {
         return new ShopConvenienceInfoService(shopConvenienceInfoRepository, shopRepository, prohibitedWordValidator);
+    }
+
+    /**
+     * 라이더 안내 문구 등록 기준 검증 정책 — 배민 가이드의 "작성 불가 3유형"(금칙어·가게 실주소 재기재·
+     * 배차 특정)을 액터 무관하게 적용하는 무상태 정책.
+     */
+    @Bean
+    public ShopRiderGuideValidator shopRiderGuideValidator(ProhibitedWordValidator prohibitedWordValidator) {
+        return new ShopRiderGuideValidator(prohibitedWordValidator);
+    }
+
+    /**
+     * 라이더 안내 불변식 — 폐업 가게 차단·문구 등록 기준 검증·변경 이력 기록을 원자적으로 묶는 오케스트레이션.
+     */
+    @Bean
+    public ShopRiderGuideService shopRiderGuideService(
+        ShopRiderGuideRepository shopRiderGuideRepository,
+        ShopRepository shopRepository,
+        ShopRiderGuideValidator shopRiderGuideValidator
+    ) {
+        return new ShopRiderGuideService(shopRiderGuideRepository, shopRepository, shopRiderGuideValidator);
     }
 }

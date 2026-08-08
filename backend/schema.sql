@@ -609,7 +609,6 @@ CREATE TABLE SHOP_BANNER_IMAGE
     INDEX idx_shop_banner_image_shop_id (shop_id)              -- 인덱스: 장소별 조회
 );
 
--- 임시 휴무 (점주 설정, 누적 30일 이내)
 CREATE TABLE SHOP_TEMPORARY_CLOSURE
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 임시 휴무 ID (PK)
@@ -621,7 +620,6 @@ CREATE TABLE SHOP_TEMPORARY_CLOSURE
     INDEX idx_shop_temporary_closure_shop_id (shop_id)
 );
 
--- 가게 전화번호 (다건, 대표 1개, 가상번호 플래그)
 CREATE TABLE SHOP_PHONE_NUMBER
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 전화번호 ID (PK)
@@ -634,7 +632,6 @@ CREATE TABLE SHOP_PHONE_NUMBER
     INDEX idx_shop_phone_number_shop_id (shop_id)
 );
 
--- 가게 편의정보 (주차/발렛/찾아오는길/노출위치, shop당 1개)
 CREATE TABLE SHOP_CONVENIENCE_INFO
 (
     id                   BIGINT AUTO_INCREMENT PRIMARY KEY, -- 편의정보 ID (PK)
@@ -651,7 +648,6 @@ CREATE TABLE SHOP_CONVENIENCE_INFO
     UNIQUE KEY uk_shop_convenience_info_shop_id (shop_id)
 );
 
--- 가게 이미지 변경 승인요청 (상표/대표이미지 → 관리자 검수)
 CREATE TABLE SHOP_IMAGE_CHANGE_REQUEST
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,    -- 요청 ID (PK)
@@ -666,7 +662,6 @@ CREATE TABLE SHOP_IMAGE_CHANGE_REQUEST
     INDEX idx_shop_image_change_request_status_image_type (status, image_type)
 );
 
--- 영업 임시중지 (사유+기간+주문유형별/일괄, 즉시 해제)
 CREATE TABLE SHOP_SUSPENSION
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 임시중지 ID (PK)
@@ -681,7 +676,6 @@ CREATE TABLE SHOP_SUSPENSION
     INDEX idx_shop_suspension_shop_id (shop_id)
 );
 
--- 가게 콘텐츠보드 (최대 4개, IMAGE/GIF/VIDEO, 주제, 설명 50자)
 CREATE TABLE SHOP_CONTENT_BOARD
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,    -- 콘텐츠보드 ID (PK)
@@ -697,7 +691,6 @@ CREATE TABLE SHOP_CONTENT_BOARD
     INDEX idx_shop_content_board_shop_id (shop_id)
 );
 
--- 가게 위생 인증 뱃지 (식품안심업소/세스코, 조회 전용·admin 등록)
 CREATE TABLE SHOP_HYGIENE_BADGE
 (
     id                    BIGINT AUTO_INCREMENT PRIMARY KEY, -- 위생 뱃지 ID (PK)
@@ -710,7 +703,6 @@ CREATE TABLE SHOP_HYGIENE_BADGE
     INDEX idx_shop_hygiene_badge_shop_id (shop_id)
 );
 
--- 금칙어 (가게소개/찾아오는길 검수용, read-only·SQL 시드)
 CREATE TABLE PROHIBITED_WORD
 (
     id     BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 금칙어 ID (PK)
@@ -1188,11 +1180,6 @@ CREATE TABLE RESERVATION
     INDEX idx_reservation_member (member_id)                                       -- 인덱스: 회원별 조회
 );
 
--- ============================================================
--- 배달팁 선행 기반 (행정동·배달가능지역·공휴일·회원 배달주소록)
--- ============================================================
-
--- 행정동 마스터 (행정표준코드 시드, Java 생성 경로 없음 — STATION과 동일 성격)
 CREATE TABLE ADMIN_DONG
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,              -- 행정동 ID (PK)
@@ -1205,7 +1192,6 @@ CREATE TABLE ADMIN_DONG
     INDEX idx_admin_dong_name (sido_name, sigungu_name, dong_name) -- 인덱스: 주소 문자열 매칭
 );
 
--- 가게 배달가능지역 (행정동 단위)
 CREATE TABLE SHOP_DELIVERY_AREA
 (
     id            BIGINT   AUTO_INCREMENT PRIMARY KEY,           -- 배달가능지역 ID (PK)
@@ -1217,9 +1203,6 @@ CREATE TABLE SHOP_DELIVERY_AREA
     UNIQUE KEY uk_shop_delivery_area (shop_id, admin_dong_id)    -- 유니크: 가게·행정동 중복 방지
 );
 
--- 법정 공휴일 캘린더.
--- 일요일 자체는 담지 않는다 — 이 데이터 규칙 하나가 "일요일은 공휴일 배달팁 대상 아님"과
--- "법정공휴일과 일요일이 겹치면 공휴일 배달팁 부과"를 코드 분기 없이 동시에 만족시킨다.
 CREATE TABLE PUBLIC_HOLIDAY
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 공휴일 ID (PK)
@@ -1229,7 +1212,6 @@ CREATE TABLE PUBLIC_HOLIDAY
     UNIQUE KEY uk_public_holiday_date (holiday_date)             -- 유니크: 날짜당 1건
 );
 
--- 회원 배달 주소록
 CREATE TABLE MEMBER_DELIVERY_ADDRESS
 (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,            -- 배달 주소 ID (PK)
@@ -1247,13 +1229,6 @@ CREATE TABLE MEMBER_DELIVERY_ADDRESS
     INDEX idx_member_delivery_address_member_id (member_id)      -- 인덱스: 회원별 조회
 );
 
--- ============================================================
--- 가게배달 배달팁
--- ============================================================
-
--- 가게 배달팁 설정 헤더 (가게당 1건).
--- '거리별↔지역별 상호배타'의 단일 소유자이며, 거리별 설정은 가게당 1건이라
--- 별도 테이블 없이 여기에 인라인한다.
 CREATE TABLE SHOP_DELIVERY_TIP_SETTING
 (
     id                   BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 배달팁 설정 ID (PK)
@@ -1267,7 +1242,6 @@ CREATE TABLE SHOP_DELIVERY_TIP_SETTING
     UNIQUE KEY uk_shop_delivery_tip_setting_shop_id (shop_id)    -- 유니크: 가게당 1건
 );
 
--- 기본(구간별) 배달팁. 기본 1 + 추가 2 = 최대 3구간
 CREATE TABLE SHOP_DELIVERY_TIP_TIER
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,          -- 구간 ID (PK)
@@ -1281,7 +1255,6 @@ CREATE TABLE SHOP_DELIVERY_TIP_TIER
     UNIQUE KEY uk_shop_delivery_tip_tier (shop_id, tier_order)   -- 유니크: 가게·순서 중복 방지
 );
 
--- 지역별 추가 배달팁 (가게 배달가능지역으로 설정된 행정동만 선택 가능)
 CREATE TABLE SHOP_DELIVERY_TIP_REGION
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 지역별 배달팁 ID (PK)
@@ -1294,7 +1267,6 @@ CREATE TABLE SHOP_DELIVERY_TIP_REGION
     UNIQUE KEY uk_shop_delivery_tip_region (shop_id, admin_dong_id) -- 유니크: 가게·행정동 중복 방지
 );
 
--- 시간별 추가 배달팁 (요일 구분 + 시간대). day_type은 DayType 재사용
 CREATE TABLE SHOP_DELIVERY_TIP_SCHEDULE
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 시간별 배달팁 ID (PK)
@@ -1308,7 +1280,6 @@ CREATE TABLE SHOP_DELIVERY_TIP_SCHEDULE
     INDEX idx_shop_delivery_tip_schedule_shop_id (shop_id)       -- 인덱스: 가게별 조회
 );
 
--- 공휴일 추가 배달팁 (법정 공휴일 일괄 부과, 가게당 1건)
 CREATE TABLE SHOP_DELIVERY_TIP_HOLIDAY
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,                -- 공휴일 배달팁 ID (PK)
@@ -1319,14 +1290,32 @@ CREATE TABLE SHOP_DELIVERY_TIP_HOLIDAY
     UNIQUE KEY uk_shop_delivery_tip_holiday_shop_id (shop_id)    -- 유니크: 가게당 1건
 );
 
--- 금칙어 시드 (가게소개/찾아오는길 검수용, 배민 가이드 등록 불가 기준)
-INSERT INTO PROHIBITED_WORD (word, reason) VALUES
-    ('전화주문', '전화 주문 유도'),
-    ('전화 주문', '전화 주문 유도'),
-    ('직접결제', '배민 외 직접 결제 유도'),
-    ('계좌이체', '계좌이체 결제 유도'),
-    ('무통장입금', '계좌이체 결제 유도'),
-    ('현금결제', '배민 외 직접 결제 유도'),
-    ('재주문율 1위', '사실 확인 어려운 내용'),
-    ('배민오더', '가게 홍보 문구'),
-    ('콜라 무료', '가게 홍보 문구');
+CREATE TABLE SHOP_RIDER_GUIDE
+(
+    id                    BIGINT AUTO_INCREMENT PRIMARY KEY,     -- 라이더 안내 ID (PK)
+    shop_id               BIGINT         NOT NULL,               -- 장소 ID (SHOP.id 참조)
+    visit_guide           VARCHAR(200),                          -- 라이더 가게방문 안내 문구 (최대 200자, 미등록 시 NULL)
+    pickup_road_address   VARCHAR(255),                          -- 픽업 도로명주소 (미설정 시 NULL → 가게 실주소로 폴백)
+    pickup_lot_address    VARCHAR(255),                          -- 픽업 지번주소
+    pickup_detail_address VARCHAR(100),                          -- 픽업 상세주소 (동/호수 등)
+    pickup_latitude       DECIMAL(11, 8),                        -- 픽업 위도 (-90 ~ 90)
+    pickup_longitude      DECIMAL(11, 8),                        -- 픽업 경도 (-180 ~ 180)
+    created_at            DATETIME       NOT NULL,               -- 생성 일시
+    updated_at            DATETIME       NOT NULL,               -- 수정 일시
+    UNIQUE KEY uk_shop_rider_guide_shop_id (shop_id)             -- 유니크: 가게당 1건
+);
+
+CREATE TABLE SHOP_RIDER_GUIDE_HISTORY
+(
+    id                   BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 이력 ID (PK)
+    shop_id              BIGINT      NOT NULL,                   -- 장소 ID (SHOP.id 참조)
+    actor_type           VARCHAR(20) NOT NULL,                   -- 변경 주체 (CEO, ADMIN)
+    actor_id             BIGINT      NOT NULL,                   -- 변경 주체 ID (CEO.id 또는 ADMIN.id 참조)
+    action_type          VARCHAR(20) NOT NULL,                   -- 조치 유형 (UPDATE, REVISION_REQUEST, DELETION)
+    previous_visit_guide VARCHAR(200),                           -- 변경 전 문구
+    new_visit_guide      VARCHAR(200),                           -- 변경 후 문구 (삭제 조치 시 NULL)
+    reason               VARCHAR(200),                           -- 관리자 조치 사유 (점주 변경 시 NULL)
+    created_at           DATETIME    NOT NULL,                   -- 생성 일시
+    updated_at           DATETIME    NOT NULL,                   -- 수정 일시
+    INDEX idx_shop_rider_guide_history_shop_id (shop_id)         -- 인덱스: 가게별 이력 조회
+);

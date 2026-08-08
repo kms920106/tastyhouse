@@ -34,6 +34,9 @@ Thumbs.db
 # Firebase
 *-firebase-adminsdk-*.json
 
+# Secrets (configtree 로딩 대상 — 서비스 계정 키 등 자격증명 파일)
+secrets/
+
 # Claude
 .claude/settings.local.json
 RESULT.md
