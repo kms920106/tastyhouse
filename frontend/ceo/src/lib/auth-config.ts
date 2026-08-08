@@ -1,12 +1,17 @@
 /**
  * 인증 관련 쿠키 키 정의.
  *
- * admin-api 호출 시 ApiClient 가 access token 을 Authorization 헤더로 실어 보낸다.
+ * ceo-api 호출 시 ApiClient 가 access token 을 Authorization 헤더로 실어 보낸다.
+ *
+ * 쿠키 이름에 `th_ceo_` 접두사를 붙여 web/admin 앱과 이름 공간을 분리한다. 브라우저 쿠키
+ * 저장소는 포트를 구분하지 않으므로, 로컬 개발에서 세 앱이 모두 localhost 를 쓰면 같은
+ * 이름의 토큰 쿠키가 서로 덮어써져 앱을 전환할 때마다 로그아웃되는 문제가 있었다.
+ * (운영에서 서브도메인을 쓰더라도 부모 도메인 쿠키가 섞이는 것을 함께 막아 준다.)
  */
 
 export const AUTH_COOKIE_KEYS = {
-  ACCESS_TOKEN: "accessToken",
-  REFRESH_TOKEN: "refreshToken",
+  ACCESS_TOKEN: "th_ceo_accessToken",
+  REFRESH_TOKEN: "th_ceo_refreshToken",
   /**
    * 로그인 시 선택한 "로그인 상태 유지" 여부.
    *
@@ -14,7 +19,7 @@ export const AUTH_COOKIE_KEYS = {
    * 다시 심을 때 원래 세션 길이(30일/7일)를 알 방법이 없다. 이 값을 별도 쿠키로 남겨
    * 갱신 후에도 사용자가 선택한 만료기간이 유지되도록 한다.
    */
-  REMEMBER_ME: "rememberMe",
+  REMEMBER_ME: "th_ceo_rememberMe",
 } as const;
 
 /**
