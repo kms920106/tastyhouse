@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 명령어에 대한 답변은 한국어로 하도록 합니다.
 
-명령된 로직을 구현 후, 빌드 테스트(backend는 `backend` 디렉터리의 `./gradlew build`, frontend는 해당 앱 디렉터리의 `npm run build`)는 진행하지 않도록 합니다.
+명령된 로직을 구현 후, frontend 빌드 테스트(해당 앱 디렉터리의 `npm run build`)는 진행하지 않도록 합니다. backend는 실행 파일(jar)을 만들려면 빌드가 필요하므로 이 제한에서 제외하며, `backend` 디렉터리에서 `./gradlew build`를 실행합니다(아래 [개발 서버 포트](#개발-서버-포트) 참조).
 
 나에게 무언가를 되물어 확인해야 할 때는, 자유 서술형으로 답을 요구하지 말고 **항상 선택지를 체크리스트(선택 가능한 항목 목록) 형태로 제시**하여 내가 키보드로 타이핑하지 않고 마우스 클릭만으로 답할 수 있게 합니다. 즉, 질문이 발생하면 가능한 답안들을 명확한 항목으로 나열해 그중에서 고르도록 하고, 여러 개를 동시에 고를 수 있는 질문이면 다중 선택이 가능함을 함께 알려줍니다.
 
@@ -85,22 +85,35 @@ docs/       domain(도메인별 비즈니스 지식 문서) · oauth · pg
 | web (사용자) | `frontend/web` — `npm run dev` | 3000 (`next dev` 기본값) |
 | admin (관리자) | `frontend/admin` — `npm run dev` | 3010 |
 | ceo (점주) | `frontend/ceo` — `npm run dev` | 3020 |
-| web-api | `backend` — `./gradlew :web-api:bootRun` | 8080 |
-| admin-api | `backend` — `./gradlew :admin-api:bootRun` | 8090 |
-| ceo-api | `backend` — `./gradlew :ceo-api:bootRun` | 8100 |
+| web-api | `backend` — `java -jar web-api/build/libs/web-api-0.0.1-SNAPSHOT.jar` | 8080 |
+| admin-api | `backend` — `java -jar admin-api/build/libs/admin-api-0.0.1-SNAPSHOT.jar` | 8090 |
+| ceo-api | `backend` — `java -jar ceo-api/build/libs/ceo-api-0.0.1-SNAPSHOT.jar` | 8100 |
 
-## 인증 쿠키 이름 규칙
+backend는 실행 파일(jar)이 있어야 위 명령이 동작합니다. jar가 없으면(클론 직후·`clean` 후) `backend`에서 `./gradlew :{모듈}:build`로 먼저 만듭니다. **코드 변경 시마다 재빌드가 필요합니다** — 자세한 내용은 아래를 참조합니다.
 
-브라우저 쿠키 저장소는 **포트를 구분하지 않습니다**. 따라서 web(3000)·admin(3010)·ceo(3020)가 모두 `localhost`에서 뜨는 로컬 개발 환경에서 세 앱이 같은 이름의 인증 쿠키를 쓰면, 나중에 로그인한 앱이 앞선 앱의 토큰을 덮어써 앱을 전환할 때마다 로그아웃됩니다.
+### backend는 `java -jar`로 실행합니다 (`bootRun` 사용 금지)
 
-이를 막기 위해 인증 쿠키 이름은 **앱별 접두사 `th_{app}_`** 를 붙여 이름 공간을 분리합니다.
+**backend 앱은 로컬·운영 모두 `./gradlew build`로 만든 산출물을 `java -jar`로 실행합니다.** `bootRun`은 Gradle이 실행 환경을 대신 구성해 주므로 로컬에서만 통하는 경로·클래스패스 전제가 조용히 섞여 들어가고, 그 결과 "로컬에선 되는데 배포하면 안 되는" 차이가 생깁니다. 실행 방식을 하나로 통일하면 로컬에서 검증한 산출물이 곧 배포되는 산출물이 됩니다.
 
-| 앱 | 접두사 | 예시 |
-|---|---|---|
-| web | `th_web_` | `th_web_accessToken`, `th_web_refreshToken`, `th_web_rememberMe` |
-| admin | `th_admin_` | `th_admin_accessToken`, `th_admin_refreshToken` |
-| ceo | `th_ceo_` | `th_ceo_accessToken`, `th_ceo_refreshToken`, `th_ceo_rememberMe` |
+- **jar 이름의 버전은 `backend/build.gradle`의 `version`을 따릅니다**(현재 `0.0.1-SNAPSHOT`). 버전을 올리면 위 표의 파일명도 함께 바뀌므로, 명령을 복사하기 전에 `ls backend/{모듈}/build/libs/`로 실제 파일명을 확인합니다.
+- **`-plain.jar`은 실행 대상이 아닙니다.** 같은 디렉터리에 `{모듈}-{버전}-plain.jar`(의존성 없는 클래스 묶음)이 함께 생성되는데, 이것을 실행하면 `no main manifest attribute` 오류가 납니다. 접미어 없는 쪽을 실행합니다.
+- **백그라운드로 띄울 때는 로그를 파일로 남깁니다**(예: `nohup java -jar ... > /tmp/ceo-api.log 2>&1 &`). 기동 성공 판정은 포트 LISTEN 여부가 아니라 로그의 `Started {Xxx}ApiApplication` 마커로 합니다 — 포트는 부팅 도중에도 잠깐 열릴 수 있습니다.
+- **코드 변경 시마다 `backend`에서 `./gradlew :{모듈}:build`로 재빌드합니다.** jar는 빌드 시점에 고정되므로 재빌드 없이 재실행하면 이전 코드가 그대로 뜨는데, 부팅은 성공하므로 변경이 반영되지 않은 것을 알아채기 어렵습니다.
+- **`build`는 테스트를 함께 실행하며, 테스트가 실패하면 jar가 만들어지지 않습니다.** 이 저장소에는 ArchUnit 레이어 규칙(`LayerRulesTest`)·`ErrorCodeConventionTest`·`EmbeddedRecordComponentOrderTest` 등 규약 위반을 잡는 가드 테스트가 있으므로, 빌드 실패 시 테스트 출력을 먼저 확인합니다 — 대개 코드가 아니라 규약을 어긴 것입니다.
 
-- 쿠키 이름은 각 앱의 `src/lib/auth-config.ts` 의 `AUTH_COOKIE_KEYS` 에만 정의하고, 나머지 코드는 **반드시 이 상수를 경유**합니다. 쿠키 이름 문자열을 다른 파일에 하드코딩하지 않습니다.
-- 인증 쿠키를 새로 추가할 때도 동일한 접두사를 붙입니다.
-- 이 규칙 덕분에 MCP Playwright 로 여러 앱을 검증할 때 앱 전환 시마다 쿠키를 지우고 재로그인할 필요가 없습니다.
+#### 실행 디렉터리(CWD) 주의
+
+**`java -jar`는 리포 루트와 `backend/` 두 곳에서만 실행합니다.** backend 설정은 `.env`를 `optional:file:.env` / `optional:file:backend/.env` **상대경로 두 벌**로 선언해(각 앱 `application.yml`) 이 두 위치를 지원하는데, 상대경로는 JVM 작업 디렉터리 기준으로 해석되므로 **그 밖의 디렉터리에서 실행하면 `.env`가 로드되지 않습니다.** 이때 DB 접속 정보 같은 필수 환경변수가 비어 부팅이 실패하거나, 더 나쁘게는 기본값으로 엉뚱한 대상에 붙습니다.
+
+```bash
+# 권장 — backend 디렉터리에서
+cd backend && java -jar ceo-api/build/libs/ceo-api-0.0.1-SNAPSHOT.jar
+
+# 가능 — 리포 루트에서 (backend/.env 경로 선언 덕분)
+java -jar backend/ceo-api/build/libs/ceo-api-0.0.1-SNAPSHOT.jar
+
+# 금지 — 그 외 디렉터리 (.env 미로드)
+cd /tmp && java -jar ~/.../ceo-api-0.0.1-SNAPSHOT.jar
+```
+
+운영 배포처럼 CWD를 보장할 수 없는 환경에서는 `.env` 상대경로에 기대지 말고 환경변수를 직접 주입합니다(자격증명 파일은 `SECRETS_DIR`로 주입 — `backend/CLAUDE.md`의 "시크릿 파일 로딩 규칙(configtree)" 참조).
