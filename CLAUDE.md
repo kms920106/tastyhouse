@@ -88,3 +88,19 @@ docs/       domain(도메인별 비즈니스 지식 문서) · oauth · pg
 | web-api | `backend` — `./gradlew :web-api:bootRun` | 8080 |
 | admin-api | `backend` — `./gradlew :admin-api:bootRun` | 8090 |
 | ceo-api | `backend` — `./gradlew :ceo-api:bootRun` | 8100 |
+
+## 인증 쿠키 이름 규칙
+
+브라우저 쿠키 저장소는 **포트를 구분하지 않습니다**. 따라서 web(3000)·admin(3010)·ceo(3020)가 모두 `localhost`에서 뜨는 로컬 개발 환경에서 세 앱이 같은 이름의 인증 쿠키를 쓰면, 나중에 로그인한 앱이 앞선 앱의 토큰을 덮어써 앱을 전환할 때마다 로그아웃됩니다.
+
+이를 막기 위해 인증 쿠키 이름은 **앱별 접두사 `th_{app}_`** 를 붙여 이름 공간을 분리합니다.
+
+| 앱 | 접두사 | 예시 |
+|---|---|---|
+| web | `th_web_` | `th_web_accessToken`, `th_web_refreshToken`, `th_web_rememberMe` |
+| admin | `th_admin_` | `th_admin_accessToken`, `th_admin_refreshToken` |
+| ceo | `th_ceo_` | `th_ceo_accessToken`, `th_ceo_refreshToken`, `th_ceo_rememberMe` |
+
+- 쿠키 이름은 각 앱의 `src/lib/auth-config.ts` 의 `AUTH_COOKIE_KEYS` 에만 정의하고, 나머지 코드는 **반드시 이 상수를 경유**합니다. 쿠키 이름 문자열을 다른 파일에 하드코딩하지 않습니다.
+- 인증 쿠키를 새로 추가할 때도 동일한 접두사를 붙입니다.
+- 이 규칙 덕분에 MCP Playwright 로 여러 앱을 검증할 때 앱 전환 시마다 쿠키를 지우고 재로그인할 필요가 없습니다.
