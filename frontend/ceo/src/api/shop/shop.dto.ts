@@ -475,3 +475,44 @@ export interface HygieneBadgeResponse {
   certifiedDate: string;
   lastInspectionMonth: string;
 }
+
+// ===== 라이더 가게방문 안내 · 픽업 위치 =====
+
+export interface ShopRiderPickupLocationResponse {
+  roadAddress: string;
+  lotAddress: string | null;
+  detailAddress: string | null;
+  latitude: number;
+  longitude: number;
+}
+
+export interface ShopRiderGuideResponse {
+  /** 미등록 시 null */
+  visitGuide: string | null;
+  /** 미설정 시 null — 라이더에게는 가게 실주소가 폴백으로 안내된다 */
+  pickupLocation: ShopRiderPickupLocationResponse | null;
+  shopRoadAddress: string;
+  shopLotAddress: string | null;
+  shopLatitude: number;
+  shopLongitude: number;
+  /** 한 번도 등록한 적 없으면 null */
+  updatedAt: string | null;
+}
+
+export interface ShopRiderVisitGuideUpdateRequest {
+  /** 빈 문자열은 '삭제' 의도다 */
+  visitGuide: string;
+}
+
+export interface ShopRiderVisitGuideValidateResponse {
+  valid: boolean;
+  violations: string[];
+}
+
+export interface ShopRiderPickupLocationUpdateRequest {
+  roadAddress: string;
+  lotAddress: string | null;
+  detailAddress: string | null;
+  latitude: number;
+  longitude: number;
+}

@@ -10,6 +10,48 @@ export const SHOP_IMAGE_REVIEW_PAGE_COPY = {
   DESCRIPTION: "점주가 요청한 상표·대표이미지 변경을 검수합니다.",
 } as const;
 
+/** 라이더 안내 검수 화면 문구 */
+export const SHOP_RIDER_GUIDE_ADMIN_COPY = {
+  PAGE_TITLE: "라이더 안내 검수",
+  PAGE_DESCRIPTION:
+    "점주가 등록한 라이더 가게방문 안내를 검수하고, 기준에 맞지 않는 문구를 수정 요청하거나 삭제합니다.",
+  SEARCH_PLACEHOLDER: "가게명으로 검색",
+  FILTER_HAS_VISIT_GUIDE: "문구 등록된 가게만 보기",
+  EMPTY_TITLE: "검수할 라이더 안내가 없습니다",
+  DETAIL_VISIT_GUIDE_LEGEND: "안내 문구",
+  DETAIL_PICKUP_LEGEND: "픽업 위치",
+  DETAIL_HISTORY_LEGEND: "변경 이력",
+  HISTORY_EMPTY: "변경 이력이 없습니다",
+  VISIT_GUIDE_EMPTY: "등록된 안내 문구가 없습니다",
+  PICKUP_FALLBACK_LABEL: "가게 실주소 사용",
+  PICKUP_SET_LABEL: "설정됨",
+  REVISION_REQUEST_ACTION: "수정 요청",
+  REVISION_REQUEST_REASON_LABEL: "수정 요청 사유",
+  REVISION_REQUEST_REASON_PLACEHOLDER: "예) 배차를 특정하는 문구입니다. 위치 안내로 수정해 주세요.",
+  REVISION_REQUEST_CONFIRM_TITLE: "수정 요청을 등록할까요?",
+  REVISION_REQUEST_CONFIRM_DESCRIPTION: "안내 문구는 그대로 유지되며, 수정 요청 이력만 남습니다.",
+  DELETE_ACTION: "문구 삭제",
+  DELETE_CONFIRM_TITLE: "안내 문구를 삭제할까요?",
+  DELETE_CONFIRM_DESCRIPTION: "삭제하면 라이더에게 이 문구가 더 이상 표시되지 않습니다. 픽업 위치는 유지됩니다.",
+  DELETE_REASON_LABEL: "삭제 사유",
+  DELETE_REASON_PLACEHOLDER: "예) 가게 방문과 관련 없는 문구입니다.",
+  PICKUP_EDIT_ACTION: "픽업 위치 교정",
+  PICKUP_EDIT_GUIDE: "라이더 제보로 실제 위치와 다른 것이 확인된 경우 픽업 위치를 교정합니다.",
+  PICKUP_ROAD_ADDRESS_LABEL: "도로명주소",
+  PICKUP_LOT_ADDRESS_LABEL: "지번주소",
+  PICKUP_DETAIL_ADDRESS_LABEL: "상세주소",
+  PICKUP_LATITUDE_LABEL: "위도",
+  PICKUP_LONGITUDE_LABEL: "경도",
+} as const;
+
+export const SHOP_RIDER_GUIDE_MESSAGE = {
+  REVISION_REQUEST_SUCCESS: "수정 요청이 등록되었습니다.",
+  DELETE_SUCCESS: "안내 문구가 삭제되었습니다.",
+  PICKUP_UPDATE_SUCCESS: "픽업 위치가 교정되었습니다.",
+  LIST_LOAD_FAILED: "라이더 안내 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  DETAIL_LOAD_FAILED: "라이더 안내 상세를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+} as const;
+
 /** 콘텐츠보드 검수 화면 헤더 정적 문구 (목록/로딩 공용) */
 export const CONTENT_BOARD_PAGE_COPY = {
   TITLE: "콘텐츠보드 검수",

@@ -114,6 +114,37 @@ export const SHOP_ORDER_COPY = {
   ORDER_AVAILABILITY_LOAD_FAILED: "주문가능 상태를 확인할 수 없습니다",
 } as const;
 
+/** 라이더 가게방문 안내 · 픽업 위치 문구 */
+export const SHOP_RIDER_COPY = {
+  VISIT_GUIDE_TITLE: "라이더 가게방문 안내",
+  VISIT_GUIDE_DESCRIPTION:
+    "라이더가 가게를 쉽게 찾아 음식을 받아갈 수 있도록 안내 문구를 등록합니다. 라이더 앱에만 표시되며 고객에게는 보이지 않습니다.",
+  VISIT_GUIDE_PLACEHOLDER: "예) 대로변에서 분홍색 건물 1층 OO 안경 옆 가게입니다.",
+  VISIT_GUIDE_RIDER_ONLY_NOTICE: "이 문구는 라이더에게만 보이며 고객 앱에는 노출되지 않습니다.",
+  GOOD_EXAMPLES_TITLE: "작성 가이드",
+  BAD_EXAMPLES_TITLE: "등록할 수 없는 문구",
+  MODERATION_NOTICE: "안내 목적과 맞지 않는 문구는 수정 요청 또는 삭제될 수 있습니다.",
+  UNSET_LABEL: "미설정",
+
+  PICKUP_TITLE: "라이더 픽업 위치",
+  PICKUP_DESCRIPTION:
+    "라이더가 방문할 픽업 지점을 가게 실주소와 별도로 등록합니다. 배달 범위·배달팁에는 영향을 주지 않습니다.",
+  PICKUP_FALLBACK_LABEL: "가게 실주소 사용",
+  PICKUP_SHOP_ADDRESS_PREFIX: "현재 가게 주소:",
+  PICKUP_COPY_SHOP_ADDRESS: "가게 실주소와 동일하게 설정",
+  PICKUP_COPY_GUIDE: "현재 가게 주소를 픽업 위치로 복사합니다. 이후 가게 주소가 바뀌어도 픽업 위치는 유지됩니다.",
+  PICKUP_CLEAR_ACTION: "초기화",
+  PICKUP_CLEAR_CONFIRM_TITLE: "픽업 위치를 초기화할까요?",
+  PICKUP_CLEAR_CONFIRM_DESCRIPTION:
+    "초기화하면 라이더에게 가게 실주소가 픽업 위치로 안내됩니다. 문구는 그대로 유지됩니다.",
+  PICKUP_ROAD_ADDRESS_LABEL: "도로명주소",
+  PICKUP_LOT_ADDRESS_LABEL: "지번주소",
+  PICKUP_DETAIL_ADDRESS_LABEL: "상세주소",
+  PICKUP_DETAIL_ADDRESS_PLACEHOLDER: "예) 지하 1층 후문",
+  PICKUP_LATITUDE_LABEL: "위도",
+  PICKUP_LONGITUDE_LABEL: "경도",
+} as const;
+
 /** 가게 사용자 피드백 메시지 (동적/토스트/에러 폴백) */
 export const SHOP_MESSAGE = {
   // 성공 toast
@@ -145,6 +176,10 @@ export const SHOP_MESSAGE = {
   TEMPORARY_CLOSURE_DELETE_SUCCESS: "임시휴무가 삭제되었습니다.",
   SUSPENSION_CREATE_SUCCESS: "영업임시중지가 적용되었습니다.",
   SUSPENSION_RELEASE_SUCCESS: "영업임시중지가 해제되었습니다.",
+  RIDER_VISIT_GUIDE_UPDATE_SUCCESS: "라이더 가게방문 안내가 저장되었습니다.",
+  RIDER_VISIT_GUIDE_DELETE_SUCCESS: "라이더 가게방문 안내가 삭제되었습니다.",
+  RIDER_PICKUP_LOCATION_UPDATE_SUCCESS: "라이더 픽업 위치가 저장되었습니다.",
+  RIDER_PICKUP_LOCATION_CLEAR_SUCCESS: "라이더 픽업 위치가 초기화되었습니다. 가게 실주소가 안내됩니다.",
 
   // 에러 폴백
   SUSPENSION_RESUME_UNAVAILABLE: "임시중지 해제 정보를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",

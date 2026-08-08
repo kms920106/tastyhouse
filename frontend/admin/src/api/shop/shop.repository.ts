@@ -50,6 +50,12 @@ import type {
   ShopImageChangeRequestListQueryRequest,
   ShopListItemResponse,
   ShopListQueryRequest,
+  ShopRiderGuideDetailResponse,
+  ShopRiderGuideListItemResponse,
+  ShopRiderGuideListQueryRequest,
+  ShopRiderPickupLocationUpdateRequest,
+  ShopRiderVisitGuideDeleteRequest,
+  ShopRiderVisitGuideRevisionRequest,
   ShopUpdateRequest,
   StationResponse,
   TagCreateRequest,
@@ -398,5 +404,40 @@ export const shopRepository = {
   // 위생 뱃지 삭제 — 경로가 shopId 가 아닌 hygieneBadgeId 기준임에 주의
   deleteHygieneBadge(hygieneBadgeId: number): Promise<ApiResponse<null>> {
     return api.delete<null>(`${ENDPOINT}/v1/hygiene-badges/${hygieneBadgeId}`);
+  },
+
+  // ===== 라이더 가게방문 안내 검수 =====
+
+  // 라이더 안내 등록 가게 목록 — updatedAt DESC 정렬로 최근 변경분부터 검수한다
+  getRiderGuides(
+    query: ShopRiderGuideListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ShopRiderGuideListItemResponse[]>> {
+    return api.get<ShopRiderGuideListItemResponse[]>(`${ENDPOINT}/v1/rider-guides`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 단건 조회 — 문구·픽업 위치와 최근 변경 이력을 함께 내려준다
+  getRiderGuide(shopId: number): Promise<ApiResponse<ShopRiderGuideDetailResponse>> {
+    return api.get<ShopRiderGuideDetailResponse>(`${ENDPOINT}/v1/${shopId}/rider-guide`);
+  },
+
+  // 부적합 문구 삭제 조치 — 사유를 URL 에 남기지 않기 위해 DELETE 에 바디를 싣는다
+  deleteRiderVisitGuide(shopId: number, body: ShopRiderVisitGuideDeleteRequest): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/${shopId}/rider-guide/visit-guide`, body);
+  },
+
+  // 수정 요청 — 문구는 그대로 두고 이력만 남긴다. 응답은 생성된 이력 ID
+  requestRiderVisitGuideRevision(
+    shopId: number,
+    body: ShopRiderVisitGuideRevisionRequest,
+  ): Promise<ApiResponse<number>> {
+    return api.post<number>(`${ENDPOINT}/v1/${shopId}/rider-guide/visit-guide/revision-request`, body);
+  },
+
+  // 픽업 위치 교정 (라이더 제보 반영)
+  updateRiderPickupLocation(shopId: number, body: ShopRiderPickupLocationUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/rider-guide/pickup-location`, body);
   },
 };

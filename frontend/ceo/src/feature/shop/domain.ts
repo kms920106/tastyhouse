@@ -209,6 +209,27 @@ export interface ShopDeliveryTipSetting {
   holidayTipAmount: number;
 }
 
+export interface ShopRiderPickupLocation {
+  roadAddress: string;
+  lotAddress: string | null;
+  detailAddress: string | null;
+  latitude: number;
+  longitude: number;
+}
+
+export interface ShopRiderGuide {
+  /** 미등록 시 null */
+  visitGuide: string | null;
+  /** 미설정 시 null — 라이더에게는 가게 실주소가 폴백으로 안내된다 */
+  pickupLocation: ShopRiderPickupLocation | null;
+  /** 픽업 위치 미설정 시 폴백으로 쓰이는 가게 실주소 (참고 표시용) */
+  shopRoadAddress: string;
+  shopLotAddress: string | null;
+  shopLatitude: number;
+  shopLongitude: number;
+  updatedAt: string | null;
+}
+
 export interface ShopOperationInfo {
   shopId: number;
   businessHours: BusinessHour[];
@@ -218,6 +239,8 @@ export interface ShopOperationInfo {
   deliveryTip: ShopDeliveryTipSetting;
   /** 지역별 배달팁의 선택 후보 — 가게에 등록된 배달가능지역 */
   deliveryAreas: ShopDeliveryArea[];
+  /** 라이더 앱에만 노출되는 방문 안내·픽업 위치. 고객에게는 표시하지 않는다 */
+  riderGuide: ShopRiderGuide;
 }
 
 export interface ShopOrderMethodAvailability {

@@ -40,6 +40,10 @@ import type {
   ShopListQueryRequest,
   ShopMinOrderAmountUpdateRequest,
   ShopOrderAvailabilityResponse,
+  ShopRiderGuideResponse,
+  ShopRiderPickupLocationUpdateRequest,
+  ShopRiderVisitGuideUpdateRequest,
+  ShopRiderVisitGuideValidateResponse,
   ShopScheduledOrderUpdateRequest,
   ShopStatusResponse,
   ShopStatusUpdateRequest,
@@ -374,5 +378,36 @@ export const shopRepository = {
 
   getHygieneBadges(shopId: number): Promise<ApiResponse<HygieneBadgeResponse[]>> {
     return api.get<HygieneBadgeResponse[]>(`${ENDPOINT}/v1/${shopId}/hygiene-badges`);
+  },
+
+  // ===== 라이더 가게방문 안내 · 픽업 위치 =====
+
+  getRiderGuide(shopId: number): Promise<ApiResponse<ShopRiderGuideResponse>> {
+    return api.get<ShopRiderGuideResponse>(`${ENDPOINT}/v1/${shopId}/rider-guide`);
+  },
+
+  // 빈 문자열을 보내면 등록된 문구가 삭제된다 — 삭제 전용 엔드포인트를 두지 않는다.
+  updateRiderVisitGuide(shopId: number, body: ShopRiderVisitGuideUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/rider-guide/visit-guide`, body);
+  },
+
+  // 위반이 있어도 200으로 사유 목록을 반환한다(검수 결과 자체가 정상 응답).
+  validateRiderVisitGuide(
+    shopId: number,
+    body: ShopRiderVisitGuideUpdateRequest,
+  ): Promise<ApiResponse<ShopRiderVisitGuideValidateResponse>> {
+    return api.post<ShopRiderVisitGuideValidateResponse>(
+      `${ENDPOINT}/v1/${shopId}/rider-guide/visit-guide/validate`,
+      body,
+    );
+  },
+
+  updateRiderPickupLocation(shopId: number, body: ShopRiderPickupLocationUpdateRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/rider-guide/pickup-location`, body);
+  },
+
+  // 픽업 위치 5개 컬럼을 비워 가게 실주소로 폴백시킨다. 문구는 유지되며 멱등이다.
+  clearRiderPickupLocation(shopId: number): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/${shopId}/rider-guide/pickup-location`);
   },
 };

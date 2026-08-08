@@ -24,11 +24,12 @@ import type {
   ShopFoodType,
   ShopHygieneBadge,
   ShopImageChangeRequest,
+  ShopRiderGuideDetail,
   Station,
   Tag,
 } from "@/feature/shop/domain";
 
-import { SHOP_MESSAGE } from "./message";
+import { SHOP_MESSAGE, SHOP_RIDER_GUIDE_MESSAGE } from "./message";
 import {
   type AmenityCategoryFormValues,
   amenityCategorySchema,
@@ -58,6 +59,10 @@ import {
   photoCategorySchema,
   photoImageSchema,
   photoImageUpdateSchema,
+  type RiderGuideReasonFormValues,
+  type RiderPickupLocationFormValues,
+  riderGuideReasonSchema,
+  riderPickupLocationSchema,
   type ShopAmenityFormValues,
   type ShopFoodTypeFormValues,
   type ShopFormValues,
@@ -760,4 +765,79 @@ export async function deleteHygieneBadgeAction(hygieneBadgeId: number): Promise<
   const { error } = await shopRepository.deleteHygieneBadge(hygieneBadgeId);
   if (error !== undefined) return { success: false, message: error };
   return { success: true };
+}
+
+// ===== 라이더 가게방문 안내 검수 =====
+
+const RIDER_GUIDES_PATH = "/dashboard/shop-rider-guides";
+
+// 부적합 문구 삭제 조치 — 문구만 비우고 픽업 위치는 유지된다.
+export async function deleteShopRiderVisitGuideAction(
+  shopId: number,
+  values: RiderGuideReasonFormValues,
+): Promise<ActionResult> {
+  const parsed = riderGuideReasonSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.deleteRiderVisitGuide(shopId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(RIDER_GUIDES_PATH);
+  return { success: true };
+}
+
+// 수정 요청 — 문구는 그대로 두고 이력만 남긴다.
+export async function requestShopRiderVisitGuideRevisionAction(
+  shopId: number,
+  values: RiderGuideReasonFormValues,
+): Promise<ActionResult> {
+  const parsed = riderGuideReasonSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.requestRiderVisitGuideRevision(shopId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(RIDER_GUIDES_PATH);
+  return { success: true };
+}
+
+// 픽업 위치 교정 (라이더 제보 반영) — 관리자는 소유권 검증 없이 모든 가게를 수정할 수 있다.
+export async function updateShopRiderPickupLocationAction(
+  shopId: number,
+  values: RiderPickupLocationFormValues,
+): Promise<ActionResult> {
+  const parsed = riderPickupLocationSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { detailAddress, latitude, longitude, lotAddress, roadAddress } = parsed.data;
+  const { error } = await shopRepository.updateRiderPickupLocation(shopId, {
+    roadAddress,
+    // 선택 입력은 빈 문자열 대신 null 로 보내, 서버의 '전부 채우거나 전부 비우거나' 판정과 어긋나지 않게 한다.
+    lotAddress: lotAddress.length > 0 ? lotAddress : null,
+    detailAddress: detailAddress.length > 0 ? detailAddress : null,
+    latitude,
+    longitude,
+  });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(RIDER_GUIDES_PATH);
+  return { success: true };
+}
+
+// 상세 시트가 열릴 때 문구·픽업 위치·변경 이력을 함께 조회한다.
+export async function fetchShopRiderGuideDetailAction(
+  shopId: number,
+): Promise<{ success: boolean; message?: string; data?: ShopRiderGuideDetail }> {
+  const { error, data } = await shopService.getRiderGuide(shopId);
+  if (error !== undefined || data === undefined) {
+    return { success: false, message: error ?? SHOP_RIDER_GUIDE_MESSAGE.DETAIL_LOAD_FAILED };
+  }
+
+  return { success: true, data };
 }

@@ -9,9 +9,14 @@ import type {
   FoodType,
   HygieneBadgeType,
   OrderMethod as OrderMethodValue,
+  RiderGuideActionType,
+  RiderGuideActorType,
   ShopImageChangeStatus,
   ShopImageType,
 } from "@/api/shop/shop.dto";
+
+// api/shop 계층에서 정의한 enum 문자열 유니온을 도메인에서도 그대로 쓴다.
+export type { RiderGuideActionType, RiderGuideActorType };
 
 export interface Station {
   id: number;
@@ -182,4 +187,45 @@ export interface ContentBoard {
   description: string;
   hidden: boolean;
   createdAt: string;
+}
+
+export interface ShopRiderGuideListItem {
+  shopId: number;
+  shopName: string;
+  /** 미등록 시 null */
+  visitGuide: string | null;
+  hasPickupLocation: boolean;
+  updatedAt: string;
+}
+
+export interface ShopRiderPickupLocation {
+  roadAddress: string;
+  lotAddress: string | null;
+  detailAddress: string | null;
+  latitude: number;
+  longitude: number;
+}
+
+export interface ShopRiderGuideHistory {
+  id: number;
+  actorType: RiderGuideActorType;
+  actorId: number;
+  actionType: RiderGuideActionType;
+  previousVisitGuide: string | null;
+  /** 삭제 조치 시 null */
+  newVisitGuide: string | null;
+  /** 점주 변경(UPDATE) 시 null */
+  reason: string | null;
+  createdAt: string;
+}
+
+export interface ShopRiderGuideDetail {
+  shopId: number;
+  shopName: string;
+  shopRoadAddress: string;
+  visitGuide: string | null;
+  /** 미설정 시 null — 라이더에게는 가게 실주소가 폴백으로 안내된다 */
+  pickupLocation: ShopRiderPickupLocation | null;
+  /** 최신순, 최대 20건 */
+  histories: ShopRiderGuideHistory[];
 }

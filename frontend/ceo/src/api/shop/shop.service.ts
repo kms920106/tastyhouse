@@ -10,6 +10,7 @@ import type {
   ShopImageStatus,
   ShopOperationInfo,
   ShopOrderAvailability,
+  ShopRiderGuide,
   ShopSummary,
 } from "@/feature/shop/domain";
 import logger from "@/lib/logger";
@@ -19,6 +20,7 @@ import type {
   ImageChangeRequestResponse,
   ShopImageStatusResponse,
   ShopListQueryRequest,
+  ShopRiderGuideResponse,
 } from "./shop.dto";
 import { shopRepository } from "./shop.repository";
 
@@ -36,6 +38,28 @@ function toImageChangeRequest(item: ImageChangeRequestResponse) {
     imageUrl: item.imageUrl,
     status: item.status,
     rejectReason: item.rejectReason,
+  };
+}
+
+// 라이더 안내 조회는 실패해도 탭을 막지 않으므로, undefined 를 '미설정' 기본값으로 되돌린다.
+// 가게 실주소·좌표 폴백값도 함께 비어 있게 되지만, 그 상태에서는 시트를 열어도 저장 전 서버가 다시 판정한다.
+function toRiderGuide(res: ShopRiderGuideResponse | undefined): ShopRiderGuide {
+  return {
+    visitGuide: res?.visitGuide ?? null,
+    pickupLocation: res?.pickupLocation
+      ? {
+          roadAddress: res.pickupLocation.roadAddress,
+          lotAddress: res.pickupLocation.lotAddress,
+          detailAddress: res.pickupLocation.detailAddress,
+          latitude: res.pickupLocation.latitude,
+          longitude: res.pickupLocation.longitude,
+        }
+      : null,
+    shopRoadAddress: res?.shopRoadAddress ?? "",
+    shopLotAddress: res?.shopLotAddress ?? null,
+    shopLatitude: res?.shopLatitude ?? 0,
+    shopLongitude: res?.shopLongitude ?? 0,
+    updatedAt: res?.updatedAt ?? null,
   };
 }
 
@@ -170,7 +194,7 @@ export const shopService = {
   // 운영정보 탭 1회 렌더에 필요한 데이터를 병합 조회 — 하나라도 실패하면 그 error 를 그대로 올린다.
   // 배달팁·배달가능지역도 운영정보 탭에서 함께 노출하므로 같은 병합 조회에 포함한다.
   async getShopOperationInfo(shopId: number): Promise<ApiResponse<ShopOperationInfo>> {
-    const [businessHourRes, breakTimeRes, closedDaysRes, hygieneRes, deliveryTipRes, deliveryAreaRes] =
+    const [businessHourRes, breakTimeRes, closedDaysRes, hygieneRes, deliveryTipRes, deliveryAreaRes, riderGuideRes] =
       await Promise.all([
         shopRepository.getBusinessHours(shopId),
         shopRepository.getBreakTimes(shopId),
@@ -178,6 +202,7 @@ export const shopService = {
         shopRepository.getHygieneBadges(shopId),
         shopRepository.getDeliveryTips(shopId),
         shopRepository.getDeliveryAreas(shopId),
+        shopRepository.getRiderGuide(shopId),
       ]);
 
     const failed = [businessHourRes, breakTimeRes, closedDaysRes, hygieneRes].find((res) => res.error !== undefined);
@@ -190,6 +215,10 @@ export const shopService = {
     }
     if (deliveryAreaRes.error !== undefined) {
       logger.warn({ reason: deliveryAreaRes.error, shopId }, "가게 배달가능지역 조회 실패 — 빈 목록으로 렌더");
+    }
+    // 라이더 안내도 같은 이유로 탭 전체를 막지 않는다 — 부가 설정이므로 '미설정' 상태로 렌더한다.
+    if (riderGuideRes.error !== undefined) {
+      logger.warn({ reason: riderGuideRes.error, shopId }, "가게 라이더 안내 조회 실패 — 미설정으로 렌더");
     }
 
     const closedDays = closedDaysRes.data;
@@ -261,6 +290,7 @@ export const shopService = {
           adminDongId: item.adminDongId,
           regionName: item.regionName,
         })),
+        riderGuide: toRiderGuide(riderGuideRes.data),
       },
     };
   },

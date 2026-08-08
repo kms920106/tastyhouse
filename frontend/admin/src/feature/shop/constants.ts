@@ -251,3 +251,21 @@ export const CONTENT_BOARD_TOPIC_LABEL: Record<ContentBoardTopicOption, string> 
   FOOD_STORY: "음식 이야기",
   NEWS: "소식",
 };
+
+// ===== 라이더 가게방문 안내 검수 =====
+
+/** 관리자 조치 사유 최대 길이 */
+export const SHOP_RIDER_GUIDE_REASON_MAX = 200;
+/** 픽업 위치 상세주소 최대 길이 */
+export const SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX = 100;
+
+export const RIDER_GUIDE_ACTION_TYPE_LABEL = {
+  UPDATE: "점주 수정",
+  REVISION_REQUEST: "수정 요청",
+  DELETION: "삭제 조치",
+} as const;
+
+export const RIDER_GUIDE_ACTOR_TYPE_LABEL = {
+  CEO: "점주",
+  ADMIN: "관리자",
+} as const;

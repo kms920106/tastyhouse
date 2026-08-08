@@ -13,7 +13,7 @@ import {
   type WeekdayOption,
 } from "@/feature/shop/constants";
 import type { ShopOperationInfo } from "@/feature/shop/domain";
-import { SHOP_OPERATION_COPY } from "@/feature/shop/message";
+import { SHOP_OPERATION_COPY, SHOP_RIDER_COPY } from "@/feature/shop/message";
 import { formatTimeLabel } from "@/feature/shop/time";
 
 import { BusinessHoursSheet } from "./business-hours-sheet";
@@ -22,6 +22,8 @@ import { DeliveryTipExtraSheet } from "./delivery-tip-extra-sheet";
 import { DeliveryTipTiersSheet } from "./delivery-tip-tiers-sheet";
 import { HygieneInfoCard } from "./hygiene-info-card";
 import { MinOrderAmountSheet } from "./min-order-amount-sheet";
+import { RiderPickupLocationSheet } from "./rider-pickup-location-sheet";
+import { RiderVisitGuideSheet } from "./rider-visit-guide-sheet";
 import { ScheduledOrderSheet } from "./scheduled-order-sheet";
 import { SettingRow } from "./setting-row";
 
@@ -46,6 +48,8 @@ export function OperationInfoTab({
   const [scheduledOrderOpen, setScheduledOrderOpen] = React.useState(false);
   const [deliveryTipTiersOpen, setDeliveryTipTiersOpen] = React.useState(false);
   const [deliveryTipExtraOpen, setDeliveryTipExtraOpen] = React.useState(false);
+  const [riderVisitGuideOpen, setRiderVisitGuideOpen] = React.useState(false);
+  const [riderPickupLocationOpen, setRiderPickupLocationOpen] = React.useState(false);
 
   const currentMinOrderAmount = minOrderAmount ?? MIN_ORDER_AMOUNT_UNSET;
   const currentScheduledOrderEnabled = scheduledOrderEnabled ?? false;
@@ -61,7 +65,14 @@ export function OperationInfoTab({
 
   const { closedOnPublicHolidays, regularClosedDays, temporaryClosures } = operationInfo.closedDays;
 
-  const { deliveryTip, deliveryAreas } = operationInfo;
+  const { deliveryTip, deliveryAreas, riderGuide } = operationInfo;
+
+  // SettingRow 의 summary 는 CSS 로 한 줄 truncate 되므로, JS 로 문자열을 잘라 "..." 를 붙이지 않는다.
+  const visitGuideSummary = riderGuide.visitGuide ?? SHOP_RIDER_COPY.UNSET_LABEL;
+
+  const pickupLocationSummary = riderGuide.pickupLocation
+    ? [riderGuide.pickupLocation.roadAddress, riderGuide.pickupLocation.detailAddress].filter(Boolean).join(" ")
+    : SHOP_RIDER_COPY.PICKUP_FALLBACK_LABEL;
 
   // 배달팁 요약 — 첫 구간(가장 낮은 주문금액) 배달팁과 구간 수를 함께 보여준다
   const deliveryTipSummary =
@@ -186,6 +197,24 @@ export function OperationInfoTab({
 
       <Separator />
 
+      <SettingRow
+        title={SHOP_RIDER_COPY.VISIT_GUIDE_TITLE}
+        description={SHOP_RIDER_COPY.VISIT_GUIDE_DESCRIPTION}
+        summary={visitGuideSummary}
+        onAction={() => setRiderVisitGuideOpen(true)}
+      />
+
+      <Separator />
+
+      <SettingRow
+        title={SHOP_RIDER_COPY.PICKUP_TITLE}
+        description={SHOP_RIDER_COPY.PICKUP_DESCRIPTION}
+        summary={pickupLocationSummary}
+        onAction={() => setRiderPickupLocationOpen(true)}
+      />
+
+      <Separator />
+
       <HygieneInfoCard badges={operationInfo.hygieneBadges} />
 
       {editingDay && (
@@ -235,6 +264,20 @@ export function OperationInfoTab({
         shopId={shopId}
         deliveryTip={deliveryTip}
         deliveryAreas={deliveryAreas}
+      />
+
+      <RiderVisitGuideSheet
+        open={riderVisitGuideOpen}
+        onOpenChange={setRiderVisitGuideOpen}
+        shopId={shopId}
+        visitGuide={riderGuide.visitGuide}
+      />
+
+      <RiderPickupLocationSheet
+        open={riderPickupLocationOpen}
+        onOpenChange={setRiderPickupLocationOpen}
+        shopId={shopId}
+        riderGuide={riderGuide}
       />
     </div>
   );

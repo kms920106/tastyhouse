@@ -46,11 +46,15 @@ import {
   phoneNumberSchema,
   type ShopIntroductionFormValues,
   type ShopMinOrderAmountFormValues,
+  type ShopRiderPickupLocationFormValues,
+  type ShopRiderVisitGuideFormValues,
   type ShopScheduledOrderFormValues,
   type ShopStatusFormValues,
   type SuspensionFormValues,
   shopIntroductionSchema,
   shopMinOrderAmountSchema,
+  shopRiderPickupLocationSchema,
+  shopRiderVisitGuideSchema,
   shopScheduledOrderSchema,
   shopStatusSchema,
   suspensionSchema,
@@ -765,5 +769,65 @@ export async function releaseSuspensionAction(shopId: number, suspensionId: numb
   if (error !== undefined) return { success: false, message: error };
 
   revalidatePath(SHOP_STATUS_PATH);
+  return { success: true };
+}
+
+// ===== 라이더 가게방문 안내 · 픽업 위치 =====
+
+export async function validateShopRiderVisitGuideAction(
+  shopId: number,
+  values: ShopRiderVisitGuideFormValues,
+): Promise<DataResult<{ valid: boolean; violations: string[] }>> {
+  const parsed = shopRiderVisitGuideSchema.safeParse(values);
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message };
+
+  const { error, data } = await shopRepository.validateRiderVisitGuide(shopId, parsed.data);
+  if (error !== undefined || data === undefined) return { success: false, message: error };
+
+  return { success: true, data };
+}
+
+// 빈 문자열을 그대로 보내면 서버가 문구를 삭제한다 — 삭제 전용 액션을 따로 두지 않는다.
+export async function updateShopRiderVisitGuideAction(
+  shopId: number,
+  values: ShopRiderVisitGuideFormValues,
+): Promise<ActionResult> {
+  const parsed = shopRiderVisitGuideSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.updateRiderVisitGuide(shopId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+export async function updateShopRiderPickupLocationAction(
+  shopId: number,
+  values: ShopRiderPickupLocationFormValues,
+): Promise<ActionResult> {
+  const parsed = shopRiderPickupLocationSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { detailAddress, latitude, longitude, lotAddress, roadAddress } = parsed.data;
+  const { error } = await shopRepository.updateRiderPickupLocation(shopId, {
+    roadAddress,
+    // 선택 입력은 빈 문자열 대신 null 로 보내, 서버의 '전부 채우거나 전부 비우거나' 판정과 어긋나지 않게 한다.
+    lotAddress: lotAddress.length > 0 ? lotAddress : null,
+    detailAddress: detailAddress.length > 0 ? detailAddress : null,
+    latitude,
+    longitude,
+  });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+export async function clearShopRiderPickupLocationAction(shopId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.clearRiderPickupLocation(shopId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
   return { success: true };
 }

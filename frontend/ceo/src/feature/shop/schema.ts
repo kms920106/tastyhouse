@@ -23,6 +23,8 @@ import {
   ORDER_METHOD_OPTIONS,
   SHOP_DIRECTIONS_MAX,
   SHOP_INTRODUCTION_MAX,
+  SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX,
+  SHOP_RIDER_VISIT_GUIDE_MAX,
   SHOP_STATUS_OPTIONS,
   SUSPENSION_REASON_OPTIONS,
   TEMPORARY_CLOSURE_MAX_DAYS,
@@ -66,6 +68,39 @@ export const shopIntroductionSchema = z.object({
     }),
 });
 export type ShopIntroductionFormValues = z.infer<typeof shopIntroductionSchema>;
+
+// 빈 문자열은 '삭제' 의도이므로 min(1) 을 두지 않는다.
+export const shopRiderVisitGuideSchema = z.object({
+  visitGuide: z
+    .string()
+    .trim()
+    .max(SHOP_RIDER_VISIT_GUIDE_MAX, {
+      message: `라이더 가게방문 안내는 최대 ${SHOP_RIDER_VISIT_GUIDE_MAX}자까지 입력할 수 있습니다.`,
+    }),
+});
+export type ShopRiderVisitGuideFormValues = z.infer<typeof shopRiderVisitGuideSchema>;
+
+// 위경도는 둘 다 필수 number 라, 하나만 채워진 상태는 스키마 단계에서 이미 막힌다.
+// 서버의 SHOP_RIDER_PICKUP_LOCATION_INCOMPLETE 는 API 를 직접 호출하는 경우를 위한 방어선이다.
+export const shopRiderPickupLocationSchema = z.object({
+  roadAddress: z.string().trim().min(1, { message: "도로명주소는 필수입니다." }),
+  lotAddress: z.string().trim(),
+  detailAddress: z
+    .string()
+    .trim()
+    .max(SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX, {
+      message: `상세주소는 최대 ${SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX}자까지 입력할 수 있습니다.`,
+    }),
+  latitude: z
+    .number({ message: "위도를 입력해 주세요." })
+    .min(-90, { message: "위도는 -90 이상이어야 합니다." })
+    .max(90, { message: "위도는 90 이하여야 합니다." }),
+  longitude: z
+    .number({ message: "경도를 입력해 주세요." })
+    .min(-180, { message: "경도는 -180 이상이어야 합니다." })
+    .max(180, { message: "경도는 180 이하여야 합니다." }),
+});
+export type ShopRiderPickupLocationFormValues = z.infer<typeof shopRiderPickupLocationSchema>;
 
 export const shopStatusSchema = z.object({
   status: z.enum(SHOP_STATUS_OPTIONS),

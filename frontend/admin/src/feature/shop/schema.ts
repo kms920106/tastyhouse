@@ -16,6 +16,8 @@ import {
   PHOTO_CATEGORY_NAME_MAX,
   REJECT_REASON_MAX,
   SHOP_NAME_MAX,
+  SHOP_RIDER_GUIDE_REASON_MAX,
+  SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX,
   TAG_NAME_MAX,
 } from "./constants";
 
@@ -328,3 +330,39 @@ export const hygieneBadgeSchema = z
   });
 
 export type HygieneBadgeFormValues = z.infer<typeof hygieneBadgeSchema>;
+
+// ===== 라이더 가게방문 안내 검수 =====
+
+// 수정 요청·삭제 조치 모두 사유가 필수다 — 이력에 남는 유일한 근거이기 때문이다.
+export const riderGuideReasonSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(1, { message: "조치 사유를 입력해 주세요." })
+    .max(SHOP_RIDER_GUIDE_REASON_MAX, {
+      message: `조치 사유는 최대 ${SHOP_RIDER_GUIDE_REASON_MAX}자까지 입력할 수 있습니다.`,
+    }),
+});
+
+export type RiderGuideReasonFormValues = z.infer<typeof riderGuideReasonSchema>;
+
+export const riderPickupLocationSchema = z.object({
+  roadAddress: z.string().trim().min(1, { message: "도로명주소는 필수입니다." }),
+  lotAddress: z.string().trim(),
+  detailAddress: z
+    .string()
+    .trim()
+    .max(SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX, {
+      message: `상세주소는 최대 ${SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX}자까지 입력할 수 있습니다.`,
+    }),
+  latitude: z
+    .number({ message: "위도를 입력해 주세요." })
+    .min(-90, { message: "위도는 -90 이상이어야 합니다." })
+    .max(90, { message: "위도는 90 이하여야 합니다." }),
+  longitude: z
+    .number({ message: "경도를 입력해 주세요." })
+    .min(-180, { message: "경도는 -180 이상이어야 합니다." })
+    .max(180, { message: "경도는 180 이하여야 합니다." }),
+});
+
+export type RiderPickupLocationFormValues = z.infer<typeof riderPickupLocationSchema>;

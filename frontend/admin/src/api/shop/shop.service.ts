@@ -20,6 +20,8 @@ import type {
   ShopHygieneBadge,
   ShopImageChangeRequest,
   ShopListItem,
+  ShopRiderGuideDetail,
+  ShopRiderGuideListItem,
   Station,
   Tag,
 } from "@/feature/shop/domain";
@@ -29,6 +31,7 @@ import type {
   EditorChoiceListQueryRequest,
   ShopImageChangeRequestListQueryRequest,
   ShopListQueryRequest,
+  ShopRiderGuideListQueryRequest,
 } from "./shop.dto";
 import { shopRepository } from "./shop.repository";
 
@@ -332,6 +335,61 @@ export const shopService = {
         hidden: item.hidden,
         createdAt: item.createdAt,
       })),
+    };
+  },
+
+  // 라이더 안내 등록 가게 목록 조회 — 도메인 반환
+  async getRiderGuides(
+    query: ShopRiderGuideListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ShopRiderGuideListItem[]>> {
+    const res = await shopRepository.getRiderGuides(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        shopId: item.shopId,
+        shopName: item.shopName,
+        visitGuide: item.visitGuide,
+        hasPickupLocation: item.hasPickupLocation,
+        updatedAt: item.updatedAt,
+      })),
+    };
+  },
+
+  // 라이더 안내 단건 조회 (문구·픽업 위치·변경 이력) — 도메인 반환
+  async getRiderGuide(shopId: number): Promise<ApiResponse<ShopRiderGuideDetail>> {
+    const res = await shopRepository.getRiderGuide(shopId);
+    if (res.error !== undefined || !res.data) return { error: res.error, status: res.status };
+
+    const { histories, pickupLocation, shopName, shopRoadAddress, visitGuide } = res.data;
+
+    return {
+      status: res.status,
+      data: {
+        shopId: res.data.shopId,
+        shopName,
+        shopRoadAddress,
+        visitGuide,
+        pickupLocation: pickupLocation
+          ? {
+              roadAddress: pickupLocation.roadAddress,
+              lotAddress: pickupLocation.lotAddress,
+              detailAddress: pickupLocation.detailAddress,
+              latitude: pickupLocation.latitude,
+              longitude: pickupLocation.longitude,
+            }
+          : null,
+        histories: histories.map((item) => ({
+          id: item.id,
+          actorType: item.actorType,
+          actorId: item.actorId,
+          actionType: item.actionType,
+          previousVisitGuide: item.previousVisitGuide,
+          newVisitGuide: item.newVisitGuide,
+          reason: item.reason,
+          createdAt: item.createdAt,
+        })),
+      },
     };
   },
 };

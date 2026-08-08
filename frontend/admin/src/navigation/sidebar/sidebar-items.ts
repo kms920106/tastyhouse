@@ -1,5 +1,6 @@
 import {
   Banknote,
+  Bike,
   Bug,
   Calendar,
   CalendarDays,
@@ -186,6 +187,11 @@ export const sidebarItems: NavGroup[] = [
         title: "콘텐츠보드 검수",
         url: "/dashboard/shop-content-boards",
         icon: LayoutGrid,
+      },
+      {
+        title: "라이더 안내 검수",
+        url: "/dashboard/shop-rider-guides",
+        icon: Bike,
       },
       {
         title: "상품",

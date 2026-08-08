@@ -412,3 +412,71 @@ export interface ShopHygieneBadgeCreateRequest {
   certifiedDate: string;
   lastInspectionMonth?: string;
 }
+
+// ===== 라이더 가게방문 안내 검수 =====
+
+export type RiderGuideActorType = "CEO" | "ADMIN";
+export type RiderGuideActionType = "UPDATE" | "REVISION_REQUEST" | "DELETION";
+
+export interface ShopRiderGuideListQueryRequest {
+  shopName?: string;
+  /** true면 문구가 등록된 가게만, false면 픽업 위치만 설정된 가게만, 미지정 시 전체 */
+  hasVisitGuide?: boolean;
+}
+
+export interface ShopRiderGuideListItemResponse {
+  shopId: number;
+  shopName: string;
+  /** 미등록 시 null */
+  visitGuide: string | null;
+  hasPickupLocation: boolean;
+  updatedAt: string;
+}
+
+export interface ShopRiderPickupLocationResponse {
+  roadAddress: string;
+  lotAddress: string | null;
+  detailAddress: string | null;
+  latitude: number;
+  longitude: number;
+}
+
+export interface ShopRiderGuideHistoryResponse {
+  id: number;
+  actorType: RiderGuideActorType;
+  actorId: number;
+  actionType: RiderGuideActionType;
+  previousVisitGuide: string | null;
+  /** 삭제 조치 시 null */
+  newVisitGuide: string | null;
+  /** 점주 변경(UPDATE) 시 null */
+  reason: string | null;
+  createdAt: string;
+}
+
+export interface ShopRiderGuideDetailResponse {
+  shopId: number;
+  shopName: string;
+  shopRoadAddress: string;
+  visitGuide: string | null;
+  /** 미설정 시 null — 라이더에게는 가게 실주소가 폴백으로 안내된다 */
+  pickupLocation: ShopRiderPickupLocationResponse | null;
+  /** 최신순, 최대 20건 */
+  histories: ShopRiderGuideHistoryResponse[];
+}
+
+export interface ShopRiderVisitGuideDeleteRequest {
+  reason: string;
+}
+
+export interface ShopRiderVisitGuideRevisionRequest {
+  reason: string;
+}
+
+export interface ShopRiderPickupLocationUpdateRequest {
+  roadAddress: string;
+  lotAddress: string | null;
+  detailAddress: string | null;
+  latitude: number;
+  longitude: number;
+}
