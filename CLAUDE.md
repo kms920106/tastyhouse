@@ -151,6 +151,16 @@ backend는 실행 파일(jar)이 있어야 위 명령이 동작합니다. jar가
 - **`-plain.jar`은 실행 대상이 아닙니다.** 같은 디렉터리에 `{모듈}-{버전}-plain.jar`(의존성 없는 클래스 묶음)이 함께 생성되는데, 이것을 실행하면 `no main manifest attribute` 오류가 납니다. 접미어 없는 쪽을 실행합니다.
 - **백그라운드로 띄울 때는 로그를 파일로 남깁니다**(예: `nohup java -jar ... > /tmp/ceo-api.log 2>&1 &`). 기동 성공 판정은 포트 LISTEN 여부가 아니라 로그의 `Started {Xxx}ApiApplication` 마커로 합니다 — 포트는 부팅 도중에도 잠깐 열릴 수 있습니다.
 - **코드 변경 시마다 `backend`에서 `./gradlew :{모듈}:build`로 재빌드합니다.** jar는 빌드 시점에 고정되므로 재빌드 없이 재실행하면 이전 코드가 그대로 뜨는데, 부팅은 성공하므로 변경이 반영되지 않은 것을 알아채기 어렵습니다.
+- **재빌드 전에 그 모듈의 실행 중인 프로세스를 반드시 먼저 내립니다.** 앱이 떠 있는 상태로 빌드하면 Gradle이 jar를 삭제 후 재생성이 아니라 **같은 inode에 덮어쓰기**로 갱신하는데, JVM은 fat jar를 통째로 메모리에 올리지 않고 클래스가 필요한 시점에 파일 오프셋으로 lazy 로딩하므로 **아직 로드되지 않은 클래스의 오프셋이 전부 무효가 됩니다.** 순서는 `내리기 → 빌드 → 다시 띄우기`입니다.
+
+  ```bash
+  pgrep -lf 'ceo-api-.*\.jar'          # 1) 실행 중인지 확인
+  pkill -f 'ceo-api-.*\.jar'           # 2) 떠 있으면 종료 (없으면 아무 일도 안 함)
+  cd backend && ./gradlew :ceo-api:build   # 3) 빌드
+  nohup java -jar ceo-api/build/libs/ceo-api-0.0.1-SNAPSHOT.jar > /tmp/ceo-api.log 2>&1 &  # 4) 재기동
+  ```
+
+  이 규칙을 어겨도 **그 순간에는 아무 일도 일어나지 않습니다.** 이미 로드된 클래스로 계속 동작하다가, 나중에 처음 필요해지는 클래스에서 `NoClassDefFoundError`가 터집니다. 증상과 원인의 시간 간격이 몇 시간까지 벌어지므로 아래 "간헐적으로 응답하지 않을 때" 절을 함께 참고합니다.
 - **`build`는 테스트를 함께 실행하며, 테스트가 실패하면 jar가 만들어지지 않습니다.** 이 저장소에는 ArchUnit 레이어 규칙(`LayerRulesTest`)·`ErrorCodeConventionTest`·`EmbeddedRecordComponentOrderTest` 등 규약 위반을 잡는 가드 테스트가 있으므로, 빌드 실패 시 테스트 출력을 먼저 확인합니다 — 대개 코드가 아니라 규약을 어긴 것입니다.
 
 #### 실행 디렉터리(CWD) 주의
@@ -169,3 +179,41 @@ cd /tmp && java -jar ~/.../ceo-api-0.0.1-SNAPSHOT.jar
 ```
 
 운영 배포처럼 CWD를 보장할 수 없는 환경에서는 `.env` 상대경로에 기대지 말고 환경변수를 직접 주입합니다(자격증명 파일은 `SECRETS_DIR`로 주입 — `backend/CLAUDE.md`의 "시크릿 파일 로딩 규칙(configtree)" 참조).
+
+#### backend가 간헐적으로 응답하지 않을 때 (진단 순서)
+
+요청이 30초 타임아웃되는데 **어떤 요청은 정상 200으로 응답**한다면, 톰캣이나 네트워크를 의심하기 전에 **실행 중 재빌드부터 확인합니다.** 이 저장소에서 실제로 겪은 사고이고, 증상이 원인과 몇 시간 떨어져 있어 추적이 오래 걸립니다.
+
+**1단계 — 기동 시각과 jar 수정 시각을 비교합니다.** 이 한 번으로 판별이 끝납니다.
+
+```bash
+grep 'Started .*ApiApplication' /tmp/ceo-api.log   # 프로세스가 뜬 시각
+ls -la backend/ceo-api/build/libs/                 # jar가 만들어진 시각
+```
+
+**jar mtime이 기동 시각보다 나중이면 확정입니다** — 실행 중에 덮어쓴 것이므로 위 재빌드 규칙대로 `내리기 → 빌드 → 다시 띄우기`로 해소합니다. `lsof -p {PID} | grep '\.jar'`에 `deleted` 표시가 **없는데도** 파일이 바뀐 것이 덮어쓰기의 근거입니다.
+
+**2단계 — 로그에서 아래 두 신호를 확인합니다.**
+
+- `Exception in thread "http-nio-{포트}-exec-N"` — 워커 스레드가 catch되지 않은 예외로 **죽은** 것입니다. 요청마다 하나씩 사망해 스레드 풀이 고갈되고, 그 뒤 새 커넥션은 accept 큐에 쌓인 채 처리되지 않아 타임아웃이 납니다. 아직 살아있는 스레드가 잡은 요청만 200으로 응답하므로 **"간헐적"으로 보입니다.**
+- `NoClassDefFoundError` / `ClassNotFoundException` — 특히 `ch.qos.logback.classic.spi.ThrowableProxy`처럼 **예외 로깅 시점에 처음 로드되는 클래스**에서 납니다. 이 예외 자체가 원인이지 부수 현상이 아닙니다.
+
+**3단계 — 앱 로그에 `[REQUEST]` 라인이 있는지 봅니다.** 프론트는 요청을 보냈는데 backend 로그에 해당 `[REQUEST]`가 **아예 없다면**, 요청이 소켓까지는 도착했지만 처리할 스레드가 없어 서블릿 필터(`ApiLoggingFilter`)까지 도달하지 못한 것입니다. 이것도 위 스레드 고갈의 증거이며, **네트워크 문제로 오인하기 쉬운 지점**입니다.
+
+부팅 자체가 실패한다면 다른 문제이므로 아래 DB 스키마 절을 확인합니다.
+
+### 로컬 DB 스키마 반영 (마이그레이션 도구 없음)
+
+**이 저장소에는 Flyway·Liquibase 같은 마이그레이션 도구가 없고 `backend/schema.sql` 한 벌만 있습니다.** 따라서 스키마를 바꾸는 기능을 구현해도 `schema.sql`만 갱신될 뿐 **로컬 DB에는 아무것도 반영되지 않습니다.** 접속 정보는 `backend/.env`(`DB_URL`·`DB_USERNAME`·`DB_PASSWORD`)에 있습니다.
+
+`application-infrastructure.yml`이 `ddl-auto: validate`라서, 엔티티와 실제 테이블이 어긋나면 부팅이 다음과 같이 **정상적으로 거부됩니다**.
+
+```
+Schema-validation: missing column [boundary] in table [ADMIN_DONG]
+→ Unable to build Hibernate SessionFactory → APPLICATION FAILED TO START
+```
+
+- **스키마 변경이 포함된 기능을 구현했거나, 남의 브랜치를 받아 backend 부팅이 실패하면 이 드리프트를 먼저 의심합니다.**
+- **에러에 찍힌 컬럼 하나만 고치지 말고 전수 대조합니다.** 하나를 추가하면 다음 컬럼에서 또 실패하므로, `schema.sql`의 `CREATE TABLE` 블록을 `information_schema.columns`와 통째로 비교해 누락 테이블·컬럼을 한 번에 뽑는 편이 빠릅니다.
+- **DDL은 직접 실행하지 말고 `docs/tasks/*.sql`로 작성해 사용자에게 적용을 요청합니다.** DB 스키마 변경은 되돌리기 어려운 작업이라 실행 권한이 제한됩니다.
+- 컬럼을 추가해 부팅이 되더라도 **시드 데이터가 없으면 기능은 빈 상태로 동작합니다.** 좌표·경계처럼 NULL 허용 컬럼은 부팅을 막지 않으므로, 기능 검증까지 하려면 시드가 별도로 필요한지 확인합니다.
