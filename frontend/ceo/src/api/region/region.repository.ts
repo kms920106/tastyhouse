@@ -3,7 +3,14 @@ import "server-only";
 import { api } from "@/api/shared/client";
 import type { ApiPageRequest, ApiResponse } from "@/api/shared/types";
 
-import type { AdminDongItemResponse, AdminDongSearchQueryRequest } from "./region.dto";
+import type {
+  AdminDongBoundaryQueryRequest,
+  AdminDongBoundaryResponse,
+  AdminDongItemResponse,
+  AdminDongSearchQueryRequest,
+  AdminDongTreeQueryRequest,
+  AdminDongTreeResponse,
+} from "./region.dto";
 
 /**
  * 행정동(지역) 조회 API
@@ -22,5 +29,24 @@ export const regionRepository = {
     return api.get<AdminDongItemResponse[]>(`${ENDPOINT}/v1`, {
       params: { ...query, ...pageRequest },
     });
+  },
+
+  /**
+   * 행정동 계층 3단 lazy 조회.
+   *
+   * 가게 소유권과 무관하며 점주 인증만 있으면 호출할 수 있다.
+   */
+  getAdminDongTree(query: AdminDongTreeQueryRequest): Promise<ApiResponse<AdminDongTreeResponse>> {
+    return api.get<AdminDongTreeResponse>(`${ENDPOINT}/v1/tree`, { params: query });
+  },
+
+  /**
+   * 행정동 경계 조회.
+   *
+   * bbox(`swLat`/`swLng`/`neLat`/`neLng`)와 `adminDongIds` 는 배타적이다 — 둘 다 보내거나
+   * 둘 다 빼면 서버가 400 을 낸다. 호출부에서 한 가지만 채워 보낸다.
+   */
+  getAdminDongBoundaries(query: AdminDongBoundaryQueryRequest): Promise<ApiResponse<AdminDongBoundaryResponse>> {
+    return api.get<AdminDongBoundaryResponse>(`${ENDPOINT}/v1/boundaries`, { params: query });
   },
 };

@@ -323,10 +323,72 @@ export const HYGIENE_BADGE_TYPE_LABEL: Record<HygieneBadgeTypeOption, string> = 
 
 // ===== 배달가능지역 · 배달지역 조정 신청 =====
 
-/** 배달가능지역 등록 상한 — 서버 상한이 없어 클라이언트에서 가드한다 */
-export const DELIVERY_AREA_MAX_COUNT = 100;
+/** 배달가능지역 등록 상한 — 백엔드 `ShopDeliveryAreaPolicy.MAX_DELIVERY_AREA_COUNT` 와 일치시킨다 */
+export const DELIVERY_AREA_MAX_COUNT = 500;
+/** bulk 추가·삭제 한 번에 보낼 수 있는 행정동 개수 — 백엔드 `MAX_BULK_SIZE` 와 일치 */
+export const DELIVERY_AREA_BULK_MAX_SIZE = 500;
 /** 행정동 검색 한 번에 가져올 건수 */
 export const ADMIN_DONG_SEARCH_SIZE = 20;
+/** 검색어 입력이 멈춘 뒤 조회하기까지의 지연(ms) */
+export const SEARCH_DEBOUNCE_MS = 300;
+
+// ===== 배달지역 지도 편집 =====
+
+/** 반경 설정 하한(km) — 백엔드 `@Min(500)`(m) 과 일치 */
+export const DELIVERY_AREA_MIN_RADIUS_KM = 0.5;
+/** 반경 설정 상한(km) — 가이드의 배달지역 최대 7km */
+export const DELIVERY_AREA_MAX_RADIUS_KM = 7;
+/** 반경 슬라이더 기본값(km) */
+export const DELIVERY_AREA_DEFAULT_RADIUS_KM = 3;
+/** 반경 입력 단위(km) */
+export const DELIVERY_AREA_RADIUS_STEP_KM = 0.5;
+/** 가게배달 기본 노출 반경(km) — 안내 표시 전용이며 배달지역 판정에는 쓰지 않는다 */
+export const DELIVERY_AREA_EXPOSURE_RADIUS_KM = 4;
+/** 도형 링 개수 상한 — 백엔드 `MAX_RINGS` 와 일치 */
+export const DELIVERY_AREA_MAX_RINGS = 20;
+/** 도형 총 정점 수 상한 — 백엔드 `MAX_VERTICES` 와 일치 */
+export const DELIVERY_AREA_MAX_VERTICES = 5000;
+/**
+ * 카카오 지도 줌 레벨 범위 — 값이 작을수록 확대다.
+ *
+ * 공식 문서 기준 ROADMAP 은 1~14, SKYVIEW/HYBRID 는 0~14 다. 이 화면은 기본 ROADMAP 만 쓰므로
+ * 하한을 1로 둔다. 위성 지도를 도입하면 이 값을 지도 타입별로 갈라야 한다.
+ */
+export const KAKAO_MAP_MIN_LEVEL = 1;
+export const KAKAO_MAP_MAX_LEVEL = 14;
+/** 이보다 축소하면 경계를 로드하지 않는다 — 광역 뷰에서 수천 건을 받지 않기 위한 가드 */
+export const BOUNDARY_MIN_ZOOM_LEVEL = 6;
+/** 지도 이동이 멈춘 뒤 경계를 조회하기까지의 지연(ms) */
+export const BOUNDARY_FETCH_DEBOUNCE_MS = 200;
+/** draft 임시 저장(localStorage) 지연(ms) */
+export const DELIVERY_AREA_DRAFT_SAVE_DEBOUNCE_MS = 500;
+/** undo/redo 스택 최대 깊이 */
+export const DELIVERY_AREA_HISTORY_LIMIT = 50;
+
+/** 편집 모드 — 이동(지도 조작) / 그리기 / 지우기 */
+export const DELIVERY_AREA_MODE_OPTIONS = ["PAN", "PAINT", "ERASE"] as const;
+export type DeliveryAreaMode = (typeof DELIVERY_AREA_MODE_OPTIONS)[number];
+
+export const DELIVERY_AREA_MODE_LABEL: Record<DeliveryAreaMode, string> = {
+  PAN: "이동",
+  PAINT: "그리기",
+  ERASE: "지우기",
+};
+
+export const BRUSH_SIZE_OPTIONS = ["S", "M", "L"] as const;
+export type BrushSizeOption = (typeof BRUSH_SIZE_OPTIONS)[number];
+
+export const BRUSH_SIZE_LABEL: Record<BrushSizeOption, string> = {
+  S: "작게",
+  M: "보통",
+  L: "크게",
+};
+
+/**
+ * 브러시 반지름(px) — 지리 거리가 아니라 화면 좌표계 기준이다.
+ * 확대하면 실제 지리 반경이 줄어 정밀 편집이 되고, 축소하면 넓게 칠해진다.
+ */
+export const BRUSH_SIZE_RADIUS_PX: Record<BrushSizeOption, number> = { S: 16, M: 32, L: 56 };
 
 /** 사업자등록번호 — 하이픈 제외 자릿수 */
 export const BUSINESS_NUMBER_LENGTH = 10;

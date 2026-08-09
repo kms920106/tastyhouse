@@ -104,10 +104,14 @@ export interface ShopDeliveryTipSettingResponse {
   holidayTipAmount: number;
 }
 
+/** 배달가능지역 행의 등록 출처 — 지도 도형에서 환산된 행(`POLYGON`)만 폴리곤 저장이 교체한다 */
+export type DeliveryAreaSourceValue = "MANUAL" | "POLYGON";
+
 export interface ShopDeliveryAreaItemResponse {
   id: number;
   adminDongId: number;
   regionName: string;
+  source: DeliveryAreaSourceValue;
 }
 
 // ===== 배달지역 조정 신청 =====
@@ -171,6 +175,131 @@ export interface ShopDeliveryTipHolidayUpdateRequest {
 
 export interface ShopDeliveryAreaCreateRequest {
   adminDongId: number;
+}
+
+// ===== 배달가능지역 일괄 처리 · 반경 · 도형 =====
+
+/** 일괄 추가(POST .../bulk)와 일괄 삭제(POST .../bulk-delete)가 같은 형태를 쓴다 */
+export interface ShopDeliveryAreaBulkRequest {
+  /** 최대 500개 */
+  adminDongIds: number[];
+}
+
+/**
+ * 일괄 처리 결과.
+ *
+ * 추가 응답에는 `requestedCount`/`addedCount`/`skippedCount`/`totalCount` 가,
+ * 삭제 응답에는 `removedCount`/`totalCount` 만 담긴다. 한 인터페이스로 합치고
+ * 없는 쪽을 선택 필드로 둔다.
+ */
+export interface ShopDeliveryAreaBulkResponse {
+  requestedCount?: number;
+  /** 실제로 새로 등록된 개수 */
+  addedCount?: number;
+  /** 이미 등록돼 있어 건너뛴 개수 — 중복은 실패가 아니라 skip 이다 */
+  skippedCount?: number;
+  removedCount?: number;
+  /** 반영 후 이 가게의 총 배달가능지역 개수 */
+  totalCount: number;
+}
+
+/** 반경 미리보기 query — 서버는 m 단위로 받는다(500~7000) */
+export interface ShopDeliveryAreaRadiusPreviewQueryRequest {
+  radiusMeters: number;
+}
+
+export interface ShopDeliveryAreaRadiusCandidateResponse {
+  adminDongId: number;
+  regionName: string;
+  /** 행정동 대표점 */
+  centerLatitude: number;
+  centerLongitude: number;
+  alreadyRegistered: boolean;
+}
+
+export interface ShopDeliveryAreaRadiusPreviewResponse {
+  /** 가게 현재 좌표 */
+  centerLatitude: number;
+  centerLongitude: number;
+  radiusMeters: number;
+  /** 7000 — 배달지역 상한 */
+  maxAllowedRadiusMeters: number;
+  /** 4000 — 가게배달 기본 노출 반경. 표시 전용이며 배달지역 판정에는 쓰이지 않는다 */
+  defaultExposureRadiusMeters: number;
+  /** 72각형으로 근사한 원. 클라이언트가 draft 도형에 union 할 재료 */
+  circle: GeoPointResponse[];
+  adminDongs: ShopDeliveryAreaRadiusCandidateResponse[];
+  adminDongCount: number;
+  /** 좌표·경계 미보유로 판정하지 못한 행정동 수 */
+  unresolvedCount: number;
+}
+
+export interface ShopDeliveryAreaRadiusApplyRequest {
+  /** 500~7000 */
+  radiusMeters: number;
+  /** true 면 기존 MANUAL 행을 지우고 교체, false 면 더하기 */
+  replace: boolean;
+}
+
+/** 좌표 한 점 — GeoJSON 의 `[lng, lat]` 순서 혼동을 없애려고 객체로 주고받는다 */
+export interface GeoPointResponse {
+  latitude: number;
+  longitude: number;
+}
+
+export interface ShopDeliveryAreaPolygonResponse {
+  /** 미설정은 404 가 아니라 false 다 — 도형을 안 그린 것도 정상 상태다 */
+  exists: boolean;
+  rings: GeoPointResponse[][] | null;
+  /** 저장 시점의 가게 좌표 스냅샷 — 7km 상한의 기준점 */
+  centerLatitude: number | null;
+  centerLongitude: number | null;
+  /** 현재 가게 좌표 */
+  shopLatitude: number;
+  shopLongitude: number;
+  /** 0 보다 크면 가게 주소가 이전된 것 — 도형 재설정을 안내한다 */
+  centerMovedMeters: number;
+  maxRadiusMeters: number | null;
+  maxAllowedRadiusMeters: number;
+  defaultExposureRadiusMeters: number;
+  ringCount: number | null;
+  vertexCount: number | null;
+  /** 이 도형에서 환산된 `source='POLYGON'` 행 수 */
+  projectedAdminDongCount: number;
+  updatedAt: string | null;
+}
+
+/** 도형 저장(PUT)과 환산 미리보기(POST .../preview)가 같은 본문을 쓴다 */
+export interface ShopDeliveryAreaPolygonSaveRequest {
+  /** 링 ≤ 20, 총 정점 ≤ 5000, 링당 정점 ≥ 3 */
+  rings: GeoPointResponse[][];
+}
+
+export interface ShopDeliveryAreaPolygonCandidateResponse {
+  adminDongId: number;
+  regionName: string;
+  alreadyRegistered: boolean;
+}
+
+export interface ShopDeliveryAreaPolygonBlockedResponse {
+  adminDongId: number;
+  regionName: string;
+  /** 현재는 "REGION_TIP" 한 가지 */
+  reason: string;
+}
+
+export interface ShopDeliveryAreaPolygonPreviewResponse {
+  maxRadiusMeters: number;
+  /** 모든 정점이 7km 이내인지 */
+  withinAllowedRadius: boolean;
+  adminDongs: ShopDeliveryAreaPolygonCandidateResponse[];
+  /** 저장하면 새로 열릴 동 */
+  addedAdminDongs: ShopDeliveryAreaPolygonCandidateResponse[];
+  /** 저장하면 닫힐 동 */
+  removedAdminDongs: ShopDeliveryAreaPolygonCandidateResponse[];
+  /** 배달팁 참조로 닫을 수 없는 동 — 저장 전에 알려줘 409 를 피하게 한다 */
+  blockedAdminDongs: ShopDeliveryAreaPolygonBlockedResponse[];
+  unresolvedCount: number;
 }
 
 // ===== 영업시간 · 휴게시간 =====

@@ -194,10 +194,20 @@ export interface ShopDeliveryTipSchedule {
   tipAmount: number;
 }
 
+/**
+ * 배달가능지역의 등록 출처.
+ *
+ * `MANUAL` 은 행정동을 직접 고르거나 반경으로 일괄 추가한 행, `POLYGON` 은 지도에 그린 도형을
+ * 서버가 행정동으로 환산해 만든 행이다. 폴리곤 저장은 `POLYGON` 행만 통째로 교체하므로
+ * `MANUAL` 행은 그대로 남는다.
+ */
+export type DeliveryAreaSource = "MANUAL" | "POLYGON";
+
 export interface ShopDeliveryArea {
   id: number;
   adminDongId: number;
   regionName: string;
+  source: DeliveryAreaSource;
 }
 
 /** 배달가능지역 등록 후보 — 행정동 검색 결과 */
@@ -206,6 +216,139 @@ export interface AdminDong {
   code: string;
   /** 서버가 완성해 내려주는 행정동 전체 이름 */
   regionName: string;
+}
+
+// ===== 배달지역 지도 편집 =====
+
+/** 위경도 한 점. API 경계에서는 GeoJSON 의 `[lng, lat]` 순서 혼동을 피해 객체로 주고받는다 */
+export interface GeoPoint {
+  latitude: number;
+  longitude: number;
+}
+
+/** 폴리곤의 링 하나 — 첫 점과 끝 점이 같을 필요는 없다(서버가 자동 폐합한다) */
+export type GeoRing = GeoPoint[];
+
+/** 행정동 계층 조회의 단계 */
+export type AdminDongTreeLevel = "SIDO" | "SIGUNGU" | "DONG";
+
+/** 행정동 계층 노드 한 건. `adminDongId`/`code` 는 `DONG` 레벨에서만 채워진다 */
+export interface AdminDongTreeNode {
+  name: string;
+  adminDongId: number | null;
+  code: string | null;
+  /** 하위 행정동 수. `DONG` 레벨에서는 1 */
+  dongCount: number;
+}
+
+/** 행정동 계층 조회 결과 — 어떤 레벨의 목록인지와 항목들 */
+export interface AdminDongTree {
+  level: AdminDongTreeLevel;
+  items: AdminDongTreeNode[];
+}
+
+/** 행정동 경계 한 건. 경계 데이터 미보유는 오류가 아니라 `rings: null` 인 정상 상태다 */
+export interface AdminDongBoundary {
+  adminDongId: number;
+  regionName: string;
+  /** 대표점(경계 내부 보장점). centroid 가 아니다 */
+  centerLatitude: number;
+  centerLongitude: number;
+  rings: GeoRing[] | null;
+}
+
+/** 뷰포트 경계 조회 결과. bbox 가 너무 넓으면 `truncated: true` 로 빈 목록을 준다 */
+export interface AdminDongBoundaryResult {
+  truncated: boolean;
+  items: AdminDongBoundary[];
+}
+
+/** 반경 미리보기에 걸린 행정동 한 건 */
+export interface DeliveryAreaRadiusCandidate {
+  adminDongId: number;
+  regionName: string;
+  centerLatitude: number;
+  centerLongitude: number;
+  /** 이미 배달가능지역으로 등록돼 있는지 */
+  alreadyRegistered: boolean;
+}
+
+/** 반경 미리보기 결과 */
+export interface DeliveryAreaRadiusPreview {
+  centerLatitude: number;
+  centerLongitude: number;
+  radiusMeters: number;
+  maxAllowedRadiusMeters: number;
+  defaultExposureRadiusMeters: number;
+  /** 72각형으로 근사한 원. 클라이언트가 draft 폴리곤에 union 할 재료로 쓴다 */
+  circle: GeoPoint[];
+  adminDongs: DeliveryAreaRadiusCandidate[];
+  adminDongCount: number;
+  /** 좌표·경계를 갖고 있지 않아 판정하지 못한 행정동 수 */
+  unresolvedCount: number;
+}
+
+/** bulk 추가·삭제·반경 적용의 반영 결과 */
+export interface DeliveryAreaBulkOutcome {
+  requestedCount: number;
+  addedCount: number;
+  /** 이미 등록돼 있어 건너뛴 개수. 중복은 실패가 아니라 skip 이다 */
+  skippedCount: number;
+  removedCount: number;
+  /** 반영 후 이 가게의 총 배달가능지역 개수 */
+  totalCount: number;
+}
+
+/** 저장된 배달지역 도형. 미설정은 오류가 아니라 `exists: false` 인 정상 상태다 */
+export interface DeliveryAreaPolygon {
+  exists: boolean;
+  rings: GeoRing[] | null;
+  /** 저장 시점의 가게 좌표 스냅샷 — 7km 상한의 기준점 */
+  centerLatitude: number | null;
+  centerLongitude: number | null;
+  /** 현재 가게 좌표 */
+  shopLatitude: number;
+  shopLongitude: number;
+  /** 0 보다 크면 가게 주소가 이전된 것 — 도형 재설정을 안내한다 */
+  centerMovedMeters: number;
+  maxRadiusMeters: number | null;
+  maxAllowedRadiusMeters: number;
+  defaultExposureRadiusMeters: number;
+  ringCount: number | null;
+  vertexCount: number | null;
+  /** 이 도형에서 환산된 `source='POLYGON'` 행정동 수 */
+  projectedAdminDongCount: number;
+  updatedAt: string | null;
+}
+
+/** 환산 미리보기에 등장하는 행정동 한 건 */
+export interface DeliveryAreaPolygonCandidate {
+  adminDongId: number;
+  regionName: string;
+  alreadyRegistered: boolean;
+}
+
+/** 배달팁 참조 때문에 닫을 수 없는 행정동 */
+export interface DeliveryAreaBlockedCandidate {
+  adminDongId: number;
+  regionName: string;
+  /** 현재는 `"REGION_TIP"` 한 가지 */
+  reason: string;
+}
+
+/**
+ * 폴리곤 저장 전 환산 미리보기.
+ *
+ * `blockedAdminDongs` 를 저장 전에 알려주므로 점주가 409 를 맞기 전에 배달팁을 정리할 수 있다.
+ */
+export interface DeliveryAreaPolygonPreview {
+  maxRadiusMeters: number;
+  withinAllowedRadius: boolean;
+  adminDongs: DeliveryAreaPolygonCandidate[];
+  addedAdminDongs: DeliveryAreaPolygonCandidate[];
+  removedAdminDongs: DeliveryAreaPolygonCandidate[];
+  blockedAdminDongs: DeliveryAreaBlockedCandidate[];
+  unresolvedCount: number;
 }
 
 /**

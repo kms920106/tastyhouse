@@ -16,6 +16,7 @@ Shop (가게 관리) feature module for the **점주(shop owner)** scope. Provid
 | `constants.ts` | Enum catalog as `*_OPTIONS` (`as const` array) + `*_LABEL` (`Record`) pairs, plus input limits and `SHOP_MANAGE_TABS`. All values are now sourced from `docs/CEO-API-SHOP-SPEC-FOR-FRONTEND.md`: `DAY_TYPE_*`, `CLOSED_DAY_TYPE_*` (43종), `ORDER_METHOD_*`, `SHOP_STATUS_*` (OPEN/HIDDEN only), `APPROVAL_STATUS_*`, `CONTENT_BOARD_TYPE/TOPIC_*`, `SUSPENSION_REASON_*`, `HYGIENE_BADGE_TYPE_*`. 편의시설(amenities) has no hardcoded enum — the catalog is fetched at runtime via `fetchAmenityCategoriesAction` |
 | `schema.ts` | Zod schemas per setting item. Cross-field rules use `.superRefine()`: 콘텐츠보드 VIDEO ⇒ YouTube URL only (no file), 영업시간 1h~23h55m, 휴게시간 must sit inside 영업시간, 휴게시간 ≠ 영업시간, 임시휴무 ≤ 30일, 임시중지 endAt > startAt. 5-minute granularity via a shared `timeString` refine. 대표번호 is assigned server-side (first number wins), so there is no client-side "exactly one primary" rule |
 | `time.ts` | Pure time helpers, deliberately UI-free so the overnight/clamp logic is testable: `parseTimeToMinutes`, `formatMinutesToTime`, `formatTimeLabel`, `isTimeStepValid`, `getDurationMinutes`, `isRangeWithin`, `isSameRange`, `clampRangeToBusinessHours`, `HOUR_OPTIONS`/`MINUTE_OPTIONS`, `countInclusiveDays`. Overnight ranges are normalized by adding 24h when end ≤ start |
+| `geo.ts` | Pure geometry helpers for the 배달지역 map editor — same character as `time.ts` (no React/DOM/SDK, so it is unit-testable and safe to call inside a canvas render loop): `distanceMeters`(하버사인), `circleRing`, `maxDistanceMetersFrom`, `countVertices`, `containsPoint`(ray-casting even-odd), `boundingBox`, `unionRings`/`differenceRings`(polygon-clipping), `strokeToRings`, `interpolate` |
 | `message.ts` | Korean copy only: `SHOP_PAGE_COPY` / `SHOP_STATUS_PAGE_COPY` (page+loading headers), `SHOP_BASIC_COPY` / `SHOP_OPERATION_COPY` (setting-row labels and guidance), `SHOP_MESSAGE` (toasts, error fallbacks, validation notices) |
 
 ## For AI Agents
@@ -26,6 +27,8 @@ Shop (가게 관리) feature module for the **점주(shop owner)** scope. Provid
 - Surface outcomes with `SHOP_MESSAGE` / `*_COPY` constants; never hardcode user-facing copy in actions or components.
 - Enum labels: prefer the server-provided Korean label (`description` on business hours/break times/closed days, `displayName` on amenities) when rendering an existing item. `*_LABEL` maps are for rendering the dropdown option catalog only — the backend enums may drift from the 2026-07-19 snapshot.
 - Keep overnight/range math in `time.ts` as pure functions. Do not inline minute arithmetic into components.
+- **`geo.ts` 도 같은 규칙이다** — 좌표·거리·폴리곤 연산을 컴포넌트에 인라인하지 않는다. 특히 거리 계산은 반드시 `distanceMeters`(하버사인)를 쓰고, 백엔드 `ShopSearchQueryDao` 의 `METERS_PER_DEGREE = 111000` 사각 근사를 프론트로 옮겨오지 않는다 — 위경도에 같은 값을 써서 위도 37.5°에서 동서가 약 21% 좁고, 7km 로 확대하면 약 1.6km 가 어긋난다.
+- 배달가능지역 행은 `source`(`MANUAL` | `POLYGON`)를 갖는다. 직접 고르거나 반경으로 넣은 행이 `MANUAL`, 지도 도형에서 서버가 환산한 행이 `POLYGON` 이다. **도형 저장은 `POLYGON` 행만 통째로 교체하므로 `MANUAL` 행은 보존된다.** 구버전 백엔드 응답에는 `source` 가 없으므로 `?? "MANUAL"` 로 보정한다.
 
 ### Common Patterns
 - Actions return `{ success, message?, id? }` (mutations) or `{ success, message?, data? }` (queries) instead of throwing; the UI branches on `success`.
@@ -37,6 +40,7 @@ Shop (가게 관리) feature module for the **점주(shop owner)** scope. Provid
 ## Dependencies
 
 ### Internal
+- `@/api/region/region.service` — 행정동 계층(트리)·경계 조회의 DTO → domain 매핑. 키워드 검색은 매핑이 항등이라 액션이 `region.repository` 를 직접 호출한다
 - `@/api/shop/shop.service` — merged read paths (`getMyShops`, `getShopBasicInfo`, `getShopOperationInfo`). There is no 전체현황 summary endpoint in the spec; `/dashboard/shop-status` aggregates per-shop `getSuspensions` itself
 - `@/api/shop/shop.repository` — direct calls for every mutation and for single-resource refetches
 - `@/api/file/file.dto` — `ALLOWED_IMAGE_TYPES` / `MAX_IMAGE_SIZE_BYTES` for server-side re-validation

@@ -4,14 +4,28 @@ import { revalidatePath } from "next/cache";
 
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from "@/api/file/file.dto";
 import { regionRepository } from "@/api/region/region.repository";
+import { regionService } from "@/api/region/region.service";
+import type {
+  GeoPointResponse,
+  ShopDeliveryAreaBulkResponse,
+  ShopDeliveryAreaPolygonCandidateResponse,
+} from "@/api/shop/shop.dto";
 import { shopRepository } from "@/api/shop/shop.repository";
 import { shopService } from "@/api/shop/shop.service";
 import type {
   AdminDong,
+  AdminDongBoundaryResult,
+  AdminDongTree,
   AmenityCategory,
   BusinessHour,
   ContentBoardItem,
   DeliveryAreaAdjustmentRequest,
+  DeliveryAreaBulkOutcome,
+  DeliveryAreaPolygon,
+  DeliveryAreaPolygonCandidate,
+  DeliveryAreaPolygonPreview,
+  DeliveryAreaRadiusPreview,
+  GeoPoint,
   PhoneNumber,
   ShopDeliveryArea,
   ShopDeliveryTipSetting,
@@ -29,6 +43,8 @@ import {
 } from "./constants";
 import { SHOP_MESSAGE } from "./message";
 import {
+  type AdminDongBoundaryFormValues,
+  adminDongBoundarySchema,
   type BusinessHourValues,
   businessHourSchema,
   type ClosedDayFormValues,
@@ -38,7 +54,10 @@ import {
   contentBoardSchema,
   convenienceInfoSchema,
   type DayTimeRangeValues,
+  type DeliveryAreaBulkFormValues,
   type DeliveryAreaCreateFormValues,
+  type DeliveryAreaPolygonFormValues,
+  type DeliveryAreaRadiusFormValues,
   type DeliveryTipDistanceFormValues,
   type DeliveryTipHolidayFormValues,
   type DeliveryTipRegionsFormValues,
@@ -46,7 +65,10 @@ import {
   type DeliveryTipTiersFormValues,
   dayTimeRangeSchema,
   deliveryAreaAdjustmentSchema,
+  deliveryAreaBulkSchema,
   deliveryAreaCreateSchema,
+  deliveryAreaPolygonSchema,
+  deliveryAreaRadiusSchema,
   deliveryTipDistanceSchema,
   deliveryTipHolidaySchema,
   deliveryTipRegionsSchema,
@@ -587,6 +609,39 @@ export async function updateDeliveryTipHolidayAction(
 
 // ===== 배달가능지역 =====
 
+/** 화면은 km 로 다루고 서버는 m 로 받는다. 0.5km 단위라 소수 오차가 남지 않도록 반올림한다 */
+function toRadiusMeters(radiusKm: number): number {
+  return Math.round(radiusKm * 1000);
+}
+
+/** 서버가 좌표를 문자열(BigDecimal 직렬화)로 줄 수도 있어 숫자로 통일한다 */
+function toGeoPoint(point: GeoPointResponse): GeoPoint {
+  return { latitude: Number(point.latitude), longitude: Number(point.longitude) };
+}
+
+function toPolygonCandidate(item: ShopDeliveryAreaPolygonCandidateResponse): DeliveryAreaPolygonCandidate {
+  return {
+    adminDongId: item.adminDongId,
+    regionName: item.regionName,
+    alreadyRegistered: item.alreadyRegistered,
+  };
+}
+
+/**
+ * 일괄 처리 응답을 화면이 쓰는 단일 형태로 맞춘다.
+ *
+ * 추가 응답에는 `removedCount` 가, 삭제 응답에는 `added`/`skipped` 가 없으므로 없는 쪽을 0 으로 채운다.
+ */
+function toBulkOutcome(data: ShopDeliveryAreaBulkResponse | undefined): DeliveryAreaBulkOutcome {
+  return {
+    requestedCount: data?.requestedCount ?? 0,
+    addedCount: data?.addedCount ?? 0,
+    skippedCount: data?.skippedCount ?? 0,
+    removedCount: data?.removedCount ?? 0,
+    totalCount: data?.totalCount ?? 0,
+  };
+}
+
 export async function getDeliveryAreasAction(shopId: number): Promise<DataResult<ShopDeliveryArea[]>> {
   const { data, error } = await shopRepository.getDeliveryAreas(shopId);
   if (error !== undefined) return { success: false, message: error };
@@ -597,6 +652,8 @@ export async function getDeliveryAreasAction(shopId: number): Promise<DataResult
       id: item.id,
       adminDongId: item.adminDongId,
       regionName: item.regionName,
+      // 구버전 백엔드는 source 를 내려주지 않는다. 그 시절 행은 전부 직접 등록분이므로 MANUAL 로 본다.
+      source: item.source ?? "MANUAL",
     })),
   };
 }
@@ -640,6 +697,236 @@ export async function searchAdminDongsAction(
       regionName: item.regionName,
     })),
   };
+}
+
+// ===== 배달가능지역 일괄 처리 =====
+
+/**
+ * 행정동 일괄 추가.
+ *
+ * 이미 등록된 동은 서버가 실패시키지 않고 건너뛴다(`skippedCount`). 중복 1건으로 전체를
+ * 실패시키면 "반경 추가 → 다시 반경 추가"가 항상 실패하기 때문이다.
+ */
+export async function addDeliveryAreasAction(
+  shopId: number,
+  values: DeliveryAreaBulkFormValues,
+): Promise<DataResult<DeliveryAreaBulkOutcome>> {
+  const parsed = deliveryAreaBulkSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await shopRepository.addDeliveryAreas(shopId, { adminDongIds: parsed.data.adminDongIds });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true, data: toBulkOutcome(data) };
+}
+
+/**
+ * 행정동 일괄 삭제.
+ *
+ * 지역별 배달팁이 걸린 동이 하나라도 섞이면 서버가 한 건도 지우지 않고 409 를 낸다.
+ * 부분 성공을 허용하면 점주가 무엇이 지워졌는지 알 수 없기 때문이며, 막힌 동 이름이
+ * 에러 메시지에 담겨 오므로 그대로 노출한다.
+ */
+export async function removeDeliveryAreasAction(
+  shopId: number,
+  values: DeliveryAreaBulkFormValues,
+): Promise<DataResult<DeliveryAreaBulkOutcome>> {
+  const parsed = deliveryAreaBulkSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await shopRepository.removeDeliveryAreas(shopId, { adminDongIds: parsed.data.adminDongIds });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true, data: toBulkOutcome(data) };
+}
+
+// ===== 배달가능지역 반경 설정 =====
+
+/** 반경 미리보기 — 저장하지 않으므로 revalidate 하지 않는다 */
+export async function previewDeliveryAreaRadiusAction(
+  shopId: number,
+  values: DeliveryAreaRadiusFormValues,
+): Promise<DataResult<DeliveryAreaRadiusPreview>> {
+  const parsed = deliveryAreaRadiusSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await shopRepository.getDeliveryAreaRadiusPreview(shopId, {
+    radiusMeters: toRadiusMeters(parsed.data.radiusKm),
+  });
+  if (error !== undefined) return { success: false, message: error };
+  if (!data) return { success: false, message: SHOP_MESSAGE.DELIVERY_AREA_LOAD_FAILED };
+
+  return {
+    success: true,
+    data: {
+      centerLatitude: Number(data.centerLatitude),
+      centerLongitude: Number(data.centerLongitude),
+      radiusMeters: data.radiusMeters,
+      maxAllowedRadiusMeters: data.maxAllowedRadiusMeters,
+      defaultExposureRadiusMeters: data.defaultExposureRadiusMeters,
+      circle: (data.circle ?? []).map(toGeoPoint),
+      adminDongs: (data.adminDongs ?? []).map((item) => ({
+        adminDongId: item.adminDongId,
+        regionName: item.regionName,
+        centerLatitude: Number(item.centerLatitude),
+        centerLongitude: Number(item.centerLongitude),
+        alreadyRegistered: item.alreadyRegistered,
+      })),
+      adminDongCount: data.adminDongCount,
+      unresolvedCount: data.unresolvedCount,
+    },
+  };
+}
+
+/** 반경 확정 적용 — `replace: true` 면 기존 직접 등록분을 교체한다 */
+export async function applyDeliveryAreaRadiusAction(
+  shopId: number,
+  values: DeliveryAreaRadiusFormValues,
+): Promise<DataResult<DeliveryAreaBulkOutcome>> {
+  const parsed = deliveryAreaRadiusSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await shopRepository.applyDeliveryAreaRadius(shopId, {
+    radiusMeters: toRadiusMeters(parsed.data.radiusKm),
+    replace: parsed.data.replace,
+  });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true, data: toBulkOutcome(data) };
+}
+
+// ===== 배달지역 도형 =====
+
+/** 저장된 도형 조회. 미설정은 오류가 아니므로 `exists: false` 를 그대로 통과시킨다 */
+export async function fetchDeliveryAreaPolygonAction(shopId: number): Promise<DataResult<DeliveryAreaPolygon>> {
+  const { data, error } = await shopRepository.getDeliveryAreaPolygon(shopId);
+  if (error !== undefined) return { success: false, message: error };
+  if (!data) return { success: false, message: SHOP_MESSAGE.DELIVERY_AREA_LOAD_FAILED };
+
+  return {
+    success: true,
+    data: {
+      exists: data.exists,
+      rings: data.rings ? data.rings.map((ring) => ring.map(toGeoPoint)) : null,
+      centerLatitude: data.centerLatitude === null ? null : Number(data.centerLatitude),
+      centerLongitude: data.centerLongitude === null ? null : Number(data.centerLongitude),
+      shopLatitude: Number(data.shopLatitude),
+      shopLongitude: Number(data.shopLongitude),
+      centerMovedMeters: data.centerMovedMeters,
+      maxRadiusMeters: data.maxRadiusMeters,
+      maxAllowedRadiusMeters: data.maxAllowedRadiusMeters,
+      defaultExposureRadiusMeters: data.defaultExposureRadiusMeters,
+      ringCount: data.ringCount,
+      vertexCount: data.vertexCount,
+      projectedAdminDongCount: data.projectedAdminDongCount,
+      updatedAt: data.updatedAt,
+    },
+  };
+}
+
+/**
+ * 도형 환산 미리보기.
+ *
+ * 저장 직전에 호출해 `blockedAdminDongs`(배달팁이 걸려 닫을 수 없는 동)를 먼저 보여주면
+ * 점주가 저장에서 409 를 맞기 전에 배달팁을 정리할 수 있다.
+ */
+export async function previewDeliveryAreaPolygonAction(
+  shopId: number,
+  values: DeliveryAreaPolygonFormValues,
+): Promise<DataResult<DeliveryAreaPolygonPreview>> {
+  const parsed = deliveryAreaPolygonSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await shopRepository.previewDeliveryAreaPolygon(shopId, { rings: parsed.data.rings });
+  if (error !== undefined) return { success: false, message: error };
+  if (!data) return { success: false, message: SHOP_MESSAGE.DELIVERY_AREA_LOAD_FAILED };
+
+  return {
+    success: true,
+    data: {
+      maxRadiusMeters: data.maxRadiusMeters,
+      withinAllowedRadius: data.withinAllowedRadius,
+      adminDongs: (data.adminDongs ?? []).map(toPolygonCandidate),
+      addedAdminDongs: (data.addedAdminDongs ?? []).map(toPolygonCandidate),
+      removedAdminDongs: (data.removedAdminDongs ?? []).map(toPolygonCandidate),
+      blockedAdminDongs: (data.blockedAdminDongs ?? []).map((item) => ({
+        adminDongId: item.adminDongId,
+        regionName: item.regionName,
+        reason: item.reason,
+      })),
+      unresolvedCount: data.unresolvedCount,
+    },
+  };
+}
+
+/**
+ * 도형 저장(전체 교체).
+ *
+ * 응답 본문이 없는 명령이므로 호출부는 성공 후 도형·목록을 다시 조회한다.
+ */
+export async function saveDeliveryAreaPolygonAction(
+  shopId: number,
+  values: DeliveryAreaPolygonFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryAreaPolygonSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.saveDeliveryAreaPolygon(shopId, { rings: parsed.data.rings });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+/** 도형 해제 — 환산된 행정동만 지우고 직접 등록한 행정동은 남는다 */
+export async function deleteDeliveryAreaPolygonAction(shopId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.deleteDeliveryAreaPolygon(shopId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true };
+}
+
+// ===== 행정동 계층 · 경계 =====
+
+/**
+ * 행정동 계층 3단 lazy 조회.
+ *
+ * 인자가 없으면 시도, `sidoName` 만 주면 시군구, 둘 다 주면 행정동 목록을 받는다.
+ * `regionName` 을 공백으로 잘라 클라이언트가 트리를 조립하는 우회는 쓰지 않는다 —
+ * 동명에 공백이 들어가면 깨진다.
+ */
+export async function fetchAdminDongTreeAction(
+  sidoName?: string,
+  sigunguName?: string,
+): Promise<DataResult<AdminDongTree>> {
+  const { data, error } = await regionService.getAdminDongTree({ sidoName, sigunguName });
+  if (error !== undefined) return { success: false, message: error };
+  if (!data) return { success: false, message: SHOP_MESSAGE.DELIVERY_AREA_TREE_LOAD_FAILED };
+
+  return { success: true, data };
+}
+
+/**
+ * 뷰포트 경계 조회.
+ *
+ * bbox 가 너무 넓으면 서버가 오류 대신 `truncated: true` + 빈 목록을 주므로, 호출부는
+ * 그 상태를 "확대하면 편집할 수 있습니다" 안내로 처리한다.
+ */
+export async function fetchAdminDongBoundariesAction(
+  bounds: AdminDongBoundaryFormValues,
+): Promise<DataResult<AdminDongBoundaryResult>> {
+  const parsed = adminDongBoundarySchema.safeParse(bounds);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await regionService.getAdminDongBoundaries(parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+  if (!data) return { success: false, message: SHOP_MESSAGE.DELIVERY_AREA_BOUNDARY_LOAD_FAILED };
+
+  return { success: true, data };
 }
 
 // ===== 배달지역 조정 신청 =====

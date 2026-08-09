@@ -24,8 +24,16 @@ import type {
   ShopClosedDaysResponse,
   ShopConvenienceInfoResponse,
   ShopConvenienceInfoUpdateRequest,
+  ShopDeliveryAreaBulkRequest,
+  ShopDeliveryAreaBulkResponse,
   ShopDeliveryAreaCreateRequest,
   ShopDeliveryAreaItemResponse,
+  ShopDeliveryAreaPolygonPreviewResponse,
+  ShopDeliveryAreaPolygonResponse,
+  ShopDeliveryAreaPolygonSaveRequest,
+  ShopDeliveryAreaRadiusApplyRequest,
+  ShopDeliveryAreaRadiusPreviewQueryRequest,
+  ShopDeliveryAreaRadiusPreviewResponse,
   ShopDeliveryTipDistanceUpdateRequest,
   ShopDeliveryTipHolidayUpdateRequest,
   ShopDeliveryTipRegionsUpdateRequest,
@@ -249,6 +257,82 @@ export const shopRepository = {
 
   deleteDeliveryArea(deliveryAreaId: number): Promise<ApiResponse<null>> {
     return api.delete<null>(`${ENDPOINT}/v1/delivery-areas/${deliveryAreaId}`);
+  },
+
+  /** 행정동 일괄 추가. 이미 등록된 동은 409 가 아니라 skip 으로 처리된다 */
+  addDeliveryAreas(
+    shopId: number,
+    body: ShopDeliveryAreaBulkRequest,
+  ): Promise<ApiResponse<ShopDeliveryAreaBulkResponse>> {
+    return api.post<ShopDeliveryAreaBulkResponse>(`${ENDPOINT}/v1/${shopId}/delivery-areas/bulk`, body);
+  },
+
+  /**
+   * 행정동 일괄 삭제.
+   *
+   * DELETE + 본문은 프록시·게이트웨이 호환이 불안정해 `POST .../bulk-delete` 로 둔 것이다 —
+   * 다른 삭제와 달리 POST 인 이유가 이것이므로 DELETE 로 "정리"하지 않는다.
+   * 삭제 대상에 지역별 배달팁이 걸린 동이 하나라도 있으면 한 건도 지우지 않고 409 를 낸다.
+   */
+  removeDeliveryAreas(
+    shopId: number,
+    body: ShopDeliveryAreaBulkRequest,
+  ): Promise<ApiResponse<ShopDeliveryAreaBulkResponse>> {
+    return api.post<ShopDeliveryAreaBulkResponse>(`${ENDPOINT}/v1/${shopId}/delivery-areas/bulk-delete`, body);
+  },
+
+  /** 반경 안에 드는 행정동 미리보기 — 저장하지 않는다 */
+  getDeliveryAreaRadiusPreview(
+    shopId: number,
+    query: ShopDeliveryAreaRadiusPreviewQueryRequest,
+  ): Promise<ApiResponse<ShopDeliveryAreaRadiusPreviewResponse>> {
+    return api.get<ShopDeliveryAreaRadiusPreviewResponse>(`${ENDPOINT}/v1/${shopId}/delivery-areas/radius-preview`, {
+      params: query,
+    });
+  },
+
+  /** 반경 확정 적용 — `source='MANUAL'` 로 저장된다 */
+  applyDeliveryAreaRadius(
+    shopId: number,
+    body: ShopDeliveryAreaRadiusApplyRequest,
+  ): Promise<ApiResponse<ShopDeliveryAreaBulkResponse>> {
+    return api.post<ShopDeliveryAreaBulkResponse>(`${ENDPOINT}/v1/${shopId}/delivery-areas/radius`, body);
+  },
+
+  /** 저장된 배달지역 도형 조회. 미설정은 404 가 아니라 `exists: false` 로 내려온다 */
+  getDeliveryAreaPolygon(shopId: number): Promise<ApiResponse<ShopDeliveryAreaPolygonResponse>> {
+    return api.get<ShopDeliveryAreaPolygonResponse>(`${ENDPOINT}/v1/${shopId}/delivery-areas/polygon`);
+  },
+
+  /**
+   * 도형 저장(전체 교체).
+   *
+   * 서버가 트랜잭션 안에서 행정동으로 환산해 `source='POLYGON'` 행을 통째로 갈아끼운다.
+   * 명령은 식별자만 반환하는 CQRS 규약을 따라 본문이 비어 있으므로, 호출부는 커밋 후
+   * 도형·목록을 다시 조회한다.
+   */
+  saveDeliveryAreaPolygon(shopId: number, body: ShopDeliveryAreaPolygonSaveRequest): Promise<ApiResponse<null>> {
+    return api.put<null>(`${ENDPOINT}/v1/${shopId}/delivery-areas/polygon`, body);
+  },
+
+  /**
+   * 도형 환산 미리보기.
+   *
+   * 의미는 조회지만 도형이 URL 에 들어갈 수 없어 POST 다 — 저장하지 않는다.
+   */
+  previewDeliveryAreaPolygon(
+    shopId: number,
+    body: ShopDeliveryAreaPolygonSaveRequest,
+  ): Promise<ApiResponse<ShopDeliveryAreaPolygonPreviewResponse>> {
+    return api.post<ShopDeliveryAreaPolygonPreviewResponse>(
+      `${ENDPOINT}/v1/${shopId}/delivery-areas/polygon/preview`,
+      body,
+    );
+  },
+
+  /** 도형 해제 — `source='POLYGON'` 행정동만 지우고 MANUAL 행은 남긴다 */
+  deleteDeliveryAreaPolygon(shopId: number): Promise<ApiResponse<null>> {
+    return api.delete<null>(`${ENDPOINT}/v1/${shopId}/delivery-areas/polygon`);
   },
 
   // ===== 배달지역 조정 신청 =====

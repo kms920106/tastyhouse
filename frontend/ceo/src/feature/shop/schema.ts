@@ -12,6 +12,11 @@ import {
   CONTENT_BOARD_TOPIC_OPTIONS,
   CONTENT_BOARD_TYPE_OPTIONS,
   DAY_TYPE_OPTIONS,
+  DELIVERY_AREA_BULK_MAX_SIZE,
+  DELIVERY_AREA_MAX_RADIUS_KM,
+  DELIVERY_AREA_MAX_RINGS,
+  DELIVERY_AREA_MAX_VERTICES,
+  DELIVERY_AREA_MIN_RADIUS_KM,
   DELIVERY_TIP_BASE_DISTANCE_OPTIONS,
   DELIVERY_TIP_EXTRA_UPPER_BOUND,
   DELIVERY_TIP_SCHEDULE_DISALLOWED_DAY_TYPES,
@@ -532,6 +537,63 @@ export const deliveryAreaCreateSchema = z.object({
   adminDongId: z.number({ message: "지역을 선택해 주세요." }).int().positive({ message: "지역을 선택해 주세요." }),
 });
 export type DeliveryAreaCreateFormValues = z.infer<typeof deliveryAreaCreateSchema>;
+
+/** 배달가능지역 일괄 추가·삭제 — 추가와 삭제가 같은 형태라 스키마를 공유한다 */
+export const deliveryAreaBulkSchema = z.object({
+  adminDongIds: z
+    .array(z.number().int().positive())
+    .min(1, { message: "지역을 한 곳 이상 선택해 주세요." })
+    .max(DELIVERY_AREA_BULK_MAX_SIZE, {
+      message: `한 번에 최대 ${DELIVERY_AREA_BULK_MAX_SIZE}개까지 처리할 수 있습니다.`,
+    })
+    // 중복은 서버 유니크 제약(uk_shop_delivery_area)에 걸리므로 여기서 걷어낸다.
+    .transform((ids) => [...new Set(ids)]),
+});
+export type DeliveryAreaBulkFormValues = z.infer<typeof deliveryAreaBulkSchema>;
+
+/**
+ * 반경 미리보기·확정 적용.
+ *
+ * 화면은 km 로 다루고 서버는 m 로 받으므로, 액션에서 `radiusKm * 1000` 으로 환산해 보낸다.
+ */
+export const deliveryAreaRadiusSchema = z.object({
+  radiusKm: z
+    .number({ message: "반경을 입력해 주세요." })
+    .min(DELIVERY_AREA_MIN_RADIUS_KM, { message: `반경은 최소 ${DELIVERY_AREA_MIN_RADIUS_KM}km 입니다.` })
+    .max(DELIVERY_AREA_MAX_RADIUS_KM, {
+      message: `반경은 최대 ${DELIVERY_AREA_MAX_RADIUS_KM}km 까지 설정할 수 있습니다.`,
+    }),
+  /** true 면 기존 MANUAL 행을 지우고 교체, false 면 더하기 */
+  replace: z.boolean(),
+});
+export type DeliveryAreaRadiusFormValues = z.infer<typeof deliveryAreaRadiusSchema>;
+
+const geoPointSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+
+/** 배달지역 도형 저장·미리보기 */
+export const deliveryAreaPolygonSchema = z.object({
+  rings: z
+    .array(z.array(geoPointSchema).min(3, { message: "영역은 점 3개 이상이어야 합니다." }))
+    .min(1, { message: "배달지역을 그려 주세요." })
+    .max(DELIVERY_AREA_MAX_RINGS, { message: `영역은 최대 ${DELIVERY_AREA_MAX_RINGS}개까지 만들 수 있습니다.` })
+    .refine((rings) => rings.reduce((sum, ring) => sum + ring.length, 0) <= DELIVERY_AREA_MAX_VERTICES, {
+      message: "영역이 너무 복잡합니다. 조금 단순하게 그려 주세요.",
+    }),
+});
+export type DeliveryAreaPolygonFormValues = z.infer<typeof deliveryAreaPolygonSchema>;
+
+/** 뷰포트 경계 조회 — 지도 bbox 와 줌 레벨 */
+export const adminDongBoundarySchema = z.object({
+  swLat: z.number().min(-90).max(90),
+  swLng: z.number().min(-180).max(180),
+  neLat: z.number().min(-90).max(90),
+  neLng: z.number().min(-180).max(180),
+  level: z.number().int().min(1).max(14),
+});
+export type AdminDongBoundaryFormValues = z.infer<typeof adminDongBoundarySchema>;
 
 // ===== 배달지역 조정 신청 =====
 

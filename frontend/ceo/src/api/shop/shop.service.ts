@@ -289,6 +289,8 @@ export const shopService = {
           id: item.id,
           adminDongId: item.adminDongId,
           regionName: item.regionName,
+          // 구버전 백엔드는 source 를 내려주지 않는다. 그 시절 행은 전부 직접 등록분이므로 MANUAL 로 본다.
+          source: item.source ?? "MANUAL",
         })),
         riderGuide: toRiderGuide(riderGuideRes.data),
       },

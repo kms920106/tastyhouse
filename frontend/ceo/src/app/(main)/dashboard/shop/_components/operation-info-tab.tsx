@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { useRouter } from "next/navigation";
+
 import { Separator } from "@/components/ui/separator";
 import {
   CLOSED_DAY_TYPE_LABEL,
@@ -18,7 +20,6 @@ import { formatTimeLabel } from "@/feature/shop/time";
 
 import { BusinessHoursSheet } from "./business-hours-sheet";
 import { ClosedDaysSheet } from "./closed-days-sheet";
-import { DeliveryAreaSheet } from "./delivery-area-sheet";
 import { DeliveryTipExtraSheet } from "./delivery-tip-extra-sheet";
 import { DeliveryTipTiersSheet } from "./delivery-tip-tiers-sheet";
 import { HygieneInfoCard } from "./hygiene-info-card";
@@ -43,13 +44,13 @@ export function OperationInfoTab({
   minOrderAmount,
   scheduledOrderEnabled,
 }: OperationInfoTabProps) {
+  const router = useRouter();
   const [editingDay, setEditingDay] = React.useState<WeekdayOption | null>(null);
   const [closedDaysOpen, setClosedDaysOpen] = React.useState(false);
   const [minOrderAmountOpen, setMinOrderAmountOpen] = React.useState(false);
   const [scheduledOrderOpen, setScheduledOrderOpen] = React.useState(false);
   const [deliveryTipTiersOpen, setDeliveryTipTiersOpen] = React.useState(false);
   const [deliveryTipExtraOpen, setDeliveryTipExtraOpen] = React.useState(false);
-  const [deliveryAreaOpen, setDeliveryAreaOpen] = React.useState(false);
   const [riderVisitGuideOpen, setRiderVisitGuideOpen] = React.useState(false);
   const [riderPickupLocationOpen, setRiderPickupLocationOpen] = React.useState(false);
 
@@ -206,7 +207,8 @@ export function OperationInfoTab({
         title={SHOP_OPERATION_COPY.DELIVERY_AREA_TITLE}
         description={SHOP_OPERATION_COPY.DELIVERY_AREA_DESCRIPTION}
         summary={deliveryAreaSummary}
-        onAction={() => setDeliveryAreaOpen(true)}
+        // 배달지역은 지도 편집이 필요해 시트가 아니라 전용 라우트로 이동한다.
+        onAction={() => router.push(`/dashboard/shop/delivery-area?shopId=${shopId}`)}
       />
 
       <Separator />
@@ -277,13 +279,6 @@ export function OperationInfoTab({
         onOpenChange={setDeliveryTipExtraOpen}
         shopId={shopId}
         deliveryTip={deliveryTip}
-        deliveryAreas={deliveryAreas}
-      />
-
-      <DeliveryAreaSheet
-        open={deliveryAreaOpen}
-        onOpenChange={setDeliveryAreaOpen}
-        shopId={shopId}
         deliveryAreas={deliveryAreas}
       />
 
