@@ -1,8 +1,11 @@
 import { z } from "zod";
 
 import {
+  ADJUSTMENT_NAME_MAX,
+  ADJUSTMENT_REASON_MAX,
   BUSINESS_HOUR_MAX_MINUTES,
   BUSINESS_HOUR_MIN_MINUTES,
+  BUSINESS_NUMBER_LENGTH,
   CLOSED_DAY_TYPE_OPTIONS,
   CONTENT_BOARD_DESCRIPTION_MAX,
   CONTENT_BOARD_MAX_COUNT,
@@ -521,3 +524,42 @@ export const suspensionSchema = z
     }
   });
 export type SuspensionFormValues = z.infer<typeof suspensionSchema>;
+
+// ===== 배달가능지역 =====
+
+/** 배달가능지역 등록 — 행정동 하나를 선택한다 */
+export const deliveryAreaCreateSchema = z.object({
+  adminDongId: z.number({ message: "지역을 선택해 주세요." }).int().positive({ message: "지역을 선택해 주세요." }),
+});
+export type DeliveryAreaCreateFormValues = z.infer<typeof deliveryAreaCreateSchema>;
+
+// ===== 배달지역 조정 신청 =====
+
+const BUSINESS_NUMBER_PATTERN = new RegExp(`^\\d{${BUSINESS_NUMBER_LENGTH}}$`);
+
+// 동의서 파일은 이 스키마가 아니라 FormData 로 별도 전송되므로 여기서 다루지 않는다
+// (requestThumbnailChangeAction 선례와 동일).
+export const deliveryAreaAdjustmentSchema = z.object({
+  counterpartShopName: z
+    .string()
+    .trim()
+    .min(1, { message: "상대 가맹점 상호명을 입력해 주세요." })
+    .max(ADJUSTMENT_NAME_MAX, { message: `상호명은 최대 ${ADJUSTMENT_NAME_MAX}자까지 입력할 수 있습니다.` }),
+  counterpartBusinessNumber: z
+    .string()
+    .trim()
+    .regex(BUSINESS_NUMBER_PATTERN, {
+      message: `사업자등록번호는 하이픈 없이 ${BUSINESS_NUMBER_LENGTH}자리 숫자로 입력해 주세요.`,
+    }),
+  franchiseName: z
+    .string()
+    .trim()
+    .min(1, { message: "가맹본부명을 입력해 주세요." })
+    .max(ADJUSTMENT_NAME_MAX, { message: `가맹본부명은 최대 ${ADJUSTMENT_NAME_MAX}자까지 입력할 수 있습니다.` }),
+  reason: z
+    .string()
+    .trim()
+    .min(1, { message: "배달지역 중첩 사유를 입력해 주세요." })
+    .max(ADJUSTMENT_REASON_MAX, { message: `사유는 최대 ${ADJUSTMENT_REASON_MAX}자까지 입력할 수 있습니다.` }),
+});
+export type DeliveryAreaAdjustmentFormValues = z.infer<typeof deliveryAreaAdjustmentSchema>;

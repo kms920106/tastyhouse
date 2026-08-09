@@ -6,6 +6,7 @@ import type {
   ContentBoardContentType,
   ContentBoardTopic,
   DayType,
+  DeliveryAreaAdjustmentStatus,
   FoodType,
   HygieneBadgeType,
   OrderMethod as OrderMethodValue,
@@ -16,7 +17,7 @@ import type {
 } from "@/api/shop/shop.dto";
 
 // api/shop 계층에서 정의한 enum 문자열 유니온을 도메인에서도 그대로 쓴다.
-export type { RiderGuideActionType, RiderGuideActorType };
+export type { DeliveryAreaAdjustmentStatus, RiderGuideActionType, RiderGuideActorType };
 
 export interface Station {
   id: number;
@@ -165,6 +166,32 @@ export interface ShopImageChangeRequest {
   imageUrl: string | null;
   status: ShopImageChangeStatus;
   rejectReason: string | null;
+}
+
+/**
+ * 배달지역 조정 신청 목록 한 건.
+ *
+ * 조정 완료(COMPLETED)는 조정 성립 사실의 기록일 뿐이며 배달가능지역이 자동 반영되지는 않는다.
+ * 실제 반영은 배달가능지역 등록/삭제로 별도 수행한다.
+ */
+export interface DeliveryAreaAdjustmentListItem {
+  id: number;
+  shopId: number;
+  shopName: string;
+  counterpartShopName: string;
+  franchiseName: string;
+  status: DeliveryAreaAdjustmentStatus;
+  createdAt: string;
+}
+
+export interface DeliveryAreaAdjustmentDetail extends DeliveryAreaAdjustmentListItem {
+  counterpartBusinessNumber: string;
+  reason: string;
+  /** 동의서 표시용 URL. 없으면 null */
+  consentFileUrl: string | null;
+  /** 반려 사유. 반려가 아니면 null */
+  rejectReason: string | null;
+  updatedAt: string;
 }
 
 export interface ShopHygieneBadge {

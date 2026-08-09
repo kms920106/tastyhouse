@@ -20,6 +20,11 @@ import type {
   ClosedDayResponse,
   ContentBoardItemResponse,
   ContentBoardListQueryRequest,
+  DeliveryAreaAdjustmentDetailResponse,
+  DeliveryAreaAdjustmentItemResponse,
+  DeliveryAreaAdjustmentListQueryRequest,
+  DeliveryAreaAdjustmentRejectRequest,
+  DeliveryAreaAdjustmentStatusUpdateRequest,
   EditorChoiceCreateRequest,
   EditorChoiceListQueryRequest,
   EditorChoiceResponse,
@@ -365,6 +370,39 @@ export const shopRepository = {
   // 이미지 변경요청 반려
   rejectImageChangeRequest(requestId: number, body: ShopImageChangeRejectRequest): Promise<ApiResponse<null>> {
     return api.patch<null>(`${ENDPOINT}/v1/image-change-requests/${requestId}/reject`, body);
+  },
+
+  // ===== 배달지역 조정 신청 검수 =====
+
+  // 조정 신청 목록 조회
+  getDeliveryAreaAdjustments(
+    query: DeliveryAreaAdjustmentListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<DeliveryAreaAdjustmentItemResponse[]>> {
+    return api.get<DeliveryAreaAdjustmentItemResponse[]>(`${ENDPOINT}/v1/delivery-area-adjustments`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 조정 신청 상세 조회 — 사유·동의서 URL 포함
+  getDeliveryAreaAdjustmentDetail(requestId: number): Promise<ApiResponse<DeliveryAreaAdjustmentDetailResponse>> {
+    return api.get<DeliveryAreaAdjustmentDetailResponse>(`${ENDPOINT}/v1/delivery-area-adjustments/${requestId}`);
+  },
+
+  // 접수 대기 → 조정 중, 조정 중 → 조정 완료 전이
+  updateDeliveryAreaAdjustmentStatus(
+    requestId: number,
+    body: DeliveryAreaAdjustmentStatusUpdateRequest,
+  ): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/delivery-area-adjustments/${requestId}/status`, body);
+  },
+
+  // 조정 신청 반려 — 접수 대기·조정 중 어느 쪽에서든 가능
+  rejectDeliveryAreaAdjustment(
+    requestId: number,
+    body: DeliveryAreaAdjustmentRejectRequest,
+  ): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/delivery-area-adjustments/${requestId}/reject`, body);
   },
 
   // ===== Phase H. 콘텐츠보드 검수 =====

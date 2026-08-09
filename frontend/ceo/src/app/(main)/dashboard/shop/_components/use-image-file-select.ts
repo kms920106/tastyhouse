@@ -2,7 +2,9 @@
 
 import * as React from "react";
 
+import { MAX_IMAGE_SIZE_BYTES } from "@/api/file/file.dto";
 import {
+  ALLOWED_CONSENT_TYPES,
   CONTENT_BOARD_GIF_MIN_SIZE,
   CONTENT_BOARD_IMAGE_MAX_BYTES,
   CONTENT_BOARD_IMAGE_MIN_SIZE,
@@ -14,6 +16,20 @@ import {
 import { SHOP_MESSAGE } from "@/feature/shop/message";
 
 export type ImageValidationKind = "trademark" | "thumbnail" | "contentBoardImage" | "contentBoardGif";
+
+/**
+ * 동의서 첨부 검증 — 이미지 스캔본과 PDF 를 모두 허용하며, 치수 검증은 하지 않는다.
+ *
+ * PDF 는 createImageBitmap 으로 열리지 않으므로 validateImageFile 을 재사용할 수 없다.
+ * 서버 액션(extractConsentFile)에서 MIME/용량을 다시 검증하므로 여기서의 검사는 사용자 피드백 목적이다.
+ */
+export function validateConsentFile(file: File): string | null {
+  if (!ALLOWED_CONSENT_TYPES.includes(file.type as (typeof ALLOWED_CONSENT_TYPES)[number])) {
+    return SHOP_MESSAGE.CONSENT_FILE_TYPE;
+  }
+  if (file.size > MAX_IMAGE_SIZE_BYTES) return SHOP_MESSAGE.CONSENT_FILE_SIZE;
+  return null;
+}
 
 /**
  * 규격 위반 이미지는 전송 전에 걸러야 하므로 createImageBitmap 으로 실제 픽셀 크기를 먼저 읽는다.

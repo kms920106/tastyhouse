@@ -15,6 +15,7 @@ import type {
   ClosedDayCreateRequest,
   ContentBoardMutationFields,
   ContentBoardResponse,
+  DeliveryAreaAdjustmentItemResponse,
   HolidayClosedUpdateRequest,
   HygieneBadgeResponse,
   PhoneNumberCreateRequest,
@@ -248,6 +249,17 @@ export const shopRepository = {
 
   deleteDeliveryArea(deliveryAreaId: number): Promise<ApiResponse<null>> {
     return api.delete<null>(`${ENDPOINT}/v1/delivery-areas/${deliveryAreaId}`);
+  },
+
+  // ===== 배달지역 조정 신청 =====
+
+  getDeliveryAreaAdjustments(shopId: number): Promise<ApiResponse<DeliveryAreaAdjustmentItemResponse[]>> {
+    return api.get<DeliveryAreaAdjustmentItemResponse[]>(`${ENDPOINT}/v1/${shopId}/delivery-area-adjustments`);
+  },
+
+  // 동의서 파일을 함께 보내므로 multipart. 폼 필드 조립은 호출부(action)가 한다.
+  createDeliveryAreaAdjustment(shopId: number, formData: FormData): Promise<ApiResponse<number>> {
+    return api.upload<number>(`${ENDPOINT}/v1/${shopId}/delivery-area-adjustments`, formData);
   },
 
   // ===== 가게 소개 =====

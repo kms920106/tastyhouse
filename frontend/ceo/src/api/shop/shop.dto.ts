@@ -110,6 +110,24 @@ export interface ShopDeliveryAreaItemResponse {
   regionName: string;
 }
 
+// ===== 배달지역 조정 신청 =====
+
+export type DeliveryAreaAdjustmentStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "REJECTED";
+
+export interface DeliveryAreaAdjustmentItemResponse {
+  id: number;
+  counterpartShopName: string;
+  counterpartBusinessNumber: string;
+  franchiseName: string;
+  reason: string;
+  /** 동의서 표시용 URL. 없으면 null */
+  consentFileUrl: string | null;
+  status: DeliveryAreaAdjustmentStatus;
+  /** 반려 사유. 반려가 아니면 null */
+  rejectReason: string | null;
+  createdAt: string;
+}
+
 export interface ShopDeliveryTipTierItemRequest {
   minOrderAmount: number;
   tipAmount: number;

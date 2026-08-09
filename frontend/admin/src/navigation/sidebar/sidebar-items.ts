@@ -20,6 +20,7 @@ import {
   Lock,
   type LucideIcon,
   Mail,
+  MapPin,
   Megaphone,
   MessageSquare,
   Package,
@@ -192,6 +193,11 @@ export const sidebarItems: NavGroup[] = [
         title: "라이더 안내 검수",
         url: "/dashboard/shop-rider-guides",
         icon: Bike,
+      },
+      {
+        title: "배달지역 조정",
+        url: "/dashboard/shop-delivery-area-adjustments",
+        icon: MapPin,
       },
       {
         title: "상품",

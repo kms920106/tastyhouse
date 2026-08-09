@@ -3,6 +3,7 @@ import type {
   ContentBoardTopic,
   ContentBoardType,
   DayType,
+  DeliveryAreaAdjustmentStatus,
   DeliveryTipSurchargeUnit,
   ExtraDeliveryTipType,
   HygieneBadgeType,
@@ -20,6 +21,7 @@ export type {
   ContentBoardTopic,
   ContentBoardType,
   DayType,
+  DeliveryAreaAdjustmentStatus,
   DeliveryTipSurchargeUnit,
   ExtraDeliveryTipType,
   HygieneBadgeType,
@@ -196,6 +198,34 @@ export interface ShopDeliveryArea {
   id: number;
   adminDongId: number;
   regionName: string;
+}
+
+/** 배달가능지역 등록 후보 — 행정동 검색 결과 */
+export interface AdminDong {
+  id: number;
+  code: string;
+  /** 서버가 완성해 내려주는 행정동 전체 이름 */
+  regionName: string;
+}
+
+/**
+ * 배달지역 조정 신청 이력 한 건.
+ *
+ * 승인(COMPLETED)은 조정 성립 사실의 기록일 뿐이며 배달가능지역이 자동 반영되지는 않는다.
+ * 실제 반영은 배달가능지역 등록/삭제로 별도 수행한다.
+ */
+export interface DeliveryAreaAdjustmentRequest {
+  id: number;
+  counterpartShopName: string;
+  counterpartBusinessNumber: string;
+  franchiseName: string;
+  reason: string;
+  /** 동의서 표시용 URL. 없으면 null */
+  consentFileUrl: string | null;
+  status: DeliveryAreaAdjustmentStatus;
+  /** 반려 사유. 반려가 아니면 null */
+  rejectReason: string | null;
+  createdAt: string;
 }
 
 export interface ShopDeliveryTipSetting {

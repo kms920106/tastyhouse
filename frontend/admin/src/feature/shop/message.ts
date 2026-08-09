@@ -134,3 +134,19 @@ export const SHOP_MESSAGE = {
   CEOS_LOAD_FAILED: "점주 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
   CONTENT_BOARDS_LOAD_FAILED: "콘텐츠보드 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
 } as const;
+
+/** 배달지역 조정 검수 화면 헤더 정적 문구 (목록/로딩 공용) */
+export const DELIVERY_AREA_ADJUSTMENT_PAGE_COPY = {
+  TITLE: "배달지역 조정",
+  DESCRIPTION: "점주가 신청한 가맹점 간 배달지역 조정을 접수하고 가맹본부 전달 여부를 관리합니다.",
+} as const;
+
+export const DELIVERY_AREA_ADJUSTMENT_MESSAGE = {
+  // 성공 toast
+  STATUS_UPDATE_SUCCESS: "조정 신청 상태가 변경되었습니다.",
+  REJECT_SUCCESS: "조정 신청이 반려되었습니다.",
+
+  // 에러 폴백
+  LIST_LOAD_FAILED: "조정 신청 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  DETAIL_LOAD_FAILED: "조정 신청 상세를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+} as const;

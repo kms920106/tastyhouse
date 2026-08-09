@@ -14,6 +14,7 @@ import type {
   Ceo,
   ClosedDay,
   ContentBoard,
+  DeliveryAreaAdjustmentDetail,
   EditorChoice,
   FoodTypeCategory,
   OrderMethod,
@@ -43,6 +44,10 @@ import {
   type ContentBoardHideFormValues,
   closedDaySchema,
   contentBoardHideSchema,
+  type DeliveryAreaAdjustmentRejectFormValues,
+  type DeliveryAreaAdjustmentStatusFormValues,
+  deliveryAreaAdjustmentRejectSchema,
+  deliveryAreaAdjustmentStatusSchema,
   type EditorChoiceFormValues,
   editorChoiceSchema,
   type FoodTypeCategoryFormValues,
@@ -840,4 +845,58 @@ export async function fetchShopRiderGuideDetailAction(
   }
 
   return { success: true, data };
+}
+
+// ===== 배달지역 조정 신청 검수 =====
+
+const DELIVERY_AREA_ADJUSTMENTS_PATH = "/dashboard/shop-delivery-area-adjustments";
+
+type DeliveryAreaAdjustmentDetailResult = {
+  success: boolean;
+  message?: string;
+  data?: DeliveryAreaAdjustmentDetail;
+};
+
+// 조정 신청 상세 조회 — 상세 시트가 열릴 때 지연 조회한다.
+export async function fetchDeliveryAreaAdjustmentDetailAction(
+  requestId: number,
+): Promise<DeliveryAreaAdjustmentDetailResult> {
+  const { error, data } = await shopService.getDeliveryAreaAdjustmentDetail(requestId);
+  if (error !== undefined) return { success: false, message: error };
+  return { success: true, data };
+}
+
+// 접수 대기 → 조정 중, 조정 중 → 조정 완료 전이.
+// 조정 완료는 조정 성립 사실의 기록일 뿐이며 배달가능지역이 자동 반영되지는 않는다.
+export async function updateDeliveryAreaAdjustmentStatusAction(
+  requestId: number,
+  values: DeliveryAreaAdjustmentStatusFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryAreaAdjustmentStatusSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.updateDeliveryAreaAdjustmentStatus(requestId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(DELIVERY_AREA_ADJUSTMENTS_PATH);
+  return { success: true };
+}
+
+// 조정 신청 반려 — 접수 대기·조정 중 어느 쪽에서든 반려할 수 있다.
+export async function rejectDeliveryAreaAdjustmentAction(
+  requestId: number,
+  values: DeliveryAreaAdjustmentRejectFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryAreaAdjustmentRejectSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.rejectDeliveryAreaAdjustment(requestId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(DELIVERY_AREA_ADJUSTMENTS_PATH);
+  return { success: true };
 }

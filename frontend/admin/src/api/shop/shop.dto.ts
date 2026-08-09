@@ -365,6 +365,44 @@ export interface ShopImageChangeRejectRequest {
   reason: string;
 }
 
+// ===== 배달지역 조정 신청 검수 =====
+
+export type DeliveryAreaAdjustmentStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "REJECTED";
+
+export interface DeliveryAreaAdjustmentListQueryRequest {
+  status?: DeliveryAreaAdjustmentStatus;
+  shopId?: number;
+}
+
+export interface DeliveryAreaAdjustmentItemResponse {
+  id: number;
+  shopId: number;
+  shopName: string;
+  counterpartShopName: string;
+  franchiseName: string;
+  status: DeliveryAreaAdjustmentStatus;
+  createdAt: string;
+}
+
+export interface DeliveryAreaAdjustmentDetailResponse extends DeliveryAreaAdjustmentItemResponse {
+  counterpartBusinessNumber: string;
+  reason: string;
+  /** 동의서 표시용 URL. 없으면 null */
+  consentFileUrl: string | null;
+  /** 반려 사유. 반려가 아니면 null */
+  rejectReason: string | null;
+  updatedAt: string;
+}
+
+/** 전이 가능한 상태는 IN_PROGRESS · COMPLETED 뿐이다 */
+export interface DeliveryAreaAdjustmentStatusUpdateRequest {
+  status: DeliveryAreaAdjustmentStatus;
+}
+
+export interface DeliveryAreaAdjustmentRejectRequest {
+  reason: string;
+}
+
 // ===== Phase H. 콘텐츠보드 검수 =====
 
 export type ContentBoardContentType = "IMAGE" | "GIF" | "VIDEO";

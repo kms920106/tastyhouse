@@ -3,12 +3,15 @@
 import { revalidatePath } from "next/cache";
 
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE_BYTES } from "@/api/file/file.dto";
+import { regionRepository } from "@/api/region/region.repository";
 import { shopRepository } from "@/api/shop/shop.repository";
 import { shopService } from "@/api/shop/shop.service";
 import type {
+  AdminDong,
   AmenityCategory,
   BusinessHour,
   ContentBoardItem,
+  DeliveryAreaAdjustmentRequest,
   PhoneNumber,
   ShopDeliveryArea,
   ShopDeliveryTipSetting,
@@ -17,7 +20,13 @@ import type {
   Suspension,
 } from "@/feature/shop/domain";
 
-import { CONTENT_BOARD_MAX_COUNT, PHONE_NUMBER_MAX_COUNT, REGULAR_CLOSED_DAY_MAX_COUNT } from "./constants";
+import {
+  ADMIN_DONG_SEARCH_SIZE,
+  ALLOWED_CONSENT_TYPES,
+  CONTENT_BOARD_MAX_COUNT,
+  PHONE_NUMBER_MAX_COUNT,
+  REGULAR_CLOSED_DAY_MAX_COUNT,
+} from "./constants";
 import { SHOP_MESSAGE } from "./message";
 import {
   type BusinessHourValues,
@@ -29,12 +38,15 @@ import {
   contentBoardSchema,
   convenienceInfoSchema,
   type DayTimeRangeValues,
+  type DeliveryAreaCreateFormValues,
   type DeliveryTipDistanceFormValues,
   type DeliveryTipHolidayFormValues,
   type DeliveryTipRegionsFormValues,
   type DeliveryTipSchedulesFormValues,
   type DeliveryTipTiersFormValues,
   dayTimeRangeSchema,
+  deliveryAreaAdjustmentSchema,
+  deliveryAreaCreateSchema,
   deliveryTipDistanceSchema,
   deliveryTipHolidaySchema,
   deliveryTipRegionsSchema,
@@ -97,6 +109,22 @@ function extractFile(formData: FormData): { file: File } | { error: string } {
     return { error: SHOP_MESSAGE.UPLOAD_FAILED };
   }
   if (file.size > MAX_IMAGE_SIZE_BYTES) return { error: SHOP_MESSAGE.UPLOAD_FAILED };
+  return { file };
+}
+
+/**
+ * 정보제공 동의서 첨부 검증.
+ *
+ * 스캔본 이미지와 PDF 를 모두 받으므로 `extractFile` 의 `ALLOWED_IMAGE_TYPES` 를 쓸 수 없다.
+ * 치수 검증은 하지 않는다 — PDF 는 `createImageBitmap` 으로 열리지 않는다.
+ */
+function extractConsentFile(formData: FormData): { file: File } | { error: string } {
+  const file = formData.get("file");
+  if (!assertUploadableImage(file)) return { error: SHOP_MESSAGE.CONSENT_FILE_REQUIRED };
+  if (!ALLOWED_CONSENT_TYPES.includes(file.type as (typeof ALLOWED_CONSENT_TYPES)[number])) {
+    return { error: SHOP_MESSAGE.CONSENT_FILE_TYPE };
+  }
+  if (file.size > MAX_IMAGE_SIZE_BYTES) return { error: SHOP_MESSAGE.CONSENT_FILE_SIZE };
   return { file };
 }
 
@@ -573,8 +601,14 @@ export async function getDeliveryAreasAction(shopId: number): Promise<DataResult
   };
 }
 
-export async function createDeliveryAreaAction(shopId: number, adminDongId: number): Promise<ActionResult> {
-  const { data, error } = await shopRepository.createDeliveryArea(shopId, { adminDongId });
+export async function createDeliveryAreaAction(
+  shopId: number,
+  values: DeliveryAreaCreateFormValues,
+): Promise<ActionResult> {
+  const parsed = deliveryAreaCreateSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await shopRepository.createDeliveryArea(shopId, { adminDongId: parsed.data.adminDongId });
   if (error !== undefined) return { success: false, message: error };
 
   revalidatePath(SHOP_PATH);
@@ -587,6 +621,81 @@ export async function deleteDeliveryAreaAction(deliveryAreaId: number): Promise<
 
   revalidatePath(SHOP_PATH);
   return { success: true };
+}
+
+/** 배달가능지역으로 등록할 행정동 검색 — 조회이므로 DataResult 를 반환한다 */
+export async function searchAdminDongsAction(
+  keyword: string,
+  page = 0,
+  size = ADMIN_DONG_SEARCH_SIZE,
+): Promise<DataResult<AdminDong[]>> {
+  const { data, error } = await regionRepository.searchAdminDongs({ keyword }, { page, size });
+  if (error !== undefined) return { success: false, message: error };
+
+  return {
+    success: true,
+    data: (data ?? []).map((item) => ({
+      id: item.id,
+      code: item.code,
+      regionName: item.regionName,
+    })),
+  };
+}
+
+// ===== 배달지역 조정 신청 =====
+
+export async function fetchDeliveryAreaAdjustmentsAction(
+  shopId: number,
+): Promise<DataResult<DeliveryAreaAdjustmentRequest[]>> {
+  const { data, error } = await shopRepository.getDeliveryAreaAdjustments(shopId);
+  if (error !== undefined) return { success: false, message: error };
+
+  return {
+    success: true,
+    data: (data ?? []).map((item) => ({
+      id: item.id,
+      counterpartShopName: item.counterpartShopName,
+      counterpartBusinessNumber: item.counterpartBusinessNumber,
+      franchiseName: item.franchiseName,
+      reason: item.reason,
+      consentFileUrl: item.consentFileUrl,
+      status: item.status,
+      rejectReason: item.rejectReason,
+      createdAt: item.createdAt,
+    })),
+  };
+}
+
+/**
+ * 조정 신청 접수.
+ *
+ * 동의서 파일을 함께 보내야 하므로 FormData 를 그대로 받아 multipart 로 패스스루한다.
+ * 텍스트 필드는 여기서 Zod 로 다시 검증한 뒤 새 FormData 로 재조립한다.
+ */
+export async function requestDeliveryAreaAdjustmentAction(shopId: number, formData: FormData): Promise<ActionResult> {
+  const parsed = deliveryAreaAdjustmentSchema.safeParse({
+    counterpartShopName: formData.get("counterpartShopName"),
+    counterpartBusinessNumber: formData.get("counterpartBusinessNumber"),
+    franchiseName: formData.get("franchiseName"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const extracted = extractConsentFile(formData);
+  if ("error" in extracted) return { success: false, message: extracted.error };
+
+  const payload = new FormData();
+  payload.append("counterpartShopName", parsed.data.counterpartShopName);
+  payload.append("counterpartBusinessNumber", parsed.data.counterpartBusinessNumber);
+  payload.append("franchiseName", parsed.data.franchiseName);
+  payload.append("reason", parsed.data.reason);
+  payload.append("file", extracted.file);
+
+  const { data, error } = await shopRepository.createDeliveryAreaAdjustment(shopId, payload);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(SHOP_PATH);
+  return { success: true, id: data ?? undefined };
 }
 
 export async function updateConvenienceInfoAction(

@@ -18,6 +18,7 @@ import { formatTimeLabel } from "@/feature/shop/time";
 
 import { BusinessHoursSheet } from "./business-hours-sheet";
 import { ClosedDaysSheet } from "./closed-days-sheet";
+import { DeliveryAreaSheet } from "./delivery-area-sheet";
 import { DeliveryTipExtraSheet } from "./delivery-tip-extra-sheet";
 import { DeliveryTipTiersSheet } from "./delivery-tip-tiers-sheet";
 import { HygieneInfoCard } from "./hygiene-info-card";
@@ -48,6 +49,7 @@ export function OperationInfoTab({
   const [scheduledOrderOpen, setScheduledOrderOpen] = React.useState(false);
   const [deliveryTipTiersOpen, setDeliveryTipTiersOpen] = React.useState(false);
   const [deliveryTipExtraOpen, setDeliveryTipExtraOpen] = React.useState(false);
+  const [deliveryAreaOpen, setDeliveryAreaOpen] = React.useState(false);
   const [riderVisitGuideOpen, setRiderVisitGuideOpen] = React.useState(false);
   const [riderPickupLocationOpen, setRiderPickupLocationOpen] = React.useState(false);
 
@@ -91,6 +93,9 @@ export function OperationInfoTab({
   }
   const extraDeliveryTipSummary =
     extraDeliveryTipParts.length > 0 ? extraDeliveryTipParts.join(" · ") : SHOP_OPERATION_COPY.DELIVERY_TIP_UNSET_LABEL;
+
+  const deliveryAreaSummary =
+    deliveryAreas.length > 0 ? `${deliveryAreas.length}개 지역` : SHOP_OPERATION_COPY.NOT_REGISTERED;
 
   const closedDaySummaryParts: string[] = [];
   if (closedOnPublicHolidays) closedDaySummaryParts.push(SHOP_OPERATION_COPY.HOLIDAY_CLOSED_ON);
@@ -198,6 +203,15 @@ export function OperationInfoTab({
       <Separator />
 
       <SettingRow
+        title={SHOP_OPERATION_COPY.DELIVERY_AREA_TITLE}
+        description={SHOP_OPERATION_COPY.DELIVERY_AREA_DESCRIPTION}
+        summary={deliveryAreaSummary}
+        onAction={() => setDeliveryAreaOpen(true)}
+      />
+
+      <Separator />
+
+      <SettingRow
         title={SHOP_RIDER_COPY.VISIT_GUIDE_TITLE}
         description={SHOP_RIDER_COPY.VISIT_GUIDE_DESCRIPTION}
         summary={visitGuideSummary}
@@ -263,6 +277,13 @@ export function OperationInfoTab({
         onOpenChange={setDeliveryTipExtraOpen}
         shopId={shopId}
         deliveryTip={deliveryTip}
+        deliveryAreas={deliveryAreas}
+      />
+
+      <DeliveryAreaSheet
+        open={deliveryAreaOpen}
+        onOpenChange={setDeliveryAreaOpen}
+        shopId={shopId}
         deliveryAreas={deliveryAreas}
       />
 

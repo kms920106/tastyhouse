@@ -269,3 +269,21 @@ export const RIDER_GUIDE_ACTOR_TYPE_LABEL = {
   CEO: "점주",
   ADMIN: "관리자",
 } as const;
+
+// ===== 배달지역 조정 신청 검수 =====
+
+// 상태 — 백엔드 DeliveryAreaAdjustmentStatus enum 기준
+export const DELIVERY_AREA_ADJUSTMENT_STATUS_OPTIONS = ["PENDING", "IN_PROGRESS", "COMPLETED", "REJECTED"] as const;
+export type DeliveryAreaAdjustmentStatusOption = (typeof DELIVERY_AREA_ADJUSTMENT_STATUS_OPTIONS)[number];
+
+// 라벨은 ceo 앱과 동일하게 맞춘다 — 앱별로 문구가 갈리는 상황을 새로 만들지 않는다.
+export const DELIVERY_AREA_ADJUSTMENT_STATUS_LABEL: Record<DeliveryAreaAdjustmentStatusOption, string> = {
+  PENDING: "접수 대기",
+  IN_PROGRESS: "조정 중",
+  COMPLETED: "조정 완료",
+  REJECTED: "반려",
+};
+
+/** 관리자가 직접 전이시킬 수 있는 상태 — 반려는 별도 엔드포인트다 */
+export const DELIVERY_AREA_ADJUSTMENT_TRANSITION_OPTIONS = ["IN_PROGRESS", "COMPLETED"] as const;
+export type DeliveryAreaAdjustmentTransitionOption = (typeof DELIVERY_AREA_ADJUSTMENT_TRANSITION_OPTIONS)[number];

@@ -7,6 +7,7 @@ import {
   BUSINESS_HOUR_MINUTE_UNIT,
   CLOSED_DAY_TYPE_OPTIONS,
   DAY_TYPE_OPTIONS,
+  DELIVERY_AREA_ADJUSTMENT_TRANSITION_OPTIONS,
   EDITOR_CHOICE_CONTENT_MAX,
   EDITOR_CHOICE_TITLE_MAX,
   FOOD_TYPE_DISPLAY_NAME_MAX,
@@ -366,3 +367,22 @@ export const riderPickupLocationSchema = z.object({
 });
 
 export type RiderPickupLocationFormValues = z.infer<typeof riderPickupLocationSchema>;
+
+// ===== 배달지역 조정 신청 검수 =====
+
+export const deliveryAreaAdjustmentStatusSchema = z.object({
+  status: z.enum(DELIVERY_AREA_ADJUSTMENT_TRANSITION_OPTIONS),
+});
+
+export type DeliveryAreaAdjustmentStatusFormValues = z.infer<typeof deliveryAreaAdjustmentStatusSchema>;
+
+// 반려 사유는 이미지 검수와 형태가 같아 REJECT_REASON_MAX 를 재사용한다.
+export const deliveryAreaAdjustmentRejectSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(1, { message: "반려 사유를 입력해 주세요." })
+    .max(REJECT_REASON_MAX, { message: `반려 사유는 최대 ${REJECT_REASON_MAX}자까지 입력할 수 있습니다.` }),
+});
+
+export type DeliveryAreaAdjustmentRejectFormValues = z.infer<typeof deliveryAreaAdjustmentRejectSchema>;

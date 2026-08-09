@@ -9,6 +9,8 @@ import type {
   Ceo,
   ClosedDay,
   ContentBoard,
+  DeliveryAreaAdjustmentDetail,
+  DeliveryAreaAdjustmentListItem,
   EditorChoice,
   FoodTypeCategory,
   OrderMethod,
@@ -28,6 +30,7 @@ import type {
 
 import type {
   ContentBoardListQueryRequest,
+  DeliveryAreaAdjustmentListQueryRequest,
   EditorChoiceListQueryRequest,
   ShopImageChangeRequestListQueryRequest,
   ShopListQueryRequest,
@@ -298,6 +301,49 @@ export const shopService = {
         status: item.status,
         rejectReason: item.rejectReason,
       })),
+    };
+  },
+
+  // 배달지역 조정 신청 목록 조회 — 도메인 반환. pagination 은 보존한다.
+  async getDeliveryAreaAdjustments(
+    query: DeliveryAreaAdjustmentListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<DeliveryAreaAdjustmentListItem[]>> {
+    const res = await shopRepository.getDeliveryAreaAdjustments(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        shopId: item.shopId,
+        shopName: item.shopName,
+        counterpartShopName: item.counterpartShopName,
+        franchiseName: item.franchiseName,
+        status: item.status,
+        createdAt: item.createdAt,
+      })),
+    };
+  },
+
+  // 배달지역 조정 신청 상세 조회 — 도메인 반환
+  async getDeliveryAreaAdjustmentDetail(requestId: number): Promise<ApiResponse<DeliveryAreaAdjustmentDetail>> {
+    const res = await shopRepository.getDeliveryAreaAdjustmentDetail(requestId);
+    if (!res.data) return { ...res, data: undefined };
+    return {
+      ...res,
+      data: {
+        id: res.data.id,
+        shopId: res.data.shopId,
+        shopName: res.data.shopName,
+        counterpartShopName: res.data.counterpartShopName,
+        counterpartBusinessNumber: res.data.counterpartBusinessNumber,
+        franchiseName: res.data.franchiseName,
+        reason: res.data.reason,
+        consentFileUrl: res.data.consentFileUrl,
+        status: res.data.status,
+        rejectReason: res.data.rejectReason,
+        createdAt: res.data.createdAt,
+        updatedAt: res.data.updatedAt,
+      },
     };
   },
 

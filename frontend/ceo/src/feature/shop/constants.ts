@@ -320,3 +320,36 @@ export const HYGIENE_BADGE_TYPE_LABEL: Record<HygieneBadgeTypeOption, string> = 
   CESCO_BLUE: "블루세스코",
   CESCO_WHITE: "화이트세스코",
 };
+
+// ===== 배달가능지역 · 배달지역 조정 신청 =====
+
+/** 배달가능지역 등록 상한 — 서버 상한이 없어 클라이언트에서 가드한다 */
+export const DELIVERY_AREA_MAX_COUNT = 100;
+/** 행정동 검색 한 번에 가져올 건수 */
+export const ADMIN_DONG_SEARCH_SIZE = 20;
+
+/** 사업자등록번호 — 하이픈 제외 자릿수 */
+export const BUSINESS_NUMBER_LENGTH = 10;
+/** 배달지역 중첩 사유 최대 길이 */
+export const ADJUSTMENT_REASON_MAX = 1000;
+/** 상대 가맹점 상호명·가맹본부명 최대 길이 */
+export const ADJUSTMENT_NAME_MAX = 255;
+
+export const DELIVERY_AREA_ADJUSTMENT_STATUS_OPTIONS = ["PENDING", "IN_PROGRESS", "COMPLETED", "REJECTED"] as const;
+export type DeliveryAreaAdjustmentStatusOption = (typeof DELIVERY_AREA_ADJUSTMENT_STATUS_OPTIONS)[number];
+
+export const DELIVERY_AREA_ADJUSTMENT_STATUS_LABEL: Record<DeliveryAreaAdjustmentStatusOption, string> = {
+  PENDING: "접수 대기",
+  IN_PROGRESS: "조정 중",
+  COMPLETED: "조정 완료",
+  REJECTED: "반려",
+};
+
+/** 아직 종결되지 않은 상태 — 중복 신청을 막는 판정에 쓴다 */
+export const DELIVERY_AREA_ADJUSTMENT_OPEN_STATUSES: readonly DeliveryAreaAdjustmentStatusOption[] = [
+  "PENDING",
+  "IN_PROGRESS",
+];
+
+/** 동의서 첨부 허용 MIME — 이미지 스캔본과 PDF 를 모두 받는다 */
+export const ALLOWED_CONSENT_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"] as const;
