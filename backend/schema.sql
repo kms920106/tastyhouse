@@ -1203,6 +1203,23 @@ CREATE TABLE SHOP_DELIVERY_AREA
     UNIQUE KEY uk_shop_delivery_area (shop_id, admin_dong_id)    -- 유니크: 가게·행정동 중복 방지
 );
 
+CREATE TABLE SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST
+(
+    id                          BIGINT        AUTO_INCREMENT PRIMARY KEY, -- 조정 신청 ID (PK)
+    shop_id                     BIGINT        NOT NULL,                   -- 신청 가게 ID (SHOP.id 참조)
+    counterpart_shop_name       VARCHAR(255)  NOT NULL,                   -- 상대 가맹점 상호명
+    counterpart_business_number VARCHAR(12)   NOT NULL,                   -- 상대 가맹점 사업자등록번호(하이픈 제외 10자리)
+    franchise_name              VARCHAR(255)  NOT NULL,                   -- 가맹본부명
+    reason                      VARCHAR(1000) NOT NULL,                   -- 배달지역 중첩 사유
+    consent_file_id             BIGINT        NOT NULL,                   -- 정보제공 동의서 파일 ID (UPLOADED_FILE.id 참조)
+    status                      VARCHAR(20)   NOT NULL,                   -- 처리 상태 (PENDING, IN_PROGRESS, COMPLETED, REJECTED)
+    reject_reason               VARCHAR(500),                             -- 반려 사유 (REJECTED일 때만)
+    created_at                  DATETIME      NOT NULL,                   -- 생성 일시
+    updated_at                  DATETIME      NOT NULL,                   -- 수정 일시
+    INDEX idx_shop_delivery_area_adjustment_shop_id_status (shop_id, status), -- 인덱스: 가게별 이력·중복 신청 검사
+    INDEX idx_shop_delivery_area_adjustment_status (status)                   -- 인덱스: 검수 목록 상태 필터
+);
+
 CREATE TABLE PUBLIC_HOLIDAY
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 공휴일 ID (PK)

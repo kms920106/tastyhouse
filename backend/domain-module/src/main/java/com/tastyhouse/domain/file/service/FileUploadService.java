@@ -34,9 +34,12 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  */
 public class FileUploadService {
 
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
+    // pdf는 배달지역 조정 신청의 "정보제공 동의서" 첨부 때문에 허용한다. 이 상수는 전 도메인이 공유하므로
+    // 이미지 전용이어야 하는 경로는 각 도메인의 presentation 검증기(ShopImageSpecValidator 등)가 형식·해상도를
+    // 별도로 막는다 — 그 검증이 걸린 경로는 여기서 pdf를 허용해도 영향받지 않는다.
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "pdf");
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
-        "image/jpeg", "image/png", "image/gif", "image/webp"
+        "image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"
     );
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");

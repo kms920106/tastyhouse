@@ -73,6 +73,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
 import com.tastyhouse.domain.shop.repository.ShopConvenienceInfoRepository;
+import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaAdjustmentRequestRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
@@ -90,6 +91,7 @@ import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
 import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
+import com.tastyhouse.domain.shop.service.ShopDeliveryAreaAdjustmentService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipService;
@@ -623,6 +625,18 @@ public class DomainServiceConfig {
         return new ShopDeliveryAreaService(
             shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup
         );
+    }
+
+    /**
+     * 프랜차이즈 배달지역 조정 신청 불변식 — 같은 가게에 진행 중(PENDING·IN_PROGRESS) 신청이 있으면 새
+     * 접수를 막고(행 하나만 보고는 판정할 수 없는 집합 차원 규칙), 상태 전이 후 명시적으로 저장한다.
+     * 신청 접수는 ceo, 검수는 admin이 수행하는 액터 공유 규칙이라 도메인 계층에 하나만 둔다.
+     */
+    @Bean
+    public ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService(
+        ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository
+    ) {
+        return new ShopDeliveryAreaAdjustmentService(shopDeliveryAreaAdjustmentRequestRepository);
     }
 
     /**
