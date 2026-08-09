@@ -74,6 +74,7 @@ import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
 import com.tastyhouse.domain.shop.repository.ShopConvenienceInfoRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaAdjustmentRequestRepository;
+import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaPolygonRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
@@ -92,6 +93,8 @@ import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
 import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaAdjustmentService;
+import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolygonService;
+import com.tastyhouse.domain.shop.service.ShopDeliveryAreaRadiusService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipService;
@@ -624,6 +627,38 @@ public class DomainServiceConfig {
     ) {
         return new ShopDeliveryAreaService(
             shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup
+        );
+    }
+
+    /**
+     * 배달지역 도형 저장·삭제 — 도형 원본과 그것을 환산한 행정동 집합이 같은 트랜잭션에서 항상 일치하도록
+     * 순서와 검증을 한 곳에 모은다. 환산을 비동기로 미루면 "저장은 됐는데 주문은 거절되는" 창이 생기고,
+     * 그 사이 등록 건수가 0이 되면 주문 접수의 지역 검사가 통째로 비활성된다.
+     */
+    @Bean
+    public ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService(
+        ShopDeliveryAreaPolygonRepository shopDeliveryAreaPolygonRepository,
+        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
+        AdminDongRepository adminDongRepository,
+        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup
+    ) {
+        return new ShopDeliveryAreaPolygonService(
+            shopDeliveryAreaPolygonRepository, shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup
+        );
+    }
+
+    /**
+     * 반경 일괄 적용 — 후보 행정동을 write 포트로 읽는다(명령 경로가 infra query DAO를 주입하면 CQRS 교차
+     * 주입 금지 규칙에 걸린다). 거리 판정은 원 근사 다각형이 아니라 하버사인 직선거리로 한다.
+     */
+    @Bean
+    public ShopDeliveryAreaRadiusService shopDeliveryAreaRadiusService(
+        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
+        AdminDongRepository adminDongRepository,
+        ShopDeliveryAreaService shopDeliveryAreaService
+    ) {
+        return new ShopDeliveryAreaRadiusService(
+            shopDeliveryAreaRepository, adminDongRepository, shopDeliveryAreaService
         );
     }
 

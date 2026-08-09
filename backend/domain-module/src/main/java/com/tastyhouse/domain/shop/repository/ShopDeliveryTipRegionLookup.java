@@ -1,5 +1,7 @@
 package com.tastyhouse.domain.shop.repository;
 
+import java.util.Set;
+
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -22,4 +24,14 @@ public interface ShopDeliveryTipRegionLookup {
 
     /** 해당 가게에 그 행정동을 대상으로 하는 지역별 배달팁 행이 있는지. */
     boolean existsRegionTipByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId);
+
+    /**
+     * 해당 가게의 지역별 배달팁이 참조하는 행정동 집합을 <b>한 번에</b> 읽는다.
+     *
+     * <p>일괄 삭제·폴리곤 재저장은 수십~수백 개의 행정동을 동시에 닫으므로, 위 단건 {@code exists}를
+     * 루프로 돌면 쿼리가 대상 수만큼 나간다. 더 중요한 것은 <b>판정 시점</b>이다 — 이 경로는 "하나라도
+     * 참조돼 있으면 한 건도 지우지 않는다"는 원자적 차단을 해야 하는데, 그러려면 지우기 전에 참조 집합
+     * 전체를 알아야 한다. 건별로 확인하며 지우면 중간까지 지운 뒤 막히는 부분 삭제가 된다.
+     */
+    Set<AdminDongId> findRegionTipAdminDongIds(ShopId shopId);
 }

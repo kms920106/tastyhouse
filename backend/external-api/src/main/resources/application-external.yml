@@ -6,3 +6,4 @@ spring:
       - classpath:config/application-sms.yml
       - classpath:config/application-payment.yml
       - classpath:config/application-crawling.yml
+      - classpath:config/application-region.yml

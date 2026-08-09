@@ -11,6 +11,7 @@ import com.tastyhouse.external.file.firebase.FirebaseStorageProperties;
 import com.tastyhouse.external.file.s3.S3FileStorageProperties;
 import com.tastyhouse.external.mail.MailProperties;
 import com.tastyhouse.external.payment.toss.TossPaymentProperties;
+import com.tastyhouse.external.region.AdminDongBoundaryProperties;
 import com.tastyhouse.external.sms.SmsProperties;
 import com.tastyhouse.external.sms.solapi.SolapiProperties;
 
@@ -46,7 +47,8 @@ import com.tastyhouse.external.sms.solapi.SolapiProperties;
     SolapiProperties.class,
     MailProperties.class,
     TossPaymentProperties.class,
-    BbqProperties.class
+    BbqProperties.class,
+    AdminDongBoundaryProperties.class
 })
 public class ExternalApiConfig {
 }

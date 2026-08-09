@@ -1,7 +1,10 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -174,5 +177,20 @@ public class ShopDeliveryTipRepositoryImpl implements ShopDeliveryTipRepository,
     @Override
     public boolean existsRegionTipByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
         return shopDeliveryTipRegionJpaRepository.existsByShopIdAndAdminDongId(shopId.value(), adminDongId.value());
+    }
+
+    /**
+     * 지역별 배달팁이 참조하는 행정동 집합을 한 번에 읽는다. 일괄 삭제·폴리곤 재저장이 "하나라도 참조돼
+     * 있으면 한 건도 지우지 않는다"는 원자적 차단을 하려면 지우기 전에 참조 집합 전체를 알아야 한다.
+     *
+     * <p>가게당 지역별 팁은 배달가능지역 수를 넘지 않아(각 팁이 배달가능한 동을 가리킨다) 행을 그대로
+     * 읽어도 규모가 제한적이다.
+     */
+    @Override
+    public Set<AdminDongId> findRegionTipAdminDongIds(ShopId shopId) {
+        return shopDeliveryTipRegionJpaRepository.findByShopId(shopId.value()).stream()
+            .map(ShopDeliveryTipRegionJpaEntity::getAdminDongId)
+            .map(AdminDongId::of)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

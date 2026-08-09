@@ -1,5 +1,10 @@
 package com.tastyhouse.domain.shop.domain.service;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
+import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -12,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.repository.AdminDongRepository;
+import com.tastyhouse.domain.region.repository.AdminDongSyncResult;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
@@ -155,12 +161,18 @@ class ShopDeliveryAreaServiceTest {
 
     private static final class AdminDongRepositoryFake implements AdminDongRepository {
 
+        @Override
+        public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
+            // 이 테스트들은 조회 경로만 검증한다. 동기화가 불리면 테스트가 잘못 짜인 것이다.
+            throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");
+        }
+
         private final Map<Long, AdminDong> adminDongs = new LinkedHashMap<>();
 
         void add(AdminDongId adminDongId) {
             adminDongs.put(
                 adminDongId.value(),
-                AdminDong.reconstitute(adminDongId.value(), "1168053100", "서울특별시", "강남구", "역삼1동", true)
+                AdminDong.reconstitute(adminDongId.value(), "1168053100", "서울특별시", "강남구", "역삼1동", true, null, List.of())
             );
         }
 
@@ -172,6 +184,29 @@ class ShopDeliveryAreaServiceTest {
         @Override
         public boolean existsById(AdminDongId adminDongId) {
             return adminDongs.containsKey(adminDongId.value());
+        }
+
+        @Override
+        public List<AdminDong> findAllWithinBoundingBox(GeoBoundingBox boundingBox) {
+            return adminDongs.values().stream()
+                .filter(AdminDong::hasCenter)
+                .filter(adminDong -> boundingBox.contains(adminDong.getCenter()))
+                .toList();
+        }
+
+        @Override
+        public List<AdminDong> findAllByIds(Collection<AdminDongId> adminDongIds) {
+            return adminDongIds.stream()
+                .map(adminDongId -> adminDongs.get(adminDongId.value()))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        }
+
+        @Override
+        public Set<AdminDongId> filterExistingIds(Collection<AdminDongId> adminDongIds) {
+            return adminDongIds.stream()
+                .filter(adminDongId -> adminDongs.containsKey(adminDongId.value()))
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         }
 
         @Override
@@ -215,9 +250,33 @@ class ShopDeliveryAreaServiceTest {
         @Override
         public ShopDeliveryArea save(ShopDeliveryArea shopDeliveryArea) {
             long id = ++sequence;
-            ShopDeliveryArea saved = ShopDeliveryArea.reconstitute(id, shopDeliveryArea.getShopId(), shopDeliveryArea.getAdminDongId());
+            ShopDeliveryArea saved = ShopDeliveryArea.reconstitute(id, shopDeliveryArea.getShopId(), shopDeliveryArea.getAdminDongId(), shopDeliveryArea.getSource());
             areas.put(id, saved);
             return saved;
+        }
+
+        @Override
+        public List<ShopDeliveryArea> saveAll(List<ShopDeliveryArea> shopDeliveryAreas) {
+            return shopDeliveryAreas.stream().map(this::save).toList();
+        }
+
+        @Override
+        public List<ShopDeliveryArea> findByShopIdAndSource(ShopId shopId, DeliveryAreaSource source) {
+            return findByShopId(shopId).stream()
+                .filter(area -> area.getSource() == source)
+                .toList();
+        }
+
+        @Override
+        public void deleteByShopIdAndSource(ShopId shopId, DeliveryAreaSource source) {
+            findByShopIdAndSource(shopId, source).forEach(area -> areas.remove(area.getId()));
+        }
+
+        @Override
+        public Set<AdminDongId> findAdminDongIdsByShopId(ShopId shopId) {
+            return findByShopId(shopId).stream()
+                .map(ShopDeliveryArea::getAdminDongId)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         }
 
         @Override
@@ -230,6 +289,10 @@ class ShopDeliveryAreaServiceTest {
 
         private final List<String> regionTipKeys = new ArrayList<>();
 
+        // adminDongId를 현재 테스트가 한 값으로만 넘기지만 파라미터를 없애지 않는다 — 이 fake는
+        // (shopId, adminDongId) 복합키를 저장하고 findRegionTipAdminDongIds가 그 dong을 되읽으므로,
+        // 상수로 굳히면 동을 두 개 이상 쓰는 경우를 표현할 수 없고 그 조회의 검증력이 사라진다.
+        @SuppressWarnings("SameParameterValue")
         void addRegionTip(ShopId shopId, AdminDongId adminDongId) {
             regionTipKeys.add(key(shopId, adminDongId));
         }
@@ -237,6 +300,18 @@ class ShopDeliveryAreaServiceTest {
         @Override
         public boolean existsRegionTipByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
             return regionTipKeys.contains(key(shopId, adminDongId));
+        }
+
+        @Override
+        public Set<AdminDongId> findRegionTipAdminDongIds(ShopId shopId) {
+            Set<AdminDongId> referenced = new LinkedHashSet<>();
+            for (String regionTipKey : regionTipKeys) {
+                String[] parts = regionTipKey.split(":");
+                if (Long.parseLong(parts[0]) == shopId.value()) {
+                    referenced.add(AdminDongId.of(Long.parseLong(parts[1])));
+                }
+            }
+            return referenced;
         }
 
         private static String key(ShopId shopId, AdminDongId adminDongId) {

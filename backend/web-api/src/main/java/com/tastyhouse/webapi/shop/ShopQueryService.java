@@ -44,6 +44,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressQueryDao;
 import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
 import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
 import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
@@ -129,6 +130,7 @@ public class ShopQueryService {
     private final ShopRepository shopRepository;
     private final ShopBookmarkRepository shopBookmarkRepository;
     private final MemberDeliveryAddressRepository memberDeliveryAddressRepository;
+    private final MemberDeliveryAddressQueryDao memberDeliveryAddressQueryDao;
     private final ShopDeliveryTipRepository shopDeliveryTipRepository;
     private final ShopQueryDao shopQueryDao;
     private final ShopSearchQueryDao shopSearchQueryDao;
@@ -145,6 +147,7 @@ public class ShopQueryService {
         ShopRepository shopRepository,
         ShopBookmarkRepository shopBookmarkRepository,
         MemberDeliveryAddressRepository memberDeliveryAddressRepository,
+        MemberDeliveryAddressQueryDao memberDeliveryAddressQueryDao,
         ShopDeliveryTipRepository shopDeliveryTipRepository,
         ShopQueryDao shopQueryDao,
         ShopSearchQueryDao shopSearchQueryDao,
@@ -160,6 +163,7 @@ public class ShopQueryService {
         this.shopRepository = shopRepository;
         this.shopBookmarkRepository = shopBookmarkRepository;
         this.memberDeliveryAddressRepository = memberDeliveryAddressRepository;
+        this.memberDeliveryAddressQueryDao = memberDeliveryAddressQueryDao;
         this.shopDeliveryTipRepository = shopDeliveryTipRepository;
         this.shopQueryDao = shopQueryDao;
         this.shopSearchQueryDao = shopSearchQueryDao;
@@ -190,8 +194,24 @@ public class ShopQueryService {
         );
     }
 
-    public PageResult<ShopBestListItemResponse> searchBestShops(int page, int size) {
-        PageResult<BestShopItemResult> result = shopSearchQueryDao.findBestShops(PageQuery.of(page, size));
+    /**
+     * 회원 기본 배송지의 행정동 — 목록 노출 시 배달 불가 가게를 걸러내는 기준.
+     *
+     * <p>비로그인이거나, 배송지를 등록하지 않았거나, 등록한 배송지가 아직 행정동에 매칭되지 않았으면
+     * {@code null}이다. 그 경우 필터를 걸지 않는다 — 좁힐 근거가 없는데 감추면 노출만 줄어든다.
+     */
+    private Long resolveDeliveryAdminDongId(Long memberId) {
+        if (memberId == null) {
+            return null;
+        }
+
+        // write 포트가 아니라 read 어댑터를 쓴다 — 표현 목적 조회이므로 CQRS read 측이 맞다.
+        return memberDeliveryAddressQueryDao.findDefaultAdminDongId(MemberId.of(memberId)).orElse(null);
+    }
+
+    public PageResult<ShopBestListItemResponse> searchBestShops(Long memberId, int page, int size) {
+        PageResult<BestShopItemResult> result =
+            shopSearchQueryDao.findBestShops(resolveDeliveryAdminDongId(memberId), PageQuery.of(page, size));
         Map<Long, ShopOperatingStatus> statusMap = resolveOperatingStatuses(
             result.content().stream().map(BestShopItemResult::id).toList()
         );
@@ -202,13 +222,19 @@ public class ShopQueryService {
         Long stationId,
         List<String> foodTypes,
         List<String> amenities,
+        Long memberId,
         int page,
         int size
     ) {
         List<FoodType> foodTypeFilters = foodTypes == null ? null : foodTypes.stream().map(FoodType::from).toList();
         List<Amenity> amenityFilters = amenities == null ? null : amenities.stream().map(Amenity::from).toList();
-        PageResult<LatestShopItemResult> result =
-            shopSearchQueryDao.findLatestShops(stationId, foodTypeFilters, amenityFilters, PageQuery.of(page, size));
+        PageResult<LatestShopItemResult> result = shopSearchQueryDao.findLatestShops(
+            stationId,
+            foodTypeFilters,
+            amenityFilters,
+            resolveDeliveryAdminDongId(memberId),
+            PageQuery.of(page, size)
+        );
         Map<Long, ShopOperatingStatus> statusMap = resolveOperatingStatuses(
             result.content().stream().map(LatestShopItemResult::id).toList()
         );

@@ -70,8 +70,12 @@ public class ShopApiController {
 
     @Operation(summary = "베스트 가게 목록 조회", description = "평점 기준 베스트 가게를 페이징하여 조회합니다. 이미지, 지하철역명, 평점, 가게명, 태그 정보를 포함합니다.")
     @GetMapping("/v1/best")
-    public ResponseEntity<ApiResponse<List<ShopBestListItemResponse>>> getBestShops(@Valid @ModelAttribute PageRequest pageRequest) {
-        var pageResult = shopQueryService.searchBestShops(pageRequest.page(), pageRequest.size());
+    public ResponseEntity<ApiResponse<List<ShopBestListItemResponse>>> getBestShops(
+        @Valid @ModelAttribute PageRequest pageRequest,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        // 공개 경로라 비로그인이면 principal 이 null 이다 — 그때는 배달지역 필터를 걸지 않는다.
+        var pageResult = shopQueryService.searchBestShops(memberIdOrNull(userDetails), pageRequest.page(), pageRequest.size());
         ApiResponse<List<ShopBestListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -88,9 +92,17 @@ public class ShopApiController {
     @GetMapping("/v1/latest")
     public ResponseEntity<ApiResponse<List<ShopLatestListItemResponse>>> getLatestShops(
         @Valid @ModelAttribute ShopSearchRequest search,
-        @Valid @ModelAttribute PageRequest pageRequest
+        @Valid @ModelAttribute PageRequest pageRequest,
+        @CurrentUser CustomUserDetails userDetails
     ) {
-        var pageResult = shopQueryService.searchLatestShops(search.stationId(), search.foodTypes(), search.amenities(), pageRequest.page(), pageRequest.size());
+        var pageResult = shopQueryService.searchLatestShops(
+            search.stationId(),
+            search.foodTypes(),
+            search.amenities(),
+            memberIdOrNull(userDetails),
+            pageRequest.page(),
+            pageRequest.size()
+        );
         ApiResponse<List<ShopLatestListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -264,5 +276,15 @@ public class ShopApiController {
         ShopOrderMethodResponse orderMethods = shopQueryService.getShopOrderMethods(id);
         ApiResponse<ShopOrderMethodResponse> response = ApiResponse.success(orderMethods);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 공개 경로의 회원 식별자 — 비로그인이면 {@code null}.
+     *
+     * <p>목록 조회는 인증 없이도 열려 있어({@code PublicPaths}) principal 이 {@code null} 로 들어온다.
+     * 배달지역 필터는 회원 배송지가 있을 때만 걸리므로 여기서 그대로 흘려보낸다.
+     */
+    private Long memberIdOrNull(CustomUserDetails userDetails) {
+        return userDetails == null ? null : userDetails.getMemberId();
     }
 }

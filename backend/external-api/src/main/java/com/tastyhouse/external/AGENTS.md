@@ -15,6 +15,7 @@
 | `sms/{sns,solapi}` | SMS 발송 — AWS SNS 또는 Solapi. `sms/solapi/{request,response}` 패키지로 DTO 관리. `sms/domain/port/SmsSender` 구현 |
 | `file/{s3,firebase}` | 파일 스토리지 — AWS S3 또는 Firebase Storage. domain 포트 `file/domain/port/FileStoragePort` 구현, `FileStorageStrategy` 패턴 |
 | `crawling/bbq` | BBQ 치킨 가게 정보 크롤링 — `crawling/bbq/dto/` 내 응답 DTO 보유 |
+| `region/` | 행정동 경계 GeoJSON 원천(통계청 SGIS 파생, CC BY 4.0 / EPSG:4326) — batch-module의 행정동 마스터 동기화가 소비. 30MB대 단일 JSON이라 WebClient(`bodyToMono(String)`)가 아니라 `HttpClient` + Jackson **스트리밍** 파서로 읽고, `BoundedInputStream`으로 응답 크기 상한을 건다. 도메인 포트가 없어 `SocialOAuthClient` SPI처럼 자체 계약(`AdminDongBoundaryClient`/`AdminDongBoundaryResult`)을 소유한다 |
 | `exception/` | 어댑터 전용 예외 — `ExternalApiException`, `ExternalApiErrorCode` |
 
 ## For AI Agents

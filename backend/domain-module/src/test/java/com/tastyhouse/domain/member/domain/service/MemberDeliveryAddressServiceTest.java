@@ -1,5 +1,11 @@
 package com.tastyhouse.domain.member.domain.service;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,6 +27,7 @@ import com.tastyhouse.domain.member.service.MemberDeliveryAddressService;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.repository.AdminDongRepository;
+import com.tastyhouse.domain.region.repository.AdminDongSyncResult;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -382,11 +389,21 @@ class MemberDeliveryAddressServiceTest {
     /** 인메모리 행정동 마스터. 등록되지 않은 조합을 조회하면 빈 Optional을 돌려 매칭 실패를 재현한다. */
     private static final class FakeAdminDongRepository implements AdminDongRepository {
 
+        @Override
+        public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
+            // 이 테스트들은 조회 경로만 검증한다. 동기화가 불리면 테스트가 잘못 짜인 것이다.
+            throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");
+        }
+
         private final Map<String, AdminDong> byName = new LinkedHashMap<>();
         private final Map<Long, AdminDong> byId = new LinkedHashMap<>();
 
+        // 현재 테스트가 시/도·시/군/구를 한 값으로만 넘기지만 파라미터를 없애지 않는다 — 이 fake는
+        // 세 이름을 합친 복합키로 findByDongNameMatch를 재현하므로, 상수로 굳히면 이름 조합이 다른
+        // 매칭 실패 케이스를 표현할 수 없다.
+        @SuppressWarnings("SameParameterValue")
         void register(Long id, String sidoName, String sigunguName, String dongName) {
-            AdminDong adminDong = AdminDong.reconstitute(id, String.valueOf(id), sidoName, sigunguName, dongName, true);
+            AdminDong adminDong = AdminDong.reconstitute(id, String.valueOf(id), sidoName, sigunguName, dongName, true, null, List.of());
             byName.put(key(sidoName, sigunguName, dongName), adminDong);
             byId.put(id, adminDong);
         }
@@ -404,6 +421,29 @@ class MemberDeliveryAddressServiceTest {
         @Override
         public Optional<AdminDong> findByDongNameMatch(String sidoName, String sigunguName, String dongName) {
             return Optional.ofNullable(byName.get(key(sidoName, sigunguName, dongName)));
+        }
+
+        @Override
+        public List<AdminDong> findAllWithinBoundingBox(GeoBoundingBox boundingBox) {
+            return byId.values().stream()
+                .filter(AdminDong::hasCenter)
+                .filter(adminDong -> boundingBox.contains(adminDong.getCenter()))
+                .toList();
+        }
+
+        @Override
+        public List<AdminDong> findAllByIds(Collection<AdminDongId> adminDongIds) {
+            return adminDongIds.stream()
+                .map(adminDongId -> byId.get(adminDongId.value()))
+                .filter(Objects::nonNull)
+                .toList();
+        }
+
+        @Override
+        public Set<AdminDongId> filterExistingIds(Collection<AdminDongId> adminDongIds) {
+            return adminDongIds.stream()
+                .filter(adminDongId -> byId.containsKey(adminDongId.value()))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         private static String key(String sidoName, String sigunguName, String dongName) {

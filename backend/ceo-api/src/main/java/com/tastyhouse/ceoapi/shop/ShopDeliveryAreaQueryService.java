@@ -39,7 +39,8 @@ public class ShopDeliveryAreaQueryService {
         return ShopDeliveryAreaItemResponse.from(
             dto.id(),
             dto.adminDongId(),
-            dto.regionName()
+            dto.regionName(),
+            dto.source()
         );
     }
 }

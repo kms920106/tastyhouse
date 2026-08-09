@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.region.domain.model;
 
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ class AdminDongTest {
         @Test
         @DisplayName("시/도 · 시/군/구 · 행정동을 공백 하나로 이어 표시용 전체 이름을 만든다")
         void fullName_joinsWithSingleSpace() {
-            AdminDong adminDong = AdminDong.reconstitute(1L, "1168053100", "서울특별시", "강남구", "역삼1동", true);
+            AdminDong adminDong = AdminDong.reconstitute(1L, "1168053100", "서울특별시", "강남구", "역삼1동", true, null, List.of());
 
             assertThat(adminDong.fullName()).isEqualTo("서울특별시 강남구 역삼1동");
         }
@@ -28,7 +29,7 @@ class AdminDongTest {
         @Test
         @DisplayName("시/군/구 이름이 두 단어여도 구분자를 추가로 넣지 않는다")
         void fullName_doesNotAddExtraSeparator() {
-            AdminDong adminDong = AdminDong.reconstitute(2L, "4113554000", "경기도", "성남시 분당구", "정자1동", true);
+            AdminDong adminDong = AdminDong.reconstitute(2L, "4113554000", "경기도", "성남시 분당구", "정자1동", true, null, List.of());
 
             assertThat(adminDong.fullName()).isEqualTo("경기도 성남시 분당구 정자1동");
         }
@@ -41,7 +42,7 @@ class AdminDongTest {
         @Test
         @DisplayName("DB 상태로부터 식별자·코드·사용 여부를 포함해 재구성한다")
         void reconstitute_restoresPersistedState() {
-            AdminDong adminDong = AdminDong.reconstitute(3L, "1168053100", "서울특별시", "강남구", "역삼1동", false);
+            AdminDong adminDong = AdminDong.reconstitute(3L, "1168053100", "서울특별시", "강남구", "역삼1동", false, null, List.of());
 
             assertThat(adminDong.getId()).isEqualTo(3L);
             assertThat(adminDong.getCode()).isEqualTo("1168053100");

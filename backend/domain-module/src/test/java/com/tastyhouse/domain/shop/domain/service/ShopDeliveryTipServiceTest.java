@@ -1,5 +1,10 @@
 package com.tastyhouse.domain.shop.domain.service;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
+import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -15,6 +20,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.repository.AdminDongRepository;
+import com.tastyhouse.domain.region.repository.AdminDongSyncResult;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DayType;
 import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
@@ -577,10 +583,34 @@ class ShopDeliveryTipServiceTest {
         public ShopDeliveryArea save(ShopDeliveryArea shopDeliveryArea) {
             long id = ++sequence;
             ShopDeliveryArea saved = ShopDeliveryArea.reconstitute(
-                id, shopDeliveryArea.getShopId(), shopDeliveryArea.getAdminDongId()
+                id, shopDeliveryArea.getShopId(), shopDeliveryArea.getAdminDongId(), shopDeliveryArea.getSource()
             );
             areas.put(id, saved);
             return saved;
+        }
+
+        @Override
+        public List<ShopDeliveryArea> saveAll(List<ShopDeliveryArea> shopDeliveryAreas) {
+            return shopDeliveryAreas.stream().map(this::save).toList();
+        }
+
+        @Override
+        public List<ShopDeliveryArea> findByShopIdAndSource(ShopId shopId, DeliveryAreaSource source) {
+            return findByShopId(shopId).stream()
+                .filter(area -> area.getSource() == source)
+                .toList();
+        }
+
+        @Override
+        public void deleteByShopIdAndSource(ShopId shopId, DeliveryAreaSource source) {
+            findByShopIdAndSource(shopId, source).forEach(area -> areas.remove(area.getId()));
+        }
+
+        @Override
+        public Set<AdminDongId> findAdminDongIdsByShopId(ShopId shopId) {
+            return findByShopId(shopId).stream()
+                .map(ShopDeliveryArea::getAdminDongId)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         }
 
         @Override
@@ -591,12 +621,18 @@ class ShopDeliveryTipServiceTest {
 
     private static final class AdminDongRepositoryFake implements AdminDongRepository {
 
+        @Override
+        public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
+            // 이 테스트들은 조회 경로만 검증한다. 동기화가 불리면 테스트가 잘못 짜인 것이다.
+            throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");
+        }
+
         private final Map<Long, AdminDong> adminDongs = new LinkedHashMap<>();
 
         void add(Long adminDongId) {
             adminDongs.put(
                 adminDongId,
-                AdminDong.reconstitute(adminDongId, "1168053100", "서울특별시", "강남구", "역삼1동", true)
+                AdminDong.reconstitute(adminDongId, "1168053100", "서울특별시", "강남구", "역삼1동", true, null, List.of())
             );
         }
 
@@ -608,6 +644,29 @@ class ShopDeliveryTipServiceTest {
         @Override
         public boolean existsById(AdminDongId adminDongId) {
             return adminDongs.containsKey(adminDongId.value());
+        }
+
+        @Override
+        public List<AdminDong> findAllWithinBoundingBox(GeoBoundingBox boundingBox) {
+            return adminDongs.values().stream()
+                .filter(AdminDong::hasCenter)
+                .filter(adminDong -> boundingBox.contains(adminDong.getCenter()))
+                .toList();
+        }
+
+        @Override
+        public List<AdminDong> findAllByIds(Collection<AdminDongId> adminDongIds) {
+            return adminDongIds.stream()
+                .map(adminDongId -> adminDongs.get(adminDongId.value()))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        }
+
+        @Override
+        public Set<AdminDongId> filterExistingIds(Collection<AdminDongId> adminDongIds) {
+            return adminDongIds.stream()
+                .filter(adminDongId -> adminDongs.containsKey(adminDongId.value()))
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         }
 
         @Override

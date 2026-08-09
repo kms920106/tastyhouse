@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.member.query;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringExpression;
@@ -54,6 +55,27 @@ public class MemberDeliveryAddressQueryDao {
             .where(memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()))
             .orderBy(memberDeliveryAddressJpaEntity.defaultAddress.desc(), memberDeliveryAddressJpaEntity.id.asc())
             .fetch();
+    }
+
+    /**
+     * 회원 기본 배송지의 행정동 식별자.
+     *
+     * <p>가게 목록·검색이 "이 회원에게 배달되는 가게만" 남기려고 쓰는 값이라 주소 전체가 필요 없다.
+     * 목록 조회 경로마다 도는 질의이므로 컬럼 하나만 투영한다.
+     *
+     * <p>기본 배송지가 없거나, 있어도 주소 문자열 매칭에 실패해 {@code admin_dong_id}가 null이면
+     * 비어 있다 — 호출부는 그 경우 필터를 걸지 않는다.
+     */
+    public Optional<Long> findDefaultAdminDongId(MemberId memberId) {
+        return Optional.ofNullable(queryFactory
+            .select(memberDeliveryAddressJpaEntity.adminDongId)
+            .from(memberDeliveryAddressJpaEntity)
+            .where(
+                memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()),
+                memberDeliveryAddressJpaEntity.defaultAddress.isTrue(),
+                memberDeliveryAddressJpaEntity.adminDongId.isNotNull()
+            )
+            .fetchFirst());
     }
 
     /**

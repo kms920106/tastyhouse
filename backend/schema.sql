@@ -1182,14 +1182,22 @@ CREATE TABLE RESERVATION
 
 CREATE TABLE ADMIN_DONG
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,              -- 행정동 ID (PK)
-    code         VARCHAR(10) NOT NULL,                           -- 행정동 코드(10자리)
-    sido_name    VARCHAR(50) NOT NULL,                           -- 시/도
-    sigungu_name VARCHAR(50) NOT NULL,                           -- 시/군/구
-    dong_name    VARCHAR(50) NOT NULL,                           -- 행정동
-    is_active    TINYINT(1)  NOT NULL DEFAULT 1,                 -- 사용 여부
-    UNIQUE KEY uk_admin_dong_code (code),                        -- 유니크: 행정동 코드
-    INDEX idx_admin_dong_name (sido_name, sigungu_name, dong_name) -- 인덱스: 주소 문자열 매칭
+    id                     BIGINT AUTO_INCREMENT PRIMARY KEY,       -- 행정동 ID (PK)
+    code                   VARCHAR(10)   NOT NULL,                  -- 행정동 코드(10자리)
+    sido_name              VARCHAR(50)   NOT NULL,                  -- 시/도
+    sigungu_name           VARCHAR(50)   NOT NULL,                  -- 시/군/구
+    dong_name              VARCHAR(50)   NOT NULL,                  -- 행정동
+    is_active              TINYINT(1)    NOT NULL DEFAULT 1,        -- 사용 여부 (폐지 동은 DELETE 하지 않고 0으로 둔다 — 다른 테이블이 id로 참조 중)
+    center_latitude        DECIMAL(9, 6) NULL,                      -- 행정동 대표점 위도(경계 내부 보장점, centroid 아님)
+    center_longitude       DECIMAL(9, 6) NULL,                      -- 행정동 대표점 경도
+    boundary_min_latitude  DECIMAL(9, 6) NULL,                      -- 경계 바운딩박스 최소 위도
+    boundary_max_latitude  DECIMAL(9, 6) NULL,                      -- 경계 바운딩박스 최대 위도
+    boundary_min_longitude DECIMAL(9, 6) NULL,                      -- 경계 바운딩박스 최소 경도
+    boundary_max_longitude DECIMAL(9, 6) NULL,                      -- 경계 바운딩박스 최대 경도
+    boundary               LONGTEXT      NULL,                      -- 행정동 경계 폴리곤(링 ";" 구분, 점 "," 구분, "경도 위도")
+    UNIQUE KEY uk_admin_dong_code (code),                           -- 유니크: 행정동 코드
+    INDEX idx_admin_dong_name (sido_name, sigungu_name, dong_name), -- 인덱스: 주소 문자열 매칭
+    INDEX idx_admin_dong_center (center_latitude, center_longitude) -- 인덱스: 좌표 바운딩박스 프리필터(배달지역 환산)
 );
 
 CREATE TABLE SHOP_DELIVERY_AREA
@@ -1197,10 +1205,29 @@ CREATE TABLE SHOP_DELIVERY_AREA
     id            BIGINT   AUTO_INCREMENT PRIMARY KEY,           -- 배달가능지역 ID (PK)
     shop_id       BIGINT   NOT NULL,                             -- 장소 ID (SHOP.id 참조)
     admin_dong_id BIGINT   NOT NULL,                             -- 행정동 ID (ADMIN_DONG.id 참조)
+    source        VARCHAR(20) NOT NULL DEFAULT 'MANUAL',         -- 등록 출처 (MANUAL: 행정동 직접 선택·반경 일괄, POLYGON: 지도 도형 환산)
     created_at    DATETIME NOT NULL,                             -- 생성 일시
     updated_at    DATETIME NOT NULL,                             -- 수정 일시
     INDEX idx_shop_delivery_area_shop_id (shop_id),              -- 인덱스: 가게별 조회
     UNIQUE KEY uk_shop_delivery_area (shop_id, admin_dong_id)    -- 유니크: 가게·행정동 중복 방지
+);
+
+-- 배달지역 도형(가게당 1건). 편집·표현의 원본이며 주문 배달가능 판정에는 직접 참여하지 않는다
+-- (판정의 유일한 소스는 이 도형을 환산해 얻은 SHOP_DELIVERY_AREA의 행정동 집합이다).
+-- 좌표를 GEOMETRY가 아니라 텍스트로 담는 이유는 GeoPolygonTextCodec Javadoc 참고.
+CREATE TABLE SHOP_DELIVERY_AREA_POLYGON
+(
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,          -- 배달지역 도형 ID (PK)
+    shop_id           BIGINT        NOT NULL,                     -- 장소 ID (SHOP.id 참조)
+    rings             LONGTEXT      NOT NULL,                     -- 도형(링 ";" 구분, 점 "," 구분, "경도 위도")
+    center_latitude   DECIMAL(9, 6) NOT NULL,                     -- 저장 시점 가게 위도 스냅샷(7km 상한 기준점)
+    center_longitude  DECIMAL(9, 6) NOT NULL,                     -- 저장 시점 가게 경도 스냅샷
+    max_radius_meters INT           NOT NULL,                     -- 기준점~최원거리 정점 거리(m), 7000 이하
+    ring_count        INT           NOT NULL,                     -- 링 개수(표시·검증용 비정규화)
+    vertex_count      INT           NOT NULL,                     -- 총 정점 수(표시·검증용 비정규화)
+    created_at        DATETIME      NOT NULL,                     -- 생성 일시
+    updated_at        DATETIME      NOT NULL,                     -- 수정 일시
+    UNIQUE KEY uk_shop_delivery_area_polygon_shop_id (shop_id)    -- 유니크: 가게당 1건
 );
 
 CREATE TABLE SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST

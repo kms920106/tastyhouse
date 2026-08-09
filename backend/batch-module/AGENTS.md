@@ -19,7 +19,11 @@ com.tastyhouse.batch/
 │   ├── GradeScheduler.java            — 트리거만
 │   ├── GradeSchedulerService.java     — 회원 등급 계산 로직
 │   ├── ProductScheduler.java          — 트리거만 (@Scheduled 주석 처리된 비활성 상태 유지)
-│   └── ProductSchedulerService.java   — BBQ 옵션 크롤링 저장 로직
+│   ├── ProductSchedulerService.java   — BBQ 옵션 크롤링 저장 로직
+│   ├── AdminDongScheduler.java        — 트리거만 (매월 1일 04시)
+│   ├── AdminDongSchedulerService.java — 행정동 마스터 동기화 로직(다운로드는 트랜잭션 밖)
+│   ├── AdminDongSyncExecutor.java     — 저장 구간 트랜잭션 경계(self-invocation 회피용 별도 빈)
+│   └── AdminDongSyncRunner.java       — 수동 1회 실행(기본 비활성, --region.admin-dong.sync-on-startup=true)
 └── crawling/bbq/                  ProductSchedulerService가 의존하는 BBQ 크롤링 어댑터
     ├── BbqService.java
     └── response/*.java
@@ -31,6 +35,8 @@ com.tastyhouse.batch/
 - **도메인 모델은 POJO — 명시적 save 필수**: 스케줄러 Service에서 도메인을 변경한 뒤 반드시 `repository.save(domain)`을 호출한다(JPA 더티 체킹이 없어 누락 시 변경이 조용히 유실된다).
 - **QueryDSL·infra persistence 직접 호출 금지**: `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`..infrastructure..persistence..` import가 **0건**이며, `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다. 조회는 infra `<ctx>/query/`의 DAO를 주입해 쓴다(reference: `product` 도메인의 `ProductQueryDao#findFirstBbqSyncTarget` — BBQ 옵션 동기화 대상 조회). 이 모듈만 클래스명 `*CommandService`/`*QueryService`인 CQRS 서비스가 0개(`XxxSchedulerService` 네이밍)라, `applicationServicesShouldNotDependOnWebLayer` 규칙에 한해 `allowEmptyShould(true)`를 유지한다.
 - **cron 표현식은 순수 구조 리팩터링 대상이 아니다**: 스케줄 주기를 바꾸는 변경은 이 모듈이 아니라 별도 운영 결정으로 다룬다.
+- **외부 다운로드는 트랜잭션 밖에서 수행한다**: 네트워크 구간을 트랜잭션 안에 넣으면 그동안 DB 커넥션이 묶인다. 다운로드 → (트랜잭션) 저장 순으로 나누되, **같은 빈의 메서드를 자기 자신이 호출하면 Spring 프록시를 거치지 않아 `@Transactional`이 적용되지 않으므로**(self-invocation) 저장 구간은 별도 빈(`XxxSyncExecutor`)이 소유한다. reference: `AdminDongSchedulerService`(다운로드) + `AdminDongSyncExecutor`(저장).
+- **마스터 동기화는 삭제·재삽입이 아니라 id 보존 갱신이다**: 다른 테이블이 마스터의 `id`를 참조하고 있으면(행정동의 경우 배달가능지역·지역별 배달팁·주문 스냅샷) 전량 교체 시 그 참조가 **말없이 다른 행을 가리키거나 끊어진다.** 자연키(행정동은 `code`)로 매칭해 제자리 갱신하고, 원천에서 사라진 행은 삭제 대신 `is_active = 0`으로 내린다. reference: `AdminDongRepository#synchronize`.
 - **단일 인스턴스 배포 전제**: `@EnableScheduling` 기반 cron은 인스턴스마다 독립 실행된다. batch-module을 여러 인스턴스로 배포하면 동일 작업이 중복 실행되므로, 운영 시 배치 인스턴스는 1대로 유지한다(분산 락 등 중복 방지 로직은 아직 없음).
 
 ## admin-api 비대칭 (의도된 설계)

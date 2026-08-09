@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -26,6 +27,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityJpaEntity.shopAmenityJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopDeliveryAreaJpaEntity.shopDeliveryAreaJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeCategoryJpaEntity.shopFoodTypeCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeJpaEntity.shopFoodTypeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -98,12 +100,16 @@ public class ShopSearchQueryDao {
 
     /**
      * 베스트 가게 목록 — 평점 높은 순. 평점 없는 가게와 폐업·노출정지 가게는 제외한다.
+     *
+     * @param deliveryAdminDongId 회원 기본 배송지의 행정동. {@code null}이면 배달지역 필터를 걸지 않는다
+     *                            ({@link #deliveryAreaCovers} 참고)
      */
-    public PageResult<BestShopItemResult> findBestShops(PageQuery pageQuery) {
+    public PageResult<BestShopItemResult> findBestShops(Long deliveryAdminDongId, PageQuery pageQuery) {
         BooleanExpression[] conditions = {
             shopJpaEntity.rating.isNotNull(),
             shopJpaEntity.permanentlyClosed.eq(false),
-            shopJpaEntity.hidden.eq(false)
+            shopJpaEntity.hidden.eq(false),
+            deliveryAreaCovers(deliveryAdminDongId)
         };
 
         Long total = queryFactory.select(shopJpaEntity.count()).from(shopJpaEntity).where(conditions).fetchOne();
@@ -153,6 +159,7 @@ public class ShopSearchQueryDao {
         Long stationId,
         List<FoodType> foodTypes,
         List<Amenity> amenities,
+        Long deliveryAdminDongId,
         PageQuery pageQuery
     ) {
         Set<Long> foodTypeShopIds = null;
@@ -195,7 +202,8 @@ public class ShopSearchQueryDao {
                 shopJpaEntity.permanentlyClosed.eq(false),
                 shopJpaEntity.hidden.eq(false),
                 stationIdEq(stationId),
-                shopIdIn(filteredShopIds)
+                shopIdIn(filteredShopIds),
+                deliveryAreaCovers(deliveryAdminDongId)
             )
             .fetchOne();
 
@@ -208,7 +216,8 @@ public class ShopSearchQueryDao {
                 shopJpaEntity.permanentlyClosed.eq(false),
                 shopJpaEntity.hidden.eq(false),
                 stationIdEq(stationId),
-                shopIdIn(filteredShopIds)
+                shopIdIn(filteredShopIds),
+                deliveryAreaCovers(deliveryAdminDongId)
             )
             .orderBy(shopJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -250,11 +259,17 @@ public class ShopSearchQueryDao {
     /**
      * 상호명 키워드 검색 결과 — 평점 높은 순. 로그인 회원이면 즐겨찾기 여부를 함께 채운다.
      */
-    public PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(String keyword, Long memberId, PageQuery pageQuery) {
+    public PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(
+        String keyword,
+        Long memberId,
+        Long deliveryAdminDongId,
+        PageQuery pageQuery
+    ) {
         BooleanExpression[] conditions = {
             shopJpaEntity.permanentlyClosed.eq(false),
             shopJpaEntity.hidden.eq(false),
-            shopJpaEntity.name.containsIgnoreCase(keyword)
+            shopJpaEntity.name.containsIgnoreCase(keyword),
+            deliveryAreaCovers(deliveryAdminDongId)
         };
 
         Long total = queryFactory.select(shopJpaEntity.count()).from(shopJpaEntity).where(conditions).fetchOne();
@@ -510,6 +525,44 @@ public class ShopSearchQueryDao {
 
     private BooleanExpression shopIdIn(Set<Long> shopIds) {
         return shopIds != null ? shopJpaEntity.id.in(shopIds) : null;
+    }
+
+    /**
+     * 회원 배송지의 행정동을 배달하지 않는 가게를 목록에서 제외한다.
+     *
+     * <p>이 필터가 없으면 고객은 <b>결제 마지막 단계에서야</b> 배달 불가를 안다
+     * ({@code ORDER_DELIVERY_AREA_NOT_COVERED}) — 목록에 보이는 것과 주문할 수 있는 것이 어긋난다.
+     * 노출 시점과 주문 접수 시점({@code OrderPlacementService#validateDeliveryArea})이 같은 규칙을
+     * 쓰도록 두 판정을 일치시킨다.
+     *
+     * <p><b>배달가능지역을 하나도 등록하지 않은 가게는 통과시킨다.</b> 주문 접수 검사와 같은 원칙이며
+     * ("정보를 안 넣은 것을 닫힌 것으로 보지 않는다"), 이것이 없으면 미설정 가게가 배포 즉시 목록에서
+     * 전부 사라진다. 기존 데이터의 대부분이 0건이므로 사실상 서비스가 비는 것과 같다.
+     *
+     * @param adminDongId 회원 기본 배송지의 행정동. {@code null}이면(비로그인·주소 미등록·행정동 미매칭)
+     *                    필터를 걸지 않는다 — 좁힐 근거가 없을 때 감추는 것은 노출 축소일 뿐이다.
+     */
+    private BooleanExpression deliveryAreaCovers(Long adminDongId) {
+        if (adminDongId == null) {
+            return null;
+        }
+
+        BooleanExpression notConfigured = JPAExpressions
+            .selectOne()
+            .from(shopDeliveryAreaJpaEntity)
+            .where(shopDeliveryAreaJpaEntity.shopId.eq(shopJpaEntity.id))
+            .notExists();
+
+        BooleanExpression covers = JPAExpressions
+            .selectOne()
+            .from(shopDeliveryAreaJpaEntity)
+            .where(
+                shopDeliveryAreaJpaEntity.shopId.eq(shopJpaEntity.id),
+                shopDeliveryAreaJpaEntity.adminDongId.eq(adminDongId)
+            )
+            .exists();
+
+        return notConfigured.or(covers);
     }
 
     /**
