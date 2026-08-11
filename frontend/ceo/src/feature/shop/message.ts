@@ -268,3 +268,53 @@ export const SHOP_MESSAGE = {
   DELIVERY_AREA_FOCUS_MAP_UNAVAILABLE: "지도를 사용할 수 없어 해당 지역으로 이동할 수 없습니다.",
   DELIVERY_AREA_FOCUS_UNRESOLVED: "이 지역의 위치를 알 수 없습니다. 지도를 그 지역 쪽으로 옮긴 뒤 다시 시도해 주세요.",
 } as const;
+
+/** 변경이력 조회 화면 문구 */
+export const SHOP_CHANGE_HISTORY_COPY = {
+  TITLE: "변경이력 조회",
+  DESCRIPTION: "최근 6개월 이내의 변경이력을 확인하실 수 있습니다.",
+
+  // 진입 링크 (운영정보 탭)
+  ENTRY_TITLE: "변경이력 조회",
+  ENTRY_DESCRIPTION: "가게 설정을 언제 무엇으로 바꿨는지 최근 6개월치를 확인합니다.",
+  ENTRY_SUMMARY: "최근 6개월",
+  ENTRY_ACTION: "조회",
+
+  // 필터
+  CATEGORY_LABEL: "대분류",
+  CHANGE_TYPE_LABEL: "중분류",
+  DATE_LABEL: "변경일",
+  FILTER_ALL: "전체",
+  SEARCH: "조회",
+
+  // 목록
+  BEFORE_LABEL: "변경 전",
+  AFTER_LABEL: "변경 후",
+  /** CREATE 의 변경 전 / DELETE 의 변경 후 자리 표시 */
+  VALUE_ABSENT: "—",
+
+  // 빈 상태
+  SHOP_EMPTY_TITLE: "등록된 가게가 없습니다.",
+  SHOP_EMPTY_DESCRIPTION: "가게가 등록되면 이 화면에서 변경이력을 확인할 수 있습니다.",
+  LIST_EMPTY_TITLE: "해당 조건의 변경이력이 없습니다.",
+  LIST_EMPTY_DESCRIPTION: "다른 날짜나 분류로 조회해 보세요.",
+
+  // 에러
+  LIST_LOAD_FAILED: "변경이력을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  CATALOG_LOAD_FAILED: "변경이력 분류를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  DATE_OUT_OF_RANGE: "조회 가능한 기간은 최근 6개월입니다.",
+  SHOP_ACCESS_DENIED: "접근 권한이 없는 가게입니다.",
+  SHOP_NOT_FOUND: "가게를 찾을 수 없습니다.",
+  /** URL 의 shopId 가 내 가게 목록에 없어 첫 가게로 대체했을 때 — 조용히 바뀌면 다른 가게를 보고 있는 줄 모른다 */
+  SHOP_FALLBACK_NOTICE: "요청하신 가게를 찾을 수 없어 다른 가게의 변경이력을 표시합니다.",
+
+  // 페이지네이션
+  PREVIOUS_PAGE: "이전",
+  NEXT_PAGE: "다음",
+} as const;
+
+/** 가게 라우트 error.tsx 공용 문구 */
+export const SHOP_ERROR_PAGE_COPY = {
+  TITLE: "문제가 발생했습니다",
+  RETRY: "다시 시도",
+} as const;

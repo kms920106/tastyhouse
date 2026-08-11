@@ -445,3 +445,36 @@ export interface Suspension {
   endAt: string;
   releasedAt: string | null;
 }
+
+/**
+ * 가게 변경이력 1건.
+ *
+ * `previousValue`/`newValue` 는 서버가 사람이 읽는 형태로 굳혀 내려주는 요약 문자열이며
+ * 줄바꿈을 포함할 수 있다 — 프론트에서 파싱하지 않고 `whitespace-pre-line` 으로 렌더한다.
+ * `previousValue` 가 null 이면 등록(CREATE), `newValue` 가 null 이면 삭제(DELETE)다.
+ */
+export interface ShopChangeHistoryItem {
+  id: number;
+  category: string;
+  categoryName: string;
+  changeType: string;
+  changeTypeName: string;
+  actionType: string;
+  actionTypeName: string;
+  previousValue: string | null;
+  newValue: string | null;
+  changedAt: string;
+}
+
+/** 변경이력 필터 중분류 옵션 — 서버 카탈로그가 내려주는 코드·한글 라벨 */
+export interface ShopChangeTypeOption {
+  code: string;
+  name: string;
+}
+
+/** 변경이력 필터 대분류 옵션. 자기 하위 중분류를 보유한다 */
+export interface ShopChangeCategoryOption {
+  code: string;
+  name: string;
+  changeTypes: ShopChangeTypeOption[];
+}

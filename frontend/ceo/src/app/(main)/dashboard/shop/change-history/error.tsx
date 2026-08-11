@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SHOP_ERROR_PAGE_COPY } from "@/feature/shop/message";
 
-export default function ShopError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+export default function ChangeHistoryError({
+  error,
+  retry,
+}: {
+  error: Error & { digest?: string };
+  retry: () => void;
+}) {
   React.useEffect(() => {
     console.error(error);
   }, [error]);

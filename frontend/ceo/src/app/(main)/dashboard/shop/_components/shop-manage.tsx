@@ -4,14 +4,15 @@ import * as React from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { Store } from "lucide-react";
+import { History, Store } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SHOP_MANAGE_TABS, type ShopManageTab } from "@/feature/shop/constants";
 import type { ShopBasicInfo, ShopOperationInfo, ShopOrderAvailability, ShopSummary } from "@/feature/shop/domain";
-import { SHOP_PAGE_COPY } from "@/feature/shop/message";
+import { SHOP_CHANGE_HISTORY_COPY, SHOP_PAGE_COPY } from "@/feature/shop/message";
 
 import { BasicInfoTab } from "./basic-info-tab";
 import { OperationInfoTab } from "./operation-info-tab";
@@ -49,12 +50,23 @@ export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo, order
         <CardDescription className="max-w-sm leading-snug">{SHOP_PAGE_COPY.DESCRIPTION}</CardDescription>
         <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
           {shopId !== undefined && (
-            <ShopSelector
-              shops={shops}
-              shopId={shopId}
-              disabled={isPending}
-              onChange={(nextShopId) => pushParams({ shopId: nextShopId })}
-            />
+            <>
+              <ShopSelector
+                shops={shops}
+                shopId={shopId}
+                disabled={isPending}
+                onChange={(nextShopId) => pushParams({ shopId: nextShopId })}
+              />
+              {/* 변경이력은 설정 항목이 아닌 조회 전용 화면이라 시트가 아니라 전용 라우트로 이동한다. */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push(`/dashboard/shop/change-history?shopId=${shopId}`)}
+              >
+                <History />
+                {SHOP_CHANGE_HISTORY_COPY.ENTRY_TITLE}
+              </Button>
+            </>
           )}
         </CardAction>
       </CardHeader>
