@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shop.model.DayType;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -52,8 +53,9 @@ public class ShopBusinessHourCommandService {
         Boolean is24Hours
     ) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         ShopBusinessHour businessHour = shopBusinessHourService.createBusinessHour(
-            shopId, DayType.from(dayType), openTime, closeTime, isClosed, is24Hours
+            shopId, DayType.from(dayType), openTime, closeTime, isClosed, is24Hours, actor
         );
         return businessHour.getId();
     }
@@ -68,32 +70,37 @@ public class ShopBusinessHourCommandService {
         Boolean is24Hours
     ) {
         validateBusinessHourOwnership(ceoId, businessHourId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         shopBusinessHourService.updateBusinessHour(
-            businessHourId, DayType.from(dayType), openTime, closeTime, isClosed, is24Hours
+            businessHourId, DayType.from(dayType), openTime, closeTime, isClosed, is24Hours, actor
         );
     }
 
     public void deleteBusinessHour(Long ceoId, Long businessHourId) {
         validateBusinessHourOwnership(ceoId, businessHourId);
-        shopBusinessHourService.deleteBusinessHour(businessHourId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopBusinessHourService.deleteBusinessHour(businessHourId, actor);
     }
 
     public Long createBreakTime(Long ceoId, Long shopId, String dayType, LocalTime startTime, LocalTime endTime) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         ShopBreakTime breakTime = shopBusinessHourService.createBreakTime(
-            shopId, DayType.from(dayType), startTime, endTime
+            shopId, DayType.from(dayType), startTime, endTime, actor
         );
         return breakTime.getId();
     }
 
     public void updateBreakTime(Long ceoId, Long breakTimeId, String dayType, LocalTime startTime, LocalTime endTime) {
         validateBreakTimeOwnership(ceoId, breakTimeId);
-        shopBusinessHourService.updateBreakTime(breakTimeId, DayType.from(dayType), startTime, endTime);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopBusinessHourService.updateBreakTime(breakTimeId, DayType.from(dayType), startTime, endTime, actor);
     }
 
     public void deleteBreakTime(Long ceoId, Long breakTimeId) {
         validateBreakTimeOwnership(ceoId, breakTimeId);
-        shopBusinessHourService.deleteBreakTime(breakTimeId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopBusinessHourService.deleteBreakTime(breakTimeId, actor);
     }
 
     /**

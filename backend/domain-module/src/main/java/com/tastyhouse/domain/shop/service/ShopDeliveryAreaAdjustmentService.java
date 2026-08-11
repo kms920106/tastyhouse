@@ -7,6 +7,9 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaAdjustmentRequestRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -19,9 +22,15 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * 애그리거트가 판정하고 이 서비스는 그 결과를 <b>명시적으로 저장</b>한다(도메인 모델이 POJO라 더티
  * 체킹이 없다).
  *
+ * <p><b>변경이력({@code DELIVERY_AREA_ADJUSTMENT})은 신청 접수 시점에만 남긴다.</b> 이후 상태 전이
+ * (개시·완료·반려)는 플랫폼 검수 진행 상황이지 <b>가게 설정 변경이 아니므로</b> 가게 변경이력의 대상이
+ * 아니다 — 남기면 점주가 바꾼 것과 관리자가 처리한 것이 한 목록에 섞여, 이력이 "가게가 어떻게 설정돼
+ * 왔는가"를 답하지 못한다. 신청 진행 상황은 조정 신청 상세 API가 별도로 보여준다.
+ *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
  * {@code DomainServiceConfig}가 담당한다. 점주 소유권 검증은 ceo-api 계층
- * ({@code ShopOwnershipValidator})의 책임이라 여기서는 다루지 않는다.
+ * ({@code ShopOwnershipValidator})의 책임이라 여기서는 다루지 않는다. 변경 주체
+ * ({@link ShopChangeActor})는 도메인이 인증을 모르므로 마지막 파라미터로 명시 전달받는다.
  */
 public class ShopDeliveryAreaAdjustmentService {
 
@@ -30,9 +39,14 @@ public class ShopDeliveryAreaAdjustmentService {
         List.of(DeliveryAreaAdjustmentStatus.PENDING, DeliveryAreaAdjustmentStatus.IN_PROGRESS);
 
     private final ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository;
+    private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
-    public ShopDeliveryAreaAdjustmentService(ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository) {
+    public ShopDeliveryAreaAdjustmentService(
+        ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
+    ) {
         this.shopDeliveryAreaAdjustmentRequestRepository = shopDeliveryAreaAdjustmentRequestRepository;
+        this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
     /**
@@ -46,7 +60,8 @@ public class ShopDeliveryAreaAdjustmentService {
         String counterpartBusinessNumber,
         String franchiseName,
         String reason,
-        UploadedFileId consentFileId
+        UploadedFileId consentFileId,
+        ShopChangeActor actor
     ) {
         if (shopDeliveryAreaAdjustmentRequestRepository.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
             throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_PENDING);
@@ -62,7 +77,26 @@ public class ShopDeliveryAreaAdjustmentService {
                 consentFileId
             )
         );
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.DELIVERY_AREA_ADJUSTMENT,
+            ShopChangeActionType.CREATE,
+            actor,
+            null,
+            describeAdjustmentRequest(saved)
+        );
         return saved.getId();
+    }
+
+    /**
+     * 조정 신청 1건을 한 줄로 요약한다(예: {@code "맛있는집 강남점 (BBQ)"}).
+     *
+     * <p>상대 가게명과 가맹본부명만 담는다 — 신청 사유는 자유 서술이라 길이가 들쭉날쭉해 한 줄 요약에
+     * 맞지 않고, 동의서 파일은 이력에서 열 수단이 없다. 둘 다 조정 신청 상세 API가 보여준다.
+     */
+    private String describeAdjustmentRequest(ShopDeliveryAreaAdjustmentRequest request) {
+        return request.getCounterpartShopName() + " (" + request.getFranchiseName() + ")";
     }
 
     /**

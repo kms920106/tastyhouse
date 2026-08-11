@@ -1363,3 +1363,29 @@ CREATE TABLE SHOP_RIDER_GUIDE_HISTORY
     updated_at           DATETIME    NOT NULL,                   -- 수정 일시
     INDEX idx_shop_rider_guide_history_shop_id (shop_id)         -- 인덱스: 가게별 이력 조회
 );
+
+-- 가게 변경이력 (append-only)
+-- 점주가 가게 설정을 변경할 때마다 1행씩 쌓이며, 기록 후에는 수정되지 않습니다.
+-- 1행의 단위는 "점주가 저장 버튼을 1번 누른 것"(mutation 엔드포인트 1회 호출)이며,
+-- 배달팁 구간처럼 컬렉션을 통째로 교체하는 변경도 1행으로 기록하고
+-- previous_value / new_value 에 컬렉션 전체 스냅샷을 줄바꿈으로 결합해 담습니다.
+-- SHOP_RIDER_GUIDE_HISTORY 는 관리자 사후 검수 전용 로그라 별도로 존치하며,
+-- 점주 변경(actor_type=CEO, action_type=UPDATE)만 이 테이블에 추가 기록합니다.
+CREATE TABLE SHOP_CHANGE_HISTORY
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,             -- 이력 ID (PK)
+    shop_id        BIGINT      NOT NULL,                          -- 가게 ID (SHOP.id 참조)
+    category       VARCHAR(40) NOT NULL,                          -- 대분류 (OPERATION, DELIVERY, SHOP_INFO, IMAGE, RIDER)
+    change_type    VARCHAR(40) NOT NULL,                          -- 중분류 (BUSINESS_HOUR, DELIVERY_TIP_TIER 등 29종)
+    action_type    VARCHAR(20) NOT NULL,                          -- 조치 유형 (CREATE, UPDATE, DELETE)
+    actor_type     VARCHAR(20) NOT NULL,                          -- 변경 주체 (CEO, ADMIN)
+    actor_id       BIGINT      NOT NULL,                          -- 변경 주체 ID (CEO.id 또는 ADMIN.id 참조)
+    previous_value TEXT,                                          -- 변경 전 요약 (등록 시 NULL)
+    new_value      TEXT,                                          -- 변경 후 요약 (삭제 시 NULL)
+    created_at     DATETIME    NOT NULL,                          -- 생성 일시 (= 변경 발생 시각)
+    updated_at     DATETIME    NOT NULL,                          -- 수정 일시 (append-only 라 created_at 과 동일)
+    -- 대분류 미선택(전체) 조회 경로: shop_id 등치 + created_at 레인지 + 정렬까지 커버
+    INDEX idx_shop_change_history_shop_created (shop_id, created_at),
+    -- 대분류 선택 조회 경로: 등치 2개 뒤에 레인지가 와야 레인지가 인덱스에 살아남음
+    INDEX idx_shop_change_history_shop_category_created (shop_id, category, created_at)
+);

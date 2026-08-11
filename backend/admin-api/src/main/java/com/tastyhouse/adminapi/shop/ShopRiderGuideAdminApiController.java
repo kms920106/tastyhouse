@@ -92,11 +92,13 @@ public class ShopRiderGuideAdminApiController {
         description = "라이더 제보를 반영해 픽업 위치를 관리자가 직접 수정합니다. 가게 실주소·좌표는 변경되지 않습니다.")
     @PutMapping("/v1/{id}/rider-guide/pickup-location")
     public ResponseEntity<ApiResponse<Void>> updatePickupLocation(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopRiderPickupLocationUpdateRequest request
     ) {
         shopRiderGuideCommandService.updatePickupLocation(
             id,
+            userDetails.getPrincipalId(),
             request.roadAddress(),
             request.lotAddress(),
             request.detailAddress(),

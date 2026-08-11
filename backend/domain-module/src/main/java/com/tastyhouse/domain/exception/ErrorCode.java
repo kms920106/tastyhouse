@@ -254,6 +254,11 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED(409, "SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED", "이미 종결된 신청입니다."),
     DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN(400, "DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN", "알 수 없는 배달지역 조정 신청 상태입니다."),
 
+    // 가게 변경이력
+    SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE(400, "SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE", "조회 가능한 기간은 최근 6개월입니다."),
+    SHOP_CHANGE_CATEGORY_UNKNOWN(400, "SHOP_CHANGE_CATEGORY_UNKNOWN", "알 수 없는 변경 분류입니다."),
+    SHOP_CHANGE_TYPE_UNKNOWN(400, "SHOP_CHANGE_TYPE_UNKNOWN", "알 수 없는 변경 유형입니다."),
+
     // 주문가능 상태(주문 접수·예약 생성 게이트)
     // SHOP_ORDER_METHOD_NOT_SUPPORTED(400)는 위 SHOP_ORDER_METHOD_NOT_FOUND(404)와 용도가 다르다 —
     // 후자는 admin이 배정 행을 찾을 때, 전자는 주문을 거절할 때 쓴다.

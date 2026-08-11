@@ -3,6 +3,7 @@ package com.tastyhouse.ceoapi.shop;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.service.ShopPhoneNumberRegistryService;
 
 /**
@@ -14,6 +15,11 @@ import com.tastyhouse.domain.shop.service.ShopPhoneNumberRegistryService;
  * <p><b>소유권 검증 한계</b>: 생성은 {@code shopId} 경로 변수로 소유권을 검증한다. 삭제·대표지정은
  * {@code phoneNumberId}만 경로에 있고 write 포트에 단건 조회가 있으나 목록 소유 shopId 역조회를
  * 별도로 하지 않아, ceo-api 계층에서는 소유권을 검증하지 않고 도메인 서비스에 위임한다(기존 동작 유지).
+ * 다만 변경이력의 주체를 남기기 위해 {@code ceoId}는 전달받는다.
+ *
+ * <p><b>변경이력</b>: 전화번호({@code PHONE_NUMBER})·대표번호({@code REPRESENTATIVE_PHONE}) 기록은
+ * 변경 전 값을 추가 조회 없이 볼 수 있는 도메인 서비스가 담당하고, 이 서비스는 변경 주체
+ * ({@link ShopChangeActor})만 만들어 전달한다.
  */
 @Service
 @Transactional
@@ -29,14 +35,17 @@ public class ShopPhoneNumberCommandService {
 
     public Long addPhoneNumber(Long ceoId, Long shopId, String phoneNumber, boolean virtual) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopPhoneNumberRegistryService.addPhoneNumber(shopId, phoneNumber, virtual);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        return shopPhoneNumberRegistryService.addPhoneNumber(shopId, phoneNumber, virtual, actor);
     }
 
-    public void deletePhoneNumber(Long phoneNumberId) {
-        shopPhoneNumberRegistryService.deletePhoneNumber(phoneNumberId);
+    public void deletePhoneNumber(Long ceoId, Long phoneNumberId) {
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopPhoneNumberRegistryService.deletePhoneNumber(phoneNumberId, actor);
     }
 
-    public void designatePrimary(Long phoneNumberId) {
-        shopPhoneNumberRegistryService.designatePrimary(phoneNumberId);
+    public void designatePrimary(Long ceoId, Long phoneNumberId) {
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopPhoneNumberRegistryService.designatePrimary(phoneNumberId, actor);
     }
 }

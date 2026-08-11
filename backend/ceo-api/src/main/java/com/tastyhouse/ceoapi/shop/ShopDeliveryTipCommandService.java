@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shop.model.DayType;
 import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
 import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipRegionSpec;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipScheduleSpec;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipService;
@@ -28,6 +29,10 @@ import com.tastyhouse.ceoapi.shop.request.ShopDeliveryTipTierItemRequest;
  * <p><b>여기서 추가로 {@code save}를 호출하지 않는다</b> — {@link ShopDeliveryTipService}의 각
  * 메서드가 내부에서 {@code ShopDeliveryTipRepository}에 직접 저장까지 마치기 때문이다(컬렉션
  * replace-all은 삭제와 저장이 한 연산이라 저장 책임을 도메인 서비스가 갖는다).
+ *
+ * <p><b>변경이력</b>: 배달팁 5종 기록은 replace-all을 위해 컬렉션을 삭제 전에 읽을 수 있는
+ * {@link ShopDeliveryTipService}가 담당하고, 이 서비스는 변경 주체({@link ShopChangeActor})만 만들어
+ * 전달한다({@code ShopStatusCommandService}와 동일한 형태).
  *
  * <p>{@code dayType}·{@code surchargeUnit}은 HTTP 경계에서 {@code String}으로 받고 여기서
  * {@link DayType#from(String)}·{@link DeliveryTipDistanceUnit#from(String)}으로 승격한다.
@@ -51,7 +56,8 @@ public class ShopDeliveryTipCommandService {
         List<ShopDeliveryTipTierSpec> specs = tiers.stream()
             .map(tier -> ShopDeliveryTipTierSpec.of(tier.minOrderAmount(), tier.tipAmount()))
             .toList();
-        shopDeliveryTipService.replaceTiers(targetShopId, specs);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryTipService.replaceTiers(targetShopId, specs, actor);
     }
 
     public void updateDistanceTip(Long ceoId, Long shopId, Integer baseDistanceMeters, String surchargeUnit, Integer surchargeAmount) {
@@ -59,14 +65,16 @@ public class ShopDeliveryTipCommandService {
 
         ShopId targetShopId = shop.getShopId();
         DeliveryTipDistanceUnit unit = DeliveryTipDistanceUnit.from(surchargeUnit);
-        shopDeliveryTipService.changeDistanceTip(targetShopId, baseDistanceMeters, unit, surchargeAmount);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryTipService.changeDistanceTip(targetShopId, baseDistanceMeters, unit, surchargeAmount, actor);
     }
 
     public void removeDistanceTip(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopId targetShopId = shop.getShopId();
-        shopDeliveryTipService.clearDistanceTip(targetShopId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryTipService.clearDistanceTip(targetShopId, actor);
     }
 
     public void updateRegionTips(Long ceoId, Long shopId, List<ShopDeliveryTipRegionItemRequest> regions) {
@@ -76,14 +84,16 @@ public class ShopDeliveryTipCommandService {
         List<ShopDeliveryTipRegionSpec> specs = regions.stream()
             .map(region -> ShopDeliveryTipRegionSpec.of(region.adminDongId(), region.tipAmount()))
             .toList();
-        shopDeliveryTipService.replaceRegionTips(targetShopId, specs);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryTipService.replaceRegionTips(targetShopId, specs, actor);
     }
 
     public void removeRegionTips(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopId targetShopId = shop.getShopId();
-        shopDeliveryTipService.clearRegionTips(targetShopId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryTipService.clearRegionTips(targetShopId, actor);
     }
 
     public void updateScheduleTips(Long ceoId, Long shopId, List<ShopDeliveryTipScheduleItemRequest> schedules) {
@@ -98,13 +108,15 @@ public class ShopDeliveryTipCommandService {
                 schedule.tipAmount()
             ))
             .toList();
-        shopDeliveryTipService.replaceScheduleTips(targetShopId, specs);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryTipService.replaceScheduleTips(targetShopId, specs, actor);
     }
 
     public void updateHolidayTip(Long ceoId, Long shopId, int tipAmount) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopId targetShopId = shop.getShopId();
-        shopDeliveryTipService.changeHolidayTip(targetShopId, tipAmount);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryTipService.changeHolidayTip(targetShopId, tipAmount, actor);
     }
 }

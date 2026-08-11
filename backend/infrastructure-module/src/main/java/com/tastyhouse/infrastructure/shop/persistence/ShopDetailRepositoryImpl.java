@@ -149,6 +149,12 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
     }
 
     @Override
+    public Optional<ShopClosedDay> findClosedDayById(Long id) {
+        return shopClosedDayJpaRepository.findById(id)
+            .map(ShopClosedDayMapper::toDomain);
+    }
+
+    @Override
     public ShopClosedDay saveClosedDay(ShopClosedDay closedDay) {
         if (closedDay.getId() == null) {
             ShopClosedDayJpaEntity saved = shopClosedDayJpaRepository.save(ShopClosedDayMapper.toEntity(closedDay));
@@ -337,5 +343,11 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
         shopOwnerMessageHistoryJpaRepository.save(
             ShopOwnerMessageHistoryMapper.toEntity(ownerMessageHistory)
         );
+    }
+
+    @Override
+    public Optional<ShopOwnerMessageHistory> findLatestOwnerMessage(Long shopId) {
+        return shopOwnerMessageHistoryJpaRepository.findFirstByShopIdOrderByIdDesc(shopId)
+            .map(ShopOwnerMessageHistoryMapper::toDomain);
     }
 }

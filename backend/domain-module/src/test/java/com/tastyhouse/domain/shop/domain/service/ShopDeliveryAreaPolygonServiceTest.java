@@ -25,10 +25,15 @@ import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeHistory;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaPolygonRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolygonService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -46,6 +51,7 @@ class ShopDeliveryAreaPolygonServiceTest {
 
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final GeoPoint SHOP_LOCATION = GeoPoint.of(37.5, 127.0);
+    private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
 
     /** 가게를 감싸는 작은 사각형(약 1km). */
     private static final GeoPolygon POLYGON = GeoPolygon.of(List.of(GeoRing.of(List.of(
@@ -146,7 +152,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         fixture.areaRepository.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(99L), DeliveryAreaSource.MANUAL));
         fixture.polygonRepository.stored = ShopDeliveryAreaPolygon.of(SHOP_ID, POLYGON, SHOP_LOCATION);
 
-        fixture.service.deletePolygon(SHOP_ID, ids -> List.of());
+        fixture.service.deletePolygon(SHOP_ID, ids -> List.of(), ACTOR);
 
         assertThat(fixture.areaRepository.findByShopId(SHOP_ID))
             .extracting(area -> area.getAdminDongId().value())
@@ -161,9 +167,66 @@ class ShopDeliveryAreaPolygonServiceTest {
         fixture.areaRepository.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(10L), DeliveryAreaSource.POLYGON));
         fixture.polygonRepository.stored = ShopDeliveryAreaPolygon.of(SHOP_ID, POLYGON, SHOP_LOCATION);
 
-        fixture.service.deletePolygon(SHOP_ID, ids -> List.of());
+        fixture.service.deletePolygon(SHOP_ID, ids -> List.of(), ACTOR);
 
         assertThat(fixture.areaRepository.findByShopId(SHOP_ID)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("도형 저장은 환산 동 수와 무관하게 이력 1행만 남기고 도형 규모로 요약한다")
+    void savePolygon_recordsSingleRow() {
+        Fixture fixture = new Fixture();
+        fixture.registerDong(10L, 37.5, 127.0);
+        fixture.registerDong(11L, 37.501, 127.001);
+
+        fixture.savePolygon();
+
+        List<ShopChangeHistory> histories =
+            fixture.historyRepository.savedOf(ShopChangeType.DELIVERY_AREA_POLYGON);
+        assertThat(histories).hasSize(1);
+        assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
+        assertThat(histories.getFirst().getPreviousValue()).isEqualTo("미설정");
+        assertThat(histories.getFirst().getNewValue())
+            .startsWith("도형 " + POLYGON.ringCount() + "개, 꼭짓점 " + POLYGON.vertexCount() + "개, 행정동 ");
+    }
+
+    @Test
+    @DisplayName("도형 저장은 파생 행정동 변화를 DELIVERY_AREA로 따로 남기지 않는다 — 점주 조작은 '도형 저장' 하나다")
+    void savePolygon_doesNotRecordDeliveryAreaHistory() {
+        Fixture fixture = new Fixture();
+        fixture.registerDong(10L, 37.5, 127.0);
+
+        fixture.savePolygon();
+
+        assertThat(fixture.historyRepository.savedOf(ShopChangeType.DELIVERY_AREA)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("도형 삭제는 DELETE 한 행을 남기고 변경 전 도형 규모를 담는다")
+    void deletePolygon_recordsDeleteRow() {
+        Fixture fixture = new Fixture();
+        fixture.registerDong(10L, 37.5, 127.0);
+        fixture.savePolygon();
+
+        fixture.service.deletePolygon(SHOP_ID, ids -> List.of(), ACTOR);
+
+        List<ShopChangeHistory> histories =
+            fixture.historyRepository.savedOf(ShopChangeType.DELIVERY_AREA_POLYGON);
+        assertThat(histories).hasSize(2);
+        assertThat(histories.get(1).getActionType()).isEqualTo(ShopChangeActionType.DELETE);
+        assertThat(histories.get(1).getPreviousValue())
+            .startsWith("도형 " + POLYGON.ringCount() + "개, 꼭짓점 " + POLYGON.vertexCount() + "개, 최원거리 ");
+        assertThat(histories.get(1).getNewValue()).isNull();
+    }
+
+    @Test
+    @DisplayName("저장된 도형이 없는 가게의 삭제는 이력을 남기지 않는다 — 일어나지 않은 변경을 기록하지 않는다")
+    void deletePolygon_withoutStoredPolygon_recordsNothing() {
+        Fixture fixture = new Fixture();
+
+        fixture.service.deletePolygon(SHOP_ID, ids -> List.of(), ACTOR);
+
+        assertThat(fixture.historyRepository.saved()).isEmpty();
     }
 
     /** 테스트 대상과 인메모리 fake 묶음. */
@@ -173,8 +236,14 @@ class ShopDeliveryAreaPolygonServiceTest {
         private final ShopDeliveryAreaRepositoryFake areaRepository = new ShopDeliveryAreaRepositoryFake();
         private final ShopDeliveryAreaPolygonRepositoryFake polygonRepository = new ShopDeliveryAreaPolygonRepositoryFake();
         private final ShopDeliveryTipRegionLookupFake regionLookup = new ShopDeliveryTipRegionLookupFake();
+        private final RecordingShopChangeHistoryRepository historyRepository =
+            new RecordingShopChangeHistoryRepository();
         private final ShopDeliveryAreaPolygonService service = new ShopDeliveryAreaPolygonService(
-            polygonRepository, areaRepository, adminDongRepository, regionLookup
+            polygonRepository,
+            areaRepository,
+            adminDongRepository,
+            regionLookup,
+            new ShopChangeHistoryRecorder(historyRepository)
         );
 
         void registerDong(long id, double latitude, double longitude) {
@@ -182,7 +251,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         }
 
         void savePolygon() {
-            service.savePolygon(SHOP_ID, POLYGON, SHOP_LOCATION, ids -> List.of());
+            service.savePolygon(SHOP_ID, POLYGON, SHOP_LOCATION, ids -> List.of(), ACTOR);
         }
     }
 

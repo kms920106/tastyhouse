@@ -19,9 +19,14 @@ import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.repository.AdminDongRepository;
 import com.tastyhouse.domain.region.repository.AdminDongSyncResult;
 import com.tastyhouse.domain.region.vo.AdminDongId;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeHistory;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -41,6 +46,7 @@ class ShopDeliveryAreaServiceTest {
 
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final AdminDongId ADMIN_DONG_ID = AdminDongId.of(100L);
+    private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
 
     @Nested
     @DisplayName("addArea")
@@ -51,7 +57,7 @@ class ShopDeliveryAreaServiceTest {
         void addArea_rejectsUnknownAdminDong() {
             ShopDeliveryAreaService service = service(new AdminDongRepositoryFake(), new ShopDeliveryAreaRepositoryFake(), new ShopDeliveryTipRegionLookupFake());
 
-            assertThatThrownBy(() -> service.addArea(SHOP_ID, ADMIN_DONG_ID))
+            assertThatThrownBy(() -> service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
                 .isEqualTo(ErrorCode.ADMIN_DONG_NOT_FOUND);
@@ -64,7 +70,7 @@ class ShopDeliveryAreaServiceTest {
             areaRepository.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID));
             ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaRepository, new ShopDeliveryTipRegionLookupFake());
 
-            assertThatThrownBy(() -> service.addArea(SHOP_ID, ADMIN_DONG_ID))
+            assertThatThrownBy(() -> service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_DUPLICATED);
@@ -76,7 +82,7 @@ class ShopDeliveryAreaServiceTest {
             ShopDeliveryAreaRepositoryFake areaRepository = new ShopDeliveryAreaRepositoryFake();
             ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaRepository, new ShopDeliveryTipRegionLookupFake());
 
-            Long deliveryAreaId = service.addArea(SHOP_ID, ADMIN_DONG_ID);
+            Long deliveryAreaId = service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR);
 
             assertThat(deliveryAreaId).isNotNull();
             assertThat(areaRepository.findByShopId(SHOP_ID)).hasSize(1);
@@ -94,7 +100,7 @@ class ShopDeliveryAreaServiceTest {
         void removeArea_rejectsMissingArea() {
             ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), new ShopDeliveryAreaRepositoryFake(), new ShopDeliveryTipRegionLookupFake());
 
-            assertThatThrownBy(() -> service.removeArea(999L))
+            assertThatThrownBy(() -> service.removeArea(999L, ACTOR))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND);
@@ -109,7 +115,7 @@ class ShopDeliveryAreaServiceTest {
             regionLookup.addRegionTip(SHOP_ID, ADMIN_DONG_ID);
             ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaRepository, regionLookup);
 
-            assertThatThrownBy(() -> service.removeArea(deliveryAreaId))
+            assertThatThrownBy(() -> service.removeArea(deliveryAreaId, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_IN_USE);
@@ -125,7 +131,7 @@ class ShopDeliveryAreaServiceTest {
             regionLookup.addRegionTip(ShopId.of(2L), ADMIN_DONG_ID);
             ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaRepository, regionLookup);
 
-            service.removeArea(deliveryAreaId);
+            service.removeArea(deliveryAreaId, ACTOR);
 
             assertThat(areaRepository.findById(deliveryAreaId)).isEmpty();
         }
@@ -137,10 +143,63 @@ class ShopDeliveryAreaServiceTest {
             Long deliveryAreaId = areaRepository.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
             ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaRepository, new ShopDeliveryTipRegionLookupFake());
 
-            service.removeArea(deliveryAreaId);
+            service.removeArea(deliveryAreaId, ACTOR);
 
             assertThat(areaRepository.findByShopId(SHOP_ID)).isEmpty();
         }
+    }
+
+    @Nested
+    @DisplayName("변경이력")
+    class ChangeHistory {
+
+        @Test
+        @DisplayName("단건 등록·삭제는 행정동 이름으로 CREATE·DELETE 한 행씩 남긴다")
+        void addAndRemoveArea_recordRowLevelHistory() {
+            RecordingShopChangeHistoryRepository historyRepository = new RecordingShopChangeHistoryRepository();
+            ShopDeliveryAreaRepositoryFake areaRepository = new ShopDeliveryAreaRepositoryFake();
+            ShopDeliveryAreaService service = new ShopDeliveryAreaService(
+                areaRepository,
+                adminDongRepositoryWith(ADMIN_DONG_ID),
+                new ShopDeliveryTipRegionLookupFake(),
+                new ShopChangeHistoryRecorder(historyRepository)
+            );
+
+            Long deliveryAreaId = service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR);
+            service.removeArea(deliveryAreaId, ACTOR);
+
+            List<ShopChangeHistory> histories = historyRepository.savedOf(ShopChangeType.DELIVERY_AREA);
+            assertThat(histories).hasSize(2);
+            assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.CREATE);
+            assertThat(histories.getFirst().getPreviousValue()).isNull();
+            assertThat(histories.getFirst().getNewValue()).isEqualTo("서울특별시 강남구 역삼1동");
+            assertThat(histories.get(1).getActionType()).isEqualTo(ShopChangeActionType.DELETE);
+            assertThat(histories.get(1).getPreviousValue()).isEqualTo("서울특별시 강남구 역삼1동");
+            assertThat(histories.get(1).getNewValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("일괄 추가는 추가된 동 수와 무관하게 이력 1행만 남기고 전체 스냅샷을 담는다")
+        void addAreas_recordsSingleSnapshotRow() {
+            RecordingShopChangeHistoryRepository historyRepository = new RecordingShopChangeHistoryRepository();
+            AdminDongId second = AdminDongId.of(200L);
+            ShopDeliveryAreaService service = new ShopDeliveryAreaService(
+                new ShopDeliveryAreaRepositoryFake(),
+                adminDongRepositoryWith(ADMIN_DONG_ID, second),
+                new ShopDeliveryTipRegionLookupFake(),
+                new ShopChangeHistoryRecorder(historyRepository)
+            );
+
+            service.addAreas(SHOP_ID, List.of(ADMIN_DONG_ID, second), ACTOR);
+
+            List<ShopChangeHistory> histories = historyRepository.savedOf(ShopChangeType.DELIVERY_AREA);
+            assertThat(histories).hasSize(1);
+            assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
+            assertThat(histories.getFirst().getPreviousValue()).isEqualTo("없음");
+            // fake가 모든 동에 같은 표시명을 주므로 이름 자체보다 "두 행이 한 스냅샷에 담겼다"를 본다.
+            assertThat(histories.getFirst().getNewValue().lines()).hasSize(2);
+        }
+
     }
 
     private static ShopDeliveryAreaService service(
@@ -148,7 +207,12 @@ class ShopDeliveryAreaServiceTest {
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
         ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup
     ) {
-        return new ShopDeliveryAreaService(shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup);
+        return new ShopDeliveryAreaService(
+            shopDeliveryAreaRepository,
+            adminDongRepository,
+            shopDeliveryTipRegionLookup,
+            new ShopChangeHistoryRecorder(new RecordingShopChangeHistoryRepository())
+        );
     }
 
     private static AdminDongRepositoryFake adminDongRepositoryWith(AdminDongId... adminDongIds) {

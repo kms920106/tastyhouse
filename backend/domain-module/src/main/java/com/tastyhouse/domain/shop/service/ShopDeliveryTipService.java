@@ -1,18 +1,26 @@
 package com.tastyhouse.domain.shop.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.repository.AdminDongRepository;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
 import com.tastyhouse.domain.shop.model.DeliveryTipPolicy;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipHoliday;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipRegion;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipSchedule;
@@ -40,25 +48,40 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * CRUD면 어떤 순서로 조작해도 중간 상태가 규칙을 위반한다({@code ShopBusinessHour}가 개별 CRUD인 것은
  * 요일 간에 이런 관계가 없기 때문이다).
  *
+ * <p><b>변경이력 기록도 이 서비스가 소유한다</b>(배달 분류 {@code DELIVERY_TIP_TIER}·
+ * {@code DELIVERY_TIP_DISTANCE}·{@code DELIVERY_TIP_REGION}·{@code DELIVERY_TIP_SCHEDULE}
+ * ·{@code DELIVERY_TIP_HOLIDAY}). 이 서비스는 replace-all을 수행하려고 이미 컬렉션을 <b>삭제 전에</b>
+ * 읽을 수 있는 유일한 지점이고, ceo-api의 {@code CommandService}는 CQRS 교차 주입 금지로 QueryDao를
+ * 주입할 수 없어 변경 전 값을 구조적으로 볼 수 없다.
+ *
+ * <p><b>replace-all은 컬렉션 1행당 이력을 남기지 않고 저장 1회당 1행만 남긴다.</b> 이 서비스는
+ * {@code deleteAll + saveAll}로 교체하므로 PK 기반 diff가 불가능하고, 행 단위로 남기면 이력 목록이
+ * "점주가 저장한 횟수"가 아니라 "바뀐 행 수"로 페이징되어 읽을 수 없게 된다. 따라서 변경 전·후 컬렉션
+ * 전체를 {@link ShopChangeValueFormatter#snapshot(List)}으로 요약해 한 행에 담는다.
+ *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
  * {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 ceo-api의
  * {@code ShopDeliveryTipCommandService}가 선언한다. 도메인 모델이 POJO라 더티 체킹이 없으므로
- * 변경 후 명시적으로 {@code save}를 호출한다.
+ * 변경 후 명시적으로 {@code save}를 호출한다. 변경 주체({@link ShopChangeActor})는 도메인이 인증을
+ * 모르므로 마지막 파라미터로 명시 전달받는다.
  */
 public class ShopDeliveryTipService {
 
     private final ShopDeliveryTipRepository shopDeliveryTipRepository;
     private final ShopDeliveryAreaRepository shopDeliveryAreaRepository;
     private final AdminDongRepository adminDongRepository;
+    private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopDeliveryTipService(
         ShopDeliveryTipRepository shopDeliveryTipRepository,
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository
+        AdminDongRepository adminDongRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         this.shopDeliveryTipRepository = shopDeliveryTipRepository;
         this.shopDeliveryAreaRepository = shopDeliveryAreaRepository;
         this.adminDongRepository = adminDongRepository;
+        this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
     /**
@@ -70,8 +93,14 @@ public class ShopDeliveryTipService {
      *
      * <p>{@code tier_order}는 호출부가 보낸 순서가 아니라 <b>정렬 후 재부여</b>한다 — 그래야 저장된
      * 순서와 금액 정렬이 어긋나지 않는다.
+     *
+     * <p>변경이력은 저장 1회당 1행이다 — 삭제 전에 기존 구간 전체를 읽어 스냅샷으로 남긴다.
      */
-    public List<ShopDeliveryTipTier> replaceTiers(ShopId shopId, List<ShopDeliveryTipTierSpec> specs) {
+    public List<ShopDeliveryTipTier> replaceTiers(
+        ShopId shopId,
+        List<ShopDeliveryTipTierSpec> specs,
+        ShopChangeActor actor
+    ) {
         if (specs == null || specs.isEmpty() || specs.size() > DeliveryTipPolicy.TIER_MAX_COUNT) {
             throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED,
                 ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED.getDefaultMessage()
@@ -84,6 +113,8 @@ public class ShopDeliveryTipService {
 
         validateTierMonotonicity(sorted);
 
+        String previousValue = describeTiers(shopDeliveryTipRepository.findTiersByShopId(shopId));
+
         shopDeliveryTipRepository.deleteTiersByShopId(shopId);
 
         List<ShopDeliveryTipTier> tiers = new ArrayList<>(sorted.size());
@@ -91,7 +122,17 @@ public class ShopDeliveryTipService {
             ShopDeliveryTipTierSpec spec = sorted.get(tierOrder);
             tiers.add(ShopDeliveryTipTier.of(shopId, tierOrder, spec.minOrderAmount(), spec.tipAmount()));
         }
-        return shopDeliveryTipRepository.saveTiers(tiers);
+        List<ShopDeliveryTipTier> saved = shopDeliveryTipRepository.saveTiers(tiers);
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.DELIVERY_TIP_TIER,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeTiers(saved)
+        );
+        return saved;
     }
 
     /**
@@ -104,7 +145,8 @@ public class ShopDeliveryTipService {
         ShopId shopId,
         int baseDistanceMeters,
         DeliveryTipDistanceUnit unit,
-        int surchargeAmount
+        int surchargeAmount,
+        ShopChangeActor actor
     ) {
         if (shopDeliveryTipRepository.countRegionTipsByShopId(shopId) > 0) {
             throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT,
@@ -113,15 +155,43 @@ public class ShopDeliveryTipService {
         }
 
         ShopDeliveryTipSetting setting = loadOrCreateSetting(shopId);
+        String previousValue = describeDistanceTip(setting);
+
         setting.changeToDistance(baseDistanceMeters, unit, surchargeAmount);
-        return shopDeliveryTipRepository.saveSetting(setting);
+        ShopDeliveryTipSetting saved = shopDeliveryTipRepository.saveSetting(setting);
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.DELIVERY_TIP_DISTANCE,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeDistanceTip(saved)
+        );
+        return saved;
     }
 
-    /** 거리별 추가 배달팁을 해제한다(설정 헤더가 없으면 아무것도 하지 않는다). */
-    public void clearDistanceTip(ShopId shopId) {
+    /**
+     * 거리별 추가 배달팁을 해제한다(설정 헤더가 없으면 아무것도 하지 않는다).
+     *
+     * <p>설정 헤더가 없으면 이력도 남기지 않는다 — 애초에 거리별을 쓰지 않던 가게이므로 "해제했다"고
+     * 기록하면 일어나지 않은 변경이 이력에 남는다.
+     */
+    public void clearDistanceTip(ShopId shopId, ShopChangeActor actor) {
         shopDeliveryTipRepository.findSettingByShopId(shopId).ifPresent(setting -> {
+            String previousValue = describeDistanceTip(setting);
+
             setting.clearExtraTip();
             shopDeliveryTipRepository.saveSetting(setting);
+
+            shopChangeHistoryRecorder.record(
+                shopId,
+                ShopChangeType.DELIVERY_TIP_DISTANCE,
+                ShopChangeActionType.DELETE,
+                actor,
+                previousValue,
+                null
+            );
         });
     }
 
@@ -133,8 +203,14 @@ public class ShopDeliveryTipService {
      *
      * <p>빈 목록을 보내면 전부 삭제되고 설정 헤더가 {@code NONE}으로 돌아간다 — 그래서 "지역별 전부 삭제
      * 후 거리별 설정 가능"이 별도 분기 없이 자동 성립한다.
+     *
+     * <p>변경이력은 저장 1회당 1행이다 — 삭제 전에 기존 지역별 팁 전체를 읽어 스냅샷으로 남긴다.
      */
-    public List<ShopDeliveryTipRegion> replaceRegionTips(ShopId shopId, List<ShopDeliveryTipRegionSpec> specs) {
+    public List<ShopDeliveryTipRegion> replaceRegionTips(
+        ShopId shopId,
+        List<ShopDeliveryTipRegionSpec> specs,
+        ShopChangeActor actor
+    ) {
         List<ShopDeliveryTipRegionSpec> requested = specs == null ? List.of() : specs;
 
         ShopDeliveryTipSetting setting = loadOrCreateSetting(shopId);
@@ -145,6 +221,8 @@ public class ShopDeliveryTipService {
         }
 
         List<ShopDeliveryTipRegion> regionTips = buildRegionTips(shopId, requested);
+
+        String previousValue = describeRegionTips(shopDeliveryTipRepository.findRegionTipsByShopId(shopId));
 
         shopDeliveryTipRepository.deleteRegionTipsByShopId(shopId);
         List<ShopDeliveryTipRegion> saved = shopDeliveryTipRepository.saveRegionTips(regionTips);
@@ -161,6 +239,15 @@ public class ShopDeliveryTipService {
         }
         shopDeliveryTipRepository.saveSetting(setting);
 
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.DELIVERY_TIP_REGION,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeRegionTips(saved)
+        );
+
         return saved;
     }
 
@@ -168,9 +255,13 @@ public class ShopDeliveryTipService {
      * 지역별 추가 배달팁을 전부 삭제한다 — 설정 헤더는 {@code NONE}으로 되돌아간다.
      *
      * <p>거리별 설정을 쓰고 있던 가게에는 영향이 없다(거리별과 지역별은 배타라 애초에 공존하지 않는다).
+     *
+     * <p>이력은 {@link #replaceRegionTips}가 빈 컬렉션으로의 교체로 남긴다 — 전용 {@code DELETE} 행을
+     * 따로 만들지 않는 이유는, 이 경로가 빈 배열 PUT과 완전히 같은 연산이라 이력에서도 구분될 이유가 없기
+     * 때문이다(구분하면 같은 결과가 두 형태로 기록된다).
      */
-    public void clearRegionTips(ShopId shopId) {
-        replaceRegionTips(shopId, List.of());
+    public void clearRegionTips(ShopId shopId, ShopChangeActor actor) {
+        replaceRegionTips(shopId, List.of(), actor);
     }
 
     /**
@@ -179,8 +270,14 @@ public class ShopDeliveryTipService {
      * <p>불변식: {@code HOLIDAY} 요일 구분 금지(공휴일은 전용 애그리거트가 담당 — 겹치면 이중 부과),
      * 같은 요일 구분 안에서 시간 구간 겹침 금지. 각 행의 값 검증은
      * {@link ShopDeliveryTipSchedule#of}가 강제한다.
+     *
+     * <p>변경이력은 저장 1회당 1행이다 — 삭제 전에 기존 시간별 팁 전체를 읽어 스냅샷으로 남긴다.
      */
-    public List<ShopDeliveryTipSchedule> replaceScheduleTips(ShopId shopId, List<ShopDeliveryTipScheduleSpec> specs) {
+    public List<ShopDeliveryTipSchedule> replaceScheduleTips(
+        ShopId shopId,
+        List<ShopDeliveryTipScheduleSpec> specs,
+        ShopChangeActor actor
+    ) {
         List<ShopDeliveryTipScheduleSpec> requested = specs == null ? List.of() : specs;
 
         validateScheduleOverlap(requested);
@@ -191,18 +288,47 @@ public class ShopDeliveryTipService {
             ))
             .toList();
 
+        String previousValue = describeScheduleTips(shopDeliveryTipRepository.findScheduleTipsByShopId(shopId));
+
         shopDeliveryTipRepository.deleteScheduleTipsByShopId(shopId);
-        return shopDeliveryTipRepository.saveScheduleTips(scheduleTips);
+        List<ShopDeliveryTipSchedule> saved = shopDeliveryTipRepository.saveScheduleTips(scheduleTips);
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.DELIVERY_TIP_SCHEDULE,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeScheduleTips(saved)
+        );
+        return saved;
     }
 
     /**
      * 공휴일 추가 배달팁을 설정한다 — <b>0원이면 삭제</b>로 해석한다(미설정과 0원을 구분하지 않는다).
      *
+     * <p>이력은 0원(삭제)도 {@code UPDATE} 한 행으로 남긴다. 이 엔드포인트는 "공휴일 배달팁 금액"이라는
+     * 스칼라 하나를 설정하는 경로이고 0원은 그 스칼라의 유효한 값(미설정)이라, 같은 저장 버튼이 금액에 따라
+     * {@code UPDATE}/{@code DELETE}로 갈리면 이력 목록에서 같은 조작이 두 종류로 보인다.
+     *
      * @return 저장된 공휴일 배달팁. 0원을 보내 삭제된 경우 {@code null}
      */
-    public ShopDeliveryTipHoliday changeHolidayTip(ShopId shopId, int tipAmount) {
+    public ShopDeliveryTipHoliday changeHolidayTip(ShopId shopId, int tipAmount, ShopChangeActor actor) {
+        String previousValue = describeHolidayTip(
+            shopDeliveryTipRepository.findHolidayTipByShopId(shopId).orElse(null)
+        );
+
         if (tipAmount == 0) {
             shopDeliveryTipRepository.deleteHolidayTipByShopId(shopId);
+
+            shopChangeHistoryRecorder.record(
+                shopId,
+                ShopChangeType.DELIVERY_TIP_HOLIDAY,
+                ShopChangeActionType.UPDATE,
+                actor,
+                previousValue,
+                describeHolidayTip(null)
+            );
             return null;
         }
 
@@ -213,7 +339,17 @@ public class ShopDeliveryTipService {
             })
             .orElseGet(() -> ShopDeliveryTipHoliday.of(shopId, tipAmount));
 
-        return shopDeliveryTipRepository.saveHolidayTip(holidayTip);
+        ShopDeliveryTipHoliday saved = shopDeliveryTipRepository.saveHolidayTip(holidayTip);
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.DELIVERY_TIP_HOLIDAY,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeHolidayTip(saved)
+        );
+        return saved;
     }
 
     /**
@@ -225,6 +361,94 @@ public class ShopDeliveryTipService {
     private ShopDeliveryTipSetting loadOrCreateSetting(ShopId shopId) {
         return shopDeliveryTipRepository.findSettingByShopId(shopId)
             .orElseGet(() -> ShopDeliveryTipSetting.of(shopId));
+    }
+
+    /**
+     * 구간별 기본 배달팁 컬렉션 전체를 스냅샷으로 요약한다(행별 예: {@code "10,000원 이상: 3,000원"}).
+     *
+     * <p>저장된 {@code tierOrder} 순서를 그대로 쓴다 — 정렬 후 재부여된 순서라 주문금액 오름차순과 일치하고,
+     * 화면에 보이는 순서와 이력의 순서가 어긋나지 않는다.
+     */
+    private String describeTiers(List<ShopDeliveryTipTier> tiers) {
+        return ShopChangeValueFormatter.snapshot(
+            tiers.stream()
+                .sorted(Comparator.comparingInt(ShopDeliveryTipTier::getTierOrder))
+                .map(tier -> ShopChangeValueFormatter.amount(tier.getMinOrderAmount()) + " 이상: "
+                    + ShopChangeValueFormatter.amount(tier.getTipAmount()))
+                .toList()
+        );
+    }
+
+    /**
+     * 거리별 추가 배달팁 설정을 한 줄로 요약한다(예: {@code "2.5km까지: 500m당 500원"}).
+     *
+     * <p>거리별 설정이 아니거나 설정값이 비어 있으면 "미설정"이다 — 지역별을 쓰는 가게에서 거리별로
+     * 전환하는 경우, 변경 전 값이 "미설정"이어야 실제 상태와 맞는다.
+     */
+    private String describeDistanceTip(ShopDeliveryTipSetting setting) {
+        if (setting == null || !setting.usesDistance()
+            || setting.getBaseDistanceMeters() == null
+            || setting.getSurchargeUnit() == null
+            || setting.getSurchargeAmount() == null) {
+            return ShopChangeValueFormatter.unset();
+        }
+        return ShopChangeValueFormatter.distanceKm(toKilometers(setting.getBaseDistanceMeters())) + "까지: "
+            + setting.getSurchargeUnit().getUnitMeters() + "m당 "
+            + ShopChangeValueFormatter.amount(setting.getSurchargeAmount());
+    }
+
+    /**
+     * 지역별 추가 배달팁 컬렉션 전체를 스냅샷으로 요약한다(행별 예: {@code "역삼동: +1,000원"}).
+     *
+     * <p>행정동 이름은 이력을 읽는 사람이 식별자로는 어느 동인지 알 수 없으므로 마스터에서 한 번에 조회해
+     * 붙인다. 마스터에 없는 식별자(폐지 동 등)는 이름을 못 붙이므로 식별자를 그대로 노출한다 — 이력에서
+     * 행을 통째로 빠뜨리면 "그때 무엇이 설정돼 있었는가"가 부정확해진다.
+     */
+    private String describeRegionTips(List<ShopDeliveryTipRegion> regionTips) {
+        Map<Long, String> namesById = adminDongRepository
+            .findAllByIds(regionTips.stream().map(ShopDeliveryTipRegion::getAdminDongId).toList())
+            .stream()
+            .collect(Collectors.toMap(AdminDong::getId, AdminDong::getDongName, (first, second) -> first));
+
+        return ShopChangeValueFormatter.snapshot(
+            regionTips.stream()
+                .map(regionTip -> {
+                    Long adminDongId = regionTip.getAdminDongId().value();
+                    String name = namesById.getOrDefault(adminDongId, "행정동 " + adminDongId);
+                    return name + ": +" + ShopChangeValueFormatter.amount(regionTip.getTipAmount());
+                })
+                .toList()
+        );
+    }
+
+    /**
+     * 시간별 추가 배달팁 컬렉션 전체를 스냅샷으로 요약한다(행별 예: {@code "평일 18:00~20:00: +1,500원"}).
+     */
+    private String describeScheduleTips(List<ShopDeliveryTipSchedule> scheduleTips) {
+        return ShopChangeValueFormatter.snapshot(
+            scheduleTips.stream()
+                .map(scheduleTip -> scheduleTip.getDayType().getDescription() + " "
+                    + ShopChangeValueFormatter.timeRange(scheduleTip.getStartTime(), scheduleTip.getEndTime())
+                    + ": +" + ShopChangeValueFormatter.amount(scheduleTip.getTipAmount()))
+                .toList()
+        );
+    }
+
+    /**
+     * 공휴일 추가 배달팁을 한 줄로 요약한다(예: {@code "공휴일: +2,000원"}). 설정이 없으면 "미설정".
+     */
+    private String describeHolidayTip(ShopDeliveryTipHoliday holidayTip) {
+        if (holidayTip == null) {
+            return ShopChangeValueFormatter.unset();
+        }
+        return "공휴일: +" + ShopChangeValueFormatter.amount(holidayTip.getTipAmount());
+    }
+
+    /**
+     * 미터를 km로 환산한다. 소수점 아래 표기는 {@code distanceKm}이 정리한다(2.500 → 2.5km).
+     */
+    private BigDecimal toKilometers(int meters) {
+        return BigDecimal.valueOf(meters).divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP);
     }
 
     /**

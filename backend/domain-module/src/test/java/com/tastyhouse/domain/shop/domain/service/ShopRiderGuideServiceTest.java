@@ -18,11 +18,16 @@ import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.model.RiderGuideActionType;
 import com.tastyhouse.domain.shop.model.RiderGuideActorType;
 import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActorType;
+import com.tastyhouse.domain.shop.model.ShopChangeHistory;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 import com.tastyhouse.domain.shop.repository.ShopRiderGuideRepository;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
+import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopRiderGuideService;
 import com.tastyhouse.domain.shop.service.ShopRiderGuideValidator;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -42,6 +47,7 @@ class ShopRiderGuideServiceTest {
     private static final Long MISSING_SHOP_ID = 99L;
 
     private FakeShopRiderGuideRepository shopRiderGuideRepository;
+    private RecordingShopChangeHistoryRepository shopChangeHistoryRepository;
     private ShopRiderGuideService shopRiderGuideService;
 
     /**
@@ -125,10 +131,12 @@ class ShopRiderGuideServiceTest {
     @BeforeEach
     void setUp() {
         shopRiderGuideRepository = new FakeShopRiderGuideRepository();
+        shopChangeHistoryRepository = new RecordingShopChangeHistoryRepository();
         shopRiderGuideService = new ShopRiderGuideService(
             shopRiderGuideRepository,
             new FakeShopRepository(),
-            new ShopRiderGuideValidator(new ProhibitedWordValidator(new FakeProhibitedWordRepository()))
+            new ShopRiderGuideValidator(new ProhibitedWordValidator(new FakeProhibitedWordRepository())),
+            new ShopChangeHistoryRecorder(shopChangeHistoryRepository)
         );
     }
 
@@ -203,7 +211,8 @@ class ShopRiderGuideServiceTest {
         shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "부적합 문구", RiderGuideActorType.CEO, 7L);
         shopRiderGuideService.updatePickupLocation(
             OPEN_SHOP_ID, "서울시 강남구 테헤란로 1", null, "지하 1층 후문",
-            BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621)
+            BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621),
+            RiderGuideActorType.CEO, 7L
         );
 
         shopRiderGuideService.deleteVisitGuide(OPEN_SHOP_ID, 3L, "가게 방문과 관련 없는 문구입니다.");
@@ -258,7 +267,7 @@ class ShopRiderGuideServiceTest {
     @Test
     @DisplayName("픽업 위치 초기화는 행이 없으면 빈 행을 만들지 않는다")
     void clearPickupLocation_doesNotCreateRow_whenNeverRegistered() {
-        shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID);
+        shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID, RiderGuideActorType.CEO, 7L);
 
         assertThat(shopRiderGuideRepository.findByShopId(ShopId.of(OPEN_SHOP_ID))).isEmpty();
     }
@@ -269,10 +278,11 @@ class ShopRiderGuideServiceTest {
         shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "유지될 문구", RiderGuideActorType.CEO, 7L);
         shopRiderGuideService.updatePickupLocation(
             OPEN_SHOP_ID, "서울시 강남구 테헤란로 1", null, null,
-            BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621)
+            BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621),
+            RiderGuideActorType.CEO, 7L
         );
 
-        shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID);
+        shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID, RiderGuideActorType.CEO, 7L);
 
         ShopRiderGuide saved = shopRiderGuideRepository.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
         assertThat(saved.hasPickupLocation()).isFalse();
@@ -285,28 +295,79 @@ class ShopRiderGuideServiceTest {
         shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "문구", RiderGuideActorType.CEO, 7L);
 
         assertThatCode(() -> {
-            shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID);
-            shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID);
+            shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID, RiderGuideActorType.CEO, 7L);
+            shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID, RiderGuideActorType.CEO, 7L);
         }).doesNotThrowAnyException();
     }
 
     @Test
     @DisplayName("폐업 가게는 픽업 위치를 초기화할 수 없다")
     void clearPickupLocation_throwsException_whenShopPermanentlyClosed() {
-        assertThatThrownBy(() -> shopRiderGuideService.clearPickupLocation(CLOSED_SHOP_ID))
+        assertThatThrownBy(() -> shopRiderGuideService.clearPickupLocation(CLOSED_SHOP_ID, RiderGuideActorType.CEO, 7L))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
             .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
     }
 
     @Test
-    @DisplayName("픽업 위치 등록은 이력을 남기지 않는다(검수 대상은 안내 문구)")
+    @DisplayName("픽업 위치 등록은 검수 이력을 남기지 않는다(검수 대상은 안내 문구)")
     void updatePickupLocation_doesNotRecordHistory() {
         shopRiderGuideService.updatePickupLocation(
             OPEN_SHOP_ID, "서울시 강남구 테헤란로 1", null, null,
-            BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621)
+            BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621),
+            RiderGuideActorType.CEO, 7L
         );
 
         assertThat(shopRiderGuideRepository.histories).isEmpty();
+    }
+
+    @Test
+    @DisplayName("점주가 안내 문구를 바꾸면 RIDER_VISIT_GUIDE 변경이력이 정확히 1건 남는다")
+    void updateVisitGuide_recordsExactlyOneShopChangeHistory_whenActorIsCeo() {
+        shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "정문 옆 계단으로 올라와 주세요", RiderGuideActorType.CEO, 7L);
+
+        assertThat(shopChangeHistoryRepository.savedOf(ShopChangeType.RIDER_VISIT_GUIDE)).hasSize(1);
+        ShopChangeHistory history = shopChangeHistoryRepository.savedOf(ShopChangeType.RIDER_VISIT_GUIDE).getFirst();
+        assertThat(history.getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
+        assertThat(history.getActorType()).isEqualTo(ShopChangeActorType.CEO);
+        assertThat(history.getActorId()).isEqualTo(7L);
+        assertThat(history.getPreviousValue()).isEqualTo("미설정");
+        assertThat(history.getNewValue()).isEqualTo("정문 옆 계단으로 올라와 주세요");
+    }
+
+    @Test
+    @DisplayName("관리자 검수 조치는 SHOP_CHANGE_HISTORY에 남지 않는다(점주가 한 변경이 아니다)")
+    void adminReviewActions_doNotRecordShopChangeHistory() {
+        shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "부적합 문구", RiderGuideActorType.ADMIN, 3L);
+        shopRiderGuideService.requestRevision(OPEN_SHOP_ID, 3L, "위치 안내로 수정해 주세요.");
+        shopRiderGuideService.deleteVisitGuide(OPEN_SHOP_ID, 3L, "가게 방문과 관련 없는 문구입니다.");
+        shopRiderGuideService.updatePickupLocation(
+            OPEN_SHOP_ID, "서울시 강남구 테헤란로 1", null, null,
+            BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621),
+            RiderGuideActorType.ADMIN, 3L
+        );
+
+        assertThat(shopChangeHistoryRepository.saved()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("점주가 픽업 위치를 등록·해제하면 RIDER_PICKUP_LOCATION 이력이 각각 1건씩 남는다")
+    void pickupLocation_recordsOneShopChangeHistoryPerChange_whenActorIsCeo() {
+        shopRiderGuideService.updatePickupLocation(
+            OPEN_SHOP_ID, "서울시 강남구 테헤란로 1", null, "지하 1층 후문",
+            BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621),
+            RiderGuideActorType.CEO, 7L
+        );
+        shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID, RiderGuideActorType.CEO, 7L);
+
+        List<ShopChangeHistory> histories =
+            shopChangeHistoryRepository.savedOf(ShopChangeType.RIDER_PICKUP_LOCATION);
+        assertThat(histories).hasSize(2);
+        assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
+        assertThat(histories.getFirst().getPreviousValue()).isEqualTo("미설정");
+        assertThat(histories.getFirst().getNewValue()).isEqualTo("서울시 강남구 테헤란로 1 (지하 1층 후문)");
+        assertThat(histories.get(1).getActionType()).isEqualTo(ShopChangeActionType.DELETE);
+        assertThat(histories.get(1).getPreviousValue()).isEqualTo("서울시 강남구 테헤란로 1 (지하 1층 후문)");
+        assertThat(histories.get(1).getNewValue()).isNull();
     }
 }

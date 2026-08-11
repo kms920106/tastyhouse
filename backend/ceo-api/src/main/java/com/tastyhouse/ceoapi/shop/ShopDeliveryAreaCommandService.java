@@ -15,6 +15,7 @@ import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolygonService;
@@ -39,6 +40,10 @@ import com.tastyhouse.ceoapi.shop.response.ShopDeliveryAreaBulkResponse;
  * 있으므로 그 전제가 성립하지 않는다. 검증을 생략하면 아무 점주나 순번을 훑어 <b>남의 가게 배달가능지역을
  * 삭제</b>할 수 있고, 그 결과 피해 가게는 배달 범위를 잃거나(부분 삭제 시 정상 주문이 거절됨) 등록 건수가
  * 0이 되어 주문 접수의 지역 검사 자체가 비활성화된다.
+ *
+ * <p><b>변경이력</b>: {@code DELIVERY_AREA}·{@code DELIVERY_AREA_RADIUS}·{@code DELIVERY_AREA_POLYGON}
+ * 기록은 변경 전 값을 추가 조회 없이 볼 수 있는 도메인 서비스들이 담당하고, 이 서비스는 변경 주체
+ * ({@link ShopChangeActor})만 만들어 전달한다({@code ShopStatusCommandService}와 동일한 형태).
  */
 @Service
 @Transactional
@@ -72,7 +77,8 @@ public class ShopDeliveryAreaCommandService {
 
         ShopId targetShopId = ShopId.of(shopId);
         AdminDongId targetAdminDongId = AdminDongId.of(adminDongId);
-        return shopDeliveryAreaService.addArea(targetShopId, targetAdminDongId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        return shopDeliveryAreaService.addArea(targetShopId, targetAdminDongId, actor);
     }
 
     /**
@@ -83,7 +89,8 @@ public class ShopDeliveryAreaCommandService {
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, deliveryArea.getShopId().value());
 
-        shopDeliveryAreaService.removeArea(deliveryAreaId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryAreaService.removeArea(deliveryAreaId, actor);
     }
 
     /**
@@ -93,7 +100,8 @@ public class ShopDeliveryAreaCommandService {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopId targetShopId = ShopId.of(shopId);
-        return toBulkResponse(shopDeliveryAreaService.addAreas(targetShopId, toAdminDongIds(adminDongIds)));
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        return toBulkResponse(shopDeliveryAreaService.addAreas(targetShopId, toAdminDongIds(adminDongIds), actor));
     }
 
     /**
@@ -103,8 +111,9 @@ public class ShopDeliveryAreaCommandService {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopId targetShopId = ShopId.of(shopId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         ShopDeliveryAreaService.BulkResult result = shopDeliveryAreaService.removeAreas(
-            targetShopId, toAdminDongIds(adminDongIds), this::resolveRegionNames
+            targetShopId, toAdminDongIds(adminDongIds), this::resolveRegionNames, actor
         );
         return ShopDeliveryAreaBulkDeleteResponse.from(
             result.requestedCount() - result.skippedCount(),
@@ -121,12 +130,14 @@ public class ShopDeliveryAreaCommandService {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopId targetShopId = ShopId.of(shopId);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         return toBulkResponse(shopDeliveryAreaRadiusService.applyRadius(
             targetShopId,
             shopLocationOf(shop),
             radiusMeters,
             replace,
-            this::resolveRegionNames
+            this::resolveRegionNames,
+            actor
         ));
     }
 
@@ -138,11 +149,13 @@ public class ShopDeliveryAreaCommandService {
 
         ShopId targetShopId = ShopId.of(shopId);
         GeoPolygon polygon = ShopDeliveryAreaGeoMapper.toPolygon(rings);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         shopDeliveryAreaPolygonService.savePolygon(
             targetShopId,
             polygon,
             shopLocationOf(shop),
-            this::resolveRegionNames
+            this::resolveRegionNames,
+            actor
         );
     }
 
@@ -153,7 +166,8 @@ public class ShopDeliveryAreaCommandService {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopId targetShopId = ShopId.of(shopId);
-        shopDeliveryAreaPolygonService.deletePolygon(targetShopId, this::resolveRegionNames);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopDeliveryAreaPolygonService.deletePolygon(targetShopId, this::resolveRegionNames, actor);
     }
 
     /**

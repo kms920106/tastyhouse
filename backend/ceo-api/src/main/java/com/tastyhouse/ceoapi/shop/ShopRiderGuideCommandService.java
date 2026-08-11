@@ -47,7 +47,9 @@ public class ShopRiderGuideCommandService {
         BigDecimal longitude
     ) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        shopRiderGuideService.updatePickupLocation(shopId, roadAddress, lotAddress, detailAddress, latitude, longitude);
+        shopRiderGuideService.updatePickupLocation(
+            shopId, roadAddress, lotAddress, detailAddress, latitude, longitude, RiderGuideActorType.CEO, ceoId
+        );
     }
 
     /**
@@ -55,6 +57,6 @@ public class ShopRiderGuideCommandService {
      */
     public void clearPickupLocation(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        shopRiderGuideService.clearPickupLocation(shopId);
+        shopRiderGuideService.clearPickupLocation(shopId, RiderGuideActorType.CEO, ceoId);
     }
 }

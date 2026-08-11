@@ -77,6 +77,12 @@ public interface ShopDetailRepository {
      */
     List<ShopClosedDay> findClosedDaysByShopId(Long shopId);
 
+    /**
+     * 정기휴무 단건. 삭제 시 변경이력에 남길 "무엇을 삭제했는지"(가게·휴무 종류)를 얻기 위해 필요하다 —
+     * {@code deleteClosedDayById}는 식별자만 받아 삭제 후에는 그 정보를 복원할 수 없다.
+     */
+    Optional<ShopClosedDay> findClosedDayById(Long id);
+
     ShopClosedDay saveClosedDay(ShopClosedDay closedDay);
 
     void deleteClosedDayById(Long id);
@@ -111,4 +117,13 @@ public interface ShopDetailRepository {
     void deletePhotoCategoryImageById(Long id);
 
     void saveOwnerMessage(ShopOwnerMessageHistory ownerMessageHistory);
+
+    /**
+     * 가게의 가장 최근 사장님 한마디. 변경이력({@code INTRODUCTION})의 <b>변경 전 값</b>을 얻기 위해
+     * 도메인 소비자가 생겨 write 포트에 둔다(화면 조립용 투영 조회는 {@code ShopQueryDao} 쪽에 별도로 있다).
+     *
+     * <p>사장님 한마디는 갱신이 아니라 append-only 이력이므로 "현재 노출 중인 문구"는 곧 최신 행이다.
+     * 아직 등록한 적이 없으면 빈 Optional을 반환한다.
+     */
+    Optional<ShopOwnerMessageHistory> findLatestOwnerMessage(Long shopId);
 }

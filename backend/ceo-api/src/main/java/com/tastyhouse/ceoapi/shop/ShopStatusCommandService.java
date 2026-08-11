@@ -3,6 +3,7 @@ package com.tastyhouse.ceoapi.shop;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -11,6 +12,9 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  *
  * <p>진행 중 이미지 변경요청이 있으면 상태 변경을 차단하는 불변식은 도메인 서비스
  * {@link ShopLifecycleService}가 담당한다.
+ *
+ * <p><b>변경이력</b>: {@code SHOP_VISIBILITY} 기록은 변경 전 노출 상태를 추가 조회 없이 볼 수 있는
+ * {@link ShopLifecycleService}가 담당하고, 이 서비스는 변경 주체({@link ShopChangeActor})만 만들어 전달한다.
  */
 @Service
 @Transactional
@@ -30,6 +34,7 @@ public class ShopStatusCommandService {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         boolean hidden = STATUS_HIDDEN.equals(status);
         ShopId id = ShopId.of(shopId);
-        shopLifecycleService.changeVisibility(id, hidden);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopLifecycleService.changeVisibility(id, hidden, actor);
     }
 }

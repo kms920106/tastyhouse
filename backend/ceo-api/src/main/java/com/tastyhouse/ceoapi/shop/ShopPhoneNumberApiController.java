@@ -57,15 +57,21 @@ public class ShopPhoneNumberApiController {
 
     @Operation(summary = "내 가게 전화번호 삭제", description = "로그인한 점주가 소유한 가게의 전화번호를 삭제합니다.")
     @DeleteMapping("/v1/phone-numbers/{phoneNumberId}")
-    public ResponseEntity<ApiResponse<Void>> deletePhoneNumber(@PathVariable Long phoneNumberId) {
-        shopPhoneNumberCommandService.deletePhoneNumber(phoneNumberId);
+    public ResponseEntity<ApiResponse<Void>> deletePhoneNumber(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long phoneNumberId
+    ) {
+        shopPhoneNumberCommandService.deletePhoneNumber(userDetails.getCeoId(), phoneNumberId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "내 가게 대표 전화번호 지정", description = "로그인한 점주가 소유한 가게의 대표 전화번호를 지정합니다.")
     @PatchMapping("/v1/phone-numbers/{phoneNumberId}/primary")
-    public ResponseEntity<ApiResponse<Void>> designatePrimary(@PathVariable Long phoneNumberId) {
-        shopPhoneNumberCommandService.designatePrimary(phoneNumberId);
+    public ResponseEntity<ApiResponse<Void>> designatePrimary(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long phoneNumberId
+    ) {
+        shopPhoneNumberCommandService.designatePrimary(userDetails.getCeoId(), phoneNumberId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

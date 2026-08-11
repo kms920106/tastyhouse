@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
 import com.tastyhouse.apicommon.file.FileService;
@@ -11,7 +12,8 @@ import com.tastyhouse.apicommon.file.FileService;
 /**
  * 점주용 가게 상표/대표이미지 변경요청 서비스(CQRS command 측).
  *
- * <p>PENDING 중복 요청 차단 불변식은 도메인 서비스 {@link ShopImageApprovalService}가 담당하고,
+ * <p>PENDING 중복 요청 차단 불변식과 변경이력({@code TRADEMARK_CHANGE_REQUEST}·
+ * {@code THUMBNAIL_CHANGE_REQUEST}) 기록은 도메인 서비스 {@link ShopImageApprovalService}가 담당하고,
  * 이미지 규격 검증(형식·용량·해상도·비율)은 presentation의 {@link ShopImageSpecValidator}가
  * 업로드 전에 수행한다(core는 fileId만 받는다).
  */
@@ -41,7 +43,9 @@ public class ShopTrademarkCommandService {
         shopImageSpecValidator.validateTrademark(file);
 
         Long imageFileId = fileService.upload(file);
-        return shopImageApprovalService.requestImageChange(shopId, ShopImageType.TRADEMARK, imageFileId);
+        return shopImageApprovalService.requestImageChange(
+            shopId, ShopImageType.TRADEMARK, imageFileId, ShopChangeActor.ceo(ceoId)
+        );
     }
 
     public Long requestThumbnailChange(Long ceoId, Long shopId, MultipartFile file) {
@@ -49,6 +53,8 @@ public class ShopTrademarkCommandService {
         shopImageSpecValidator.validateContentImage(file, false);
 
         Long imageFileId = fileService.upload(file);
-        return shopImageApprovalService.requestImageChange(shopId, ShopImageType.THUMBNAIL, imageFileId);
+        return shopImageApprovalService.requestImageChange(
+            shopId, ShopImageType.THUMBNAIL, imageFileId, ShopChangeActor.ceo(ceoId)
+        );
     }
 }

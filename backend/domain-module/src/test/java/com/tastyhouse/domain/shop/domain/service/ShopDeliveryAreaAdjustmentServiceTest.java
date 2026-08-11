@@ -12,8 +12,13 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeHistory;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaAdjustmentRequestRepository;
+import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaAdjustmentService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -27,12 +32,41 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ShopDeliveryAreaAdjustmentServiceTest {
 
     private FakeRepository repository;
+    private RecordingShopChangeHistoryRepository historyRepository;
     private ShopDeliveryAreaAdjustmentService service;
 
     @BeforeEach
     void setUp() {
         repository = new FakeRepository();
-        service = new ShopDeliveryAreaAdjustmentService(repository);
+        historyRepository = new RecordingShopChangeHistoryRepository();
+        service = new ShopDeliveryAreaAdjustmentService(
+            repository, new ShopChangeHistoryRecorder(historyRepository)
+        );
+    }
+
+    @Test
+    @DisplayName("접수는 상대 가게명·가맹본부명으로 CREATE 이력 1행을 남긴다")
+    void request_recordsCreateHistory() {
+        request();
+
+        List<ShopChangeHistory> histories =
+            historyRepository.savedOf(ShopChangeType.DELIVERY_AREA_ADJUSTMENT);
+        assertThat(histories).hasSize(1);
+        assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.CREATE);
+        assertThat(histories.getFirst().getPreviousValue()).isNull();
+        assertThat(histories.getFirst().getNewValue()).isEqualTo("맛있는집 강남점 (맛있는집 본사)");
+    }
+
+    @Test
+    @DisplayName("이후 상태 전이는 가게 설정 변경이 아니므로 변경이력을 남기지 않는다")
+    void statusTransitions_recordNoHistory() {
+        Long requestId = request();
+        int afterRequest = historyRepository.saved().size();
+
+        service.startProgress(requestId);
+        service.complete(requestId);
+
+        assertThat(historyRepository.saved()).hasSize(afterRequest);
     }
 
     @Test
@@ -115,7 +149,8 @@ class ShopDeliveryAreaAdjustmentServiceTest {
             "1234567890",
             "맛있는집 본사",
             "역삼1동 전역이 중첩됩니다.",
-            UploadedFileId.of(100L)
+            UploadedFileId.of(100L),
+            ShopChangeActor.ceo(9L)
         );
     }
 

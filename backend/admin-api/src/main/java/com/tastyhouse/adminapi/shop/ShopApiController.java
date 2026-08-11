@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.adminapi.config.security.CustomUserDetails;
 import com.tastyhouse.adminapi.shop.request.ShopAmenityAssignRequest;
 import com.tastyhouse.adminapi.shop.request.ShopAmenityCategoryCreateRequest;
 import com.tastyhouse.adminapi.shop.request.ShopAmenityCategoryUpdateRequest;
@@ -137,27 +139,32 @@ public class ShopApiController {
     @Operation(summary = "운영시간 등록", description = "가게에 운영시간을 등록합니다.")
     @PostMapping("/v1/{id}/business-hours")
     public ResponseEntity<ApiResponse<Long>> createBusinessHour(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        Long businessHourId = shopCommandService.createBusinessHour(id, request.dayType(), request.openTime(), request.closeTime(), request.isClosed(), request.is24Hours());
+        Long businessHourId = shopCommandService.createBusinessHour(userDetails.getPrincipalId(), id, request.dayType(), request.openTime(), request.closeTime(), request.isClosed(), request.is24Hours());
         return ResponseEntity.ok(ApiResponse.success(businessHourId));
     }
 
     @Operation(summary = "운영시간 수정", description = "등록된 운영시간을 수정합니다.")
     @PutMapping("/v1/business-hours/{businessHourId}")
     public ResponseEntity<ApiResponse<Void>> updateBusinessHour(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long businessHourId,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        shopCommandService.updateBusinessHour(businessHourId, request.dayType(), request.openTime(), request.closeTime(), request.isClosed(), request.is24Hours());
+        shopCommandService.updateBusinessHour(userDetails.getPrincipalId(), businessHourId, request.dayType(), request.openTime(), request.closeTime(), request.isClosed(), request.is24Hours());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "운영시간 삭제", description = "등록된 운영시간을 삭제합니다.")
     @DeleteMapping("/v1/business-hours/{businessHourId}")
-    public ResponseEntity<ApiResponse<Void>> deleteBusinessHour(@PathVariable Long businessHourId) {
-        shopCommandService.deleteBusinessHour(businessHourId);
+    public ResponseEntity<ApiResponse<Void>> deleteBusinessHour(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long businessHourId
+    ) {
+        shopCommandService.deleteBusinessHour(userDetails.getPrincipalId(), businessHourId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -171,27 +178,32 @@ public class ShopApiController {
     @Operation(summary = "브레이크타임 등록", description = "가게에 브레이크타임을 등록합니다.")
     @PostMapping("/v1/{id}/break-times")
     public ResponseEntity<ApiResponse<Long>> createBreakTime(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
-        Long breakTimeId = shopCommandService.createBreakTime(id, request.dayType(), request.startTime(), request.endTime());
+        Long breakTimeId = shopCommandService.createBreakTime(userDetails.getPrincipalId(), id, request.dayType(), request.startTime(), request.endTime());
         return ResponseEntity.ok(ApiResponse.success(breakTimeId));
     }
 
     @Operation(summary = "브레이크타임 수정", description = "등록된 브레이크타임을 수정합니다.")
     @PutMapping("/v1/break-times/{breakTimeId}")
     public ResponseEntity<ApiResponse<Void>> updateBreakTime(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long breakTimeId,
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
-        shopCommandService.updateBreakTime(breakTimeId, request.dayType(), request.startTime(), request.endTime());
+        shopCommandService.updateBreakTime(userDetails.getPrincipalId(), breakTimeId, request.dayType(), request.startTime(), request.endTime());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "브레이크타임 삭제", description = "등록된 브레이크타임을 삭제합니다.")
     @DeleteMapping("/v1/break-times/{breakTimeId}")
-    public ResponseEntity<ApiResponse<Void>> deleteBreakTime(@PathVariable Long breakTimeId) {
-        shopCommandService.deleteBreakTime(breakTimeId);
+    public ResponseEntity<ApiResponse<Void>> deleteBreakTime(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long breakTimeId
+    ) {
+        shopCommandService.deleteBreakTime(userDetails.getPrincipalId(), breakTimeId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -205,17 +217,21 @@ public class ShopApiController {
     @Operation(summary = "정기 휴무일 등록", description = "가게에 정기 휴무일을 등록합니다.")
     @PostMapping("/v1/{id}/closed-days")
     public ResponseEntity<ApiResponse<Long>> createClosedDay(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopClosedDaySaveRequest request
     ) {
-        Long closedDayId = shopCommandService.createClosedDay(id, request.closedDayType());
+        Long closedDayId = shopCommandService.createClosedDay(userDetails.getPrincipalId(), id, request.closedDayType());
         return ResponseEntity.ok(ApiResponse.success(closedDayId));
     }
 
     @Operation(summary = "정기 휴무일 삭제", description = "등록된 정기 휴무일을 삭제합니다.")
     @DeleteMapping("/v1/closed-days/{closedDayId}")
-    public ResponseEntity<ApiResponse<Void>> deleteClosedDay(@PathVariable Long closedDayId) {
-        shopCommandService.deleteClosedDay(closedDayId);
+    public ResponseEntity<ApiResponse<Void>> deleteClosedDay(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long closedDayId
+    ) {
+        shopCommandService.deleteClosedDay(userDetails.getPrincipalId(), closedDayId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -285,20 +301,22 @@ public class ShopApiController {
     @Operation(summary = "가게 편의시설 지정", description = "가게에 편의시설을 지정합니다.")
     @PostMapping("/v1/{id}/amenities")
     public ResponseEntity<ApiResponse<Long>> assignAmenity(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopAmenityAssignRequest request
     ) {
-        Long amenityId = shopCommandService.assignAmenity(id, request.amenityCategoryId());
+        Long amenityId = shopCommandService.assignAmenity(userDetails.getPrincipalId(), id, request.amenityCategoryId());
         return ResponseEntity.ok(ApiResponse.success(amenityId));
     }
 
     @Operation(summary = "가게 편의시설 해제", description = "가게에 지정된 편의시설을 해제합니다.")
     @DeleteMapping("/v1/{id}/amenities/{amenityCategoryId}")
     public ResponseEntity<ApiResponse<Void>> unassignAmenity(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long amenityCategoryId
     ) {
-        shopCommandService.unassignAmenity(id, amenityCategoryId);
+        shopCommandService.unassignAmenity(userDetails.getPrincipalId(), id, amenityCategoryId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

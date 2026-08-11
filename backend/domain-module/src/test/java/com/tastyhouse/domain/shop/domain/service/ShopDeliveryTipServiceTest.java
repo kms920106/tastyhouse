@@ -25,6 +25,10 @@ import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DayType;
 import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
 import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeHistory;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipHoliday;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipRegion;
@@ -33,6 +37,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
+import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipRegionSpec;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipScheduleSpec;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipService;
@@ -58,8 +63,13 @@ class ShopDeliveryTipServiceTest {
     private final ShopDeliveryTipRepositoryFake tipRepository = new ShopDeliveryTipRepositoryFake();
     private final ShopDeliveryAreaRepositoryFake areaRepository = new ShopDeliveryAreaRepositoryFake();
     private final AdminDongRepositoryFake adminDongRepository = new AdminDongRepositoryFake();
-    private final ShopDeliveryTipService service =
-        new ShopDeliveryTipService(tipRepository, areaRepository, adminDongRepository);
+    private final RecordingShopChangeHistoryRepository historyRepository =
+        new RecordingShopChangeHistoryRepository();
+    private final ShopDeliveryTipService service = new ShopDeliveryTipService(
+        tipRepository, areaRepository, adminDongRepository, new ShopChangeHistoryRecorder(historyRepository)
+    );
+
+    private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
 
     @Nested
     @DisplayName("replaceTiers")
@@ -68,7 +78,7 @@ class ShopDeliveryTipServiceTest {
         @Test
         @DisplayName("구간이 0개면 SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED로 거부한다")
         void replaceTiers_rejectsEmpty() {
-            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, List.of()))
+            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, List.of(), ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED);
@@ -84,7 +94,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipTierSpec.of(20000, 500)
             );
 
-            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs))
+            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED);
@@ -98,7 +108,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipTierSpec.of(10000, 1500)
             );
 
-            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs))
+            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_ASCENDING);
@@ -112,7 +122,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipTierSpec.of(10000, 2000)
             );
 
-            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs))
+            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING);
@@ -126,7 +136,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipTierSpec.of(10000, 2000)
             );
 
-            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs))
+            assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING);
@@ -141,7 +151,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipTierSpec.of(10000, 1500)
             );
 
-            List<ShopDeliveryTipTier> saved = service.replaceTiers(SHOP_ID, specs);
+            List<ShopDeliveryTipTier> saved = service.replaceTiers(SHOP_ID, specs, ACTOR);
 
             assertThat(saved).extracting(ShopDeliveryTipTier::getMinOrderAmount)
                 .containsExactly(5000, 10000, 15000);
@@ -158,7 +168,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipTierSpec.of(10000, 1500)
             );
 
-            List<ShopDeliveryTipTier> saved = service.replaceTiers(SHOP_ID, specs);
+            List<ShopDeliveryTipTier> saved = service.replaceTiers(SHOP_ID, specs, ACTOR);
 
             assertThat(saved).extracting(ShopDeliveryTipTier::getTierOrder).containsExactly(0, 1, 2);
         }
@@ -169,9 +179,9 @@ class ShopDeliveryTipServiceTest {
             service.replaceTiers(SHOP_ID, List.of(
                 ShopDeliveryTipTierSpec.of(5000, 2000),
                 ShopDeliveryTipTierSpec.of(10000, 1500)
-            ));
+            ), ACTOR);
 
-            service.replaceTiers(SHOP_ID, List.of(ShopDeliveryTipTierSpec.of(3000, 2500)));
+            service.replaceTiers(SHOP_ID, List.of(ShopDeliveryTipTierSpec.of(3000, 2500)), ACTOR);
 
             assertThat(tipRepository.findTiersByShopId(SHOP_ID))
                 .extracting(ShopDeliveryTipTier::getMinOrderAmount)
@@ -187,9 +197,9 @@ class ShopDeliveryTipServiceTest {
         @DisplayName("지역별 팁이 있는 상태에서 거리별 설정은 SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT로 거부한다")
         void changeDistanceTip_rejectsWhenRegionTipExists() {
             registerDeliveryArea(DONG_A);
-            service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)));
+            service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR);
 
-            assertThatThrownBy(() -> service.changeDistanceTip(SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500))
+            assertThatThrownBy(() -> service.changeDistanceTip(SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT);
@@ -199,10 +209,10 @@ class ShopDeliveryTipServiceTest {
         @DisplayName("거리별 설정 상태에서 비어 있지 않은 지역별 교체는 SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT로 거부한다")
         void replaceRegionTips_rejectsWhenDistanceConfigured() {
             registerDeliveryArea(DONG_A);
-            service.changeDistanceTip(SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500);
+            service.changeDistanceTip(SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500, ACTOR);
 
             assertThatThrownBy(() -> service.replaceRegionTips(
-                SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800))
+                SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -213,18 +223,18 @@ class ShopDeliveryTipServiceTest {
         @DisplayName("지역별을 전부 삭제하면 설정이 NONE으로 돌아가 거리별 설정에 성공한다")
         void replaceRegionTips_emptyThenDistanceSucceeds() {
             registerDeliveryArea(DONG_A);
-            service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)));
+            service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR);
             assertThat(tipRepository.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
                 .isEqualTo(DeliveryTipExtraType.REGION);
 
-            service.replaceRegionTips(SHOP_ID, List.of());
+            service.replaceRegionTips(SHOP_ID, List.of(), ACTOR);
 
             assertThat(tipRepository.findRegionTipsByShopId(SHOP_ID)).isEmpty();
             assertThat(tipRepository.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
                 .isEqualTo(DeliveryTipExtraType.NONE);
 
             ShopDeliveryTipSetting setting = service.changeDistanceTip(
-                SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500
+                SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500, ACTOR
             );
 
             assertThat(setting.getExtraTipType()).isEqualTo(DeliveryTipExtraType.DISTANCE);
@@ -237,12 +247,12 @@ class ShopDeliveryTipServiceTest {
         @DisplayName("clearDistanceTip 후에는 지역별 설정에 성공한다")
         void clearDistanceTip_thenRegionSucceeds() {
             registerDeliveryArea(DONG_A);
-            service.changeDistanceTip(SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500);
+            service.changeDistanceTip(SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500, ACTOR);
 
-            service.clearDistanceTip(SHOP_ID);
+            service.clearDistanceTip(SHOP_ID, ACTOR);
 
             assertThatCode(() -> service.replaceRegionTips(
-                SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800))
+                SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR
             )).doesNotThrowAnyException();
             assertThat(tipRepository.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
                 .isEqualTo(DeliveryTipExtraType.REGION);
@@ -261,7 +271,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.replaceRegionTips(SHOP_ID, List.of(
                 ShopDeliveryTipRegionSpec.of(DONG_A, 800),
                 ShopDeliveryTipRegionSpec.of(DONG_A, 1200)
-            )))
+            ), ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_REGION_DUPLICATED);
@@ -271,7 +281,7 @@ class ShopDeliveryTipServiceTest {
         @DisplayName("행정동 마스터에 없으면 ADMIN_DONG_NOT_FOUND로 거부한다")
         void replaceRegionTips_rejectsUnknownAdminDong() {
             assertThatThrownBy(() -> service.replaceRegionTips(
-                SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800))
+                SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -284,7 +294,7 @@ class ShopDeliveryTipServiceTest {
             adminDongRepository.add(DONG_B);
 
             assertThatThrownBy(() -> service.replaceRegionTips(
-                SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_B, 800))
+                SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_B, 800)), ACTOR
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -300,7 +310,7 @@ class ShopDeliveryTipServiceTest {
             List<ShopDeliveryTipRegion> saved = service.replaceRegionTips(SHOP_ID, List.of(
                 ShopDeliveryTipRegionSpec.of(DONG_A, 800),
                 ShopDeliveryTipRegionSpec.of(DONG_B, 1200)
-            ));
+            ), ACTOR);
 
             assertThat(saved).extracting(regionTip -> regionTip.getAdminDongId().value())
                 .containsExactly(DONG_A, DONG_B);
@@ -313,9 +323,9 @@ class ShopDeliveryTipServiceTest {
         @DisplayName("clearRegionTips는 전부 삭제하고 설정을 NONE으로 되돌린다")
         void clearRegionTips_removesAllAndResetsSetting() {
             registerDeliveryArea(DONG_A);
-            service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)));
+            service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR);
 
-            service.clearRegionTips(SHOP_ID);
+            service.clearRegionTips(SHOP_ID, ACTOR);
 
             assertThat(tipRepository.findRegionTipsByShopId(SHOP_ID)).isEmpty();
             assertThat(tipRepository.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
@@ -335,7 +345,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipScheduleSpec.of(DayType.MONDAY, LocalTime.of(20, 0), LocalTime.of(22, 0), 1500)
             );
 
-            assertThatThrownBy(() -> service.replaceScheduleTips(SHOP_ID, specs))
+            assertThatThrownBy(() -> service.replaceScheduleTips(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP);
@@ -349,7 +359,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipScheduleSpec.of(DayType.DAILY, LocalTime.of(1, 0), LocalTime.of(3, 0), 1500)
             );
 
-            assertThatThrownBy(() -> service.replaceScheduleTips(SHOP_ID, specs))
+            assertThatThrownBy(() -> service.replaceScheduleTips(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP);
@@ -363,7 +373,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipScheduleSpec.of(DayType.MONDAY, LocalTime.of(20, 0), LocalTime.of(22, 0), 1500)
             );
 
-            List<ShopDeliveryTipSchedule> saved = service.replaceScheduleTips(SHOP_ID, specs);
+            List<ShopDeliveryTipSchedule> saved = service.replaceScheduleTips(SHOP_ID, specs, ACTOR);
 
             assertThat(saved).hasSize(2);
         }
@@ -376,7 +386,7 @@ class ShopDeliveryTipServiceTest {
                 ShopDeliveryTipScheduleSpec.of(DayType.MONDAY, LocalTime.of(18, 0), LocalTime.of(21, 0), 2500)
             );
 
-            List<ShopDeliveryTipSchedule> saved = service.replaceScheduleTips(SHOP_ID, specs);
+            List<ShopDeliveryTipSchedule> saved = service.replaceScheduleTips(SHOP_ID, specs, ACTOR);
 
             assertThat(saved).extracting(ShopDeliveryTipSchedule::getDayType)
                 .containsExactly(DayType.DAILY, DayType.MONDAY);
@@ -387,9 +397,9 @@ class ShopDeliveryTipServiceTest {
         void replaceScheduleTips_emptyRemovesAll() {
             service.replaceScheduleTips(SHOP_ID, List.of(
                 ShopDeliveryTipScheduleSpec.of(DayType.DAILY, LocalTime.of(18, 0), LocalTime.of(21, 0), 1000)
-            ));
+            ), ACTOR);
 
-            service.replaceScheduleTips(SHOP_ID, List.of());
+            service.replaceScheduleTips(SHOP_ID, List.of(), ACTOR);
 
             assertThat(tipRepository.findScheduleTipsByShopId(SHOP_ID)).isEmpty();
         }
@@ -402,10 +412,10 @@ class ShopDeliveryTipServiceTest {
         @Test
         @DisplayName("0원은 삭제로 해석해 null을 반환하고 저장된 공휴일 팁을 지운다")
         void changeHolidayTip_zeroDeletes() {
-            service.changeHolidayTip(SHOP_ID, 1500);
+            service.changeHolidayTip(SHOP_ID, 1500, ACTOR);
             assertThat(tipRepository.findHolidayTipByShopId(SHOP_ID)).isPresent();
 
-            ShopDeliveryTipHoliday result = service.changeHolidayTip(SHOP_ID, 0);
+            ShopDeliveryTipHoliday result = service.changeHolidayTip(SHOP_ID, 0, ACTOR);
 
             assertThat(result).isNull();
             assertThat(tipRepository.findHolidayTipByShopId(SHOP_ID)).isEmpty();
@@ -415,15 +425,111 @@ class ShopDeliveryTipServiceTest {
         @Test
         @DisplayName("0원이 아니면 upsert한다 — 기존 행이 있으면 금액만 갱신한다")
         void changeHolidayTip_upserts() {
-            ShopDeliveryTipHoliday created = service.changeHolidayTip(SHOP_ID, 1500);
+            ShopDeliveryTipHoliday created = service.changeHolidayTip(SHOP_ID, 1500, ACTOR);
 
             assertThat(created).isNotNull();
             assertThat(created.getTipAmount()).isEqualTo(1500);
 
-            ShopDeliveryTipHoliday updated = service.changeHolidayTip(SHOP_ID, 2500);
+            ShopDeliveryTipHoliday updated = service.changeHolidayTip(SHOP_ID, 2500, ACTOR);
 
             assertThat(updated.getTipAmount()).isEqualTo(2500);
             assertThat(tipRepository.findHolidayTipByShopId(SHOP_ID).orElseThrow().getTipAmount()).isEqualTo(2500);
+        }
+    }
+
+    @Nested
+    @DisplayName("변경이력")
+    class ChangeHistory {
+
+        @Test
+        @DisplayName("구간 replace-all은 행 수와 무관하게 이력 1행만 남기고 변경 전·후 전체를 담는다")
+        void replaceTiers_recordsSingleSnapshotRow() {
+            service.replaceTiers(SHOP_ID, List.of(ShopDeliveryTipTierSpec.of(5000, 2000)), ACTOR);
+
+            service.replaceTiers(SHOP_ID, List.of(
+                ShopDeliveryTipTierSpec.of(5000, 2500),
+                ShopDeliveryTipTierSpec.of(10000, 2000),
+                ShopDeliveryTipTierSpec.of(15000, 1500)
+            ), ACTOR);
+
+            List<ShopChangeHistory> tierHistories =
+                historyRepository.savedOf(ShopChangeType.DELIVERY_TIP_TIER);
+            assertThat(tierHistories).hasSize(2);
+
+            ShopChangeHistory second = tierHistories.get(1);
+            assertThat(second.getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
+            assertThat(second.getPreviousValue()).isEqualTo("5,000원 이상: 2,000원");
+            assertThat(second.getNewValue()).isEqualTo(
+                "5,000원 이상: 2,500원\n10,000원 이상: 2,000원\n15,000원 이상: 1,500원"
+            );
+        }
+
+        @Test
+        @DisplayName("지역별 replace-all은 이력 1행만 남기고 행정동 이름으로 요약한다")
+        void replaceRegionTips_recordsSingleSnapshotRow() {
+            registerDeliveryArea(DONG_A);
+
+            service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR);
+
+            List<ShopChangeHistory> histories =
+                historyRepository.savedOf(ShopChangeType.DELIVERY_TIP_REGION);
+            assertThat(histories).hasSize(1);
+            assertThat(histories.getFirst().getPreviousValue()).isEqualTo("없음");
+            assertThat(histories.getFirst().getNewValue()).isEqualTo("역삼1동: +800원");
+        }
+
+        @Test
+        @DisplayName("시간별 replace-all은 이력 1행만 남기고 요일·시간대·금액으로 요약한다")
+        void replaceScheduleTips_recordsSingleSnapshotRow() {
+            service.replaceScheduleTips(SHOP_ID, List.of(
+                ShopDeliveryTipScheduleSpec.of(DayType.WEEKDAY, LocalTime.of(18, 0), LocalTime.of(20, 0), 1500)
+            ), ACTOR);
+
+            List<ShopChangeHistory> histories =
+                historyRepository.savedOf(ShopChangeType.DELIVERY_TIP_SCHEDULE);
+            assertThat(histories).hasSize(1);
+            assertThat(histories.getFirst().getNewValue()).isEqualTo("평일 18:00~20:00: +1,500원");
+        }
+
+        @Test
+        @DisplayName("거리별 설정은 기본거리·단위·금액을 담고, 해제는 DELETE로 남긴다")
+        void distanceTip_recordsUpdateThenDelete() {
+            service.changeDistanceTip(SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500, ACTOR);
+            service.clearDistanceTip(SHOP_ID, ACTOR);
+
+            List<ShopChangeHistory> histories =
+                historyRepository.savedOf(ShopChangeType.DELIVERY_TIP_DISTANCE);
+            assertThat(histories).hasSize(2);
+            assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
+            assertThat(histories.getFirst().getPreviousValue()).isEqualTo("미설정");
+            assertThat(histories.getFirst().getNewValue()).isEqualTo("1.5km까지: 500m당 500원");
+            assertThat(histories.get(1).getActionType()).isEqualTo(ShopChangeActionType.DELETE);
+            assertThat(histories.get(1).getPreviousValue()).isEqualTo("1.5km까지: 500m당 500원");
+            assertThat(histories.get(1).getNewValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("설정 헤더가 없는 가게의 거리별 해제는 이력을 남기지 않는다")
+        void clearDistanceTip_withoutSetting_recordsNothing() {
+            service.clearDistanceTip(SHOP_ID, ACTOR);
+
+            assertThat(historyRepository.savedOf(ShopChangeType.DELIVERY_TIP_DISTANCE)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("공휴일 팁은 0원(삭제)도 UPDATE 한 행으로 남긴다 — 같은 저장 버튼이 두 종류로 갈리지 않는다")
+        void changeHolidayTip_recordsUpdateEvenWhenCleared() {
+            service.changeHolidayTip(SHOP_ID, 2000, ACTOR);
+            service.changeHolidayTip(SHOP_ID, 0, ACTOR);
+
+            List<ShopChangeHistory> histories =
+                historyRepository.savedOf(ShopChangeType.DELIVERY_TIP_HOLIDAY);
+            assertThat(histories).hasSize(2);
+            assertThat(histories).extracting(ShopChangeHistory::getActionType)
+                .containsExactly(ShopChangeActionType.UPDATE, ShopChangeActionType.UPDATE);
+            assertThat(histories.get(0).getNewValue()).isEqualTo("공휴일: +2,000원");
+            assertThat(histories.get(1).getPreviousValue()).isEqualTo("공휴일: +2,000원");
+            assertThat(histories.get(1).getNewValue()).isEqualTo("미설정");
         }
     }
 

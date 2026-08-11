@@ -7,6 +7,9 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBookmark;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
@@ -32,6 +35,11 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 소비 모듈의 command 서비스가 선언한다.
  *
  * <p>도메인 모델은 순수 POJO라 더티 체킹이 없으므로 변경 후 명시적으로 {@code save}를 호출한다.
+ *
+ * <p><b>변경이력 기록도 이 서비스가 소유한다</b>(운영 분류 {@code HOLIDAY_CLOSURE}·
+ * {@code SHOP_VISIBILITY}). 이미 {@code Shop}을 로드해 둔 상태라 추가 조회 없이 변경 전 값을 얻을 수 있고,
+ * 소비 모듈의 {@code CommandService}는 CQRS 교차 주입 금지로 변경 전 값을 볼 수 없다. 변경 주체
+ * ({@link ShopChangeActor})는 도메인이 인증을 모르므로 마지막 파라미터로 명시 전달받는다.
  */
 public class ShopLifecycleService {
 
@@ -43,6 +51,7 @@ public class ShopLifecycleService {
     private final StationRepository stationRepository;
     private final ShopImageApprovalService shopImageApprovalService;
     private final ProhibitedWordValidator prohibitedWordValidator;
+    private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopLifecycleService(
         ShopRepository shopRepository,
@@ -50,7 +59,8 @@ public class ShopLifecycleService {
         ShopBookmarkRepository shopBookmarkRepository,
         StationRepository stationRepository,
         ShopImageApprovalService shopImageApprovalService,
-        ProhibitedWordValidator prohibitedWordValidator
+        ProhibitedWordValidator prohibitedWordValidator,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         this.shopRepository = shopRepository;
         this.shopDetailRepository = shopDetailRepository;
@@ -58,6 +68,7 @@ public class ShopLifecycleService {
         this.stationRepository = stationRepository;
         this.shopImageApprovalService = shopImageApprovalService;
         this.prohibitedWordValidator = prohibitedWordValidator;
+        this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
     /**
@@ -127,39 +138,106 @@ public class ShopLifecycleService {
     /**
      * 공휴일 휴무 여부를 설정한다.
      */
-    public void updateHolidayClosure(ShopId shopId, boolean closedOnPublicHolidays) {
+    public void updateHolidayClosure(ShopId shopId, boolean closedOnPublicHolidays, ShopChangeActor actor) {
         Shop shop = loadShop(shopId);
+        String previousValue = describeHolidayClosure(shop.isClosedOnPublicHolidays());
+
         shop.updateHolidayClosure(closedOnPublicHolidays);
         shopRepository.save(shop);
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.HOLIDAY_CLOSURE,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeHolidayClosure(shop.isClosedOnPublicHolidays())
+        );
     }
 
     /**
      * 가게 노출 상태(노출정지)를 변경한다. 진행 중인 이미지 변경 승인 요청이 있으면 상태 변경을 차단한다.
      */
-    public void changeVisibility(ShopId shopId, boolean hidden) {
+    public void changeVisibility(ShopId shopId, boolean hidden, ShopChangeActor actor) {
         if (shopImageApprovalService.existsPendingByShopId(shopId.value())) {
             throw new BusinessException(ErrorCode.SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST);
         }
         Shop shop = loadShop(shopId);
+        String previousValue = describeVisibility(shop.isHidden());
+
         if (hidden) {
             shop.hide();
         } else {
             shop.show();
         }
         shopRepository.save(shop);
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.SHOP_VISIBILITY,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeVisibility(shop.isHidden())
+        );
+    }
+
+    /**
+     * 공휴일 휴무 설정을 한 줄로 요약한다(예: {@code "공휴일 휴무"} / {@code "공휴일 정상영업"}).
+     */
+    private String describeHolidayClosure(boolean closedOnPublicHolidays) {
+        return closedOnPublicHolidays ? "공휴일 휴무" : "공휴일 정상영업";
+    }
+
+    /**
+     * 가게 노출 상태를 한 줄로 요약한다(예: {@code "노출정지"} / {@code "노출중"}).
+     */
+    private String describeVisibility(boolean hidden) {
+        return hidden ? "노출정지" : "노출중";
     }
 
     /**
      * 사장님 한마디(가게소개)를 새로 등록한다. 최대 {@value #SHOP_INTRODUCTION_MAX_LENGTH}자 제한과
      * 금칙어 검수를 통과해야 한다.
+     *
+     * <p>변경이력({@code INTRODUCTION})을 함께 남긴다. 사장님 한마디는 갱신이 아니라 append-only 이력이라
+     * "현재 노출 문구"는 최신 행이므로, 저장 전에 최신 행을 읽어 변경 전 값으로 삼는다. 화면상으로는
+     * 항상 수정이므로 처음 등록이든 재등록이든 {@code UPDATE}로 기록한다 — 점주에게는 "한마디를 바꿨다"
+     * 한 가지 동작이고, 등록/수정 구분은 이력 목록에서 의미가 없다.
+     *
+     * <p>문구 전문을 그대로 담는다(자르지 않는다). {@code previous_value}/{@code new_value}는 TEXT
+     * 컬럼이고, 무엇이 어떻게 달라졌는지 보려면 500자 원문이 필요하다.
      */
-    public void createOwnerMessage(Long shopId, String message) {
+    public void createOwnerMessage(Long shopId, String message, ShopChangeActor actor) {
         if (message != null && message.length() > SHOP_INTRODUCTION_MAX_LENGTH) {
             throw new BusinessException(ErrorCode.SHOP_INTRODUCTION_TOO_LONG);
         }
         prohibitedWordValidator.validate(message);
+
+        String previousValue = describeIntroduction(
+            shopDetailRepository.findLatestOwnerMessage(shopId)
+                .map(ShopOwnerMessageHistory::getMessage)
+                .orElse(null)
+        );
+
         ShopOwnerMessageHistory ownerMessageHistory = ShopOwnerMessageHistory.of(ShopId.of(shopId), message);
         shopDetailRepository.saveOwnerMessage(ownerMessageHistory);
+
+        shopChangeHistoryRecorder.record(
+            ShopId.of(shopId),
+            ShopChangeType.INTRODUCTION,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeIntroduction(message)
+        );
+    }
+
+    /**
+     * 사장님 한마디를 이력 요약으로 만든다 — 원문 그대로이며, 비어 있으면 "미설정"으로 적는다.
+     */
+    private String describeIntroduction(String message) {
+        return message == null || message.isBlank() ? ShopChangeValueFormatter.unset() : message;
     }
 
     /**

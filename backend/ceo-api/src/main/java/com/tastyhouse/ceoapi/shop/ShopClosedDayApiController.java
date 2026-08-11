@@ -68,8 +68,11 @@ public class ShopClosedDayApiController {
 
     @Operation(summary = "내 가게 정기 휴무 삭제", description = "로그인한 점주가 소유한 가게의 정기 휴무를 삭제합니다.")
     @DeleteMapping("/v1/closed-days/{closedDayId}")
-    public ResponseEntity<ApiResponse<Void>> deleteClosedDay(@PathVariable Long closedDayId) {
-        shopClosedDayCommandService.deleteClosedDay(closedDayId);
+    public ResponseEntity<ApiResponse<Void>> deleteClosedDay(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long closedDayId
+    ) {
+        shopClosedDayCommandService.deleteClosedDay(userDetails.getCeoId(), closedDayId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,8 +89,11 @@ public class ShopClosedDayApiController {
 
     @Operation(summary = "내 가게 임시 휴무 삭제", description = "로그인한 점주가 소유한 가게의 임시 휴무를 삭제합니다.")
     @DeleteMapping("/v1/temporary-closures/{temporaryClosureId}")
-    public ResponseEntity<ApiResponse<Void>> deleteTemporaryClosure(@PathVariable Long temporaryClosureId) {
-        shopClosedDayCommandService.deleteTemporaryClosure(temporaryClosureId);
+    public ResponseEntity<ApiResponse<Void>> deleteTemporaryClosure(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long temporaryClosureId
+    ) {
+        shopClosedDayCommandService.deleteTemporaryClosure(userDetails.getCeoId(), temporaryClosureId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

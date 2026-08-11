@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shop.model.RiderGuideActorType;
 import com.tastyhouse.domain.shop.service.ShopRiderGuideService;
 
 /**
@@ -42,15 +43,21 @@ public class ShopRiderGuideCommandService {
 
     /**
      * 라이더 제보를 반영해 픽업 위치를 교정한다.
+     *
+     * <p>관리자 교정은 점주가 한 변경이 아니므로 가게 변경이력({@code RIDER_PICKUP_LOCATION})에 남지
+     * 않는다 — 액터를 넘기는 것은 도메인 서비스가 그 판정을 하기 위함이다.
      */
     public void updatePickupLocation(
         Long shopId,
+        Long adminId,
         String roadAddress,
         String lotAddress,
         String detailAddress,
         BigDecimal latitude,
         BigDecimal longitude
     ) {
-        shopRiderGuideService.updatePickupLocation(shopId, roadAddress, lotAddress, detailAddress, latitude, longitude);
+        shopRiderGuideService.updatePickupLocation(
+            shopId, roadAddress, lotAddress, detailAddress, latitude, longitude, RiderGuideActorType.ADMIN, adminId
+        );
     }
 }

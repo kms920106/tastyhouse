@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shop.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,6 +18,9 @@ import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaPolygonRepository;
@@ -36,6 +40,11 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * (미설정=전 지역 허용) 배달 불가 지역 주문이 그대로 접수된다. 후보가 7km 내로 국한돼 수십~수백 건이라
  * 트랜잭션 안에서 처리해도 밀리초 단위다.
  *
+ * <p><b>변경이력({@code DELIVERY_AREA_POLYGON})도 이 서비스가 남긴다.</b> 도형은 전체 교체이므로 저장·삭제
+ * 각 1회당 1행이며, 변경 전 도형은 덮어쓰기 전에 읽어야만 얻을 수 있다. 파생된 행정동 행 변화를
+ * {@code DELIVERY_AREA}로 따로 남기지 않는 이유는 점주가 한 조작이 "도형 저장" 하나이기 때문이다
+ * ({@link ShopDeliveryAreaRadiusService}와 같은 판단).
+ *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록과 트랜잭션 경계는 바깥 계층이
  * 담당한다. 점주 소유권 검증은 ceo-api의 {@code ShopOwnershipValidator} 책임이라 여기서 다루지 않는다.
  */
@@ -53,17 +62,20 @@ public class ShopDeliveryAreaPolygonService {
     private final ShopDeliveryAreaRepository shopDeliveryAreaRepository;
     private final AdminDongRepository adminDongRepository;
     private final ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup;
+    private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopDeliveryAreaPolygonService(
         ShopDeliveryAreaPolygonRepository shopDeliveryAreaPolygonRepository,
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
         AdminDongRepository adminDongRepository,
-        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup
+        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         this.shopDeliveryAreaPolygonRepository = shopDeliveryAreaPolygonRepository;
         this.shopDeliveryAreaRepository = shopDeliveryAreaRepository;
         this.adminDongRepository = adminDongRepository;
         this.shopDeliveryTipRegionLookup = shopDeliveryTipRegionLookup;
+        this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
     /**
@@ -81,7 +93,8 @@ public class ShopDeliveryAreaPolygonService {
         ShopId shopId,
         GeoPolygon polygon,
         GeoPoint shopLocation,
-        Function<Collection<AdminDongId>, List<String>> adminDongNamesById
+        Function<Collection<AdminDongId>, List<String>> adminDongNamesById,
+        ShopChangeActor actor
     ) {
         ShopDeliveryAreaPolicy.validateShape(polygon);
         ShopDeliveryAreaPolicy.validateWithinMaxRadius(polygon, shopLocation);
@@ -109,6 +122,11 @@ public class ShopDeliveryAreaPolygonService {
             .collect(Collectors.toCollection(LinkedHashSet::new));
         validateNotReferencedByRegionTip(shopId, closing, adminDongNamesById);
 
+        // 이력의 변경 전 값은 도형을 덮어쓰기 전에만 얻을 수 있다.
+        String previousValue = describePolygon(
+            shopDeliveryAreaPolygonRepository.findByShopId(shopId).orElse(null)
+        );
+
         shopDeliveryAreaRepository.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
         if (!toInsert.isEmpty()) {
             shopDeliveryAreaRepository.saveAll(
@@ -119,6 +137,15 @@ public class ShopDeliveryAreaPolygonService {
         }
 
         upsertPolygon(shopId, polygon, shopLocation);
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.DELIVERY_AREA_POLYGON,
+            ShopChangeActionType.UPDATE,
+            actor,
+            previousValue,
+            describeShape(polygon, projected.size())
+        );
     }
 
     /**
@@ -130,13 +157,65 @@ public class ShopDeliveryAreaPolygonService {
      */
     public void deletePolygon(
         ShopId shopId,
-        Function<Collection<AdminDongId>, List<String>> adminDongNamesById
+        Function<Collection<AdminDongId>, List<String>> adminDongNamesById,
+        ShopChangeActor actor
     ) {
         Set<AdminDongId> polygonDongIds = adminDongIdsOf(DeliveryAreaSource.POLYGON, shopId);
         validateNotReferencedByRegionTip(shopId, polygonDongIds, adminDongNamesById);
 
+        ShopDeliveryAreaPolygon stored = shopDeliveryAreaPolygonRepository.findByShopId(shopId).orElse(null);
+        if (stored == null) {
+            // 저장된 도형이 없으면 지울 것도 없다 — 파생 행도 함께 없으므로 이력을 남기지 않는다.
+            // 남기면 일어나지 않은 변경이 이력에 생긴다({@code clearDistanceTip}과 같은 판단).
+            shopDeliveryAreaRepository.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
+            return;
+        }
+        String previousValue = describePolygon(stored);
+
         shopDeliveryAreaRepository.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
         shopDeliveryAreaPolygonRepository.deleteByShopId(shopId);
+
+        shopChangeHistoryRecorder.record(
+            shopId,
+            ShopChangeType.DELIVERY_AREA_POLYGON,
+            ShopChangeActionType.DELETE,
+            actor,
+            previousValue,
+            null
+        );
+    }
+
+    /**
+     * 저장된 도형을 한 줄로 요약한다(예: {@code "도형 4개, 꼭짓점 27개, 최원거리 3.4km"}). 없으면 "미설정".
+     *
+     * <p>정점 좌표를 나열하지 않는 이유는 이력이 읽히는 목적이 "언제 무엇을 바꿨는가"이지 도형 복원이
+     * 아니기 때문이다 — 수천 좌표를 담으면 한 행이 화면을 다 덮고, 사람이 두 도형을 비교할 수도 없다.
+     * 링·정점 수와 최원거리는 애그리거트가 이미 비정규화해 들고 있는 값이라 추가 계산도 없다.
+     */
+    private String describePolygon(ShopDeliveryAreaPolygon storedPolygon) {
+        if (storedPolygon == null) {
+            return ShopChangeValueFormatter.unset();
+        }
+        return "도형 " + storedPolygon.getRingCount() + "개, 꼭짓점 " + storedPolygon.getVertexCount()
+            + "개, 최원거리 " + ShopChangeValueFormatter.distanceKm(toKilometers(storedPolygon.getMaxRadiusMeters()));
+    }
+
+    /**
+     * 이번에 저장하는 도형을 한 줄로 요약한다(예: {@code "도형 4개, 꼭짓점 27개, 행정동 12곳"}).
+     *
+     * <p>변경 전 요약({@link #describePolygon})과 항목이 다른 것은 의도된 것이다 — 저장 시점에는 환산 결과
+     * (열리는 행정동 수)가 그 저장의 핵심 결과이고, 저장된 도형에는 그 값이 남지 않아 나중에 되살릴 수 없다.
+     */
+    private String describeShape(GeoPolygon polygon, int projectedDongCount) {
+        return "도형 " + polygon.ringCount() + "개, 꼭짓점 " + polygon.vertexCount()
+            + "개, 행정동 " + projectedDongCount + "곳";
+    }
+
+    /**
+     * 미터를 km로 환산한다. 소수점 아래 표기 정리는 {@code distanceKm}이 담당한다(3400m → 3.4km).
+     */
+    private BigDecimal toKilometers(int meters) {
+        return BigDecimal.valueOf(meters).divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP);
     }
 
     /**

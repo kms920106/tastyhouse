@@ -13,11 +13,11 @@ import com.tastyhouse.domain.shop.model.DayType;
 import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shop.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.domain.shop.model.ShopAmenity;
 import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
 import com.tastyhouse.domain.shop.model.ShopBannerImage;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChoice;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.model.ShopFoodType;
@@ -30,8 +30,8 @@ import com.tastyhouse.domain.shop.repository.ShopChoiceRepository;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.repository.TagRepository;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
+import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
-import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopFoodTypeCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
@@ -55,6 +55,7 @@ public class ShopCommandService {
 
     private final ShopLifecycleService shopLifecycleService;
     private final ShopBusinessHourService shopBusinessHourService;
+    private final ShopConvenienceInfoService shopConvenienceInfoService;
     private final ShopDetailRepository shopDetailRepository;
     private final ShopChoiceRepository shopChoiceRepository;
     private final TagRepository tagRepository;
@@ -62,12 +63,14 @@ public class ShopCommandService {
     public ShopCommandService(
         ShopLifecycleService shopLifecycleService,
         ShopBusinessHourService shopBusinessHourService,
+        ShopConvenienceInfoService shopConvenienceInfoService,
         ShopDetailRepository shopDetailRepository,
         ShopChoiceRepository shopChoiceRepository,
         TagRepository tagRepository
     ) {
         this.shopLifecycleService = shopLifecycleService;
         this.shopBusinessHourService = shopBusinessHourService;
+        this.shopConvenienceInfoService = shopConvenienceInfoService;
         this.shopDetailRepository = shopDetailRepository;
         this.shopChoiceRepository = shopChoiceRepository;
         this.tagRepository = tagRepository;
@@ -113,6 +116,7 @@ public class ShopCommandService {
     }
 
     public Long createBusinessHour(
+        Long adminId,
         Long id,
         String dayType,
         LocalTime openTime,
@@ -120,13 +124,15 @@ public class ShopCommandService {
         Boolean isClosed,
         Boolean is24Hours
     ) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
         ShopBusinessHour businessHour = shopBusinessHourService.createBusinessHour(
-            id, DayType.from(dayType), openTime, closeTime, isClosed, is24Hours
+            id, DayType.from(dayType), openTime, closeTime, isClosed, is24Hours, actor
         );
         return businessHour.getId();
     }
 
     public void updateBusinessHour(
+        Long adminId,
         Long businessHourId,
         String dayType,
         LocalTime openTime,
@@ -134,37 +140,44 @@ public class ShopCommandService {
         Boolean isClosed,
         Boolean is24Hours
     ) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
         shopBusinessHourService.updateBusinessHour(
-            businessHourId, DayType.from(dayType), openTime, closeTime, isClosed, is24Hours
+            businessHourId, DayType.from(dayType), openTime, closeTime, isClosed, is24Hours, actor
         );
     }
 
-    public void deleteBusinessHour(Long businessHourId) {
-        shopBusinessHourService.deleteBusinessHour(businessHourId);
+    public void deleteBusinessHour(Long adminId, Long businessHourId) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
+        shopBusinessHourService.deleteBusinessHour(businessHourId, actor);
     }
 
-    public Long createBreakTime(Long id, String dayType, LocalTime startTime, LocalTime endTime) {
+    public Long createBreakTime(Long adminId, Long id, String dayType, LocalTime startTime, LocalTime endTime) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
         ShopBreakTime breakTime = shopBusinessHourService.createBreakTime(
-            id, DayType.from(dayType), startTime, endTime
+            id, DayType.from(dayType), startTime, endTime, actor
         );
         return breakTime.getId();
     }
 
-    public void updateBreakTime(Long breakTimeId, String dayType, LocalTime startTime, LocalTime endTime) {
-        shopBusinessHourService.updateBreakTime(breakTimeId, DayType.from(dayType), startTime, endTime);
+    public void updateBreakTime(Long adminId, Long breakTimeId, String dayType, LocalTime startTime, LocalTime endTime) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
+        shopBusinessHourService.updateBreakTime(breakTimeId, DayType.from(dayType), startTime, endTime, actor);
     }
 
-    public void deleteBreakTime(Long breakTimeId) {
-        shopBusinessHourService.deleteBreakTime(breakTimeId);
+    public void deleteBreakTime(Long adminId, Long breakTimeId) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
+        shopBusinessHourService.deleteBreakTime(breakTimeId, actor);
     }
 
-    public Long createClosedDay(Long id, String closedDayType) {
-        ShopClosedDay closedDay = shopBusinessHourService.createClosedDay(id, ClosedDayType.from(closedDayType));
+    public Long createClosedDay(Long adminId, Long id, String closedDayType) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
+        ShopClosedDay closedDay = shopBusinessHourService.createClosedDay(id, ClosedDayType.from(closedDayType), actor);
         return closedDay.getId();
     }
 
-    public void deleteClosedDay(Long closedDayId) {
-        shopBusinessHourService.deleteClosedDay(closedDayId);
+    public void deleteClosedDay(Long adminId, Long closedDayId) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
+        shopBusinessHourService.deleteClosedDay(closedDayId, actor);
     }
 
     public Long createAmenityCategory(
@@ -245,15 +258,21 @@ public class ShopCommandService {
         shopDetailRepository.saveFoodTypeCategory(foodTypeCategory);
     }
 
-    public Long assignAmenity(Long id, Long amenityCategoryId) {
-        shopDetailRepository.findAmenityCategoryById(amenityCategoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
-        ShopAmenity amenity = shopDetailRepository.saveAmenity(ShopAmenity.of(ShopId.of(id), ShopAmenityCategoryId.of(amenityCategoryId)));
-        return amenity.getId();
+    /**
+     * 가게에 편의시설을 배정한다. 카테고리 존재 검증과 변경이력({@code AMENITY}) 기록은 도메인 서비스가
+     * 담당한다.
+     */
+    public Long assignAmenity(Long adminId, Long id, Long amenityCategoryId) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
+        return shopConvenienceInfoService.assignAmenity(id, amenityCategoryId, actor);
     }
 
-    public void unassignAmenity(Long id, Long amenityCategoryId) {
-        shopDetailRepository.deleteAmenityByShopIdAndCategoryId(id, amenityCategoryId);
+    /**
+     * 가게에 배정된 편의시설을 해제한다. 변경이력({@code AMENITY})은 도메인 서비스가 남긴다.
+     */
+    public void unassignAmenity(Long adminId, Long id, Long amenityCategoryId) {
+        ShopChangeActor actor = ShopChangeActor.admin(adminId);
+        shopConvenienceInfoService.unassignAmenity(id, amenityCategoryId, actor);
     }
 
     public Long assignFoodType(Long id, Long foodTypeCategoryId) {

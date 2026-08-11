@@ -6,10 +6,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shop.model.ClosedDayType;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.repository.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
+import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
+import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -23,8 +28,13 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * {@link ShopLifecycleService}가 담당한다. 임시휴무 누적 30일 제한은 이 서비스가 write 포트로
  * 기존 휴무를 읽어 검증한다(단일 애그리거트 연산이라 도메인 서비스로 하강하지 않음).
  *
+ * <p><b>변경이력</b>: 정기휴무({@code CLOSED_DAY})·공휴일 휴무({@code HOLIDAY_CLOSURE})는 각각의 도메인
+ * 서비스가 기록한다. 반면 <b>임시휴무({@code TEMPORARY_CLOSURE})는 대응 도메인 서비스가 없어</b> 이
+ * 서비스가 write 포트로 직접 쓰므로, 이력도 여기서 {@link ShopChangeHistoryRecorder}로 직접 남긴다.
+ *
  * <p><b>소유권 검증 한계</b>: 정기휴무·임시휴무 삭제는 경로에 shopId가 없고 소속 역조회 메서드도
- * 없어 ceo-api 계층에서는 소유권을 검증하지 않는다(기존 동작 유지).
+ * 없어 ceo-api 계층에서는 소유권을 검증하지 않는다(기존 동작 유지). 다만 이력의 변경 주체를 남기기 위해
+ * {@code ceoId}는 전달받는다.
  */
 @Service
 @Transactional
@@ -38,34 +48,42 @@ public class ShopClosedDayCommandService {
     private final ShopBusinessHourService shopBusinessHourService;
     private final ShopLifecycleService shopLifecycleService;
     private final ShopTemporaryClosureRepository shopTemporaryClosureRepository;
+    private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopClosedDayCommandService(
         ShopBusinessHourService shopBusinessHourService,
         ShopLifecycleService shopLifecycleService,
         ShopTemporaryClosureRepository shopTemporaryClosureRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopBusinessHourService = shopBusinessHourService;
         this.shopLifecycleService = shopLifecycleService;
         this.shopTemporaryClosureRepository = shopTemporaryClosureRepository;
+        this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     public void updateHolidayClosure(Long ceoId, Long shopId, boolean closedOnPublicHolidays) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         ShopId targetShopId = ShopId.of(shopId);
-        shopLifecycleService.updateHolidayClosure(targetShopId, closedOnPublicHolidays);
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopLifecycleService.updateHolidayClosure(targetShopId, closedOnPublicHolidays, actor);
     }
 
     public Long createClosedDay(Long ceoId, Long shopId, String closedDayType) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        ShopClosedDay closedDay = shopBusinessHourService.createClosedDay(shopId, ClosedDayType.from(closedDayType));
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        ShopClosedDay closedDay = shopBusinessHourService.createClosedDay(
+            shopId, ClosedDayType.from(closedDayType), actor
+        );
         return closedDay.getId();
     }
 
-    public void deleteClosedDay(Long closedDayId) {
-        shopBusinessHourService.deleteClosedDay(closedDayId);
+    public void deleteClosedDay(Long ceoId, Long closedDayId) {
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopBusinessHourService.deleteClosedDay(closedDayId, actor);
     }
 
     /**
@@ -75,7 +93,8 @@ public class ShopClosedDayCommandService {
     public Long createTemporaryClosure(Long ceoId, Long shopId, LocalDate startDate, LocalDate endDate) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ShopTemporaryClosure temporaryClosure = ShopTemporaryClosure.of(ShopId.of(shopId), startDate, endDate);
+        ShopId targetShopId = ShopId.of(shopId);
+        ShopTemporaryClosure temporaryClosure = ShopTemporaryClosure.of(targetShopId, startDate, endDate);
 
         long accumulatedDays = shopTemporaryClosureRepository.findByShopId(shopId).stream()
             .mapToLong(ShopTemporaryClosure::days)
@@ -84,12 +103,40 @@ public class ShopClosedDayCommandService {
             throw new BusinessException(ErrorCode.SHOP_TEMPORARY_CLOSURE_LIMIT_EXCEEDED);
         }
 
-        return shopTemporaryClosureRepository.save(temporaryClosure).getId();
+        ShopTemporaryClosure saved = shopTemporaryClosureRepository.save(temporaryClosure);
+
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopChangeHistoryRecorder.record(
+            saved.getShopId(),
+            ShopChangeType.TEMPORARY_CLOSURE,
+            ShopChangeActionType.CREATE,
+            actor,
+            null,
+            describeTemporaryClosure(saved)
+        );
+        return saved.getId();
     }
 
-    public void deleteTemporaryClosure(Long temporaryClosureId) {
-        shopTemporaryClosureRepository.findById(temporaryClosureId)
+    public void deleteTemporaryClosure(Long ceoId, Long temporaryClosureId) {
+        ShopTemporaryClosure temporaryClosure = shopTemporaryClosureRepository.findById(temporaryClosureId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_TEMPORARY_CLOSURE_NOT_FOUND));
         shopTemporaryClosureRepository.deleteById(temporaryClosureId);
+
+        ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
+        shopChangeHistoryRecorder.record(
+            temporaryClosure.getShopId(),
+            ShopChangeType.TEMPORARY_CLOSURE,
+            ShopChangeActionType.DELETE,
+            actor,
+            describeTemporaryClosure(temporaryClosure),
+            null
+        );
+    }
+
+    /**
+     * 임시휴무 1행을 한 줄로 요약한다(예: {@code "2026-08-11~2026-08-15"}).
+     */
+    private String describeTemporaryClosure(ShopTemporaryClosure temporaryClosure) {
+        return ShopChangeValueFormatter.dateRange(temporaryClosure.getStartDate(), temporaryClosure.getEndDate());
     }
 }

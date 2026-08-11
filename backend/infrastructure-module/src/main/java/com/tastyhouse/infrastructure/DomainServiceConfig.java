@@ -72,6 +72,7 @@ import com.tastyhouse.domain.search.service.PopularKeywordRefreshService;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
+import com.tastyhouse.domain.shop.repository.ShopChangeHistoryRepository;
 import com.tastyhouse.domain.shop.repository.ShopConvenienceInfoRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaAdjustmentRequestRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaPolygonRepository;
@@ -91,6 +92,7 @@ import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
+import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaAdjustmentService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolygonService;
@@ -569,9 +571,14 @@ public class DomainServiceConfig {
     @Bean
     public ShopImageApprovalService shopImageApprovalService(
         ShopImageChangeRequestRepository shopImageChangeRequestRepository,
-        ShopRepository shopRepository
+        ShopRepository shopRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        return new ShopImageApprovalService(shopImageChangeRequestRepository, shopRepository);
+        return new ShopImageApprovalService(
+            shopImageChangeRequestRepository,
+            shopRepository,
+            shopChangeHistoryRecorder
+        );
     }
 
     /**
@@ -580,17 +587,25 @@ public class DomainServiceConfig {
     @Bean
     public ShopPhoneNumberRegistryService shopPhoneNumberRegistryService(
         ShopPhoneNumberRepository shopPhoneNumberRepository,
-        ShopRepository shopRepository
+        ShopRepository shopRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        return new ShopPhoneNumberRegistryService(shopPhoneNumberRepository, shopRepository);
+        return new ShopPhoneNumberRegistryService(
+            shopPhoneNumberRepository,
+            shopRepository,
+            shopChangeHistoryRecorder
+        );
     }
 
     /**
      * 가게 영업시간·휴게시간·정기휴무 규격 불변식 — 휴게시간이 같은 요일 영업시간 범위 안인지 등을 검증한다.
      */
     @Bean
-    public ShopBusinessHourService shopBusinessHourService(ShopDetailRepository shopDetailRepository) {
-        return new ShopBusinessHourService(shopDetailRepository);
+    public ShopBusinessHourService shopBusinessHourService(
+        ShopDetailRepository shopDetailRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
+    ) {
+        return new ShopBusinessHourService(shopDetailRepository, shopChangeHistoryRecorder);
     }
 
     /**
@@ -601,9 +616,15 @@ public class DomainServiceConfig {
     public ShopDeliveryTipService shopDeliveryTipService(
         ShopDeliveryTipRepository shopDeliveryTipRepository,
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository
+        AdminDongRepository adminDongRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        return new ShopDeliveryTipService(shopDeliveryTipRepository, shopDeliveryAreaRepository, adminDongRepository);
+        return new ShopDeliveryTipService(
+            shopDeliveryTipRepository,
+            shopDeliveryAreaRepository,
+            adminDongRepository,
+            shopChangeHistoryRecorder
+        );
     }
 
     /**
@@ -623,10 +644,11 @@ public class DomainServiceConfig {
     public ShopDeliveryAreaService shopDeliveryAreaService(
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
         AdminDongRepository adminDongRepository,
-        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup
+        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopDeliveryAreaService(
-            shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup
+            shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup, shopChangeHistoryRecorder
         );
     }
 
@@ -640,10 +662,15 @@ public class DomainServiceConfig {
         ShopDeliveryAreaPolygonRepository shopDeliveryAreaPolygonRepository,
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
         AdminDongRepository adminDongRepository,
-        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup
+        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopDeliveryAreaPolygonService(
-            shopDeliveryAreaPolygonRepository, shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup
+            shopDeliveryAreaPolygonRepository,
+            shopDeliveryAreaRepository,
+            adminDongRepository,
+            shopDeliveryTipRegionLookup,
+            shopChangeHistoryRecorder
         );
     }
 
@@ -655,10 +682,11 @@ public class DomainServiceConfig {
     public ShopDeliveryAreaRadiusService shopDeliveryAreaRadiusService(
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
         AdminDongRepository adminDongRepository,
-        ShopDeliveryAreaService shopDeliveryAreaService
+        ShopDeliveryAreaService shopDeliveryAreaService,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopDeliveryAreaRadiusService(
-            shopDeliveryAreaRepository, adminDongRepository, shopDeliveryAreaService
+            shopDeliveryAreaRepository, adminDongRepository, shopDeliveryAreaService, shopChangeHistoryRecorder
         );
     }
 
@@ -669,9 +697,13 @@ public class DomainServiceConfig {
      */
     @Bean
     public ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService(
-        ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository
+        ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        return new ShopDeliveryAreaAdjustmentService(shopDeliveryAreaAdjustmentRequestRepository);
+        return new ShopDeliveryAreaAdjustmentService(
+            shopDeliveryAreaAdjustmentRequestRepository,
+            shopChangeHistoryRecorder
+        );
     }
 
     /**
@@ -705,7 +737,8 @@ public class DomainServiceConfig {
         ShopBookmarkRepository shopBookmarkRepository,
         StationRepository stationRepository,
         ShopImageApprovalService shopImageApprovalService,
-        ProhibitedWordValidator prohibitedWordValidator
+        ProhibitedWordValidator prohibitedWordValidator,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopLifecycleService(
             shopRepository,
@@ -713,20 +746,30 @@ public class DomainServiceConfig {
             shopBookmarkRepository,
             stationRepository,
             shopImageApprovalService,
-            prohibitedWordValidator
+            prohibitedWordValidator,
+            shopChangeHistoryRecorder
         );
     }
 
     /**
-     * 가게 편의정보 불변식 — 찾아오는길 금칙어 검수와 표시 위치 반경(1km) 검증을 담당한다.
+     * 가게 편의정보 불변식 — 찾아오는길 금칙어 검수와 표시 위치 반경(1km) 검증, 그리고 편의정보·편의시설
+     * 변경이력 기록을 담당한다.
      */
     @Bean
     public ShopConvenienceInfoService shopConvenienceInfoService(
         ShopConvenienceInfoRepository shopConvenienceInfoRepository,
         ShopRepository shopRepository,
-        ProhibitedWordValidator prohibitedWordValidator
+        ShopDetailRepository shopDetailRepository,
+        ProhibitedWordValidator prohibitedWordValidator,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        return new ShopConvenienceInfoService(shopConvenienceInfoRepository, shopRepository, prohibitedWordValidator);
+        return new ShopConvenienceInfoService(
+            shopConvenienceInfoRepository,
+            shopRepository,
+            shopDetailRepository,
+            prohibitedWordValidator,
+            shopChangeHistoryRecorder
+        );
     }
 
     /**
@@ -745,8 +788,26 @@ public class DomainServiceConfig {
     public ShopRiderGuideService shopRiderGuideService(
         ShopRiderGuideRepository shopRiderGuideRepository,
         ShopRepository shopRepository,
-        ShopRiderGuideValidator shopRiderGuideValidator
+        ShopRiderGuideValidator shopRiderGuideValidator,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        return new ShopRiderGuideService(shopRiderGuideRepository, shopRepository, shopRiderGuideValidator);
+        return new ShopRiderGuideService(
+            shopRiderGuideRepository,
+            shopRepository,
+            shopRiderGuideValidator,
+            shopChangeHistoryRecorder
+        );
+    }
+
+    /**
+     * 가게 변경이력 기록 — 변경을 수행하는 도메인 서비스들이 같은 트랜잭션에서 동기 호출한다.
+     *
+     * <p>{@code ShopChangeValueFormatter}는 상태 없는 static 유틸이라 빈으로 등록하지 않는다.
+     */
+    @Bean
+    public ShopChangeHistoryRecorder shopChangeHistoryRecorder(
+        ShopChangeHistoryRepository shopChangeHistoryRepository
+    ) {
+        return new ShopChangeHistoryRecorder(shopChangeHistoryRepository);
     }
 }

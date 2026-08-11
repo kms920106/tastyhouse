@@ -323,6 +323,11 @@ class ShopOrderAvailabilityServiceTest {
         }
 
         @Override
+        public Optional<ShopClosedDay> findClosedDayById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
         public List<ShopOrderMethod> findOrderMethodsByShopId(Long shopId) {
             List<ShopOrderMethod> assigned = new java.util.ArrayList<>();
             long sequence = 0L;
@@ -464,6 +469,11 @@ class ShopOrderAvailabilityServiceTest {
 
         @Override
         public void saveOwnerMessage(ShopOwnerMessageHistory ownerMessageHistory) {
+            throw unsupported();
+        }
+
+        @Override
+        public Optional<ShopOwnerMessageHistory> findLatestOwnerMessage(Long shopId) {
             throw unsupported();
         }
 
