@@ -654,7 +654,7 @@ CREATE TABLE SHOP_IMAGE_CHANGE_REQUEST
     shop_id       BIGINT       NOT NULL,                -- 장소 ID (SHOP.id 참조)
     image_type    VARCHAR(20)  NOT NULL,               -- 이미지 유형 (TRADEMARK, THUMBNAIL)
     image_file_id BIGINT       NOT NULL,                -- 요청된 신규 이미지 파일 ID (UPLOADED_FILE.id 참조)
-    status        VARCHAR(20)  NOT NULL,               -- 승인 상태 (PENDING, APPROVED, REJECTED)
+    status        VARCHAR(20)  NOT NULL,               -- 승인 상태 (PENDING, APPROVED, REJECTED, CANCELED)
     reject_reason VARCHAR(500),                         -- 반려 사유
     created_at    DATETIME     NOT NULL,                -- 생성 일시
     updated_at    DATETIME     NOT NULL,                -- 수정 일시
@@ -1239,7 +1239,7 @@ CREATE TABLE SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST
     franchise_name              VARCHAR(255)  NOT NULL,                   -- 가맹본부명
     reason                      VARCHAR(1000) NOT NULL,                   -- 배달지역 중첩 사유
     consent_file_id             BIGINT        NOT NULL,                   -- 정보제공 동의서 파일 ID (UPLOADED_FILE.id 참조)
-    status                      VARCHAR(20)   NOT NULL,                   -- 처리 상태 (PENDING, IN_PROGRESS, COMPLETED, REJECTED)
+    status                      VARCHAR(20)   NOT NULL,                   -- 처리 상태 (PENDING, IN_PROGRESS, COMPLETED, REJECTED, CANCELED)
     reject_reason               VARCHAR(500),                             -- 반려 사유 (REJECTED일 때만)
     created_at                  DATETIME      NOT NULL,                   -- 생성 일시
     updated_at                  DATETIME      NOT NULL,                   -- 수정 일시
@@ -1388,4 +1388,44 @@ CREATE TABLE SHOP_CHANGE_HISTORY
     INDEX idx_shop_change_history_shop_created (shop_id, created_at),
     -- 대분류 선택 조회 경로: 등치 2개 뒤에 레인지가 와야 레인지가 인덱스에 살아남음
     INDEX idx_shop_change_history_shop_category_created (shop_id, category, created_at)
+);
+
+-- 요청처리 현황 인덱스 — 점주가 낸 신청(상표·대표이미지 변경, 배달지역 조정)의 통합 목록.
+-- 이 테이블은 파생 읽기모델이고 진실원은 유형별 원본 테이블입니다.
+-- 원본 상태 전이와 같은 트랜잭션에서 ShopRequestIndexRecorder 가 동기화하며,
+-- 상세 조회는 여기서 request_type / source_request_id 만 얻어 원본을 투영합니다.
+-- 이 행의 id 가 요청의 유일한 대외 식별자여서, 유형별 FK 없는 범용 문의 스레드가
+-- 이 식별자 위에서만 성립합니다(아래 SHOP_REQUEST_COMMENT).
+CREATE TABLE SHOP_REQUEST_INDEX
+(
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 요청 인덱스 ID (PK, 요청의 대외 식별자)
+    shop_id             BIGINT       NOT NULL,              -- 가게 ID (SHOP.id 참조)
+    request_type        VARCHAR(40)  NOT NULL,              -- 요청 유형 (TRADEMARK_CHANGE, THUMBNAIL_CHANGE, DELIVERY_AREA_ADJUSTMENT)
+    source_request_id   BIGINT       NOT NULL,              -- 원본 요청 행 ID (유형별 원본 테이블의 id 참조)
+    summary             VARCHAR(255) NOT NULL,              -- 요청 내용 한 줄 요약 (목록의 "무엇을 요청했는지")
+    status              VARCHAR(20)  NOT NULL,              -- 통합 상태 (PENDING, IN_PROGRESS, APPROVED, REJECTED, CANCELED)
+    reject_reason       VARCHAR(500),                       -- 반려 사유 (REJECTED일 때만)
+    attachment_file_id  BIGINT,                             -- 첨부 파일 ID (UPLOADED_FILE.id 참조)
+    requested_by_ceo_id BIGINT,                             -- 요청 점주 ID (CEO.id 참조 / 백필분은 NULL — 원본에 요청자 기록이 없음)
+    processed_at        DATETIME,                           -- 최근 상태 전이 시각 (접수 직후 NULL / 백필분은 updated_at 근사치)
+    created_at          DATETIME     NOT NULL,              -- 생성 일시 (= 요청 접수 시각)
+    updated_at          DATETIME     NOT NULL,              -- 수정 일시
+    UNIQUE KEY uk_shop_request_index_type_source (request_type, source_request_id), -- 유니크: 원본 1건당 인덱스 1행(동기화 멱등성 보증)
+    INDEX idx_shop_request_index_shop_id_created_at (shop_id, created_at),          -- 인덱스: 가게별 최신순 목록(기본 정렬)
+    INDEX idx_shop_request_index_shop_id_status (shop_id, status)                   -- 인덱스: 가게별 상태 필터
+);
+
+-- 요청건 문의 스레드 — 점주 문의와 담당자 답변이 오가는 대화(append-only, 수정·삭제 없음).
+-- 조회 정렬만 이 저장소에서 유일하게 작성순(ASC)입니다 — 대화이므로 오간 순서대로 읽혀야 합니다.
+-- 처리 상태 제약이 없어 반려·취소·승인 이후에도 작성할 수 있습니다(반려 사유 문의가 주요 사용례).
+CREATE TABLE SHOP_REQUEST_COMMENT
+(
+    id                    BIGINT AUTO_INCREMENT PRIMARY KEY, -- 요청 댓글 ID (PK)
+    shop_request_index_id BIGINT      NOT NULL,              -- 요청 인덱스 ID (SHOP_REQUEST_INDEX.id 참조)
+    author_type           VARCHAR(20) NOT NULL,              -- 작성자 유형 (CEO, ADMIN)
+    author_id             BIGINT      NOT NULL,              -- 작성자 ID (CEO.id 또는 ADMIN.id 참조)
+    content               TEXT        NOT NULL,              -- 댓글 내용
+    created_at            DATETIME    NOT NULL,              -- 생성 일시
+    updated_at            DATETIME    NOT NULL,              -- 수정 일시 (append-only 라 created_at 과 동일)
+    INDEX idx_shop_request_comment_request_id (shop_request_index_id, id) -- 인덱스: 스레드 조회(작성순) + 목록의 건수 집계
 );

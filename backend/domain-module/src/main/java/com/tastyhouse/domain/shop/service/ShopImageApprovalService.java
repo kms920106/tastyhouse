@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
+import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -34,6 +35,11 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
  * 이력에 담지 않는다 — 이 이력은 "점주가 무엇을 바꿨는가"를 답하는 자료이고, 검수 결과는 변경요청
  * 애그리거트 자신의 상태({@link ApprovalStatus})가 이미 보존한다.
  *
+ * <p><b>요청처리 현황 인덱스 동기화도 이 서비스가 소유한다</b>({@link ShopRequestIndexRecorder}). 변경이력과
+ * 달리 <b>모든 상태 전이</b>(요청·승인·반려)를 기록한다 — 인덱스는 "내가 낸 요청이 어떻게 처리됐는가"를
+ * 답하는 통합 목록이라 검수 결과가 곧 그 목록의 본문이기 때문이다. Recorder는 생성자 필수 의존이므로 새
+ * 전이 메서드를 추가하면 여기서 동기화를 배선해야 한다는 것이 컴파일 단계에서 드러난다.
+ *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
  * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 command 서비스가 선언한다.
@@ -45,15 +51,18 @@ public class ShopImageApprovalService {
     private final ShopImageChangeRequestRepository shopImageChangeRequestRepository;
     private final ShopRepository shopRepository;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
+    private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopImageApprovalService(
         ShopImageChangeRequestRepository shopImageChangeRequestRepository,
         ShopRepository shopRepository,
-        ShopChangeHistoryRecorder shopChangeHistoryRecorder
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder,
+        ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
         this.shopImageChangeRequestRepository = shopImageChangeRequestRepository;
         this.shopRepository = shopRepository;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
+        this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
 
     /**
@@ -84,7 +93,25 @@ public class ShopImageApprovalService {
             null,
             describeImageChangeRequest(imageType, imageFileId)
         );
+
+        shopRequestIndexRecorder.record(
+            ShopId.of(shopId),
+            requestTypeOf(imageType),
+            saved.getId(),
+            describeImageChangeRequest(imageType, imageFileId),
+            saved.getImageFileId(),
+            actor.actorId()
+        );
         return saved.getId();
+    }
+
+    /**
+     * 이미지 유형에 대응하는 요청처리 현황 유형. 상표와 대표이미지가 통합 목록에서 갈리는 지점이다.
+     */
+    private ShopRequestType requestTypeOf(ShopImageType imageType) {
+        return imageType == ShopImageType.TRADEMARK
+            ? ShopRequestType.TRADEMARK_CHANGE
+            : ShopRequestType.THUMBNAIL_CHANGE;
     }
 
     /**
@@ -108,6 +135,12 @@ public class ShopImageApprovalService {
 
     /**
      * 이미지 변경요청을 승인하고, 승인된 이미지를 가게에 즉시 반영한다(원자 연산).
+     *
+     * <p>요청 인덱스 동기화를 <b>이미지 반영이 끝난 뒤 마지막에</b> 한다. 지금은 전체가 한 트랜잭션이라
+     * 순서를 바꿔도 결과가 같지만(중간 실패 시 통째로 롤백된다), 인덱스는 "요청이 어떻게 처리됐는가"를
+     * 답하는 기록이므로 <b>승인이 실제로 반영된 뒤</b>에 APPROVED가 되는 순서가 그 의미와 맞는다. 나중에
+     * 트랜잭션 경계가 쪼개지면(예: 반영을 리스너로 옮기거나 관리자 일괄 처리가 건별 커밋으로 바뀌면)
+     * 이 순서만이 "인덱스는 승인인데 가게 이미지는 그대로"를 막는다.
      */
     public void approveImageChange(Long id) {
         ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestRepository.findById(id)
@@ -124,6 +157,13 @@ public class ShopImageApprovalService {
             shop.changeThumbnailImage(shopImageChangeRequest.getImageFileId());
         }
         shopRepository.save(shop);
+
+        shopRequestIndexRecorder.syncImageChangeStatus(
+            requestTypeOf(shopImageChangeRequest.getImageType()),
+            id,
+            shopImageChangeRequest.getStatus(),
+            null
+        );
     }
 
     /**
@@ -134,6 +174,12 @@ public class ShopImageApprovalService {
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.reject(reason);
         shopImageChangeRequestRepository.save(shopImageChangeRequest);
+        shopRequestIndexRecorder.syncImageChangeStatus(
+            requestTypeOf(shopImageChangeRequest.getImageType()),
+            id,
+            shopImageChangeRequest.getStatus(),
+            reason
+        );
     }
 
     /**

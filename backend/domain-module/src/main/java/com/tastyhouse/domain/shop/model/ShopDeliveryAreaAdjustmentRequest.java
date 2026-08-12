@@ -151,11 +151,29 @@ public class ShopDeliveryAreaAdjustmentRequest {
      */
     public void reject(String reason) {
         if (this.status == DeliveryAreaAdjustmentStatus.COMPLETED
-            || this.status == DeliveryAreaAdjustmentStatus.REJECTED) {
+            || this.status == DeliveryAreaAdjustmentStatus.REJECTED
+            || this.status == DeliveryAreaAdjustmentStatus.CANCELED) {
             throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED);
         }
         this.status = DeliveryAreaAdjustmentStatus.REJECTED;
         this.rejectReason = reason;
+    }
+
+    /**
+     * 점주가 접수 대기 중인 신청을 스스로 철회한다.
+     *
+     * <p><b>{@code IN_PROGRESS}는 취소할 수 없다</b> — 이미 가맹본부에 자료가 전달된 뒤라 플랫폼이 일방
+     * 취소하면 외부 절차와 시스템 상태가 어긋난다.
+     *
+     * <p>취소를 인덱스가 아니라 이 애그리거트에 두므로 {@code OPEN_STATUSES}(PENDING·IN_PROGRESS)에
+     * CANCELED가 없어 재신청이 자동으로 열리고, {@link #reject(String)}의 종결 조건이 취소된 신청의 반려를
+     * 막는다.
+     */
+    public void cancel() {
+        if (this.status != DeliveryAreaAdjustmentStatus.PENDING) {
+            throw new BusinessException(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
+        }
+        this.status = DeliveryAreaAdjustmentStatus.CANCELED;
     }
 
     public Long getId() {

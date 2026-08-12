@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
@@ -17,9 +18,13 @@ import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
+import com.tastyhouse.domain.shop.model.ShopRequestIndex;
+import com.tastyhouse.domain.shop.model.ShopRequestStatus;
+import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaAdjustmentRequestRepository;
 import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaAdjustmentService;
+import com.tastyhouse.domain.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,14 +38,18 @@ class ShopDeliveryAreaAdjustmentServiceTest {
 
     private FakeRepository repository;
     private RecordingShopChangeHistoryRepository historyRepository;
+    private RecordingShopRequestIndexRepository indexRepository;
     private ShopDeliveryAreaAdjustmentService service;
 
     @BeforeEach
     void setUp() {
         repository = new FakeRepository();
         historyRepository = new RecordingShopChangeHistoryRepository();
+        indexRepository = new RecordingShopRequestIndexRepository();
         service = new ShopDeliveryAreaAdjustmentService(
-            repository, new ShopChangeHistoryRecorder(historyRepository)
+            repository,
+            new ShopChangeHistoryRecorder(historyRepository),
+            new ShopRequestIndexRecorder(indexRepository)
         );
     }
 
@@ -140,6 +149,68 @@ class ShopDeliveryAreaAdjustmentServiceTest {
     void startProgress_withUnknownId_throws() {
         assertThatThrownBy(() -> service.startProgress(999L))
             .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("접수는 요청 인덱스 1행을 PENDING으로 만든다")
+    void request_createsRequestIndexRow() {
+        Long requestId = request();
+
+        ShopRequestIndex index =
+            indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId);
+        assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.PENDING);
+        assertThat(index.getSummary()).isEqualTo("맛있는집 강남점 (맛있는집 본사)");
+        assertThat(index.getRequestedByCeoId()).isEqualTo(9L);
+    }
+
+    @Test
+    @DisplayName("startProgress는 인덱스를 IN_PROGRESS로 동기화한다")
+    void startProgress_syncsRequestIndex() {
+        Long requestId = request();
+
+        service.startProgress(requestId);
+
+        assertThat(indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId).getStatus())
+            .isEqualTo(ShopRequestStatus.IN_PROGRESS);
+    }
+
+    @Test
+    @DisplayName("complete는 인덱스를 APPROVED로 동기화한다(완료와 승인은 점주 화면에서 한 상태다)")
+    void complete_syncsRequestIndexAsApproved() {
+        Long requestId = request();
+        service.startProgress(requestId);
+
+        service.complete(requestId);
+
+        assertThat(indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId).getStatus())
+            .isEqualTo(ShopRequestStatus.APPROVED);
+    }
+
+    @Test
+    @DisplayName("reject는 인덱스를 REJECTED로 동기화하고 사유를 함께 남긴다")
+    void reject_syncsRequestIndexWithReason() {
+        Long requestId = request();
+
+        service.reject(requestId, "동의서가 식별되지 않습니다.");
+
+        ShopRequestIndex index =
+            indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId);
+        assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.REJECTED);
+        assertThat(index.getRejectReason()).isEqualTo("동의서가 식별되지 않습니다.");
+        assertThat(index.getProcessedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("취소된 신청은 반려할 수 없다(reject 종결 조건에 CANCELED가 포함된다)")
+    void reject_afterCancel_throws() {
+        Long requestId = request();
+        ShopDeliveryAreaAdjustmentRequest saved = repository.findById(requestId).orElseThrow();
+        saved.cancel();
+
+        assertThatThrownBy(() -> service.reject(requestId, "형식 미비"))
+            .isInstanceOf(BusinessException.class)
+            .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
+                .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED));
     }
 
     private Long request() {

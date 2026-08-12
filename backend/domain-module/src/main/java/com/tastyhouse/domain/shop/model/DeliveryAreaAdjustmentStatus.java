@@ -15,7 +15,8 @@ public enum DeliveryAreaAdjustmentStatus {
     PENDING,      // 접수 대기 (점주가 신청했고 관리자가 아직 확인하지 않음)
     IN_PROGRESS,  // 조정 중 (가맹본부에 자료를 전달했고 조정이 진행 중)
     COMPLETED,    // 조정 완료 (조정 성립. 배달지역 반영은 별도 수행)
-    REJECTED;     // 반려 (형식 미비·조정 불성립)
+    REJECTED,     // 반려 (형식 미비·조정 불성립)
+    CANCELED;     // 취소 (점주가 접수 대기 중 스스로 철회)
 
     public static DeliveryAreaAdjustmentStatus from(String code) {
         try {

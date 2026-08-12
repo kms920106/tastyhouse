@@ -83,6 +83,8 @@ import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.shop.repository.ShopPhoneNumberRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
+import com.tastyhouse.domain.shop.repository.ShopRequestCommentRepository;
+import com.tastyhouse.domain.shop.repository.ShopRequestIndexRepository;
 import com.tastyhouse.domain.shop.repository.ShopRiderGuideRepository;
 import com.tastyhouse.domain.shop.repository.ShopSuspensionRepository;
 import com.tastyhouse.domain.shop.repository.ShopTemporaryClosureRepository;
@@ -106,6 +108,9 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
 import com.tastyhouse.domain.shop.service.ShopPhoneNumberRegistryService;
+import com.tastyhouse.domain.shop.service.ShopRequestCancelService;
+import com.tastyhouse.domain.shop.service.ShopRequestCommentService;
+import com.tastyhouse.domain.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.domain.shop.service.ShopRiderGuideService;
 import com.tastyhouse.domain.shop.service.ShopRiderGuideValidator;
 import com.tastyhouse.domain.sms.port.SmsSender;
@@ -572,12 +577,14 @@ public class DomainServiceConfig {
     public ShopImageApprovalService shopImageApprovalService(
         ShopImageChangeRequestRepository shopImageChangeRequestRepository,
         ShopRepository shopRepository,
-        ShopChangeHistoryRecorder shopChangeHistoryRecorder
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder,
+        ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
         return new ShopImageApprovalService(
             shopImageChangeRequestRepository,
             shopRepository,
-            shopChangeHistoryRecorder
+            shopChangeHistoryRecorder,
+            shopRequestIndexRecorder
         );
     }
 
@@ -698,11 +705,13 @@ public class DomainServiceConfig {
     @Bean
     public ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService(
         ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
-        ShopChangeHistoryRecorder shopChangeHistoryRecorder
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder,
+        ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
         return new ShopDeliveryAreaAdjustmentService(
             shopDeliveryAreaAdjustmentRequestRepository,
-            shopChangeHistoryRecorder
+            shopChangeHistoryRecorder,
+            shopRequestIndexRecorder
         );
     }
 
@@ -809,5 +818,44 @@ public class DomainServiceConfig {
         ShopChangeHistoryRepository shopChangeHistoryRepository
     ) {
         return new ShopChangeHistoryRecorder(shopChangeHistoryRepository);
+    }
+
+    /**
+     * 요청처리 현황 인덱스 기록·동기화 — 원본 상태 전이와 같은 트랜잭션에서 파생 읽기모델을 갱신한다.
+     * 요청 성격의 애그리거트를 새로 만들면 그 도메인 서비스에 이 Recorder를 배선해야 한다.
+     */
+    @Bean
+    public ShopRequestIndexRecorder shopRequestIndexRecorder(
+        ShopRequestIndexRepository shopRequestIndexRepository
+    ) {
+        return new ShopRequestIndexRecorder(shopRequestIndexRepository);
+    }
+
+    /**
+     * 요청 취소 — 유형별 원본 애그리거트의 {@code cancel()}(PENDING만 허용)과 인덱스 동기화를 함께 수행한다.
+     */
+    @Bean
+    public ShopRequestCancelService shopRequestCancelService(
+        ShopImageChangeRequestRepository shopImageChangeRequestRepository,
+        ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
+        ShopRequestIndexRecorder shopRequestIndexRecorder
+    ) {
+        return new ShopRequestCancelService(
+            shopImageChangeRequestRepository,
+            shopDeliveryAreaAdjustmentRequestRepository,
+            shopRequestIndexRecorder
+        );
+    }
+
+    /**
+     * 요청건 문의 스레드 작성 — 실재하는 요청에만 댓글이 달리도록 인덱스 행을 확인한다(점주 경로는 가게
+     * 일치까지 재검증).
+     */
+    @Bean
+    public ShopRequestCommentService shopRequestCommentService(
+        ShopRequestCommentRepository shopRequestCommentRepository,
+        ShopRequestIndexRecorder shopRequestIndexRecorder
+    ) {
+        return new ShopRequestCommentService(shopRequestCommentRepository, shopRequestIndexRecorder);
     }
 }

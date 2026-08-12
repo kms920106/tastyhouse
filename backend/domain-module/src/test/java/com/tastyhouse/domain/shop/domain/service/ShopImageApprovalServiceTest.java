@@ -17,10 +17,14 @@ import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
+import com.tastyhouse.domain.shop.model.ShopRequestIndex;
+import com.tastyhouse.domain.shop.model.ShopRequestStatus;
+import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
+import com.tastyhouse.domain.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
@@ -37,6 +41,7 @@ class ShopImageApprovalServiceTest {
     private static final Long SHOP_ID = 1L;
 
     private RecordingShopChangeHistoryRepository shopChangeHistoryRepository;
+    private RecordingShopRequestIndexRepository shopRequestIndexRepository;
     private ShopImageApprovalService shopImageApprovalService;
 
     /** 이미지 변경요청 write 포트 fake. 저장 시 식별자를 부여해 승인 경로도 태울 수 있게 한다. */
@@ -116,10 +121,12 @@ class ShopImageApprovalServiceTest {
     @BeforeEach
     void setUp() {
         shopChangeHistoryRepository = new RecordingShopChangeHistoryRepository();
+        shopRequestIndexRepository = new RecordingShopRequestIndexRepository();
         shopImageApprovalService = new ShopImageApprovalService(
             new FakeShopImageChangeRequestRepository(),
             new FakeShopRepository(),
-            new ShopChangeHistoryRecorder(shopChangeHistoryRepository)
+            new ShopChangeHistoryRecorder(shopChangeHistoryRepository),
+            new ShopRequestIndexRecorder(shopRequestIndexRepository)
         );
     }
 
@@ -169,5 +176,59 @@ class ShopImageApprovalServiceTest {
 
         // 요청 2건에 대한 2행만 남고, 검수 조치로는 추가되지 않는다.
         assertThat(shopChangeHistoryRepository.saved()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("이미지 변경을 요청하면 요청 인덱스 1행이 PENDING으로 생긴다")
+    void requestImageChange_createsRequestIndexRow() {
+        Long requestId = shopImageApprovalService.requestImageChange(
+            SHOP_ID, ShopImageType.TRADEMARK, 4821L, ShopChangeActor.ceo(7L)
+        );
+
+        ShopRequestIndex index = shopRequestIndexRepository.require(ShopRequestType.TRADEMARK_CHANGE, requestId);
+        assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.PENDING);
+        assertThat(index.getSummary()).isEqualTo("상표 변경요청(파일 #4821)");
+        assertThat(index.getRequestedByCeoId()).isEqualTo(7L);
+        assertThat(index.getProcessedAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("대표이미지 변경요청은 THUMBNAIL_CHANGE 유형으로 인덱싱된다")
+    void requestImageChange_indexesThumbnailType() {
+        Long requestId = shopImageApprovalService.requestImageChange(
+            SHOP_ID, ShopImageType.THUMBNAIL, 902L, ShopChangeActor.ceo(7L)
+        );
+
+        assertThat(shopRequestIndexRepository.require(ShopRequestType.THUMBNAIL_CHANGE, requestId).getSummary())
+            .isEqualTo("대표이미지 변경요청(파일 #902)");
+    }
+
+    @Test
+    @DisplayName("승인은 인덱스를 APPROVED로 동기화한다")
+    void approveImageChange_syncsRequestIndex() {
+        Long requestId = shopImageApprovalService.requestImageChange(
+            SHOP_ID, ShopImageType.TRADEMARK, 4821L, ShopChangeActor.ceo(7L)
+        );
+
+        shopImageApprovalService.approveImageChange(requestId);
+
+        ShopRequestIndex index = shopRequestIndexRepository.require(ShopRequestType.TRADEMARK_CHANGE, requestId);
+        assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.APPROVED);
+        assertThat(index.getProcessedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("반려는 인덱스를 REJECTED로 동기화하고 사유를 함께 남긴다")
+    void rejectImageChange_syncsRequestIndexWithReason() {
+        Long requestId = shopImageApprovalService.requestImageChange(
+            SHOP_ID, ShopImageType.THUMBNAIL, 902L, ShopChangeActor.ceo(7L)
+        );
+
+        shopImageApprovalService.rejectImageChange(requestId, "해상도가 낮습니다.");
+
+        ShopRequestIndex index = shopRequestIndexRepository.require(ShopRequestType.THUMBNAIL_CHANGE, requestId);
+        assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.REJECTED);
+        assertThat(index.getRejectReason()).isEqualTo("해상도가 낮습니다.");
+        assertThat(index.getProcessedAt()).isNotNull();
     }
 }

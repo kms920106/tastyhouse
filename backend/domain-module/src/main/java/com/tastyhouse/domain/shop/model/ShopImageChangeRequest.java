@@ -88,6 +88,23 @@ public class ShopImageChangeRequest {
         this.rejectReason = reason;
     }
 
+    /**
+     * 점주가 접수 대기 중인 요청을 스스로 철회한다.
+     *
+     * <p>인덱스가 아니라 <b>이 애그리거트</b>에 CANCELED를 두는 이유는, 원본이 PENDING으로 남으면
+     * {@code existsByShopIdAndImageTypeAndStatus(PENDING)} 중복 차단이 취소 후에도 재요청을 막고 관리자가
+     * 이미 취소된 요청을 승인·반려할 수 있기 때문이다.
+     *
+     * <p>기존 {@code SHOP_IMAGE_CHANGE_REQUEST_NOT_PENDING}을 재사용하지 않고 통합 코드를 쓴다 — 취소는
+     * 통합 요청처리 화면의 단일 동작이므로 프론트가 유형별 에러코드 2종을 알 필요가 없어야 한다.
+     */
+    public void cancel() {
+        if (this.status != ApprovalStatus.PENDING) {
+            throw new BusinessException(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
+        }
+        this.status = ApprovalStatus.CANCELED;
+    }
+
     public Long getId() {
         return this.id;
     }
