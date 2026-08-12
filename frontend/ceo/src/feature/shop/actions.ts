@@ -12,6 +12,7 @@ import type {
 } from "@/api/shop/shop.dto";
 import { shopRepository } from "@/api/shop/shop.repository";
 import { shopService } from "@/api/shop/shop.service";
+import { shopRequestRepository } from "@/api/shop-request/shop-request.repository";
 import type {
   AdminDong,
   AdminDongBoundaryResult,
@@ -41,7 +42,7 @@ import {
   PHONE_NUMBER_MAX_COUNT,
   REGULAR_CLOSED_DAY_MAX_COUNT,
 } from "./constants";
-import { SHOP_MESSAGE } from "./message";
+import { SHOP_MESSAGE, SHOP_REQUEST_COPY } from "./message";
 import {
   type AdminDongBoundaryFormValues,
   adminDongBoundarySchema,
@@ -99,6 +100,12 @@ import { toLocalDateTimeString } from "./time";
 
 const SHOP_PATH = "/dashboard/shop";
 const SHOP_STATUS_PATH = "/dashboard/shop-status";
+const SHOP_REQUEST_PATH = "/dashboard/shop/requests";
+
+/** 취소 불가(대기중이 아님) 409 — 이 코드만 전용 문구로 갈라 낸다 */
+const SHOP_REQUEST_NOT_CANCELABLE_CODE = "SHOP_REQUEST_NOT_CANCELABLE";
+/** 서버 `@Size(max = 1000)` 과 같은 값 */
+const SHOP_REQUEST_COMMENT_MAX = 1000;
 
 type ActionResult = {
   success: boolean;
@@ -1226,4 +1233,52 @@ export async function clearShopRiderPickupLocationAction(shopId: number): Promis
 
   revalidatePath(SHOP_PATH);
   return { success: true };
+}
+
+// ===== 요청처리 현황 =====
+
+/**
+ * 요청 취소.
+ *
+ * 취소 가능 조건(PENDING 만)은 서버 애그리거트의 불변식이라 여기서 선판정하지 않고,
+ * 409 `SHOP_REQUEST_NOT_CANCELABLE` 만 전용 문구로 갈라 낸다 — 그 외 실패는 일반 문구다.
+ */
+export async function cancelShopRequestAction(shopId: number, requestId: number): Promise<ActionResult> {
+  const { error, errorCode } = await shopRequestRepository.cancel(shopId, requestId);
+  if (error !== undefined) {
+    return {
+      success: false,
+      message:
+        errorCode === SHOP_REQUEST_NOT_CANCELABLE_CODE
+          ? SHOP_REQUEST_COPY.CANCEL_NOT_ALLOWED
+          : SHOP_REQUEST_COPY.CANCEL_FAILED,
+    };
+  }
+
+  revalidatePath(SHOP_REQUEST_PATH);
+  return { success: true };
+}
+
+/**
+ * 요청 문의 작성.
+ *
+ * 클라이언트 검증만 믿지 않고 여기서도 공백·길이를 확인한다 — 서버 액션은 클라이언트를
+ * 거치지 않고도 호출될 수 있으므로, 400 을 맞기 전에 같은 규칙으로 막는다.
+ */
+export async function createShopRequestCommentAction(
+  shopId: number,
+  requestId: number,
+  content: string,
+): Promise<ActionResult> {
+  const trimmed = content.trim();
+  if (trimmed.length === 0) return { success: false, message: SHOP_REQUEST_COPY.COMMENT_REQUIRED };
+  if (trimmed.length > SHOP_REQUEST_COMMENT_MAX) {
+    return { success: false, message: SHOP_REQUEST_COPY.COMMENT_MAX_LENGTH };
+  }
+
+  const { data, error } = await shopRequestRepository.createComment(shopId, requestId, { content: trimmed });
+  if (error !== undefined) return { success: false, message: SHOP_REQUEST_COPY.COMMENT_FAILED };
+
+  revalidatePath(SHOP_REQUEST_PATH);
+  return { success: true, id: data ?? undefined };
 }

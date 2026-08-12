@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ import {
   DELIVERY_AREA_ADJUSTMENT_OPEN_STATUSES,
   DELIVERY_AREA_ADJUSTMENT_STATUS_LABEL,
 } from "@/feature/shop/constants";
-import type { DeliveryAreaAdjustmentRequest, DeliveryAreaAdjustmentStatus } from "@/feature/shop/domain";
+import type { DeliveryAreaAdjustmentRequest } from "@/feature/shop/domain";
 import { SHOP_MESSAGE, SHOP_OPERATION_COPY } from "@/feature/shop/message";
 import { type DeliveryAreaAdjustmentFormValues, deliveryAreaAdjustmentSchema } from "@/feature/shop/schema";
 
@@ -48,13 +48,6 @@ const EMPTY_VALUES: DeliveryAreaAdjustmentFormValues = {
   franchiseName: "",
   reason: "",
 };
-
-function statusBadgeVariant(status: DeliveryAreaAdjustmentStatus) {
-  if (status === "COMPLETED") return "default" as const;
-  if (status === "REJECTED") return "destructive" as const;
-  if (status === "IN_PROGRESS") return "secondary" as const;
-  return "outline" as const;
-}
 
 export function DeliveryAreaAdjustmentSheet({ open, onOpenChange, shopId }: DeliveryAreaAdjustmentSheetProps) {
   const [isPending, startTransition] = React.useTransition();
@@ -272,9 +265,10 @@ export function DeliveryAreaAdjustmentSheet({ open, onOpenChange, shopId }: Deli
                   <li key={request.id} className="flex flex-col gap-1 rounded-md border p-3">
                     <div className="flex items-center justify-between gap-2">
                       <span className="min-w-0 flex-1 truncate text-sm">{request.counterpartShopName}</span>
-                      <Badge variant={statusBadgeVariant(request.status)}>
-                        {DELIVERY_AREA_ADJUSTMENT_STATUS_LABEL[request.status]}
-                      </Badge>
+                      <StatusBadge
+                        status={request.status}
+                        label={DELIVERY_AREA_ADJUSTMENT_STATUS_LABEL[request.status]}
+                      />
                     </div>
                     <span className="text-muted-foreground text-xs">{request.franchiseName}</span>
                     {request.status === "REJECTED" && request.rejectReason && (

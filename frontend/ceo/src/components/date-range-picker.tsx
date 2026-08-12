@@ -12,9 +12,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 interface DateRangePickerProps {
   value?: DateRange;
   onChange?: (value: DateRange | undefined) => void;
+  /** 조회 전환 중처럼 입력을 잠가야 할 때 트리거를 비활성화한다 */
+  disabled?: boolean;
+  /** 트리거 버튼에 표시할 문구. 선택된 기간이 없을 때만 쓰인다 */
+  placeholder?: string;
 }
 
-export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
+export function DateRangePicker({ value, onChange, disabled, placeholder }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false);
   const [internalDateRange, setInternalDateRange] = React.useState<DateRange | undefined>(() => {
     const to = new Date();
@@ -33,12 +37,12 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" id="date" className="font-normal">
+        <Button variant="outline" id="date" className="font-normal" disabled={disabled}>
           {dateRange?.from
             ? dateRange.to
               ? `${format(dateRange.from, "d MMM yyyy")} - ${format(dateRange.to, "d MMM yyyy")}`
               : format(dateRange.from, "d MMM yyyy")
-            : "Select date"}
+            : (placeholder ?? "Select date")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto overflow-hidden p-0" align="end">

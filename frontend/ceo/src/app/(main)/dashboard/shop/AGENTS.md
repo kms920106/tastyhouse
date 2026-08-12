@@ -10,6 +10,34 @@
 |-----------|---------|
 | `_components/` | 이 라우트에서만 쓰는 Client Component — 탭 3종, 설정 항목별 Sheet, `setting-row.tsx` |
 | `delivery-area/` | 배달지역 설정 전용 라우트. 지도 편집기 + 빠른설정 패널 |
+| `change-history/` | 가게 변경이력 조회 전용 라우트 |
+| `requests/` | 요청처리 현황 조회 전용 라우트. 목록 + `?requestId=` 상세 시트 |
+
+## 이 라우트군의 공통 컨벤션
+
+`shopId` 는 **동적 세그먼트가 아니라 `?shopId=` searchParams** 다. `delivery-area/`·`change-history/`·`requests/` 가 모두 이 규칙을 따른다.
+
+세 라우트 모두 **사이드바(`src/navigation/sidebar/sidebar-items.ts`)에 등록하지 않는다.** 가게 단위 화면이라 가게 관리 화면을 거쳐 진입하기 때문이며, 상위 `dashboard/AGENTS.md` 의 "화면 추가 시 sidebar-items.ts 에 등록" 규칙보다 이 선례가 우선한다.
+
+## 상세를 `?requestId=` 로 서버 렌더하는 패턴 (`requests/`)
+
+요청처리 현황의 상세 시트는 클라이언트에서 데이터를 가져오지 않는다. **`src/api/**` 의 repository·service 가 최상단에 `import "server-only";` 를 선언하므로 Client Component 에서 호출할 수 없기 때문**이다. 그래서 `page.tsx` 가 `?requestId=` 를 읽어 상세와 문의 스레드를 `Promise.all` 로 함께 조회한 뒤 뷰에 내려주고, 뷰는 그 값이 있을 때만 Sheet 를 연다.
+
+시트를 열고 닫는 것도 상태가 아니라 URL 조작이다(`params.set/delete("requestId")`). 부수 효과로 **새 탭·뒤로가기·링크 공유가 그대로 동작**한다.
+
+되돌리려 하기 전에: 상세를 클라이언트 fetch 로 바꾸려면 `api/` 레이어의 `server-only` 경계를 허무는 별도 판단이 필요하다. 시트 하나 때문에 그 경계를 열지 않는다.
+
+## 실패 계층 분리 (`change-history/`·`requests/`)
+
+조회 화면의 실패는 **전부 `error.tsx` 로 보내지 않는다.** 화면이 성립하는지에 따라 층을 나눈다.
+
+| 실패 | 처리 |
+|---|---|
+| 가게 목록·카탈로그 조회 실패 | `throw` → `error.tsx` (필터를 만들 수 없어 화면 자체가 성립하지 않음) |
+| 목록 조회 실패 | throw 하지 않고 `items=undefined` + `errorCode` 를 뷰에 넘겨 **필터바를 살린다** |
+| 상세 조회 실패 | 시트를 열지 않고 인라인 안내만 띄운다 |
+
+목록만 실패했는데 화면 전체를 에러로 덮으면 사용자가 필터를 고쳐 재시도할 방법이 사라진다.
 
 ## 배달지역이 별도 라우트인 이유
 

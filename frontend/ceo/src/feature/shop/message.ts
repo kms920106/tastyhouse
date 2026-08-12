@@ -313,6 +313,87 @@ export const SHOP_CHANGE_HISTORY_COPY = {
   NEXT_PAGE: "다음",
 } as const;
 
+/**
+ * 요청처리 현황 조회 화면 문구.
+ *
+ * 상태·유형 라벨은 여기에 두지 않는다 — 서버 카탈로그가 내려주는 한국어 라벨
+ * (`statusDescription`/`requestTypeDescription`)을 그대로 쓴다(`feature/shop/AGENTS.md`).
+ */
+export const SHOP_REQUEST_COPY = {
+  ENTRY_TITLE: "요청처리 현황",
+  TITLE: "요청처리 현황",
+  DESCRIPTION: "신청한 요청 건의 처리 상태를 확인할 수 있습니다.",
+
+  // 필터
+  FILTER_TYPE_LABEL: "요청 유형",
+  FILTER_STATUS_LABEL: "처리 상태",
+  FILTER_PERIOD_LABEL: "신청 기간",
+  FILTER_ALL: "전체",
+  FILTER_RESET: "초기화",
+
+  // 빈 상태
+  EMPTY_TITLE: "요청 내역이 없습니다",
+  EMPTY_DESCRIPTION: "상표·대표이미지 변경이나 배달지역 조정을 신청하면 이곳에서 진행 상황을 확인할 수 있습니다.",
+  NO_SHOP_TITLE: "관리할 가게가 없습니다",
+  NO_SHOP_DESCRIPTION: "가게가 등록되면 요청처리 현황을 확인할 수 있습니다.",
+
+  // 에러
+  LOAD_FAILED: "요청 내역을 불러오지 못했습니다.",
+  DATE_RANGE_INVALID: "조회 시작일이 종료일보다 늦습니다.",
+  CATALOG_LOAD_FAILED: "요청 유형 정보를 불러오지 못했습니다.",
+  DETAIL_LOAD_FAILED: "요청 상세를 불러오지 못했습니다.",
+  /** URL 의 shopId 가 내 가게 목록에 없어 첫 가게로 대체했을 때 */
+  SHOP_FALLBACK_NOTICE: "요청하신 가게를 찾을 수 없어 다른 가게의 요청 내역을 표시합니다.",
+
+  // 목록·상세 항목
+  REQUESTED_AT: "신청일",
+  PROCESSED_AT: "처리일",
+  REJECT_REASON: "반려 사유",
+  CONTRACT_AMENDING: "계약서 수정 대상",
+  ATTACHMENT: "첨부 파일",
+  COMMENT_COUNT: "문의",
+  DETAIL_ACTION: "상세 보기",
+  CONTRACT_AMENDING_YES: "예",
+  CONTRACT_AMENDING_NO: "아니오",
+
+  // 유형별 상세 블록
+  IMAGE_CHANGE_TITLE: "요청 이미지",
+  ADJUSTMENT_TITLE: "조정 신청 정보",
+  ADJUSTMENT_COUNTERPART_SHOP: "상대 가게",
+  ADJUSTMENT_BUSINESS_NUMBER: "사업자등록번호",
+  ADJUSTMENT_FRANCHISE: "가맹본부",
+  ADJUSTMENT_REASON: "신청 사유",
+  ADJUSTMENT_CONSENT_FILE: "정보제공 동의서",
+
+  // 취소
+  CANCEL_ACTION: "요청 취소",
+  CANCEL_CONFIRM_TITLE: "요청을 취소할까요?",
+  CANCEL_CONFIRM_DESCRIPTION: "취소한 요청은 되돌릴 수 없습니다. 필요하면 다시 신청할 수 있습니다.",
+  CANCEL_CONFIRM_ACTION: "취소하기",
+  CANCEL_CONFIRM_DISMISS: "닫기",
+  CANCEL_SUCCESS: "요청을 취소했습니다.",
+  CANCEL_FAILED: "요청을 취소하지 못했습니다.",
+  CANCEL_NOT_ALLOWED: "대기중인 요청만 취소할 수 있습니다.",
+
+  // 문의 스레드
+  COMMENT_SECTION_TITLE: "문의",
+  COMMENT_EMPTY: "아직 문의가 없습니다. 궁금한 점을 남기면 담당자가 답변합니다.",
+  COMMENT_PLACEHOLDER: "궁금한 점을 남겨주세요.",
+  COMMENT_SUBMIT: "문의 등록",
+  COMMENT_SUCCESS: "문의를 등록했습니다.",
+  COMMENT_FAILED: "문의를 등록하지 못했습니다.",
+  COMMENT_REQUIRED: "문의 내용을 입력해주세요.",
+  COMMENT_MAX_LENGTH: "문의 내용은 1000자 이내로 입력해주세요.",
+  COMMENT_LOAD_FAILED: "문의 내역을 불러오지 못했습니다.",
+
+  // 페이지네이션
+  PREVIOUS_PAGE: "이전",
+  NEXT_PAGE: "다음",
+
+  /** null 값 자리 표시 */
+  VALUE_ABSENT: "—",
+} as const;
+
 /** 가게 라우트 error.tsx 공용 문구 */
 export const SHOP_ERROR_PAGE_COPY = {
   TITLE: "문제가 발생했습니다",

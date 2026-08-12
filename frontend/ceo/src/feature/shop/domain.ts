@@ -478,3 +478,86 @@ export interface ShopChangeCategoryOption {
   name: string;
   changeTypes: ShopChangeTypeOption[];
 }
+
+/**
+ * 요청처리 현황 목록의 요청 1건.
+ *
+ * `requestType`·`status` 를 리터럴 유니온으로 좁히지 않고 `string` 으로 둔다 —
+ * 라벨과 필터 옵션을 서버 카탈로그에서 받으므로 프론트가 값 목록을 알 필요가 없고,
+ * 백엔드에 유형이 추가돼도 이 타입을 고치지 않아도 된다.
+ * 값을 아는 곳은 배지 variant 매핑(`@/components/status-badge`) 하나뿐이다.
+ */
+export interface ShopRequestListItem {
+  /** 인덱스 행 ID. 상세·취소·문의의 유일한 식별자 */
+  requestId: number;
+  requestType: string;
+  requestTypeDescription: string;
+  /** 무엇을 요청했는지 서버가 굳혀 내려주는 한 줄 요약 */
+  summary: string;
+  status: string;
+  statusDescription: string;
+  /** 반려 사유. REJECTED 일 때만 채워진다 */
+  rejectReason: string | null;
+  /** 전자계약서가 수정되는 요청인지 */
+  contractAmending: boolean;
+  hasAttachment: boolean;
+  commentCount: number;
+  requestedAt: string;
+  /** 최근 처리 일시. 접수 직후에는 null */
+  processedAt: string | null;
+}
+
+/** 이미지 변경 요청의 유형별 상세 블록 */
+export interface ShopRequestImageChange {
+  imageType: string;
+  imageTypeDescription: string;
+  imageUrl: string;
+}
+
+/** 배달지역 조정 신청의 유형별 상세 블록 */
+export interface ShopRequestAdjustment {
+  counterpartShopName: string;
+  counterpartBusinessNumber: string;
+  franchiseName: string;
+  reason: string;
+  consentFileUrl: string;
+}
+
+/**
+ * 요청 상세. 목록의 전 필드에 첨부와 유형별 블록이 더해진다.
+ *
+ * `imageChange`/`deliveryAreaAdjustment` 는 둘 중 하나만 채워지며 어느 쪽인지는
+ * `requestType` 이 결정한다(다형 응답 대신 nullable 서브 객체 — `docs/tasks/backend.md` 4-2).
+ */
+export interface ShopRequestDetail extends ShopRequestListItem {
+  attachmentLabel: string | null;
+  attachmentUrl: string | null;
+  imageChange: ShopRequestImageChange | null;
+  deliveryAreaAdjustment: ShopRequestAdjustment | null;
+}
+
+/**
+ * 요청 문의 스레드의 댓글 1건.
+ *
+ * 작성자 실명은 서버가 내려주지 않는다 — 화면은 작성자 유형 라벨로만 구성한다.
+ */
+export interface ShopRequestComment {
+  commentId: number;
+  authorType: string;
+  authorTypeDescription: string;
+  content: string;
+  createdAt: string;
+}
+
+/** 요청 유형 필터 옵션 — 서버 카탈로그가 내려주는 코드·한글 라벨 */
+export interface ShopRequestTypeOption {
+  code: string;
+  description: string;
+  contractAmending: boolean;
+}
+
+/** 처리 상태 필터 옵션 — 서버 카탈로그가 내려주는 코드·한글 라벨 */
+export interface ShopRequestStatusOption {
+  code: string;
+  description: string;
+}
