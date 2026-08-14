@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { ClipboardList, History, Lock, Store } from "lucide-react";
+import { ClipboardList, History, Lock, MessageSquare, Store } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SHOP_MANAGE_TABS, type ShopManageTab } from "@/feature/shop/constants";
 import type { ShopBasicInfo, ShopOperationInfo, ShopOrderAvailability, ShopSummary } from "@/feature/shop/domain";
 import { SHOP_CHANGE_HISTORY_COPY, SHOP_PAGE_COPY, SHOP_REQUEST_COPY } from "@/feature/shop/message";
+import { SHOP_REVIEW_COPY } from "@/feature/shop-review/message";
 
 import { BasicInfoTab } from "./basic-info-tab";
 import { OperationInfoTab } from "./operation-info-tab";
@@ -105,6 +106,15 @@ export function ShopManage({
               >
                 <ClipboardList />
                 {SHOP_REQUEST_COPY.ENTRY_TITLE}
+              </Button>
+              {/* 리뷰 관리도 설정 항목이 아닌 조회·답변 화면이라 시트가 아니라 전용 라우트로 이동한다. */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push(`/dashboard/shop/reviews?shopId=${shopId}`)}
+              >
+                <MessageSquare />
+                {SHOP_REVIEW_COPY.ENTRY_TITLE}
               </Button>
             </>
           )}

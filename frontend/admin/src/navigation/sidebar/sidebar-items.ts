@@ -5,6 +5,7 @@ import {
   Calendar,
   CalendarDays,
   ChartBar,
+  EyeOff,
   Fingerprint,
   Forklift,
   GalleryHorizontal,
@@ -183,6 +184,11 @@ export const sidebarItems: NavGroup[] = [
         title: "이미지 검수",
         url: "/dashboard/shop-image-reviews",
         icon: ImageIcon,
+      },
+      {
+        title: "게시중단 요청 심사",
+        url: "/dashboard/review-blind-requests",
+        icon: EyeOff,
       },
       {
         title: "콘텐츠보드 검수",
