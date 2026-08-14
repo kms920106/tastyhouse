@@ -1,4 +1,4 @@
-import { Fingerprint, type LucideIcon, PowerOff, Store } from "lucide-react";
+import { Fingerprint, KeyRound, type LucideIcon, PowerOff, ShieldCheck, Store } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -50,6 +50,22 @@ export const sidebarItems: NavGroup[] = [
           { title: "Register v1", url: "/auth/v1/register", newTab: true },
           { title: "Register v2", url: "/auth/v2/register", newTab: true },
         ],
+      },
+    ],
+  },
+  {
+    id: 2,
+    label: "내 계정",
+    items: [
+      {
+        title: "개인정보 접속기록",
+        url: "/dashboard/account/login-history",
+        icon: KeyRound,
+      },
+      {
+        title: "시스템 접근권한 이력",
+        url: "/dashboard/account/shop-access-history",
+        icon: ShieldCheck,
       },
     ],
   },

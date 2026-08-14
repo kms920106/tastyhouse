@@ -18,6 +18,9 @@ import { Badge } from "@/components/ui/badge";
  * 통합 상태(`docs/tasks/backend.md` 2-2)의 5종에 더해 `COMPLETED` 도 승인과 같은 색으로 둔다 —
  * 배달지역 조정의 원본 enum 은 완료를 `COMPLETED` 로 부르고 통합 상태만 이를 `APPROVED` 로
  * 접어 넣으므로, 원본 enum 을 그대로 쓰는 조정 신청 시트도 같은 표를 쓸 수 있어야 한다.
+ *
+ * 계정 단위 이력(`docs/tasks/backend.md` §2-1·§2-2)의 결과·조치 유형도 같은 표에 들어온다 —
+ * 요청 처리 상태와 값이 겹치지 않으므로 별도 컴포넌트를 만들지 않는다.
  */
 const STATUS_VARIANT: Record<string, "default" | "destructive" | "secondary" | "outline"> = {
   APPROVED: "default",
@@ -26,6 +29,12 @@ const STATUS_VARIANT: Record<string, "default" | "destructive" | "secondary" | "
   PENDING: "secondary",
   IN_PROGRESS: "secondary",
   CANCELED: "outline",
+  // 개인정보 접속기록 — 로그인 결과
+  SUCCESS: "default",
+  FAILURE: "destructive",
+  // 시스템 접근권한 이력 — 조치 유형. 말소는 되돌리기 어려운 조치라 성공/실패와 같은 색 구분을 쓴다.
+  GRANT: "default",
+  REVOKE: "destructive",
 };
 
 interface StatusBadgeProps {

@@ -30,29 +30,42 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop"
     return <ShopManage shops={[]} tab={tab} />;
   }
 
-  // shopId 미지정 또는 보유하지 않은 가게면 첫 가게로 대체한다.
-  const selectedShop = shops.find((shop) => shop.id === requestedShopId) ?? shops[0];
+  // shopId 미지정(기본 진입)만 첫 가게로 대체한다. shopId 를 지정했는데 내 목록에 없으면
+  // — 소유하지 않은 가게이거나 권한이 말소된 가게이므로 — 조용히 다른 가게로 바꿔치기하지 않고
+  // 지정된 shopId 그대로 백엔드에 조회를 위임해 403/404 인가 검증이 그대로 드러나게 한다.
+  // (`requests/`·`change-history/` 와 같은 규칙 — 조용한 폴백은 "왜 다른 가게가 보이는지"를 감춘다.)
+  const isShopIdSpecified = parseSearchString(shopIdParam) !== undefined;
+  const matchedShop = shops.find((shop) => shop.id === requestedShopId);
+  const selectedShopId = isShopIdSpecified ? requestedShopId : (matchedShop?.id ?? shops[0].id);
 
   const [basicInfoResult, operationInfoResult, orderAvailabilityResult] = await Promise.all([
-    shopService.getShopBasicInfo(selectedShop.id),
-    shopService.getShopOperationInfo(selectedShop.id),
-    shopService.getShopOrderAvailability(selectedShop.id),
+    shopService.getShopBasicInfo(selectedShopId),
+    shopService.getShopOperationInfo(selectedShopId),
+    shopService.getShopOrderAvailability(selectedShopId),
   ]);
 
+  // 접근 권한이 없거나 존재하지 않는 가게면 화면 전체를 에러로 덮지 않고 인라인 안내만 띄운다 —
+  // 가게 선택기를 살려 두어야 사용자가 자기 가게로 되돌아갈 수 있다.
+  const accessErrorCode = basicInfoResult.errorCode ?? operationInfoResult.errorCode;
+  if (accessErrorCode === "SHOP_ACCESS_DENIED" || accessErrorCode === "SHOP_NOT_FOUND") {
+    logger.warn({ errorCode: accessErrorCode, shopId: selectedShopId }, "접근할 수 없는 가게 — 인라인 안내로 렌더");
+    return <ShopManage shops={shops} tab={tab} errorCode={accessErrorCode} />;
+  }
+
   if (basicInfoResult.error || !basicInfoResult.data) {
-    logger.error({ reason: basicInfoResult.error, shopId: selectedShop.id }, "가게 기본정보 조회 실패");
+    logger.error({ reason: basicInfoResult.error, shopId: selectedShopId }, "가게 기본정보 조회 실패");
     throw new Error(SHOP_MESSAGE.BASIC_INFO_LOAD_FAILED);
   }
 
   if (operationInfoResult.error || !operationInfoResult.data) {
-    logger.error({ reason: operationInfoResult.error, shopId: selectedShop.id }, "가게 운영정보 조회 실패");
+    logger.error({ reason: operationInfoResult.error, shopId: selectedShopId }, "가게 운영정보 조회 실패");
     throw new Error(SHOP_MESSAGE.OPERATION_INFO_LOAD_FAILED);
   }
 
   // 주문가능 상태 조회 실패는 화면 전체를 막지 않는다 — 주문정보 탭에서만 실패 문구를 보여준다.
   if (orderAvailabilityResult.error || !orderAvailabilityResult.data) {
     logger.error(
-      { reason: orderAvailabilityResult.error, shopId: selectedShop.id },
+      { reason: orderAvailabilityResult.error, shopId: selectedShopId },
       "가게 주문가능 상태 조회 실패 — 주문정보 탭만 실패로 렌더",
     );
   }
@@ -60,7 +73,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop"
   return (
     <ShopManage
       shops={shops}
-      shopId={selectedShop.id}
+      shopId={selectedShopId}
       tab={tab}
       basicInfo={basicInfoResult.data}
       operationInfo={operationInfoResult.data}

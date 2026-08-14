@@ -7,6 +7,12 @@ export const SHOP_PAGE_COPY = {
   ORDER_TAB: "주문정보",
   EMPTY_TITLE: "보유한 가게가 없습니다",
   EMPTY_DESCRIPTION: "가게가 등록되면 이 화면에서 기본정보와 운영정보를 관리할 수 있습니다.",
+  /** URL 의 shopId 가 내 가게가 아닐 때 (서버 403) — 조용히 다른 가게로 대체하지 않고 이 문구를 띄운다 */
+  SHOP_ACCESS_DENIED: "접근 권한이 없는 가게입니다.",
+  /** URL 의 shopId 가 존재하지 않는 가게일 때 (서버 404) */
+  SHOP_NOT_FOUND: "가게를 찾을 수 없습니다.",
+  SHOP_ACCESS_DENIED_DESCRIPTION: "점주 배정이 해제되었거나 다른 점주의 가게일 수 있습니다.",
+  BACK_TO_MY_SHOP: "내 가게로 이동",
 } as const;
 
 /** 전체현황·임시중지 화면 헤더 정적 문구 */

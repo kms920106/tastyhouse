@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { AUTH_COOKIE_KEYS, LOGIN_PATH } from "@/lib/auth-config";
@@ -12,6 +12,42 @@ type RequestConfig<P extends object = object> = RequestInit & {
   isFormData?: boolean;
   timeout?: number;
 };
+
+/**
+ * 원본 브라우저 요청의 `user-agent` 와 클라이언트 IP 를 backend 로 전달할 헤더를 만든다.
+ *
+ * Server Action·Server Component 에서 backend 를 호출하면 그 fetch 는 **Node 런타임이 새로 만드는
+ * 요청**이라 원본 요청의 헤더를 하나도 물려받지 않는다. 그대로 두면 backend 가 보는 `User-Agent` 는
+ * Node 기본값(`node`)이고 IP 는 Next 서버의 주소가 되어, 개인정보처리시스템 접속기록이 접속자가 아니라
+ * **웹서버 자신**을 기록한다(실제로 접속 기기 정보가 전부 `node` 로 남던 결함).
+ *
+ * `x-forwarded-for` 는 프록시 관례대로 기존 값 뒤에 이번 홉(Next 서버가 본 클라이언트 IP)을 잇는다 —
+ * backend `ClientIpResolver` 가 첫 값을 원 클라이언트로 채택하므로 앞의 값을 덮어쓰지 않는 것이 중요하다.
+ *
+ * 요청 컨텍스트 밖(빌드 타임 프리렌더 등)에서 호출되면 `headers()` 가 throw 하므로 빈 객체를 돌려준다.
+ */
+async function getForwardedClientHeaders(): Promise<Record<string, string>> {
+  try {
+    const headerStore = await headers();
+    const forwarded: Record<string, string> = {};
+
+    const userAgent = headerStore.get("user-agent");
+    if (userAgent) {
+      forwarded["User-Agent"] = userAgent;
+    }
+
+    // 원본 XFF 가 있으면 그 체인을 보존하고, 없으면 Next 서버가 인식한 클라이언트 IP 로 시작한다.
+    const existingForwardedFor = headerStore.get("x-forwarded-for");
+    const clientIp = existingForwardedFor ?? headerStore.get("x-real-ip");
+    if (clientIp) {
+      forwarded["X-Forwarded-For"] = clientIp;
+    }
+
+    return forwarded;
+  } catch {
+    return {};
+  }
+}
 
 export class ApiError extends Error {
   readonly status: number;
@@ -45,6 +81,8 @@ class ApiClient {
         requestHeaders.Authorization = `Bearer ${accessToken}`;
       }
     }
+
+    Object.assign(requestHeaders, await getForwardedClientHeaders());
 
     if (headers) {
       Object.assign(requestHeaders, headers);

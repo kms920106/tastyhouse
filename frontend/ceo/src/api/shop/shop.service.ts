@@ -123,7 +123,15 @@ export const shopService = {
       thumbnailRes,
       trademarkRes,
     ].find((res) => res.error !== undefined);
-    if (failed) return { error: failed.error, status: failed.status };
+    // errorCode 를 함께 보존한다 — 화면이 403(SHOP_ACCESS_DENIED)·404(SHOP_NOT_FOUND)를
+    // 일반 조회 실패와 구분해 인라인 안내를 띄우려면 코드가 필요하다.
+    if (failed) {
+      return {
+        error: failed.error,
+        ...(failed.errorCode ? { errorCode: failed.errorCode } : {}),
+        status: failed.status,
+      };
+    }
 
     const detail = detailRes.data;
     if (!detail) return { status: detailRes.status };
@@ -206,7 +214,14 @@ export const shopService = {
       ]);
 
     const failed = [businessHourRes, breakTimeRes, closedDaysRes, hygieneRes].find((res) => res.error !== undefined);
-    if (failed) return { error: failed.error, status: failed.status };
+    // errorCode 는 기본정보 조회와 같은 이유로 보존한다(403/404 를 인라인 안내로 구분).
+    if (failed) {
+      return {
+        error: failed.error,
+        ...(failed.errorCode ? { errorCode: failed.errorCode } : {}),
+        status: failed.status,
+      };
+    }
 
     // 배달팁·배달가능지역 조회 실패는 탭 전체를 막지 않는다.
     // 두 항목은 운영정보 탭의 부가 설정이므로, 실패 시 '미설정' 상태로 렌더해 영업시간·휴무일 편집을 계속 쓸 수 있게 한다.

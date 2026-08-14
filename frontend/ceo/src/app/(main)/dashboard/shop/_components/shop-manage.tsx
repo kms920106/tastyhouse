@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { ClipboardList, History, Store } from "lucide-react";
+import { ClipboardList, History, Lock, Store } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,12 +27,30 @@ interface ShopManageProps {
   operationInfo?: ShopOperationInfo;
   /** 주문정보 탭 데이터. 이 조회만 실패하면 undefined 로 넘어와 해당 탭에서만 실패를 알린다 */
   orderAvailability?: ShopOrderAvailability;
+  /** 접근 불가 사유(403 `SHOP_ACCESS_DENIED` / 404 `SHOP_NOT_FOUND`). 있으면 탭 대신 인라인 안내를 띄운다 */
+  errorCode?: string;
 }
 
-export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo, orderAvailability }: ShopManageProps) {
+export function ShopManage({
+  shops,
+  shopId,
+  tab,
+  basicInfo,
+  operationInfo,
+  orderAvailability,
+  errorCode,
+}: ShopManageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = React.useTransition();
+
+  // 접근 불가 사유는 서버가 내려준 errorCode 로만 판정한다 — 데이터 부재(undefined)와 섞지 않는다.
+  const accessDeniedMessage =
+    errorCode === "SHOP_ACCESS_DENIED"
+      ? SHOP_PAGE_COPY.SHOP_ACCESS_DENIED
+      : errorCode === "SHOP_NOT_FOUND"
+        ? SHOP_PAGE_COPY.SHOP_NOT_FOUND
+        : undefined;
 
   function pushParams(next: { shopId?: number; tab?: ShopManageTab }) {
     const params = new URLSearchParams(searchParams.toString());
@@ -49,7 +67,20 @@ export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo, order
         <CardTitle className="text-xl leading-none">{SHOP_PAGE_COPY.TITLE}</CardTitle>
         <CardDescription className="max-w-sm leading-snug">{SHOP_PAGE_COPY.DESCRIPTION}</CardDescription>
         <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-          {shopId !== undefined && (
+          {/* 접근 불가 상태에서는 선택기(가게 2개 이상에서만 뜨고 유효한 shopId 가 필요하다) 대신
+              내 가게로 되돌아가는 버튼을 둔다 — 막다른 화면을 남기지 않는다. */}
+          {accessDeniedMessage !== undefined && shops.length > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => pushParams({ shopId: shops[0].id })}
+            >
+              <Store />
+              {SHOP_PAGE_COPY.BACK_TO_MY_SHOP}
+            </Button>
+          )}
+          {accessDeniedMessage === undefined && shopId !== undefined && (
             <>
               <ShopSelector
                 shops={shops}
@@ -80,7 +111,17 @@ export function ShopManage({ shops, shopId, tab, basicInfo, operationInfo, order
         </CardAction>
       </CardHeader>
       <CardContent>
-        {shopId === undefined || !basicInfo || !operationInfo ? (
+        {accessDeniedMessage !== undefined ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Lock />
+              </EmptyMedia>
+              <EmptyTitle>{accessDeniedMessage}</EmptyTitle>
+              <EmptyDescription>{SHOP_PAGE_COPY.SHOP_ACCESS_DENIED_DESCRIPTION}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : shopId === undefined || !basicInfo || !operationInfo ? (
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
