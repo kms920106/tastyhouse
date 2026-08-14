@@ -115,6 +115,13 @@ public class ApiLoggingFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * 클라이언트 IP를 판별한다.
+     *
+     * <p><b>api-common-module의 {@code ClientIpResolver}와 로직이 같지만 통합하지 않는다</b> — 이 모듈은
+     * api-common-module을 의존하지 않고, 의존을 추가하면 방향이 뒤집힌다(로깅은 api 계층 아래에 있는
+     * 횡단 관심사다). 중복을 감수하는 대신 양쪽에 이 사유를 주석으로 남긴다.
+     */
     private String resolveClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader(X_FORWARDED_FOR);
         if (StringUtils.hasText(xForwardedFor)) {

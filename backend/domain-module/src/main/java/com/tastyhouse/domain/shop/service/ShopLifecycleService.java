@@ -52,6 +52,7 @@ public class ShopLifecycleService {
     private final ShopImageApprovalService shopImageApprovalService;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
+    private final ShopCeoAssignmentRecorder shopCeoAssignmentRecorder;
 
     public ShopLifecycleService(
         ShopRepository shopRepository,
@@ -60,7 +61,8 @@ public class ShopLifecycleService {
         StationRepository stationRepository,
         ShopImageApprovalService shopImageApprovalService,
         ProhibitedWordValidator prohibitedWordValidator,
-        ShopChangeHistoryRecorder shopChangeHistoryRecorder
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder,
+        ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
     ) {
         this.shopRepository = shopRepository;
         this.shopDetailRepository = shopDetailRepository;
@@ -69,12 +71,20 @@ public class ShopLifecycleService {
         this.shopImageApprovalService = shopImageApprovalService;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
+        this.shopCeoAssignmentRecorder = shopCeoAssignmentRecorder;
     }
 
     /**
      * 가게를 생성한다. 지정한 지하철역이 존재해야 한다.
+     *
+     * <p>점주를 함께 배정하면 접근권한 부여 이력({@code GRANT})을 남긴다 — 이것이 그 점주가 이 가게의
+     * 개인정보에 접근할 수 있게 된 시점이므로, 나중에 {@code ShopCeoAssignmentService}로 배정한 경우와
+     * 구별 없이 같은 이력에 남아야 한다. {@code ShopCeoAssignmentRecorder}를 생성자 필수 의존으로 두는
+     * 이유는 {@code ShopChangeHistoryRecorder} 선례와 같다 — 새 배정 경로를 만들 때 배선 누락이 컴파일
+     * 단계에서 드러난다.
      */
     public Shop createShop(
+        Long adminId,
         Long ceoId,
         Long stationId,
         String name,
@@ -97,7 +107,12 @@ public class ShopLifecycleService {
             thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId)
         );
         shop.assignCeo(ceoId == null ? null : CeoId.of(ceoId));
-        return shopRepository.save(shop);
+        Shop savedShop = shopRepository.save(shop);
+
+        if (ceoId != null) {
+            shopCeoAssignmentRecorder.recordGrant(savedShop.getShopId(), CeoId.of(ceoId), adminId);
+        }
+        return savedShop;
     }
 
     /**

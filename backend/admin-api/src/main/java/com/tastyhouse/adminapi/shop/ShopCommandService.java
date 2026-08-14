@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.ClosedDayType;
@@ -30,6 +31,7 @@ import com.tastyhouse.domain.shop.repository.ShopChoiceRepository;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.repository.TagRepository;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
+import com.tastyhouse.domain.shop.service.ShopCeoAssignmentService;
 import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
 import com.tastyhouse.domain.shop.vo.ShopFoodTypeCategoryId;
@@ -56,6 +58,7 @@ public class ShopCommandService {
     private final ShopLifecycleService shopLifecycleService;
     private final ShopBusinessHourService shopBusinessHourService;
     private final ShopConvenienceInfoService shopConvenienceInfoService;
+    private final ShopCeoAssignmentService shopCeoAssignmentService;
     private final ShopDetailRepository shopDetailRepository;
     private final ShopChoiceRepository shopChoiceRepository;
     private final TagRepository tagRepository;
@@ -64,6 +67,7 @@ public class ShopCommandService {
         ShopLifecycleService shopLifecycleService,
         ShopBusinessHourService shopBusinessHourService,
         ShopConvenienceInfoService shopConvenienceInfoService,
+        ShopCeoAssignmentService shopCeoAssignmentService,
         ShopDetailRepository shopDetailRepository,
         ShopChoiceRepository shopChoiceRepository,
         TagRepository tagRepository
@@ -71,12 +75,21 @@ public class ShopCommandService {
         this.shopLifecycleService = shopLifecycleService;
         this.shopBusinessHourService = shopBusinessHourService;
         this.shopConvenienceInfoService = shopConvenienceInfoService;
+        this.shopCeoAssignmentService = shopCeoAssignmentService;
         this.shopDetailRepository = shopDetailRepository;
         this.shopChoiceRepository = shopChoiceRepository;
         this.tagRepository = tagRepository;
     }
 
+    /**
+     * 가게를 등록한다.
+     *
+     * <p>{@code ceoId}를 함께 지정하면 접근권한 부여 이력({@code GRANT})이 남으므로, 조치한 관리자
+     * 식별자({@code adminId})를 첫 파라미터로 받는다. 요청·응답 계약은 변하지 않는다 —
+     * {@code adminId}는 본문이 아니라 인증 주체에서 온다.
+     */
     public Long createShop(
+        Long adminId,
         Long ceoId,
         Long stationId,
         String name,
@@ -88,9 +101,27 @@ public class ShopCommandService {
         Long thumbnailImageFileId
     ) {
         Shop shop = shopLifecycleService.createShop(
-            ceoId, stationId, name, latitude, longitude, roadAddress, lotAddress, phoneNumber, thumbnailImageFileId
+            adminId, ceoId, stationId, name, latitude, longitude, roadAddress, lotAddress, phoneNumber,
+            thumbnailImageFileId
         );
         return shop.getId();
+    }
+
+    /**
+     * 가게에 담당 점주를 배정한다. 다른 점주가 이미 배정돼 있으면 말소 후 부여로 2행이 남는다.
+     */
+    public void assignCeo(Long adminId, Long id, Long ceoId) {
+        ShopId shopId = ShopId.of(id);
+        CeoId targetCeoId = CeoId.of(ceoId);
+        shopCeoAssignmentService.assign(shopId, targetCeoId, adminId);
+    }
+
+    /**
+     * 가게의 담당 점주 배정을 해제한다.
+     */
+    public void revokeCeo(Long adminId, Long id) {
+        ShopId shopId = ShopId.of(id);
+        shopCeoAssignmentService.revoke(shopId, adminId);
     }
 
     public void updateShop(

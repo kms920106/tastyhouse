@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.repository.CeoRepository;
+import com.tastyhouse.domain.ceo.vo.CeoId;
 
 @Repository
 public class CeoRepositoryImpl implements CeoRepository {
@@ -14,6 +15,11 @@ public class CeoRepositoryImpl implements CeoRepository {
 
     public CeoRepositoryImpl(CeoJpaRepository ceoJpaRepository) {
         this.ceoJpaRepository = ceoJpaRepository;
+    }
+
+    @Override
+    public Optional<Ceo> findById(CeoId id) {
+        return ceoJpaRepository.findById(id.value()).map(CeoMapper::toDomain);
     }
 
     @Override

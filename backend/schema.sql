@@ -1429,3 +1429,64 @@ CREATE TABLE SHOP_REQUEST_COMMENT
     updated_at            DATETIME    NOT NULL,              -- 수정 일시 (append-only 라 created_at 과 동일)
     INDEX idx_shop_request_comment_request_id (shop_request_index_id, id) -- 인덱스: 스레드 조회(작성순) + 목록의 건수 집계
 );
+
+
+-- ----------------------------------------------------------------------------
+-- 점주 로그인 이력 (append-only)
+--
+-- 개인정보처리시스템 접속기록. 점주가 로그인하면 회원의 개인정보(주문자 이름/연락처/주소 등)를
+-- 열람할 수 있으므로, 로그인 시점이 곧 개인정보 접속 시점이다. 로그인 1회 = 1행이며 기록 후에는
+-- 수정되지 않는다.
+--
+-- 존재하지 않는 아이디로의 로그인 시도는 기록하지 않는다 — 귀속할 점주가 없어 어떤 점주의
+-- 접속기록에도 속하지 않고, 임의 문자열이 쌓이면 계정 존재 여부를 탐색하는 표면이 된다.
+--
+-- 조회 화면은 최근 90일로 제한하지만 90일이 지난 행도 삭제하지 않고 보관한다(고객센터 요청 시
+-- 최대 2년 조회 지원).
+-- ----------------------------------------------------------------------------
+CREATE TABLE CEO_LOGIN_HISTORY
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 이력 ID (PK)
+    ceo_id         BIGINT       NOT NULL,                  -- 점주 ID (CEO.id 참조)
+    result         VARCHAR(20)  NOT NULL,                  -- 결과 (SUCCESS, FAILURE)
+    failure_reason VARCHAR(20),                            -- 실패 사유 (BAD_CREDENTIALS, ACCOUNT_INACTIVE / 성공 시 NULL)
+    ip_address     VARCHAR(45),                            -- 접속 IP (IPv6 최대 45자, 판별 불가 시 NULL)
+    user_agent     VARCHAR(500),                           -- 접속 기기 정보 (500자 초과분은 절단해 저장)
+    created_at     DATETIME     NOT NULL,                  -- 생성 일시 (= 로그인 시각)
+    updated_at     DATETIME     NOT NULL,                  -- 수정 일시 (append-only 라 created_at 과 동일)
+    -- 본인 이력 최신순 조회 경로: 등치(ceo_id) 뒤에 레인지(created_at)가 와야 레인지가 인덱스에 살아남음
+    INDEX idx_ceo_login_history_ceo_created (ceo_id, created_at)
+);
+
+
+-- ----------------------------------------------------------------------------
+-- 가게-점주 배정 이력 (append-only)
+--
+-- 개인정보처리시스템 접근권한 부여/말소 기록. 점주 계정과 가게가 연결된 시점이 곧 권한 부여
+-- 시점이고, 해제된 시점이 말소 시점이다. 관리자가 가게에 점주를 배정·해제할 때 1행씩 쌓인다.
+--
+-- 재배정(A -> B)은 REVOKE(A) + GRANT(B) 2행으로 남긴다. 한 행에 before/after를 담으면
+-- "언제부터 언제까지 권한이 있었는가"를 읽을 수 없다.
+--
+-- actor_admin_id 만 두고 actor_type 을 두지 않는 이유: 배정/해제는 관리자만 할 수 있어
+-- (점주에게는 권한 등급 개념 자체가 없다 — docs/domain/ceo.md) 항상 같은 값이 들어가는 컬럼이
+-- 되기 때문이다.
+--
+-- 백필하지 않는다: 기존 SHOP.ceo_id 에 이미 배정된 가게들에 대해 GRANT 행을 소급 생성하지 않는다.
+-- 실제 배정 시각을 알 수 없어(SHOP.created_at 은 가게 자체의 것이지 연결의 것이 아니다) 사실과
+-- 다른 시각이 기록되기 때문이다.
+-- ----------------------------------------------------------------------------
+CREATE TABLE SHOP_CEO_ASSIGNMENT_HISTORY
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,      -- 이력 ID (PK)
+    shop_id        BIGINT      NOT NULL,                   -- 가게 ID (SHOP.id 참조)
+    ceo_id         BIGINT      NOT NULL,                   -- 대상 점주 ID (CEO.id 참조)
+    action_type    VARCHAR(20) NOT NULL,                   -- 조치 유형 (GRANT, REVOKE)
+    actor_admin_id BIGINT      NOT NULL,                   -- 조치한 관리자 ID (ADMIN.id 참조)
+    created_at     DATETIME    NOT NULL,                   -- 생성 일시 (= 조치 시각)
+    updated_at     DATETIME    NOT NULL,                   -- 수정 일시 (append-only 라 created_at 과 동일)
+    -- 점주 본인 이력 조회 경로 (ceo-api)
+    INDEX idx_shop_ceo_assignment_history_ceo_created (ceo_id, created_at),
+    -- 가게 기준 조회 경로 (관리자 확인용)
+    INDEX idx_shop_ceo_assignment_history_shop_created (shop_id, created_at)
+);

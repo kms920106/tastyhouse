@@ -41,6 +41,7 @@ import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
+import com.tastyhouse.domain.shop.service.ShopCeoAssignmentRecorder;
 import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
@@ -340,7 +341,8 @@ class ShopIntroductionRecordingTest {
                 new ShopRequestIndexRecorder(new RecordingShopRequestIndexRepository())
             ),
             new ProhibitedWordValidator(new FakeProhibitedWordRepository()),
-            recorder
+            recorder,
+            new ShopCeoAssignmentRecorder(new RecordingShopCeoAssignmentHistoryRepository())
         );
     }
 

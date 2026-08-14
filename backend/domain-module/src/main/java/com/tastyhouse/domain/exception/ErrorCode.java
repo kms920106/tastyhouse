@@ -104,6 +104,11 @@ public enum ErrorCode implements ErrorCodeSpec {
     CEO_AUTHENTICATION_FAILED(401, "CEO_AUTHENTICATION_FAILED", "아이디 또는 비밀번호가 올바르지 않습니다."),
     CEO_ACCOUNT_INACTIVE(401, "CEO_ACCOUNT_INACTIVE", "비활성화된 점주 계정입니다."),
 
+    // 점주 개인정보 접속기록 · 시스템 접근권한 이력
+    CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE(400, "CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE", "조회 가능한 기간은 최근 90일입니다."),
+    CEO_LOGIN_RESULT_UNKNOWN(400, "CEO_LOGIN_RESULT_UNKNOWN", "알 수 없는 로그인 결과입니다."),
+    CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE(400, "CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE", "조회 가능한 기간은 최근 5년입니다."),
+
     // 인증 (SMS)
     // 상수명은 SMS_ 접두어로 대칭화했으나 응답 code 문자열은 기존 값을 유지한다 —
     // 프론트가 code로 분기하는 경우 구버전 클라이언트가 unknown으로 처리해 안내 문구가 퇴화하기 때문.
@@ -265,6 +270,11 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE(400, "SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE", "조회 가능한 기간은 최근 6개월입니다."),
     SHOP_CHANGE_CATEGORY_UNKNOWN(400, "SHOP_CHANGE_CATEGORY_UNKNOWN", "알 수 없는 변경 분류입니다."),
     SHOP_CHANGE_TYPE_UNKNOWN(400, "SHOP_CHANGE_TYPE_UNKNOWN", "알 수 없는 변경 유형입니다."),
+
+    // 가게 담당 점주 배정(시스템 접근권한)
+    SHOP_CEO_ASSIGNMENT_ACTION_UNKNOWN(400, "SHOP_CEO_ASSIGNMENT_ACTION_UNKNOWN", "알 수 없는 접근권한 조치 유형입니다."),
+    SHOP_CEO_ALREADY_ASSIGNED(409, "SHOP_CEO_ALREADY_ASSIGNED", "이미 해당 점주가 배정된 가게입니다."),
+    SHOP_CEO_NOT_ASSIGNED(409, "SHOP_CEO_NOT_ASSIGNED", "담당 점주가 배정되지 않은 가게입니다."),
 
     // 주문가능 상태(주문 접수·예약 생성 게이트)
     // SHOP_ORDER_METHOD_NOT_SUPPORTED(400)는 위 SHOP_ORDER_METHOD_NOT_FOUND(404)와 용도가 다르다 —

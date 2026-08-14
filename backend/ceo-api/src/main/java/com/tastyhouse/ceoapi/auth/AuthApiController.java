@@ -2,6 +2,7 @@ package com.tastyhouse.ceoapi.auth;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.security.ratelimit.RateLimit;
 import com.tastyhouse.security.ratelimit.RateLimitKeyType;
 import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.apicommon.common.ClientIpResolver;
 import com.tastyhouse.ceoapi.auth.request.LoginRequest;
 import com.tastyhouse.ceoapi.auth.request.RefreshTokenRequest;
 import com.tastyhouse.ceoapi.auth.response.JwtResponse;
@@ -28,12 +30,28 @@ public class AuthApiController {
         this.authService = authService;
     }
 
+    /**
+     * 점주 로그인. 성공·실패 모두 개인정보처리시스템 접속기록으로 남으므로, 서블릿 타입을 여기서 풀어
+     * IP·User-Agent를 {@code String}으로 서비스에 넘긴다(서비스 계층의 web 의존 금지 경계).
+     *
+     * <p>{@code keyPrefix}를 개명하지 않는다 — Redis 카운터 키라서 바꾸면 배포 시점에 진행 중인 rate
+     * limit 카운터가 전부 리셋된다.
+     */
     @Operation(summary = "점주 로그인", description = "아이디/비밀번호 인증 후 JWT(Access/Refresh)를 발급합니다.")
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:ceo_login")
     @PostMapping("/v1/login")
-    public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<JwtResponse>> login(
+        @Valid @RequestBody LoginRequest request,
+        HttpServletRequest httpRequest
+    ) {
         return ResponseEntity.ok(ApiResponse.success(
-            authService.login(request.username(), request.password(), request.rememberMe())
+            authService.login(
+                request.username(),
+                request.password(),
+                request.rememberMe(),
+                ClientIpResolver.resolve(httpRequest),
+                httpRequest.getHeader("User-Agent")
+            )
         ));
     }
 

@@ -28,6 +28,7 @@ import com.tastyhouse.adminapi.shop.request.ShopAmenityCategoryUpdateRequest;
 import com.tastyhouse.adminapi.shop.request.ShopBannerImageSaveRequest;
 import com.tastyhouse.adminapi.shop.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.adminapi.shop.request.ShopBusinessHourSaveRequest;
+import com.tastyhouse.adminapi.shop.request.ShopCeoAssignRequest;
 import com.tastyhouse.adminapi.shop.request.ShopChoiceCreateRequest;
 import com.tastyhouse.adminapi.shop.request.ShopChoiceSaveRequest;
 import com.tastyhouse.adminapi.shop.request.ShopClosedDaySaveRequest;
@@ -92,14 +93,56 @@ public class ShopApiController {
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
-    @Operation(summary = "가게 등록", description = "새로운 가게를 등록합니다.")
+    /**
+     * 가게를 등록한다. {@code ceoId}를 함께 지정하면 접근권한 부여 이력이 남으므로 조치한 관리자를
+     * 인증 주체에서 얻어 함께 넘긴다 — 요청·응답 계약은 변하지 않는다.
+     */
+    @Operation(summary = "가게 등록", description = "새로운 가게를 등록합니다. 담당 점주를 함께 지정하면 시스템 접근권한 부여 이력이 기록됩니다.")
     @PostMapping("/v1")
-    public ResponseEntity<ApiResponse<Long>> createShop(@Valid @RequestBody ShopCreateRequest request) {
+    public ResponseEntity<ApiResponse<Long>> createShop(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @Valid @RequestBody ShopCreateRequest request
+    ) {
         Long id = shopCommandService.createShop(
+            userDetails.getPrincipalId(),
             request.ceoId(), request.stationId(), request.name(), request.latitude(), request.longitude(),
             request.roadAddress(), request.lotAddress(), request.phoneNumber(), request.thumbnailImageFileId()
         );
         return ResponseEntity.ok(ApiResponse.success(id));
+    }
+
+    /**
+     * 가게에 담당 점주를 배정한다. 리소스 등록이 아니라 관계 설정(상태전이)이므로 등록 POST의
+     * "생성된 id 반환" 규칙 적용 대상이 아니며 {@code Void}를 반환한다.
+     */
+    @Operation(
+        summary = "가게 담당 점주 배정",
+        description = "가게에 담당 점주를 배정하고 시스템 접근권한 부여 이력을 기록합니다. 다른 점주가 이미 배정돼 있으면 말소 후 부여로 2건이 기록됩니다."
+    )
+    @PutMapping("/v1/{id}/ceo")
+    public ResponseEntity<ApiResponse<Void>> assignCeo(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long id,
+        @Valid @RequestBody ShopCeoAssignRequest request
+    ) {
+        shopCommandService.assignCeo(userDetails.getPrincipalId(), id, request.ceoId());
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 가게의 담당 점주 배정을 해제한다. 해제 이후 그 점주의 해당 가게 관리 호출은 전부 403이 된다.
+     */
+    @Operation(
+        summary = "가게 담당 점주 해제",
+        description = "가게의 담당 점주 배정을 해제하고 시스템 접근권한 말소 이력을 기록합니다."
+    )
+    @DeleteMapping("/v1/{id}/ceo")
+    public ResponseEntity<ApiResponse<Void>> revokeCeo(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long id
+    ) {
+        shopCommandService.revokeCeo(userDetails.getPrincipalId(), id);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "가게 상세 조회", description = "가게 상세를 조회합니다.")

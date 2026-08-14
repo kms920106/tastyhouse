@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import com.tastyhouse.domain.bug.repository.BugReportImageRepository;
 import com.tastyhouse.domain.bug.repository.BugReportRepository;
 import com.tastyhouse.domain.bug.service.BugReportRegistrationService;
+import com.tastyhouse.domain.ceo.repository.CeoLoginHistoryRepository;
+import com.tastyhouse.domain.ceo.repository.CeoRepository;
+import com.tastyhouse.domain.ceo.service.CeoLoginHistoryRecorder;
 import com.tastyhouse.domain.coupon.repository.CouponRepository;
 import com.tastyhouse.domain.coupon.repository.MemberCouponRepository;
 import com.tastyhouse.domain.coupon.service.CouponIssueService;
@@ -72,6 +75,7 @@ import com.tastyhouse.domain.search.service.PopularKeywordRefreshService;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
+import com.tastyhouse.domain.shop.repository.ShopCeoAssignmentHistoryRepository;
 import com.tastyhouse.domain.shop.repository.ShopChangeHistoryRepository;
 import com.tastyhouse.domain.shop.repository.ShopConvenienceInfoRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaAdjustmentRequestRepository;
@@ -94,6 +98,8 @@ import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
 import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
+import com.tastyhouse.domain.shop.service.ShopCeoAssignmentRecorder;
+import com.tastyhouse.domain.shop.service.ShopCeoAssignmentService;
 import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaAdjustmentService;
@@ -747,7 +753,8 @@ public class DomainServiceConfig {
         StationRepository stationRepository,
         ShopImageApprovalService shopImageApprovalService,
         ProhibitedWordValidator prohibitedWordValidator,
-        ShopChangeHistoryRecorder shopChangeHistoryRecorder
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder,
+        ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
     ) {
         return new ShopLifecycleService(
             shopRepository,
@@ -756,7 +763,8 @@ public class DomainServiceConfig {
             stationRepository,
             shopImageApprovalService,
             prohibitedWordValidator,
-            shopChangeHistoryRecorder
+            shopChangeHistoryRecorder,
+            shopCeoAssignmentRecorder
         );
     }
 
@@ -818,6 +826,45 @@ public class DomainServiceConfig {
         ShopChangeHistoryRepository shopChangeHistoryRepository
     ) {
         return new ShopChangeHistoryRecorder(shopChangeHistoryRepository);
+    }
+
+    /**
+     * 점주 로그인 이력 기록 — 개인정보처리시스템 접속기록. ceo-api의
+     * {@code CeoLoginHistoryCommandService}가 트랜잭션 경계를 열고 호출한다.
+     */
+    @Bean
+    public CeoLoginHistoryRecorder ceoLoginHistoryRecorder(
+        CeoLoginHistoryRepository ceoLoginHistoryRepository
+    ) {
+        return new CeoLoginHistoryRecorder(ceoLoginHistoryRepository);
+    }
+
+    /**
+     * 가게-점주 접근권한 이력 기록 — 배정·해제를 수행하는 도메인 서비스가 같은 트랜잭션에서 동기 호출한다.
+     * 새 배정 경로를 만들면 그 도메인 서비스에 이 Recorder를 배선해야 한다.
+     */
+    @Bean
+    public ShopCeoAssignmentRecorder shopCeoAssignmentRecorder(
+        ShopCeoAssignmentHistoryRepository shopCeoAssignmentHistoryRepository
+    ) {
+        return new ShopCeoAssignmentRecorder(shopCeoAssignmentHistoryRepository);
+    }
+
+    /**
+     * 가게 담당 점주 배정·해제 불변식 — {@code SHOP.ceo_id} 갱신과 접근권한 이력 기록을 원자적으로
+     * 수행하고, 재배정을 {@code REVOKE}+{@code GRANT} 2행으로 남긴다.
+     */
+    @Bean
+    public ShopCeoAssignmentService shopCeoAssignmentService(
+        ShopRepository shopRepository,
+        CeoRepository ceoRepository,
+        ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
+    ) {
+        return new ShopCeoAssignmentService(
+            shopRepository,
+            ceoRepository,
+            shopCeoAssignmentRecorder
+        );
     }
 
     /**
