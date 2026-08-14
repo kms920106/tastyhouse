@@ -23,7 +23,7 @@ public record ShopRequestDetailResponse(
     @Schema(
         description = "요청 유형 코드",
         example = "DELIVERY_AREA_ADJUSTMENT",
-        allowableValues = {"TRADEMARK_CHANGE", "THUMBNAIL_CHANGE", "DELIVERY_AREA_ADJUSTMENT"}
+        allowableValues = {"TRADEMARK_CHANGE", "THUMBNAIL_CHANGE", "DELIVERY_AREA_ADJUSTMENT", "REVIEW_BLIND"}
     )
     String requestType,
 
@@ -71,7 +71,10 @@ public record ShopRequestDetailResponse(
     ShopRequestImageChangeResponse imageChange,
 
     @Schema(description = "배달지역 조정 신청 상세. 요청 유형이 조정 신청일 때만 채워진다")
-    ShopRequestAdjustmentResponse deliveryAreaAdjustment
+    ShopRequestAdjustmentResponse deliveryAreaAdjustment,
+
+    @Schema(description = "리뷰 게시중단 요청 상세. 요청 유형이 리뷰 게시중단일 때만 채워진다")
+    ShopRequestReviewBlindResponse reviewBlind
 ) {
 
     public static ShopRequestDetailResponse from(
@@ -90,7 +93,8 @@ public record ShopRequestDetailResponse(
         String attachmentLabel,
         String attachmentUrl,
         ShopRequestImageChangeResponse imageChange,
-        ShopRequestAdjustmentResponse deliveryAreaAdjustment
+        ShopRequestAdjustmentResponse deliveryAreaAdjustment,
+        ShopRequestReviewBlindResponse reviewBlind
     ) {
         return new ShopRequestDetailResponse(
             requestId,
@@ -108,7 +112,8 @@ public record ShopRequestDetailResponse(
             attachmentLabel,
             attachmentUrl,
             imageChange,
-            deliveryAreaAdjustment
+            deliveryAreaAdjustment,
+            reviewBlind
         );
     }
 }

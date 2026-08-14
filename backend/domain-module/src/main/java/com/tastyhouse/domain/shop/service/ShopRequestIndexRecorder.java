@@ -90,6 +90,16 @@ public class ShopRequestIndexRecorder {
     }
 
     /**
+     * 리뷰 게시중단 요청의 상태 전이를 인덱스에 반영한다.
+     *
+     * <p>요청 유형이 {@link ShopRequestType#REVIEW_BLIND} 하나로 고정이라 유형을 인자로 받지 않는다
+     * (이미지 변경이 상표·대표이미지 2종으로 갈리는 것과 다른 점).
+     */
+    public void syncBlindRequestStatus(Long sourceRequestId, ApprovalStatus status, String rejectReason) {
+        syncStatus(ShopRequestType.REVIEW_BLIND, sourceRequestId, toRequestStatus(status), rejectReason);
+    }
+
+    /**
      * 취소를 인덱스에 반영한다. 취소는 사유 없는 종결이므로 {@code rejectReason}을 비운다.
      */
     public void syncCanceled(ShopRequestType requestType, Long sourceRequestId) {

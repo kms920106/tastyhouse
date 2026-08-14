@@ -1,7 +1,12 @@
 package com.tastyhouse.domain.shop.service;
 
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.review.model.ReviewBlindRequest;
+import com.tastyhouse.domain.review.repository.ReviewBlindRequestRepository;
+import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
@@ -31,15 +36,18 @@ public class ShopRequestCancelService {
 
     private final ShopImageChangeRequestRepository shopImageChangeRequestRepository;
     private final ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository;
+    private final ReviewBlindRequestRepository reviewBlindRequestRepository;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopRequestCancelService(
         ShopImageChangeRequestRepository shopImageChangeRequestRepository,
         ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
+        ReviewBlindRequestRepository reviewBlindRequestRepository,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
         this.shopImageChangeRequestRepository = shopImageChangeRequestRepository;
         this.shopDeliveryAreaAdjustmentRequestRepository = shopDeliveryAreaAdjustmentRequestRepository;
+        this.reviewBlindRequestRepository = reviewBlindRequestRepository;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
 
@@ -57,6 +65,7 @@ public class ShopRequestCancelService {
         switch (index.getRequestType()) {
             case TRADEMARK_CHANGE, THUMBNAIL_CHANGE -> cancelImageChange(sourceRequestId);
             case DELIVERY_AREA_ADJUSTMENT -> cancelAdjustment(sourceRequestId);
+            case REVIEW_BLIND -> cancelReviewBlind(sourceRequestId);
         }
 
         shopRequestIndexRecorder.syncCanceled(index.getRequestType(), sourceRequestId);
@@ -67,6 +76,24 @@ public class ShopRequestCancelService {
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
         request.cancel();
         shopImageChangeRequestRepository.save(request);
+    }
+
+    /**
+     * 리뷰 게시중단 요청을 취소한다.
+     *
+     * <p>PENDING이 아니면 애그리거트가 {@code REVIEW_BLIND_REQUEST_NOT_PENDING}을 던지지만, 통합
+     * 요청처리 화면의 취소는 유형과 무관하게 {@code SHOP_REQUEST_NOT_CANCELABLE} 하나로 응답해야 하므로
+     * 여기서 번역한다 — 프론트가 유형별 에러코드 N종을 알 필요가 없어야 한다는 「요청 취소 규칙」이다.
+     */
+    private void cancelReviewBlind(Long sourceRequestId) {
+        ReviewBlindRequest request = reviewBlindRequestRepository
+            .findById(ReviewBlindRequestId.of(sourceRequestId))
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+        if (request.getStatus() != ApprovalStatus.PENDING) {
+            throw new BusinessException(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
+        }
+        request.cancel();
+        reviewBlindRequestRepository.save(request);
     }
 
     private void cancelAdjustment(Long sourceRequestId) {

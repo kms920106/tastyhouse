@@ -14,6 +14,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.review.domain.service.FakeReviewBlindRequestRepository;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
@@ -55,7 +56,12 @@ class ShopRequestCancelServiceTest {
         adjustmentRepository = new FakeAdjustmentRepository();
         indexRepository = new RecordingShopRequestIndexRepository();
         recorder = new ShopRequestIndexRecorder(indexRepository);
-        service = new ShopRequestCancelService(imageRepository, adjustmentRepository, recorder);
+        service = new ShopRequestCancelService(
+            imageRepository,
+            adjustmentRepository,
+            new FakeReviewBlindRequestRepository(),
+            recorder
+        );
     }
 
     @Test

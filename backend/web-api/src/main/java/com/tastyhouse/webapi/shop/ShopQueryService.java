@@ -816,8 +816,14 @@ public class ShopQueryService {
             .toList();
     }
 
-    public ShopReviewsByRatingPageResponse getShopReviewsByRatingWithPagination(Long shopId, int page, int size, Boolean hasImage) {
-        ReviewsByRatingResult result = reviewQueryService.findShopReviewsByRating(shopId, page, size, hasImage);
+    public ShopReviewsByRatingPageResponse getShopReviewsByRatingWithPagination(
+        Long shopId,
+        int page,
+        int size,
+        Boolean hasImage,
+        String sortType
+    ) {
+        ReviewsByRatingResult result = reviewQueryService.findShopReviewsByRating(shopId, page, size, hasImage, sortType);
 
         Map<Integer, List<ShopReviewListItemResponse>> reviewsByRating = result.reviewsByRating().entrySet().stream()
             .collect(Collectors.toMap(

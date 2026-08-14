@@ -177,7 +177,13 @@ public class ShopApiController {
         @Valid @ModelAttribute ShopReviewSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        ShopReviewsByRatingPageResponse result = shopQueryService.getShopReviewsByRatingWithPagination(id, pageRequest.page(), pageRequest.size(), search.hasImage());
+        ShopReviewsByRatingPageResponse result = shopQueryService.getShopReviewsByRatingWithPagination(
+            id,
+            pageRequest.page(),
+            pageRequest.size(),
+            search.hasImage(),
+            search.sortType()
+        );
         ApiResponse<ShopReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
     }

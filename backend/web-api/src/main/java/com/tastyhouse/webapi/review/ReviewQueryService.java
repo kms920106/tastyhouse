@@ -34,6 +34,7 @@ import com.tastyhouse.infrastructure.review.query.ReviewDetailResult;
 import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewReplyItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
+import com.tastyhouse.infrastructure.review.query.ShopReviewDisplaySettingQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -72,6 +73,7 @@ public class ReviewQueryService {
 
     private final ReviewQueryDao reviewQueryDao;
     private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
+    private final ShopReviewDisplaySettingQueryDao shopReviewDisplaySettingQueryDao;
     private final MemberFollowRepository memberFollowRepository;
     private final ProductQueryDao productQueryDao;
     private final OrderProductRepository orderProductRepository;
@@ -79,12 +81,14 @@ public class ReviewQueryService {
     public ReviewQueryService(
         ReviewQueryDao reviewQueryDao,
         ReviewStatisticsQueryDao reviewStatisticsQueryDao,
+        ShopReviewDisplaySettingQueryDao shopReviewDisplaySettingQueryDao,
         MemberFollowRepository memberFollowRepository,
         ProductQueryDao productQueryDao,
         OrderProductRepository orderProductRepository
     ) {
         this.reviewQueryDao = reviewQueryDao;
         this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
+        this.shopReviewDisplaySettingQueryDao = shopReviewDisplaySettingQueryDao;
         this.memberFollowRepository = memberFollowRepository;
         this.productQueryDao = productQueryDao;
         this.orderProductRepository = orderProductRepository;
@@ -288,6 +292,17 @@ public class ReviewQueryService {
     }
 
     /**
+     * 적용할 정렬을 결정한다 — 고객의 명시적 선택 &gt; 점주 저장 설정 &gt; {@link ReviewSortType#LATEST}.
+     */
+    private ReviewSortType resolveSortType(Long shopId, String sortType) {
+        if (sortType != null) {
+            return ReviewSortType.from(sortType);
+        }
+        return shopReviewDisplaySettingQueryDao.findSortTypeByShopId(shopId)
+            .orElse(ReviewSortType.LATEST);
+    }
+
+    /**
      * 특정 회원이 쓴 리뷰 목록(대표 이미지 1장).
      */
     public PaginationResponse<ReviewMemberListItemResponse> findMemberReviews(Long memberId, int page, int size) {
@@ -302,16 +317,34 @@ public class ReviewQueryService {
 
     /**
      * 가게의 평점대별 리뷰 묶음 — 1~5점 각 5건과 전체 페이지, 전체 건수를 조합한다.
+     *
+     * <p>{@code sortType}이 <b>생략되면</b> 그 가게의 점주 저장 설정을 적용하고, 설정도 없으면
+     * {@link ReviewSortType#LATEST}다. <b>명시되면 그 값이 우선</b>한다 — 고객이 앱에서 정렬을 바꿔 볼 수
+     * 있어야 하므로 점주 설정이 명시적 선택을 덮어써서는 안 된다.
+     *
+     * <p>점주 설정을 write 포트가 아니라 {@code ShopReviewDisplaySettingQueryDao}로 읽는다 — 조회 전용
+     * 서비스에 write 포트를 주입하면 CQRS 교차 주입 금지 규칙을 어긴다.
      */
-    public ReviewsByRatingResult findShopReviewsByRating(Long shopId, int page, int size, Boolean hasImage) {
+    public ReviewsByRatingResult findShopReviewsByRating(
+        Long shopId,
+        int page,
+        int size,
+        Boolean hasImage,
+        String sortType
+    ) {
         Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
         for (int rating = 1; rating <= 5; rating++) {
             reviewsByRating.put(rating, reviewQueryDao.findReviewsByShopIdAndRating(shopId, rating, 5));
         }
 
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<LatestReviewListItemResult> allReviewsPage =
-            reviewQueryDao.findLatestReviewsByShopId(shopId, null, pageQuery, hasImage, ReviewSortType.LATEST);
+        PageResult<LatestReviewListItemResult> allReviewsPage = reviewQueryDao.findLatestReviewsByShopId(
+            shopId,
+            null,
+            pageQuery,
+            hasImage,
+            resolveSortType(shopId, sortType)
+        );
 
         Long totalReviewCount = reviewStatisticsQueryDao.countByShopIdAndHiddenFalse(shopId);
 

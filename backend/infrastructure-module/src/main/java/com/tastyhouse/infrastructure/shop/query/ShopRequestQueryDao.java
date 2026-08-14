@@ -19,6 +19,8 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
+import static com.tastyhouse.infrastructure.review.persistence.QReviewBlindRequestJpaEntity.reviewBlindRequestJpaEntity;
+import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopDeliveryAreaAdjustmentRequestJpaEntity.shopDeliveryAreaAdjustmentRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopRequestCommentJpaEntity.shopRequestCommentJpaEntity;
@@ -180,6 +182,32 @@ public class ShopRequestQueryDao {
             row.status(),
             row.rejectReason()
         ));
+    }
+
+    /**
+     * 리뷰 게시중단 요청 원본 투영. 상태·반려 사유의 진실원이라 함께 담는다.
+     *
+     * <p>대상 리뷰를 join해 내용·평점까지 담는다 — 통합 요청처리 상세에서 "무엇의 게시중단을 요청했는지"를
+     * 리뷰 관리 화면으로 이동하지 않고 확인할 수 있어야 한다. 첨부 파일이 없는 유형이라
+     * {@code UPLOADED_FILE} join은 없다.
+     */
+    public Optional<ShopRequestReviewBlindDetailResult> findReviewBlindDetail(Long sourceRequestId) {
+        ShopRequestReviewBlindDetailResult detail = queryFactory
+            .select(Projections.constructor(ShopRequestReviewBlindDetailResult.class,
+                reviewBlindRequestJpaEntity.reviewId,
+                reviewBlindRequestJpaEntity.reason,
+                reviewBlindRequestJpaEntity.detailReason,
+                reviewJpaEntity.content,
+                reviewJpaEntity.totalRating,
+                reviewBlindRequestJpaEntity.status,
+                reviewBlindRequestJpaEntity.rejectReason
+            ))
+            .from(reviewBlindRequestJpaEntity)
+            .leftJoin(reviewJpaEntity).on(reviewJpaEntity.id.eq(reviewBlindRequestJpaEntity.reviewId))
+            .where(reviewBlindRequestJpaEntity.id.eq(sourceRequestId))
+            .fetchOne();
+
+        return Optional.ofNullable(detail);
     }
 
     /**

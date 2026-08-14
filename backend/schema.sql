@@ -736,7 +736,8 @@ CREATE TABLE REVIEW
     created_at        DATETIME   NOT NULL,               -- 생성 일시
     updated_at        DATETIME   NOT NULL,               -- 수정 일시
     INDEX idx_review_product_id (product_id),            -- 인덱스: 상품별 조회
-    INDEX idx_review_order_id (order_id)                 -- 인덱스: 주문별 조회
+    INDEX idx_review_order_id (order_id),                -- 인덱스: 주문별 조회
+    INDEX idx_review_shop_id_created_at (shop_id, created_at) -- 인덱스: 가게별 최신순 조회·기간 통계 (점주 리뷰 관리)
 );
 
 CREATE TABLE REVIEW_COMMENT
@@ -806,6 +807,55 @@ CREATE TABLE REVIEW_TAG
     tag_id    BIGINT NOT NULL,                         -- 태그 ID (TAG.id 참조)
     INDEX idx_review_tag_review_id (review_id),        -- 인덱스: 리뷰별 조회
     INDEX idx_review_tag_tag_id (tag_id)               -- 인덱스: 태그별 조회
+);
+
+-- 사장님 답변 — 리뷰당 1건, 점주 전용.
+-- REVIEW_COMMENT 는 회원이 다는 댓글이고 member_id 만 있어 점주를 표현할 수 없으므로,
+-- 기존 회원 댓글/답글 구조를 건드리지 않고 별도 테이블로 둡니다(web/admin 회귀 차단).
+CREATE TABLE REVIEW_OWNER_REPLY
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,          -- 사장님 답변 ID (PK)
+    review_id  BIGINT   NOT NULL,                          -- 리뷰 ID (REVIEW.id 참조)
+    shop_id    BIGINT   NOT NULL,                          -- 가게 ID (SHOP.id 참조)
+    ceo_id     BIGINT   NOT NULL,                          -- 작성 점주 ID (CEO.id 참조)
+    content    TEXT     NOT NULL,                          -- 답변 내용 (최대 1000자, 애플리케이션 검증)
+    created_at DATETIME NOT NULL,                          -- 생성 일시
+    updated_at DATETIME NOT NULL,                          -- 수정 일시
+    UNIQUE KEY uk_review_owner_reply_review_id (review_id), -- 유니크: 리뷰당 답변 1건 제약의 물리적 보증
+    INDEX idx_review_owner_reply_shop_id (shop_id)          -- 인덱스: 가게별 조회(미답변 탭 판정 join)
+);
+
+-- 리뷰 게시중단 요청 — 점주 요청 → 관리자 심사 → 승인 시 REVIEW.is_hidden 반영.
+-- PENDING 중복은 UNIQUE 로 막을 수 없습니다(MySQL 부분 인덱스 미지원, 취소 후 재요청 허용 필요)
+-- → 애플리케이션의 existsByReviewIdAndStatus 가 차단합니다.
+CREATE TABLE REVIEW_BLIND_REQUEST
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 게시중단 요청 ID (PK)
+    review_id     BIGINT       NOT NULL,               -- 리뷰 ID (REVIEW.id 참조)
+    shop_id       BIGINT       NOT NULL,               -- 가게 ID (SHOP.id 참조)
+    ceo_id        BIGINT       NOT NULL,               -- 요청 점주 ID (CEO.id 참조)
+    reason        VARCHAR(20)  NOT NULL,               -- 요청 사유 (ADVERTISEMENT, PROFANITY, IRRELEVANT, PRIVACY, ETC)
+    detail_reason VARCHAR(500),                        -- 상세 사유 (reason=ETC 면 필수 / 그 외 선택)
+    status        VARCHAR(20)  NOT NULL,               -- 처리 상태 (PENDING, APPROVED, REJECTED, CANCELED)
+    reject_reason VARCHAR(500),                        -- 반려 사유 (REJECTED 일 때만 / 취소 시 비움)
+    created_at    DATETIME     NOT NULL,               -- 생성 일시 (= 요청 접수 시각)
+    updated_at    DATETIME     NOT NULL,               -- 수정 일시
+    INDEX idx_review_blind_request_review_id (review_id),                    -- 인덱스: 리뷰별 이력 조회
+    INDEX idx_review_blind_request_shop_id_created_at (shop_id, created_at), -- 인덱스: 가게별 최신순
+    INDEX idx_review_blind_request_status (status)                           -- 인덱스: 관리자 심사 대기 큐
+);
+
+-- 가게 리뷰 노출 정렬 설정 — 고객 앱 리뷰 탭의 기본 정렬을 점주가 정합니다.
+-- 설정 행이 없으면 LATEST 로 간주하므로 기존 가게 백필이 필요 없습니다.
+-- SHOP 에 컬럼을 추가하지 않는 이유: 리뷰 표시 설정이 늘어날 여지가 있고 SHOP 은 이미 컬럼이 19개입니다.
+CREATE TABLE SHOP_REVIEW_DISPLAY_SETTING
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 리뷰 노출 설정 ID (PK)
+    shop_id    BIGINT      NOT NULL,                               -- 가게 ID (SHOP.id 참조)
+    sort_type  VARCHAR(20) NOT NULL,                               -- 앱 노출 기본 정렬 (RECOMMENDED, LATEST, OLDEST)
+    created_at DATETIME    NOT NULL,                               -- 생성 일시
+    updated_at DATETIME    NOT NULL,                               -- 수정 일시
+    UNIQUE KEY uk_shop_review_display_setting_shop_id (shop_id)    -- 유니크: 가게당 설정 1행
 );
 
 CREATE TABLE TAG
@@ -1400,7 +1450,7 @@ CREATE TABLE SHOP_REQUEST_INDEX
 (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 요청 인덱스 ID (PK, 요청의 대외 식별자)
     shop_id             BIGINT       NOT NULL,              -- 가게 ID (SHOP.id 참조)
-    request_type        VARCHAR(40)  NOT NULL,              -- 요청 유형 (TRADEMARK_CHANGE, THUMBNAIL_CHANGE, DELIVERY_AREA_ADJUSTMENT)
+    request_type        VARCHAR(40)  NOT NULL,              -- 요청 유형 (TRADEMARK_CHANGE, THUMBNAIL_CHANGE, DELIVERY_AREA_ADJUSTMENT, REVIEW_BLIND)
     source_request_id   BIGINT       NOT NULL,              -- 원본 요청 행 ID (유형별 원본 테이블의 id 참조)
     summary             VARCHAR(255) NOT NULL,              -- 요청 내용 한 줄 요약 (목록의 "무엇을 요청했는지")
     status              VARCHAR(20)  NOT NULL,              -- 통합 상태 (PENDING, IN_PROGRESS, APPROVED, REJECTED, CANCELED)

@@ -22,6 +22,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopRequestDetailResult;
 import com.tastyhouse.infrastructure.shop.query.ShopRequestImageChangeDetailResult;
 import com.tastyhouse.infrastructure.shop.query.ShopRequestListItemResult;
 import com.tastyhouse.infrastructure.shop.query.ShopRequestQueryDao;
+import com.tastyhouse.infrastructure.shop.query.ShopRequestReviewBlindDetailResult;
 import com.tastyhouse.infrastructure.shop.query.ShopRequestSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopRequestAdjustmentResponse;
@@ -29,6 +30,7 @@ import com.tastyhouse.ceoapi.shop.response.ShopRequestCommentResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopRequestDetailResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopRequestImageChangeResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopRequestListItemResponse;
+import com.tastyhouse.ceoapi.shop.response.ShopRequestReviewBlindResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopRequestStatusResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopRequestTypeCatalogResponse;
 import com.tastyhouse.ceoapi.shop.response.ShopRequestTypeResponse;
@@ -113,6 +115,7 @@ public class ShopRequestQueryService {
         return switch (detail.requestType()) {
             case TRADEMARK_CHANGE, THUMBNAIL_CHANGE -> toImageChangeDetailResponse(detail);
             case DELIVERY_AREA_ADJUSTMENT -> toAdjustmentDetailResponse(detail);
+            case REVIEW_BLIND -> toReviewBlindDetailResponse(detail);
         };
     }
 
@@ -170,6 +173,7 @@ public class ShopRequestQueryService {
             status.getDescription(),
             source.rejectReason(),
             imageChange,
+            null,
             null
         );
     }
@@ -185,6 +189,35 @@ public class ShopRequestQueryService {
             case REJECTED -> ShopRequestStatus.REJECTED;
             case CANCELED -> ShopRequestStatus.CANCELED;
         };
+    }
+
+    /**
+     * 리뷰 게시중단 요청 상세를 조립한다. 첨부 파일이 없는 유형이라 {@code attachmentUrl}은 항상 null이며,
+     * 대신 대상 리뷰의 내용·평점을 서브 객체에 담는다.
+     */
+    private ShopRequestDetailResponse toReviewBlindDetailResponse(ShopRequestDetailResult detail) {
+        ShopRequestReviewBlindDetailResult source =
+            shopRequestQueryDao.findReviewBlindDetail(detail.sourceRequestId())
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+
+        ShopRequestReviewBlindResponse reviewBlind = ShopRequestReviewBlindResponse.from(
+            source.reviewId(),
+            source.reason().name(),
+            source.reason().getDescription(),
+            source.detailReason(),
+            source.reviewContent(),
+            source.reviewTotalRating()
+        );
+        ShopRequestStatus status = toRequestStatus(source.status());
+        return toDetailResponse(
+            detail,
+            status.name(),
+            status.getDescription(),
+            source.rejectReason(),
+            null,
+            null,
+            reviewBlind
+        );
     }
 
     private ShopRequestDetailResponse toAdjustmentDetailResponse(ShopRequestDetailResult detail) {
@@ -206,7 +239,8 @@ public class ShopRequestQueryService {
             status.getDescription(),
             source.rejectReason(),
             null,
-            adjustment
+            adjustment,
+            null
         );
     }
 
@@ -230,7 +264,8 @@ public class ShopRequestQueryService {
         String statusDescription,
         String rejectReason,
         ShopRequestImageChangeResponse imageChange,
-        ShopRequestAdjustmentResponse deliveryAreaAdjustment
+        ShopRequestAdjustmentResponse deliveryAreaAdjustment,
+        ShopRequestReviewBlindResponse reviewBlind
     ) {
         ShopRequestType requestType = detail.requestType();
         return ShopRequestDetailResponse.from(
@@ -249,7 +284,8 @@ public class ShopRequestQueryService {
             requestType.getAttachmentLabel(),
             detail.attachmentUrl(),
             imageChange,
-            deliveryAreaAdjustment
+            deliveryAreaAdjustment,
+            reviewBlind
         );
     }
 

@@ -17,12 +17,16 @@ final class ReviewMapper {
 
     /**
      * JPA 엔티티를 도메인 모델로 재구성한다(조회 경로).
+     *
+     * <p>{@code product_id}는 컬럼이 NOT NULL이지만, 삭제된 REVIEW_PRODUCT 애그리거트의 레거시 값으로
+     * {@code 0}이 광범위하게 남아 있다. {@code ProductId} VO는 0을 양수가 아니라며 거부하므로, 0은 null과
+     * 동일하게 "상품 미상"으로 취급해 승격을 건너뛴다.
      */
     static Review toDomain(ReviewJpaEntity entity) {
         return Review.reconstitute(
             entity.getId(),
             IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
+            IdMapping.vo(normalizeProductId(entity.getProductId()), ProductId::of),
             IdMapping.vo(entity.getMemberId(), MemberId::of),
             entity.getContent(),
             entity.getTotalRating(),
@@ -59,6 +63,10 @@ final class ReviewMapper {
             IdMapping.raw(domain.getOrderId(), OrderId::value),
             domain.isHidden()
         );
+    }
+
+    private static Long normalizeProductId(Long rawProductId) {
+        return rawProductId == null || rawProductId <= 0 ? null : rawProductId;
     }
 
     /**
