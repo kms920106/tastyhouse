@@ -397,7 +397,18 @@ export const ADJUSTMENT_REASON_MAX = 1000;
 /** 상대 가맹점 상호명·가맹본부명 최대 길이 */
 export const ADJUSTMENT_NAME_MAX = 255;
 
-export const DELIVERY_AREA_ADJUSTMENT_STATUS_OPTIONS = ["PENDING", "IN_PROGRESS", "COMPLETED", "REJECTED"] as const;
+/**
+ * 배달지역 조정 신청 상태 — 백엔드 `DeliveryAreaAdjustmentStatus` enum 5종과 1:1 로 대응한다.
+ * 여기서 상태를 빠뜨리면 `_LABEL` 조회가 `undefined` 가 되어 배지가 빈 채로 렌더되므로,
+ * enum 이 늘어나면 이 배열과 아래 라벨표를 함께 갱신한다.
+ */
+export const DELIVERY_AREA_ADJUSTMENT_STATUS_OPTIONS = [
+  "PENDING",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "REJECTED",
+  "CANCELED",
+] as const;
 export type DeliveryAreaAdjustmentStatusOption = (typeof DELIVERY_AREA_ADJUSTMENT_STATUS_OPTIONS)[number];
 
 export const DELIVERY_AREA_ADJUSTMENT_STATUS_LABEL: Record<DeliveryAreaAdjustmentStatusOption, string> = {
@@ -405,6 +416,7 @@ export const DELIVERY_AREA_ADJUSTMENT_STATUS_LABEL: Record<DeliveryAreaAdjustmen
   IN_PROGRESS: "조정 중",
   COMPLETED: "조정 완료",
   REJECTED: "반려",
+  CANCELED: "취소",
 };
 
 /** 아직 종결되지 않은 상태 — 중복 신청을 막는 판정에 쓴다 */

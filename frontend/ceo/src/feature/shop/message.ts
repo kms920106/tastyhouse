@@ -342,8 +342,10 @@ export const SHOP_REQUEST_COPY = {
   DATE_RANGE_INVALID: "조회 시작일이 종료일보다 늦습니다.",
   CATALOG_LOAD_FAILED: "요청 유형 정보를 불러오지 못했습니다.",
   DETAIL_LOAD_FAILED: "요청 상세를 불러오지 못했습니다.",
-  /** URL 의 shopId 가 내 가게 목록에 없어 첫 가게로 대체했을 때 */
-  SHOP_FALLBACK_NOTICE: "요청하신 가게를 찾을 수 없어 다른 가게의 요청 내역을 표시합니다.",
+  /** URL 의 shopId 가 소유하지 않은 가게일 때 (서버 403) */
+  SHOP_ACCESS_DENIED: "접근 권한이 없는 가게입니다.",
+  /** URL 의 shopId 가 존재하지 않는 가게일 때 (서버 404) */
+  SHOP_NOT_FOUND: "가게를 찾을 수 없습니다.",
 
   // 목록·상세 항목
   REQUESTED_AT: "신청일",

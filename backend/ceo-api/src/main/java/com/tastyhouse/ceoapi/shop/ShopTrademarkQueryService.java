@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.infrastructure.shop.query.ShopImageChangeRequestResult;
 import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
@@ -34,7 +35,7 @@ public class ShopTrademarkQueryService {
         String trademarkImageUrl = shopQueryDao.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::trademarkImageUrl)
             .orElse(null);
-        return toShopImageStatusResponse(trademarkImageUrl, shopId);
+        return toShopImageStatusResponse(trademarkImageUrl, shopId, ShopImageType.TRADEMARK);
     }
 
     public ShopImageStatusResponse getThumbnailStatus(Long ceoId, Long shopId) {
@@ -42,11 +43,15 @@ public class ShopTrademarkQueryService {
         String thumbnailImageUrl = shopQueryDao.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::thumbnailImageUrl)
             .orElse(null);
-        return toShopImageStatusResponse(thumbnailImageUrl, shopId);
+        return toShopImageStatusResponse(thumbnailImageUrl, shopId, ShopImageType.THUMBNAIL);
     }
 
-    private ShopImageStatusResponse toShopImageStatusResponse(String currentImageUrl, Long shopId) {
-        List<ShopImageChangeRequestItemResponse> requests = shopQueryDao.findImageChangeRequests(shopId).stream()
+    private ShopImageStatusResponse toShopImageStatusResponse(
+        String currentImageUrl,
+        Long shopId,
+        ShopImageType imageType
+    ) {
+        List<ShopImageChangeRequestItemResponse> requests = shopQueryDao.findImageChangeRequests(shopId, imageType).stream()
             .map(this::toShopImageChangeRequestItemResponse)
             .toList();
         return ShopImageStatusResponse.of(currentImageUrl, requests);

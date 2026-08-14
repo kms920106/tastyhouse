@@ -253,11 +253,17 @@ public class ShopQueryDao {
     // ------------------------------------------------------- 이미지 변경요청
 
     /**
-     * 가게의 이미지 변경요청 목록(점주 화면) — 최근 요청 순.
+     * 가게의 이미지 변경요청 목록(점주 화면) — 이미지 유형별로 걸러 최근 요청 순.
+     *
+     * <p>상표·대표이미지는 화면에서 각각 독립된 항목으로 "검수 대기 중" 배지를 표시하므로,
+     * 유형 필터 없이 반환하면 한쪽 유형의 PENDING 요청이 다른 쪽 배지까지 켠다.
      */
-    public List<ShopImageChangeRequestResult> findImageChangeRequests(Long shopId) {
+    public List<ShopImageChangeRequestResult> findImageChangeRequests(Long shopId, ShopImageType imageType) {
         return imageChangeRequestProjection()
-            .where(shopImageChangeRequestJpaEntity.shopId.eq(shopId))
+            .where(
+                shopImageChangeRequestJpaEntity.shopId.eq(shopId),
+                imageChangeImageTypeEq(imageType)
+            )
             .orderBy(shopImageChangeRequestJpaEntity.id.desc())
             .fetch()
             .stream()

@@ -11,14 +11,22 @@ const PAGE_SIZE = 10;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
- * `yyyy-MM-dd` 형식이 아니면 필터를 걸지 않는다.
+ * `yyyy-MM-dd` 형식이 아니거나, 형식은 맞아도 실존하지 않는 날짜(예: `2026-13-99`)면 필터를 걸지 않는다.
  *
  * 시작일 > 종료일 같은 범위 판정은 서버가 하고(400 `SHOP_REQUEST_DATE_RANGE_INVALID`),
- * 여기서는 형식만 본다 — 범위를 프론트에서 잘라내면 사용자에게 "왜 비었는지"가 안 보인다.
+ * 여기서는 형식·유효성만 본다 — 범위를 프론트에서 잘라내면 사용자에게 "왜 비었는지"가 안 보인다.
+ * 정규식은 자릿수만 검사하므로, `Date.UTC` 왕복 비교로 존재하는 날짜인지 재확인한다
+ * (`new Date(2026, 12, 99)`처럼 월/일 오버플로를 다음 달/해로 조용히 보정하는 것을 막기 위함).
  */
 function parseDate(value: string | string[] | undefined): string | undefined {
   const raw = parseSearchString(value);
-  return raw && DATE_PATTERN.test(raw) ? raw : undefined;
+  if (!raw || !DATE_PATTERN.test(raw)) return undefined;
+
+  const [year, month, day] = raw.split("-").map(Number);
+  const timestamp = Date.UTC(year, month - 1, day);
+  const isRealDate = new Date(timestamp).toISOString().slice(0, 10) === raw;
+
+  return isRealDate ? raw : undefined;
 }
 
 /**
@@ -81,20 +89,20 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
     return <ShopRequestView shops={[]} requestTypes={requestTypes} statuses={statuses} filters={filters} page={page} />;
   }
 
-  // 보유하지 않은 가게를 찍고 들어와도 첫 가게로 대체한다 — 가게 관리 라우트와 같은 규칙.
-  // 조용히 바꾸면 사용자가 "요청한 가게가 아닌 다른 가게"를 보고 있는 것을 알 수 없으므로,
-  // 실제로 대체가 일어났으면 뷰에 알려 안내 문구를 띄운다.
-  // shopId 미지정(기본 진입)은 대체가 아니라 기본 선택이므로 안내 대상이 아니다.
+  // shopId 미지정(기본 진입)만 첫 가게로 대체한다. shopId 를 지정했는데 내 목록에 없으면
+  // — 소유하지 않은 가게이거나 존재하지 않는 가게이므로 — 조용히 다른 가게로 바꿔치기하지 않고
+  // 지정된 shopId 그대로 백엔드에 조회를 위임해 403/404 인가 검증이 그대로 드러나게 한다.
+  const isShopIdSpecified = parseSearchString(shopIdParam) !== undefined;
   const matchedShop = shops.find((shop) => shop.id === requestedShopId);
-  const selectedShop = matchedShop ?? shops[0];
-  const isShopFallback = parseSearchString(shopIdParam) !== undefined && matchedShop === undefined;
+  const selectedShopId = isShopIdSpecified ? requestedShopId : (matchedShop?.id ?? shops[0].id);
 
-  const listResult = await shopRequestService.getList(selectedShop.id, filters, { page, size: PAGE_SIZE });
+  const listResult = await shopRequestService.getList(selectedShopId, filters, { page, size: PAGE_SIZE });
 
   // 목록 조회 실패는 필터바를 죽이지 않는다 — 목록만 undefined 로 넘겨 뷰에서 에러 문구를 띄운다.
+  // (소유하지 않거나 존재하지 않는 shopId 는 여기서 403/404 로 드러난다.)
   if (listResult.error || !listResult.data) {
     logger.error(
-      { reason: listResult.error, errorCode: listResult.errorCode, shopId: selectedShop.id },
+      { reason: listResult.error, errorCode: listResult.errorCode, shopId: selectedShopId },
       "가게 요청 목록 조회 실패 — 필터바만 렌더",
     );
   }
@@ -105,8 +113,8 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
   const [detailResult, commentsResult] =
     requestId > 0
       ? await Promise.all([
-          shopRequestService.getDetail(selectedShop.id, requestId),
-          shopRequestService.getComments(selectedShop.id, requestId),
+          shopRequestService.getDetail(selectedShopId, requestId),
+          shopRequestService.getComments(selectedShopId, requestId),
         ])
       : [undefined, undefined];
 
@@ -120,8 +128,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
   return (
     <ShopRequestView
       shops={shops}
-      shopId={selectedShop.id}
-      isShopFallback={isShopFallback}
+      shopId={selectedShopId}
       requestTypes={requestTypes}
       statuses={statuses}
       filters={filters}

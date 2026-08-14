@@ -116,7 +116,7 @@ export interface ShopDeliveryAreaItemResponse {
 
 // ===== 배달지역 조정 신청 =====
 
-export type DeliveryAreaAdjustmentStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "REJECTED";
+export type DeliveryAreaAdjustmentStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "REJECTED" | "CANCELED";
 
 export interface DeliveryAreaAdjustmentItemResponse {
   id: number;

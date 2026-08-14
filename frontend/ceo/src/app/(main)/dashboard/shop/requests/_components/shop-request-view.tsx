@@ -47,8 +47,6 @@ interface ShopRequestViewProps {
   shops: ShopSummary[];
   /** 가게 0건이면 undefined */
   shopId?: number;
-  /** URL 의 shopId 가 내 가게 목록에 없어 첫 가게로 대체됐는지 */
-  isShopFallback?: boolean;
   requestTypes: ShopRequestTypeOption[];
   statuses: ShopRequestStatusOption[];
   filters: ShopRequestFilterState;
@@ -68,7 +66,6 @@ interface ShopRequestViewProps {
 export function ShopRequestView({
   shops,
   shopId,
-  isShopFallback = false,
   requestTypes,
   statuses,
   filters,
@@ -133,7 +130,11 @@ export function ShopRequestView({
   const inlineError = errorMessage
     ? errorCode === DATE_RANGE_INVALID_CODE
       ? SHOP_REQUEST_COPY.DATE_RANGE_INVALID
-      : SHOP_REQUEST_COPY.LOAD_FAILED
+      : errorCode === "SHOP_ACCESS_DENIED"
+        ? SHOP_REQUEST_COPY.SHOP_ACCESS_DENIED
+        : errorCode === "SHOP_NOT_FOUND"
+          ? SHOP_REQUEST_COPY.SHOP_NOT_FOUND
+          : SHOP_REQUEST_COPY.LOAD_FAILED
     : undefined;
 
   return (
@@ -166,10 +167,6 @@ export function ShopRequestView({
           </Empty>
         ) : (
           <>
-            {isShopFallback && (
-              <p className="text-muted-foreground text-sm">{SHOP_REQUEST_COPY.SHOP_FALLBACK_NOTICE}</p>
-            )}
-
             <ShopRequestFilters
               requestTypes={requestTypes}
               statuses={statuses}
