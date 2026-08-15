@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.member.follow.domain.service.MemberFollowService;
+import com.tastyhouse.domain.member.follow.service.MemberFollowService;
 
 /**
  * 팔로우 명령 서비스.

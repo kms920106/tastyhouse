@@ -37,7 +37,7 @@
 ### Working In This Directory
 - 새 기능 추가 시 admin-api와 동일한 도메인-폴더 + `request/`·`response/` 컨벤션, `{도메인}CommandService`/`{도메인}QueryService` CQRS 중개 계층, DTO 조립·`@ModelAttribute` 조회·`@PathVariable id` 통일·`@Schema` 문서화 규칙을 그대로 따른다. 상세·근거·예시는 루트 CLAUDE.md 및 `admin-api/AGENTS.md` 참고.
 - **import 순서 — presentation 내부 서브정렬**: 자사 import의 presentation 계층(`com.tastyhouse.ceoapi.*`) 안에서 공용 인프라(`common`·`config`)를 도메인 전용(`<도메인>.request`·`.response`)보다 위에 둔다. 상세는 루트 CLAUDE.md 참고.
-- **불변식은 `domain-module`에 둔다** — 한 트랜잭션에서 2개 이상 애그리거트를 다루는 오케스트레이션과 무상태 정책·검증기(`ProhibitedWordValidator` 등)는 `<ctx>/domain/service/` POJO로 내리고, 이 모듈의 CommandService는 트랜잭션 경계·소유권 검증·VO 승격·명시적 `save` 호출·응답 조립만 담당한다. 도메인 모델은 POJO라 더티 체킹이 없으므로 변경 후 반드시 `repository.save(domain)`을 호출한다. `domain-module`의 write 포트·도메인 서비스와 infra `{도메인}QueryDao`는 web-api/admin-api와 공유되므로, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
+- **불변식은 `domain-module`에 둔다** — 한 트랜잭션에서 2개 이상 애그리거트를 다루는 오케스트레이션과 무상태 정책·검증기(`ProhibitedWordValidator` 등)는 `<ctx>/service/` POJO로 내리고, 이 모듈의 CommandService는 트랜잭션 경계·소유권 검증·VO 승격·명시적 `save` 호출·응답 조립만 담당한다. 도메인 모델은 POJO라 더티 체킹이 없으므로 변경 후 반드시 `repository.save(domain)`을 호출한다. `domain-module`의 write 포트·도메인 서비스와 infra `{도메인}QueryDao`는 web-api/admin-api와 공유되므로, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
 
 ### Testing Requirements
 - `@SpringBootTest` 기반 컨텍스트 로드/컨트롤러 검증.

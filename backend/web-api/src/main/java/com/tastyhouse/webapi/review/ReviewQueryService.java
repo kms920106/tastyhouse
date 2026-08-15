@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.member.follow.domain.repository.MemberFollowRepository;
+import com.tastyhouse.domain.member.follow.repository.MemberFollowRepository;
 import com.tastyhouse.domain.order.model.OrderProduct;
 import com.tastyhouse.domain.order.repository.OrderProductRepository;
 import com.tastyhouse.domain.order.vo.OrderProductId;

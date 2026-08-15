@@ -7,7 +7,7 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.repository.MemberRepository;
-import com.tastyhouse.domain.member.referral.domain.service.ReferralRegistrationService;
+import com.tastyhouse.domain.member.referral.service.ReferralRegistrationService;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;

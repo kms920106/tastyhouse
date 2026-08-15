@@ -11,7 +11,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.member.referral.domain.model.MemberReferralStatus;
+import com.tastyhouse.domain.member.referral.model.MemberReferralStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**

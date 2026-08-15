@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.member.follow.persistence;
 
-import com.tastyhouse.domain.member.follow.domain.model.MemberFollow;
+import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 

@@ -5,7 +5,7 @@
 
 ## Purpose
 
-DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거주하는 핵심 계층입니다. **프레임워크 의존이 전혀 없습니다** — Spring(Web/tx/orm)·JPA(`jakarta.persistence`)·QueryDSL(`com.querydsl`)을 import하지 않으며, 이 모듈의 production 의존은 **하나도 없습니다**(Lombok까지 제거되어 접근자·생성자를 수기로 작성합니다). 각 Bounded Context는 `<ctx>/domain/{model,vo,event,repository,service,port}` 구조를 가지며, 여기에 공유 커널(`shared/`)과 공통 예외(`exception/`)가 더해집니다.
+DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거주하는 핵심 계층입니다. **프레임워크 의존이 전혀 없습니다** — Spring(Web/tx/orm)·JPA(`jakarta.persistence`)·QueryDSL(`com.querydsl`)을 import하지 않으며, 이 모듈의 production 의존은 **하나도 없습니다**(Lombok까지 제거되어 접근자·생성자를 수기로 작성합니다). 각 Bounded Context는 `<ctx>/{model,vo,event,repository,service,port}` 구조를 가지며, 여기에 공유 커널(`shared/`)과 공통 예외(`exception/`)가 더해집니다.
 
 > 과거 이 패키지는 `com.tastyhouse.core`였고 도메인마다 `application/`(서비스·DTO)과 `infrastructure/`(JPA 구현)를 함께 갖고 있었습니다. `core-module` → `domain-module` 전환으로 **`application/`은 해체**(조회는 infrastructure-module `<ctx>/query/`, 액터 특화 command는 각 소비 모듈의 CQRS 서비스, 불변식 오케스트레이션은 `domain/service/`로 하강)되고 **`infrastructure/`는 `infrastructure-module`로 이동**했습니다. 이 패키지에는 이제 domain·shared·exception만 남습니다.
 
@@ -82,9 +82,9 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 - 외부 BC의 애그리거트는 ID VO로만 참조한다(예: `Order.memberId : MemberId`, `Payment.orderId : OrderId`).
 - `XxxId`는 `record XxxId(Long value)` + compact constructor 검증 + 정적 팩토리 `of(Long)`. `new`는 `of()` 내부에만 남긴다. JPA 매핑용 `AttributeConverter`는 infrastructure-module(`<ctx>/persistence/XxxIdConverter`)에 있다.
 
-**도메인 서비스 규칙 (`<ctx>/domain/service/`)**:
+**도메인 서비스 규칙 (`<ctx>/service/`)**:
 - `@Service`/`@Component`/`@Transactional`을 붙이지 않는 **순수 POJO**다. 빈 등록은 infrastructure-module의 `DomainServiceConfig`가 `@Bean` 팩토리로 수행하고, 트랜잭션 경계는 이를 호출하는 api 모듈의 `{도메인}CommandService`가 소유한다.
-- 여기 두는 것: (C) 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 **불변식 오케스트레이션**(reference: `order/domain/service/OrderPlacementService`, `payment/domain/service/PaymentConfirmationService`·`PaymentCancellationService`, `point/domain/service/PointLedgerService`, `reservation/domain/service/ReservationBookingService`), (D) **무상태 정책·검증기**(reference: `faq/domain/service/FaqCategoryDeletionPolicy`, `shop/domain/service/ProhibitedWordValidator`).
+- 여기 두는 것: (C) 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 **불변식 오케스트레이션**(reference: `order/service/OrderPlacementService`, `payment/service/PaymentConfirmationService`·`PaymentCancellationService`, `point/service/PointLedgerService`, `reservation/service/ReservationBookingService`), (D) **무상태 정책·검증기**(reference: `faq/service/FaqCategoryDeletionPolicy`, `shop/service/ProhibitedWordValidator`).
 - 소비 모듈로 복제하지 않는다 — 특정 api 모듈에 두면 다른 모듈이 같은 유스케이스를 실행할 때 불변식이 우회된다.
 
 **Service 분할 규칙 (CQS)** — api 모듈 측:
@@ -99,7 +99,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 ### Testing Requirements
 
 - **순수 단위 테스트**(`domain-module/src/test`)로 불변식·상태전이를 검증한다 — 스프링 컨텍스트·DB 불필요. 현재 도메인 단위 테스트 368개가 전부 통과 상태다.
-- 새 애그리거트·상태전이 추가 시 대응 `XxxTest`를 함께 추가한다(reference: `notice/domain/model/NoticeTest`).
+- 새 애그리거트·상태전이 추가 시 대응 `XxxTest`를 함께 추가한다(reference: `notice/model/NoticeTest`).
 - `ddl-auto=validate` 스키마 정합성·enum `columnDefinition` 검증은 JPA 엔티티를 소유한 `infrastructure-module` 책임이다.
 - 레이어 경계 회귀는 api 4개 모듈의 `architecture/LayerRulesTest`(ArchUnit)가 지킨다.
 
@@ -107,7 +107,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 
 **Repository write 포트 + load-copy-save**:
 ```java
-// domain/<ctx>/domain/repository/NoticeRepository.java (이 패키지 — 인터페이스만)
+// domain/<ctx>/repository/NoticeRepository.java (이 패키지 — 인터페이스만)
 public interface NoticeRepository {
     Optional<Notice> findById(NoticeId noticeId);
     Notice save(Notice notice);
@@ -132,7 +132,7 @@ public class Notice {
     public static Notice reconstitute(Long id, ..., LocalDateTime createdAt, LocalDateTime updatedAt) { ... }
 }
 ```
-- 상태전이로 재대입되지 않는 필드는 `final`로 선언한다(reference: `admin/domain/model/Admin` — update 경로가 없어 전 필드 `final`).
+- 상태전이로 재대입되지 않는 필드는 `final`로 선언한다(reference: `admin/model/Admin` — update 경로가 없어 전 필드 `final`).
 - **명시적 save 필수**: POJO는 JPA 더티 체킹으로 자동 flush되지 않으므로 변경 후 반드시 `repository.save(domain)`을 호출한다. 누락하면 변경이 조용히 유실된다.
 
 **`@Embedded` 대상 VO는 `record`**:
@@ -166,7 +166,7 @@ JPA 매핑용 `AttributeConverter`(`OrderIdConverter`)는 infrastructure-module�
 
 **DomainEvent (발행은 포트 경유, 리스너는 infra)**:
 ```java
-// domain/<ctx>/domain/event/XxxEvent.java (이 패키지 — record)
+// domain/<ctx>/event/XxxEvent.java (이 패키지 — record)
 public record MemberRegisteredEvent(MemberId memberId, LocalDateTime registeredAt) { }
 
 // domain/shared/event/DomainEventPublisher.java (이 패키지 — 출력 포트)
@@ -181,10 +181,10 @@ public interface DomainEventPublisher {
 
 **출력 포트 (external-api가 구현)**:
 ```java
-// domain/mail/domain/port/MailSender.java
-// domain/sms/domain/port/SmsSender.java
-// domain/file/domain/port/FileStoragePort.java
-// domain/payment/domain/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등)
+// domain/mail/port/MailSender.java
+// domain/sms/port/SmsSender.java
+// domain/file/port/FileStoragePort.java
+// domain/payment/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등)
 ```
 
 **QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryDao` 규칙이다 — 상세와 reference(`notice/query/NoticeQueryDao`)는 `infrastructure-module/AGENTS.md` 참고.

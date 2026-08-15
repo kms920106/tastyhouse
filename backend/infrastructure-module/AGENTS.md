@@ -1,6 +1,6 @@
 # infrastructure-module
 
-`domain-module`의 순수 도메인 모델을 영속화하고, 표현 목적 조회를 캡슐화하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 `domain-module`이 선언한 포트(`<ctx>/domain/repository/XxxRepository` write 포트, `shared/event/DomainEventPublisher`)를 JPA/QueryDSL/Spring으로 구현한다. `external-api`가 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
+`domain-module`의 순수 도메인 모델을 영속화하고, 표현 목적 조회를 캡슐화하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 `domain-module`이 선언한 포트(`<ctx>/repository/XxxRepository` write 포트, `shared/event/DomainEventPublisher`)를 JPA/QueryDSL/Spring으로 구현한다. `external-api`가 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
 
 **QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하며, api 모듈은 그 DAO와 Result DTO만 주입·import한다.
 
@@ -8,7 +8,7 @@
 
 ```
 com.tastyhouse.infrastructure/
-├── DomainServiceConfig.java              @Configuration — domain <ctx>/domain/service/ POJO들의 @Bean 등록
+├── DomainServiceConfig.java              @Configuration — domain <ctx>/service/ POJO들의 @Bean 등록
 ├── InfrastructurePersistenceConfig.java  @EnableJpaRepositories/@EntityScan(basePackageClasses) +
 │                                         @EnableJpaAuditing + @EnableTransactionManagement
 ├── config/QueryDslConfig.java            JPAQueryFactory 빈
@@ -42,7 +42,7 @@ com.tastyhouse.infrastructure/
 - **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotRepositoryImpl`). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(도메인의 `ResourceNotFoundException`과 무관한 JPA 예외)이 던져질 수 있는데, `GlobalExceptionHandler`는 도메인 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
 - **엔티티 enum 매핑**: 항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지. DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 루트 `CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
-- **도메인 서비스 빈 등록은 `DomainServiceConfig`가 전담**: domain의 `<ctx>/domain/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 이 `@Configuration`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. domain에 새 도메인 서비스를 추가하면 여기에 `@Bean` 메서드를 함께 추가해야 한다(누락 시 부팅 시 주입 실패).
+- **도메인 서비스 빈 등록은 `DomainServiceConfig`가 전담**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 이 `@Configuration`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. domain에 새 도메인 서비스를 추가하면 여기에 `@Bean` 메서드를 함께 추가해야 한다(누락 시 부팅 시 주입 실패).
 - **이벤트 리스너는 `<ctx>/listener/`에 둔다**: 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 리스너가 없어 누락되므로, 크로스커팅 리스너는 모든 실행 모듈이 스캔하는 이 모듈에 둔다.
 
 reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl` — 단건 로드·저장만), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).

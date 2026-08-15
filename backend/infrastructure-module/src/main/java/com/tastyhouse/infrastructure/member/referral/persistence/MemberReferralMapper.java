@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.member.referral.persistence;
 
-import com.tastyhouse.domain.member.referral.domain.model.MemberReferral;
+import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 

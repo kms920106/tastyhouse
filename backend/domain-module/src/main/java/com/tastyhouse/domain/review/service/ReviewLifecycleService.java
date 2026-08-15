@@ -52,7 +52,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * {@code ProductReviewEventListener}는 이번 작업 범위 밖이다. 발행측만 위 포트로 교체했고 리스너는
  * 건드리지 않았다. 다만 리스너가 쓰던 리뷰 통계 조회는 write 포트 순수화로 {@code ReviewRepository}에서
  * 사라졌으므로, 그 자리를 도메인 포트
- * {@code com.tastyhouse.domain.product.domain.port.ProductReviewStatisticsPort}(infra 어댑터가
+ * {@code com.tastyhouse.domain.product.port.ProductReviewStatisticsPort}(infra 어댑터가
  * {@code ReviewQueryDao}에 위임)로 대체해 두었다. 리스너를
  * {@code infrastructure/product/listener/}로 옮길 때 이 포트를 그대로 쓰거나, infra 안에서는 DAO를
  * 직접 주입하도록 정리하면 된다.
