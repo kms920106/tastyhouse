@@ -699,6 +699,37 @@ reference 구현: `notice` 도메인 — `infrastructure-module/.../notice/query
 
 reference 구현: `domain-module/.../notice/repository/NoticeRepository`(`findById`/`save` 둘만 노출 — 목록·검색·페이징은 전부 `infrastructure-module/.../notice/query/NoticeQueryDao`가 담당하며, 그 의도를 인터페이스 Javadoc에 명시). 락 획득 조회 사례: `reservation` 도메인의 `ReservationSlotRepository`(`saveAndFlush`로 `@Version` 충돌을 커밋 전에 노출). 기준 위반을 사후 교정한 사례: `file` 도메인의 `UploadedFileRepository`가 응답 URL 변환용으로 `findFilePath`(단건 default)·`findFilePaths`(배치)를 갖고 있었으나, 둘 다 "화면에 뿌릴 값"을 얻는 조회여서 이 기준에 맞지 않았고 조회를 DAO join으로 옮긴 뒤 호출부가 0이 되어 제거했다(현재는 `save`/`findById`만 노출). 애그리거트를 로드해 그 fileId를 표현용으로만 쓰던 5개 경로도 같은 기준으로 `ShopQueryDao#findShopImageUrls`·`MemberQueryDao#findProfileImageUrl` 투영으로 이관했다 — 다만 그 경로들은 응답의 다른 필드나 소유권 검증(ceo-api `validateOwnership`) 때문에 애그리거트 로드 자체는 계속 필요하므로, **이미지 URL만** 투영으로 분리했다.
 
+## 도메인 컨텍스트 경계 규칙 (ArchUnit 강제 — 봉인 목록 방식)
+
+**domain-module의 한 바운디드 컨텍스트(`com.tastyhouse.domain.<ctx>`)는 다른 컨텍스트를 ID VO·도메인 이벤트·출력 포트로만 참조하고, 타 컨텍스트의 `model`/`repository`/`service`를 직접 import하지 않는다.** domain-module에는 25개 컨텍스트가 한 모듈에 공존하는데 컨텍스트 간 의존을 막는 규칙이 하나도 없었고(`DomainPurityTest`는 프레임워크 순수성과 모듈 방향만 검사한다), 그 결과 한 애그리거트의 내부 구현이 다른 컨텍스트에 그대로 노출돼 있었다. 모듈을 컨텍스트별로 쪼개는 대신 ArchUnit으로 경계를 강제한다.
+
+| 대상 | 타 컨텍스트에서 | 이유 |
+|---|---|---|
+| `<ctx>.vo..` | **허용** | ID VO 참조 — 애그리거트 간 FK 표현의 정상 형태([ID VO 경계 규칙](#id-vo식별자-값-객체-경계-규칙)) |
+| `<ctx>.event..` | **허용** | 도메인 이벤트 타입 참조(구독 자체는 infra 리스너 몫) |
+| `<ctx>.port..` | **허용** | 출력 포트 |
+| `<ctx>.model..` / `.repository..` / `.service..` | **금지** | 애그리거트 내부 구현 |
+| `shared..` · `exception..` | **전면 허용** | 컨텍스트가 아니라 전 컨텍스트 공용 |
+
+- **기존 위반은 고치지 않고 봉인했다**: 규칙 도입 시점의 위반 클래스 21개를 `ContextBoundaryTest.SEALED_VIOLATIONS`에, 컨텍스트 간 순환 성분 2개(`member,point`와 `order,product,review,shop`)를 `SEALED_CYCLES`에 등재해 통과시킨다. 이 단계의 목표는 전면 재설계가 아니라 **현상 동결 + 신규 위반 차단**이며, 실제 결합 해소는 후속 단계가 담당한다. 방식은 `ErrorCodeConventionTest`의 봉인 목록(EnumSet) 선례를 그대로 따른 수동 `Set`이다.
+- **⚠️ 순환은 쌍이 아니라 강결합 성분(SCC) 단위로 봉인한다**: `SliceRule#beFreeOfCycles`는 2노드 상호 참조뿐 아니라 `order → product → shop → order` 같은 **전이 순환**까지 잡으므로, 봉인 목록과 그 짝 테스트도 같은 단위여야 한다. 쌍으로 적으면 두 모델이 어긋나 **짝 테스트가 "이 쌍을 지우라"고 지시했는데 그대로 따르면 정작 전이 순환이 드러나 규칙이 깨지는** 모순이 생긴다. 실제로 이 저장소의 순환은 `order↔shop`·`review↔shop` 두 쌍이 아니라 **`product`까지 포함한 4-노드 성분 하나**이며, 쌍 표기로는 `product`가 봉인 목록에 이름조차 등장하지 않아 감사(audit)가 불가능했다(리뷰에서 발견해 SCC 단위로 교정).
+- **⚠️ 봉인 목록에 새 항목을 추가하지 말 것.** 목록은 **줄어들기만 해야 한다** — 항목 추가는 새 위반을 승인하는 것이다. 신규 코드는 규칙을 지키고, 기존 위반을 해소했으면 그 클래스를 목록에서 지운다.
+- **짝 테스트가 봉인의 낡음을 잡는다**: `sealedViolationsShouldNotBeStale()`·`sealedCyclesShouldNotBeStale()`이 "목록에 있는데 실제로는 더 이상 위반하지 않는"(순환은 "성분이 사라졌거나 더 작아진") 항목을 찾아 실패시킨다(수동 목록을 택할 때의 필수 조건). 봉인이 전부 해소되면 `sealedViolationListShouldNotBeEmpty()`가 실패해 **봉인 장치 자체를 제거하고 순수 강제로 전환하라**고 알려준다.
+- **순환 제외는 성분 "안쪽"으로만 한다**: `SliceRule#ignoreDependency(from, to)`의 양쪽에 **같은 성분**을 걸어, 출발·도착이 모두 그 성분에 속할 때만 무시한다. "봉인 컨텍스트가 관여하는 의존을 통째로 무시"하면 예컨대 `order→member` 같은 성분 밖 신규 순환까지 함께 가려진다.
+- **하위 패키지 판정은 클래스명을 빼고 패키지 세그먼트만 스캔한다**: 마지막 세그먼트(클래스명)까지 훑으면 컨텍스트 루트에 놓인 클래스명이 우연히 세그먼트 목록과 겹칠 때(`<ctx>.Event`·`<ctx>.Model` 등) 하위 패키지로 오인된다. **`event`는 실제 컨텍스트명이자 허용 세그먼트**라 이 충돌이 한 걸음 거리에 있다.
+- **판정 근거는 import가 아니라 ArchUnit 의존 그래프다**: 필드·시그니처·제네릭 파라미터 같은 간접 참조까지 잡힌다. 봉인 목록은 파일 단위(최상위 클래스)로 관리하므로 중첩·익명 클래스(`Xxx$1`)를 별도 등재하지 않는다.
+- **`member.follow`·`member.referral`처럼 컨텍스트 아래 한 겹이 더 있어도 동작한다**: 하위 패키지 판정이 "허용/금지 목록에 있는 세그먼트를 앞에서부터 찾는" 방식이라 중첩 깊이에 무관하다.
+- **`allowEmptyShould(true)`를 쓰지 않는다**(공허 통과 금지 — `DomainPurityTest`·`LayerRulesTest` 개정 선례).
+
+### 인바운드 포트·컨텍스트별 모듈 분할은 도입하지 않는다 (재론 방지)
+
+경계를 강제하는 다른 선택지들을 검토한 뒤 **의도적으로 채택하지 않기로 결정**했다. 같은 논의가 반복되지 않도록 근거를 남긴다.
+
+- **인바운드 포트(UseCase 인터페이스)를 도입하지 않는다**: 도메인 서비스마다 UseCase 인터페이스를 두면 인터페이스 약 128개가 생기는데, **그 각각의 구현체가 하나뿐이고 소비자도 모듈당 하나뿐**이라 다형성·교체 가능성이라는 인터페이스의 값을 전혀 얻지 못한다. 순수 보일러플레이트이며, "구현으로 점프하려면 한 단계 더 거쳐야 한다"는 탐색 비용만 남는다. (출력 포트는 다르다 — 구현이 인프라에 있고 도메인이 그것을 몰라야 하므로 의존 역전의 실익이 있다.)
+- **컨텍스트별 모듈 분할을 하지 않는다**: 경계는 위 ArchUnit 규칙으로 충분히 강제되며, 25개 모듈로 쪼개면 빌드 그래프·`settings.gradle`·의존 선언이 그만큼 늘어난다. 모듈 분할은 컴파일 게이트라는 더 강한 보장을 주지만, 그 강도가 필요한 것은 **모듈 간 방향 의존**(domain ← infrastructure ← api)이고 그쪽은 이미 모듈로 분리돼 있다. 같은 계층 내부의 수평 경계에는 ArchUnit이 적정 수단이다.
+
+reference 구현: `domain-module/src/test/.../architecture/ContextBoundaryTest`(경계 규칙 1 + 순환 규칙 1 + 봉인 짝 테스트 3). 같은 모듈의 `DomainPurityTest`(프레임워크 순수성·모듈 방향)와 역할이 겹치지 않는다 — 이쪽은 **컨텍스트 간 수평 경계**만 본다.
+
 ## api 모듈 QueryDSL·infra persistence 금지 규칙 (ArchUnit 강제)
 
 **`web-api`/`admin-api`/`ceo-api`/`batch-module`의 `src`에는 `com.querydsl.*` import가 0건이고, `@QueryProjection` 선언이 0건이며, infrastructure `..persistence..` import가 0건이다.** 조회는 infra `<ctx>/query/` DAO가 캡슐화하므로 api 모듈은 그 DAO와 Result DTO만 주입·import하면 충분하다. api 모듈이 QueryDSL을 직접 쓰기 시작하면 (1) 쿼리가 컨트롤러 인접 계층으로 새어 나가 인덱스·조인 전략 검토 지점이 흩어지고, (2) `EntityManager`/Q타입을 통해 JPA 엔티티에 직접 손대는 경로가 열려 도메인 모델을 우회하게 된다.
