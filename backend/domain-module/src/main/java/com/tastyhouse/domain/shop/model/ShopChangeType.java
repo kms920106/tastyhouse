@@ -40,6 +40,7 @@ public enum ShopChangeType {
     CONVENIENCE_INFO(ShopChangeCategory.SHOP_INFO, "편의정보 수정"),
     AMENITY(ShopChangeCategory.SHOP_INFO, "편의시설"),
     CONTENT_BOARD(ShopChangeCategory.SHOP_INFO, "가게 소식"),
+    NOTICE(ShopChangeCategory.SHOP_INFO, "사장님 공지"),
 
     // 이미지·상표
     TRADEMARK_CHANGE_REQUEST(ShopChangeCategory.IMAGE, "상표 변경요청"),

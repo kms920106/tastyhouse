@@ -34,6 +34,7 @@ import com.tastyhouse.webapi.shop.response.ShopDetailResponse;
 import com.tastyhouse.webapi.shop.response.ShopInfoResponse;
 import com.tastyhouse.webapi.shop.response.ShopLatestListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopMapMarkerResponse;
+import com.tastyhouse.webapi.shop.response.ShopNoticeResponse;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodResponse;
 import com.tastyhouse.webapi.shop.response.ShopPhotoCategoryResponse;
 import com.tastyhouse.webapi.shop.response.ShopProductCategoryResponse;
@@ -151,6 +152,14 @@ public class ShopApiController {
     public ResponseEntity<ApiResponse<List<ShopBannerResponse>>> getShopBanners(@PathVariable Long id) {
         List<ShopBannerResponse> banners = shopQueryService.getShopBanners(id);
         ApiResponse<List<ShopBannerResponse>> response = ApiResponse.success(banners);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "점주 공지 조회", description = "가게에 노출 중인 점주 공지 1건을 조회합니다. 노출 중인 공지가 없으면 data가 null입니다.")
+    @GetMapping("/v1/{id}/notice")
+    public ResponseEntity<ApiResponse<ShopNoticeResponse>> getShopNotice(@PathVariable Long id) {
+        ShopNoticeResponse notice = shopQueryService.getShopNotice(id);
+        ApiResponse<ShopNoticeResponse> response = ApiResponse.success(notice);
         return ResponseEntity.ok(response);
     }
 

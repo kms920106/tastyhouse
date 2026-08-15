@@ -691,6 +691,30 @@ CREATE TABLE SHOP_CONTENT_BOARD
     INDEX idx_shop_content_board_shop_id (shop_id)
 );
 
+CREATE TABLE SHOP_NOTICE
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,        -- 점주 공지 ID (PK)
+    shop_id    BIGINT     NOT NULL,                      -- 장소 ID (SHOP.id 참조)
+    content    TEXT       NOT NULL,                      -- 공지 본문 (최대 2000자, 애플리케이션 검증)
+    is_exposed TINYINT(1) NOT NULL DEFAULT 0,            -- 앱 노출 여부 (가게당 최대 1건, 도메인 서비스가 불변식 소유)
+    is_hidden  TINYINT(1) NOT NULL DEFAULT 0,            -- 관리자 게시중단 여부
+    created_at DATETIME   NOT NULL,                      -- 생성 일시
+    updated_at DATETIME   NOT NULL,                      -- 수정 일시
+    INDEX idx_shop_notice_shop_id (shop_id),
+    INDEX idx_shop_notice_exposed (shop_id, is_exposed, is_hidden)
+);
+
+CREATE TABLE SHOP_NOTICE_IMAGE
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,    -- 공지 이미지 ID (PK)
+    shop_notice_id BIGINT   NOT NULL,                    -- 점주 공지 ID (SHOP_NOTICE.id 참조)
+    image_file_id  BIGINT   NOT NULL,                    -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    sort_order     INT      NOT NULL,                    -- 노출 순서 (0부터 시작)
+    created_at     DATETIME NOT NULL,                    -- 생성 일시
+    updated_at     DATETIME NOT NULL,                    -- 수정 일시
+    INDEX idx_shop_notice_image_notice_id (shop_notice_id)
+);
+
 CREATE TABLE SHOP_HYGIENE_BADGE
 (
     id                    BIGINT AUTO_INCREMENT PRIMARY KEY, -- 위생 뱃지 ID (PK)

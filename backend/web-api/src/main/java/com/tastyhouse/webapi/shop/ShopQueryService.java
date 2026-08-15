@@ -70,6 +70,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipTierResult;
 import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeCategoryResult;
 import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
 import com.tastyhouse.infrastructure.shop.query.ShopMapMarkerResult;
+import com.tastyhouse.infrastructure.shop.query.ShopNoticeQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopOrderMethodResult;
 import com.tastyhouse.infrastructure.shop.query.ShopPhoneNumberResult;
 import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryImageResult;
@@ -102,6 +103,7 @@ import com.tastyhouse.webapi.shop.response.ShopFoodTypeListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopInfoResponse;
 import com.tastyhouse.webapi.shop.response.ShopLatestListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopMapMarkerResponse;
+import com.tastyhouse.webapi.shop.response.ShopNoticeResponse;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodResponse;
 import com.tastyhouse.webapi.shop.response.ShopPhoneNumberItem;
@@ -133,6 +135,7 @@ public class ShopQueryService {
     private final MemberDeliveryAddressQueryDao memberDeliveryAddressQueryDao;
     private final ShopDeliveryTipRepository shopDeliveryTipRepository;
     private final ShopQueryDao shopQueryDao;
+    private final ShopNoticeQueryDao shopNoticeQueryDao;
     private final ShopSearchQueryDao shopSearchQueryDao;
     private final ShopChoiceQueryDao shopChoiceQueryDao;
     private final ShopDeliveryTipQueryDao shopDeliveryTipQueryDao;
@@ -150,6 +153,7 @@ public class ShopQueryService {
         MemberDeliveryAddressQueryDao memberDeliveryAddressQueryDao,
         ShopDeliveryTipRepository shopDeliveryTipRepository,
         ShopQueryDao shopQueryDao,
+        ShopNoticeQueryDao shopNoticeQueryDao,
         ShopSearchQueryDao shopSearchQueryDao,
         ShopChoiceQueryDao shopChoiceQueryDao,
         ShopDeliveryTipQueryDao shopDeliveryTipQueryDao,
@@ -166,6 +170,7 @@ public class ShopQueryService {
         this.memberDeliveryAddressQueryDao = memberDeliveryAddressQueryDao;
         this.shopDeliveryTipRepository = shopDeliveryTipRepository;
         this.shopQueryDao = shopQueryDao;
+        this.shopNoticeQueryDao = shopNoticeQueryDao;
         this.shopSearchQueryDao = shopSearchQueryDao;
         this.shopChoiceQueryDao = shopChoiceQueryDao;
         this.shopDeliveryTipQueryDao = shopDeliveryTipQueryDao;
@@ -764,6 +769,19 @@ public class ShopQueryService {
             displayLatitude,
             displayLongitude
         );
+    }
+
+    /**
+     * 가게 상세에 노출되는 점주 공지 — {@code exposed = true AND hidden = false} 최대 1건.
+     *
+     * <p>공지가 없는 것은 에러가 아니라 {@code null}이다. 대부분의 가게에 공지가 없으므로 404를 쓰면
+     * 프론트가 정상 상태를 에러로 처리하게 된다. 가게 자체가 없으면 {@code SHOP_NOT_FOUND}(404)다.
+     */
+    public ShopNoticeResponse getShopNotice(Long shopId) {
+        findVisibleShop(shopId);
+        return shopNoticeQueryDao.findExposedNotice(shopId)
+            .map(dto -> ShopNoticeResponse.of(dto.id(), dto.content(), dto.imageUrls(), dto.createdAt()))
+            .orElse(null);
     }
 
     public List<ShopBannerResponse> getShopBanners(Long shopId) {

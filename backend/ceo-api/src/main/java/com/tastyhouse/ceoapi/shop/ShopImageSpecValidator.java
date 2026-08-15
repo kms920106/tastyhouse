@@ -32,6 +32,10 @@ public class ShopImageSpecValidator {
     private static final int CONTENT_GIF_MIN_WIDTH = 250;
     private static final int CONTENT_GIF_MIN_HEIGHT = 250;
 
+    private static final long NOTICE_IMAGE_MAX_SIZE_BYTES = 10L * 1024 * 1024;
+    private static final int NOTICE_IMAGE_MIN_WIDTH = 640;
+    private static final int NOTICE_IMAGE_MIN_HEIGHT = 280;
+
     public void validateTrademark(MultipartFile file) {
         validateNotEmpty(file);
         validateContentType(file, "image/jpeg");
@@ -55,6 +59,20 @@ public class ShopImageSpecValidator {
             BufferedImage image = readImage(file);
             validateMinResolution(image, CONTENT_IMAGE_MIN_WIDTH, CONTENT_IMAGE_MIN_HEIGHT);
         }
+    }
+
+    /**
+     * 점주 공지 첨부 이미지 규격을 검증한다.
+     *
+     * <p>권장 사이즈(1280x560)를 그대로 강제하지 않고 그 절반(640x280)을 최소 해상도로 잡는다 — 정확히
+     * 일치하는 이미지만 허용하면 등록 실패가 잦아지므로 지나치게 작은 이미지만 거르고 권장 사이즈는 프론트
+     * 안내 문구로 처리한다. 공지 이미지는 가로형이라 비율({@code validateSquareRatio})은 적용하지 않는다.
+     */
+    public void validateNoticeImage(MultipartFile file) {
+        validateNotEmpty(file);
+        validateContentType(file, "image/jpeg", "image/png");
+        validateMaxSize(file, NOTICE_IMAGE_MAX_SIZE_BYTES);
+        validateMinResolution(readImage(file), NOTICE_IMAGE_MIN_WIDTH, NOTICE_IMAGE_MIN_HEIGHT);
     }
 
     private void validateNotEmpty(MultipartFile file) {

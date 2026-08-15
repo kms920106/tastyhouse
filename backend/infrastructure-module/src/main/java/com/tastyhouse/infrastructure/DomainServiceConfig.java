@@ -89,6 +89,7 @@ import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
+import com.tastyhouse.domain.shop.repository.ShopNoticeRepository;
 import com.tastyhouse.domain.shop.repository.ShopPhoneNumberRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.repository.ShopRequestCommentRepository;
@@ -114,6 +115,7 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipService;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
+import com.tastyhouse.domain.shop.service.ShopNoticeExposureService;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
@@ -533,6 +535,15 @@ public class DomainServiceConfig {
         // 데코레이터로 감싼 포트를 주입한다. 금칙어는 SQL 시드 read-only 데이터라 정합성 리스크가 낮고,
         // 캐싱을 어댑터 쪽에 두어 domain-module의 순수 POJO 검증기는 그대로 둔다.
         return new ProhibitedWordValidator(new CachingProhibitedWordRepository(prohibitedWordRepository));
+    }
+
+    /**
+     * 점주 공지 앱 노출 불변식 — "가게당 노출 공지는 최대 1건". 이 공지를 켜면서 기존 노출 공지를 함께
+     * 내리는 집합 연산이라 단일 애그리거트 연산이 아니므로 도메인 서비스가 소유한다.
+     */
+    @Bean
+    public ShopNoticeExposureService shopNoticeExposureService(ShopNoticeRepository shopNoticeRepository) {
+        return new ShopNoticeExposureService(shopNoticeRepository);
     }
 
     /**
