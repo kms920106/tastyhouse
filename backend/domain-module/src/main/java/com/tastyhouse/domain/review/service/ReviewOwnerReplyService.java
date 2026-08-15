@@ -28,7 +28,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * 입력하는 공개 텍스트라는 성격이 같고, 액터와 무관하게 같은 규칙이 적용되어야 하는 무상태 정책이다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는 api 모듈 CommandService가
+ * {@code ReviewDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는 api 모듈 CommandService가
  * 선언한다.
  */
 public class ReviewOwnerReplyService {

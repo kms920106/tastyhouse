@@ -17,7 +17,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 규칙이 호출 경로마다 갈리지 않도록 도메인 계층에 둔다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다.
+ * infrastructure-module의 {@code MemberDomainConfig}가 담당한다.
  */
 public class MemberFollowService {
 

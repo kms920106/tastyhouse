@@ -22,7 +22,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * "아이디·닉네임·휴대폰 중복 금지", "자기 자신을 추천인으로 지정 금지" 같은 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 호출자(command 서비스)의
+ * infrastructure-module의 {@code MemberDomainConfig}가 담당한다. 호출자(command 서비스)의
  * 트랜잭션 안에서 실행된다.
  *
  * <p>비밀번호는 이미 인코딩된 값을 받는다 — 인코딩은 Spring Security {@code PasswordEncoder}에

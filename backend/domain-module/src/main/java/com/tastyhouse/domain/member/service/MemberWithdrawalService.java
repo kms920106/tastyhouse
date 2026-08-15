@@ -23,7 +23,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * 기록은 항상 함께 일어난다"는 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 도메인이 프레임워크-프리라
+ * infrastructure-module의 {@code MemberDomainConfig}가 담당한다. 도메인이 프레임워크-프리라
  * 더티 체킹이 없으므로 상태 전이 후 저장은 명시적 save로 수행한다.
  */
 public class MemberWithdrawalService {

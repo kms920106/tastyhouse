@@ -30,7 +30,7 @@ import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
  * 취소된 요청의 업로드 파일은 삭제하지 않는다(첨부 이력 보존, 상세에서 계속 열람).
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다.
+ * {@code ShopDomainConfig}가 담당한다.
  */
 public class ShopRequestCancelService {
 

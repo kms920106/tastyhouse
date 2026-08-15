@@ -13,7 +13,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 둔다. 특정 액터(admin)에 묶이지 않는 도메인 불변식이라 여러 모듈에서 재사용해도 규칙이 갈리지 않는다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 호출자의 트랜잭션 안에서 실행된다.
+ * infrastructure-module의 {@code FaqDomainConfig}가 담당한다. 호출자의 트랜잭션 안에서 실행된다.
  */
 public class FaqCategoryDeletionPolicy {
 

@@ -63,7 +63,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 크로스 애그리거트 불변식 오케스트레이션(분류 C)이므로 도메인 계층에 둔다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
+ * infrastructure-module의 {@code OrderDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 command 서비스(web-api {@code OrderCommandService})가 선언한다.
  *
  * <p>주문 접수는 도메인 이벤트를 발행하지 않는다 — 과거 {@code OrderCreatedEvent}를 발행했으나 수신

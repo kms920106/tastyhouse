@@ -23,7 +23,7 @@ import com.tastyhouse.domain.search.repository.SearchKeywordLogRepository;
  * 호출해도 갱신 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 호출자(batch-module의
+ * infrastructure-module의 {@code SearchDomainConfig}가 담당한다. 호출자(batch-module의
  * {@code SearchKeywordSchedulerService})의 트랜잭션 안에서 실행되므로, {@code deleteAll} 이후
  * {@code saveAll}이 같은 트랜잭션에서 원자적으로 수행된다.
  */

@@ -24,7 +24,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * 수동 조정)가 여러 개여도 "잔액과 이력은 항상 함께 움직인다"는 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
+ * infrastructure-module의 {@code PointDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 command 서비스 또는 infrastructure의 이벤트 리스너가 선언한다.
  *
  * <p>{@code Point}는 순수 POJO라 더티 체킹이 없으므로 잔액 변경 후 명시적으로

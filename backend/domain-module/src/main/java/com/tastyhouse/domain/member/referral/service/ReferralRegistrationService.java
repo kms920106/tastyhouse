@@ -26,7 +26,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * 일어난다"는 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다.
+ * infrastructure-module의 {@code MemberDomainConfig}가 담당한다.
  *
  * <p>보상 적립은 point 도메인의 write 포트({@code PointRepository}/{@code PointHistoryRepository})를
  * 직접 사용한다 — point 도메인은 아직 전환 전(별도 작업 대상)이라 그 application 계층을 이 시점에

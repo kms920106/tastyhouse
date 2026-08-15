@@ -20,7 +20,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
  * 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 호출자(command 서비스)의
+ * infrastructure-module의 {@code BugDomainConfig}가 담당한다. 호출자(command 서비스)의
  * 트랜잭션 안에서 실행된다.
  */
 public class BugReportRegistrationService {

@@ -27,7 +27,7 @@ import com.tastyhouse.domain.shared.vo.VerificationCode;
  * 오지 않은" 유령 레코드가 남지 않는다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 이벤트 발행은 Spring
+ * infrastructure-module의 {@code SmsDomainConfig}가 담당한다. 이벤트 발행은 Spring
  * {@code ApplicationEventPublisher}가 아니라 프레임워크-프리 포트인 {@link DomainEventPublisher}를
  * 통해 수행한다.
  */

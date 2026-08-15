@@ -33,7 +33,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  *
  * <p>{@code @Service}/{@code @Transactional}을 갖지 않는다 — 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 {@code ProductCommandService}가 소유하고, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다.
+ * {@code ProductDomainConfig}가 담당한다.
  *
  * <p>이 서비스는 도메인 이벤트를 발행하지 않는다 — 과거 {@code ProductCreatedEvent} ·
  * {@code ProductSoldOutChangedEvent} · {@code ProductDeactivatedEvent} 세 종을 발행했으나 수신

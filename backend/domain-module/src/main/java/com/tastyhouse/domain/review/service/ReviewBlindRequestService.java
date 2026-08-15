@@ -34,7 +34,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * 재요청이 가능해진다 — PENDING 중복 차단이 상태 조회에 기반하므로 코드 추가 없이 자동으로 풀린다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다. 도메인 모델은 POJO라 더티 체킹이 없으므로 변경 후 명시적으로
+ * {@code ReviewDomainConfig}가 담당한다. 도메인 모델은 POJO라 더티 체킹이 없으므로 변경 후 명시적으로
  * {@code save}를 호출한다.
  */
 public class ReviewBlindRequestService {

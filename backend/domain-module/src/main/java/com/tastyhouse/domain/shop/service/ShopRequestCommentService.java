@@ -16,7 +16,7 @@ import com.tastyhouse.domain.shop.repository.ShopRequestCommentRepository;
  * 기능의 주요 사용례다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다.
+ * {@code ShopDomainConfig}가 담당한다.
  */
 public class ShopRequestCommentService {
 

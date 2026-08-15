@@ -25,7 +25,7 @@ import com.tastyhouse.domain.holiday.repository.PublicHolidayRepository;
  * 데이터 규칙 하나로 처리되며, 이 서비스에는 요일 분기가 없다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다.
+ * {@code HolidayDomainConfig}가 담당한다.
  */
 public class PublicHolidayCalendar {
 

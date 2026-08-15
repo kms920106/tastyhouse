@@ -10,7 +10,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
  * 점주 로그인 이력 기록을 소유하는 도메인 서비스.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는 ceo-api의
+ * {@code CeoDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는 ceo-api의
  * {@code CeoLoginHistoryCommandService}가 선언한다.
  *
  * <p>{@code userAgent} 절단을 여기서 수행하는 이유: 컬럼 길이({@value #USER_AGENT_MAX_LENGTH}자)는

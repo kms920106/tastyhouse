@@ -13,7 +13,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
  *
  * <p>이벤트 수신(리스너)은 infrastructure-module의 {@code product/listener}가 담당하고, 이 서비스는
  * 갱신 규칙만 갖는다 — 어느 모듈이 리뷰 이벤트를 발행하든 같은 규칙이 적용되도록 분리했다.
- * {@code @Service}/{@code @Transactional}을 갖지 않으며 빈 등록은 {@code DomainServiceConfig}가 한다.
+ * {@code @Service}/{@code @Transactional}을 갖지 않으며 빈 등록은 {@code ProductDomainConfig}가 한다.
  */
 public class ProductReviewStatsService {
 

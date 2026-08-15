@@ -31,7 +31,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 움직인다"는 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
+ * infrastructure-module의 {@code ReservationDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 command 서비스가 선언한다.
  *
  * <p><b>동시성</b>: 정원 차감은 슬롯의 낙관적 락({@code @Version})으로 보호한다. 이 서비스는 차감 직후

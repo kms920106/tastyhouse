@@ -8,13 +8,14 @@
 
 ```
 com.tastyhouse.infrastructure/
-├── DomainServiceConfig.java              @Configuration — domain <ctx>/service/ POJO들의 @Bean 등록
 ├── InfrastructurePersistenceConfig.java  @EnableJpaRepositories/@EntityScan(basePackageClasses) +
 │                                         @EnableJpaAuditing + @EnableTransactionManagement
 ├── config/QueryDslConfig.java            JPAQueryFactory 빈
 ├── shared/persistence/BaseEntity.java    @MappedSuperclass — @CreatedDate/@LastModifiedDate 감사 필드
 ├── shared/event/SpringDomainEventPublisher.java  domain DomainEventPublisher 포트 구현(ApplicationEventPublisher 위임)
 └── <도메인>/
+    ├── config/<Ctx>DomainConfig.java     @Configuration(proxyBeanMethods = false) —
+    │                                     그 컨텍스트 domain <ctx>/service/ POJO들의 @Bean 등록
     ├── persistence/                      write 어댑터
     │   ├── XxxJpaEntity.java             @Entity — DB 매핑 전용(비즈니스 행위 없음), BaseEntity 상속
     │   ├── XxxMapper.java                도메인 ↔ 엔티티 변환 (package-private, toDomain/toEntity/applyChanges)
@@ -42,7 +43,12 @@ com.tastyhouse.infrastructure/
 - **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotRepositoryImpl`). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(도메인의 `ResourceNotFoundException`과 무관한 JPA 예외)이 던져질 수 있는데, `GlobalExceptionHandler`는 도메인 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
 - **엔티티 enum 매핑**: 항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지. DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 루트 `CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
-- **도메인 서비스 빈 등록은 `DomainServiceConfig`가 전담**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 이 `@Configuration`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. domain에 새 도메인 서비스를 추가하면 여기에 `@Bean` 메서드를 함께 추가해야 한다(누락 시 부팅 시 주입 실패).
+- **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
+  - 과거에는 모듈 루트의 `DomainServiceConfig` 하나가 17개 컨텍스트의 `@Bean` 55개를 전부 조립했으나(959줄), 모든 도메인 작업이 이 한 파일을 수정해 리포지토리에서 가장 충돌이 잦은 파일이 되어 컨텍스트별로 분할했다. `InfrastructureModuleConfig`가 `com.tastyhouse.infrastructure` 전체를 `@ComponentScan`하므로 앱 쪽 변경 없이 자동 등록된다.
+  - **빈 이름(= `@Bean` 메서드명)은 바꾸지 않는다** — `@Qualifier` 참조가 깨질 수 있다.
+  - **컨텍스트 분류가 애매한 빈**(여러 컨텍스트 서비스를 파라미터로 받는 것)은 **반환 타입이 속한 컨텍스트**의 config에 둔다.
+  - member의 하위 컨텍스트(`follow`·`referral`) 빈은 `member/config/MemberDomainConfig`에 함께 둔다(별도 파일로 쪼개지 않음).
+  - **모듈 진입점인 `InfrastructureModuleConfig`·`InfrastructurePersistenceConfig`는 모듈 루트에 그대로 둔다**(apps가 `@Import`하므로 경로 변경 금지). `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
 - **이벤트 리스너는 `<ctx>/listener/`에 둔다**: 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 리스너가 없어 누락되므로, 크로스커팅 리스너는 모든 실행 모듈이 스캔하는 이 모듈에 둔다.
 
 reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl` — 단건 로드·저장만), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).

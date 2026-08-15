@@ -14,10 +14,10 @@ import com.tastyhouse.domain.exception.ErrorCode;
  * 같은 규칙이 적용되어야 하는 무상태 정책(분류 D)이므로 도메인 계층에 둔다.
  *
  * <p>{@code @Component} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다.
+ * {@code ShopDomainConfig}가 담당한다.
  *
  * <p>검증마다 {@link ProhibitedWordRepository#findAll()}로 금칙어를 전량 읽지만, 그 반복 로드는
- * 도메인이 아니라 <b>어댑터 쪽</b>에서 흡수한다 — 빈 등록 지점({@code DomainServiceConfig})이 TTL 캐싱
+ * 도메인이 아니라 <b>어댑터 쪽</b>에서 흡수한다 — 빈 등록 지점({@code ShopDomainConfig})이 TTL 캐싱
  * 데코레이터({@code CachingProhibitedWordRepository})로 감싼 포트를 주입하므로, 이 클래스는 캐시를
  * 알지 않아도 되고 순수 POJO로 남는다.
  */

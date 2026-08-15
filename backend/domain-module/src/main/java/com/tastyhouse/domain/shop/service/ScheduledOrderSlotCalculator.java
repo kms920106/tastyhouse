@@ -38,7 +38,7 @@ import com.tastyhouse.domain.shop.model.ShopBusinessHour;
  * 막힌다. 일원화는 별도 과제이고, 그때 이 상수와 그 서비스의 상수를 함께 교체한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다.
+ * infrastructure-module의 {@code ShopDomainConfig}가 담당한다.
  */
 public class ScheduledOrderSlotCalculator {
 

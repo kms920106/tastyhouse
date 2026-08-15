@@ -27,7 +27,7 @@ import com.tastyhouse.domain.region.vo.AdminDongId;
  * </ul>
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는 소비 모듈의 command
+ * {@code MemberDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는 소비 모듈의 command
  * 서비스가 선언한다.
  *
  * <p>도메인 모델이 프레임워크-프리 POJO라 더티체킹이 없으므로, 상태를 바꾼 뒤에는 반드시 <b>명시적

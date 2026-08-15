@@ -18,7 +18,7 @@
 
 **QueryDSL은 절대 쓰지 않는다** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`..infrastructure..persistence..` import가 **0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다(infra 중 `..query..`만 허용).
 
-**`scanBasePackages`에 domain 엔트리 없음**: `CeoApiApplication`의 `scanBasePackages`(및 `@ComponentScan basePackages`)는 `com.tastyhouse.ceoapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개다. `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `DomainServiceConfig`) domain 스캔 엔트리를 제거했다. 기존 `excludeFilters`(`com.tastyhouse.external.oauth.*` 제외)는 그대로 유지된다.
+**`scanBasePackages`에 domain 엔트리 없음**: `CeoApiApplication`의 `scanBasePackages`(및 `@ComponentScan basePackages`)는 `com.tastyhouse.ceoapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개다. `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 스캔 엔트리를 제거했다. 기존 `excludeFilters`(`com.tastyhouse.external.oauth.*` 제외)는 그대로 유지된다.
 
 ## Key Files
 | File | Description |

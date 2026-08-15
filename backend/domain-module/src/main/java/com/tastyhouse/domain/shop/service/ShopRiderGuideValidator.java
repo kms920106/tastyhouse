@@ -16,7 +16,7 @@ import com.tastyhouse.domain.shop.model.Shop;
  * 위임하고 나머지 2유형을 자체 판정한다.
  *
  * <p>액터(ceo/admin)와 무관하게 같은 규칙이 적용되어야 하는 무상태 정책이므로 도메인 계층에 둔다.
- * {@code @Component} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의 {@code DomainServiceConfig}가
+ * {@code @Component} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의 {@code ShopDomainConfig}가
  * 담당한다.
  */
 public class ShopRiderGuideValidator {

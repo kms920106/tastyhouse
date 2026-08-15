@@ -17,7 +17,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * 재사용해도 규칙이 갈리지 않게 한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 호출자(command 서비스)의 트랜잭션
+ * infrastructure-module의 {@code PolicyDomainConfig}가 담당한다. 호출자(command 서비스)의 트랜잭션
  * 안에서 실행된다. 이벤트 발행은 Spring {@code ApplicationEventPublisher}가 아니라 프레임워크-프리
  * 포트인 {@link DomainEventPublisher}를 통해 수행한다.
  */

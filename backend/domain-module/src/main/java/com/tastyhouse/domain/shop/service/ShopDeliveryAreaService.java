@@ -36,7 +36,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 남기면 이력 목록이 "점주가 저장한 횟수"가 아니라 "바뀐 동 수"로 페이징된다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다. 점주 소유권 검증은 ceo-api 계층
+ * {@code ShopDomainConfig}가 담당한다. 점주 소유권 검증은 ceo-api 계층
  * ({@code ShopOwnershipValidator})의 책임이라 여기서는 다루지 않는다. 변경 주체
  * ({@link ShopChangeActor})는 도메인이 인증을 모르므로 마지막 파라미터로 명시 전달받는다.
  */

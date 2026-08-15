@@ -40,7 +40,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 한 행씩 남긴다 — 편의정보 upsert와 달리 화면에서 한 번에 하나씩 켜고 끄는 조작이다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
+ * infrastructure-module의 {@code ShopDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 command 서비스가 선언한다. 변경 주체({@link ShopChangeActor})는 도메인이 인증을 모르므로
  * 마지막 파라미터로 명시 전달받는다.
  */

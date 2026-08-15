@@ -14,7 +14,7 @@ import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
  * 호출하는데, 점주 입력(가게소개·찾아오는길 등) 저장 경로마다 금칙어 테이블을 통째로 다시 읽는 것이
  * 낭비다. 검증기는 domain-module의 순수 POJO라 스프링 {@code @Cacheable}을 붙일 수 없으므로, 캐싱을
  * 도메인이 아니라 <b>어댑터 쪽</b>에 둔다 — 검증기·도메인 서비스 코드는 그대로 두고 빈 등록 지점
- * ({@code DomainServiceConfig})에서 이 데코레이터를 주입하는 것으로 끝난다.
+ * ({@code ShopDomainConfig})에서 이 데코레이터를 주입하는 것으로 끝난다.
  *
  * <p>금칙어는 SQL 시드로 관리되는 read-only 데이터(Java 계층에 생성·수정 경로가 없다)라 정합성 리스크가
  * 낮다. 그래도 무기한 캐싱은 시드 갱신이 재기동 전까지 반영되지 않으므로 TTL을 둬서 자연히 만료시킨다.

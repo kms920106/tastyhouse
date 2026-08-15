@@ -18,7 +18,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 불변식은 {@link Order}가 갖고, 이 서비스는 로드·전이·저장을 원자로 묶는 오케스트레이션(분류 C)이다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
+ * infrastructure-module의 {@code OrderDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 command 서비스가 선언한다.
  *
  * <p>{@link Order}는 순수 POJO라 더티 체킹이 없으므로 전이 후 명시적으로

@@ -31,7 +31,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * (수정 요청·삭제·픽업 위치 교정)가 섞이면 점주가 하지 않은 변경이 자기 이력에 나타난다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
+ * infrastructure-module의 {@code ShopDomainConfig}가 담당한다. 트랜잭션 경계는 이 서비스를 호출하는
  * 소비 모듈의 command 서비스가 선언한다. 도메인이 프레임워크-프리라 더티 체킹이 없으므로 변경 후
  * {@code repository.save(...)}를 명시적으로 호출한다.
  */

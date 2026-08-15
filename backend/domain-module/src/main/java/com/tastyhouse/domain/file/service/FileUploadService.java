@@ -24,7 +24,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * 갈리지 않도록 도메인 계층에 단 하나만 둔다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다. 이벤트 발행은 프레임워크-프리
+ * infrastructure-module의 {@code FileDomainConfig}가 담당한다. 이벤트 발행은 프레임워크-프리
  * 포트인 {@link DomainEventPublisher}를 통해 수행한다.
  *
  * <p>이 서비스는 쓰기(업로드)만 담당한다. 저장 경로를 표시용 URL로 바꾸는 읽기 측 변환은

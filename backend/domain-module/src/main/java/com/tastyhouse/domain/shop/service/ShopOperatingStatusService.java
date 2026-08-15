@@ -42,7 +42,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * {@link #findOrderAvailability(Shop, OrderMethod, LocalDateTime)}를 쓴다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다.
+ * infrastructure-module의 {@code ShopDomainConfig}가 담당한다.
  */
 public class ShopOperatingStatusService {
 

@@ -18,7 +18,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * 가게의 개인정보에 접근할 수 있었는가"의 유일한 근거라서 조용한 유실이 곧 기능 상실이다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다.
+ * {@code ShopDomainConfig}가 담당한다.
  */
 public class ShopCeoAssignmentRecorder {
 

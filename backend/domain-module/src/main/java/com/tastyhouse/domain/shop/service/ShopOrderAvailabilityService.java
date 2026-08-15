@@ -27,7 +27,7 @@ import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
  * 합치면 "가게가 닫혔는지 그 유형만 중지됐는지"를 클라이언트가 구분할 수 없다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code DomainServiceConfig}가 담당한다.
+ * infrastructure-module의 {@code ShopDomainConfig}가 담당한다.
  */
 public class ShopOrderAvailabilityService {
 

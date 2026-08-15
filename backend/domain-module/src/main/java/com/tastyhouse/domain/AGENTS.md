@@ -23,7 +23,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | `exception/ResourceNotFoundException.java` | 리소스(애그리거트) 미존재 예외 (BusinessException 상속). 과거 `EntityNotFoundException`이었으나 `jakarta.persistence.EntityNotFoundException`과 동명이라 JPA 관심사로 오해될 수 있어 리네이밍 |
 | `exception/ErrorCodeSpec.java` | 에러코드 공통 계약 인터페이스(`getHttpStatusCode`/`getCode`/`getDefaultMessage`). `ErrorCode`와 external-api의 `ExternalApiErrorCode`가 구현하며, `BusinessException`이 이 타입을 보유해 전역 핸들러 하나가 두 계열을 모두 처리한다 |
 
-> JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지가 아니라 infrastructure-module의 `DomainServiceConfig` 소관입니다.
+> JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지가 아니라 infrastructure-module의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig` 소관입니다.
 
 ## Bounded Contexts
 
@@ -68,7 +68,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
    domain (이 패키지)                       infrastructure-module
    · model/vo/event/repository(write 포트)     · <ctx>/persistence (write 어댑터)
    · domain/service (POJO 불변식·정책)  ←DIP─  · <ctx>/query (read: QueryDao + Result)
-   · domain/port (출력 포트)            ←DIP─  · <ctx>/listener, DomainServiceConfig
+   · domain/port (출력 포트)            ←DIP─  · <ctx>/listener, <ctx>/config/<Ctx>DomainConfig
         ↑                                     ↑
    shared (kernel), exception            external-api (port 구현)
 ```
@@ -83,7 +83,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 - `XxxId`는 `record XxxId(Long value)` + compact constructor 검증 + 정적 팩토리 `of(Long)`. `new`는 `of()` 내부에만 남긴다. JPA 매핑용 `AttributeConverter`는 infrastructure-module(`<ctx>/persistence/XxxIdConverter`)에 있다.
 
 **도메인 서비스 규칙 (`<ctx>/service/`)**:
-- `@Service`/`@Component`/`@Transactional`을 붙이지 않는 **순수 POJO**다. 빈 등록은 infrastructure-module의 `DomainServiceConfig`가 `@Bean` 팩토리로 수행하고, 트랜잭션 경계는 이를 호출하는 api 모듈의 `{도메인}CommandService`가 소유한다.
+- `@Service`/`@Component`/`@Transactional`을 붙이지 않는 **순수 POJO**다. 빈 등록은 infrastructure-module의 해당 컨텍스트 `<ctx>/config/<Ctx>DomainConfig`가 `@Bean` 팩토리로 수행하고(없으면 신설), 트랜잭션 경계는 이를 호출하는 api 모듈의 `{도메인}CommandService`가 소유한다.
 - 여기 두는 것: (C) 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 **불변식 오케스트레이션**(reference: `order/service/OrderPlacementService`, `payment/service/PaymentConfirmationService`·`PaymentCancellationService`, `point/service/PointLedgerService`, `reservation/service/ReservationBookingService`), (D) **무상태 정책·검증기**(reference: `faq/service/FaqCategoryDeletionPolicy`, `shop/service/ProhibitedWordValidator`).
 - 소비 모듈로 복제하지 않는다 — 특정 api 모듈에 두면 다른 모듈이 같은 유스케이스를 실행할 때 불변식이 우회된다.
 

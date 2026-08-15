@@ -21,7 +21,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * 기능 상실이다. 같은 트랜잭션에서 동기 기록한다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다.
+ * {@code ShopDomainConfig}가 담당한다.
  */
 public class ShopChangeHistoryRecorder {
 

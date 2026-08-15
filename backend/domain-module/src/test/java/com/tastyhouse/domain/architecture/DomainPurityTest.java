@@ -15,7 +15,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * {@code @Entity}/{@code JpaRepository}/{@code RepositoryImpl}/{@code AttributeConverter}/
  * {@code EntityManager}는 전부 {@code infrastructure-module}에 있다. 도메인 서비스도 전부 순수
  * POJO({@code @Service}/{@code @Transactional} 미사용)이고 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 {@code @Bean} 팩토리 메서드로 수행한다.
+ * 컨텍스트별 {@code <Ctx>DomainConfig}가 {@code @Bean} 팩토리 메서드로 수행한다.
  *
  * <p>이 순수성은 두 겹으로 강제된다 — 루트 {@code build.gradle}이 domain-module을 spring 주입
  * {@code subprojects} 블록에서 제외해 컴파일 클래스패스에 {@code org.springframework.*}가 아예
@@ -33,7 +33,7 @@ class DomainPurityTest {
 
     /**
      * 도메인은 스프링을 알지 않는다. 도메인 서비스는 순수 POJO이고 트랜잭션 경계·빈 등록은
-     * 바깥 계층(api 모듈의 CQRS 서비스, infrastructure-module의 {@code DomainServiceConfig})이
+     * 바깥 계층(api 모듈의 CQRS 서비스, infrastructure-module의 컨텍스트별 {@code <Ctx>DomainConfig})이
      * 담당하므로 {@code @Service}/{@code @Component}/{@code @Transactional}이 등장할 일이 없다.
      */
     @Test

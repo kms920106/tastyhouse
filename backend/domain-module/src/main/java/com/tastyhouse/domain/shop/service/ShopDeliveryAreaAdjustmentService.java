@@ -33,7 +33,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * 신청이 어떻게 처리됐는가"를 답하기 때문이다 — 후자에서는 검수 진행 상황이 곧 본문이다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다. 점주 소유권 검증은 ceo-api 계층
+ * {@code ShopDomainConfig}가 담당한다. 점주 소유권 검증은 ceo-api 계층
  * ({@code ShopOwnershipValidator})의 책임이라 여기서는 다루지 않는다. 변경 주체
  * ({@link ShopChangeActor})는 도메인이 인증을 모르므로 마지막 파라미터로 명시 전달받는다.
  */

@@ -60,7 +60,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  * 전체를 {@link ShopChangeValueFormatter#snapshot(List)}으로 요약해 한 행에 담는다.
  *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며, 빈 등록은 infrastructure-module의
- * {@code DomainServiceConfig}가 담당한다. 트랜잭션 경계는 ceo-api의
+ * {@code ShopDomainConfig}가 담당한다. 트랜잭션 경계는 ceo-api의
  * {@code ShopDeliveryTipCommandService}가 선언한다. 도메인 모델이 POJO라 더티 체킹이 없으므로
  * 변경 후 명시적으로 {@code save}를 호출한다. 변경 주체({@link ShopChangeActor})는 도메인이 인증을
  * 모르므로 마지막 파라미터로 명시 전달받는다.
