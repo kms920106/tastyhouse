@@ -5,11 +5,13 @@ import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.domain.member.follow.repository.MemberFollowRepository;
 import com.tastyhouse.domain.member.follow.service.MemberFollowService;
+import com.tastyhouse.domain.member.port.MemberReviewCountPort;
 import com.tastyhouse.domain.member.referral.repository.MemberReferralRepository;
 import com.tastyhouse.domain.member.referral.service.ReferralRegistrationService;
 import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.member.repository.MemberWithdrawalRepository;
+import com.tastyhouse.domain.member.service.GradeSettlementService;
 import com.tastyhouse.domain.member.service.MemberDeliveryAddressService;
 import com.tastyhouse.domain.member.service.MemberRegistrationService;
 import com.tastyhouse.domain.member.service.MemberWithdrawalService;
@@ -80,6 +82,17 @@ public class MemberDomainConfig {
             pointHistoryRepository,
             domainEventPublisher
         );
+    }
+
+    /**
+     * 회원 등급 확정 — 전체 기간 리뷰 수로 등급을 판정해 등급별로 일괄 갱신하는 오케스트레이션.
+     */
+    @Bean
+    public GradeSettlementService gradeSettlementService(
+        MemberReviewCountPort memberReviewCountPort,
+        MemberRepository memberRepository
+    ) {
+        return new GradeSettlementService(memberReviewCountPort, memberRepository);
     }
 
     /**

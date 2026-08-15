@@ -102,10 +102,13 @@ class LayerRulesTest {
      * {@code SubOptionItemDetailResponse})이 실재해 대상이 있고, {@code allowEmptyShould(true)}도 붙어
      * 있지 않다. 따라서 이 모듈에 남은 공허 통과 규칙은 <b>0건</b>이다.
      *
-     * <p>TODO(step 5): 스케줄러가 infra {@code ..query..} DAO를 직접 주입하는 것은 현재 허용 관행이다
-     * ({@code GradeSchedulerService}가 {@code MemberReviewCountQueryDao}를 주입). step 5에서 그 위반이
-     * 해소되면 "batch의 {@code *SchedulerService}는 도메인 서비스 또는 port를 경유한다" 규칙 신설을
-     * 검토한다 — 이번 단계에서는 보류한다(규칙만 추가하고 프로덕션 코드는 건드리지 않는 범위).
+     * <p>TODO(step 5 이후): {@code GradeSchedulerService}의 {@code MemberReviewCountQueryDao} 직접 주입은
+     * step 5에서 해소됐다(등급 정책이 도메인 서비스 {@code GradeSettlementService}로 내려가고 데이터는
+     * {@code MemberReviewCountPort}를 경유). 다만 "batch의 {@code *SchedulerService}는 도메인 서비스 또는
+     * port를 경유한다" 규칙은 <b>아직 신설하지 않는다</b> — {@code ProductSchedulerService}가 infra
+     * {@code ..query..}의 Result 타입({@code ProductBbqSyncTargetResult})을 시그니처에 노출하고
+     * {@code BbqProductSyncService}가 {@code ProductQueryDao}를 주입하고 있어, 지금 규칙을 넣으면 실패하거나
+     * 예외 목록을 달아야 한다. product 크롤링 동기화 경로가 정리되는 시점에 함께 추가한다.
      */
     @Test
     void requestResponseRecordsShouldBeDomainAndInfraFree() {
