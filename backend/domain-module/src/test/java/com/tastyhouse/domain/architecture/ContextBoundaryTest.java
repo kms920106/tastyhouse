@@ -74,13 +74,8 @@ class ContextBoundaryTest {
      */
     private static final Set<String> SEALED_VIOLATIONS = Set.of(
         "com.tastyhouse.domain.mail.service.MailVerificationService",
-        "com.tastyhouse.domain.member.referral.service.ReferralRegistrationService",
         "com.tastyhouse.domain.member.service.MemberDeliveryAddressService",
-        "com.tastyhouse.domain.order.model.Order",
-        "com.tastyhouse.domain.order.service.OrderPlacement",
         "com.tastyhouse.domain.order.service.OrderPlacementService",
-        "com.tastyhouse.domain.order.vo.OrderDeliveryDestination",
-        "com.tastyhouse.domain.order.vo.OrderSchedule",
         "com.tastyhouse.domain.payment.service.PaymentCancellationService",
         "com.tastyhouse.domain.payment.service.PaymentConfirmationService",
         "com.tastyhouse.domain.reservation.service.ReservationBookingService",
@@ -108,7 +103,6 @@ class ContextBoundaryTest {
      * <p>항목 형태는 성분에 속한 컨텍스트를 알파벳 오름차순으로 이은 {@code "a,b,c"}다.
      */
     private static final Set<String> SEALED_CYCLES = Set.of(
-        "member,point",
         "order,product,review,shop"
     );
 

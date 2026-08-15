@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.shop.query;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.SuspensionReason;
 
 public record ShopSuspensionResult(

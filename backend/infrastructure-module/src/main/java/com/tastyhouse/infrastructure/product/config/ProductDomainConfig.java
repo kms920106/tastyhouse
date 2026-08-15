@@ -10,6 +10,7 @@ import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
+import com.tastyhouse.domain.product.service.OrderProductValidationService;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.service.ProductReviewStatsService;
 
@@ -55,5 +56,24 @@ public class ProductDomainConfig {
         ProductReviewStatisticsPort productReviewStatisticsPort
     ) {
         return new ProductReviewStatsService(productRepository, productReviewStatisticsPort);
+    }
+
+    /**
+     * 주문 라인의 상품·옵션 검증 — 상품 존재·판매중지·옵션 존재를 판정하고 주문 라인에 박제할 스냅샷을
+     * 돌려준다. 주문 접수가 product의 모델·리포지토리를 직접 쓰지 않도록 이 컨텍스트가 소유한다.
+     */
+    @Bean
+    public OrderProductValidationService orderProductValidationService(
+        ProductRepository productRepository,
+        ProductOptionGroupRepository productOptionGroupRepository,
+        ProductOptionRepository productOptionRepository,
+        ProductImageRepository productImageRepository
+    ) {
+        return new OrderProductValidationService(
+            productRepository,
+            productOptionGroupRepository,
+            productOptionRepository,
+            productImageRepository
+        );
     }
 }

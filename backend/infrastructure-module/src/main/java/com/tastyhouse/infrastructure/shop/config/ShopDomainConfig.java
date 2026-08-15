@@ -47,6 +47,7 @@ import com.tastyhouse.domain.shop.service.ShopNoticeExposureService;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
+import com.tastyhouse.domain.shop.service.ShopOrderContextService;
 import com.tastyhouse.domain.shop.service.ShopPhoneNumberRegistryService;
 import com.tastyhouse.domain.shop.service.ShopRequestCancelService;
 import com.tastyhouse.domain.shop.service.ShopRequestCommentService;
@@ -461,5 +462,29 @@ public class ShopDomainConfig {
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
         return new ShopRequestCommentService(shopRequestCommentRepository, shopRequestIndexRecorder);
+    }
+
+    /**
+     * 주문 접수가 가게에 묻는 것들의 파사드 — 가게 로드·주문가능 검증·최소주문금액 검증·배달가능지역
+     * 판정·거리 산출·배달팁 조립·예약슬롯 확정. 주문 접수가 shop의 모델·리포지토리를 직접 쓰지 않도록
+     * 이 컨텍스트가 소유한다.
+     */
+    @Bean
+    public ShopOrderContextService shopOrderContextService(
+        ShopRepository shopRepository,
+        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
+        ShopDeliveryTipRepository shopDeliveryTipRepository,
+        ShopOrderAvailabilityService shopOrderAvailabilityService,
+        ShopDeliveryTipCalculator shopDeliveryTipCalculator,
+        ScheduledOrderSlotService scheduledOrderSlotService
+    ) {
+        return new ShopOrderContextService(
+            shopRepository,
+            shopDeliveryAreaRepository,
+            shopDeliveryTipRepository,
+            shopOrderAvailabilityService,
+            shopDeliveryTipCalculator,
+            scheduledOrderSlotService
+        );
     }
 }

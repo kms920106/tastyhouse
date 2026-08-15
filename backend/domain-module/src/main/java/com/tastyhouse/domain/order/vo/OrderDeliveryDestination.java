@@ -2,8 +2,6 @@ package com.tastyhouse.domain.order.vo;
 
 import java.math.BigDecimal;
 
-import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
-
 /**
  * 주문 시점의 배달 목적지 스냅샷 값 객체.
  *
@@ -60,20 +58,36 @@ public record OrderDeliveryDestination(
 ) {
 
     /**
-     * 회원 배달 주소와 산출된 거리로 스냅샷을 만든다.
+     * 확정된 배달 목적지 값들로 스냅샷을 만든다.
      *
-     * <p>거리를 주소가 아니라 인자로 받는 이유는 좌표→거리 변환({@code GeoDistance})이 가게 좌표를
-     * 함께 필요로 하는 크로스 애그리거트 연산이라, 이 VO가 알 수 없기 때문이다.
+     * <p><b>{@code MemberDeliveryAddress}를 그대로 받지 않고 값을 낱개로 받는다</b> — 애그리거트를
+     * 받으면 order의 VO가 member 모델을 알게 되어 컨텍스트 경계를 위반한다. 주소에서 값을 꺼내
+     * 넘기는 것은 이 VO를 만드는 {@code OrderPlacementService}의 몫이다.
+     *
+     * <p>거리를 인자로 받는 이유는 좌표→거리 변환({@code GeoDistance})이 가게 좌표를 함께 필요로 하는
+     * 크로스 애그리거트 연산이라, 이 VO가 알 수 없기 때문이다.
+     *
+     * <p><b>파라미터 순서는 record 컴포넌트 선언 순서(알파벳순)와 같다.</b> 같은 타입이 연속하므로
+     * (주소 3종이 전부 {@code String}, 좌표 2종이 전부 {@code BigDecimal}) 자리를 바꿔도 컴파일되고
+     * 값만 조용히 뒤바뀐다 — 호출부에서 한 인자씩 대조한다.
      */
-    public static OrderDeliveryDestination of(MemberDeliveryAddress address, int distanceMeters) {
+    public static OrderDeliveryDestination of(
+        Long adminDongId,
+        String detailAddress,
+        int distanceMeters,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String lotAddress,
+        String roadAddress
+    ) {
         return new OrderDeliveryDestination(
-            address.getAdminDongId() == null ? null : address.getAdminDongId().value(),
-            address.getDetailAddress(),
+            adminDongId,
+            detailAddress,
             distanceMeters,
-            address.getLatitude(),
-            address.getLongitude(),
-            address.getLotAddress(),
-            address.getRoadAddress()
+            latitude,
+            longitude,
+            lotAddress,
+            roadAddress
         );
     }
 

@@ -6,7 +6,7 @@ import java.util.List;
 import com.querydsl.core.annotations.QueryProjection;
 
 import com.tastyhouse.domain.order.model.OrderStatus;
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 /**
  * 주문 단건 상세 조회 결과 — 주문 헤더에 가게명·가게 전화번호를 join하고, 상품 라인 목록과 결제 요약을

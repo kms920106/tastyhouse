@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.review.query;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 /**
  * 점주 리뷰 상세.

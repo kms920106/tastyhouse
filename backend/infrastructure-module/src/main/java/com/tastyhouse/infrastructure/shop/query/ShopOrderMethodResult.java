@@ -1,6 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 /**
  * 가게에 배정된 주문방식 한 건(회원 상세·관리 화면 공용).

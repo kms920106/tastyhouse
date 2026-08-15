@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
 import com.tastyhouse.domain.exception.BusinessException;

@@ -5,24 +5,16 @@ import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.domain.coupon.service.CouponIssueService;
 import com.tastyhouse.domain.holiday.service.PublicHolidayCalendar;
-import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
-import com.tastyhouse.domain.member.repository.MemberRepository;
+import com.tastyhouse.domain.member.service.MemberDeliveryAddressService;
+import com.tastyhouse.domain.member.service.OrdererLookupService;
 import com.tastyhouse.domain.order.repository.OrderProductOptionRepository;
 import com.tastyhouse.domain.order.repository.OrderProductRepository;
 import com.tastyhouse.domain.order.repository.OrderRepository;
 import com.tastyhouse.domain.order.service.OrderPlacementService;
 import com.tastyhouse.domain.order.service.OrderTransitionService;
 import com.tastyhouse.domain.point.service.PointLedgerService;
-import com.tastyhouse.domain.product.repository.ProductImageRepository;
-import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
-import com.tastyhouse.domain.product.repository.ProductOptionRepository;
-import com.tastyhouse.domain.product.repository.ProductRepository;
-import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
-import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
-import com.tastyhouse.domain.shop.repository.ShopRepository;
-import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
-import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
-import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
+import com.tastyhouse.domain.product.service.OrderProductValidationService;
+import com.tastyhouse.domain.shop.service.ShopOrderContextService;
 
 /**
  * order 컨텍스트의 도메인 서비스(POJO) 빈 등록 설정.
@@ -36,47 +28,34 @@ public class OrderDomainConfig {
     /**
      * 주문 접수 — 주문 헤더·상품 라인·라인 옵션 세 애그리거트를 한 트랜잭션에서 함께 만들고, 금액 계산과
      * 쿠폰 사용·포인트 차감까지 원자로 묶는 오케스트레이션.
+     *
+     * <p>타 컨텍스트(product·shop·member)는 전부 그 컨텍스트가 소유한 서비스를 경유하므로, 여기서
+     * 그쪽 리포지토리를 주입하지 않는다.
      */
     @Bean
     public OrderPlacementService orderPlacementService(
         OrderRepository orderRepository,
         OrderProductRepository orderProductRepository,
         OrderProductOptionRepository orderProductOptionRepository,
-        ShopRepository shopRepository,
-        MemberRepository memberRepository,
-        ProductRepository productRepository,
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductImageRepository productImageRepository,
+        OrderProductValidationService orderProductValidationService,
+        ShopOrderContextService shopOrderContextService,
+        OrdererLookupService ordererLookupService,
+        MemberDeliveryAddressService memberDeliveryAddressService,
         CouponIssueService couponIssueService,
         PointLedgerService pointLedgerService,
-        ShopDeliveryTipRepository shopDeliveryTipRepository,
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        MemberDeliveryAddressRepository memberDeliveryAddressRepository,
-        ShopDeliveryTipCalculator shopDeliveryTipCalculator,
-        PublicHolidayCalendar publicHolidayCalendar,
-        ScheduledOrderSlotService scheduledOrderSlotService,
-        ShopOrderAvailabilityService shopOrderAvailabilityService
+        PublicHolidayCalendar publicHolidayCalendar
     ) {
         return new OrderPlacementService(
             orderRepository,
             orderProductRepository,
             orderProductOptionRepository,
-            shopRepository,
-            memberRepository,
-            productRepository,
-            productOptionGroupRepository,
-            productOptionRepository,
-            productImageRepository,
+            orderProductValidationService,
+            shopOrderContextService,
+            ordererLookupService,
+            memberDeliveryAddressService,
             couponIssueService,
             pointLedgerService,
-            shopDeliveryTipRepository,
-            shopDeliveryAreaRepository,
-            memberDeliveryAddressRepository,
-            shopDeliveryTipCalculator,
-            publicHolidayCalendar,
-            scheduledOrderSlotService,
-            shopOrderAvailabilityService
+            publicHolidayCalendar
         );
     }
 

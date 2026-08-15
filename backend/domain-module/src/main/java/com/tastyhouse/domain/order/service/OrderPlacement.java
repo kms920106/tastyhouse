@@ -3,7 +3,7 @@ package com.tastyhouse.domain.order.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 /**
  * 주문 접수 입력 — 한 건의 주문에 담기는 상품 라인 목록과 결제 수단(쿠폰·포인트), 그리고 클라이언트가

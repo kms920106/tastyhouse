@@ -7,7 +7,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 import com.tastyhouse.domain.shop.model.DayType;
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;

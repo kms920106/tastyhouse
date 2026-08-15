@@ -12,7 +12,7 @@ import com.tastyhouse.domain.order.service.OrderPlacementItem;
 import com.tastyhouse.domain.order.service.OrderPlacementItemOption;
 import com.tastyhouse.domain.order.service.OrderPlacementService;
 import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.webapi.order.request.OrderProductRequest;
 
 /**

@@ -2,8 +2,6 @@ package com.tastyhouse.domain.order.vo;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
-
 /**
  * 주문 시점에 확정된 수령 예약시간 스냅샷 값 객체.
  *
@@ -33,10 +31,17 @@ public record OrderSchedule(
 ) {
 
     /**
-     * 서버가 재계산해 확정한 슬롯으로부터 스냅샷을 만든다.
+     * 서버가 재계산해 확정한 슬롯의 시작·종료 시각으로 스냅샷을 만든다.
+     *
+     * <p><b>shop의 {@code ScheduledOrderSlot}을 그대로 받지 않고 두 시각을 낱개로 받는다</b> —
+     * 슬롯 타입을 받으면 order의 VO가 shop 모델을 알게 되어 컨텍스트 경계를 위반한다. 슬롯에서 두
+     * 시각을 꺼내 넘기는 것은 이 VO를 만드는 {@code OrderPlacementService}의 몫이다.
+     *
+     * <p>두 파라미터가 같은 {@code LocalDateTime} 타입이라 <b>순서를 바꿔도 컴파일되고 값만 조용히
+     * 뒤바뀐다</b> — 호출부에서 시작·종료 자리를 반드시 대조한다.
      */
-    public static OrderSchedule of(ScheduledOrderSlot slot) {
-        return new OrderSchedule(slot.startAt(), slot.endAt());
+    public static OrderSchedule of(LocalDateTime scheduledAt, LocalDateTime scheduledSlotEndAt) {
+        return new OrderSchedule(scheduledAt, scheduledSlotEndAt);
     }
 
     /**

@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import com.tastyhouse.domain.review.model.ReviewListTab;
 import com.tastyhouse.domain.review.model.ReviewSortType;
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 /**
  * 점주 리뷰 목록 조회 조건.

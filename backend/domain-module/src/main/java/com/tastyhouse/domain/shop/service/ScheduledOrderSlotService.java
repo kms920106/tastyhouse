@@ -6,8 +6,7 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.order.vo.OrderSchedule;
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
@@ -71,16 +70,20 @@ public class ScheduledOrderSlotService {
     }
 
     /**
-     * 클라이언트가 보낸 수령 예약 시각을 <b>서버가 슬롯을 재계산해 대조</b>한 뒤 스냅샷으로 확정한다.
+     * 클라이언트가 보낸 수령 예약 시각을 <b>서버가 슬롯을 재계산해 대조</b>한 뒤 확정된 슬롯을 돌려준다.
      *
      * <p>클라이언트 값을 그대로 믿지 않는 이유는 배달팁 금액 대조와 같다 — 주문서 진입 시점과 결제 시점
      * 사이에 영업시간·임시중지가 바뀌거나 경계가 지나면 그 시각은 더 이상 예약 가능하지 않다. 30분 단위를
      * 벗어난 임의 시각·영업시간 밖 시각도 어느 슬롯과도 일치하지 않아 같은 경로로 거절된다.
      *
+     * <p><b>주문 스냅샷 VO({@code OrderSchedule})가 아니라 shop 소유 타입을 돌려준다</b> — 과거에는
+     * 이 메서드가 order의 VO를 만들어 돌려주어 shop이 order 내부를 알고 있었다. 확정된 슬롯을 주문
+     * 스냅샷으로 옮겨 담는 것은 그 값을 저장하는 order의 몫이다.
+     *
      * @throws BusinessException 요청 시각이 현재 유효 슬롯 목록에 없는 경우
      *                           ({@link ErrorCode#ORDER_SCHEDULED_AT_UNAVAILABLE})
      */
-    public OrderSchedule resolveSlot(
+    public ScheduledOrderSlot resolveSlot(
         ShopId shopId,
         OrderMethod orderMethod,
         LocalDateTime scheduledAt,
@@ -89,7 +92,6 @@ public class ScheduledOrderSlotService {
         return findAvailableSlots(shopId, orderMethod, now).stream()
             .filter(slot -> slot.matches(scheduledAt))
             .findFirst()
-            .map(OrderSchedule::of)
             .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_SCHEDULED_AT_UNAVAILABLE,
                 ErrorCode.ORDER_SCHEDULED_AT_UNAVAILABLE.getDefaultMessage() + ": " + scheduledAt));
     }

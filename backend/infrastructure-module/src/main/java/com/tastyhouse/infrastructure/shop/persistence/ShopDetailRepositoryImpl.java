@@ -6,7 +6,7 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ShopAmenity;
 import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
 import com.tastyhouse.domain.shop.model.ShopBannerImage;

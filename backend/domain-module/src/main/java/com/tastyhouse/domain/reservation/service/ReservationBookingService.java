@@ -12,7 +12,7 @@ import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.reservation.repository.ReservationRepository;
 import com.tastyhouse.domain.reservation.repository.ReservationSlotRepository;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;

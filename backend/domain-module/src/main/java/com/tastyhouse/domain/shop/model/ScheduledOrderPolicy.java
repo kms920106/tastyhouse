@@ -1,5 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
+import com.tastyhouse.domain.shared.model.OrderMethod;
+
 /**
  * 예약주문 공용 정책 상수({@link DeliveryTipPolicy} 선례의 상수 전용 final class).
  *

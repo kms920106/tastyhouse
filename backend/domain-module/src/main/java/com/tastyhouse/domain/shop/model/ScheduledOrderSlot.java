@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalDateTime;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 /**
  * 예약 가능한 수령 시간 슬롯 하나.

@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.shop.model;
 
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**

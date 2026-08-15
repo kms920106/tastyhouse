@@ -141,6 +141,24 @@ public class MemberDeliveryAddressService {
     }
 
     /**
+     * 배달 주소를 소유권 검증과 함께 로드한다 — 주문 접수가 배달 목적지를 확정할 때 쓴다.
+     *
+     * <p><b>왜 order가 아니라 여기에 있는가</b>: 과거 {@code OrderPlacementService}가
+     * {@code MemberDeliveryAddressRepository}를 직접 주입해 로드하고 소유권을 검증했는데, 그러면
+     * "주소는 소유자만 쓸 수 있다"는 member의 불변식이 order 안에서 재구현된다. 이 메서드는 위
+     * {@link #loadOwnedAddress}를 그대로 재사용하므로, 소유권 검증 규칙이 갈릴 여지가 없다.
+     *
+     * <p><b>좌표는 저장된 주소에서만 읽는다</b>는 원칙이 이 경로에 걸려 있다 — 클라이언트가 좌표를
+     * 요청 본문으로 보낼 수 있으면 가짜 좌표로 거리별 배달팁을 0원까지 낮출 수 있다.
+     *
+     * <p>실패 시 에러코드({@code MEMBER_DELIVERY_ADDRESS_NOT_FOUND}·
+     * {@code MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED})는 이관 전과 동일하다.
+     */
+    public MemberDeliveryAddress findOwnedAddress(MemberId memberId, Long addressId) {
+        return loadOwnedAddress(memberId, addressId);
+    }
+
+    /**
      * 주소를 로드하고 소유권을 검증한다. 주소 id만으로 접근하는 API라 이 검증이 유일한 방어선이다.
      */
     private MemberDeliveryAddress loadOwnedAddress(MemberId memberId, Long addressId) {

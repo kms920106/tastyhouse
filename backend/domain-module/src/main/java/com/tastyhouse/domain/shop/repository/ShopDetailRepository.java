@@ -3,7 +3,7 @@ package com.tastyhouse.domain.shop.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.domain.shop.model.OrderMethod;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ShopAmenity;
 import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
 import com.tastyhouse.domain.shop.model.ShopBannerImage;

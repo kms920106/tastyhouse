@@ -8,6 +8,7 @@ import com.tastyhouse.domain.member.follow.service.MemberFollowService;
 import com.tastyhouse.domain.member.port.MemberReviewCountPort;
 import com.tastyhouse.domain.member.referral.repository.MemberReferralRepository;
 import com.tastyhouse.domain.member.referral.service.ReferralRegistrationService;
+import com.tastyhouse.domain.member.referral.service.ReferralRewardCompletionService;
 import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.member.repository.MemberWithdrawalRepository;
@@ -15,8 +16,7 @@ import com.tastyhouse.domain.member.service.GradeSettlementService;
 import com.tastyhouse.domain.member.service.MemberDeliveryAddressService;
 import com.tastyhouse.domain.member.service.MemberRegistrationService;
 import com.tastyhouse.domain.member.service.MemberWithdrawalService;
-import com.tastyhouse.domain.point.repository.PointHistoryRepository;
-import com.tastyhouse.domain.point.repository.PointRepository;
+import com.tastyhouse.domain.member.service.OrdererLookupService;
 import com.tastyhouse.domain.region.repository.AdminDongRepository;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
@@ -67,21 +67,25 @@ public class MemberDomainConfig {
     }
 
     /**
-     * 추천인 등록 — 추천 관계 생성과 추천인·피추천인 양쪽 포인트 보상 적립을 함께 처리하는 오케스트레이션.
+     * 추천인 등록 — 추천 관계 생성과 등록 이벤트 발행. 보상 적립은 커밋 이후
+     * {@code ReferralRegisteredEventListener}가 point 컨텍스트 서비스를 경유해 수행한다.
      */
     @Bean
     public ReferralRegistrationService referralRegistrationService(
         MemberReferralRepository memberReferralRepository,
-        PointRepository pointRepository,
-        PointHistoryRepository pointHistoryRepository,
         DomainEventPublisher domainEventPublisher
     ) {
-        return new ReferralRegistrationService(
-            memberReferralRepository,
-            pointRepository,
-            pointHistoryRepository,
-            domainEventPublisher
-        );
+        return new ReferralRegistrationService(memberReferralRepository, domainEventPublisher);
+    }
+
+    /**
+     * 추천 보상 완료 전이 — 적립이 끝난 추천 관계를 REWARDED로 넘긴다.
+     */
+    @Bean
+    public ReferralRewardCompletionService referralRewardCompletionService(
+        MemberReferralRepository memberReferralRepository
+    ) {
+        return new ReferralRewardCompletionService(memberReferralRepository);
     }
 
     /**
@@ -105,5 +109,14 @@ public class MemberDomainConfig {
         AdminDongRepository adminDongRepository
     ) {
         return new MemberDeliveryAddressService(memberDeliveryAddressRepository, adminDongRepository);
+    }
+
+    /**
+     * 주문자 조회 — 주문 헤더에 박제할 이름·연락처·계정명을 회원 존재 확인과 함께 돌려준다.
+     * 주문 접수가 {@code Member} 애그리거트를 직접 알지 않도록 이 컨텍스트가 소유한다.
+     */
+    @Bean
+    public OrdererLookupService ordererLookupService(MemberRepository memberRepository) {
+        return new OrdererLookupService(memberRepository);
     }
 }
