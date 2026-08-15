@@ -9,6 +9,7 @@ import {
   getShopFoodTypes,
   getShopInfo,
   getShopMenus,
+  getShopNotice,
   getShopPhotos,
   getShopReviewStatistics,
   getShopReviews,
@@ -45,6 +46,7 @@ export const shopQueryKeys = {
   latest: (filter: LatestShopsFilter) => ['places', 'latest', filter] as const,
   foodTypes: ['place', 'food-types'] as const,
   infoDetail: (shopId: number) => ['place', shopId, 'place-detail-info'] as const,
+  notice: (shopId: number) => ['place', shopId, 'place-detail-notice'] as const,
   menus: (shopId: number) => ['place', shopId, 'place-detail-menus'] as const,
   photos: (shopId: number) => ['place', shopId, 'place-detail-photos'] as const,
   reviewStatistics: (shopId: number) => ['place', shopId, 'place-review-statistics'] as const,
@@ -116,6 +118,19 @@ export function useShopInfoDetail(shopId: number) {
       const [infoRes, detailRes] = await Promise.all([getShopInfo(shopId), getShopDetail(shopId)])
       return { infoRes, detailRes }
     },
+  })
+}
+
+/**
+ * 사장님 공지를 조회합니다.
+ *
+ * queryKey 를 `shopId` 하나로 두는 것이 중요합니다 — 같은 컴포넌트가 한 페이지에 최대 3곳
+ * (상세 최상단 · 정보 탭 · 리뷰 탭)에서 렌더되므로, 키가 같아야 캐시가 중복 요청을 흡수합니다.
+ */
+export function useShopNotice(shopId: number) {
+  return useQuery({
+    queryKey: shopQueryKeys.notice(shopId),
+    queryFn: () => getShopNotice(shopId),
   })
 }
 

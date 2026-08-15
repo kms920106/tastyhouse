@@ -16,6 +16,7 @@ import {
   ShopFoodTypeListItemResponse,
   ShopInfoResponse,
   ShopLatestListItemResponse,
+  ShopNoticeResponse,
   ShopOrderMethodResponse,
   ShopPhotoCategoryResponse,
   ShopProductCategoryResponse,
@@ -75,6 +76,14 @@ export const shopRepository = {
   },
   async getShopInfo(shopId: number) {
     return publicApi.get<ShopInfoResponse>(`${ENDPOINT}/v1/${shopId}/info`, CACHE_OPTIONS)
+  },
+  async getShopNotice(shopId: number) {
+    // 다른 가게 조회(revalidate 3600)와 달리 60초로 짧게 둔다 — 점주가 "앱에 반영"을 눌렀는데
+    // 한 시간 동안 안 보이면 기능이 동작하지 않는 것으로 보이기 때문이다.
+    return publicApi.get<ShopNoticeResponse | null>(`${ENDPOINT}/v1/${shopId}/notice`, {
+      cache: 'force-cache' as const,
+      next: { revalidate: 60 },
+    })
   },
   async getShopProducts(shopId: number) {
     return publicApi.get<ShopProductCategoryResponse[]>(

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SHOP_MANAGE_TABS, type ShopManageTab } from "@/feature/shop/constants";
 import type { ShopBasicInfo, ShopOperationInfo, ShopOrderAvailability, ShopSummary } from "@/feature/shop/domain";
 import { SHOP_CHANGE_HISTORY_COPY, SHOP_PAGE_COPY, SHOP_REQUEST_COPY } from "@/feature/shop/message";
+import type { ShopNoticeItem } from "@/feature/shop-notice/domain";
 import { SHOP_REVIEW_COPY } from "@/feature/shop-review/message";
 
 import { BasicInfoTab } from "./basic-info-tab";
@@ -28,6 +29,8 @@ interface ShopManageProps {
   operationInfo?: ShopOperationInfo;
   /** 주문정보 탭 데이터. 이 조회만 실패하면 undefined 로 넘어와 해당 탭에서만 실패를 알린다 */
   orderAvailability?: ShopOrderAvailability;
+  /** 사장님 공지 목록. 조회 실패해도 기본정보 탭을 막지 않으므로 undefined 를 허용한다 */
+  notices?: ShopNoticeItem[];
   /** 접근 불가 사유(403 `SHOP_ACCESS_DENIED` / 404 `SHOP_NOT_FOUND`). 있으면 탭 대신 인라인 안내를 띄운다 */
   errorCode?: string;
 }
@@ -39,6 +42,7 @@ export function ShopManage({
   basicInfo,
   operationInfo,
   orderAvailability,
+  notices,
   errorCode,
 }: ShopManageProps) {
   const router = useRouter();
@@ -149,7 +153,7 @@ export function ShopManage({
               <TabsTrigger value={SHOP_MANAGE_TABS.ORDER}>{SHOP_PAGE_COPY.ORDER_TAB}</TabsTrigger>
             </TabsList>
             <TabsContent value={SHOP_MANAGE_TABS.BASIC}>
-              <BasicInfoTab shopId={shopId} basicInfo={basicInfo} />
+              <BasicInfoTab shopId={shopId} basicInfo={basicInfo} notices={notices ?? []} />
             </TabsContent>
             <TabsContent value={SHOP_MANAGE_TABS.OPERATION}>
               {/* 최소주문금액·예약주문은 가게 상세(basicInfo)에서 오지만 주문 운영 설정이므로 운영정보 탭에서 노출한다 */}

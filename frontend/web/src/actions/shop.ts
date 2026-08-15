@@ -33,6 +33,10 @@ export async function getShopDetail(shopId: number) {
   return shopRepository.getShopDetail(shopId)
 }
 
+export async function getShopNotice(shopId: number) {
+  return shopRepository.getShopNotice(shopId)
+}
+
 export async function getShopDeliveryTip(shopId: number, params: ShopDeliveryTipQuery = {}) {
   return shopRepository.getShopDeliveryTip(shopId, params)
 }

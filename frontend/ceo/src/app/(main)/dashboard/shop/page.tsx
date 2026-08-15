@@ -1,4 +1,5 @@
 import { shopService } from "@/api/shop/shop.service";
+import { shopNoticeService } from "@/api/shop-notice/shop-notice.service";
 import { SHOP_MANAGE_TABS, type ShopManageTab } from "@/feature/shop/constants";
 import { SHOP_MESSAGE } from "@/feature/shop/message";
 import logger from "@/lib/logger";
@@ -38,10 +39,11 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop"
   const matchedShop = shops.find((shop) => shop.id === requestedShopId);
   const selectedShopId = isShopIdSpecified ? requestedShopId : (matchedShop?.id ?? shops[0].id);
 
-  const [basicInfoResult, operationInfoResult, orderAvailabilityResult] = await Promise.all([
+  const [basicInfoResult, operationInfoResult, orderAvailabilityResult, noticesResult] = await Promise.all([
     shopService.getShopBasicInfo(selectedShopId),
     shopService.getShopOperationInfo(selectedShopId),
     shopService.getShopOrderAvailability(selectedShopId),
+    shopNoticeService.getNotices(selectedShopId),
   ]);
 
   // 접근 권한이 없거나 존재하지 않는 가게면 화면 전체를 에러로 덮지 않고 인라인 안내만 띄운다 —
@@ -70,6 +72,14 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop"
     );
   }
 
+  // 공지 조회 실패도 화면을 막지 않는다 — 빈 목록으로 시트를 열어 새 공지를 등록할 수 있게 둔다.
+  if (noticesResult.error || !noticesResult.data) {
+    logger.error(
+      { reason: noticesResult.error, shopId: selectedShopId },
+      "가게 사장님 공지 조회 실패 — 빈 목록으로 렌더",
+    );
+  }
+
   return (
     <ShopManage
       shops={shops}
@@ -78,6 +88,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop"
       basicInfo={basicInfoResult.data}
       operationInfo={operationInfoResult.data}
       orderAvailability={orderAvailabilityResult.data}
+      notices={noticesResult.data}
     />
   );
 }

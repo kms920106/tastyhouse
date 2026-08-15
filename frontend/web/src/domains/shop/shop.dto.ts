@@ -67,6 +67,14 @@ export interface ShopInfoResponse {
   ownerMessageCreatedAt: string | null
 }
 
+/** 사장님 공지. 노출 중인 1건만 내려오며, 없으면 응답 `data` 가 null 이다 */
+export interface ShopNoticeResponse {
+  id: number
+  content: string
+  imageUrls: string[]
+  createdAt: string
+}
+
 export interface ShopProductCategoryResponse {
   categoryName: string
   products: ProductListItemResponse[]

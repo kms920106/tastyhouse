@@ -6,33 +6,40 @@ import { Badge } from "@/components/ui/badge";
 import { SHOP_STATUS_LABEL } from "@/feature/shop/constants";
 import type { ShopBasicInfo } from "@/feature/shop/domain";
 import { SHOP_BASIC_COPY } from "@/feature/shop/message";
+import type { ShopNoticeItem } from "@/feature/shop-notice/domain";
+import { SHOP_NOTICE_COPY } from "@/feature/shop-notice/message";
 
 import { ContentBoardSheet } from "./content-board-sheet";
 import { ConveniencesSheet } from "./conveniences-sheet";
 import { IntroductionSheet } from "./introduction-sheet";
+import { NoticeSheet } from "./notice-sheet";
 import { PhoneNumbersSheet } from "./phone-numbers-sheet";
 import { SettingRow } from "./setting-row";
 import { ShopStatusSheet } from "./shop-status-sheet";
 import { ThumbnailImageCard } from "./thumbnail-image-card";
 import { TrademarkRequestSheet } from "./trademark-request-sheet";
 
-type SheetKey = "trademark" | "introduction" | "contentBoard" | "phoneNumbers" | "status" | "conveniences";
+type SheetKey = "trademark" | "introduction" | "contentBoard" | "notice" | "phoneNumbers" | "status" | "conveniences";
 
 interface BasicInfoTabProps {
   shopId: number;
   basicInfo: ShopBasicInfo;
+  /** 공지 목록. 조회 실패 시 빈 배열로 넘어와 시트는 열리되 목록만 비어 보인다 */
+  notices: ShopNoticeItem[];
 }
 
 function truncate(value: string, max = 60): string {
   return value.length > max ? `${value.slice(0, max)}...` : value;
 }
 
-export function BasicInfoTab({ shopId, basicInfo }: BasicInfoTabProps) {
+export function BasicInfoTab({ shopId, basicInfo, notices }: BasicInfoTabProps) {
   const [openSheet, setOpenSheet] = React.useState<SheetKey | null>(null);
 
   const closeSheet = () => setOpenSheet(null);
 
   const primaryPhone = basicInfo.phoneNumbers.find((item) => item.primary);
+  // 게시중단된 공지는 켜져 있어도 고객에게 보이지 않으므로 설정행 요약에서 "노출중"으로 치지 않는다.
+  const exposedNotice = notices.find((item) => item.exposed && !item.hidden);
   const hasTrademarkPending = basicInfo.trademarkStatus.requests.some((request) => request.status === "PENDING");
   // hidden 은 노출정지 상태를 뜻한다 — 스펙상 상태값은 OPEN/HIDDEN 두 가지뿐이다.
   const status = basicInfo.hidden ? "HIDDEN" : "OPEN";
@@ -78,6 +85,22 @@ export function BasicInfoTab({ shopId, basicInfo }: BasicInfoTabProps) {
         description={SHOP_BASIC_COPY.CONTENT_BOARD_DESCRIPTION}
         summary={basicInfo.contentBoards.length > 0 ? `${basicInfo.contentBoards.length}건 등록` : undefined}
         onAction={() => setOpenSheet("contentBoard")}
+      />
+
+      <SettingRow
+        title={SHOP_NOTICE_COPY.ENTRY_TITLE}
+        description={SHOP_NOTICE_COPY.ENTRY_DESCRIPTION}
+        summary={
+          exposedNotice ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">{SHOP_NOTICE_COPY.BADGE_EXPOSED}</Badge>
+              <span>{truncate(exposedNotice.content)}</span>
+            </div>
+          ) : notices.length > 0 ? (
+            `${notices.length}건 등록`
+          ) : undefined
+        }
+        onAction={() => setOpenSheet("notice")}
       />
 
       <SettingRow
@@ -134,6 +157,7 @@ export function BasicInfoTab({ shopId, basicInfo }: BasicInfoTabProps) {
         shopId={shopId}
         contentBoards={basicInfo.contentBoards}
       />
+      <NoticeSheet open={openSheet === "notice"} onOpenChange={closeSheet} shopId={shopId} notices={notices} />
       <PhoneNumbersSheet
         open={openSheet === "phoneNumbers"}
         onOpenChange={closeSheet}

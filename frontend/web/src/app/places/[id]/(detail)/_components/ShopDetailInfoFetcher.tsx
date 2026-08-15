@@ -28,5 +28,5 @@ export default function ShopDetailInfoFetcher({ shopId }: Props) {
     phoneNumber: data.detailRes.data?.phoneNumber ?? null,
   }
 
-  return <ShopDetailInfo shopInfo={placeInfo} />
+  return <ShopDetailInfo shopId={shopId} shopInfo={placeInfo} />
 }

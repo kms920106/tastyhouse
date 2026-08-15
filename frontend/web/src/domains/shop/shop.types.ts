@@ -21,6 +21,19 @@ export type ShopAmenityCode =
 export type ShopImageCategoryCode = 'EXTERIOR' | 'INTERIOR' | 'FOOD' | 'OTHER'
 
 /**
+ * 사장님 공지.
+ *
+ * 가게당 노출 중인 1건만 내려오므로 목록이 아니라 단건이다. 미등록·게시중단이면 서버가 null 을 준다.
+ * 기존 `ownerMessage`(사장님 한마디)와는 별개 기능이다.
+ */
+export interface ShopNotice {
+  id: number
+  content: string
+  imageUrls: string[]
+  createdAt: string
+}
+
+/**
  * 가게 영업 상태.
  *
  * 주문 상태(`OrderStatusCode`)의 `'PREPARING'`("준비 중")과 문자열이 겹치지만 별개 개념이다.

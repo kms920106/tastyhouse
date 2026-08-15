@@ -7,6 +7,7 @@ import ClampedText, { MoreButton } from '@/components/ui/ClampedText'
 import { ShopAmenity, ShopBreakTime, ShopBusinessHour, ShopClosedDay } from '@/domains/shop'
 import Link from 'next/link'
 import { useState } from 'react'
+import ShopDetailNoticeContent from './ShopDetailNoticeContent'
 
 type ShopInfoData = {
   phoneNumber: string | null
@@ -19,10 +20,11 @@ type ShopInfoData = {
 }
 
 interface Props {
+  shopId: number
   shopInfo: ShopInfoData
 }
 
-export default function ShopDetailInfo({ shopInfo }: Props) {
+export default function ShopDetailInfo({ shopId, shopInfo }: Props) {
   const {
     businessHours,
     breakTimes,
@@ -37,6 +39,8 @@ export default function ShopDetailInfo({ shopInfo }: Props) {
 
   return (
     <>
+      {/* 부모가 이미 BorderedSection 안이라 여기서는 섹션 경계를 두지 않는다 (`src/app/CLAUDE.md` 4.10) */}
+      <ShopDetailNoticeContent shopId={shopId} bordered={false} />
       {ownerMessage && ownerMessageCreatedAt && (
         <>
           <div className="relative mt-[13px] px-[15px] py-[23px] pb-4 bg-[#f9f9f9] border border-[#cccccc] box-border rounded-[5px]">
