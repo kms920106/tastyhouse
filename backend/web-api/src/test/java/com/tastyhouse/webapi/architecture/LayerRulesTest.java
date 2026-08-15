@@ -65,6 +65,28 @@ class LayerRulesTest {
     }
 
     /**
+     * 컨트롤러는 조회 어댑터도 직접 주입하지 않는다. 조회는 {@code *QueryService}가 infra query DAO를
+     * 주입해 수행하고 Result → Response 변환까지 담당하므로(CQRS 분리 규칙), 컨트롤러가
+     * {@code com.tastyhouse.infrastructure..query..}(DAO·Result·SearchCondition)를 알 이유가 없다.
+     *
+     * <p>이 규칙이 없으면 <b>구조적 구멍</b>이 남는다 — 위
+     * {@code controllersShouldNotDependOnRepositories}는 이름 접미어 {@code *Repository}만 매칭하고
+     * DAO는 {@code *QueryDao}라 걸리지 않으며, {@code shouldNotDependOnInfrastructurePersistence}는
+     * {@code ..persistence..}만 차단하고 DAO는 {@code ..query..}에 있어 역시 걸리지 않는다. 즉 컨트롤러가
+     * DAO를 직접 주입해도 기존 규칙 어디에도 잡히지 않았다. 현재 위반은 0건이며, 이 규칙은 그 상태를
+     * 고정한다(기존 규칙은 이중 방어로 그대로 유지).
+     */
+    @Test
+    void controllersShouldNotDependOnQueryDaos() {
+        ArchRule rule = noClasses()
+            .that().haveSimpleNameEndingWith("ApiController")
+            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
+            .because("컨트롤러는 infra query DAO를 직접 주입하지 않는다(조회는 QueryService 경유)");
+
+        rule.check(classes);
+    }
+
+    /**
      * api 모듈은 QueryDSL을 알지 않는다. 조회는 infrastructure-module의 {@code <ctx>/query/} DAO가
      * 캡슐화하며, 이 모듈은 그 DAO와 Result DTO만 주입·import한다.
      */

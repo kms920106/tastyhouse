@@ -44,15 +44,18 @@ class LayerRulesTest {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("CommandService")
             .or().haveSimpleNameEndingWith("QueryService")
+            // batch는 CQRS 분리를 쓰지 않아 *CommandService/*QueryService가 0개이고 잡 본문을
+            // *SchedulerService에 담는다. 그래서 이 규칙은 그동안 대상 0건으로 공허하게 통과하고 있었다 —
+            // 규칙이 있는데 아무것도 검사하지 않는 상태였다. 실재하는 잡 서비스(Grade/Rank/Product/
+            // AdminDong/SearchKeyword)를 매칭 대상에 포함시키고, 공허하지 않게 되었으므로 아래
+            // allowEmptyShould(true)를 제거했다. 잡 서비스가 HTTP 플럼빙을 알 이유가 없다는 취지는 동일하다.
+            .or().haveSimpleNameEndingWith("SchedulerService")
             .should().dependOnClassesThat().resideInAnyPackage(
                 "org.springframework.web.bind..",
                 "org.springframework.web.servlet..",
                 "org.springframework.http..",
                 "jakarta.servlet.."
-            )
-            // batch-module은 CQRS application 서비스를 두지 않는다(스케줄러가 도메인 서비스를 직접 호출).
-            // 대상 0건이 정상이므로 공허 통과를 허용한다 — 다른 3개 api 모듈에서는 허용하지 않는다.
-            .allowEmptyShould(true);
+            );
 
         rule.check(classes);
     }
@@ -93,6 +96,16 @@ class LayerRulesTest {
      * 않아(스케줄러가 도메인 서비스를 직접 호출) 대상이 구조적으로 0건이고, 그런 규칙을 추가하면
      * {@code allowEmptyShould(true)}로 공허 통과를 열어야 한다. 규칙을 두지 않는 것이 공허하게
      * 통과시키는 것보다 정직하다. batch에 CQRS 서비스나 컨트롤러가 생기면 그 시점에 추가한다.
+     *
+     * <p><b>이 규칙 자체는 공허하지 않다</b>: 위 {@code crawling/bbq/response/}에 record 4종
+     * ({@code BbqProductResponse}·{@code BbqProductCategoryResponse}·{@code BbqProductSubOptionResponse}·
+     * {@code SubOptionItemDetailResponse})이 실재해 대상이 있고, {@code allowEmptyShould(true)}도 붙어
+     * 있지 않다. 따라서 이 모듈에 남은 공허 통과 규칙은 <b>0건</b>이다.
+     *
+     * <p>TODO(step 5): 스케줄러가 infra {@code ..query..} DAO를 직접 주입하는 것은 현재 허용 관행이다
+     * ({@code GradeSchedulerService}가 {@code MemberReviewCountQueryDao}를 주입). step 5에서 그 위반이
+     * 해소되면 "batch의 {@code *SchedulerService}는 도메인 서비스 또는 port를 경유한다" 규칙 신설을
+     * 검토한다 — 이번 단계에서는 보류한다(규칙만 추가하고 프로덕션 코드는 건드리지 않는 범위).
      */
     @Test
     void requestResponseRecordsShouldBeDomainAndInfraFree() {

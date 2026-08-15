@@ -740,7 +740,21 @@ reference 구현: `domain-module/src/test/.../architecture/ContextBoundaryTest`(
 - **application 서비스 web 의존 금지 규칙의 개정**: 과거 `applicationShouldNotDependOnWebLayer`는 `..application..` 패키지를 매칭했는데, application 계층 해체로 그런 패키지가 사라져 **대상 0건으로 공허하게 통과**하고 있었다. 이를 `applicationServicesShouldNotDependOnWebLayer`로 개정해 **클래스명(`*CommandService`/`*QueryService`)으로 대상을 잡고**, 차단 대상을 web *플럼빙*(`org.springframework.web.bind..`·`org.springframework.web.servlet..`·`org.springframework.http..`·`jakarta.servlet..`)으로 한정했다. 서비스가 요청 바인딩·서블릿·`HttpStatus`를 알 이유가 없다는 것이 규칙의 취지다.
 - **`MultipartFile`은 예외로 허용한다**: `org.springframework.web.multipart.MultipartFile`은 차단 목록에 넣지 않는다 — 파일 업로드에서 업로드 자체를 받는 경계 타입이라 `ceo-api`의 이미지 변경·콘텐츠보드 서비스가 정당하게 파라미터로 사용하며, 이를 금지하려면 업로드 흐름 자체를 재설계해야 한다.
 
-reference 구현: `web-api/src/test/.../architecture/LayerRulesTest`(및 `admin-api`/`ceo-api`/`batch-module`의 동명 테스트) — `applicationServicesShouldNotDependOnWebLayer`·`controllersShouldNotDependOnRepositories`·`shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence` 4개 규칙. `batch-module`의 `LayerRulesTest`만 CQRS 서비스 규칙에 `allowEmptyShould(true)`를 유지.
+- **컨트롤러의 DAO 직접 주입도 금지한다 (`controllersShouldNotDependOnQueryDaos`)**: 조회는 `*QueryService`가 DAO를 주입해 수행하고 Result → Response 변환까지 담당하므로, 컨트롤러가 `com.tastyhouse.infrastructure..query..`를 알 이유가 없다. 이 규칙이 없으면 **구조적 구멍**이 남는다 — `controllersShouldNotDependOnRepositories`는 이름 접미어 `*Repository`만 매칭해 `*QueryDao`를 놓치고, `shouldNotDependOnInfrastructurePersistence`는 `..persistence..`만 차단해 `..query..`에 있는 DAO를 놓친다. 즉 컨트롤러가 DAO를 직접 주입해도 어느 규칙에도 걸리지 않았다. 도입 시점 위반은 0건이며 규칙은 그 상태를 고정한다(기존 두 규칙은 이중 방어로 유지).
+- **`batch-module`에 남은 공허 통과 규칙은 0건이다 (개정)**: 과거 `applicationServicesShouldNotDependOnWebLayer`가 `allowEmptyShould(true)`로 통과하던 것은 batch가 CQRS 분리를 쓰지 않아 `*CommandService`/`*QueryService`가 0개이고 잡 본문을 `*SchedulerService`에 담기 때문이었다. 매칭 대상에 **`*SchedulerService`를 포함**시켜 실재하는 잡 서비스 5종(`Grade`/`Rank`/`Product`/`AdminDong`/`SearchKeyword`)이 규칙 대상이 되게 하고 `allowEmptyShould(true)`를 제거했다. 나머지 `requestResponseRecordsShouldBeDomainAndInfraFree`는 `crawling/bbq/response/`에 record 4종이 실재해 애초에 공허하지 않다. **따라서 이제 4개 api 모듈 어디에도 `allowEmptyShould(true)`가 없다.**
+
+reference 구현: `web-api/src/test/.../architecture/LayerRulesTest`(및 `admin-api`/`ceo-api`/`batch-module`의 동명 테스트) — `applicationServicesShouldNotDependOnWebLayer`·`controllersShouldNotDependOnRepositories`·`controllersShouldNotDependOnQueryDaos`·`shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence` 5개 규칙(batch는 컨트롤러가 없어 controller 규칙 2개를 두지 않으므로 3개).
+
+## infrastructure-module 계층 방향 규칙 (ArchUnit — `LayerRulesTest`)
+
+**infrastructure-module에도 ArchUnit 계층 방향 규칙을 둔다.** 그동안 이 모듈에는 ArchUnit 의존 자체가 없었고, 기존 가드 2종(`QueryResultRecordVisibilityTest`·`EmbeddedRecordComponentOrderTest`)은 수제 리플렉션 클래스패스 스캔으로 **런타임 규약**(record 가시성·`@Embedded` 컴포넌트 순서)만 지키고 있어, 계층 방향 규칙을 둘 곳이 없었다. **기존 가드 2종은 그대로 둔다** — 스캔 방식이 이미 잘 동작하므로 ArchUnit으로 재작성하지 않고, 새 테스트에는 그 방식으로 표현할 수 없는 방향 규칙만 둔다.
+
+- **`shouldNotDependOnApiModules`** — infra는 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..`를 의존하지 않는다. 빌드 그래프상 이미 막혀 있지만(infra는 api 모듈을 의존하지 않음) 테스트로 명시해 향후 의존 추가 시 즉시 드러나게 한다. `..listener..`의 api 모듈 의존 금지도 이 규칙이 함께 커버한다(`@TransactionalEventListener` 규약 자체는 강제하지 않는다).
+- **`persistenceShouldNotDependOnQuery`** — read→write 단방향. **반대 방향(`..query..` → `..persistence..`)은 정상**이다(DAO가 `QXxxJpaEntity`를 static import해 조인하는 것이 조회 구현의 기본 형태). 금지하는 것은 역방향으로, write 경로가 표현용 투영에 결합되면 api 모듈에서 막아 둔 CQRS 교차 주입 금지(`commandServicesShouldNotDependOnQueryDaos`)가 infra 안쪽에서 우회된다.
+- **봉인 목록 3건**: 도입 시점 위반은 전부 **도메인 출력 포트 어댑터**다(`ProductReviewStatisticsAdapter`·`MemberReviewCountAdapter`·`KeywordCountAdapter`). 도메인이 선언한 포트를 구현하면서 그 데이터의 소유 도메인이 이미 가진 read model을 재사용하는 형태로(예: 랭킹 집계용 리뷰 수는 리뷰 도메인 소유라 `review/query/`에 있고 랭킹 포트 어댑터가 도메인 값 타입으로 옮겨 담는다), write 경로가 아니라 **포트 구현**이라 위 위험에 해당하지 않지만 패키지 위치(`..persistence..`)가 규칙 표현과 어긋나 잡힌다. `ErrorCodeConventionTest`·`ContextBoundaryTest` 선례대로 클래스명으로 명시 제외하며 **목록은 줄어들기만 해야 한다** — 새 항목 추가는 새 위반을 승인하는 것이다. 짝 테스트 `sealedPersistenceToQueryShouldNotBeStale`(더 이상 위반하지 않는 낡은 항목 검출)·`sealedPersistenceToQueryListShouldNotBeEmpty`(전부 해소되면 봉인 장치 제거 지시)가 함께 붙는다.
+- **`allowEmptyShould(true)`를 쓰지 않는다** — api 모듈 4개와 동일하게 공허 통과를 허용하지 않는다.
+
+reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTest`. 같은 모듈의 수제 가드 `QueryResultRecordVisibilityTest`·`EmbeddedRecordComponentOrderTest`와 역할이 겹치지 않는다 — 이쪽은 **계층 방향**만 본다.
 
 ## api 모듈 application 서비스 CQRS 분리 규칙 (`{도메인}CommandService`/`{도메인}QueryService`)
 

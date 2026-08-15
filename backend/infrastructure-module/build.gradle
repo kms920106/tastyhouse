@@ -25,6 +25,8 @@ dependencies {
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
+    // 계층 경계 가드(LayerRulesTest) — 타 모듈(domain/web/admin/ceo/batch)과 버전 통일
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
 
 tasks.withType(JavaCompile).configureEach {
