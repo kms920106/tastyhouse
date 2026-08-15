@@ -10,13 +10,10 @@ import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 /**
  * 환불 요청이 접수됐음을 알리는 도메인 이벤트(승인·정산이 아니라 <b>접수</b> 시점이다).
  *
- * <p><b>현재 리스너 없음 — 의도된 발행이다.</b> P9(도메인 이벤트 정비)에서 수신자 없는 발행 7종을
- * 검토할 때, 이 이벤트는 관리자 알림·정산 연동 등 소비 수요가 실재할 가능성이 높고 이미
- * {@code PaymentCancellationServiceTest}가 발행을 계약으로 고정하고 있어 남겼다.
- *
- * <p>따라서 "리스너가 없으니 죽은 코드"로 보고 다시 제거 대상에 올리지 않는다. 소비처를 만들 때는
- * {@code infrastructure/payment/listener/PaymentEventListener}에
- * {@code @TransactionalEventListener(AFTER_COMMIT)} 핸들러를 추가한다.
+ * <p>소비처는 {@code infrastructure/payment/listener/PaymentEventListener#onRefundRequested}이며,
+ * 접수 사실만 기록한다. <b>금전 정산을 여기에 붙이지 않는다</b> — 사용 포인트 환급·적립 포인트 회수는
+ * 취소가 확정될 때 {@link PaymentCancelledEvent}가 수행하므로, 접수 시점에 함께 움직이면 같은 금액이
+ * 두 번 반영된다. 관리자 알림·정산 연동처럼 접수 자체에 반응하는 후속 처리만 그 핸들러에 연결한다.
  */
 public record RefundRequestedEvent(
     PaymentRefundId refundId,

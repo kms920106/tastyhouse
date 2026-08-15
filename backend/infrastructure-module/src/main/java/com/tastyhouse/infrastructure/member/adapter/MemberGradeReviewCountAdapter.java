@@ -19,6 +19,12 @@ import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
  * rank 컨텍스트의 {@code MemberReviewCountAdapter}와 같은 DAO를 공유하며, 컨텍스트 순환을 피하려고
  * 포트·값 타입만 컨텍스트별로 나뉜다(member 포트 Javadoc 참고).
  *
+ * <p><strong>클래스명에 {@code Grade}가 붙은 이유</strong>: rank 쪽 어댑터와 단순 클래스명이 같으면
+ * 스프링이 유도하는 기본 빈 이름({@code memberReviewCountAdapter})이 충돌해 컴포넌트 스캔이
+ * {@code ConflictingBeanDefinitionException}으로 거부하고 앱이 부팅하지 못한다. 두 어댑터는 주입이
+ * 타입 기반(서로 다른 컨텍스트의 {@code MemberReviewCountPort})이라 이름을 나눠도 참조가 깨지지 않으며,
+ * 용도({@code 등급 산정} vs {@code 랭킹 집계})가 이름에 드러나는 편이 탐색에도 낫다.
+ *
  * <p><strong>패키지가 {@code ..persistence..}가 아니라 {@code ..adapter..}인 이유</strong>: 이 클래스는 write
  * 어댑터가 아니라 <em>도메인 출력 포트 구현</em>이라 read model({@code review/query/})을 재사용하는 것이
  * 정상이다. {@code ..persistence..}에 두면 read→write 단방향 규칙({@code LayerRulesTest
@@ -27,11 +33,11 @@ import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
  * 따른다.
  */
 @Component
-public class MemberReviewCountAdapter implements MemberReviewCountPort {
+public class MemberGradeReviewCountAdapter implements MemberReviewCountPort {
 
     private final MemberReviewCountQueryDao memberReviewCountQueryDao;
 
-    public MemberReviewCountAdapter(MemberReviewCountQueryDao memberReviewCountQueryDao) {
+    public MemberGradeReviewCountAdapter(MemberReviewCountQueryDao memberReviewCountQueryDao) {
         this.memberReviewCountQueryDao = memberReviewCountQueryDao;
     }
 

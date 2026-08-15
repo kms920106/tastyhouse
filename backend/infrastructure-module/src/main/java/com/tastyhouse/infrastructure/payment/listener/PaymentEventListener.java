@@ -10,6 +10,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.domain.payment.event.PaymentCancelledEvent;
 import com.tastyhouse.domain.payment.event.PaymentCompletedEvent;
+import com.tastyhouse.domain.payment.event.RefundRequestedEvent;
 import com.tastyhouse.domain.payment.service.PaymentConfirmationService;
 import com.tastyhouse.domain.point.service.PointLedgerService;
 
@@ -75,5 +76,27 @@ public class PaymentEventListener {
             log.info("결제 취소 적립 포인트 회수 — memberId={}, earnedPoint={}",
                 event.memberId().value(), event.earnedPoint());
         }
+    }
+
+    /**
+     * 환불 요청 접수 — 포인트를 건드리지 않는다.
+     *
+     * <p>이 이벤트는 환불 <b>접수</b> 시점이며, 실제 금전 정산(사용 포인트 환급·적립 포인트 회수)은
+     * 결제가 취소로 확정될 때 {@link PaymentCancelledEvent}가 수행한다. 여기서 포인트를 함께 움직이면
+     * 승인 전 요청만으로 잔액이 바뀌고, 이후 취소가 확정될 때 같은 금액이 두 번 반영된다.
+     *
+     * <p>따라서 이 핸들러는 접수 사실만 남긴다 — 관리자 알림·정산 연동 같은 후속 소비처가 생기면
+     * 여기에 연결한다. 위 두 핸들러와 달리 DB를 쓰지 않으므로 {@code REQUIRES_NEW} 트랜잭션도 열지 않는다.
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onRefundRequested(RefundRequestedEvent event) {
+        log.info("환불 요청 접수 — refundId={}, paymentId={}, memberId={}, refundAmount={}, refundReason={}, requestedAt={}",
+            event.refundId().value(),
+            event.paymentId().value(),
+            event.memberId().value(),
+            event.refundAmount().value(),
+            event.refundReason(),
+            event.requestedAt()
+        );
     }
 }
