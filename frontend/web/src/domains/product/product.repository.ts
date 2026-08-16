@@ -19,6 +19,16 @@ const ENDPOINT = '/api/products'
 
 const CACHE_OPTIONS = { cache: 'force-cache' as const, next: { revalidate: 3600 } }
 
+/**
+ * 리뷰 계열 조회용 짧은 캐시.
+ *
+ * 상품 정보와 달리 리뷰는 회원이 방금 작성하거나 점주가 방금 답변한 결과가 곧바로 보여야 한다.
+ * CACHE_OPTIONS(revalidate 3600)를 그대로 쓰면 최대 1시간 동안 작성 이전 스냅샷이 노출된다.
+ * 점주 답변은 ceo 앱(별도 Next 인스턴스)에서 등록되므로 web의 revalidatePath로는 무효화할 수 없어,
+ * 캐시 수명 자체를 짧게 두는 쪽으로 해결한다. (shop.repository.ts와 같은 이유·같은 값이다.)
+ */
+const REVIEW_CACHE_OPTIONS = { cache: 'force-cache' as const, next: { revalidate: 60 } }
+
 export const productRepository = {
   // 오늘의 할인 상품 목록 조회
   async getTodayDiscountProducts(params: PaginationParams) {
@@ -39,7 +49,7 @@ export const productRepository = {
   async getProductReviewCount(productId: number) {
     return publicApi.get<ProductReviewCountResponse>(
       `${ENDPOINT}/v1/${productId}/reviews/count`,
-      CACHE_OPTIONS,
+      REVIEW_CACHE_OPTIONS,
     )
   },
   // 상품 이미지 목록 조회
@@ -57,13 +67,13 @@ export const productRepository = {
   async getProductReviewStatistics(productId: number) {
     return publicApi.get<ProductReviewStatisticsResponse>(
       `${ENDPOINT}/v1/${productId}/reviews/statistics`,
-      CACHE_OPTIONS,
+      REVIEW_CACHE_OPTIONS,
     )
   },
   // 상품 리뷰 목록 조회
   async getProductReviews(productId: number, params: ProductReviewListQuery) {
     return publicApi.get<ProductReviewsByRatingResponse>(`${ENDPOINT}/v1/${productId}/reviews`, {
-      ...CACHE_OPTIONS,
+      ...REVIEW_CACHE_OPTIONS,
       params,
     })
   },

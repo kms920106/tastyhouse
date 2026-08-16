@@ -96,6 +96,8 @@ export interface ShopReviewListItemResponse {
   createdAt: string
   productId: number | null
   productName: string | null
+  ownerReplyContent: string | null
+  ownerReplyCreatedAt: string | null
 }
 
 export interface ShopReviewStatisticsResponse {

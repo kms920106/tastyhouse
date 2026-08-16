@@ -74,6 +74,8 @@ export const PAGE_PATHS = {
     }`,
   ORDER_RESERVATION: (shopId: string | number) => `/places/${shopId}/order/reservation`,
   ORDER_DETAIL: (orderId: string | number) => `/orders/${orderId}`,
+  /** 메뉴 평가 단독 화면 — 매장 리뷰 없이 메뉴 평가만 남길 수 있는 진입점 */
+  ORDER_MENU_REVIEWS: (orderId: string | number) => `/orders/${orderId}/menu-reviews`,
   ORDER_COMPLETE: (orderId: string | number) => `/orders/${orderId}/complete`,
   ORDERS_REVIEWS_CREATE: (orderProductId: number) =>
     `/orders/reviews/create?orderProductId=${orderProductId}`,
@@ -104,6 +106,9 @@ export const PAGE_PATHS = {
     `/places/${shopId}/products/${productId}`,
   PLACE_MENU_DETAIL: (shopId: number, menuId: number) => `/places/${shopId}/menus/${menuId}`,
   PLACE_MAP: (id: string | number) => `/places/${id}/map`,
+
+  // 알림함
+  NOTIFICATIONS: '/notifications',
 
   // 포인트
   POINT: '/point',

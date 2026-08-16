@@ -27,6 +27,7 @@ export default async function ReviewDetailPage({ reviewId }: Props) {
   }
 
   const {
+    shopName,
     memberId,
     memberNickname,
     memberProfileImageUrl,
@@ -34,6 +35,8 @@ export default async function ReviewDetailPage({ reviewId }: Props) {
     imageUrls,
     content,
     tagNames,
+    ownerReplyContent,
+    ownerReplyCreatedAt,
   } = data
 
   return (
@@ -49,6 +52,9 @@ export default async function ReviewDetailPage({ reviewId }: Props) {
         content={content}
         tagNames={tagNames}
         isLoggedIn={isLoggedIn}
+        shopName={shopName}
+        ownerReplyContent={ownerReplyContent}
+        ownerReplyCreatedAt={ownerReplyCreatedAt}
       />
       <ReviewCommentListSection reviewId={reviewId} isLoggedIn={isLoggedIn} />
       <ReviewCommentInputSection isLoggedIn={isLoggedIn} reviewId={reviewId} />

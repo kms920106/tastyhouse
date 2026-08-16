@@ -42,7 +42,7 @@ export interface OrderedProductOption {
 }
 
 export interface OrderedProduct {
-  id: number
+  orderProductId: number
   productId: number
   name: string
   imageUrl: string

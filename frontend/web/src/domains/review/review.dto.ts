@@ -51,6 +51,21 @@ export interface ReviewDetailResponse {
   imageUrls: string[]
   tagNames: string[]
   ownerOnly: boolean
+  ownerReplyContent: string | null
+  ownerReplyCreatedAt: string | null
+  /**
+   * 주문 유형. `DELIVERY`일 때만 수정 폼에 배달 평가 섹션을 렌더한다.
+   * 작성자 본인이 아니면 서버가 null로 내린다.
+   */
+  orderMethod: string | null
+  /**
+   * 기존 배달 평가. 작성자 본인이 아니면 null.
+   *
+   * ⚠️ `PUT /api/reviews/v1/{reviewId}`는 전체 교체다 — 수정 폼은 이 값을 초기값으로 채워
+   * 사용자가 건드리지 않았으면 그대로 되돌려 보내야 한다. 안 보내면 기존 배달 평가가 조용히 지워진다.
+   */
+  deliveryRating: number | null
+  deliveryComment: string | null
 }
 
 export interface ReviewProductDetailResponse {
@@ -121,6 +136,8 @@ export interface ReviewWriteInfoResponse {
   productPrice: number
   orderId: number
   reviewed: boolean
+  /** 배달 평가 섹션 렌더 판정용. `DELIVERY`일 때만 배달 평가를 받는다. */
+  orderMethod: string
 }
 
 export interface ReviewCreateRequest {
@@ -133,6 +150,9 @@ export interface ReviewCreateRequest {
   uploadedFileIds: number[]
   tags: string[]
   ownerOnly: boolean
+  /** 배달 주문에만 보낸다. 배달이 아닌데 값이 오면 서버가 400으로 거부한다. */
+  deliveryRating?: number
+  deliveryComment?: string
 }
 
 export interface ReviewCreateResponse {
@@ -155,6 +175,12 @@ export interface ReviewUpdateRequest {
   content: string
   uploadedFileIds: number[]
   tags: string[]
+  /**
+   * 배달 평가. 전체 교체(PUT)이므로 **기존 값을 그대로 되돌려 보내야 유지된다.**
+   * `null`은 "지워줘"라는 뜻이다. 배달 주문이 아닌데 값이 오면 서버가 400으로 거부한다.
+   */
+  deliveryRating?: number | null
+  deliveryComment?: string | null
 }
 
 export interface ReviewUpdateResponse {

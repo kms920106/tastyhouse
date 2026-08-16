@@ -1,3 +1,4 @@
+import MenuReviewListSection from '@/components/menu-reviews/MenuReviewListSection'
 import { ProductHeaderSkeleton } from '@/components/products/ProductHeaderSkeleton'
 import ProductInfoContent from '@/components/products/ProductInfoContent'
 import { ProductInfoSkeleton } from '@/components/products/ProductInfoSkeleton'
@@ -34,6 +35,11 @@ export default function ShopProductDetailPage({ shopId, productId }: Props) {
         <BorderedSection>
           <Suspense fallback={<ShopProductDetailReviewCountSkeleton />}>
             <ShopProductDetailReviewCountServer productId={productId} />
+          </Suspense>
+        </BorderedSection>
+        <BorderedSection>
+          <Suspense fallback={null}>
+            <MenuReviewListSection productId={productId} />
           </Suspense>
         </BorderedSection>
       </SectionStack>

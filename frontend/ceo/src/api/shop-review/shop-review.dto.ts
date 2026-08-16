@@ -43,6 +43,10 @@ export interface ShopReviewListItemResponse {
   ownerReplyCreatedAt: string | null;
   /** 최근 게시중단 요청 상태. 요청 이력이 없으면 null */
   blindRequestStatus: string | null;
+  /** 답변 마감일(yyyy-MM-dd) = 리뷰 작성일 + 30일 */
+  replyDeadline: string;
+  /** 오늘 기준 **신규 등록** 가능 여부. 이미 답변이 있으면 이 값과 무관하게 수정·삭제 가능 */
+  replyable: boolean;
   createdAt: string;
 }
 
@@ -71,6 +75,10 @@ export interface ShopReviewDetailResponse extends ShopReviewListItemResponse {
   /** 미답변이면 null */
   ownerReplyId: number | null;
   ownerReplyUpdatedAt: string | null;
+  /** 배달 평점(1~5). 미평가면 null. 고객 앱에는 노출되지 않는 점주 전용 정보다 */
+  deliveryRating: number | null;
+  /** 배달 평가 내용. 미평가면 null */
+  deliveryComment: string | null;
   /** 최신순 */
   blindRequests: ReviewBlindRequestHistoryResponse[];
 }

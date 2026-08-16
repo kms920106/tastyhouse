@@ -1,6 +1,8 @@
-import Header, { HeaderCenter, HeaderLeft } from '@/components/layouts/Header'
+import Header, { HeaderCenter, HeaderLeft, HeaderRight } from '@/components/layouts/Header'
 import { MenuButton } from '@/components/layouts/header-parts'
+import NotificationButtonServer from '@/components/layouts/header-parts/NotificationButtonServer'
 import Image from 'next/image'
+import { Suspense } from 'react'
 
 export default function HomeHeader() {
   return (
@@ -20,6 +22,11 @@ export default function HomeHeader() {
           />
         </div>
       </HeaderCenter>
+      <HeaderRight>
+        <Suspense fallback={null}>
+          <NotificationButtonServer />
+        </Suspense>
+      </HeaderRight>
     </Header>
   )
 }

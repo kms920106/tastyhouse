@@ -1,3 +1,4 @@
+import { ceoReplyPhraseService } from "@/api/ceo-reply-phrase/ceo-reply-phrase.service";
 import { shopService } from "@/api/shop/shop.service";
 import { shopReviewService } from "@/api/shop-review/shop-review.service";
 import {
@@ -100,7 +101,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
   };
 
   if (shops.length === 0) {
-    return <ShopReviewView shops={[]} filters={filters} page={page} blindReasons={[]} />;
+    return <ShopReviewView shops={[]} filters={filters} page={page} blindReasons={[]} phrases={[]} />;
   }
 
   // shopId 미지정(기본 진입)만 첫 가게로 대체한다. shopId 를 지정했는데 내 목록에 없으면
@@ -113,17 +114,20 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
   // 목록·통계·정렬설정·사유 카탈로그는 서로 의존이 없다. `Promise.all` 이 아니라 `allSettled` 로
   // 받는 이유는 **하나가 실패해도 나머지를 보여주기 위함**이다 — 통계만 실패했다고 목록까지
   // 사라지면 점주가 할 수 있는 일이 없어진다.
-  const [listResult, statisticsResult, sortTypeResult, blindReasonsResult] = await Promise.allSettled([
+  const [listResult, statisticsResult, sortTypeResult, blindReasonsResult, phrasesResult] = await Promise.allSettled([
     shopReviewService.getList(selectedShopId, filters, { page, size: SHOP_REVIEW_PAGE_SIZE }),
     shopReviewService.getStatistics(selectedShopId),
     shopReviewService.getSortType(selectedShopId),
     shopReviewService.getBlindReasons(),
+    // 문구 조회 실패가 리뷰 화면 전체를 죽이지 않게 한다 — 실패하면 문구 선택 영역만 사라진다.
+    ceoReplyPhraseService.getPhrases(),
   ]);
 
   const list = listResult.status === "fulfilled" ? listResult.value : undefined;
   const statistics = statisticsResult.status === "fulfilled" ? statisticsResult.value : undefined;
   const sortTypeSetting = sortTypeResult.status === "fulfilled" ? sortTypeResult.value : undefined;
   const blindReasons = blindReasonsResult.status === "fulfilled" ? blindReasonsResult.value : undefined;
+  const phrases = phrasesResult.status === "fulfilled" ? phrasesResult.value : undefined;
 
   // 목록 조회 실패는 필터바를 죽이지 않는다 — 목록만 undefined 로 넘겨 뷰에서 에러 문구를 띄운다.
   // (소유하지 않거나 존재하지 않는 shopId 는 여기서 403/404 로 드러난다.)
@@ -164,6 +168,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
       statisticsFailed={!statistics?.data}
       sortTypeSetting={sortTypeSetting?.data}
       blindReasons={blindReasons?.data ?? []}
+      phrases={phrases?.data ?? []}
       detail={detailResult?.data}
       detailErrorMessage={detailResult?.error}
     />

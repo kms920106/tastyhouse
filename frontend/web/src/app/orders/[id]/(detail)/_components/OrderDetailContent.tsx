@@ -56,7 +56,11 @@ export default async function OrderDetailContent({ orderId }: Props) {
           />
         </BorderedSection>
         <BorderedSection>
-          <OrderedProductList shopName={shopName} orderProducts={orderProducts} />
+          <OrderedProductList
+            orderId={orderId}
+            shopName={shopName}
+            orderProducts={orderProducts}
+          />
         </BorderedSection>
         <BorderedSection>
           <OrdererInformationAccordion

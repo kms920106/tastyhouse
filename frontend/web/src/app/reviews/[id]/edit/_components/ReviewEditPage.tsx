@@ -57,6 +57,9 @@ export default async function ReviewEditPage({ reviewId }: Props) {
         amountRating={data.amountRating}
         priceRating={data.priceRating}
         content={data.content}
+        orderMethod={data.orderMethod}
+        deliveryRating={data.deliveryRating}
+        deliveryComment={data.deliveryComment}
         tagNames={data.tagNames}
         ownerOnly={data.ownerOnly}
       />

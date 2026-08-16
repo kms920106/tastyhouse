@@ -31,6 +31,17 @@ const ENDPOINT = '/api/shops'
 
 const CACHE_OPTIONS = { cache: 'force-cache' as const, next: { revalidate: 3600 } }
 
+/**
+ * 리뷰 계열 조회용 짧은 캐시.
+ *
+ * 가게 정보·목록과 달리 리뷰는 회원이 방금 작성하거나 점주가 방금 답변한 결과가 곧바로 보여야 한다.
+ * CACHE_OPTIONS(revalidate 3600)를 그대로 쓰면 최대 1시간 동안 작성 이전 스냅샷이 노출돼
+ * "리뷰를 썼는데 목록에 없다"로 보인다. 점주 답변은 ceo 앱(별도 Next 인스턴스)에서 등록되므로
+ * web의 revalidatePath로는 무효화할 수 없어, 캐시 수명 자체를 짧게 두는 쪽으로 해결한다.
+ * (가게 공지 getShopNotice와 같은 이유·같은 값이다.)
+ */
+const REVIEW_CACHE_OPTIONS = { cache: 'force-cache' as const, next: { revalidate: 60 } }
+
 export const shopRepository = {
   async getLatestShops(params: PaginationParams) {
     return publicApi.get<ShopLatestListItemResponse[], PaginationParams>(`${ENDPOINT}/v1/latest`, {
@@ -100,12 +111,12 @@ export const shopRepository = {
   async getShopReviewStatistics(shopId: number) {
     return publicApi.get<ShopReviewStatisticsResponse>(
       `${ENDPOINT}/v1/${shopId}/reviews/statistics`,
-      CACHE_OPTIONS,
+      REVIEW_CACHE_OPTIONS,
     )
   },
   async getShopReviews(shopId: number, params: ShopReviewListQuery) {
     return publicApi.get<ShopReviewsByRatingResponse>(`${ENDPOINT}/v1/${shopId}/reviews`, {
-      ...CACHE_OPTIONS,
+      ...REVIEW_CACHE_OPTIONS,
       params,
     })
   },

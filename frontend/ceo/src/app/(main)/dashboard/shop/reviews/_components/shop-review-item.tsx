@@ -7,6 +7,7 @@ import { Star } from "lucide-react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { CeoReplyPhrase } from "@/feature/ceo-reply-phrase/domain";
 import type { ReviewBlindReasonOption, ShopReviewListItem } from "@/feature/shop-review/domain";
 import { formatRating } from "@/feature/shop-review/format";
 import { SHOP_REVIEW_COPY } from "@/feature/shop-review/message";
@@ -20,10 +21,12 @@ interface ShopReviewItemProps {
   shopId: number;
   item: ShopReviewListItem;
   blindReasons: ReviewBlindReasonOption[];
+  /** 자주 쓰는 문구. 0개면 답변 폼이 선택 영역을 렌더하지 않는다 */
+  phrases: CeoReplyPhrase[];
   onOpenDetail: (reviewId: number) => void;
 }
 
-export function ShopReviewItem({ shopId, item, blindReasons, onOpenDetail }: ShopReviewItemProps) {
+export function ShopReviewItem({ shopId, item, blindReasons, phrases, onOpenDetail }: ShopReviewItemProps) {
   const [isBlindSheetOpen, setIsBlindSheetOpen] = React.useState(false);
 
   const isAnswered = item.ownerReplyContent !== null;
@@ -74,6 +77,9 @@ export function ShopReviewItem({ shopId, item, blindReasons, onOpenDetail }: Sho
             replyContent={item.ownerReplyContent}
             replyCreatedAt={item.ownerReplyCreatedAt}
             ownerOnly={item.ownerOnly}
+            replyable={item.replyable}
+            replyDeadline={item.replyDeadline}
+            phrases={phrases}
           />
 
           <div className="flex flex-wrap justify-end gap-2">

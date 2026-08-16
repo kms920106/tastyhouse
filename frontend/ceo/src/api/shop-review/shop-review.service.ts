@@ -42,6 +42,8 @@ function toListItem(item: ShopReviewListItemResponse): ShopReviewListItem {
     ownerReplyContent: item.ownerReplyContent,
     ownerReplyCreatedAt: item.ownerReplyCreatedAt,
     blindRequestStatus: item.blindRequestStatus,
+    replyDeadline: item.replyDeadline,
+    replyable: item.replyable,
     createdAt: item.createdAt,
   };
 }
@@ -72,6 +74,8 @@ function toDetail(item: ShopReviewDetailResponse): ShopReviewDetail {
     tagNames: item.tagNames,
     ownerReplyId: item.ownerReplyId,
     ownerReplyUpdatedAt: item.ownerReplyUpdatedAt,
+    deliveryRating: item.deliveryRating,
+    deliveryComment: item.deliveryComment,
     blindRequests: item.blindRequests.map(toBlindRequestHistory),
   };
 }

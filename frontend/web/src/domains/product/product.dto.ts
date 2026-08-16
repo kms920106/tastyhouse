@@ -27,6 +27,13 @@ export interface ProductDetailResponse {
   discountRate: number | null
   soldOut: boolean
   shopId: number
+  /**
+   * 그 상품의 노출 메뉴 평가 수.
+   *
+   * 상품 평점(`rating`)은 기존 필드를 그대로 쓴다 — 값의 근거만 MENU_REVIEW로 바뀌었고
+   * API 계약(필드명·타입)은 동일하다.
+   */
+  menuReviewCount: number
 }
 
 export interface ProductBatchItemRequest {
@@ -81,6 +88,8 @@ interface ProductReviewListItemResponse {
   createdAt: string
   productId: number
   productName: string
+  ownerReplyContent: string | null
+  ownerReplyCreatedAt: string | null
 }
 
 export interface ProductReviewStatisticsResponse {

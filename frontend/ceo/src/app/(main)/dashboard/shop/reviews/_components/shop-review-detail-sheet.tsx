@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import type { CeoReplyPhrase } from "@/feature/ceo-reply-phrase/domain";
 import { cancelBlindRequestAction } from "@/feature/shop-review/actions";
 import { BLIND_REQUEST_PENDING_STATUS, REVIEW_RATING_ASPECTS } from "@/feature/shop-review/constants";
 import type { ReviewBlindReasonOption, ShopReviewDetail } from "@/feature/shop-review/domain";
@@ -35,6 +36,8 @@ interface ShopReviewDetailSheetProps {
   shopId: number;
   detail: ShopReviewDetail;
   blindReasons: ReviewBlindReasonOption[];
+  /** 자주 쓰는 문구. 0개면 답변 폼이 선택 영역을 렌더하지 않는다 */
+  phrases: CeoReplyPhrase[];
   onClose: () => void;
 }
 
@@ -54,7 +57,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode | n
  * ⑥ "배달리뷰"는 이 저장소에 배달 전용 리뷰 개념이 없어 만들지 않고, 대신 항목별 평점 ·
  * 재방문 의사 · 태그를 그 자리에 둔다(`docs/tasks/frontend.md` A-3 ⑤ 표).
  */
-export function ShopReviewDetailSheet({ shopId, detail, blindReasons, onClose }: ShopReviewDetailSheetProps) {
+export function ShopReviewDetailSheet({ shopId, detail, blindReasons, phrases, onClose }: ShopReviewDetailSheetProps) {
   const [isPending, startTransition] = React.useTransition();
   const [isBlindSheetOpen, setIsBlindSheetOpen] = React.useState(false);
 
@@ -187,6 +190,32 @@ export function ShopReviewDetailSheet({ shopId, detail, blindReasons, onClose }:
             )}
           </section>
 
+          {/* ===== 배달 평가 (미평가면 렌더하지 않는다) ===== */}
+          {detail.deliveryRating !== null && (
+            <>
+              <Separator />
+              <section className="flex flex-col gap-3">
+                <span className="font-medium text-sm">{SHOP_REVIEW_COPY.DELIVERY_RATING_SECTION_TITLE}</span>
+                <p className="text-muted-foreground text-xs">{SHOP_REVIEW_COPY.DELIVERY_RATING_OWNER_ONLY_GUIDE}</p>
+                <dl className="flex flex-col gap-3">
+                  <DetailRow
+                    label={SHOP_REVIEW_COPY.DELIVERY_RATING_LABEL}
+                    /* 배달 평점은 평균이 아니라 1~5 정수 하나라 formatRating(toFixed(1))을 쓰지 않는다 —
+                       4가 "4.0"으로 보이면 별점이 아니라 집계값처럼 읽힌다. */
+                    value={<span className="tabular-nums">{detail.deliveryRating}</span>}
+                  />
+                  {detail.deliveryComment && (
+                    <DetailRow
+                      label={SHOP_REVIEW_COPY.DELIVERY_COMMENT_LABEL}
+                      /* 고객이 자유 입력한 내용이라 줄바꿈을 살린다. */
+                      value={<span className="whitespace-pre-line">{detail.deliveryComment}</span>}
+                    />
+                  )}
+                </dl>
+              </section>
+            </>
+          )}
+
           {/* ===== ⑧ 사장님 댓글 ===== */}
           <Separator />
           <OwnerReplyForm
@@ -196,6 +225,9 @@ export function ShopReviewDetailSheet({ shopId, detail, blindReasons, onClose }:
             replyCreatedAt={detail.ownerReplyCreatedAt}
             replyUpdatedAt={detail.ownerReplyUpdatedAt}
             ownerOnly={detail.ownerOnly}
+            replyable={detail.replyable}
+            replyDeadline={detail.replyDeadline}
+            phrases={phrases}
             disabled={isPending}
           />
 

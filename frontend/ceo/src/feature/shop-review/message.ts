@@ -78,6 +78,11 @@ export const SHOP_REVIEW_COPY = {
   VALUE_ABSENT: "-",
 
   // ===== 사장님 답변 =====
+  // 배달 평가 — 고객 앱에는 노출되지 않는 점주 전용 정보다
+  DELIVERY_RATING_SECTION_TITLE: "배달 평가",
+  DELIVERY_RATING_LABEL: "배달 평점",
+  DELIVERY_COMMENT_LABEL: "배달 평가 내용",
+  DELIVERY_RATING_OWNER_ONLY_GUIDE: "배달 평가는 고객 앱에 노출되지 않고 사장님만 볼 수 있습니다.",
   OWNER_REPLY_SECTION_TITLE: "사장님 댓글",
   OWNER_REPLY_PLACEHOLDER: "고객에게 전할 답변을 입력하세요.",
   OWNER_REPLY_SUBMIT: "답변 등록",
@@ -86,6 +91,9 @@ export const SHOP_REVIEW_COPY = {
   OWNER_REPLY_EDIT_CANCEL: "취소",
   OWNER_REPLY_DELETE: "삭제",
   OWNER_REPLY_EMPTY: "아직 답변하지 않은 리뷰입니다.",
+  /** 날짜는 호출부에서 `formatDate` 로 포맷해 주입한다 */
+  OWNER_REPLY_DEADLINE_GUIDE: (deadline: string) => `${deadline}까지 답변할 수 있어요`,
+  OWNER_REPLY_PERIOD_EXPIRED: "리뷰 작성일로부터 30일이 지나 답변을 등록할 수 없습니다.",
   /** 비공개 리뷰의 답글도 고객 화면에 노출되지 않는다는 안내 */
   OWNER_REPLY_OWNER_ONLY_GUIDE: "이 리뷰의 답글도 고객에게 공개되지 않습니다.",
   OWNER_REPLY_CREATED_AT: "답변일",
@@ -157,6 +165,7 @@ export const SHOP_REVIEW_ERROR_MESSAGE: Record<string, string> = {
   SHOP_ACCESS_DENIED: "내 가게의 리뷰만 관리할 수 있습니다.",
   REVIEW_NOT_FOUND: "리뷰를 찾을 수 없습니다. 목록을 새로 불러와주세요.",
   REVIEW_OWNER_REPLY_ALREADY_EXISTS: "이미 답변을 등록한 리뷰입니다.",
+  REVIEW_OWNER_REPLY_PERIOD_EXPIRED: "리뷰 작성일로부터 30일이 지나 답변을 등록할 수 없습니다.",
   REVIEW_OWNER_REPLY_NOT_FOUND: "답변을 찾을 수 없습니다. 이미 삭제되었을 수 있습니다.",
   REVIEW_BLIND_REQUEST_ALREADY_PENDING: "이미 게시중단 요청이 접수된 리뷰입니다.",
   REVIEW_BLIND_REQUEST_NOT_PENDING: "이미 처리된 요청은 취소할 수 없습니다.",

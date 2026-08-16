@@ -12,8 +12,14 @@ import { extractZodFieldErrors } from '@/lib/form'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState, useTransition } from 'react'
 import { z } from 'zod'
+import DeliveryRatingSection, {
+  DELIVERY_COMMENT_MAX_LENGTH,
+} from '@/components/reviews/DeliveryRatingSection'
 import ReviewContentSection from './ReviewContentSection'
 import ReviewRatingSection from './ReviewRatingSection'
+
+/** 배달 평가 섹션을 렌더하는 주문유형 */
+const DELIVERY_ORDER_METHOD = 'DELIVERY'
 
 const reviewSchema = z.object({
   ratings: z
@@ -28,6 +34,9 @@ const reviewSchema = z.object({
   content: z.string().min(1, '내용을 입력해 주세요.'),
   tags: z.array(z.string()),
   ownerOnly: z.boolean(),
+  // 배달 평가는 선택 항목이다. 메뉴 평가(menuRatings)는 별도 API 소관이라 여기에 넣지 않는다.
+  deliveryRating: z.number().min(1).max(5).optional(),
+  deliveryComment: z.string().max(DELIVERY_COMMENT_MAX_LENGTH).optional(),
 })
 
 type FormData = z.infer<typeof reviewSchema>
@@ -47,6 +56,7 @@ interface Props {
   productName: string
   productImageUrl: string
   productPrice: number
+  orderMethod: string
 }
 
 export default function OrderReviewCreateForm({
@@ -55,7 +65,9 @@ export default function OrderReviewCreateForm({
   productName,
   productImageUrl,
   productPrice,
+  orderMethod,
 }: Props) {
+  const isDelivery = orderMethod === DELIVERY_ORDER_METHOD
   const router = useRouter()
 
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA)
@@ -84,6 +96,14 @@ export default function OrderReviewCreateForm({
 
   const handleOwnerOnlyChange = (checked: boolean) => {
     setFormData((prev) => ({ ...prev, ownerOnly: checked }))
+  }
+
+  const handleDeliveryRatingChange = (deliveryRating: number) => {
+    setFormData((prev) => ({ ...prev, deliveryRating }))
+  }
+
+  const handleDeliveryCommentChange = (deliveryComment: string) => {
+    setFormData((prev) => ({ ...prev, deliveryComment }))
   }
 
   const handleUploadedFileIdsChange = useCallback((fileIds: number[]) => {
@@ -137,6 +157,15 @@ export default function OrderReviewCreateForm({
         uploadedFileIds,
         tags: formData.tags,
         ownerOnly: formData.ownerOnly,
+        // 배달 주문이 아니면 값을 보내지 않는다 — 서버가 REVIEW_DELIVERY_RATING_NOT_ALLOWED로 거부한다.
+        ...(isDelivery && formData.deliveryRating
+          ? {
+              deliveryRating: formData.deliveryRating,
+              ...(formData.deliveryComment?.trim()
+                ? { deliveryComment: formData.deliveryComment.trim() }
+                : {}),
+            }
+          : {}),
       })
 
       if (error) {
@@ -167,6 +196,16 @@ export default function OrderReviewCreateForm({
           onRatingChange={handleRatingChange}
         />
       </BorderedSection>
+      {isDelivery && (
+        <BorderedSection>
+          <DeliveryRatingSection
+            rating={formData.deliveryRating ?? 0}
+            comment={formData.deliveryComment ?? ''}
+            onRatingChange={handleDeliveryRatingChange}
+            onCommentChange={handleDeliveryCommentChange}
+          />
+        </BorderedSection>
+      )}
       <BorderedSection>
         <ReviewContentSection
           content={formData.content}

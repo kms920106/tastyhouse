@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MessageSquare, Store } from "lucide-react";
 
 import { Accordion } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import {
@@ -18,6 +19,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Separator } from "@/components/ui/separator";
+import type { CeoReplyPhrase } from "@/feature/ceo-reply-phrase/domain";
+import { CEO_REPLY_PHRASE_COPY } from "@/feature/ceo-reply-phrase/message";
 import type { ShopSummary } from "@/feature/shop/domain";
 import type {
   ReviewBlindReasonOption,
@@ -31,6 +34,7 @@ import { SHOP_REVIEW_COPY, SHOP_REVIEW_ERROR_MESSAGE } from "@/feature/shop-revi
 import { cn } from "@/lib/utils";
 
 import { ShopSelector } from "../../_components/shop-selector";
+import { ReplyPhraseSheet } from "./reply-phrase-sheet";
 import { ShopReviewDetailSheet } from "./shop-review-detail-sheet";
 import { ShopReviewFilters } from "./shop-review-filters";
 import { ShopReviewItem } from "./shop-review-item";
@@ -63,6 +67,8 @@ interface ShopReviewViewProps {
   statisticsFailed?: boolean;
   sortTypeSetting?: ShopReviewSortTypeSetting;
   blindReasons: ReviewBlindReasonOption[];
+  /** 자주 쓰는 문구. 조회 실패 시 빈 배열이라 문구 선택 영역만 사라진다 */
+  phrases: CeoReplyPhrase[];
   /** `?reviewId=` 로 서버가 함께 조회한 상세. 실패하면 undefined 라 시트를 열지 않는다 */
   detail?: ShopReviewDetail;
   detailErrorMessage?: string;
@@ -84,11 +90,13 @@ export function ShopReviewView({
   statisticsFailed = false,
   sortTypeSetting,
   blindReasons,
+  phrases,
   detail,
   detailErrorMessage,
 }: ShopReviewViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPhraseSheetOpen, setIsPhraseSheetOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
 
   function pushParams(next: {
@@ -175,7 +183,20 @@ export function ShopReviewView({
         ) : (
           <>
             {/* ① 앱 노출 정렬 설정 — 필터의 sortType 과 별개다(이쪽은 고객 앱 반영용) */}
-            <ShopReviewSortTypeForm shopId={shopId} setting={sortTypeSetting} disabled={isPending} />
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <ShopReviewSortTypeForm shopId={shopId} setting={sortTypeSetting} disabled={isPending} />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isPending}
+                onClick={() => setIsPhraseSheetOpen(true)}
+              >
+                {CEO_REPLY_PHRASE_COPY.ENTRY_TITLE}
+              </Button>
+            </div>
+
+            <ReplyPhraseSheet open={isPhraseSheetOpen} onOpenChange={setIsPhraseSheetOpen} phrases={phrases} />
 
             <Separator />
 
@@ -225,6 +246,7 @@ export function ShopReviewView({
                       shopId={shopId}
                       item={item}
                       blindReasons={blindReasons}
+                      phrases={phrases}
                       onOpenDetail={(reviewId) => pushParams({ reviewId })}
                     />
                   ))}
@@ -263,6 +285,7 @@ export function ShopReviewView({
                 shopId={shopId}
                 detail={detail}
                 blindReasons={blindReasons}
+                phrases={phrases}
                 onClose={() => pushParams({ reviewId: null })}
               />
             )}

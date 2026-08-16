@@ -1,5 +1,6 @@
 import ReviewAuthorInfo from '@/components/reviews/ReviewAuthorInfo'
 import ReviewImageGallery from '@/components/reviews/ReviewImageGallery'
+import ReviewOwnerReply from '@/components/reviews/ReviewOwnerReply'
 import ClampedText from '@/components/ui/ClampedText'
 import Rating from '@/components/ui/Rating'
 import { PAGE_PATHS } from '@/lib/paths'
@@ -15,6 +16,8 @@ export interface ReviewListItemData {
   productName: string | null
   content: string
   imageUrls: string[]
+  ownerReplyContent?: string | null
+  ownerReplyCreatedAt?: string | null
 }
 
 interface Props {
@@ -50,6 +53,14 @@ export default function ReviewListItem({ review }: Props) {
       {review.imageUrls.length > 0 && (
         <div className="mt-5">
           <ReviewImageGallery imageUrls={review.imageUrls} />
+        </div>
+      )}
+      {review.ownerReplyContent && review.ownerReplyCreatedAt && (
+        <div className="mt-5">
+          <ReviewOwnerReply
+            content={review.ownerReplyContent}
+            createdAt={review.ownerReplyCreatedAt}
+          />
         </div>
       )}
     </div>

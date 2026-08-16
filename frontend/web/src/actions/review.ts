@@ -68,6 +68,8 @@ export async function createOrderReview({
   uploadedFileIds,
   tags,
   ownerOnly,
+  deliveryRating,
+  deliveryComment,
 }: {
   orderProductId: number | null
   productId: number
@@ -78,6 +80,8 @@ export async function createOrderReview({
   uploadedFileIds: number[]
   tags: string[]
   ownerOnly: boolean
+  deliveryRating?: number
+  deliveryComment?: string
 }) {
   const result = await reviewRepository.createReview({
     orderProductId,
@@ -89,6 +93,8 @@ export async function createOrderReview({
     uploadedFileIds,
     tags,
     ownerOnly,
+    deliveryRating,
+    deliveryComment,
   })
 
   if (!result.error && result.data) {
@@ -107,6 +113,8 @@ export async function updateReview(
     content,
     uploadedFileIds,
     tags,
+    deliveryRating,
+    deliveryComment,
   }: {
     tasteRating: number
     amountRating: number
@@ -114,6 +122,8 @@ export async function updateReview(
     content: string
     uploadedFileIds: number[]
     tags: string[]
+    deliveryRating?: number | null
+    deliveryComment?: string | null
   },
 ) {
   const result = await reviewRepository.updateReview(reviewId, {
@@ -123,6 +133,8 @@ export async function updateReview(
     content,
     uploadedFileIds,
     tags,
+    deliveryRating,
+    deliveryComment,
   })
 
   if (!result.error && result.data) {

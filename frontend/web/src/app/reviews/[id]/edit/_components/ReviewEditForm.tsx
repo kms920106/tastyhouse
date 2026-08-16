@@ -10,6 +10,9 @@ import { extractZodFieldErrors } from '@/lib/form'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { z } from 'zod'
+import DeliveryRatingSection, {
+  DELIVERY_COMMENT_MAX_LENGTH,
+} from '@/components/reviews/DeliveryRatingSection'
 import ReviewEditContentSection from './ReviewEditContentSection'
 import ReviewEditOwnerOnlySection from './ReviewEditOwnerOnlySection'
 import ReviewEditRatingSection from './ReviewEditRatingSection'
@@ -26,11 +29,17 @@ const reviewEditSchema = z.object({
     }),
   content: z.string().min(1, '내용을 입력해 주세요.'),
   tags: z.array(z.string()),
+  // 0은 "배달 평가 해제" 상태(DeliveryRatingSection의 토글 해제)를 의미하므로 허용한다.
+  deliveryRating: z.union([z.literal(0), z.number().min(1).max(5)]).optional(),
+  deliveryComment: z.string().max(DELIVERY_COMMENT_MAX_LENGTH).optional(),
 })
 
 type FormData = z.infer<typeof reviewEditSchema>
 
 type FormErrors = Partial<Record<'ratings' | 'content', string>>
+
+/** 배달 평가 섹션을 렌더하는 주문유형 */
+const DELIVERY_ORDER_METHOD = 'DELIVERY'
 
 interface Props {
   reviewId: number
@@ -40,6 +49,9 @@ interface Props {
   content: string
   tagNames: string[]
   ownerOnly: boolean
+  orderMethod: string | null
+  deliveryRating: number | null
+  deliveryComment: string | null
 }
 
 export default function ReviewEditForm({
@@ -50,13 +62,37 @@ export default function ReviewEditForm({
   content,
   tagNames,
   ownerOnly,
+  orderMethod,
+  deliveryRating,
+  deliveryComment,
 }: Props) {
   const router = useRouter()
+
+  /**
+   * 배달 평가 섹션을 그릴지 여부.
+   *
+   * `orderMethod`가 null이면(서버가 작성자에게만 채워주는 값) 섹션을 그리지 않는다.
+   */
+  const isDelivery = orderMethod === DELIVERY_ORDER_METHOD
+
+  /**
+   * 배달 평가 필드를 요청에 실을지 여부.
+   *
+   * 섹션을 그리지 않더라도 **기존 배달 평가가 있으면 반드시 함께 보낸다** — PUT이 전체 교체라
+   * 빠뜨리면 본문만 수정해도 조용히 지워진다. `orderMethod`가 어떤 이유로든 null로 내려온
+   * 경우까지 방어하기 위해 렌더 조건이 아니라 데이터 유무로 판정한다.
+   */
+  const hasExistingDeliveryRating = deliveryRating !== null
+  const shouldSendDelivery = isDelivery || hasExistingDeliveryRating
 
   const [formData, setFormData] = useState<FormData>({
     ratings: { taste: tasteRating, amount: amountRating, price: priceRating },
     content,
     tags: tagNames,
+    // ⚠️ PUT은 전체 교체다. 기존 배달 평가를 초기값으로 채워두지 않으면
+    //    본문 오타만 고쳐도 배달 평가가 조용히 지워진다.
+    deliveryRating: deliveryRating ?? undefined,
+    deliveryComment: deliveryComment ?? undefined,
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, startSubmitting] = useTransition()
@@ -77,6 +113,14 @@ export default function ReviewEditForm({
 
   const handleTagsChange = (tags: string[]) => {
     setFormData((prev) => ({ ...prev, tags }))
+  }
+
+  const handleDeliveryRatingChange = (nextRating: number) => {
+    setFormData((prev) => ({ ...prev, deliveryRating: nextRating }))
+  }
+
+  const handleDeliveryCommentChange = (nextComment: string) => {
+    setFormData((prev) => ({ ...prev, deliveryComment: nextComment }))
   }
 
   const validateForm = (): boolean => {
@@ -120,6 +164,19 @@ export default function ReviewEditForm({
         content: formData.content,
         uploadedFileIds: [],
         tags: formData.tags,
+        // PUT은 전체 교체다 — 배달 주문이면 현재 폼 값을 항상 함께 보낸다.
+        // 사용자가 건드리지 않았으면 초기값(=기존 값)이 그대로 나가고, 비웠으면 null로 나가 실제로 지워진다.
+        //
+        // 별점 없이 코멘트만 보내지 않는다. 서버 검증(validateDeliveryRating)은 "둘 다 null이면 통과"라
+        // 코멘트만 실린 요청을 막지 못하고, 별점 없는 배달 평가라는 모순된 상태가 그대로 저장된다.
+        ...(shouldSendDelivery
+          ? formData.deliveryRating
+            ? {
+                deliveryRating: formData.deliveryRating,
+                deliveryComment: formData.deliveryComment?.trim() || null,
+              }
+            : { deliveryRating: null, deliveryComment: null }
+          : {}),
       })
 
       if (error) {
@@ -141,6 +198,16 @@ export default function ReviewEditForm({
           onRatingChange={handleRatingChange}
         />
       </BorderedSection>
+      {isDelivery && (
+        <BorderedSection>
+          <DeliveryRatingSection
+            rating={formData.deliveryRating ?? 0}
+            comment={formData.deliveryComment ?? ''}
+            onRatingChange={handleDeliveryRatingChange}
+            onCommentChange={handleDeliveryCommentChange}
+          />
+        </BorderedSection>
+      )}
       <BorderedSection>
         <ReviewEditContentSection
           content={formData.content}
