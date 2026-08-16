@@ -16,4 +16,8 @@ public class FakeDomainEventPublisher implements DomainEventPublisher {
     public void publish(Object event) {
         publishedEvents.add(event);
     }
+
+    public List<Object> publishedEvents() {
+        return List.copyOf(publishedEvents);
+    }
 }

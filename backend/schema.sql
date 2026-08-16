@@ -243,6 +243,7 @@ CREATE TABLE PRODUCT
     spiciness           INT,                                         -- 맵기 단계
     is_sold_out         TINYINT(1)    NOT NULL DEFAULT 0,            -- 품절 여부 (1: 품절)
     is_visible          TINYINT(1)    NOT NULL DEFAULT 1,            -- 노출 여부 (1: 노출)
+    is_rating_excluded  TINYINT(1)    NOT NULL DEFAULT 0,            -- 메뉴 평가 제외 여부 (1: 제외 — 주류·사이드 등)
     sort                INT           NOT NULL,                      -- 정렬 순서
     created_at          DATETIME      NOT NULL,                      -- 생성 일시
     updated_at          DATETIME      NOT NULL,                      -- 수정 일시
@@ -758,6 +759,8 @@ CREATE TABLE REVIEW
     will_revisit      TINYINT(1) NOT NULL DEFAULT 0,     -- 재방문 의향 (1: 있음)
     is_hidden         TINYINT(1) NOT NULL DEFAULT 0,     -- 숨김 여부 (1: 숨김)
     is_owner_only     TINYINT(1) NOT NULL DEFAULT 0,     -- 사장님만보기 여부 (1: 비공개, 작성자 본인·점주·관리자만 열람)
+    delivery_rating   INT,                               -- 배달 평점 (1~5, 배달 주문에만. NULL이면 미평가). 점주 전용 노출 — 고객 앱 미노출
+    delivery_comment  VARCHAR(500),                      -- 배달 평가 내용 (점주 전용, 고객 앱 미노출)
     created_at        DATETIME   NOT NULL,               -- 생성 일시
     updated_at        DATETIME   NOT NULL,               -- 수정 일시
     INDEX idx_review_product_id (product_id),            -- 인덱스: 상품별 조회
@@ -868,6 +871,33 @@ CREATE TABLE REVIEW_BLIND_REQUEST
     INDEX idx_review_blind_request_review_id (review_id),                    -- 인덱스: 리뷰별 이력 조회
     INDEX idx_review_blind_request_shop_id_created_at (shop_id, created_at), -- 인덱스: 가게별 최신순
     INDEX idx_review_blind_request_status (status)                           -- 인덱스: 관리자 심사 대기 큐
+);
+
+-- 메뉴 평가 — REVIEW 와 독립된 애그리거트입니다(부모-자식 관계가 아닙니다).
+-- review_id FK 를 두지 않는 이유: "매장 평가와 메뉴 평가 중 어느 것을 먼저 하든, 하나만 하든 성립해야 한다"는
+-- 요구가 review_id 를 두는 순간 구조적으로 불가능해집니다. REVIEW 와의 유일한 연결고리는 order_id 입니다.
+-- 댓글·대댓글·좋아요·사장님답변·사장님만보기가 없는 것은 의도적입니다 — 소셜 기능은 REVIEW 에만 둡니다.
+-- UNIQUE(order_product_id): 주문 항목당 평가 1건. member_id 를 키에 넣지 않는 이유는 ORDER_PRODUCT 가
+-- 이미 한 주문(=한 회원)에 귀속되어 작성자가 확정되기 때문입니다(넣으면 남의 주문 항목에 평가를 덧붙이는 구멍).
+-- shop_id/product_id/order_id 는 order_product_id 에서 역조회 가능하지만, 상품 평점 재집계·가게 단위 조회·
+-- REVIEW 조인이 매번 ORDER_PRODUCT 조인을 타지 않도록 주문 시점 확정값을 스냅샷합니다.
+CREATE TABLE MENU_REVIEW
+(
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,           -- 메뉴 평가 ID (PK)
+    member_id        BIGINT       NOT NULL,                       -- 작성 회원 ID (MEMBER.id 참조)
+    shop_id          BIGINT       NOT NULL,                       -- 가게 ID (SHOP.id 참조, 비정규화)
+    product_id       BIGINT       NOT NULL,                       -- 평가 대상 상품 ID (PRODUCT.id 참조)
+    order_id         BIGINT       NOT NULL,                       -- 주문 ID (ORDERS.id 참조, REVIEW 와의 연결고리)
+    order_product_id BIGINT       NOT NULL,                       -- 주문 상품 ID (ORDER_PRODUCT.id 참조, 작성 근거)
+    rating           INT          NOT NULL,                       -- 메뉴 평점 (1~5)
+    comment          VARCHAR(300),                                -- 짧은 코멘트 (선택, NULL 허용)
+    hidden           TINYINT(1)   NOT NULL DEFAULT 0,             -- 관리자 게시중단 여부 (1: 숨김)
+    created_at       DATETIME     NOT NULL,                       -- 생성 일시
+    updated_at       DATETIME     NOT NULL,                       -- 수정 일시
+    UNIQUE KEY uk_menu_review_order_product (order_product_id),   -- 유니크: 주문항목당 평가 1건
+    INDEX idx_menu_review_product_id (product_id),                -- 인덱스: 상품 평점 재집계·상품 상세 목록
+    INDEX idx_menu_review_member_created (member_id, created_at), -- 인덱스: 랭킹·등급 기간 집계
+    INDEX idx_menu_review_shop_id (shop_id)                       -- 인덱스: 가게 단위 조회
 );
 
 -- 가게 리뷰 노출 정렬 설정 — 고객 앱 리뷰 탭의 기본 정렬을 점주가 정합니다.
@@ -1535,6 +1565,35 @@ CREATE TABLE CEO_LOGIN_HISTORY
 
 
 -- ----------------------------------------------------------------------------
+-- 자주 쓰는 문구
+--
+-- 점주가 사장님 답변 작성 시 골라 넣을 문구를 미리 등록해 두는 테이블.
+-- 원문 규격: 최대 1,000자 · 최대 5개 · 이름 미입력 시 내용 앞부분을 표시명으로 사용.
+--
+-- 귀속은 가게(shop)가 아니라 점주 계정(ceo)이다 — 한 점주가 여러 가게를 맡아도 문구를 공유한다.
+--
+-- content 는 TEXT 가 아니라 VARCHAR(1000) 이다 — 상한이 확정돼 있어 DB 가 직접 보증한다.
+--
+-- name 은 NULL 을 허용하며, 비었을 때 화면에 보이는 표시명(내용 앞부분)은 저장하지 않는다.
+-- 파생값을 저장하면 내용을 수정할 때 어긋나므로 조회 시점에 CeoReplyPhraseQueryService 가 계산한다.
+--
+-- 주의: 5개 상한은 이 DDL 이 아니라 애플리케이션(CeoReplyPhraseService)이 강제한다.
+--       MySQL 에 행 수 제약이 없어서이며, 동시 요청으로 6개가 될 수 있으나 표시용 목록이라 피해가 없다.
+-- ----------------------------------------------------------------------------
+CREATE TABLE CEO_REPLY_PHRASE
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 자주 쓰는 문구 ID (PK)
+    ceo_id     BIGINT        NOT NULL,              -- 점주 ID (CEO.id 참조)
+    name       VARCHAR(50),                         -- 문구 이름 (NULL 허용 — 비우면 내용 앞부분을 표시명으로 사용)
+    content    VARCHAR(1000) NOT NULL,              -- 문구 내용 (최대 1000자)
+    sort       INT           NOT NULL,              -- 정렬 순서
+    created_at DATETIME      NOT NULL,              -- 생성 일시
+    updated_at DATETIME      NOT NULL,              -- 수정 일시
+    INDEX idx_ceo_reply_phrase_ceo_id (ceo_id)      -- 인덱스: 점주별 조회
+);
+
+
+-- ----------------------------------------------------------------------------
 -- 가게-점주 배정 이력 (append-only)
 --
 -- 개인정보처리시스템 접근권한 부여/말소 기록. 점주 계정과 가게가 연결된 시점이 곧 권한 부여
@@ -1564,4 +1623,37 @@ CREATE TABLE SHOP_CEO_ASSIGNMENT_HISTORY
     INDEX idx_shop_ceo_assignment_history_ceo_created (ceo_id, created_at),
     -- 가게 기준 조회 경로 (관리자 확인용)
     INDEX idx_shop_ceo_assignment_history_shop_created (shop_id, created_at)
+);
+
+-- ----------------------------------------------------------------------------
+-- 인앱 알림함 (Phase 4)
+--
+-- 원문: "파트너님이 댓글을 달면, 고객에게 바로 '알림'이 갑니다."
+-- 이번 범위는 인앱 알림함까지이며 FCM 푸시 발송은 포함하지 않는다.
+--
+-- MEMBER.push_notification_enabled 를 이 테이블에 적용하지 않는다: 그 플래그는 푸시 수신 동의이고,
+-- 알림함은 사용자가 앱 안에서 직접 열어 보는 것이라 성격이 다르다. 추후 FCM 발송 경로에만 적용한다.
+--
+-- type / target_type 은 네이티브 ENUM 이 아니라 VARCHAR + 허용값 주석으로 둔다(전역 규칙).
+-- 엔티티 쪽에는 @Enumerated(EnumType.STRING) 과 @Column(length = 30, columnDefinition = "VARCHAR(30)")
+-- 을 반드시 병기해야 한다 — columnDefinition 을 빠뜨리면 MySQLDialect 가 네이티브 ENUM 을 기대해
+-- ddl-auto=validate 가 "wrong column type ... expecting [enum (...)]" 로 부팅을 거부한다.
+-- ----------------------------------------------------------------------------
+CREATE TABLE NOTIFICATION
+(
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 알림 ID (PK)
+    member_id   BIGINT       NOT NULL,              -- 수신 회원 ID (MEMBER.id 참조)
+    type        VARCHAR(30)  NOT NULL,              -- 알림 유형 (REVIEW_OWNER_REPLY)
+    title       VARCHAR(100) NOT NULL,              -- 알림 제목
+    body        VARCHAR(500) NOT NULL,              -- 알림 본문
+    target_type VARCHAR(30),                        -- 이동 대상 유형 (REVIEW / 대상 없으면 NULL)
+    target_id   BIGINT,                             -- 이동 대상 식별자 (대상 없으면 NULL)
+    is_read     TINYINT(1)   NOT NULL DEFAULT 0,    -- 읽음 여부 (1: 읽음)
+    read_at     DATETIME,                           -- 읽은 일시 (미읽음이면 NULL)
+    created_at  DATETIME     NOT NULL,              -- 생성 일시
+    updated_at  DATETIME     NOT NULL,              -- 수정 일시
+    -- 회원별 최신순 목록 조회 경로
+    INDEX idx_notification_member_created (member_id, created_at),
+    -- 미읽음 배지 카운트 조회 경로
+    INDEX idx_notification_member_unread (member_id, is_read)
 );

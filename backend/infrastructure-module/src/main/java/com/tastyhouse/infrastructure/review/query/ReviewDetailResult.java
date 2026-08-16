@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.querydsl.core.annotations.QueryProjection;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 public record ReviewDetailResult(
     Long id,
@@ -25,7 +26,12 @@ public record ReviewDetailResult(
     LocalDateTime createdAt,
     boolean ownerOnly,
     List<String> imageUrls,
-    List<String> tagNames
+    List<String> tagNames,
+    String ownerReplyContent,
+    LocalDateTime ownerReplyCreatedAt,
+    OrderMethod orderMethod,
+    Integer deliveryRating,
+    String deliveryComment
 ) {
     /**
      * QueryDSL 투영 전용 생성자 — 1:N인 이미지·태그를 제외한 좁은 시그니처다. 호출부는 생성된
@@ -51,14 +57,20 @@ public record ReviewDetailResult(
         String memberNickname,
         String memberProfileImageUrl,
         LocalDateTime createdAt,
-        boolean ownerOnly
+        boolean ownerOnly,
+        String ownerReplyContent,
+        LocalDateTime ownerReplyCreatedAt,
+        OrderMethod orderMethod,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         this(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
             memberId, memberNickname, memberProfileImageUrl, createdAt, ownerOnly,
-            List.of(), List.of()
+            List.of(), List.of(), ownerReplyContent, ownerReplyCreatedAt,
+            orderMethod, deliveryRating, deliveryComment
         );
     }
 
@@ -68,7 +80,8 @@ public record ReviewDetailResult(
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
             memberId, memberNickname, memberProfileImageUrl, createdAt, ownerOnly,
-            imageUrls, tagNames
+            imageUrls, tagNames, ownerReplyContent, ownerReplyCreatedAt,
+            orderMethod, deliveryRating, deliveryComment
         );
     }
 
@@ -78,7 +91,8 @@ public record ReviewDetailResult(
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
             memberId, memberNickname, memberProfileImageUrl, createdAt, ownerOnly,
-            imageUrls, tagNames
+            imageUrls, tagNames, ownerReplyContent, ownerReplyCreatedAt,
+            orderMethod, deliveryRating, deliveryComment
         );
     }
 }

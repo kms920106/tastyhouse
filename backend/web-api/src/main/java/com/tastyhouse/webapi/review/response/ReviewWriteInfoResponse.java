@@ -20,7 +20,15 @@ public record ReviewWriteInfoResponse(
     Long orderId,
 
     @Schema(description = "이미 리뷰를 작성했는지 여부", example = "false")
-    boolean reviewed
+    boolean reviewed,
+
+    @Schema(
+        description = "주문유형. 배달 평가 섹션을 렌더할지 판정하는 데 씁니다 — DELIVERY일 때만 노출합니다. "
+            + "주문 정보를 찾을 수 없으면 null입니다.",
+        allowableValues = {"TABLE", "RESERVATION", "DELIVERY", "TAKEOUT"},
+        example = "DELIVERY"
+    )
+    String orderMethod
 ) {
     public static ReviewWriteInfoResponse from(
         Long productId,
@@ -28,7 +36,8 @@ public record ReviewWriteInfoResponse(
         String productImageUrl,
         Integer productPrice,
         Long orderId,
-        boolean reviewed
+        boolean reviewed,
+        String orderMethod
     ) {
         return new ReviewWriteInfoResponse(
             productId,
@@ -36,7 +45,8 @@ public record ReviewWriteInfoResponse(
             productImageUrl,
             productPrice,
             orderId,
-            reviewed
+            reviewed,
+            orderMethod
         );
     }
 }

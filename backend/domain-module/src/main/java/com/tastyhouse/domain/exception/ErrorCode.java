@@ -109,6 +109,11 @@ public enum ErrorCode implements ErrorCodeSpec {
     CEO_LOGIN_RESULT_UNKNOWN(400, "CEO_LOGIN_RESULT_UNKNOWN", "알 수 없는 로그인 결과입니다."),
     CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE(400, "CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE", "조회 가능한 기간은 최근 5년입니다."),
 
+    // 점주 자주 쓰는 문구
+    CEO_REPLY_PHRASE_NOT_FOUND(404, "CEO_REPLY_PHRASE_NOT_FOUND", "자주 쓰는 문구를 찾을 수 없습니다."),
+    CEO_REPLY_PHRASE_LIMIT_EXCEEDED(409, "CEO_REPLY_PHRASE_LIMIT_EXCEEDED", "자주 쓰는 문구는 최대 5개까지 등록할 수 있습니다."),
+    CEO_REPLY_PHRASE_ACCESS_DENIED(403, "CEO_REPLY_PHRASE_ACCESS_DENIED", "다른 점주의 문구입니다."),
+
     // 인증 (SMS)
     // 상수명은 SMS_ 접두어로 대칭화했으나 응답 code 문자열은 기존 값을 유지한다 —
     // 프론트가 code로 분기하는 경우 구버전 클라이언트가 unknown으로 처리해 안내 문구가 퇴화하기 때문.
@@ -150,6 +155,10 @@ public enum ErrorCode implements ErrorCodeSpec {
     REVIEW_REPLY_NOT_FOUND(404, "REVIEW_REPLY_NOT_FOUND", "답글을 찾을 수 없습니다."),
     REVIEW_OWNER_REPLY_NOT_FOUND(404, "REVIEW_OWNER_REPLY_NOT_FOUND", "사장님 답변을 찾을 수 없습니다."),
     REVIEW_OWNER_REPLY_ALREADY_EXISTS(409, "REVIEW_OWNER_REPLY_ALREADY_EXISTS", "이미 답변을 등록한 리뷰입니다."),
+    REVIEW_OWNER_REPLY_PERIOD_EXPIRED(400, "REVIEW_OWNER_REPLY_PERIOD_EXPIRED",
+        "리뷰 작성일로부터 30일이 지나 답변을 등록할 수 없습니다."),
+    NOTIFICATION_NOT_FOUND(404, "NOTIFICATION_NOT_FOUND", "알림을 찾을 수 없습니다."),
+    NOTIFICATION_TYPE_UNKNOWN(400, "NOTIFICATION_TYPE_UNKNOWN", "알 수 없는 알림 유형입니다."),
     REVIEW_BLIND_REQUEST_NOT_FOUND(404, "REVIEW_BLIND_REQUEST_NOT_FOUND", "게시중단 요청을 찾을 수 없습니다."),
     REVIEW_BLIND_REQUEST_ALREADY_PENDING(409, "REVIEW_BLIND_REQUEST_ALREADY_PENDING", "이미 게시중단 요청이 접수된 리뷰입니다."),
     REVIEW_BLIND_REQUEST_NOT_PENDING(409, "REVIEW_BLIND_REQUEST_NOT_PENDING", "대기 중인 요청만 처리할 수 있습니다."),
@@ -157,6 +166,13 @@ public enum ErrorCode implements ErrorCodeSpec {
     REVIEW_BLIND_DETAIL_REASON_REQUIRED(400, "REVIEW_BLIND_DETAIL_REASON_REQUIRED", "기타 사유는 상세 내용을 입력해야 합니다."),
     REVIEW_TAB_UNKNOWN(400, "REVIEW_TAB_UNKNOWN", "알 수 없는 리뷰 목록 탭입니다."),
     REVIEW_DATE_RANGE_INVALID(400, "REVIEW_DATE_RANGE_INVALID", "조회 시작일이 종료일보다 늦을 수 없습니다."),
+    REVIEW_DELIVERY_RATING_NOT_ALLOWED(400, "REVIEW_DELIVERY_RATING_NOT_ALLOWED", "배달 주문에만 배달 평가를 남길 수 있습니다."),
+
+    // 메뉴 평가
+    MENU_REVIEW_NOT_FOUND(404, "MENU_REVIEW_NOT_FOUND", "메뉴 평가를 찾을 수 없습니다."),
+    MENU_REVIEW_ALREADY_EXISTS(409, "MENU_REVIEW_ALREADY_EXISTS", "이미 평가한 메뉴입니다."),
+    MENU_REVIEW_ACCESS_DENIED(403, "MENU_REVIEW_ACCESS_DENIED", "본인이 주문한 메뉴만 평가할 수 있습니다."),
+    MENU_REVIEW_NOT_ALLOWED(400, "MENU_REVIEW_NOT_ALLOWED", "평가할 수 없는 메뉴입니다."),
 
     // 가게
     SHOP_NOT_FOUND(404, "SHOP_NOT_FOUND", "존재하지 않는 가게입니다."),

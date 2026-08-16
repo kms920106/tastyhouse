@@ -16,6 +16,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewListTab;
+import com.tastyhouse.domain.review.model.ReviewOwnerReply;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
@@ -307,7 +308,9 @@ public class ShopReviewQueryService {
             result.ownerReplyContent(),
             result.ownerReplyCreatedAt(),
             blindRequestStatus == null ? null : blindRequestStatus.name(),
-            result.createdAt()
+            result.createdAt(),
+            toReplyDeadline(result.createdAt()),
+            isReplyable(result.createdAt())
         );
     }
 
@@ -342,8 +345,32 @@ public class ShopReviewQueryService {
             result.ownerReplyUpdatedAt(),
             latestBlindRequestStatus(blindRequests),
             blindRequests,
-            result.createdAt()
+            result.createdAt(),
+            toReplyDeadline(result.createdAt()),
+            isReplyable(result.createdAt()),
+            result.deliveryRating(),
+            result.deliveryComment()
         );
+    }
+
+    /**
+     * 답변 마감일 = 리뷰 작성일 + {@link ReviewOwnerReply#REPLY_PERIOD_DAYS}일.
+     *
+     * <p><b>DB 컬럼으로 두지 않는다</b> — {@code REVIEW.created_at}에서 매번 파생되는 값이라 저장하면
+     * 정책(일수)이 바뀌는 순간 기존 행이 전부 틀린 값을 갖게 된다.
+     */
+    private LocalDate toReplyDeadline(LocalDateTime reviewCreatedAt) {
+        return reviewCreatedAt.toLocalDate().plusDays(ReviewOwnerReply.REPLY_PERIOD_DAYS);
+    }
+
+    /**
+     * 오늘 기준 <b>신규 등록</b> 가능 여부 — 점주가 400을 받고 나서야 마감을 아는 것을 막기 위한 파생값이다.
+     *
+     * <p>판정 기준은 도메인 서비스({@code ReviewOwnerReplyService})의 기한 검증과 동일한 날짜 경계다.
+     * 이미 답변이 있는 리뷰는 이 값과 무관하게 수정·삭제할 수 있다(수정·삭제에는 기한 제한이 없다).
+     */
+    private boolean isReplyable(LocalDateTime reviewCreatedAt) {
+        return !LocalDate.now().isAfter(toReplyDeadline(reviewCreatedAt));
     }
 
     /**

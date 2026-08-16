@@ -23,12 +23,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class ReviewLifecycleServiceTest {
 
-    private FakeReviewRepository reviewRepository;
     private ReviewLifecycleService reviewLifecycleService;
 
     @BeforeEach
     void setUp() {
-        reviewRepository = new FakeReviewRepository();
+        FakeReviewRepository reviewRepository = new FakeReviewRepository();
         reviewLifecycleService = new ReviewLifecycleService(
             reviewRepository,
             new FakeReviewImageRepository(),
@@ -44,7 +43,7 @@ class ReviewLifecycleServiceTest {
     void register_succeedsWhenNoDuplicateForOrderAndProduct() {
         var registration = reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), OrderId.of(10L),
-            5, 5, 5, "맛있어요", List.of(), List.of(), false
+            5, 5, 5, "맛있어요", List.of(), List.of(), false, null, null
         );
 
         assertThat(registration.review().getId()).isNotNull();
@@ -56,12 +55,12 @@ class ReviewLifecycleServiceTest {
     void register_blocksDuplicateForSameOrderAndProduct() {
         reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), OrderId.of(10L),
-            5, 5, 5, "맛있어요", List.of(), List.of(), false
+            5, 5, 5, "맛있어요", List.of(), List.of(), false, null, null
         );
 
         assertThatThrownBy(() -> reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), OrderId.of(10L),
-            4, 4, 4, "중복 작성 테스트", List.of(), List.of(), true
+            4, 4, 4, "중복 작성 테스트", List.of(), List.of(), true, null, null
         ))
             .isInstanceOf(BusinessException.class)
             .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
@@ -73,12 +72,12 @@ class ReviewLifecycleServiceTest {
     void register_blocksDuplicateEvenWhenExistingReviewIsOwnerOnly() {
         reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), OrderId.of(157L),
-            5, 5, 5, "맛있어요", List.of(), List.of(), true
+            5, 5, 5, "맛있어요", List.of(), List.of(), true, null, null
         );
 
         assertThatThrownBy(() -> reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), OrderId.of(157L),
-            5, 5, 5, "중복 작성 테스트", List.of(), List.of(), true
+            5, 5, 5, "중복 작성 테스트", List.of(), List.of(), true, null, null
         )).isInstanceOf(BusinessException.class);
     }
 
@@ -87,12 +86,12 @@ class ReviewLifecycleServiceTest {
     void register_allowsDifferentProductUnderSameOrder() {
         reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), OrderId.of(10L),
-            5, 5, 5, "맛있어요", List.of(), List.of(), false
+            5, 5, 5, "맛있어요", List.of(), List.of(), false, null, null
         );
 
         var registration = reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(99L), MemberId.of(3L), OrderId.of(10L),
-            5, 5, 5, "다른 상품 리뷰", List.of(), List.of(), false
+            5, 5, 5, "다른 상품 리뷰", List.of(), List.of(), false, null, null
         );
 
         assertThat(registration.review().getProductId()).isEqualTo(ProductId.of(99L));
@@ -103,13 +102,13 @@ class ReviewLifecycleServiceTest {
     void register_skipsDuplicateCheckWhenOrderIdIsNull() {
         Review firstReview = reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), null,
-            5, 5, 5, "맛있어요", List.of(), List.of(), false
+            5, 5, 5, "맛있어요", List.of(), List.of(), false, null, null
         ).review();
         assertThat(firstReview.getOrderId()).isNull();
 
         var secondRegistration = reviewLifecycleService.register(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), null,
-            4, 4, 4, "또 작성", List.of(), List.of(), false
+            4, 4, 4, "또 작성", List.of(), List.of(), false, null, null
         );
 
         assertThat(secondRegistration.review().getId()).isNotEqualTo(firstReview.getId());

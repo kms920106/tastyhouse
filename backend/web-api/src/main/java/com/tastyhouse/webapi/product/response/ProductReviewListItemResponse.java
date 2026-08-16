@@ -26,7 +26,11 @@ public record ProductReviewListItemResponse(
     @Schema(description = "상품 ID", example = "1")
     Long productId,
     @Schema(description = "상품명", example = "시그니처 파스타")
-    String productName
+    String productName,
+    @Schema(description = "사장님 답변 내용. 미답변이면 null입니다.", example = "소중한 리뷰 감사합니다.")
+    String ownerReplyContent,
+    @Schema(description = "사장님 답변 작성일시. 미답변이면 null입니다.", example = "2026-06-20T14:03:00")
+    LocalDateTime ownerReplyCreatedAt
 ) {
     public static ProductReviewListItemResponse from(
         Long id,
@@ -38,7 +42,9 @@ public record ProductReviewListItemResponse(
         String memberProfileImageUrl,
         LocalDateTime createdAt,
         Long productId,
-        String productName
+        String productName,
+        String ownerReplyContent,
+        LocalDateTime ownerReplyCreatedAt
     ) {
         return new ProductReviewListItemResponse(
             id,
@@ -50,7 +56,9 @@ public record ProductReviewListItemResponse(
             memberProfileImageUrl,
             createdAt,
             productId,
-            productName
+            productName,
+            ownerReplyContent,
+            ownerReplyCreatedAt
         );
     }
 }

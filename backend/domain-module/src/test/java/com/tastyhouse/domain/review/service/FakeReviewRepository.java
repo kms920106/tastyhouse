@@ -63,6 +63,8 @@ public class FakeReviewRepository implements ReviewRepository {
             review.getOrderId(),
             review.isHidden(),
             review.isOwnerOnly(),
+            review.getDeliveryRating(),
+            review.getDeliveryComment(),
             null
         );
         reviews.put(persisted.getId(), persisted);

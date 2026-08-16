@@ -1,5 +1,6 @@
 package com.tastyhouse.ceoapi.review.response;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -58,7 +59,13 @@ public record ShopReviewListItemResponse(
     String blindRequestStatus,
 
     @Schema(description = "리뷰 작성일시", example = "2026-06-19T20:11:00")
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+
+    @Schema(description = "답변 마감일 = 리뷰 작성일 + 30일. 이 날짜까지는 하루 종일 등록할 수 있습니다.", example = "2026-07-19")
+    LocalDate replyDeadline,
+
+    @Schema(description = "오늘 기준 신규 답변 등록 가능 여부. 이미 답변이 있으면 이 값과 무관하게 수정·삭제할 수 있습니다.", example = "true")
+    boolean replyable
 ) {
 
     public static ShopReviewListItemResponse from(
@@ -76,7 +83,9 @@ public record ShopReviewListItemResponse(
         String ownerReplyContent,
         LocalDateTime ownerReplyCreatedAt,
         String blindRequestStatus,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDate replyDeadline,
+        boolean replyable
     ) {
         return new ShopReviewListItemResponse(
             id,
@@ -93,7 +102,9 @@ public record ShopReviewListItemResponse(
             ownerReplyContent,
             ownerReplyCreatedAt,
             blindRequestStatus,
-            createdAt
+            createdAt,
+            replyDeadline,
+            replyable
         );
     }
 }

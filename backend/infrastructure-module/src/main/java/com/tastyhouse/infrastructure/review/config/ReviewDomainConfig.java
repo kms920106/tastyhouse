@@ -57,12 +57,14 @@ public class ReviewDomainConfig {
     public ReviewOwnerReplyService reviewOwnerReplyService(
         ReviewOwnerReplyRepository reviewOwnerReplyRepository,
         ReviewRepository reviewRepository,
-        ProhibitedWordValidator prohibitedWordValidator
+        ProhibitedWordValidator prohibitedWordValidator,
+        DomainEventPublisher domainEventPublisher
     ) {
         return new ReviewOwnerReplyService(
             reviewOwnerReplyRepository,
             reviewRepository,
-            prohibitedWordValidator
+            prohibitedWordValidator,
+            domainEventPublisher
         );
     }
 

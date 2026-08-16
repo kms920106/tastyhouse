@@ -40,6 +40,16 @@ public class Review {
      * 않는 이유는 상품 평점 재계산이 등록·삭제 이벤트로만 이뤄져 전환 시 평점이 조용히 어긋나기 때문이다.
      */
     private final boolean ownerOnly;
+    /**
+     * 배달 평점(1~5). 배달 주문에만 남길 수 있으며 미평가면 {@code null}이다.
+     *
+     * <p><b>노출은 ceo-api 점주 리뷰 상세에만 한정한다</b> — 원문 규격상 고객 앱에 노출되지 않는다.
+     * {@link #totalRating} 계산({@code (맛+양+가격)/3})에도 포함하지 않으며, 상품 평점
+     * ({@code PRODUCT.rating})의 근거는 MENU_REVIEW로 이관되어 배달 평가가 섞일 경로 자체가 없다.
+     */
+    private Integer deliveryRating;
+    /** 배달 평가 내용(점주 전용, 고객 앱 미노출). 미평가면 {@code null}. */
+    private String deliveryComment;
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private Review(
@@ -59,6 +69,8 @@ public class Review {
         OrderId orderId,
         boolean hidden,
         boolean ownerOnly,
+        Integer deliveryRating,
+        String deliveryComment,
         LocalDateTime createdAt
     ) {
         this.id = id;
@@ -77,6 +89,8 @@ public class Review {
         this.orderId = orderId;
         this.hidden = hidden;
         this.ownerOnly = ownerOnly;
+        this.deliveryRating = deliveryRating;
+        this.deliveryComment = deliveryComment;
         this.createdAt = createdAt;
     }
 
@@ -100,7 +114,9 @@ public class Review {
         Double hygieneRating,
         boolean willRevisit,
         OrderId orderId,
-        boolean ownerOnly
+        boolean ownerOnly,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         return new Review(
             null,
@@ -119,6 +135,8 @@ public class Review {
             orderId,
             false,
             ownerOnly,
+            deliveryRating,
+            deliveryComment,
             null
         );
     }
@@ -144,6 +162,8 @@ public class Review {
         OrderId orderId,
         boolean hidden,
         boolean ownerOnly,
+        Integer deliveryRating,
+        String deliveryComment,
         LocalDateTime createdAt
     ) {
         return new Review(
@@ -163,6 +183,8 @@ public class Review {
             orderId,
             hidden,
             ownerOnly,
+            deliveryRating,
+            deliveryComment,
             createdAt
         );
     }
@@ -188,7 +210,9 @@ public class Review {
         Double atmosphereRating,
         Double kindnessRating,
         Double hygieneRating,
-        boolean willRevisit
+        boolean willRevisit,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         this.content = content;
         this.totalRating = totalRating;
@@ -199,6 +223,8 @@ public class Review {
         this.kindnessRating = kindnessRating;
         this.hygieneRating = hygieneRating;
         this.willRevisit = willRevisit;
+        this.deliveryRating = deliveryRating;
+        this.deliveryComment = deliveryComment;
     }
 
     public Long getId() {
@@ -263,6 +289,14 @@ public class Review {
 
     public boolean isOwnerOnly() {
         return this.ownerOnly;
+    }
+
+    public Integer getDeliveryRating() {
+        return this.deliveryRating;
+    }
+
+    public String getDeliveryComment() {
+        return this.deliveryComment;
     }
 
     public LocalDateTime getCreatedAt() {

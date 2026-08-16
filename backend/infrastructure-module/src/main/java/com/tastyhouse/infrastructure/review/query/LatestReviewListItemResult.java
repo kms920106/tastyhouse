@@ -18,7 +18,9 @@ public record LatestReviewListItemResult(
     Long productId,
     String productName,
     Long likeCount,
-    Long commentCount
+    Long commentCount,
+    String ownerReplyContent,
+    LocalDateTime ownerReplyCreatedAt
 ) {
     @QueryProjection
     public LatestReviewListItemResult(
@@ -33,7 +35,9 @@ public record LatestReviewListItemResult(
         Long productId,
         String productName,
         Long likeCount,
-        Long commentCount
+        Long commentCount,
+        String ownerReplyContent,
+        LocalDateTime ownerReplyCreatedAt
     ) {
         this(
             id,
@@ -48,7 +52,9 @@ public record LatestReviewListItemResult(
             productId,
             productName,
             likeCount,
-            commentCount
+            commentCount,
+            ownerReplyContent,
+            ownerReplyCreatedAt
         );
     }
 
@@ -66,7 +72,9 @@ public record LatestReviewListItemResult(
             productId,
             productName,
             likeCount,
-            commentCount
+            commentCount,
+            ownerReplyContent,
+            ownerReplyCreatedAt
         );
     }
 }

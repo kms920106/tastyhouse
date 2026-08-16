@@ -25,7 +25,10 @@ public record ProductDetailResponse(
     BigDecimal discountRate,
 
     @Schema(description = "품절 여부", example = "false")
-    boolean soldOut
+    boolean soldOut,
+
+    @Schema(description = "이 상품의 노출 메뉴 평가 수(숨김 제외). 평가가 없으면 0입니다.", example = "12")
+    long menuReviewCount
 ) {
     public static ProductDetailResponse from(
         Long id,
@@ -34,7 +37,8 @@ public record ProductDetailResponse(
         Integer originalPrice,
         Integer discountPrice,
         BigDecimal discountRate,
-        boolean soldOut
+        boolean soldOut,
+        long menuReviewCount
     ) {
         return new ProductDetailResponse(
             id,
@@ -43,7 +47,8 @@ public record ProductDetailResponse(
             originalPrice,
             discountPrice,
             discountRate,
-            soldOut
+            soldOut,
+            menuReviewCount
         );
     }
 }

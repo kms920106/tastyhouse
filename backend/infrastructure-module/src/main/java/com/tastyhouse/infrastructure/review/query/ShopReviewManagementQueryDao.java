@@ -179,7 +179,9 @@ public class ShopReviewManagementQueryDao {
                 reviewOwnerReplyJpaEntity.createdAt,
                 reviewOwnerReplyJpaEntity.updatedAt,
                 Expressions.constant(List.<ReviewBlindRequestHistoryResult>of()),
-                reviewJpaEntity.createdAt
+                reviewJpaEntity.createdAt,
+                reviewJpaEntity.deliveryRating,
+                reviewJpaEntity.deliveryComment
             ))
             .from(reviewJpaEntity)
             .leftJoin(memberJpaEntity)

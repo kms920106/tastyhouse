@@ -83,6 +83,24 @@ public class ShopQueryDao {
         this.fileUrlResolver = fileUrlResolver;
     }
 
+    // ------------------------------------------------------------------- 가게명
+
+    /**
+     * 가게명 단건 — 다른 컨텍스트가 표시 문구를 조립할 때 쓴다(알림 본문 등).
+     *
+     * <p>도메인 모델({@code Shop})을 통째로 로드하지 않는 이유는 소비처가 이름 한 필드만 필요하고, 그
+     * 소비처가 애그리거트 경계 밖(알림 리스너)이라 도메인 모델을 넘기면 컨텍스트가 결합되기 때문이다.
+     */
+    public Optional<String> findShopName(Long shopId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(shopJpaEntity.name)
+                .from(shopJpaEntity)
+                .where(shopJpaEntity.id.eq(shopId))
+                .fetchOne()
+        );
+    }
+
     // ---------------------------------------------------------------- 전화번호
 
     /**

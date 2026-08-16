@@ -23,6 +23,16 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  */
 public class ReviewOwnerReply {
 
+    /**
+     * 답변 <b>작성</b> 가능 기간(일) — 리뷰 작성일로부터 이 일수까지만 신규 등록할 수 있다.
+     *
+     * <p>원문: "사장님 댓글은 고객의 리뷰 작성 완료일로부터 30일 이내 작성할 수 있어요."
+     *
+     * <p><b>등록에만 적용된다.</b> 이미 단 답변의 수정·삭제는 기간이 지나도 막지 않는다 — 원문이
+     * 제한하는 것은 "작성"이고, 30일 뒤 오타 수정조차 막는 것은 과하기 때문이다.
+     */
+    public static final int REPLY_PERIOD_DAYS = 30;
+
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
     private final ReviewId reviewId;
     private final ShopId shopId;

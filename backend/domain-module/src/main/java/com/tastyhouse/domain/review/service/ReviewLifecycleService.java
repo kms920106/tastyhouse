@@ -42,30 +42,29 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * 소비 모듈의 command 서비스가 선언한다.
  *
  * <p>이벤트 발행은 Spring {@code ApplicationEventPublisher}가 아니라 프레임워크-프리 포트
- * {@link DomainEventPublisher}를 쓴다. 발행된 {@link ReviewCreatedEvent}/{@link ReviewDeletedEvent}는
- * 상품 리뷰 통계를 갱신하는 리스너가 수신한다(리스너 개편은 32-product 소관 — 아래 인계 메모 참고).
+ * {@link DomainEventPublisher}를 쓴다. <b>{@link ReviewCreatedEvent}/{@link ReviewDeletedEvent}는 현재
+ * 소비자가 0이다</b> — 상품 평점 재집계의 근거가 MENU_REVIEW로 이관되면서 구독이
+ * {@code ProductMenuReviewEventListener}로 옮겨갔기 때문이다. 발행측을 그대로 두는 이유는 각 이벤트
+ * Javadoc 참고.
  * 좋아요 토글은 이벤트를 발행하지 않는다 — 사유는 {@link #toggleLike} Javadoc 참고.
  *
  * <p>도메인 모델이 순수 POJO라 더티 체킹이 없으므로 변경 후 명시적으로 {@code save}를 호출한다.
  *
- * <p><b>32-product 인계 메모</b> — 이 서비스가 발행하는 이벤트에 반응하는
- * {@code ProductReviewEventListener}는 이번 작업 범위 밖이다. 발행측만 위 포트로 교체했고 리스너는
- * 건드리지 않았다. 다만 리스너가 쓰던 리뷰 통계 조회는 write 포트 순수화로 {@code ReviewRepository}에서
- * 사라졌으므로, 그 자리를 도메인 포트
- * {@code com.tastyhouse.domain.product.port.ProductReviewStatisticsPort}(infra 어댑터가
- * {@code ReviewQueryDao}에 위임)로 대체해 두었다. 리스너를
- * {@code infrastructure/product/listener/}로 옮길 때 이 포트를 그대로 쓰거나, infra 안에서는 DAO를
- * 직접 주입하도록 정리하면 된다.
+ * <p><b>상품 평점과의 관계</b> — 과거에는 이 서비스의 이벤트가 {@code PRODUCT.rating} 재집계를
+ * 트리거했으나, 그 근거가 MENU_REVIEW로 완전히 이관되어 지금은 {@code ProductMenuReviewEventListener}가
+ * {@code MenuReview*} 이벤트만 구독한다. 따라서 <b>리뷰 등록·수정·삭제는 상품 평점을 바꾸지 않는다</b>.
+ * 재집계 구독을 여기로 되돌리면 근거가 둘로 갈려 같은 갱신이 두 번 돈다.
  *
- * <p>공개 시그니처(32-product 참조용):
+ * <p>공개 시그니처:
  * <pre>
- * ReviewRegistration register(Long shopId, Long productId, MemberId memberId, Long orderId,
+ * ReviewRegistration register(ShopId shopId, ProductId productId, MemberId memberId, OrderId orderId,
  *                            Integer tasteRating, Integer amountRating, Integer priceRating,
  *                            String content, List&lt;Long&gt; uploadedFileIds, List&lt;String&gt; tags,
- *                            boolean ownerOnly)
+ *                            boolean ownerOnly, Integer deliveryRating, String deliveryComment)
  * ReviewRegistration modify(ReviewId reviewId, MemberId memberId,
  *                           Integer tasteRating, Integer amountRating, Integer priceRating,
- *                           String content, List&lt;Long&gt; uploadedFileIds, List&lt;String&gt; tags)
+ *                           String content, List&lt;Long&gt; uploadedFileIds, List&lt;String&gt; tags,
+ *                           Integer deliveryRating, String deliveryComment)
  * void removeOwnedBy(ReviewId reviewId, MemberId memberId, Long productId)
  * void remove(ReviewId reviewId)
  * boolean toggleLike(ReviewId reviewId, MemberId memberId)
@@ -102,6 +101,11 @@ public class ReviewLifecycleService {
      * <p>{@code ownerOnly}(사장님만보기)는 등록 시점에만 정해진다. 전환은 불허이므로
      * {@link #modify}에는 대응 파라미터가 없다.
      *
+     * <p>{@code deliveryRating}/{@code deliveryComment}(배달 평가)는 배달 주문에만 남길 수 있다. 주문유형
+     * 판정은 order 컨텍스트를 알아야 하므로 이 서비스가 아니라 호출부(web-api {@code ReviewCommandService})가
+     * 수행한다 — 여기서 하면 review 컨텍스트가 order 모델을 직접 참조하게 된다. 총점
+     * ({@link #averageRating})에는 포함하지 않는다.
+     *
      * <p>{@code orderId}가 있으면 같은 주문·같은 상품에 이미 리뷰가 있는지 검사해 중복 등록을 막는다
      * ({@link ErrorCode#REVIEW_ALREADY_EXISTS}). REVIEW 테이블에 주문상품 단위 식별자가 없어
      * {@code order_id}+{@code product_id} 조합으로 판정하므로, 한 주문에 동일 상품을 2개 이상 담은
@@ -119,7 +123,9 @@ public class ReviewLifecycleService {
         String content,
         List<Long> uploadedFileIds,
         List<String> tags,
-        boolean ownerOnly
+        boolean ownerOnly,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         if (orderId != null && reviewRepository.existsByOrderIdAndProductId(orderId, productId)) {
             throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
@@ -136,7 +142,9 @@ public class ReviewLifecycleService {
             priceRating.doubleValue(),
             null, null, null, false,
             orderId,
-            ownerOnly
+            ownerOnly,
+            deliveryRating,
+            deliveryComment
         );
 
         Review saved = reviewRepository.save(review);
@@ -166,7 +174,9 @@ public class ReviewLifecycleService {
         Integer priceRating,
         String content,
         List<Long> uploadedFileIds,
-        List<String> tags
+        List<String> tags,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         Review review = reviewRepository.findByIdAndMemberId(reviewId, memberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED));
@@ -177,7 +187,9 @@ public class ReviewLifecycleService {
             tasteRating.doubleValue(),
             amountRating.doubleValue(),
             priceRating.doubleValue(),
-            null, null, null, false
+            null, null, null, false,
+            deliveryRating,
+            deliveryComment
         );
 
         Review saved = reviewRepository.save(review);
@@ -231,9 +243,12 @@ public class ReviewLifecycleService {
      * 좋아요 토글 — 이미 눌렀으면 취소, 아니면 등록한다. 반환값은 토글 <b>후</b> 좋아요 상태다.
      *
      * <p>이벤트를 발행하지 않는다 — 과거 {@code ReviewLikedEvent}를 발행했으나 수신 리스너가 없는
-     * no-op이어서 P9(도메인 이벤트 정비)에서 제거했다. 형제 이벤트인 {@link ReviewCreatedEvent}/
-     * {@link ReviewDeletedEvent}가 소비되는 이유는 상품 리뷰 통계(평점·리뷰 수) 갱신인데, 좋아요는 그
-     * 통계에 포함되지 않아 같은 계열이어도 소비 수요가 없다.
+     * no-op이어서 P9(도메인 이벤트 정비)에서 제거했다.
+     *
+     * <p>형제 이벤트인 {@link ReviewCreatedEvent}/{@link ReviewDeletedEvent}도 <b>현재 소비자가 0이다</b> —
+     * 과거에는 상품 리뷰 통계(평점·리뷰 수) 갱신에 소비됐으나, 상품 별점의 근거가 {@code MENU_REVIEW}로
+     * 이관되면서 구독이 그쪽으로 옮겨갔다. 두 이벤트를 미소비라는 이유로 제거하지 않는 근거는 각 이벤트
+     * record의 Javadoc에 있다. 좋아요는 애초에 상품 통계와 무관해 이벤트 자체를 두지 않는다.
      */
     public boolean toggleLike(ReviewId reviewId, MemberId memberId) {
         boolean liked = !reviewLikeRepository.existsByReviewIdAndMemberId(reviewId, memberId);

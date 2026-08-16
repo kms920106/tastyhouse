@@ -72,6 +72,19 @@ public class ReviewJpaEntity extends BaseEntity {
     @Column(name = "is_owner_only", nullable = false)
     private boolean ownerOnly;
 
+    /**
+     * 배달 평점(1~5). 배달 주문에만 남기며 미평가면 null이다.
+     *
+     * <p><b>노출은 ceo-api 점주 리뷰 상세에만 한정된다</b> — web-api 응답에는 어떤 경로로도 담지 않는다
+     * (원문 규격: 고객 앱 미노출). {@code total_rating} 계산에도 넣지 않는다.
+     */
+    @Column(name = "delivery_rating")
+    private Integer deliveryRating;
+
+    /** 배달 평가 내용(점주 전용, 고객 앱 미노출). 미평가면 null. */
+    @Column(name = "delivery_comment", length = 500)
+    private String deliveryComment;
+
     protected ReviewJpaEntity() {
     }
 
@@ -90,7 +103,9 @@ public class ReviewJpaEntity extends BaseEntity {
         boolean willRevisit,
         Long orderId,
         boolean hidden,
-        boolean ownerOnly
+        boolean ownerOnly,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         this.shopId = shopId;
         this.productId = productId;
@@ -107,6 +122,8 @@ public class ReviewJpaEntity extends BaseEntity {
         this.orderId = orderId;
         this.hidden = hidden;
         this.ownerOnly = ownerOnly;
+        this.deliveryRating = deliveryRating;
+        this.deliveryComment = deliveryComment;
     }
 
     /**
@@ -127,7 +144,9 @@ public class ReviewJpaEntity extends BaseEntity {
         boolean willRevisit,
         Long orderId,
         boolean hidden,
-        boolean ownerOnly
+        boolean ownerOnly,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         return new ReviewJpaEntity(
             shopId,
@@ -144,7 +163,9 @@ public class ReviewJpaEntity extends BaseEntity {
             willRevisit,
             orderId,
             hidden,
-            ownerOnly
+            ownerOnly,
+            deliveryRating,
+            deliveryComment
         );
     }
 
@@ -161,7 +182,9 @@ public class ReviewJpaEntity extends BaseEntity {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        boolean hidden
+        boolean hidden,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         this.content = content;
         this.totalRating = totalRating;
@@ -173,6 +196,8 @@ public class ReviewJpaEntity extends BaseEntity {
         this.hygieneRating = hygieneRating;
         this.willRevisit = willRevisit;
         this.hidden = hidden;
+        this.deliveryRating = deliveryRating;
+        this.deliveryComment = deliveryComment;
     }
 
     public Long getId() {
@@ -237,5 +262,13 @@ public class ReviewJpaEntity extends BaseEntity {
 
     public boolean isOwnerOnly() {
         return this.ownerOnly;
+    }
+
+    public Integer getDeliveryRating() {
+        return this.deliveryRating;
+    }
+
+    public String getDeliveryComment() {
+        return this.deliveryComment;
     }
 }

@@ -32,6 +32,7 @@ final class ProductMapper {
             entity.isSoldOut(),
             entity.isVisible(),
             entity.getSort(),
+            entity.isRatingExcluded(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
@@ -54,12 +55,16 @@ final class ProductMapper {
             domain.getSpiciness(),
             domain.isSoldOut(),
             domain.isVisible(),
-            domain.getSort()
+            domain.getSort(),
+            domain.isRatingExcluded()
         );
     }
 
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update 경로, dirty checking 대체).
+     *
+     * <p>{@code ratingExcluded}는 <b>의도적으로 복사하지 않는다</b> — 도메인 모델에서 {@code final}이라
+     * 상품 수정 경로가 이 값을 바꾸지 않는다.
      */
     static void applyChanges(ProductJpaEntity entity, Product domain) {
         entity.applyChanges(

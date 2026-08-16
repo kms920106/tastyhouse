@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderProduct;
 import com.tastyhouse.domain.order.repository.OrderProductRepository;
+import com.tastyhouse.domain.order.repository.OrderRepository;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.model.Product;
@@ -23,8 +25,10 @@ import com.tastyhouse.domain.review.service.ReviewLifecycleService;
 import com.tastyhouse.domain.review.service.ReviewRegistration;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 /**
  * 리뷰 명령 서비스(web).
@@ -54,6 +58,7 @@ public class ReviewCommandService {
     private final ReviewReplyRepository reviewReplyRepository;
     private final ProductRepository productRepository;
     private final OrderProductRepository orderProductRepository;
+    private final OrderRepository orderRepository;
 
     public ReviewCommandService(
         ReviewLifecycleService reviewLifecycleService,
@@ -61,7 +66,8 @@ public class ReviewCommandService {
         ReviewCommentRepository reviewCommentRepository,
         ReviewReplyRepository reviewReplyRepository,
         ProductRepository productRepository,
-        OrderProductRepository orderProductRepository
+        OrderProductRepository orderProductRepository,
+        OrderRepository orderRepository
     ) {
         this.reviewLifecycleService = reviewLifecycleService;
         this.reviewRepository = reviewRepository;
@@ -69,6 +75,7 @@ public class ReviewCommandService {
         this.reviewReplyRepository = reviewReplyRepository;
         this.productRepository = productRepository;
         this.orderProductRepository = orderProductRepository;
+        this.orderRepository = orderRepository;
     }
 
     /**
@@ -90,14 +97,18 @@ public class ReviewCommandService {
         String content,
         List<Long> uploadedFileIds,
         List<String> tags,
-        Boolean ownerOnly
+        Boolean ownerOnly,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         OrderId orderId = null;
         if (orderProductId != null) {
             OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
             orderId = orderProduct.getOrderId();
+            validateOrderOwnership(orderId, MemberId.of(memberId));
         }
+        validateDeliveryRating(orderId, deliveryRating, deliveryComment);
 
         Product product = productRepository.findById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
@@ -113,7 +124,9 @@ public class ReviewCommandService {
             content,
             uploadedFileIds,
             tags,
-            Boolean.TRUE.equals(ownerOnly)
+            Boolean.TRUE.equals(ownerOnly),
+            deliveryRating,
+            deliveryComment
         );
 
         return registration.review().getReviewId().value();
@@ -132,9 +145,15 @@ public class ReviewCommandService {
         Integer priceRating,
         String content,
         List<Long> uploadedFileIds,
-        List<String> tags
+        List<String> tags,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         ReviewId targetReviewId = ReviewId.of(reviewId);
+        Review review = reviewRepository.findById(targetReviewId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+        validateDeliveryRating(review.getOrderId(), deliveryRating, deliveryComment);
+
         ReviewRegistration registration = reviewLifecycleService.modify(
             targetReviewId,
             MemberId.of(memberId),
@@ -143,7 +162,9 @@ public class ReviewCommandService {
             priceRating,
             content,
             uploadedFileIds,
-            tags
+            tags,
+            deliveryRating,
+            deliveryComment
         );
 
         return registration.review().getReviewId().value();
@@ -158,6 +179,43 @@ public class ReviewCommandService {
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         reviewLifecycleService.removeOwnedBy(targetReviewId, MemberId.of(memberId), review.getProductId());
+    }
+
+    /**
+     * 매장 리뷰에 인증 근거로 남길 주문이 <b>실제로 요청 회원의 것인지</b> 검증한다(IDOR 방어).
+     *
+     * <p>{@code MenuReviewCommandService}의 동일 검증을 그대로 따른다 — 다른 회원의 {@code orderProductId}로
+     * 리뷰를 등록해 그 주문 기반 인증 표시를 자기 이름으로 남기는 것을 막는다.
+     */
+    private void validateOrderOwnership(OrderId orderId, MemberId memberId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+        if (!order.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.REVIEW_ORDER_ACCESS_DENIED);
+        }
+    }
+
+    /**
+     * 배달 평가는 <b>주문유형이 {@code DELIVERY}인 주문 기반 리뷰</b>에만 남길 수 있다.
+     *
+     * <p>판정을 review 도메인 서비스가 아니라 여기서 하는 이유는 주문유형이 order 컨텍스트의 값이기
+     * 때문이다 — 도메인 서비스에서 판정하면 review 컨텍스트가 order 모델을 직접 참조하게 된다.
+     *
+     * <p>배달 평가를 보내지 않았으면(둘 다 null) 검증 자체를 건너뛴다 — 기존 클라이언트 호환.
+     */
+    private void validateDeliveryRating(OrderId orderId, Integer deliveryRating, String deliveryComment) {
+        if (deliveryRating == null && deliveryComment == null) {
+            return;
+        }
+        if (orderId == null) {
+            throw new BusinessException(ErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
+        }
+
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+        if (order.getOrderMethod() != OrderMethod.DELIVERY) {
+            throw new BusinessException(ErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
+        }
     }
 
     /**

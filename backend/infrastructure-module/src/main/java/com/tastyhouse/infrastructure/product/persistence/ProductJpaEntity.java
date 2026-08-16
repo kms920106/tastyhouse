@@ -70,6 +70,13 @@ public class ProductJpaEntity extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
+    /**
+     * 메뉴 평가 제외 여부(주류·사이드 등). 도메인 모델에서 {@code final}이라 {@link #applyChanges}의 복사
+     * 대상이 아니다 — 여기에 추가하면 "상품 수정으로 바꿀 수 있다"는 잘못된 신호가 된다.
+     */
+    @Column(name = "is_rating_excluded", nullable = false)
+    private boolean ratingExcluded;
+
     protected ProductJpaEntity() {
     }
 
@@ -86,7 +93,8 @@ public class ProductJpaEntity extends BaseEntity {
         Integer spiciness,
         boolean soldOut,
         boolean visible,
-        Integer sort
+        Integer sort,
+        boolean ratingExcluded
     ) {
         this.shopId = shopId;
         this.productCategoryId = productCategoryId;
@@ -101,6 +109,7 @@ public class ProductJpaEntity extends BaseEntity {
         this.soldOut = soldOut;
         this.visible = visible;
         this.sort = sort;
+        this.ratingExcluded = ratingExcluded;
     }
 
     /**
@@ -119,11 +128,12 @@ public class ProductJpaEntity extends BaseEntity {
         Integer spiciness,
         boolean soldOut,
         boolean visible,
-        Integer sort
+        Integer sort,
+        boolean ratingExcluded
     ) {
         return new ProductJpaEntity(
             shopId, productCategoryId, name, description, originalPrice, discountInfo,
-            rating, reviewCount, representative, spiciness, soldOut, visible, sort
+            rating, reviewCount, representative, spiciness, soldOut, visible, sort, ratingExcluded
         );
     }
 
@@ -212,5 +222,9 @@ public class ProductJpaEntity extends BaseEntity {
 
     public Integer getSort() {
         return this.sort;
+    }
+
+    public boolean isRatingExcluded() {
+        return this.ratingExcluded;
     }
 }

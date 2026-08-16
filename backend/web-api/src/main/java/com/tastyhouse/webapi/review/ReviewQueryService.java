@@ -14,8 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.follow.repository.MemberFollowRepository;
+import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderProduct;
 import com.tastyhouse.domain.order.repository.OrderProductRepository;
+import com.tastyhouse.domain.order.repository.OrderRepository;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
@@ -23,6 +25,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
@@ -78,6 +81,7 @@ public class ReviewQueryService {
     private final MemberFollowRepository memberFollowRepository;
     private final ProductQueryDao productQueryDao;
     private final OrderProductRepository orderProductRepository;
+    private final OrderRepository orderRepository;
 
     public ReviewQueryService(
         ReviewQueryDao reviewQueryDao,
@@ -85,7 +89,8 @@ public class ReviewQueryService {
         ShopReviewDisplaySettingQueryDao shopReviewDisplaySettingQueryDao,
         MemberFollowRepository memberFollowRepository,
         ProductQueryDao productQueryDao,
-        OrderProductRepository orderProductRepository
+        OrderProductRepository orderProductRepository,
+        OrderRepository orderRepository
     ) {
         this.reviewQueryDao = reviewQueryDao;
         this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
@@ -93,6 +98,7 @@ public class ReviewQueryService {
         this.memberFollowRepository = memberFollowRepository;
         this.productQueryDao = productQueryDao;
         this.orderProductRepository = orderProductRepository;
+        this.orderRepository = orderRepository;
     }
 
     /**
@@ -132,7 +138,7 @@ public class ReviewQueryService {
      */
     public Optional<ReviewDetailResponse> findReviewDetail(Long reviewId, Long viewerMemberId) {
         return findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId)
-            .map(this::toReviewDetailResponse);
+            .map(result -> toReviewDetailResponse(result, viewerMemberId));
     }
 
     /**
@@ -288,6 +294,12 @@ public class ReviewQueryService {
         OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
 
+        Order order = orderRepository.findById(orderProduct.getOrderId())
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+        if (!order.getMemberId().equals(MemberId.of(memberId))) {
+            throw new BusinessException(ErrorCode.REVIEW_ORDER_ACCESS_DENIED);
+        }
+
         ProductDetailResult product = productQueryDao.findProductDetailById(orderProduct.getProductId().value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
@@ -299,13 +311,16 @@ public class ReviewQueryService {
             orderProduct.getOrderId().value(), orderProduct.getProductId().value(), memberId
         );
 
+        OrderMethod orderMethod = order.getOrderMethod();
+
         return ReviewWriteInfoResponse.from(
             product.id(),
             product.name(),
             getFirstImageUrl(product.id()),
             price,
             orderProduct.getOrderId().value(),
-            reviewed
+            reviewed,
+            orderMethod == null ? null : orderMethod.name()
         );
     }
 
@@ -520,7 +535,24 @@ public class ReviewQueryService {
         );
     }
 
-    private ReviewDetailResponse toReviewDetailResponse(ReviewDetailResult dto) {
+    /**
+     * 리뷰 상세 응답 조립 — 배달 평가 3필드는 <b>작성자 본인일 때만</b> 채운다.
+     *
+     * <p>배달 평가는 「배민 앱 미노출」 규격에 따라 다른 고객에게 보이지 않아야 하지만, 작성자 본인이
+     * 자기 수정 폼을 열 때는 기존 값이 초깃값으로 필요하다. 두 요구가 충돌하지 않도록 노출 범위를
+     * 프론트 신뢰가 아니라 <b>서버 판정</b>으로 가른다 — 뷰어가 작성자가 아니면 세 필드 모두 {@code null}이다.
+     *
+     * <p>{@code viewerMemberId}가 {@code null}(비로그인)이면 당연히 작성자가 아니므로 가려진다.
+     *
+     * <p><b>수정 폼은 여기서 받은 값을 그대로 되돌려 보내야 한다.</b> 수정 API는 PUT(전체 교체) 의미를
+     * 유지해 받은 값을 조건 없이 덮어쓰므로, 폼이 값을 비운 채 제출하면 기존 배달 평가가 지워진다.
+     * "값이 없으면 유지"를 서버에 넣지 않은 것은 그 순간 {@code null}이 "안 보냄"과 "지워줘" 두 뜻을 갖게
+     * 되어 배달 평가를 지울 방법이 사라지기 때문이다.
+     */
+    private ReviewDetailResponse toReviewDetailResponse(ReviewDetailResult dto, Long viewerMemberId) {
+        boolean author = viewerMemberId != null && viewerMemberId.equals(dto.memberId());
+        OrderMethod orderMethod = author ? dto.orderMethod() : null;
+
         return ReviewDetailResponse.from(
             dto.id(),
             dto.shopId(),
@@ -541,7 +573,12 @@ public class ReviewQueryService {
             dto.createdAt(),
             dto.imageUrls(),
             dto.tagNames(),
-            dto.ownerOnly()
+            dto.ownerOnly(),
+            dto.ownerReplyContent(),
+            dto.ownerReplyCreatedAt(),
+            orderMethod == null ? null : orderMethod.name(),
+            author ? dto.deliveryRating() : null,
+            author ? dto.deliveryComment() : null
         );
     }
 

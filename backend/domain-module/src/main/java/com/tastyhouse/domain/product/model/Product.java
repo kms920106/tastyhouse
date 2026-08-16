@@ -34,6 +34,14 @@ public class Product {
     private boolean soldOut;
     private boolean visible;
     private Integer sort;
+    /**
+     * 메뉴 평가 제외 여부(주류·사이드 등). {@code PRODUCT_CATEGORY.name}이 가게별 자유 입력 문자열이라
+     * 주류·사이드를 기계 판별할 수 없어 상품에 명시 플래그를 둔다.
+     *
+     * <p>ceo 메뉴 관리 화면에서 토글하는 값이며 상품 수정 경로가 아직 이 필드를 다루지 않으므로
+     * {@code final}이다 — 전이 메서드를 두지 않는 것이 "현재는 변경 경로가 없다"의 구조적 표현이다.
+     */
+    private final boolean ratingExcluded;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -52,6 +60,7 @@ public class Product {
         boolean soldOut,
         boolean visible,
         Integer sort,
+        boolean ratingExcluded,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -69,6 +78,7 @@ public class Product {
         this.soldOut = soldOut;
         this.visible = visible;
         this.sort = sort;
+        this.ratingExcluded = ratingExcluded;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -95,7 +105,8 @@ public class Product {
         Integer spiciness,
         boolean soldOut,
         boolean visible,
-        Integer sort
+        Integer sort,
+        boolean ratingExcluded
     ) {
         validatePrices(originalPrice, discountPrice);
 
@@ -114,6 +125,7 @@ public class Product {
             soldOut,
             visible,
             sort,
+            ratingExcluded,
             null,
             null
         );
@@ -141,6 +153,7 @@ public class Product {
         boolean soldOut,
         boolean visible,
         Integer sort,
+        boolean ratingExcluded,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -159,6 +172,7 @@ public class Product {
             soldOut,
             visible,
             sort,
+            ratingExcluded,
             createdAt,
             updatedAt
         );
@@ -218,6 +232,14 @@ public class Product {
 
     public Integer getSort() {
         return this.sort;
+    }
+
+    /**
+     * 메뉴 평가 제외 여부 — {@code true}면 이 상품에는 메뉴 평가를 남길 수 없고, 평가 가능 메뉴 목록에도
+     * 담기지 않는다. 판정은 서버가 하며 프론트가 카테고리 이름으로 거르지 않는다.
+     */
+    public boolean isRatingExcluded() {
+        return this.ratingExcluded;
     }
 
     public LocalDateTime getCreatedAt() {

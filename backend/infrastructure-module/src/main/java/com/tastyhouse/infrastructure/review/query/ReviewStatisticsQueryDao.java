@@ -25,7 +25,13 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
  * {@code ReviewQueryDao}, 관리(admin) 화면 전용 조회는 {@code ReviewManagementQueryDao}가 담당하고,
  * 여기에는 집계·통계만 둔다.
  *
- * <p>소비자: web-api {@code ReviewQueryService}(가게·상품 리뷰 통계 조합, 회원 리뷰 수), ceo-api
+ * <p><b>⚠️ 상품 단위 집계 4종은 {@code PRODUCT.rating} 재집계용이 아니다.</b> 그 재집계의 근거는
+ * MENU_REVIEW로 완전히 이관되어 {@code MenuReviewStatisticsQueryDao}가 담당하며, 이 DAO의 상품 집계는
+ * <b>상품 상세 화면의 매장 리뷰 통계 응답</b>({@code GET /api/products/v1/&#123;id&#125;/reviews/statistics}·
+ * 평점대별 목록)이 계속 소비한다 — 별개 계약이므로 남는다. 상품 평점 재집계 코드를 여기로 되돌리지 말 것.
+ *
+ * <p>소비자: web-api {@code ReviewQueryService}(가게 리뷰 통계 조합, 회원 리뷰 수)·
+ * {@code ProductQueryService}(상품 상세의 매장 리뷰 통계), ceo-api
  * {@code ShopReviewQueryService}(점주 통계 대시보드 — 기간 오버로드 사용).
  *
  * <p><b>이 DAO의 모든 집계는 {@code hidden = false}로 숨김 리뷰를 제외한다.</b> 반면 점주 리뷰 목록
@@ -406,7 +412,9 @@ public class ReviewStatisticsQueryDao {
     }
 
     /**
-     * 상품의 고객 노출 리뷰 수(숨김·사장님만보기 제외).
+     * 상품의 고객 노출 리뷰 수(숨김·사장님만보기 제외) — 상품 상세의 <b>매장 리뷰</b> 통계용.
+     *
+     * <p>{@code PRODUCT.rating} 재집계와는 무관하다(클래스 Javadoc 참고).
      */
     public Long countVisibleByProductId(Long productId) {
         return queryFactory
@@ -417,7 +425,7 @@ public class ReviewStatisticsQueryDao {
     }
 
     /**
-     * 상품 맛 평점 평균.
+     * 상품 맛 평점 평균 — 상품 상세의 매장 리뷰 통계용.
      */
     public Double getAverageTasteRatingByProductId(Long productId) {
         return queryFactory
@@ -428,7 +436,7 @@ public class ReviewStatisticsQueryDao {
     }
 
     /**
-     * 상품 양 평점 평균.
+     * 상품 양 평점 평균 — 상품 상세의 매장 리뷰 통계용.
      */
     public Double getAverageAmountRatingByProductId(Long productId) {
         return queryFactory
@@ -439,7 +447,7 @@ public class ReviewStatisticsQueryDao {
     }
 
     /**
-     * 상품 가격 평점 평균.
+     * 상품 가격 평점 평균 — 상품 상세의 매장 리뷰 통계용.
      */
     public Double getAveragePriceRatingByProductId(Long productId) {
         return queryFactory

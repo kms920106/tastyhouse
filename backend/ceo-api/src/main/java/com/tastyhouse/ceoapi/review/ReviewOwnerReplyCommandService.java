@@ -1,5 +1,7 @@
 package com.tastyhouse.ceoapi.review;
 
+import java.time.LocalDate;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +35,15 @@ public class ReviewOwnerReplyCommandService {
     /**
      * 사장님 답변을 등록한다.
      *
+     * <p>기한(리뷰 작성일 + 30일) 판정 기준일인 {@code LocalDate.now()}는 <b>이 계층이 해석해</b> 도메인
+     * 서비스에 넘긴다 — domain-module은 프레임워크-프리라 시계를 주입받을 수 없고, 도메인이 직접
+     * {@code now()}를 부르면 단위 테스트에서 기한을 고정할 수 없기 때문이다.
+     *
      * @return 생성된 답변 식별자
      */
     public Long register(Long ceoId, Long shopId, Long reviewId, String content) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return reviewOwnerReplyService.register(shopId, reviewId, ceoId, content);
+        return reviewOwnerReplyService.register(shopId, reviewId, ceoId, content, LocalDate.now());
     }
 
     /**

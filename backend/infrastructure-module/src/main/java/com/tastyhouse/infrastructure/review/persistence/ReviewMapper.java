@@ -40,6 +40,8 @@ final class ReviewMapper {
             IdMapping.vo(entity.getOrderId(), OrderId::of),
             entity.isHidden(),
             entity.isOwnerOnly(),
+            entity.getDeliveryRating(),
+            entity.getDeliveryComment(),
             entity.getCreatedAt()
         );
     }
@@ -63,7 +65,9 @@ final class ReviewMapper {
             domain.isWillRevisit(),
             IdMapping.raw(domain.getOrderId(), OrderId::value),
             domain.isHidden(),
-            domain.isOwnerOnly()
+            domain.isOwnerOnly(),
+            domain.getDeliveryRating(),
+            domain.getDeliveryComment()
         );
     }
 
@@ -88,7 +92,9 @@ final class ReviewMapper {
             domain.getKindnessRating(),
             domain.getHygieneRating(),
             domain.isWillRevisit(),
-            domain.isHidden()
+            domain.isHidden(),
+            domain.getDeliveryRating(),
+            domain.getDeliveryComment()
         );
     }
 }

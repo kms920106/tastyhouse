@@ -10,6 +10,7 @@ public final class PublicPaths {
         "/api/event/**",
         "/api/faqs/**",
         "/api/grades/**",
+        "/api/menu-reviews/v1/products/*",
         "/api/members/v1/phone/availability", "/api/members/v1/nickname/availability", "/api/members/v1/*/profile", "/api/members/v1/*/stats",
         "/api/notices/**",
         "/api/partnership-requests/**",

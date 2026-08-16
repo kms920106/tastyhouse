@@ -80,7 +80,9 @@ public class ReviewApiController {
             request.content(),
             request.uploadedFileIds(),
             request.tags(),
-            request.ownerOnly()
+            request.ownerOnly(),
+            request.deliveryRating(),
+            request.deliveryComment()
         );
         return ResponseEntity.ok(ApiResponse.success(reviewId));
     }
@@ -100,7 +102,9 @@ public class ReviewApiController {
             request.priceRating(),
             request.content(),
             request.uploadedFileIds(),
-            request.tags()
+            request.tags(),
+            request.deliveryRating(),
+            request.deliveryComment()
         );
         ReviewResponse response = reviewQueryService.getReviewResponse(updatedReviewId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(response));

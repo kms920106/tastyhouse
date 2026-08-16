@@ -32,12 +32,14 @@ import com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEntity;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
+import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
 import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEntity.orderProductJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewCommentJpaEntity.reviewCommentJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity.reviewImageJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEntity.reviewLikeJpaEntity;
+import static com.tastyhouse.infrastructure.review.persistence.QReviewOwnerReplyJpaEntity.reviewOwnerReplyJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewReplyJpaEntity.reviewReplyJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewTagJpaEntity.reviewTagJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -175,7 +177,9 @@ public class ReviewQueryDao {
                 JPAExpressions.select(subReviewComment.count())
                     .from(subReviewComment)
                     .where(subReviewComment.reviewId.eq(reviewJpaEntity.id)
-                    .and(subReviewComment.hidden.eq(false)))
+                    .and(subReviewComment.hidden.eq(false))),
+                reviewOwnerReplyJpaEntity.content,
+                reviewOwnerReplyJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
@@ -183,6 +187,8 @@ public class ReviewQueryDao {
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
+            .leftJoin(reviewOwnerReplyJpaEntity)
+            .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(visibleToCustomer())
             .orderBy(reviewJpaEntity.createdAt.desc());
 
@@ -227,7 +233,9 @@ public class ReviewQueryDao {
                 JPAExpressions.select(subReviewComment.count())
                     .from(subReviewComment)
                     .where(subReviewComment.reviewId.eq(reviewJpaEntity.id)
-                        .and(subReviewComment.hidden.eq(false)))
+                        .and(subReviewComment.hidden.eq(false))),
+                reviewOwnerReplyJpaEntity.content,
+                reviewOwnerReplyJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
@@ -235,6 +243,8 @@ public class ReviewQueryDao {
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
+            .leftJoin(reviewOwnerReplyJpaEntity)
+            .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(
                 reviewJpaEntity.memberId.in(followingMemberIds),
                 visibleToCustomer()
@@ -317,7 +327,9 @@ public class ReviewQueryDao {
                 JPAExpressions.select(subReviewComment.count())
                     .from(subReviewComment)
                     .where(subReviewComment.reviewId.eq(reviewJpaEntity.id)
-                    .and(subReviewComment.hidden.eq(false)))
+                    .and(subReviewComment.hidden.eq(false))),
+                reviewOwnerReplyJpaEntity.content,
+                reviewOwnerReplyJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
@@ -325,6 +337,8 @@ public class ReviewQueryDao {
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
+            .leftJoin(reviewOwnerReplyJpaEntity)
+            .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(whereClause);
 
         applySort(query, sortType);
@@ -402,7 +416,9 @@ public class ReviewQueryDao {
                 JPAExpressions.select(subReviewComment.count())
                     .from(subReviewComment)
                     .where(subReviewComment.reviewId.eq(reviewJpaEntity.id)
-                        .and(subReviewComment.hidden.eq(false)))
+                        .and(subReviewComment.hidden.eq(false))),
+                reviewOwnerReplyJpaEntity.content,
+                reviewOwnerReplyJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
@@ -410,6 +426,8 @@ public class ReviewQueryDao {
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
+            .leftJoin(reviewOwnerReplyJpaEntity)
+            .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(whereClause);
 
         applySort(query, sortType);
@@ -466,7 +484,9 @@ public class ReviewQueryDao {
                 JPAExpressions.select(subReviewComment.count())
                     .from(subReviewComment)
                     .where(subReviewComment.reviewId.eq(reviewJpaEntity.id)
-                        .and(subReviewComment.hidden.eq(false)))
+                        .and(subReviewComment.hidden.eq(false))),
+                reviewOwnerReplyJpaEntity.content,
+                reviewOwnerReplyJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
@@ -474,6 +494,8 @@ public class ReviewQueryDao {
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
+            .leftJoin(reviewOwnerReplyJpaEntity)
+            .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(whereClause)
             .orderBy(reviewJpaEntity.createdAt.desc())
             .limit(limit)
@@ -524,7 +546,9 @@ public class ReviewQueryDao {
                 JPAExpressions.select(subReviewComment.count())
                     .from(subReviewComment)
                     .where(subReviewComment.reviewId.eq(reviewJpaEntity.id)
-                        .and(subReviewComment.hidden.eq(false)))
+                        .and(subReviewComment.hidden.eq(false))),
+                reviewOwnerReplyJpaEntity.content,
+                reviewOwnerReplyJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
@@ -532,6 +556,8 @@ public class ReviewQueryDao {
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
+            .leftJoin(reviewOwnerReplyJpaEntity)
+            .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(whereClause)
             .orderBy(reviewJpaEntity.createdAt.desc())
             .limit(limit)
@@ -576,13 +602,21 @@ public class ReviewQueryDao {
                 memberJpaEntity.nickname,
                 uploadedFileJpaEntity.filePath,
                 reviewJpaEntity.createdAt,
-                reviewJpaEntity.ownerOnly
+                reviewJpaEntity.ownerOnly,
+                reviewOwnerReplyJpaEntity.content,
+                reviewOwnerReplyJpaEntity.createdAt,
+                orderJpaEntity.orderMethod,
+                reviewJpaEntity.deliveryRating,
+                reviewJpaEntity.deliveryComment
             ))
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
             .innerJoin(stationJpaEntity).on(shopStationId().eq(stationJpaEntity.id))
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
+            .leftJoin(reviewOwnerReplyJpaEntity)
+            .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
+            .leftJoin(orderJpaEntity).on(reviewJpaEntity.orderId.eq(orderJpaEntity.id))
             .where(
                 reviewJpaEntity.id.eq(reviewId.value()),
                 reviewJpaEntity.hidden.isFalse(),
@@ -960,7 +994,8 @@ public class ReviewQueryDao {
             case RECOMMENDED -> query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
                 .groupBy(reviewJpaEntity.id, stationJpaEntity.stationName, reviewJpaEntity.totalRating, reviewJpaEntity.content,
                     memberJpaEntity.id, memberJpaEntity.nickname, uploadedFileJpaEntity.filePath, reviewJpaEntity.createdAt,
-                    productJpaEntity.id, productJpaEntity.name)
+                    productJpaEntity.id, productJpaEntity.name,
+                    reviewOwnerReplyJpaEntity.content, reviewOwnerReplyJpaEntity.createdAt)
                 .orderBy(sortReviewLike.count().desc(), reviewJpaEntity.createdAt.desc());
             case OLDEST -> query.orderBy(reviewJpaEntity.createdAt.asc());
             case LATEST -> query.orderBy(reviewJpaEntity.createdAt.desc());
@@ -1079,7 +1114,9 @@ public class ReviewQueryDao {
             row.productId(),
             row.productName(),
             row.likeCount(),
-            row.commentCount()
+            row.commentCount(),
+            row.ownerReplyContent(),
+            row.ownerReplyCreatedAt()
         );
     }
 
@@ -1104,7 +1141,12 @@ public class ReviewQueryDao {
             row.createdAt(),
             row.ownerOnly(),
             row.imageUrls(),
-            row.tagNames()
+            row.tagNames(),
+            row.ownerReplyContent(),
+            row.ownerReplyCreatedAt(),
+            row.orderMethod(),
+            row.deliveryRating(),
+            row.deliveryComment()
         );
     }
 

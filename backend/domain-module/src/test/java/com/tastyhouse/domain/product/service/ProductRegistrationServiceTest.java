@@ -150,7 +150,7 @@ class ProductRegistrationServiceTest {
     private Product product() {
         return Product.reconstitute(
             PRODUCT_ID, SHOP_ID, ProductCategoryId.of(2L), "황금올리브치킨", "바삭한 치킨",
-            20000, null, null, 0, true, 1, false, true, 0, null, null
+            20000, null, null, 0, true, 1, false, true, 0, false, null, null
         );
     }
 
@@ -220,6 +220,7 @@ class ProductRegistrationServiceTest {
                 product.isSoldOut(),
                 product.isVisible(),
                 product.getSort(),
+                product.isRatingExcluded(),
                 null,
                 null
             );

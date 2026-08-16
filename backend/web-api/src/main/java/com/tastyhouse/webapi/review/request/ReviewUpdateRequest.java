@@ -40,6 +40,20 @@ public record ReviewUpdateRequest(
     List<Long> uploadedFileIds,
 
     @Schema(description = "태그 목록 (기존 태그 포함하여 전체 목록 전달)", example = "[\"샌드위치\", \"아보카도\"]")
-    List<String> tags
+    List<String> tags,
+
+    @Min(value = 1, message = "배달 평점은 1 이상이어야 합니다")
+    @Max(value = 5, message = "배달 평점은 5 이하이어야 합니다")
+    @Schema(
+        description = "배달 평점 (1~5, 선택). 주문유형이 DELIVERY인 주문 기반 리뷰에만 보낼 수 있으며, "
+            + "그 외 주문유형에 값을 보내면 REVIEW_DELIVERY_RATING_NOT_ALLOWED(400)로 거부됩니다. "
+            + "작성된 배달 평가는 점주에게만 노출되고 고객 화면에는 표시되지 않습니다.",
+        example = "5"
+    )
+    Integer deliveryRating,
+
+    @Size(max = 500, message = "배달 평가 내용은 500자 이내로 입력해주세요")
+    @Schema(description = "배달 평가 내용 (선택, 점주 전용 노출)", example = "빠르게 잘 받았어요")
+    String deliveryComment
 ) {
 }

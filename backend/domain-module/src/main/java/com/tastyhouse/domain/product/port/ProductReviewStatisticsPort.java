@@ -1,32 +1,26 @@
 package com.tastyhouse.domain.product.port;
 
 /**
- * 상품 리뷰 통계 조회 출력 포트.
+ * 상품 메뉴 평가 통계 조회 출력 포트.
  *
- * <p>리뷰가 등록·삭제되면 해당 상품의 평균 평점과 리뷰 수를 다시 계산해 상품에 반영해야 한다. 그 재계산에
- * 필요한 집계는 리뷰 테이블에 대한 QueryDSL 조회라 도메인이 직접 알 수 없으므로, 이 포트를 도메인에 두고
- * infrastructure-module의 어댑터가 {@code ReviewQueryDao}에 위임해 구현한다
- * ({@code rank} 도메인의 {@code MemberReviewCountPort}와 같은 형태).
+ * <p>메뉴 평가가 등록·수정·삭제되면 해당 상품의 평균 평점과 평가 수를 다시 계산해 상품에 반영해야 한다.
+ * 그 재계산에 필요한 집계는 QueryDSL 조회라 도메인이 직접 알 수 없으므로, 이 포트를 도메인에 두고
+ * infrastructure-module의 {@code ProductReviewStatisticsAdapter}가
+ * {@code MenuReviewStatisticsQueryDao}에 위임해 구현한다.
  *
- * <p>이 포트는 review 도메인 전환(30-review)에서 write 포트를 순수화하며 신설했다. 과거
- * {@code ProductReviewEventListener}가 {@code ReviewRepository}의 통계 read 메서드를 직접 호출했는데,
- * 그 메서드들이 write 포트에서 제거되면서 대체가 필요했기 때문이다. 리스너 자체의 위치 개편
- * (infrastructure {@code product/listener/}로 이동)은 32-product 소관이며, 그때 이 포트를 그대로 쓰거나
- * infra 안에서 DAO를 직접 주입하도록 정리하면 된다.
+ * <p><b>{@code PRODUCT.rating}의 근거는 MENU_REVIEW뿐이다(이관 완료).</b> 과거에는 REVIEW의
+ * 맛·양·가격 평점 3종을 부분 평균해 썼고 이 포트도 그에 맞춰 메서드가 4개였으나, 맛·양·가격은 <b>매장
+ * 리뷰의 항목별 평점</b>이지 메뉴 평가의 축이 아니다. MENU_REVIEW는 {@code rating} 하나뿐이므로 포트도
+ * 그에 맞춰 2개로 줄였다.
  *
- * <p>모든 집계는 <b>고객에게 노출되는 리뷰</b>(숨김·사장님만보기 제외)만 대상으로 한다. 특히 사장님만보기
- * 리뷰가 여기 섞이면 {@code PRODUCT}의 비정규화 평점 컬럼을 통해 <b>상품 대표 평점으로 전 화면에 새어나가</b>
- * 비공개 정책을 정면으로 위반하므로, 어댑터가 위임하는 DAO에서 반드시 두 축을 함께 건다.
+ * <p>고객 노출 조건은 {@code hidden = false} 하나뿐이다 — MENU_REVIEW에는 사장님만보기 개념이 없다.
+ * 그 결과 "사장님만보기 리뷰가 상품 대표 평점으로 새어나간다"는 과거의 위험은 <b>구조적으로 사라졌다</b>.
  *
- * <p>대상 리뷰가 없으면 평균값은 {@code null}이다.
+ * <p>대상 평가가 없으면 평균값은 {@code null}이다.
  */
 public interface ProductReviewStatisticsPort {
 
-    Long countVisibleReviewsByProductId(Long productId);
+    Long countVisibleMenuReviewsByProductId(Long productId);
 
-    Double getAverageTasteRatingByProductId(Long productId);
-
-    Double getAverageAmountRatingByProductId(Long productId);
-
-    Double getAveragePriceRatingByProductId(Long productId);
+    Double getAverageMenuRatingByProductId(Long productId);
 }

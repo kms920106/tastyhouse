@@ -874,7 +874,9 @@ public class ShopQueryService {
             dto.memberProfileImageUrl(),
             dto.createdAt(),
             dto.productId(),
-            dto.productName()
+            dto.productName(),
+            dto.ownerReplyContent(),
+            dto.ownerReplyCreatedAt()
         );
     }
 

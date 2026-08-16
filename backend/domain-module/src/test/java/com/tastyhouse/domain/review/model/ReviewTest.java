@@ -25,7 +25,7 @@ class ReviewTest {
         Review review = Review.of(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L), false
+            true, OrderId.of(10L), false, null, null
         );
 
         assertThat(review.getId()).isNull();
@@ -45,7 +45,7 @@ class ReviewTest {
         Review review = Review.of(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L), false
+            true, OrderId.of(10L), false, null, null
         );
 
         review.hide();
@@ -61,11 +61,11 @@ class ReviewTest {
         Review review = Review.of(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L), false
+            true, OrderId.of(10L), false, null, null
         );
 
         review.updateContent(
-            "별로예요", 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, false
+            "별로예요", 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, false, null, null
         );
 
         assertThat(review.getContent()).isEqualTo("별로예요");
@@ -83,7 +83,7 @@ class ReviewTest {
         Review review = Review.reconstitute(
             1L, ShopId.of(2L), ProductId.of(3L), MemberId.of(4L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L), true, false, createdAt
+            true, OrderId.of(10L), true, false, null, null, createdAt
         );
 
         assertThat(review.getId()).isEqualTo(1L);
@@ -98,13 +98,13 @@ class ReviewTest {
         Review review = Review.of(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L), true
+            true, OrderId.of(10L), true, null, null
         );
 
         assertThat(review.isOwnerOnly()).isTrue();
 
         review.updateContent(
-            "별로예요", 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, false
+            "별로예요", 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, false, null, null
         );
 
         assertThat(review.isOwnerOnly()).isTrue();
@@ -117,7 +117,7 @@ class ReviewTest {
         Review review = Review.of(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L), true
+            true, OrderId.of(10L), true, null, null
         );
 
         review.hide();

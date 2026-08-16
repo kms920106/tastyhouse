@@ -19,6 +19,7 @@ import com.tastyhouse.infrastructure.product.query.ProductBatchResult;
 import com.tastyhouse.infrastructure.product.query.ProductCategoryResult;
 import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
 import com.tastyhouse.infrastructure.product.query.ProductOptionsResult;
+import com.tastyhouse.infrastructure.menureview.query.MenuReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 import com.tastyhouse.infrastructure.product.query.SearchProductItemResult;
 import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
@@ -61,15 +62,18 @@ public class ProductQueryService {
     private final ProductQueryDao productQueryDao;
     private final ReviewQueryDao reviewQueryDao;
     private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
+    private final MenuReviewStatisticsQueryDao menuReviewStatisticsQueryDao;
 
     public ProductQueryService(
         ProductQueryDao productQueryDao,
         ReviewQueryDao reviewQueryDao,
-        ReviewStatisticsQueryDao reviewStatisticsQueryDao
+        ReviewStatisticsQueryDao reviewStatisticsQueryDao,
+        MenuReviewStatisticsQueryDao menuReviewStatisticsQueryDao
     ) {
         this.productQueryDao = productQueryDao;
         this.reviewQueryDao = reviewQueryDao;
         this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
+        this.menuReviewStatisticsQueryDao = menuReviewStatisticsQueryDao;
     }
 
     public PaginationResponse<ProductTodayDiscountListItemResponse> searchTodayDiscountProducts(int page, int size) {
@@ -94,6 +98,7 @@ public class ProductQueryService {
 
     public ProductDetailResponse findProductById(Long productId) {
         ProductDetailResult dto = loadProductDetail(productId);
+        Long menuReviewCount = menuReviewStatisticsQueryDao.countVisibleByProductId(productId);
         return ProductDetailResponse.from(
             dto.id(),
             dto.name(),
@@ -101,7 +106,8 @@ public class ProductQueryService {
             dto.originalPrice(),
             dto.discountPrice(),
             dto.discountRate(),
-            dto.soldOut()
+            dto.soldOut(),
+            menuReviewCount != null ? menuReviewCount : 0L
         );
     }
 
@@ -227,7 +233,9 @@ public class ProductQueryService {
             dto.memberProfileImageUrl(),
             dto.createdAt(),
             dto.productId(),
-            dto.productName()
+            dto.productName(),
+            dto.ownerReplyContent(),
+            dto.ownerReplyCreatedAt()
         );
     }
 

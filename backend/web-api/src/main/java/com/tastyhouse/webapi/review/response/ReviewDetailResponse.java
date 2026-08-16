@@ -65,7 +65,33 @@ public record ReviewDetailResponse(
     List<String> tagNames,
 
     @Schema(description = "사장님만보기 여부 (작성자 본인 조회 시 뱃지 표시용)", example = "false")
-    boolean ownerOnly
+    boolean ownerOnly,
+
+    @Schema(description = "사장님 답변 내용. 미답변이면 null입니다.", example = "소중한 리뷰 감사합니다.")
+    String ownerReplyContent,
+
+    @Schema(description = "사장님 답변 작성일시. 미답변이면 null입니다.", example = "2026-06-20T14:03:00")
+    LocalDateTime ownerReplyCreatedAt,
+
+    @Schema(
+        description = "주문 방식. 배달 평가 섹션 렌더 판정용이며 DELIVERY일 때만 배달 평가를 입력할 수 있습니다. "
+            + "작성자 본인이 조회할 때만 채워지고, 그 외에는 null입니다.",
+        example = "DELIVERY"
+    )
+    String orderMethod,
+
+    @Schema(
+        description = "배달 평점(1~5). 미평가면 null입니다. 고객 앱 노출용이 아니라 "
+            + "작성자 본인의 수정 폼 초깃값 전용이므로, 타인이 조회하면 null입니다.",
+        example = "5"
+    )
+    Integer deliveryRating,
+
+    @Schema(
+        description = "배달 평가 내용. 미평가면 null입니다. 작성자 본인이 조회할 때만 채워집니다.",
+        example = "빠르게 도착했어요"
+    )
+    String deliveryComment
 ) {
     public static ReviewDetailResponse from(
         Long id,
@@ -87,7 +113,12 @@ public record ReviewDetailResponse(
         LocalDateTime createdAt,
         List<String> imageUrls,
         List<String> tagNames,
-        boolean ownerOnly
+        boolean ownerOnly,
+        String ownerReplyContent,
+        LocalDateTime ownerReplyCreatedAt,
+        String orderMethod,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         return new ReviewDetailResponse(
             id,
@@ -109,7 +140,12 @@ public record ReviewDetailResponse(
             createdAt,
             imageUrls,
             tagNames,
-            ownerOnly
+            ownerOnly,
+            ownerReplyContent,
+            ownerReplyCreatedAt,
+            orderMethod,
+            deliveryRating,
+            deliveryComment
         );
     }
 }

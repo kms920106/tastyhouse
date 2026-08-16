@@ -98,7 +98,8 @@ public class ProductRegistrationService {
             spiciness,
             soldOut,
             visible,
-            sort
+            sort,
+            false
         );
         return productRepository.save(product);
     }

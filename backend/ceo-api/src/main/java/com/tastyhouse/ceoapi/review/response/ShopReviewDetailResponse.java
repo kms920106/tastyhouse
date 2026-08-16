@@ -1,5 +1,6 @@
 package com.tastyhouse.ceoapi.review.response;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -91,7 +92,19 @@ public record ShopReviewDetailResponse(
     List<ReviewBlindRequestHistoryResponse> blindRequests,
 
     @Schema(description = "리뷰 작성일시", example = "2026-06-19T20:11:00")
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+
+    @Schema(description = "답변 마감일 = 리뷰 작성일 + 30일. 이 날짜까지는 하루 종일 등록할 수 있습니다.", example = "2026-07-19")
+    LocalDate replyDeadline,
+
+    @Schema(description = "오늘 기준 신규 답변 등록 가능 여부. 이미 답변이 있으면 이 값과 무관하게 수정·삭제할 수 있습니다.", example = "true")
+    boolean replyable,
+
+    @Schema(description = "배달 평점 (1~5). 미평가이거나 배달 주문이 아니면 null입니다. 점주 전용이며 고객 앱에는 표시되지 않습니다.", example = "5")
+    Integer deliveryRating,
+
+    @Schema(description = "배달 평가 내용. 미평가면 null입니다. 점주 전용이며 고객 앱에는 표시되지 않습니다.", example = "빠르게 잘 받았어요")
+    String deliveryComment
 ) {
 
     public static ShopReviewDetailResponse from(
@@ -120,7 +133,11 @@ public record ShopReviewDetailResponse(
         LocalDateTime ownerReplyUpdatedAt,
         String blindRequestStatus,
         List<ReviewBlindRequestHistoryResponse> blindRequests,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDate replyDeadline,
+        boolean replyable,
+        Integer deliveryRating,
+        String deliveryComment
     ) {
         return new ShopReviewDetailResponse(
             id,
@@ -148,7 +165,11 @@ public record ShopReviewDetailResponse(
             ownerReplyUpdatedAt,
             blindRequestStatus,
             blindRequests,
-            createdAt
+            createdAt,
+            replyDeadline,
+            replyable,
+            deliveryRating,
+            deliveryComment
         );
     }
 }
