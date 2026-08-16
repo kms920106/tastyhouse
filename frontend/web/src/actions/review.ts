@@ -67,6 +67,7 @@ export async function createOrderReview({
   content,
   uploadedFileIds,
   tags,
+  ownerOnly,
 }: {
   orderProductId: number | null
   productId: number
@@ -76,6 +77,7 @@ export async function createOrderReview({
   content: string
   uploadedFileIds: number[]
   tags: string[]
+  ownerOnly: boolean
 }) {
   const result = await reviewRepository.createReview({
     orderProductId,
@@ -86,10 +88,45 @@ export async function createOrderReview({
     content,
     uploadedFileIds,
     tags,
+    ownerOnly,
   })
 
   if (!result.error && result.data) {
     revalidatePath('/orders')
+  }
+
+  return result
+}
+
+export async function updateReview(
+  reviewId: number,
+  {
+    tasteRating,
+    amountRating,
+    priceRating,
+    content,
+    uploadedFileIds,
+    tags,
+  }: {
+    tasteRating: number
+    amountRating: number
+    priceRating: number
+    content: string
+    uploadedFileIds: number[]
+    tags: string[]
+  },
+) {
+  const result = await reviewRepository.updateReview(reviewId, {
+    tasteRating,
+    amountRating,
+    priceRating,
+    content,
+    uploadedFileIds,
+    tags,
+  })
+
+  if (!result.error && result.data) {
+    revalidatePath(`/reviews/${reviewId}`)
   }
 
   return result

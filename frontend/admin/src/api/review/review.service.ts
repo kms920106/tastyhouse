@@ -21,6 +21,7 @@ export const reviewService = {
         totalRating: item.totalRating,
         content: item.content,
         hidden: item.hidden,
+        ownerOnly: item.ownerOnly,
         createdAt: item.createdAt,
       })),
     };
@@ -47,6 +48,7 @@ export const reviewService = {
         hygieneRating: res.data.hygieneRating,
         willRevisit: res.data.willRevisit,
         hidden: res.data.hidden,
+        ownerOnly: res.data.ownerOnly,
         memberId: res.data.memberId,
         memberNickname: res.data.memberNickname,
         memberProfileImageUrl: res.data.memberProfileImageUrl,

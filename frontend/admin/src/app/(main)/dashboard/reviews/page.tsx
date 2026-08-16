@@ -29,6 +29,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/revie
     productId: productIdParam,
     memberId: memberIdParam,
     hidden: hiddenParam,
+    ownerOnly: ownerOnlyParam,
     content: contentParam,
     minRating: minRatingParam,
     maxRating: maxRatingParam,
@@ -38,6 +39,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/revie
   const productId = parsePositiveInt(productIdParam);
   const memberId = parsePositiveInt(memberIdParam);
   const hidden = parseOptionalBoolean(hiddenParam);
+  const ownerOnly = parseOptionalBoolean(ownerOnlyParam);
   const content = parseSearchString(contentParam);
   const minRating = parseOptionalRating(minRatingParam);
   const maxRating = parseOptionalRating(maxRatingParam);
@@ -45,7 +47,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/revie
   const size = Math.min(parseNonNegativeInt(sizeParam, 10), MAX_PAGE_SIZE);
 
   const { error, data, pagination } = await reviewService.getReviews(
-    { shopId, productId, memberId, hidden, content, minRating, maxRating },
+    { shopId, productId, memberId, hidden, ownerOnly, content, minRating, maxRating },
     { page, size },
   );
 
@@ -62,6 +64,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/revie
       initialProductId={productId}
       initialMemberId={memberId}
       initialHidden={hidden}
+      initialOwnerOnly={ownerOnly}
       initialContent={content}
       initialMinRating={minRating}
       initialMaxRating={maxRating}

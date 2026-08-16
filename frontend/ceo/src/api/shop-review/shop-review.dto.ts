@@ -36,6 +36,8 @@ export interface ShopReviewListItemResponse {
   orderMethodDescription: string | null;
   /** 차단(게시중단) 여부 */
   hidden: boolean;
+  /** 사장님만보기(작성자 비공개) 여부. `hidden` 과 별개 축이다 */
+  ownerOnly: boolean;
   /** 미답변이면 null */
   ownerReplyContent: string | null;
   ownerReplyCreatedAt: string | null;

@@ -84,7 +84,9 @@ export function ShopReviewDetailSheet({ shopId, detail, blindReasons, onClose }:
         <SheetHeader>
           <SheetTitle className="flex flex-wrap items-center gap-2">
             <span className="min-w-0 flex-1">{SHOP_REVIEW_COPY.DETAIL_TITLE}</span>
+            {/* 게시중단(관리자 조치)과 사장님만보기(작성자 선택)는 독립이라 둘 다 뜰 수 있다 */}
             {detail.hidden && <Badge variant="destructive">{SHOP_REVIEW_COPY.BADGE_BLINDED}</Badge>}
+            {detail.ownerOnly && <Badge variant="secondary">{SHOP_REVIEW_COPY.BADGE_OWNER_ONLY}</Badge>}
           </SheetTitle>
           <SheetDescription>{detail.memberNickname}</SheetDescription>
         </SheetHeader>
@@ -193,6 +195,7 @@ export function ShopReviewDetailSheet({ shopId, detail, blindReasons, onClose }:
             replyContent={detail.ownerReplyContent}
             replyCreatedAt={detail.ownerReplyCreatedAt}
             replyUpdatedAt={detail.ownerReplyUpdatedAt}
+            ownerOnly={detail.ownerOnly}
             disabled={isPending}
           />
 

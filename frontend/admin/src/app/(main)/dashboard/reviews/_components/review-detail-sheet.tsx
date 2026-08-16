@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetchReviewAction } from "@/feature/review/actions";
 import type { ReviewDetail } from "@/feature/review/domain";
 import { formatRating, formatWillRevisit } from "@/feature/review/format";
-import { REVIEW_MESSAGE } from "@/feature/review/message";
+import { REVIEW_MESSAGE, REVIEW_VISIBILITY_COPY } from "@/feature/review/message";
 import { formatDateTime } from "@/lib/date";
 
 interface ReviewDetailSheetProps {
@@ -97,7 +97,12 @@ export function ReviewDetailSheet({ reviewId, onOpenChange }: ReviewDetailSheetP
                     <p className="text-muted-foreground text-xs">{detail.shopName}</p>
                   </div>
                 </div>
-                <Badge variant={detail.hidden ? "destructive" : "default"}>{detail.hidden ? "숨김" : "노출"}</Badge>
+                <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                  <Badge variant={detail.hidden ? "destructive" : "default"}>{detail.hidden ? "숨김" : "노출"}</Badge>
+                  <Badge variant={detail.ownerOnly ? "secondary" : "outline"}>
+                    {detail.ownerOnly ? REVIEW_VISIBILITY_COPY.OWNER_ONLY : REVIEW_VISIBILITY_COPY.PUBLIC}
+                  </Badge>
+                </div>
               </div>
 
               <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{detail.content}</p>
@@ -135,6 +140,8 @@ export function ReviewDetailSheet({ reviewId, onOpenChange }: ReviewDetailSheetP
                 <dd>{detail.stationName}</dd>
                 <dt className="text-muted-foreground">재방문 의사</dt>
                 <dd>{formatWillRevisit(detail.willRevisit)}</dd>
+                <dt className="text-muted-foreground">{REVIEW_VISIBILITY_COPY.LABEL}</dt>
+                <dd>{detail.ownerOnly ? REVIEW_VISIBILITY_COPY.OWNER_ONLY : REVIEW_VISIBILITY_COPY.PUBLIC}</dd>
               </dl>
 
               <Separator />

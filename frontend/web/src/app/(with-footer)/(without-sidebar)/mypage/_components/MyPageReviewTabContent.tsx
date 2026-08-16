@@ -19,5 +19,5 @@ export default function MyPageReviewTabContent() {
 
   const { reviews, hasMore } = data
 
-  return <ReviewList reviews={reviews} hasMoreReviews={hasMore} />
+  return <ReviewList reviews={reviews} hasMoreReviews={hasMore} showOwnerOnlyBadge />
 }

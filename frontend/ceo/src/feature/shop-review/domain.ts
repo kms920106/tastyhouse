@@ -1,8 +1,11 @@
 // 점주 리뷰 관리 도메인 모델 — UI 와 `api/shop-review/shop-review.service` 가 공유한다.
 // DTO(`*.dto.ts`)는 이 경계를 넘지 않으므로 UI 는 항상 이 파일의 타입만 import 한다.
 
-/** 목록 탭. `BLINDED` 는 게시중단(차단)된 리뷰만 본다 */
-export type ShopReviewTab = "ALL" | "UNANSWERED" | "BLINDED";
+/**
+ * 목록 탭. `BLINDED` 는 게시중단(차단)된 리뷰만, `OWNER_ONLY` 는 작성자가 비공개로 등록한
+ * 사장님만보기 리뷰만 본다 — 두 값은 독립이라 한 리뷰가 양쪽 탭에 모두 걸릴 수 있다.
+ */
+export type ShopReviewTab = "ALL" | "UNANSWERED" | "BLINDED" | "OWNER_ONLY";
 
 /** 조회·표시 정렬. 필터용과 앱 노출 설정용이 같은 값 집합을 쓴다 */
 export type ReviewSortType = "RECOMMENDED" | "LATEST" | "OLDEST";
@@ -22,6 +25,8 @@ export interface ShopReviewListItem {
   orderMethod: string | null;
   orderMethodDescription: string | null;
   hidden: boolean;
+  /** 작성자가 등록 시 선택한 비공개 여부. `hidden` 과 독립이라 둘 다 true 일 수 있다 */
+  ownerOnly: boolean;
   ownerReplyContent: string | null;
   ownerReplyCreatedAt: string | null;
   blindRequestStatus: string | null;

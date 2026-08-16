@@ -56,6 +56,8 @@ export const SHOP_REVIEW_COPY = {
   BADGE_UNANSWERED: "미답변",
   BADGE_BLINDED: "차단됨",
   BADGE_UNVERIFIED: "미인증 리뷰",
+  /** 작성자가 비공개로 등록한 리뷰. 차단 뱃지와 동시에 뜰 수 있어 별개 뱃지로 둔다 */
+  BADGE_OWNER_ONLY: "사장님만보기",
   PREVIOUS_PAGE: "이전",
   NEXT_PAGE: "다음",
 
@@ -84,6 +86,8 @@ export const SHOP_REVIEW_COPY = {
   OWNER_REPLY_EDIT_CANCEL: "취소",
   OWNER_REPLY_DELETE: "삭제",
   OWNER_REPLY_EMPTY: "아직 답변하지 않은 리뷰입니다.",
+  /** 비공개 리뷰의 답글도 고객 화면에 노출되지 않는다는 안내 */
+  OWNER_REPLY_OWNER_ONLY_GUIDE: "이 리뷰의 답글도 고객에게 공개되지 않습니다.",
   OWNER_REPLY_CREATED_AT: "답변일",
   OWNER_REPLY_UPDATED_AT: "수정일",
   OWNER_REPLY_CREATE_SUCCESS: "답변을 등록했습니다.",

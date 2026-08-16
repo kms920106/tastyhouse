@@ -50,6 +50,7 @@ export interface ReviewDetailResponse {
   createdAt: string
   imageUrls: string[]
   tagNames: string[]
+  ownerOnly: boolean
 }
 
 export interface ReviewProductDetailResponse {
@@ -131,9 +132,32 @@ export interface ReviewCreateRequest {
   content: string
   uploadedFileIds: number[]
   tags: string[]
+  ownerOnly: boolean
 }
 
 export interface ReviewCreateResponse {
+  reviewId: number
+  productId: number
+  tasteRating: number
+  amountRating: number
+  priceRating: number
+  totalRating: number
+  content: string
+  imageUrls: string[]
+  tags: string[]
+  createdAt: string
+}
+
+export interface ReviewUpdateRequest {
+  tasteRating: number
+  amountRating: number
+  priceRating: number
+  content: string
+  uploadedFileIds: number[]
+  tags: string[]
+}
+
+export interface ReviewUpdateResponse {
   reviewId: number
   productId: number
   tasteRating: number

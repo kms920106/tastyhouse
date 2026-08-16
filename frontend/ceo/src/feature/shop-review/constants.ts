@@ -11,12 +11,15 @@ export const SHOP_REVIEW_TABS = {
   ALL: "ALL",
   UNANSWERED: "UNANSWERED",
   BLINDED: "BLINDED",
+  OWNER_ONLY: "OWNER_ONLY",
 } as const;
 
+// "차단"(관리자 조치)과 "사장님만보기"(작성자 선택)는 독립된 축이라 라벨을 섞지 않는다.
 export const SHOP_REVIEW_TAB_OPTIONS = [
   { value: SHOP_REVIEW_TABS.ALL, label: "전체" },
   { value: SHOP_REVIEW_TABS.UNANSWERED, label: "미답변" },
   { value: SHOP_REVIEW_TABS.BLINDED, label: "차단" },
+  { value: SHOP_REVIEW_TABS.OWNER_ONLY, label: "사장님만보기" },
 ] as const satisfies readonly { value: ShopReviewTab; label: string }[];
 
 export const REVIEW_SORT_TYPE_OPTIONS = [

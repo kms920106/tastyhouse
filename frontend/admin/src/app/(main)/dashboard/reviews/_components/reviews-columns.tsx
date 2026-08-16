@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ReviewListItem } from "@/feature/review/domain";
 import { formatRating } from "@/feature/review/format";
+import { REVIEW_VISIBILITY_COPY } from "@/feature/review/message";
 import { formatDateTime } from "@/lib/date";
 
 export interface ReviewsTableMeta {
@@ -85,6 +86,19 @@ export const reviewsColumns: ColumnDef<ReviewListItem>[] = [
     size: 100,
     minSize: 100,
     maxSize: 120,
+  },
+  {
+    accessorKey: "ownerOnly",
+    header: REVIEW_VISIBILITY_COPY.LABEL,
+    cell: ({ row }) => (
+      <Badge variant={row.original.ownerOnly ? "secondary" : "outline"}>
+        {row.original.ownerOnly ? REVIEW_VISIBILITY_COPY.OWNER_ONLY : REVIEW_VISIBILITY_COPY.PUBLIC}
+      </Badge>
+    ),
+    enableSorting: false,
+    size: 120,
+    minSize: 120,
+    maxSize: 140,
   },
   {
     accessorKey: "createdAt",

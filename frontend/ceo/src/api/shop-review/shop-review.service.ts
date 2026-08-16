@@ -38,6 +38,7 @@ function toListItem(item: ShopReviewListItemResponse): ShopReviewListItem {
     orderMethod: item.orderMethod,
     orderMethodDescription: item.orderMethodDescription,
     hidden: item.hidden,
+    ownerOnly: item.ownerOnly,
     ownerReplyContent: item.ownerReplyContent,
     ownerReplyCreatedAt: item.ownerReplyCreatedAt,
     blindRequestStatus: item.blindRequestStatus,

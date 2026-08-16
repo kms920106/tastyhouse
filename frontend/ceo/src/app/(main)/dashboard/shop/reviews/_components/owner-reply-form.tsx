@@ -33,6 +33,8 @@ interface OwnerReplyFormProps {
   replyContent: string | null;
   replyCreatedAt: string | null;
   replyUpdatedAt?: string | null;
+  /** 사장님만보기 리뷰면 답글도 고객에게 보이지 않으므로 안내를 노출한다 */
+  ownerOnly?: boolean;
   disabled?: boolean;
 }
 
@@ -48,6 +50,7 @@ export function OwnerReplyForm({
   replyContent,
   replyCreatedAt,
   replyUpdatedAt,
+  ownerOnly,
   disabled,
 }: OwnerReplyFormProps) {
   const [isPending, startTransition] = React.useTransition();
@@ -112,6 +115,7 @@ export function OwnerReplyForm({
     return (
       <section className="flex flex-col gap-2 rounded-md border bg-muted/40 p-3">
         <span className="font-medium text-sm">{SHOP_REVIEW_COPY.OWNER_REPLY_SECTION_TITLE}</span>
+        {ownerOnly && <p className="text-muted-foreground text-xs">{SHOP_REVIEW_COPY.OWNER_REPLY_OWNER_ONLY_GUIDE}</p>}
         {/* 점주가 자유 입력한 답변이라 줄바꿈을 살린다. */}
         <p className="whitespace-pre-line text-sm">{replyContent}</p>
         <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-xs">
@@ -160,6 +164,8 @@ export function OwnerReplyForm({
   return (
     <form className="flex flex-col gap-2" noValidate onSubmit={form.handleSubmit(onSubmit)}>
       <span className="font-medium text-sm">{SHOP_REVIEW_COPY.OWNER_REPLY_SECTION_TITLE}</span>
+      {/* 답글 동작 자체는 그대로 두고 안내만 덧붙인다 — 비공개 리뷰도 등록·수정·삭제가 모두 허용된다 */}
+      {ownerOnly && <p className="text-muted-foreground text-xs">{SHOP_REVIEW_COPY.OWNER_REPLY_OWNER_ONLY_GUIDE}</p>}
       {!hasReply && <p className="text-muted-foreground text-xs">{SHOP_REVIEW_COPY.OWNER_REPLY_EMPTY}</p>}
 
       <Controller

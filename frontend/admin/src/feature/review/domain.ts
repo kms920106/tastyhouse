@@ -9,6 +9,7 @@ export interface ReviewListItem {
   totalRating: number;
   content: string;
   hidden: boolean;
+  ownerOnly: boolean;
   createdAt: string;
 }
 
@@ -27,6 +28,7 @@ export interface ReviewDetail {
   hygieneRating: number;
   willRevisit: boolean;
   hidden: boolean;
+  ownerOnly: boolean;
   memberId: number;
   memberNickname: string;
   memberProfileImageUrl: string | null;

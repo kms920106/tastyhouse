@@ -99,6 +99,7 @@ export interface MyReviewCountResponse {
 export interface MyReviewListItemResponse {
   id: number
   imageUrl: string
+  ownerOnly: boolean
 }
 
 export interface MyPaymentListItemResponse {

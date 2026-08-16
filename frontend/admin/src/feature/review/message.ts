@@ -4,6 +4,14 @@ export const REVIEW_PAGE_COPY = {
   DESCRIPTION: "매장 리뷰와 댓글·답글을 조회하고 숨김·삭제 처리합니다.",
 } as const;
 
+/** 리뷰 공개범위(사장님만보기) 표기 — 게시중단(hidden) 과는 독립된 축이다. */
+export const REVIEW_VISIBILITY_COPY = {
+  LABEL: "공개범위",
+  OWNER_ONLY: "사장님만보기",
+  PUBLIC: "공개",
+  FILTER_ALL: "전체",
+} as const;
+
 /** 리뷰 사용자 피드백 메시지 (동적/토스트/에러 폴백) */
 export const REVIEW_MESSAGE = {
   // 성공 toast

@@ -42,7 +42,9 @@ export function ShopReviewItem({ shopId, item, blindReasons, onOpenDetail }: Sho
           <Badge variant={isAnswered ? "default" : "secondary"}>
             {isAnswered ? SHOP_REVIEW_COPY.BADGE_ANSWERED : SHOP_REVIEW_COPY.BADGE_UNANSWERED}
           </Badge>
+          {/* 게시중단(관리자 조치)과 사장님만보기(작성자 선택)는 독립이라 둘 다 뜰 수 있다 */}
           {item.hidden && <Badge variant="destructive">{SHOP_REVIEW_COPY.BADGE_BLINDED}</Badge>}
+          {item.ownerOnly && <Badge variant="secondary">{SHOP_REVIEW_COPY.BADGE_OWNER_ONLY}</Badge>}
           <span className="ml-auto text-muted-foreground text-xs">{formatDateTime(item.createdAt)}</span>
         </div>
       </AccordionTrigger>
@@ -71,6 +73,7 @@ export function ShopReviewItem({ shopId, item, blindReasons, onOpenDetail }: Sho
             reviewId={item.id}
             replyContent={item.ownerReplyContent}
             replyCreatedAt={item.ownerReplyCreatedAt}
+            ownerOnly={item.ownerOnly}
           />
 
           <div className="flex flex-wrap justify-end gap-2">

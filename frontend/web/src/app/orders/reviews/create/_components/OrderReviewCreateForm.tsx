@@ -5,6 +5,7 @@ import OrderProductItem from '@/components/orders/OrderProductItem'
 import AppSubmitButton from '@/components/ui/AppSubmitButton'
 import { toast } from '@/components/ui/AppToaster'
 import BorderedSection from '@/components/ui/BorderedSection'
+import FormCheckbox from '@/components/ui/FormCheckbox'
 import SectionStack from '@/components/ui/SectionStack'
 import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
 import { extractZodFieldErrors } from '@/lib/form'
@@ -26,6 +27,7 @@ const reviewSchema = z.object({
     }),
   content: z.string().min(1, '내용을 입력해 주세요.'),
   tags: z.array(z.string()),
+  ownerOnly: z.boolean(),
 })
 
 type FormData = z.infer<typeof reviewSchema>
@@ -36,6 +38,7 @@ const INITIAL_FORM_DATA: FormData = {
   ratings: { taste: 0, amount: 0, price: 0 },
   content: '',
   tags: [],
+  ownerOnly: false,
 }
 
 interface Props {
@@ -77,6 +80,10 @@ export default function OrderReviewCreateForm({
 
   const handleTagsChange = (tags: string[]) => {
     setFormData((prev) => ({ ...prev, tags }))
+  }
+
+  const handleOwnerOnlyChange = (checked: boolean) => {
+    setFormData((prev) => ({ ...prev, ownerOnly: checked }))
   }
 
   const handleUploadedFileIdsChange = useCallback((fileIds: number[]) => {
@@ -129,6 +136,7 @@ export default function OrderReviewCreateForm({
         content: formData.content,
         uploadedFileIds,
         tags: formData.tags,
+        ownerOnly: formData.ownerOnly,
       })
 
       if (error) {
@@ -169,6 +177,28 @@ export default function OrderReviewCreateForm({
           onUploadedFileIdsChange={handleUploadedFileIdsChange}
           onUploadingChange={handleUploadingChange}
         />
+      </BorderedSection>
+      <BorderedSection>
+        <div className="flex flex-col gap-2 px-[15px] py-5">
+          {/* FormCheckbox가 자체적으로 label을 렌더하므로 바깥을 label로 감싸지 않는다(중첩 label 무효) */}
+          <div className="flex items-center gap-2.5">
+            <FormCheckbox
+              name="ownerOnly"
+              checked={formData.ownerOnly}
+              onChange={handleOwnerOnlyChange}
+            />
+            <button
+              type="button"
+              className="text-sm leading-[14px] cursor-pointer"
+              onClick={() => handleOwnerOnlyChange(!formData.ownerOnly)}
+            >
+              사장님만보기
+            </button>
+          </div>
+          <p className="text-xs leading-relaxed text-[#666666]">
+            체크하면 다른 고객에게 보이지 않고 사장님과 나만 볼 수 있어요.
+          </p>
+        </div>
       </BorderedSection>
       <BorderedSection>
         <div className="flex flex-col gap-5 px-[15px] py-5">

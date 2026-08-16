@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ReviewListItem } from "@/feature/review/domain";
-import { REVIEW_PAGE_COPY } from "@/feature/review/message";
+import { REVIEW_PAGE_COPY, REVIEW_VISIBILITY_COPY } from "@/feature/review/message";
 
 import { DeleteReviewDialog } from "./delete-review-dialog";
 import { ReviewCommentsSheet } from "./review-comments-sheet";
@@ -30,6 +30,7 @@ interface Props {
   initialProductId?: number;
   initialMemberId?: number;
   initialHidden?: boolean;
+  initialOwnerOnly?: boolean;
   initialContent?: string;
   initialMinRating?: number;
   initialMaxRating?: number;
@@ -42,6 +43,7 @@ export function Reviews({
   initialProductId,
   initialMemberId,
   initialHidden,
+  initialOwnerOnly,
   initialContent,
   initialMinRating,
   initialMaxRating,
@@ -65,6 +67,9 @@ export function Reviews({
   );
   const [contentInput, setContentInput] = React.useState(initialContent ?? "");
   const [hiddenInput, setHiddenInput] = React.useState(initialHidden === undefined ? "all" : String(initialHidden));
+  const [ownerOnlyInput, setOwnerOnlyInput] = React.useState(
+    initialOwnerOnly === undefined ? "all" : String(initialOwnerOnly),
+  );
   const [minRatingInput, setMinRatingInput] = React.useState(
     initialMinRating === undefined ? "" : String(initialMinRating),
   );
@@ -80,13 +85,23 @@ export function Reviews({
     memberId?: string;
     content?: string;
     hidden?: string;
+    ownerOnly?: string;
     minRating?: string;
     maxRating?: string;
   }) {
     const params = new URLSearchParams(searchParams.toString());
     if (next.page !== undefined) params.set("page", String(next.page));
     if (next.size !== undefined) params.set("size", String(next.size));
-    for (const key of ["shopId", "productId", "memberId", "content", "hidden", "minRating", "maxRating"] as const) {
+    for (const key of [
+      "shopId",
+      "productId",
+      "memberId",
+      "content",
+      "hidden",
+      "ownerOnly",
+      "minRating",
+      "maxRating",
+    ] as const) {
       if (next[key] === undefined) continue;
       const v = next[key];
       if (!v || v === "all") params.delete(key);
@@ -97,7 +112,7 @@ export function Reviews({
     });
   }
 
-  function handleSearch(override?: { hidden?: string }) {
+  function handleSearch(override?: { hidden?: string; ownerOnly?: string }) {
     pushParams({
       page: 0,
       shopId: shopIdInput,
@@ -105,6 +120,7 @@ export function Reviews({
       memberId: memberIdInput,
       content: contentInput,
       hidden: override?.hidden ?? hiddenInput,
+      ownerOnly: override?.ownerOnly ?? ownerOnlyInput,
       minRating: minRatingInput,
       maxRating: maxRatingInput,
     });
@@ -116,6 +132,7 @@ export function Reviews({
     setMemberIdInput("");
     setContentInput("");
     setHiddenInput("all");
+    setOwnerOnlyInput("all");
     setMinRatingInput("");
     setMaxRatingInput("");
     pushParams({
@@ -125,6 +142,7 @@ export function Reviews({
       memberId: "",
       content: "",
       hidden: "all",
+      ownerOnly: "all",
       minRating: "",
       maxRating: "",
     });
@@ -249,6 +267,26 @@ export function Reviews({
                 <SelectItem value="all">전체</SelectItem>
                 <SelectItem value="true">숨김</SelectItem>
                 <SelectItem value="false">노출</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select
+            value={ownerOnlyInput}
+            onValueChange={(value) => {
+              setOwnerOnlyInput(value);
+              handleSearch({ ownerOnly: value });
+            }}
+            disabled={isPending}
+          >
+            <SelectTrigger size="sm">
+              <span className="text-muted-foreground">{REVIEW_VISIBILITY_COPY.LABEL}:</span>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" align="start">
+              <SelectGroup>
+                <SelectItem value="all">{REVIEW_VISIBILITY_COPY.FILTER_ALL}</SelectItem>
+                <SelectItem value="true">{REVIEW_VISIBILITY_COPY.OWNER_ONLY}</SelectItem>
+                <SelectItem value="false">{REVIEW_VISIBILITY_COPY.PUBLIC}</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>

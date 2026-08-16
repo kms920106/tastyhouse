@@ -7,6 +7,7 @@ export interface ReviewListQueryRequest {
   productId?: number;
   memberId?: number;
   hidden?: boolean;
+  ownerOnly?: boolean;
   content?: string;
   minRating?: number;
   maxRating?: number;
@@ -22,6 +23,7 @@ export interface ReviewListItemResponse {
   totalRating: number;
   content: string;
   hidden: boolean;
+  ownerOnly: boolean;
   createdAt: string;
 }
 
@@ -41,6 +43,7 @@ export interface ReviewManagementDetailResponse {
   hygieneRating: number;
   willRevisit: boolean;
   hidden: boolean;
+  ownerOnly: boolean;
   memberId: number;
   memberNickname: string;
   memberProfileImageUrl: string | null;
