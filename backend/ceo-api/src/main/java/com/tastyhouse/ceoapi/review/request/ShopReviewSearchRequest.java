@@ -18,8 +18,9 @@ import jakarta.validation.constraints.Min;
 @Schema(description = "점주 리뷰 목록 조회 요청")
 public record ShopReviewSearchRequest(
     @Schema(
-        description = "조회 탭. 미지정 시 전체입니다.",
-        allowableValues = {"ALL", "UNANSWERED", "BLINDED"},
+        description = "조회 탭. 미지정 시 전체입니다. OWNER_ONLY는 작성자가 비공개(사장님만보기)로 등록한 리뷰만 조회하며, "
+            + "BLINDED(게시중단)와는 독립이라 한 리뷰가 두 탭에 모두 나타날 수 있습니다.",
+        allowableValues = {"ALL", "UNANSWERED", "BLINDED", "OWNER_ONLY"},
         example = "ALL"
     )
     String tab,

@@ -20,6 +20,7 @@ public record ReviewManagementDetailResult(
     Double hygieneRating,
     boolean willRevisit,
     boolean hidden,
+    boolean ownerOnly,
     Long memberId,
     String memberNickname,
     String memberProfileImageUrl,
@@ -48,6 +49,7 @@ public record ReviewManagementDetailResult(
         Double hygieneRating,
         boolean willRevisit,
         boolean hidden,
+        boolean ownerOnly,
         Long memberId,
         String memberNickname,
         String memberProfileImageUrl,
@@ -56,7 +58,7 @@ public record ReviewManagementDetailResult(
         this(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
-            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden,
+            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden, ownerOnly,
             memberId, memberNickname, memberProfileImageUrl, createdAt,
             List.of(), List.of()
         );
@@ -66,7 +68,7 @@ public record ReviewManagementDetailResult(
         return new ReviewManagementDetailResult(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
-            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden,
+            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden, ownerOnly,
             memberId, memberNickname, memberProfileImageUrl, createdAt,
             imageUrls, tagNames
         );
@@ -76,7 +78,7 @@ public record ReviewManagementDetailResult(
         return new ReviewManagementDetailResult(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
-            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden,
+            atmosphereRating, kindnessRating, hygieneRating, willRevisit, hidden, ownerOnly,
             memberId, memberNickname, memberProfileImageUrl, createdAt,
             imageUrls, tagNames
         );

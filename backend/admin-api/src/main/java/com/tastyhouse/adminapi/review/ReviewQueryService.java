@@ -53,13 +53,14 @@ public class ReviewQueryService {
         Long productId,
         Long memberId,
         Boolean hidden,
+        Boolean ownerOnly,
         String content,
         Double minRating,
         Double maxRating,
         int page,
         int size
     ) {
-        ReviewSearchCondition condition = ReviewSearchCondition.of(shopId, productId, memberId, hidden, content, minRating, maxRating);
+        ReviewSearchCondition condition = ReviewSearchCondition.of(shopId, productId, memberId, hidden, ownerOnly, content, minRating, maxRating);
         PageResult<ReviewListItemResponse> pageResult = reviewManagementQueryDao.findReviews(condition, PageQuery.of(page, size))
             .map(this::toReviewListItemResponse);
         return PaginationResponse.from(pageResult);
@@ -108,6 +109,7 @@ public class ReviewQueryService {
             dto.totalRating(),
             dto.content(),
             dto.hidden(),
+            dto.ownerOnly(),
             dto.createdAt()
         );
     }
@@ -128,6 +130,7 @@ public class ReviewQueryService {
             dto.hygieneRating(),
             dto.willRevisit(),
             dto.hidden(),
+            dto.ownerOnly(),
             dto.memberId(),
             dto.memberNickname(),
             dto.memberProfileImageUrl(),

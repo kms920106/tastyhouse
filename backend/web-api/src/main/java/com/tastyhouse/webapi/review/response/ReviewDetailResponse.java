@@ -62,7 +62,10 @@ public record ReviewDetailResponse(
     List<String> imageUrls,
 
     @Schema(description = "리뷰 태그명 목록")
-    List<String> tagNames
+    List<String> tagNames,
+
+    @Schema(description = "사장님만보기 여부 (작성자 본인 조회 시 뱃지 표시용)", example = "false")
+    boolean ownerOnly
 ) {
     public static ReviewDetailResponse from(
         Long id,
@@ -83,7 +86,8 @@ public record ReviewDetailResponse(
         String memberProfileImageUrl,
         LocalDateTime createdAt,
         List<String> imageUrls,
-        List<String> tagNames
+        List<String> tagNames,
+        boolean ownerOnly
     ) {
         return new ReviewDetailResponse(
             id,
@@ -104,7 +108,8 @@ public record ReviewDetailResponse(
             memberProfileImageUrl,
             createdAt,
             imageUrls,
-            tagNames
+            tagNames,
+            ownerOnly
         );
     }
 }

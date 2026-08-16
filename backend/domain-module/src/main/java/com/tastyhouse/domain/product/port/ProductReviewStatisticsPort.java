@@ -14,7 +14,11 @@ package com.tastyhouse.domain.product.port;
  * (infrastructure {@code product/listener/}로 이동)은 32-product 소관이며, 그때 이 포트를 그대로 쓰거나
  * infra 안에서 DAO를 직접 주입하도록 정리하면 된다.
  *
- * <p>모든 집계는 숨김 처리되지 않은 리뷰만 대상으로 한다. 대상 리뷰가 없으면 평균값은 {@code null}이다.
+ * <p>모든 집계는 <b>고객에게 노출되는 리뷰</b>(숨김·사장님만보기 제외)만 대상으로 한다. 특히 사장님만보기
+ * 리뷰가 여기 섞이면 {@code PRODUCT}의 비정규화 평점 컬럼을 통해 <b>상품 대표 평점으로 전 화면에 새어나가</b>
+ * 비공개 정책을 정면으로 위반하므로, 어댑터가 위임하는 DAO에서 반드시 두 축을 함께 건다.
+ *
+ * <p>대상 리뷰가 없으면 평균값은 {@code null}이다.
  */
 public interface ProductReviewStatisticsPort {
 

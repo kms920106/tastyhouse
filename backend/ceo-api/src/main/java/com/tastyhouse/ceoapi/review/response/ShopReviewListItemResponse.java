@@ -41,6 +41,9 @@ public record ShopReviewListItemResponse(
     @Schema(description = "차단(게시중단) 여부", example = "false")
     Boolean hidden,
 
+    @Schema(description = "사장님만보기 여부. 작성자가 비공개로 등록한 리뷰이며 hidden(게시중단)과는 독립이라 둘 다 true일 수 있습니다.", example = "false")
+    Boolean ownerOnly,
+
     @Schema(description = "사장님 답변 내용. 미답변이면 null입니다.", example = "소중한 리뷰 감사합니다.")
     String ownerReplyContent,
 
@@ -69,6 +72,7 @@ public record ShopReviewListItemResponse(
         String orderMethod,
         String orderMethodDescription,
         Boolean hidden,
+        Boolean ownerOnly,
         String ownerReplyContent,
         LocalDateTime ownerReplyCreatedAt,
         String blindRequestStatus,
@@ -85,6 +89,7 @@ public record ShopReviewListItemResponse(
             orderMethod,
             orderMethodDescription,
             hidden,
+            ownerOnly,
             ownerReplyContent,
             ownerReplyCreatedAt,
             blindRequestStatus,

@@ -47,6 +47,13 @@ public record ReviewCreateRequest(
     List<Long> uploadedFileIds,
 
     @Schema(description = "태그 목록", example = "[\"샌드위치\", \"아보카도\"]")
-    List<String> tags
+    List<String> tags,
+
+    @Schema(
+        description = "사장님만보기 여부. true면 비공개 리뷰로 등록되어 작성자 본인과 점주·관리자에게만 보입니다. "
+            + "등록 시에만 정할 수 있으며 이후 공개로 전환할 수 없습니다. 미전송 시 false(공개)로 동작합니다.",
+        example = "false"
+    )
+    Boolean ownerOnly
 ) {
 }

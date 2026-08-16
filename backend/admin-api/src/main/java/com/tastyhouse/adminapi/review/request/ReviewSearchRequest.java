@@ -16,6 +16,9 @@ public record ReviewSearchRequest(
     @Schema(description = "숨김 여부 (null=전체, true=숨김만, false=노출만)", example = "false")
     Boolean hidden,
 
+    @Schema(description = "사장님만보기 여부. 미지정 시 전체, true면 비공개 리뷰만, false면 공개 리뷰만 조회합니다.", example = "false")
+    Boolean ownerOnly,
+
     @Schema(description = "내용 (부분 일치 검색)", example = "맛있어요")
     String content,
 

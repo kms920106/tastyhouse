@@ -48,6 +48,7 @@ public class ReviewApiController {
             search.productId(),
             search.memberId(),
             search.hidden(),
+            search.ownerOnly(),
             search.content(),
             search.minRating(),
             search.maxRating(),

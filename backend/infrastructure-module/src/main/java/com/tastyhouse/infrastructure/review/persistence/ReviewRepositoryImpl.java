@@ -6,6 +6,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.repository.ReviewRepository;
 import com.tastyhouse.domain.review.vo.ReviewId;
@@ -38,6 +40,19 @@ public class ReviewRepositoryImpl implements ReviewRepository {
             )
             .fetchOne();
         return Optional.ofNullable(result).map(ReviewMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsByOrderIdAndProductId(OrderId orderId, ProductId productId) {
+        Integer result = queryFactory
+            .selectOne()
+            .from(reviewJpaEntity)
+            .where(
+                reviewJpaEntity.orderId.eq(orderId.value()),
+                reviewJpaEntity.productId.eq(productId.value())
+            )
+            .fetchFirst();
+        return result != null;
     }
 
     @Override

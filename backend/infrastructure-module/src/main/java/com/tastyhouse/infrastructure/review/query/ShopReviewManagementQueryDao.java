@@ -123,6 +123,7 @@ public class ShopReviewManagementQueryDao {
                 Expressions.constant(List.<String>of()),
                 orderJpaEntity.orderMethod,
                 reviewJpaEntity.hidden,
+                reviewJpaEntity.ownerOnly,
                 reviewOwnerReplyJpaEntity.content,
                 reviewOwnerReplyJpaEntity.createdAt,
                 latestBlindRequestStatus(),
@@ -164,6 +165,7 @@ public class ShopReviewManagementQueryDao {
                 Expressions.constant(List.<String>of()),
                 orderJpaEntity.orderMethod,
                 reviewJpaEntity.hidden,
+                reviewJpaEntity.ownerOnly,
                 reviewJpaEntity.tasteRating,
                 reviewJpaEntity.amountRating,
                 reviewJpaEntity.priceRating,
@@ -326,6 +328,7 @@ public class ShopReviewManagementQueryDao {
                     reviewJpaEntity.content,
                     orderJpaEntity.orderMethod,
                     reviewJpaEntity.hidden,
+                    reviewJpaEntity.ownerOnly,
                     reviewOwnerReplyJpaEntity.content,
                     reviewOwnerReplyJpaEntity.createdAt,
                     reviewJpaEntity.createdAt
@@ -360,6 +363,9 @@ public class ShopReviewManagementQueryDao {
      * <p>{@code UNANSWERED}는 목록에 이미 left join된 사장님 답변이 없는 행이다. {@code BLINDED}는
      * "게시중단 요청이 승인된 것"이 아니라 <b>리뷰가 실제로 숨겨진 것</b>을 기준으로 한다 — 관리자가
      * 요청 없이 직접 숨긴 리뷰도 점주에게는 차단된 리뷰이기 때문이다.
+     *
+     * <p>{@code OWNER_ONLY}는 작성자가 비공개로 등록한 리뷰다. {@code BLINDED}와 <b>직교</b>하므로 한
+     * 리뷰가 두 탭에 동시에 나타날 수 있다(비공개 리뷰가 정책 위반이라 게시중단된 경우).
      */
     private BooleanExpression tabPredicate(ReviewListTab tab) {
         if (tab == null) {
@@ -369,6 +375,7 @@ public class ShopReviewManagementQueryDao {
             case ALL -> null;
             case UNANSWERED -> reviewOwnerReplyJpaEntity.id.isNull();
             case BLINDED -> reviewJpaEntity.hidden.isTrue();
+            case OWNER_ONLY -> reviewJpaEntity.ownerOnly.isTrue();
         };
     }
 

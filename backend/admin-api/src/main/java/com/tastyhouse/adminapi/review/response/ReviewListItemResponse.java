@@ -30,6 +30,9 @@ public record ReviewListItemResponse(
     @Schema(description = "숨김 여부", example = "false")
     boolean hidden,
 
+    @Schema(description = "사장님만보기 여부. 작성자가 비공개로 등록한 리뷰이며 hidden(게시중단)과는 독립입니다.", example = "false")
+    boolean ownerOnly,
+
     @Schema(description = "작성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
@@ -42,6 +45,7 @@ public record ReviewListItemResponse(
         Double totalRating,
         String content,
         boolean hidden,
+        boolean ownerOnly,
         LocalDateTime createdAt
     ) {
         return new ReviewListItemResponse(
@@ -53,6 +57,7 @@ public record ReviewListItemResponse(
             totalRating,
             content,
             hidden,
+            ownerOnly,
             createdAt
         );
     }

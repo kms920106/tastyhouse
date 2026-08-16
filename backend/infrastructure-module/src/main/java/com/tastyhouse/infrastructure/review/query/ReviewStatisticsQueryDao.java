@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -36,6 +37,24 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
  * 리뷰"라서 차단된 것도 보여야 한다. <b>다음 세션이 두 화면의 숫자가 다르다는 이유로 한쪽 필터를 맞추지 말
  * 것</b> — 맞추면 차단된 악성 리뷰가 평점을 계속 끌어내리거나(통계에 포함), 점주가 차단 리뷰를 볼 수 없게
  * 된다(목록에서 제외).
+ *
+ * <p><b>⚠️ 축이 하나 더 있다 — {@code ownerOnly}(사장님만보기)는 소비자에 따라 갈린다.</b> 위
+ * {@code hidden}과 달리 이 축은 이 DAO 안에서 <b>메서드마다 처리가 정반대</b>다.
+ *
+ * <ul>
+ *   <li><b>고객용(제외)</b> — 기간 인자가 <b>없는</b> 메서드들. 가게 리뷰 수·재방문·항목별 평균 6종·별점
+ *       분포·연도별 월간 집계와 상품 집계 4종, 회원 리뷰 수가 여기 속하며 {@link #visibleToCustomer()}로
+ *       두 축을 함께 건다.</li>
+ *   <li><b>점주용(포함)</b> — 기간 인자를 <b>받는</b> 메서드들({@code from}/{@code to}). 점주는 자기
+ *       가게의 실제 피드백을 온전히 봐야 하므로 사장님만보기 리뷰도 통계에 포함된다. 이쪽은
+ *       {@code hidden}만 거르고 {@code ownerOnly}는 건드리지 않는다.</li>
+ * </ul>
+ *
+ * <p>즉 {@code getRatingCounts}와 {@code getMonthlyReviewCounts}는 각각 오버로드가 2개인데
+ * <b>기간 인자 없는 쪽=고객(두 축 제외), 기간 인자 있는 쪽=점주(hidden만 제외)</b>로 동작이 반대다. IDE에서
+ * 나란히 보이므로 한쪽을 고칠 때 다른 쪽을 "빠뜨린 것"으로 오해하기 쉽다. <b>두 화면의 숫자가 다르다는
+ * 이유로 한쪽에 맞추지 말 것</b> — 맞추면 비공개로 쓴 리뷰가 고객 화면 평점에 새어나가거나(고객용에 포함),
+ * 점주가 자기 가게 피드백의 일부를 볼 수 없게 된다(점주용에서 제외).
  */
 @Repository
 public class ReviewStatisticsQueryDao {
@@ -47,13 +66,23 @@ public class ReviewStatisticsQueryDao {
     }
 
     /**
-     * 가게의 노출 리뷰 수.
+     * 고객에게 노출되는 리뷰 조건 — 숨김(관리자 게시중단)과 사장님만보기를 <b>둘 다</b> 제외한다.
+     *
+     * <p>기간 인자 없는 고객용 집계 전용이다. 기간 인자를 받는 점주용 집계는 사장님만보기를 포함해야
+     * 하므로 이 헬퍼를 쓰지 않는다(클래스 Javadoc 참고).
      */
-    public Long countByShopIdAndHiddenFalse(Long shopId) {
+    private BooleanExpression visibleToCustomer() {
+        return reviewJpaEntity.hidden.isFalse().and(reviewJpaEntity.ownerOnly.isFalse());
+    }
+
+    /**
+     * 가게의 고객 노출 리뷰 수(숨김·사장님만보기 제외).
+     */
+    public Long countVisibleByShopId(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -66,7 +95,7 @@ public class ReviewStatisticsQueryDao {
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.shopId.eq(shopId),
-                reviewJpaEntity.hidden.eq(false),
+                visibleToCustomer(),
                 reviewJpaEntity.willRevisit.eq(true)
             )
             .fetchOne();
@@ -79,7 +108,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.tasteRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -90,7 +119,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.amountRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -101,7 +130,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.priceRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -112,7 +141,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.atmosphereRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -123,7 +152,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.kindnessRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -134,7 +163,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.hygieneRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -145,7 +174,7 @@ public class ReviewStatisticsQueryDao {
         List<Tuple> results = queryFactory
             .select(reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.eq(shopId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .groupBy(reviewJpaEntity.totalRating.floor().intValue())
             .fetch();
 
@@ -165,7 +194,7 @@ public class ReviewStatisticsQueryDao {
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.shopId.eq(shopId),
-                reviewJpaEntity.hidden.eq(false),
+                visibleToCustomer(),
                 reviewJpaEntity.createdAt.year().eq(year)
             )
             .groupBy(reviewJpaEntity.createdAt.month())
@@ -377,13 +406,13 @@ public class ReviewStatisticsQueryDao {
     }
 
     /**
-     * 상품의 노출 리뷰 수.
+     * 상품의 고객 노출 리뷰 수(숨김·사장님만보기 제외).
      */
-    public Long countByProductIdAndHiddenFalse(Long productId) {
+    public Long countVisibleByProductId(Long productId) {
         return queryFactory
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.productId.eq(productId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -394,7 +423,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.tasteRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.productId.eq(productId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -405,7 +434,7 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.amountRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.productId.eq(productId), visibleToCustomer())
             .fetchOne();
     }
 
@@ -416,18 +445,21 @@ public class ReviewStatisticsQueryDao {
         return queryFactory
             .select(reviewJpaEntity.priceRating.avg())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.productId.eq(productId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.productId.eq(productId), visibleToCustomer())
             .fetchOne();
     }
 
     /**
-     * 회원이 쓴 노출 리뷰 수(회원 등급·랭킹 산정용).
+     * 회원이 쓴 고객 노출 리뷰 수(회원 등급·랭킹 산정용, 숨김·사장님만보기 제외).
+     *
+     * <p>사장님만보기를 제외하는 이유는 어뷰징 방지다 — 비공개 리뷰를 양산해 랭킹을 올리는 경로를 막는다
+     * (비공개라 신고·모니터링 대상도 되지 않는다).
      */
     public long countVisibleReviewsByMemberId(Long memberId) {
         Long count = queryFactory
             .select(reviewJpaEntity.count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.memberId.eq(memberId), reviewJpaEntity.hidden.eq(false))
+            .where(reviewJpaEntity.memberId.eq(memberId), visibleToCustomer())
             .fetchOne();
         return count != null ? count : 0L;
     }

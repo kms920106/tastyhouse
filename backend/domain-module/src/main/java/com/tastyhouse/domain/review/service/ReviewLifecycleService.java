@@ -61,7 +61,8 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
  * <pre>
  * ReviewRegistration register(Long shopId, Long productId, MemberId memberId, Long orderId,
  *                            Integer tasteRating, Integer amountRating, Integer priceRating,
- *                            String content, List&lt;Long&gt; uploadedFileIds, List&lt;String&gt; tags)
+ *                            String content, List&lt;Long&gt; uploadedFileIds, List&lt;String&gt; tags,
+ *                            boolean ownerOnly)
  * ReviewRegistration modify(ReviewId reviewId, MemberId memberId,
  *                           Integer tasteRating, Integer amountRating, Integer priceRating,
  *                           String content, List&lt;Long&gt; uploadedFileIds, List&lt;String&gt; tags)
@@ -97,6 +98,15 @@ public class ReviewLifecycleService {
 
     /**
      * 리뷰 등록 — 본문 저장과 이미지·태그 적재, 통계 갱신 이벤트 발행이 함께 일어난다.
+     *
+     * <p>{@code ownerOnly}(사장님만보기)는 등록 시점에만 정해진다. 전환은 불허이므로
+     * {@link #modify}에는 대응 파라미터가 없다.
+     *
+     * <p>{@code orderId}가 있으면 같은 주문·같은 상품에 이미 리뷰가 있는지 검사해 중복 등록을 막는다
+     * ({@link ErrorCode#REVIEW_ALREADY_EXISTS}). REVIEW 테이블에 주문상품 단위 식별자가 없어
+     * {@code order_id}+{@code product_id} 조합으로 판정하므로, 한 주문에 동일 상품을 2개 이상 담은
+     * 경우 정당한 추가 리뷰까지 막힐 수 있다(알려진 한계로 승인됨). {@code orderId}가 없으면(주문 인증
+     * 없이 등록) 이 조합을 판정할 근거가 없으므로 검사를 생략한다.
      */
     public ReviewRegistration register(
         ShopId shopId,
@@ -108,8 +118,13 @@ public class ReviewLifecycleService {
         Integer priceRating,
         String content,
         List<Long> uploadedFileIds,
-        List<String> tags
+        List<String> tags,
+        boolean ownerOnly
     ) {
+        if (orderId != null && reviewRepository.existsByOrderIdAndProductId(orderId, productId)) {
+            throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
+        }
+
         Review review = Review.of(
             shopId,
             productId,
@@ -120,7 +135,8 @@ public class ReviewLifecycleService {
             amountRating.doubleValue(),
             priceRating.doubleValue(),
             null, null, null, false,
-            orderId
+            orderId,
+            ownerOnly
         );
 
         Review saved = reviewRepository.save(review);

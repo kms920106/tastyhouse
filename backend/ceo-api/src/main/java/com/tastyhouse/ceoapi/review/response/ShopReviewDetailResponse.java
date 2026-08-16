@@ -41,6 +41,9 @@ public record ShopReviewDetailResponse(
     @Schema(description = "차단(게시중단) 여부", example = "false")
     Boolean hidden,
 
+    @Schema(description = "사장님만보기 여부. 작성자가 비공개로 등록한 리뷰이며 hidden(게시중단)과는 독립이라 둘 다 true일 수 있습니다.", example = "false")
+    Boolean ownerOnly,
+
     @Schema(description = "맛 평점", example = "5.0")
     Double tasteRating,
 
@@ -102,6 +105,7 @@ public record ShopReviewDetailResponse(
         String orderMethod,
         String orderMethodDescription,
         Boolean hidden,
+        Boolean ownerOnly,
         Double tasteRating,
         Double amountRating,
         Double priceRating,
@@ -129,6 +133,7 @@ public record ShopReviewDetailResponse(
             orderMethod,
             orderMethodDescription,
             hidden,
+            ownerOnly,
             tasteRating,
             amountRating,
             priceRating,

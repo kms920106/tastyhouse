@@ -22,7 +22,8 @@ public class MemberReviewService {
         return reviewQueryService.findMyReviews(memberId, page, size)
             .map(dto -> MyReviewListItemResponse.from(
                 dto.id(),
-                dto.imageUrl()
+                dto.imageUrl(),
+                dto.ownerOnly()
             ));
     }
 

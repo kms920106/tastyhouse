@@ -5,6 +5,7 @@ public record ReviewSearchCondition(
     Long productId,
     Long memberId,
     Boolean hidden,
+    Boolean ownerOnly,
     String content,
     Double minRating,
     Double maxRating
@@ -15,6 +16,7 @@ public record ReviewSearchCondition(
         Long productId,
         Long memberId,
         Boolean hidden,
+        Boolean ownerOnly,
         String content,
         Double minRating,
         Double maxRating
@@ -24,6 +26,7 @@ public record ReviewSearchCondition(
             productId,
             memberId,
             hidden,
+            ownerOnly,
             content,
             minRating,
             maxRating

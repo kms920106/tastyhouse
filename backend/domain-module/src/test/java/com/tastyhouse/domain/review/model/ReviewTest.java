@@ -25,7 +25,7 @@ class ReviewTest {
         Review review = Review.of(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L)
+            true, OrderId.of(10L), false
         );
 
         assertThat(review.getId()).isNull();
@@ -45,7 +45,7 @@ class ReviewTest {
         Review review = Review.of(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L)
+            true, OrderId.of(10L), false
         );
 
         review.hide();
@@ -61,7 +61,7 @@ class ReviewTest {
         Review review = Review.of(
             ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L)
+            true, OrderId.of(10L), false
         );
 
         review.updateContent(
@@ -83,12 +83,46 @@ class ReviewTest {
         Review review = Review.reconstitute(
             1L, ShopId.of(2L), ProductId.of(3L), MemberId.of(4L), "맛있어요",
             4.5, 4.0, 5.0, 4.0, null, null, null,
-            true, OrderId.of(10L), true, createdAt
+            true, OrderId.of(10L), true, false, createdAt
         );
 
         assertThat(review.getId()).isEqualTo(1L);
         assertThat(review.getReviewId()).isEqualTo(ReviewId.of(1L));
         assertThat(review.isHidden()).isTrue();
         assertThat(review.getCreatedAt()).isEqualTo(createdAt);
+    }
+
+    @Test
+    @DisplayName("of의 ownerOnly는 그대로 보존되며 updateContent 후에도 바뀌지 않는다(전환 불허)")
+    void ownerOnly_survivesUpdateContent() {
+        Review review = Review.of(
+            ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
+            4.5, 4.0, 5.0, 4.0, null, null, null,
+            true, OrderId.of(10L), true
+        );
+
+        assertThat(review.isOwnerOnly()).isTrue();
+
+        review.updateContent(
+            "별로예요", 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, false
+        );
+
+        assertThat(review.isOwnerOnly()).isTrue();
+        assertThat(review.getContent()).isEqualTo("별로예요");
+    }
+
+    @Test
+    @DisplayName("ownerOnly와 hidden은 직교한다 — 사장님만보기 리뷰도 게시중단될 수 있다")
+    void ownerOnly_isOrthogonalToHidden() {
+        Review review = Review.of(
+            ShopId.of(1L), ProductId.of(2L), MemberId.of(3L), "맛있어요",
+            4.5, 4.0, 5.0, 4.0, null, null, null,
+            true, OrderId.of(10L), true
+        );
+
+        review.hide();
+
+        assertThat(review.isOwnerOnly()).isTrue();
+        assertThat(review.isHidden()).isTrue();
     }
 }

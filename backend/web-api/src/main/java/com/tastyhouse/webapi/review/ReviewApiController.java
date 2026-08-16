@@ -60,7 +60,7 @@ public class ReviewApiController {
         @Parameter(description = "주문 상품 ID", example = "1") @PathVariable Long orderProductId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReviewWriteInfoResponse response = reviewQueryService.getReviewWriteInfo(orderProductId, userDetails.getMemberId());
+        ReviewWriteInfoResponse response = reviewQueryService.getReviewWriteInfo(orderProductId, memberIdOrNull(userDetails));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -79,7 +79,8 @@ public class ReviewApiController {
             request.priceRating(),
             request.content(),
             request.uploadedFileIds(),
-            request.tags()
+            request.tags(),
+            request.ownerOnly()
         );
         return ResponseEntity.ok(ApiResponse.success(reviewId));
     }
@@ -101,7 +102,7 @@ public class ReviewApiController {
             request.uploadedFileIds(),
             request.tags()
         );
-        ReviewResponse response = reviewQueryService.getReviewResponse(updatedReviewId);
+        ReviewResponse response = reviewQueryService.getReviewResponse(updatedReviewId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -138,16 +139,22 @@ public class ReviewApiController {
 
     @Operation(summary = "리뷰 상세 조회", description = "리뷰 ID로 리뷰 상세 정보를 조회합니다. 리뷰 태그 정보도 함께 조회됩니다.")
     @GetMapping("/v1/{reviewId}")
-    public ResponseEntity<ApiResponse<ReviewDetailResponse>> getReviewDetail(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId) {
-        return reviewQueryService.findReviewDetail(reviewId)
+    public ResponseEntity<ApiResponse<ReviewDetailResponse>> getReviewDetail(
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        return reviewQueryService.findReviewDetail(reviewId, memberIdOrNull(userDetails))
                 .map(detail -> ResponseEntity.ok(ApiResponse.success(detail)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "리뷰 상세 정보 조회 (상품 정보 포함)", description = "리뷰 ID로 리뷰 상세 정보와 연결된 상품 정보를 함께 조회합니다. 평점, 유저 정보, 작성일, 내용, 이미지, 태그 정보가 포함됩니다.")
     @GetMapping("/v1/{reviewId}/product")
-    public ResponseEntity<ApiResponse<ReviewProductResponse>> getReviewProduct(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId) {
-        return reviewQueryService.findReviewProduct(reviewId)
+    public ResponseEntity<ApiResponse<ReviewProductResponse>> getReviewProduct(
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        return reviewQueryService.findReviewProduct(reviewId, memberIdOrNull(userDetails))
                 .map(product -> ResponseEntity.ok(ApiResponse.success(product)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -174,6 +181,7 @@ public class ReviewApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
         @CurrentUser CustomUserDetails userDetails
     ) {
+        reviewQueryService.requireVisibleReview(reviewId, userDetails.getMemberId());
         boolean liked = reviewCommandService.toggleReviewLike(reviewId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(ReviewLikeResponse.from(liked)));
     }
@@ -185,6 +193,7 @@ public class ReviewApiController {
         @Valid @RequestBody CommentCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
+        reviewQueryService.requireVisibleReview(reviewId, userDetails.getMemberId());
         Long commentId = reviewCommandService.createComment(reviewId, userDetails.getMemberId(), request.content());
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }
@@ -196,14 +205,20 @@ public class ReviewApiController {
         @Valid @RequestBody ReplyCreateRequest request,
         @CurrentUser CustomUserDetails userDetails
     ) {
+        Long parentReviewId = reviewCommandService.findReviewIdOfComment(commentId);
+        reviewQueryService.requireVisibleReview(parentReviewId, userDetails.getMemberId());
         Long replyId = reviewCommandService.createReply(commentId, userDetails.getMemberId(), request.replyToMemberId(), request.content());
         return ResponseEntity.ok(ApiResponse.success(replyId));
     }
 
     @Operation(summary = "댓글 및 답글 조회", description = "리뷰의 모든 댓글과 답글을 조회합니다.")
     @GetMapping("/v1/{reviewId}/comments")
-    public ResponseEntity<ApiResponse<ReviewCommentListResponse>> getComments(@Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId) {
-        ReviewCommentListResponse response = reviewQueryService.searchCommentsWithReplies(reviewId);
+    public ResponseEntity<ApiResponse<ReviewCommentListResponse>> getComments(
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @CurrentUser CustomUserDetails userDetails
+    ) {
+        ReviewCommentListResponse response =
+            reviewQueryService.searchCommentsWithReplies(reviewId, memberIdOrNull(userDetails));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -218,5 +233,14 @@ public class ReviewApiController {
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         );
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 선택적 인증 — {@code /api/reviews/**}는 permitAll이라 비로그인 접근이 가능하므로
+     * {@code @CurrentUser}가 {@code null}로 들어올 수 있다. 사장님만보기 리뷰의 본인 판정에 쓰인다
+     * ({@code ShopApiController}의 동명 헬퍼와 같은 형태).
+     */
+    private Long memberIdOrNull(CustomUserDetails userDetails) {
+        return userDetails == null ? null : userDetails.getMemberId();
     }
 }

@@ -23,6 +23,7 @@ public record ReviewDetailResult(
     String memberNickname,
     String memberProfileImageUrl,
     LocalDateTime createdAt,
+    boolean ownerOnly,
     List<String> imageUrls,
     List<String> tagNames
 ) {
@@ -49,13 +50,14 @@ public record ReviewDetailResult(
         Long memberId,
         String memberNickname,
         String memberProfileImageUrl,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        boolean ownerOnly
     ) {
         this(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
-            memberId, memberNickname, memberProfileImageUrl, createdAt,
+            memberId, memberNickname, memberProfileImageUrl, createdAt, ownerOnly,
             List.of(), List.of()
         );
     }
@@ -65,7 +67,7 @@ public record ReviewDetailResult(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
-            memberId, memberNickname, memberProfileImageUrl, createdAt,
+            memberId, memberNickname, memberProfileImageUrl, createdAt, ownerOnly,
             imageUrls, tagNames
         );
     }
@@ -75,7 +77,7 @@ public record ReviewDetailResult(
             id, shopId, shopName, stationName, content,
             totalRating, tasteRating, amountRating, priceRating,
             atmosphereRating, kindnessRating, hygieneRating, willRevisit,
-            memberId, memberNickname, memberProfileImageUrl, createdAt,
+            memberId, memberNickname, memberProfileImageUrl, createdAt, ownerOnly,
             imageUrls, tagNames
         );
     }

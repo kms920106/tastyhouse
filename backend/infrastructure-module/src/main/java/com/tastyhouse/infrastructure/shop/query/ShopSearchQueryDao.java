@@ -464,11 +464,23 @@ public class ShopSearchQueryDao {
             ));
     }
 
+    /**
+     * 가게별 고객 노출 리뷰 수 — 숨김(관리자 게시중단)과 사장님만보기를 <b>둘 다</b> 제외한다.
+     *
+     * <p>{@code ownerOnly}를 빼먹으면 목록 카드의 리뷰 수만 늘고 정작 가게 리뷰 목록에는 그 리뷰가 없어
+     * <b>건수 차이로 비공개 리뷰의 존재가 새어나간다</b>(이 조회는 비로그인도 호출 가능한 경로다).
+     * 같은 이유로 {@code ReviewStatisticsQueryDao#countVisibleByShopId}와 조건이 일치해야 한다 —
+     * 한쪽만 고치면 같은 가게의 두 숫자가 어긋난다.
+     */
     private Map<Long, Long> reviewCountsByShopId(List<Long> shopIds) {
         return queryFactory
             .select(reviewJpaEntity.shopId, reviewJpaEntity.shopId.count())
             .from(reviewJpaEntity)
-            .where(reviewJpaEntity.shopId.in(shopIds), reviewJpaEntity.hidden.eq(false))
+            .where(
+                reviewJpaEntity.shopId.in(shopIds),
+                reviewJpaEntity.hidden.isFalse(),
+                reviewJpaEntity.ownerOnly.isFalse()
+            )
             .groupBy(reviewJpaEntity.shopId)
             .fetch()
             .stream()

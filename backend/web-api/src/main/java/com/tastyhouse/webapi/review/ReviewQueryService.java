@@ -20,6 +20,7 @@ import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -125,9 +126,12 @@ public class ReviewQueryService {
 
     /**
      * 리뷰 상세 — 상세 본문 조회와 태그명 조회를 조합한다. 태그가 없으면 조합하지 않는다.
+     *
+     * <p>{@code viewerMemberId}는 <b>선택적</b>이다({@code null} = 비로그인). 사장님만보기 리뷰는
+     * 작성자 본인에게만 노출되며, 그 외에는 빈 결과가 돌아가 컨트롤러가 404를 낸다.
      */
-    public Optional<ReviewDetailResponse> findReviewDetail(Long reviewId) {
-        return findReviewDetailResult(ReviewId.of(reviewId))
+    public Optional<ReviewDetailResponse> findReviewDetail(Long reviewId, Long viewerMemberId) {
+        return findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId)
             .map(this::toReviewDetailResponse);
     }
 
@@ -136,11 +140,14 @@ public class ReviewQueryService {
      *
      * <p>{@link ReviewCommandService}가 식별자만 반환하므로(CQRS 교차 주입 금지) 등록·수정 API의 응답은
      * 이 메서드가 만든다. 응답 계약을 바꾸지 않기 위해 {@code ReviewResponse}의 필드 구성은 그대로 두고,
-     * 값의 출처만 "명령이 들고 있던 도메인 모델"에서 "커밋된 행의 투영"으로 옮겼다 — 리뷰 상세 투영이
-     * 숨김 리뷰를 제외하므로, 방금 등록된(숨김이 아닌) 리뷰는 항상 조회된다.
+     * 값의 출처만 "명령이 들고 있던 도메인 모델"에서 "커밋된 행의 투영"으로 옮겼다.
+     *
+     * <p><b>⚠️ {@code authorMemberId}(작성자)를 반드시 뷰어로 넘겨야 한다.</b> 리뷰 상세 투영은 이제
+     * 사장님만보기 리뷰를 <b>작성자 본인에게만</b> 노출하므로, 뷰어를 넘기지 않으면 사장님만보기로 등록하는
+     * 순간 등록 자체는 성공했는데 응답 조립에서 {@code REVIEW_NOT_FOUND}(404)가 나는 회귀가 생긴다.
      */
-    public ReviewResponse getReviewResponse(Long reviewId) {
-        ReviewDetailResult detail = findReviewDetailResult(ReviewId.of(reviewId))
+    public ReviewResponse getReviewResponse(Long reviewId, Long authorMemberId) {
+        ReviewDetailResult detail = findReviewDetailResult(ReviewId.of(reviewId), authorMemberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         return ReviewResponse.from(
@@ -167,8 +174,15 @@ public class ReviewQueryService {
 
     /**
      * 리뷰의 댓글·답글 목록. 댓글은 숨김 포함, 답글은 숨김 제외다(기존 동작 유지).
+     *
+     * <p><b>리뷰 가시성 가드가 선행한다(기존 결함 수정).</b> 과거에는 이 경로가 리뷰의 노출 여부를 전혀
+     * 확인하지 않아 {@code reviewId}만 알면 숨김 리뷰의 댓글도 누구나 조회할 수 있었다. 리뷰 상세 투영이
+     * {@code hidden}·{@code ownerOnly} 두 축을 함께 판정하므로 가드 한 번으로 둘 다 막힌다(추가 쿼리
+     * 1회 비용은 감수한다).
      */
-    public ReviewCommentListResponse searchCommentsWithReplies(Long reviewId) {
+    public ReviewCommentListResponse searchCommentsWithReplies(Long reviewId, Long viewerMemberId) {
+        requireVisibleReview(reviewId, viewerMemberId);
+
         List<ReviewCommentItemResult> comments = reviewQueryDao.findComments(ReviewId.of(reviewId));
 
         if (comments.isEmpty()) {
@@ -200,8 +214,8 @@ public class ReviewQueryService {
     /**
      * 리뷰 상세 + 연결 상품 정보. 상품이 없어도 리뷰 정보만으로 응답한다(상품 필드는 비운다).
      */
-    public Optional<ReviewProductResponse> findReviewProduct(Long reviewId) {
-        Optional<ReviewDetailResult> reviewDetailOpt = findReviewDetailResult(ReviewId.of(reviewId));
+    public Optional<ReviewProductResponse> findReviewProduct(Long reviewId, Long viewerMemberId) {
+        Optional<ReviewDetailResult> reviewDetailOpt = findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId);
         if (reviewDetailOpt.isEmpty()) {
             return Optional.empty();
         }
@@ -267,6 +281,10 @@ public class ReviewQueryService {
      * 리뷰 작성 화면 정보 — 주문 상품에서 상품을 찾아 가격·대표 이미지와 작성 이력 여부를 함께 준다.
      */
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderProductId, Long memberId) {
+        if (memberId == null) {
+            throw new BusinessException(ErrorCode.AUTH_REQUIRED);
+        }
+
         OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
 
@@ -346,7 +364,7 @@ public class ReviewQueryService {
             resolveSortType(shopId, sortType)
         );
 
-        Long totalReviewCount = reviewStatisticsQueryDao.countByShopIdAndHiddenFalse(shopId);
+        Long totalReviewCount = reviewStatisticsQueryDao.countVisibleByShopId(shopId);
 
         return new ReviewsByRatingResult(
             reviewsByRating,
@@ -364,7 +382,7 @@ public class ReviewQueryService {
      * 가게 리뷰 통계 — 리뷰가 하나도 없으면 평균·재방문율·월별 집계를 계산하지 않고 비운다.
      */
     public ShopReviewStatisticsResult findShopReviewStatistics(Long shopId) {
-        Long totalCount = reviewStatisticsQueryDao.countByShopIdAndHiddenFalse(shopId);
+        Long totalCount = reviewStatisticsQueryDao.countVisibleByShopId(shopId);
 
         Map<Integer, Long> ratingMap = reviewStatisticsQueryDao.getRatingCounts(shopId);
         for (int rating = 1; rating <= 5; rating++) {
@@ -425,10 +443,26 @@ public class ReviewQueryService {
     }
 
     /**
+     * 리뷰 가시성 가드 — 뷰어에게 보이지 않는 리뷰면 {@code REVIEW_NOT_FOUND}(404)를 던진다.
+     *
+     * <p>댓글 조회·등록처럼 리뷰에 종속된 경로가 리뷰 자체의 노출 여부를 우회하지 못하게 막는다.
+     * 403이 아니라 404인 이유는 403이 "그 리뷰가 존재한다"는 사실을 노출하기 때문이다.
+     *
+     * <p><b>조회(GET)와 등록(POST)의 가드 위치가 다른 것은 의도적이다.</b> 조회는 이 서비스 안에서
+     * ({@link #searchCommentsWithReplies}) 직접 걸지만, 등록은 컨트롤러가 이 메서드를 호출한 뒤
+     * command 서비스를 부른다 — command 서비스가 query 서비스를 주입받는 것은 CQRS 교차 주입 금지
+     * 규약 위반이기 때문이다. 한쪽으로 통일하려다 중복 쿼리를 만들지 말 것.
+     */
+    public void requireVisibleReview(Long reviewId, Long viewerMemberId) {
+        findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+    }
+
+    /**
      * 리뷰 상세 결과 — 본문 조회 후 태그명을 덧붙인다. 과거 core 조회 서비스가 하던 조합을 그대로 옮겼다.
      */
-    private Optional<ReviewDetailResult> findReviewDetailResult(ReviewId reviewId) {
-        return reviewQueryDao.findReviewDetail(reviewId).map(result -> {
+    private Optional<ReviewDetailResult> findReviewDetailResult(ReviewId reviewId, Long viewerMemberId) {
+        return reviewQueryDao.findReviewDetail(reviewId, viewerMemberId).map(result -> {
             List<Long> tagIds = reviewQueryDao.findTagIdsByReviewId(reviewId.value());
             if (tagIds.isEmpty()) {
                 return result;
@@ -506,7 +540,8 @@ public class ReviewQueryService {
             dto.memberProfileImageUrl(),
             dto.createdAt(),
             dto.imageUrls(),
-            dto.tagNames()
+            dto.tagNames(),
+            dto.ownerOnly()
         );
     }
 

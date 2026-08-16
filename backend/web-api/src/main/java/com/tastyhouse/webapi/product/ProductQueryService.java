@@ -275,7 +275,7 @@ public class ProductQueryService {
      * 상품의 리뷰 평점 통계. 리뷰가 없으면 평균값은 모두 null이고 건수만 0이다.
      */
     private ProductReviewStatisticsResult findProductReviewStatistics(Long productId) {
-        Long totalCount = reviewStatisticsQueryDao.countByProductIdAndHiddenFalse(productId);
+        Long totalCount = reviewStatisticsQueryDao.countVisibleByProductId(productId);
 
         if (totalCount > 0) {
             return new ProductReviewStatisticsResult(
@@ -302,7 +302,7 @@ public class ProductQueryService {
         PageResult<LatestReviewListItemResult> allReviewsPage =
             reviewQueryDao.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, ReviewSortType.LATEST);
 
-        Long totalReviewCount = reviewStatisticsQueryDao.countByProductIdAndHiddenFalse(productId);
+        Long totalReviewCount = reviewStatisticsQueryDao.countVisibleByProductId(productId);
 
         return new ReviewsByRatingResult(
             reviewsByRating,

@@ -23,7 +23,7 @@ public class ProductReviewStatisticsAdapter implements ProductReviewStatisticsPo
 
     @Override
     public Long countVisibleReviewsByProductId(Long productId) {
-        return reviewStatisticsQueryDao.countByProductIdAndHiddenFalse(productId);
+        return reviewStatisticsQueryDao.countVisibleByProductId(productId);
     }
 
     @Override

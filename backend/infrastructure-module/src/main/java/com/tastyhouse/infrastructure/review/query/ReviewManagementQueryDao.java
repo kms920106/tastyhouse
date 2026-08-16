@@ -69,6 +69,7 @@ public class ReviewManagementQueryDao {
                 reviewJpaEntity.totalRating,
                 reviewJpaEntity.content,
                 reviewJpaEntity.hidden,
+                reviewJpaEntity.ownerOnly,
                 reviewJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
@@ -78,6 +79,7 @@ public class ReviewManagementQueryDao {
                 productIdEq(condition.productId()),
                 memberIdEq(condition.memberId()),
                 hiddenEq(condition.hidden()),
+                ownerOnlyEq(condition.ownerOnly()),
                 contentContains(condition.content()),
                 ratingBetween(condition.minRating(), condition.maxRating())
             )
@@ -113,6 +115,7 @@ public class ReviewManagementQueryDao {
                 reviewJpaEntity.hygieneRating,
                 reviewJpaEntity.willRevisit,
                 reviewJpaEntity.hidden,
+                reviewJpaEntity.ownerOnly,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
                 uploadedFileJpaEntity.filePath,
@@ -202,6 +205,7 @@ public class ReviewManagementQueryDao {
                 productIdEq(condition.productId()),
                 memberIdEq(condition.memberId()),
                 hiddenEq(condition.hidden()),
+                ownerOnlyEq(condition.ownerOnly()),
                 contentContains(condition.content()),
                 ratingBetween(condition.minRating(), condition.maxRating())
             )
@@ -224,6 +228,15 @@ public class ReviewManagementQueryDao {
 
     private BooleanExpression hiddenEq(Boolean hidden) {
         return hidden != null ? reviewJpaEntity.hidden.eq(hidden) : null;
+    }
+
+    /**
+     * 사장님만보기 필터. {@code null}이면 조건 없음(전체)이며 {@code hidden}과 동일한 패턴이다.
+     *
+     * <p>관리자는 두 축 모두 전량 열람이 기본이므로 필터를 <b>강제하지 않고</b> 검색 수단으로만 제공한다.
+     */
+    private BooleanExpression ownerOnlyEq(Boolean ownerOnly) {
+        return ownerOnly != null ? reviewJpaEntity.ownerOnly.eq(ownerOnly) : null;
     }
 
     private BooleanExpression contentContains(String content) {
@@ -279,6 +292,7 @@ public class ReviewManagementQueryDao {
             row.hygieneRating(),
             row.willRevisit(),
             row.hidden(),
+            row.ownerOnly(),
             row.memberId(),
             row.memberNickname(),
             fileUrlResolver.resolve(row.memberProfileImageUrl()),

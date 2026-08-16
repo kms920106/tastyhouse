@@ -65,6 +65,13 @@ public class ReviewJpaEntity extends BaseEntity {
     @Column(name = "is_hidden", nullable = false)
     private boolean hidden;
 
+    /**
+     * 사장님만보기 여부. 등록 시에만 정해지고 전환이 불가능하므로 {@link #applyChanges}의 복사 대상이
+     * <b>아니다</b> — 여기에 추가하면 "언젠가 바꿀 수 있다"는 잘못된 신호가 된다.
+     */
+    @Column(name = "is_owner_only", nullable = false)
+    private boolean ownerOnly;
+
     protected ReviewJpaEntity() {
     }
 
@@ -82,7 +89,8 @@ public class ReviewJpaEntity extends BaseEntity {
         Double hygieneRating,
         boolean willRevisit,
         Long orderId,
-        boolean hidden
+        boolean hidden,
+        boolean ownerOnly
     ) {
         this.shopId = shopId;
         this.productId = productId;
@@ -98,6 +106,7 @@ public class ReviewJpaEntity extends BaseEntity {
         this.willRevisit = willRevisit;
         this.orderId = orderId;
         this.hidden = hidden;
+        this.ownerOnly = ownerOnly;
     }
 
     /**
@@ -117,7 +126,8 @@ public class ReviewJpaEntity extends BaseEntity {
         Double hygieneRating,
         boolean willRevisit,
         Long orderId,
-        boolean hidden
+        boolean hidden,
+        boolean ownerOnly
     ) {
         return new ReviewJpaEntity(
             shopId,
@@ -133,7 +143,8 @@ public class ReviewJpaEntity extends BaseEntity {
             hygieneRating,
             willRevisit,
             orderId,
-            hidden
+            hidden,
+            ownerOnly
         );
     }
 
@@ -222,5 +233,9 @@ public class ReviewJpaEntity extends BaseEntity {
 
     public boolean isHidden() {
         return this.hidden;
+    }
+
+    public boolean isOwnerOnly() {
+        return this.ownerOnly;
     }
 }

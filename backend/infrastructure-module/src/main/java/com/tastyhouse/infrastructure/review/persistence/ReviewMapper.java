@@ -39,6 +39,7 @@ final class ReviewMapper {
             entity.isWillRevisit(),
             IdMapping.vo(entity.getOrderId(), OrderId::of),
             entity.isHidden(),
+            entity.isOwnerOnly(),
             entity.getCreatedAt()
         );
     }
@@ -61,7 +62,8 @@ final class ReviewMapper {
             domain.getHygieneRating(),
             domain.isWillRevisit(),
             IdMapping.raw(domain.getOrderId(), OrderId::value),
-            domain.isHidden()
+            domain.isHidden(),
+            domain.isOwnerOnly()
         );
     }
 
@@ -71,6 +73,9 @@ final class ReviewMapper {
 
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update 경로, dirty checking 대체).
+     *
+     * <p>{@code ownerOnly}는 <b>의도적으로 복사하지 않는다</b> — 사장님만보기는 등록 시에만 정해지고
+     * 전환이 불허라 update 대상이 아니다. 여기에 추가하면 전환 가능하다는 잘못된 신호가 된다.
      */
     static void applyChanges(ReviewJpaEntity entity, Review domain) {
         entity.applyChanges(

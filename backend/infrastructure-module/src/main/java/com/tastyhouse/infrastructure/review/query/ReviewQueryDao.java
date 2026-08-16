@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
@@ -76,6 +77,36 @@ public class ReviewQueryDao {
     }
 
     /**
+     * 고객 목록·집계에 노출되는 리뷰 조건 — 숨김(관리자 게시중단)과 사장님만보기를 <b>둘 다</b> 제외한다.
+     *
+     * <p>목록의 where절과 count절이 분리된 곳에서는 <b>양쪽 모두</b>에 걸어야 한다. 한쪽만 고치면
+     * {@code totalElements}와 실제 목록 길이가 어긋나 프론트 무한스크롤이 빈 페이지로 깨진다.
+     *
+     * <p><b>예외 — {@code findMyReviews}(마이페이지)는 이 헬퍼를 쓰지 않는다.</b> 본인 한정 조회라
+     * 자기가 쓴 사장님만보기 리뷰는 보여야 하기 때문이다({@code findReviewsByMemberId}(타인 프로필)와
+     * 정책이 정반대이므로 두 메서드를 같이 고치지 말 것).
+     */
+    private BooleanExpression visibleToCustomer() {
+        return reviewJpaEntity.hidden.isFalse().and(reviewJpaEntity.ownerOnly.isFalse());
+    }
+
+    /**
+     * 리뷰 <b>상세</b>의 뷰어 기준 노출 조건 — 사장님만보기 리뷰는 작성자 본인에게만 보인다.
+     *
+     * <p>비로그인({@code viewerMemberId == null})이거나 타인이면 사장님만보기 리뷰가 조회되지 않아
+     * 호출부가 {@code REVIEW_NOT_FOUND}(404)를 낸다. 403을 쓰지 않는 이유는 403이 "그 리뷰가 존재한다"는
+     * 사실을 노출하기 때문이다.
+     *
+     * <p>조건이 OR이라 varargs {@code .where(a, b)}(AND)로는 표현할 수 없어 {@link BooleanExpression}
+     * 헬퍼로 만든다({@code BooleanBuilder}는 프로젝트 금지 규약).
+     */
+    private BooleanExpression visibleToViewer(Long viewerMemberId) {
+        return viewerMemberId == null
+            ? reviewJpaEntity.ownerOnly.isFalse()
+            : reviewJpaEntity.ownerOnly.isFalse().or(reviewJpaEntity.memberId.eq(viewerMemberId));
+    }
+
+    /**
      * 베스트 리뷰 목록 — 총점 높은 순 → 최신순. 대표 이미지(정렬값이 가장 작은 리뷰 이미지)를 함께 투영한다.
      */
     public PageResult<BestReviewListItemResult> findBestReviews(PageQuery pageQuery) {
@@ -106,7 +137,7 @@ public class ReviewQueryDao {
                 ))
             )
             .leftJoin(uploadedFileJpaEntity).on(reviewImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
-            .where(reviewJpaEntity.hidden.eq(false))
+            .where(visibleToCustomer())
             .orderBy(reviewJpaEntity.totalRating.desc(), reviewJpaEntity.createdAt.desc());
 
         long total = countBestReviews();
@@ -152,10 +183,10 @@ public class ReviewQueryDao {
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
-            .where(reviewJpaEntity.hidden.eq(false))
+            .where(visibleToCustomer())
             .orderBy(reviewJpaEntity.createdAt.desc());
 
-        long total = countLatestReviews(reviewJpaEntity.hidden.eq(false));
+        long total = countLatestReviews(visibleToCustomer());
 
         List<LatestReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -206,13 +237,13 @@ public class ReviewQueryDao {
             .leftJoin(productJpaEntity).on(reviewJpaEntity.productId.eq(productJpaEntity.id))
             .where(
                 reviewJpaEntity.memberId.in(followingMemberIds),
-                reviewJpaEntity.hidden.eq(false)
+                visibleToCustomer()
             )
             .orderBy(reviewJpaEntity.createdAt.desc());
 
         long total = countLatestReviews(
             reviewJpaEntity.memberId.in(followingMemberIds)
-                .and(reviewJpaEntity.hidden.eq(false))
+                .and(visibleToCustomer())
         );
 
         List<LatestReviewListItemResult> reviews = query
@@ -236,7 +267,7 @@ public class ReviewQueryDao {
      * 가게별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식({@link ReviewSortType})을 지원한다.
      */
     public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
-        var whereClause = reviewJpaEntity.shopId.eq(shopId).and(reviewJpaEntity.hidden.eq(false));
+        var whereClause = reviewJpaEntity.shopId.eq(shopId).and(visibleToCustomer());
         if (rating != null) {
             if (rating == 5) {
                 whereClause = whereClause.and(reviewJpaEntity.totalRating.eq(5.0));
@@ -321,7 +352,7 @@ public class ReviewQueryDao {
      * 상품별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식을 지원한다.
      */
     public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
-        var whereClause = reviewJpaEntity.productId.eq(productId).and(reviewJpaEntity.hidden.eq(false));
+        var whereClause = reviewJpaEntity.productId.eq(productId).and(visibleToCustomer());
         if (rating != null) {
             if (rating == 5) {
                 whereClause = whereClause.and(reviewJpaEntity.totalRating.eq(5.0));
@@ -406,7 +437,7 @@ public class ReviewQueryDao {
      * 가게의 특정 평점대 리뷰를 제한 건수만큼 조회한다(평점별 미리보기).
      */
     public List<LatestReviewListItemResult> findReviewsByShopIdAndRating(Long shopId, Integer rating, int limit) {
-        var whereClause = reviewJpaEntity.shopId.eq(shopId).and(reviewJpaEntity.hidden.eq(false));
+        var whereClause = reviewJpaEntity.shopId.eq(shopId).and(visibleToCustomer());
 
         if (rating == 5) {
             whereClause = whereClause.and(reviewJpaEntity.totalRating.eq(5.0));
@@ -464,7 +495,7 @@ public class ReviewQueryDao {
      * 상품의 특정 평점대 리뷰를 제한 건수만큼 조회한다(평점별 미리보기).
      */
     public List<LatestReviewListItemResult> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit) {
-        var whereClause = reviewJpaEntity.productId.eq(productId).and(reviewJpaEntity.hidden.eq(false));
+        var whereClause = reviewJpaEntity.productId.eq(productId).and(visibleToCustomer());
 
         if (rating == 5) {
             whereClause = whereClause.and(reviewJpaEntity.totalRating.eq(5.0));
@@ -519,9 +550,13 @@ public class ReviewQueryDao {
     }
 
     /**
-     * 리뷰 상세(숨김 제외) — 이미지 URL을 함께 채운다. 없으면 비어 있다.
+     * 리뷰 상세(숨김 제외 + 사장님만보기는 작성자 본인만) — 이미지 URL을 함께 채운다. 없으면 비어 있다.
+     *
+     * <p>{@code viewerMemberId}는 <b>선택적</b>이다({@code null} = 비로그인). 사장님만보기 리뷰는
+     * 작성자 본인일 때만 조회되며, 그 외에는 비어 있는 결과가 돌아가 호출부가 404를 낸다
+     * ({@link #visibleToViewer(Long)} 참고).
      */
-    public Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId) {
+    public Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId, Long viewerMemberId) {
         ReviewDetailResult result = queryFactory
             .select(new QReviewDetailResult(
                 reviewJpaEntity.id,
@@ -540,7 +575,8 @@ public class ReviewQueryDao {
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
                 uploadedFileJpaEntity.filePath,
-                reviewJpaEntity.createdAt
+                reviewJpaEntity.createdAt,
+                reviewJpaEntity.ownerOnly
             ))
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
@@ -549,7 +585,8 @@ public class ReviewQueryDao {
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(
                 reviewJpaEntity.id.eq(reviewId.value()),
-                reviewJpaEntity.hidden.eq(false)
+                reviewJpaEntity.hidden.isFalse(),
+                visibleToViewer(viewerMemberId)
             )
             .fetchOne();
 
@@ -562,7 +599,14 @@ public class ReviewQueryDao {
     }
 
     /**
-     * 내가 쓴 리뷰 목록(대표 이미지 1장) — 최신순.
+     * <b>본인</b>이 쓴 리뷰 목록(마이페이지, 대표 이미지 1장) — 최신순.
+     *
+     * <p><b>사장님만보기 리뷰를 포함한다</b> — 이미 본인 한정 조회이므로 자기가 비공개로 쓴 리뷰도 보여야
+     * 하기 때문이다. 아래 {@link #findReviewsByMemberId}(타인 프로필)와 쿼리가 거의 같지만 정책이
+     * <b>정반대</b>이므로, 한쪽을 고칠 때 다른 쪽을 함께 고치지 말 것.
+     *
+     * <p>단 {@code hidden}(관리자 게시중단) 필터는 유지한다 — 게시중단은 정책 위반 제재라 사장님만보기보다
+     * 상위이며, 본인에게도 보이지 않는 것이 올바른 동작이다.
      */
     public PageResult<MyReviewListItemResult> findMyReviews(Long memberId, PageQuery pageQuery) {
         List<Long> allReviewIds = queryFactory
@@ -577,8 +621,9 @@ public class ReviewQueryDao {
 
         long total = allReviewIds.size();
 
-        List<Long> pagedReviewIds = queryFactory
-            .select(reviewJpaEntity.id)
+        // 뱃지 표시용으로 ownerOnly를 함께 뽑는다(마이페이지는 사장님만보기 리뷰를 포함하므로 구분이 필요).
+        List<Tuple> pagedRows = queryFactory
+            .select(reviewJpaEntity.id, reviewJpaEntity.ownerOnly)
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.memberId.eq(memberId),
@@ -589,17 +634,32 @@ public class ReviewQueryDao {
             .limit(pageQuery.size())
             .fetch();
 
+        List<Long> pagedReviewIds = pagedRows.stream()
+            .map(row -> row.get(reviewJpaEntity.id))
+            .toList();
+
         Map<Long, String> imageUrlMap = findFirstImageUrlsByReviewIds(pagedReviewIds);
 
-        List<MyReviewListItemResult> reviews = pagedReviewIds.stream()
-            .map(reviewId -> new MyReviewListItemResult(reviewId, imageUrlMap.get(reviewId)))
+        List<MyReviewListItemResult> reviews = pagedRows.stream()
+            .map(row -> {
+                Long reviewId = row.get(reviewJpaEntity.id);
+                return new MyReviewListItemResult(
+                    reviewId,
+                    imageUrlMap.get(reviewId),
+                    Boolean.TRUE.equals(row.get(reviewJpaEntity.ownerOnly))
+                );
+            })
             .collect(Collectors.toList());
 
         return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
     /**
-     * 특정 회원이 쓴 리뷰 목록(대표 이미지 1장) — 최신순.
+     * <b>타인</b>(특정 회원) 프로필의 리뷰 목록(대표 이미지 1장) — 최신순.
+     *
+     * <p><b>사장님만보기 리뷰를 제외한다</b> — 작성자 본인에게만 보이는 리뷰이므로 타인 프로필에서는
+     * 보이면 안 된다. 위 {@link #findMyReviews}(마이페이지=본인, 포함)와 쿼리가 거의 같지만 정책이
+     * <b>정반대</b>이므로, 한쪽을 고칠 때 다른 쪽을 함께 고치지 말 것.
      */
     public PageResult<MyReviewListItemResult> findReviewsByMemberId(Long memberId, PageQuery pageQuery) {
         List<Long> allReviewIds = queryFactory
@@ -607,7 +667,7 @@ public class ReviewQueryDao {
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.memberId.eq(memberId),
-                reviewJpaEntity.hidden.eq(false)
+                visibleToCustomer()
             )
             .orderBy(reviewJpaEntity.createdAt.desc())
             .fetch();
@@ -619,7 +679,7 @@ public class ReviewQueryDao {
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.memberId.eq(memberId),
-                reviewJpaEntity.hidden.eq(false)
+                visibleToCustomer()
             )
             .orderBy(reviewJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -628,8 +688,9 @@ public class ReviewQueryDao {
 
         Map<Long, String> imageUrlMap = findFirstImageUrlsByReviewIds(pagedReviewIds);
 
+        // 타인 프로필은 visibleToCustomer()로 사장님만보기를 이미 걸렀으므로 뱃지는 항상 false다.
         List<MyReviewListItemResult> reviews = pagedReviewIds.stream()
-            .map(reviewId -> new MyReviewListItemResult(reviewId, imageUrlMap.get(reviewId)))
+            .map(reviewId -> new MyReviewListItemResult(reviewId, imageUrlMap.get(reviewId), false))
             .collect(Collectors.toList());
 
         return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
@@ -645,7 +706,7 @@ public class ReviewQueryDao {
             .innerJoin(reviewImageJpaEntity).on(reviewImageJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(
                 reviewJpaEntity.content.containsIgnoreCase(keyword)
-                .and(reviewJpaEntity.hidden.eq(false))
+                .and(visibleToCustomer())
             )
             .fetchOne();
 
@@ -668,7 +729,7 @@ public class ReviewQueryDao {
             .innerJoin(uploadedFileJpaEntity).on(reviewImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(
                 reviewJpaEntity.content.containsIgnoreCase(keyword)
-                .and(reviewJpaEntity.hidden.eq(false))
+                .and(visibleToCustomer())
             )
             .orderBy(reviewJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -858,7 +919,7 @@ public class ReviewQueryDao {
             .from(reviewJpaEntity)
             .innerJoin(shopJpaEntity).on(reviewJpaEntity.shopId.eq(shopJpaEntity.id))
             .innerJoin(stationJpaEntity).on(shopStationId().eq(stationJpaEntity.id))
-            .where(reviewJpaEntity.hidden.eq(false))
+            .where(visibleToCustomer())
             .fetchOne();
 
         return total == null ? 0L : total;
@@ -1041,6 +1102,7 @@ public class ReviewQueryDao {
             row.memberNickname(),
             fileUrlResolver.resolve(row.memberProfileImageUrl()),
             row.createdAt(),
+            row.ownerOnly(),
             row.imageUrls(),
             row.tagNames()
         );

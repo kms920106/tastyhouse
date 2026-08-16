@@ -757,6 +757,7 @@ CREATE TABLE REVIEW
     hygiene_rating    DOUBLE,                            -- 위생 평점
     will_revisit      TINYINT(1) NOT NULL DEFAULT 0,     -- 재방문 의향 (1: 있음)
     is_hidden         TINYINT(1) NOT NULL DEFAULT 0,     -- 숨김 여부 (1: 숨김)
+    is_owner_only     TINYINT(1) NOT NULL DEFAULT 0,     -- 사장님만보기 여부 (1: 비공개, 작성자 본인·점주·관리자만 열람)
     created_at        DATETIME   NOT NULL,               -- 생성 일시
     updated_at        DATETIME   NOT NULL,               -- 수정 일시
     INDEX idx_review_product_id (product_id),            -- 인덱스: 상품별 조회

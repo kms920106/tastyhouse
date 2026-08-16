@@ -74,6 +74,10 @@ public class ReviewCommandService {
     /**
      * 리뷰 등록 — 주문 상품이 지정되면 그 주문을 인증 근거로 함께 남긴다. 가게는 상품에서 역으로 얻는다.
      *
+     * <p>{@code ownerOnly}(사장님만보기)는 박싱 {@code Boolean}으로 받아 {@code Boolean.TRUE.equals}로
+     * 정규화한다 — 기존 클라이언트가 이 필드를 보내지 않으면 {@code null}이 오는데, 그때 공개(false)로
+     * 동작해야 하기 때문이다(하위호환). 등록 시에만 정할 수 있고 이후 전환은 불가능하다.
+     *
      * @return 등록된 리뷰 식별자
      */
     public Long createReview(
@@ -85,7 +89,8 @@ public class ReviewCommandService {
         Integer priceRating,
         String content,
         List<Long> uploadedFileIds,
-        List<String> tags
+        List<String> tags,
+        Boolean ownerOnly
     ) {
         OrderId orderId = null;
         if (orderProductId != null) {
@@ -107,7 +112,8 @@ public class ReviewCommandService {
             priceRating,
             content,
             uploadedFileIds,
-            tags
+            tags,
+            Boolean.TRUE.equals(ownerOnly)
         );
 
         return registration.review().getReviewId().value();
@@ -173,6 +179,19 @@ public class ReviewCommandService {
             ReviewComment.of(targetReviewId, MemberId.of(memberId), content)
         );
         return comment.getId();
+    }
+
+    /**
+     * 답글이 달릴 댓글의 상위 리뷰 식별자 — 컨트롤러가 가시성 가드를 걸 대상을 얻는 데 쓴다.
+     *
+     * <p>답글 경로는 {@code commentId}만 받아 리뷰를 알 수 없으므로, 이 조회 없이는 보이지 않는 리뷰의
+     * 댓글 스레드에 답글을 붙일 수 있다. 댓글이 없으면 404.
+     */
+    public Long findReviewIdOfComment(Long commentId) {
+        return reviewCommentRepository.findById(ReviewCommentId.of(commentId))
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND))
+            .getReviewId()
+            .value();
     }
 
     /**

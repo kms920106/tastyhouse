@@ -13,6 +13,7 @@ public record ReviewListItemResult(
     Double totalRating,
     String content,
     boolean hidden,
+    boolean ownerOnly,
     LocalDateTime createdAt
 ) {
 

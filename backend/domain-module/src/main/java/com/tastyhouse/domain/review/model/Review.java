@@ -33,6 +33,13 @@ public class Review {
     private boolean willRevisit;
     private final OrderId orderId;
     private boolean hidden;
+    /**
+     * 사장님만보기 여부. 작성자가 등록 시점에만 정하며 이후 전환이 불가능하므로 {@code final}이다.
+     *
+     * <p>{@link #hidden}(관리자 게시중단)과는 직교하는 별개 축이며 동시에 참일 수 있다. 전환을 허용하지
+     * 않는 이유는 상품 평점 재계산이 등록·삭제 이벤트로만 이뤄져 전환 시 평점이 조용히 어긋나기 때문이다.
+     */
+    private final boolean ownerOnly;
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
     private Review(
@@ -51,6 +58,7 @@ public class Review {
         boolean willRevisit,
         OrderId orderId,
         boolean hidden,
+        boolean ownerOnly,
         LocalDateTime createdAt
     ) {
         this.id = id;
@@ -68,11 +76,15 @@ public class Review {
         this.willRevisit = willRevisit;
         this.orderId = orderId;
         this.hidden = hidden;
+        this.ownerOnly = ownerOnly;
         this.createdAt = createdAt;
     }
 
     /**
      * 신규 리뷰를 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
+     *
+     * <p>{@code ownerOnly}(사장님만보기)는 등록 시점에만 정해지며 이후 전환할 수 없다 — 전환 메서드를
+     * 두지 않는 것이 그 정책의 구조적 보증이다.
      */
     public static Review of(
         ShopId shopId,
@@ -87,7 +99,8 @@ public class Review {
         Double kindnessRating,
         Double hygieneRating,
         boolean willRevisit,
-        OrderId orderId
+        OrderId orderId,
+        boolean ownerOnly
     ) {
         return new Review(
             null,
@@ -105,6 +118,7 @@ public class Review {
             willRevisit,
             orderId,
             false,
+            ownerOnly,
             null
         );
     }
@@ -129,6 +143,7 @@ public class Review {
         boolean willRevisit,
         OrderId orderId,
         boolean hidden,
+        boolean ownerOnly,
         LocalDateTime createdAt
     ) {
         return new Review(
@@ -147,6 +162,7 @@ public class Review {
             willRevisit,
             orderId,
             hidden,
+            ownerOnly,
             createdAt
         );
     }
@@ -243,6 +259,10 @@ public class Review {
 
     public boolean isHidden() {
         return this.hidden;
+    }
+
+    public boolean isOwnerOnly() {
+        return this.ownerOnly;
     }
 
     public LocalDateTime getCreatedAt() {

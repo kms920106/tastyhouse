@@ -49,6 +49,9 @@ public record ReviewManagementDetailResponse(
     @Schema(description = "숨김 여부", example = "false")
     boolean hidden,
 
+    @Schema(description = "사장님만보기 여부. 작성자가 비공개로 등록한 리뷰이며 hidden(게시중단)과는 독립입니다.", example = "false")
+    boolean ownerOnly,
+
     @Schema(description = "작성 회원 ID", example = "1")
     Long memberId,
 
@@ -82,6 +85,7 @@ public record ReviewManagementDetailResponse(
         Double hygieneRating,
         boolean willRevisit,
         boolean hidden,
+        boolean ownerOnly,
         Long memberId,
         String memberNickname,
         String memberProfileImageUrl,
@@ -104,6 +108,7 @@ public record ReviewManagementDetailResponse(
             hygieneRating,
             willRevisit,
             hidden,
+            ownerOnly,
             memberId,
             memberNickname,
             memberProfileImageUrl,
