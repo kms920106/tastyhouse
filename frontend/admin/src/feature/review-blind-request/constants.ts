@@ -4,13 +4,22 @@ import type { ReviewBlindReason, ReviewBlindRequestStatus } from "./domain";
 export const REJECT_REASON_MAX = 500;
 
 /** 심사 상태 카탈로그 — 필터 Select 옵션 순서를 겸한다. */
-export const REVIEW_BLIND_REQUEST_STATUS_OPTIONS = ["PENDING", "APPROVED", "REJECTED", "CANCELED"] as const;
+export const REVIEW_BLIND_REQUEST_STATUS_OPTIONS = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "CANCELED",
+  "EXPIRED",
+  "DELETED",
+] as const;
 
 export const REVIEW_BLIND_REQUEST_STATUS_LABEL: Record<ReviewBlindRequestStatus, string> = {
   PENDING: "심사 대기",
   APPROVED: "승인",
   REJECTED: "반려",
   CANCELED: "취소",
+  EXPIRED: "재노출",
+  DELETED: "삭제",
 };
 
 /** 게시중단 요청 사유 카탈로그 (backend `ReviewBlindReason`) */

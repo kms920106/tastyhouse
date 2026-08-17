@@ -4,11 +4,16 @@ import * as React from "react";
 
 import { Star } from "lucide-react";
 
+import { StatusBadge } from "@/components/status-badge";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { CeoReplyPhrase } from "@/feature/ceo-reply-phrase/domain";
-import type { ReviewBlindReasonOption, ShopReviewListItem } from "@/feature/shop-review/domain";
+import {
+  isBlindRequestTerminal,
+  type ReviewBlindReasonOption,
+  type ShopReviewListItem,
+} from "@/feature/shop-review/domain";
 import { formatRating } from "@/feature/shop-review/format";
 import { SHOP_REVIEW_COPY } from "@/feature/shop-review/message";
 import { formatDateTime } from "@/lib/date";
@@ -30,6 +35,8 @@ export function ShopReviewItem({ shopId, item, blindReasons, phrases, onOpenDeta
   const [isBlindSheetOpen, setIsBlindSheetOpen] = React.useState(false);
 
   const isAnswered = item.ownerReplyContent !== null;
+  // 목록에는 최근 상태 하나만 내려오므로 그 값으로 1회 제한 소진을 판정한다.
+  const isBlindRequestUsed = isBlindRequestTerminal(item.blindRequestStatus);
 
   return (
     <AccordionItem value={String(item.id)}>
@@ -48,6 +55,13 @@ export function ShopReviewItem({ shopId, item, blindReasons, phrases, onOpenDeta
           {/* 게시중단(관리자 조치)과 사장님만보기(작성자 선택)는 독립이라 둘 다 뜰 수 있다 */}
           {item.hidden && <Badge variant="destructive">{SHOP_REVIEW_COPY.BADGE_BLINDED}</Badge>}
           {item.ownerOnly && <Badge variant="secondary">{SHOP_REVIEW_COPY.BADGE_OWNER_ONLY}</Badge>}
+          {/*
+            게시중단 요청 이력이 있으면 그 최신 상태를 알린다 — 버튼 disabled 판정만으로는
+            "왜 못 누르는지"가 드러나지 않는다. 라벨은 서버가 준 한글명을 그대로 쓴다.
+          */}
+          {item.blindRequestStatus !== null && item.blindRequestStatusDescription !== null && (
+            <StatusBadge status={item.blindRequestStatus} label={item.blindRequestStatusDescription} />
+          )}
           <span className="ml-auto text-muted-foreground text-xs">{formatDateTime(item.createdAt)}</span>
         </div>
       </AccordionTrigger>
@@ -86,7 +100,15 @@ export function ShopReviewItem({ shopId, item, blindReasons, phrases, onOpenDeta
             <Button type="button" variant="outline" size="sm" onClick={() => onOpenDetail(item.id)}>
               {SHOP_REVIEW_COPY.DETAIL_ACTION}
             </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => setIsBlindSheetOpen(true)}>
+            {/* 1회 제한 — 종결 상태면 서버 409 를 맞기 전에 막고 사유를 알린다 */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isBlindRequestUsed}
+              title={isBlindRequestUsed ? SHOP_REVIEW_COPY.BLIND_REQUEST_ALREADY_USED_GUIDE : undefined}
+              onClick={() => setIsBlindSheetOpen(true)}
+            >
               {SHOP_REVIEW_COPY.BLIND_REQUEST_ACTION}
             </Button>
           </div>

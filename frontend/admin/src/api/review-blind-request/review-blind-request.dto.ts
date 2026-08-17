@@ -23,6 +23,8 @@ export interface ReviewBlindRequestListItemResponse {
   reviewContent: string;
   reviewTotalRating: number;
   createdAt: string;
+  /** 재노출 예정일시. APPROVED 가 아니면 null. */
+  blindUntil: string | null;
 }
 
 // 게시중단 요청 상세 (목록 필드 + 심사 판단에 필요한 리뷰 원문/사진)
@@ -30,6 +32,8 @@ export interface ReviewBlindRequestDetailResponse extends ReviewBlindRequestList
   detailReason: string | null;
   rejectReason: string | null;
   reviewImageUrls: string[];
+  /** 점주가 첨부한 증빙 서류 URL 목록 (이미지·PDF 혼재). */
+  attachmentUrls: string[];
   reviewMemberNickname: string;
   reviewHidden: boolean;
   reviewCreatedAt: string;

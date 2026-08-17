@@ -29,6 +29,10 @@ const STATUS_VARIANT: Record<string, "default" | "destructive" | "secondary" | "
   PENDING: "secondary",
   IN_PROGRESS: "secondary",
   CANCELED: "outline",
+  // 리뷰 게시중단 생애주기의 종결 상태(`docs/tasks/backend.md` 1-1) — 승인 이후의 결말이라
+  // 심사 결과(승인/반려)와 색을 구분해 중립으로 둔다.
+  EXPIRED: "outline",
+  DELETED: "outline",
   // 개인정보 접속기록 — 로그인 결과
   SUCCESS: "default",
   FAILURE: "destructive",

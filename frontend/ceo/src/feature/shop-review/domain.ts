@@ -30,6 +30,8 @@ export interface ShopReviewListItem {
   ownerReplyContent: string | null;
   ownerReplyCreatedAt: string | null;
   blindRequestStatus: string | null;
+  /** 위 상태의 한글 라벨. 뱃지 문구로 그대로 쓴다. 요청 이력이 없으면 null */
+  blindRequestStatusDescription: string | null;
   /** 답변 마감일(yyyy-MM-dd) = 리뷰 작성일 + 30일 */
   replyDeadline: string;
   /** 오늘 기준 신규 답변 등록 가능 여부. 이미 답변이 있으면 이 값과 무관하게 수정·삭제할 수 있다 */
@@ -45,6 +47,8 @@ export interface ReviewBlindRequestHistory {
   status: string;
   statusDescription: string;
   rejectReason: string | null;
+  /** 재노출 예정일시. 게시중단(`APPROVED`) 상태일 때만 값이 있다 */
+  blindUntil: string | null;
   createdAt: string;
 }
 
@@ -113,4 +117,36 @@ export interface ShopReviewSortTypeSetting {
 export interface ReviewBlindReasonOption {
   code: string;
   description: string;
+}
+
+/**
+ * 요청을 소진시키는 종결 상태.
+ *
+ * `constants.ts` 가 이 파일의 타입을 import 하므로 반대 방향 import 로 순환을 만들지 않도록
+ * 이 판정에 필요한 값은 여기에 둔다.
+ */
+const BLIND_REQUEST_TERMINAL_STATUSES: readonly string[] = ["APPROVED", "REJECTED", "EXPIRED", "DELETED"];
+
+/**
+ * 게시중단을 다시 요청할 수 있는지 판정한다.
+ *
+ * 동일 리뷰는 1회만 요청할 수 있으므로(서버 `REVIEW_BLIND_REQUEST_ALREADY_USED`), 심사를 거쳐
+ * 종결된 이력이 하나라도 있으면 소진된 것으로 본다. 취소(`CANCELED`)는 점주가 심사 전에
+ * 거둬들인 것이라 소진으로 치지 않고, 대기중(`PENDING`)은 중복 접수를 막는 별도 에러
+ * (`REVIEW_BLIND_REQUEST_ALREADY_PENDING`)가 담당하므로 여기서는 판단하지 않는다.
+ *
+ * 서버 409 를 맞기 전에 버튼부터 막기 위한 선방어이고, 최종 판정은 서버가 한다.
+ */
+export function isBlindRequestExhausted(blindRequests: readonly ReviewBlindRequestHistory[]): boolean {
+  return blindRequests.some((request) => isBlindRequestTerminal(request.status));
+}
+
+/**
+ * 단일 상태값이 종결인지 본다.
+ *
+ * 목록 응답에는 이력 배열이 아니라 **최근 상태 하나**(`blindRequestStatus`)만 내려오므로
+ * (`docs/tasks/backend.md` 1-1), 목록 화면은 이 함수로 판정한다. 요청 이력이 없으면 null 이다.
+ */
+export function isBlindRequestTerminal(status: string | null): boolean {
+  return status !== null && BLIND_REQUEST_TERMINAL_STATUSES.includes(status);
 }

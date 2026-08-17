@@ -2,11 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 
+import { MAX_IMAGE_SIZE_BYTES } from "@/api/file/file.dto";
+import { fileRepository } from "@/api/file/file.repository";
 import { shopReviewRepository } from "@/api/shop-review/shop-review.repository";
 
-import { SHOP_REVIEW_COPY, SHOP_REVIEW_ERROR_MESSAGE, SHOP_REVIEW_MESSAGE } from "./message";
+import { BLIND_ATTACHMENT_ACCEPT, BLIND_ATTACHMENT_MAX_COUNT } from "./constants";
 import {
-  type BlindRequestFormValues,
+  SHOP_REVIEW_COPY,
+  SHOP_REVIEW_ERROR_MESSAGE,
+  SHOP_REVIEW_MESSAGE,
+  SHOP_REVIEW_VALIDATION_MESSAGE,
+} from "./message";
+import {
   blindRequestSchema,
   type OwnerReplyFormValues,
   ownerReplySchema,
@@ -107,8 +114,44 @@ export async function deleteOwnerReplyAction(shopId: number, reviewId: number): 
 
 // ===== 게시중단 요청 =====
 
+/** 증빙 서류 허용 MIME — 클라이언트 `accept` 와 같은 목록을 서버 재검증에서도 쓴다 */
+const BLIND_ATTACHMENT_ALLOWED_TYPES = BLIND_ATTACHMENT_ACCEPT.split(",");
+
 /**
- * 게시중단 요청 등록.
+ * FormData 의 `attachments` 항목에서 업로드 가능한 파일만 꺼내 개수·형식·용량을 재검증한다.
+ *
+ * 클라이언트에서 `validateConsentFile()` 로 선검사하더라도 서버 액션은 클라이언트를 거치지 않고도
+ * 호출될 수 있으므로 같은 규칙으로 다시 막는다(`feature/shop/actions.ts` 의 `extractConsentFile` 과 같은 형태).
+ */
+function extractAttachments(formData: FormData): { files: File[] } | { error: string } {
+  const files = formData
+    .getAll("attachments")
+    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
+
+  if (files.length > BLIND_ATTACHMENT_MAX_COUNT) {
+    return { error: SHOP_REVIEW_VALIDATION_MESSAGE.BLIND_ATTACHMENT_MAX_COUNT };
+  }
+  for (const file of files) {
+    if (!BLIND_ATTACHMENT_ALLOWED_TYPES.includes(file.type)) {
+      return { error: SHOP_REVIEW_VALIDATION_MESSAGE.BLIND_ATTACHMENT_TYPE };
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      return { error: SHOP_REVIEW_VALIDATION_MESSAGE.BLIND_ATTACHMENT_SIZE };
+    }
+  }
+  return { files };
+}
+
+/**
+ * 게시중단 요청 등록 — 첨부 업로드(①) → 요청 생성(②) 2단 흐름.
+ *
+ * 신청 API 는 파일 원본이 아니라 `attachmentFileIds` 만 받으므로(`docs/tasks/backend.md` 4-1),
+ * 먼저 `fileRepository.uploadImage()` 로 각 파일의 fileId 를 받아 배열로 모은 뒤 그것을 실어 보낸다.
+ * **업로드가 이 액션 안에서 일어나야 하는 이유**는 `fileRepository` 가 `server-only` 라
+ * 클라이언트 컴포넌트가 직접 호출할 수 없기 때문이다 — 시트는 `File[]` 을 FormData 로만 넘긴다.
+ *
+ * 업로드는 순차로 돌린다. 한 건이라도 실패하면 이미 올라간 파일은 고아로 남지만, 미참조 파일은
+ * 요청에 실리지 않아 화면에 드러나지 않으므로 부분 실패를 되감지 않고 실패 문구만 돌려준다.
  *
  * 상세 사유가 빈 문자열이면 보내지 않는다 — 서버가 `ETC` 필수 판정을 할 때 빈 문자열과
  * 미전송을 다르게 볼 여지를 남기지 않기 위함이다.
@@ -116,15 +159,33 @@ export async function deleteOwnerReplyAction(shopId: number, reviewId: number): 
 export async function createBlindRequestAction(
   shopId: number,
   reviewId: number,
-  values: BlindRequestFormValues,
+  formData: FormData,
 ): Promise<ActionResult> {
-  const parsed = blindRequestSchema.safeParse(values);
+  const parsed = blindRequestSchema.safeParse({
+    reason: formData.get("reason"),
+    detailReason: formData.get("detailReason") ?? undefined,
+  } satisfies Record<string, unknown>);
   if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
 
+  const extracted = extractAttachments(formData);
+  if ("error" in extracted) return { success: false, message: extracted.error };
+
+  // ① 첨부 업로드 — fileId 수집
+  const attachmentFileIds: number[] = [];
+  for (const file of extracted.files) {
+    const { data: fileId, error, errorCode } = await fileRepository.uploadImage(file);
+    if (error !== undefined || fileId === undefined || fileId === null) {
+      return toFailure(errorCode, SHOP_REVIEW_COPY.BLIND_ATTACHMENT_UPLOAD_FAILED);
+    }
+    attachmentFileIds.push(fileId);
+  }
+
+  // ② 요청 생성
   const detailReason = parsed.data.detailReason;
   const { data, error, errorCode } = await shopReviewRepository.createBlindRequest(shopId, reviewId, {
     reason: parsed.data.reason,
     ...(detailReason && detailReason.length > 0 ? { detailReason } : {}),
+    ...(attachmentFileIds.length > 0 ? { attachmentFileIds } : {}),
   });
   if (error !== undefined) return toFailure(errorCode, SHOP_REVIEW_COPY.BLIND_REQUEST_FAILED);
 

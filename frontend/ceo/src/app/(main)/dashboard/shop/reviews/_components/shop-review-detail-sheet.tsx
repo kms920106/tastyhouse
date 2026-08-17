@@ -23,7 +23,11 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import type { CeoReplyPhrase } from "@/feature/ceo-reply-phrase/domain";
 import { cancelBlindRequestAction } from "@/feature/shop-review/actions";
 import { BLIND_REQUEST_PENDING_STATUS, REVIEW_RATING_ASPECTS } from "@/feature/shop-review/constants";
-import type { ReviewBlindReasonOption, ShopReviewDetail } from "@/feature/shop-review/domain";
+import {
+  isBlindRequestExhausted,
+  type ReviewBlindReasonOption,
+  type ShopReviewDetail,
+} from "@/feature/shop-review/domain";
 import { formatRating, formatReviewNumber } from "@/feature/shop-review/format";
 import { SHOP_REVIEW_COPY } from "@/feature/shop-review/message";
 import { formatDateTime } from "@/lib/date";
@@ -59,6 +63,9 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode | n
  */
 export function ShopReviewDetailSheet({ shopId, detail, blindReasons, phrases, onClose }: ShopReviewDetailSheetProps) {
   const [isPending, startTransition] = React.useTransition();
+
+  // 심사를 거쳐 종결된 이력이 있으면 1회 제한이 소진된 것이다(취소는 소진으로 치지 않는다).
+  const isBlindRequestUsed = isBlindRequestExhausted(detail.blindRequests);
   const [isBlindSheetOpen, setIsBlindSheetOpen] = React.useState(false);
 
   const aspectRatings: Record<(typeof REVIEW_RATING_ASPECTS)[number]["key"], number | null> = {
@@ -236,10 +243,22 @@ export function ShopReviewDetailSheet({ shopId, detail, blindReasons, phrases, o
           <section className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm">{SHOP_REVIEW_COPY.BLIND_HISTORY_SECTION_TITLE}</span>
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsBlindSheetOpen(true)}>
+              {/* 1회 제한 — 종결 이력이 있으면 서버 409 를 맞기 전에 버튼부터 막고 사유를 알린다 */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isBlindRequestUsed}
+                title={isBlindRequestUsed ? SHOP_REVIEW_COPY.BLIND_REQUEST_ALREADY_USED_GUIDE : undefined}
+                onClick={() => setIsBlindSheetOpen(true)}
+              >
                 {SHOP_REVIEW_COPY.BLIND_REQUEST_ACTION}
               </Button>
             </div>
+
+            {isBlindRequestUsed && (
+              <p className="text-muted-foreground text-xs">{SHOP_REVIEW_COPY.BLIND_REQUEST_ALREADY_USED_GUIDE}</p>
+            )}
 
             {detail.blindRequests.length === 0 ? (
               <p className="rounded-md border border-dashed p-4 text-center text-muted-foreground text-sm">
@@ -254,6 +273,13 @@ export function ShopReviewDetailSheet({ shopId, detail, blindReasons, phrases, o
                       <StatusBadge status={request.status} label={request.statusDescription} />
                       <span className="ml-auto text-muted-foreground text-xs">{formatDateTime(request.createdAt)}</span>
                     </div>
+
+                    {/* 게시중단(APPROVED)일 때만 값이 있다 — 30일 뒤 자동 재노출 예정일 */}
+                    {request.blindUntil && (
+                      <p className="text-muted-foreground text-xs">
+                        {SHOP_REVIEW_COPY.BLIND_HISTORY_BLIND_UNTIL(formatDateTime(request.blindUntil))}
+                      </p>
+                    )}
 
                     {request.detailReason && (
                       <div className="flex flex-col gap-1">

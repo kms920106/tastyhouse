@@ -1,3 +1,5 @@
+import { BLIND_ATTACHMENT_MAX_COUNT } from "./constants";
+
 /**
  * 점주 리뷰 관리 한국어 문구.
  *
@@ -121,11 +123,27 @@ export const SHOP_REVIEW_COPY = {
   BLIND_REQUEST_SUCCESS: "게시중단을 요청했습니다.",
   BLIND_REQUEST_FAILED: "게시중단을 요청하지 못했습니다.",
   BLIND_REASON_LOAD_FAILED: "게시중단 요청 사유를 불러오지 못했습니다.",
+
+  // ===== 증빙 서류 첨부 =====
+  BLIND_ATTACHMENT_LABEL: "증빙 서류",
+  BLIND_ATTACHMENT_GUIDE: `신분증·위임장 등 판단에 필요한 서류를 ${BLIND_ATTACHMENT_MAX_COUNT}개까지 첨부할 수 있습니다. jpg, png, gif, webp, pdf 파일을 10MB 이하로 첨부해 주세요.`,
+  BLIND_ATTACHMENT_ADD: "파일 첨부",
+  BLIND_ATTACHMENT_REMOVE: "삭제",
+  BLIND_ATTACHMENT_EMPTY: "첨부한 파일이 없습니다.",
+  BLIND_ATTACHMENT_UPLOADING: "첨부 파일 업로드 중...",
+  /** 상한에 도달했을 때 추가 버튼 아래에 띄우는 안내 */
+  BLIND_ATTACHMENT_LIMIT_REACHED: `증빙 서류는 최대 ${BLIND_ATTACHMENT_MAX_COUNT}개까지 첨부할 수 있습니다.`,
+  BLIND_ATTACHMENT_UPLOAD_FAILED: "증빙 서류를 업로드하지 못했습니다. 잠시 후 다시 시도해주세요.",
+
+  /** 종결 이력이 있어 "게시중단 요청" 버튼을 막을 때의 사유 안내(툴팁) */
+  BLIND_REQUEST_ALREADY_USED_GUIDE: "동일한 리뷰는 1회만 게시중단을 요청할 수 있습니다.",
   BLIND_HISTORY_SECTION_TITLE: "게시중단 요청 이력",
   BLIND_HISTORY_EMPTY: "게시중단을 요청한 이력이 없습니다.",
   BLIND_HISTORY_REQUESTED_AT: "요청일",
   BLIND_HISTORY_DETAIL_REASON: "상세 사유",
   BLIND_HISTORY_REJECT_REASON: "반려 사유",
+  /** 게시중단된 리뷰의 재노출 예정일. 날짜는 호출부에서 `formatDateTime` 으로 포맷해 주입한다 */
+  BLIND_HISTORY_BLIND_UNTIL: (blindUntil: string) => `${blindUntil} 재노출 예정`,
   BLIND_CANCEL_ACTION: "요청 취소",
   BLIND_CANCEL_CONFIRM_TITLE: "게시중단 요청을 취소할까요?",
   BLIND_CANCEL_CONFIRM_DESCRIPTION: "취소하면 심사가 중단됩니다. 필요하면 같은 리뷰에 다시 요청할 수 있습니다.",
@@ -169,6 +187,11 @@ export const SHOP_REVIEW_ERROR_MESSAGE: Record<string, string> = {
   REVIEW_OWNER_REPLY_NOT_FOUND: "답변을 찾을 수 없습니다. 이미 삭제되었을 수 있습니다.",
   REVIEW_BLIND_REQUEST_ALREADY_PENDING: "이미 게시중단 요청이 접수된 리뷰입니다.",
   REVIEW_BLIND_REQUEST_NOT_PENDING: "이미 처리된 요청은 취소할 수 없습니다.",
+  // 1회 제한 소진(409). 화면은 종결 이력이 있으면 버튼부터 막지만, 목록이 낡았을 때를 대비해 문구도 둔다.
+  REVIEW_BLIND_REQUEST_ALREADY_USED: "이미 게시중단을 요청한 리뷰입니다. 동일한 리뷰는 1회만 요청할 수 있습니다.",
+  REVIEW_BLIND_ATTACHMENT_LIMIT_EXCEEDED: `증빙 서류는 최대 ${BLIND_ATTACHMENT_MAX_COUNT}개까지 첨부할 수 있습니다.`,
+  // 업로드로 받은 fileId 가 서버에 없을 때
+  FILE_NOT_FOUND: "첨부한 파일을 찾을 수 없습니다. 다시 첨부해주세요.",
   REVIEW_BLIND_DETAIL_REASON_REQUIRED: "기타 사유는 상세 내용을 입력해주세요.",
   SHOP_TEXT_PROHIBITED_WORD: "답변에 사용할 수 없는 단어가 포함되어 있습니다.",
   REVIEW_DATE_RANGE_INVALID: "조회 시작일이 종료일보다 늦을 수 없습니다.",
@@ -181,5 +204,8 @@ export const SHOP_REVIEW_VALIDATION_MESSAGE = {
   BLIND_REASON_REQUIRED: "요청 사유를 선택해주세요.",
   BLIND_DETAIL_REASON_REQUIRED: "기타 사유는 상세 내용을 입력해주세요.",
   BLIND_DETAIL_REASON_MAX_LENGTH: "상세 사유는 500자 이내로 입력해주세요.",
+  BLIND_ATTACHMENT_MAX_COUNT: `증빙 서류는 최대 ${BLIND_ATTACHMENT_MAX_COUNT}개까지 첨부할 수 있습니다.`,
+  BLIND_ATTACHMENT_TYPE: "증빙 서류는 jpg, png, gif, webp, pdf 파일만 첨부할 수 있습니다.",
+  BLIND_ATTACHMENT_SIZE: "증빙 서류 파일 크기는 10MB를 초과할 수 없습니다.",
   SORT_TYPE_REQUIRED: "정렬 순서를 선택해주세요.",
 } as const;

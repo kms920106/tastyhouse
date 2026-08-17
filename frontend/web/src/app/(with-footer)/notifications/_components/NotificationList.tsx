@@ -15,7 +15,13 @@ interface Props {
 
 /** 알림의 이동 대상 경로. 이동할 곳이 없으면 null. */
 function resolveTargetHref(notification: NotificationItem): string | null {
-  if (notification.targetType === 'REVIEW' && notification.targetId !== null) {
+  if (notification.targetId === null) return null
+  // 게시중단된 리뷰는 상세 조회가 404다 — 동의 화면으로 보낸다.
+  // targetType 분기보다 반드시 먼저 와야 한다.
+  if (notification.type === 'REVIEW_BLIND_APPROVED') {
+    return PAGE_PATHS.REVIEW_BLIND_CONSENT(notification.targetId)
+  }
+  if (notification.targetType === 'REVIEW') {
     return PAGE_PATHS.REVIEW_DETAIL(notification.targetId)
   }
   return null

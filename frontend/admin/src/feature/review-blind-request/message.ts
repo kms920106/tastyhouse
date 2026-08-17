@@ -21,6 +21,19 @@ export const REVIEW_BLIND_REQUEST_DETAIL_COPY = {
   DESCRIPTION: "요청 사유와 리뷰 원문을 확인하고 심사합니다.",
   NO_IMAGE: "첨부된 리뷰 사진이 없습니다.",
   IMAGE_LOAD_FAILED: "이미지를 불러오지 못했습니다.",
+  /** 점주가 첨부한 증빙 서류 영역 — 리뷰 사진과 별도로 둔다(PDF 혼재). */
+  ATTACHMENT_TITLE: "증빙 서류",
+  NO_ATTACHMENT: "첨부 서류 없음",
+  ATTACHMENT_ITEM_PREFIX: "서류",
+  /** APPROVED 일 때만 노출하는 재노출 예정일 라벨. */
+  BLIND_UNTIL_LABEL: "재노출 예정",
+} as const;
+
+/** 목록 컬럼 헤더 문구 */
+export const REVIEW_BLIND_REQUEST_COLUMN_COPY = {
+  BLIND_UNTIL: "재노출 예정",
+  /** APPROVED 가 아니면 기한이 없다. */
+  BLIND_UNTIL_EMPTY: "-",
 } as const;
 
 /** 게시중단 요청 사용자 피드백 메시지 (동적/토스트/에러 폴백) */

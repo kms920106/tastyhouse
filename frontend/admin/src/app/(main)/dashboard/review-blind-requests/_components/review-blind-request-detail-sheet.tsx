@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { Star } from "lucide-react";
+import { FileText, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,40 @@ export function ReviewBlindRequestDetailSheet({
                 <dd className="whitespace-pre-wrap">{detail.detailReason ?? "-"}</dd>
                 <dt className="text-muted-foreground">반려 사유</dt>
                 <dd className="whitespace-pre-wrap">{detail.rejectReason ?? "-"}</dd>
+                {/* 기한은 승인 상태에서만 의미가 있다 — 그 외 상태에서는 서버가 null 을 준다. */}
+                {detail.status === "APPROVED" && detail.blindUntil ? (
+                  <>
+                    <dt className="text-muted-foreground">{REVIEW_BLIND_REQUEST_DETAIL_COPY.BLIND_UNTIL_LABEL}</dt>
+                    <dd className="tabular-nums">{formatDateTime(detail.blindUntil)}</dd>
+                  </>
+                ) : null}
               </dl>
+
+              <Separator />
+
+              {/* 증빙 서류는 PDF 가 섞여 있어 이미지로 렌더할 수 없다 — 새 탭 링크로만 연다. */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">{REVIEW_BLIND_REQUEST_DETAIL_COPY.ATTACHMENT_TITLE}</h4>
+                {detail.attachmentUrls.length ? (
+                  <ul className="space-y-1">
+                    {detail.attachmentUrls.map((url, index) => (
+                      <li key={url}>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-primary text-sm underline underline-offset-4"
+                        >
+                          <FileText className="size-4 shrink-0" />
+                          {`${REVIEW_BLIND_REQUEST_DETAIL_COPY.ATTACHMENT_ITEM_PREFIX} ${index + 1}`}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground text-sm">{REVIEW_BLIND_REQUEST_DETAIL_COPY.NO_ATTACHMENT}</p>
+                )}
+              </div>
 
               <Separator />
 

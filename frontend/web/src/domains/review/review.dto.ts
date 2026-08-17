@@ -1,6 +1,6 @@
 import type { PaginationParams } from '@/types/common'
 import type { ReviewComment, ReviewReply } from './review.model'
-import type { ReviewType } from './review.types'
+import type { ReviewBlindReason, ReviewType } from './review.types'
 
 export interface ReviewLatestQuery extends PaginationParams {
   type: ReviewType
@@ -194,4 +194,30 @@ export interface ReviewUpdateResponse {
   imageUrls: string[]
   tags: string[]
   createdAt: string
+}
+
+/**
+ * `GET /api/reviews/v1/{reviewId}/blind` — 게시중단된 리뷰의 동의 화면 렌더용 조회.
+ *
+ * ⚠️ **`docs/tasks/backend.md` 4-2에는 이 조회 엔드포인트가 명시돼 있지 않다.**
+ * 4-2는 consent/reject 두 mutation만 규정하는데, 3-2 화면은 "사유 · 재노출 예정일 · 리뷰 본문"을
+ * 렌더해야 하고 기존 상세 조회(`GET /api/reviews/v1/{reviewId}`)는 `hidden.isFalse()` 필터에
+ * 걸려 404다. 알림 `body` 문구만으로는 리뷰 본문을 얻을 수 없으므로 전용 조회가 필요하다고 보고
+ * mutation 두 개와 같은 `/blind` 접두를 쓰는 `GET`을 가정한다.
+ * 인가·404 규칙은 4-2와 동일하다고 전제한다(타인 리뷰 → 404 `REVIEW_NOT_FOUND`).
+ */
+export interface ReviewBlindDetailResponse {
+  reviewId: number
+  content: string
+  imageUrls: string[]
+  createdAt: string
+  shopName: string
+  /** 사장님이 선택한 게시중단 사유 코드 */
+  reason: ReviewBlindReason
+  /** 서버가 내려주는 사유 라벨. 없으면 `REVIEW_BLIND_REASON_LABEL`로 대체한다. */
+  reasonDescription: string | null
+  /** 상세 사유. `reason=ETC`가 아니면 null일 수 있다. */
+  detailReason: string | null
+  /** 재노출 예정일시. APPROVED 상태에서만 값이 있다. */
+  blindUntil: string | null
 }

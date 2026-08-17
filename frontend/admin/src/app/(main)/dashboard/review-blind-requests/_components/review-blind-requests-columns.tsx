@@ -18,6 +18,7 @@ import {
   REVIEW_CONTENT_PREVIEW_MAX,
 } from "@/feature/review-blind-request/constants";
 import type { ReviewBlindRequestListItem, ReviewBlindRequestStatus } from "@/feature/review-blind-request/domain";
+import { REVIEW_BLIND_REQUEST_COLUMN_COPY } from "@/feature/review-blind-request/message";
 import { formatDateTime } from "@/lib/date";
 
 export interface ReviewBlindRequestsTableMeta {
@@ -27,7 +28,7 @@ export interface ReviewBlindRequestsTableMeta {
   onReject: (blindRequest: ReviewBlindRequestListItem) => void;
 }
 
-/** 심사 상태 Badge variant — 승인은 강조, 반려는 경고, 대기/취소는 중립. */
+/** 심사 상태 Badge variant — 승인은 강조, 반려는 경고, 대기/삭제는 외곽선, 나머지는 중립. */
 function statusBadgeVariant(status: ReviewBlindRequestStatus): "default" | "secondary" | "outline" | "destructive" {
   switch (status) {
     case "APPROVED":
@@ -35,6 +36,9 @@ function statusBadgeVariant(status: ReviewBlindRequestStatus): "default" | "seco
     case "REJECTED":
       return "destructive";
     case "PENDING":
+      return "outline";
+    // 삭제는 종결 중에서도 되돌릴 수 없으므로 취소/재노출과 구분한다.
+    case "DELETED":
       return "outline";
     default:
       return "secondary";
@@ -111,6 +115,22 @@ export const reviewBlindRequestsColumns: ColumnDef<ReviewBlindRequestListItem>[]
     size: 100,
     minSize: 100,
     maxSize: 120,
+  },
+  {
+    accessorKey: "blindUntil",
+    header: REVIEW_BLIND_REQUEST_COLUMN_COPY.BLIND_UNTIL,
+    // 기한은 승인 건에만 존재한다 — 그 외 상태는 서버가 null 을 주므로 "-" 로 채운다.
+    cell: ({ row }) => (
+      <span className="tabular-nums">
+        {row.original.status === "APPROVED" && row.original.blindUntil
+          ? formatDateTime(row.original.blindUntil)
+          : REVIEW_BLIND_REQUEST_COLUMN_COPY.BLIND_UNTIL_EMPTY}
+      </span>
+    ),
+    enableSorting: false,
+    size: 160,
+    minSize: 140,
+    maxSize: 180,
   },
   {
     id: "actions",

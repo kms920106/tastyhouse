@@ -143,3 +143,35 @@ export async function updateReview(
 
   return result
 }
+
+/**
+ * 게시중단 리뷰 삭제 동의.
+ *
+ * 성공하면 리뷰가 삭제되므로 상세로 돌아갈 수 없다 — 호출부는 `/reviews`로 이동시킨다.
+ * 응답 본문이 `Void`라 `data`로 성공을 판정할 수 없으므로 `error` 부재로 판정한다.
+ */
+export async function consentReviewBlindDeleteAction(reviewId: number) {
+  const result = await reviewRepository.consentReviewBlindDelete(reviewId)
+
+  if (!result.error) {
+    revalidatePath('/reviews')
+    revalidatePath('/notifications')
+  }
+
+  return result
+}
+
+/**
+ * 게시중단 리뷰 삭제 거부.
+ *
+ * 서버는 아무 상태 전이도 하지 않는다(30일 배치가 재노출을 처리).
+ */
+export async function rejectReviewBlindDeleteAction(reviewId: number) {
+  const result = await reviewRepository.rejectReviewBlindDelete(reviewId)
+
+  if (!result.error) {
+    revalidatePath('/notifications')
+  }
+
+  return result
+}

@@ -42,6 +42,7 @@ function toListItem(item: ShopReviewListItemResponse): ShopReviewListItem {
     ownerReplyContent: item.ownerReplyContent,
     ownerReplyCreatedAt: item.ownerReplyCreatedAt,
     blindRequestStatus: item.blindRequestStatus,
+    blindRequestStatusDescription: item.blindRequestStatusDescription,
     replyDeadline: item.replyDeadline,
     replyable: item.replyable,
     createdAt: item.createdAt,
@@ -57,6 +58,7 @@ function toBlindRequestHistory(item: ReviewBlindRequestHistoryResponse): ReviewB
     status: item.status,
     statusDescription: item.statusDescription,
     rejectReason: item.rejectReason,
+    blindUntil: item.blindUntil,
     createdAt: item.createdAt,
   };
 }

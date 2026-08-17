@@ -59,6 +59,20 @@ export const OWNER_REPLY_MAX_LENGTH = 1000;
 /** 서버 `@Size(max = 500)` 과 같은 값 */
 export const BLIND_DETAIL_REASON_MAX_LENGTH = 500;
 
+/**
+ * 게시중단 요청 증빙 첨부 최대 개수 — 서버 `@Size(max = 3)` 과 같은 값
+ * (`docs/tasks/backend.md` 4-1).
+ */
+export const BLIND_ATTACHMENT_MAX_COUNT = 3;
+
+/**
+ * 첨부 `<input type="file">` 의 `accept`.
+ *
+ * 신분증·위임장 스캔본이 대상이라 **PDF 를 포함한다** — 이미지 전용 검증기(`validateImageFile`)는
+ * `createImageBitmap` 으로 치수를 재느라 PDF 를 거부하므로, 검증은 `validateConsentFile()` 을 재사용한다.
+ */
+export const BLIND_ATTACHMENT_ACCEPT = "image/jpeg,image/png,image/gif,image/webp,application/pdf";
+
 /** 목록 한 페이지 크기 */
 export const SHOP_REVIEW_PAGE_SIZE = 10;
 

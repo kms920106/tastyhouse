@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { BLIND_DETAIL_REASON_MAX_LENGTH, BLIND_REASON_ETC, OWNER_REPLY_MAX_LENGTH } from "./constants";
+import {
+  BLIND_ATTACHMENT_MAX_COUNT,
+  BLIND_DETAIL_REASON_MAX_LENGTH,
+  BLIND_REASON_ETC,
+  OWNER_REPLY_MAX_LENGTH,
+} from "./constants";
 import { SHOP_REVIEW_VALIDATION_MESSAGE } from "./message";
 
 /** 사장님 답변 등록·수정 (`docs/tasks/backend.md` 1-6·1-7) */
@@ -31,6 +36,12 @@ export const blindRequestSchema = z
       .max(BLIND_DETAIL_REASON_MAX_LENGTH, {
         message: SHOP_REVIEW_VALIDATION_MESSAGE.BLIND_DETAIL_REASON_MAX_LENGTH,
       })
+      .optional(),
+    // 첨부는 선택이다 — 원문도 신분증을 "신청서 회신 시" 요구하며 접수 자체를 막지 않는다.
+    // 값은 파일이 아니라 선업로드로 받은 fileId 배열이다(`docs/tasks/frontend.md` 1-2).
+    attachmentFileIds: z
+      .array(z.number())
+      .max(BLIND_ATTACHMENT_MAX_COUNT, { message: SHOP_REVIEW_VALIDATION_MESSAGE.BLIND_ATTACHMENT_MAX_COUNT })
       .optional(),
   })
   // 기타 사유는 상세 내용이 없으면 관리자가 판단할 근거가 없다 — 서버도 같은 규칙으로 400 을 낸다.

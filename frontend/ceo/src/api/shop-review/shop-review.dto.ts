@@ -43,6 +43,8 @@ export interface ShopReviewListItemResponse {
   ownerReplyCreatedAt: string | null;
   /** 최근 게시중단 요청 상태. 요청 이력이 없으면 null */
   blindRequestStatus: string | null;
+  /** 위 상태의 한글 라벨. 요청 이력이 없으면 null */
+  blindRequestStatusDescription: string | null;
   /** 답변 마감일(yyyy-MM-dd) = 리뷰 작성일 + 30일 */
   replyDeadline: string;
   /** 오늘 기준 **신규 등록** 가능 여부. 이미 답변이 있으면 이 값과 무관하게 수정·삭제 가능 */
@@ -59,6 +61,8 @@ export interface ReviewBlindRequestHistoryResponse {
   statusDescription: string;
   /** 반려 시에만 채워진다 */
   rejectReason: string | null;
+  /** 재노출 예정일시. `status = APPROVED` 일 때만 값이 있다(`docs/tasks/backend.md` 1-2) */
+  blindUntil: string | null;
   createdAt: string;
 }
 
@@ -136,6 +140,11 @@ export interface ReviewOwnerReplyUpsertRequest {
 export interface ReviewBlindRequestCreateRequest {
   reason: string;
   detailReason?: string;
+  /**
+   * 증빙 서류 파일 ID 목록. 선택이며 서버 제약은 `@Size(max = 3)`
+   * (`docs/tasks/backend.md` 4-1). 파일 원본이 아니라 선업로드로 받은 id 만 보낸다.
+   */
+  attachmentFileIds?: number[];
 }
 
 export interface ReviewBlindReasonCatalogResponse {

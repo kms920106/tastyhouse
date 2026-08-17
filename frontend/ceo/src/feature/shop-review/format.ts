@@ -50,6 +50,18 @@ export function formatYearMonthLabel(yearMonth: string): string {
   return monthNumber === 1 ? `${year}.${monthNumber}월` : `${monthNumber}월`;
 }
 
+/**
+ * 첨부 파일 용량을 KB/MB 로 표시한다.
+ *
+ * 증빙 서류는 PDF 가 섞여 있어 썸네일을 만들 수 없으므로, 사용자가 무엇을 골랐는지
+ * 알아볼 수 있는 단서가 파일명과 용량뿐이다(`docs/tasks/frontend.md` 1-5).
+ */
+export function formatFileSize(bytes: number): string {
+  const kilobytes = bytes / 1024;
+  if (kilobytes < 1024) return `${Math.max(1, Math.round(kilobytes))}KB`;
+  return `${(kilobytes / 1024).toFixed(1)}MB`;
+}
+
 /** 별점 분포 막대의 채움 비율(%). 전체가 0건이면 0 */
 export function toRatingBarPercentage(count: number, total: number): number {
   if (total <= 0) return 0;

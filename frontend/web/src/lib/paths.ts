@@ -120,6 +120,8 @@ export const PAGE_PATHS = {
   REVIEWS: '/reviews',
   REVIEW_DETAIL: (id: string | number) => `/reviews/${id}`,
   REVIEW_EDIT: (id: number) => `/reviews/${id}/edit`,
+  /** 게시중단된 리뷰의 삭제 동의 화면. 상세(`REVIEW_DETAIL`)는 404이므로 이 경로로 보낸다. */
+  REVIEW_BLIND_CONSENT: (id: number) => `/reviews/${id}/blind`,
   REVIEW_PRODUCT_DETAIL: (id: string | number) => `/reviews/${id}/product`,
   REVIEW_CREATE: '/reviews/create',
   REVIEW_CREATE_WITH_MENU: (menuId: string | number) => `/reviews/create?menuId=${menuId}`,

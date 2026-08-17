@@ -10,6 +10,7 @@ import {
   ReplyCreateRequest,
   ReplyCreateResponse,
   ReviewBestListItemResponse,
+  ReviewBlindDetailResponse,
   ReviewCreateRequest,
   ReviewCreateResponse,
   ReviewDetailResponse,
@@ -74,6 +75,18 @@ export const reviewRepository = {
   // 리뷰 수정
   async updateReview(reviewId: number, request: ReviewUpdateRequest) {
     return api.put<ReviewUpdateResponse>(`${ENDPOINT}/v1/${reviewId}`, request)
+  },
+  // 게시중단된 리뷰 조회 (삭제 동의 화면용 — 작성자 본인만 열람 가능)
+  async getReviewBlindDetail(reviewId: number) {
+    return api.get<ReviewBlindDetailResponse>(`${ENDPOINT}/v1/${reviewId}/blind`)
+  },
+  // 게시중단 리뷰 삭제 동의 — 리뷰가 즉시 삭제된다(되돌릴 수 없음)
+  async consentReviewBlindDelete(reviewId: number) {
+    return api.post<void>(`${ENDPOINT}/v1/${reviewId}/blind/consent`)
+  },
+  // 게시중단 리뷰 삭제 거부 — 상태 전이 없이 30일 배치가 재노출한다
+  async rejectReviewBlindDelete(reviewId: number) {
+    return api.post<void>(`${ENDPOINT}/v1/${reviewId}/blind/reject`)
   },
   // 특정 회원의 리뷰 목록 조회
   async getMemberReviews(memberId: number | string, params: PaginationParams) {

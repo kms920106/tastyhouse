@@ -27,6 +27,7 @@ function toListItem(item: ReviewBlindRequestListItemResponse): ReviewBlindReques
     reviewContent: item.reviewContent,
     reviewTotalRating: item.reviewTotalRating,
     createdAt: item.createdAt,
+    blindUntil: item.blindUntil,
   };
 }
 
@@ -54,6 +55,7 @@ export const reviewBlindRequestService = {
         detailReason: res.data.detailReason,
         rejectReason: res.data.rejectReason,
         reviewImageUrls: res.data.reviewImageUrls,
+        attachmentUrls: res.data.attachmentUrls,
         reviewMemberNickname: res.data.reviewMemberNickname,
         reviewHidden: res.data.reviewHidden,
         reviewCreatedAt: res.data.reviewCreatedAt,
