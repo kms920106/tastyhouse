@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.product.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -150,7 +151,7 @@ class ProductRegistrationServiceTest {
     private Product product() {
         return Product.reconstitute(
             PRODUCT_ID, SHOP_ID, ProductCategoryId.of(2L), "황금올리브치킨", "바삭한 치킨",
-            20000, null, null, 0, true, 1, false, true, 0, false, null, null
+            20000, null, null, 0, true, 1, false, null, true, 0, false, null, null
         );
     }
 
@@ -200,6 +201,26 @@ class ProductRegistrationServiceTest {
          * id 부여를 생략하면 실제 동작과 달라진다.
          */
         @Override
+        public List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
+            return List.of();
+        }
+
+        @Override
+        public long countVisibleByShopId(ShopId shopId) {
+            return 0L;
+        }
+
+        @Override
+        public long countVisibleRepresentativeByShopId(ShopId shopId) {
+            return 0L;
+        }
+
+        @Override
+        public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
+            return List.of();
+        }
+
+        @Override
         public Product save(Product product) {
             saved.add(product);
             if (product.getId() != null) {
@@ -218,6 +239,7 @@ class ProductRegistrationServiceTest {
                 product.isRepresentative(),
                 product.getSpiciness(),
                 product.isSoldOut(),
+                product.getSoldOutUntil(),
                 product.isVisible(),
                 product.getSort(),
                 product.isRatingExcluded(),
@@ -258,6 +280,11 @@ class ProductRegistrationServiceTest {
         }
 
         @Override
+        public List<ProductOptionGroup> findAllByIdIn(List<ProductOptionGroupId> ids) {
+            return List.of();
+        }
+
+        @Override
         public ProductOptionGroup save(ProductOptionGroup productOptionGroup) {
             saved.add(productOptionGroup);
             return productOptionGroup;
@@ -271,6 +298,21 @@ class ProductRegistrationServiceTest {
         @Override
         public Optional<ProductOption> findById(ProductOptionId id) {
             return Optional.empty();
+        }
+
+        @Override
+        public List<ProductOption> findAllByIdIn(List<ProductOptionId> ids) {
+            return List.of();
+        }
+
+        @Override
+        public List<ProductOption> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
+            return List.of();
+        }
+
+        @Override
+        public List<ProductOption> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
+            return List.of();
         }
 
         @Override

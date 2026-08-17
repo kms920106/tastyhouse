@@ -30,6 +30,7 @@ final class ProductMapper {
             entity.isRepresentative(),
             entity.getSpiciness(),
             entity.isSoldOut(),
+            entity.getSoldOutUntil(),
             entity.isVisible(),
             entity.getSort(),
             entity.isRatingExcluded(),
@@ -54,6 +55,7 @@ final class ProductMapper {
             domain.isRepresentative(),
             domain.getSpiciness(),
             domain.isSoldOut(),
+            domain.getSoldOutUntil(),
             domain.isVisible(),
             domain.getSort(),
             domain.isRatingExcluded()
@@ -78,6 +80,7 @@ final class ProductMapper {
             domain.isRepresentative(),
             domain.getSpiciness(),
             domain.isSoldOut(),
+            domain.getSoldOutUntil(),
             domain.isVisible(),
             domain.getSort()
         );

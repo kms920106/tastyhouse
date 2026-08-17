@@ -242,6 +242,7 @@ CREATE TABLE PRODUCT
     is_representative   TINYINT(1)    DEFAULT 0,                     -- 대표 상품 여부 (1: 대표)
     spiciness           INT,                                         -- 맵기 단계
     is_sold_out         TINYINT(1)    NOT NULL DEFAULT 0,            -- 품절 여부 (1: 품절)
+    sold_out_until      DATETIME,                                    -- 품절 자동해제 시각 (NULL이면 수동 해제까지 유지)
     is_visible          TINYINT(1)    NOT NULL DEFAULT 1,            -- 노출 여부 (1: 노출)
     is_rating_excluded  TINYINT(1)    NOT NULL DEFAULT 0,            -- 메뉴 평가 제외 여부 (1: 제외 — 주류·사이드 등)
     sort                INT           NOT NULL,                      -- 정렬 순서
@@ -250,7 +251,8 @@ CREATE TABLE PRODUCT
     INDEX idx_product_shop_id (shop_id),                           -- 인덱스: 장소별 조회
     INDEX idx_product_category (shop_id, product_category_id),      -- 인덱스: 장소·카테고리 복합 조회
     INDEX idx_product_representative (shop_id, is_representative),  -- 인덱스: 장소·대표상품 조회
-    INDEX idx_product_active (shop_id, is_visible, sort)            -- 인덱스: 장소·노출·정렬 복합 조회
+    INDEX idx_product_active (shop_id, is_visible, sort),           -- 인덱스: 장소·노출·정렬 복합 조회
+    INDEX idx_product_sold_out_until (is_sold_out, sold_out_until)  -- 인덱스: 품절 자동해제 배치 스캔용
 );
 
 CREATE TABLE PRODUCT_BBQ
@@ -319,11 +321,13 @@ CREATE TABLE PRODUCT_COMMON_OPTION
     additional_price INT          NOT NULL DEFAULT 0,                                -- 추가 금액
     sort             INT          NOT NULL,                                          -- 정렬 순서
     is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,                                -- 품절 여부 (1: 품절)
+    sold_out_until   DATETIME,                                                       -- 품절 자동해제 시각 (NULL이면 수동 해제까지 유지)
     is_visible       TINYINT(1)   NOT NULL DEFAULT 1,                                -- 노출 여부 (1: 노출)
     created_at       DATETIME     NOT NULL,                                          -- 생성 일시
     updated_at       DATETIME     NOT NULL,                                          -- 수정 일시
     INDEX idx_product_common_option_group_id (option_group_id),                      -- 인덱스: 옵션 그룹별 조회
-    INDEX idx_product_common_option_active (option_group_id, is_visible, sort)       -- 인덱스: 옵션 그룹·노출·정렬 복합 조회
+    INDEX idx_product_common_option_active (option_group_id, is_visible, sort),      -- 인덱스: 옵션 그룹·노출·정렬 복합 조회
+    INDEX idx_product_common_option_sold_out_until (is_sold_out, sold_out_until)     -- 인덱스: 품절 자동해제 배치 스캔용
 );
 
 CREATE TABLE PRODUCT_OPTION
@@ -334,11 +338,13 @@ CREATE TABLE PRODUCT_OPTION
     additional_price INT          NOT NULL DEFAULT 0,                           -- 추가 금액
     sort             INT          NOT NULL,                                     -- 정렬 순서
     is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,                           -- 품절 여부 (1: 품절)
+    sold_out_until   DATETIME,                                                  -- 품절 자동해제 시각 (NULL이면 수동 해제까지 유지)
     is_visible       TINYINT(1)   NOT NULL DEFAULT 1,                           -- 노출 여부 (1: 노출)
     created_at       DATETIME     NOT NULL,                                     -- 생성 일시
     updated_at       DATETIME     NOT NULL,                                     -- 수정 일시
     INDEX idx_product_option_group_id (option_group_id),                        -- 인덱스: 옵션 그룹별 조회
-    INDEX idx_product_option_active (option_group_id, is_visible, sort)         -- 인덱스: 옵션 그룹·노출·정렬 복합 조회
+    INDEX idx_product_option_active (option_group_id, is_visible, sort),        -- 인덱스: 옵션 그룹·노출·정렬 복합 조회
+    INDEX idx_product_option_sold_out_until (is_sold_out, sold_out_until)       -- 인덱스: 품절 자동해제 배치 스캔용
 );
 
 CREATE TABLE PRODUCT_OPTION_GROUP

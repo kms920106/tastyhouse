@@ -6,11 +6,14 @@ import org.springframework.context.annotation.Configuration;
 import com.tastyhouse.domain.product.port.ProductReviewStatisticsPort;
 import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
+import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupRepository;
+import com.tastyhouse.domain.product.repository.ProductCommonOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.service.OrderProductValidationService;
+import com.tastyhouse.domain.product.service.ProductAvailabilityService;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.service.ProductReviewStatsService;
 
@@ -74,6 +77,28 @@ public class ProductDomainConfig {
             productOptionGroupRepository,
             productOptionRepository,
             productImageRepository
+        );
+    }
+
+    /**
+     * 메뉴·옵션 품절·숨김 전이와 부분실패 제약 — 노출 메뉴 ≥1 · 추천 메뉴 ≥1 · 옵션그룹별
+     * {@code minSelect} 잔여 개수의 단일 소유자. 제약이 애그리거트 불변식이라 ceo/admin 두 모듈에
+     * 흩어지지 않도록 도메인에 둔다.
+     */
+    @Bean
+    public ProductAvailabilityService productAvailabilityService(
+        ProductRepository productRepository,
+        ProductOptionRepository productOptionRepository,
+        ProductCommonOptionRepository productCommonOptionRepository,
+        ProductOptionGroupRepository productOptionGroupRepository,
+        ProductCommonOptionGroupRepository productCommonOptionGroupRepository
+    ) {
+        return new ProductAvailabilityService(
+            productRepository,
+            productOptionRepository,
+            productCommonOptionRepository,
+            productOptionGroupRepository,
+            productCommonOptionGroupRepository
         );
     }
 }

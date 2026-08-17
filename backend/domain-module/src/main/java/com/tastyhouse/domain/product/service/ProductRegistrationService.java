@@ -97,6 +97,7 @@ public class ProductRegistrationService {
             representative,
             spiciness,
             soldOut,
+            null,  // 등록 경로는 품절 기간을 다루지 않는다(기간 지정은 점주 품절·숨김 관리 경로의 몫)
             visible,
             sort,
             false
@@ -212,7 +213,7 @@ public class ProductRegistrationService {
         boolean soldOut,
         boolean visible
     ) {
-        ProductOption option = ProductOption.of(optionGroupId, name, additionalPrice, sort, soldOut, visible);
+        ProductOption option = ProductOption.of(optionGroupId, name, additionalPrice, sort, soldOut, null, visible);
         ProductOption saved = productOptionRepository.save(option);
         return saved.getId();
     }

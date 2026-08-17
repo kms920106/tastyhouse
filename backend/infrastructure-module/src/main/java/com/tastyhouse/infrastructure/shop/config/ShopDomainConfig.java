@@ -43,6 +43,7 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipService;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
+import com.tastyhouse.domain.shop.service.ShopNextOpenTimeCalculator;
 import com.tastyhouse.domain.shop.service.ShopNoticeExposureService;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
@@ -83,6 +84,23 @@ public class ShopDomainConfig {
     @Bean
     public ShopNoticeExposureService shopNoticeExposureService(ShopNoticeRepository shopNoticeRepository) {
         return new ShopNoticeExposureService(shopNoticeRepository);
+    }
+
+    /**
+     * 다음 영업일 오픈 시각 계산기 — 품절 기간 기본값("익일 가게 오픈 시간")에 쓴다.
+     *
+     * <p>product 컨텍스트가 아니라 shop에 두는 이유: 영업시간·휴무일 해석은 shop의 관심사이고,
+     * product 도메인 서비스가 {@code ShopBusinessHour}를 직접 참조하면 컨텍스트 경계 위반이다.
+     * 두 서비스의 조립은 ceo-api의 command service가 담당한다.
+     *
+     * <p>요일별 영업시간 선택 규칙은 {@link ShopOperatingStatusCalculator}가 이미 소유하므로 주입해
+     * 재사용한다(복제하면 요일 구분 추가 시 한쪽만 고쳐진다).
+     */
+    @Bean
+    public ShopNextOpenTimeCalculator shopNextOpenTimeCalculator(
+        ShopOperatingStatusCalculator shopOperatingStatusCalculator
+    ) {
+        return new ShopNextOpenTimeCalculator(shopOperatingStatusCalculator);
     }
 
     /**

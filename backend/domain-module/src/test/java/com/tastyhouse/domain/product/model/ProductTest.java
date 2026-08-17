@@ -26,7 +26,7 @@ class ProductTest {
         Product product = Product.of(
             ShopId.of(1L), ProductCategoryId.of(2L), "떡볶이", "매운맛", 10000,
             8000, BigDecimal.valueOf(0.2), 4.5, 10,
-            true, 3, false, true, 1, false
+            true, 3, false, null, true, 1, false
         );
 
         assertThat(product.getId()).isNull();
@@ -45,7 +45,7 @@ class ProductTest {
         Product product = Product.of(
             ShopId.of(1L), ProductCategoryId.of(2L), "떡볶이", "매운맛", 10000,
             null, null, null, 0,
-            false, 3, false, true, 1, false
+            false, 3, false, null, true, 1, false
         );
 
         product.update(
@@ -69,7 +69,7 @@ class ProductTest {
     void markSoldOut_marksSoldOut() {
         Product product = Product.of(
             ShopId.of(1L), ProductCategoryId.of(2L), "떡볶이", "매운맛", 10000,
-            null, null, null, 0, false, 3, false, true, 1, false
+            null, null, null, 0, false, 3, false, null, true, 1, false
         );
 
         product.markSoldOut();
@@ -82,7 +82,7 @@ class ProductTest {
     void deactivate_marksInvisible() {
         Product product = Product.of(
             ShopId.of(1L), ProductCategoryId.of(2L), "떡볶이", "매운맛", 10000,
-            null, null, null, 0, false, 3, false, true, 1, false
+            null, null, null, 0, false, 3, false, null, true, 1, false
         );
 
         product.deactivate();
@@ -95,7 +95,7 @@ class ProductTest {
     void updateReviewStats_changesRatingAndReviewCount() {
         Product product = Product.of(
             ShopId.of(1L), ProductCategoryId.of(2L), "떡볶이", "매운맛", 10000,
-            null, null, null, 0, false, 3, false, true, 1, false
+            null, null, null, 0, false, 3, false, null, true, 1, false
         );
 
         product.updateReviewStats(4.8, 25);
@@ -111,7 +111,7 @@ class ProductTest {
 
         Product product = Product.reconstitute(
             1L, ShopId.of(10L), ProductCategoryId.of(20L), "떡볶이", "매운맛", 10000,
-            discountInfo, 4.5, 10, true, 3, false, true, 1, false,
+            discountInfo, 4.5, 10, true, 3, false, null, true, 1, false,
             null, null
         );
 
@@ -125,7 +125,7 @@ class ProductTest {
     void getProductId_onTransient_throws() {
         Product product = Product.of(
             ShopId.of(1L), ProductCategoryId.of(2L), "떡볶이", "매운맛", 10000,
-            null, null, null, 0, false, 3, false, true, 1, false
+            null, null, null, 0, false, 3, false, null, true, 1, false
         );
 
         assertThatThrownBy(product::getProductId)
@@ -135,7 +135,7 @@ class ProductTest {
     private static Product productWithPrices(Integer originalPrice, Integer discountPrice) {
         return Product.of(
             ShopId.of(1L), ProductCategoryId.of(2L), "떡볶이", "매운맛", originalPrice,
-            discountPrice, null, null, 0, false, 3, false, true, 1, false
+            discountPrice, null, null, 0, false, 3, false, null, true, 1, false
         );
     }
 
@@ -197,7 +197,7 @@ class ProductTest {
     void reconstitute_bypassesPriceValidation() {
         Product product = Product.reconstitute(
             1L, ShopId.of(10L), ProductCategoryId.of(20L), "레거시상품", "설명", -5000,
-            ProductDiscountInfo.of(99999, null), null, 0, false, 3, false, true, 1, false,
+            ProductDiscountInfo.of(99999, null), null, 0, false, 3, false, null, true, 1, false,
             null, null
         );
 

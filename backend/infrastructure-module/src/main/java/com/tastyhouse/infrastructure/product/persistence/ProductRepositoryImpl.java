@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
  * 상품 write 어댑터. 표현 목적 조회는 {@code infrastructure/product/query/ProductQueryDao}가 담당한다.
@@ -36,5 +39,35 @@ public class ProductRepositoryImpl implements ProductRepository {
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 상품입니다: " + product.getId()));
         ProductMapper.applyChanges(entity, product);
         return ProductMapper.toDomain(entity);
+    }
+
+    @Override
+    public List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> rawIds = ids.stream().map(ProductId::value).toList();
+        return productJpaRepository.findAllByShopIdAndIdIn(shopId.value(), rawIds).stream()
+            .map(ProductMapper::toDomain)
+            .toList();
+    }
+
+    @Override
+    public long countVisibleByShopId(ShopId shopId) {
+        return productJpaRepository.countByShopIdAndVisibleTrue(shopId.value());
+    }
+
+    @Override
+    public long countVisibleRepresentativeByShopId(ShopId shopId) {
+        return productJpaRepository.countByShopIdAndVisibleTrueAndRepresentativeTrue(shopId.value());
+    }
+
+    @Override
+    public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
+        return productJpaRepository
+            .findAllBySoldOutTrueAndSoldOutUntilIsNotNullAndSoldOutUntilLessThanEqual(baseTime).stream()
+            .map(ProductMapper::toDomain)
+            .toList();
     }
 }

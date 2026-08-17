@@ -23,6 +23,7 @@ final class ProductOptionMapper {
             entity.getAdditionalPrice(),
             entity.getSort(),
             entity.isSoldOut(),
+            entity.getSoldOutUntil(),
             entity.isVisible()
         );
     }
@@ -37,6 +38,7 @@ final class ProductOptionMapper {
             domain.getAdditionalPrice(),
             domain.getSort(),
             domain.isSoldOut(),
+            domain.getSoldOutUntil(),
             domain.isVisible()
         );
     }
@@ -50,6 +52,7 @@ final class ProductOptionMapper {
             domain.getAdditionalPrice(),
             domain.getSort(),
             domain.isSoldOut(),
+            domain.getSoldOutUntil(),
             domain.isVisible()
         );
     }

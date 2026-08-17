@@ -32,6 +32,14 @@ public class Product {
     private boolean representative;
     private Integer spiciness;
     private boolean soldOut;
+    /**
+     * 품절 자동해제 시각. {@code null}이면 수동 해제까지 유지되는 무기한 품절이다.
+     *
+     * <p>{@code soldOut}이 품절 상태의 진실원이고 이 필드는 "언제 자동으로 풀리는가"만 담는다 —
+     * 무기한 품절을 표현할 수 있어야 하고, 기간 개념이 없는 기존 admin 경로가 그대로 성립해야 하므로
+     * {@code soldOut}을 {@code soldOutUntil != null}로 대체하지 않는다.
+     */
+    private LocalDateTime soldOutUntil;
     private boolean visible;
     private Integer sort;
     /**
@@ -58,6 +66,7 @@ public class Product {
         boolean representative,
         Integer spiciness,
         boolean soldOut,
+        LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort,
         boolean ratingExcluded,
@@ -76,6 +85,7 @@ public class Product {
         this.representative = representative;
         this.spiciness = spiciness;
         this.soldOut = soldOut;
+        this.soldOutUntil = soldOutUntil;
         this.visible = visible;
         this.sort = sort;
         this.ratingExcluded = ratingExcluded;
@@ -104,6 +114,7 @@ public class Product {
         boolean representative,
         Integer spiciness,
         boolean soldOut,
+        LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort,
         boolean ratingExcluded
@@ -123,6 +134,7 @@ public class Product {
             representative,
             spiciness,
             soldOut,
+            soldOutUntil,
             visible,
             sort,
             ratingExcluded,
@@ -151,6 +163,7 @@ public class Product {
         boolean representative,
         Integer spiciness,
         boolean soldOut,
+        LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort,
         boolean ratingExcluded,
@@ -170,6 +183,7 @@ public class Product {
             representative,
             spiciness,
             soldOut,
+            soldOutUntil,
             visible,
             sort,
             ratingExcluded,
@@ -224,6 +238,10 @@ public class Product {
 
     public boolean isSoldOut() {
         return this.soldOut;
+    }
+
+    public LocalDateTime getSoldOutUntil() {
+        return this.soldOutUntil;
     }
 
     public boolean isVisible() {
@@ -294,12 +312,57 @@ public class Product {
         this.reviewCount = reviewCount;
     }
 
+    /**
+     * 기간 없이 품절 처리한다 — {@code soldOutUntil}을 건드리지 않으므로 수동 해제까지 유지되는
+     * 무기한 품절이 된다.
+     *
+     * <p>기존 admin 경로({@code PATCH /api/products/v1/{id}/sold-out})가 호출하고 있어
+     * 무인자 시그니처를 유지한다.
+     */
     public void markSoldOut() {
         this.soldOut = true;
     }
 
+    /**
+     * 자동해제 시각을 지정해 품절 처리한다. 기간 유효성(현재+30분 ~ 현재+7일)은 이 시각을 산출·검증하는
+     * 도메인 서비스가 판정하므로 여기서는 값만 반영한다.
+     */
+    public void markSoldOut(LocalDateTime soldOutUntil) {
+        this.soldOut = true;
+        this.soldOutUntil = soldOutUntil;
+    }
+
+    /**
+     * 품절을 해제한다. {@code soldOut}과 {@code soldOutUntil}을 <b>함께</b> 정리한다.
+     *
+     * <p>배치 자동해제·수동 해제·일괄 해제가 모두 이 메서드 하나만 경유해야 한다 — 한쪽이라도
+     * {@code soldOut}만 끄면 {@code soldOutUntil}이 남아 다음 배치 주기가 이미 판매중인 행을 다시 집는
+     * 드리프트가 생긴다.
+     */
+    public void releaseSoldOut() {
+        this.soldOut = false;
+        this.soldOutUntil = null;
+    }
+
+    /**
+     * 품절 자동해제 시각만 변경한다.
+     *
+     * <p>품절 상태가 아니면 바꿀 대상이 없으므로 {@code PRODUCT_NOT_SOLD_OUT}(400)으로 거부한다 —
+     * 판매중인 메뉴에 해제 시각만 남으면 그 값이 어떤 의미도 갖지 못한다.
+     */
+    public void changeSoldOutUntil(LocalDateTime until) {
+        if (!this.soldOut) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_SOLD_OUT);
+        }
+        this.soldOutUntil = until;
+    }
+
     public void deactivate() {
         this.visible = false;
+    }
+
+    public void activate() {
+        this.visible = true;
     }
 
     public void update(
@@ -327,5 +390,11 @@ public class Product {
         this.soldOut = soldOut;
         this.visible = visible;
         this.sort = sort;
+
+        // 이 경로는 soldOutUntil을 다루지 않지만, 품절이 해제되는 방향이면 함께 비워 드리프트를 남기지 않는다.
+        // (판매중인데 해제 예정 시각만 남는 상태를 만들지 않는다.)
+        if (!soldOut) {
+            this.soldOutUntil = null;
+        }
     }
 }

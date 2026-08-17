@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -38,6 +40,9 @@ public class ProductOptionJpaEntity extends BaseEntity {
     @Column(name = "is_sold_out", nullable = false)
     private boolean soldOut;
 
+    @Column(name = "sold_out_until")
+    private LocalDateTime soldOutUntil;
+
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
@@ -50,6 +55,7 @@ public class ProductOptionJpaEntity extends BaseEntity {
         Integer additionalPrice,
         Integer sort,
         boolean soldOut,
+        LocalDateTime soldOutUntil,
         boolean visible
     ) {
         this.optionGroupId = optionGroupId;
@@ -57,6 +63,7 @@ public class ProductOptionJpaEntity extends BaseEntity {
         this.additionalPrice = additionalPrice;
         this.sort = sort;
         this.soldOut = soldOut;
+        this.soldOutUntil = soldOutUntil;
         this.visible = visible;
     }
 
@@ -69,19 +76,28 @@ public class ProductOptionJpaEntity extends BaseEntity {
         Integer additionalPrice,
         Integer sort,
         boolean soldOut,
+        LocalDateTime soldOutUntil,
         boolean visible
     ) {
-        return new ProductOptionJpaEntity(optionGroupId, name, additionalPrice, sort, soldOut, visible);
+        return new ProductOptionJpaEntity(optionGroupId, name, additionalPrice, sort, soldOut, soldOutUntil, visible);
     }
 
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). optionGroupId는 건드리지 않는다.
      */
-    void applyChanges(String name, Integer additionalPrice, Integer sort, boolean soldOut, boolean visible) {
+    void applyChanges(
+        String name,
+        Integer additionalPrice,
+        Integer sort,
+        boolean soldOut,
+        LocalDateTime soldOutUntil,
+        boolean visible
+    ) {
         this.name = name;
         this.additionalPrice = additionalPrice;
         this.sort = sort;
         this.soldOut = soldOut;
+        this.soldOutUntil = soldOutUntil;
         this.visible = visible;
     }
 
@@ -107,6 +123,10 @@ public class ProductOptionJpaEntity extends BaseEntity {
 
     public boolean isSoldOut() {
         return this.soldOut;
+    }
+
+    public LocalDateTime getSoldOutUntil() {
+        return this.soldOutUntil;
     }
 
     public boolean isVisible() {

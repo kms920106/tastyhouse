@@ -17,7 +17,7 @@ class ProductOptionTest {
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 추가금액 null은 0으로 보정된다")
     void of_createsTransientOption_withNullAdditionalPriceDefaultedToZero() {
-        ProductOption option = ProductOption.of(ProductOptionGroupId.of(1L), "곱빼기", null, 1, false, true);
+        ProductOption option = ProductOption.of(ProductOptionGroupId.of(1L), "곱빼기", null, 1, false, null, true);
 
         assertThat(option.getId()).isNull();
         assertThat(option.getOptionGroupId()).isEqualTo(ProductOptionGroupId.of(1L));
@@ -30,7 +30,7 @@ class ProductOptionTest {
     @Test
     @DisplayName("update는 이름·추가금액·정렬순서·품절·노출여부를 변경한다")
     void update_changesFields() {
-        ProductOption option = ProductOption.of(ProductOptionGroupId.of(1L), "곱빼기", 1000, 1, false, true);
+        ProductOption option = ProductOption.of(ProductOptionGroupId.of(1L), "곱빼기", 1000, 1, false, null, true);
 
         option.update("아주곱빼기", 2000, 2, true, false);
 
@@ -44,7 +44,7 @@ class ProductOptionTest {
     @Test
     @DisplayName("reconstitute는 DB 상태로부터 식별자를 포함해 재구성한다")
     void reconstitute_restoresPersistedState() {
-        ProductOption option = ProductOption.reconstitute(1L, ProductOptionGroupId.of(10L), "곱빼기", 1000, 1, false, true);
+        ProductOption option = ProductOption.reconstitute(1L, ProductOptionGroupId.of(10L), "곱빼기", 1000, 1, false, null, true);
 
         assertThat(option.getId()).isEqualTo(1L);
         assertThat(option.getProductOptionId()).isEqualTo(ProductOptionId.of(1L));
@@ -53,7 +53,7 @@ class ProductOptionTest {
     @Test
     @DisplayName("미영속 상태에서 getProductOptionId를 호출하면 불변식 위반으로 예외가 발생한다")
     void getProductOptionId_onTransient_throws() {
-        ProductOption option = ProductOption.of(ProductOptionGroupId.of(1L), "곱빼기", 1000, 1, false, true);
+        ProductOption option = ProductOption.of(ProductOptionGroupId.of(1L), "곱빼기", 1000, 1, false, null, true);
 
         assertThatThrownBy(option::getProductOptionId)
             .isInstanceOf(IllegalArgumentException.class);

@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
@@ -64,6 +66,9 @@ public class ProductJpaEntity extends BaseEntity {
     @Column(name = "is_sold_out", nullable = false)
     private boolean soldOut;
 
+    @Column(name = "sold_out_until")
+    private LocalDateTime soldOutUntil;
+
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
@@ -92,6 +97,7 @@ public class ProductJpaEntity extends BaseEntity {
         boolean representative,
         Integer spiciness,
         boolean soldOut,
+        LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort,
         boolean ratingExcluded
@@ -107,6 +113,7 @@ public class ProductJpaEntity extends BaseEntity {
         this.representative = representative;
         this.spiciness = spiciness;
         this.soldOut = soldOut;
+        this.soldOutUntil = soldOutUntil;
         this.visible = visible;
         this.sort = sort;
         this.ratingExcluded = ratingExcluded;
@@ -127,13 +134,14 @@ public class ProductJpaEntity extends BaseEntity {
         boolean representative,
         Integer spiciness,
         boolean soldOut,
+        LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort,
         boolean ratingExcluded
     ) {
         return new ProductJpaEntity(
             shopId, productCategoryId, name, description, originalPrice, discountInfo,
-            rating, reviewCount, representative, spiciness, soldOut, visible, sort, ratingExcluded
+            rating, reviewCount, representative, spiciness, soldOut, soldOutUntil, visible, sort, ratingExcluded
         );
     }
 
@@ -151,6 +159,7 @@ public class ProductJpaEntity extends BaseEntity {
         boolean representative,
         Integer spiciness,
         boolean soldOut,
+        LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort
     ) {
@@ -164,6 +173,7 @@ public class ProductJpaEntity extends BaseEntity {
         this.representative = representative;
         this.spiciness = spiciness;
         this.soldOut = soldOut;
+        this.soldOutUntil = soldOutUntil;
         this.visible = visible;
         this.sort = sort;
     }
@@ -214,6 +224,10 @@ public class ProductJpaEntity extends BaseEntity {
 
     public boolean isSoldOut() {
         return this.soldOut;
+    }
+
+    public LocalDateTime getSoldOutUntil() {
+        return this.soldOutUntil;
     }
 
     public boolean isVisible() {

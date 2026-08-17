@@ -14,7 +14,7 @@ class ProductCommonOptionTest {
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 추가금액 null은 0으로 보정된다")
     void of_createsTransientOption_withNullAdditionalPriceDefaultedToZero() {
-        ProductCommonOption option = ProductCommonOption.of(ProductOptionGroupId.of(1L), "곱빼기", null, 1, false, true);
+        ProductCommonOption option = ProductCommonOption.of(ProductOptionGroupId.of(1L), "곱빼기", null, 1, false, null, true);
 
         assertThat(option.getId()).isNull();
         assertThat(option.getOptionGroupId()).isEqualTo(ProductOptionGroupId.of(1L));
@@ -27,7 +27,7 @@ class ProductCommonOptionTest {
     @Test
     @DisplayName("update는 이름·추가금액·정렬순서·품절·노출여부를 변경한다")
     void update_changesFields() {
-        ProductCommonOption option = ProductCommonOption.of(ProductOptionGroupId.of(1L), "곱빼기", 1000, 1, false, true);
+        ProductCommonOption option = ProductCommonOption.of(ProductOptionGroupId.of(1L), "곱빼기", 1000, 1, false, null, true);
 
         option.update("아주곱빼기", 2000, 2, true, false);
 
@@ -41,7 +41,7 @@ class ProductCommonOptionTest {
     @Test
     @DisplayName("reconstitute는 DB 상태로부터 식별자를 포함해 재구성한다")
     void reconstitute_restoresPersistedState() {
-        ProductCommonOption option = ProductCommonOption.reconstitute(1L, ProductOptionGroupId.of(10L), "곱빼기", 1000, 1, false, true);
+        ProductCommonOption option = ProductCommonOption.reconstitute(1L, ProductOptionGroupId.of(10L), "곱빼기", 1000, 1, false, null, true);
 
         assertThat(option.getId()).isEqualTo(1L);
         assertThat(option.getOptionGroupId()).isEqualTo(ProductOptionGroupId.of(10L));

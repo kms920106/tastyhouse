@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -37,5 +38,17 @@ public class ProductOptionGroupRepositoryImpl implements ProductOptionGroupRepos
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 상품 옵션 그룹입니다: " + entity.getId()));
         ProductOptionGroupMapper.applyChanges(jpaEntity, entity);
         return ProductOptionGroupMapper.toDomain(jpaEntity);
+    }
+
+    @Override
+    public List<ProductOptionGroup> findAllByIdIn(List<ProductOptionGroupId> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> rawIds = ids.stream().map(ProductOptionGroupId::value).toList();
+        return productOptionGroupJpaRepository.findAllByIdIn(rawIds).stream()
+            .map(ProductOptionGroupMapper::toDomain)
+            .toList();
     }
 }

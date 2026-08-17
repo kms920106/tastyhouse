@@ -690,6 +690,303 @@ public class ProductQueryDao {
             .fetch();
     }
 
+    // ── 품절·숨김 관리 ─────────────────────────────────────────────────────
+
+    /**
+     * 품절·숨김 관리 화면의 메뉴 탭 — 카테고리를 {@code leftJoin}(미분류 메뉴 포함)하고 대표 이미지 URL을
+     * 완성한다. 손님 화면과 달리 {@code visible.eq(true)} 필터를 걸지 않는다 — 점주가 품절·숨김 상태
+     * 자체를 관리하는 화면이라 숨김·품절 항목도 그대로 노출해야 한다.
+     */
+    public List<ProductAvailabilityItemResult> findProductAvailability(ProductAvailabilitySearchCondition condition) {
+        return queryFactory
+            .select(
+                productCategoryJpaEntity.id,
+                productCategoryJpaEntity.name,
+                productCategoryJpaEntity.sort,
+                productJpaEntity.id,
+                productJpaEntity.name,
+                productJpaEntity.originalPrice,
+                productJpaEntity.discountInfo.discountPrice,
+                uploadedFileJpaEntity.filePath,
+                productJpaEntity.soldOut,
+                productJpaEntity.soldOutUntil,
+                productJpaEntity.visible,
+                productJpaEntity.representative,
+                productJpaEntity.sort
+            )
+            .from(productJpaEntity)
+            .leftJoin(productCategoryJpaEntity).on(productJpaEntity.productCategoryId.eq(productCategoryJpaEntity.id))
+            .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
+            .where(
+                productJpaEntity.shopId.eq(condition.shopId()),
+                nameContains(condition.keyword()),
+                soldOutOrHidden(condition.soldOutOnly(), condition.hiddenOnly())
+            )
+            .orderBy(productCategoryJpaEntity.sort.asc().nullsLast(), productJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .map(tuple -> new ProductAvailabilityItemResult(
+                tuple.get(productCategoryJpaEntity.id),
+                tuple.get(productCategoryJpaEntity.name),
+                tuple.get(productCategoryJpaEntity.sort),
+                tuple.get(productJpaEntity.id),
+                tuple.get(productJpaEntity.name),
+                tuple.get(productJpaEntity.originalPrice),
+                tuple.get(productJpaEntity.discountInfo.discountPrice),
+                fileUrlResolver.resolve(tuple.get(uploadedFileJpaEntity.filePath)),
+                Boolean.TRUE.equals(tuple.get(productJpaEntity.soldOut)),
+                tuple.get(productJpaEntity.soldOutUntil),
+                Boolean.TRUE.equals(tuple.get(productJpaEntity.visible)),
+                Boolean.TRUE.equals(tuple.get(productJpaEntity.representative)),
+                tuple.get(productJpaEntity.sort)
+            ))
+            .toList();
+    }
+
+    /**
+     * 품절·숨김 관리 화면의 옵션 탭 — 일반 옵션 그룹과 공통 옵션 그룹을 각각 조회해 병합한다(일반 먼저).
+     * 손님 화면 조회와 달리 {@code visible.eq(true)} 필터를 걸지 않고, {@code keyword}는 옵션명을 기준으로
+     * 매칭한다.
+     */
+    public List<ProductOptionAvailabilityGroupResult> findProductOptionAvailability(
+        ProductAvailabilitySearchCondition condition
+    ) {
+        List<ProductOptionAvailabilityGroupResult> result = new ArrayList<>();
+        result.addAll(findNormalOptionGroupsForAvailability(condition));
+        result.addAll(findCommonOptionGroupsForAvailability(condition));
+        return result;
+    }
+
+    private List<ProductOptionAvailabilityGroupResult> findNormalOptionGroupsForAvailability(
+        ProductAvailabilitySearchCondition condition
+    ) {
+        List<Long> groupIds = queryFactory
+            .select(productOptionGroupJpaEntity.id)
+            .from(productOptionGroupJpaEntity)
+            .innerJoin(productJpaEntity).on(productOptionGroupJpaEntity.productId.eq(productJpaEntity.id))
+            .where(
+                productJpaEntity.shopId.eq(condition.shopId()),
+                normalOptionMatchExists(condition)
+            )
+            .fetch();
+
+        if (groupIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Tuple> groups = queryFactory
+            .select(
+                productOptionGroupJpaEntity.id,
+                productOptionGroupJpaEntity.name,
+                productOptionGroupJpaEntity.required,
+                productOptionGroupJpaEntity.minSelect,
+                productOptionGroupJpaEntity.maxSelect,
+                productOptionGroupJpaEntity.sort,
+                productJpaEntity.name
+            )
+            .from(productOptionGroupJpaEntity)
+            .innerJoin(productJpaEntity).on(productOptionGroupJpaEntity.productId.eq(productJpaEntity.id))
+            .where(productOptionGroupJpaEntity.id.in(groupIds))
+            .orderBy(productOptionGroupJpaEntity.sort.asc())
+            .fetch();
+
+        // 같은 옵션 그룹 id 라도 연결 메뉴가 여러 건일 수 있어(1:N) 그룹 단위로 메뉴명을 모은다.
+        Map<Long, List<String>> linkedProductNamesByGroupId = new LinkedHashMap<>();
+        Map<Long, Tuple> groupById = new LinkedHashMap<>();
+        for (Tuple tuple : groups) {
+            Long groupId = tuple.get(productOptionGroupJpaEntity.id);
+            groupById.putIfAbsent(groupId, tuple);
+            linkedProductNamesByGroupId
+                .computeIfAbsent(groupId, key -> new ArrayList<>())
+                .add(tuple.get(productJpaEntity.name));
+        }
+
+        Map<Long, List<ProductOptionAvailabilityItemResult>> optionsByGroupId =
+            findNormalOptionsForAvailability(groupIds, condition);
+
+        return groupById.values().stream()
+            .map(tuple -> {
+                Long groupId = tuple.get(productOptionGroupJpaEntity.id);
+                return new ProductOptionAvailabilityGroupResult(
+                    groupId,
+                    "NORMAL",
+                    tuple.get(productOptionGroupJpaEntity.name),
+                    Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.required)),
+                    tuple.get(productOptionGroupJpaEntity.minSelect),
+                    tuple.get(productOptionGroupJpaEntity.maxSelect),
+                    linkedProductNamesByGroupId.getOrDefault(groupId, List.of()),
+                    tuple.get(productOptionGroupJpaEntity.sort),
+                    optionsByGroupId.getOrDefault(groupId, List.of())
+                );
+            })
+            .toList();
+    }
+
+    /**
+     * 그룹에 속한 일반 옵션을 조회한다.
+     *
+     * <p>검색어·품절보기·숨김보기를 <b>옵션 단위로</b> 적용한다 — 그룹 단위로만 걸면 "치즈"를 검색했을 때
+     * 치즈 옵션을 가진 그룹의 <b>모든</b> 옵션이 함께 나와 검색이 사실상 무의미해진다.
+     */
+    private Map<Long, List<ProductOptionAvailabilityItemResult>> findNormalOptionsForAvailability(
+        List<Long> groupIds,
+        ProductAvailabilitySearchCondition condition
+    ) {
+        NumberExpression<Long> optionGroupId = productOptionJpaEntity.optionGroupId;
+        return queryFactory
+            .select(
+                optionGroupId,
+                productOptionJpaEntity.id,
+                productOptionJpaEntity.name,
+                productOptionJpaEntity.additionalPrice,
+                productOptionJpaEntity.soldOut,
+                productOptionJpaEntity.soldOutUntil,
+                productOptionJpaEntity.visible,
+                productOptionJpaEntity.sort
+            )
+            .from(productOptionJpaEntity)
+            .where(
+                optionGroupId.in(groupIds),
+                optionNameContains(condition.keyword()),
+                normalOptionSoldOutOrHidden(condition.soldOutOnly(), condition.hiddenOnly())
+            )
+            .orderBy(productOptionJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .filter(tuple -> tuple.get(optionGroupId) != null)
+            .collect(Collectors.groupingBy(
+                tuple -> Objects.requireNonNull(tuple.get(optionGroupId)),
+                LinkedHashMap::new,
+                Collectors.mapping(
+                    tuple -> new ProductOptionAvailabilityItemResult(
+                        tuple.get(productOptionJpaEntity.id),
+                        "NORMAL",
+                        tuple.get(productOptionJpaEntity.name),
+                        tuple.get(productOptionJpaEntity.additionalPrice),
+                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut)),
+                        tuple.get(productOptionJpaEntity.soldOutUntil),
+                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.visible)),
+                        tuple.get(productOptionJpaEntity.sort)
+                    ),
+                    Collectors.toList()
+                )
+            ));
+    }
+
+    private List<ProductOptionAvailabilityGroupResult> findCommonOptionGroupsForAvailability(
+        ProductAvailabilitySearchCondition condition
+    ) {
+        List<Long> groupIds = queryFactory
+            .select(productCommonOptionGroupJpaEntity.id)
+            .from(productCommonOptionGroupJpaEntity)
+            .innerJoin(productJpaEntity).on(productCommonOptionGroupJpaEntity.productId.eq(productJpaEntity.id))
+            .where(
+                productJpaEntity.shopId.eq(condition.shopId()),
+                commonOptionMatchExists(condition)
+            )
+            .fetch();
+
+        if (groupIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Tuple> groups = queryFactory
+            .select(
+                productCommonOptionGroupJpaEntity.id,
+                productCommonOptionGroupJpaEntity.name,
+                productCommonOptionGroupJpaEntity.required,
+                productCommonOptionGroupJpaEntity.minSelect,
+                productCommonOptionGroupJpaEntity.maxSelect,
+                productCommonOptionGroupJpaEntity.sort,
+                productJpaEntity.name
+            )
+            .from(productCommonOptionGroupJpaEntity)
+            .innerJoin(productJpaEntity).on(productCommonOptionGroupJpaEntity.productId.eq(productJpaEntity.id))
+            .where(productCommonOptionGroupJpaEntity.id.in(groupIds))
+            .orderBy(productCommonOptionGroupJpaEntity.sort.asc())
+            .fetch();
+
+        // 같은 옵션 그룹 id 라도 연결 메뉴가 여러 건일 수 있어(1:N) 그룹 단위로 메뉴명을 모은다.
+        Map<Long, List<String>> linkedProductNamesByGroupId = new LinkedHashMap<>();
+        Map<Long, Tuple> groupById = new LinkedHashMap<>();
+        for (Tuple tuple : groups) {
+            Long groupId = tuple.get(productCommonOptionGroupJpaEntity.id);
+            groupById.putIfAbsent(groupId, tuple);
+            linkedProductNamesByGroupId
+                .computeIfAbsent(groupId, key -> new ArrayList<>())
+                .add(tuple.get(productJpaEntity.name));
+        }
+
+        Map<Long, List<ProductOptionAvailabilityItemResult>> optionsByGroupId =
+            findCommonOptionsForAvailability(groupIds, condition);
+
+        return groupById.values().stream()
+            .map(tuple -> {
+                Long groupId = tuple.get(productCommonOptionGroupJpaEntity.id);
+                return new ProductOptionAvailabilityGroupResult(
+                    groupId,
+                    "COMMON",
+                    tuple.get(productCommonOptionGroupJpaEntity.name),
+                    Boolean.TRUE.equals(tuple.get(productCommonOptionGroupJpaEntity.required)),
+                    tuple.get(productCommonOptionGroupJpaEntity.minSelect),
+                    tuple.get(productCommonOptionGroupJpaEntity.maxSelect),
+                    linkedProductNamesByGroupId.getOrDefault(groupId, List.of()),
+                    tuple.get(productCommonOptionGroupJpaEntity.sort),
+                    optionsByGroupId.getOrDefault(groupId, List.of())
+                );
+            })
+            .toList();
+    }
+
+    /**
+     * 그룹에 속한 공통 옵션을 조회한다. 필터는 일반 옵션과 동일하게 옵션 단위로 적용한다.
+     */
+    private Map<Long, List<ProductOptionAvailabilityItemResult>> findCommonOptionsForAvailability(
+        List<Long> groupIds,
+        ProductAvailabilitySearchCondition condition
+    ) {
+        NumberExpression<Long> commonOptionGroupId = productCommonOptionJpaEntity.optionGroupId;
+        return queryFactory
+            .select(
+                commonOptionGroupId,
+                productCommonOptionJpaEntity.id,
+                productCommonOptionJpaEntity.name,
+                productCommonOptionJpaEntity.additionalPrice,
+                productCommonOptionJpaEntity.soldOut,
+                productCommonOptionJpaEntity.soldOutUntil,
+                productCommonOptionJpaEntity.visible,
+                productCommonOptionJpaEntity.sort
+            )
+            .from(productCommonOptionJpaEntity)
+            .where(
+                commonOptionGroupId.in(groupIds),
+                commonOptionNameContainsItem(condition.keyword()),
+                commonOptionSoldOutOrHidden(condition.soldOutOnly(), condition.hiddenOnly())
+            )
+            .orderBy(productCommonOptionJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .filter(tuple -> tuple.get(commonOptionGroupId) != null)
+            .collect(Collectors.groupingBy(
+                tuple -> Objects.requireNonNull(tuple.get(commonOptionGroupId)),
+                LinkedHashMap::new,
+                Collectors.mapping(
+                    tuple -> new ProductOptionAvailabilityItemResult(
+                        tuple.get(productCommonOptionJpaEntity.id),
+                        "COMMON",
+                        tuple.get(productCommonOptionJpaEntity.name),
+                        tuple.get(productCommonOptionJpaEntity.additionalPrice),
+                        Boolean.TRUE.equals(tuple.get(productCommonOptionJpaEntity.soldOut)),
+                        tuple.get(productCommonOptionJpaEntity.soldOutUntil),
+                        Boolean.TRUE.equals(tuple.get(productCommonOptionJpaEntity.visible)),
+                        tuple.get(productCommonOptionJpaEntity.sort)
+                    ),
+                    Collectors.toList()
+                )
+            ));
+    }
+
     // ── batch ──────────────────────────────────────────────────────────────
 
     /**
@@ -826,6 +1123,123 @@ public class ProductQueryDao {
 
     private BooleanExpression soldOutEq(Boolean soldOut) {
         return soldOut != null ? productJpaEntity.soldOut.eq(soldOut) : null;
+    }
+
+    /**
+     * 품절·숨김 관리 화면의 "품절 보기"/"숨김 보기" OR 조합. varargs {@code .where(...)}는 AND라 OR을
+     * 표현할 수 없으므로, 하나의 {@link BooleanExpression}으로 묶어 단일 인자로 넘긴다.
+     */
+    private BooleanExpression soldOutOrHidden(Boolean soldOutOnly, Boolean hiddenOnly) {
+        boolean matchSoldOut = Boolean.TRUE.equals(soldOutOnly);
+        boolean matchHidden = Boolean.TRUE.equals(hiddenOnly);
+
+        if (matchSoldOut && matchHidden) {
+            return productJpaEntity.soldOut.isTrue().or(productJpaEntity.visible.isFalse());
+        }
+        if (matchSoldOut) {
+            return productJpaEntity.soldOut.isTrue();
+        }
+        if (matchHidden) {
+            return productJpaEntity.visible.isFalse();
+        }
+        return null;
+    }
+
+    /**
+     * 조건에 맞는 일반 옵션을 <b>하나라도 가진</b> 그룹만 남긴다.
+     *
+     * <p>검색어와 품절·숨김 필터를 EXISTS 서브쿼리 안에서 함께 적용하므로, 조건에 맞는 옵션이 없는
+     * 그룹은 목록에서 빠진다 — 항목 단위 필터만 걸면 옵션이 0개인 빈 그룹이 화면에 남는다.
+     */
+    private BooleanExpression normalOptionMatchExists(ProductAvailabilitySearchCondition condition) {
+        BooleanExpression keywordMatch = optionNameContains(condition.keyword());
+        BooleanExpression statusMatch =
+            normalOptionSoldOutOrHidden(condition.soldOutOnly(), condition.hiddenOnly());
+        if (keywordMatch == null && statusMatch == null) {
+            return null;
+        }
+        return JPAExpressions
+            .selectOne()
+            .from(productOptionJpaEntity)
+            .where(
+                productOptionJpaEntity.optionGroupId.eq(productOptionGroupJpaEntity.id),
+                keywordMatch,
+                statusMatch
+            )
+            .exists();
+    }
+
+    /**
+     * 조건에 맞는 공통 옵션을 하나라도 가진 그룹만 남긴다.
+     */
+    private BooleanExpression commonOptionMatchExists(ProductAvailabilitySearchCondition condition) {
+        BooleanExpression keywordMatch = commonOptionNameContainsItem(condition.keyword());
+        BooleanExpression statusMatch =
+            commonOptionSoldOutOrHidden(condition.soldOutOnly(), condition.hiddenOnly());
+        if (keywordMatch == null && statusMatch == null) {
+            return null;
+        }
+        return JPAExpressions
+            .selectOne()
+            .from(productCommonOptionJpaEntity)
+            .where(
+                productCommonOptionJpaEntity.optionGroupId.eq(productCommonOptionGroupJpaEntity.id),
+                keywordMatch,
+                statusMatch
+            )
+            .exists();
+    }
+
+    /**
+     * 일반 옵션 <b>항목</b>의 이름 부분일치. 그룹 선별용 EXISTS와 짝을 이룬다 — 그룹을 고른 뒤
+     * 그 안에서 실제로 일치하는 항목만 남기는 데 쓴다.
+     */
+    private BooleanExpression optionNameContains(String keyword) {
+        return StringUtils.hasText(keyword)
+            ? productOptionJpaEntity.name.containsIgnoreCase(keyword)
+            : null;
+    }
+
+    /** 공통 옵션 <b>항목</b>의 이름 부분일치. */
+    private BooleanExpression commonOptionNameContainsItem(String keyword) {
+        return StringUtils.hasText(keyword)
+            ? productCommonOptionJpaEntity.name.containsIgnoreCase(keyword)
+            : null;
+    }
+
+    /** 일반 옵션 항목의 "품절 보기"/"숨김 보기" OR 조합({@link #soldOutOrHidden}의 옵션판). */
+    private BooleanExpression normalOptionSoldOutOrHidden(Boolean soldOutOnly, Boolean hiddenOnly) {
+        boolean matchSoldOut = Boolean.TRUE.equals(soldOutOnly);
+        boolean matchHidden = Boolean.TRUE.equals(hiddenOnly);
+
+        if (matchSoldOut && matchHidden) {
+            return productOptionJpaEntity.soldOut.isTrue().or(productOptionJpaEntity.visible.isFalse());
+        }
+        if (matchSoldOut) {
+            return productOptionJpaEntity.soldOut.isTrue();
+        }
+        if (matchHidden) {
+            return productOptionJpaEntity.visible.isFalse();
+        }
+        return null;
+    }
+
+    /** 공통 옵션 항목의 "품절 보기"/"숨김 보기" OR 조합. */
+    private BooleanExpression commonOptionSoldOutOrHidden(Boolean soldOutOnly, Boolean hiddenOnly) {
+        boolean matchSoldOut = Boolean.TRUE.equals(soldOutOnly);
+        boolean matchHidden = Boolean.TRUE.equals(hiddenOnly);
+
+        if (matchSoldOut && matchHidden) {
+            return productCommonOptionJpaEntity.soldOut.isTrue()
+                .or(productCommonOptionJpaEntity.visible.isFalse());
+        }
+        if (matchSoldOut) {
+            return productCommonOptionJpaEntity.soldOut.isTrue();
+        }
+        if (matchHidden) {
+            return productCommonOptionJpaEntity.visible.isFalse();
+        }
+        return null;
     }
 
     // ── @Convert VO 컬럼의 raw Long path ───────────────────────────────────

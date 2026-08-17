@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.product.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,6 +95,7 @@ class ProductReviewStatsServiceTest {
             true,
             1,
             false,
+            null,
             true,
             0,
             false,
@@ -114,6 +116,26 @@ class ProductReviewStatsServiceTest {
         @Override
         public Optional<Product> findById(ProductId id) {
             return Optional.ofNullable(product);
+        }
+
+        @Override
+        public List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
+            return List.of();
+        }
+
+        @Override
+        public long countVisibleByShopId(ShopId shopId) {
+            return 0L;
+        }
+
+        @Override
+        public long countVisibleRepresentativeByShopId(ShopId shopId) {
+            return 0L;
+        }
+
+        @Override
+        public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
+            return List.of();
         }
 
         @Override
