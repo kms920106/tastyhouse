@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestDetailResult;
@@ -49,11 +49,11 @@ public class ReviewBlindRequestQueryService {
         int page,
         int size
     ) {
-        ApprovalStatus approvalStatus = status == null ? null : ApprovalStatus.valueOf(status);
+        ReviewBlindStatus blindStatus = status == null ? null : ReviewBlindStatus.from(status);
         ReviewBlindReason blindReason = reason == null ? null : ReviewBlindReason.from(reason);
 
         ReviewBlindRequestSearchCondition condition = ReviewBlindRequestSearchCondition.of(
-            shopId, approvalStatus, blindReason, startDate, endDate
+            shopId, blindStatus, blindReason, startDate, endDate
         );
         PageResult<ReviewBlindRequestListItemResponse> pageResult = reviewBlindRequestQueryDao
             .findBlindRequestPage(condition, PageQuery.of(page, size))
@@ -82,6 +82,7 @@ public class ReviewBlindRequestQueryService {
             dto.status().getDescription(),
             dto.reviewContent(),
             dto.reviewTotalRating(),
+            dto.blindUntil(),
             dto.createdAt()
         );
     }
@@ -100,7 +101,9 @@ public class ReviewBlindRequestQueryService {
             dto.reviewTotalRating(),
             dto.detailReason(),
             dto.rejectReason(),
+            dto.blindUntil(),
             dto.reviewImageUrls(),
+            dto.attachmentUrls(),
             dto.reviewMemberNickname(),
             dto.reviewHidden(),
             dto.reviewCreatedAt(),

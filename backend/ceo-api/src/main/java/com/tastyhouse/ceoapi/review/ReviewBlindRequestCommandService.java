@@ -1,5 +1,7 @@
 package com.tastyhouse.ceoapi.review;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,10 +37,17 @@ public class ReviewBlindRequestCommandService {
      *
      * @return 생성된 요청 식별자
      */
-    public Long request(Long ceoId, Long shopId, Long reviewId, String reason, String detailReason) {
+    public Long request(
+        Long ceoId,
+        Long shopId,
+        Long reviewId,
+        String reason,
+        String detailReason,
+        List<Long> attachmentFileIds
+    ) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         ReviewBlindReason blindReason = ReviewBlindReason.from(reason);
-        return reviewBlindRequestService.request(shopId, reviewId, ceoId, blindReason, detailReason);
+        return reviewBlindRequestService.request(shopId, reviewId, ceoId, blindReason, detailReason, attachmentFileIds);
     }
 
     /**

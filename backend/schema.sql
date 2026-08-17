@@ -864,13 +864,27 @@ CREATE TABLE REVIEW_BLIND_REQUEST
     ceo_id        BIGINT       NOT NULL,               -- 요청 점주 ID (CEO.id 참조)
     reason        VARCHAR(20)  NOT NULL,               -- 요청 사유 (ADVERTISEMENT, PROFANITY, IRRELEVANT, PRIVACY, ETC)
     detail_reason VARCHAR(500),                        -- 상세 사유 (reason=ETC 면 필수 / 그 외 선택)
-    status        VARCHAR(20)  NOT NULL,               -- 처리 상태 (PENDING, APPROVED, REJECTED, CANCELED)
+    status        VARCHAR(20)  NOT NULL,               -- 처리 상태 (PENDING, APPROVED, REJECTED, CANCELED, EXPIRED, DELETED)
     reject_reason VARCHAR(500),                        -- 반려 사유 (REJECTED 일 때만 / 취소 시 비움)
+    blind_until   DATETIME,                            -- 재노출 예정일시 (승인 시각 + 30일. APPROVED 일 때만 값)
     created_at    DATETIME     NOT NULL,               -- 생성 일시 (= 요청 접수 시각)
     updated_at    DATETIME     NOT NULL,               -- 수정 일시
     INDEX idx_review_blind_request_review_id (review_id),                    -- 인덱스: 리뷰별 이력 조회
     INDEX idx_review_blind_request_shop_id_created_at (shop_id, created_at), -- 인덱스: 가게별 최신순
-    INDEX idx_review_blind_request_status (status)                           -- 인덱스: 관리자 심사 대기 큐
+    INDEX idx_review_blind_request_status (status),                          -- 인덱스: 관리자 심사 대기 큐
+    INDEX idx_review_blind_request_blind_until (blind_until)                 -- 인덱스: 만료 재노출 배치
+);
+
+-- 게시중단 요청 증빙 서류 — 신분증·위임장·사업자등록증 등을 첨부합니다.
+-- REVIEW_IMAGE 와 동형(불변, 감사 시각 없음)입니다.
+-- 개수 제한(3개)을 스키마가 아니라 애플리케이션(Bean Validation)에 두는 이유는 개수가 정책이기 때문입니다.
+CREATE TABLE REVIEW_BLIND_REQUEST_ATTACHMENT
+(
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY, -- 첨부 ID (PK)
+    blind_request_id   BIGINT NOT NULL,                   -- 게시중단 요청 ID (REVIEW_BLIND_REQUEST.id 참조)
+    attachment_file_id BIGINT NOT NULL,                   -- 첨부 파일 ID (UPLOADED_FILE.id 참조)
+    sort               INT    NOT NULL,                   -- 정렬 순서
+    INDEX idx_review_blind_request_attachment_request_id (blind_request_id) -- 인덱스: 요청별 조회
 );
 
 -- 메뉴 평가 — REVIEW 와 독립된 애그리거트입니다(부모-자식 관계가 아닙니다).

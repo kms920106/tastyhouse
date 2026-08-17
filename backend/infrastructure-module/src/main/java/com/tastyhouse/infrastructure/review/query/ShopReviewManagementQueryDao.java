@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.review.model.ReviewListTab;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
@@ -216,6 +216,7 @@ public class ShopReviewManagementQueryDao {
                 reviewBlindRequestJpaEntity.detailReason,
                 reviewBlindRequestJpaEntity.status,
                 reviewBlindRequestJpaEntity.rejectReason,
+                reviewBlindRequestJpaEntity.blindUntil,
                 reviewBlindRequestJpaEntity.createdAt
             ))
             .from(reviewBlindRequestJpaEntity)
@@ -347,7 +348,7 @@ public class ShopReviewManagementQueryDao {
      * <p>상관 서브쿼리 2단({@code id = (select max(id) ...)})으로 최신 1건을 특정한다 — 목록에
      * {@code REVIEW_BLIND_REQUEST}를 직접 join하면 요청을 여러 번 낸 리뷰에서 행이 불어난다.
      */
-    private Expression<ApprovalStatus> latestBlindRequestStatus() {
+    private Expression<ReviewBlindStatus> latestBlindRequestStatus() {
         return JPAExpressions
             .select(subBlindRequest.status)
             .from(subBlindRequest)

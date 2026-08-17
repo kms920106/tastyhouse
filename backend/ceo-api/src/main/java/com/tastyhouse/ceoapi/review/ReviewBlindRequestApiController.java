@@ -45,7 +45,8 @@ public class ReviewBlindRequestApiController {
             id,
             reviewId,
             request.reason(),
-            request.detailReason()
+            request.detailReason(),
+            request.attachmentFileIds()
         );
         return ResponseEntity.ok(ApiResponse.success(blindRequestId));
     }

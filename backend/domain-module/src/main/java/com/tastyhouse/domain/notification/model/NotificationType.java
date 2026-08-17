@@ -12,7 +12,10 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public enum NotificationType {
 
     /** 내가 쓴 리뷰에 사장님이 답변을 달았다. */
-    REVIEW_OWNER_REPLY;
+    REVIEW_OWNER_REPLY,
+
+    /** 내가 쓴 리뷰가 게시중단됐다(30일 뒤 재노출 또는 지금 삭제 동의 가능). */
+    REVIEW_BLIND_APPROVED;
 
     public static NotificationType from(String code) {
         try {

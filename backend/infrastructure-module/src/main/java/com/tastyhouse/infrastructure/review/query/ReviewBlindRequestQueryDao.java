@@ -13,13 +13,14 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
+import static com.tastyhouse.infrastructure.review.persistence.QReviewBlindRequestAttachmentJpaEntity.reviewBlindRequestAttachmentJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewBlindRequestJpaEntity.reviewBlindRequestJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity.reviewImageJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
@@ -79,6 +80,7 @@ public class ReviewBlindRequestQueryDao {
                 shopJpaEntity.name,
                 reviewBlindRequestJpaEntity.reason,
                 reviewBlindRequestJpaEntity.status,
+                reviewBlindRequestJpaEntity.blindUntil,
                 reviewJpaEntity.content,
                 reviewJpaEntity.totalRating,
                 reviewBlindRequestJpaEntity.createdAt
@@ -109,8 +111,10 @@ public class ReviewBlindRequestQueryDao {
                 reviewBlindRequestJpaEntity.detailReason,
                 reviewBlindRequestJpaEntity.status,
                 reviewBlindRequestJpaEntity.rejectReason,
+                reviewBlindRequestJpaEntity.blindUntil,
                 reviewJpaEntity.content,
                 reviewJpaEntity.totalRating,
+                Expressions.constant(List.<String>of()),
                 Expressions.constant(List.<String>of()),
                 memberJpaEntity.nickname,
                 reviewJpaEntity.hidden,
@@ -127,7 +131,70 @@ public class ReviewBlindRequestQueryDao {
         if (detail == null) {
             return Optional.empty();
         }
-        return Optional.of(detail.withReviewImageUrls(findReviewImageUrls(detail.reviewId())));
+        return Optional.of(detail.withUrls(
+            findReviewImageUrls(detail.reviewId()),
+            findAttachmentUrls(detail.id())
+        ));
+    }
+
+    /**
+     * 고객용 게시중단 안내 — 현재 게시중단(APPROVED) 중인 요청 1건과 그 대상 리뷰를 함께 투영한다.
+     *
+     * <p><b>{@code hidden} 필터를 걸지 않는다</b> — 대상이 애초에 게시중단된 리뷰이므로, 일반 리뷰 상세
+     * 조회의 {@code hidden.isFalse()}를 그대로 쓰면 아무것도 나오지 않는다. 대신 <b>작성자 본인 검증은
+     * 호출부(서비스)가</b> {@code reviewMemberId}로 수행한다 — 이 DAO는 표현용 투영만 담당한다.
+     *
+     * <p>{@code status = APPROVED}로 좁히므로 이미 만료·삭제된 건은 자동으로 제외된다(안내할 것이 없다).
+     */
+    public Optional<ReviewBlindNoticeResult> findBlindNotice(Long reviewId) {
+        ReviewBlindNoticeResult notice = queryFactory
+            .select(Projections.constructor(ReviewBlindNoticeResult.class,
+                reviewJpaEntity.id,
+                reviewJpaEntity.content,
+                Expressions.constant(List.<String>of()),
+                reviewJpaEntity.createdAt,
+                shopJpaEntity.name,
+                reviewBlindRequestJpaEntity.reason,
+                reviewBlindRequestJpaEntity.detailReason,
+                reviewBlindRequestJpaEntity.blindUntil,
+                reviewJpaEntity.memberId
+            ))
+            .from(reviewBlindRequestJpaEntity)
+            .innerJoin(reviewJpaEntity).on(reviewJpaEntity.id.eq(reviewBlindRequestJpaEntity.reviewId))
+            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reviewBlindRequestJpaEntity.shopId))
+            .where(
+                reviewBlindRequestJpaEntity.reviewId.eq(reviewId),
+                reviewBlindRequestJpaEntity.status.eq(ReviewBlindStatus.APPROVED)
+            )
+            .orderBy(reviewBlindRequestJpaEntity.id.desc())
+            .fetchFirst();
+
+        if (notice == null) {
+            return Optional.empty();
+        }
+        return Optional.of(notice.withImageUrls(findReviewImageUrls(notice.reviewId())));
+    }
+
+    /**
+     * 증빙 서류 URL 목록(정렬값 오름차순). 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지 완성해
+     * 돌려준다 — {@code fileId}를 노출하지 않고 URL만 내리는 응답 규칙 때문이다.
+     */
+    private List<String> findAttachmentUrls(Long blindRequestId) {
+        if (blindRequestId == null) {
+            return List.of();
+        }
+        List<String> filePaths = queryFactory
+            .select(uploadedFileJpaEntity.filePath)
+            .from(reviewBlindRequestAttachmentJpaEntity)
+            .innerJoin(uploadedFileJpaEntity)
+            .on(uploadedFileJpaEntity.id.eq(reviewBlindRequestAttachmentJpaEntity.attachmentFileId))
+            .where(reviewBlindRequestAttachmentJpaEntity.blindRequestId.eq(blindRequestId))
+            .orderBy(reviewBlindRequestAttachmentJpaEntity.sort.asc())
+            .fetch();
+
+        return fileUrlResolver.resolveAll(filePaths).stream()
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     /**
@@ -155,7 +222,7 @@ public class ReviewBlindRequestQueryDao {
         return shopId != null ? reviewBlindRequestJpaEntity.shopId.eq(shopId) : null;
     }
 
-    private BooleanExpression statusEq(ApprovalStatus status) {
+    private BooleanExpression statusEq(ReviewBlindStatus status) {
         return status != null ? reviewBlindRequestJpaEntity.status.eq(status) : null;
     }
 

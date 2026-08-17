@@ -94,9 +94,15 @@ public class ShopRequestIndexRecorder {
      *
      * <p>요청 유형이 {@link ShopRequestType#REVIEW_BLIND} 하나로 고정이라 유형을 인자로 받지 않는다
      * (이미지 변경이 상표·대표이미지 2종으로 갈리는 것과 다른 점).
+     *
+     * <p><b>review 도메인의 상태 enum이 아니라 통합 상태 {@link ShopRequestStatus}를 받는다</b> —
+     * 형제 메서드들과 다른 점이며, 이유는 컨텍스트 경계다. shop 컨텍스트가
+     * {@code review.model.ReviewBlindStatus}를 import하면 {@code ContextBoundaryTest}의
+     * "타 컨텍스트의 model을 import하지 않는다" 규칙을 위반한다(이미지 변경·조정 신청의 상태 enum은
+     * 둘 다 shop 컨텍스트 소유라 이 문제가 없다). 매핑은 그 enum을 소유한 review 쪽이 수행한다.
      */
-    public void syncBlindRequestStatus(Long sourceRequestId, ApprovalStatus status, String rejectReason) {
-        syncStatus(ShopRequestType.REVIEW_BLIND, sourceRequestId, toRequestStatus(status), rejectReason);
+    public void syncBlindRequestStatus(Long sourceRequestId, ShopRequestStatus status, String rejectReason) {
+        syncStatus(ShopRequestType.REVIEW_BLIND, sourceRequestId, status, rejectReason);
     }
 
     /**

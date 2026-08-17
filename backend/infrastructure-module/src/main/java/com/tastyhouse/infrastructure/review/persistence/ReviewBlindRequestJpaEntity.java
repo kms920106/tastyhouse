@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,7 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -48,10 +50,13 @@ public class ReviewBlindRequestJpaEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ApprovalStatus status;
+    private ReviewBlindStatus status;
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
+
+    @Column(name = "blind_until")
+    private LocalDateTime blindUntil;
 
     protected ReviewBlindRequestJpaEntity() {
     }
@@ -62,8 +67,9 @@ public class ReviewBlindRequestJpaEntity extends BaseEntity {
         Long ceoId,
         ReviewBlindReason reason,
         String detailReason,
-        ApprovalStatus status,
-        String rejectReason
+        ReviewBlindStatus status,
+        String rejectReason,
+        LocalDateTime blindUntil
     ) {
         this.reviewId = reviewId;
         this.shopId = shopId;
@@ -72,6 +78,7 @@ public class ReviewBlindRequestJpaEntity extends BaseEntity {
         this.detailReason = detailReason;
         this.status = status;
         this.rejectReason = rejectReason;
+        this.blindUntil = blindUntil;
     }
 
     /**
@@ -83,19 +90,23 @@ public class ReviewBlindRequestJpaEntity extends BaseEntity {
         Long ceoId,
         ReviewBlindReason reason,
         String detailReason,
-        ApprovalStatus status,
-        String rejectReason
+        ReviewBlindStatus status,
+        String rejectReason,
+        LocalDateTime blindUntil
     ) {
-        return new ReviewBlindRequestJpaEntity(reviewId, shopId, ceoId, reason, detailReason, status, rejectReason);
+        return new ReviewBlindRequestJpaEntity(
+            reviewId, shopId, ceoId, reason, detailReason, status, rejectReason, blindUntil
+        );
     }
 
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자·불변 필드는
      * 건드리지 않는다.
      */
-    void applyChanges(ApprovalStatus status, String rejectReason) {
+    void applyChanges(ReviewBlindStatus status, String rejectReason, LocalDateTime blindUntil) {
         this.status = status;
         this.rejectReason = rejectReason;
+        this.blindUntil = blindUntil;
     }
 
     public Long getId() {
@@ -122,11 +133,15 @@ public class ReviewBlindRequestJpaEntity extends BaseEntity {
         return this.detailReason;
     }
 
-    public ApprovalStatus getStatus() {
+    public ReviewBlindStatus getStatus() {
         return this.status;
     }
 
     public String getRejectReason() {
         return this.rejectReason;
+    }
+
+    public LocalDateTime getBlindUntil() {
+        return this.blindUntil;
     }
 }

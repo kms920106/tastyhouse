@@ -4,9 +4,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindRequest;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.repository.ReviewBlindRequestRepository;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
@@ -89,7 +89,7 @@ public class ShopRequestCancelService {
         ReviewBlindRequest request = reviewBlindRequestRepository
             .findById(ReviewBlindRequestId.of(sourceRequestId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
-        if (request.getStatus() != ApprovalStatus.PENDING) {
+        if (request.getStatus() != ReviewBlindStatus.PENDING) {
             throw new BusinessException(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
         }
         request.cancel();

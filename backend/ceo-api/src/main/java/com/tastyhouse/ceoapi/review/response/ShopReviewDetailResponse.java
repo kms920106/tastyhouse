@@ -88,6 +88,9 @@ public record ShopReviewDetailResponse(
     )
     String blindRequestStatus,
 
+    @Schema(description = "최근 게시중단 요청 상태 한글명. 요청 이력이 없으면 null입니다.", example = "반려")
+    String blindRequestStatusDescription,
+
     @Schema(description = "게시중단 요청 이력(최신순). 요청한 적이 없으면 빈 배열입니다.")
     List<ReviewBlindRequestHistoryResponse> blindRequests,
 
@@ -132,6 +135,7 @@ public record ShopReviewDetailResponse(
         LocalDateTime ownerReplyCreatedAt,
         LocalDateTime ownerReplyUpdatedAt,
         String blindRequestStatus,
+        String blindRequestStatusDescription,
         List<ReviewBlindRequestHistoryResponse> blindRequests,
         LocalDateTime createdAt,
         LocalDate replyDeadline,
@@ -164,6 +168,7 @@ public record ShopReviewDetailResponse(
             ownerReplyCreatedAt,
             ownerReplyUpdatedAt,
             blindRequestStatus,
+            blindRequestStatusDescription,
             blindRequests,
             createdAt,
             replyDeadline,

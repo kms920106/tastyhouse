@@ -29,6 +29,7 @@ final class ReviewBlindRequestMapper {
             entity.getDetailReason(),
             entity.getStatus(),
             entity.getRejectReason(),
+            entity.getBlindUntil(),
             entity.getCreatedAt()
         );
     }
@@ -44,7 +45,8 @@ final class ReviewBlindRequestMapper {
             domain.getReason(),
             domain.getDetailReason(),
             domain.getStatus(),
-            domain.getRejectReason()
+            domain.getRejectReason(),
+            domain.getBlindUntil()
         );
     }
 
@@ -54,7 +56,8 @@ final class ReviewBlindRequestMapper {
     static void applyChanges(ReviewBlindRequestJpaEntity entity, ReviewBlindRequest domain) {
         entity.applyChanges(
             domain.getStatus(),
-            domain.getRejectReason()
+            domain.getRejectReason(),
+            domain.getBlindUntil()
         );
     }
 }

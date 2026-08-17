@@ -76,6 +76,14 @@ class ShopRequestIndexRecorderTest {
     }
 
     @Test
+    @DisplayName("게시중단 동기화는 넘겨받은 통합 상태를 그대로 기록한다(매핑은 review 쪽 소유)")
+    void syncBlindRequestStatus_storesGivenStatus() {
+        assertBlindRequestMapping(ShopRequestStatus.APPROVED);
+        assertBlindRequestMapping(ShopRequestStatus.REJECTED);
+        assertBlindRequestMapping(ShopRequestStatus.CANCELED);
+    }
+
+    @Test
     @DisplayName("반려 동기화는 사유와 처리 시각을 함께 남긴다")
     void syncStatus_withRejectReason_storesReasonAndProcessedAt() {
         recordTrademarkRequest();
@@ -136,6 +144,34 @@ class ShopRequestIndexRecorderTest {
         assertThat(repository.require(ShopRequestType.TRADEMARK_CHANGE, SOURCE_ID).getStatus())
             .as("이미지 변경 %s는 통합 상태 %s에 대응해야 한다", source, expected)
             .isEqualTo(expected);
+    }
+
+    /**
+     * 게시중단은 형제 메서드들과 달리 <b>통합 상태를 그대로 받는다</b> — 컨텍스트 경계 때문에 recorder가
+     * {@code review.model.ReviewBlindStatus}를 import할 수 없어, 원본 상태 → 통합 상태 매핑은
+     * {@code ReviewBlindRequestService}가 소유한다. 그 매핑 표(특히 {@code EXPIRED}/{@code DELETED} →
+     * {@code APPROVED})는 {@code ReviewBlindRequestServiceTest}가 봉인한다.
+     */
+    private void assertBlindRequestMapping(ShopRequestStatus status) {
+        setUp();
+        recordBlindRequest();
+
+        recorder.syncBlindRequestStatus(SOURCE_ID, status, null);
+
+        assertThat(repository.require(ShopRequestType.REVIEW_BLIND, SOURCE_ID).getStatus())
+            .as("게시중단 동기화는 넘겨받은 %s를 그대로 기록해야 한다", status)
+            .isEqualTo(status);
+    }
+
+    private void recordBlindRequest() {
+        recorder.record(
+            SHOP_ID,
+            ShopRequestType.REVIEW_BLIND,
+            SOURCE_ID,
+            "리뷰 게시중단 요청 - 욕설·비방(리뷰 #482)",
+            null,
+            7L
+        );
     }
 
     private void assertAdjustmentMapping(DeliveryAreaAdjustmentStatus source, ShopRequestStatus expected) {

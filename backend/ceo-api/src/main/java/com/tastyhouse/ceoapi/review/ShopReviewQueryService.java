@@ -15,11 +15,11 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.model.ReviewListTab;
 import com.tastyhouse.domain.review.model.ReviewOwnerReply;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.domain.shared.model.OrderMethod;
@@ -292,7 +292,7 @@ public class ShopReviewQueryService {
 
     private ShopReviewListItemResponse toListItemResponse(ShopReviewManagementListItemResult result) {
         OrderMethod orderMethod = result.orderMethod();
-        ApprovalStatus blindRequestStatus = result.blindRequestStatus();
+        ReviewBlindStatus blindRequestStatus = result.blindRequestStatus();
         return ShopReviewListItemResponse.from(
             result.id(),
             toReviewNumber(result.id()),
@@ -308,6 +308,7 @@ public class ShopReviewQueryService {
             result.ownerReplyContent(),
             result.ownerReplyCreatedAt(),
             blindRequestStatus == null ? null : blindRequestStatus.name(),
+            blindRequestStatus == null ? null : blindRequestStatus.getDescription(),
             result.createdAt(),
             toReplyDeadline(result.createdAt()),
             isReplyable(result.createdAt())
@@ -344,6 +345,7 @@ public class ShopReviewQueryService {
             result.ownerReplyCreatedAt(),
             result.ownerReplyUpdatedAt(),
             latestBlindRequestStatus(blindRequests),
+            latestBlindRequestStatusDescription(blindRequests),
             blindRequests,
             result.createdAt(),
             toReplyDeadline(result.createdAt()),
@@ -381,9 +383,17 @@ public class ShopReviewQueryService {
         return blindRequests.isEmpty() ? null : blindRequests.getFirst().status();
     }
 
+    /**
+     * 상태 코드와 함께 내려주는 한글 라벨. 화면이 상태 코드를 자체 매핑하지 않고 이 값을 그대로 뱃지에 쓴다
+     * (`frontend/ceo/src/components/AGENTS.md` — 라벨의 한글화는 서버 카탈로그의 몫이다).
+     */
+    private String latestBlindRequestStatusDescription(List<ReviewBlindRequestHistoryResponse> blindRequests) {
+        return blindRequests.isEmpty() ? null : blindRequests.getFirst().statusDescription();
+    }
+
     private ReviewBlindRequestHistoryResponse toBlindRequestHistoryResponse(ReviewBlindRequestHistoryResult result) {
         ReviewBlindReason reason = result.reason();
-        ApprovalStatus status = result.status();
+        ReviewBlindStatus status = result.status();
         return ReviewBlindRequestHistoryResponse.from(
             result.id(),
             reason.name(),
@@ -392,6 +402,7 @@ public class ShopReviewQueryService {
             status.name(),
             status.getDescription(),
             result.rejectReason(),
+            result.blindUntil(),
             result.createdAt()
         );
     }

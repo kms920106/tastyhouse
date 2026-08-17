@@ -24,7 +24,7 @@ public record ReviewBlindRequestHistoryResponse(
 
     @Schema(
         description = "처리 상태",
-        allowableValues = {"PENDING", "APPROVED", "REJECTED", "CANCELED"},
+        allowableValues = {"PENDING", "APPROVED", "REJECTED", "CANCELED", "EXPIRED", "DELETED"},
         example = "REJECTED"
     )
     String status,
@@ -34,6 +34,9 @@ public record ReviewBlindRequestHistoryResponse(
 
     @Schema(description = "반려 사유. 반려된 요청에만 값이 있습니다.", example = "게시중단 기준에 해당하지 않습니다.")
     String rejectReason,
+
+    @Schema(description = "재노출 예정일시. 게시중단(APPROVED) 상태일 때만 값이 있습니다.", example = "2026-09-16T14:30:00")
+    LocalDateTime blindUntil,
 
     @Schema(description = "요청 접수일시", example = "2026-06-21T09:30:00")
     LocalDateTime createdAt
@@ -47,6 +50,7 @@ public record ReviewBlindRequestHistoryResponse(
         String status,
         String statusDescription,
         String rejectReason,
+        LocalDateTime blindUntil,
         LocalDateTime createdAt
     ) {
         return new ReviewBlindRequestHistoryResponse(
@@ -57,6 +61,7 @@ public record ReviewBlindRequestHistoryResponse(
             status,
             statusDescription,
             rejectReason,
+            blindUntil,
             createdAt
         );
     }

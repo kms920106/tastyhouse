@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.review.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.tastyhouse.domain.review.repository.ReviewBlindRequestAttachmentRepository;
 import com.tastyhouse.domain.review.repository.ReviewBlindRequestRepository;
 import com.tastyhouse.domain.review.repository.ReviewImageRepository;
 import com.tastyhouse.domain.review.repository.ReviewLikeRepository;
@@ -75,13 +76,19 @@ public class ReviewDomainConfig {
     @Bean
     public ReviewBlindRequestService reviewBlindRequestService(
         ReviewBlindRequestRepository reviewBlindRequestRepository,
+        ReviewBlindRequestAttachmentRepository reviewBlindRequestAttachmentRepository,
         ReviewRepository reviewRepository,
-        ShopRequestIndexRecorder shopRequestIndexRecorder
+        ReviewLifecycleService reviewLifecycleService,
+        ShopRequestIndexRecorder shopRequestIndexRecorder,
+        DomainEventPublisher domainEventPublisher
     ) {
         return new ReviewBlindRequestService(
             reviewBlindRequestRepository,
+            reviewBlindRequestAttachmentRepository,
             reviewRepository,
-            shopRequestIndexRecorder
+            reviewLifecycleService,
+            shopRequestIndexRecorder,
+            domainEventPublisher
         );
     }
 }

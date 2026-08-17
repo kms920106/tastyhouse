@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.review.query;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 
 /**
@@ -28,7 +28,7 @@ public record ShopReviewManagementListItemResult(
     boolean ownerOnly,
     String ownerReplyContent,
     LocalDateTime ownerReplyCreatedAt,
-    ApprovalStatus blindRequestStatus,
+    ReviewBlindStatus blindRequestStatus,
     LocalDateTime createdAt
 ) {
 

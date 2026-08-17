@@ -20,7 +20,7 @@ public record ReviewBlindRequestSearchRequest(
     @Schema(
         description = "처리 상태. 미지정 시 전체",
         example = "PENDING",
-        allowableValues = {"PENDING", "APPROVED", "REJECTED", "CANCELED"}
+        allowableValues = {"PENDING", "APPROVED", "REJECTED", "CANCELED", "EXPIRED", "DELETED"}
     )
     String status,
 

@@ -36,6 +36,9 @@ public record ReviewBlindRequestListItemResponse(
     @Schema(description = "리뷰 총 평점", example = "4.5")
     Double reviewTotalRating,
 
+    @Schema(description = "재노출 예정일시(게시중단 상태일 때만 값 존재)", example = "2026-09-16T14:30:00")
+    LocalDateTime blindUntil,
+
     @Schema(description = "요청 생성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
@@ -50,6 +53,7 @@ public record ReviewBlindRequestListItemResponse(
         String statusDescription,
         String reviewContent,
         Double reviewTotalRating,
+        LocalDateTime blindUntil,
         LocalDateTime createdAt
     ) {
         return new ReviewBlindRequestListItemResponse(
@@ -63,6 +67,7 @@ public record ReviewBlindRequestListItemResponse(
             statusDescription,
             reviewContent,
             reviewTotalRating,
+            blindUntil,
             createdAt
         );
     }

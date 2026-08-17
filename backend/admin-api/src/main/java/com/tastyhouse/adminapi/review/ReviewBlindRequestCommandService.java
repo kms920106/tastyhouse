@@ -1,5 +1,7 @@
 package com.tastyhouse.adminapi.review;
 
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +27,13 @@ public class ReviewBlindRequestCommandService {
 
     /**
      * 게시중단 요청을 승인하고, 대상 리뷰를 즉시 숨긴다.
+     *
+     * <p>재노출 기한(승인 시각 + 30일) 계산의 기준 시각을 여기서 해석해 도메인에 넘긴다 — 도메인은
+     * 프레임워크-프리라 시계를 주입받을 수 없고, 직접 {@code now()}를 부르면 단위 테스트에서 만료를
+     * 고정할 수 없기 때문이다.
      */
     public void approveBlindRequest(Long id) {
-        reviewBlindRequestService.approve(id);
+        reviewBlindRequestService.approve(id, LocalDateTime.now());
     }
 
     /**

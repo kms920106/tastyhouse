@@ -75,6 +75,25 @@ public class NotificationService {
     }
 
     /**
+     * 리뷰 게시중단 승인 알림을 적재한다 — 리뷰 작성자에게 보내고 누르면 그 리뷰 상세로 이동한다.
+     *
+     * <p>이동 대상을 리뷰로 두는 이유는 그 화면에서 고객이 삭제 동의·거부를 선택하기 때문이다.
+     *
+     * @param blindUntil 재노출 예정일시. 문구에 노출되며 비어 있으면 날짜 없는 문구로 대체된다
+     * @return 생성된 알림 식별자
+     */
+    public Long notifyReviewBlindApproved(MemberId reviewerMemberId, ReviewId reviewId, LocalDateTime blindUntil) {
+        return notify(
+            reviewerMemberId,
+            NotificationType.REVIEW_BLIND_APPROVED,
+            NotificationMessage.reviewBlindApprovedTitle(),
+            NotificationMessage.reviewBlindApprovedBody(blindUntil),
+            NotificationTargetType.REVIEW,
+            reviewId.value()
+        );
+    }
+
+    /**
      * 단건 읽음 처리(멱등).
      *
      * <p>수신자가 아니면 {@code NOTIFICATION_NOT_FOUND}(404)다 — 존재 여부를 숨기기 위해 403을 쓰지 않는다.

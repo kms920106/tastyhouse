@@ -58,6 +58,9 @@ public record ShopReviewListItemResponse(
     )
     String blindRequestStatus,
 
+    @Schema(description = "최근 게시중단 요청 상태 한글명. 요청 이력이 없으면 null입니다.", example = "대기")
+    String blindRequestStatusDescription,
+
     @Schema(description = "리뷰 작성일시", example = "2026-06-19T20:11:00")
     LocalDateTime createdAt,
 
@@ -83,6 +86,7 @@ public record ShopReviewListItemResponse(
         String ownerReplyContent,
         LocalDateTime ownerReplyCreatedAt,
         String blindRequestStatus,
+        String blindRequestStatusDescription,
         LocalDateTime createdAt,
         LocalDate replyDeadline,
         boolean replyable
@@ -102,6 +106,7 @@ public record ShopReviewListItemResponse(
             ownerReplyContent,
             ownerReplyCreatedAt,
             blindRequestStatus,
+            blindRequestStatusDescription,
             createdAt,
             replyDeadline,
             replyable

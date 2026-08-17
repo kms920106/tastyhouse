@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.review.query;
 import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 
 /**
  * 리뷰 1건의 게시중단 요청 이력 항목.
@@ -15,8 +15,9 @@ public record ReviewBlindRequestHistoryResult(
     Long id,
     ReviewBlindReason reason,
     String detailReason,
-    ApprovalStatus status,
+    ReviewBlindStatus status,
     String rejectReason,
+    LocalDateTime blindUntil,
     LocalDateTime createdAt
 ) {
 }

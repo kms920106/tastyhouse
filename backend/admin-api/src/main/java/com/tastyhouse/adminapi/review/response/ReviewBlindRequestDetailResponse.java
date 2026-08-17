@@ -43,8 +43,14 @@ public record ReviewBlindRequestDetailResponse(
     @Schema(description = "반려 사유(반려 처리된 경우에만 값 존재)", example = "게시 기준 위반 사실이 확인되지 않습니다.")
     String rejectReason,
 
+    @Schema(description = "재노출 예정일시(게시중단 상태일 때만 값 존재)", example = "2026-09-16T14:30:00")
+    LocalDateTime blindUntil,
+
     @Schema(description = "리뷰 이미지 URL 목록")
     List<String> reviewImageUrls,
+
+    @Schema(description = "증빙 서류 URL 목록(신분증·위임장·사업자등록증 등, 최대 3개)")
+    List<String> attachmentUrls,
 
     @Schema(description = "리뷰 작성 회원 닉네임", example = "맛집탐험가")
     String reviewMemberNickname,
@@ -71,7 +77,9 @@ public record ReviewBlindRequestDetailResponse(
         Double reviewTotalRating,
         String detailReason,
         String rejectReason,
+        LocalDateTime blindUntil,
         List<String> reviewImageUrls,
+        List<String> attachmentUrls,
         String reviewMemberNickname,
         Boolean reviewHidden,
         LocalDateTime reviewCreatedAt,
@@ -90,7 +98,9 @@ public record ReviewBlindRequestDetailResponse(
             reviewTotalRating,
             detailReason,
             rejectReason,
+            blindUntil,
             reviewImageUrls,
+            attachmentUrls,
             reviewMemberNickname,
             reviewHidden,
             reviewCreatedAt,
