@@ -4,8 +4,11 @@ import * as React from "react"
 import { Checkbox as CheckboxPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { CheckIcon } from "lucide-react"
+import { CheckIcon, MinusIcon } from "lucide-react"
 
+// Radix 는 Indicator 를 `checked` 와 `indeterminate` 양쪽에서 렌더한다. 아이콘을 분기하지 않으면
+// "하위 일부만 선택된 그룹"이 "전체 선택된 그룹"과 똑같이 보여, 그룹 체크박스를 쓰는 화면에서
+// 점주가 전체 선택으로 오인한 채 일괄 조작을 누르게 된다.
 function Checkbox({
   className,
   ...props
@@ -23,8 +26,7 @@ function Checkbox({
         data-slot="checkbox-indicator"
         className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
       >
-        <CheckIcon
-        />
+        {props.checked === "indeterminate" ? <MinusIcon /> : <CheckIcon />}
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )
