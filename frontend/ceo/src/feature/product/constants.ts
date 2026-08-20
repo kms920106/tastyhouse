@@ -1,4 +1,10 @@
-import type { AvailabilityTab, ProductReleaseTarget } from "./domain";
+import type {
+  AvailabilityTab,
+  ExposureDaySelectionMode,
+  ProductExposureDayType,
+  ProductReleaseTarget,
+  VegetarianType,
+} from "./domain";
 
 /**
  * 품절 기간 경계 (`docs/tasks/backend.md` §3-3).
@@ -46,3 +52,90 @@ export const AVAILABILITY_KEYWORD_MAX_LENGTH = 100;
 
 /** 내 가게 Select 를 채우기 위한 목록 조회 크기. 리뷰 화면과 같은 값을 쓴다 */
 export const MY_SHOP_LIST_SIZE = 100;
+
+// =====================================================================================
+// 점주 메뉴·옵션 관리 상수 (`docs/tasks/frontend.md`)
+// =====================================================================================
+
+/** 서버 `@Size` 와 같은 값 — 폼에서 먼저 막아 400 왕복을 줄인다 */
+export const PRODUCT_NAME_MAX_LENGTH = 255;
+export const PRODUCT_COMPOSITION_MAX_LENGTH = 500;
+export const PRODUCT_DESCRIPTION_MAX_LENGTH = 1000;
+export const PRODUCT_CATEGORY_NAME_MAX_LENGTH = 100;
+export const PRODUCT_CATEGORY_DESCRIPTION_MAX_LENGTH = 500;
+export const OPTION_GROUP_NAME_MAX_LENGTH = 100;
+export const OPTION_GROUP_DESCRIPTION_MAX_LENGTH = 500;
+export const OPTION_NAME_MAX_LENGTH = 100;
+export const VEGETARIAN_INGREDIENTS_MAX_LENGTH = 500;
+export const VEGETARIAN_DESCRIPTION_MAX_LENGTH = 1000;
+
+/** 일괄 삭제 상한 — 서버 `@Size(max=200)` 와 같다 */
+export const PRODUCT_DELETE_MAX_COUNT = 200;
+
+/**
+ * 메뉴명 특수문자 화이트리스트 (`backend.md` §2-1).
+ *
+ * 서버가 최종 판정(`PRODUCT_NAME_INVALID_CHARACTER`)하지만, 폼에서 먼저 걸러 주면
+ * 제출 왕복 없이 어떤 글자가 문제인지 알 수 있다.
+ * 한글·영문·숫자·공백에 더해 `: , . / ~ % & ( ) + [ ] ™ ®` 만 허용한다.
+ */
+export const PRODUCT_NAME_PATTERN = /^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s:,./~%&()+[\]™®-]+$/;
+
+/** 매운맛 단계. 0 은 "설정 안 함"이 아니라 "안 매움"이다 */
+export const SPICINESS_OPTIONS = [
+  { value: 0, label: "안 매움" },
+  { value: 1, label: "약간 매움" },
+  { value: 2, label: "보통 매움" },
+  { value: 3, label: "많이 매움" },
+  { value: 4, label: "아주 매움" },
+] as const;
+
+/** 이미지 규격 안내 (`backend.md` §7-1). 판정은 서버가 한다 */
+export const PRODUCT_IMAGE_MIN_WIDTH = 1280;
+export const PRODUCT_IMAGE_MIN_HEIGHT = 960;
+export const PRODUCT_IMAGE_MAX_SIZE_MB = 15;
+export const PRODUCT_IMAGE_ACCEPT = "image/jpeg,image/png";
+
+/**
+ * 요일 묶음. 개별 요일과 **함께 보낼 수 없다**(`PRODUCT_EXPOSURE_DAY_TYPE_MIXED`).
+ */
+export const EXPOSURE_PRESET_DAY_OPTIONS = [
+  { value: "DAILY", label: "매일" },
+  { value: "WEEKDAY", label: "평일" },
+  { value: "WEEKEND", label: "주말" },
+  { value: "HOLIDAY", label: "공휴일" },
+] as const satisfies readonly { value: ProductExposureDayType; label: string }[];
+
+export const EXPOSURE_INDIVIDUAL_DAY_OPTIONS = [
+  { value: "MONDAY", label: "월" },
+  { value: "TUESDAY", label: "화" },
+  { value: "WEDNESDAY", label: "수" },
+  { value: "THURSDAY", label: "목" },
+  { value: "FRIDAY", label: "금" },
+  { value: "SATURDAY", label: "토" },
+  { value: "SUNDAY", label: "일" },
+] as const satisfies readonly { value: ProductExposureDayType; label: string }[];
+
+export const EXPOSURE_PRESET_DAY_TYPES: readonly ProductExposureDayType[] = EXPOSURE_PRESET_DAY_OPTIONS.map(
+  (option) => option.value,
+);
+
+export const EXPOSURE_DAY_SELECTION_MODES = {
+  PRESET: "PRESET",
+  INDIVIDUAL: "INDIVIDUAL",
+} as const satisfies Record<string, ExposureDaySelectionMode>;
+
+/** 노출 시간대 Select 는 30분 단위 — 품절기간(10분)보다 거칠어도 되는 영업 스케줄 값이다 */
+export const EXPOSURE_TIME_OPTIONS: readonly string[] = Array.from({ length: 48 }, (_, index) => {
+  const hour = String(Math.floor(index / 2)).padStart(2, "0");
+  const minute = index % 2 === 0 ? "00" : "30";
+  return `${hour}:${minute}`;
+});
+
+export const VEGETARIAN_TYPE_OPTIONS = [
+  { value: "VEGAN", label: "비건" },
+  { value: "LACTO", label: "락토" },
+  { value: "OVO", label: "오보" },
+  { value: "LACTO_OVO", label: "락토오보" },
+  { value: "PESCO", label: "페스코" },
+] as const satisfies readonly { value: VegetarianType; label: string }[];

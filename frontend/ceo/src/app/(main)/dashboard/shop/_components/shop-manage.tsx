@@ -4,13 +4,13 @@ import * as React from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { ClipboardList, History, Lock, MessageSquare, PackageX, Store } from "lucide-react";
+import { ClipboardList, History, Lock, MessageSquare, PackageX, Store, UtensilsCrossed } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PRODUCT_AVAILABILITY_COPY } from "@/feature/product/message";
+import { PRODUCT_AVAILABILITY_COPY, PRODUCT_MENU_COPY } from "@/feature/product/message";
 import { SHOP_MANAGE_TABS, type ShopManageTab } from "@/feature/shop/constants";
 import type { ShopBasicInfo, ShopOperationInfo, ShopOrderAvailability, ShopSummary } from "@/feature/shop/domain";
 import { SHOP_CHANGE_HISTORY_COPY, SHOP_PAGE_COPY, SHOP_REQUEST_COPY } from "@/feature/shop/message";
@@ -129,6 +129,15 @@ export function ShopManage({
               >
                 <PackageX />
                 {PRODUCT_AVAILABILITY_COPY.ENTRY_TITLE}
+              </Button>
+              {/* 메뉴판 관리도 설정 항목이 아니라 목록·순서 조작 화면이라 시트가 아니라 전용 라우트로 이동한다. */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push(`/dashboard/shop/menus?shopId=${shopId}`)}
+              >
+                <UtensilsCrossed />
+                {PRODUCT_MENU_COPY.ENTRY_TITLE}
               </Button>
             </>
           )}
