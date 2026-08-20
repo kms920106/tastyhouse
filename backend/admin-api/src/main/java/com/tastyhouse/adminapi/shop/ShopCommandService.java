@@ -10,7 +10,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.ClosedDayType;
-import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;

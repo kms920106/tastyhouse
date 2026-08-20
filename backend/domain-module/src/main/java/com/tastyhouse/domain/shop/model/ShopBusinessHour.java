@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shared.model.DayType;
 
 /**
  * 상점 영업시간 순수 도메인 모델.

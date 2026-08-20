@@ -2,7 +2,7 @@ package com.tastyhouse.domain.shop.service;
 
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shared.model.DayType;
 
 /**
  * 시간별 배달팁 replace-all 입력 한 행.

@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.AttributeOverride;
@@ -7,11 +8,14 @@ import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
@@ -75,12 +79,30 @@ public class ProductJpaEntity extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    /**
-     * 메뉴 평가 제외 여부(주류·사이드 등). 도메인 모델에서 {@code final}이라 {@link #applyChanges}의 복사
-     * 대상이 아니다 — 여기에 추가하면 "상품 수정으로 바꿀 수 있다"는 잘못된 신호가 된다.
-     */
+    /** 메뉴 평가 제외 여부(주류·사이드 등). 점주 메뉴 수정 경로가 생겨 {@link #applyChanges} 대상이다. */
     @Column(name = "is_rating_excluded", nullable = false)
     private boolean ratingExcluded;
+
+    /** 소프트 삭제 여부. 하드 삭제를 쓰지 않는 이유는 스키마에 FK 제약이 0개이기 때문이다. */
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
+
+    @Column(name = "composition", length = 500)
+    private String composition;
+
+    @Column(name = "single_serving", nullable = false)
+    private boolean singleServing;
+
+    @Column(name = "exposure_start_date")
+    private LocalDate exposureStartDate;
+
+    @Column(name = "exposure_end_date")
+    private LocalDate exposureEndDate;
+
+    /** 채식 단계. 관리자 승인 시에만 반영된다. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vegetarian_type", length = 20, columnDefinition = "VARCHAR(20)")
+    private VegetarianType vegetarianType;
 
     protected ProductJpaEntity() {
     }
@@ -100,7 +122,13 @@ public class ProductJpaEntity extends BaseEntity {
         LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort,
-        boolean ratingExcluded
+        boolean ratingExcluded,
+        boolean deleted,
+        String composition,
+        boolean singleServing,
+        LocalDate exposureStartDate,
+        LocalDate exposureEndDate,
+        VegetarianType vegetarianType
     ) {
         this.shopId = shopId;
         this.productCategoryId = productCategoryId;
@@ -117,6 +145,12 @@ public class ProductJpaEntity extends BaseEntity {
         this.visible = visible;
         this.sort = sort;
         this.ratingExcluded = ratingExcluded;
+        this.deleted = deleted;
+        this.composition = composition;
+        this.singleServing = singleServing;
+        this.exposureStartDate = exposureStartDate;
+        this.exposureEndDate = exposureEndDate;
+        this.vegetarianType = vegetarianType;
     }
 
     /**
@@ -137,11 +171,18 @@ public class ProductJpaEntity extends BaseEntity {
         LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort,
-        boolean ratingExcluded
+        boolean ratingExcluded,
+        boolean deleted,
+        String composition,
+        boolean singleServing,
+        LocalDate exposureStartDate,
+        LocalDate exposureEndDate,
+        VegetarianType vegetarianType
     ) {
         return new ProductJpaEntity(
             shopId, productCategoryId, name, description, originalPrice, discountInfo,
-            rating, reviewCount, representative, spiciness, soldOut, soldOutUntil, visible, sort, ratingExcluded
+            rating, reviewCount, representative, spiciness, soldOut, soldOutUntil, visible, sort, ratingExcluded,
+            deleted, composition, singleServing, exposureStartDate, exposureEndDate, vegetarianType
         );
     }
 
@@ -161,7 +202,14 @@ public class ProductJpaEntity extends BaseEntity {
         boolean soldOut,
         LocalDateTime soldOutUntil,
         boolean visible,
-        Integer sort
+        Integer sort,
+        boolean ratingExcluded,
+        boolean deleted,
+        String composition,
+        boolean singleServing,
+        LocalDate exposureStartDate,
+        LocalDate exposureEndDate,
+        VegetarianType vegetarianType
     ) {
         this.productCategoryId = productCategoryId;
         this.name = name;
@@ -176,6 +224,13 @@ public class ProductJpaEntity extends BaseEntity {
         this.soldOutUntil = soldOutUntil;
         this.visible = visible;
         this.sort = sort;
+        this.ratingExcluded = ratingExcluded;
+        this.deleted = deleted;
+        this.composition = composition;
+        this.singleServing = singleServing;
+        this.exposureStartDate = exposureStartDate;
+        this.exposureEndDate = exposureEndDate;
+        this.vegetarianType = vegetarianType;
     }
 
     public Long getId() {
@@ -240,5 +295,29 @@ public class ProductJpaEntity extends BaseEntity {
 
     public boolean isRatingExcluded() {
         return this.ratingExcluded;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    public String getComposition() {
+        return this.composition;
+    }
+
+    public boolean isSingleServing() {
+        return this.singleServing;
+    }
+
+    public LocalDate getExposureStartDate() {
+        return this.exposureStartDate;
+    }
+
+    public LocalDate getExposureEndDate() {
+        return this.exposureEndDate;
+    }
+
+    public VegetarianType getVegetarianType() {
+        return this.vegetarianType;
     }
 }

@@ -1,5 +1,6 @@
 package com.tastyhouse.domain.product.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +9,8 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
+import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
@@ -39,6 +42,17 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * <p><b>같은 트랜잭션 안의 동기 호출이다</b> — 주문 접수는 한 트랜잭션이어야 하므로 이 이관으로
  * 트랜잭션 경계가 바뀌지 않는다(이벤트로 바꾸지 않는다).
  *
+ * <p><b>여기서 고친 두 가지 기존 결함</b>(메뉴 관리 도입과 무관하게 존재하던 것):
+ * <ol>
+ *   <li><b>옵션이 그 상품의 것인지 검증하지 않았다.</b> id로 존재만 확인하고 스냅샷에 담았는데
+ *       금액이 옵션에서 오므로, 임의 상품의 저가 옵션을 주입해 결제 금액을 낮출 수 있었다.
+ *       링크 테이블이 생겨 "이 그룹이 이 메뉴에 연결됐는가"를 처음으로 물을 수 있게 되어 함께 고친다.</li>
+ *   <li><b>노출 여부를 검사하지 않았다.</b> 숨긴 메뉴·노출기간 밖 메뉴도 productId만 알면 주문됐다.</li>
+ * </ol>
+ *
+ * <p><b>노출 검사를 품절 검사보다 앞에 둔다</b> — 스케줄 밖 메뉴에 "품절입니다"라고 답하면
+ * 사용자를 오도한다(그 메뉴는 품절이 아니라 아직/이미 판매 시간이 아니다).
+ *
  * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
  * infrastructure-module의 {@code ProductDomainConfig}가 담당한다.
  */
@@ -48,17 +62,26 @@ public class OrderProductValidationService {
     private final ProductOptionGroupRepository productOptionGroupRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductOptionGroupLinkRepository productOptionGroupLinkRepository;
+    private final ProductExposureHourRepository productExposureHourRepository;
+    private final ProductExposureCalculator productExposureCalculator;
 
     public OrderProductValidationService(
         ProductRepository productRepository,
         ProductOptionGroupRepository productOptionGroupRepository,
         ProductOptionRepository productOptionRepository,
-        ProductImageRepository productImageRepository
+        ProductImageRepository productImageRepository,
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductExposureHourRepository productExposureHourRepository,
+        ProductExposureCalculator productExposureCalculator
     ) {
         this.productRepository = productRepository;
         this.productOptionGroupRepository = productOptionGroupRepository;
         this.productOptionRepository = productOptionRepository;
         this.productImageRepository = productImageRepository;
+        this.productOptionGroupLinkRepository = productOptionGroupLinkRepository;
+        this.productExposureHourRepository = productExposureHourRepository;
+        this.productExposureCalculator = productExposureCalculator;
     }
 
     /**
@@ -67,18 +90,24 @@ public class OrderProductValidationService {
      * <p>순서를 보존하는 이유는 두 가지다 — 실패 시 어느 라인에서 걸렸는지가 요청과 대응되어야 하고,
      * 주문 라인 저장 순서가 화면 표시 순서가 되기 때문이다.
      */
-    public List<OrderProductSnapshot> validate(List<OrderLineSelection> lines) {
+    public List<OrderProductSnapshot> validate(List<OrderLineSelection> lines, LocalDateTime now) {
         List<OrderProductSnapshot> snapshots = new ArrayList<>();
         for (OrderLineSelection line : lines) {
-            snapshots.add(validateLine(line));
+            snapshots.add(validateLine(line, now));
         }
         return snapshots;
     }
 
-    private OrderProductSnapshot validateLine(OrderLineSelection line) {
+    private OrderProductSnapshot validateLine(OrderLineSelection line, LocalDateTime now) {
         Product product = productRepository.findById(ProductId.of(line.productId()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
                 ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + line.productId()));
+
+        // 노출 검사를 품절보다 앞에 둔다 — 스케줄 밖 메뉴에 "품절입니다"는 사용자를 오도한다.
+        if (!isExposed(product, now)) {
+            throw new BusinessException(ErrorCode.ORDER_PRODUCT_NOT_AVAILABLE,
+                ErrorCode.ORDER_PRODUCT_NOT_AVAILABLE.getDefaultMessage() + ": " + product.getName());
+        }
 
         if (product.isSoldOut()) {
             throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT,
@@ -99,16 +128,48 @@ public class OrderProductValidationService {
         );
     }
 
+    /**
+     * 지금 이 메뉴가 손님에게 노출되는지 판정한다. 공휴일 여부는 이 컨텍스트에서 알 수 없으므로
+     * {@code false}로 둔다 — 노출기간의 {@code HOLIDAY} 요일 묶음은 손님 메뉴판 화면에서만 의미가 있고,
+     * 주문 시점 검증은 기간·시간대 축만으로 충분하다.
+     */
+    private boolean isExposed(Product product, LocalDateTime now) {
+        ProductExposureContext context = ProductExposureContext.of(
+            product.isVisible(),
+            product.getExposureStartDate(),
+            product.getExposureEndDate(),
+            productExposureHourRepository.findAllByProductId(product.getProductId()),
+            now,
+            false,
+            false
+        );
+        return productExposureCalculator.calculate(context).exposed();
+    }
+
     private List<OrderProductOptionSnapshot> validateOptions(OrderLineSelection line) {
+        ProductId productId = ProductId.of(line.productId());
         List<OrderProductOptionSnapshot> options = new ArrayList<>();
         for (OrderLineOptionSelection selected : line.selectedOptions()) {
+            ProductOptionGroupId groupId = ProductOptionGroupId.of(selected.groupId());
             ProductOptionGroup optionGroup = productOptionGroupRepository
-                .findById(ProductOptionGroupId.of(selected.groupId()))
+                .findById(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
+
+            // ★ 그룹이 이 메뉴에 실제로 연결됐는지 확인한다. 없으면 남의 메뉴 옵션을 끌어다 쓰는 것이다.
+            //    기존 ErrorCode 를 재사용해 wire 계약을 바꾸지 않는다.
+            if (!productOptionGroupLinkRepository.existsByProductIdAndOptionGroupId(productId, groupId)) {
+                throw new ResourceNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND);
+            }
 
             ProductOption option = productOptionRepository
                 .findById(ProductOptionId.of(selected.optionId()))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
+
+            // ★ 옵션이 그 그룹의 것인지 확인한다. 금액이 옵션에서 오므로 이 검사가 없으면
+            //    임의 상품의 저가 옵션을 주입해 결제 금액을 낮출 수 있다.
+            if (!option.getOptionGroupId().equals(groupId)) {
+                throw new ResourceNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND);
+            }
 
             options.add(new OrderProductOptionSnapshot(
                 optionGroup.getProductOptionGroupId(),

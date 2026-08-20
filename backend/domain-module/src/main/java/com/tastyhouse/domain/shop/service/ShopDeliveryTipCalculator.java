@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.domain.region.vo.AdminDongId;
-import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipHoliday;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipRegion;

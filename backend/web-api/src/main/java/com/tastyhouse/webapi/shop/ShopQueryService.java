@@ -19,7 +19,7 @@ import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.Amenity;
-import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
@@ -128,6 +128,9 @@ import com.tastyhouse.webapi.shop.response.ShopStationListItemResponse;
 @Service
 @Transactional(readOnly = true)
 public class ShopQueryService {
+
+    /** productCategoryId가 null인(미분류) 메뉴 묶음에 붙이는 표시용 카테고리명. */
+    private static final String UNCATEGORIZED_CATEGORY_NAME = "미분류";
 
     private final ShopRepository shopRepository;
     private final ShopBookmarkRepository shopBookmarkRepository;
@@ -790,13 +793,23 @@ public class ShopQueryService {
             .toList();
     }
 
+    /**
+     * 카테고리가 없는(미분류) 메뉴도 손님 화면에 노출되도록, 노출 카테고리 묶음 뒤에
+     * 미분류 묶음을 추가한다. 미분류 메뉴가 없으면 이 묶음 자체를 응답에 포함하지 않는다.
+     */
     public List<ShopProductCategoryResponse> getShopProducts(Long shopId) {
-        Map<Long, List<ShopProductItemResult>> productsByCategory =
-            productQueryService.findShopProducts(shopId).stream()
-                .filter(product -> product.productCategoryId() != null)
-                .collect(Collectors.groupingBy(ShopProductItemResult::productCategoryId));
+        List<ShopProductItemResult> shopProducts = productQueryService.findShopProducts(shopId);
 
-        return productQueryService.findShopProductCategories(shopId).stream()
+        Map<Long, List<ShopProductItemResult>> productsByCategory = shopProducts.stream()
+            .filter(product -> product.productCategoryId() != null)
+            .collect(Collectors.groupingBy(ShopProductItemResult::productCategoryId));
+
+        List<ShopProductItemResult> uncategorizedProducts = shopProducts.stream()
+            .filter(product -> product.productCategoryId() == null)
+            .toList();
+
+        List<ShopProductCategoryResponse> categoryResponses = productQueryService.findShopProductCategories(shopId)
+            .stream()
             .map(category -> {
                 List<ProductSummaryResponse> menuResponses = productsByCategory
                     .getOrDefault(category.id(), new ArrayList<>())
@@ -808,7 +821,19 @@ public class ShopQueryService {
                     menuResponses
                 );
             })
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
+
+        if (!uncategorizedProducts.isEmpty()) {
+            List<ProductSummaryResponse> uncategorizedMenuResponses = uncategorizedProducts.stream()
+                .map(this::convertToShopMenuResponse)
+                .toList();
+            categoryResponses.add(ShopProductCategoryResponse.from(
+                UNCATEGORIZED_CATEGORY_NAME,
+                uncategorizedMenuResponses
+            ));
+        }
+
+        return categoryResponses;
     }
 
     public List<ShopPhotoCategoryResponse> getShopPhotos(Long shopId) {

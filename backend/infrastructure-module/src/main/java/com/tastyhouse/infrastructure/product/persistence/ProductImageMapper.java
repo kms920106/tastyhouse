@@ -37,4 +37,14 @@ final class ProductImageMapper {
             domain.isVisible()
         );
     }
+
+    /**
+     * managed 엔티티에 도메인의 변경 필드를 복사한다(update 경로).
+     *
+     * <p>{@code productId}·{@code imageFileId}는 복사하지 않는다 — 이미지의 소속과 파일은 바뀌지
+     * 않고, 바꿔야 하면 새 이미지를 등록하는 것이 맞다.
+     */
+    static void applyChanges(ProductImageJpaEntity entity, ProductImage domain) {
+        entity.applyChanges(domain.getSort(), domain.isVisible());
+    }
 }

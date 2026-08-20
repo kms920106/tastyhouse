@@ -21,4 +21,9 @@ public interface ProductCategoryRepository {
     List<ProductCategory> findCategoriesByNameAndShopId(String name, ShopId shopId);
 
     ProductCategory save(ProductCategory productCategory);
+
+    /** 가게의 메뉴그룹을 {@code sort} 오름차순으로 로드한다. 재정렬 대상 집합을 만드는 데 쓴다. */
+    List<ProductCategory> findAllByShopId(ShopId shopId);
+
+    void delete(ProductCategory productCategory);
 }

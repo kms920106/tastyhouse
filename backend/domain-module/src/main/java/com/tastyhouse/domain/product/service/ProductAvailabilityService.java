@@ -14,10 +14,14 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOption;
+import com.tastyhouse.domain.product.model.ProductCommonOptionGroupLink;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.model.ReleaseTarget;
+import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionRepository;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
@@ -58,19 +62,25 @@ public class ProductAvailabilityService {
     private final ProductCommonOptionRepository productCommonOptionRepository;
     private final ProductOptionGroupRepository productOptionGroupRepository;
     private final ProductCommonOptionGroupRepository productCommonOptionGroupRepository;
+    private final ProductOptionGroupLinkRepository productOptionGroupLinkRepository;
+    private final ProductCommonOptionGroupLinkRepository productCommonOptionGroupLinkRepository;
 
     public ProductAvailabilityService(
         ProductRepository productRepository,
         ProductOptionRepository productOptionRepository,
         ProductCommonOptionRepository productCommonOptionRepository,
         ProductOptionGroupRepository productOptionGroupRepository,
-        ProductCommonOptionGroupRepository productCommonOptionGroupRepository
+        ProductCommonOptionGroupRepository productCommonOptionGroupRepository,
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductCommonOptionGroupLinkRepository productCommonOptionGroupLinkRepository
     ) {
         this.productRepository = productRepository;
         this.productOptionRepository = productOptionRepository;
         this.productCommonOptionRepository = productCommonOptionRepository;
         this.productOptionGroupRepository = productOptionGroupRepository;
         this.productCommonOptionGroupRepository = productCommonOptionGroupRepository;
+        this.productOptionGroupLinkRepository = productOptionGroupLinkRepository;
+        this.productCommonOptionGroupLinkRepository = productCommonOptionGroupLinkRepository;
     }
 
     /**
@@ -449,7 +459,9 @@ public class ProductAvailabilityService {
         // 소유 가게 판정 — 옵션그룹 → 상품 → 가게로 역조회한다.
         Map<Long, ProductOptionGroup> optionGroups = loadOptionGroups(options);
         Map<Long, ProductCommonOptionGroup> commonGroups = loadCommonOptionGroups(commonOptions);
-        Map<Long, ShopId> productShopIds = loadProductShopIds(optionGroups, commonGroups);
+        // 일반/공통은 id 공간이 겹치므로 맵을 분리한다.
+        Map<Long, ShopId> optionGroupShopIds = loadOptionGroupShopIds(optionGroups);
+        Map<Long, ShopId> commonOptionGroupShopIds = loadCommonOptionGroupShopIds(commonGroups);
 
         List<ProductAvailabilityFailure> failed = new ArrayList<>();
 
@@ -463,7 +475,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             ProductOptionGroup group = optionGroups.get(option.getOptionGroupId().value());
-            if (group == null || notOwnedBy(shopId, productShopIds, group.getProductId().value())) {
+            if (group == null || notOwnedBy(shopId, optionGroupShopIds, option.getOptionGroupId().value())) {
                 failed.add(ProductAvailabilityFailure.of(
                     option.getId(), option.getName(), ErrorCode.PRODUCT_NOT_FOUND));
                 continue;
@@ -482,7 +494,8 @@ public class ProductAvailabilityService {
                 continue;
             }
             ProductCommonOptionGroup group = commonGroups.get(option.getOptionGroupId().value());
-            if (group == null || notOwnedBy(shopId, productShopIds, group.getProductId().value())) {
+            if (group == null
+                || notOwnedBy(shopId, commonOptionGroupShopIds, option.getOptionGroupId().value())) {
                 failed.add(ProductAvailabilityFailure.of(
                     option.getId(), option.getName(), ErrorCode.PRODUCT_NOT_FOUND));
                 continue;
@@ -642,16 +655,65 @@ public class ProductAvailabilityService {
     }
 
     /**
-     * 옵션그룹이 가리키는 상품들의 소유 가게를 한 번에 로드한다.
+     * <b>일반</b> 옵션그룹의 소유 가게를 링크 테이블로 역조회한다 — "그룹 → 링크 → 메뉴 → 가게" 3단.
+     *
+     * <p>과거에는 {@code group.getProductId()}로 <b>그룹당 상품 1개</b>를 가정했으나, N:M에서는
+     * 성립하지 않는다. 그룹이 메뉴 A·B에 연결됐을 때 그 가정은 임의의 한쪽만 보게 되어
+     * <b>남의 가게 옵션을 품절 처리할 수 있는 구멍</b>이 된다.
+     *
+     * <p>반환 키는 {@code productId}가 아니라 <b>{@code optionGroupId}</b>다. 옵션그룹은 단일 가게에만
+     * 속한다는 불변식({@code ProductOptionGroupLinkService}) 덕분에 "연결된 아무 메뉴 하나"의 가게가
+     * 곧 그룹의 가게다.
+     *
+     * <p>일반/공통 그룹은 <b>id 공간이 겹치므로 맵을 분리</b>한다 — 하나로 합치면 일반 그룹 7번의
+     * 소유자가 공통 그룹 7번의 판정에 쓰인다.
      */
-    private Map<Long, ShopId> loadProductShopIds(
-        Map<Long, ProductOptionGroup> optionGroups,
-        Map<Long, ProductCommonOptionGroup> commonGroups
-    ) {
-        List<ProductId> productIds = new ArrayList<>();
-        optionGroups.values().forEach(group -> productIds.add(group.getProductId()));
-        commonGroups.values().forEach(group -> productIds.add(group.getProductId()));
+    private Map<Long, ShopId> loadOptionGroupShopIds(Map<Long, ProductOptionGroup> optionGroups) {
+        List<ProductOptionGroupId> groupIds = optionGroups.keySet().stream()
+            .map(ProductOptionGroupId::of)
+            .toList();
+        if (groupIds.isEmpty()) {
+            return Map.of();
+        }
 
+        List<ProductOptionGroupLink> links = productOptionGroupLinkRepository
+            .findAllByOptionGroupIdIn(groupIds);
+        Map<Long, ShopId> shopIdByProductId = loadShopIdsOf(links.stream()
+            .map(ProductOptionGroupLink::getProductId)
+            .toList());
+
+        Map<Long, ShopId> byGroupId = new LinkedHashMap<>();
+        for (ProductOptionGroupLink link : links) {
+            byGroupId.computeIfAbsent(link.getOptionGroupId().value(),
+                key -> shopIdByProductId.get(link.getProductId().value()));
+        }
+        return byGroupId;
+    }
+
+    /** <b>공통</b> 옵션그룹의 소유 가게를 링크 테이블로 역조회한다. 일반 갈래와 대칭이다. */
+    private Map<Long, ShopId> loadCommonOptionGroupShopIds(Map<Long, ProductCommonOptionGroup> commonGroups) {
+        List<ProductOptionGroupId> groupIds = commonGroups.keySet().stream()
+            .map(ProductOptionGroupId::of)
+            .toList();
+        if (groupIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<ProductCommonOptionGroupLink> links = productCommonOptionGroupLinkRepository
+            .findAllByOptionGroupIdIn(groupIds);
+        Map<Long, ShopId> shopIdByProductId = loadShopIdsOf(links.stream()
+            .map(ProductCommonOptionGroupLink::getProductId)
+            .toList());
+
+        Map<Long, ShopId> byGroupId = new LinkedHashMap<>();
+        for (ProductCommonOptionGroupLink link : links) {
+            byGroupId.computeIfAbsent(link.getOptionGroupId().value(),
+                key -> shopIdByProductId.get(link.getProductId().value()));
+        }
+        return byGroupId;
+    }
+
+    private Map<Long, ShopId> loadShopIdsOf(List<ProductId> productIds) {
         Map<Long, ShopId> shopIdByProductId = new LinkedHashMap<>();
         for (ProductId productId : distinct(productIds)) {
             productRepository.findById(productId)
@@ -660,8 +722,12 @@ public class ProductAvailabilityService {
         return shopIdByProductId;
     }
 
-    private boolean notOwnedBy(ShopId shopId, Map<Long, ShopId> productShopIds, Long productId) {
-        ShopId owner = productShopIds.get(productId);
+    /**
+     * 판정 키는 {@code optionGroupId}다. 소유자를 못 찾은 경우(연결 0건 = 고아 그룹)도
+     * <b>접근 불가</b>로 다룬다 — 소유자가 없는 그룹을 아무나 조작할 수 있으면 안 된다.
+     */
+    private boolean notOwnedBy(ShopId shopId, Map<Long, ShopId> shopIdByOptionGroupId, Long optionGroupId) {
+        ShopId owner = shopIdByOptionGroupId.get(optionGroupId);
         return owner == null || !owner.equals(shopId);
     }
 

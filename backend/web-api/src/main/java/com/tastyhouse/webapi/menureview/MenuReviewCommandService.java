@@ -79,7 +79,7 @@ public class MenuReviewCommandService {
             throw new BusinessException(ErrorCode.MENU_REVIEW_ACCESS_DENIED);
         }
 
-        Product product = productRepository.findById(orderProduct.getProductId())
+        Product product = productRepository.findByIdIncludingDeleted(orderProduct.getProductId())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (product.isRatingExcluded()) {
             throw new BusinessException(ErrorCode.MENU_REVIEW_NOT_ALLOWED);

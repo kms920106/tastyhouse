@@ -1,16 +1,24 @@
 package com.tastyhouse.infrastructure.product.query;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -20,6 +28,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -28,11 +38,15 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductCommonOptionGroupJpaEntity.productCommonOptionGroupJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductCommonOptionGroupLinkJpaEntity.productCommonOptionGroupLinkJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductCommonOptionJpaEntity.productCommonOptionJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductImageChangeRequestJpaEntity.productImageChangeRequestJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupJpaEntity.productOptionGroupJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupLinkJpaEntity.productOptionGroupLinkJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionJpaEntity.productOptionJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductVegetarianRequestJpaEntity.productVegetarianRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 /**
@@ -47,6 +61,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  *   <li>web — {@link #findTodayDiscountProducts}, {@link #findProductOptions}, {@link #findProductsBatch},
  *       {@link #findProductImageUrls}, {@link #findShopProducts}, {@link #searchByKeyword}</li>
  *   <li>admin — {@link #findProducts}(관리 목록), {@link #findProductDetailById}, {@link #findProductCategories}</li>
+ *   <li>ceo — {@link #findProductManagementDetailById}, {@link #findProductAvailability}</li>
  *   <li>batch — {@link #findFirstBbqSyncTarget}</li>
  * </ul>
  * 상품 대표 이미지 경로를 위해 file 도메인, 가게명을 위해 shop 도메인의 Q타입을 조인한다(같은 모듈 내 참조).
@@ -63,6 +78,42 @@ public class ProductQueryDao {
     private static final com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity subProductImage =
         new com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity("subProductImage");
 
+    /**
+     * 이미지 변경요청의 요청 파일 조인용 별칭 — 본 쿼리가 이미 {@code uploadedFileJpaEntity}를 다른
+     * 목적(대표 이미지)으로 쓰므로 같은 별칭을 재사용하면 조인이 서로를 덮는다.
+     */
+    private static final com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity
+        imageChangeRequestFile =
+        new com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity("imageChangeRequestFile");
+
+    /** 메뉴 이미지 관리 목록의 파일 조인용 별칭. */
+    private static final com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity
+        productImageFile =
+        new com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity("productImageFile");
+
+    /** 노출 시간대 술어용 서브쿼리 별칭. */
+    private static final com.tastyhouse.infrastructure.product.persistence.QProductExposureHourJpaEntity
+        subExposureHour =
+        new com.tastyhouse.infrastructure.product.persistence.QProductExposureHourJpaEntity("subExposureHour");
+
+    /** 메뉴그룹별 소속 메뉴 수를 세는 서브쿼리 별칭. */
+    private static final com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity subCategoryProduct =
+        new com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity("subCategoryProduct");
+
+    /**
+     * 옵션그룹별 연결 메뉴 수를 세는 서브쿼리 별칭 — 본 쿼리가 이미 링크 테이블을 조인하므로
+     * 같은 별칭을 재사용하면 카운트가 조인된 1건으로 좁혀진다.
+     */
+    private static final com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupLinkJpaEntity
+        subOptionGroupLink =
+        new com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupLinkJpaEntity("subOptionGroupLink");
+
+    /**
+     * 노출 판정 기준 타임존. 술어가 {@code CURRENT_DATE}/{@code CURRENT_TIME}를 쓰지 않는 이유는
+     * DB 서버 타임존에 판정이 좌우되지 않게 하기 위함이다 — 판정 시각은 애플리케이션이 정한다.
+     */
+    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 
@@ -77,6 +128,7 @@ public class ProductQueryDao {
      * 오늘의 할인 상품 목록 — 할인가가 설정된 노출 상품을 할인율 내림차순으로 페이징한다.
      */
     public PageResult<TodayDiscountProductResult> findTodayDiscountProducts(PageQuery pageQuery) {
+        LocalDateTime now = nowInServiceZone();
         JPAQuery<TodayDiscountProductResult> query = queryFactory
             .select(new QTodayDiscountProductResult(
                 productJpaEntity.id,
@@ -91,11 +143,10 @@ public class ProductQueryDao {
             .innerJoin(shopJpaEntity).on(productJpaEntity.shopId.eq(shopJpaEntity.id))
             .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
-            .where(productJpaEntity.discountInfo.discountPrice.isNotNull()
-                .and(productJpaEntity.visible.eq(true)))
+            .where(todayDiscountSearchable(now))
             .orderBy(productJpaEntity.discountInfo.discountRate.desc());
 
-        long total = countTodayDiscountProducts();
+        long total = countTodayDiscountProducts(now);
 
         List<TodayDiscountProductResult> products = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -115,13 +166,12 @@ public class ProductQueryDao {
      * 행이 늘지 않으므로 count 쿼리에서 생략한다. 가게 조인은 {@code innerJoin}이라 짝이 없는 상품을
      * 제외하므로 총 건수에 영향을 주어 그대로 재현한다.
      */
-    private long countTodayDiscountProducts() {
+    private long countTodayDiscountProducts(LocalDateTime now) {
         Long total = queryFactory
             .select(productJpaEntity.count())
             .from(productJpaEntity)
             .innerJoin(shopJpaEntity).on(productJpaEntity.shopId.eq(shopJpaEntity.id))
-            .where(productJpaEntity.discountInfo.discountPrice.isNotNull()
-                .and(productJpaEntity.visible.eq(true)))
+            .where(todayDiscountSearchable(now))
             .fetchOne();
 
         return total == null ? 0L : total;
@@ -133,9 +183,11 @@ public class ProductQueryDao {
     public PageResult<SearchProductItemResult> searchByKeyword(String keyword, PageQuery pageQuery) {
         BooleanExpression searchable = productJpaEntity.name.containsIgnoreCase(keyword)
             .and(productJpaEntity.visible.eq(true))
+            .and(notDeleted())
             .and(productJpaEntity.soldOut.eq(false))
             .and(shopJpaEntity.permanentlyClosed.eq(false))
-            .and(shopJpaEntity.hidden.eq(false));
+            .and(shopJpaEntity.hidden.eq(false))
+            .and(exposedNow(nowInServiceZone()));
 
         Long total = queryFactory
             .select(productJpaEntity.count())
@@ -201,8 +253,14 @@ public class ProductQueryDao {
                 productOptionGroupJpaEntity.maxSelect
             )
             .from(productOptionGroupJpaEntity)
-            .where(productOptionGroupJpaEntity.productId.eq(productId), productOptionGroupJpaEntity.visible.eq(true))
-            .orderBy(productOptionGroupJpaEntity.sort.asc())
+            .innerJoin(productOptionGroupLinkJpaEntity)
+            .on(productOptionGroupLinkJpaEntity.optionGroupId.eq(productOptionGroupJpaEntity.id))
+            .where(
+                productOptionGroupLinkJpaEntity.productId.eq(productId),
+                productOptionGroupJpaEntity.visible.eq(true)
+            )
+            // 정렬은 그룹이 아니라 링크가 갖는다 — 같은 그룹도 메뉴마다 순서가 다를 수 있다.
+            .orderBy(productOptionGroupLinkJpaEntity.sort.asc())
             .fetch();
 
         if (groups.isEmpty()) {
@@ -267,11 +325,14 @@ public class ProductQueryDao {
                 productCommonOptionGroupJpaEntity.maxSelect
             )
             .from(productCommonOptionGroupJpaEntity)
+            .innerJoin(productCommonOptionGroupLinkJpaEntity)
+            .on(productCommonOptionGroupLinkJpaEntity.optionGroupId.eq(productCommonOptionGroupJpaEntity.id))
             .where(
-                productCommonOptionGroupJpaEntity.productId.eq(productId),
+                productCommonOptionGroupLinkJpaEntity.productId.eq(productId),
                 productCommonOptionGroupJpaEntity.visible.eq(true)
             )
-            .orderBy(productCommonOptionGroupJpaEntity.sort.asc())
+            // 정렬은 그룹이 아니라 링크가 갖는다 — 같은 그룹도 메뉴마다 순서가 다를 수 있다.
+            .orderBy(productCommonOptionGroupLinkJpaEntity.sort.asc())
             .fetch();
 
         if (groups.isEmpty()) {
@@ -356,7 +417,8 @@ public class ProductQueryDao {
         Map<Long, Tuple> productById = findActiveProductSummaries(productIds);
         Map<Long, String> imagePathByProductId = findRepresentativeImagePaths(productIds);
         Map<Long, BatchOptionInfo> optionById = findBatchOptions(optionIds);
-        Map<Long, Long> ownerProductIdByGroupId = findOptionGroupOwners(optionById.values());
+        Map<Long, Set<Long>> linkedProductIdsByGroupKey =
+            findLinkedProductIdsByOptionGroup(optionById.values());
 
         // 요청 순서(productId 최초 등장순)를 유지하며 상품별로 옵션을 그룹핑.
         // 미존재 상품도 available=false 로 남기기 위해 모든 요청 productId 를 키로 등록한다.
@@ -381,9 +443,10 @@ public class ProductQueryDao {
             if (optionInfo == null) {
                 continue;
             }
-            // 그룹이 없거나, 옵션이 요청한 상품에 속하지 않으면 제외
-            // (ownerProductId 가 null 이면 productId.equals 가 false 이므로 함께 걸러진다)
-            if (!productId.equals(ownerProductIdByGroupId.get(optionInfo.groupKey()))) {
+            // 그룹이 없거나, 옵션이 요청한 상품에 연결돼 있지 않으면 제외.
+            // 연결이 0건인 그룹(고아)은 set 자체가 없으므로 함께 걸러진다.
+            Set<Long> linkedProductIds = linkedProductIdsByGroupKey.get(optionInfo.groupKey());
+            if (linkedProductIds == null || !linkedProductIds.contains(productId)) {
                 continue;
             }
             List<BatchOptionResult> bucket = optionsByProductId.get(productId);
@@ -427,7 +490,7 @@ public class ProductQueryDao {
                 productJpaEntity.discountInfo.discountRate
             )
             .from(productJpaEntity)
-            .where(productJpaEntity.id.in(productIds), productJpaEntity.visible.eq(true))
+            .where(productJpaEntity.id.in(productIds), productJpaEntity.visible.eq(true), notDeleted())
             .fetch()
             .stream()
             .filter(tuple -> tuple.get(productJpaEntity.id) != null)
@@ -492,10 +555,19 @@ public class ProductQueryDao {
     }
 
     /**
-     * 옵션의 소속 상품 검증용 — 옵션 그룹(개별/공통)의 소유 상품을 조회한다. 개별·공통 그룹의 id 공간이
-     * 서로 겹칠 수 있으므로, 결과 키는 {@link BatchOptionInfo#groupKey()}(공통 여부를 함께 담은 키)다.
+     * 옵션의 소속 상품 검증용 — 옵션 그룹(개별/공통)에 <b>연결된 상품 전부</b>를 조회한다.
+     *
+     * <p><b>반환이 {@code Map<Long, Long>}이 아니라 {@code Map<Long, Set<Long>>}인 것이 핵심이다.</b>
+     * 링크 테이블 도입으로 한 그룹이 여러 메뉴에 연결되므로, 소유 상품을 단건으로 보면
+     * "그 그룹의 임의의 한 메뉴"만 통과하고 나머지 메뉴의 옵션은 <b>예외도 로그도 없이 사라져</b>
+     * 장바구니 금액만 조용히 틀어진다.
+     *
+     * <p>개별·공통 그룹의 id 공간이 서로 겹칠 수 있으므로 결과 키는
+     * {@link BatchOptionInfo#groupKey()}(공통 여부를 함께 담은 키)다.
      */
-    private Map<Long, Long> findOptionGroupOwners(java.util.Collection<BatchOptionInfo> options) {
+    private Map<Long, Set<Long>> findLinkedProductIdsByOptionGroup(
+        java.util.Collection<BatchOptionInfo> options
+    ) {
         List<Long> normalGroupIds = options.stream()
             .filter(info -> !info.common())
             .map(BatchOptionInfo::groupId)
@@ -507,37 +579,39 @@ public class ProductQueryDao {
             .distinct()
             .toList();
 
-        Map<Long, Long> ownerByGroupKey = new HashMap<>();
-
-        // select와 Tuple.get이 같은 표현식을 참조하도록 numberPath를 지역 변수로 추출한다.
-        NumberExpression<Long> optionGroupProductId = productOptionGroupJpaEntity.productId;
-        NumberExpression<Long> commonOptionGroupProductId = productCommonOptionGroupJpaEntity.productId;
+        Map<Long, Set<Long>> linkedProductIdsByGroupKey = new HashMap<>();
 
         if (!normalGroupIds.isEmpty()) {
             queryFactory
-                .select(productOptionGroupJpaEntity.id, optionGroupProductId)
-                .from(productOptionGroupJpaEntity)
-                .where(productOptionGroupJpaEntity.id.in(normalGroupIds))
+                .select(productOptionGroupLinkJpaEntity.optionGroupId, productOptionGroupLinkJpaEntity.productId)
+                .from(productOptionGroupLinkJpaEntity)
+                .where(productOptionGroupLinkJpaEntity.optionGroupId.in(normalGroupIds))
                 .fetch()
-                .forEach(tuple -> ownerByGroupKey.put(
-                    BatchOptionInfo.groupKey(tuple.get(productOptionGroupJpaEntity.id), false),
-                    tuple.get(optionGroupProductId)
-                ));
+                .forEach(tuple -> linkedProductIdsByGroupKey
+                    .computeIfAbsent(
+                        BatchOptionInfo.groupKey(
+                            tuple.get(productOptionGroupLinkJpaEntity.optionGroupId), false),
+                        key -> new HashSet<>())
+                    .add(tuple.get(productOptionGroupLinkJpaEntity.productId)));
         }
 
         if (!commonGroupIds.isEmpty()) {
             queryFactory
-                .select(productCommonOptionGroupJpaEntity.id, commonOptionGroupProductId)
-                .from(productCommonOptionGroupJpaEntity)
-                .where(productCommonOptionGroupJpaEntity.id.in(commonGroupIds))
+                .select(
+                    productCommonOptionGroupLinkJpaEntity.optionGroupId,
+                    productCommonOptionGroupLinkJpaEntity.productId)
+                .from(productCommonOptionGroupLinkJpaEntity)
+                .where(productCommonOptionGroupLinkJpaEntity.optionGroupId.in(commonGroupIds))
                 .fetch()
-                .forEach(tuple -> ownerByGroupKey.put(
-                    BatchOptionInfo.groupKey(tuple.get(productCommonOptionGroupJpaEntity.id), true),
-                    tuple.get(commonOptionGroupProductId)
-                ));
+                .forEach(tuple -> linkedProductIdsByGroupKey
+                    .computeIfAbsent(
+                        BatchOptionInfo.groupKey(
+                            tuple.get(productCommonOptionGroupLinkJpaEntity.optionGroupId), true),
+                        key -> new HashSet<>())
+                    .add(tuple.get(productCommonOptionGroupLinkJpaEntity.productId)));
         }
 
-        return ownerByGroupKey;
+        return linkedProductIdsByGroupKey;
     }
 
     /**
@@ -577,7 +651,8 @@ public class ProductQueryDao {
             .from(productJpaEntity)
             .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
-            .where(productJpaEntity.shopId.eq(shopId), productJpaEntity.visible.eq(true))
+            .where(productJpaEntity.shopId.eq(shopId), productJpaEntity.visible.eq(true), notDeleted(),
+                exposedNow(nowInServiceZone()))
             .orderBy(
                 productJpaEntity.representative.desc(),
                 productJpaEntity.rating.desc(),
@@ -603,7 +678,8 @@ public class ProductQueryDao {
                 categoryIdEq(condition.productCategoryId()),
                 nameContains(condition.name()),
                 visibleEq(condition.visible()),
-                soldOutEq(condition.soldOut())
+                soldOutEq(condition.soldOut()),
+                notDeleted()
             )
             .fetchOne();
 
@@ -631,7 +707,8 @@ public class ProductQueryDao {
                 categoryIdEq(condition.productCategoryId()),
                 nameContains(condition.name()),
                 visibleEq(condition.visible()),
-                soldOutEq(condition.soldOut())
+                soldOutEq(condition.soldOut()),
+                notDeleted()
             )
             .orderBy(productJpaEntity.sort.asc(), productJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -667,13 +744,85 @@ public class ProductQueryDao {
                     productJpaEntity.updatedAt
                 ))
                 .from(productJpaEntity)
-                .where(productJpaEntity.id.eq(productId))
+                .where(productJpaEntity.id.eq(productId), notDeleted())
                 .fetchOne()
         );
     }
 
     /**
-     * 가게의 노출 상품 카테고리 목록(sort 오름차순).
+     * 점주 메뉴 상세 관리 화면 — 메뉴그룹명과 대표 이미지 URL까지 조인해 완성한다. 삭제 여부와 무관하게
+     * 단건 조회하지 않고(관리 화면은 살아있는 메뉴만 다룸) {@link #notDeleted()}를 적용한다.
+     */
+    public Optional<ProductManagementDetailResult> findProductManagementDetailById(Long productId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(new QProductManagementDetailResult(
+                    productJpaEntity.id,
+                    productJpaEntity.shopId,
+                    productJpaEntity.productCategoryId,
+                    productCategoryJpaEntity.name,
+                    productJpaEntity.name,
+                    productJpaEntity.composition,
+                    productJpaEntity.description,
+                    productJpaEntity.originalPrice,
+                    productJpaEntity.discountInfo.discountPrice,
+                    productJpaEntity.singleServing,
+                    productJpaEntity.spiciness,
+                    productJpaEntity.representative,
+                    productJpaEntity.ratingExcluded,
+                    productJpaEntity.soldOut,
+                    productJpaEntity.visible,
+                    uploadedFileJpaEntity.filePath,
+                    productJpaEntity.vegetarianType,
+                    productJpaEntity.exposureStartDate.isNotNull()
+                        .or(productJpaEntity.exposureEndDate.isNotNull())
+                        .or(existsExposureHours(productJpaEntity.id))
+                ))
+                .from(productJpaEntity)
+                .leftJoin(productCategoryJpaEntity).on(productJpaEntity.productCategoryId.eq(productCategoryJpaEntity.id))
+                .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
+                .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
+                .where(productJpaEntity.id.eq(productId), notDeleted())
+                .fetchOne()
+        ).map(this::withResolvedImageUrl);
+    }
+
+    private BooleanExpression existsExposureHours(NumberPath<Long> productId) {
+        return JPAExpressions
+            .selectOne()
+            .from(subExposureHour)
+            .where(subExposureHour.productId.eq(productId))
+            .exists();
+    }
+
+    private ProductManagementDetailResult withResolvedImageUrl(ProductManagementDetailResult row) {
+        return new ProductManagementDetailResult(
+            row.id(),
+            row.shopId(),
+            row.productCategoryId(),
+            row.productCategoryName(),
+            row.name(),
+            row.composition(),
+            row.description(),
+            row.originalPrice(),
+            row.discountPrice(),
+            row.singleServing(),
+            row.spiciness(),
+            row.representative(),
+            row.ratingExcluded(),
+            row.soldOut(),
+            row.visible(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.vegetarianType(),
+            row.exposureScheduled()
+        );
+    }
+
+    /**
+     * 가게의 <b>노출 중인</b> 상품 카테고리 목록(sort 오름차순) — 손님 메뉴판용.
+     *
+     * <p>관리 화면은 숨긴 그룹도 봐야 하므로 이것을 쓰지 않고
+     * {@link #findProductCategoriesForManagement}를 쓴다.
      */
     public List<ProductCategoryResult> findProductCategories(Long shopId) {
         return queryFactory
@@ -681,6 +830,7 @@ public class ProductQueryDao {
                 productCategoryJpaEntity.id,
                 productCategoryJpaEntity.shopId,
                 productCategoryJpaEntity.name,
+                productCategoryJpaEntity.description,
                 productCategoryJpaEntity.sort,
                 productCategoryJpaEntity.visible
             ))
@@ -688,6 +838,212 @@ public class ProductQueryDao {
             .where(productCategoryJpaEntity.shopId.eq(shopId), productCategoryJpaEntity.visible.eq(true))
             .orderBy(productCategoryJpaEntity.sort.asc())
             .fetch();
+    }
+
+    /**
+     * 점주·관리자 메뉴그룹 관리 목록 — <b>숨긴 그룹도 포함</b>하고 소속 메뉴 수를 함께 센다.
+     *
+     * <p>{@code visible} 필터를 걸지 않는 이유는 관리 화면이 숨김 상태 자체를 조작하는 화면이기
+     * 때문이다 — 걸면 숨긴 그룹을 다시 켤 방법이 없어진다.
+     *
+     * <p>메뉴 수는 삭제된 메뉴를 제외한다. 이 값이 0이 아니면 그룹 삭제가
+     * {@code PRODUCT_CATEGORY_HAS_PRODUCTS}로 거절되므로, 화면이 미리 안내할 수 있다.
+     */
+    public List<ProductCategoryManagementResult> findProductCategoriesForManagement(Long shopId) {
+        return queryFactory
+            .select(new QProductCategoryManagementResult(
+                productCategoryJpaEntity.id,
+                productCategoryJpaEntity.shopId,
+                productCategoryJpaEntity.name,
+                productCategoryJpaEntity.description,
+                productCategoryJpaEntity.sort,
+                productCategoryJpaEntity.visible,
+                JPAExpressions
+                    .select(subCategoryProduct.count())
+                    .from(subCategoryProduct)
+                    .where(
+                        subCategoryProduct.productCategoryId.eq(productCategoryJpaEntity.id),
+                        subCategoryProduct.deleted.isFalse()
+                    )
+            ))
+            .from(productCategoryJpaEntity)
+            .where(productCategoryJpaEntity.shopId.eq(shopId))
+            .orderBy(productCategoryJpaEntity.sort.asc())
+            .fetch();
+    }
+
+    /**
+     * 점주 옵션그룹 관리 화면의 가게 단위 옵션그룹 목록 — <b>일반 옵션그룹만</b> 반환한다.
+     *
+     * <p>공통 옵션그룹({@code PRODUCT_COMMON_OPTION_GROUP})은 담지 않는다: 점주 CRUD 대상이 일반
+     * 갈래뿐이고, 두 테이블의 id 공간이 독립적이라 한 목록에 섞으면 화면이 뒤이어 보내는
+     * {@code optionGroupId}가 어느 테이블을 가리키는지 알 수 없어진다.
+     *
+     * <p><b>가게 범위는 링크를 거쳐 판정한다</b>(그룹 → 링크 → 메뉴 → 가게). 옵션그룹 행에도
+     * {@code product_id}가 남아 있지만 그것은 1:N 시절의 잔재이며 N:M에서는 진실원이 아니다.
+     * 삭제된 메뉴의 링크만 남은 그룹은 목록에서 사라진다 — {@code notDeleted()}가 걸리기 때문이며,
+     * 이는 의도된 동작이다(그 그룹은 어느 살아있는 메뉴에서도 보이지 않는다).
+     *
+     * <p>{@code visible} 필터를 걸지 않는 이유는 메뉴그룹 관리 목록과 같다 — 이 화면이 숨김 상태를
+     * 조작하므로, 필터를 걸면 감춘(소프트 삭제된) 그룹이 목록에서 영구히 사라져 되살릴 수 없다.
+     */
+    public List<ProductOptionGroupManagementResult> findProductOptionGroupsForManagement(Long shopId) {
+        // select와 Tuple.get이 같은 표현식 인스턴스를 참조해야 하므로 서브쿼리를 지역 변수로 추출한다.
+        Expression<Long> linkedProductCount = JPAExpressions
+            .select(subOptionGroupLink.count())
+            .from(subOptionGroupLink)
+            .where(subOptionGroupLink.optionGroupId.eq(productOptionGroupJpaEntity.id));
+
+        List<Tuple> groups = queryFactory
+            .selectDistinct(
+                productOptionGroupJpaEntity.id,
+                productOptionGroupJpaEntity.name,
+                productOptionGroupJpaEntity.description,
+                productOptionGroupJpaEntity.required,
+                productOptionGroupJpaEntity.multipleSelect,
+                productOptionGroupJpaEntity.minSelect,
+                productOptionGroupJpaEntity.maxSelect,
+                productOptionGroupLinkJpaEntity.sort,
+                productOptionGroupJpaEntity.visible,
+                linkedProductCount
+            )
+            .from(productOptionGroupJpaEntity)
+            .innerJoin(productOptionGroupLinkJpaEntity)
+            .on(productOptionGroupLinkJpaEntity.optionGroupId.eq(productOptionGroupJpaEntity.id))
+            .innerJoin(productJpaEntity).on(productOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
+            .where(productJpaEntity.shopId.eq(shopId), notDeleted())
+            .orderBy(productOptionGroupLinkJpaEntity.sort.asc(), productOptionGroupJpaEntity.id.asc())
+            .fetch();
+
+        if (groups.isEmpty()) {
+            return List.of();
+        }
+
+        // 같은 그룹이 여러 메뉴에 연결돼 있으면 링크 sort가 달라 행이 여럿 나온다. 먼저 만난 행(=가장
+        // 작은 sort)만 남겨 그룹당 1건으로 접는다.
+        Map<Long, Tuple> groupById = new LinkedHashMap<>();
+        for (Tuple tuple : groups) {
+            groupById.putIfAbsent(tuple.get(productOptionGroupJpaEntity.id), tuple);
+        }
+
+        List<Long> groupIds = List.copyOf(groupById.keySet());
+        Map<Long, List<ProductOptionManagementResult>> optionsByGroupId = findOptionsForManagement(groupIds);
+
+        return groupById.values().stream()
+            .map(tuple -> {
+                Long groupId = tuple.get(productOptionGroupJpaEntity.id);
+                Long linkedCount = tuple.get(linkedProductCount);
+                return new ProductOptionGroupManagementResult(
+                    groupId,
+                    tuple.get(productOptionGroupJpaEntity.name),
+                    tuple.get(productOptionGroupJpaEntity.description),
+                    Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.required)),
+                    Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.multipleSelect)),
+                    tuple.get(productOptionGroupJpaEntity.minSelect),
+                    tuple.get(productOptionGroupJpaEntity.maxSelect),
+                    tuple.get(productOptionGroupLinkJpaEntity.sort),
+                    Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.visible)),
+                    linkedCount != null ? linkedCount : 0L,
+                    optionsByGroupId.getOrDefault(groupId, List.of())
+                );
+            })
+            .toList();
+    }
+
+    /**
+     * 관리 화면용 옵션을 그룹별로 배치 조회한다(N+1 방지). 감춘 옵션도 포함한다 — 그룹과 같은
+     * 이유로, 필터를 걸면 감춘 옵션을 되살릴 방법이 없어진다.
+     */
+    private Map<Long, List<ProductOptionManagementResult>> findOptionsForManagement(List<Long> groupIds) {
+        NumberExpression<Long> optionGroupId = productOptionJpaEntity.optionGroupId;
+        return queryFactory
+            .select(
+                optionGroupId,
+                productOptionJpaEntity.id,
+                productOptionJpaEntity.name,
+                productOptionJpaEntity.additionalPrice,
+                productOptionJpaEntity.sort,
+                productOptionJpaEntity.visible
+            )
+            .from(productOptionJpaEntity)
+            .where(optionGroupId.in(groupIds))
+            .orderBy(productOptionJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .filter(tuple -> tuple.get(optionGroupId) != null)
+            .collect(Collectors.groupingBy(
+                tuple -> Objects.requireNonNull(tuple.get(optionGroupId)),
+                LinkedHashMap::new,
+                Collectors.mapping(
+                    tuple -> new ProductOptionManagementResult(
+                        tuple.get(productOptionJpaEntity.id),
+                        tuple.get(productOptionJpaEntity.name),
+                        tuple.get(productOptionJpaEntity.additionalPrice),
+                        tuple.get(productOptionJpaEntity.sort),
+                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.visible))
+                    ),
+                    Collectors.toList()
+                )
+            ));
+    }
+
+    /**
+     * 옵션그룹을 사용하는(삭제되지 않은) 메뉴 목록 — 연결 해제 전 영향 확인 화면에 쓴다.
+     *
+     * <p>메뉴의 {@code shopId}를 함께 반환하는 것이 <b>의도</b>다 — 옵션그룹은 자기 가게를 모르므로
+     * 호출부가 이 값으로 소유권을 역판정한다. 결과가 비면 소유 가게를 판정할 수 없다는 뜻이므로
+     * 호출부는 이를 "접근 불가"로 다뤄야 한다(빈 목록을 "허용"으로 읽으면 IDOR이 열린다).
+     */
+    public List<ProductOptionGroupLinkedProductResult> findLinkedProductsByOptionGroupId(Long optionGroupId) {
+        return queryFactory
+            .select(productJpaEntity.id, productJpaEntity.shopId, productJpaEntity.name)
+            .from(productOptionGroupLinkJpaEntity)
+            .innerJoin(productJpaEntity).on(productOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
+            .where(productOptionGroupLinkJpaEntity.optionGroupId.eq(optionGroupId), notDeleted())
+            .orderBy(productOptionGroupLinkJpaEntity.sort.asc(), productJpaEntity.id.asc())
+            .fetch()
+            .stream()
+            .map(tuple -> new ProductOptionGroupLinkedProductResult(
+                tuple.get(productJpaEntity.id),
+                tuple.get(productJpaEntity.shopId),
+                tuple.get(productJpaEntity.name)
+            ))
+            .toList();
+    }
+
+    /**
+     * 가게 단위로 옵션그룹별 연결 메뉴 목록을 <b>한 번의 조회</b>로 반환한다 — 옵션그룹 연결 다이얼로그가
+     * 후보 그룹마다 {@link #findLinkedProductsByOptionGroupId}를 개별 호출하던 N+1을 없앤다.
+     *
+     * <p>단일 가게 불변식(옵션그룹은 한 가게에만 속한다) 덕분에, 이 가게의 메뉴로 조인을 걸면 결과가
+     * 곧 이 가게 옵션그룹 전체의 연결 목록이 된다 — 그룹마다 다시 조회할 필요가 없다.
+     */
+    public Map<Long, List<ProductOptionGroupLinkedProductResult>> findLinkedProductsByShop(Long shopId) {
+        return queryFactory
+            .select(
+                productOptionGroupLinkJpaEntity.optionGroupId,
+                productJpaEntity.id,
+                productJpaEntity.shopId,
+                productJpaEntity.name
+            )
+            .from(productOptionGroupLinkJpaEntity)
+            .innerJoin(productJpaEntity).on(productOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
+            .where(productJpaEntity.shopId.eq(shopId), notDeleted())
+            .orderBy(productOptionGroupLinkJpaEntity.sort.asc(), productJpaEntity.id.asc())
+            .fetch()
+            .stream()
+            .collect(Collectors.groupingBy(
+                tuple -> Objects.requireNonNull(tuple.get(productOptionGroupLinkJpaEntity.optionGroupId)),
+                LinkedHashMap::new,
+                Collectors.mapping(
+                    tuple -> new ProductOptionGroupLinkedProductResult(
+                        tuple.get(productJpaEntity.id),
+                        tuple.get(productJpaEntity.shopId),
+                        tuple.get(productJpaEntity.name)
+                    ),
+                    Collectors.toList()
+                )
+            ));
     }
 
     // ── 품절·숨김 관리 ─────────────────────────────────────────────────────
@@ -721,7 +1077,8 @@ public class ProductQueryDao {
             .where(
                 productJpaEntity.shopId.eq(condition.shopId()),
                 nameContains(condition.keyword()),
-                soldOutOrHidden(condition.soldOutOnly(), condition.hiddenOnly())
+                soldOutOrHidden(condition.soldOutOnly(), condition.hiddenOnly()),
+                notDeleted()
             )
             .orderBy(productCategoryJpaEntity.sort.asc().nullsLast(), productJpaEntity.sort.asc())
             .fetch()
@@ -762,11 +1119,14 @@ public class ProductQueryDao {
         ProductAvailabilitySearchCondition condition
     ) {
         List<Long> groupIds = queryFactory
-            .select(productOptionGroupJpaEntity.id)
+            .selectDistinct(productOptionGroupJpaEntity.id)
             .from(productOptionGroupJpaEntity)
-            .innerJoin(productJpaEntity).on(productOptionGroupJpaEntity.productId.eq(productJpaEntity.id))
+            .innerJoin(productOptionGroupLinkJpaEntity)
+            .on(productOptionGroupLinkJpaEntity.optionGroupId.eq(productOptionGroupJpaEntity.id))
+            .innerJoin(productJpaEntity).on(productOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
             .where(
                 productJpaEntity.shopId.eq(condition.shopId()),
+                notDeleted(),
                 normalOptionMatchExists(condition)
             )
             .fetch();
@@ -786,9 +1146,11 @@ public class ProductQueryDao {
                 productJpaEntity.name
             )
             .from(productOptionGroupJpaEntity)
-            .innerJoin(productJpaEntity).on(productOptionGroupJpaEntity.productId.eq(productJpaEntity.id))
-            .where(productOptionGroupJpaEntity.id.in(groupIds))
-            .orderBy(productOptionGroupJpaEntity.sort.asc())
+            .innerJoin(productOptionGroupLinkJpaEntity)
+            .on(productOptionGroupLinkJpaEntity.optionGroupId.eq(productOptionGroupJpaEntity.id))
+            .innerJoin(productJpaEntity).on(productOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
+            .where(productOptionGroupJpaEntity.id.in(groupIds), notDeleted())
+            .orderBy(productOptionGroupLinkJpaEntity.sort.asc())
             .fetch();
 
         // 같은 옵션 그룹 id 라도 연결 메뉴가 여러 건일 수 있어(1:N) 그룹 단위로 메뉴명을 모은다.
@@ -878,11 +1240,15 @@ public class ProductQueryDao {
         ProductAvailabilitySearchCondition condition
     ) {
         List<Long> groupIds = queryFactory
-            .select(productCommonOptionGroupJpaEntity.id)
+            .selectDistinct(productCommonOptionGroupJpaEntity.id)
             .from(productCommonOptionGroupJpaEntity)
-            .innerJoin(productJpaEntity).on(productCommonOptionGroupJpaEntity.productId.eq(productJpaEntity.id))
+            .innerJoin(productCommonOptionGroupLinkJpaEntity)
+            .on(productCommonOptionGroupLinkJpaEntity.optionGroupId.eq(productCommonOptionGroupJpaEntity.id))
+            .innerJoin(productJpaEntity)
+            .on(productCommonOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
             .where(
                 productJpaEntity.shopId.eq(condition.shopId()),
+                notDeleted(),
                 commonOptionMatchExists(condition)
             )
             .fetch();
@@ -902,9 +1268,12 @@ public class ProductQueryDao {
                 productJpaEntity.name
             )
             .from(productCommonOptionGroupJpaEntity)
-            .innerJoin(productJpaEntity).on(productCommonOptionGroupJpaEntity.productId.eq(productJpaEntity.id))
-            .where(productCommonOptionGroupJpaEntity.id.in(groupIds))
-            .orderBy(productCommonOptionGroupJpaEntity.sort.asc())
+            .innerJoin(productCommonOptionGroupLinkJpaEntity)
+            .on(productCommonOptionGroupLinkJpaEntity.optionGroupId.eq(productCommonOptionGroupJpaEntity.id))
+            .innerJoin(productJpaEntity)
+            .on(productCommonOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
+            .where(productCommonOptionGroupJpaEntity.id.in(groupIds), notDeleted())
+            .orderBy(productCommonOptionGroupLinkJpaEntity.sort.asc())
             .fetch();
 
         // 같은 옵션 그룹 id 라도 연결 메뉴가 여러 건일 수 있어(1:N) 그룹 단위로 메뉴명을 모은다.
@@ -987,6 +1356,234 @@ public class ProductQueryDao {
             ));
     }
 
+    // ── ceo/admin — 이미지·채식 승인 워크플로 ───────────────────────────────
+
+    /**
+     * 점주 메뉴 이미지 관리 목록(sort 오름차순) — 숨김 이미지도 포함한다.
+     *
+     * <p>{@link #findProductImageUrls}와 목적이 다르다. 그쪽은 손님 화면용이라 노출 중인 URL만
+     * 내보내지만, 관리 화면은 순서 변경·삭제 대상을 지목해야 하므로 <b>이미지 식별자</b>가 필요하고
+     * 숨김 상태도 보여야 한다.
+     */
+    public List<ProductImageManagementResult> findProductImagesForManagement(Long productId) {
+        return queryFactory
+            .select(Projections.constructor(ProductImageManagementResult.class,
+                productImageJpaEntity.id,
+                productImageFile.filePath,
+                productImageJpaEntity.sort,
+                productImageJpaEntity.visible
+            ))
+            .from(productImageJpaEntity)
+            .leftJoin(productImageFile).on(productImageFile.id.eq(productImageJpaEntity.imageFileId))
+            .where(productImageJpaEntity.productId.eq(productId))
+            .orderBy(productImageJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+    }
+
+    /**
+     * 메뉴가 속한 가게 식별자. 삭제된 메뉴는 제외하므로 비어 있으면 대상이 없는 것으로 다룬다.
+     *
+     * <p>소비 측(ceo-api 조회 경로)이 <b>경로의 메뉴가 정말 그 가게 것인지</b> 확인하는 데 쓴다 —
+     * 가게 소유권만 확인하고 메뉴-가게 관계를 검증하지 않으면 남의 가게 메뉴를 열람할 수 있다.
+     * 조회 경로는 write 포트를 주입할 수 없으므로(CQRS) 이 투영이 그 역할을 맡는다.
+     */
+    public Optional<Long> findProductShopId(Long productId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(productJpaEntity.shopId)
+                .from(productJpaEntity)
+                .where(productJpaEntity.id.eq(productId), notDeleted())
+                .fetchFirst()
+        );
+    }
+
+    /**
+     * 특정 메뉴의 이미지 변경요청 목록 — 최근 요청 순.
+     */
+    public List<ProductImageChangeRequestResult> findImageChangeRequests(Long productId) {
+        return imageChangeRequestProjection()
+            .where(productImageChangeRequestJpaEntity.productId.eq(productId))
+            .orderBy(productImageChangeRequestJpaEntity.id.desc())
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+    }
+
+    /**
+     * 관리자 검수용 이미지 변경요청 페이징 목록 — 승인 상태로 필터하며 최근 요청 순.
+     */
+    public PageResult<ProductImageChangeRequestResult> findImageChangeRequestPage(
+        ApprovalStatus status,
+        PageQuery pageQuery
+    ) {
+        Long total = queryFactory
+            .select(productImageChangeRequestJpaEntity.count())
+            .from(productImageChangeRequestJpaEntity)
+            .where(imageChangeStatusEq(status))
+            .fetchOne();
+
+        if (total == null || total == 0) {
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
+        }
+
+        List<ProductImageChangeRequestResult> content = imageChangeRequestProjection()
+            .where(imageChangeStatusEq(status))
+            .orderBy(productImageChangeRequestJpaEntity.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    /**
+     * 특정 메뉴의 채식 설정 요청 목록 — 최근 요청 순.
+     */
+    public List<ProductVegetarianRequestResult> findVegetarianRequests(Long productId) {
+        return vegetarianRequestProjection()
+            .where(productVegetarianRequestJpaEntity.productId.eq(productId))
+            .orderBy(productVegetarianRequestJpaEntity.id.desc())
+            .fetch();
+    }
+
+    /**
+     * 관리자 검수용 채식 설정 요청 페이징 목록 — 승인 상태로 필터하며 최근 요청 순.
+     */
+    public PageResult<ProductVegetarianRequestResult> findVegetarianRequestPage(
+        ApprovalStatus status,
+        PageQuery pageQuery
+    ) {
+        Long total = queryFactory
+            .select(productVegetarianRequestJpaEntity.count())
+            .from(productVegetarianRequestJpaEntity)
+            .where(vegetarianStatusEq(status))
+            .fetchOne();
+
+        if (total == null || total == 0) {
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
+        }
+
+        List<ProductVegetarianRequestResult> content = vegetarianRequestProjection()
+            .where(vegetarianStatusEq(status))
+            .orderBy(productVegetarianRequestJpaEntity.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    /**
+     * 메뉴에 현재 반영된 채식 설정. 삭제된 메뉴는 제외하므로 비어 있으면 대상이 없는 것으로 다룬다.
+     *
+     * <p>{@code shopId}를 함께 담는 이유는 소비 측(ceo-api)이 <b>이 메뉴가 정말 그 가게 것인지</b>
+     * 재확인해야 하기 때문이다 — 경로의 메뉴 id와 query의 가게 id가 서로를 검증하지 않으면 IDOR이 된다.
+     */
+    public Optional<ProductVegetarianSettingResult> findVegetarianSetting(Long productId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(Projections.constructor(ProductVegetarianSettingResult.class,
+                    productJpaEntity.id,
+                    productJpaEntity.shopId,
+                    productJpaEntity.vegetarianType
+                ))
+                .from(productJpaEntity)
+                .where(productJpaEntity.id.eq(productId), notDeleted())
+                .fetchFirst()
+        );
+    }
+
+    /**
+     * 메뉴에 현재 설정된 노출기간(기간 축). 삭제된 메뉴는 제외하므로 비어 있으면 대상이 없는 것으로 다룬다.
+     *
+     * <p>요일·시간대 축은 판정 계산기가 도메인 모델을 필요로 하므로 write 포트({@code
+     * ProductExposureHourRepository})를 통해 별도로 읽는다 — 이 투영은 기간 축과 소유 가게만 담는다.
+     */
+    public Optional<ProductExposurePeriodResult> findExposurePeriod(Long productId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(Projections.constructor(ProductExposurePeriodResult.class,
+                    productJpaEntity.id,
+                    productJpaEntity.shopId,
+                    productJpaEntity.exposureStartDate,
+                    productJpaEntity.exposureEndDate
+                ))
+                .from(productJpaEntity)
+                .where(productJpaEntity.id.eq(productId), notDeleted())
+                .fetchFirst()
+        );
+    }
+
+    private com.querydsl.jpa.JPQLQuery<ProductImageChangeRequestResult> imageChangeRequestProjection() {
+        return queryFactory
+            .select(Projections.constructor(ProductImageChangeRequestResult.class,
+                productImageChangeRequestJpaEntity.id,
+                productImageChangeRequestJpaEntity.productId,
+                productJpaEntity.shopId,
+                productJpaEntity.name,
+                imageChangeRequestFile.filePath,
+                productImageChangeRequestJpaEntity.status,
+                productImageChangeRequestJpaEntity.rejectReason
+            ))
+            .from(productImageChangeRequestJpaEntity)
+            .innerJoin(productJpaEntity).on(productJpaEntity.id.eq(productImageChangeRequestJpaEntity.productId))
+            .leftJoin(imageChangeRequestFile)
+            .on(imageChangeRequestFile.id.eq(productImageChangeRequestJpaEntity.imageFileId));
+    }
+
+    private com.querydsl.jpa.JPQLQuery<ProductVegetarianRequestResult> vegetarianRequestProjection() {
+        return queryFactory
+            .select(Projections.constructor(ProductVegetarianRequestResult.class,
+                productVegetarianRequestJpaEntity.id,
+                productVegetarianRequestJpaEntity.productId,
+                productJpaEntity.shopId,
+                productJpaEntity.name,
+                productVegetarianRequestJpaEntity.vegetarianType,
+                productVegetarianRequestJpaEntity.ingredients,
+                productVegetarianRequestJpaEntity.description,
+                productVegetarianRequestJpaEntity.status,
+                productVegetarianRequestJpaEntity.rejectReason
+            ))
+            .from(productVegetarianRequestJpaEntity)
+            .innerJoin(productJpaEntity).on(productJpaEntity.id.eq(productVegetarianRequestJpaEntity.productId));
+    }
+
+    private BooleanExpression imageChangeStatusEq(ApprovalStatus status) {
+        return status != null ? productImageChangeRequestJpaEntity.status.eq(status) : null;
+    }
+
+    private BooleanExpression vegetarianStatusEq(ApprovalStatus status) {
+        return status != null ? productVegetarianRequestJpaEntity.status.eq(status) : null;
+    }
+
+    private ProductImageManagementResult withResolvedImageUrl(ProductImageManagementResult row) {
+        return new ProductImageManagementResult(
+            row.id(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.sort(),
+            row.visible()
+        );
+    }
+
+    private ProductImageChangeRequestResult withResolvedImageUrl(ProductImageChangeRequestResult row) {
+        return new ProductImageChangeRequestResult(
+            row.id(),
+            row.productId(),
+            row.shopId(),
+            row.productName(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.status(),
+            row.rejectReason()
+        );
+    }
+
     // ── batch ──────────────────────────────────────────────────────────────
 
     /**
@@ -1002,7 +1599,7 @@ public class ProductQueryDao {
                 ))
                 .from(productBbqJpaEntity)
                 .innerJoin(productJpaEntity).on(productBbqJpaEntity.productId.eq(productJpaEntity.id))
-                .where(productBbqJpaEntity.optionsSynced.eq(false))
+                .where(productBbqJpaEntity.optionsSynced.eq(false), notDeleted())
                 .fetchFirst()
         );
     }
@@ -1103,6 +1700,126 @@ public class ProductQueryDao {
                 tuple -> Objects.requireNonNull(tuple.get(uploadedFileJpaEntity.filePath)),
                 (existing, ignored) -> existing
             ));
+    }
+
+    /** 노출 판정 기준 시각(서비스 타임존). */
+    private LocalDateTime nowInServiceZone() {
+        return LocalDateTime.now(SERVICE_ZONE);
+    }
+
+    /**
+     * 오늘의 할인 목록의 술어 — <b>count와 content가 이 하나를 공유</b>한다.
+     *
+     * <p>따로 두면 한쪽만 고쳐져 페이징 total이 어긋나고 마지막 페이지가 비는 사고가 난다.
+     */
+    private BooleanExpression todayDiscountSearchable(LocalDateTime now) {
+        return productJpaEntity.discountInfo.discountPrice.isNotNull()
+            .and(productJpaEntity.visible.eq(true))
+            .and(notDeleted())
+            .and(exposedNow(now));
+    }
+
+    /**
+     * <b>지금 노출 중인 메뉴만</b> 남기는 SQL 술어 — 기간 축 + 요일·시간대 축.
+     *
+     * <p><b>애플리케이션 후처리로 할 수 없다.</b> 목록에 페이징이 걸려 있어 20건을 fetch한 뒤
+     * 5건을 걸러내면 {@code totalElements}가 틀어지고 마지막 페이지가 비게 된다. 그래서 술어여야 한다.
+     *
+     * <p>이 술어는 {@code ProductExposureCalculator}와 <b>같은 결과를 내야 한다.</b> 규칙:
+     * <ul>
+     *   <li>기간: {@code start <= today}이고 {@code today <= end}. NULL이면 그 방향 제약 없음.
+     *       종료일은 <b>당일 포함</b>이다.</li>
+     *   <li>요일·시간대: 행이 <b>0건이면 제약 없음</b>({@code notExists}).</li>
+     *   <li>행이 있으면 오늘 요일에 걸리는 행이 지금 시각을 덮거나, <b>전일 행이 자정을 넘겨</b>
+     *       지금 시각을 덮어야 한다. 전일 확인을 빠뜨리면 01:00에 야식 메뉴가 사라진다.</li>
+     * </ul>
+     *
+     * <p>{@code visible}은 이 술어에 넣지 않는다 — 기존 쿼리들이 이미 각자
+     * {@code visible.eq(true)}를 걸고 있고, 관리 화면은 숨김도 봐야 하므로 축을 분리해 둔다.
+     *
+     * @param now 호출부가 {@code LocalDateTime.now(ZoneId.of("Asia/Seoul"))}로 넣는다.
+     *            술어가 {@code CURRENT_DATE}/{@code CURRENT_TIME}를 쓰지 않는 이유는 DB 서버
+     *            타임존에 판정이 좌우되지 않게 하기 위함이다.
+     */
+    private BooleanExpression exposedNow(LocalDateTime now) {
+        LocalDate today = now.toLocalDate();
+        LocalTime time = now.toLocalTime();
+
+        // 두 축의 OR 그룹을 각각 지역 변수로 분리한다 — 체이닝으로 이어 쓰면
+        // `(A or B) and (C or D)`가 되는 것이 우연처럼 보이고, 조건을 하나 추가할 때
+        // 결합 순서가 조용히 바뀐다.
+        BooleanExpression startNotAfterToday = productJpaEntity.exposureStartDate.isNull()
+            .or(productJpaEntity.exposureStartDate.loe(today));
+        BooleanExpression endNotBeforeToday = productJpaEntity.exposureEndDate.isNull()
+            .or(productJpaEntity.exposureEndDate.goe(today));
+        BooleanExpression withinPeriod = startNotAfterToday.and(endNotBeforeToday);
+
+        // 행이 0건이면 "요일·시간 제약 없음".
+        BooleanExpression noHourRows = JPAExpressions
+            .selectOne()
+            .from(subExposureHour)
+            .where(subExposureHour.productId.eq(productJpaEntity.id))
+            .notExists();
+
+        // 오늘 행이 지금을 덮는 경우 / 전일 행이 자정을 넘어와 덮는 경우.
+        BooleanExpression todayBranch = dayTypeMatches(today.getDayOfWeek())
+            .and(coversTime(time));
+        BooleanExpression previousDayBranch =
+            dayTypeMatches(today.minusDays(1).getDayOfWeek())
+                .and(coversAsOvernightTail(time));
+
+        BooleanExpression withinSomeHour = JPAExpressions
+            .selectOne()
+            .from(subExposureHour)
+            .where(
+                subExposureHour.productId.eq(productJpaEntity.id),
+                todayBranch.or(previousDayBranch)
+            )
+            .exists();
+
+        return withinPeriod.and(noHourRows.or(withinSomeHour));
+    }
+
+    /**
+     * 요일 매칭 — 요일 묶음과 개별 요일을 모두 본다. {@code HOLIDAY}는 공휴일 판정이 이 술어에
+     * 없으므로 <b>제외</b>한다(손님 목록에서 공휴일 전용 메뉴는 계산기를 타는 상세 경로에서만 정확하다).
+     */
+    private BooleanExpression dayTypeMatches(java.time.DayOfWeek dayOfWeek) {
+        boolean weekend = dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY;
+        return subExposureHour.dayType.eq(DayType.DAILY)
+            .or(subExposureHour.dayType.eq(weekend ? DayType.WEEKEND : DayType.WEEKDAY))
+            .or(subExposureHour.dayType.eq(DayType.valueOf(dayOfWeek.name())));
+    }
+
+    /** 오늘 시작한 구간이 지금 시각을 덮는지. 종일(NULL)이면 항상 참, 자정 넘김이면 시작 이후 구간만 본다. */
+    private BooleanExpression coversTime(LocalTime time) {
+        BooleanExpression allDay = subExposureHour.startTime.isNull().or(subExposureHour.endTime.isNull());
+        BooleanExpression sameDay = subExposureHour.startTime.loe(time)
+            .and(subExposureHour.endTime.gt(time))
+            .and(subExposureHour.startTime.loe(subExposureHour.endTime));
+        BooleanExpression overnightHead =
+            subExposureHour.endTime.lt(subExposureHour.startTime).and(subExposureHour.startTime.loe(time));
+        return allDay.or(sameDay).or(overnightHead);
+    }
+
+    /** 어제 시작해 자정을 넘어온 구간의 새벽 꼬리가 지금 시각을 덮는지. */
+    private BooleanExpression coversAsOvernightTail(LocalTime time) {
+        return subExposureHour.startTime.isNotNull()
+            .and(subExposureHour.endTime.isNotNull())
+            .and(subExposureHour.endTime.lt(subExposureHour.startTime))
+            .and(subExposureHour.endTime.gt(time));
+    }
+
+    /**
+     * 소프트 삭제된 메뉴 제외. <b>정적 고정 조건</b>이라 동적 필터 헬퍼와 달리 절대 {@code null}을
+     * 반환하지 않는다 — null을 돌려주면 QueryDSL이 조건을 통째로 무시해 필터가 조용히 사라진다.
+     *
+     * <p><b>모든 조회에 거는 것이 정답이 아니다.</b> 리뷰 작성 가능 항목 조회처럼 PRODUCT를
+     * INNER JOIN 하는 경로에 걸면 삭제된 메뉴를 주문했던 회원의 행이 통째로 사라져 하드 삭제와
+     * 같은 데이터 손실이 난다. 거는 곳/거지 않는 곳은 각 DAO의 Javadoc에 명시한다.
+     */
+    private BooleanExpression notDeleted() {
+        return productJpaEntity.deleted.isFalse();
     }
 
     private BooleanExpression shopIdEq(Long shopId) {

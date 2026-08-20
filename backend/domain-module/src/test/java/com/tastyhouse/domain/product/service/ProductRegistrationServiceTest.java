@@ -15,9 +15,11 @@ import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
@@ -47,6 +49,7 @@ class ProductRegistrationServiceTest {
 
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final Long PRODUCT_ID = 7L;
+    private static final Long OPTION_GROUP_ID = 11L;
 
     @Test
     @DisplayName("상품을 저장한다")
@@ -55,7 +58,7 @@ class ProductRegistrationServiceTest {
 
         Product created = fixture.service.createProduct(
             SHOP_ID, ProductCategoryId.of(2L), "황금올리브치킨", "바삭한 치킨",
-            20000, null, null, null, 0, true, 1, false, true, 0
+            20000, null, null, null, 0, true, 1, false, true, 0, false, null, false
         );
 
         assertThat(created.getName()).isEqualTo("황금올리브치킨");
@@ -135,7 +138,7 @@ class ProductRegistrationServiceTest {
     void saveChildAggregates_delegateToEachPort() {
         Fixture fixture = new Fixture(null);
 
-        fixture.service.createProductCategory(SHOP_ID, "치킨", 0, true);
+        fixture.service.createProductCategory(SHOP_ID, "치킨", null, 0, true);
         fixture.service.saveProductImage(ProductId.of(PRODUCT_ID), UploadedFileId.of(99L), 0, true);
         fixture.service.saveProductOptionGroup(ProductId.of(PRODUCT_ID), "맛 선택", null, true, false, 1, 1, 0, true);
         fixture.service.saveProductOption(ProductOptionGroupId.of(11L), "순살", 2000, 0, false, true);
@@ -151,7 +154,8 @@ class ProductRegistrationServiceTest {
     private Product product() {
         return Product.reconstitute(
             PRODUCT_ID, SHOP_ID, ProductCategoryId.of(2L), "황금올리브치킨", "바삭한 치킨",
-            20000, null, null, 0, true, 1, false, null, true, 0, false, null, null
+            20000, null, null, 0, true, 1, false, null, true, 0, false,
+            false, null, false, null, null, null, null, null
         );
     }
 
@@ -170,13 +174,15 @@ class ProductRegistrationServiceTest {
 
         private Fixture(Product existing) {
             this.productRepository = new ProductRepositoryStub(existing);
+            ProductOptionGroupLinkRepositoryStub optionGroupLinkRepository = new ProductOptionGroupLinkRepositoryStub();
             this.service = new ProductRegistrationService(
                 productRepository,
                 categoryRepository,
                 optionGroupRepository,
                 optionRepository,
                 imageRepository,
-                bbqRepository
+                bbqRepository,
+                optionGroupLinkRepository
             );
         }
     }
@@ -220,6 +226,34 @@ class ProductRegistrationServiceTest {
             return List.of();
         }
 
+        /** 이 스텁은 삭제 상태를 다루지 않으므로 findById와 같은 결과를 돌려준다. */
+        @Override
+        public Optional<Product> findByIdIncludingDeleted(ProductId id) {
+            return Optional.ofNullable(existing);
+        }
+
+        @Override
+        public boolean existsByShopIdAndName(ShopId shopId, String name) {
+            return existing != null && existing.getName().equals(name);
+        }
+
+        @Override
+        public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
+            return existing != null
+                && !existing.getId().equals(excludedId.value())
+                && existing.getName().equals(name);
+        }
+
+        @Override
+        public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long countByCategoryId(ProductCategoryId productCategoryId) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
         public Product save(Product product) {
             saved.add(product);
@@ -243,6 +277,12 @@ class ProductRegistrationServiceTest {
                 product.isVisible(),
                 product.getSort(),
                 product.isRatingExcluded(),
+                false,
+                product.getComposition(),
+                product.isSingleServing(),
+                product.getExposureStartDate(),
+                product.getExposureEndDate(),
+                product.getVegetarianType(),
                 null,
                 null
             );
@@ -268,6 +308,16 @@ class ProductRegistrationServiceTest {
             saved.add(productCategory);
             return productCategory;
         }
+
+        @Override
+        public List<ProductCategory> findAllByShopId(ShopId shopId) {
+            return List.copyOf(saved);
+        }
+
+        @Override
+        public void delete(ProductCategory productCategory) {
+            saved.remove(productCategory);
+        }
     }
 
     private static final class ProductOptionGroupRepositoryStub implements ProductOptionGroupRepository {
@@ -284,10 +334,29 @@ class ProductRegistrationServiceTest {
             return List.of();
         }
 
+        /**
+         * 실제 어댑터 계약을 모사한다 — 신규(id null) 저장이면 PK를 부여한 인스턴스를 반환한다.
+         * {@code saveProductOptionGroup}이 반환값의 {@code getProductOptionGroupId()}로 링크 행을
+         * 만들므로, id 부여를 생략하면 미영속 불변식 위반으로 실패한다.
+         */
         @Override
         public ProductOptionGroup save(ProductOptionGroup productOptionGroup) {
             saved.add(productOptionGroup);
-            return productOptionGroup;
+            if (productOptionGroup.getId() != null) {
+                return productOptionGroup;
+            }
+            return ProductOptionGroup.reconstitute(
+                OPTION_GROUP_ID,
+                productOptionGroup.getProductId(),
+                productOptionGroup.getName(),
+                productOptionGroup.getDescription(),
+                productOptionGroup.isRequired(),
+                productOptionGroup.isMultipleSelect(),
+                productOptionGroup.getMinSelect(),
+                productOptionGroup.getMaxSelect(),
+                productOptionGroup.getSort(),
+                productOptionGroup.isVisible()
+            );
         }
     }
 
@@ -336,6 +405,23 @@ class ProductRegistrationServiceTest {
             saved.add(productImage);
             return productImage;
         }
+
+        @Override
+        public Optional<ProductImage> findById(Long id) {
+            return saved.stream().filter(image -> id.equals(image.getId())).findFirst();
+        }
+
+        @Override
+        public List<ProductImage> findAllByProductId(ProductId productId) {
+            return saved.stream()
+                .filter(image -> image.getProductId().equals(productId))
+                .toList();
+        }
+
+        @Override
+        public void delete(ProductImage productImage) {
+            saved.remove(productImage);
+        }
     }
 
     private static final class ProductBbqRepositoryStub implements ProductBbqRepository {
@@ -352,6 +438,59 @@ class ProductRegistrationServiceTest {
         public ProductBbq save(ProductBbq productBbq) {
             saved.add(productBbq);
             return productBbq;
+        }
+    }
+
+    private static final class ProductOptionGroupLinkRepositoryStub implements ProductOptionGroupLinkRepository {
+
+        private final List<ProductOptionGroupLink> saved = new ArrayList<>();
+
+        @Override
+        public ProductOptionGroupLink save(ProductOptionGroupLink link) {
+            saved.add(link);
+            return link;
+        }
+
+        @Override
+        public Optional<ProductOptionGroupLink> findByProductIdAndOptionGroupId(
+            ProductId productId,
+            ProductOptionGroupId optionGroupId
+        ) {
+            return saved.stream()
+                .filter(link -> link.getProductId().equals(productId)
+                    && link.getOptionGroupId().equals(optionGroupId))
+                .findFirst();
+        }
+
+        @Override
+        public List<ProductOptionGroupLink> findAllByProductId(ProductId productId) {
+            return saved.stream()
+                .filter(link -> link.getProductId().equals(productId))
+                .toList();
+        }
+
+        @Override
+        public List<ProductOptionGroupLink> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
+            return saved.stream()
+                .filter(link -> link.getOptionGroupId().equals(optionGroupId))
+                .toList();
+        }
+
+        @Override
+        public List<ProductOptionGroupLink> findAllByOptionGroupIdIn(List<ProductOptionGroupId> optionGroupIds) {
+            return saved.stream()
+                .filter(link -> optionGroupIds.contains(link.getOptionGroupId()))
+                .toList();
+        }
+
+        @Override
+        public boolean existsByProductIdAndOptionGroupId(ProductId productId, ProductOptionGroupId optionGroupId) {
+            return findByProductIdAndOptionGroupId(productId, optionGroupId).isPresent();
+        }
+
+        @Override
+        public void delete(ProductOptionGroupLink link) {
+            saved.remove(link);
         }
     }
 }

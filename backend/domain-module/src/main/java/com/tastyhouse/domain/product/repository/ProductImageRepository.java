@@ -1,5 +1,8 @@
 package com.tastyhouse.domain.product.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -23,4 +26,17 @@ public interface ProductImageRepository {
     UploadedFileId findRepresentativeImageFileId(ProductId productId);
 
     ProductImage save(ProductImage productImage);
+
+    Optional<ProductImage> findById(Long id);
+
+    /**
+     * 메뉴의 이미지를 {@code sort} 오름차순으로 로드한다.
+     *
+     * <p>이 조회가 write 포트에 있는 이유는 순서 변경(replace-all)과 승인 시 "맨 뒤 sort" 산출이
+     * 집합 전체를 봐야 성립하는 불변식이기 때문이다. 화면 갤러리용 URL 목록은 여전히
+     * {@code ProductQueryDao#findProductImageUrls}가 담당한다.
+     */
+    List<ProductImage> findAllByProductId(ProductId productId);
+
+    void delete(ProductImage productImage);
 }

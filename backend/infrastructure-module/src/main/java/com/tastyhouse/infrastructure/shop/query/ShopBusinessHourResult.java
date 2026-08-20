@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.shop.query;
 
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shared.model.DayType;
 
 /**
  * 가게 영업시간 한 건(회원 가게정보·점주 설정·관리 화면 공용).

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.domain.product.model.Product;
+import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -44,4 +45,36 @@ public interface ProductRepository {
      * {@code soldOutUntil <= 기준시각}). 품절 자동해제 배치가 대상을 뽑는 데 쓴다.
      */
     List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime);
+
+    /**
+     * 메뉴명 중복 검사. 같은 가게 안에서 메뉴명은 유일해야 한다.
+     *
+     * <p>불변식 검증이므로 화면용 집계가 아니라 이 포트에 남는다. 삭제된 메뉴는 제외한다 —
+     * 지운 메뉴의 이름을 영원히 못 쓰게 하는 것이 사용자 의도와 어긋난다.
+     */
+    boolean existsByShopIdAndName(ShopId shopId, String name);
+
+    /** 이름 변경 시의 중복 검사 — 자기 자신은 제외한다. */
+    boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId);
+
+    /**
+     * 메뉴그룹(미분류 포함)에 속한 메뉴를 {@code sort} 오름차순으로 로드한다. 재정렬·그룹 이동의
+     * 대상 집합을 만드는 데 쓴다.
+     *
+     * <p><b>{@code productCategoryId}가 {@code null}이면 미분류 메뉴</b>를 뜻하며, 구현은
+     * {@code eq(null)}이 아니라 {@code isNull()}로 조회해야 한다 — QueryDSL은 {@code eq(null)}이면
+     * 조건을 통째로 무시해 가게의 모든 메뉴가 대상이 된다.
+     */
+    List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId);
+
+    /** 메뉴그룹에 속한 (삭제되지 않은) 메뉴 수. 메뉴그룹 삭제 가능 여부 판정에 쓴다. */
+    long countByCategoryId(ProductCategoryId productCategoryId);
+
+    /**
+     * 삭제 대상을 필터 없는 <b>순수 PK 조회</b>로 로드한다.
+     *
+     * <p>{@link #findById}를 재사용하면 그쪽이 {@code deleted} 필터를 갖고 있어 삭제가 영원히
+     * 실패한다({@code RankPeriodRepositoryImpl#delete} 선례). 그래서 별도 메서드로 둔다.
+     */
+    Optional<Product> findByIdIncludingDeleted(ProductId id);
 }

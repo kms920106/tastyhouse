@@ -6,14 +6,26 @@ import org.springframework.context.annotation.Configuration;
 import com.tastyhouse.domain.product.port.ProductReviewStatisticsPort;
 import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
+import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupLinkRepository;
+import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
+import com.tastyhouse.domain.product.repository.ProductImageChangeRequestRepository;
+import com.tastyhouse.domain.product.repository.ProductVegetarianRequestRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.service.OrderProductValidationService;
 import com.tastyhouse.domain.product.service.ProductAvailabilityService;
+import com.tastyhouse.domain.product.service.ProductDeletionService;
+import com.tastyhouse.domain.product.service.ProductExposureCalculator;
+import com.tastyhouse.domain.product.service.ProductExposureService;
+import com.tastyhouse.domain.product.service.ProductImageApprovalService;
+import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
+import com.tastyhouse.domain.product.service.ProductOptionGroupLinkService;
+import com.tastyhouse.domain.product.service.ProductSortService;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.service.ProductReviewStatsService;
 
@@ -37,7 +49,8 @@ public class ProductDomainConfig {
         ProductOptionGroupRepository productOptionGroupRepository,
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
-        ProductBbqRepository productBbqRepository
+        ProductBbqRepository productBbqRepository,
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository
     ) {
         return new ProductRegistrationService(
             productRepository,
@@ -45,7 +58,8 @@ public class ProductDomainConfig {
             productOptionGroupRepository,
             productOptionRepository,
             productImageRepository,
-            productBbqRepository
+            productBbqRepository,
+            productOptionGroupLinkRepository
         );
     }
 
@@ -70,13 +84,19 @@ public class ProductDomainConfig {
         ProductRepository productRepository,
         ProductOptionGroupRepository productOptionGroupRepository,
         ProductOptionRepository productOptionRepository,
-        ProductImageRepository productImageRepository
+        ProductImageRepository productImageRepository,
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductExposureHourRepository productExposureHourRepository,
+        ProductExposureCalculator productExposureCalculator
     ) {
         return new OrderProductValidationService(
             productRepository,
             productOptionGroupRepository,
             productOptionRepository,
-            productImageRepository
+            productImageRepository,
+            productOptionGroupLinkRepository,
+            productExposureHourRepository,
+            productExposureCalculator
         );
     }
 
@@ -91,14 +111,108 @@ public class ProductDomainConfig {
         ProductOptionRepository productOptionRepository,
         ProductCommonOptionRepository productCommonOptionRepository,
         ProductOptionGroupRepository productOptionGroupRepository,
-        ProductCommonOptionGroupRepository productCommonOptionGroupRepository
+        ProductCommonOptionGroupRepository productCommonOptionGroupRepository,
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductCommonOptionGroupLinkRepository productCommonOptionGroupLinkRepository
     ) {
         return new ProductAvailabilityService(
             productRepository,
             productOptionRepository,
             productCommonOptionRepository,
             productOptionGroupRepository,
-            productCommonOptionGroupRepository
+            productCommonOptionGroupRepository,
+            productOptionGroupLinkRepository,
+            productCommonOptionGroupLinkRepository
+        );
+    }
+
+    /**
+     * 메뉴 일괄 삭제(소프트)와 부분실패 제약 — 숨김과 같은 불변식을 적용한다. 숨김만 막고 삭제를
+     * 열어두면 점주가 삭제로 우회해 빈 메뉴판을 만들 수 있다.
+     */
+    @Bean
+    public ProductDeletionService productDeletionService(ProductRepository productRepository) {
+        return new ProductDeletionService(productRepository);
+    }
+
+    /**
+     * 메뉴그룹·메뉴 정렬과 그룹 이동. sort 값을 클라이언트에서 받지 않고 순서 있는 id 배열만 받아
+     * 서버가 0..N-1로 정규화한다.
+     */
+    @Bean
+    public ProductSortService productSortService(
+        ProductRepository productRepository,
+        ProductCategoryRepository productCategoryRepository
+    ) {
+        return new ProductSortService(productRepository, productCategoryRepository);
+    }
+
+    /**
+     * 메뉴 ↔ 옵션그룹 연결(N:M). <b>옵션그룹은 단일 가게에만 속한다</b>는 불변식을 강제해,
+     * 소유권 판정에서 ANY/ALL 구분이 사라지게 한다.
+     */
+    @Bean
+    public ProductOptionGroupLinkService productOptionGroupLinkService(
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductRepository productRepository
+    ) {
+        return new ProductOptionGroupLinkService(productOptionGroupLinkRepository, productRepository);
+    }
+
+    /**
+     * 메뉴 노출 판정 계산기 — 리포지토리도 시계도 갖지 않는 순수 함수라 의존이 없다.
+     */
+    @Bean
+    public ProductExposureCalculator productExposureCalculator() {
+        return new ProductExposureCalculator();
+    }
+
+    /**
+     * 노출기간 설정의 조회·조립·저장. 요일·시간대는 replace-all로 교체하며, 요일 묶음과 개별 요일의
+     * 혼용을 금지한다 — 그 조합을 저장할 수 없게 하면 SQL 술어와 계산기가 갈릴 여지가 없다.
+     */
+    @Bean
+    public ProductExposureService productExposureService(
+        ProductRepository productRepository,
+        ProductExposureHourRepository productExposureHourRepository,
+        ProductExposureCalculator productExposureCalculator
+    ) {
+        return new ProductExposureService(
+            productRepository,
+            productExposureHourRepository,
+            productExposureCalculator
+        );
+    }
+
+    /**
+     * 메뉴 이미지 등록 승인 워크플로. 검수 대상은 "새 이미지의 내용"이므로 등록만 승인을 거치고
+     * 순서 변경·삭제는 즉시 반영한다.
+     */
+    @Bean
+    public ProductImageApprovalService productImageApprovalService(
+        ProductImageChangeRequestRepository productImageChangeRequestRepository,
+        ProductImageRepository productImageRepository,
+        ProductRepository productRepository
+    ) {
+        return new ProductImageApprovalService(
+            productImageChangeRequestRepository,
+            productImageRepository,
+            productRepository
+        );
+    }
+
+    /**
+     * 메뉴 채식 설정 승인 워크플로. 점주는 재료를 근거로 신청만 하고, 관리자 승인 시에만 반영된다 —
+     * 채식 표기는 알레르기·신념과 직결돼 잘못된 표기의 대가가 크기 때문이다.
+     */
+    @Bean
+    public ProductVegetarianApprovalService productVegetarianApprovalService(
+        ProductVegetarianRequestRepository productVegetarianRequestRepository,
+        ProductRepository productRepository
+    ) {
+        return new ProductVegetarianApprovalService(
+            productVegetarianRequestRepository,
+            productRepository
         );
     }
 }

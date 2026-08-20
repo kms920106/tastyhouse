@@ -92,7 +92,9 @@ class ProductSoldOutReleaseSchedulerServiceTest {
     private static Product soldOutProduct(Long id, String name) {
         Product product = Product.reconstitute(
             id, SHOP_ID, ProductCategoryId.of(2L), name, "설명", 10000,
-            null, null, 0, false, null, false, null, true, 1, false, null, null
+            null, null, 0, false, null, false, null, true, 1, false,
+            false, null, false, null, null, null,
+            null, null
         );
         product.markSoldOut(PAST);
         return product;
@@ -177,6 +179,31 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         @Override
         public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
             return expired;
+        }
+
+        @Override
+        public Optional<Product> findByIdIncludingDeleted(ProductId id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public boolean existsByShopIdAndName(ShopId shopId, String name) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long countByCategoryId(ProductCategoryId productCategoryId) {
+            throw new UnsupportedOperationException();
         }
     }
 

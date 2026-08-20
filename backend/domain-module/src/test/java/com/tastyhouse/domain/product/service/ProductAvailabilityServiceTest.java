@@ -14,10 +14,14 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOption;
+import com.tastyhouse.domain.product.model.ProductCommonOptionGroupLink;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.model.ReleaseTarget;
+import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionRepository;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
@@ -79,7 +83,7 @@ class ProductAvailabilityServiceTest {
         // minSelect=1인 그룹에 판매중 옵션 2개. 둘 다 품절 요청하면 뒤의 1건만 실패한다.
         ProductOption first = option(100L, 20L, "곱빼기", 1);
         ProductOption second = option(101L, 20L, "치즈추가", 2);
-        Fixture fixture = Fixture.withOptions(List.of(first, second), optionGroup(20L, 1));
+        Fixture fixture = Fixture.withOptions(List.of(first, second), optionGroup(1));
 
         ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
             SHOP_ID, List.of(ProductOptionId.of(100L), ProductOptionId.of(101L)), List.of(), null, NOW);
@@ -97,7 +101,7 @@ class ProductAvailabilityServiceTest {
     @DisplayName("minSelect가 null이거나 0이면 하한을 1로 본다 — 옵션그룹이 통째로 선택 불가가 되지 않는다")
     void markOptionsSoldOut_nullMinSelect_treatedAsOne() {
         ProductOption only = option(100L, 20L, "곱빼기", 1);
-        Fixture fixture = Fixture.withOptions(List.of(only), optionGroup(20L, null));
+        Fixture fixture = Fixture.withOptions(List.of(only), optionGroup(null));
 
         ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
             SHOP_ID, List.of(ProductOptionId.of(100L)), List.of(), null, NOW);
@@ -291,9 +295,9 @@ class ProductAvailabilityServiceTest {
     @Test
     @DisplayName("공통 옵션은 자기 그룹의 옵션만 세어 minSelect를 판정한다(일반 옵션과 별도 테이블)")
     void markOptionsSoldOut_commonOptionsCountedSeparately() {
-        ProductCommonOption first = commonOption(200L, 30L, "포크", 1);
-        ProductCommonOption second = commonOption(201L, 30L, "물티슈", 2);
-        Fixture fixture = Fixture.withCommonOptions(List.of(first, second), commonOptionGroup(30L, 1));
+        ProductCommonOption first = commonOption(200L, "포크", 1);
+        ProductCommonOption second = commonOption(201L, "물티슈", 2);
+        Fixture fixture = Fixture.withCommonOptions(List.of(first, second), commonOptionGroup());
 
         ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
             SHOP_ID, List.of(),
@@ -310,7 +314,8 @@ class ProductAvailabilityServiceTest {
     private static Product product(Long id, String name, boolean visible, boolean representative, int sort) {
         return Product.reconstitute(
             id, SHOP_ID, ProductCategoryId.of(2L), name, "설명", 10000,
-            null, null, 0, representative, null, false, null, visible, sort, false, null, null
+            null, null, 0, representative, null, false, null, visible, sort, false,
+            false, null, false, null, null, null, null, null
         );
     }
 
@@ -319,19 +324,19 @@ class ProductAvailabilityServiceTest {
             id, ProductOptionGroupId.of(groupId), name, 1000, sort, false, null, true);
     }
 
-    private static ProductCommonOption commonOption(Long id, Long groupId, String name, int sort) {
+    private static ProductCommonOption commonOption(Long id, String name, int sort) {
         return ProductCommonOption.reconstitute(
-            id, ProductOptionGroupId.of(groupId), name, 0, sort, false, null, true);
+            id, ProductOptionGroupId.of(30L), name, 0, sort, false, null, true);
     }
 
-    private static ProductOptionGroup optionGroup(Long id, Integer minSelect) {
+    private static ProductOptionGroup optionGroup(Integer minSelect) {
         return ProductOptionGroup.reconstitute(
-            id, ProductId.of(500L), "그룹", "설명", true, false, minSelect, 3, 1, true);
+            20L, ProductId.of(500L), "그룹", "설명", true, false, minSelect, 3, 1, true);
     }
 
-    private static ProductCommonOptionGroup commonOptionGroup(Long id, Integer minSelect) {
+    private static ProductCommonOptionGroup commonOptionGroup() {
         return ProductCommonOptionGroup.reconstitute(
-            id, ProductId.of(500L), "공통그룹", "설명", true, false, minSelect, 3, 1, true);
+            30L, ProductId.of(500L), "공통그룹", "설명", true, false, 1, 3, 1, true);
     }
 
     /**
@@ -354,12 +359,26 @@ class ProductAvailabilityServiceTest {
             List<Product> owned = new ArrayList<>(products);
             owned.add(product(500L, "옵션소유상품", true, false, 99));
 
+            // 소유권 판정이 "그룹 → 링크 → 메뉴 → 가게"로 바뀌었으므로, 각 옵션그룹을 그 소유 상품
+            // (id=500)에 연결하는 링크 행을 함께 제공한다. 링크가 없는 그룹은 소유 가게를 알 수 없어
+            // PRODUCT_NOT_FOUND로 실패하는데, 그것이 "남의 가게 옵션은 실패한다"의 새 판정 경로다.
+            List<ProductOptionGroupLink> optionGroupLinks = optionGroups.stream()
+                .map(group -> ProductOptionGroupLink.reconstitute(
+                    group.getId(), ProductId.of(500L), ProductOptionGroupId.of(group.getId()), 1))
+                .toList();
+            List<ProductCommonOptionGroupLink> commonOptionGroupLinks = commonOptionGroups.stream()
+                .map(group -> ProductCommonOptionGroupLink.reconstitute(
+                    group.getId(), ProductId.of(500L), ProductOptionGroupId.of(group.getId()), 1))
+                .toList();
+
             this.service = new ProductAvailabilityService(
                 new ProductRepositoryStub(owned, visibleCount, visibleRepresentativeCount),
                 new ProductOptionRepositoryStub(options),
                 new ProductCommonOptionRepositoryStub(commonOptions),
                 new ProductOptionGroupRepositoryStub(optionGroups),
-                new ProductCommonOptionGroupRepositoryStub(commonOptionGroups)
+                new ProductCommonOptionGroupRepositoryStub(commonOptionGroups),
+                new ProductOptionGroupLinkRepositoryStub(optionGroupLinks),
+                new ProductCommonOptionGroupLinkRepositoryStub(commonOptionGroupLinks)
             );
         }
 
@@ -419,6 +438,34 @@ class ProductAvailabilityServiceTest {
         @Override
         public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
             return List.of();
+        }
+
+        /** 이 스텁은 삭제 상태를 다루지 않으므로 findById와 같은 집합을 돌려준다. */
+        @Override
+        public Optional<Product> findByIdIncludingDeleted(ProductId id) {
+            return findById(id);
+        }
+
+        @Override
+        public boolean existsByShopIdAndName(ShopId shopId, String name) {
+            return products.stream().anyMatch(product -> product.getName().equals(name));
+        }
+
+        @Override
+        public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
+            return products.stream()
+                .filter(product -> !product.getId().equals(excludedId.value()))
+                .anyMatch(product -> product.getName().equals(name));
+        }
+
+        @Override
+        public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long countByCategoryId(ProductCategoryId productCategoryId) {
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -520,6 +567,112 @@ class ProductAvailabilityServiceTest {
         public List<ProductCommonOptionGroup> findAllByIdIn(List<ProductOptionGroupId> ids) {
             List<Long> raw = ids.stream().map(ProductOptionGroupId::value).toList();
             return groups.stream().filter(group -> raw.contains(group.getId())).toList();
+        }
+    }
+
+    private record ProductOptionGroupLinkRepositoryStub(
+        List<ProductOptionGroupLink> links
+    ) implements ProductOptionGroupLinkRepository {
+
+        @Override
+        public List<ProductOptionGroupLink> findAllByOptionGroupIdIn(List<ProductOptionGroupId> optionGroupIds) {
+            return links.stream()
+                .filter(link -> optionGroupIds.contains(link.getOptionGroupId()))
+                .toList();
+        }
+
+        @Override
+        public List<ProductOptionGroupLink> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
+            return links.stream()
+                .filter(link -> link.getOptionGroupId().equals(optionGroupId))
+                .toList();
+        }
+
+        @Override
+        public List<ProductOptionGroupLink> findAllByProductId(ProductId productId) {
+            return links.stream()
+                .filter(link -> link.getProductId().equals(productId))
+                .toList();
+        }
+
+        @Override
+        public Optional<ProductOptionGroupLink> findByProductIdAndOptionGroupId(
+            ProductId productId,
+            ProductOptionGroupId optionGroupId
+        ) {
+            return links.stream()
+                .filter(link -> link.getProductId().equals(productId)
+                    && link.getOptionGroupId().equals(optionGroupId))
+                .findFirst();
+        }
+
+        @Override
+        public boolean existsByProductIdAndOptionGroupId(ProductId productId, ProductOptionGroupId optionGroupId) {
+            return findByProductIdAndOptionGroupId(productId, optionGroupId).isPresent();
+        }
+
+        @Override
+        public ProductOptionGroupLink save(ProductOptionGroupLink link) {
+            return link;
+        }
+
+        @Override
+        public void delete(ProductOptionGroupLink link) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private record ProductCommonOptionGroupLinkRepositoryStub(
+        List<ProductCommonOptionGroupLink> links
+    ) implements ProductCommonOptionGroupLinkRepository {
+
+        @Override
+        public List<ProductCommonOptionGroupLink> findAllByOptionGroupIdIn(
+            List<ProductOptionGroupId> optionGroupIds
+        ) {
+            return links.stream()
+                .filter(link -> optionGroupIds.contains(link.getOptionGroupId()))
+                .toList();
+        }
+
+        @Override
+        public List<ProductCommonOptionGroupLink> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
+            return links.stream()
+                .filter(link -> link.getOptionGroupId().equals(optionGroupId))
+                .toList();
+        }
+
+        @Override
+        public List<ProductCommonOptionGroupLink> findAllByProductId(ProductId productId) {
+            return links.stream()
+                .filter(link -> link.getProductId().equals(productId))
+                .toList();
+        }
+
+        @Override
+        public Optional<ProductCommonOptionGroupLink> findByProductIdAndOptionGroupId(
+            ProductId productId,
+            ProductOptionGroupId optionGroupId
+        ) {
+            return links.stream()
+                .filter(link -> link.getProductId().equals(productId)
+                    && link.getOptionGroupId().equals(optionGroupId))
+                .findFirst();
+        }
+
+        @Override
+        public boolean existsByProductIdAndOptionGroupId(ProductId productId, ProductOptionGroupId optionGroupId) {
+            return findByProductIdAndOptionGroupId(productId, optionGroupId).isPresent();
+        }
+
+        @Override
+        public ProductCommonOptionGroupLink save(ProductCommonOptionGroupLink link) {
+            return link;
+        }
+
+        @Override
+        public void delete(ProductCommonOptionGroupLink link) {
+            throw new UnsupportedOperationException();
         }
     }
 }

@@ -61,7 +61,10 @@ public class ProductCommandService {
             spiciness,
             soldOut,
             visible,
-            sort
+            sort,
+            false, // 관리자 등록 화면은 아직 이 세 필드를 다루지 않는다(점주 경로에서만 설정)
+            null,
+            false
         );
         return product.getId();
     }
@@ -153,7 +156,7 @@ public class ProductCommandService {
 
     public Long createProductCategory(Long shopId, String name, Integer sort, boolean visible) {
         ProductCategory category = productRegistrationService.createProductCategory(
-            ShopId.of(shopId), name, sort, visible
+            ShopId.of(shopId), name, null, sort, visible
         );
         return category.getId();
     }

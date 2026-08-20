@@ -11,7 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shared.model.DayType;
 
 /**
  * 상점 브레이크타임 JPA 영속 모델. 순수 도메인 모델 {@code ShopBreakTime}과 분리된 영속 전용 엔티티다.

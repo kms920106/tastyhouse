@@ -29,6 +29,10 @@ public class ProductCategoryJpaEntity extends BaseEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    /** 메뉴그룹 설명 — 메뉴판에서 그룹명 아래에 노출된다. */
+    @Column(name = "description", length = 500)
+    private String description;
+
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
@@ -38,9 +42,16 @@ public class ProductCategoryJpaEntity extends BaseEntity {
     protected ProductCategoryJpaEntity() {
     }
 
-    private ProductCategoryJpaEntity(Long shopId, String name, Integer sort, boolean visible) {
+    private ProductCategoryJpaEntity(
+        Long shopId,
+        String name,
+        String description,
+        Integer sort,
+        boolean visible
+    ) {
         this.shopId = shopId;
         this.name = name;
+        this.description = description;
         this.sort = sort;
         this.visible = visible;
     }
@@ -48,15 +59,22 @@ public class ProductCategoryJpaEntity extends BaseEntity {
     /**
      * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductCategoryMapper#toEntity}에서만 호출한다.
      */
-    static ProductCategoryJpaEntity create(Long shopId, String name, Integer sort, boolean visible) {
-        return new ProductCategoryJpaEntity(shopId, name, sort, visible);
+    static ProductCategoryJpaEntity create(
+        Long shopId,
+        String name,
+        String description,
+        Integer sort,
+        boolean visible
+    ) {
+        return new ProductCategoryJpaEntity(shopId, name, description, sort, visible);
     }
 
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). shopId는 건드리지 않는다.
      */
-    void applyChanges(String name, Integer sort, boolean visible) {
+    void applyChanges(String name, String description, Integer sort, boolean visible) {
         this.name = name;
+        this.description = description;
         this.sort = sort;
         this.visible = visible;
     }
@@ -71,6 +89,10 @@ public class ProductCategoryJpaEntity extends BaseEntity {
 
     public String getName() {
         return this.name;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 
     public Integer getSort() {

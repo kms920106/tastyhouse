@@ -194,7 +194,7 @@ public class ShopChoiceQueryDao {
                     ))
             )
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
-            .where(productJpaEntity.shopId.in(shopIds))
+            .where(productJpaEntity.shopId.in(shopIds), productJpaEntity.deleted.isFalse())
             .fetch();
 
         return productTuples.stream()

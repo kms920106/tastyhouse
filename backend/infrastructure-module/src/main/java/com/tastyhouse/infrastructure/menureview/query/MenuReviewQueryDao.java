@@ -60,12 +60,17 @@ public class MenuReviewQueryDao {
                 menuReviewJpaEntity.comment
             ))
             .from(orderProductJpaEntity)
-            .join(productJpaEntity).on(productJpaEntity.id.eq(orderProductJpaEntity.productId))
+            // ★ leftJoin 이어야 한다. inner join 이면 상품 행이 사라지는 순간(소프트 삭제 후 필터,
+            //   혹은 향후 하드 삭제) 그 메뉴를 주문했던 회원의 리뷰 작성 항목이 통째로 소멸한다.
+            //   여기에는 deleted 필터를 걸지 않는다 — 삭제된 메뉴라도 이미 주문한 회원은 평가할 수 있어야 한다.
+            .leftJoin(productJpaEntity).on(productJpaEntity.id.eq(orderProductJpaEntity.productId))
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(orderProductJpaEntity.imageFileId))
             .leftJoin(menuReviewJpaEntity).on(menuReviewJpaEntity.orderProductId.eq(orderProductJpaEntity.id))
             .where(
                 orderProductJpaEntity.orderId.eq(orderId),
-                productJpaEntity.ratingExcluded.isFalse()
+                // 상품 행이 없으면(leftJoin 미스) ratingExcluded 도 null 이라 isFalse() 만으로는 걸러진다.
+                // 주문 스냅샷만으로 평가할 수 있어야 하므로 null 을 명시적으로 통과시킨다.
+                productJpaEntity.ratingExcluded.isNull().or(productJpaEntity.ratingExcluded.isFalse())
             )
             .orderBy(orderProductJpaEntity.id.asc())
             .fetch()

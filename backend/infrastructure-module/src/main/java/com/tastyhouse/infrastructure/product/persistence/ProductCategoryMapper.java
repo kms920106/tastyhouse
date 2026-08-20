@@ -20,6 +20,7 @@ final class ProductCategoryMapper {
             entity.getId(),
             IdMapping.vo(entity.getShopId(), ShopId::of),
             entity.getName(),
+            entity.getDescription(),
             entity.getSort(),
             entity.isVisible()
         );
@@ -32,6 +33,7 @@ final class ProductCategoryMapper {
         return ProductCategoryJpaEntity.create(
             IdMapping.raw(domain.getShopId(), ShopId::value),
             domain.getName(),
+            domain.getDescription(),
             domain.getSort(),
             domain.isVisible()
         );
@@ -43,6 +45,7 @@ final class ProductCategoryMapper {
     static void applyChanges(ProductCategoryJpaEntity entity, ProductCategory domain) {
         entity.applyChanges(
             domain.getName(),
+            domain.getDescription(),
             domain.getSort(),
             domain.isVisible()
         );

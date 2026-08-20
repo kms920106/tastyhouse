@@ -4,6 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shared.model.DayType;
 
 /**
  * 상점 브레이크타임 순수 도메인 모델.

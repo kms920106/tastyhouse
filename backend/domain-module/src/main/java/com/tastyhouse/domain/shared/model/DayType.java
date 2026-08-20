@@ -1,4 +1,4 @@
-package com.tastyhouse.domain.shop.model;
+package com.tastyhouse.domain.shared.model;
 
 import java.time.DayOfWeek;
 

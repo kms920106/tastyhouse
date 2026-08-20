@@ -245,13 +245,19 @@ CREATE TABLE PRODUCT
     sold_out_until      DATETIME,                                    -- 품절 자동해제 시각 (NULL이면 수동 해제까지 유지)
     is_visible          TINYINT(1)    NOT NULL DEFAULT 1,            -- 노출 여부 (1: 노출)
     is_rating_excluded  TINYINT(1)    NOT NULL DEFAULT 0,            -- 메뉴 평가 제외 여부 (1: 제외 — 주류·사이드 등)
+    is_deleted          TINYINT(1)    NOT NULL DEFAULT 0,            -- 삭제 여부 (1: 삭제 — Soft Delete)
+    composition         VARCHAR(500),                                -- 메뉴구성 (메뉴판 목록에서 메뉴명 하단에 노출)
+    single_serving      TINYINT(1)    NOT NULL DEFAULT 0,            -- 1인분 여부 (1: 1인분)
+    exposure_start_date DATE,                                        -- 노출 시작일 (NULL이면 하한 없음)
+    exposure_end_date   DATE,                                        -- 노출 종료일 (NULL이면 상한 없음, 당일 포함)
+    vegetarian_type     VARCHAR(20),                                 -- 채식 단계 (VEGAN, LACTO, OVO, LACTO_OVO, PESCO / NULL이면 채식 아님). 관리자 승인 시에만 반영
     sort                INT           NOT NULL,                      -- 정렬 순서
     created_at          DATETIME      NOT NULL,                      -- 생성 일시
     updated_at          DATETIME      NOT NULL,                      -- 수정 일시
     INDEX idx_product_shop_id (shop_id),                           -- 인덱스: 장소별 조회
-    INDEX idx_product_category (shop_id, product_category_id),      -- 인덱스: 장소·카테고리 복합 조회
+    INDEX idx_product_category (shop_id, is_deleted, product_category_id, sort), -- 인덱스: 장소·카테고리 복합 조회
     INDEX idx_product_representative (shop_id, is_representative),  -- 인덱스: 장소·대표상품 조회
-    INDEX idx_product_active (shop_id, is_visible, sort),           -- 인덱스: 장소·노출·정렬 복합 조회
+    INDEX idx_product_active (shop_id, is_deleted, is_visible, sort), -- 인덱스: 장소·노출·정렬 복합 조회
     INDEX idx_product_sold_out_until (is_sold_out, sold_out_until)  -- 인덱스: 품절 자동해제 배치 스캔용
 );
 
@@ -287,6 +293,7 @@ CREATE TABLE PRODUCT_CATEGORY
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,                      -- 상품 카테고리 ID (PK)
     shop_id      BIGINT       NOT NULL,                                  -- 장소 ID (SHOP.id 참조)
     name  VARCHAR(100) NOT NULL,                                          -- 카테고리 이름
+    description   VARCHAR(500),                                            -- 메뉴그룹 설명
     sort          INT          NOT NULL,                                  -- 정렬 순서
     is_visible    TINYINT(1)   NOT NULL DEFAULT 1,                        -- 노출 여부 (1: 노출)
     created_at    DATETIME     NOT NULL,                                  -- 생성 일시
@@ -363,6 +370,73 @@ CREATE TABLE PRODUCT_OPTION_GROUP
     updated_at         DATETIME     NOT NULL,                                         -- 수정 일시
     INDEX idx_product_option_group_product_id (product_id),                           -- 인덱스: 상품별 조회
     INDEX idx_product_option_group_active (product_id, is_visible, sort)              -- 인덱스: 상품·노출·정렬 복합 조회
+);
+
+CREATE TABLE PRODUCT_OPTION_GROUP_LINK
+(
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,                              -- 링크 ID (PK)
+    product_id      BIGINT   NOT NULL,                                              -- 상품 ID (PRODUCT.id 참조)
+    option_group_id BIGINT   NOT NULL,                                              -- 옵션 그룹 ID (PRODUCT_OPTION_GROUP.id 참조)
+    sort            INT      NOT NULL,                                              -- 이 메뉴에서의 옵션그룹 정렬 순서 (메뉴별 독립)
+    created_at      DATETIME NOT NULL,                                              -- 생성 일시
+    updated_at      DATETIME NOT NULL,                                              -- 수정 일시
+    UNIQUE KEY uk_product_option_group_link (product_id, option_group_id),          -- 유니크: 같은 메뉴에 같은 그룹 중복 연결 방지
+    INDEX idx_product_option_group_link_product (product_id, sort),                 -- 인덱스: 메뉴별 정렬 조회
+    INDEX idx_product_option_group_link_group (option_group_id)                     -- 인덱스: 그룹 역조회(소유 메뉴 목록 — 소유권 검증)
+);
+
+CREATE TABLE PRODUCT_COMMON_OPTION_GROUP_LINK
+(
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,                              -- 링크 ID (PK)
+    product_id      BIGINT   NOT NULL,                                              -- 상품 ID (PRODUCT.id 참조)
+    option_group_id BIGINT   NOT NULL,                                              -- 공통 옵션 그룹 ID (PRODUCT_COMMON_OPTION_GROUP.id 참조)
+    sort            INT      NOT NULL,                                              -- 이 메뉴에서의 옵션그룹 정렬 순서 (메뉴별 독립)
+    created_at      DATETIME NOT NULL,                                              -- 생성 일시
+    updated_at      DATETIME NOT NULL,                                              -- 수정 일시
+    UNIQUE KEY uk_product_common_option_group_link (product_id, option_group_id),   -- 유니크: 같은 메뉴에 같은 그룹 중복 연결 방지
+    INDEX idx_product_common_option_group_link_product (product_id, sort),          -- 인덱스: 메뉴별 정렬 조회
+    INDEX idx_product_common_option_group_link_group (option_group_id)              -- 인덱스: 그룹 역조회(소유 메뉴 목록 — 소유권 검증)
+);
+
+CREATE TABLE PRODUCT_EXPOSURE_HOUR
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,                          -- 노출 시간대 ID (PK)
+    product_id BIGINT      NOT NULL,                                       -- 상품 ID (PRODUCT.id 참조)
+    day_type   VARCHAR(20) NOT NULL,                                       -- 요일 유형 (DAILY, WEEKDAY, WEEKEND, HOLIDAY, MONDAY..SUNDAY)
+    start_time TIME,                                                       -- 노출 시작 시각 (NULL이면 종일)
+    end_time   TIME,                                                       -- 노출 종료 시각 (NULL이면 종일. start보다 작으면 자정 넘김)
+    created_at DATETIME    NOT NULL,                                       -- 생성 일시
+    updated_at DATETIME    NOT NULL,                                       -- 수정 일시
+    INDEX idx_product_exposure_hour_product_id (product_id),               -- 인덱스: 상품별 조회
+    UNIQUE KEY uk_product_exposure_hour (product_id, day_type)             -- 유니크: 상품·요일 중복 방지
+);
+
+CREATE TABLE PRODUCT_IMAGE_CHANGE_REQUEST
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,                       -- 요청 ID (PK)
+    product_id    BIGINT       NOT NULL,                                   -- 상품 ID (PRODUCT.id 참조)
+    image_file_id BIGINT       NOT NULL,                                   -- 요청된 신규 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    status        VARCHAR(20)  NOT NULL,                                   -- 승인 상태 (PENDING, APPROVED, REJECTED, CANCELED)
+    reject_reason VARCHAR(500),                                            -- 반려 사유
+    created_at    DATETIME     NOT NULL,                                   -- 생성 일시
+    updated_at    DATETIME     NOT NULL,                                   -- 수정 일시
+    INDEX idx_product_image_change_request_product_status (product_id, status), -- 인덱스: 상품별 상태 조회
+    INDEX idx_product_image_change_request_status (status)                 -- 인덱스: 검수 목록 조회
+);
+
+CREATE TABLE PRODUCT_VEGETARIAN_REQUEST
+(
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,                     -- 요청 ID (PK)
+    product_id      BIGINT        NOT NULL,                                -- 상품 ID (PRODUCT.id 참조)
+    vegetarian_type VARCHAR(20)   NOT NULL,                                -- 채식 단계 (VEGAN, LACTO, OVO, LACTO_OVO, PESCO)
+    ingredients     VARCHAR(1000) NOT NULL,                                -- 채소 외 포함 재료 (검수 근거)
+    description     VARCHAR(1000),                                         -- 메뉴 설명 (검수 근거)
+    status          VARCHAR(20)   NOT NULL,                                -- 승인 상태 (PENDING, APPROVED, REJECTED, CANCELED)
+    reject_reason   VARCHAR(500),                                          -- 반려 사유
+    created_at      DATETIME      NOT NULL,                                -- 생성 일시
+    updated_at      DATETIME      NOT NULL,                                -- 수정 일시
+    INDEX idx_product_vegetarian_request_product_status (product_id, status), -- 인덱스: 상품별 상태 조회
+    INDEX idx_product_vegetarian_request_status (status)                   -- 인덱스: 검수 목록 조회
 );
 
 CREATE TABLE SHOP

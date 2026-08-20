@@ -99,6 +99,12 @@ class ProductReviewStatsServiceTest {
             true,
             0,
             false,
+            false,
+            null,
+            false,
+            null,
+            null,
+            null,
             null,
             null
         );
@@ -142,6 +148,31 @@ class ProductReviewStatsServiceTest {
         public Product save(Product product) {
             saved.add(product);
             return product;
+        }
+
+        @Override
+        public Optional<Product> findByIdIncludingDeleted(ProductId id) {
+            return Optional.ofNullable(product);
+        }
+
+        @Override
+        public boolean existsByShopIdAndName(ShopId shopId, String name) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long countByCategoryId(ProductCategoryId productCategoryId) {
+            throw new UnsupportedOperationException();
         }
     }
 

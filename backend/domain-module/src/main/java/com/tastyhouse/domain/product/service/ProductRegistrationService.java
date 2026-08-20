@@ -9,9 +9,11 @@ import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
@@ -48,6 +50,7 @@ public class ProductRegistrationService {
     private final ProductOptionRepository productOptionRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductBbqRepository productBbqRepository;
+    private final ProductOptionGroupLinkRepository productOptionGroupLinkRepository;
 
     public ProductRegistrationService(
         ProductRepository productRepository,
@@ -55,7 +58,8 @@ public class ProductRegistrationService {
         ProductOptionGroupRepository productOptionGroupRepository,
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
-        ProductBbqRepository productBbqRepository
+        ProductBbqRepository productBbqRepository,
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository
     ) {
         this.productRepository = productRepository;
         this.productCategoryRepository = productCategoryRepository;
@@ -63,6 +67,7 @@ public class ProductRegistrationService {
         this.productOptionRepository = productOptionRepository;
         this.productImageRepository = productImageRepository;
         this.productBbqRepository = productBbqRepository;
+        this.productOptionGroupLinkRepository = productOptionGroupLinkRepository;
     }
 
     /**
@@ -82,7 +87,10 @@ public class ProductRegistrationService {
         Integer spiciness,
         boolean soldOut,
         boolean visible,
-        Integer sort
+        Integer sort,
+        boolean ratingExcluded,
+        String composition,
+        boolean singleServing
     ) {
         Product product = Product.of(
             shopId,
@@ -100,7 +108,9 @@ public class ProductRegistrationService {
             null,  // 등록 경로는 품절 기간을 다루지 않는다(기간 지정은 점주 품절·숨김 관리 경로의 몫)
             visible,
             sort,
-            false
+            ratingExcluded,
+            composition,
+            singleServing
         );
         return productRepository.save(product);
     }
@@ -160,8 +170,14 @@ public class ProductRegistrationService {
     /**
      * 상품 카테고리 등록.
      */
-    public ProductCategory createProductCategory(ShopId shopId, String name, Integer sort, boolean visible) {
-        ProductCategory category = ProductCategory.of(shopId, name, sort, visible);
+    public ProductCategory createProductCategory(
+        ShopId shopId,
+        String name,
+        String description,
+        Integer sort,
+        boolean visible
+    ) {
+        ProductCategory category = ProductCategory.of(shopId, name, description, sort, visible);
         return productCategoryRepository.save(category);
     }
 
@@ -175,7 +191,14 @@ public class ProductRegistrationService {
     }
 
     /**
-     * 상품 옵션 그룹 등록.
+     * 상품 옵션 그룹 등록 + 그 메뉴로의 연결 생성.
+     *
+     * <p><b>그룹 저장과 링크 생성을 함께 한다</b> — 링크 없이 저장된 그룹은 어느 메뉴에서도 보이지 않는
+     * 고아가 되고, 읽기 경로가 전부 링크 조인으로 바뀐 뒤에는 화면에서 완전히 사라진다.
+     *
+     * <p>{@code productId}·{@code sort}를 그룹에도 계속 채우는 것은 <b>2단계 배포</b>의 1단계이기
+     * 때문이다 — {@code ddl-auto: validate} 환경이라 컬럼 제거(STEP 6 SQL)와 엔티티 필드 제거 배포가
+     * 원자적이어야 하므로, 지금은 읽기만 링크로 전환하고 쓰기는 양쪽을 채운다(read-dead 상태).
      */
     public ProductOptionGroup saveProductOptionGroup(
         ProductId productId,
@@ -188,6 +211,9 @@ public class ProductRegistrationService {
         Integer sort,
         boolean visible
     ) {
+        int resolvedSort = sort != null
+            ? sort
+            : productOptionGroupLinkRepository.findAllByProductId(productId).size();
         ProductOptionGroup group = ProductOptionGroup.of(
             productId,
             name,
@@ -196,10 +222,29 @@ public class ProductRegistrationService {
             multipleSelect,
             minSelect,
             maxSelect,
-            sort,
+            resolvedSort,
             visible
         );
-        return productOptionGroupRepository.save(group);
+        ProductOptionGroup saved = productOptionGroupRepository.save(group);
+        linkOptionGroup(productId, saved.getProductOptionGroupId(), resolvedSort);
+        return saved;
+    }
+
+    /**
+     * 메뉴와 옵션그룹을 연결한다. 이미 연결돼 있으면 아무 일도 하지 않는다(멱등).
+     *
+     * <p>연결 자체를 별도 메서드로 분리해 둔 이유는, 기존 그룹을 다른 메뉴에도 붙이는 경로(점주
+     * 메뉴-옵션그룹 연결 화면)가 그룹을 새로 만들지 않고 링크만 추가하기 때문이다.
+     */
+    public void linkOptionGroup(ProductId productId, ProductOptionGroupId optionGroupId, Integer sort) {
+        if (productOptionGroupLinkRepository.existsByProductIdAndOptionGroupId(productId, optionGroupId)) {
+            return;
+        }
+        int resolvedSort = sort != null
+            ? sort
+            : productOptionGroupLinkRepository.findAllByProductId(productId).size();
+        productOptionGroupLinkRepository.save(
+            ProductOptionGroupLink.of(productId, optionGroupId, resolvedSort));
     }
 
     /**

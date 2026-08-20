@@ -175,7 +175,7 @@ public class OrderPlacementService {
         );
         Order savedOrder = orderRepository.save(order);
 
-        List<OrderProductSnapshot> snapshots = orderProductValidationService.validate(toSelections(placement));
+        List<OrderProductSnapshot> snapshots = orderProductValidationService.validate(toSelections(placement), LocalDateTime.now());
 
         int totalProductAmount = 0;
         int productDiscountAmount = 0;

@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shared.model.DayType;
 
 /**
  * 시간별 추가 배달팁 순수 도메인 모델 (요일 구분 + 시간대).

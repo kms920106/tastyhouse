@@ -108,6 +108,20 @@ public class ProductOptionGroup {
         this.visible = visible;
     }
 
+    /**
+     * 옵션그룹을 메뉴판에서 감춘다(소프트 삭제).
+     *
+     * <p>행을 지우지 않는 이유: 이 그룹에 속한 옵션들은 주문 시점에 {@code ORDER_PRODUCT_OPTION}으로
+     * 박제되지만 그 스냅샷은 {@code option_group_id}를 함께 남긴다. 행을 하드 삭제하면 과거 주문의
+     * 참조가 끊어지므로, 감추기만 해서 <b>과거 주문 이력은 보존하고 메뉴판에서만 제거</b>한다.
+     *
+     * <p>되살리는 전이 메서드는 두지 않는다 — 복구 UI가 없는 동안은 "변경 경로가 없다"를 구조로
+     * 표현하는 편이 이 저장소의 원칙과 일관된다.
+     */
+    public void hide() {
+        this.visible = false;
+    }
+
     public Long getId() {
         return this.id;
     }

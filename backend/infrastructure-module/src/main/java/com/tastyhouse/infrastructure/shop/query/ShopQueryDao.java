@@ -547,6 +547,24 @@ public class ShopQueryDao {
             .toList();
     }
 
+    /**
+     * 가게에 배정된 음식 유형의 <b>화면 표시명만</b> 뽑는다.
+     *
+     * <p>{@link #findFoodTypeAssignments}와 목적이 다르다. 그쪽은 관리 화면용이라 아이콘 파일을
+     * 조인하고 URL까지 완성하지만, 이 메서드는 <b>정책 판정</b>에 쓰이는 이름 집합만 필요하다 —
+     * 채식 메뉴 등록 불가 카테고리 판정(product 컨텍스트)이 소비자다. 아이콘 조인을 함께 끌고 오면
+     * 판정에 쓰이지 않는 파일 조회가 얹히고, {@code activeImageFileId} 결측 시 inner join으로
+     * 카테고리가 조용히 누락돼 <b>거절해야 할 요청이 통과</b>한다.
+     */
+    public List<String> findFoodTypeCategoryNames(Long shopId) {
+        return queryFactory
+            .select(shopFoodTypeCategoryJpaEntity.displayName)
+            .from(shopFoodTypeJpaEntity)
+            .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeCategoryJpaEntity.id.eq(shopFoodTypeJpaEntity.shopFoodTypeCategoryId))
+            .where(shopFoodTypeJpaEntity.shopId.eq(shopId))
+            .fetch();
+    }
+
     // ------------------------------------------------------------ 배너·사진
 
     /**

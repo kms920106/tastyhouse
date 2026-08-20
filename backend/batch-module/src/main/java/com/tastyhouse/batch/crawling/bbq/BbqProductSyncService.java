@@ -58,7 +58,7 @@ public class BbqProductSyncService {
         if (!existing.isEmpty()) {
             return existing.getFirst().getId();
         }
-        return productRegistrationService.createProductCategory(targetShopId, name, sort, true).getId();
+        return productRegistrationService.createProductCategory(targetShopId, name, null, sort, true).getId();
     }
 
     /**
@@ -80,7 +80,10 @@ public class BbqProductSyncService {
             null,
             registration.soldOut(),
             true,
-            registration.sort()
+            registration.sort(),
+            false, // 크롤링 메뉴는 평가 제외 여부를 알 수 없으므로 기본값(포함)으로 둔다
+            null,  // 메뉴구성은 크롤링 원본에 없다
+            false  // 1인분 여부도 크롤링 원본에 없다
         );
 
         if (registration.imageFileId() != null) {

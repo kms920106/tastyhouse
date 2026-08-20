@@ -14,26 +14,49 @@ public class ProductCategory {
     private final Long id;
     private final ShopId shopId;
     private String name;
+    /** 메뉴그룹 설명 — 메뉴판에서 그룹명 아래에 노출된다. */
+    private String description;
     private Integer sort;
     private boolean visible;
 
-    private ProductCategory(Long id, ShopId shopId, String name, Integer sort, boolean visible) {
+    private ProductCategory(
+        Long id,
+        ShopId shopId,
+        String name,
+        String description,
+        Integer sort,
+        boolean visible
+    ) {
         this.id = id;
         this.shopId = shopId;
         this.name = name;
+        this.description = description;
         this.sort = sort;
         this.visible = visible;
     }
 
-    public static ProductCategory of(ShopId shopId, String name, Integer sort, boolean visible) {
-        return new ProductCategory(null, shopId, name, sort, visible);
+    public static ProductCategory of(
+        ShopId shopId,
+        String name,
+        String description,
+        Integer sort,
+        boolean visible
+    ) {
+        return new ProductCategory(null, shopId, name, description, sort, visible);
     }
 
     /**
      * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
      */
-    public static ProductCategory reconstitute(Long id, ShopId shopId, String name, Integer sort, boolean visible) {
-        return new ProductCategory(id, shopId, name, sort, visible);
+    public static ProductCategory reconstitute(
+        Long id,
+        ShopId shopId,
+        String name,
+        String description,
+        Integer sort,
+        boolean visible
+    ) {
+        return new ProductCategory(id, shopId, name, description, sort, visible);
     }
 
     public ProductCategoryId getProductCategoryId() {
@@ -46,6 +69,17 @@ public class ProductCategory {
         this.visible = visible;
     }
 
+    /** 메뉴그룹명·설명을 바꾼다(점주 경로). 정렬·노출은 각자의 전이 메서드가 담당한다. */
+    public void changeDetails(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
+    /** 정렬 순서만 바꾼다. */
+    public void changeSort(Integer sort) {
+        this.sort = sort;
+    }
+
     public Long getId() {
         return this.id;
     }
@@ -56,6 +90,10 @@ public class ProductCategory {
 
     public String getName() {
         return this.name;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 
     public Integer getSort() {

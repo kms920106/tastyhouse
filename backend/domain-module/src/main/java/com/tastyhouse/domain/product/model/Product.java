@@ -1,11 +1,13 @@
 package com.tastyhouse.domain.product.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.product.vo.ProductId;
+
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -49,7 +51,27 @@ public class Product {
      * <p>ceo 메뉴 관리 화면에서 토글하는 값이며 상품 수정 경로가 아직 이 필드를 다루지 않으므로
      * {@code final}이다 — 전이 메서드를 두지 않는 것이 "현재는 변경 경로가 없다"의 구조적 표현이다.
      */
-    private final boolean ratingExcluded;
+    private boolean ratingExcluded;
+    /**
+     * 소프트 삭제 여부. 하드 삭제를 쓰지 않는 이유는 스키마에 FK 제약이 0개라, 상품 행을 지우면
+     * {@code MENU_REVIEW}(상품 별점의 유일한 근거)와 {@code ORDER_PRODUCT}이 조용히 고아가 되기 때문이다.
+     */
+    private boolean deleted;
+    /** 메뉴구성 — 메뉴판 목록에서 메뉴명 하단에 노출되는 문구. 상세의 {@code description}과 다른 축이다. */
+    private String composition;
+    /** 1인분 여부. */
+    private boolean singleServing;
+    /** 노출 시작일. {@code null}이면 하한 없음. */
+    private LocalDate exposureStartDate;
+    /** 노출 종료일. {@code null}이면 상한 없음이며, 값이 있으면 <b>당일을 포함</b>한다. */
+    private LocalDate exposureEndDate;
+    /**
+     * 채식 단계. {@code null}이면 채식 메뉴가 아니다.
+     *
+     * <p><b>관리자 승인 시에만 반영된다</b> — 점주가 직접 바꾸는 경로를 두지 않고
+     * {@link #applyVegetarianType}만 이 값을 옮긴다.
+     */
+    private VegetarianType vegetarianType;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -70,6 +92,12 @@ public class Product {
         boolean visible,
         Integer sort,
         boolean ratingExcluded,
+        boolean deleted,
+        String composition,
+        boolean singleServing,
+        LocalDate exposureStartDate,
+        LocalDate exposureEndDate,
+        VegetarianType vegetarianType,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -89,6 +117,12 @@ public class Product {
         this.visible = visible;
         this.sort = sort;
         this.ratingExcluded = ratingExcluded;
+        this.deleted = deleted;
+        this.composition = composition;
+        this.singleServing = singleServing;
+        this.exposureStartDate = exposureStartDate;
+        this.exposureEndDate = exposureEndDate;
+        this.vegetarianType = vegetarianType;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -117,7 +151,9 @@ public class Product {
         LocalDateTime soldOutUntil,
         boolean visible,
         Integer sort,
-        boolean ratingExcluded
+        boolean ratingExcluded,
+        String composition,
+        boolean singleServing
     ) {
         validatePrices(originalPrice, discountPrice);
 
@@ -138,6 +174,12 @@ public class Product {
             visible,
             sort,
             ratingExcluded,
+            false,
+            composition,
+            singleServing,
+            null,
+            null,
+            null,
             null,
             null
         );
@@ -167,6 +209,12 @@ public class Product {
         boolean visible,
         Integer sort,
         boolean ratingExcluded,
+        boolean deleted,
+        String composition,
+        boolean singleServing,
+        LocalDate exposureStartDate,
+        LocalDate exposureEndDate,
+        VegetarianType vegetarianType,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -187,6 +235,12 @@ public class Product {
             visible,
             sort,
             ratingExcluded,
+            deleted,
+            composition,
+            singleServing,
+            exposureStartDate,
+            exposureEndDate,
+            vegetarianType,
             createdAt,
             updatedAt
         );
@@ -258,6 +312,30 @@ public class Product {
      */
     public boolean isRatingExcluded() {
         return this.ratingExcluded;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    public String getComposition() {
+        return this.composition;
+    }
+
+    public boolean isSingleServing() {
+        return this.singleServing;
+    }
+
+    public LocalDate getExposureStartDate() {
+        return this.exposureStartDate;
+    }
+
+    public LocalDate getExposureEndDate() {
+        return this.exposureEndDate;
+    }
+
+    public VegetarianType getVegetarianType() {
+        return this.vegetarianType;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -396,5 +474,91 @@ public class Product {
         if (!soldOut) {
             this.soldOutUntil = null;
         }
+    }
+
+    /**
+     * 소프트 삭제한다. {@code deleted}와 함께 {@code visible}도 끈다 — 읽기 경로 중 하나라도
+     * {@code deleted} 필터를 빠뜨렸을 때 노출 필터가 대신 막아 주는 두 겹 방어다.
+     *
+     * <p>이미 삭제된 메뉴를 다시 삭제하면 {@code PRODUCT_ALREADY_DELETED}(400)로 거부한다.
+     *
+     * <p>{@code restore()}는 두지 않는다 — 복구 UI가 없고, 전이 메서드가 없는 것이
+     * "현재는 변경 경로가 없다"의 구조적 표현이라는 이 저장소의 원칙과 일관된다.
+     */
+    public void delete() {
+        if (this.deleted) {
+            throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
+        }
+        this.deleted = true;
+        this.visible = false;
+    }
+
+    /**
+     * 메뉴그룹 이동과 정렬을 <b>함께</b> 반영한다.
+     *
+     * <p>두 전이를 따로 두지 않는 이유는, 그룹만 옮기고 정렬을 남겨 두면 출발 그룹의 sort 값이
+     * 도착 그룹에 그대로 섞여 순서가 뒤엉키기 때문이다. 따로 두면 호출부가 한쪽만 부르는 실수가
+     * 컴파일을 통과한다.
+     */
+    public void relocate(ProductCategoryId productCategoryId, Integer sort) {
+        this.productCategoryId = productCategoryId;
+        this.sort = sort;
+    }
+
+    /** 정렬 순서만 바꾼다(같은 그룹 안에서의 재정렬). */
+    public void changeSort(Integer sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * 노출기간(기간 축)을 바꾼다. 두 값 모두 {@code null}이면 기간 제약이 없는 상시 노출이다.
+     *
+     * <p>{@code endDate < startDate}이면 {@code PRODUCT_EXPOSURE_PERIOD_INVALID}(400)로 거부한다.
+     * {@code endDate}는 <b>당일을 포함</b>한다.
+     */
+    public void changeExposurePeriod(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+            throw new BusinessException(ErrorCode.PRODUCT_EXPOSURE_PERIOD_INVALID);
+        }
+        this.exposureStartDate = startDate;
+        this.exposureEndDate = endDate;
+    }
+
+    /**
+     * 채식 단계를 반영한다. <b>관리자 승인 시에만 호출한다</b> — 점주가 직접 바꾸는 경로를 두지 않는다.
+     * {@code null}을 넘기면 채식 설정이 해제된다.
+     */
+    public void applyVegetarianType(VegetarianType type) {
+        this.vegetarianType = type;
+    }
+
+    /**
+     * 메뉴 기본 정보를 바꾼다. 이미지·채식은 승인 워크플로를 거치므로 이 경로로 바꾸지 않는다.
+     */
+    public void changeDetails(
+        ProductCategoryId productCategoryId,
+        String name,
+        String composition,
+        String description,
+        Integer originalPrice,
+        Integer discountPrice,
+        BigDecimal discountRate,
+        boolean singleServing,
+        Integer spiciness,
+        boolean representative,
+        boolean ratingExcluded
+    ) {
+        validatePrices(originalPrice, discountPrice);
+
+        this.productCategoryId = productCategoryId;
+        this.name = name;
+        this.composition = composition;
+        this.description = description;
+        this.originalPrice = originalPrice;
+        this.discountInfo = ProductDiscountInfo.of(discountPrice, discountRate);
+        this.singleServing = singleServing;
+        this.spiciness = spiciness;
+        this.representative = representative;
+        this.ratingExcluded = ratingExcluded;
     }
 }

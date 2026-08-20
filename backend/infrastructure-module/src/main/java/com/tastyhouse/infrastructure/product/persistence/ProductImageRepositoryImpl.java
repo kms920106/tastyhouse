@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
@@ -37,9 +40,40 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
         return IdMapping.vo(imageFileId, UploadedFileId::of);
     }
 
+    /**
+     * id가 없으면 insert, 있으면 managed 엔티티에 복사한다(load-copy-save).
+     *
+     * <p>과거에는 무조건 insert였다 — 순서 변경처럼 <b>기존 행을 갱신하는 경로가 없었기 때문</b>이다.
+     * 이미지 순서 변경이 생기면서 detached 인스턴스를 그대로 {@code save}하면 감사 필드가 파손되고
+     * 새 행이 중복 생성되므로 갱신 분기를 둔다.
+     */
     @Override
     public ProductImage save(ProductImage entity) {
-        ProductImageJpaEntity saved = productImageJpaRepository.save(ProductImageMapper.toEntity(entity));
-        return ProductImageMapper.toDomain(saved);
+        if (entity.getId() == null) {
+            ProductImageJpaEntity saved = productImageJpaRepository.save(ProductImageMapper.toEntity(entity));
+            return ProductImageMapper.toDomain(saved);
+        }
+
+        ProductImageJpaEntity managed = productImageJpaRepository.findById(entity.getId())
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 상품 이미지입니다: " + entity.getId()));
+        ProductImageMapper.applyChanges(managed, entity);
+        return ProductImageMapper.toDomain(managed);
+    }
+
+    @Override
+    public Optional<ProductImage> findById(Long id) {
+        return productImageJpaRepository.findById(id).map(ProductImageMapper::toDomain);
+    }
+
+    @Override
+    public List<ProductImage> findAllByProductId(ProductId productId) {
+        return productImageJpaRepository.findAllByProductIdOrderBySortAsc(productId.value()).stream()
+            .map(ProductImageMapper::toDomain)
+            .toList();
+    }
+
+    @Override
+    public void delete(ProductImage productImage) {
+        productImageJpaRepository.deleteById(productImage.getId());
     }
 }

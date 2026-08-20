@@ -144,6 +144,7 @@ public class ProductQueryService {
             dto.id(),
             dto.shopId(),
             dto.name(),
+            dto.description(),
             dto.sort(),
             dto.visible()
         );

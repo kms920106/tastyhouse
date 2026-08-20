@@ -34,6 +34,12 @@ final class ProductMapper {
             entity.isVisible(),
             entity.getSort(),
             entity.isRatingExcluded(),
+            entity.isDeleted(),
+            entity.getComposition(),
+            entity.isSingleServing(),
+            entity.getExposureStartDate(),
+            entity.getExposureEndDate(),
+            entity.getVegetarianType(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
@@ -58,15 +64,22 @@ final class ProductMapper {
             domain.getSoldOutUntil(),
             domain.isVisible(),
             domain.getSort(),
-            domain.isRatingExcluded()
+            domain.isRatingExcluded(),
+            domain.isDeleted(),
+            domain.getComposition(),
+            domain.isSingleServing(),
+            domain.getExposureStartDate(),
+            domain.getExposureEndDate(),
+            domain.getVegetarianType()
         );
     }
 
     /**
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update 경로, dirty checking 대체).
      *
-     * <p>{@code ratingExcluded}는 <b>의도적으로 복사하지 않는다</b> — 도메인 모델에서 {@code final}이라
-     * 상품 수정 경로가 이 값을 바꾸지 않는다.
+     * <p>{@code ratingExcluded}·{@code deleted}·{@code composition}·{@code singleServing}·
+     * 노출기간·{@code vegetarianType}도 함께 복사한다 — 점주 메뉴 관리 경로가 이 값들을 실제로 바꾼다.
+     * 하나라도 빠뜨리면 도메인에서 전이시킨 값이 저장되지 않고 조용히 유실된다.
      */
     static void applyChanges(ProductJpaEntity entity, Product domain) {
         entity.applyChanges(
@@ -82,7 +95,14 @@ final class ProductMapper {
             domain.isSoldOut(),
             domain.getSoldOutUntil(),
             domain.isVisible(),
-            domain.getSort()
+            domain.getSort(),
+            domain.isRatingExcluded(),
+            domain.isDeleted(),
+            domain.getComposition(),
+            domain.isSingleServing(),
+            domain.getExposureStartDate(),
+            domain.getExposureEndDate(),
+            domain.getVegetarianType()
         );
     }
 }

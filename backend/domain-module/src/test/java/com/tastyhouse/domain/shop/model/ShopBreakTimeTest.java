@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 class ShopBreakTimeTest {

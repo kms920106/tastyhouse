@@ -3,7 +3,7 @@ package com.tastyhouse.domain.shop.service;
 import java.time.LocalTime;
 
 import com.tastyhouse.domain.shop.model.ClosedDayType;
-import com.tastyhouse.domain.shop.model.DayType;
+import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;

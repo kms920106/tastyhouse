@@ -13,6 +13,9 @@ public record ProductCategoryResponse(
     @Schema(description = "카테고리명", example = "면류")
     String name,
 
+    @Schema(description = "카테고리 설명. 미설정이면 null", example = "국물 있는 면 요리")
+    String description,
+
     @Schema(description = "정렬 순서", example = "1")
     Integer sort,
 
@@ -23,6 +26,7 @@ public record ProductCategoryResponse(
         Long id,
         Long shopId,
         String name,
+        String description,
         Integer sort,
         boolean visible
     ) {
@@ -30,6 +34,7 @@ public record ProductCategoryResponse(
             id,
             shopId,
             name,
+            description,
             sort,
             visible
         );
