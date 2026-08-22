@@ -47,6 +47,38 @@ docs/tasks/request.pdf 문서를 분석하고 플랜 작성
 
 해당 영역 변경이 없으면 그 문서는 만들지 않고, 무엇을 왜 생략했는지 보고에 나옵니다.
 
+### 작업이 여러 기능으로 나뉘면 하위 폴더로 갈립니다
+
+플랜 세션이 판단하기에 **독립적으로 구현·검증할 수 있는 기능이 여럿**이면, 덩어리마다 하위 폴더를 만들어 각각 문서 한 벌을 작성합니다.
+
+```
+docs/tasks/
+  README.md                 ← 덩어리 목록·진행 순서·의존 관계 (먼저 읽으세요)
+  {덩어리-slug}/
+    backend.md  frontend.md  playwright.md  schema.sql
+```
+
+이때 **2~4단계 명령에 폴더 경로를 함께 넣고, 덩어리 하나씩 순서대로 진행합니다.**
+
+```
+/oh-my-claudecode:autopilot
+docs/tasks/{덩어리-slug}/backend.md backend 구현
+```
+
+```
+/oh-my-claudecode:autopilot
+docs/tasks/{덩어리-slug}/frontend.md frontend 구현
+```
+
+```
+docs/tasks/{덩어리-slug}/playwright.md 검증해줘.
+이슈 있으면 자동 루프로 수정까지 진행해줘.
+```
+
+**진행 순서는 `docs/tasks/README.md`가 정합니다.** 뒤 덩어리가 앞 덩어리의 화면 위에 얹히거나, 주문 경로처럼 파급이 큰 변경이 뒤에 배치돼 있어 임의 순서로 착수하면 막힙니다.
+
+검증에서 이슈가 나오면 이슈 파일도 그 덩어리 폴더 안에 만듭니다(`docs/tasks/{덩어리-slug}/playwright-issue-v1.md`).
+
 > **파일명이 고정이라 새 플랜을 쓰면 기존 문서를 덮어씁니다.** `docs/tasks/*`는 `.gitignore` 대상이라 git 히스토리에도 없으니, 이전 작업 문서가 필요하면 미리 백업합니다.
 
 ---
@@ -95,7 +127,8 @@ docs/tasks/frontend.md frontend 구현
 ### 4-1. 기본 — 검증 + 자동 수정 (권장)
 
 ```
-docs/tasks/playwright.md 검증해줘. 이슈 있으면 자동 루프로 수정까지 진행해줘.
+docs/tasks/playwright.md 검증해줘.
+이슈 있으면 자동 루프로 수정까지 진행해줘.
 ```
 
 | | 이슈 없을 때 | 이슈 있을 때 |
