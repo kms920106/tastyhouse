@@ -218,6 +218,15 @@ class ProductExposureServiceTest {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * 이 스텁을 쓰는 테스트는 대표 메뉴 상한(최대 6개)을 검증하지 않으므로 호출되지 않는다.
+         * 조용히 0을 돌려주면 상한 판정이 항상 통과해 테스트가 잘못된 전제 위에서 성공한다.
+         */
+        @Override
+        public long countRepresentativeByShopId(ShopId shopId) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
         public List<Product> findAllSoldOutExpiredBefore(java.time.LocalDateTime baseTime) {
             throw new UnsupportedOperationException();

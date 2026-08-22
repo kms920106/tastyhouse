@@ -533,6 +533,21 @@ public class Product {
     }
 
     /**
+     * 사장님 추천(대표 메뉴) 여부를 바꾼다.
+     *
+     * <p><b>켜는 방향은 관리자 승인 시에만 호출한다</b> — 점주가 직접 켜는 경로를 두지 않는다.
+     * 끄는 방향(해제)은 승인을 거치지 않고 점주가 즉시 호출할 수 있다. 그 비대칭의 근거와
+     * 개수·이미지·최소 1개 제약은 {@code ProductRepresentativeApprovalService}가 소유한다.
+     *
+     * <p>{@link #update}·{@link #changeDetails}가 이 필드를 함께 받고 있지만, 승인 워크플로는
+     * <b>이 메서드만</b> 쓴다 — 승인이 다른 필드까지 건드리지 않아야 하기 때문이다(채식 설정이
+     * {@link #applyVegetarianType}으로 분리된 것과 같은 이유).
+     */
+    public void changeRepresentative(boolean representative) {
+        this.representative = representative;
+    }
+
+    /**
      * 메뉴 기본 정보를 바꾼다. 이미지·채식은 승인 워크플로를 거치므로 이 경로로 바꾸지 않는다.
      */
     public void changeDetails(

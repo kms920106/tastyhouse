@@ -34,6 +34,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderMethodJpa
 import static com.tastyhouse.infrastructure.shop.persistence.QShopOwnerMessageHistoryJpaEntity.shopOwnerMessageHistoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhoneNumberJpaEntity.shopPhoneNumberJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopMenuCollectionImageJpaEntity.shopMenuCollectionImageJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhotoCategoryImageJpaEntity.shopPhotoCategoryImageJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhotoCategoryJpaEntity.shopPhotoCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopSuspensionJpaEntity.shopSuspensionJpaEntity;
@@ -68,6 +69,12 @@ public class ShopQueryDao {
      */
     private static final QUploadedFileJpaEntity contentBoardImageFile = new QUploadedFileJpaEntity("contentBoardImageFile");
     private static final QUploadedFileJpaEntity imageChangeRequestImageFile = new QUploadedFileJpaEntity("imageChangeRequestImageFile");
+
+    /**
+     * 메뉴모음컷 조회에서 이미지 파일을 조인하기 위한 파일 테이블 별칭 — 검수 목록은 {@code SHOP}도 함께
+     * 조인하므로 공용 {@code uploadedFileJpaEntity} 별칭을 재사용하면 다른 목적의 조인과 서로를 덮는다.
+     */
+    private static final QUploadedFileJpaEntity menuCollectionImageFile = new QUploadedFileJpaEntity("menuCollectionImageFile");
 
     /**
      * 가게 상세 조립 시 썸네일/상표 이미지를 함께 조회하기 위한 파일 테이블 별칭.
@@ -587,6 +594,109 @@ public class ShopQueryDao {
             .toList();
     }
 
+    // -------------------------------------------------------------- 메뉴모음컷
+
+    /**
+     * 점주 화면용 메뉴모음컷 목록 — {@code sort} 순, <b>상태 무관 전량</b>.
+     *
+     * <p>대기·반려 건까지 내려보내는 이유는 원문 규격이 점주 화면에 검수 진행 상태를 보여주도록
+     * 규정하기 때문이다. 손님 화면은 {@link #findExposedMenuCollectionImages}로 승인분만 본다.
+     */
+    public List<ShopMenuCollectionImageResult> findMenuCollectionImages(Long shopId) {
+        return queryFactory
+            .select(Projections.constructor(ShopMenuCollectionImageResult.class,
+                shopMenuCollectionImageJpaEntity.id,
+                menuCollectionImageFile.filePath,
+                shopMenuCollectionImageJpaEntity.sort,
+                shopMenuCollectionImageJpaEntity.status,
+                shopMenuCollectionImageJpaEntity.rejectReason
+            ))
+            .from(shopMenuCollectionImageJpaEntity)
+            .leftJoin(menuCollectionImageFile)
+                .on(menuCollectionImageFile.id.eq(shopMenuCollectionImageJpaEntity.imageFileId))
+            .where(shopMenuCollectionImageJpaEntity.shopId.eq(shopId))
+            .orderBy(shopMenuCollectionImageJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+    }
+
+    /**
+     * 손님 화면용 메뉴모음컷 목록 — <b>승인분만</b> {@code sort} 순.
+     *
+     * <p>상태 필터를 소비 측(api 모듈)이 아니라 이 투영에 두는 이유는, 필터를 호출부에 맡기면 새 소비
+     * 경로가 생길 때 조용히 빠져 대기·반려 이미지가 손님에게 노출될 수 있기 때문이다.
+     */
+    public List<ShopMenuCollectionImageExposureResult> findExposedMenuCollectionImages(Long shopId) {
+        return queryFactory
+            .select(Projections.constructor(ShopMenuCollectionImageExposureResult.class,
+                shopMenuCollectionImageJpaEntity.id,
+                menuCollectionImageFile.filePath,
+                shopMenuCollectionImageJpaEntity.sort
+            ))
+            .from(shopMenuCollectionImageJpaEntity)
+            .leftJoin(menuCollectionImageFile)
+                .on(menuCollectionImageFile.id.eq(shopMenuCollectionImageJpaEntity.imageFileId))
+            .where(
+                shopMenuCollectionImageJpaEntity.shopId.eq(shopId),
+                shopMenuCollectionImageJpaEntity.status.eq(ApprovalStatus.APPROVED)
+            )
+            .orderBy(shopMenuCollectionImageJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+    }
+
+    /**
+     * 관리자 검수용 메뉴모음컷 요청 페이징 목록 — 승인 상태로 필터하며 최근 등록 순.
+     */
+    public PageResult<ShopMenuCollectionImageRequestResult> findMenuCollectionImageRequestPage(
+        ApprovalStatus status,
+        PageQuery pageQuery
+    ) {
+        Long total = queryFactory
+            .select(shopMenuCollectionImageJpaEntity.count())
+            .from(shopMenuCollectionImageJpaEntity)
+            .where(menuCollectionImageStatusEq(status))
+            .fetchOne();
+
+        if (total == null || total == 0) {
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
+        }
+
+        List<ShopMenuCollectionImageRequestResult> content = queryFactory
+            .select(Projections.constructor(ShopMenuCollectionImageRequestResult.class,
+                shopMenuCollectionImageJpaEntity.id,
+                shopMenuCollectionImageJpaEntity.shopId,
+                shopJpaEntity.name,
+                menuCollectionImageFile.filePath,
+                shopMenuCollectionImageJpaEntity.sort,
+                shopMenuCollectionImageJpaEntity.status,
+                shopMenuCollectionImageJpaEntity.rejectReason
+            ))
+            .from(shopMenuCollectionImageJpaEntity)
+            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopMenuCollectionImageJpaEntity.shopId))
+            .leftJoin(menuCollectionImageFile)
+                .on(menuCollectionImageFile.id.eq(shopMenuCollectionImageJpaEntity.imageFileId))
+            .where(menuCollectionImageStatusEq(status))
+            .orderBy(shopMenuCollectionImageJpaEntity.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    /** 상태 미지정({@code null})은 "전체"를 뜻하므로 술어를 붙이지 않는다. */
+    private BooleanExpression menuCollectionImageStatusEq(ApprovalStatus status) {
+        return status != null ? shopMenuCollectionImageJpaEntity.status.eq(status) : null;
+    }
+
     /**
      * 전체 사진 카테고리 이미지 목록(파일 경로 포함) — 정렬 순. 소비 측이 카테고리별로 묶어 쓴다.
      */
@@ -852,6 +962,36 @@ public class ShopQueryDao {
             fileUrlResolver.resolve(row.imageUrl()),
             row.sort(),
             row.visible()
+        );
+    }
+
+    private ShopMenuCollectionImageResult withResolvedImageUrl(ShopMenuCollectionImageResult row) {
+        return new ShopMenuCollectionImageResult(
+            row.id(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.sort(),
+            row.status(),
+            row.rejectReason()
+        );
+    }
+
+    private ShopMenuCollectionImageExposureResult withResolvedImageUrl(ShopMenuCollectionImageExposureResult row) {
+        return new ShopMenuCollectionImageExposureResult(
+            row.id(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.sort()
+        );
+    }
+
+    private ShopMenuCollectionImageRequestResult withResolvedImageUrl(ShopMenuCollectionImageRequestResult row) {
+        return new ShopMenuCollectionImageRequestResult(
+            row.id(),
+            row.shopId(),
+            row.shopName(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.sort(),
+            row.status(),
+            row.rejectReason()
         );
     }
 

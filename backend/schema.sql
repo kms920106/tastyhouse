@@ -478,6 +478,20 @@ CREATE TABLE PRODUCT_VEGETARIAN_REQUEST
     INDEX idx_product_vegetarian_request_status (status)                   -- 인덱스: 검수 목록 조회
 );
 
+CREATE TABLE PRODUCT_REPRESENTATIVE_REQUEST
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,                       -- 요청 ID (PK)
+    product_id    BIGINT       NOT NULL,                                   -- 상품 ID (PRODUCT.id 참조)
+    shop_id       BIGINT       NOT NULL,                                   -- 장소 ID (SHOP.id 참조, 검수 목록 표시·가게별 개수 검증용)
+    status        VARCHAR(20)  NOT NULL,                                   -- 승인 상태 (PENDING, APPROVED, REJECTED, CANCELED)
+    reject_reason VARCHAR(500),                                            -- 반려 사유
+    created_at    DATETIME     NOT NULL,                                   -- 생성 일시
+    updated_at    DATETIME     NOT NULL,                                   -- 수정 일시
+    INDEX idx_product_representative_request_product_status (product_id, status), -- 인덱스: 메뉴별 상태 조회
+    INDEX idx_product_representative_request_shop_status (shop_id, status), -- 인덱스: 가게별 대기 건수 확인
+    INDEX idx_product_representative_request_status (status)                -- 인덱스: 검수 목록 조회
+);
+
 CREATE TABLE SHOP
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY, -- 장소 ID (PK)
@@ -834,6 +848,33 @@ CREATE TABLE SHOP_NOTICE_IMAGE
     created_at     DATETIME NOT NULL,                    -- 생성 일시
     updated_at     DATETIME NOT NULL,                    -- 수정 일시
     INDEX idx_shop_notice_image_notice_id (shop_notice_id)
+);
+
+CREATE TABLE SHOP_MENU_COLLECTION_IMAGE
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY, -- 메뉴모음컷 ID (PK)
+    shop_id       BIGINT      NOT NULL,              -- 장소 ID (SHOP.id 참조)
+    image_file_id BIGINT      NOT NULL,              -- 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    sort          INT         NOT NULL,              -- 표시 순서 (0부터 시작)
+    status        VARCHAR(20) NOT NULL,              -- 승인 상태 (PENDING, APPROVED, REJECTED, CANCELED)
+    reject_reason VARCHAR(500),                      -- 반려(취소) 사유
+    created_at    DATETIME    NOT NULL,              -- 생성 일시
+    updated_at    DATETIME    NOT NULL,              -- 수정 일시
+    INDEX idx_shop_menu_collection_image_shop_sort (shop_id, sort),     -- 인덱스: 가게별 노출 순서 조회
+    INDEX idx_shop_menu_collection_image_shop_status (shop_id, status), -- 인덱스: 점주 화면 상태별 조회
+    INDEX idx_shop_menu_collection_image_status (status)                -- 인덱스: 검수 목록 조회
+);
+
+CREATE TABLE SHOP_ORDER_NOTICE
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 주문안내 ID (PK)
+    shop_id       BIGINT       NOT NULL,               -- 장소 ID (SHOP.id 참조)
+    content       VARCHAR(500) NOT NULL,               -- 주문안내 본문 (1~500자)
+    is_hidden     BOOLEAN      NOT NULL DEFAULT FALSE, -- 관리자 게시중단 여부 (true면 손님 화면 미노출)
+    hidden_reason VARCHAR(500),                        -- 게시중단 사유
+    created_at    DATETIME     NOT NULL,               -- 생성 일시
+    updated_at    DATETIME     NOT NULL,               -- 수정 일시
+    UNIQUE KEY uk_shop_order_notice_shop_id (shop_id)  -- 유니크: 가게당 1건 (PUT 전체교체 의미론을 DB가 보장)
 );
 
 CREATE TABLE SHOP_HYGIENE_BADGE

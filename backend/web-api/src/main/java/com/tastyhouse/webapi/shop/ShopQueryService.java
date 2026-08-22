@@ -46,6 +46,7 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressQueryDao;
 import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
+import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
 import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
 import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
@@ -108,6 +109,7 @@ import com.tastyhouse.webapi.shop.response.ShopOrderMethodItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodResponse;
 import com.tastyhouse.webapi.shop.response.ShopPhoneNumberItem;
 import com.tastyhouse.webapi.shop.response.ShopPhotoCategoryResponse;
+import com.tastyhouse.webapi.shop.response.ShopPopularProductResponse;
 import com.tastyhouse.webapi.shop.response.ShopProductCategoryResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewListItemResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewStatisticsResponse;
@@ -969,6 +971,35 @@ public class ShopQueryService {
             image.id(),
             image.imageUrl(),
             image.sort()
+        );
+    }
+
+    /**
+     * 가게 상세 상단 "가장 인기 있는 메뉴" 그룹 — 최대 5건.
+     *
+     * <p>사장님 추천을 먼저 채우고 남는 자리를 최근 30일 완료 주문의 판매량 순으로 채운다. 그 조합
+     * 규칙과 집계는 {@code ProductQueryDao#findPopularProducts}가 소유하고, 이 메서드는 응답 변환만
+     * 담당한다.
+     */
+    public List<ShopPopularProductResponse> getPopularProducts(Long shopId) {
+        return productQueryService.findPopularProducts(shopId).stream()
+            .map(this::convertToPopularProductResponse)
+            .toList();
+    }
+
+    private ShopPopularProductResponse convertToPopularProductResponse(PopularProductItemResult product) {
+        return ShopPopularProductResponse.from(
+            product.id(),
+            product.name(),
+            product.imageUrl(),
+            product.originalPrice(),
+            product.discountPrice(),
+            product.discountRate(),
+            product.rating(),
+            product.reviewCount(),
+            product.representative(),
+            product.spiciness(),
+            product.salesQuantity()
         );
     }
 

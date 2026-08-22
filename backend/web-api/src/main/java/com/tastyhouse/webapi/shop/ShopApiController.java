@@ -37,6 +37,7 @@ import com.tastyhouse.webapi.shop.response.ShopMapMarkerResponse;
 import com.tastyhouse.webapi.shop.response.ShopNoticeResponse;
 import com.tastyhouse.webapi.shop.response.ShopOrderMethodResponse;
 import com.tastyhouse.webapi.shop.response.ShopPhotoCategoryResponse;
+import com.tastyhouse.webapi.shop.response.ShopPopularProductResponse;
 import com.tastyhouse.webapi.shop.response.ShopProductCategoryResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewStatisticsResponse;
 import com.tastyhouse.webapi.shop.response.ShopReviewsByRatingPageResponse;
@@ -168,6 +169,17 @@ public class ShopApiController {
     public ResponseEntity<ApiResponse<List<ShopProductCategoryResponse>>> getShopProducts(@PathVariable Long id) {
         List<ShopProductCategoryResponse> products = shopQueryService.getShopProducts(id);
         ApiResponse<List<ShopProductCategoryResponse>> response = ApiResponse.success(products);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "인기 메뉴 그룹 조회",
+        description = "가게 상세 상단 '가장 인기 있는 메뉴' 그룹을 최대 5건 조회합니다. 사장님 추천 메뉴를 먼저 "
+            + "채우고 남는 자리를 최근 30일 완료 주문의 판매량 순으로 채웁니다. 판매중지·숨김·미노출 메뉴는 제외됩니다. "
+            + "인증이 필요하지 않습니다.")
+    @GetMapping("/v1/{id}/popular-products")
+    public ResponseEntity<ApiResponse<List<ShopPopularProductResponse>>> getPopularProducts(@PathVariable Long id) {
+        List<ShopPopularProductResponse> popularProducts = shopQueryService.getPopularProducts(id);
+        ApiResponse<List<ShopPopularProductResponse>> response = ApiResponse.success(popularProducts);
         return ResponseEntity.ok(response);
     }
 

@@ -81,6 +81,11 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public long countRepresentativeByShopId(ShopId shopId) {
+        return productJpaRepository.countByShopIdAndRepresentativeTrueAndDeletedFalse(shopId.value());
+    }
+
+    @Override
     public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
         return productJpaRepository
             .findAllBySoldOutTrueAndSoldOutUntilIsNotNullAndSoldOutUntilLessThanEqualAndDeletedFalse(baseTime)

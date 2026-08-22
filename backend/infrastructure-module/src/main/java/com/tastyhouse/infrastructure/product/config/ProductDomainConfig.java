@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
 import com.tastyhouse.domain.product.repository.ProductImageChangeRequestRepository;
+import com.tastyhouse.domain.product.repository.ProductRepresentativeRequestRepository;
 import com.tastyhouse.domain.product.repository.ProductVegetarianRequestRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionRepository;
@@ -24,6 +25,7 @@ import com.tastyhouse.domain.product.service.ProductDeletionService;
 import com.tastyhouse.domain.product.service.ProductExposureCalculator;
 import com.tastyhouse.domain.product.service.ProductExposureService;
 import com.tastyhouse.domain.product.service.ProductImageApprovalService;
+import com.tastyhouse.domain.product.service.ProductRepresentativeApprovalService;
 import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupMergeHistoryRepository;
 import com.tastyhouse.domain.product.service.ProductOptionGroupLinkService;
@@ -253,6 +255,27 @@ public class ProductDomainConfig {
         return new ProductVegetarianApprovalService(
             productVegetarianRequestRepository,
             productRepository
+        );
+    }
+
+    /**
+     * 사장님 추천(대표 메뉴) 승인 워크플로. <b>지정은 승인을 거치고 해제는 즉시 반영된다</b> —
+     * 검수의 목적이 부적합한 메뉴의 상단 노출을 막는 데 있어 해제 방향에는 그 위험이 없다.
+     *
+     * <p>가게당 최대 6개·이미지 필수·최소 1개 유지 세 제약을 이 서비스가 단독으로 소유한다.
+     * 세 번째 제약은 일괄 숨김({@link ProductAvailabilityService})이 이미 쓰는
+     * {@code PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE}를 재사용하므로, 두 경로가 같은 하한을 공유한다.
+     */
+    @Bean
+    public ProductRepresentativeApprovalService productRepresentativeApprovalService(
+        ProductRepresentativeRequestRepository productRepresentativeRequestRepository,
+        ProductRepository productRepository,
+        ProductImageRepository productImageRepository
+    ) {
+        return new ProductRepresentativeApprovalService(
+            productRepresentativeRequestRepository,
+            productRepository,
+            productImageRepository
         );
     }
 }

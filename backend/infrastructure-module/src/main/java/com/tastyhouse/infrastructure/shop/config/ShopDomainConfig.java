@@ -18,7 +18,9 @@ import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
+import com.tastyhouse.domain.shop.repository.ShopMenuCollectionImageRepository;
 import com.tastyhouse.domain.shop.repository.ShopNoticeRepository;
+import com.tastyhouse.domain.shop.repository.ShopOrderNoticeRepository;
 import com.tastyhouse.domain.shop.repository.ShopPhoneNumberRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.repository.ShopRequestCommentRepository;
@@ -43,12 +45,14 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipService;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
 import com.tastyhouse.domain.shop.service.ShopLifecycleService;
+import com.tastyhouse.domain.shop.service.ShopMenuCollectionImageService;
 import com.tastyhouse.domain.shop.service.ShopNextOpenTimeCalculator;
 import com.tastyhouse.domain.shop.service.ShopNoticeExposureService;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
 import com.tastyhouse.domain.shop.service.ShopOrderContextService;
+import com.tastyhouse.domain.shop.service.ShopOrderNoticeService;
 import com.tastyhouse.domain.shop.service.ShopPhoneNumberRegistryService;
 import com.tastyhouse.domain.shop.service.ShopRequestCancelService;
 import com.tastyhouse.domain.shop.service.ShopRequestCommentService;
@@ -84,6 +88,19 @@ public class ShopDomainConfig {
     @Bean
     public ShopNoticeExposureService shopNoticeExposureService(ShopNoticeRepository shopNoticeRepository) {
         return new ShopNoticeExposureService(shopNoticeRepository);
+    }
+
+    /**
+     * 주문안내 전체교체(upsert) 연산 — "가게당 주문안내 1건". PUT 하나가 기존 행 유무에 따라
+     * insert/update로 갈라지므로 단일 애그리거트 연산이 아니고, 그 분기 규칙을 ceo·admin 두 api
+     * 모듈이 각자 갖지 않도록 도메인 서비스가 소유한다.
+     *
+     * <p>본문 길이 검증(1~500자)과 관리자 게시중단 토글도 같은 서비스가 갖는다 — 승인 절차가 없어
+     * 상태 전이가 {@code hidden} 하나뿐이라 서비스를 더 쪼갤 이유가 없다.
+     */
+    @Bean
+    public ShopOrderNoticeService shopOrderNoticeService(ShopOrderNoticeRepository shopOrderNoticeRepository) {
+        return new ShopOrderNoticeService(shopOrderNoticeRepository);
     }
 
     /**
@@ -198,6 +215,19 @@ public class ShopDomainConfig {
             shopChangeHistoryRecorder,
             shopRequestIndexRecorder
         );
+    }
+
+    /**
+     * 메뉴모음컷 불변식 — 최대 6개·최소 1개 유지·순서 replace-all은 행 하나만 보고는 판정할 수 없는
+     * 집합 차원 규칙이라 애그리거트가 아니라 도메인 서비스가 소유한다. 등록만 검수를 거치고 순서 변경·
+     * 삭제는 즉시 반영되며, 요청자 ceo·검수자 admin 양쪽이 같은 규칙을 쓰도록 여기 하나만 둔다.
+     */
+    @Bean
+    public ShopMenuCollectionImageService shopMenuCollectionImageService(
+        ShopMenuCollectionImageRepository shopMenuCollectionImageRepository,
+        ShopRepository shopRepository
+    ) {
+        return new ShopMenuCollectionImageService(shopMenuCollectionImageRepository, shopRepository);
     }
 
     /**

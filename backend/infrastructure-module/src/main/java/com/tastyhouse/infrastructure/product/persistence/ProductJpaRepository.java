@@ -23,6 +23,8 @@ public interface ProductJpaRepository extends JpaRepository<ProductJpaEntity, Lo
 
     long countByShopIdAndVisibleTrueAndRepresentativeTrueAndDeletedFalse(Long shopId);
 
+    long countByShopIdAndRepresentativeTrueAndDeletedFalse(Long shopId);
+
     List<ProductJpaEntity> findAllBySoldOutTrueAndSoldOutUntilIsNotNullAndSoldOutUntilLessThanEqualAndDeletedFalse(
         LocalDateTime baseTime
     );

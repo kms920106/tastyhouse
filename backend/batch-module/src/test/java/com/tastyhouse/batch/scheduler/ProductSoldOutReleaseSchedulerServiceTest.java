@@ -180,6 +180,13 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         }
 
         @Override
+        public long countRepresentativeByShopId(ShopId shopId) {
+            // 이 스케줄러는 대표 메뉴 개수 제한을 판정하지 않으므로 도달하지 않는다. 0을 돌려주면
+            // 나중에 대표 메뉴를 다루는 케이스가 생겼을 때 상한 검증이 조용히 항상 통과한다.
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
             return expired;
         }

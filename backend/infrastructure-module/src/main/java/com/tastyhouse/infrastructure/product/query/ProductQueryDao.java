@@ -31,6 +31,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
@@ -40,6 +41,8 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
+import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
+import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEntity.orderProductJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductCommonOptionGroupJpaEntity.productCommonOptionGroupJpaEntity;
@@ -52,6 +55,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGr
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupLinkJpaEntity.productOptionGroupLinkJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupMergeExclusionJpaEntity.productOptionGroupMergeExclusionJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionJpaEntity.productOptionJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductRepresentativeRequestJpaEntity.productRepresentativeRequestJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductVegetarianRequestJpaEntity.productVegetarianRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
@@ -119,6 +123,12 @@ public class ProductQueryDao {
      * DB 서버 타임존에 판정이 좌우되지 않게 하기 위함이다 — 판정 시각은 애플리케이션이 정한다.
      */
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
+
+    /** 인기 메뉴 그룹 노출 상한(PDF 기준). 사장님 추천과 판매량 순위를 합쳐 이 개수를 넘지 않는다. */
+    private static final int POPULAR_PRODUCT_LIMIT = 5;
+
+    /** 판매량 집계 창(일). 창이 없으면 오래 전 히트 메뉴가 순위를 영구히 점유한다. */
+    private static final long POPULAR_PRODUCT_WINDOW_DAYS = 30L;
 
     /**
      * 합치기 추천 후보 SQL. 집계 1패스로 파생 키를 만들고, 그 키가 2건 이상인 것만 남긴다.
@@ -1636,6 +1646,105 @@ public class ProductQueryDao {
     }
 
     /**
+     * 관리자 검수용 사장님 추천 지정 요청 페이징 목록 — 승인 상태로 필터하며 최근 요청 순.
+     */
+    public PageResult<ProductRepresentativeRequestResult> findRepresentativeRequestPage(
+        ApprovalStatus status,
+        PageQuery pageQuery
+    ) {
+        Long total = queryFactory
+            .select(productRepresentativeRequestJpaEntity.count())
+            .from(productRepresentativeRequestJpaEntity)
+            .where(representativeStatusEq(status))
+            .fetchOne();
+
+        if (total == null || total == 0) {
+            return PageResult.empty(pageQuery.page(), pageQuery.size());
+        }
+
+        List<ProductRepresentativeRequestResult> content = representativeRequestProjection()
+            .where(representativeStatusEq(status))
+            .orderBy(productRepresentativeRequestJpaEntity.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch()
+            .stream()
+            .map(this::withResolvedImageUrl)
+            .toList();
+
+        return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
+    }
+
+    /**
+     * 가게 상세 상단 "가장 인기 있는 메뉴" 그룹 — <b>사장님 추천을 먼저 채우고 남는 자리를 주문
+     * 데이터 기반 인기 메뉴로 채운다.</b> 최대 {@value #POPULAR_PRODUCT_LIMIT}건.
+     *
+     * <p><b>집계 테이블·배치를 두지 않고 실시간 조회로 처리한다.</b> 이 저장소에는 상품 판매량 집계가
+     * 없었고({@code POPULAR_KEYWORD}는 검색어 전용), 가게 단위·30일 창이면 인덱스
+     * ({@code idx_orders_shop_id}·{@code idx_orders_created_at})로 좁혀지는 범위라 집계 자산을 새로
+     * 만들어 동기화 책임을 늘릴 이유가 없다.
+     *
+     * <p>집계 규칙:
+     * <ul>
+     *   <li>원천은 {@code ORDERS} ⨝ {@code ORDER_PRODUCT}이며 <b>{@code COMPLETED} 주문만</b> 센다 —
+     *       취소·대기 주문이 인기 순위를 흔들면 안 된다.</li>
+     *   <li>집계 창은 최근 {@value #POPULAR_PRODUCT_WINDOW_DAYS}일이다. 창이 없으면 오래 전 히트
+     *       메뉴가 순위를 영구히 점유한다.</li>
+     *   <li>순위는 {@code SUM(quantity)} 내림차순, <b>동수는 {@code product_id} 오름차순</b>으로
+     *       안정 정렬한다 — 타이브레이크가 없으면 같은 데이터에도 호출마다 순서가 달라져 화면이 흔들린다.</li>
+     * </ul>
+     *
+     * <p>두 갈래를 <b>애플리케이션에서 합치는 이유</b>는 정렬 키가 서로 다르기 때문이다. 추천 자리는
+     * 판매량과 무관하게 우선하고(판매 이력이 0이어도 남는다) 나머지 자리만 판매량 순이므로, 한 쿼리의
+     * {@code ORDER BY}로 표현하면 "추천이면서 판매량 0"인 항목이 뒤로 밀린다. 두 목록을 각각 뽑아
+     * 순서대로 이어 붙이면 그 규칙이 그대로 드러난다.
+     *
+     * <p>양쪽 모두 <b>판매중지·숨김·미노출 메뉴를 제외</b>한다({@link #findShopProducts}와 같은 술어).
+     * 주문할 수 없는 메뉴를 상단에 올리면 손님이 눌렀을 때 막힌다.
+     */
+    public List<PopularProductItemResult> findPopularProducts(Long shopId) {
+        LocalDateTime now = nowInServiceZone();
+
+        // 1) 사장님 추천 — 판매량과 무관하게 자리를 먼저 차지한다. 표시 순서는 목록 정렬과 같게
+        //    맞춘다(평점 내림차순 → id 오름차순)。
+        List<PopularProductItemResult> representatives = popularProductProjection()
+            .where(
+                productJpaEntity.shopId.eq(shopId),
+                productJpaEntity.representative.isTrue(),
+                orderableNow(now)
+            )
+            .orderBy(productJpaEntity.rating.desc(), productJpaEntity.id.asc())
+            .limit(POPULAR_PRODUCT_LIMIT)
+            .fetch();
+
+        List<PopularProductItemResult> merged = new ArrayList<>(representatives);
+        int remaining = POPULAR_PRODUCT_LIMIT - merged.size();
+        if (remaining <= 0) {
+            return merged.stream().map(this::withResolvedImageUrl).toList();
+        }
+
+        // 2) 판매량 순위 — 추천으로 이미 채운 메뉴는 중복 제외한다. 제외를 SQL 술어로 넣어야
+        //    limit이 정확해진다(뽑은 뒤 걸러내면 자리가 비는 만큼 결과가 모자란다).
+        Set<Long> filledIds = merged.stream()
+            .map(PopularProductItemResult::id)
+            .collect(Collectors.toSet());
+
+        List<PopularProductItemResult> popular = popularProductProjection()
+            .where(
+                productJpaEntity.shopId.eq(shopId),
+                orderableNow(now),
+                filledIds.isEmpty() ? null : productJpaEntity.id.notIn(filledIds),
+                soldQuantityOf(shopId, now).gt(0L)
+            )
+            .orderBy(soldQuantityOf(shopId, now).desc(), productJpaEntity.id.asc())
+            .limit(remaining)
+            .fetch();
+
+        merged.addAll(popular);
+        return merged.stream().map(this::withResolvedImageUrl).toList();
+    }
+
+    /**
      * 메뉴에 현재 반영된 채식 설정. 삭제된 메뉴는 제외하므로 비어 있으면 대상이 없는 것으로 다룬다.
      *
      * <p>{@code shopId}를 함께 담는 이유는 소비 측(ceo-api)이 <b>이 메뉴가 정말 그 가게 것인지</b>
@@ -1716,6 +1825,135 @@ public class ProductQueryDao {
 
     private BooleanExpression vegetarianStatusEq(ApprovalStatus status) {
         return status != null ? productVegetarianRequestJpaEntity.status.eq(status) : null;
+    }
+
+    private BooleanExpression representativeStatusEq(ApprovalStatus status) {
+        return status != null ? productRepresentativeRequestJpaEntity.status.eq(status) : null;
+    }
+
+    /**
+     * 사장님 추천 지정 요청 투영 — 검수 화면이 사진을 보고 판정하도록 대표 이미지를 함께 조인한다.
+     *
+     * <p>{@code shop_id}는 요청 행이 직접 들고 있으므로 메뉴를 거쳐 역조회하지 않는다. 가게명만
+     * {@code SHOP}에서 가져온다.
+     */
+    private com.querydsl.jpa.JPQLQuery<ProductRepresentativeRequestResult> representativeRequestProjection() {
+        return queryFactory
+            .select(Projections.constructor(ProductRepresentativeRequestResult.class,
+                productRepresentativeRequestJpaEntity.id,
+                productRepresentativeRequestJpaEntity.productId,
+                productRepresentativeRequestJpaEntity.shopId,
+                shopJpaEntity.name,
+                productJpaEntity.name,
+                uploadedFileJpaEntity.filePath,
+                productRepresentativeRequestJpaEntity.status,
+                productRepresentativeRequestJpaEntity.rejectReason
+            ))
+            .from(productRepresentativeRequestJpaEntity)
+            .innerJoin(productJpaEntity)
+            .on(productJpaEntity.id.eq(productRepresentativeRequestJpaEntity.productId))
+            .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(productRepresentativeRequestJpaEntity.shopId))
+            .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id));
+    }
+
+    /**
+     * 인기 메뉴 항목 투영 — 추천 갈래와 판매량 갈래가 <b>같은 투영을 공유</b>한다. 따로 두면 한쪽만
+     * 고쳐져 같은 화면의 항목이 서로 다른 필드를 갖게 된다.
+     */
+    private com.querydsl.jpa.JPQLQuery<PopularProductItemResult> popularProductProjection() {
+        return queryFactory
+            .select(new QPopularProductItemResult(
+                productJpaEntity.id,
+                productJpaEntity.name,
+                uploadedFileJpaEntity.filePath,
+                productJpaEntity.originalPrice,
+                productJpaEntity.discountInfo.discountPrice,
+                productJpaEntity.discountInfo.discountRate,
+                productJpaEntity.rating,
+                productJpaEntity.reviewCount,
+                productJpaEntity.representative,
+                productJpaEntity.spiciness,
+                soldQuantityOf(productJpaEntity.shopId, nowInServiceZone())
+            ))
+            .from(productJpaEntity)
+            .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id));
+    }
+
+    /**
+     * 최근 {@value #POPULAR_PRODUCT_WINDOW_DAYS}일간 <b>완료된</b> 주문의 판매 수량 합 서브쿼리.
+     *
+     * <p>{@code coalesce(0)}으로 감싸는 이유는 판매 이력이 없는 메뉴에서 스칼라 서브쿼리가 {@code NULL}이
+     * 되어 정렬과 {@code > 0} 비교가 모두 예상과 달라지기 때문이다.
+     *
+     * <p>{@code shop_id}로 한 번 더 좁히는 것은 중복 조건이 아니다 — {@code ORDER_PRODUCT}는 가게를
+     * 모르므로 {@code ORDERS}를 통해서만 가게 범위를 걸 수 있고, 이 조건이 있어야
+     * {@code idx_orders_shop_id}를 탄다.
+     */
+    private NumberExpression<Long> soldQuantityOf(
+        com.querydsl.core.types.Expression<Long> shopIdExpression,
+        LocalDateTime now
+    ) {
+        return com.querydsl.core.types.dsl.Expressions.asNumber(
+            JPAExpressions
+                // sumLong()을 쓰는 이유: 이 저장소의 QueryDSL 포크(OpenFeign 6.11)에서 sum()이
+                // sumAggregate()로 개명됐고, 수량 합은 Integer 범위를 넘길 수 있어 Long 집계가 맞다.
+                .select(orderProductJpaEntity.quantity.sumLong().coalesce(0L))
+                .from(orderProductJpaEntity)
+                .innerJoin(orderJpaEntity).on(orderJpaEntity.id.eq(orderProductJpaEntity.orderId))
+                .where(
+                    orderProductJpaEntity.productId.eq(productJpaEntity.id),
+                    orderJpaEntity.shopId.eq(shopIdExpression),
+                    orderJpaEntity.orderStatus.eq(OrderStatus.COMPLETED),
+                    orderJpaEntity.createdAt.goe(now.minusDays(POPULAR_PRODUCT_WINDOW_DAYS))
+                )
+        ).coalesce(0L);
+    }
+
+    private NumberExpression<Long> soldQuantityOf(Long shopId, LocalDateTime now) {
+        return soldQuantityOf(com.querydsl.core.types.dsl.Expressions.constant(shopId), now);
+    }
+
+    /**
+     * 손님이 <b>지금 주문할 수 있는</b> 메뉴만 남기는 술어 — 노출 중 · 판매중 · 삭제되지 않음 ·
+     * 노출기간·요일·시간대 안. 인기 메뉴 그룹은 상단에 올려 누르게 만드는 자리이므로, 눌렀을 때
+     * 막히는 메뉴를 넣지 않는다.
+     */
+    private BooleanExpression orderableNow(LocalDateTime now) {
+        return productJpaEntity.visible.isTrue()
+            .and(productJpaEntity.soldOut.isFalse())
+            .and(notDeleted())
+            .and(exposedNow(now));
+    }
+
+    private PopularProductItemResult withResolvedImageUrl(PopularProductItemResult row) {
+        return new PopularProductItemResult(
+            row.id(),
+            row.name(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.originalPrice(),
+            row.discountPrice(),
+            row.discountRate(),
+            row.rating(),
+            row.reviewCount(),
+            row.representative(),
+            row.spiciness(),
+            row.salesQuantity()
+        );
+    }
+
+    private ProductRepresentativeRequestResult withResolvedImageUrl(ProductRepresentativeRequestResult row) {
+        return new ProductRepresentativeRequestResult(
+            row.id(),
+            row.productId(),
+            row.shopId(),
+            row.shopName(),
+            row.productName(),
+            fileUrlResolver.resolve(row.imageUrl()),
+            row.status(),
+            row.rejectReason()
+        );
     }
 
     private ProductImageManagementResult withResolvedImageUrl(ProductImageManagementResult row) {

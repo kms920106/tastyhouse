@@ -20,6 +20,7 @@ import com.tastyhouse.infrastructure.product.query.ProductCategoryResult;
 import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
 import com.tastyhouse.infrastructure.product.query.ProductOptionsResult;
 import com.tastyhouse.infrastructure.menureview.query.MenuReviewStatisticsQueryDao;
+import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 import com.tastyhouse.infrastructure.product.query.SearchProductItemResult;
 import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
@@ -272,6 +273,16 @@ public class ProductQueryService {
      */
     public List<ShopProductItemResult> findShopProducts(Long shopId) {
         return productQueryDao.findShopProducts(shopId);
+    }
+
+    /**
+     * 가게 상세 상단 인기 메뉴 그룹 — shop 도메인이 응답을 조립한다.
+     *
+     * <p>사장님 추천 우선 채우기와 판매량 순위 조합은 DAO가 소유한다({@code ProductQueryDao#findPopularProducts}) —
+     * 두 갈래를 각각 조회해 이어 붙이는 규칙이 SQL 인접 계층에 있어야 인덱스·집계 창을 한눈에 검토할 수 있다.
+     */
+    public List<PopularProductItemResult> findPopularProducts(Long shopId) {
+        return productQueryDao.findPopularProducts(shopId);
     }
 
     /**

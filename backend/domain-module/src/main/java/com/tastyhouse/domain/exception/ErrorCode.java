@@ -253,8 +253,22 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_NOTICE_IMAGE_LIMIT_EXCEEDED(400, "SHOP_NOTICE_IMAGE_LIMIT_EXCEEDED", "공지 이미지는 최대 3장까지 등록할 수 있습니다."),
     SHOP_NOTICE_ALREADY_HIDDEN(409, "SHOP_NOTICE_ALREADY_HIDDEN", "이미 게시중단된 공지입니다."),
     SHOP_NOTICE_NOT_HIDDEN(409, "SHOP_NOTICE_NOT_HIDDEN", "게시중단 상태가 아닌 공지입니다."),
+
+    // 주문안내 — 메뉴판 최상단 안내 문구. 승인 절차 없이 즉시 반영되므로 등록 시점 검증은 본문 길이뿐이고,
+    // 규정 위반은 관리자 게시중단(is_hidden)으로 사후 조치한다(금지어 자동 판정은 하지 않는다).
+    SHOP_ORDER_NOTICE_NOT_FOUND(404, "SHOP_ORDER_NOTICE_NOT_FOUND", "주문안내를 찾을 수 없습니다."),
+    SHOP_ORDER_NOTICE_CONTENT_REQUIRED(400, "SHOP_ORDER_NOTICE_CONTENT_REQUIRED", "주문안내 내용을 입력해 주세요."),
+    SHOP_ORDER_NOTICE_CONTENT_TOO_LONG(400, "SHOP_ORDER_NOTICE_CONTENT_TOO_LONG", "주문안내는 500자 이내로 입력해 주세요."),
     SHOP_HYGIENE_BADGE_NOT_FOUND(404, "SHOP_HYGIENE_BADGE_NOT_FOUND", "존재하지 않는 위생 인증 뱃지입니다."),
     HYGIENE_BADGE_TYPE_UNKNOWN(400, "HYGIENE_BADGE_TYPE_UNKNOWN", "알 수 없는 위생 인증 유형입니다."),
+
+    // 메뉴모음컷 — 손님이 가게를 열었을 때 가장 먼저 보는 이미지. 등록만 검수하고 순서 변경·삭제는 즉시 반영된다.
+    SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND(404, "SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND", "메뉴모음컷을 찾을 수 없습니다."),
+    SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED(400, "SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED", "메뉴모음컷은 최대 6개까지 등록할 수 있습니다."),
+    SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE(400, "SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE", "메뉴모음컷은 최소 1개 이상 등록되어야 합니다."),
+    SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH(400, "SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH", "목록이 최신 상태와 일치하지 않습니다. 새로고침 후 다시 시도해 주세요."),
+    SHOP_MENU_COLLECTION_IMAGE_SPEC_INVALID(400, "SHOP_MENU_COLLECTION_IMAGE_SPEC_INVALID", "1280x960 이상, 15MB 이하의 JPG/PNG 이미지만 등록할 수 있습니다."),
+    SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING(409, "SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING", "대기 상태가 아닌 메뉴모음컷은 처리할 수 없습니다."),
 
     // 가게 배달팁
     SHOP_DELIVERY_TIP_NOT_FOUND(404, "SHOP_DELIVERY_TIP_NOT_FOUND", "배달팁 설정을 찾을 수 없습니다."),
@@ -396,6 +410,13 @@ public enum ErrorCode implements ErrorCodeSpec {
     PRODUCT_VEGETARIAN_REQUEST_ALREADY_PENDING(400, "PRODUCT_VEGETARIAN_REQUEST_ALREADY_PENDING", "이미 검수 대기 중인 채식 설정 요청이 있습니다."),
     PRODUCT_VEGETARIAN_REQUEST_NOT_PENDING(400, "PRODUCT_VEGETARIAN_REQUEST_NOT_PENDING", "검수 대기 상태가 아닙니다."),
     PRODUCT_VEGETARIAN_CATEGORY_NOT_ALLOWED(400, "PRODUCT_VEGETARIAN_CATEGORY_NOT_ALLOWED", "채식 메뉴를 등록할 수 없는 가게 카테고리입니다."),
+    PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED(400, "PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED", "사장님 추천 메뉴는 최대 6개까지 등록할 수 있습니다."),
+    PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED(400, "PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED", "이미지가 등록된 메뉴만 사장님 추천으로 설정할 수 있습니다."),
+    PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND(404, "PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND", "사장님 추천 요청을 찾을 수 없습니다."),
+    // 상태 전이 가드 — 스펙의 3종에는 없지만 이미지·채식 승인요청과 같은 구조라 같은 형태의 코드가 필요하다.
+    // 이 코드가 없으면 이미 승인·반려된 요청을 다시 승인할 수 있고, 그때 Product 컬럼이 두 번 켜진다.
+    PRODUCT_REPRESENTATIVE_REQUEST_NOT_PENDING(400, "PRODUCT_REPRESENTATIVE_REQUEST_NOT_PENDING", "검수 대기 상태가 아닙니다."),
+    PRODUCT_REPRESENTATIVE_REQUEST_ALREADY_PENDING(400, "PRODUCT_REPRESENTATIVE_REQUEST_ALREADY_PENDING", "이미 검수 대기 중인 사장님 추천 요청이 있습니다."),
 
     // 공지사항
     NOTICE_NOT_FOUND(404, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),

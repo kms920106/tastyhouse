@@ -41,6 +41,16 @@ public interface ProductRepository {
     long countVisibleRepresentativeByShopId(ShopId shopId);
 
     /**
+     * 노출 여부와 무관하게 이 가게의 대표 메뉴 수를 센다(삭제분만 제외).
+     *
+     * <p>{@link #countVisibleRepresentativeByShopId}와 나누어 두는 이유는 두 불변식이 보는 집합이
+     * 다르기 때문이다 — "최소 1개 노출" 하한은 손님에게 보이는 것만 세야 하지만, <b>최대 6개 상한은
+     * 숨김 상태까지 세야 한다.</b> 숨김을 빼고 세면 점주가 6개를 채운 뒤 3개를 숨기고 3개를 더
+     * 승인받아, 숨김을 해제하는 순간 9개가 손님 화면에 나타난다.
+     */
+    long countRepresentativeByShopId(ShopId shopId);
+
+    /**
      * 자동해제 시각이 지난 품절 상품을 조회한다({@code soldOut = true} 이고
      * {@code soldOutUntil <= 기준시각}). 품절 자동해제 배치가 대상을 뽑는 데 쓴다.
      */
