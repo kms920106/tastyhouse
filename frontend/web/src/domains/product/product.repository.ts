@@ -6,6 +6,7 @@ import {
   ProductBatchRequest,
   ProductBatchResponse,
   ProductDetailResponse,
+  ProductNutritionResponse,
   ProductImagesResponse,
   ProductOptionsResponse,
   ProductReviewCountResponse,
@@ -55,6 +56,18 @@ export const productRepository = {
   // 상품 이미지 목록 조회
   async getProductImages(productId: number) {
     return publicApi.get<ProductImagesResponse>(`${ENDPOINT}/v1/${productId}/images`, CACHE_OPTIONS)
+  },
+  /**
+   * 영양성분·알레르기를 조회한다. 미입력 메뉴는 `data` 가 null 이다.
+   *
+   * 접힌 상태에서는 부르지 않고 펼칠 때 가져온다 — 대부분의 메뉴가 미입력이라 목록 진입마다
+   * 조회하면 낭비다. 점주가 고친 값이 곧 반영되어야 하므로 60초 캐시다.
+   */
+  async getProductNutrition(productId: number) {
+    return publicApi.get<ProductNutritionResponse | null>(`${ENDPOINT}/v1/${productId}/nutrition`, {
+      cache: 'force-cache' as const,
+      next: { revalidate: 60 },
+    })
   },
   // 상품 옵션 조회
   async getProductOptions(productId: number) {

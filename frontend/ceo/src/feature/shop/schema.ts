@@ -32,6 +32,9 @@ import {
   ORDER_NOTICE_CONTENT_MAX,
   SHOP_DIRECTIONS_MAX,
   SHOP_INTRODUCTION_MAX,
+  SHOP_ORIGIN_CONTENT_MAX,
+  SHOP_ORIGIN_URL_MAX,
+  SHOP_ORIGIN_URL_PATTERN,
   SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX,
   SHOP_RIDER_VISIT_GUIDE_MAX,
   SHOP_STATUS_OPTIONS,
@@ -41,7 +44,7 @@ import {
   WEEKDAY_OPTIONS,
 } from "./constants";
 // 다른 스키마는 문구를 인라인해 왔으나, 이 스펙이 메시지 상수를 지정하므로 message.ts 를 참조한다.
-import { SHOP_ORDER_NOTICE_MESSAGE } from "./message";
+import { SHOP_ORDER_NOTICE_MESSAGE, SHOP_ORIGIN_MESSAGE } from "./message";
 import {
   countInclusiveDays,
   getDurationMinutes,
@@ -640,3 +643,36 @@ export const orderNoticeSchema = z.object({
     .max(ORDER_NOTICE_CONTENT_MAX, SHOP_ORDER_NOTICE_MESSAGE.CONTENT_TOO_LONG),
 });
 export type OrderNoticeFormValues = z.infer<typeof orderNoticeSchema>;
+
+// ===== 원산지 (법정 표시 의무) =====
+
+/**
+ * 원산지 폼.
+ *
+ * `content` 와 `url` 중 어느 쪽이 필수인지는 `sourceType` 이 정하므로 필드 단위로는 둘 다
+ * 선택으로 두고 `superRefine` 에서 조건부로 본다. 서버도 같은 규칙으로 검증하며, 저장 시
+ * 반대편 필드를 null 로 정리한다(전체 교체 PUT).
+ */
+export const shopOriginSchema = z
+  .object({
+    sourceType: z.enum(["DIRECT", "FRANCHISE_URL"]),
+    content: z.string().trim().max(SHOP_ORIGIN_CONTENT_MAX, SHOP_ORIGIN_MESSAGE.CONTENT_TOO_LONG),
+    url: z.string().trim().max(SHOP_ORIGIN_URL_MAX, SHOP_ORIGIN_MESSAGE.URL_TOO_LONG),
+  })
+  .superRefine((values, ctx) => {
+    if (values.sourceType === "DIRECT") {
+      if (values.content === "") {
+        ctx.addIssue({ code: "custom", path: ["content"], message: SHOP_ORIGIN_MESSAGE.CONTENT_REQUIRED });
+      }
+      return;
+    }
+
+    if (values.url === "") {
+      ctx.addIssue({ code: "custom", path: ["url"], message: SHOP_ORIGIN_MESSAGE.URL_REQUIRED });
+      return;
+    }
+    if (!SHOP_ORIGIN_URL_PATTERN.test(values.url)) {
+      ctx.addIssue({ code: "custom", path: ["url"], message: SHOP_ORIGIN_MESSAGE.URL_INVALID });
+    }
+  });
+export type ShopOriginFormValues = z.infer<typeof shopOriginSchema>;

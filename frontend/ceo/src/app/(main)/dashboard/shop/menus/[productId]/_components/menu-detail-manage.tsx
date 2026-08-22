@@ -12,13 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { updateMenuAction } from "@/feature/product/actions";
+import { loadProductNutritionAction, updateMenuAction } from "@/feature/product/actions";
 import { VEGETARIAN_TYPE_OPTIONS } from "@/feature/product/constants";
 import type {
   LinkedProductSummary,
   MenuCategory,
   MenuDetail,
   MenuExposure,
+  MenuNutrition,
   MenuOptionGroup,
   MenuVegetarian,
 } from "@/feature/product/domain";
@@ -28,6 +29,7 @@ import {
   PRODUCT_DETAIL_SCREEN_COPY,
   PRODUCT_MENU_COPY,
   PRODUCT_MENU_MESSAGE,
+  PRODUCT_NUTRITION_COPY,
 } from "@/feature/product/message";
 import type { MenuFormValues } from "@/feature/product/schema";
 
@@ -35,6 +37,7 @@ import { SettingRow } from "../../../_components/setting-row";
 import { CATEGORY_NONE_VALUE, type MenuBasicSection, MenuBasicSheet } from "./menu-basic-sheets";
 import { MenuExposureSheet } from "./menu-exposure-sheet";
 import { MenuImageSheet } from "./menu-image-sheet";
+import { MenuNutritionSheet } from "./menu-nutrition-sheet";
 import { MenuOptionGroupSheet } from "./menu-option-group-sheet";
 import { MenuVegetarianSheet } from "./menu-vegetarian-sheet";
 
@@ -56,6 +59,7 @@ function toFormValues(detail: MenuDetail): MenuFormValues {
     productCategoryId: detail.productCategoryId === null ? CATEGORY_NONE_VALUE : String(detail.productCategoryId),
     composition: detail.composition ?? "",
     description: detail.description ?? "",
+    weightText: detail.weightText ?? "",
     originalPrice: String(detail.originalPrice),
     discountPrice: detail.discountPrice === null ? "" : String(detail.discountPrice),
     singleServing: detail.singleServing,
@@ -82,11 +86,14 @@ export function MenuDetailManage({
   const [imageOpen, setImageOpen] = React.useState(false);
   const [vegetarianOpen, setVegetarianOpen] = React.useState(false);
   const [optionGroupOpen, setOptionGroupOpen] = React.useState(false);
+  const [nutritionOpen, setNutritionOpen] = React.useState(false);
 
   // Sheet 안에서만 조회하는 값들의 요약. 상세 응답에 없어서 Sheet 가 알려줄 때까지 비어 있다.
   const [exposureSummary, setExposureSummary] = React.useState<MenuExposure | null>(null);
   const [imageSummary, setImageSummary] = React.useState<{ count: number; pending: boolean } | null>(null);
   const [vegetarianSummary, setVegetarianSummary] = React.useState<MenuVegetarian | null>(null);
+  /** 영양성분은 상세 응답에 없어 Sheet 를 열어 조회할 때까지 모른다 — `undefined` 가 "아직 모름"이다 */
+  const [nutritionSummary, setNutritionSummary] = React.useState<MenuNutrition | null | undefined>(undefined);
 
   const handleExposureSaved = React.useCallback((exposure: MenuExposure | null) => {
     setExposureSummary(exposure);
@@ -99,6 +106,24 @@ export function MenuDetailManage({
   const handleVegetarianChanged = React.useCallback((vegetarian: MenuVegetarian | null) => {
     setVegetarianSummary(vegetarian);
   }, []);
+
+  const handleNutritionChanged = React.useCallback((nutrition: MenuNutrition | null) => {
+    setNutritionSummary(nutrition);
+  }, []);
+
+  // 상세 응답에 영양성분 요약이 없어, 목록 행 요약을 채우려면 마운트 시 한 번 별도 조회해야 한다.
+  React.useEffect(() => {
+    if (!detail) return;
+    let cancelled = false;
+    loadProductNutritionAction(productId, shopId).then((result) => {
+      if (!cancelled && result.success) {
+        setNutritionSummary(result.data);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [detail, productId, shopId]);
 
   const backToBoard = () => router.push(`/dashboard/shop/menus?shopId=${shopId}`);
 
@@ -144,6 +169,7 @@ export function MenuDetailManage({
         name: values.name,
         composition: values.composition,
         description: values.description,
+        weightText: values.weightText,
         originalPrice: Number(values.originalPrice),
         discountPrice: values.discountPrice.trim() === "" ? null : Number(values.discountPrice),
         singleServing: values.singleServing,
@@ -172,10 +198,36 @@ export function MenuDetailManage({
 
   const categorySummary = detail.productCategoryName ?? PRODUCT_MENU_COPY.PLACEHOLDER_CATEGORY_NONE;
 
+  // 중량도 이 행에서 편집하므로 요약에 함께 보인다 — 미입력이면 무엇을 아직 안 적었는지 알 수 없다.
+  const textRowSummary =
+    [detail.composition ?? detail.description, detail.weightText]
+      .filter((value) => value != null && value !== "")
+      .join(" · ") || undefined;
+
   const priceSummary =
     detail.discountPrice === null
       ? formatPrice(detail.originalPrice)
       : `${formatPrice(detail.discountPrice)} (${formatPrice(detail.originalPrice)})`;
+
+  /**
+   * 영양성분 요약.
+   *
+   * Sheet 를 아직 열지 않은 동안(`undefined`)은 값을 모르므로 아무것도 단정하지 않는다 —
+   * "미입력"으로 표시하면 실제로는 입력돼 있는데 지워진 것처럼 보인다.
+   */
+  const nutritionSummaryNode = (() => {
+    if (nutritionSummary === undefined) return undefined;
+    if (nutritionSummary === null) return PRODUCT_NUTRITION_COPY.SUMMARY_EMPTY;
+
+    const parts: string[] = [];
+    if (nutritionSummary.calorie !== null) parts.push(`${nutritionSummary.calorie}kcal`);
+    if (nutritionSummary.allergens.length > 0) {
+      parts.push(`${nutritionSummary.allergens.length}${PRODUCT_NUTRITION_COPY.SUMMARY_ALLERGEN_SUFFIX}`);
+    }
+    if (nutritionSummary.setMenu) parts.push(PRODUCT_NUTRITION_COPY.SUMMARY_SET_MENU);
+
+    return parts.length === 0 ? PRODUCT_NUTRITION_COPY.SUMMARY_EMPTY : parts.join(" · ");
+  })();
 
   const exposureSummaryNode = (() => {
     // Sheet 를 아직 열지 않아 상세를 모르는 동안은 상세 응답의 exposureScheduled 플래그로 대신한다.
@@ -241,7 +293,7 @@ export function MenuDetailManage({
         />
         <SettingRow
           title={PRODUCT_DETAIL_COPY.ROW_TEXT}
-          summary={detail.composition ?? detail.description ?? undefined}
+          summary={textRowSummary}
           onAction={() => setBasicSection("text")}
         />
         <SettingRow
@@ -324,6 +376,11 @@ export function MenuDetailManage({
           onAction={() => setVegetarianOpen(true)}
         />
         <SettingRow
+          title={PRODUCT_NUTRITION_COPY.ROW_TITLE}
+          summary={nutritionSummaryNode}
+          onAction={() => setNutritionOpen(true)}
+        />
+        <SettingRow
           title={PRODUCT_DETAIL_COPY.ROW_OPTION_GROUPS}
           summary={
             linkedGroupCount === 0
@@ -367,6 +424,14 @@ export function MenuDetailManage({
         productId={productId}
         shopId={shopId}
         onChanged={handleVegetarianChanged}
+      />
+
+      <MenuNutritionSheet
+        open={nutritionOpen}
+        onOpenChange={setNutritionOpen}
+        productId={productId}
+        shopId={shopId}
+        onChanged={handleNutritionChanged}
       />
 
       <MenuOptionGroupSheet

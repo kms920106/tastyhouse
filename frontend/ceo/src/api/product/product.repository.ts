@@ -4,6 +4,7 @@ import { api } from "@/api/shared/client";
 import type { ApiResponse } from "@/api/shared/types";
 
 import type {
+  AllergenOptionResponse,
   ProductAvailabilityChangeResponse,
   ProductAvailabilityGroupResponse,
   ProductAvailabilitySearchRequest,
@@ -20,6 +21,8 @@ import type {
   ProductHiddenRequest,
   ProductImageListResponse,
   ProductImageSortRequest,
+  ProductNutritionResponse,
+  ProductNutritionUpdateRequest,
   ProductOptionAvailabilityGroupResponse,
   ProductOptionGroupLinkedProductResponse,
   ProductOptionGroupLinkedProductsResponse,
@@ -380,5 +383,30 @@ export const productRepository = {
   /** 해제는 검수 대상이 아니라 즉시 반영된다. 컨트롤러가 `@ModelAttribute`로 받아 `shopId`는 query로 보낸다 */
   releaseRepresentative(productId: number, shopId: number): Promise<ApiResponse<void>> {
     return api.delete<void>(`${VERSION_PATH}/${productId}/representative`, undefined, { params: { shopId } });
+  },
+
+  // ===== 영양성분·알레르기 (법정 표시 의무) =====
+  // 검수 대상이 아니다 — 사실 정보라 관리자가 검증할 근거가 없다.
+  // 미입력 메뉴는 `data` 가 null 이므로 호출부가 "없음"과 "실패"를 구분해야 한다.
+
+  /** 알레르기 체크박스 목록. 서버가 코드·라벨을 공급해 항목이 늘어도 화면 배포가 필요 없다 */
+  getAllergens(): Promise<ApiResponse<AllergenOptionResponse[]>> {
+    return api.get<AllergenOptionResponse[]>(`${VERSION_PATH}/allergens`);
+  },
+
+  getNutrition(productId: number, shopId: number): Promise<ApiResponse<ProductNutritionResponse | null>> {
+    return api.get<ProductNutritionResponse | null>(`${VERSION_PATH}/${productId}/nutrition`, {
+      params: { shopId },
+    });
+  },
+
+  /** 전체 교체 — 필수 5종의 "함께 채우거나 함께 비우기" 판정은 서버와 폼이 함께 한다 */
+  updateNutrition(productId: number, body: ProductNutritionUpdateRequest): Promise<ApiResponse<void>> {
+    return api.put<void>(`${VERSION_PATH}/${productId}/nutrition`, body);
+  },
+
+  /** 행을 지운다(소프트 삭제 아님) — 과거 주문이 참조하지 않는 부가 정보다 */
+  deleteNutrition(productId: number, shopId: number): Promise<ApiResponse<void>> {
+    return api.delete<void>(`${VERSION_PATH}/${productId}/nutrition`, undefined, { params: { shopId } });
   },
 };

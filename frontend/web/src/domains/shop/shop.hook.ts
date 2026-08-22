@@ -11,6 +11,7 @@ import {
   getShopMenus,
   getShopNotice,
   getShopOrderNotice,
+  getShopOrigin,
   getShopPhotos,
   getShopPopularProducts,
   getShopReviewStatistics,
@@ -51,6 +52,7 @@ export const shopQueryKeys = {
   notice: (shopId: number) => ['place', shopId, 'place-detail-notice'] as const,
   menus: (shopId: number) => ['place', shopId, 'place-detail-menus'] as const,
   orderNotice: (shopId: number) => ['place', shopId, 'place-detail-order-notice'] as const,
+  origin: (shopId: number) => ['place', shopId, 'place-detail-origin'] as const,
   popularProducts: (shopId: number) => ['place', shopId, 'place-detail-popular-products'] as const,
   photos: (shopId: number) => ['place', shopId, 'place-detail-photos'] as const,
   reviewStatistics: (shopId: number) => ['place', shopId, 'place-review-statistics'] as const,
@@ -150,6 +152,14 @@ export function useShopOrderNotice(shopId: number) {
   return useQuery({
     queryKey: shopQueryKeys.orderNotice(shopId),
     queryFn: () => getShopOrderNotice(shopId),
+  })
+}
+
+/** 가게 원산지 표시 정보를 조회합니다. 미설정이면 응답 `data` 가 null 입니다. */
+export function useShopOrigin(shopId: number) {
+  return useQuery({
+    queryKey: shopQueryKeys.origin(shopId),
+    queryFn: () => getShopOrigin(shopId),
   })
 }
 

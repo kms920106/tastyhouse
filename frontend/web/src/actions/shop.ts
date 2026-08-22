@@ -56,6 +56,10 @@ export async function getShopOrderNotice(shopId: number) {
   return shopRepository.getShopOrderNotice(shopId)
 }
 
+export async function getShopOrigin(shopId: number) {
+  return shopRepository.getShopOrigin(shopId)
+}
+
 export async function getShopPopularProducts(shopId: number) {
   return shopRepository.getShopPopularProducts(shopId)
 }

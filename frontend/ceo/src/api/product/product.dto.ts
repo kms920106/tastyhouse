@@ -200,6 +200,8 @@ export interface ProductCreateRequest {
   name: string;
   composition?: string;
   description?: string;
+  /** 중량 표기(치킨 등 법정 의무표시). 최대 50자 */
+  weightText?: string;
   originalPrice: number;
   discountPrice?: number | null;
   singleServing?: boolean;
@@ -247,6 +249,8 @@ export interface ProductDetailResponse {
   name: string;
   composition: string | null;
   description: string | null;
+  /** 중량 표기(치킨 등 법정 의무표시). 미입력이면 null */
+  weightText: string | null;
   originalPrice: number;
   discountPrice: number | null;
   singleServing: boolean;
@@ -558,4 +562,77 @@ export type ProductOptionGroupType = "NORMAL" | "CUP_DEPOSIT";
 export interface ProductRepresentativeRequestBody {
   shopId: number;
   productIds: number[];
+}
+
+// ===== 영양성분·알레르기 (법정 표시 의무) =====
+// 검수 대상이 아니다 — 점주만이 아는 사실 정보라 관리자가 검증할 근거가 없고,
+// 정확성 책임은 가맹본사·가게에 있다.
+
+/**
+ * 알레르기 유발성분 코드.
+ *
+ * 화면은 이 유니온으로 목록을 만들지 않는다 — 체크박스 목록은 서버(`GET .../allergens`)가
+ * 공급하므로 항목이 늘어도 화면 배포가 필요 없다. 이 타입은 저장 값의 형태만 고정한다.
+ */
+export type AllergenCode = string;
+
+/** 알레르기 체크박스 한 칸. 서버가 코드와 한글 라벨을 함께 준다 */
+export interface AllergenOptionResponse {
+  code: AllergenCode;
+  label: string;
+}
+
+/**
+ * 영양성분·알레르기.
+ *
+ * 필수 5종(`calorie`·`sugars`·`protein`·`saturatedFat`·`natrium`)은 전부 채우거나 전부 비운다 —
+ * 일부만 채운 표시는 법적으로 의미가 없고 오히려 위반이다. 판정은 서버와 폼이 함께 한다.
+ */
+export interface ProductNutritionResponse {
+  /** 1회 제공량 (예: `100g`) */
+  servingSize: string | null;
+  /** 총 제공량 */
+  totalAmount: string | null;
+  flavor: string | null;
+  size: string | null;
+  /** 열량 (kcal, 필수 5종) */
+  calorie: number | null;
+  /** 당류 (g, 필수 5종) */
+  sugars: number | null;
+  /** 단백질 (g, 필수 5종) */
+  protein: number | null;
+  /** 포화지방 (g, 필수 5종) */
+  saturatedFat: number | null;
+  /** 나트륨 (mg, 필수 5종) */
+  natrium: number | null;
+  carbohydrate: number | null;
+  cholesterol: number | null;
+  fat: number | null;
+  transFat: number | null;
+  caffeine: number | null;
+  /** 세트 메뉴 여부. true 면 손님 화면에 조합 안내문구가 함께 노출된다 */
+  setMenu: boolean;
+  /** 점주 조회는 코드 배열이다(손님 조회는 한글 라벨 배열) */
+  allergens: AllergenCode[];
+}
+
+/** 전체 교체(PUT) — 메뉴당 1건이고 부분 수정 개념이 없다 */
+export interface ProductNutritionUpdateRequest {
+  shopId: number;
+  servingSize?: string;
+  totalAmount?: string;
+  flavor?: string;
+  size?: string;
+  calorie?: number | null;
+  sugars?: number | null;
+  protein?: number | null;
+  saturatedFat?: number | null;
+  natrium?: number | null;
+  carbohydrate?: number | null;
+  cholesterol?: number | null;
+  fat?: number | null;
+  transFat?: number | null;
+  caffeine?: number | null;
+  setMenu: boolean;
+  allergens: AllergenCode[];
 }

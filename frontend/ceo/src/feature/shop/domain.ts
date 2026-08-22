@@ -11,6 +11,7 @@ import type {
   MenuCollectionImageStatus,
   OrderMethod,
   OrderUnavailableReason,
+  ShopOriginSourceType,
   ShopStatusValue,
   SuspensionReason,
 } from "@/api/shop/shop.dto";
@@ -30,6 +31,7 @@ export type {
   MenuCollectionImageStatus,
   OrderMethod,
   OrderUnavailableReason,
+  ShopOriginSourceType,
   ShopStatusValue,
   SuspensionReason,
 };
@@ -588,4 +590,17 @@ export interface ShopOrderNotice {
   /** 관리자가 게시를 중단시킨 상태. 손님 화면에는 노출되지 않는다 */
   hidden: boolean;
   hiddenReason: string | null;
+}
+
+// ===== 원산지 (법정 표시 의무) =====
+
+/** 가게 원산지 표시 정보. 가게당 1건이고 미설정이어도 `sourceType` 기본값이 내려온다 */
+export interface ShopOrigin {
+  sourceType: ShopOriginSourceType;
+  /** `sourceType === "FRANCHISE_URL"` 이면 null */
+  content: string | null;
+  /** `sourceType === "DIRECT"` 이면 null */
+  url: string | null;
+  /** 미설정이면 null */
+  updatedAt: string | null;
 }

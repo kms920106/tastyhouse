@@ -44,3 +44,34 @@ export interface ProductOption {
   /** 개인컵 사용 할인 금액. 개인컵 옵션이 아니면 null. 보증금이 아니라 상품 할인 축이다 */
   personalCupDiscountAmount: number | null
 }
+
+/**
+ * 메뉴 영양성분·알레르기.
+ *
+ * DTO 와 필드가 1:1 대응하지만, `src/app/**` 이 DTO 타입을 Props 로 쓸 수 없다는 규칙에 따라
+ * 모델을 따로 둔다(`src/domains/CLAUDE.md` §8.8).
+ */
+export interface ProductNutrition {
+  servingSize: string | null
+  totalAmount: string | null
+  flavor: string | null
+  size: string | null
+  /** 열량 (kcal) */
+  calorie: number | null
+  /** 당류 (g) */
+  sugars: number | null
+  /** 단백질 (g) */
+  protein: number | null
+  /** 포화지방 (g) */
+  saturatedFat: number | null
+  /** 나트륨 (mg) */
+  natrium: number | null
+  carbohydrate: number | null
+  cholesterol: number | null
+  fat: number | null
+  transFat: number | null
+  caffeine: number | null
+  setMenu: boolean
+  /** 서버가 한글 라벨로 내려주므로 화면이 코드→라벨 매핑을 갖지 않는다 */
+  allergens: string[]
+}

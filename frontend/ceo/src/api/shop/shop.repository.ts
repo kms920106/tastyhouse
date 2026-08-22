@@ -53,6 +53,8 @@ import type {
   ShopOrderAvailabilityResponse,
   ShopOrderNoticeResponse,
   ShopOrderNoticeUpdateRequest,
+  ShopOriginResponse,
+  ShopOriginUpdateRequest,
   ShopRiderGuideResponse,
   ShopRiderPickupLocationUpdateRequest,
   ShopRiderVisitGuideUpdateRequest,
@@ -550,5 +552,18 @@ export const shopRepository = {
   /** 검수 없이 즉시 반영된다 — 게시중단은 관리자가 사후에 거는 조치다 */
   updateOrderNotice(shopId: number, body: ShopOrderNoticeUpdateRequest): Promise<ApiResponse<void>> {
     return api.put<void>(`${ENDPOINT}/v1/${shopId}/order-notice`, body);
+  },
+
+  // ===== 원산지 (법정 표시 의무) =====
+  // 주문안내와 마찬가지로 미설정이어도 404 가 아니라 빈 객체가 내려온다.
+  // 검수 대상이 아니다 — 사실 정보라 관리자가 검증할 근거가 없고 책임은 가맹본사·가게에 있다.
+
+  getOrigin(shopId: number): Promise<ApiResponse<ShopOriginResponse>> {
+    return api.get<ShopOriginResponse>(`${ENDPOINT}/v1/${shopId}/origin`);
+  },
+
+  /** 전체 교체 — `sourceType` 이 바뀌면 서버가 반대편 필드를 null 로 정리한다 */
+  updateOrigin(shopId: number, body: ShopOriginUpdateRequest): Promise<ApiResponse<void>> {
+    return api.put<void>(`${ENDPOINT}/v1/${shopId}/origin`, body);
   },
 };

@@ -7,6 +7,10 @@ import {
   CUP_DEPOSIT_FIXED_MIN_SELECT,
   EXPOSURE_PRESET_DAY_TYPES,
   MINUTE_OPTIONS,
+  NUTRITION_NON_NEGATIVE_INT_PATTERN,
+  NUTRITION_OPTIONAL_NUMERIC_KEYS,
+  NUTRITION_REQUIRED_KEYS,
+  NUTRITION_TEXT_MAX_LENGTH,
   OPTION_GROUP_DESCRIPTION_MAX_LENGTH,
   OPTION_GROUP_NAME_MAX_LENGTH,
   OPTION_NAME_MAX_LENGTH,
@@ -16,12 +20,18 @@ import {
   PRODUCT_DESCRIPTION_MAX_LENGTH,
   PRODUCT_NAME_MAX_LENGTH,
   PRODUCT_NAME_PATTERN,
+  PRODUCT_WEIGHT_TEXT_MAX_LENGTH,
   SOLD_OUT_UNTIL_MAX_DAYS,
   SOLD_OUT_UNTIL_MIN_MINUTES,
   VEGETARIAN_DESCRIPTION_MAX_LENGTH,
   VEGETARIAN_INGREDIENTS_MAX_LENGTH,
 } from "./constants";
-import { PRODUCT_MENU_VALIDATION_MESSAGE, PRODUCT_MESSAGE, PRODUCT_VALIDATION_MESSAGE } from "./message";
+import {
+  PRODUCT_MENU_VALIDATION_MESSAGE,
+  PRODUCT_MESSAGE,
+  PRODUCT_NUTRITION_MESSAGE,
+  PRODUCT_VALIDATION_MESSAGE,
+} from "./message";
 
 const MINUTE_VALUES = MINUTE_OPTIONS.map(String);
 const MINUTES_PER_DAY = 24 * 60;
@@ -188,6 +198,11 @@ export const menuFormSchema = z
     description: z
       .string()
       .max(PRODUCT_DESCRIPTION_MAX_LENGTH, { message: PRODUCT_MENU_VALIDATION_MESSAGE.DESCRIPTION_TOO_LONG }),
+    // 법정 의무표시라 설명 문자열에 섞지 않고 별도 필드로 둔다 — 설명을 고치다 지워지면 안 된다.
+    weightText: z
+      .string()
+      .trim()
+      .max(PRODUCT_WEIGHT_TEXT_MAX_LENGTH, { message: PRODUCT_MENU_VALIDATION_MESSAGE.WEIGHT_TEXT_TOO_LONG }),
     originalPrice: z.string(),
     discountPrice: z.string(),
     singleServing: z.boolean(),
@@ -561,3 +576,65 @@ export const optionGroupMergeSchema = z
   });
 
 export type OptionGroupMergeValues = z.infer<typeof optionGroupMergeSchema>;
+
+// ===== 영양성분·알레르기 (법정 표시 의무) =====
+
+/**
+ * 수치 입력 한 칸.
+ *
+ * 입력값은 항상 문자열이라 빈 문자열을 허용하고(= 미입력) 값이 있으면 0 이상 정수만 받는다.
+ * `z.number()` 로 두지 않는 이유는 빈 칸이 `NaN` 이 되어 "미입력"과 "잘못된 값"을 구분할 수
+ * 없기 때문이다.
+ */
+const nutritionNumericField = z
+  .string()
+  .trim()
+  .refine(
+    (value) => value === "" || NUTRITION_NON_NEGATIVE_INT_PATTERN.test(value),
+    PRODUCT_NUTRITION_MESSAGE.MUST_BE_NON_NEGATIVE_INT,
+  );
+
+const nutritionTextField = z.string().trim().max(NUTRITION_TEXT_MAX_LENGTH, PRODUCT_NUTRITION_MESSAGE.TEXT_TOO_LONG);
+
+/**
+ * 영양성분·알레르기 폼.
+ *
+ * 필수 5종은 **전부 채우거나 전부 비운다** — 부분 입력은 법적으로 의미가 없고 오히려 위반이라,
+ * 하나라도 채웠으면 비어 있는 나머지 칸마다 오류를 세워 제출을 막는다.
+ */
+export const nutritionSchema = z
+  .object({
+    servingSize: nutritionTextField,
+    totalAmount: nutritionTextField,
+    flavor: nutritionTextField,
+    size: nutritionTextField,
+
+    calorie: nutritionNumericField,
+    sugars: nutritionNumericField,
+    protein: nutritionNumericField,
+    saturatedFat: nutritionNumericField,
+    natrium: nutritionNumericField,
+
+    carbohydrate: nutritionNumericField,
+    cholesterol: nutritionNumericField,
+    fat: nutritionNumericField,
+    transFat: nutritionNumericField,
+    caffeine: nutritionNumericField,
+
+    setMenu: z.boolean(),
+    allergens: z.array(z.string()),
+  })
+  .superRefine((values, ctx) => {
+    const filled = NUTRITION_REQUIRED_KEYS.filter((key) => values[key] !== "");
+    if (filled.length === 0 || filled.length === NUTRITION_REQUIRED_KEYS.length) return;
+
+    for (const key of NUTRITION_REQUIRED_KEYS) {
+      if (values[key] === "") {
+        ctx.addIssue({ code: "custom", path: [key], message: PRODUCT_NUTRITION_MESSAGE.REQUIRED_TOGETHER });
+      }
+    }
+  });
+export type NutritionFormValues = z.infer<typeof nutritionSchema>;
+
+/** 폼의 수치 키 전체. 화면이 입력란을 돌면서 그릴 때 쓴다 */
+export const NUTRITION_NUMERIC_KEYS = [...NUTRITION_REQUIRED_KEYS, ...NUTRITION_OPTIONAL_NUMERIC_KEYS] as const;

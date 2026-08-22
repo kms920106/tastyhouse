@@ -18,6 +18,10 @@ export async function getProductOptions(productId: number) {
   return productRepository.getProductOptions(productId)
 }
 
+export async function getProductNutrition(productId: number) {
+  return productRepository.getProductNutrition(productId)
+}
+
 export async function getProductReviewStatistics(productId: number) {
   return productRepository.getProductReviewStatistics(productId)
 }

@@ -327,3 +327,19 @@ export interface ShopDeliveryTipResponse {
   /** 공휴일 배달팁. 0이면 미설정 */
   holidayTipAmount: number
 }
+
+/**
+ * 원산지 입력 방식.
+ *
+ * `DIRECT` 는 점주가 쓴 본문을, `FRANCHISE_URL` 은 본사가 관리하는 링크를 노출한다.
+ */
+export type ShopOriginSourceType = 'DIRECT' | 'FRANCHISE_URL'
+
+/** 가게 원산지. 미설정이면 응답 `data` 가 null 이고 손님 화면은 영역을 통째로 감춘다 */
+export interface ShopOriginResponse {
+  sourceType: ShopOriginSourceType
+  /** `sourceType === "FRANCHISE_URL"` 이면 null */
+  content: string | null
+  /** `sourceType === "DIRECT"` 이면 null */
+  url: string | null
+}

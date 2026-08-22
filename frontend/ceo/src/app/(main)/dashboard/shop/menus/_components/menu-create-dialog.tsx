@@ -41,6 +41,7 @@ const DEFAULT_VALUES: MenuFormValues = {
   productCategoryId: NO_CATEGORY_VALUE,
   composition: "",
   description: "",
+  weightText: "",
   originalPrice: "",
   discountPrice: "",
   singleServing: false,
@@ -54,6 +55,7 @@ export interface MenuCreateSubmitValues {
   productCategoryId: number | null;
   composition: string;
   description: string;
+  weightText: string;
   originalPrice: number;
   discountPrice: number | null;
   singleServing: boolean;
@@ -97,6 +99,7 @@ export function MenuCreateDialog({ open, pending, categories, onOpenChange, onSu
       productCategoryId: values.productCategoryId === NO_CATEGORY_VALUE ? null : Number(values.productCategoryId),
       composition: values.composition.trim(),
       description: values.description.trim(),
+      weightText: values.weightText.trim(),
       originalPrice: Number(values.originalPrice),
       // 빈 문자열은 "할인 없음"이다 — 0 으로 보내면 전액 할인이 된다.
       discountPrice: values.discountPrice.trim() === "" ? null : Number(values.discountPrice),

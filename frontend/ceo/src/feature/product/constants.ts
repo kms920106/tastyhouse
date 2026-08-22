@@ -63,6 +63,8 @@ export const MY_SHOP_LIST_SIZE = 100;
 export const PRODUCT_NAME_MAX_LENGTH = 255;
 export const PRODUCT_COMPOSITION_MAX_LENGTH = 500;
 export const PRODUCT_DESCRIPTION_MAX_LENGTH = 1000;
+/** 중량 표기(치킨 등 법정 의무표시). 예) `조리 전 총 중량 1,200g` · `10호(951~1050g)` */
+export const PRODUCT_WEIGHT_TEXT_MAX_LENGTH = 50;
 export const PRODUCT_CATEGORY_NAME_MAX_LENGTH = 100;
 export const PRODUCT_CATEGORY_DESCRIPTION_MAX_LENGTH = 500;
 export const OPTION_GROUP_NAME_MAX_LENGTH = 100;
@@ -192,3 +194,42 @@ export const CUP_DEPOSIT_FIXED_MAX_SELECT = "1";
 
 /** 사장님 추천(대표 메뉴) 등록 상한 (`docs/tasks/menu-board-promotion/frontend.md` A-2 기준 2번) */
 export const PRODUCT_REPRESENTATIVE_MAX_COUNT = 6;
+
+// ===== 영양성분·알레르기 (법정 표시 의무) =====
+
+/** 텍스트 항목(맛·사이즈·제공량) 최대 길이 */
+export const NUTRITION_TEXT_MAX_LENGTH = 50;
+
+/**
+ * 필수 5종.
+ *
+ * 전부 채우거나 전부 비운다 — 일부만 채운 영양성분 표시는 법적으로 의미가 없고 오히려 위반이다.
+ * 순서는 화면 표시 순서이자 PDF 열거 순서다.
+ */
+export const NUTRITION_REQUIRED_KEYS = ["calorie", "sugars", "protein", "saturatedFat", "natrium"] as const;
+
+export type NutritionRequiredKey = (typeof NUTRITION_REQUIRED_KEYS)[number];
+
+/** 선택 수치 9종 중 수치형 5종. 나머지 4종(맛·사이즈·제공량 2)은 텍스트다 */
+export const NUTRITION_OPTIONAL_NUMERIC_KEYS = ["carbohydrate", "cholesterol", "fat", "transFat", "caffeine"] as const;
+
+export type NutritionOptionalNumericKey = (typeof NUTRITION_OPTIONAL_NUMERIC_KEYS)[number];
+
+export type NutritionNumericKey = NutritionRequiredKey | NutritionOptionalNumericKey;
+
+/** 수치 입력란 옆에 붙는 단위. 단위 없이 숫자만 두면 무엇을 적는지 알 수 없다 */
+export const NUTRITION_UNIT: Record<NutritionNumericKey, string> = {
+  calorie: "kcal",
+  sugars: "g",
+  protein: "g",
+  saturatedFat: "g",
+  natrium: "mg",
+  carbohydrate: "g",
+  cholesterol: "mg",
+  fat: "g",
+  transFat: "g",
+  caffeine: "mg",
+};
+
+/** 0 이상 정수만 허용한다. 음수·소수는 영양성분 표기 단위로 쓰지 않는다 */
+export const NUTRITION_NON_NEGATIVE_INT_PATTERN = /^\d+$/;

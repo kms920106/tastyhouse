@@ -143,6 +143,27 @@ export function MenuBasicSheet({
                     </Field>
                   )}
                 />
+                {/* 중량은 설명 텍스트에 섞지 않고 별도 필드로 둔다 — 설명을 고치다 법정 표시가
+                    지워지지 않게 하고, 손님 화면에서 따로 강조 배치할 수 있게 한다. */}
+                <Controller
+                  control={form.control}
+                  name="weightText"
+                  render={({ field, fieldState }) => (
+                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="menu-basic-weight-text">{PRODUCT_MENU_COPY.FIELD_WEIGHT_TEXT}</FieldLabel>
+                      <Input
+                        id="menu-basic-weight-text"
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder={PRODUCT_MENU_COPY.PLACEHOLDER_WEIGHT_TEXT}
+                        aria-invalid={fieldState.invalid}
+                        disabled={pending}
+                      />
+                      <FieldDescription>{PRODUCT_MENU_COPY.HELP_WEIGHT_TEXT}</FieldDescription>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
               </>
             )}
 

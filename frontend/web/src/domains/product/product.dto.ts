@@ -22,6 +22,8 @@ export interface ProductDetailResponse {
   id: number
   name: string
   description: string
+  /** 중량 표기(치킨 등 법정 의무표시). 미입력이면 null */
+  weightText: string | null
   originalPrice: number
   discountPrice: number | null
   discountRate: number | null
@@ -120,4 +122,35 @@ export interface ProductTodayDiscountListItemResponse {
   originalPrice: number
   discountPrice: number
   discountRate: number
+}
+
+
+/**
+ * 알레르기는 코드가 아니라 **한글 라벨 배열**로 내려온다 — 손님 화면이 코드→라벨 매핑표를
+ * 들고 있지 않게 하려는 것이다. 미입력 메뉴는 응답 `data` 가 null 이다.
+ */
+export interface ProductNutritionResponse {
+  servingSize: string | null
+  totalAmount: string | null
+  flavor: string | null
+  size: string | null
+  /** 열량 (kcal) */
+  calorie: number | null
+  /** 당류 (g) */
+  sugars: number | null
+  /** 단백질 (g) */
+  protein: number | null
+  /** 포화지방 (g) */
+  saturatedFat: number | null
+  /** 나트륨 (mg) */
+  natrium: number | null
+  carbohydrate: number | null
+  cholesterol: number | null
+  fat: number | null
+  transFat: number | null
+  caffeine: number | null
+  /** true 면 수치 위에 "메뉴구성에 따라 다르다"는 안내문구를 먼저 보여준다 */
+  setMenu: boolean
+  /** 한글 라벨 배열 (예: `["우유","땅콩"]`) */
+  allergens: string[]
 }

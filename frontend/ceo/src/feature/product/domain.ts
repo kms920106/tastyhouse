@@ -2,9 +2,9 @@
 // DTO(`*.dto.ts`)는 이 경계를 넘지 않는다. 이번 응답은 필드가 그대로 대응해
 // DTO → domain 변환이 없으므로 `product.service.ts` 를 두지 않는다.
 
-export type { ProductOptionType, ProductReleaseTarget } from "@/api/product/product.dto";
+export type { AllergenCode, ProductOptionType, ProductReleaseTarget } from "@/api/product/product.dto";
 
-import type { ProductOptionType } from "@/api/product/product.dto";
+import type { AllergenCode, ProductOptionType } from "@/api/product/product.dto";
 
 export interface AvailabilityMenuRow {
   id: number;
@@ -116,6 +116,8 @@ export interface MenuDetail {
   name: string;
   composition: string | null;
   description: string | null;
+  /** 중량 표기(치킨 등 법정 의무표시). 미입력이면 null */
+  weightText: string | null;
   originalPrice: number;
   discountPrice: number | null;
   singleServing: boolean;
@@ -310,4 +312,41 @@ export interface OptionGroupMergeInput {
   baseOptionGroupId: number;
   optionGroupIds: number[];
   entryType: ProductOptionGroupMergeEntryType;
+}
+
+// ===== 영양성분·알레르기 (법정 표시 의무) =====
+
+/** 알레르기 체크박스 한 칸. 목록은 서버가 공급하므로 화면이 코드→라벨 표를 갖지 않는다 */
+export interface AllergenOption {
+  code: AllergenCode;
+  label: string;
+}
+
+/**
+ * 메뉴 영양성분·알레르기. 미입력 메뉴는 아예 없다(조회 시 null).
+ *
+ * 필수 5종(`calorie`·`sugars`·`protein`·`saturatedFat`·`natrium`)은 전부 채우거나 전부 비운다.
+ */
+export interface MenuNutrition {
+  servingSize: string | null;
+  totalAmount: string | null;
+  flavor: string | null;
+  size: string | null;
+  /** 열량 (kcal, 필수 5종) */
+  calorie: number | null;
+  /** 당류 (g, 필수 5종) */
+  sugars: number | null;
+  /** 단백질 (g, 필수 5종) */
+  protein: number | null;
+  /** 포화지방 (g, 필수 5종) */
+  saturatedFat: number | null;
+  /** 나트륨 (mg, 필수 5종) */
+  natrium: number | null;
+  carbohydrate: number | null;
+  cholesterol: number | null;
+  fat: number | null;
+  transFat: number | null;
+  caffeine: number | null;
+  setMenu: boolean;
+  allergens: AllergenCode[];
 }

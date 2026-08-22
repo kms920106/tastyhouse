@@ -5,12 +5,13 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import type { MenuBoardGroup } from "@/feature/product/domain";
 import { PRODUCT_REPRESENTATIVE_COPY } from "@/feature/product/message";
-import type { MenuCollectionImage, ShopOrderNotice } from "@/feature/shop/domain";
-import { SHOP_MENU_COLLECTION_COPY, SHOP_ORDER_NOTICE_COPY } from "@/feature/shop/message";
+import type { MenuCollectionImage, ShopOrderNotice, ShopOrigin } from "@/feature/shop/domain";
+import { SHOP_MENU_COLLECTION_COPY, SHOP_ORDER_NOTICE_COPY, SHOP_ORIGIN_COPY } from "@/feature/shop/message";
 
 import { MenuCollectionSheet } from "./menu-collection-sheet";
 import { OrderNoticeSheet } from "./order-notice-sheet";
 import { RepresentativeMenuSheet } from "./representative-menu-sheet";
+import { ShopOriginSheet } from "./shop-origin-sheet";
 
 interface MenuBoardTopActionsProps {
   shopId: number;
@@ -25,14 +26,18 @@ interface MenuBoardTopActionsProps {
    * 후보 판정에 필요한 `imageUrl`·`representative` 가 그 응답에 이미 들어 있다.
    */
   groups?: MenuBoardGroup[];
+  /** 원산지 초기값. 미설정 가게도 기본값 객체가 내려오므로 조회 실패일 때만 undefined 다 */
+  origin?: ShopOrigin;
 }
 
 /**
  * 메뉴판 상단 진입점 버튼 줄.
  *
- * `가게 메뉴판 편집.pdf` 의 화면 구조대로 홍보 3종을 한 줄에 모은다.
- * 원산지 버튼(`menu-legal-info` 덩어리)도 같은 줄에 놓일 자리인데, 그 덩어리가 아직
- * 구현되지 않아 지금은 두지 않는다 — 구현되면 아래 주문안내 버튼 뒤에 추가한다.
+ * `가게 메뉴판 편집.pdf` 의 화면 구조대로 홍보 3종과 원산지를 한 줄에 모은다.
+ *
+ * 원산지는 메뉴 하나가 아니라 **가게 전체** 설정이라 메뉴 상세가 아니라 여기에 둔다
+ * (출처 PDF 와 같은 배치). 홍보 3종과 달리 검수 대상이 아니다 — 사실 정보라 관리자가
+ * 검증할 근거가 없다.
  */
 export function MenuBoardTopActions({
   shopId,
@@ -40,8 +45,9 @@ export function MenuBoardTopActions({
   menuCollectionImages,
   orderNotice,
   groups,
+  origin,
 }: MenuBoardTopActionsProps) {
-  const [openSheet, setOpenSheet] = React.useState<"collection" | "representative" | "notice" | null>(null);
+  const [openSheet, setOpenSheet] = React.useState<"collection" | "representative" | "notice" | "origin" | null>(null);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -54,7 +60,9 @@ export function MenuBoardTopActions({
       <Button type="button" variant="outline" disabled={disabled} onClick={() => setOpenSheet("notice")}>
         {SHOP_ORDER_NOTICE_COPY.SHEET_TITLE}
       </Button>
-      {/* 원산지 버튼은 `menu-legal-info` 덩어리 구현 시 여기에 추가한다 */}
+      <Button type="button" variant="outline" disabled={disabled} onClick={() => setOpenSheet("origin")}>
+        {SHOP_ORIGIN_COPY.SHEET_TITLE}
+      </Button>
 
       <MenuCollectionSheet
         open={openSheet === "collection"}
@@ -73,6 +81,12 @@ export function MenuBoardTopActions({
         onOpenChange={(next) => setOpenSheet(next ? "notice" : null)}
         shopId={shopId}
         initialNotice={orderNotice}
+      />
+      <ShopOriginSheet
+        open={openSheet === "origin"}
+        onOpenChange={(next) => setOpenSheet(next ? "origin" : null)}
+        shopId={shopId}
+        initialOrigin={origin}
       />
     </div>
   );

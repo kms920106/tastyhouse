@@ -716,3 +716,31 @@ export interface ShopOrderNoticeResponse {
 export interface ShopOrderNoticeUpdateRequest {
   content: string;
 }
+
+// ===== 원산지 (법정 표시 의무) =====
+
+/**
+ * 원산지 입력 방식.
+ *
+ * `DIRECT` 는 점주가 본문을 직접 쓰고, `FRANCHISE_URL` 은 본사가 관리하는 링크를 건다.
+ * 둘 중 하나만 의미를 가지므로 서버가 반대편 필드를 null 로 정리한다.
+ */
+export type ShopOriginSourceType = "DIRECT" | "FRANCHISE_URL";
+
+/** 미설정 가게도 `data` 가 null 이 아니라 `sourceType: "DIRECT"` · `content: null` 로 내려온다 */
+export interface ShopOriginResponse {
+  sourceType: ShopOriginSourceType;
+  /** `sourceType === "FRANCHISE_URL"` 이면 null */
+  content: string | null;
+  /** `sourceType === "DIRECT"` 이면 null */
+  url: string | null;
+  /** 미설정이면 null */
+  updatedAt: string | null;
+}
+
+/** 전체 교체(PUT) — 가게당 1건이고 부분 수정 개념이 없다 */
+export interface ShopOriginUpdateRequest {
+  sourceType: ShopOriginSourceType;
+  content?: string;
+  url?: string;
+}

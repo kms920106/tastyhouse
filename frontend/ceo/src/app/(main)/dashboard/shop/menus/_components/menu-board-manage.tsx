@@ -23,7 +23,7 @@ import { MENU_TABS } from "@/feature/product/constants";
 import type { AvailabilityChangeOutcome, MenuBoardGroup, MenuCategory } from "@/feature/product/domain";
 import { PRODUCT_MENU_COPY, PRODUCT_MENU_MESSAGE, PRODUCT_MESSAGE } from "@/feature/product/message";
 import type { MenuCategoryFormValues } from "@/feature/product/schema";
-import type { MenuCollectionImage, ShopOrderNotice, ShopSummary } from "@/feature/shop/domain";
+import type { MenuCollectionImage, ShopOrderNotice, ShopOrigin, ShopSummary } from "@/feature/shop/domain";
 
 import { ShopSelector } from "../../_components/shop-selector";
 import { MenuBoardFailureNotice } from "./menu-board-failure-notice";
@@ -45,6 +45,7 @@ interface MenuBoardManageProps {
   /** 상단 진입점 시트의 초기값. 시트가 열릴 때 재조회하므로 실패해도 undefined 로 넘어온다 */
   menuCollectionImages?: MenuCollectionImage[];
   orderNotice?: ShopOrderNotice;
+  origin?: ShopOrigin;
   /** 접근 불가 사유(403 `SHOP_ACCESS_DENIED` / 404 `SHOP_NOT_FOUND`) */
   errorCode?: string;
   errorMessage?: string;
@@ -60,6 +61,7 @@ export function MenuBoardManage({
   groups,
   menuCollectionImages,
   orderNotice,
+  origin,
   errorCode,
   errorMessage,
 }: MenuBoardManageProps) {
@@ -333,12 +335,13 @@ export function MenuBoardManage({
           </Empty>
         ) : (
           <>
-            {/* 홍보 3종 진입점. `가게 메뉴판 편집.pdf` 대로 메뉴판 본체 위에 한 줄로 모은다. */}
+            {/* 홍보 3종·원산지 진입점. `가게 메뉴판 편집.pdf` 대로 메뉴판 본체 위에 한 줄로 모은다. */}
             <MenuBoardTopActions
               shopId={shopId}
               disabled={isBusy}
               menuCollectionImages={menuCollectionImages}
               orderNotice={orderNotice}
+              origin={origin}
               groups={mergedGroups}
             />
 

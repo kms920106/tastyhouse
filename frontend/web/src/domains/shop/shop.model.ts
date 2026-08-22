@@ -1,4 +1,10 @@
-import { ShopAmenityCode, ShopDeliveryTipDayType, ShopExtraDeliveryTipType, ShopFoodType } from '.'
+import {
+  ShopAmenityCode,
+  ShopDeliveryTipDayType,
+  ShopExtraDeliveryTipType,
+  ShopFoodType,
+  ShopOriginSourceType,
+} from '.'
 import type { OrderUnavailableReasonCode, ShopOperatingStatus } from './shop.types'
 
 export interface Shop {
@@ -172,4 +178,13 @@ export interface ShopPopularProduct {
   reviewCount: number | null
   /** 사장님 추천 메뉴 여부. 추천 메뉴가 이 목록의 앞자리를 채운다 */
   representative: boolean
+}
+
+/** 가게 원산지 표시. 법정 필수 표시라 미설정이면 영역 자체를 감춘다 */
+export interface ShopOrigin {
+  sourceType: ShopOriginSourceType
+  /** `sourceType === "FRANCHISE_URL"` 이면 null */
+  content: string | null
+  /** `sourceType === "DIRECT"` 이면 null */
+  url: string | null
 }

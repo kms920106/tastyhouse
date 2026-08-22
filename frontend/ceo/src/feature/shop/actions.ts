@@ -33,6 +33,7 @@ import type {
   ShopDeliveryTipSetting,
   ShopOperationInfo,
   ShopOrderNotice,
+  ShopOrigin,
   ShopSummary,
   Suspension,
 } from "@/feature/shop/domain";
@@ -85,6 +86,7 @@ import {
   phoneNumberSchema,
   type ShopIntroductionFormValues,
   type ShopMinOrderAmountFormValues,
+  type ShopOriginFormValues,
   type ShopRiderPickupLocationFormValues,
   type ShopRiderVisitGuideFormValues,
   type ShopScheduledOrderFormValues,
@@ -92,6 +94,7 @@ import {
   type SuspensionFormValues,
   shopIntroductionSchema,
   shopMinOrderAmountSchema,
+  shopOriginSchema,
   shopRiderPickupLocationSchema,
   shopRiderVisitGuideSchema,
   shopScheduledOrderSchema,
@@ -1379,6 +1382,36 @@ export async function updateOrderNoticeAction(shopId: number, content: string): 
   if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
 
   const { error } = await shopRepository.updateOrderNotice(shopId, { content: parsed.data.content });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidateMenuBoard();
+  return { success: true };
+}
+
+// ===== 원산지 (법정 표시 의무) =====
+
+/** 미설정 가게도 `sourceType: "DIRECT"` · `content: null` 이 내려와 화면이 분기 없이 빈 폼을 그린다 */
+export async function loadShopOriginAction(shopId: number): Promise<DataResult<ShopOrigin>> {
+  const { data, error } = await shopRepository.getOrigin(shopId);
+  if (error !== undefined || !data) return { success: false, message: error };
+  return { success: true, data };
+}
+
+/**
+ * 원산지 저장.
+ *
+ * 전체 교체(PUT)라 선택한 방식의 필드만 실어 보낸다 — 반대편 값을 함께 보내면 어느 쪽이
+ * 유효한지 모호해지고, 서버는 어차피 반대편을 null 로 정리한다.
+ */
+export async function updateShopOriginAction(shopId: number, values: ShopOriginFormValues): Promise<ActionResult> {
+  const parsed = shopOriginSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { sourceType, content, url } = parsed.data;
+  const { error } = await shopRepository.updateOrigin(shopId, {
+    sourceType,
+    ...(sourceType === "DIRECT" ? { content } : { url }),
+  });
   if (error !== undefined) return { success: false, message: error };
 
   revalidateMenuBoard();

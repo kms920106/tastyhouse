@@ -14,11 +14,14 @@ export default async function ProductInfoContent({ productId }: Props) {
     return <FetchErrorState message={COMMON_ERROR_MESSAGES.FETCH_ERROR('상품 정보')} />
   }
 
-  const { name, description, originalPrice, discountPrice, discountRate } = data
+  const { name, description, originalPrice, discountPrice, discountRate, weightText } = data
 
   return (
     <div className="px-[15px] py-[21px]">
       <h1 className="text-lg leading-[18px] font-bold">{name}</h1>
+      {/* 중량은 설명보다 앞에 둔다 — 치킨 중량표시 규제가 고객이 바로 확인할 수 있게 하라고 안내한다.
+          별도 필드라 설명 문구와 무관하게 이 배치를 화면이 보장할 수 있다. */}
+      {weightText && <p className="mt-[13px] text-sm leading-[14px] text-[#666666]">{weightText}</p>}
       <p className="mt-[13px] text-sm leading-relaxed">{description}</p>
       <div className="mt-[17px]">
         {discountRate == null ? (

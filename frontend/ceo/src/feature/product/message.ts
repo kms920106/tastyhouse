@@ -1,6 +1,7 @@
 import {
   CUP_COUNT_MAX,
   CUP_COUNT_MIN,
+  NUTRITION_TEXT_MAX_LENGTH,
   OPTION_GROUP_DESCRIPTION_MAX_LENGTH,
   OPTION_GROUP_NAME_MAX_LENGTH,
   OPTION_NAME_MAX_LENGTH,
@@ -9,6 +10,7 @@ import {
   PRODUCT_COMPOSITION_MAX_LENGTH,
   PRODUCT_DESCRIPTION_MAX_LENGTH,
   PRODUCT_NAME_MAX_LENGTH,
+  PRODUCT_WEIGHT_TEXT_MAX_LENGTH,
   SOLD_OUT_UNTIL_MAX_DAYS,
   SOLD_OUT_UNTIL_MIN_MINUTES,
   VEGETARIAN_DESCRIPTION_MAX_LENGTH,
@@ -153,6 +155,7 @@ export const PRODUCT_MENU_COPY = {
   FIELD_CATEGORY: "메뉴그룹",
   FIELD_COMPOSITION: "메뉴구성",
   FIELD_DESCRIPTION: "메뉴설명",
+  FIELD_WEIGHT_TEXT: "중량 표기",
   FIELD_ORIGINAL_PRICE: "정가",
   FIELD_DISCOUNT_PRICE: "할인가",
   FIELD_SINGLE_SERVING: "1인분 메뉴",
@@ -164,11 +167,15 @@ export const PRODUCT_MENU_COPY = {
 
   HELP_NAME: "한글·영문·숫자와 : , . / ~ % & ( ) + [ ] ™ ® 만 쓸 수 있습니다.",
   HELP_COMPOSITION: "구성품을 적으면 목록에서 메뉴명 아래에 보입니다.",
+  /** 치킨 브랜드 중량표시 규제 안내. 2026년 6월 30일부터 배달앱 내 표시 여부가 점검된다 */
+  HELP_WEIGHT_TEXT:
+    "정부의 치킨 브랜드 중량표시 규제에 따라 10대 치킨 프랜차이즈 가맹점은 메뉴판에 치킨 중량을 표기해야 합니다(2026년 6월 30일부터 점검). 조리 전 총 중량을 그램(g)으로 표기하고, 한 마리 단위 메뉴는 10호(951~1050g)처럼 표기할 수 있습니다.",
   HELP_DISCOUNT_PRICE: "정가보다 클 수 없습니다. 비워 두면 할인 없이 정가로 판매합니다.",
   HELP_SINGLE_SERVING: "1인분 주문이 가능한 메뉴에 표시됩니다.",
   HELP_REPRESENTATIVE: "메뉴판 상단에 추천으로 노출됩니다. 최소 1개는 남아 있어야 합니다.",
   HELP_RATING_EXCLUDED: "주류·사이드처럼 맛 평가가 어울리지 않는 메뉴는 평가 대상에서 제외합니다.",
 
+  PLACEHOLDER_WEIGHT_TEXT: "예) 조리 전 총 중량 1,200g",
   PLACEHOLDER_CATEGORY_NONE: "분류 없음",
   PLACEHOLDER_SELECT: "선택해 주세요",
 
@@ -189,7 +196,7 @@ export const PRODUCT_DETAIL_COPY = {
   BUTTON_BACK: "메뉴판으로",
 
   ROW_NAME: "메뉴명",
-  ROW_TEXT: "메뉴구성·설명",
+  ROW_TEXT: "메뉴구성·설명·중량",
   ROW_PRICE: "가격",
   ROW_FLAGS: "판매 옵션",
   ROW_CATEGORY: "메뉴그룹",
@@ -199,7 +206,7 @@ export const PRODUCT_DETAIL_COPY = {
   ROW_OPTION_GROUPS: "옵션그룹",
 
   SHEET_NAME_TITLE: "메뉴명 변경",
-  SHEET_TEXT_TITLE: "메뉴구성·설명 변경",
+  SHEET_TEXT_TITLE: "메뉴구성·설명·중량 변경",
   SHEET_PRICE_TITLE: "가격 변경",
   SHEET_CATEGORY_TITLE: "메뉴그룹 변경",
   SHEET_EXPOSURE_TITLE: "노출기간 설정",
@@ -401,6 +408,7 @@ export const PRODUCT_MENU_VALIDATION_MESSAGE = {
   NAME_INVALID_CHARACTER: "메뉴명에 사용할 수 없는 특수문자가 포함되어 있습니다.",
   COMPOSITION_TOO_LONG: `메뉴구성은 ${PRODUCT_COMPOSITION_MAX_LENGTH}자 이내로 입력해 주세요.`,
   DESCRIPTION_TOO_LONG: `메뉴설명은 ${PRODUCT_DESCRIPTION_MAX_LENGTH}자 이내로 입력해 주세요.`,
+  WEIGHT_TEXT_TOO_LONG: `중량 표기는 ${PRODUCT_WEIGHT_TEXT_MAX_LENGTH}자 이내로 입력해 주세요.`,
   ORIGINAL_PRICE_REQUIRED: "정가를 입력해 주세요.",
   PRICE_NEGATIVE: "가격은 0원 이상이어야 합니다.",
   PRICE_NOT_INTEGER: "가격은 원 단위 정수로 입력해 주세요.",
@@ -670,4 +678,69 @@ export const PRODUCT_REPRESENTATIVE_COPY = {
     "이미지가 없는 메뉴는 대표 메뉴로 등록할 수 없습니다.",
     "대표 메뉴의 메뉴명과 메뉴 이미지가 일치해야 합니다.",
   ],
+} as const;
+
+// ===== 영양성분·알레르기 (법정 표시 의무) =====
+
+export const PRODUCT_NUTRITION_MESSAGE = {
+  REQUIRED_TOGETHER: "열량·당류·단백질·포화지방·나트륨은 함께 입력해야 합니다.",
+  MUST_BE_NON_NEGATIVE_INT: "0 이상의 숫자만 입력할 수 있습니다.",
+  TEXT_TOO_LONG: `${NUTRITION_TEXT_MAX_LENGTH}자 이내로 입력해 주세요.`,
+  SAVE_SUCCESS: "영양성분 정보를 저장했습니다.",
+  DELETE_SUCCESS: "영양성분 정보를 삭제했습니다.",
+  SAVE_FAILED: "영양성분 정보 저장에 실패했습니다.",
+  DELETE_FAILED: "영양성분 정보 삭제에 실패했습니다.",
+  LOAD_FAILED: "영양성분 정보를 불러오지 못했습니다.",
+  ALLERGEN_LOAD_FAILED: "알레르기 유발성분 목록을 불러오지 못했습니다.",
+} as const;
+
+export const PRODUCT_NUTRITION_COPY = {
+  ROW_TITLE: "영양성분·알레르기",
+  SHEET_TITLE: "영양성분·알레르기",
+  SHEET_DESCRIPTION: "손님 화면의 메뉴 상세에 노출되는 성분 정보입니다.",
+
+  /** 의무표시 대상 판정을 시스템이 하지 않으므로 문구로 알린다 — 규제 목록은 연 1회 갱신된다 */
+  TARGET_NOTICE:
+    "제과·제빵, 아이스크림, 햄버거, 피자를 조리·판매하는 어린이 기호식품 판매 음식점 중 가맹점 50개 이상 브랜드는 의무표시 대상입니다. 관련 규정에 따라 배달앱 내 표시 여부가 점검되며 위반 시 과태료가 부과될 수 있습니다. 해당하는 가게는 본사를 통해 자료를 제공받아 입력해 주세요.",
+
+  REQUIRED_SECTION_TITLE: "필수 영양성분",
+  REQUIRED_SECTION_HELP: "다섯 항목은 함께 입력하거나 함께 비워 주세요. 일부만 입력한 표시는 위반입니다.",
+  OPTIONAL_SECTION_TITLE: "선택 영양성분",
+
+  LABEL_CALORIE: "열량",
+  LABEL_SUGARS: "당류",
+  LABEL_PROTEIN: "단백질",
+  LABEL_SATURATED_FAT: "포화지방",
+  LABEL_NATRIUM: "나트륨",
+  LABEL_CARBOHYDRATE: "탄수화물",
+  LABEL_CHOLESTEROL: "콜레스테롤",
+  LABEL_FAT: "지방",
+  LABEL_TRANS_FAT: "트랜스지방",
+  LABEL_CAFFEINE: "카페인",
+  LABEL_FLAVOR: "맛",
+  LABEL_SIZE: "사이즈",
+  LABEL_TOTAL_AMOUNT: "총 제공량",
+  LABEL_SERVING_SIZE: "1회 제공량",
+
+  SET_MENU_SECTION_TITLE: "세트 메뉴",
+  SET_MENU_LABEL: "세트 메뉴입니다",
+  /** PDF 규격 그대로 */
+  SET_MENU_HELP:
+    '세트 메뉴는 정확한 정보 제공을 위해 단품 메뉴에 먼저 영양성분을 입력해 주세요. 체크하면 손님 화면에 "메뉴구성에 따라 영양성분이 다르므로, 각각의 메뉴에 대한 영양성분을 확인해주시기 바랍니다."가 표시됩니다. 세트 메뉴의 열량을 직접 입력하는 경우 법령에 따라 해당 조합의 총열량을 표시해야 합니다.',
+
+  ALLERGEN_SECTION_TITLE: "알레르기 유발성분",
+  ALLERGEN_SECTION_HELP: "해당하는 성분을 모두 선택해 주세요.",
+  ALLERGEN_EMPTY: "알레르기 유발성분 목록을 불러오지 못했습니다.",
+
+  DELETE_TITLE: "영양성분 정보 삭제",
+  DELETE_HELP: "입력한 영양성분과 알레르기 정보를 모두 지웁니다. 손님 화면에서도 사라집니다.",
+  ACTION_DELETE: "영양성분 정보 삭제",
+  ACTION_DELETING: "삭제 중...",
+  ACTION_SUBMIT: "저장",
+  ACTION_PENDING: "저장 중...",
+  ACTION_CLOSE: "닫기",
+
+  SUMMARY_EMPTY: "미입력",
+  SUMMARY_SET_MENU: "세트 메뉴",
+  SUMMARY_ALLERGEN_SUFFIX: "종",
 } as const;

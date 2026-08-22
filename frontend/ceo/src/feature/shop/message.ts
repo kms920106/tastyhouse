@@ -487,3 +487,55 @@ export const SHOP_ORDER_NOTICE_COPY = {
   ACTION_PENDING: "저장 중…",
   ACTION_CLOSE: "닫기",
 } as const;
+
+// ===== 원산지 (법정 표시 의무) =====
+
+export const SHOP_ORIGIN_MESSAGE = {
+  CONTENT_REQUIRED: "원산지 정보를 입력해 주세요.",
+  CONTENT_TOO_LONG: "원산지 정보는 2000자 이내로 입력해 주세요.",
+  URL_REQUIRED: "본사 제공 URL을 입력해 주세요.",
+  URL_INVALID: "http:// 또는 https:// 로 시작하는 주소를 입력해 주세요.",
+  URL_TOO_LONG: "URL은 500자 이내로 입력해 주세요.",
+  SAVE_SUCCESS: "원산지 정보를 저장했습니다.",
+  SAVE_FAILED: "원산지 정보 저장에 실패했습니다.",
+  LOAD_FAILED: "원산지 정보를 불러오지 못했습니다.",
+} as const;
+
+export const SHOP_ORIGIN_COPY = {
+  SHEET_TITLE: "원산지",
+  SHEET_DESCRIPTION: "가게 전체에 적용되는 원산지 표시 정보입니다. 메뉴판 상단에 노출됩니다.",
+
+  SOURCE_TYPE_LABEL: "입력 방식",
+  SOURCE_TYPE_DIRECT: "직접 입력",
+  SOURCE_TYPE_FRANCHISE_URL: "본사 제공 URL",
+
+  CONTENT_LABEL: "원산지 정보",
+  CONTENT_PLACEHOLDER: "예) 프라이드 치킨 - 닭고기 : 브라질산",
+
+  URL_LABEL: "본사 제공 URL",
+  URL_PLACEHOLDER: "https://",
+  /** PDF 명시 문구 — 본사가 관리하는 링크라 점주가 고칠 수 없다 */
+  URL_FRANCHISE_NOTICE: "이 링크는 본사가 관리하므로 직접 수정할 수 없고, 정상적으로 열리지 않으면 본사에 문의하세요.",
+
+  GUIDE_TITLE: "원산지 작성 가이드",
+  GUIDE_LEAD: "원산지는 법정 필수 표시 항목이라 잘못 쓰면 과태료 대상이 될 수 있습니다.",
+  GUIDE_ITEMS: [
+    "원산지 정보는 메뉴별로 표시합니다. 예) 프라이드 치킨 - 닭고기 : 브라질산",
+    "모든 음식의 식자재 원산지가 같으면 일괄 표시할 수 있습니다. 예) 우리 가게는 국내산 쌀만 사용합니다",
+    "원산지가 다른 식자재를 섞었으면 섞음 비율이 높은 순서로 표시합니다. 예) 불고기 (쇠고기 : 호주산과 국내산을 섞음)",
+    "표시 대상 품목이 여러 개면 각각의 원산지를 표시합니다. 예) 순두부찌개 - 콩 : 국내산, 오징어 : 중국산",
+    "음식점은 29개 품목(농축산물 9 + 수산물 20)의 원산지를 반드시 표시해야 합니다.",
+  ],
+
+  ITEMS_TITLE: "의무 표시 29개 품목",
+  ITEMS_LIVESTOCK_LABEL: "농축산물 9종",
+  ITEMS_LIVESTOCK:
+    "쇠고기, 돼지고기, 닭고기, 오리고기, 양고기, 염소고기(유산양 포함), 배추김치, 쌀(밥·죽·누룽지), 콩(두부류·콩국수·콩비지)",
+  ITEMS_SEAFOOD_LABEL: "수산물 20종",
+  ITEMS_SEAFOOD:
+    "넙치, 조피볼락, 참돔, 미꾸라지, 뱀장어, 낙지, 고등어, 갈치, 명태, 참조기, 오징어, 꽃게, 다랑어, 아귀, 쭈꾸미, 가리비, 우렁쉥이, 방어, 전복, 부세 및 수족관에 살아있는 모든 수산물",
+
+  ACTION_SUBMIT: "저장",
+  ACTION_PENDING: "저장 중...",
+  ACTION_CLOSE: "닫기",
+} as const;

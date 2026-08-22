@@ -1,4 +1,5 @@
 import ProductInfoContent from '@/components/products/ProductInfoContent'
+import ProductNutritionSection from '@/components/products/ProductNutritionSection'
 import { ProductInfoSkeleton } from '@/components/products/ProductInfoSkeleton'
 import BorderedSection from '@/components/ui/BorderedSection'
 import { ImageGallerySkeleton } from '@/components/ui/ImageGallerySkeleton'
@@ -36,6 +37,10 @@ export default function ShopOrderMenuDetailPage({ shopId, productId, tab, orderM
           </Suspense>
           <Suspense fallback={<ProductInfoSkeleton />}>
             <ProductInfoContent productId={productId} />
+          </Suspense>
+          {/* 미입력이면 컴포넌트가 null 을 돌려 버튼 자체가 사라진다 */}
+          <Suspense fallback={null}>
+            <ProductNutritionSection productId={productId} />
           </Suspense>
         </BorderedSection>
         <BorderedSection>

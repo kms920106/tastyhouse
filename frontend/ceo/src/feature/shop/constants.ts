@@ -438,3 +438,11 @@ export const MENU_COLLECTION_IMAGE_ACCEPT = "image/jpeg,image/png";
 
 /** 서버 `@Size(max = 500)` 과 같은 값 */
 export const ORDER_NOTICE_CONTENT_MAX = 500;
+
+// ===== 원산지 (법정 표시 의무) =====
+
+export const SHOP_ORIGIN_CONTENT_MAX = 2000;
+export const SHOP_ORIGIN_URL_MAX = 500;
+
+/** `http://` 또는 `https://` 로 시작하는지만 본다 — 도달 가능 여부는 서버·본사 책임이다 */
+export const SHOP_ORIGIN_URL_PATTERN = /^https?:\/\//;

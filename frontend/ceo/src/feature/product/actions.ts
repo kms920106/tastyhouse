@@ -7,11 +7,13 @@ import { productRepository } from "@/api/product/product.repository";
 
 import { PRODUCT_REPRESENTATIVE_MAX_COUNT } from "./constants";
 import type {
+  AllergenOption,
   AvailabilityChangeOutcome,
   LinkedProductSummary,
   MenuExposure,
   MenuExposureHour,
   MenuImageList,
+  MenuNutrition,
   MenuVegetarian,
   OptionGroupMergeInput,
   OptionGroupMergePreview,
@@ -25,6 +27,7 @@ import {
   PRODUCT_MENU_MESSAGE,
   PRODUCT_MENU_VALIDATION_MESSAGE,
   PRODUCT_MESSAGE,
+  PRODUCT_NUTRITION_MESSAGE,
   PRODUCT_REPRESENTATIVE_COPY,
   PRODUCT_REPRESENTATIVE_MESSAGE,
 } from "./message";
@@ -32,6 +35,8 @@ import {
   availabilityTargetSchema,
   exposureSaveSchema,
   menuCategoryFormSchema,
+  type NutritionFormValues,
+  nutritionSchema,
   optionAvailabilityTargetSchema,
   optionGroupMergeExclusionSchema,
   optionGroupMergeSchema,
@@ -359,6 +364,13 @@ interface MenuSaveInput {
   name: string;
   composition: string;
   description: string;
+  /**
+   * 중량 표기(법정 의무표시).
+   *
+   * **전체 교체(PUT)라 저장 경로마다 빠짐없이 실려야 한다.** 어느 한 시트가 이 값을 빼면
+   * 서버가 기존 중량을 null 로 덮는다 — 중량과 무관한 가격 시트에서 저장해도 마찬가지다.
+   */
+  weightText: string;
   originalPrice: number;
   discountPrice: number | null;
   singleServing: boolean;
@@ -374,6 +386,7 @@ function toMenuSaveBody(input: MenuSaveInput) {
     name: input.name.trim(),
     composition: input.composition.trim() || undefined,
     description: input.description.trim() || undefined,
+    weightText: input.weightText.trim() || undefined,
     originalPrice: input.originalPrice,
     discountPrice: input.discountPrice,
     singleServing: input.singleServing,
@@ -1074,4 +1087,87 @@ export async function releaseRepresentativeAction(
 
   const { error } = await productRepository.releaseRepresentative(productId, parsed.data);
   return toSimpleResult(error, PRODUCT_REPRESENTATIVE_COPY.RELEASE_FAILED);
+}
+
+// ===== 영양성분·알레르기 (법정 표시 의무) =====
+
+/** 빈 문자열은 미입력(null)이다 — 0 으로 보내면 "열량 0kcal"이라는 다른 뜻이 된다 */
+function toNutritionNumber(value: string): number | null {
+  const trimmed = value.trim();
+  return trimmed === "" ? null : Number(trimmed);
+}
+
+/** 빈 문자열은 서버에 보내지 않는다 — 전체 교체라 생략하면 서버가 null 로 정리한다 */
+function toNutritionText(value: string): string | undefined {
+  return value.trim() || undefined;
+}
+
+/** 체크박스 목록은 서버가 공급한다. 항목이 늘어도 화면 배포가 필요 없다 */
+export async function loadAllergensAction(): Promise<DataResult<AllergenOption[]>> {
+  const { data, error } = await productRepository.getAllergens();
+  if (error !== undefined || !data) return toFailure(error, PRODUCT_NUTRITION_MESSAGE.ALLERGEN_LOAD_FAILED);
+  return { success: true, data };
+}
+
+/**
+ * 영양성분 조회.
+ *
+ * 미입력 메뉴는 `data: null` 이라 성공이면서 값이 없다 — 호출부가 "없음"과 "실패"를 구분할 수
+ * 있도록 `data` 를 `null` 그대로 넘긴다(실패는 `success: false`).
+ */
+export async function loadProductNutritionAction(
+  productId: number,
+  shopId: number,
+): Promise<DataResult<MenuNutrition | null>> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.getNutrition(productId, shopId);
+  if (error !== undefined) return toFailure(error, PRODUCT_NUTRITION_MESSAGE.LOAD_FAILED);
+  return { success: true, data: data ?? null };
+}
+
+/** 전체 교체(PUT) — 필수 5종의 "함께 채우거나 함께 비우기"는 스키마가 먼저 막고 서버가 또 본다 */
+export async function updateProductNutritionAction(
+  productId: number,
+  shopId: number,
+  values: NutritionFormValues,
+): Promise<SimpleResult> {
+  const parsedShopId = shopIdSchema.safeParse(shopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const parsed = nutritionSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const v = parsed.data;
+  const { error } = await productRepository.updateNutrition(productId, {
+    shopId,
+    servingSize: toNutritionText(v.servingSize),
+    totalAmount: toNutritionText(v.totalAmount),
+    flavor: toNutritionText(v.flavor),
+    size: toNutritionText(v.size),
+    calorie: toNutritionNumber(v.calorie),
+    sugars: toNutritionNumber(v.sugars),
+    protein: toNutritionNumber(v.protein),
+    saturatedFat: toNutritionNumber(v.saturatedFat),
+    natrium: toNutritionNumber(v.natrium),
+    carbohydrate: toNutritionNumber(v.carbohydrate),
+    cholesterol: toNutritionNumber(v.cholesterol),
+    fat: toNutritionNumber(v.fat),
+    transFat: toNutritionNumber(v.transFat),
+    caffeine: toNutritionNumber(v.caffeine),
+    setMenu: v.setMenu,
+    allergens: v.allergens,
+  });
+
+  return toSimpleResult(error, PRODUCT_NUTRITION_MESSAGE.SAVE_FAILED);
+}
+
+/** 행을 지운다(소프트 삭제 아님) — 과거 주문이 참조하지 않는 부가 정보다 */
+export async function deleteProductNutritionAction(productId: number, shopId: number): Promise<SimpleResult> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await productRepository.deleteNutrition(productId, shopId);
+  return toSimpleResult(error, PRODUCT_NUTRITION_MESSAGE.DELETE_FAILED);
 }

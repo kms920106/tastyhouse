@@ -19,6 +19,7 @@ import {
   ShopMenuCollectionImageResponse,
   ShopNoticeResponse,
   ShopOrderNoticeResponse,
+  ShopOriginResponse,
   ShopOrderMethodResponse,
   ShopPhotoCategoryResponse,
   ShopPopularProductResponse,
@@ -119,6 +120,18 @@ export const shopRepository = {
    */
   async getShopOrderNotice(shopId: number) {
     return publicApi.get<ShopOrderNoticeResponse | null>(`${ENDPOINT}/v1/${shopId}/order-notice`, {
+      cache: 'force-cache' as const,
+      next: { revalidate: 60 },
+    })
+  },
+  /**
+   * 원산지를 조회한다. 미설정이면 `data` 가 null 이고 화면은 영역을 통째로 감춘다.
+   *
+   * 주문안내와 같은 이유로 60초 캐시다 — 점주가 ceo 에서 고친 내용이 곧 반영되어야 하는데,
+   * 법정 표시라 낡은 값이 오래 남으면 곤란하다.
+   */
+  async getShopOrigin(shopId: number) {
+    return publicApi.get<ShopOriginResponse | null>(`${ENDPOINT}/v1/${shopId}/origin`, {
       cache: 'force-cache' as const,
       next: { revalidate: 60 },
     })

@@ -51,13 +51,14 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
   // 나타나지 않으므로(그룹은 메뉴를 품은 형태로 내려온다) 그룹 목록을 따로 받아 합친다 —
   // 그러지 않으면 방금 만든 빈 메뉴그룹이 화면에서 사라져 [메뉴그룹 추가]가 먹지 않는 것처럼 보인다.
   //
-  // 메뉴모음컷·주문안내는 상단 진입점 시트의 초기값이다. 시트가 열릴 때 다시 조회하지만,
+  // 메뉴모음컷·주문안내·원산지는 상단 진입점 시트의 초기값이다. 시트가 열릴 때 다시 조회하지만,
   // 여기서 함께 받아 두면 첫 렌더가 빈 목록으로 깜빡이지 않는다.
-  const [categoriesResult, boardResult, menuCollectionResult, orderNoticeResult] = await Promise.all([
+  const [categoriesResult, boardResult, menuCollectionResult, orderNoticeResult, originResult] = await Promise.all([
     productRepository.getCategories(shopId),
     productRepository.getAvailability({ shopId }),
     shopRepository.getMenuCollectionImages(shopId),
     shopRepository.getOrderNotice(shopId),
+    shopRepository.getOrigin(shopId),
   ]);
 
   // 목록 실패는 throw 하지 않는다 — 가게 선택기를 살려 다른 가게로 옮기거나 재시도할 수 있게 한다.
@@ -73,15 +74,19 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
     );
   }
 
-  // 메뉴모음컷·주문안내 조회 실패는 셸을 막지 않는다 — 메뉴판 본체와 무관한 부가 영역이고,
+  // 메뉴모음컷·주문안내·원산지 조회 실패는 셸을 막지 않는다 — 메뉴판 본체와 무관한 부가 영역이고,
   // 시트를 열면 재조회하면서 실패 토스트를 띄우므로 여기서는 로그만 남긴다.
-  if (menuCollectionResult.error !== undefined || orderNoticeResult.error !== undefined) {
+  if (
+    menuCollectionResult.error !== undefined ||
+    orderNoticeResult.error !== undefined ||
+    originResult.error !== undefined
+  ) {
     logger.warn(
       {
-        reason: menuCollectionResult.error ?? orderNoticeResult.error,
+        reason: menuCollectionResult.error ?? orderNoticeResult.error ?? originResult.error,
         shopId,
       },
-      "메뉴판 상단 홍보 3종 초기 조회 실패 — 시트 재조회에 위임",
+      "메뉴판 상단 홍보 3종·원산지 초기 조회 실패 — 시트 재조회에 위임",
     );
   }
 
@@ -93,6 +98,7 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/shop/
       groups={boardResult.data}
       menuCollectionImages={menuCollectionResult.data}
       orderNotice={orderNoticeResult.data}
+      origin={originResult.data}
       errorCode={boardResult.errorCode ?? categoriesResult.errorCode}
       errorMessage={boardResult.error ?? categoriesResult.error}
     />
