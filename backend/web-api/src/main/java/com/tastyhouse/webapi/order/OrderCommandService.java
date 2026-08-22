@@ -54,6 +54,7 @@ public class OrderCommandService {
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         LocalDateTime scheduledAt
     ) {
@@ -70,6 +71,7 @@ public class OrderCommandService {
             productDiscountAmount,
             couponDiscountAmount,
             deliveryTipAmount,
+            cupDepositAmount,
             finalAmount,
             scheduledAt
         );
@@ -89,6 +91,7 @@ public class OrderCommandService {
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         LocalDateTime scheduledAt
     ) {
@@ -107,6 +110,7 @@ public class OrderCommandService {
             productDiscountAmount,
             couponDiscountAmount,
             deliveryTipAmount,
+            cupDepositAmount,
             finalAmount,
             scheduledAt
         );

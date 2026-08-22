@@ -24,7 +24,10 @@ final class OrderProductOptionMapper {
             domain.getOptionGroupName(),
             IdMapping.raw(domain.getOptionId(), ProductOptionId::value),
             domain.getOptionName(),
-            domain.getAdditionalPrice()
+            domain.getAdditionalPrice(),
+            domain.getOptionGroupType(),
+            domain.getCupCount(),
+            domain.getDepositAmount()
         );
     }
 }

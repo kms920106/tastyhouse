@@ -33,6 +33,12 @@ public record ProductOptionGroupCreateRequest(
 
     @NotNull(message = "노출 여부는 필수입니다.")
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
-    Boolean visible
+    Boolean visible,
+
+    @Schema(description = "옵션그룹 유형. 미지정이면 NORMAL입니다. CUP_DEPOSIT은 대상 사업자로 지정된 "
+        + "가게(cupDepositEnabled=true)만 만들 수 있습니다 — 먼저 "
+        + "PATCH /api/shops/v1/{id}/cup-deposit 로 지정하세요.",
+        example = "NORMAL", allowableValues = {"NORMAL", "CUP_DEPOSIT"})
+    String groupType
 ) {
 }

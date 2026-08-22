@@ -16,6 +16,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
@@ -28,6 +31,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
+import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -45,6 +50,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpa
 import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupJpaEntity.productOptionGroupJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupLinkJpaEntity.productOptionGroupLinkJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupMergeExclusionJpaEntity.productOptionGroupMergeExclusionJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionJpaEntity.productOptionJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductVegetarianRequestJpaEntity.productVegetarianRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -114,12 +120,51 @@ public class ProductQueryDao {
      */
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
+    /**
+     * 합치기 추천 후보 SQL. 집계 1패스로 파생 키를 만들고, 그 키가 2건 이상인 것만 남긴다.
+     *
+     * <p>{@code GROUP_CONCAT(... ORDER BY o.name, o.additional_price)}로 옵션 순서를 정규화한다 —
+     * 옵션 {@code sort}는 그룹마다 다르지만 동일성에는 영향이 없다(같은 옵션을 다른 순서로 진열했을 뿐).
+     * 이 정렬 규칙은 {@code ProductOptionGroupSignature.payloadOf}와 <b>글자 단위로 일치</b>해야 한다.
+     */
+    private static final String MERGE_CANDIDATE_SQL = """
+        WITH group_sig AS (
+            SELECT g.id AS option_group_id, g.name AS group_name, g.min_select, g.max_select,
+                   CONCAT_WS('|', g.name, IFNULL(g.min_select,''), IFNULL(g.max_select,''),
+                             COUNT(o.id),
+                             IFNULL(GROUP_CONCAT(CONCAT(o.name, ':', o.additional_price)
+                                                 ORDER BY o.name, o.additional_price SEPARATOR ','), '')
+                   ) AS sig_payload
+              FROM PRODUCT_OPTION_GROUP g
+              JOIN PRODUCT_OPTION_GROUP_LINK l ON l.option_group_id = g.id
+              JOIN PRODUCT p ON p.id = l.product_id
+              LEFT JOIN PRODUCT_OPTION o ON o.option_group_id = g.id AND o.is_visible = 1
+             WHERE p.shop_id = :shopId AND p.is_deleted = 0 AND g.is_visible = 1
+             GROUP BY g.id, g.name, g.min_select, g.max_select
+        )
+        SELECT s.option_group_id, s.group_name, s.min_select, s.max_select, s.sig_payload
+          FROM group_sig s
+         WHERE s.sig_payload IN (
+                   SELECT sig_payload FROM group_sig GROUP BY sig_payload HAVING COUNT(*) > 1
+               )
+         ORDER BY s.sig_payload, s.option_group_id
+        """;
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
+    private final EntityManager entityManager;
+    private final CupDepositPolicy cupDepositPolicy;
 
-    public ProductQueryDao(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+    public ProductQueryDao(
+        JPAQueryFactory queryFactory,
+        FileUrlResolver fileUrlResolver,
+        EntityManager entityManager,
+        CupDepositPolicy cupDepositPolicy
+    ) {
         this.queryFactory = queryFactory;
         this.fileUrlResolver = fileUrlResolver;
+        this.entityManager = entityManager;
+        this.cupDepositPolicy = cupDepositPolicy;
     }
 
     // ── web ────────────────────────────────────────────────────────────────
@@ -250,7 +295,8 @@ public class ProductQueryDao {
                 productOptionGroupJpaEntity.required,
                 productOptionGroupJpaEntity.multipleSelect,
                 productOptionGroupJpaEntity.minSelect,
-                productOptionGroupJpaEntity.maxSelect
+                productOptionGroupJpaEntity.maxSelect,
+                productOptionGroupJpaEntity.groupType
             )
             .from(productOptionGroupJpaEntity)
             .innerJoin(productOptionGroupLinkJpaEntity)
@@ -276,7 +322,9 @@ public class ProductQueryDao {
                 productOptionJpaEntity.id,
                 productOptionJpaEntity.name,
                 productOptionJpaEntity.additionalPrice,
-                productOptionJpaEntity.soldOut
+                productOptionJpaEntity.soldOut,
+                productOptionJpaEntity.cupCount,
+                productOptionJpaEntity.personalCupDiscountAmount
             )
             .from(productOptionJpaEntity)
             .where(optionGroupId.in(groupIds), productOptionJpaEntity.visible.eq(true))
@@ -292,7 +340,10 @@ public class ProductQueryDao {
                         tuple.get(productOptionJpaEntity.id),
                         tuple.get(productOptionJpaEntity.name),
                         tuple.get(productOptionJpaEntity.additionalPrice),
-                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut))
+                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut)),
+                        tuple.get(productOptionJpaEntity.cupCount),
+                        cupDepositPolicy.depositAmountOf(tuple.get(productOptionJpaEntity.cupCount)),
+                        tuple.get(productOptionJpaEntity.personalCupDiscountAmount)
                     ),
                     Collectors.toList()
                 )
@@ -308,6 +359,7 @@ public class ProductQueryDao {
                 tuple.get(productOptionGroupJpaEntity.minSelect),
                 tuple.get(productOptionGroupJpaEntity.maxSelect),
                 false,
+                groupTypeNameOf(tuple.get(productOptionGroupJpaEntity.groupType)),
                 optionsByGroupId.getOrDefault(tuple.get(productOptionGroupJpaEntity.id), Collections.emptyList())
             ))
             .toList();
@@ -363,11 +415,15 @@ public class ProductQueryDao {
                 tuple -> Objects.requireNonNull(tuple.get(commonOptionGroupId)),
                 LinkedHashMap::new,
                 Collectors.mapping(
+                    // 공통 옵션은 보증금 대상이 아니므로 컵 관련 값이 없다(§공통 미러 테이블 미변경 결정).
                     tuple -> new OptionResult(
                         tuple.get(productCommonOptionJpaEntity.id),
                         tuple.get(productCommonOptionJpaEntity.name),
                         tuple.get(productCommonOptionJpaEntity.additionalPrice),
-                        Boolean.TRUE.equals(tuple.get(productCommonOptionJpaEntity.soldOut))
+                        Boolean.TRUE.equals(tuple.get(productCommonOptionJpaEntity.soldOut)),
+                        null,
+                        0,
+                        null
                     ),
                     Collectors.toList()
                 )
@@ -383,6 +439,10 @@ public class ProductQueryDao {
                 tuple.get(productCommonOptionGroupJpaEntity.minSelect),
                 tuple.get(productCommonOptionGroupJpaEntity.maxSelect),
                 true,
+                // 공통 옵션그룹은 점주 CRUD 대상이 아니고 주문 검증 경로도 일반 옵션만 보므로, 구조상
+                // 보증금 유형이 될 수 없다. 미러 테이블에 죽은 컬럼을 추가하는 대신 여기서 하드코딩해
+                // 그 사실을 코드에 남긴다(common=true를 하드코딩하는 방식과 동일).
+                ProductOptionGroupType.NORMAL.name(),
                 optionsByGroupId.getOrDefault(tuple.get(productCommonOptionGroupJpaEntity.id), Collections.emptyList())
             ))
             .toList();
@@ -452,7 +512,16 @@ public class ProductQueryDao {
             List<BatchOptionResult> bucket = optionsByProductId.get(productId);
             boolean alreadyAdded = bucket.stream().anyMatch(option -> option.id().equals(optionId));
             if (!alreadyAdded) {
-                bucket.add(new BatchOptionResult(optionId, optionInfo.name(), optionInfo.additionalPrice()));
+                bucket.add(new BatchOptionResult(
+                    optionId,
+                    optionInfo.name(),
+                    optionInfo.additionalPrice(),
+                    optionInfo.cupCount(),
+                    // 금액은 저장값이 아니라 컵 개수에서 매번 계산한다 — findProductOptions와 같은
+                    // 원천을 써야 메뉴판과 결제화면의 보증금이 갈리지 않는다.
+                    cupDepositPolicy.depositAmountOf(optionInfo.cupCount()),
+                    optionInfo.personalCupDiscountAmount()
+                ));
             }
         }
 
@@ -516,7 +585,9 @@ public class ProductQueryDao {
                 productOptionJpaEntity.id,
                 optionGroupId,
                 productOptionJpaEntity.name,
-                productOptionJpaEntity.additionalPrice
+                productOptionJpaEntity.additionalPrice,
+                productOptionJpaEntity.cupCount,
+                productOptionJpaEntity.personalCupDiscountAmount
             )
             .from(productOptionJpaEntity)
             .where(productOptionJpaEntity.id.in(optionIds), productOptionJpaEntity.visible.eq(true))
@@ -527,7 +598,9 @@ public class ProductQueryDao {
                     tuple.get(optionGroupId),
                     tuple.get(productOptionJpaEntity.name),
                     tuple.get(productOptionJpaEntity.additionalPrice),
-                    false
+                    false,
+                    tuple.get(productOptionJpaEntity.cupCount),
+                    tuple.get(productOptionJpaEntity.personalCupDiscountAmount)
                 )
             ));
 
@@ -547,7 +620,11 @@ public class ProductQueryDao {
                     tuple.get(commonOptionGroupId),
                     tuple.get(productCommonOptionJpaEntity.name),
                     tuple.get(productCommonOptionJpaEntity.additionalPrice),
-                    true
+                    true,
+                    // 공통 옵션그룹은 구조상 보증금 유형이 될 수 없어(findCommonOptionGroups의
+                    // NORMAL 하드코딩과 같은 근거) 보증금 필드가 항상 null이다.
+                    null,
+                    null
                 )
             ));
 
@@ -905,6 +982,7 @@ public class ProductQueryDao {
                 productOptionGroupJpaEntity.maxSelect,
                 productOptionGroupLinkJpaEntity.sort,
                 productOptionGroupJpaEntity.visible,
+                productOptionGroupJpaEntity.groupType,
                 linkedProductCount
             )
             .from(productOptionGroupJpaEntity)
@@ -943,6 +1021,7 @@ public class ProductQueryDao {
                     tuple.get(productOptionGroupJpaEntity.maxSelect),
                     tuple.get(productOptionGroupLinkJpaEntity.sort),
                     Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.visible)),
+                    groupTypeNameOf(tuple.get(productOptionGroupJpaEntity.groupType)),
                     linkedCount != null ? linkedCount : 0L,
                     optionsByGroupId.getOrDefault(groupId, List.of())
                 );
@@ -963,7 +1042,10 @@ public class ProductQueryDao {
                 productOptionJpaEntity.name,
                 productOptionJpaEntity.additionalPrice,
                 productOptionJpaEntity.sort,
-                productOptionJpaEntity.visible
+                productOptionJpaEntity.soldOut,
+                productOptionJpaEntity.visible,
+                productOptionJpaEntity.cupCount,
+                productOptionJpaEntity.personalCupDiscountAmount
             )
             .from(productOptionJpaEntity)
             .where(optionGroupId.in(groupIds))
@@ -980,7 +1062,10 @@ public class ProductQueryDao {
                         tuple.get(productOptionJpaEntity.name),
                         tuple.get(productOptionJpaEntity.additionalPrice),
                         tuple.get(productOptionJpaEntity.sort),
-                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.visible))
+                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut)),
+                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.visible)),
+                        tuple.get(productOptionJpaEntity.cupCount),
+                        tuple.get(productOptionJpaEntity.personalCupDiscountAmount)
                     ),
                     Collectors.toList()
                 )
@@ -1044,6 +1129,76 @@ public class ProductQueryDao {
                     Collectors.toList()
                 )
             ));
+    }
+
+    /**
+     * 옵션그룹 합치기 <b>추천 후보</b>를 조회한다 — 동일성 서명이 같은 그룹이 2개 이상인 묶음만 반환한다.
+     *
+     * <p><b>이 메서드만 네이티브 쿼리를 쓴다.</b> 판정 기준(그룹명 + min/max + 옵션명·가격 집합 동일)이
+     * 파생 키 {@code GROUP BY}인데 QueryDSL이 {@code GROUP_CONCAT}을 표현하지 못한다. self-join으로
+     * 바꾸면 O(n²)이라 옵션그룹이 수십 개인 가게에서 급격히 느려진다.
+     *
+     * <p><b>서명 해싱은 하지 않는다</b> — 원시 {@code sig_payload}만 돌려주고 SHA-256은 도메인의
+     * {@code ProductOptionGroupSignature}가 계산한다(그 클래스 주석 참조).
+     *
+     * <p>필터의 의미
+     * <ul>
+     *   <li>{@code o.is_visible = 1} — 숨은(소프트 삭제된) 옵션이 동일성에 참여하면 눈에 똑같은 두
+     *       그룹이 유령 옵션 하나 때문에 다르다고 판정된다.</li>
+     *   <li>{@code g.is_visible = 1} — 이미 합쳐졌거나 삭제된 그룹은 추천하지 않는다.</li>
+     *   <li>{@code JOIN link/product} + {@code p.is_deleted = 0} — 관리 목록과 같은 가게 스코핑이며,
+     *       "삭제된 메뉴에만 걸린 그룹은 사라진다"는 기존 동작을 그대로 재현한다.
+     *       {@code GROUP BY g.id}가 링크 fan-out을 접는다.</li>
+     *   <li>{@code COUNT(o.id)}를 payload에 포함 — {@code group_concat_max_len} 기본 1024바이트가
+     *       옵션 30개쯤에서 목록을 잘라 <b>서로 다른 그룹이 같다고 판정되는 조용한 오탐</b>을 만든다.</li>
+     * </ul>
+     */
+    public List<ProductOptionGroupMergeCandidateResult> findOptionGroupMergeCandidates(Long shopId) {
+        Query query = entityManager.createNativeQuery(MERGE_CANDIDATE_SQL);
+        query.setParameter("shopId", shopId);
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = query.getResultList();
+        return rows.stream()
+            .map(row -> new ProductOptionGroupMergeCandidateResult(
+                toLong(row[0]),
+                (String) row[1],
+                toInteger(row[2]),
+                toInteger(row[3]),
+                (String) row[4]
+            ))
+            .toList();
+    }
+
+    /**
+     * 점주가 [X]로 제외한 묶음의 <b>서명 집합</b>을 반환한다.
+     *
+     * <p>이 조회가 write 포트가 아니라 DAO에 있는 이유는 CQRS 교차 주입 금지 때문이다 — 추천 목록을
+     * 만드는 것은 query 서비스인데, 그 서비스가 exclusion write 포트를 주입하면
+     * {@code queryServicesShouldNotDependOnWritePorts} 규칙을 위반한다.
+     */
+    public Set<String> findOptionGroupMergeExcludedSignatures(Long shopId) {
+        return Set.copyOf(queryFactory
+            .select(productOptionGroupMergeExclusionJpaEntity.groupSignature)
+            .from(productOptionGroupMergeExclusionJpaEntity)
+            .where(productOptionGroupMergeExclusionJpaEntity.shopId.eq(shopId))
+            .fetch());
+    }
+
+    /**
+     * 옵션그룹 유형 enum을 표현 계층으로 넘길 문자열로 바꾼다. {@code null}은 {@code NORMAL}로 본다 —
+     * 기존 행은 DDL {@code DEFAULT 'NORMAL'}로 채워지지만, 방어적으로 같은 기본값을 여기서도 쓴다.
+     */
+    private static String groupTypeNameOf(ProductOptionGroupType groupType) {
+        return groupType == null ? ProductOptionGroupType.NORMAL.name() : groupType.name();
+    }
+
+    private static Long toLong(Object value) {
+        return value == null ? null : ((Number) value).longValue();
+    }
+
+    private static Integer toInteger(Object value) {
+        return value == null ? null : ((Number) value).intValue();
     }
 
     // ── 품절·숨김 관리 ─────────────────────────────────────────────────────
@@ -1968,7 +2123,14 @@ public class ProductQueryDao {
     /**
      * 배치 조회 내부 계산용 옵션 정보(개별/공통 구분 포함). DAO 밖으로 나가지 않는다.
      */
-    private record BatchOptionInfo(Long groupId, String name, Integer additionalPrice, boolean common) {
+    private record BatchOptionInfo(
+        Long groupId,
+        String name,
+        Integer additionalPrice,
+        boolean common,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
+    ) {
 
         /**
          * 개별·공통 그룹의 id 공간이 겹칠 수 있어, 소유 상품 맵의 키는 공통 여부를 함께 인코딩한다.

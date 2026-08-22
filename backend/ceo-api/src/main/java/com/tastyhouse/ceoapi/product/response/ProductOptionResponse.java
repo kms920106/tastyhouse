@@ -24,7 +24,18 @@ public record ProductOptionResponse(
 
     @Schema(description = "노출 여부. 삭제(감추기)한 옵션은 false다 — 이 목록은 감춘 옵션도 포함하므로 "
         + "화면이 이 값으로 걸러내거나 '삭제됨' 배지를 붙여야 한다.", example = "true")
-    Boolean visible
+    Boolean visible,
+
+    @Schema(description = "일회용컵 제공 개수. 보증금 옵션그룹의 옵션만 값을 갖는다.", example = "1")
+    Integer cupCount,
+
+    @Schema(description = "보증금 금액(원). cupCount × 300으로 서버가 계산한 값이며 저장되지 않는 파생 "
+        + "값이다 — 요율이 바뀌면 이 값도 함께 바뀐다(과거 주문 금액은 주문 스냅샷이 별도 보존).",
+        example = "300")
+    Integer depositAmount,
+
+    @Schema(description = "개인컵 사용 할인 금액(원). 개인컵 옵션이 아니면 null이다.", example = "300")
+    Integer personalCupDiscountAmount
 ) {
 
     public static ProductOptionResponse from(
@@ -32,14 +43,20 @@ public record ProductOptionResponse(
         String name,
         Integer additionalPrice,
         Integer sort,
-        Boolean visible
+        Boolean visible,
+        Integer cupCount,
+        Integer depositAmount,
+        Integer personalCupDiscountAmount
     ) {
         return new ProductOptionResponse(
             id,
             name,
             additionalPrice,
             sort,
-            visible
+            visible,
+            cupCount,
+            depositAmount,
+            personalCupDiscountAmount
         );
     }
 }

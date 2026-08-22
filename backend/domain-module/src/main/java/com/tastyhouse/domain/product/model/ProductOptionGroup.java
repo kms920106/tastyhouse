@@ -21,6 +21,12 @@ public class ProductOptionGroup {
     private Integer maxSelect;
     private Integer sort;
     private boolean visible;
+    /**
+     * 옵션그룹 유형. <b>{@code final}이다 — 유형 전환 경로를 두지 않는다.</b> 일반↔보증금을 바꾸면
+     * 과거 주문 스냅샷의 해석이 소급해서 달라진다(그 주문의 옵션이 추가금이었는지 보증금이었는지가
+     * 뒤집힌다). {@code update}가 이 값을 아예 받지 않는 것이 그 차단 장치다.
+     */
+    private final ProductOptionGroupType groupType;
 
     private ProductOptionGroup(
         Long id,
@@ -32,7 +38,8 @@ public class ProductOptionGroup {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        boolean visible
+        boolean visible,
+        ProductOptionGroupType groupType
     ) {
         this.id = id;
         this.productId = productId;
@@ -44,6 +51,7 @@ public class ProductOptionGroup {
         this.maxSelect = maxSelect;
         this.sort = sort;
         this.visible = visible;
+        this.groupType = groupType != null ? groupType : ProductOptionGroupType.NORMAL;
     }
 
     public static ProductOptionGroup of(
@@ -55,11 +63,12 @@ public class ProductOptionGroup {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        boolean visible
+        boolean visible,
+        ProductOptionGroupType groupType
     ) {
         return new ProductOptionGroup(
             null, productId, name, description, required, multipleSelect,
-            minSelect, maxSelect, sort, visible
+            minSelect, maxSelect, sort, visible, groupType
         );
     }
 
@@ -76,11 +85,12 @@ public class ProductOptionGroup {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        boolean visible
+        boolean visible,
+        ProductOptionGroupType groupType
     ) {
         return new ProductOptionGroup(
             id, productId, name, description, required, multipleSelect,
-            minSelect, maxSelect, sort, visible
+            minSelect, maxSelect, sort, visible, groupType
         );
     }
 
@@ -88,6 +98,13 @@ public class ProductOptionGroup {
         return ProductOptionGroupId.of(this.id);
     }
 
+    /**
+     * 옵션그룹의 이름·설명·선택 제약·순서·노출을 변경한다.
+     *
+     * <p><b>{@code groupType}을 받지 않는다.</b> 유형 전환은 과거 주문 스냅샷의 해석을 소급 변경하므로,
+     * "바꿀 수 있는데 막는" 것이 아니라 <b>바꿀 경로 자체를 두지 않는다</b>(hide에 대응하는 un-hide를
+     * 두지 않은 것과 같은 형태).
+     */
     public void update(
         String name,
         String description,
@@ -160,5 +177,14 @@ public class ProductOptionGroup {
 
     public boolean isVisible() {
         return this.visible;
+    }
+
+    public ProductOptionGroupType getGroupType() {
+        return this.groupType;
+    }
+
+    /** 일회용컵 보증금 옵션그룹인가. 금액 계산·검증 분기의 단일 판정점이다. */
+    public boolean isCupDeposit() {
+        return this.groupType.isCupDeposit();
     }
 }

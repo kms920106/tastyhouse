@@ -19,6 +19,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -134,6 +135,7 @@ class ShopTest {
             false,
             10000,
             true,
+            false,
             createdAt,
             updatedAt
         );
@@ -356,4 +358,47 @@ class ShopTest {
             shop.validateMinOrderAmount(orderMethod, 0);
         }
     }
+    @Test
+    @DisplayName("★ 보증금제 대상이 아닌 가게는 보증금 옵션그룹을 만들 수 없다")
+    void validateCupDepositEnabled_notTarget_rejected() {
+        Shop shop = Shop.of(
+            StationId.of(1L), "가게", BigDecimal.ONE, BigDecimal.ONE,
+            "도로명", "지번", "010-1234-5678", null
+        );
+
+        assertThat(shop.isCupDepositEnabled()).isFalse();
+        assertThat(shop.canUseCupDeposit()).isFalse();
+        assertThatThrownBy(shop::validateCupDepositEnabled)
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.SHOP_CUP_DEPOSIT_NOT_ENABLED);
+    }
+
+    @Test
+    @DisplayName("관리자가 대상으로 지정하면 보증금 옵션그룹을 만들 수 있다")
+    void changeCupDepositEnabled_marksAsTarget() {
+        Shop shop = Shop.of(
+            StationId.of(1L), "가게", BigDecimal.ONE, BigDecimal.ONE,
+            "도로명", "지번", "010-1234-5678", null
+        );
+
+        shop.changeCupDepositEnabled(true);
+
+        assertThat(shop.canUseCupDeposit()).isTrue();
+        assertThatCode(shop::validateCupDepositEnabled).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("폐업한 가게는 보증금제 대상 지정을 변경할 수 없다 — 다른 설정과 같은 규칙이다")
+    void changeCupDepositEnabled_onClosedShop_rejected() {
+        Shop shop = Shop.of(
+            StationId.of(1L), "가게", BigDecimal.ONE, BigDecimal.ONE,
+            "도로명", "지번", "010-1234-5678", null
+        );
+        shop.close();
+
+        assertThatThrownBy(() -> shop.changeCupDepositEnabled(true))
+            .isInstanceOf(BusinessException.class);
+    }
+
 }

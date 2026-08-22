@@ -16,6 +16,7 @@ import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroupLink;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.model.ReleaseTarget;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupLinkRepository;
@@ -81,8 +82,8 @@ class ProductAvailabilityServiceTest {
     @DisplayName("옵션 품절은 옵션그룹의 minSelect 개수만큼 판매 중인 옵션을 남긴다")
     void markOptionsSoldOut_minSelectViolation_rejectsExcess() {
         // minSelect=1인 그룹에 판매중 옵션 2개. 둘 다 품절 요청하면 뒤의 1건만 실패한다.
-        ProductOption first = option(100L, 20L, "곱빼기", 1);
-        ProductOption second = option(101L, 20L, "치즈추가", 2);
+        ProductOption first = option(100L, "곱빼기", 1);
+        ProductOption second = option(101L, "치즈추가", 2);
         Fixture fixture = Fixture.withOptions(List.of(first, second), optionGroup(1));
 
         ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
@@ -100,7 +101,7 @@ class ProductAvailabilityServiceTest {
     @Test
     @DisplayName("minSelect가 null이거나 0이면 하한을 1로 본다 — 옵션그룹이 통째로 선택 불가가 되지 않는다")
     void markOptionsSoldOut_nullMinSelect_treatedAsOne() {
-        ProductOption only = option(100L, 20L, "곱빼기", 1);
+        ProductOption only = option(100L, "곱빼기", 1);
         Fixture fixture = Fixture.withOptions(List.of(only), optionGroup(null));
 
         ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
@@ -110,6 +111,37 @@ class ProductAvailabilityServiceTest {
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().errorCode())
             .isEqualTo(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
+    }
+
+    @Test
+    @DisplayName("maxSelect도 잔여 하한이 된다 — 최대 3개를 고를 수 있다면 판매중 옵션이 3개 미만이 될 수 없다")
+    void markOptionsSoldOut_maxSelectViolation_rejectsExcess() {
+        // maxSelect=3인 그룹에 판매중 옵션 4개. 손님에게 "최대 3개"를 약속했으므로 3개는 남아야 하고,
+        // 4건을 품절 요청하면 1건만 통과한다.
+        Fixture fixture = Fixture.withOptions(
+            List.of(
+                option(100L, "곱빼기", 1),
+                option(101L, "치즈추가", 2),
+                option(102L, "소스추가", 3),
+                option(103L, "공기밥", 4)
+            ),
+            optionGroup(null, 3)
+        );
+
+        ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
+            SHOP_ID,
+            List.of(
+                ProductOptionId.of(100L), ProductOptionId.of(101L),
+                ProductOptionId.of(102L), ProductOptionId.of(103L)
+            ),
+            List.of(), null, NOW
+        );
+
+        assertThat(result.succeeded()).containsExactly(100L);
+        assertThat(result.failed()).hasSize(3);
+        assertThat(result.failed())
+            .allSatisfy(failure -> assertThat(failure.errorCode())
+                .isEqualTo(ErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION));
     }
 
     @Test
@@ -319,9 +351,12 @@ class ProductAvailabilityServiceTest {
         );
     }
 
-    private static ProductOption option(Long id, Long groupId, String name, int sort) {
+    private static ProductOption option(Long id, String name, int sort) {
         return ProductOption.reconstitute(
-            id, ProductOptionGroupId.of(groupId), name, 1000, sort, false, null, true);
+            id, ProductOptionGroupId.of(20L), name, 1000, sort, false, null, true,
+            null,
+            null
+        );
     }
 
     private static ProductCommonOption commonOption(Long id, String name, int sort) {
@@ -329,14 +364,29 @@ class ProductAvailabilityServiceTest {
             id, ProductOptionGroupId.of(30L), name, 0, sort, false, null, true);
     }
 
+    /**
+     * {@code minSelect} 축만 검증하는 픽스처.
+     *
+     * <p>{@code maxSelect}를 {@code null}로 둔다 — 잔여 하한이
+     * {@code max(minSelect, maxSelect, 1)}이므로(ProductOptionSelectionRule), 값을 넣으면 그 축이 함께
+     * 걸려 어느 제약 때문에 실패했는지 알 수 없게 된다. {@code maxSelect} 축은
+     * {@link #optionGroup(Integer, Integer)}를 쓰는 전용 테스트가 따로 검증한다.
+     */
     private static ProductOptionGroup optionGroup(Integer minSelect) {
+        return optionGroup(minSelect, null);
+    }
+
+    private static ProductOptionGroup optionGroup(Integer minSelect, Integer maxSelect) {
         return ProductOptionGroup.reconstitute(
-            20L, ProductId.of(500L), "그룹", "설명", true, false, minSelect, 3, 1, true);
+            20L, ProductId.of(500L), "그룹", "설명", true, false, minSelect, maxSelect, 1, true,
+            ProductOptionGroupType.NORMAL
+        );
     }
 
     private static ProductCommonOptionGroup commonOptionGroup() {
+        // 위 optionGroup(Integer)와 같은 이유로 maxSelect를 null로 둔다(minSelect 축만 검증).
         return ProductCommonOptionGroup.reconstitute(
-            30L, ProductId.of(500L), "공통그룹", "설명", true, false, 1, 3, 1, true);
+            30L, ProductId.of(500L), "공통그룹", "설명", true, false, 1, null, 1, true);
     }
 
     /**

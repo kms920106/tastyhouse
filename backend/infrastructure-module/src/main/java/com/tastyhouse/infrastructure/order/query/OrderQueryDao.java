@@ -238,6 +238,7 @@ public class OrderQueryDao {
                 orderJpaEntity.couponDiscountAmount,
                 orderJpaEntity.pointDiscountAmount,
                 orderJpaEntity.totalDiscountAmount,
+                orderJpaEntity.cupDepositAmount,
                 orderJpaEntity.finalAmount,
                 orderJpaEntity.usedPoint,
                 orderJpaEntity.earnedPoint,
@@ -298,7 +299,10 @@ public class OrderQueryDao {
                 orderProductOptionJpaEntity.id,
                 orderProductOptionJpaEntity.optionGroupName,
                 orderProductOptionJpaEntity.optionName,
-                orderProductOptionJpaEntity.additionalPrice
+                orderProductOptionJpaEntity.additionalPrice,
+                orderProductOptionJpaEntity.optionGroupType,
+                orderProductOptionJpaEntity.cupCount,
+                orderProductOptionJpaEntity.depositAmount
             ))
             .from(orderProductOptionJpaEntity)
             .where(orderProductOptionJpaEntity.orderProductId.in(orderProductIds))

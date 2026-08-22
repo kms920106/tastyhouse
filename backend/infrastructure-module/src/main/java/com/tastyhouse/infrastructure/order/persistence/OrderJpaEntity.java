@@ -74,10 +74,17 @@ public class OrderJpaEntity extends BaseEntity {
     private Integer totalDiscountAmount; // 총 할인 금액
 
     @Column(name = "delivery_tip_amount", nullable = false)
-    private Integer deliveryTipAmount; // 배달팁 (final_amount에 가산되는 유일한 항목)
+    private Integer deliveryTipAmount; // 배달팁 (final_amount 가산 항목 — 보증금과 함께 둘뿐이다)
+
+    /**
+     * 일회용컵 보증금 합계(자원순환보증금). 비과세·점주 매출 아님·중개이용료 대상 아님·최소주문금액
+     * 산정 제외. {@code final_amount}에만 가산된다.
+     */
+    @Column(name = "cup_deposit_amount", nullable = false)
+    private Integer cupDepositAmount;
 
     @Column(name = "final_amount", nullable = false)
-    private Integer finalAmount; // 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁)
+    private Integer finalAmount; // 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁 + 보증금)
 
     /**
      * 주문 시점 배달 목적지 스냅샷 7컬럼.
@@ -141,6 +148,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
         OrderSchedule schedule,
@@ -163,6 +171,7 @@ public class OrderJpaEntity extends BaseEntity {
         this.pointDiscountAmount = pointDiscountAmount;
         this.totalDiscountAmount = totalDiscountAmount;
         this.deliveryTipAmount = deliveryTipAmount;
+        this.cupDepositAmount = cupDepositAmount;
         this.finalAmount = finalAmount;
         this.deliveryDestination = deliveryDestination;
         this.schedule = schedule;
@@ -190,6 +199,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
         OrderSchedule schedule,
@@ -213,6 +223,7 @@ public class OrderJpaEntity extends BaseEntity {
             pointDiscountAmount,
             totalDiscountAmount,
             deliveryTipAmount,
+            cupDepositAmount,
             finalAmount,
             deliveryDestination,
             schedule,
@@ -234,6 +245,7 @@ public class OrderJpaEntity extends BaseEntity {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
         OrderSchedule schedule,
@@ -249,6 +261,7 @@ public class OrderJpaEntity extends BaseEntity {
         this.pointDiscountAmount = pointDiscountAmount;
         this.totalDiscountAmount = totalDiscountAmount;
         this.deliveryTipAmount = deliveryTipAmount;
+        this.cupDepositAmount = cupDepositAmount;
         this.finalAmount = finalAmount;
         this.deliveryDestination = deliveryDestination;
         this.schedule = schedule;
@@ -320,6 +333,10 @@ public class OrderJpaEntity extends BaseEntity {
 
     public Integer getDeliveryTipAmount() {
         return this.deliveryTipAmount;
+    }
+
+    public Integer getCupDepositAmount() {
+        return this.cupDepositAmount;
     }
 
     public OrderDeliveryDestination getDeliveryDestination() {

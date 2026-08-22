@@ -59,8 +59,8 @@ class ProductSoldOutReleaseSchedulerServiceTest {
     @DisplayName("메뉴·옵션·공통옵션 세 종류를 모두 해제한다")
     void releaseExpiredSoldOut_releasesAllThreeKinds() {
         Product product = soldOutProduct(10L, "떡볶이");
-        ProductOption option = soldOutOption(100L, "곱빼기");
-        ProductCommonOption commonOption = soldOutCommonOption(200L, "포크");
+        ProductOption option = soldOutOption();
+        ProductCommonOption commonOption = soldOutCommonOption();
 
         Fixture fixture = new Fixture(
             new ProductRepositoryStub(List.of(product), null),
@@ -100,16 +100,19 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         return product;
     }
 
-    private static ProductOption soldOutOption(Long id, String name) {
+    private static ProductOption soldOutOption() {
         ProductOption option = ProductOption.reconstitute(
-            id, ProductOptionGroupId.of(20L), name, 1000, 1, false, null, true);
+            100L, ProductOptionGroupId.of(20L), "곱빼기", 1000, 1, false, null, true,
+            null,
+            null
+        );
         option.markSoldOut(PAST);
         return option;
     }
 
-    private static ProductCommonOption soldOutCommonOption(Long id, String name) {
+    private static ProductCommonOption soldOutCommonOption() {
         ProductCommonOption option = ProductCommonOption.reconstitute(
-            id, ProductOptionGroupId.of(30L), name, 0, 1, false, null, true);
+            200L, ProductOptionGroupId.of(30L), "포크", 0, 1, false, null, true);
         option.markSoldOut(PAST);
         return option;
     }

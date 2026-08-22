@@ -2,11 +2,14 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 /**
@@ -50,6 +53,18 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
+    /**
+     * 옵션그룹 유형. {@code @Enumerated(STRING)} + {@code columnDefinition = "VARCHAR(20)"}가 함께
+     * 필요하다 — Hibernate 6의 {@code MySQLDialect}는 STRING enum을 네이티브 {@code ENUM(...)}으로
+     * 기대하므로, {@code columnDefinition}이 없으면 {@code ddl-auto: validate}가 부팅을 거부한다.
+     *
+     * <p>{@code applyChanges}에 포함하지 않는다 — 유형 전환 경로를 두지 않기로 한 도메인 결정
+     * ({@code ProductOptionGroup.groupType}이 {@code final}인 이유)을 영속 계층에서도 그대로 지킨다.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "group_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+    private ProductOptionGroupType groupType;
+
     protected ProductOptionGroupJpaEntity() {
     }
 
@@ -62,7 +77,8 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        boolean visible
+        boolean visible,
+        ProductOptionGroupType groupType
     ) {
         this.productId = productId;
         this.name = name;
@@ -73,6 +89,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         this.maxSelect = maxSelect;
         this.sort = sort;
         this.visible = visible;
+        this.groupType = groupType != null ? groupType : ProductOptionGroupType.NORMAL;
     }
 
     /**
@@ -87,10 +104,12 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        boolean visible
+        boolean visible,
+        ProductOptionGroupType groupType
     ) {
         return new ProductOptionGroupJpaEntity(
-            productId, name, description, required, multipleSelect, minSelect, maxSelect, sort, visible
+            productId, name, description, required, multipleSelect, minSelect, maxSelect, sort, visible,
+            groupType
         );
     }
 
@@ -155,5 +174,9 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
 
     public boolean isVisible() {
         return this.visible;
+    }
+
+    public ProductOptionGroupType getGroupType() {
+        return this.groupType;
     }
 }

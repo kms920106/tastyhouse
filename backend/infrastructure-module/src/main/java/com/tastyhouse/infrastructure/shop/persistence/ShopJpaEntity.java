@@ -73,6 +73,9 @@ public class ShopJpaEntity extends BaseEntity {
     @Column(name = "scheduled_order_enabled", nullable = false)
     private boolean scheduledOrderEnabled; // 예약주문 운영 여부 (true: 고객이 수령시간을 예약할 수 있음)
 
+    @Column(name = "cup_deposit_enabled", nullable = false)
+    private boolean cupDepositEnabled; // 일회용컵 보증금제 대상 사업자 여부 (관리자만 변경)
+
     protected ShopJpaEntity() {
     }
 
@@ -92,7 +95,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean hidden,
         boolean closedOnPublicHolidays,
         int minOrderAmount,
-        boolean scheduledOrderEnabled
+        boolean scheduledOrderEnabled,
+        boolean cupDepositEnabled
     ) {
         this.ceoId = ceoId;
         this.stationId = stationId;
@@ -110,6 +114,7 @@ public class ShopJpaEntity extends BaseEntity {
         this.closedOnPublicHolidays = closedOnPublicHolidays;
         this.minOrderAmount = minOrderAmount;
         this.scheduledOrderEnabled = scheduledOrderEnabled;
+        this.cupDepositEnabled = cupDepositEnabled;
     }
 
     /**
@@ -131,7 +136,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean hidden,
         boolean closedOnPublicHolidays,
         int minOrderAmount,
-        boolean scheduledOrderEnabled
+        boolean scheduledOrderEnabled,
+        boolean cupDepositEnabled
     ) {
         return new ShopJpaEntity(
             ceoId,
@@ -149,7 +155,8 @@ public class ShopJpaEntity extends BaseEntity {
             hidden,
             closedOnPublicHolidays,
             minOrderAmount,
-            scheduledOrderEnabled
+            scheduledOrderEnabled,
+            cupDepositEnabled
         );
     }
 
@@ -172,7 +179,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean hidden,
         boolean closedOnPublicHolidays,
         int minOrderAmount,
-        boolean scheduledOrderEnabled
+        boolean scheduledOrderEnabled,
+        boolean cupDepositEnabled
     ) {
         this.ceoId = ceoId;
         this.stationId = stationId;
@@ -190,6 +198,7 @@ public class ShopJpaEntity extends BaseEntity {
         this.closedOnPublicHolidays = closedOnPublicHolidays;
         this.minOrderAmount = minOrderAmount;
         this.scheduledOrderEnabled = scheduledOrderEnabled;
+        this.cupDepositEnabled = cupDepositEnabled;
     }
 
     public Long getId() {
@@ -258,5 +267,9 @@ public class ShopJpaEntity extends BaseEntity {
 
     public boolean isScheduledOrderEnabled() {
         return this.scheduledOrderEnabled;
+    }
+
+    public boolean isCupDepositEnabled() {
+        return this.cupDepositEnabled;
     }
 }

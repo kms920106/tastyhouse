@@ -2,12 +2,15 @@ package com.tastyhouse.domain.product.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
@@ -65,6 +68,7 @@ public class OrderProductValidationService {
     private final ProductOptionGroupLinkRepository productOptionGroupLinkRepository;
     private final ProductExposureHourRepository productExposureHourRepository;
     private final ProductExposureCalculator productExposureCalculator;
+    private final CupDepositPolicy cupDepositPolicy;
 
     public OrderProductValidationService(
         ProductRepository productRepository,
@@ -73,7 +77,8 @@ public class OrderProductValidationService {
         ProductImageRepository productImageRepository,
         ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
         ProductExposureHourRepository productExposureHourRepository,
-        ProductExposureCalculator productExposureCalculator
+        ProductExposureCalculator productExposureCalculator,
+        CupDepositPolicy cupDepositPolicy
     ) {
         this.productRepository = productRepository;
         this.productOptionGroupRepository = productOptionGroupRepository;
@@ -82,6 +87,7 @@ public class OrderProductValidationService {
         this.productOptionGroupLinkRepository = productOptionGroupLinkRepository;
         this.productExposureHourRepository = productExposureHourRepository;
         this.productExposureCalculator = productExposureCalculator;
+        this.cupDepositPolicy = cupDepositPolicy;
     }
 
     /**
@@ -146,9 +152,24 @@ public class OrderProductValidationService {
         return productExposureCalculator.calculate(context).exposed();
     }
 
+    /**
+     * 선택한 옵션을 검증해 주문에 박제할 스냅샷으로 만든다.
+     *
+     * <p><b>옵션그룹별 선택 개수까지 검증한다</b> — 과거에는 존재·소유·그룹소속만 보고
+     * {@code required}·{@code minSelect}·{@code maxSelect}를 전혀 보지 않아, 프론트만 막고 서버는
+     * <b>필수 옵션그룹을 비운 주문을 그대로 접수</b>했다. 손님 화면이 값을 내려받아 검사하고 있었을 뿐
+     * 계약이 강제된 적이 없었다.
+     *
+     * <p><b>옵션의 품절·노출도 함께 본다</b> — 상품 레벨 {@code product.isSoldOut()}만 검사하고 있어
+     * 숨긴/품절 옵션 id를 실어 보내면 접수됐다. 에러코드는 기존 것을 재사용해 wire 계약을 바꾸지 않는다:
+     * 숨김은 {@code ORDER_OPTION_NOT_FOUND}(존재 여부를 노출하지 않는다), 품절은
+     * {@code ORDER_PRODUCT_SOLD_OUT}(옵션명 부기).
+     */
     private List<OrderProductOptionSnapshot> validateOptions(OrderLineSelection line) {
         ProductId productId = ProductId.of(line.productId());
         List<OrderProductOptionSnapshot> options = new ArrayList<>();
+        Map<Long, ProductOptionGroup> selectedGroups = new LinkedHashMap<>();
+        Map<Long, Integer> selectedCountByGroupId = new LinkedHashMap<>();
         for (OrderLineOptionSelection selected : line.selectedOptions()) {
             ProductOptionGroupId groupId = ProductOptionGroupId.of(selected.groupId());
             ProductOptionGroup optionGroup = productOptionGroupRepository
@@ -171,14 +192,91 @@ public class OrderProductValidationService {
                 throw new ResourceNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND);
             }
 
+            // 숨긴 옵션은 손님에게 존재하지 않는 것과 같다 — 존재 여부를 노출하지 않도록 NOT_FOUND로 답한다.
+            if (!option.isVisible()) {
+                throw new ResourceNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND);
+            }
+            if (option.isSoldOut()) {
+                throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT,
+                    ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + option.getName());
+            }
+
+            selectedGroups.putIfAbsent(groupId.value(), optionGroup);
+            selectedCountByGroupId.merge(groupId.value(), 1, Integer::sum);
+
+            // 보증금 금액의 진실원은 옵션 행의 cupCount × 정책 요율이다 — 클라이언트가 보낸 값을
+            // 쓰지 않는다. 일반 옵션은 cupCount가 없으므로 0원이 되어 기존 동작이 그대로 유지된다.
+            int depositAmount = optionGroup.isCupDeposit()
+                ? cupDepositPolicy.depositAmountOf(option.getCupCount())
+                : 0;
+
             options.add(new OrderProductOptionSnapshot(
                 optionGroup.getProductOptionGroupId(),
                 optionGroup.getName(),
                 option.getProductOptionId(),
                 option.getName(),
-                option.getAdditionalPrice()
+                option.getAdditionalPrice(),
+                optionGroup.getGroupType().name(),
+                optionGroup.isCupDeposit() ? option.getCupCount() : null,
+                depositAmount,
+                // 개인컵 할인도 서버 값이 진실원이다 — 보증금 그룹 밖의 값은 설정 단계에서 이미
+                // 거부되므로(CupDepositOptionRule) 여기서는 그대로 옮겨 담기만 한다.
+                option.getPersonalCupDiscountAmount() != null ? option.getPersonalCupDiscountAmount() : 0
             ));
         }
+
+        validateSelectCounts(productId, selectedGroups, selectedCountByGroupId);
         return options;
+    }
+
+    /**
+     * 옵션그룹별 선택 개수가 그룹의 제약을 만족하는지 검증한다.
+     *
+     * <p><b>선택하지 않은 필수 그룹도 대상이다</b> — 선택된 그룹만 순회하면 "필수 그룹을 통째로 비운"
+     * 주문이 그대로 통과한다. 그래서 이 메뉴에 연결된 <b>전체 옵션그룹</b>을 링크로 조회해,
+     * 선택 수가 0인 필수 그룹까지 함께 본다.
+     */
+    private void validateSelectCounts(
+        ProductId productId,
+        Map<Long, ProductOptionGroup> selectedGroups,
+        Map<Long, Integer> selectedCountByGroupId
+    ) {
+        for (ProductOptionGroupLink link : productOptionGroupLinkRepository.findAllByProductId(productId)) {
+            Long groupId = link.getOptionGroupId().value();
+            ProductOptionGroup group = selectedGroups.get(groupId);
+            if (group == null) {
+                group = productOptionGroupRepository.findById(ProductOptionGroupId.of(groupId)).orElse(null);
+            }
+            // 숨긴 옵션그룹은 손님 메뉴판에 없으므로 선택하지 않은 것이 정상이다.
+            if (group == null || !group.isVisible()) {
+                continue;
+            }
+
+            int selectedCount = selectedCountByGroupId.getOrDefault(groupId, 0);
+            validateSelectCount(group, selectedCount);
+        }
+    }
+
+    private void validateSelectCount(ProductOptionGroup group, int selectedCount) {
+        if (group.isRequired() && selectedCount == 0) {
+            throw new BusinessException(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
+                ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
+        }
+        // 선택하지 않은 비필수 그룹에는 minSelect 하한을 적용하지 않는다 — "고르지 않음"이 유효한 선택이다.
+        if (selectedCount == 0) {
+            return;
+        }
+
+        Integer minSelect = group.getMinSelect();
+        if (minSelect != null && selectedCount < minSelect) {
+            throw new BusinessException(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
+                ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
+        }
+
+        Integer maxSelect = group.getMaxSelect();
+        if (maxSelect != null && selectedCount > maxSelect) {
+            throw new BusinessException(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
+                ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
+        }
     }
 }

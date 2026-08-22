@@ -30,6 +30,11 @@ public record ProductOptionGroupResponse(
     @Schema(description = "공통 옵션 여부", example = "false")
     boolean common,
 
+    @Schema(description = "옵션그룹 유형. CUP_DEPOSIT은 일회용컵 보증금 그룹으로, 프론트가 별도 섹션으로 "
+        + "렌더링하고 금액을 '보증금'으로 표기해야 한다. common(공유 여부)과는 다른 축이다.",
+        example = "NORMAL", allowableValues = {"NORMAL", "CUP_DEPOSIT"})
+    String groupType,
+
     @Schema(description = "옵션 목록")
     List<ProductOptionResponse> options
 ) {
@@ -42,6 +47,7 @@ public record ProductOptionGroupResponse(
         Integer minSelect,
         Integer maxSelect,
         boolean common,
+        String groupType,
         List<ProductOptionResponse> options
     ) {
         return new ProductOptionGroupResponse(
@@ -53,6 +59,7 @@ public record ProductOptionGroupResponse(
             minSelect,
             maxSelect,
             common,
+            groupType,
             options
         );
     }

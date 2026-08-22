@@ -28,7 +28,8 @@ final class OrderProductMapper {
             entity.getOriginalPrice(),
             entity.getDiscountPrice(),
             entity.getTotalOptionPrice(),
-            entity.getTotalPrice()
+            entity.getTotalPrice(),
+            entity.getCupDepositAmount()
         );
     }
 
@@ -45,7 +46,8 @@ final class OrderProductMapper {
             domain.getOriginalPrice(),
             domain.getDiscountPrice(),
             domain.getTotalOptionPrice(),
-            domain.getTotalPrice()
+            domain.getTotalPrice(),
+            domain.getCupDepositAmount()
         );
     }
 
@@ -55,7 +57,8 @@ final class OrderProductMapper {
     static void applyChanges(OrderProductJpaEntity entity, OrderProduct domain) {
         entity.applyChanges(
             domain.getTotalOptionPrice(),
-            domain.getTotalPrice()
+            domain.getTotalPrice(),
+            domain.getCupDepositAmount()
         );
     }
 }

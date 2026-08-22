@@ -145,7 +145,10 @@ public class ProductQueryService {
             .map(option -> ProductBatchOptionResponse.from(
                 option.id(),
                 option.name(),
-                option.price()
+                option.price(),
+                option.cupCount(),
+                option.depositAmount(),
+                option.personalCupDiscountAmount()
             ))
             .toList();
         return ProductResponse.from(
@@ -171,7 +174,10 @@ public class ProductQueryService {
                 option.id(),
                 option.name(),
                 option.additionalPrice(),
-                option.soldOut()
+                option.soldOut(),
+                option.cupCount(),
+                option.depositAmount(),
+                option.personalCupDiscountAmount()
             ))
             .toList();
         return ProductOptionGroupResponse.from(
@@ -183,6 +189,7 @@ public class ProductQueryService {
             group.minSelect(),
             group.maxSelect(),
             group.common(),
+            group.groupType(),
             options
         );
     }

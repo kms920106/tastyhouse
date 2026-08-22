@@ -121,7 +121,7 @@ public class ProductApiController {
     ) {
         Long optionGroupId = productCommandService.createProductOptionGroup(
             id, request.name(), request.description(), request.required(), request.multipleSelect(),
-            request.minSelect(), request.maxSelect(), request.sort(), request.visible()
+            request.minSelect(), request.maxSelect(), request.sort(), request.visible(), request.groupType()
         );
         return ResponseEntity.ok(ApiResponse.success(optionGroupId));
     }
@@ -133,7 +133,8 @@ public class ProductApiController {
         @Valid @RequestBody ProductOptionCreateRequest request
     ) {
         Long optionId = productCommandService.createProductOption(
-            groupId, request.name(), request.additionalPrice(), request.sort(), request.soldOut(), request.visible()
+            groupId, request.name(), request.additionalPrice(), request.sort(), request.soldOut(),
+            request.visible(), request.cupCount(), request.personalCupDiscountAmount()
         );
         return ResponseEntity.ok(ApiResponse.success(optionId));
     }

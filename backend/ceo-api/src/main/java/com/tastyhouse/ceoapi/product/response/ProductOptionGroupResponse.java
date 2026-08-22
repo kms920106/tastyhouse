@@ -44,6 +44,11 @@ public record ProductOptionGroupResponse(
         + "화면이 이 값으로 걸러내거나 '삭제됨' 배지를 붙여야 한다.", example = "true")
     Boolean visible,
 
+    @Schema(description = "옵션그룹 유형. CUP_DEPOSIT은 일회용컵 보증금 그룹으로, 필수 선택 불가이고 "
+        + "선택 개수가 minSelect=0·maxSelect=1로 고정된다.",
+        example = "NORMAL", allowableValues = {"NORMAL", "CUP_DEPOSIT"})
+    String groupType,
+
     @Schema(description = "이 그룹이 연결된 메뉴 수. 1이면 마지막 연결이라 해제가 거부된다.", example = "2")
     Long linkedProductCount,
 
@@ -61,6 +66,7 @@ public record ProductOptionGroupResponse(
         Integer maxSelect,
         Integer sort,
         Boolean visible,
+        String groupType,
         Long linkedProductCount,
         List<ProductOptionResponse> options
     ) {
@@ -74,6 +80,7 @@ public record ProductOptionGroupResponse(
             maxSelect,
             sort,
             visible,
+            groupType,
             linkedProductCount,
             options
         );

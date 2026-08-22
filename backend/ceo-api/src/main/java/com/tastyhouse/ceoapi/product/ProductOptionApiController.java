@@ -54,7 +54,9 @@ public class ProductOptionApiController {
             request.shopId(),
             optionGroupId,
             request.name(),
-            request.additionalPrice()
+            request.additionalPrice(),
+            request.cupCount(),
+            request.personalCupDiscountAmount()
         );
         return ResponseEntity.ok(ApiResponse.success(optionId));
     }
@@ -72,7 +74,9 @@ public class ProductOptionApiController {
             id,
             request.shopId(),
             request.name(),
-            request.additionalPrice()
+            request.additionalPrice(),
+            request.cupCount(),
+            request.personalCupDiscountAmount()
         );
         return ResponseEntity.ok(ApiResponse.success(null));
     }

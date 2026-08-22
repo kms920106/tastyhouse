@@ -100,6 +100,52 @@ public class ProductOptionGroupLinkService {
     }
 
     /**
+     * 옵션그룹 합치기에서 링크를 흡수 그룹 → 기준 그룹으로 옮긴다.
+     *
+     * <p>이 메서드가 {@code link}/{@code unlink}와 별개로 존재하는 이유는 셋이다.
+     * <ul>
+     *   <li>{@code unlink}는 <b>마지막 연결을 막는다</b> — 합치기에서는 흡수 그룹의 연결이 전부
+     *       사라지는 것이 정상이므로 그 가드를 통과할 수 없다.</li>
+     *   <li>{@code link}는 sort를 맨 뒤로 붙인다 — 합치기는 <b>원래 위치를 보존</b>해야 손님 메뉴판의
+     *       옵션그룹 순서가 흔들리지 않는다.</li>
+     *   <li>{@code UNIQUE (product_id, option_group_id)} 충돌 처리와 sort 재정규화가 이 클래스의
+     *       불변식이므로 {@code private renumber}를 밖으로 공개하지 않아도 된다.</li>
+     * </ul>
+     *
+     * <p><b>기준 그룹이 이미 그 메뉴에 연결돼 있으면 흡수 링크를 삭제만 한다</b> — 옮기면 UNIQUE에
+     * 걸린다. 다만 합치기 검증({@code MERGE_SAME_PRODUCT_LINKED})이 그 상태를 미리 막으므로 실제로는
+     * 도달하지 않으며, 여기서는 방어적으로만 다룬다.
+     *
+     * <p>마지막에 <b>영향받은 메뉴만</b> sort를 {@code 0..N-1}로 재정규화해 구멍을 없앤다.
+     */
+    public void relink(
+        List<ProductId> productIds,
+        ProductOptionGroupId fromOptionGroupId,
+        ProductOptionGroupId toOptionGroupId
+    ) {
+        Set<Long> affectedProductIds = new LinkedHashSet<>();
+
+        for (ProductId productId : productIds) {
+            ProductOptionGroupLink link = linkRepository
+                .findByProductIdAndOptionGroupId(productId, fromOptionGroupId)
+                .orElse(null);
+            if (link == null) {
+                continue;
+            }
+            affectedProductIds.add(productId.value());
+
+            Integer preservedSort = link.getSort();
+            linkRepository.delete(link);
+
+            if (!linkRepository.existsByProductIdAndOptionGroupId(productId, toOptionGroupId)) {
+                linkRepository.save(ProductOptionGroupLink.of(productId, toOptionGroupId, preservedSort));
+            }
+        }
+
+        affectedProductIds.forEach(productId -> renumber(ProductId.of(productId)));
+    }
+
+    /**
      * 옵션그룹이 속한 가게를 역조회한다 — "그룹 → 링크 → 메뉴 → 가게" 3단.
      *
      * <p>단일 가게 불변식 덕분에 "연결된 아무 메뉴 하나"로 판정할 수 있다. 연결이 0건이면

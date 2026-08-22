@@ -37,7 +37,8 @@ class ShopMapperTest {
             false,
             false,
             0,
-            false
+            false,
+            false // cupDepositEnabled: 보증금제 대상 아님
         );
 
         assertThatCode(() -> ShopMapper.toDomain(entity)).doesNotThrowAnyException();
@@ -68,6 +69,7 @@ class ShopMapperTest {
             false,
             false,
             0,
+            false,
             false,
             null,
             null

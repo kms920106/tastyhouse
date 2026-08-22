@@ -61,9 +61,18 @@ public record OrderCreateRequest(
     @Schema(description = "배달팁(가산 항목). 배달 외 주문 방법은 0", example = "3000", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer deliveryTipAmount,
 
+    @Min(value = 0, message = "일회용컵 보증금은 0 이상이어야 합니다")
+    @Schema(description = "일회용컵 보증금 합계(가산 항목). 서버가 선택 옵션의 컵 개수 × 300원으로 "
+        + "계산한 값과 대조하며, 다르면 ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH로 거절합니다. "
+        + "생략하면 0으로 봅니다 — 보증금 옵션을 고르지 않은 주문은 이 필드 없이도 그대로 통과하므로 "
+        + "프론트 배포 순서와 독립입니다. 이 금액은 최소주문금액·쿠폰·포인트 산정에서 제외됩니다.",
+        example = "300")
+    Integer cupDepositAmount,
+
     @NotNull(message = "결제 금액은 필수입니다")
     @Min(value = 0, message = "결제 금액은 0 이상이어야 합니다")
-    @Schema(description = "최종 결제 금액(= 상품 금액 - 총 할인 + 배달팁)", example = "24000", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "최종 결제 금액(= 상품 금액 - 총 할인 + 배달팁 + 일회용컵 보증금)",
+        example = "24000", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer finalAmount,
 
     @Schema(

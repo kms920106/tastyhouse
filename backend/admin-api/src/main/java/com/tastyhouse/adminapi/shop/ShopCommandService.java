@@ -146,6 +146,17 @@ public class ShopCommandService {
         shopLifecycleService.closeShop(shopId);
     }
 
+    /**
+     * 일회용컵 보증금제 대상 사업자 지정/해제를 토글한다.
+     *
+     * <p><b>admin 전용인 이유</b>: 이것은 점주의 영업 설정이 아니라 환경부·자원순환보증금관리센터가
+     * 정하는 외부 규제 사실이다. 점주가 스스로 켤 수 있으면 대상이 아닌 가게가 보증금을 부과하게 된다.
+     */
+    public void changeCupDepositEnabled(Long id, boolean enabled) {
+        ShopId shopId = ShopId.of(id);
+        shopLifecycleService.changeCupDepositEnabled(shopId, enabled);
+    }
+
     public Long createBusinessHour(
         Long adminId,
         Long id,

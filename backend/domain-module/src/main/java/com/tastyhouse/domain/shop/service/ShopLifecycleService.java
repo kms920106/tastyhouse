@@ -151,6 +151,19 @@ public class ShopLifecycleService {
     }
 
     /**
+     * 일회용컵 보증금제 대상 사업자 지정/해제를 반영한다. <b>admin 전용</b>이다.
+     *
+     * <p>변경이력({@code ShopChangeHistory})을 남기지 않는 이유는 그 이력이 <b>점주의 가게 설정 변경</b>을
+     * 기록하는 것이기 때문이다. 이것은 점주가 바꾼 값이 아니라 외부 규제 지정 사실을 관리자가 반영한
+     * 것이므로 성격이 다르다.
+     */
+    public void changeCupDepositEnabled(ShopId shopId, boolean cupDepositEnabled) {
+        Shop shop = loadShop(shopId);
+        shop.changeCupDepositEnabled(cupDepositEnabled);
+        shopRepository.save(shop);
+    }
+
+    /**
      * 공휴일 휴무 여부를 설정한다.
      */
     public void updateHolidayClosure(ShopId shopId, boolean closedOnPublicHolidays, ShopChangeActor actor) {

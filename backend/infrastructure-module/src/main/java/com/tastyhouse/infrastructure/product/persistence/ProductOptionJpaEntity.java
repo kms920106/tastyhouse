@@ -46,6 +46,19 @@ public class ProductOptionJpaEntity extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
+    /**
+     * 일회용컵 제공 개수(1~10). 보증금 옵션그룹의 옵션만 값을 갖는다.
+     *
+     * <p>보증금 <b>금액</b>이 아니라 <b>개수</b>를 저장하므로 요율(300원)이 바뀌어도 이 컬럼을
+     * 마이그레이션할 필요가 없다.
+     */
+    @Column(name = "cup_count")
+    private Integer cupCount;
+
+    /** 개인컵 사용 할인 금액(원). 개인컵 옵션이 아니면 {@code null}이다. 보증금이 아니라 상품 할인 축이다. */
+    @Column(name = "personal_cup_discount_amount")
+    private Integer personalCupDiscountAmount;
+
     protected ProductOptionJpaEntity() {
     }
 
@@ -56,7 +69,9 @@ public class ProductOptionJpaEntity extends BaseEntity {
         Integer sort,
         boolean soldOut,
         LocalDateTime soldOutUntil,
-        boolean visible
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
         this.optionGroupId = optionGroupId;
         this.name = name;
@@ -65,6 +80,8 @@ public class ProductOptionJpaEntity extends BaseEntity {
         this.soldOut = soldOut;
         this.soldOutUntil = soldOutUntil;
         this.visible = visible;
+        this.cupCount = cupCount;
+        this.personalCupDiscountAmount = personalCupDiscountAmount;
     }
 
     /**
@@ -77,9 +94,21 @@ public class ProductOptionJpaEntity extends BaseEntity {
         Integer sort,
         boolean soldOut,
         LocalDateTime soldOutUntil,
-        boolean visible
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
-        return new ProductOptionJpaEntity(optionGroupId, name, additionalPrice, sort, soldOut, soldOutUntil, visible);
+        return new ProductOptionJpaEntity(
+            optionGroupId,
+            name,
+            additionalPrice,
+            sort,
+            soldOut,
+            soldOutUntil,
+            visible,
+            cupCount,
+            personalCupDiscountAmount
+        );
     }
 
     /**
@@ -91,7 +120,9 @@ public class ProductOptionJpaEntity extends BaseEntity {
         Integer sort,
         boolean soldOut,
         LocalDateTime soldOutUntil,
-        boolean visible
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
         this.name = name;
         this.additionalPrice = additionalPrice;
@@ -99,6 +130,8 @@ public class ProductOptionJpaEntity extends BaseEntity {
         this.soldOut = soldOut;
         this.soldOutUntil = soldOutUntil;
         this.visible = visible;
+        this.cupCount = cupCount;
+        this.personalCupDiscountAmount = personalCupDiscountAmount;
     }
 
     public Long getId() {
@@ -131,5 +164,13 @@ public class ProductOptionJpaEntity extends BaseEntity {
 
     public boolean isVisible() {
         return this.visible;
+    }
+
+    public Integer getCupCount() {
+        return this.cupCount;
+    }
+
+    public Integer getPersonalCupDiscountAmount() {
+        return this.personalCupDiscountAmount;
     }
 }

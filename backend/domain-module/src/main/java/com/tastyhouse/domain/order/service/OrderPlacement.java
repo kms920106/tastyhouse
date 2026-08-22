@@ -21,6 +21,9 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
  * 슬롯을 재계산해 대조하고, 일치하는 슬롯이 없으면 접수를 거절한다(배달팁 금액 대조와 같은 원칙).
  *
  * @param deliveryAddressId 배달 주소 ID(입력). 주문 방법이 {@code DELIVERY}면 필수
+ * @param cupDepositAmount 클라이언트가 계산한 일회용컵 보증금(대조용). 서버가 옵션의 컵 개수 × 요율로
+ *     계산한 값과 다르면 접수를 거절한다. {@code null}은 0으로 본다 — 보증금 필드를 아직 보내지 않는
+ *     클라이언트는 보증금 옵션을 고르지 않은 주문만 통과하므로 프론트 배포 순서와 독립이다.
  * @param deliveryTipAmount 클라이언트가 계산한 배달팁(대조용). 서버 계산값과 다르면 접수를 거절한다
  * @param scheduledAt       수령 예약 시각(슬롯 시작). {@code null}이면 즉시 주문
  */
@@ -36,6 +39,7 @@ public record OrderPlacement(
     Integer productDiscountAmount,
     Integer couponDiscountAmount,
     Integer deliveryTipAmount,
+    Integer cupDepositAmount,
     Integer finalAmount,
     LocalDateTime scheduledAt
 ) {
@@ -52,6 +56,7 @@ public record OrderPlacement(
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         LocalDateTime scheduledAt
     ) {
@@ -67,6 +72,7 @@ public record OrderPlacement(
             productDiscountAmount,
             couponDiscountAmount,
             deliveryTipAmount,
+            cupDepositAmount,
             finalAmount,
             scheduledAt
         );

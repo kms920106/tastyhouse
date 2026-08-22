@@ -55,6 +55,7 @@ public class OrderApiController {
             request.productDiscountAmount(),
             request.couponDiscountAmount(),
             request.deliveryTipAmount(),
+            request.cupDepositAmount(),
             request.finalAmount(),
             request.scheduledAt()
         );

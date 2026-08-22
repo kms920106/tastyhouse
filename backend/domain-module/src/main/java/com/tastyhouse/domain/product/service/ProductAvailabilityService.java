@@ -545,7 +545,10 @@ public class ProductAvailabilityService {
         Map<Long, List<ProductOption>> byGroup = groupBy(targets, option -> option.getOptionGroupId().value());
         for (Map.Entry<Long, List<ProductOption>> entry : byGroup.entrySet()) {
             ProductOptionGroup group = loaded.optionGroups().get(entry.getKey());
-            int minRemaining = minRemaining(group == null ? null : group.getMinSelect());
+            int minRemaining = minRemaining(
+                group == null ? null : group.getMinSelect(),
+                group == null ? null : group.getMaxSelect()
+            );
             List<ProductOption> groupTargets = sortedBySort(entry.getValue(), ProductOption::getSort);
 
             long selectable = productOptionRepository
@@ -559,7 +562,7 @@ public class ProductAvailabilityService {
                 if (i >= groupTargets.size() - shortfall) {
                     ProductOption rejected = groupTargets.get(i);
                     failed.add(ProductAvailabilityFailure.of(rejected.getId(), rejected.getName(),
-                        ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION));
+                        blockViolationCode(group == null ? null : group.getMinSelect(), minRemaining)));
                 } else {
                     allowed.add(groupTargets.get(i));
                 }
@@ -571,7 +574,10 @@ public class ProductAvailabilityService {
             groupBy(commonTargets, option -> option.getOptionGroupId().value());
         for (Map.Entry<Long, List<ProductCommonOption>> entry : commonByGroup.entrySet()) {
             ProductCommonOptionGroup group = loaded.commonOptionGroups().get(entry.getKey());
-            int minRemaining = minRemaining(group == null ? null : group.getMinSelect());
+            int minRemaining = minRemaining(
+                group == null ? null : group.getMinSelect(),
+                group == null ? null : group.getMaxSelect()
+            );
             List<ProductCommonOption> groupTargets =
                 sortedBySort(entry.getValue(), ProductCommonOption::getSort);
 
@@ -585,7 +591,7 @@ public class ProductAvailabilityService {
                 if (i >= groupTargets.size() - shortfall) {
                     ProductCommonOption rejected = groupTargets.get(i);
                     failed.add(ProductAvailabilityFailure.of(rejected.getId(), rejected.getName(),
-                        ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION));
+                        blockViolationCode(group == null ? null : group.getMinSelect(), minRemaining)));
                 } else {
                     allowedCommon.add(groupTargets.get(i));
                 }
@@ -731,9 +737,26 @@ public class ProductAvailabilityService {
         return owner == null || !owner.equals(shopId);
     }
 
-    /** {@code minSelect}가 null이거나 0이면 하한을 1로 본다. */
-    private int minRemaining(Integer minSelect) {
-        return minSelect == null ? 1 : Math.max(minSelect, 1);
+    /**
+     * 남겨야 하는 판매중 옵션의 최소 개수. 판정식은 {@link ProductOptionSelectionRule}이 단독으로
+     * 소유한다 — 개별 삭제(ceo-api) 경로와 <b>같은 하한</b>을 쓰게 해 "일괄 숨김으로는 막히는 상태를
+     * 개별 삭제로는 만들 수 있는" 불일치를 없앤다.
+     */
+    private int minRemaining(Integer minSelect, Integer maxSelect) {
+        return ProductOptionSelectionRule.minRemaining(minSelect, maxSelect);
+    }
+
+    /**
+     * 하한을 끌어올린 주체가 {@code minSelect}인지 {@code maxSelect}인지에 따라 사유 코드를 나눈다.
+     *
+     * <p>{@code minSelect}만으로도 이미 걸리는 경우에는 기존 코드를 그대로 써서 프론트가 분기하던
+     * wire 계약을 바꾸지 않고, {@code maxSelect} 때문에 새로 걸리는 경우에만 신규 코드를 쓴다.
+     */
+    private ErrorCode blockViolationCode(Integer minSelect, int minRemaining) {
+        int minBound = Math.max(minSelect != null ? minSelect : 0, 1);
+        return minRemaining > minBound
+            ? ErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION
+            : ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION;
     }
 
     private <T> List<T> distinct(List<T> values) {

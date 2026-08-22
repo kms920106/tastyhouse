@@ -342,7 +342,9 @@ CREATE TABLE PRODUCT_OPTION
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,                         -- 상품 옵션 ID (PK)
     option_group_id  BIGINT       NOT NULL,                                     -- 옵션 그룹 ID (PRODUCT_OPTION_GROUP.id 참조)
     name             VARCHAR(100) NOT NULL,                                     -- 옵션 이름
-    additional_price INT          NOT NULL DEFAULT 0,                           -- 추가 금액
+    additional_price INT          NOT NULL DEFAULT 0,                           -- 추가 금액 (보증금 옵션은 0)
+    cup_count        INT,                                                        -- 일회용컵 제공 개수(1~10). 보증금 옵션그룹의 옵션만 값을 가짐. 보증금액 = cup_count * 300
+    personal_cup_discount_amount INT,                                            -- 개인컵 사용 할인 금액(원). 개인컵 옵션이 아니면 NULL. 보증금이 아니라 상품 할인 축
     sort             INT          NOT NULL,                                     -- 정렬 순서
     is_sold_out      TINYINT(1)   NOT NULL DEFAULT 0,                           -- 품절 여부 (1: 품절)
     sold_out_until   DATETIME,                                                  -- 품절 자동해제 시각 (NULL이면 수동 해제까지 유지)
@@ -364,6 +366,7 @@ CREATE TABLE PRODUCT_OPTION_GROUP
     is_multiple_select TINYINT(1)   NOT NULL DEFAULT 0,                               -- 다중 선택 여부 (1: 가능)
     min_select         INT,                                                            -- 최소 선택 수
     max_select         INT,                                                            -- 최대 선택 수
+    group_type         VARCHAR(20)  NOT NULL DEFAULT 'NORMAL',                        -- 옵션그룹 유형 (NORMAL, CUP_DEPOSIT)
     sort               INT          NOT NULL,                                         -- 정렬 순서
     is_visible         TINYINT(1)   NOT NULL DEFAULT 1,                               -- 노출 여부 (1: 노출)
     created_at         DATETIME     NOT NULL,                                         -- 생성 일시
@@ -383,6 +386,42 @@ CREATE TABLE PRODUCT_OPTION_GROUP_LINK
     UNIQUE KEY uk_product_option_group_link (product_id, option_group_id),          -- 유니크: 같은 메뉴에 같은 그룹 중복 연결 방지
     INDEX idx_product_option_group_link_product (product_id, sort),                 -- 인덱스: 메뉴별 정렬 조회
     INDEX idx_product_option_group_link_group (option_group_id)                     -- 인덱스: 그룹 역조회(소유 메뉴 목록 — 소유권 검증)
+);
+
+-- 옵션그룹 합치기 이력 (append-only).
+-- 합치기는 분리 불가이고, 흡수된 그룹은 링크가 기준 그룹으로 옮겨져 소유 가게 역조회가 영구히
+-- 불가능해진다. 이 테이블이 없으면 "내 옵션그룹이 사라졌어요" 문의에 답할 근거가 0이다.
+-- 되돌리기용이 아니라 감사·문의응대 전용. 선례: SHOP_CHANGE_HISTORY
+CREATE TABLE PRODUCT_OPTION_GROUP_MERGE_HISTORY
+(
+    id                     BIGINT AUTO_INCREMENT PRIMARY KEY,           -- 이력 ID (PK)
+    shop_id                BIGINT       NOT NULL,                       -- 가게 ID (SHOP.id 참조). 합치기 후 그룹→가게 역조회가 불가해 여기에 박제
+    base_option_group_id   BIGINT       NOT NULL,                       -- 기준 옵션그룹 ID (살아남은 그룹, PRODUCT_OPTION_GROUP.id 참조)
+    merged_option_group_id BIGINT       NOT NULL,                       -- 흡수된 옵션그룹 ID (감춰진 그룹, PRODUCT_OPTION_GROUP.id 참조)
+    merged_group_name      VARCHAR(100) NOT NULL,                       -- 흡수 시점 옵션그룹명 (스냅샷). 이후 기준그룹만 수정되므로 이름이 유일한 식별 단서
+    entry_type             VARCHAR(20)  NOT NULL,                       -- 진입 경로 (RECOMMENDED, MANUAL)
+    actor_ceo_id           BIGINT       NOT NULL,                       -- 합치기를 수행한 점주 ID (CEO.id 참조)
+    created_at             DATETIME     NOT NULL,                       -- 생성 일시 (= 합치기 시각)
+    updated_at             DATETIME     NOT NULL,                       -- 수정 일시 (append-only 라 created_at 과 동일)
+    INDEX idx_product_option_group_merge_history_shop (shop_id, created_at),      -- 인덱스: 가게별 이력 조회
+    INDEX idx_product_option_group_merge_history_merged (merged_option_group_id), -- 인덱스: "이 그룹은 어디로 갔나" 역조회
+    INDEX idx_product_option_group_merge_history_base (base_option_group_id, created_at) -- 인덱스: "이 그룹은 무엇을 흡수했나"
+);
+
+-- 옵션그룹 합치기 추천 제외 (append-only, 가게 단위).
+-- 그룹 id 쌍이 아니라 '동일성 서명'을 저장한다 — 추천 기준은 쌍이 아니라 동치류이므로 쌍 저장은
+-- O(n^2) 행이 필요하고 멤버 하나가 빠진 같은 묶음이 다시 추천된다.
+-- 서명이 달라지면(옵션명·가격 수정) 다시 추천되는 것이 의도된 동작이다.
+CREATE TABLE PRODUCT_OPTION_GROUP_MERGE_EXCLUSION
+(
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,                  -- 제외 ID (PK)
+    shop_id         BIGINT   NOT NULL,                                  -- 가게 ID (SHOP.id 참조)
+    group_signature CHAR(64) NOT NULL,                                  -- 동일성 서명 (SHA-256 hex: 그룹명|min|max|옵션개수|정렬된 옵션명:가격 목록)
+    actor_ceo_id    BIGINT   NOT NULL,                                  -- 제외한 점주 ID (CEO.id 참조)
+    created_at      DATETIME NOT NULL,                                  -- 생성 일시
+    updated_at      DATETIME NOT NULL,                                  -- 수정 일시 (append-only 라 created_at 과 동일)
+    UNIQUE KEY uk_product_option_group_merge_exclusion (shop_id, group_signature), -- 유니크: 같은 묶음 중복 제외 방지(멱등)
+    INDEX idx_product_option_group_merge_exclusion_shop (shop_id)       -- 인덱스: 추천 조회 시 가게별 제외 목록 로드
 );
 
 CREATE TABLE PRODUCT_COMMON_OPTION_GROUP_LINK
@@ -458,6 +497,7 @@ CREATE TABLE SHOP
     is_closed_on_public_holidays TINYINT(1)  NOT NULL DEFAULT 0, -- 공휴일 휴무 여부
     min_order_amount           INT           NOT NULL DEFAULT 0, -- 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
     scheduled_order_enabled    TINYINT(1)    NOT NULL DEFAULT 0, -- 예약주문 운영 여부 (0: 미운영, 1: 운영)
+    cup_deposit_enabled        TINYINT(1)    NOT NULL DEFAULT 0, -- 일회용컵 보증금제 대상 사업자 여부 (관리자만 변경, 1: 대상)
     created_at        DATETIME      NOT NULL,            -- 생성 일시
     updated_at        DATETIME      NOT NULL,            -- 수정 일시
     INDEX idx_shop_ceo_id (ceo_id)
@@ -1029,8 +1069,9 @@ CREATE TABLE ORDERS
     coupon_discount_amount  INT          NOT NULL DEFAULT 0,     -- 쿠폰 할인 금액
     point_discount_amount   INT          NOT NULL DEFAULT 0,     -- 포인트 할인 금액
     total_discount_amount   INT          NOT NULL DEFAULT 0,     -- 총 할인 금액
-    delivery_tip_amount     INT          NOT NULL DEFAULT 0,     -- 배달팁 (final_amount에 가산되는 유일한 항목)
-    final_amount            INT          NOT NULL DEFAULT 0,     -- 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁)
+    delivery_tip_amount     INT          NOT NULL DEFAULT 0,     -- 배달팁 (final_amount 가산 항목 — 보증금과 함께 둘뿐)
+    cup_deposit_amount      INT          NOT NULL DEFAULT 0,     -- 자원순환보증금 합계. 비과세·점주 매출 아님·중개이용료 대상 아님·최소주문금액 산정 제외. final_amount에만 가산
+    final_amount            INT          NOT NULL DEFAULT 0,     -- 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁 + 보증금)
     delivery_road_address   VARCHAR(500),                        -- 주문 시점 배달 도로명 주소 (스냅샷)
     delivery_lot_address    VARCHAR(500),                        -- 주문 시점 배달 지번 주소 (스냅샷)
     delivery_detail_address VARCHAR(200),                        -- 주문 시점 상세 주소 (스냅샷)
@@ -1063,7 +1104,8 @@ CREATE TABLE ORDER_PRODUCT
     quantity          INT          NOT NULL DEFAULT 1,           -- 수량
     original_price    INT          NOT NULL DEFAULT 0,           -- 정가
     discount_price    INT,                                       -- 할인가
-    total_option_price INT         NOT NULL DEFAULT 0,           -- 옵션 금액 합계
+    total_option_price INT         NOT NULL DEFAULT 0,           -- 옵션 금액 합계 (보증금은 포함되지 않음)
+    cup_deposit_amount INT         NOT NULL DEFAULT 0,           -- 이 라인의 보증금 합계(수량 반영). total_option_price·total_price 에는 포함되지 않음
     total_price       INT          NOT NULL DEFAULT 0,           -- 상품 총 금액
     created_at        DATETIME     NOT NULL,                     -- 생성 일시
     updated_at        DATETIME     NOT NULL,                     -- 수정 일시
@@ -1080,7 +1122,10 @@ CREATE TABLE ORDER_PRODUCT_OPTION
     option_group_name VARCHAR(100) NOT NULL,                              -- 주문 시점 옵션 그룹 이름 (스냅샷)
     option_id         BIGINT,                                             -- 옵션 ID (스냅샷, NULL 가능)
     option_name       VARCHAR(100) NOT NULL,                              -- 주문 시점 옵션 이름 (스냅샷)
-    additional_price  INT          NOT NULL DEFAULT 0,                    -- 옵션 추가 금액
+    additional_price  INT          NOT NULL DEFAULT 0,                    -- 옵션 추가 금액 (보증금은 별도 컬럼)
+    option_group_type VARCHAR(20)  NOT NULL DEFAULT 'NORMAL',             -- 주문 시점 옵션그룹 유형 스냅샷 (NORMAL, CUP_DEPOSIT)
+    cup_count         INT,                                                -- 주문 시점 일회용컵 제공 개수 스냅샷 (환급 단위)
+    deposit_amount    INT          NOT NULL DEFAULT 0,                    -- 주문 시점 보증금 금액 스냅샷(= cup_count * 당시 요율). additional_price 와 별개 항목
     created_at        DATETIME     NOT NULL,                              -- 생성 일시
     updated_at        DATETIME     NOT NULL,                              -- 수정 일시
     INDEX idx_order_product_option_order_product_id (order_product_id)    -- 인덱스: 주문 상품별 조회

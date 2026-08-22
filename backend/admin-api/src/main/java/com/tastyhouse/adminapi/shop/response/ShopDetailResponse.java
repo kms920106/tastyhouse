@@ -40,6 +40,10 @@ public record ShopDetailResponse(
     @Schema(description = "폐업 여부", example = "false")
     boolean permanentlyClosed,
 
+    @Schema(description = "일회용컵 보증금제 대상 사업자 여부. true여야 이 가게가 보증금 옵션그룹을 "
+        + "만들 수 있습니다. PATCH /api/shops/v1/{id}/cup-deposit 로 변경합니다.", example = "false")
+    boolean cupDepositEnabled,
+
     @Schema(description = "생성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt,
 
@@ -58,6 +62,7 @@ public record ShopDetailResponse(
         String phoneNumber,
         String thumbnailImageUrl,
         boolean permanentlyClosed,
+        boolean cupDepositEnabled,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -73,6 +78,7 @@ public record ShopDetailResponse(
             phoneNumber,
             thumbnailImageUrl,
             permanentlyClosed,
+            cupDepositEnabled,
             createdAt,
             updatedAt
         );

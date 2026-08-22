@@ -27,6 +27,23 @@ public class ProductOption {
      */
     private LocalDateTime soldOutUntil;
     private boolean visible;
+    /**
+     * 이 옵션이 제공하는 일회용컵 개수(1~10). 보증금 옵션그룹의 옵션만 값을 갖고, 일반 옵션은
+     * {@code null}이다.
+     *
+     * <p><b>금액이 아니라 개수를 저장하는 것이 핵심이다</b> — 보증금액은 {@code cupCount × 정책 요율}로
+     * 계산되므로, 요율이 바뀌어도 옵션 행을 마이그레이션할 필요가 없다(과거 주문의 금액은 주문 스냅샷이
+     * 별도로 보존한다).
+     */
+    private Integer cupCount;
+    /**
+     * 개인컵 사용 할인 금액(원). 개인컵 옵션이 아니면 {@code null}이다.
+     *
+     * <p><b>이것은 보증금 축이 아니라 상품 할인 축이다</b> — 보증금은 비과세·정산 제외 항목이지만
+     * 개인컵 할인은 정상적인 매출 차감이다. 그래서 금액 계산에서 {@code productDiscountAmount}에
+     * 가산되며, 개인컵 옵션은 컵을 주지 않으므로 {@code cupCount}가 없고 보증금도 0이다.
+     */
+    private Integer personalCupDiscountAmount;
 
     private ProductOption(
         Long id,
@@ -36,7 +53,9 @@ public class ProductOption {
         Integer sort,
         boolean soldOut,
         LocalDateTime soldOutUntil,
-        boolean visible
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
         this.id = id;
         this.optionGroupId = optionGroupId;
@@ -46,6 +65,8 @@ public class ProductOption {
         this.soldOut = soldOut;
         this.soldOutUntil = soldOutUntil;
         this.visible = visible;
+        this.cupCount = cupCount;
+        this.personalCupDiscountAmount = personalCupDiscountAmount;
     }
 
     public static ProductOption of(
@@ -55,7 +76,9 @@ public class ProductOption {
         Integer sort,
         boolean soldOut,
         LocalDateTime soldOutUntil,
-        boolean visible
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
         return new ProductOption(
             null,
@@ -65,7 +88,9 @@ public class ProductOption {
             sort,
             soldOut,
             soldOutUntil,
-            visible
+            visible,
+            cupCount,
+            personalCupDiscountAmount
         );
     }
 
@@ -80,21 +105,51 @@ public class ProductOption {
         Integer sort,
         boolean soldOut,
         LocalDateTime soldOutUntil,
-        boolean visible
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
-        return new ProductOption(id, optionGroupId, name, additionalPrice, sort, soldOut, soldOutUntil, visible);
+        return new ProductOption(
+            id,
+            optionGroupId,
+            name,
+            additionalPrice,
+            sort,
+            soldOut,
+            soldOutUntil,
+            visible,
+            cupCount,
+            personalCupDiscountAmount
+        );
     }
 
     public ProductOptionId getProductOptionId() {
         return ProductOptionId.of(this.id);
     }
 
-    public void update(String name, Integer additionalPrice, Integer sort, boolean soldOut, boolean visible) {
+    /**
+     * 옵션의 이름·금액·순서·상태와 보증금 관련 값을 변경한다.
+     *
+     * <p>{@code cupCount}·{@code personalCupDiscountAmount}도 함께 받는 이유는 이 메서드가 전체 필드를
+     * 덮어쓰는 형태이기 때문이다 — 빼면 이름만 고쳐도 컵 개수가 조용히 {@code null}이 되어 그 옵션의
+     * 보증금이 0원으로 바뀐다.
+     */
+    public void update(
+        String name,
+        Integer additionalPrice,
+        Integer sort,
+        boolean soldOut,
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
+    ) {
         this.name = name;
         this.additionalPrice = additionalPrice;
         this.sort = sort;
         this.soldOut = soldOut;
         this.visible = visible;
+        this.cupCount = cupCount;
+        this.personalCupDiscountAmount = personalCupDiscountAmount;
 
         // 품절이 해제되는 방향이면 자동해제 시각도 함께 비워 드리프트를 남기지 않는다(Product.update와 동일).
         if (!soldOut) {
@@ -174,5 +229,13 @@ public class ProductOption {
 
     public boolean isVisible() {
         return this.visible;
+    }
+
+    public Integer getCupCount() {
+        return this.cupCount;
+    }
+
+    public Integer getPersonalCupDiscountAmount() {
+        return this.personalCupDiscountAmount;
     }
 }

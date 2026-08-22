@@ -17,6 +17,7 @@ import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
+import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.product.service.OrderProductValidationService;
 import com.tastyhouse.domain.product.service.ProductAvailabilityService;
 import com.tastyhouse.domain.product.service.ProductDeletionService;
@@ -24,7 +25,9 @@ import com.tastyhouse.domain.product.service.ProductExposureCalculator;
 import com.tastyhouse.domain.product.service.ProductExposureService;
 import com.tastyhouse.domain.product.service.ProductImageApprovalService;
 import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupMergeHistoryRepository;
 import com.tastyhouse.domain.product.service.ProductOptionGroupLinkService;
+import com.tastyhouse.domain.product.service.ProductOptionGroupMergeService;
 import com.tastyhouse.domain.product.service.ProductSortService;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.service.ProductReviewStatsService;
@@ -87,7 +90,8 @@ public class ProductDomainConfig {
         ProductImageRepository productImageRepository,
         ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
         ProductExposureHourRepository productExposureHourRepository,
-        ProductExposureCalculator productExposureCalculator
+        ProductExposureCalculator productExposureCalculator,
+        CupDepositPolicy cupDepositPolicy
     ) {
         return new OrderProductValidationService(
             productRepository,
@@ -96,7 +100,8 @@ public class ProductDomainConfig {
             productImageRepository,
             productOptionGroupLinkRepository,
             productExposureHourRepository,
-            productExposureCalculator
+            productExposureCalculator,
+            cupDepositPolicy
         );
     }
 
@@ -160,11 +165,46 @@ public class ProductDomainConfig {
     }
 
     /**
+     * 옵션그룹 합치기. 다중 애그리거트(그룹·옵션·링크·이력)에 걸친 불변식이라 도메인이 제자리다.
+     *
+     * <p>링크 재배치는 {@link ProductOptionGroupLinkService#relink}에 위임한다 — UNIQUE 충돌 처리와
+     * sort 불변식이 그 클래스 소유로 남아야 {@code renumber}를 공개하지 않아도 된다.
+     */
+    @Bean
+    public ProductOptionGroupMergeService productOptionGroupMergeService(
+        ProductOptionGroupRepository productOptionGroupRepository,
+        ProductOptionRepository productOptionRepository,
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductOptionGroupLinkService productOptionGroupLinkService,
+        ProductOptionGroupMergeHistoryRepository productOptionGroupMergeHistoryRepository
+    ) {
+        return new ProductOptionGroupMergeService(
+            productOptionGroupRepository,
+            productOptionRepository,
+            productOptionGroupLinkRepository,
+            productOptionGroupLinkService,
+            productOptionGroupMergeHistoryRepository
+        );
+    }
+
+    /**
      * 메뉴 노출 판정 계산기 — 리포지토리도 시계도 갖지 않는 순수 함수라 의존이 없다.
      */
     @Bean
     public ProductExposureCalculator productExposureCalculator() {
         return new ProductExposureCalculator();
+    }
+
+    /**
+     * 일회용컵 보증금 요율·계산. 리포지토리도 시계도 갖지 않는 순수 계산기라 의존이 없다.
+     *
+     * <p>빈으로 두는 이유는 요율을 <b>단 한 곳</b>에 두기 위함이다 — 점주 설정(ceo)·손님 메뉴판(web)·
+     * 주문 금액 확정(order) 세 경로가 같은 인스턴스를 주입받아야 "화면 금액과 결제 금액이 다른" 사고가
+     * 구조적으로 불가능해진다.
+     */
+    @Bean
+    public CupDepositPolicy cupDepositPolicy() {
+        return new CupDepositPolicy();
     }
 
     /**

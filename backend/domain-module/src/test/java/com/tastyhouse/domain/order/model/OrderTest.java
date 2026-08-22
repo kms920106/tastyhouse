@@ -42,6 +42,7 @@ class OrderTest {
             "hong@test.com",
             null, null, null, null, null,
             null,
+            0,
             null,
             null,
             null,
@@ -79,6 +80,7 @@ class OrderTest {
             "010-1234-5678",
             "hong@test.com",
             10000, 0, 0, 0, 0,
+            0,
             0,
             10000,
             OrderDeliveryDestination.none(),
@@ -212,7 +214,7 @@ class OrderTest {
     void updateAmounts_changesAmountFields() {
         Order order = newOrder();
 
-        order.updateAmounts(10000, 1000, 500, 300, 1800, 0, 8200, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 300);
+        order.updateAmounts(10000, 1000, 500, 300, 1800, 0, 0, 8200, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 300);
 
         assertThat(order.getTotalProductAmount()).isEqualTo(10000);
         assertThat(order.getProductDiscountAmount()).isEqualTo(1000);
@@ -230,7 +232,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 1000 + 500 + 300 = 1800 인데 총 할인을 1700으로 보냄
-        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1700, 0, 8300, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 300))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1700, 0, 0, 8300, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
@@ -244,7 +246,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 10000 - 1800 = 8200 인데 최종 금액을 9000으로 보냄
-        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1800, 0, 9000, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 300))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1800, 0, 0, 9000, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
@@ -256,19 +258,19 @@ class OrderTest {
         Order order = newOrder();
 
         // 상품 금액 음수 (합산 정합 자체는 성립: -100 - 0 = -100)
-        assertThatThrownBy(() -> order.updateAmounts(-100, 0, 0, 0, 0, 0, -100, null, null, null, 0))
+        assertThatThrownBy(() -> order.updateAmounts(-100, 0, 0, 0, 0, 0, 0, -100, null, null, null, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
 
         // 할인 항목 음수 (합산 정합 성립: -500 + 0 + 0 = -500, 10000 - (-500) = 10500)
-        assertThatThrownBy(() -> order.updateAmounts(10000, -500, 0, 0, -500, 0, 10500, null, null, null, 0))
+        assertThatThrownBy(() -> order.updateAmounts(10000, -500, 0, 0, -500, 0, 0, 10500, null, null, null, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
 
         // 사용 포인트 음수
-        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 0, 0, 0, 0, 10000, null, null, null, -1))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 0, 0, 0, 0, 0, 10000, null, null, null, -1))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
@@ -280,7 +282,7 @@ class OrderTest {
         Order order = newOrder();
 
         // 10000원 주문에 15000원 정액 쿠폰 → finalAmount -5000 (합산 정합 자체는 성립)
-        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 15000, 0, 15000, 0, -5000, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 0))
+        assertThatThrownBy(() -> order.updateAmounts(10000, 0, 15000, 0, 15000, 0, 0, -5000, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
@@ -291,7 +293,7 @@ class OrderTest {
     void updateAmounts_normalizesNullToZero() {
         Order order = newOrder();
 
-        order.updateAmounts(null, null, null, null, null, null, null, null, null, null, null);
+        order.updateAmounts(null, null, null, null, null, null, 0, null, null, null, null, null);
 
         // 검증만 0으로 보고 저장은 raw null을 넣으면 불변식을 위반한 상태가 저장된다 — 저장값도 0이어야 한다
         assertThat(order.getTotalProductAmount()).isEqualTo(0);
@@ -309,13 +311,13 @@ class OrderTest {
         Order order = newOrder();
 
         // 총 할인·항목 할인을 null로 보내면 0으로 정규화되어 10000 - 0 = 10000과 정합해야 통과
-        order.updateAmounts(10000, null, null, null, null, null, 10000, null, null, null, null);
+        order.updateAmounts(10000, null, null, null, null, null, 0, 10000, null, null, null, null);
 
         assertThat(order.getTotalDiscountAmount()).isEqualTo(0);
         assertThat(order.getFinalAmount()).isEqualTo(10000);
 
         // 같은 부분 null 입력이지만 최종 금액이 정합하지 않으면 거부한다
-        assertThatThrownBy(() -> order.updateAmounts(10000, null, null, null, null, null, 9000, null, null, null, null))
+        assertThatThrownBy(() -> order.updateAmounts(10000, null, null, null, null, null, 0, 9000, null, null, null, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
@@ -367,6 +369,7 @@ class OrderTest {
             "hong@test.com",
             10000, 1000, 500, 300, 1800,
             0,
+            0,
             8200,
             OrderDeliveryDestination.none(),
             OrderSchedule.none(),
@@ -412,6 +415,7 @@ class OrderTest {
             couponDiscountAmount,
             pointDiscountAmount,
             totalDiscountAmount,
+            0,
             0,
             finalAmount,
             OrderDeliveryDestination.none(),
@@ -483,6 +487,7 @@ class OrderTest {
             "hong@test.com",
             -1, 0, 0, 0, 9999,
             0,
+            0,
             -12345,
             OrderDeliveryDestination.none(),
             OrderSchedule.none(),
@@ -540,13 +545,13 @@ class OrderTest {
         void updateAmounts_enforcesDeliveryTipConsistency() {
             Order order = newOrder();
 
-            order.updateAmounts(10000, 1000, 500, 300, 1800, 3000, 11200, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 300);
+            order.updateAmounts(10000, 1000, 500, 300, 1800, 3000, 0, 11200, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 300);
 
             assertThat(order.getDeliveryTipAmount()).isEqualTo(3000);
             assertThat(order.getFinalAmount()).isEqualTo(11200);
 
             assertThatThrownBy(() -> order.updateAmounts(
-                10000, 1000, 500, 300, 1800, 3000, 8200, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 300
+                10000, 1000, 500, 300, 1800, 3000, 0, 8200, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 300
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -576,6 +581,7 @@ class OrderTest {
                 "010-1234-5678",
                 "hong@test.com",
                 10000, 1000, 500, 300, 1800,
+                0,
                 0,
                 8200,
                 OrderDeliveryDestination.none(),
@@ -616,6 +622,7 @@ class OrderTest {
                 pointDiscountAmount,
                 totalDiscountAmount,
                 deliveryTipAmount,
+                0,
                 finalAmount,
                 OrderDeliveryDestination.none(),
                 OrderSchedule.none(),
@@ -623,6 +630,72 @@ class OrderTest {
                 0,
                 0
             );
+        }
+    }
+
+    @Nested
+    @DisplayName("일회용컵 보증금 금액 정합")
+    class CupDepositAmountConsistency {
+
+        @Test
+        @DisplayName("★ finalAmount는 상품 − 할인 + 배달팁 + 보증금이다")
+        void updateAmounts_includesCupDepositInFinalAmount() {
+            Order order = newOrder();
+
+            order.updateAmounts(10000, 1000, 0, 0, 1000, 3000, 600, 12600,
+                OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0);
+
+            assertThat(order.getCupDepositAmount()).isEqualTo(600);
+            assertThat(order.getFinalAmount()).isEqualTo(12600);
+        }
+
+        @Test
+        @DisplayName("보증금을 빠뜨린 finalAmount는 거부한다")
+        void updateAmounts_finalAmountMissingDeposit_rejected() {
+            Order order = newOrder();
+
+            assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 0, 0, 1000, 3000, 600, 12000,
+                OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+        }
+
+        @Test
+        @DisplayName("★ 보증금이 0이면 기존 케이스가 전부 그대로 성립한다 — 하위호환 회귀 방어")
+        void updateAmounts_zeroDeposit_behavesAsBefore() {
+            Order order = newOrder();
+
+            order.updateAmounts(10000, 1000, 500, 300, 1800, 3000, 0, 11200,
+                OrderDeliveryDestination.none(), OrderSchedule.none(), null, 300);
+
+            assertThat(order.getCupDepositAmount()).isZero();
+            assertThat(order.getFinalAmount()).isEqualTo(11200);
+        }
+
+        @Test
+        @DisplayName("음수 보증금은 거부한다")
+        void updateAmounts_negativeDeposit_rejected() {
+            Order order = newOrder();
+
+            assertThatThrownBy(() -> order.updateAmounts(10000, 0, 0, 0, 0, 0, -300, 9700,
+                OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+        }
+
+        @Test
+        @DisplayName("★ 보증금은 totalProductAmount에 섞이지 않는다 — 최소주문금액·쿠폰·포인트 기준액 보호")
+        void cupDeposit_isNotPartOfTotalProductAmount() {
+            Order order = newOrder();
+
+            order.updateAmounts(10000, 0, 0, 0, 0, 0, 900, 10900,
+                OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0);
+
+            // 상품 금액은 보증금과 무관하게 유지되어야 한다 — 이 값이 최소주문금액·쿠폰 기준액이다.
+            assertThat(order.getTotalProductAmount()).isEqualTo(10000);
+            assertThat(order.getCupDepositAmount()).isEqualTo(900);
         }
     }
 }

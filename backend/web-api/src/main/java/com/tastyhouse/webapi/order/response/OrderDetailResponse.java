@@ -49,7 +49,11 @@ public record OrderDetailResponse(
     @Schema(description = "총 할인 금액", example = "4000")
     Integer totalDiscountAmount,
 
-    @Schema(description = "최종 결제 금액", example = "21000")
+    @Schema(description = "일회용컵 보증금 합계. 비과세이며 최소주문금액·쿠폰·포인트 산정에서 제외되고 "
+        + "결제 금액에만 가산된다. 반납 시 환급 대상이다.", example = "300")
+    Integer cupDepositAmount,
+
+    @Schema(description = "최종 결제 금액(= 상품 금액 - 총 할인 + 배달팁 + 보증금)", example = "21000")
     Integer finalAmount,
 
     @Schema(description = "사용한 포인트", example = "1000")
@@ -91,6 +95,7 @@ public record OrderDetailResponse(
         Integer couponDiscountAmount,
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         Integer usedPoint,
         Integer earnedPoint,
@@ -116,6 +121,7 @@ public record OrderDetailResponse(
             couponDiscountAmount,
             pointDiscountAmount,
             totalDiscountAmount,
+            cupDepositAmount,
             finalAmount,
             usedPoint,
             earnedPoint,

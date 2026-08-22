@@ -18,6 +18,10 @@ public record PaymentSummaryResponse(
     @Schema(description = "결제 금액", example = "21000")
     Integer amount,
 
+    @Schema(description = "결제 금액에 포함된 일회용컵 보증금. 배달앱 매출이 아니며 반납 시 환급 대상이다.",
+        example = "300")
+    Integer cupDepositAmount,
+
     @Schema(description = "카드사명", example = "신한카드")
     String cardCompany,
 
@@ -35,6 +39,7 @@ public record PaymentSummaryResponse(
         String paymentMethod,
         String paymentStatus,
         Integer amount,
+        Integer cupDepositAmount,
         String cardCompany,
         String cardNumber,
         LocalDateTime approvedAt,
@@ -45,6 +50,7 @@ public record PaymentSummaryResponse(
             paymentMethod,
             paymentStatus,
             amount,
+            cupDepositAmount,
             cardCompany,
             cardNumber,
             approvedAt,

@@ -1,5 +1,7 @@
 package com.tastyhouse.ceoapi.product;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -7,11 +9,18 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
+import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
+import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
+import com.tastyhouse.domain.product.service.CupDepositOptionRule;
+import com.tastyhouse.domain.product.service.ProductOptionSelectionRule;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
@@ -37,7 +46,9 @@ public class ProductOptionGroupCommandService {
 
     private final ProductRegistrationService productRegistrationService;
     private final ProductOptionGroupRepository productOptionGroupRepository;
+    private final ProductOptionRepository productOptionRepository;
     private final ProductRepository productRepository;
+    private final ShopRepository shopRepository;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
@@ -45,14 +56,18 @@ public class ProductOptionGroupCommandService {
     public ProductOptionGroupCommandService(
         ProductRegistrationService productRegistrationService,
         ProductOptionGroupRepository productOptionGroupRepository,
+        ProductOptionRepository productOptionRepository,
         ProductRepository productRepository,
+        ShopRepository shopRepository,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
         this.productRegistrationService = productRegistrationService;
         this.productOptionGroupRepository = productOptionGroupRepository;
+        this.productOptionRepository = productOptionRepository;
         this.productRepository = productRepository;
+        this.shopRepository = shopRepository;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
@@ -74,12 +89,23 @@ public class ProductOptionGroupCommandService {
         boolean required,
         boolean multipleSelect,
         Integer minSelect,
-        Integer maxSelect
+        Integer maxSelect,
+        String groupType
     ) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         prohibitedWordValidator.validate(name);
         prohibitedWordValidator.validate(description);
         validateSelectRange(minSelect, maxSelect);
+
+        ProductOptionGroupType resolvedGroupType = ProductOptionGroupType.from(groupType);
+        // 보증금 옵션그룹은 규제 대상 사업자만 만들 수 있다. 게이트를 생성 경로에만 두는 이유는
+        // Shop#validateCupDepositEnabled 주석 참조(지정 해제 시 기존 그룹은 계속 동작해야 한다).
+        if (resolvedGroupType.isCupDeposit()) {
+            loadShop(shopId).validateCupDepositEnabled();
+        }
+        CupDepositOptionRule.validateDepositGroupSelectRange(
+            resolvedGroupType, required, multipleSelect, minSelect, maxSelect
+        );
 
         Product product = loadOwnedProduct(shopId, productId);
         ProductOptionGroup created = productRegistrationService.saveProductOptionGroup(
@@ -91,7 +117,8 @@ public class ProductOptionGroupCommandService {
             minSelect,
             maxSelect,
             NEXT_SORT_APPENDS_TO_TAIL,
-            DEFAULT_VISIBLE
+            DEFAULT_VISIBLE,
+            resolvedGroupType
         );
         return created.getId();
     }
@@ -115,6 +142,12 @@ public class ProductOptionGroupCommandService {
 
         ProductOptionGroup group =
             productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
+        // 유형은 요청으로 받지 않지만(전환 불가), 이미 보증금 그룹이면 고정 선택 제약을 계속 강제한다 —
+        // 그러지 않으면 수정 경로로 필수 선택·복수 선택을 켜서 생성 시 막았던 상태를 만들 수 있다.
+        CupDepositOptionRule.validateDepositGroupSelectRange(
+            group.getGroupType(), required, multipleSelect, minSelect, maxSelect
+        );
+
         // sort·visible은 현재 값을 그대로 넘긴다 — update가 전체 필드를 받는 형태라, 빼먹으면 조용히
         // 0/false로 덮어써 순서와 노출 상태가 함께 초기화된다.
         group.update(
@@ -127,6 +160,13 @@ public class ProductOptionGroupCommandService {
             group.getSort(),
             group.isVisible()
         );
+
+        // required=false → true 전환도 이 불변식의 트리거다 — 옵션 쪽 변경(가격 수정·삭제)에서만
+        // 검증하면, 0원 옵션 없는 그룹을 그대로 필수로 바꿔 통과시킬 수 있다.
+        List<ProductOption> groupOptions =
+            productOptionRepository.findAllByOptionGroupId(group.getProductOptionGroupId());
+        ProductOptionSelectionRule.validateZeroPriceOption(group, groupOptions);
+
         productOptionGroupRepository.save(group);
     }
 
@@ -145,6 +185,12 @@ public class ProductOptionGroupCommandService {
             productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
         group.hide();
         productOptionGroupRepository.save(group);
+    }
+
+    /** 보증금 대상 사업자 검증을 위해 가게를 로드한다. */
+    private Shop loadShop(Long shopId) {
+        return shopRepository.findById(ShopId.of(shopId))
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
     /**

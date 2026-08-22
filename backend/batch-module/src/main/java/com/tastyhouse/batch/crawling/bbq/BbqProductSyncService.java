@@ -10,6 +10,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.vo.BbqCategoryId;
@@ -137,7 +138,10 @@ public class BbqProductSyncService {
             registration.minSelect(),
             registration.maxSelect(),
             registration.sort(),
-            true
+            true,
+            // 외부(BBQ) 메뉴 동기화는 일반 옵션그룹만 만든다 — 일회용컵 보증금은 규제 대상 사업자에게
+            // 관리자가 플래그를 켠 뒤 점주가 직접 설정하는 값이라, 크롤링 결과로 생길 수 없다.
+            ProductOptionGroupType.NORMAL
         );
 
         List<BbqOptionRegistration> options = registration.options();
@@ -149,7 +153,10 @@ public class BbqProductSyncService {
                 option.additionalPrice(),
                 i,
                 option.soldOut(),
-                option.visible()
+                option.visible(),
+                // 일반 옵션이므로 컵 개수·개인컵 할인이 없다(있으면 도메인 규칙이 거부한다).
+                null,
+                null
             );
         }
     }

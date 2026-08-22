@@ -129,6 +129,7 @@ public class ShopQueryService {
             shop.getPhoneNumber(),
             thumbnailImageUrl,
             shop.isPermanentlyClosed(),
+            shop.isCupDepositEnabled(),
             shop.getCreatedAt(),
             shop.getUpdatedAt()
         );

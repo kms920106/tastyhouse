@@ -195,7 +195,7 @@ class OrderTransitionServiceTest {
                 "홍길동",
                 "01012345678",
                 "hong@example.com",
-                20000, 0, 0, 0, 0, 0, 20000, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0,
+                20000, 0, 0, 0, 0, 0, 0, 20000, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0,
                 false,
                 null,
                 null

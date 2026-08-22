@@ -93,7 +93,8 @@ public class ShopQueryService {
             shop.isHidden(),
             shop.isClosedOnPublicHolidays(),
             shop.getMinOrderAmount(),
-            shop.isScheduledOrderEnabled()
+            shop.isScheduledOrderEnabled(),
+            shop.isCupDepositEnabled()
         );
     }
 }

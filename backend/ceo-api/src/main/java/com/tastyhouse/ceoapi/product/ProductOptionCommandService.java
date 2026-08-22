@@ -12,9 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
+import com.tastyhouse.domain.product.service.CupDepositOptionRule;
+import com.tastyhouse.domain.product.service.CupDepositPolicy;
+import com.tastyhouse.domain.product.service.ProductOptionSelectionRule;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
@@ -37,6 +42,8 @@ public class ProductOptionCommandService {
 
     private final ProductRegistrationService productRegistrationService;
     private final ProductOptionRepository productOptionRepository;
+    private final ProductOptionGroupRepository productOptionGroupRepository;
+    private final CupDepositPolicy cupDepositPolicy;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
@@ -44,12 +51,16 @@ public class ProductOptionCommandService {
     public ProductOptionCommandService(
         ProductRegistrationService productRegistrationService,
         ProductOptionRepository productOptionRepository,
+        ProductOptionGroupRepository productOptionGroupRepository,
+        CupDepositPolicy cupDepositPolicy,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
         this.productRegistrationService = productRegistrationService;
         this.productOptionRepository = productOptionRepository;
+        this.productOptionGroupRepository = productOptionGroupRepository;
+        this.cupDepositPolicy = cupDepositPolicy;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
@@ -61,11 +72,18 @@ public class ProductOptionCommandService {
         Long shopId,
         Long optionGroupId,
         String name,
-        Integer additionalPrice
+        Integer additionalPrice,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         prohibitedWordValidator.validate(name);
-        productOptionGroupOwnershipValidator.validateOptionGroupShop(shopId, optionGroupId);
+
+        ProductOptionGroup group =
+            productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
+        CupDepositOptionRule.validateOptionValues(
+            group, additionalPrice, cupCount, personalCupDiscountAmount, cupDepositPolicy
+        );
 
         return productRegistrationService.saveProductOption(
             ProductOptionGroupId.of(optionGroupId),
@@ -73,7 +91,9 @@ public class ProductOptionCommandService {
             additionalPrice,
             nextSort(optionGroupId),
             DEFAULT_SOLD_OUT,
-            DEFAULT_VISIBLE
+            DEFAULT_VISIBLE,
+            cupCount,
+            personalCupDiscountAmount
         );
     }
 
@@ -83,15 +103,35 @@ public class ProductOptionCommandService {
         Long optionId,
         Long shopId,
         String name,
-        Integer additionalPrice
+        Integer additionalPrice,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         prohibitedWordValidator.validate(name);
 
         ProductOption option = productOptionGroupOwnershipValidator.loadOwnedOption(shopId, optionId);
+        ProductOptionGroup optionGroup = productOptionGroupOwnershipValidator
+            .loadOwnedOptionGroup(shopId, option.getOptionGroupId().value());
+        CupDepositOptionRule.validateOptionValues(
+            optionGroup, additionalPrice, cupCount, personalCupDiscountAmount, cupDepositPolicy
+        );
+
         // sort·soldOut·visible은 현재 값을 그대로 넘긴다 — update가 전체 필드를 받는 형태라, 빼먹으면
         // 이름만 고쳤는데 품절이 조용히 풀리거나 순서가 초기화된다.
-        option.update(name, additionalPrice, option.getSort(), option.isSoldOut(), option.isVisible());
+        option.update(
+            name,
+            additionalPrice,
+            option.getSort(),
+            option.isSoldOut(),
+            option.isVisible(),
+            cupCount,
+            personalCupDiscountAmount
+        );
+
+        // 가격 변경으로 필수 그룹의 마지막 0원 옵션이 사라질 수 있다 — 변경을 적용한 뒤의 상태로 판정한다.
+        validateZeroPriceOptionAfterChange(option);
+
         productOptionRepository.save(option);
     }
 
@@ -115,9 +155,23 @@ public class ProductOptionCommandService {
         ProductOptionGroup group =
             productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
 
-        validateMinSelectAfterHiding(group, option);
+        List<ProductOption> groupOptions =
+            productOptionRepository.findAllByOptionGroupId(group.getProductOptionGroupId());
+
+        // 판정식은 domain-module이 단독으로 소유한다 — 일괄 숨김(ProductAvailabilityService)과 같은
+        // 하한을 써야 "일괄로는 막히는 상태를 개별 삭제로는 만들 수 있는" 불일치가 생기지 않는다.
+        ProductOptionSelectionRule.validateRemainingAfterBlocking(group, option, groupOptions);
 
         option.hide();
+
+        // 숨긴 뒤의 상태로 0원 옵션 잔존을 확인한다 — 숨은 옵션은 손님이 고를 수 없으므로 0원 옵션의
+        // 역할을 대신하지 못한다. groupOptions는 option과 별개로 조회된 인스턴스라 hide()가 반영되지
+        // 않으므로, 판정 직전에 대상 항목을 hide()가 적용된 option으로 교체해 넘긴다.
+        List<ProductOption> groupOptionsAfterHide = groupOptions.stream()
+            .map(candidate -> candidate.getId().equals(option.getId()) ? option : candidate)
+            .toList();
+        ProductOptionSelectionRule.validateZeroPriceOption(group, groupOptionsAfterHide);
+
         productOptionRepository.save(option);
     }
 
@@ -148,35 +202,33 @@ public class ProductOptionCommandService {
                 option.getAdditionalPrice(),
                 index,
                 option.isSoldOut(),
-                option.isVisible()
+                option.isVisible(),
+                option.getCupCount(),
+                option.getPersonalCupDiscountAmount()
             );
             productOptionRepository.save(option);
         }
     }
 
     /**
-     * 이 옵션을 감춘 뒤에도 그룹의 최소 선택 개수를 채울 수 있는지 검증한다.
+     * 가격 변경이 반영된 상태에서 필수 그룹의 0원 옵션 잔존을 검증한다.
      *
-     * <p>선택 가능 = 품절 아님 + 노출 중. 대상 옵션이 이미 선택 불가 상태면 감춰도 개수가 줄지 않으므로
-     * 검사를 건너뛴다.
+     * <p>대상 옵션의 최신 상태를 <b>메모리의 도메인 객체로 치환</b>해 판정한다 — 리포지토리에서 다시
+     * 읽으면 아직 저장 전이라 변경 전 가격이 나와 규칙이 통과해 버린다.
      */
-    private void validateMinSelectAfterHiding(ProductOptionGroup group, ProductOption target) {
-        int minSelect = group.getMinSelect() != null ? group.getMinSelect() : 0;
-        if (minSelect <= 0) {
-            return;
-        }
-        if (target.isSoldOut() || !target.isVisible()) {
+    private void validateZeroPriceOptionAfterChange(ProductOption changed) {
+        ProductOptionGroup group = productOptionGroupRepository
+            .findById(changed.getOptionGroupId())
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
+        if (!group.isRequired()) {
             return;
         }
 
-        long selectableAfterHiding = productOptionRepository
-            .findAllByOptionGroupId(group.getProductOptionGroupId()).stream()
-            .filter(option -> !option.getId().equals(target.getId()))
-            .filter(option -> !option.isSoldOut() && option.isVisible())
-            .count();
-        if (selectableAfterHiding < minSelect) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
-        }
+        List<ProductOption> options = productOptionRepository
+            .findAllByOptionGroupId(changed.getOptionGroupId()).stream()
+            .map(option -> option.getId().equals(changed.getId()) ? changed : option)
+            .toList();
+        ProductOptionSelectionRule.validateZeroPriceOption(group, options);
     }
 
     /** 옵션그룹의 현재 옵션 수를 다음 정렬값으로 쓴다(0-based라 곧 맨 뒤 인덱스다). */

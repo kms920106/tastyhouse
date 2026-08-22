@@ -86,14 +86,17 @@ public class ProductOptionGroupApiController {
             request.required(),
             request.multipleSelect(),
             request.minSelect(),
-            request.maxSelect()
+            request.maxSelect(),
+            request.groupType()
         );
         return ResponseEntity.ok(ApiResponse.success(optionGroupId));
     }
 
     @Operation(summary = "옵션그룹명·선택 제약 변경",
         description = "최소 선택 개수가 최대 선택 개수보다 크면 거부됩니다"
-            + "(PRODUCT_OPTION_GROUP_SELECT_RANGE_INVALID). 연결과 순서는 이 경로로 바꾸지 않습니다.")
+            + "(PRODUCT_OPTION_GROUP_SELECT_RANGE_INVALID). 연결과 순서는 이 경로로 바꾸지 않습니다. "
+            + "옵션그룹 유형(groupType)은 받지 않습니다 — 유형 전환은 과거 주문 스냅샷의 해석을 소급 "
+            + "변경하므로 경로 자체를 두지 않습니다.")
     @PutMapping("/v1/option-groups/{id}")
     public ResponseEntity<ApiResponse<Void>> updateProductOptionGroup(
         @AuthenticationPrincipal CustomUserDetails userDetails,

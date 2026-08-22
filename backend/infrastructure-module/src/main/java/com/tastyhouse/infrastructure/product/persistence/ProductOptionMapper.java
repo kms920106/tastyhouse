@@ -24,7 +24,9 @@ final class ProductOptionMapper {
             entity.getSort(),
             entity.isSoldOut(),
             entity.getSoldOutUntil(),
-            entity.isVisible()
+            entity.isVisible(),
+            entity.getCupCount(),
+            entity.getPersonalCupDiscountAmount()
         );
     }
 
@@ -39,7 +41,9 @@ final class ProductOptionMapper {
             domain.getSort(),
             domain.isSoldOut(),
             domain.getSoldOutUntil(),
-            domain.isVisible()
+            domain.isVisible(),
+            domain.getCupCount(),
+            domain.getPersonalCupDiscountAmount()
         );
     }
 
@@ -53,7 +57,9 @@ final class ProductOptionMapper {
             domain.getSort(),
             domain.isSoldOut(),
             domain.getSoldOutUntil(),
-            domain.isVisible()
+            domain.isVisible(),
+            domain.getCupCount(),
+            domain.getPersonalCupDiscountAmount()
         );
     }
 }

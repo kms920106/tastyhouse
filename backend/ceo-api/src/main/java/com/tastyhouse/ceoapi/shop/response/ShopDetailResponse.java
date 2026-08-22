@@ -52,7 +52,12 @@ public record ShopDetailResponse(
     int minOrderAmount,
 
     @Schema(description = "예약주문 운영 여부 (true: 고객이 수령시간을 예약할 수 있음)", example = "true")
-    boolean scheduledOrderEnabled
+    boolean scheduledOrderEnabled,
+
+    @Schema(description = "일회용컵 보증금제 대상 사업자 여부. true인 가게만 보증금 옵션그룹을 만들 수 "
+        + "있습니다. 환경부 지정 사실이므로 점주는 변경할 수 없고 관리자만 토글합니다(읽기 전용).",
+        example = "false")
+    boolean cupDepositEnabled
 ) {
     public static ShopDetailResponse from(
         Long id,
@@ -70,7 +75,8 @@ public record ShopDetailResponse(
         boolean hidden,
         boolean closedOnPublicHolidays,
         int minOrderAmount,
-        boolean scheduledOrderEnabled
+        boolean scheduledOrderEnabled,
+        boolean cupDepositEnabled
     ) {
         return new ShopDetailResponse(
             id,
@@ -88,7 +94,8 @@ public record ShopDetailResponse(
             hidden,
             closedOnPublicHolidays,
             minOrderAmount,
-            scheduledOrderEnabled
+            scheduledOrderEnabled,
+            cupDepositEnabled
         );
     }
 }

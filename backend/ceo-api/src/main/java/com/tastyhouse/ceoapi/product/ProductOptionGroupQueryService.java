@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.infrastructure.product.query.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.infrastructure.product.query.ProductOptionGroupManagementResult;
 import com.tastyhouse.infrastructure.product.query.ProductOptionManagementResult;
@@ -30,13 +31,16 @@ import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 public class ProductOptionGroupQueryService {
 
     private final ProductQueryDao productQueryDao;
+    private final CupDepositPolicy cupDepositPolicy;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupQueryService(
         ProductQueryDao productQueryDao,
+        CupDepositPolicy cupDepositPolicy,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productQueryDao = productQueryDao;
+        this.cupDepositPolicy = cupDepositPolicy;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -108,6 +112,7 @@ public class ProductOptionGroupQueryService {
             row.maxSelect(),
             row.sort(),
             row.visible(),
+            row.groupType(),
             row.linkedProductCount(),
             row.options().stream().map(this::toProductOptionResponse).toList()
         );
@@ -119,7 +124,12 @@ public class ProductOptionGroupQueryService {
             row.name(),
             row.additionalPrice(),
             row.sort(),
-            row.visible()
+            row.visible(),
+            row.cupCount(),
+            // 보증금액은 저장하지 않고 조회 시점에 요율로 계산한다 — 옵션 행에는 개수만 남기기로 한
+            // 결정(CupDepositPolicy 주석)의 표시 측 대응이다.
+            cupDepositPolicy.depositAmountOf(row.cupCount()),
+            row.personalCupDiscountAmount()
         );
     }
 

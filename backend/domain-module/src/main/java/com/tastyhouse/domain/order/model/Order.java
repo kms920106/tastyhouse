@@ -36,8 +36,17 @@ public class Order {
     private Integer couponDiscountAmount; // 쿠폰 할인 금액
     private Integer pointDiscountAmount; // 포인트 할인 금액
     private Integer totalDiscountAmount; // 총 할인 금액
-    private Integer deliveryTipAmount; // 배달팁 (finalAmount에 가산되는 유일한 항목)
-    private Integer finalAmount; // 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁)
+    private Integer deliveryTipAmount; // 배달팁 (finalAmount 가산 항목 — 보증금과 함께 둘뿐이다)
+    /**
+     * 일회용컵 보증금 합계(자원순환보증금).
+     *
+     * <p><b>비과세·점주 매출 아님·중개이용료 대상 아님·최소주문금액 산정 제외.</b> 손님이 실제로 내는
+     * 돈이므로 {@code finalAmount}에는 가산되지만, {@code totalProductAmount}에는 <b>넣지 않는다</b> —
+     * 넣는 순간 최소주문금액·쿠폰·포인트의 기준액까지 오염되어 "보증금 덕분에 최소주문금액을 넘기는"
+     * 상태가 만들어진다. 이 컬럼을 따로 두는 것이 그 오염을 구조적으로 막는 장치다.
+     */
+    private Integer cupDepositAmount;
+    private Integer finalAmount; // 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁 + 보증금)
     private OrderDeliveryDestination deliveryDestination; // 주문 시점 배달 목적지 스냅샷 (배달 외 주문은 빈 값)
     private OrderSchedule schedule; // 주문 시점 확정된 수령 예약시간 스냅샷 (즉시 주문은 빈 값)
     private MemberCouponId memberCouponId; // 사용한 회원 쿠폰 ID
@@ -63,6 +72,7 @@ public class Order {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
         OrderSchedule schedule,
@@ -88,6 +98,7 @@ public class Order {
         this.pointDiscountAmount = pointDiscountAmount;
         this.totalDiscountAmount = totalDiscountAmount;
         this.deliveryTipAmount = deliveryTipAmount;
+        this.cupDepositAmount = cupDepositAmount;
         this.finalAmount = finalAmount;
         this.deliveryDestination = deliveryDestination;
         this.schedule = schedule;
@@ -124,6 +135,7 @@ public class Order {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
         OrderSchedule schedule,
@@ -137,6 +149,7 @@ public class Order {
         int normalizedPointDiscount = orZero(pointDiscountAmount);
         int normalizedTotalDiscount = orZero(totalDiscountAmount);
         int normalizedDeliveryTip = orZero(deliveryTipAmount);
+        int normalizedCupDeposit = orZero(cupDepositAmount);
         int normalizedFinalAmount = orZero(finalAmount);
         int normalizedUsedPoint = orZero(usedPoint);
 
@@ -147,6 +160,7 @@ public class Order {
             normalizedPointDiscount,
             normalizedTotalDiscount,
             normalizedDeliveryTip,
+            normalizedCupDeposit,
             normalizedFinalAmount,
             normalizedUsedPoint
         );
@@ -167,6 +181,7 @@ public class Order {
             normalizedPointDiscount,
             normalizedTotalDiscount,
             normalizedDeliveryTip,
+            normalizedCupDeposit,
             normalizedFinalAmount,
             deliveryDestination != null ? deliveryDestination : OrderDeliveryDestination.none(),
             schedule != null ? schedule : OrderSchedule.none(),
@@ -202,6 +217,7 @@ public class Order {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
         OrderSchedule schedule,
@@ -228,6 +244,7 @@ public class Order {
             pointDiscountAmount,
             totalDiscountAmount,
             deliveryTipAmount,
+            cupDepositAmount,
             finalAmount,
             deliveryDestination,
             schedule,
@@ -296,13 +313,21 @@ public class Order {
         return this.totalDiscountAmount;
     }
 
-    /** 배달팁. 이 도메인에서 {@code finalAmount}에 유일하게 가산되는 항목이다. */
+    /** 배달팁. {@code finalAmount} 가산 항목으로 일회용컵 보증금과 함께 둘뿐이다. */
     public Integer getDeliveryTipAmount() {
         return this.deliveryTipAmount;
     }
 
     public Integer getFinalAmount() {
         return this.finalAmount;
+    }
+
+    /**
+     * 일회용컵 보증금 합계. 비과세이며 점주 매출·중개이용료·최소주문금액 산정에서 제외된다.
+     * {@code finalAmount}에만 가산된다.
+     */
+    public Integer getCupDepositAmount() {
+        return this.cupDepositAmount;
     }
 
     /**
@@ -429,6 +454,7 @@ public class Order {
         Integer pointDiscountAmount,
         Integer totalDiscountAmount,
         Integer deliveryTipAmount,
+        Integer cupDepositAmount,
         Integer finalAmount,
         OrderDeliveryDestination deliveryDestination,
         OrderSchedule schedule,
@@ -441,6 +467,7 @@ public class Order {
         int normalizedPointDiscount = orZero(pointDiscountAmount);
         int normalizedTotalDiscount = orZero(totalDiscountAmount);
         int normalizedDeliveryTip = orZero(deliveryTipAmount);
+        int normalizedCupDeposit = orZero(cupDepositAmount);
         int normalizedFinalAmount = orZero(finalAmount);
         int normalizedUsedPoint = orZero(usedPoint);
 
@@ -451,6 +478,7 @@ public class Order {
             normalizedPointDiscount,
             normalizedTotalDiscount,
             normalizedDeliveryTip,
+            normalizedCupDeposit,
             normalizedFinalAmount,
             normalizedUsedPoint
         );
@@ -461,6 +489,7 @@ public class Order {
         this.pointDiscountAmount = normalizedPointDiscount;
         this.totalDiscountAmount = normalizedTotalDiscount;
         this.deliveryTipAmount = normalizedDeliveryTip;
+        this.cupDepositAmount = normalizedCupDeposit;
         this.finalAmount = normalizedFinalAmount;
         this.deliveryDestination = deliveryDestination != null ? deliveryDestination : OrderDeliveryDestination.none();
         this.schedule = schedule != null ? schedule : OrderSchedule.none();
@@ -485,12 +514,13 @@ public class Order {
         int pointDiscountAmount,
         int totalDiscountAmount,
         int deliveryTipAmount,
+        int cupDepositAmount,
         int finalAmount,
         int usedPoint
     ) {
         if (totalProductAmount < 0 || productDiscountAmount < 0 || couponDiscountAmount < 0
             || pointDiscountAmount < 0 || totalDiscountAmount < 0 || deliveryTipAmount < 0
-            || finalAmount < 0 || usedPoint < 0) {
+            || cupDepositAmount < 0 || finalAmount < 0 || usedPoint < 0) {
             throw new BusinessException(ErrorCode.ORDER_AMOUNT_NEGATIVE);
         }
 
@@ -501,14 +531,17 @@ public class Order {
                     + " 총 할인: " + totalDiscountAmount + ", 항목 합: " + discountSum);
         }
 
-        // 배달팁은 이 코드베이스에서 유일하게 finalAmount에 '더해지는' 항목이다.
-        // 기존 행은 delivery_tip_amount = 0이라 식이 '+0'으로 그대로 성립한다(기존 데이터 무손상).
-        int expectedFinal = totalProductAmount - totalDiscountAmount + deliveryTipAmount;
+        // finalAmount에 '더해지는' 항목은 배달팁과 일회용컵 보증금 <b>둘</b>이다.
+        // 두 항목 모두 기존 행이 0이라 식이 '+0'으로 그대로 성립한다(기존 데이터 무손상).
+        //
+        // 보증금이 totalProductAmount가 아니라 여기에만 더해지는 것이 핵심이다 — 상품 금액에 섞으면
+        // 최소주문금액·쿠폰·포인트 기준액까지 오염된다(cupDepositAmount 필드 주석 참조).
+        int expectedFinal = totalProductAmount - totalDiscountAmount + deliveryTipAmount + cupDepositAmount;
         if (finalAmount != expectedFinal) {
             throw new BusinessException(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT,
                 ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT.getDefaultMessage()
                     + " 결제 금액: " + finalAmount
-                    + ", 상품 금액 - 총 할인 + 배달팁: " + expectedFinal);
+                    + ", 상품 금액 - 총 할인 + 배달팁 + 보증금: " + expectedFinal);
         }
     }
 

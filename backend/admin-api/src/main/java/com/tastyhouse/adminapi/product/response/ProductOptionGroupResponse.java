@@ -30,6 +30,10 @@ public record ProductOptionGroupResponse(
     @Schema(description = "공통 옵션그룹 여부(여러 상품 공유)", example = "false")
     boolean common,
 
+    @Schema(description = "옵션그룹 유형. CUP_DEPOSIT은 일회용컵 보증금 그룹입니다.",
+        example = "NORMAL", allowableValues = {"NORMAL", "CUP_DEPOSIT"})
+    String groupType,
+
     @Schema(description = "옵션 목록")
     List<ProductOptionResponse> options
 ) {
@@ -42,6 +46,7 @@ public record ProductOptionGroupResponse(
         Integer minSelect,
         Integer maxSelect,
         boolean common,
+        String groupType,
         List<ProductOptionResponse> options
     ) {
         return new ProductOptionGroupResponse(
@@ -53,6 +58,7 @@ public record ProductOptionGroupResponse(
             minSelect,
             maxSelect,
             common,
+            groupType,
             options
         );
     }

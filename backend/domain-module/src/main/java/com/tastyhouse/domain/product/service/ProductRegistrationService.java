@@ -10,6 +10,7 @@ import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
@@ -209,7 +210,8 @@ public class ProductRegistrationService {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        boolean visible
+        boolean visible,
+        ProductOptionGroupType groupType
     ) {
         int resolvedSort = sort != null
             ? sort
@@ -223,7 +225,8 @@ public class ProductRegistrationService {
             minSelect,
             maxSelect,
             resolvedSort,
-            visible
+            visible,
+            groupType
         );
         ProductOptionGroup saved = productOptionGroupRepository.save(group);
         linkOptionGroup(productId, saved.getProductOptionGroupId(), resolvedSort);
@@ -256,9 +259,21 @@ public class ProductRegistrationService {
         Integer additionalPrice,
         Integer sort,
         boolean soldOut,
-        boolean visible
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
-        ProductOption option = ProductOption.of(optionGroupId, name, additionalPrice, sort, soldOut, null, visible);
+        ProductOption option = ProductOption.of(
+            optionGroupId,
+            name,
+            additionalPrice,
+            sort,
+            soldOut,
+            null,
+            visible,
+            cupCount,
+            personalCupDiscountAmount
+        );
         ProductOption saved = productOptionRepository.save(option);
         return saved.getId();
     }

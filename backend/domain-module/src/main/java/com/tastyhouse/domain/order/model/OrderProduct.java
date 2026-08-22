@@ -25,6 +25,14 @@ public class OrderProduct {
     private final Integer discountPrice; // 할인가
     private Integer totalOptionPrice; // 옵션 금액 합계
     private Integer totalPrice; // 상품 총 금액
+    /**
+     * 이 라인의 일회용컵 보증금 합계(수량 반영).
+     *
+     * <p><b>{@code totalOptionPrice}·{@code totalPrice}에는 포함되지 않는다.</b> 포함하면 그 값이
+     * 주문 전체의 {@code totalProductAmount}로 흘러들어 최소주문금액·쿠폰·포인트 기준액까지 오염된다
+     * ({@code Order.cupDepositAmount} 주석 참조).
+     */
+    private Integer cupDepositAmount;
 
     private OrderProduct(
         Long id,
@@ -36,7 +44,8 @@ public class OrderProduct {
         Integer originalPrice,
         Integer discountPrice,
         Integer totalOptionPrice,
-        Integer totalPrice
+        Integer totalPrice,
+        Integer cupDepositAmount
     ) {
         this.id = id;
         this.orderId = orderId;
@@ -48,6 +57,7 @@ public class OrderProduct {
         this.discountPrice = discountPrice;
         this.totalOptionPrice = totalOptionPrice;
         this.totalPrice = totalPrice;
+        this.cupDepositAmount = cupDepositAmount != null ? cupDepositAmount : 0;
     }
 
     /**
@@ -62,7 +72,8 @@ public class OrderProduct {
         Integer originalPrice,
         Integer discountPrice,
         Integer totalOptionPrice,
-        Integer totalPrice
+        Integer totalPrice,
+        Integer cupDepositAmount
     ) {
         return new OrderProduct(
             null,
@@ -74,7 +85,8 @@ public class OrderProduct {
             originalPrice != null ? originalPrice : 0,
             discountPrice,
             totalOptionPrice != null ? totalOptionPrice : 0,
-            totalPrice != null ? totalPrice : 0
+            totalPrice != null ? totalPrice : 0,
+            cupDepositAmount != null ? cupDepositAmount : 0
         );
     }
 
@@ -92,7 +104,8 @@ public class OrderProduct {
         Integer originalPrice,
         Integer discountPrice,
         Integer totalOptionPrice,
-        Integer totalPrice
+        Integer totalPrice,
+        Integer cupDepositAmount
     ) {
         return new OrderProduct(
             id,
@@ -104,13 +117,26 @@ public class OrderProduct {
             originalPrice,
             discountPrice,
             totalOptionPrice,
-            totalPrice
+            totalPrice,
+            cupDepositAmount
         );
     }
 
-    public void updatePrices(Integer totalOptionPrice, Integer totalPrice) {
+    /**
+     * 확정된 라인 금액을 반영한다.
+     *
+     * <p>{@code cupDepositAmount}를 함께 받되 {@code totalPrice}와 <b>분리해서</b> 저장한다 —
+     * 필드 주석대로 보증금이 상품 금액에 섞이면 최소주문금액·쿠폰·포인트 기준액이 오염된다.
+     */
+    public void updatePrices(Integer totalOptionPrice, Integer totalPrice, Integer cupDepositAmount) {
         this.totalOptionPrice = totalOptionPrice;
         this.totalPrice = totalPrice;
+        this.cupDepositAmount = cupDepositAmount != null ? cupDepositAmount : 0;
+    }
+
+    /** 이 라인의 보증금 합계. {@code totalPrice}에 포함되지 않는 별도 항목이다. */
+    public Integer getCupDepositAmount() {
+        return this.cupDepositAmount;
     }
 
     public Long getId() {

@@ -13,20 +13,37 @@ public record OrderProductOptionResponse(
     @Schema(description = "옵션명", example = "매운맛")
     String optionName,
 
-    @Schema(description = "추가 금액", example = "1000")
-    Integer additionalPrice
+    @Schema(description = "추가 금액. 보증금은 여기 포함되지 않는 별도 항목이다.", example = "1000")
+    Integer additionalPrice,
+
+    @Schema(description = "주문 시점 옵션그룹 유형 스냅샷", example = "NORMAL",
+        allowableValues = {"NORMAL", "CUP_DEPOSIT"})
+    String optionGroupType,
+
+    @Schema(description = "주문 시점 일회용컵 제공 개수 스냅샷", example = "1")
+    Integer cupCount,
+
+    @Schema(description = "주문 시점 일회용컵 보증금 금액 스냅샷. 비과세이며 반납 시 환급 대상이다.",
+        example = "300")
+    Integer depositAmount
 ) {
     public static OrderProductOptionResponse from(
         Long id,
         String optionGroupName,
         String optionName,
-        Integer additionalPrice
+        Integer additionalPrice,
+        String optionGroupType,
+        Integer cupCount,
+        Integer depositAmount
     ) {
         return new OrderProductOptionResponse(
             id,
             optionGroupName,
             optionName,
-            additionalPrice
+            additionalPrice,
+            optionGroupType,
+            cupCount,
+            depositAmount
         );
     }
 }

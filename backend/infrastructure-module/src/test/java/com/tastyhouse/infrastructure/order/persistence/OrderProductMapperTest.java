@@ -36,7 +36,8 @@ class OrderProductMapperTest {
             10000,
             null,
             0,
-            10000
+            10000,
+            0 // cupDepositAmount: 보증금 옵션 없음
         );
 
         OrderProduct domain = OrderProductMapper.toDomain(entity);
@@ -56,7 +57,8 @@ class OrderProductMapperTest {
             10000,
             null,
             0,
-            10000
+            10000,
+            0 // cupDepositAmount: 보증금 옵션 없음
         );
 
         OrderProductJpaEntity entity = OrderProductMapper.toEntity(domain);
@@ -76,7 +78,8 @@ class OrderProductMapperTest {
             10000,
             null,
             0,
-            10000
+            10000,
+            0 // cupDepositAmount: 보증금 옵션 없음
         );
 
         OrderProductJpaEntity entity = OrderProductMapper.toEntity(domain);

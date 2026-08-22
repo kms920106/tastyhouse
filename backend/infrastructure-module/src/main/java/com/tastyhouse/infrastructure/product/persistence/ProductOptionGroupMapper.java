@@ -26,7 +26,8 @@ final class ProductOptionGroupMapper {
             entity.getMinSelect(),
             entity.getMaxSelect(),
             entity.getSort(),
-            entity.isVisible()
+            entity.isVisible(),
+            entity.getGroupType()
         );
     }
 
@@ -43,7 +44,8 @@ final class ProductOptionGroupMapper {
             domain.getMinSelect(),
             domain.getMaxSelect(),
             domain.getSort(),
-            domain.isVisible()
+            domain.isVisible(),
+            domain.getGroupType()
         );
     }
 

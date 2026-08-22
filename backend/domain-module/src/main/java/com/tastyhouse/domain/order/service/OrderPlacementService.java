@@ -171,7 +171,7 @@ public class OrderPlacementService {
             orderer.fullName(),
             orderer.phoneNumber(),
             orderer.username(),
-            0, 0, 0, 0, 0, 0, 0, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0
         );
         Order savedOrder = orderRepository.save(order);
 
@@ -179,6 +179,7 @@ public class OrderPlacementService {
 
         int totalProductAmount = 0;
         int productDiscountAmount = 0;
+        int cupDepositAmount = 0;
 
         for (OrderProductSnapshot snapshot : snapshots) {
             OrderProduct orderProduct = OrderProduct.of(
@@ -189,23 +190,30 @@ public class OrderPlacementService {
                 snapshot.quantity(),
                 snapshot.originalPrice(),
                 snapshot.discountPrice(),
-                0, 0
+                0, 0, 0
             );
             OrderProduct savedOrderProduct = orderProductRepository.save(orderProduct);
 
-            int totalOptionPrice = saveSelectedOptions(savedOrderProduct, snapshot);
+            OrderLineOptionAmounts optionAmounts = saveSelectedOptions(savedOrderProduct, snapshot);
+            int totalOptionPrice = optionAmounts.totalOptionPrice();
 
             int itemTotal = (snapshot.effectivePrice() + totalOptionPrice) * snapshot.quantity();
             int itemDiscount = snapshot.discountPrice() != null
                 ? (snapshot.originalPrice() - snapshot.discountPrice()) * snapshot.quantity()
                 : 0;
+            // 보증금은 컵 개수 × 요율이므로 수량만큼 곱해진다(2잔 주문이면 컵도 2개).
+            int itemDeposit = optionAmounts.totalDepositAmount() * snapshot.quantity();
+            // 개인컵 할인은 보증금 축이 아니라 상품 할인 축이다 — productDiscountAmount에 가산해야
+            // totalDiscountAmount 불변식과 최소주문금액 기준이 그대로 유지되고 매출 차감으로 반영된다.
+            int itemPersonalCupDiscount = optionAmounts.totalPersonalCupDiscount() * snapshot.quantity();
 
-            savedOrderProduct.updatePrices(totalOptionPrice, itemTotal);
+            savedOrderProduct.updatePrices(totalOptionPrice, itemTotal, itemDeposit);
             orderProductRepository.save(savedOrderProduct);
 
             totalProductAmount += snapshot.originalPrice() * snapshot.quantity()
                 + totalOptionPrice * snapshot.quantity();
-            productDiscountAmount += itemDiscount;
+            productDiscountAmount += itemDiscount + itemPersonalCupDiscount;
+            cupDepositAmount += itemDeposit;
         }
 
         int orderAmountAfterProductDiscount = totalProductAmount - productDiscountAmount;
@@ -236,14 +244,16 @@ public class OrderPlacementService {
         }
 
         int totalDiscountAmount = productDiscountAmount + couponDiscountAmount + pointDiscountAmount;
-        // 배달팁은 이 도메인에서 유일하게 더해지는 금액 항목이다(나머지는 전부 차감).
-        int finalAmount = totalProductAmount - totalDiscountAmount + deliveryTipAmount;
+        // finalAmount에 더해지는 항목은 배달팁과 일회용컵 보증금 둘뿐이다(나머지는 전부 차감).
+        // 보증금이 totalProductAmount에 들어가지 않으므로, 위 최소주문금액 판정과 쿠폰·포인트 기준액은
+        // 보증금과 무관하게 유지된다 — 이 요구사항의 핵심 구조다.
+        int finalAmount = totalProductAmount - totalDiscountAmount + deliveryTipAmount + cupDepositAmount;
 
         validateAmounts(placement, totalProductAmount, totalDiscountAmount, productDiscountAmount,
-            couponDiscountAmount, pointDiscountAmount, deliveryTipAmount, finalAmount);
+            couponDiscountAmount, pointDiscountAmount, deliveryTipAmount, cupDepositAmount, finalAmount);
 
         savedOrder.updateAmounts(totalProductAmount, productDiscountAmount, couponDiscountAmount,
-            pointDiscountAmount, totalDiscountAmount, deliveryTipAmount, finalAmount,
+            pointDiscountAmount, totalDiscountAmount, deliveryTipAmount, cupDepositAmount, finalAmount,
             deliveryTip.destination(), schedule, memberCouponId, pointDiscountAmount);
         orderRepository.save(savedOrder);
 
@@ -367,8 +377,13 @@ public class OrderPlacementService {
      * <p>옵션 존재 검증은 이미 product 컨텍스트가 끝냈으므로, 여기서는 <b>주문 당시 값으로 박제</b>된
      * 스냅샷을 저장하기만 한다.
      */
-    private int saveSelectedOptions(OrderProduct savedOrderProduct, OrderProductSnapshot snapshot) {
+    private OrderLineOptionAmounts saveSelectedOptions(
+        OrderProduct savedOrderProduct,
+        OrderProductSnapshot snapshot
+    ) {
         int totalOptionPrice = 0;
+        int totalDepositAmount = 0;
+        int totalPersonalCupDiscount = 0;
         for (OrderProductOptionSnapshot option : snapshot.options()) {
             orderProductOptionRepository.save(OrderProductOption.of(
                 savedOrderProduct.getOrderProductId(),
@@ -376,12 +391,17 @@ public class OrderPlacementService {
                 option.optionGroupName(),
                 option.optionId(),
                 option.optionName(),
-                option.additionalPrice()
+                option.additionalPrice(),
+                option.optionGroupType(),
+                option.cupCount(),
+                option.depositAmount()
             ));
 
             totalOptionPrice += option.additionalPrice();
+            totalDepositAmount += option.depositAmount();
+            totalPersonalCupDiscount += option.personalCupDiscountAmount();
         }
-        return totalOptionPrice;
+        return new OrderLineOptionAmounts(totalOptionPrice, totalDepositAmount, totalPersonalCupDiscount);
     }
 
     /**
@@ -395,6 +415,7 @@ public class OrderPlacementService {
         int couponDiscountAmount,
         int pointDiscountAmount,
         int deliveryTipAmount,
+        int cupDepositAmount,
         int finalAmount
     ) {
         if (!placement.totalProductAmount().equals(totalProductAmount)) {
@@ -421,10 +442,22 @@ public class OrderPlacementService {
             throw new BusinessException(ErrorCode.ORDER_DELIVERY_TIP_AMOUNT_MISMATCH,
                 ErrorCode.ORDER_DELIVERY_TIP_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.deliveryTipAmount() + ", 계산: " + deliveryTipAmount);
         }
+        // 보증금 위조 대조 — 클라이언트가 보낸 값과 서버가 옵션의 cupCount로 계산한 값을 맞춘다.
+        // 프론트가 0을 보내는 동안에는 보증금 옵션을 고르지 않은 주문만 통과하므로 배포 순서와 독립이다.
+        if (!orZero(placement.cupDepositAmount()).equals(cupDepositAmount)) {
+            throw new BusinessException(ErrorCode.ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH,
+                ErrorCode.ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH.getDefaultMessage()
+                    + " 요청: " + placement.cupDepositAmount() + ", 계산: " + cupDepositAmount);
+        }
         if (!placement.finalAmount().equals(finalAmount)) {
             throw new BusinessException(ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH,
                 ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.finalAmount() + ", 계산: " + finalAmount);
         }
+    }
+
+    /** {@code null}을 0으로 본다 — 보증금 필드를 아직 보내지 않는 클라이언트와의 호환을 위해서다. */
+    private static Integer orZero(Integer value) {
+        return value != null ? value : 0;
     }
 
     /**

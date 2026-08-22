@@ -66,7 +66,7 @@ class OrderProductResultTest {
     void preservesSnapshotFieldsAndAttachesOptions() {
         OrderProductResult projected = projectedWithImage(STORED_PATH);
         List<OrderProductOptionResult> options = List.of(
-            new OrderProductOptionResult(1L, 10L, "맵기", "아주 맵게", 500)
+            new OrderProductOptionResult(1L, 10L, "맵기", "아주 맵게", 500, "NORMAL", null, 0)
         );
 
         OrderProductResult reassembled = projected.withResolvedImageUrl(

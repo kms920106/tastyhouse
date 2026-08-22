@@ -5,14 +5,23 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
+import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
+import com.tastyhouse.domain.product.repository.ProductRepository;
+import com.tastyhouse.domain.product.service.CupDepositOptionRule;
+import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
@@ -26,8 +35,22 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 public class ProductCommandService {
 
     private final ProductRegistrationService productRegistrationService;
+    private final ProductRepository productRepository;
+    private final ProductOptionGroupRepository productOptionGroupRepository;
+    private final ShopRepository shopRepository;
+    private final CupDepositPolicy cupDepositPolicy;
 
-    public ProductCommandService(ProductRegistrationService productRegistrationService) {
+    public ProductCommandService(
+        ProductRegistrationService productRegistrationService,
+        ProductRepository productRepository,
+        ProductOptionGroupRepository productOptionGroupRepository,
+        ShopRepository shopRepository,
+        CupDepositPolicy cupDepositPolicy
+    ) {
+        this.productRepository = productRepository;
+        this.productOptionGroupRepository = productOptionGroupRepository;
+        this.shopRepository = shopRepository;
+        this.cupDepositPolicy = cupDepositPolicy;
         this.productRegistrationService = productRegistrationService;
     }
 
@@ -119,8 +142,19 @@ public class ProductCommandService {
         Integer minSelect,
         Integer maxSelect,
         Integer sort,
-        boolean visible
+        boolean visible,
+        String groupType
     ) {
+        ProductOptionGroupType resolvedGroupType = ProductOptionGroupType.from(groupType);
+        // 관리자 경로에도 같은 게이트를 적용한다 — 관리자가 대상 사업자 플래그를 먼저 켠 뒤 만들도록
+        // 강제해야, 규제 대상이 아닌 가게에 보증금 옵션이 생기는 경로가 남지 않는다.
+        if (resolvedGroupType.isCupDeposit()) {
+            loadShopOf(ProductId.of(id)).validateCupDepositEnabled();
+        }
+        CupDepositOptionRule.validateDepositGroupSelectRange(
+            resolvedGroupType, required, multipleSelect, minSelect, maxSelect
+        );
+
         ProductOptionGroup optionGroup = productRegistrationService.saveProductOptionGroup(
             ProductId.of(id),
             name,
@@ -130,9 +164,18 @@ public class ProductCommandService {
             minSelect,
             maxSelect,
             sort,
-            visible
+            visible,
+            resolvedGroupType
         );
         return optionGroup.getId();
+    }
+
+    /** 보증금 대상 사업자 검증을 위해 메뉴가 속한 가게를 로드한다. */
+    private Shop loadShopOf(ProductId productId) {
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+        return shopRepository.findById(product.getShopId())
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
     public Long createProductOption(
@@ -141,10 +184,26 @@ public class ProductCommandService {
         Integer additionalPrice,
         Integer sort,
         boolean soldOut,
-        boolean visible
+        boolean visible,
+        Integer cupCount,
+        Integer personalCupDiscountAmount
     ) {
+        ProductOptionGroup optionGroup = productOptionGroupRepository
+            .findById(ProductOptionGroupId.of(groupId))
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
+        CupDepositOptionRule.validateOptionValues(
+            optionGroup, additionalPrice, cupCount, personalCupDiscountAmount, cupDepositPolicy
+        );
+
         return productRegistrationService.saveProductOption(
-            ProductOptionGroupId.of(groupId), name, additionalPrice, sort, soldOut, visible
+            ProductOptionGroupId.of(groupId),
+            name,
+            additionalPrice,
+            sort,
+            soldOut,
+            visible,
+            cupCount,
+            personalCupDiscountAmount
         );
     }
 

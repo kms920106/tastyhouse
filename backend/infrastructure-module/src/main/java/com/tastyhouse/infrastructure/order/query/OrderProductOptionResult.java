@@ -10,7 +10,10 @@ public record OrderProductOptionResult(
     Long orderProductOptionId,
     String optionGroupName,
     String optionName,
-    Integer additionalPrice
+    Integer additionalPrice,
+    String optionGroupType,
+    Integer cupCount,
+    Integer depositAmount
 ) {
     @QueryProjection
     public OrderProductOptionResult {

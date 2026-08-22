@@ -45,6 +45,17 @@ public class Shop {
     private boolean closedOnPublicHolidays; // 공휴일 휴무 여부 (true: 공휴일 휴무)
     private int minOrderAmount; // 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
     private boolean scheduledOrderEnabled; // 예약주문 운영 여부 (true: 고객이 수령시간을 예약할 수 있음)
+    /**
+     * 일회용컵 보증금제 <b>대상 사업자</b> 여부.
+     *
+     * <p>이것은 점주의 영업 설정이 아니라 <b>외부 규제 사실</b>이다 — 환경부·자원순환보증금관리센터가
+     * 지역(제주·세종)과 사업자 규모로 지정하며, 지정·해제가 운영 이벤트로 발생한다. 그래서 점주가
+     * 스스로 켤 수 없고 <b>admin만 토글</b>한다.
+     *
+     * <p>주소 문자열로 지역을 파싱해 판정하지 않는 이유도 같다 — 같은 지역이어도 지정 사업자가 아닐 수
+     * 있고, 지정 여부는 주소에서 도출되는 값이 아니다.
+     */
+    private boolean cupDepositEnabled;
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
     private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
@@ -66,6 +77,7 @@ public class Shop {
         boolean closedOnPublicHolidays,
         int minOrderAmount,
         boolean scheduledOrderEnabled,
+        boolean cupDepositEnabled,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -86,6 +98,7 @@ public class Shop {
         this.closedOnPublicHolidays = closedOnPublicHolidays;
         this.minOrderAmount = minOrderAmount;
         this.scheduledOrderEnabled = scheduledOrderEnabled;
+        this.cupDepositEnabled = cupDepositEnabled;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -96,6 +109,9 @@ public class Shop {
      * <p>최소주문금액은 {@link #MIN_ORDER_AMOUNT_UNSET}(미설정)으로 시작한다 — 관리자의 가게 등록 화면은
      * 이 값을 다루지 않고, 점주가 {@link #changeMinOrderAmount(int)}로 직접 설정한다. 예약주문도 같은
      * 이유로 미운영({@code false})으로 시작하고 점주가 {@link #changeScheduledOrderEnabled(boolean)}로 켠다.
+     *
+     * <p>일회용컵 보증금제 대상 여부도 <b>미지정({@code false})</b>으로 시작한다 — 외부 규제 사실이므로
+     * 가게 등록 시점에 알 수 없고, 지정되면 관리자가 {@link #changeCupDepositEnabled(boolean)}로 켠다.
      */
     public static Shop of(
         StationId stationId,
@@ -125,6 +141,7 @@ public class Shop {
             false,
             MIN_ORDER_AMOUNT_UNSET,
             false,
+            false,
             null,
             null
         );
@@ -152,6 +169,7 @@ public class Shop {
         boolean closedOnPublicHolidays,
         int minOrderAmount,
         boolean scheduledOrderEnabled,
+        boolean cupDepositEnabled,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -173,6 +191,7 @@ public class Shop {
             closedOnPublicHolidays,
             minOrderAmount,
             scheduledOrderEnabled,
+            cupDepositEnabled,
             createdAt,
             updatedAt
         );
@@ -300,6 +319,36 @@ public class Shop {
     }
 
     /**
+     * 일회용컵 보증금제 대상 사업자 지정/해제를 반영한다. <b>admin 전용</b>이다.
+     *
+     * <p>점주가 스스로 켤 수 없는 이유는 이것이 영업 설정이 아니라 외부 규제 사실이기 때문이다
+     * (필드 주석 참조). 폐업한 가게는 다른 설정과 마찬가지로 변경할 수 없다.
+     */
+    public void changeCupDepositEnabled(boolean cupDepositEnabled) {
+        validateNotPermanentlyClosed();
+
+        this.cupDepositEnabled = cupDepositEnabled;
+    }
+
+    /** 일회용컵 보증금 옵션그룹을 <b>새로 만들 수</b> 있는 가게인가. */
+    public boolean canUseCupDeposit() {
+        return this.cupDepositEnabled;
+    }
+
+    /**
+     * 보증금 옵션그룹 <b>생성</b> 자격을 검증한다.
+     *
+     * <p><b>게이트는 생성 경로에만 둔다</b> — 이미 만들어진 보증금 옵션그룹은 지정이 해제돼도 조회·주문이
+     * 계속 동작해야 한다. 규제 해제는 "즉시 무효"가 아니라 유예를 두고 정리되는 사건이고, 조회 경로까지
+     * 막으면 진행 중인 주문의 금액 계산이 도중에 달라진다.
+     */
+    public void validateCupDepositEnabled() {
+        if (!this.cupDepositEnabled) {
+            throw new BusinessException(ErrorCode.SHOP_CUP_DEPOSIT_NOT_ENABLED);
+        }
+    }
+
+    /**
      * 배민앱에서 가게를 완전히 숨긴다(노출정지).
      */
     public void hide() {
@@ -396,6 +445,10 @@ public class Shop {
 
     public boolean isClosedOnPublicHolidays() {
         return this.closedOnPublicHolidays;
+    }
+
+    public boolean isCupDepositEnabled() {
+        return this.cupDepositEnabled;
     }
 
     public int getMinOrderAmount() {

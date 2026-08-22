@@ -33,6 +33,7 @@ import com.tastyhouse.adminapi.shop.request.ShopChoiceCreateRequest;
 import com.tastyhouse.adminapi.shop.request.ShopChoiceSaveRequest;
 import com.tastyhouse.adminapi.shop.request.ShopClosedDaySaveRequest;
 import com.tastyhouse.adminapi.shop.request.ShopCreateRequest;
+import com.tastyhouse.adminapi.shop.request.ShopCupDepositRequest;
 import com.tastyhouse.adminapi.shop.request.ShopFoodTypeAssignRequest;
 import com.tastyhouse.adminapi.shop.request.ShopFoodTypeCategoryCreateRequest;
 import com.tastyhouse.adminapi.shop.request.ShopFoodTypeCategoryUpdateRequest;
@@ -169,6 +170,19 @@ public class ShopApiController {
     @PatchMapping("/v1/{id}/close")
     public ResponseEntity<ApiResponse<Void>> closeShop(@PathVariable Long id) {
         shopCommandService.closeShop(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @Operation(summary = "일회용컵 보증금제 대상 사업자 지정/해제",
+        description = "환경부·자원순환보증금관리센터가 지정하는 외부 규제 사실을 반영합니다. 점주는 "
+            + "변경할 수 없습니다. 켜야 그 가게가 보증금 옵션그룹을 만들 수 있으며, 끄더라도 이미 만들어진 "
+            + "보증금 옵션그룹의 조회·주문은 계속 동작합니다(지정 해제 시 유예).")
+    @PatchMapping("/v1/{id}/cup-deposit")
+    public ResponseEntity<ApiResponse<Void>> changeCupDepositEnabled(
+        @PathVariable Long id,
+        @Valid @RequestBody ShopCupDepositRequest request
+    ) {
+        shopCommandService.changeCupDepositEnabled(id, request.enabled());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

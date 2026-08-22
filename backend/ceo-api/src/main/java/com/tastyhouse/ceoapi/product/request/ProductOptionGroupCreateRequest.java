@@ -51,6 +51,12 @@ public record ProductOptionGroupCreateRequest(
 
     @Min(value = 0, message = "최대 선택 개수는 0 이상이어야 합니다.")
     @Schema(description = "최대 선택 개수. null이면 미지정(무제한)", example = "3")
-    Integer maxSelect
+    Integer maxSelect,
+
+    @Schema(description = "옵션그룹 유형. 미지정이면 NORMAL입니다. CUP_DEPOSIT은 일회용컵 보증금제 "
+        + "대상 가게(cupDepositEnabled=true)만 만들 수 있고, 필수 선택 불가·minSelect=0·maxSelect=1·"
+        + "multipleSelect=false로 고정됩니다.",
+        example = "NORMAL", allowableValues = {"NORMAL", "CUP_DEPOSIT"})
+    String groupType
 ) {
 }

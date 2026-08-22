@@ -18,7 +18,8 @@ class ProductOptionGroupTest {
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)다")
     void of_createsTransientOptionGroup() {
         ProductOptionGroup group = ProductOptionGroup.of(
-            ProductId.of(1L), "맵기 선택", "매운 정도를 선택하세요", true, false, 1, 1, 1, true
+            ProductId.of(1L), "맵기 선택", "매운 정도를 선택하세요", true, false, 1, 1, 1, true,
+            ProductOptionGroupType.NORMAL
         );
 
         assertThat(group.getId()).isNull();
@@ -34,7 +35,8 @@ class ProductOptionGroupTest {
     @DisplayName("update는 그룹 정보를 변경한다")
     void update_changesFields() {
         ProductOptionGroup group = ProductOptionGroup.of(
-            ProductId.of(1L), "맵기 선택", "매운 정도를 선택하세요", true, false, 1, 1, 1, true
+            ProductId.of(1L), "맵기 선택", "매운 정도를 선택하세요", true, false, 1, 1, 1, true,
+            ProductOptionGroupType.NORMAL
         );
 
         group.update("토핑 선택", "추가 토핑을 선택하세요", false, true, 0, 3, 2, false);
@@ -53,7 +55,8 @@ class ProductOptionGroupTest {
     @DisplayName("reconstitute는 DB 상태로부터 식별자를 포함해 재구성한다")
     void reconstitute_restoresPersistedState() {
         ProductOptionGroup group = ProductOptionGroup.reconstitute(
-            1L, ProductId.of(10L), "맵기 선택", "매운 정도를 선택하세요", true, false, 1, 1, 1, true
+            1L, ProductId.of(10L), "맵기 선택", "매운 정도를 선택하세요", true, false, 1, 1, 1, true,
+            ProductOptionGroupType.NORMAL
         );
 
         assertThat(group.getId()).isEqualTo(1L);
@@ -64,7 +67,8 @@ class ProductOptionGroupTest {
     @DisplayName("미영속 상태에서 getProductOptionGroupId를 호출하면 불변식 위반으로 예외가 발생한다")
     void getProductOptionGroupId_onTransient_throws() {
         ProductOptionGroup group = ProductOptionGroup.of(
-            ProductId.of(1L), "맵기 선택", "매운 정도를 선택하세요", true, false, 1, 1, 1, true
+            ProductId.of(1L), "맵기 선택", "매운 정도를 선택하세요", true, false, 1, 1, 1, true,
+            ProductOptionGroupType.NORMAL
         );
 
         assertThatThrownBy(group::getProductOptionGroupId)

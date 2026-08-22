@@ -45,6 +45,27 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
     @Column(name = "additional_price", nullable = false)
     private Integer additionalPrice; // 옵션 추가 금액
 
+    /**
+     * 주문 시점 옵션그룹 유형 스냅샷({@code NORMAL} / {@code CUP_DEPOSIT}).
+     *
+     * <p>도메인 enum이 아니라 {@code String}으로 매핑한다 — 이 값은 <b>주문 시점의 사실</b>을 박제한
+     * 것이라, 나중에 유형 enum에 상수가 추가되거나 이름이 바뀌어도 과거 주문의 기록이 흔들리면 안 된다.
+     * enum으로 매핑하면 알 수 없는 값에서 로드가 실패한다.
+     */
+    @Column(name = "option_group_type", nullable = false, length = 20)
+    private String optionGroupType;
+
+    /** 주문 시점 일회용컵 제공 개수 스냅샷. 환급 단위가 컵 개수라 금액만으로는 대체할 수 없다. */
+    @Column(name = "cup_count")
+    private Integer cupCount;
+
+    /**
+     * 주문 시점 보증금 금액 스냅샷(= {@code cup_count} × 당시 요율).
+     * {@code additional_price}와 <b>별도 항목</b>이다 — 합치면 비과세 분리가 영구히 불가능해진다.
+     */
+    @Column(name = "deposit_amount", nullable = false)
+    private Integer depositAmount;
+
     protected OrderProductOptionJpaEntity() {
     }
 
@@ -54,7 +75,10 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
         String optionGroupName,
         Long optionId,
         String optionName,
-        Integer additionalPrice
+        Integer additionalPrice,
+        String optionGroupType,
+        Integer cupCount,
+        Integer depositAmount
     ) {
         this.orderProductId = orderProductId;
         this.optionGroupId = optionGroupId;
@@ -62,6 +86,9 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
         this.optionId = optionId;
         this.optionName = optionName;
         this.additionalPrice = additionalPrice;
+        this.optionGroupType = optionGroupType;
+        this.cupCount = cupCount;
+        this.depositAmount = depositAmount;
     }
 
     /**
@@ -73,7 +100,10 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
         String optionGroupName,
         Long optionId,
         String optionName,
-        Integer additionalPrice
+        Integer additionalPrice,
+        String optionGroupType,
+        Integer cupCount,
+        Integer depositAmount
     ) {
         return new OrderProductOptionJpaEntity(
             orderProductId,
@@ -81,7 +111,10 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
             optionGroupName,
             optionId,
             optionName,
-            additionalPrice
+            additionalPrice,
+            optionGroupType,
+            cupCount,
+            depositAmount
         );
     }
 
@@ -95,5 +128,13 @@ public class OrderProductOptionJpaEntity extends BaseEntity {
 
     public Integer getAdditionalPrice() {
         return this.additionalPrice;
+    }
+
+    public Integer getCupCount() {
+        return this.cupCount;
+    }
+
+    public Integer getDepositAmount() {
+        return this.depositAmount;
     }
 }

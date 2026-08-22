@@ -138,6 +138,7 @@ class ShopLifecycleServiceTest {
                 shop.isClosedOnPublicHolidays(),
                 shop.getMinOrderAmount(),
                 shop.isScheduledOrderEnabled(),
+                false,
                 null,
                 null
             );

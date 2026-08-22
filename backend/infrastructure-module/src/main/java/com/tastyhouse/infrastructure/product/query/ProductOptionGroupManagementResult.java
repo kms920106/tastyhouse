@@ -13,6 +13,10 @@ import java.util.List;
  * @param visible 노출 여부. 삭제(감추기)한 그룹은 {@code false}로 내려온다 — 이 목록은 감춘 그룹도
  *     포함하므로(필터를 걸면 되살릴 방법이 없어진다) 화면이 이 값으로 걸러내거나 배지를 붙여야 한다.
  *     이 필드가 없으면 감춘 그룹이 정상 그룹과 구별되지 않아 "삭제했는데 그대로 보인다"가 된다.
+ * @param groupType 옵션그룹 유형({@code NORMAL} / {@code CUP_DEPOSIT}). 보증금 그룹은 화면에서 별도
+ *     섹션으로 그려지고 컵 개수·개인컵 할인 입력을 노출해야 하므로, 목록 단계에서 구분이 필요하다.
+ *     문자열로 담는 이유는 이 record가 표현 계층으로 곧장 흘러가기 때문이다(도메인 enum을 HTTP 경계
+ *     밖으로 노출하지 않는다).
  * @param linkedProductCount 이 그룹이 연결된 메뉴 수. 1이면 마지막 연결이라 해제가
  *     {@code PRODUCT_OPTION_GROUP_LAST_LINK_CANNOT_UNLINK}로 거절되므로, 화면이 미리 안내할 수 있다.
  */
@@ -26,6 +30,7 @@ public record ProductOptionGroupManagementResult(
     Integer maxSelect,
     Integer sort,
     boolean visible,
+    String groupType,
     long linkedProductCount,
     List<ProductOptionManagementResult> options
 ) {

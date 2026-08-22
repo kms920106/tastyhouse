@@ -120,12 +120,21 @@ public class ProductQueryService {
             dto.minSelect(),
             dto.maxSelect(),
             dto.common(),
+            dto.groupType(),
             options
         );
     }
 
     private ProductOptionResponse toOptionResponse(OptionResult dto) {
-        return ProductOptionResponse.from(dto.id(), dto.name(), dto.additionalPrice(), dto.soldOut());
+        return ProductOptionResponse.from(
+            dto.id(),
+            dto.name(),
+            dto.additionalPrice(),
+            dto.soldOut(),
+            dto.cupCount(),
+            dto.depositAmount(),
+            dto.personalCupDiscountAmount()
+        );
     }
 
     public ProductImagesResponse getProductImages(Long id) {

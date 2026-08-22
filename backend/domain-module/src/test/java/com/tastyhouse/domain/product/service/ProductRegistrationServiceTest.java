@@ -15,6 +15,7 @@ import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
@@ -140,8 +141,11 @@ class ProductRegistrationServiceTest {
 
         fixture.service.createProductCategory(SHOP_ID, "치킨", null, 0, true);
         fixture.service.saveProductImage(ProductId.of(PRODUCT_ID), UploadedFileId.of(99L), 0, true);
-        fixture.service.saveProductOptionGroup(ProductId.of(PRODUCT_ID), "맛 선택", null, true, false, 1, 1, 0, true);
-        fixture.service.saveProductOption(ProductOptionGroupId.of(11L), "순살", 2000, 0, false, true);
+        fixture.service.saveProductOptionGroup(
+            ProductId.of(PRODUCT_ID), "맛 선택", null, true, false, 1, 1, 0, true,
+            ProductOptionGroupType.NORMAL
+        );
+        fixture.service.saveProductOption(ProductOptionGroupId.of(11L), "순살", 2000, 0, false, true, null, null);
         fixture.service.saveProductBbq(ProductId.of(PRODUCT_ID), BbqMenuId.of(100L), BbqCategoryId.of(200L), false);
 
         assertThat(fixture.categoryRepository.saved).hasSize(1);
@@ -355,7 +359,8 @@ class ProductRegistrationServiceTest {
                 productOptionGroup.getMinSelect(),
                 productOptionGroup.getMaxSelect(),
                 productOptionGroup.getSort(),
-                productOptionGroup.isVisible()
+                productOptionGroup.isVisible(),
+                ProductOptionGroupType.NORMAL
             );
         }
     }

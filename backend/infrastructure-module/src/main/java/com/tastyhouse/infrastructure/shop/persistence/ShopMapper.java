@@ -36,6 +36,7 @@ final class ShopMapper {
             entity.isClosedOnPublicHolidays(),
             entity.getMinOrderAmount(),
             entity.isScheduledOrderEnabled(),
+            entity.isCupDepositEnabled(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
@@ -61,7 +62,8 @@ final class ShopMapper {
             domain.isHidden(),
             domain.isClosedOnPublicHolidays(),
             domain.getMinOrderAmount(),
-            domain.isScheduledOrderEnabled()
+            domain.isScheduledOrderEnabled(),
+            domain.isCupDepositEnabled()
         );
     }
 
@@ -85,7 +87,8 @@ final class ShopMapper {
             domain.isHidden(),
             domain.isClosedOnPublicHolidays(),
             domain.getMinOrderAmount(),
-            domain.isScheduledOrderEnabled()
+            domain.isScheduledOrderEnabled(),
+            domain.isCupDepositEnabled()
         );
     }
 }

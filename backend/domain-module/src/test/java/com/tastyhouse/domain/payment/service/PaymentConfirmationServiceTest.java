@@ -299,7 +299,7 @@ class PaymentConfirmationServiceTest {
             return Order.reconstitute(
                 ORDER_ID.value(), MEMBER_ID, ShopId.of(1L), "ORD-1", null, orderStatus,
                 "주문자", "01012345678", "orderer@tastyhouse.com",
-                21000, 0, 0, 0, 0, 0, 21000, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0,
+                21000, 0, 0, 0, 0, 0, 0, 21000, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0,
                 false, LocalDateTime.of(2026, 7, 31, 9, 0), LocalDateTime.of(2026, 7, 31, 9, 0)
             );
         }

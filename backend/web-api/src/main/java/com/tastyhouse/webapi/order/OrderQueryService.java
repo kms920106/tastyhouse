@@ -102,7 +102,12 @@ public class OrderQueryService {
             .map(orderProduct -> toOrderProductResponse(orderProduct, reviewedProductIds))
             .toList();
 
-        PaymentSummaryResponse payment = result.payment() != null ? toPaymentSummaryResponse(result.payment()) : null;
+        // 보증금은 결제(PAYMENT) 테이블이 아니라 주문에 저장된다 — PAYMENT.amount는 손님이 실제로 내는
+        // 돈(보증금 포함 final_amount)이고, 그중 얼마가 보증금인지는 주문이 안다. 그래서 결제 요약에
+        // 넣을 값도 주문에서 가져온다(PAYMENT 스키마·모델은 변경하지 않는다).
+        PaymentSummaryResponse payment = result.payment() != null
+            ? toPaymentSummaryResponse(result.payment(), result.cupDepositAmount())
+            : null;
 
         return OrderDetailResponse.from(
             result.id(),
@@ -119,6 +124,7 @@ public class OrderQueryService {
             result.couponDiscountAmount(),
             result.pointDiscountAmount(),
             result.totalDiscountAmount(),
+            result.cupDepositAmount(),
             result.finalAmount(),
             result.usedPoint(),
             result.earnedPoint(),
@@ -166,16 +172,23 @@ public class OrderQueryService {
             result.orderProductOptionId(),
             result.optionGroupName(),
             result.optionName(),
-            result.additionalPrice()
+            result.additionalPrice(),
+            result.optionGroupType(),
+            result.cupCount(),
+            result.depositAmount()
         );
     }
 
-    private PaymentSummaryResponse toPaymentSummaryResponse(OrderPaymentResult result) {
+    private PaymentSummaryResponse toPaymentSummaryResponse(
+        OrderPaymentResult result,
+        Integer cupDepositAmount
+    ) {
         return PaymentSummaryResponse.from(
             result.id(),
             result.paymentMethod() != null ? result.paymentMethod().name() : null,
             result.paymentStatus() != null ? result.paymentStatus().name() : null,
             result.amount() != null ? result.amount().value() : null,
+            cupDepositAmount,
             result.cardCompany(),
             result.cardNumber(),
             result.approvedAt(),
