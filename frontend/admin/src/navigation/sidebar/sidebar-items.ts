@@ -35,6 +35,7 @@ import {
   Trophy,
   UserRound,
   Users,
+  UtensilsCrossed,
 } from "lucide-react";
 
 export interface NavSubItem {
@@ -184,6 +185,11 @@ export const sidebarItems: NavGroup[] = [
         title: "이미지 검수",
         url: "/dashboard/shop-image-reviews",
         icon: ImageIcon,
+      },
+      {
+        title: "메뉴 검수",
+        url: "/dashboard/product-approvals",
+        icon: UtensilsCrossed,
       },
       {
         title: "게시중단 요청 심사",

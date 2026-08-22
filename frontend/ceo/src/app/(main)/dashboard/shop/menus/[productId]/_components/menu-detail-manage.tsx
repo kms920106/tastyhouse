@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { updateMenuAction } from "@/feature/product/actions";
+import { VEGETARIAN_TYPE_OPTIONS } from "@/feature/product/constants";
 import type {
   LinkedProductSummary,
   MenuCategory,
@@ -204,10 +205,11 @@ export function MenuDetailManage({
 
   const vegetarianSummaryNode = (() => {
     const type = vegetarianSummary?.vegetarianType ?? detail.vegetarianType;
+    const label = VEGETARIAN_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? type;
     const status = vegetarianSummary?.pendingRequest?.status ?? null;
     return (
       <span className="flex items-center gap-2">
-        {type ?? PRODUCT_DETAIL_COPY.NOT_SET}
+        {label ?? PRODUCT_DETAIL_COPY.NOT_SET}
         {status === "PENDING" && <Badge variant="secondary">{PRODUCT_DETAIL_COPY.BADGE_PENDING}</Badge>}
         {status === "REJECTED" && <Badge variant="destructive">{PRODUCT_DETAIL_COPY.BADGE_REJECTED}</Badge>}
       </span>

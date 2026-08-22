@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { PRODUCT_APPROVAL_MESSAGE } from "./message";
+
 export const PRODUCT_NAME_MAX = 200;
 export const PRODUCT_DESC_MAX = 1000;
 export const OPTION_GROUP_NAME_MAX = 100;
@@ -140,3 +142,18 @@ export const productImageSchema = z.object({
 });
 
 export type ProductImageFormValues = z.infer<typeof productImageSchema>;
+
+// ===== 메뉴 검수 (이미지 변경 요청 · 채식 설정 요청) =====
+
+/** PRODUCT_IMAGE_CHANGE_REQUEST.reject_reason / PRODUCT_VEGETARIAN_REQUEST.reject_reason 컬럼이 VARCHAR(500) */
+export const PRODUCT_REJECT_REASON_MAX = 500;
+
+export const productRejectSchema = z.object({
+  rejectReason: z
+    .string()
+    .trim()
+    .min(1, { message: PRODUCT_APPROVAL_MESSAGE.REJECT_REASON_REQUIRED })
+    .max(PRODUCT_REJECT_REASON_MAX, { message: PRODUCT_APPROVAL_MESSAGE.REJECT_REASON_TOO_LONG }),
+});
+
+export type ProductRejectFormValues = z.infer<typeof productRejectSchema>;

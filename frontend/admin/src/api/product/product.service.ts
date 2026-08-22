@@ -1,9 +1,16 @@
 import "server-only";
 
 import type { ApiPageRequest, ApiResponse } from "@/api/shared/types";
-import type { ProductCategory, ProductDetail, ProductListItem, ProductOptionGroups } from "@/feature/product/domain";
+import type {
+  ProductCategory,
+  ProductDetail,
+  ProductImageChangeRequestItem,
+  ProductListItem,
+  ProductOptionGroups,
+  ProductVegetarianRequestItem,
+} from "@/feature/product/domain";
 
-import type { ProductListQueryRequest } from "./product.dto";
+import type { ProductApprovalSearchRequest, ProductListQueryRequest } from "./product.dto";
 import { productRepository } from "./product.repository";
 
 export const productService = {
@@ -106,6 +113,50 @@ export const productService = {
         name: item.name,
         sort: item.sort,
         visible: item.visible,
+      })),
+    };
+  },
+
+  // ===== 메뉴 검수 (이미지 변경 요청 · 채식 설정 요청) =====
+
+  // 메뉴 이미지 변경 요청 목록 조회 — 도메인 반환
+  async getImageChangeRequests(
+    query: ProductApprovalSearchRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ProductImageChangeRequestItem[]>> {
+    const res = await productRepository.getImageChangeRequests(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        shopId: item.shopId,
+        productName: item.productName,
+        imageUrl: item.imageUrl,
+        status: item.status,
+        rejectReason: item.rejectReason,
+      })),
+    };
+  },
+
+  // 메뉴 채식 설정 요청 목록 조회 — 도메인 반환
+  async getVegetarianRequests(
+    query: ProductApprovalSearchRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ProductVegetarianRequestItem[]>> {
+    const res = await productRepository.getVegetarianRequests(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        shopId: item.shopId,
+        productName: item.productName,
+        vegetarianType: item.vegetarianType,
+        ingredients: item.ingredients,
+        description: item.description,
+        status: item.status,
+        rejectReason: item.rejectReason,
       })),
     };
   },

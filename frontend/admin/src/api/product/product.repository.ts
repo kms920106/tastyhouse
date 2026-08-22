@@ -6,16 +6,20 @@ import type { ApiPageRequest, ApiResponse } from "@/api/shared/types";
 import type {
   OptionCreateRequest,
   OptionGroupCreateRequest,
+  ProductApprovalRejectRequest,
+  ProductApprovalSearchRequest,
   ProductCategoryCreateRequest,
   ProductCategoryResponse,
   ProductCreateRequest,
   ProductDetailResponse,
+  ProductImageChangeRequestItemResponse,
   ProductImageCreateRequest,
   ProductImagesResponse,
   ProductListItemResponse,
   ProductListQueryRequest,
   ProductOptionGroupsResponse,
   ProductUpdateRequest,
+  ProductVegetarianRequestItemResponse,
 } from "./product.dto";
 
 /**
@@ -95,5 +99,47 @@ export const productRepository = {
   // 상품 카테고리 등록
   createCategory(body: ProductCategoryCreateRequest): Promise<ApiResponse<number>> {
     return api.post<number>(`${ENDPOINT}/v1/categories`, body);
+  },
+
+  // ===== 메뉴 검수 (이미지 변경 요청 · 채식 설정 요청) =====
+
+  // 메뉴 이미지 변경 요청 목록 조회
+  getImageChangeRequests(
+    query: ProductApprovalSearchRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ProductImageChangeRequestItemResponse[]>> {
+    return api.get<ProductImageChangeRequestItemResponse[]>(`${ENDPOINT}/v1/image-change-requests`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 메뉴 이미지 변경 요청 승인 (body 없음)
+  approveImageChangeRequest(requestId: number): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/image-change-requests/${requestId}/approve`);
+  },
+
+  // 메뉴 이미지 변경 요청 반려
+  rejectImageChangeRequest(requestId: number, body: ProductApprovalRejectRequest): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/image-change-requests/${requestId}/reject`, body);
+  },
+
+  // 메뉴 채식 설정 요청 목록 조회
+  getVegetarianRequests(
+    query: ProductApprovalSearchRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ProductVegetarianRequestItemResponse[]>> {
+    return api.get<ProductVegetarianRequestItemResponse[]>(`${ENDPOINT}/v1/vegetarian-requests`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 메뉴 채식 설정 요청 승인 (body 없음)
+  approveVegetarianRequest(requestId: number): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/vegetarian-requests/${requestId}/approve`);
+  },
+
+  // 메뉴 채식 설정 요청 반려
+  rejectVegetarianRequest(requestId: number, body: ProductApprovalRejectRequest): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/vegetarian-requests/${requestId}/reject`, body);
   },
 };

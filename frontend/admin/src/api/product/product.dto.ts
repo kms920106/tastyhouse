@@ -165,3 +165,45 @@ export interface ProductCategoryCreateRequest {
   sort: number;
   visible: boolean;
 }
+
+// ===== 메뉴 검수 (이미지 변경 요청 · 채식 설정 요청) =====
+
+// 승인 상태 — backend ApprovalStatus enum 기준
+export type ApprovalStatusValue = "PENDING" | "APPROVED" | "REJECTED" | "CANCELED";
+
+// 채식 단계 — backend VegetarianType enum 기준
+export type VegetarianTypeValue = "VEGAN" | "LACTO" | "OVO" | "LACTO_OVO" | "PESCO";
+
+// 검수 목록 조회 쿼리 — status 미지정은 전체
+export interface ProductApprovalSearchRequest {
+  status?: ApprovalStatusValue;
+}
+
+// 메뉴 이미지 변경 요청 목록 항목
+export interface ProductImageChangeRequestItemResponse {
+  id: number;
+  productId: number;
+  shopId: number;
+  productName: string;
+  imageUrl: string | null;
+  status: ApprovalStatusValue;
+  rejectReason: string | null;
+}
+
+// 메뉴 채식 설정 요청 목록 항목
+export interface ProductVegetarianRequestItemResponse {
+  id: number;
+  productId: number;
+  shopId: number;
+  productName: string;
+  vegetarianType: VegetarianTypeValue;
+  ingredients: string;
+  description: string | null;
+  status: ApprovalStatusValue;
+  rejectReason: string | null;
+}
+
+// 승인요청 반려
+export interface ProductApprovalRejectRequest {
+  rejectReason: string;
+}

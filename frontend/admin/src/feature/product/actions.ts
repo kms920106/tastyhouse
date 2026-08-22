@@ -17,8 +17,10 @@ import {
   optionSchema,
   type ProductFormValues,
   type ProductImageFormValues,
+  type ProductRejectFormValues,
   productFormSchema,
   productImageSchema,
+  productRejectSchema,
 } from "./schema";
 
 const PRODUCTS_PATH = "/dashboard/products";
@@ -281,4 +283,74 @@ export async function createCategoryAction(values: CategoryFormValues): Promise<
   }
 
   return { success: true, id: data };
+}
+
+// ===== 메뉴 검수 (이미지 변경 요청 · 채식 설정 요청) =====
+
+const PRODUCT_APPROVALS_PATH = "/dashboard/product-approvals";
+
+// 메뉴 이미지 변경 요청 승인
+export async function approveProductImageChangeAction(requestId: number): Promise<ActionResult> {
+  const { error } = await productRepository.approveImageChangeRequest(requestId);
+  if (error !== undefined) {
+    return { success: false, message: error };
+  }
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
+}
+
+// 메뉴 이미지 변경 요청 반려
+export async function rejectProductImageChangeAction(
+  requestId: number,
+  values: ProductRejectFormValues,
+): Promise<ActionResult> {
+  const parsed = productRejectSchema.safeParse(values);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.issues[0]?.message ?? PRODUCT_MESSAGE.INVALID_INPUT,
+    };
+  }
+
+  const { error } = await productRepository.rejectImageChangeRequest(requestId, parsed.data);
+  if (error !== undefined) {
+    return { success: false, message: error };
+  }
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
+}
+
+// 메뉴 채식 설정 요청 승인
+export async function approveProductVegetarianAction(requestId: number): Promise<ActionResult> {
+  const { error } = await productRepository.approveVegetarianRequest(requestId);
+  if (error !== undefined) {
+    return { success: false, message: error };
+  }
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
+}
+
+// 메뉴 채식 설정 요청 반려
+export async function rejectProductVegetarianAction(
+  requestId: number,
+  values: ProductRejectFormValues,
+): Promise<ActionResult> {
+  const parsed = productRejectSchema.safeParse(values);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.issues[0]?.message ?? PRODUCT_MESSAGE.INVALID_INPUT,
+    };
+  }
+
+  const { error } = await productRepository.rejectVegetarianRequest(requestId, parsed.data);
+  if (error !== undefined) {
+    return { success: false, message: error };
+  }
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
 }
