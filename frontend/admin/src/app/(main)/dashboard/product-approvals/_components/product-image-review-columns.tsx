@@ -20,7 +20,12 @@ export interface ProductApprovalsTableMeta<TRequest> {
   onImageLoadError?: (requestId: number) => void;
 }
 
-export function ApprovalStatusBadge({ status }: { status: ProductImageChangeRequestItem["status"] }) {
+/**
+ * 검수 상태 배지. `ProductImageChangeRequestItem["status"]`(4값)뿐 아니라 매장가격 인증 탭의
+ * `IN_PROGRESS`(검수 중) 포함 5값 상태도 그리므로, 개별 탭 타입 대신 라벨 레코드의 키 전체를
+ * 허용 범위로 삼는다 — `APPROVAL_STATUS_LABEL`에 없는 값이면 애초에 컴파일이 막힌다.
+ */
+export function ApprovalStatusBadge({ status }: { status: keyof typeof APPROVAL_STATUS_LABEL }) {
   return (
     <Badge variant={status === "APPROVED" ? "default" : status === "REJECTED" ? "destructive" : "secondary"}>
       {APPROVAL_STATUS_LABEL[status]}
@@ -34,8 +39,11 @@ export function ApprovalStatusBadge({ status }: { status: ProductImageChangeRequ
  *
  * <p>이미지 검수에서 `canApprove`가 false 인 경우(이미지가 없거나 로드 실패) 승인만 막는다 —
  * 근거를 못 본 상태로 승인할 수는 없지만 반려는 오히려 그 상황의 정상 처리다.
+ *
+ * <p>`status !== "PENDING"`인 행은 처리 버튼을 감춘다 — 매장가격 인증의 `IN_PROGRESS`(검수 중)도
+ * 이미 착수되어 이 화면에서 더 처리할 액션이 없는 상태이므로 자연히 같이 걸린다.
  */
-export function ApprovalActionsCell<TRequest extends { status: ProductImageChangeRequestItem["status"] }>({
+export function ApprovalActionsCell<TRequest extends { status: keyof typeof APPROVAL_STATUS_LABEL }>({
   request,
   meta,
   canApprove = true,

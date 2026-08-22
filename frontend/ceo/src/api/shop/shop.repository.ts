@@ -62,6 +62,8 @@ import type {
   ShopScheduledOrderUpdateRequest,
   ShopStatusResponse,
   ShopStatusUpdateRequest,
+  StorePriceVerificationItemRequest,
+  StorePriceVerificationResponse,
   SuspensionBulkCreateRequest,
   SuspensionCreateRequest,
   SuspensionResponse,
@@ -565,5 +567,31 @@ export const shopRepository = {
   /** 전체 교체 — `sourceType` 이 바뀌면 서버가 반대편 필드를 null 로 정리한다 */
   updateOrigin(shopId: number, body: ShopOriginUpdateRequest): Promise<ApiResponse<void>> {
     return api.put<void>(`${ENDPOINT}/v1/${shopId}/origin`, body);
+  },
+
+  // ===== 매장 가격 인증 =====
+
+  /** 최근 요청 1건 + 인증 ON/OFF. 요청 이력이 없어도 200 이고 `id`·`status` 가 null 이다 */
+  getStorePriceVerification(shopId: number): Promise<ApiResponse<StorePriceVerificationResponse>> {
+    return api.get<StorePriceVerificationResponse>(`${ENDPOINT}/v1/${shopId}/store-price-verifications/latest`);
+  },
+
+  /**
+   * 매장 가격 인증 요청 (multipart).
+   *
+   * 가격표 이미지는 규격 검사(750×350 이상·15MB 이하·JPG/PNG)를 **서버가** 한다 — 화면이 먼저
+   * 재는 대신 거절 문구를 그대로 노출한다. 브라우저에서 잰 치수와 서버 판정이 어긋나면
+   * "올렸는데 통과 못 하는" 상태를 설명할 수 없기 때문이다.
+   */
+  createStorePriceVerification(
+    shopId: number,
+    items: StorePriceVerificationItemRequest[],
+    file: File,
+  ): Promise<ApiResponse<number>> {
+    const formData = new FormData();
+    formData.append("file", file);
+    // 배열은 JSON 파트 하나로 보낸다 — `items[0].productId` 식 전개는 서버 바인딩이 받지 않는다
+    formData.append("items", JSON.stringify(items));
+    return api.upload<number>(`${ENDPOINT}/v1/${shopId}/store-price-verifications`, formData);
   },
 };

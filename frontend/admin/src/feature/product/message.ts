@@ -45,11 +45,13 @@ export const PRODUCT_MESSAGE = {
 /** 메뉴 검수 화면 정적 문구 (목록/로딩/다이얼로그 공용) */
 export const PRODUCT_APPROVAL_COPY = {
   PAGE_TITLE: "메뉴 검수",
-  PAGE_DESCRIPTION: "점주가 낸 메뉴 이미지·채식 설정·메뉴모음컷·사장님 추천 요청을 검수하고 승인·반려합니다.",
+  PAGE_DESCRIPTION:
+    "점주가 낸 메뉴 이미지·채식 설정·메뉴모음컷·사장님 추천·매장가격 인증 요청을 검수하고 승인·반려합니다.",
   TAB_IMAGE: "메뉴 이미지",
   TAB_VEGETARIAN: "채식 설정",
   TAB_MENU_COLLECTION: "메뉴모음컷",
   TAB_REPRESENTATIVE: "사장님 추천",
+  TAB_STORE_PRICE: "매장가격 인증",
   APPROVE: "승인",
   REJECT: "반려",
   APPROVE_CONFIRM_TITLE: "이 요청을 승인할까요?",
@@ -59,6 +61,11 @@ export const PRODUCT_APPROVAL_COPY = {
     "승인하면 메뉴모음컷이 가게 배너 영역 최상단에 노출됩니다. 두 개 이상의 메뉴를 모아 촬영한 이미지인지 확인해 주세요.",
   APPROVE_REPRESENTATIVE_CONFIRM_BODY:
     "승인하면 해당 메뉴에 사장님 추천이 표시됩니다. 메뉴명과 메뉴 이미지가 일치하고 가게 카테고리에 맞는 메뉴인지 확인해 주세요.",
+  APPROVE_STORE_PRICE_CONFIRM_BODY:
+    "승인하면 요청한 매장가가 각 메뉴의 가격 행에 즉시 반영되고 가게의 매장가격 인증이 켜집니다. 픽업가격 동일 설정을 체크한 메뉴는 픽업가도 매장가와 같게 함께 설정됩니다. 가격표 이미지와 대상 메뉴의 배달가·매장가를 대조해 앱 가격이 매장보다 높지 않은지 확인해 주세요.",
+  STORE_PRICE_ITEMS_DESCRIPTION:
+    "가격표 이미지와 대조해 판정합니다. 배달가(앱 노출가)가 요청 매장가보다 높은 행은 강조 표시되며, 그 자체가 반려 사유입니다.",
+  STORE_PRICE_ITEMS_LOAD_FAILED: "대상 메뉴를 불러오지 못했습니다. 다시 시도해 주세요.",
   REJECT_DIALOG_TITLE: "반려 사유를 입력해 주세요",
   REJECT_DIALOG_DESCRIPTION: "반려 사유는 점주에게 그대로 노출됩니다.",
   REJECT_REASON_LABEL: "반려 사유",
@@ -92,9 +99,16 @@ export const VEGETARIAN_TYPE_LABEL = {
   PESCO: "페스코",
 } as const;
 
-/** 승인 상태 배지 문구 — backend ApprovalStatus.description 과 일치 */
+/**
+ * 승인 상태 배지 문구 — backend ApprovalStatus.description 과 일치.
+ *
+ * <p>`IN_PROGRESS`(검수 중)는 대부분의 검수 탭(4값 `ApprovalStatus`)에는 없는 상태이지만,
+ * 매장가격 인증 탭은 `SHOP_REQUEST_INDEX` 공용 상태값을 그대로 써 검수 착수 여부를 구분하므로
+ * 배지 표시만 이 레코드에 얹어 재사용한다(상태 필터 옵션에는 넣지 않는다 — 아래 참조).
+ */
 export const APPROVAL_STATUS_LABEL = {
   PENDING: "대기",
+  IN_PROGRESS: "검수 중",
   APPROVED: "승인",
   REJECTED: "반려",
   CANCELED: "취소",

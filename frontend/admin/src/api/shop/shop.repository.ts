@@ -69,6 +69,10 @@ import type {
   ShopRiderVisitGuideRevisionRequest,
   ShopUpdateRequest,
   StationResponse,
+  StorePriceVerificationRejectRequest,
+  StorePriceVerificationRequestDetailResponse,
+  StorePriceVerificationRequestItemResponse,
+  StorePriceVerificationRequestListQueryRequest,
   TagCreateRequest,
   TagResponse,
 } from "./shop.dto";
@@ -530,5 +534,39 @@ export const shopRepository = {
     body: MenuCollectionImageRejectRequest,
   ): Promise<ApiResponse<null>> {
     return api.patch<null>(`${ENDPOINT}/v1/menu-collection-images/requests/${requestId}/reject`, body);
+  },
+
+  // ===== 매장가격 인증 검수 =====
+
+  // 매장가격 인증 요청 목록 조회
+  getStorePriceVerificationRequests(
+    query: StorePriceVerificationRequestListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<StorePriceVerificationRequestItemResponse[]>> {
+    return api.get<StorePriceVerificationRequestItemResponse[]>(`${ENDPOINT}/v1/store-price-verifications`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 매장가격 인증 요청 상세 조회 — 판정 근거인 메뉴별 배달가·매장가 대조표는 여기에만 담긴다
+  getStorePriceVerificationRequestDetail(
+    requestId: number,
+  ): Promise<ApiResponse<StorePriceVerificationRequestDetailResponse>> {
+    return api.get<StorePriceVerificationRequestDetailResponse>(
+      `${ENDPOINT}/v1/store-price-verifications/${requestId}`,
+    );
+  },
+
+  // 매장가격 인증 요청 승인 (body 없음) — 승인 즉시 요청된 매장가가 각 가격 행에 반영된다
+  approveStorePriceVerificationRequest(requestId: number): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/store-price-verifications/${requestId}/approve`);
+  },
+
+  // 매장가격 인증 요청 반려
+  rejectStorePriceVerificationRequest(
+    requestId: number,
+    body: StorePriceVerificationRejectRequest,
+  ): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/store-price-verifications/${requestId}/reject`, body);
   },
 };

@@ -233,3 +233,16 @@ export const NUTRITION_UNIT: Record<NutritionNumericKey, string> = {
 
 /** 0 이상 정수만 허용한다. 음수·소수는 영양성분 표기 단위로 쓰지 않는다 */
 export const NUTRITION_NON_NEGATIVE_INT_PATTERN = /^\d+$/;
+
+// ===== 가격 체계 확장 (가격명 + 채널별 가격) =====
+
+/** 가격명 최대 길이 */
+export const PRODUCT_PRICE_NAME_MAX_LENGTH = 50;
+
+/**
+ * 매장가격 일괄 변경 단위.
+ *
+ * PDF 가 100원 단위 인하/인상만 제공한다 — 1원 단위를 허용하면 가격표 이미지와 앱 가격이
+ * 미세하게 어긋나 검수가 반려되는 일이 늘어난다.
+ */
+export const STORE_PRICE_BULK_STEP = 100;

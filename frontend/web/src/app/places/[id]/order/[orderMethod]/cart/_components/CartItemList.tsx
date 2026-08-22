@@ -46,6 +46,7 @@ export default function CartItemList({
             key={product.optionKey}
             optionKey={product.optionKey}
             name={product.name}
+            priceName={product.priceName}
             imageUrl={product.imageUrl}
             salePrice={product.salePrice}
             originalPrice={product.originalPrice}

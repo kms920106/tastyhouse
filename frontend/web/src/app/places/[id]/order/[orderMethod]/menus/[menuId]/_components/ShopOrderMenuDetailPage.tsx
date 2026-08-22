@@ -49,6 +49,7 @@ export default function ShopOrderMenuDetailPage({ shopId, productId, tab, orderM
               productId={productId}
               shopId={shopId}
               tab={tab}
+              orderMethod={orderMethod}
             />
           </Suspense>
         </BorderedSection>

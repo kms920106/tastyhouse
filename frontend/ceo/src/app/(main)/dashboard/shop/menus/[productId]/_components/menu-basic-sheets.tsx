@@ -33,12 +33,20 @@ export const CATEGORY_NONE_VALUE = "NONE";
  * 나머지 필드를 어디선가 다시 조립해야 하고 그 조립이 어긋나면 **편집하지 않은 값이 조용히
  * 초기화된다.** 그래서 폼 하나(`menuFormSchema`)를 공유하고 어떤 필드를 그릴지만 나눈다.
  */
-export type MenuBasicSection = "name" | "text" | "price" | "category";
+/**
+ * 기본 정보 Sheet 의 섹션.
+ *
+ * `discount` 는 이전의 `price` 섹션이다 — 채널별 가격(배달·매장·픽업)은 전용 Sheet
+ * (`menu-price-sheet.tsx`)가 별도 엔드포인트로 저장하므로, 이 Sheet 에는 **할인가와 맵기**만
+ * 남는다. `originalPrice` 는 메뉴 PUT 이 전체 필드를 요구해 폼에는 남지만 입력란은 없다
+ * (첫 가격 행의 배달가가 서버에서 동기화된다).
+ */
+export type MenuBasicSection = "name" | "text" | "discount" | "category";
 
 const SHEET_TITLE: Record<MenuBasicSection, string> = {
   name: PRODUCT_DETAIL_COPY.SHEET_NAME_TITLE,
   text: PRODUCT_DETAIL_COPY.SHEET_TEXT_TITLE,
-  price: PRODUCT_DETAIL_COPY.SHEET_PRICE_TITLE,
+  discount: PRODUCT_DETAIL_COPY.SHEET_DISCOUNT_TITLE,
   category: PRODUCT_DETAIL_COPY.SHEET_CATEGORY_TITLE,
 };
 
@@ -167,30 +175,8 @@ export function MenuBasicSheet({
               </>
             )}
 
-            {section === "price" && (
+            {section === "discount" && (
               <>
-                <Controller
-                  control={form.control}
-                  name="originalPrice"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="menu-basic-original-price">
-                        {PRODUCT_MENU_COPY.FIELD_ORIGINAL_PRICE}
-                      </FieldLabel>
-                      <Input
-                        id="menu-basic-original-price"
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        value={field.value}
-                        onChange={field.onChange}
-                        aria-invalid={fieldState.invalid}
-                        disabled={pending}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
                 <Controller
                   control={form.control}
                   name="discountPrice"

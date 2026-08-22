@@ -636,3 +636,34 @@ export interface ProductNutritionUpdateRequest {
   setMenu: boolean;
   allergens: AllergenCode[];
 }
+
+// ===== 가격 체계 확장 (가격명 + 채널별 가격) =====
+
+/** 가격 행 한 줄. `storePrice`·`pickupPrice` 는 매장가격 인증 전이면 항상 null 이다 */
+export interface ProductPriceResponse {
+  id: number;
+  priceName: string | null;
+  deliveryPrice: number;
+  storePrice: number | null;
+  pickupPrice: number | null;
+  sort: number;
+}
+
+/**
+ * 가격 전체 교체(PUT).
+ *
+ * 순서 변경 API 와 같은 의미론이다 — 보내지 않은 행은 삭제된다. 첫 행(`sort=0`)의 `deliveryPrice`
+ * 를 서버가 `PRODUCT.original_price` 에 동기화하므로, 기존 가격 하나만 쓰는 화면들이 그대로 돈다.
+ */
+export interface ProductPriceUpdateRequest {
+  shopId: number;
+  prices: {
+    /** 기존 행이면 그 id, 새로 추가한 행이면 생략 */
+    id?: number;
+    priceName?: string;
+    deliveryPrice: number;
+    storePrice?: number | null;
+    pickupPrice?: number | null;
+    sort: number;
+  }[];
+}

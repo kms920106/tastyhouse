@@ -188,3 +188,13 @@ export interface ShopOrigin {
   /** `sourceType === "DIRECT"` 이면 null */
   url: string | null
 }
+
+/**
+ * 가게 가격 뱃지 (모델).
+ *
+ * 컴포넌트 Props 가 DTO 를 직접 참조하지 않도록 분리한다(`src/domains/CLAUDE.md` §8.8).
+ */
+export interface ShopPriceBadges {
+  sameAsStorePrice: boolean
+  storePricePickup: boolean
+}

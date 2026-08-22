@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import type { MenuBoardGroup } from "@/feature/product/domain";
-import { PRODUCT_REPRESENTATIVE_COPY } from "@/feature/product/message";
+import { PRODUCT_REPRESENTATIVE_COPY, STORE_PRICE_VERIFICATION_COPY } from "@/feature/product/message";
 import type { MenuCollectionImage, ShopOrderNotice, ShopOrigin } from "@/feature/shop/domain";
 import { SHOP_MENU_COLLECTION_COPY, SHOP_ORDER_NOTICE_COPY, SHOP_ORIGIN_COPY } from "@/feature/shop/message";
 
@@ -12,6 +12,7 @@ import { MenuCollectionSheet } from "./menu-collection-sheet";
 import { OrderNoticeSheet } from "./order-notice-sheet";
 import { RepresentativeMenuSheet } from "./representative-menu-sheet";
 import { ShopOriginSheet } from "./shop-origin-sheet";
+import { StorePriceVerificationSheet } from "./store-price-verification-sheet";
 
 interface MenuBoardTopActionsProps {
   shopId: number;
@@ -47,7 +48,9 @@ export function MenuBoardTopActions({
   groups,
   origin,
 }: MenuBoardTopActionsProps) {
-  const [openSheet, setOpenSheet] = React.useState<"collection" | "representative" | "notice" | "origin" | null>(null);
+  const [openSheet, setOpenSheet] = React.useState<
+    "collection" | "representative" | "notice" | "origin" | "storePrice" | null
+  >(null);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -62,6 +65,9 @@ export function MenuBoardTopActions({
       </Button>
       <Button type="button" variant="outline" disabled={disabled} onClick={() => setOpenSheet("origin")}>
         {SHOP_ORIGIN_COPY.SHEET_TITLE}
+      </Button>
+      <Button type="button" variant="outline" disabled={disabled} onClick={() => setOpenSheet("storePrice")}>
+        {STORE_PRICE_VERIFICATION_COPY.SHEET_TITLE}
       </Button>
 
       <MenuCollectionSheet
@@ -87,6 +93,12 @@ export function MenuBoardTopActions({
         onOpenChange={(next) => setOpenSheet(next ? "origin" : null)}
         shopId={shopId}
         initialOrigin={origin}
+      />
+      <StorePriceVerificationSheet
+        open={openSheet === "storePrice"}
+        onOpenChange={(next) => setOpenSheet(next ? "storePrice" : null)}
+        shopId={shopId}
+        groups={groups}
       />
     </div>
   );

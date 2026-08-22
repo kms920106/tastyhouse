@@ -16,6 +16,19 @@ export interface Product {
   representative: boolean | null
 }
 
+/**
+ * 가격 한 행 (모델).
+ *
+ * `price` 는 **서버가 주문유형에 따라 이미 해석한 값**이다 — 화면이 배달가/픽업가를 고르지 않는다.
+ */
+export interface ProductPrice {
+  /** 가격 행 id. 서버 응답 필드명(`priceId`)을 그대로 쓴다 */
+  priceId: number
+  /** null 이면 단일 가격 — 하위 항목으로 표시하지 않는다 */
+  priceName: string | null
+  price: number
+}
+
 /** 옵션그룹 유형. `CUP_DEPOSIT`은 일회용컵 보증금 옵션그룹이며 일반 옵션그룹과 별도 섹션으로 렌더링한다 */
 export type ProductOptionGroupType = 'NORMAL' | 'CUP_DEPOSIT'
 

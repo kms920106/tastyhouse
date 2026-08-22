@@ -1,5 +1,6 @@
 import 'server-only'
 
+import type { OrderMethodType } from '@/domains/order'
 import { publicApi } from '@/lib/api'
 import { PaginationParams } from '@/types/common'
 import {
@@ -43,8 +44,21 @@ export const productRepository = {
     return publicApi.post<ProductBatchResponse>(`${ENDPOINT}/v1/batch`, body)
   },
   // 상품 상세 조회
-  async getProductById(productId: number) {
-    return publicApi.get<ProductDetailResponse>(`${ENDPOINT}/v1/${productId}`, CACHE_OPTIONS)
+  /**
+   * 상품 상세.
+   *
+   * `orderMethod` 를 함께 보내면 서버가 `prices[].price` 를 그 주문유형 기준으로 해석해 내려준다
+   * (배달·테이블·예약은 배달가, 포장은 픽업가·미설정 시 배달가). 미지정이면 서버가 `DELIVERY`
+   * 로 본다 — 주문 경로 밖(상품 단독 상세)에서는 주문유형이 없으므로 그 기본값을 그대로 쓴다.
+   *
+   * **주문유형별 가격 해석을 화면이 하지 않는다.** 주문 접수 시 서버가 클라이언트 금액과 자기
+   * 계산을 대조하므로, 화면이 다르게 고르면 `ORDER_PRODUCT_AMOUNT_MISMATCH` 로 거절된다.
+   */
+  async getProductById(productId: number, orderMethod?: OrderMethodType) {
+    return publicApi.get<ProductDetailResponse, { orderMethod?: OrderMethodType }>(
+      `${ENDPOINT}/v1/${productId}`,
+      { ...CACHE_OPTIONS, params: { orderMethod } },
+    )
   },
   // 상품 리뷰 수 조회
   async getProductReviewCount(productId: number) {

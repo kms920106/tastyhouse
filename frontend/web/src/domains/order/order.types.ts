@@ -9,6 +9,7 @@ export type OrderErrorCode =
   | 'ORDER_PRODUCT_NOT_FOUND' // 상품 없음
   | 'SHOP_NOT_FOUND' // 가게 없음
   | 'ORDER_DELIVERY_TIP_AMOUNT_MISMATCH' // 클라이언트가 보낸 배달팁 ≠ 서버 계산값
+  | 'ORDER_PRODUCT_AMOUNT_MISMATCH' // 클라이언트가 보낸 상품 금액 ≠ 서버 계산값 (가격 변경)
   | 'ORDER_DELIVERY_ADDRESS_REQUIRED' // 배달 주문인데 주소가 없음
   | 'ORDER_DELIVERY_AREA_NOT_COVERED' // 가게의 배달 가능 지역이 아님
   | 'SHOP_SCHEDULED_ORDER_DISABLED' // 가게가 예약주문 미운영

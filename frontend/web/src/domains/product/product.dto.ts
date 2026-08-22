@@ -1,4 +1,5 @@
 import type { PaginationParams } from '@/types/common'
+import type { OrderMethodType } from '../order'
 import type { ProductOptionGroup } from './product.model'
 
 export interface ProductReviewListQuery extends PaginationParams {
@@ -16,6 +17,26 @@ export interface ProductListItemResponse {
   rating: number | null
   reviewCount: number | null
   representative: boolean | null
+}
+
+/**
+ * 가격 한 행 — 손님 화면용.
+ *
+ * 점주 화면(ceo)의 가격 행과 달리 **채널별 가격이 아니라 이미 해석된 단일 가격**(`price`)만 담는다.
+ * 주문유형(`orderMethod`)에 따라 배달가/픽업가 중 무엇을 쓸지는 서버가 단독으로 정하며, 손님 화면이
+ * 그 판단을 대신하면 서버 계산과 어긋나 주문이 전부 거절된다(`ORDER_PRODUCT_AMOUNT_MISMATCH`).
+ */
+export interface ProductPriceResponse {
+  /**
+   * 가격 행 id. 서버 응답 필드명이 `priceId` 이므로 `id` 로 줄여 쓰지 않는다 —
+   * 이름이 어긋나면 값이 `undefined` 가 되어 선택 상태가 어디에도 붙지 않고,
+   * "담기 버튼이 조용히 잠긴 채 아무 일도 일어나지 않는" 증상이 된다.
+   */
+  priceId: number
+  /** null 이면 단일 가격 — 화면에 하위 항목으로 표시하지 않는다 */
+  priceName: string | null
+  /** 주문유형에 따라 서버가 해석한 최종 가격. 화면은 이 값을 그대로 쓴다 */
+  price: number
 }
 
 export interface ProductDetailResponse {
@@ -36,6 +57,13 @@ export interface ProductDetailResponse {
    * API 계약(필드명·타입)은 동일하다.
    */
   menuReviewCount: number
+  /**
+   * 가격 행 목록.
+   *
+   * 행이 1개면 기존 `originalPrice`·`discountPrice` 와 같은 값이라 화면 동작이 그대로다.
+   * 2개 이상이면 가격명을 함께 보여주고, 주문 전 손님이 하나를 골라야 한다.
+   */
+  prices: ProductPriceResponse[]
 }
 
 export interface ProductBatchItemRequest {
@@ -45,6 +73,13 @@ export interface ProductBatchItemRequest {
 
 export interface ProductBatchRequest {
   items: ProductBatchItemRequest[]
+  /**
+   * 가격 행(`prices`)의 가격을 해석할 주문유형. 미지정이면 서버가 `DELIVERY` 로 본다.
+   *
+   * 장바구니·주문서는 자기 주문유형을 알고 있으므로 항상 보낸다 — 보내지 않으면 포장 주문에서도
+   * 배달가로 표시돼 주문 접수 시 서버 계산과 어긋난다(`ORDER_PRODUCT_AMOUNT_MISMATCH`).
+   */
+  orderMethod?: OrderMethodType
 }
 
 export interface ProductBatchOptionResponse {
@@ -67,6 +102,14 @@ export interface ProductBatchItemResponse {
   originalPrice: number | null
   discountPrice: number | null
   options: ProductBatchOptionResponse[]
+  /**
+   * 가격 행 목록.
+   *
+   * 장바구니는 담을 때 고른 `priceId` 만 보관하므로, 그 값으로 가격명·가격을 되찾는 데 쓴다.
+   * `price` 는 요청한 `orderMethod` 로 서버가 이미 해석한 값이라 화면이 다시 계산하지 않는다.
+   * 가격 행이 없는 메뉴(이관 이전 데이터)와 `available=false` 면 빈 배열이다.
+   */
+  prices: ProductPriceResponse[]
 }
 
 export interface ProductBatchResponse {
@@ -123,7 +166,6 @@ export interface ProductTodayDiscountListItemResponse {
   discountPrice: number
   discountRate: number
 }
-
 
 /**
  * 알레르기는 코드가 아니라 **한글 라벨 배열**로 내려온다 — 손님 화면이 코드→라벨 매핑표를

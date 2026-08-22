@@ -41,6 +41,8 @@ import type {
   ProductOptionSoldOutUntilRequest,
   ProductOptionSortRequest,
   ProductOrderRequest,
+  ProductPriceResponse,
+  ProductPriceUpdateRequest,
   ProductReleaseRequest,
   ProductRepresentativeRequestBody,
   ProductSoldOutRequest,
@@ -408,5 +410,24 @@ export const productRepository = {
   /** 행을 지운다(소프트 삭제 아님) — 과거 주문이 참조하지 않는 부가 정보다 */
   deleteNutrition(productId: number, shopId: number): Promise<ApiResponse<void>> {
     return api.delete<void>(`${VERSION_PATH}/${productId}/nutrition`, undefined, { params: { shopId } });
+  },
+
+  // ===== 가격 체계 확장 (가격명 + 채널별 가격) =====
+
+  /** 가격 행 목록. 행이 1개인 기존 메뉴도 배열 1건으로 내려온다 */
+  getProductPrices(productId: number, shopId: number): Promise<ApiResponse<ProductPriceResponse[]>> {
+    return api.get<ProductPriceResponse[]>(`${VERSION_PATH}/${productId}/prices`, {
+      params: { shopId },
+    });
+  },
+
+  /**
+   * 가격 전체 교체(PUT).
+   *
+   * 보내지 않은 행은 삭제된다. 매장가격 인증 전에는 `storePrice`·`pickupPrice` 를 담아도
+   * 서버가 `PRODUCT_PRICE_STORE_NOT_VERIFIED` 로 거절하므로, 화면이 입력란을 비활성해 둔다.
+   */
+  updateProductPrices(productId: number, body: ProductPriceUpdateRequest): Promise<ApiResponse<void>> {
+    return api.put<void>(`${VERSION_PATH}/${productId}/prices`, body);
   },
 };

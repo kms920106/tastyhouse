@@ -9,6 +9,8 @@ import { formatOrderSummary } from '@/lib/order'
 
 interface OrderProduct {
   name: string
+  /** 가격명("곱빼기" 등). 가격이 1개인 메뉴는 null */
+  priceName?: string | null
   imageUrl: string
   salePrice: number
   quantity: number
@@ -45,6 +47,7 @@ export default function OrderInfoSection({
                 <OrderProductItem
                   key={index}
                   productName={orderProduct.name}
+                  priceName={orderProduct.priceName}
                   productImageUrl={orderProduct.imageUrl}
                   totalPrice={orderProduct.salePrice}
                   quantity={orderProduct.quantity}

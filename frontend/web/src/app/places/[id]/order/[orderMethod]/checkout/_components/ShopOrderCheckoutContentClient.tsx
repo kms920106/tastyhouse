@@ -68,8 +68,14 @@ export default function ShopOrderCheckoutContentClient({
   const { id: shopId, name: shopName } = shop
   const { fullName, phoneNumber, email } = member
 
-  const { items, firstProductName, totalItemCount, totalProductAmount, totalProductDiscount } =
-    useCartInfo()
+  const {
+    items,
+    firstProductName,
+    totalItemCount,
+    totalProductAmount,
+    totalProductDiscount,
+    refreshCartInfo,
+  } = useCartInfo(orderMethod) // 주문유형 기준으로 가격 행(배달가/픽업가)이 해석돼 내려온다
 
   const [selectedCoupon, setSelectedCoupon] = useState<MemberCoupon | null>(null)
   const [pointInput, setPointInput] = useState('')
@@ -260,6 +266,12 @@ export default function ShopOrderCheckoutContentClient({
         groupId: option.groupId,
         optionId: option.optionId,
       })),
+      /*
+        가격 행 id 는 예외적으로 함께 보낸다 — 금액이 아니라 "어느 가격 행을 골랐는지"라서
+        서버가 DB에서 되찾을 수 없다. 미지정이면 서버가 `sort=0` 행을 쓰므로 가격이 1개인
+        메뉴는 보내지 않아도 기존과 동일하게 동작한다.
+      */
+      priceId: item.priceId,
     }))
 
     const orderResult = await createOrder({
@@ -285,6 +297,15 @@ export default function ShopOrderCheckoutContentClient({
       // 배달팁 불일치는 토스트만으로 끝내지 않고 재견적을 받아 표시 금액을 갱신한다.
       if (orderResult.errorCode === 'ORDER_DELIVERY_TIP_AMOUNT_MISMATCH') {
         await refetchDeliveryTip()
+      }
+
+      /*
+        금액 불일치는 점주가 그 사이 가격을 바꾼 상황이다. 낡은 금액으로 재시도하면 계속 거절되므로
+        메뉴를 재조회해 화면 금액을 갱신한다 — 안내 문구도 "새로고침 후 다시 시도"를 말한다
+        (`ORDER_ERROR_MESSAGES.ORDER_PRODUCT_AMOUNT_MISMATCH`).
+      */
+      if (orderResult.errorCode === 'ORDER_PRODUCT_AMOUNT_MISMATCH') {
+        await refreshCartInfo()
       }
 
       // 예약 관련 거절은 선택을 비우고 슬롯을 다시 받아 재선택할 수 있게 한다.

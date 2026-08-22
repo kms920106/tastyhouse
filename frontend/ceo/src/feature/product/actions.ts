@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import type { ProductImageListResponse, ProductVegetarianResponse } from "@/api/product/product.dto";
 import { productRepository } from "@/api/product/product.repository";
+import { shopRepository } from "@/api/shop/shop.repository";
 
 import { PRODUCT_REPRESENTATIVE_MAX_COUNT } from "./constants";
 import type {
@@ -14,6 +15,7 @@ import type {
   MenuExposureHour,
   MenuImageList,
   MenuNutrition,
+  MenuPrice,
   MenuVegetarian,
   OptionGroupMergeInput,
   OptionGroupMergePreview,
@@ -21,6 +23,7 @@ import type {
   OptionSelection,
   ProductOptionGroupType,
   ProductReleaseTarget,
+  StorePriceVerification,
 } from "./domain";
 import {
   OPTION_GROUP_MERGE_MESSAGE,
@@ -28,8 +31,10 @@ import {
   PRODUCT_MENU_VALIDATION_MESSAGE,
   PRODUCT_MESSAGE,
   PRODUCT_NUTRITION_MESSAGE,
+  PRODUCT_PRICE_MESSAGE,
   PRODUCT_REPRESENTATIVE_COPY,
   PRODUCT_REPRESENTATIVE_MESSAGE,
+  STORE_PRICE_VERIFICATION_MESSAGE,
 } from "./message";
 import {
   availabilityTargetSchema,
@@ -41,10 +46,14 @@ import {
   optionGroupMergeExclusionSchema,
   optionGroupMergeSchema,
   orderedIdsSchema,
+  type ProductPricesFormValues,
   productIdSchema,
+  productPricesSchema,
   releaseTargetSchema,
+  type StorePriceVerificationFormValues,
   shopIdSchema,
   soldOutUntilStringSchema,
+  storePriceVerificationSchema,
   vegetarianFormSchema,
   vegetarianTypeSchema,
 } from "./schema";
@@ -1170,4 +1179,106 @@ export async function deleteProductNutritionAction(productId: number, shopId: nu
 
   const { error } = await productRepository.deleteNutrition(productId, shopId);
   return toSimpleResult(error, PRODUCT_NUTRITION_MESSAGE.DELETE_FAILED);
+}
+
+// ===== 가격 체계 확장 (가격명 + 채널별 가격) =====
+
+/** 빈 문자열은 미설정(null) 이다 — 0 으로 보내면 "무료"라는 다른 뜻이 된다 */
+function toOptionalPrice(value: string): number | null {
+  const trimmed = value.trim();
+  return trimmed === "" ? null : Number(trimmed);
+}
+
+/** 가격명은 비어 있으면 보내지 않는다 — 전체 교체라 생략하면 서버가 null 로 정리한다 */
+function toOptionalPriceName(value: string): string | undefined {
+  return value.trim() || undefined;
+}
+
+/** 가격 행 목록. 행이 1개인 기존 메뉴도 배열 1건으로 내려온다 */
+export async function loadProductPricesAction(productId: number, shopId: number): Promise<DataResult<MenuPrice[]>> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.getProductPrices(productId, shopId);
+  if (error !== undefined || !data) return toFailure(error, PRODUCT_PRICE_MESSAGE.LOAD_FAILED);
+  return { success: true, data };
+}
+
+/**
+ * 가격 전체 교체(PUT).
+ *
+ * `sort` 는 화면의 행 순서를 그대로 쓴다 — 첫 행(`sort=0`)의 배달가가 `PRODUCT.original_price`
+ * 로 동기화되므로, 행 순서가 곧 "기본 가격이 무엇인지"다.
+ *
+ * 매장가격 인증 전이라면 화면이 입력란을 비활성해 두므로 빈 문자열이 와서 null 로 나간다.
+ * 서버도 `PRODUCT_PRICE_STORE_NOT_VERIFIED` 로 한 번 더 막는다.
+ */
+export async function updateProductPricesAction(
+  productId: number,
+  shopId: number,
+  values: ProductPricesFormValues,
+): Promise<SimpleResult> {
+  const parsedShopId = shopIdSchema.safeParse(shopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const parsed = productPricesSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await productRepository.updateProductPrices(productId, {
+    shopId,
+    prices: parsed.data.prices.map((price, index) => ({
+      id: price.id,
+      priceName: toOptionalPriceName(price.priceName),
+      deliveryPrice: Number(price.deliveryPrice),
+      storePrice: toOptionalPrice(price.storePrice),
+      pickupPrice: toOptionalPrice(price.pickupPrice),
+      sort: index,
+    })),
+  });
+
+  return toSimpleResult(error, PRODUCT_PRICE_MESSAGE.SAVE_FAILED);
+}
+
+// ===== 매장 가격 인증 =====
+
+/** 인증 ON/OFF 와 미인증 사유. 요청 이력이 없는 가게도 200 이고 `verified: false` 다 */
+export async function loadStorePriceVerificationAction(shopId: number): Promise<DataResult<StorePriceVerification>> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await shopRepository.getStorePriceVerification(shopId);
+  if (error !== undefined || !data) return toFailure(error, STORE_PRICE_VERIFICATION_MESSAGE.LOAD_FAILED);
+  return { success: true, data };
+}
+
+/**
+ * 매장 가격 인증 요청 (multipart).
+ *
+ * 가격표 이미지 규격(750×350 이상·15MB 이하·JPG/PNG)은 **서버가** 판정한다 — 브라우저에서 잰
+ * 치수와 서버 판정이 어긋나면 "올렸는데 통과 못 하는" 상태를 설명할 수 없어서다. 화면은
+ * 파일을 골랐는지만 보고, 거절 문구는 서버가 내려준 것을 그대로 노출한다.
+ */
+export async function requestStorePriceVerificationAction(
+  shopId: number,
+  values: StorePriceVerificationFormValues,
+  file: File,
+): Promise<SimpleResult> {
+  const parsedShopId = shopIdSchema.safeParse(shopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const parsed = storePriceVerificationSchema.safeParse(values);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.createStorePriceVerification(
+    shopId,
+    parsed.data.items.map((item) => ({
+      productId: item.productId,
+      priceId: item.priceId,
+      storePrice: Number(item.storePrice),
+      applyPickupSamePrice: item.applyPickupSamePrice,
+    })),
+    file,
+  );
+
+  return toSimpleResult(error, STORE_PRICE_VERIFICATION_MESSAGE.REQUEST_FAILED);
 }

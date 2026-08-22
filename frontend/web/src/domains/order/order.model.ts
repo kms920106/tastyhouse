@@ -39,6 +39,18 @@ export interface OrderProduct {
   discountPrice: number
   options: OrderProductOption[]
   available: boolean
+  /**
+   * 손님이 고른 가격 행 id. 가격이 1개인 메뉴는 `undefined` 다.
+   *
+   * 장바구니가 보관한 값을 그대로 나른다 — 주문 요청에 실어야 서버가 어느 가격으로 계산할지 안다.
+   */
+  priceId?: number
+  /**
+   * 가격명. 장바구니·주문서에서 메뉴 하위 항목으로 표시한다.
+   *
+   * 배치 조회 응답이 내려줄 때만 채워진다 — 없으면 표시하지 않는다(가격이 1개인 메뉴).
+   */
+  priceName?: string | null
 }
 
 export interface OrderedProductOption {
@@ -58,6 +70,13 @@ export interface OrderedProduct {
   orderProductId: number
   productId: number
   name: string
+  /**
+   * 주문 시점 가격명 스냅샷. 전표에서 메뉴 하위 항목으로 표시한다.
+   *
+   * 점주가 나중에 가격명을 바꿔도 이 값은 변하지 않는다(서버가 주문 시점 값을 박제한다).
+   * 가격이 1개인 메뉴는 null 이므로 표시하지 않는다.
+   */
+  priceName: string | null
   imageUrl: string
   quantity: number
   originalPrice: number

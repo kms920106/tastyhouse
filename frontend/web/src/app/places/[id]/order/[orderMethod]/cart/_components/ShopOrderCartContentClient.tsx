@@ -49,7 +49,8 @@ export default function ShopOrderCartContentClient({
   maxDeliveryTip,
   scheduledOrderEnabled,
 }: Props) {
-  const { items: initialItems, isLoading } = useCartInfo()
+  // 주문유형을 넘겨야 서버가 가격 행을 배달가/픽업가 중 맞는 쪽으로 해석해 내려준다.
+  const { items: initialItems, isLoading } = useCartInfo(orderMethod)
 
   const [cartItems, setCartItems] = useState<OrderProduct[]>([])
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())

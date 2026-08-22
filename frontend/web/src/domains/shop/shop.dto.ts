@@ -343,3 +343,17 @@ export interface ShopOriginResponse {
   /** `sourceType === "DIRECT"` 이면 null */
   url: string | null
 }
+
+/**
+ * 가게 가격 뱃지.
+ *
+ * **노출 조건 판정은 서버가 한다** — 화면이 배달가·매장가·픽업가를 비교해 판정하면 서버 규정
+ * (전체 메뉴 대비 설정 비율, 픽업가 설정 익일 노출 등)과 어긋나 잘못된 뱃지를 보여준다.
+ * 화면은 내려온 boolean 두 개만 읽는다.
+ */
+export interface ShopPriceBadgesResponse {
+  /** 매장가격 인증 ON — "매장과 같은 가격" */
+  sameAsStorePrice: boolean
+  /** 픽업가 ≤ 매장가 조건 충족 — "매장가격 픽업" */
+  storePricePickup: boolean
+}

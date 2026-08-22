@@ -20,6 +20,7 @@ import {
   PRODUCT_DESCRIPTION_MAX_LENGTH,
   PRODUCT_NAME_MAX_LENGTH,
   PRODUCT_NAME_PATTERN,
+  PRODUCT_PRICE_NAME_MAX_LENGTH,
   PRODUCT_WEIGHT_TEXT_MAX_LENGTH,
   SOLD_OUT_UNTIL_MAX_DAYS,
   SOLD_OUT_UNTIL_MIN_MINUTES,
@@ -30,7 +31,9 @@ import {
   PRODUCT_MENU_VALIDATION_MESSAGE,
   PRODUCT_MESSAGE,
   PRODUCT_NUTRITION_MESSAGE,
+  PRODUCT_PRICE_MESSAGE,
   PRODUCT_VALIDATION_MESSAGE,
+  STORE_PRICE_VERIFICATION_MESSAGE,
 } from "./message";
 
 const MINUTE_VALUES = MINUTE_OPTIONS.map(String);
@@ -638,3 +641,100 @@ export type NutritionFormValues = z.infer<typeof nutritionSchema>;
 
 /** 폼의 수치 키 전체. 화면이 입력란을 돌면서 그릴 때 쓴다 */
 export const NUTRITION_NUMERIC_KEYS = [...NUTRITION_REQUIRED_KEYS, ...NUTRITION_OPTIONAL_NUMERIC_KEYS] as const;
+
+// ===== 가격 체계 확장 (가격명 + 채널별 가격) =====
+
+/** 필수 금액 — 배달가격은 항상 있어야 한다 */
+const requiredPriceField = z
+  .string()
+  .trim()
+  .refine((value) => /^\d+$/.test(value), { message: PRODUCT_PRICE_MESSAGE.MUST_BE_NON_NEGATIVE });
+
+/**
+ * 선택 금액 — 매장가·픽업가는 빈 문자열(미설정)을 허용한다.
+ *
+ * 0 과 빈 문자열은 다른 뜻이다. 0 은 "무료", 빈 값은 "설정하지 않음"이라 서버에 null 로 간다.
+ */
+const optionalPriceField = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || /^\d+$/.test(value), {
+    message: PRODUCT_PRICE_MESSAGE.MUST_BE_NON_NEGATIVE,
+  });
+
+/**
+ * 메뉴 가격 행 목록.
+ *
+ * 금액을 문자열로 다루는 이유는 `<input type="number">` 가 빈 값을 `NaN` 으로 만들어
+ * "미설정"과 "0"을 구분할 수 없게 되기 때문이다 — 기존 폼들과 같은 방식이다.
+ *
+ * 가격명은 행이 1개면 비워둘 수 있고, **2개 이상이면 전 행에 필수이고 중복도 막는다**
+ * (`backend.md` §A-2). 서버도 같은 판정을 하지만, 제출 전에 어긋난 행을 짚어주려면 폼이 먼저 본다.
+ */
+export const productPricesSchema = z
+  .object({
+    prices: z
+      .array(
+        z.object({
+          id: z.number().optional(),
+          priceName: z
+            .string()
+            .trim()
+            .max(PRODUCT_PRICE_NAME_MAX_LENGTH, { message: PRODUCT_PRICE_MESSAGE.NAME_TOO_LONG }),
+          deliveryPrice: requiredPriceField,
+          storePrice: optionalPriceField,
+          pickupPrice: optionalPriceField,
+        }),
+      )
+      .min(1, { message: PRODUCT_PRICE_MESSAGE.EMPTY }),
+  })
+  .superRefine((values, ctx) => {
+    if (values.prices.length <= 1) return;
+
+    values.prices.forEach((price, index) => {
+      if (price.priceName === "") {
+        ctx.addIssue({
+          code: "custom",
+          path: ["prices", index, "priceName"],
+          message: PRODUCT_PRICE_MESSAGE.NAME_REQUIRED,
+        });
+      }
+    });
+
+    // 중복은 뒤에 나온 행에 표시한다 — 첫 행에 붙이면 어느 쪽을 고쳐야 하는지 알 수 없다
+    const seen = new Set<string>();
+    values.prices.forEach((price, index) => {
+      if (price.priceName === "") return;
+      if (seen.has(price.priceName)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["prices", index, "priceName"],
+          message: PRODUCT_PRICE_MESSAGE.NAME_DUPLICATED,
+        });
+      }
+      seen.add(price.priceName);
+    });
+  });
+
+export type ProductPricesFormValues = z.infer<typeof productPricesSchema>;
+
+/**
+ * 매장 가격 인증 요청.
+ *
+ * 가격표 이미지는 이 스키마가 검사하지 않는다 — 규격 판정(750×350·15MB·JPG/PNG)은 서버 몫이고,
+ * 화면은 "선택했는지"만 본다(`frontend.md` §예외 처리).
+ */
+export const storePriceVerificationSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        productId: z.number().int().positive(),
+        priceId: z.number().int().positive(),
+        storePrice: requiredPriceField,
+        applyPickupSamePrice: z.boolean(),
+      }),
+    )
+    .min(1, { message: STORE_PRICE_VERIFICATION_MESSAGE.TARGET_EMPTY }),
+});
+
+export type StorePriceVerificationFormValues = z.infer<typeof storePriceVerificationSchema>;

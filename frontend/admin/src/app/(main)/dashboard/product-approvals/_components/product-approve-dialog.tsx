@@ -20,10 +20,13 @@ import {
   approveProductVegetarianAction,
 } from "@/feature/product/actions";
 import { PRODUCT_APPROVAL_COPY, PRODUCT_APPROVAL_MESSAGE } from "@/feature/product/message";
-import { approveMenuCollectionImageRequestAction } from "@/feature/shop/actions";
+import {
+  approveMenuCollectionImageRequestAction,
+  approveStorePriceVerificationRequestAction,
+} from "@/feature/shop/actions";
 
 /** 검수 종류 — 승인·반려 대상 API 와 안내 문구를 가른다. */
-export type ProductApprovalKind = "image" | "vegetarian" | "menuCollection" | "representative";
+export type ProductApprovalKind = "image" | "vegetarian" | "menuCollection" | "representative" | "storePrice";
 
 /** 종류마다 호출 API 가 다르므로 한 곳에 모아 분기를 중복시키지 않는다. */
 const APPROVE_ACTION_BY_KIND: Record<
@@ -34,6 +37,7 @@ const APPROVE_ACTION_BY_KIND: Record<
   vegetarian: approveProductVegetarianAction,
   menuCollection: approveMenuCollectionImageRequestAction,
   representative: approveProductRepresentativeAction,
+  storePrice: approveStorePriceVerificationRequestAction,
 };
 
 /** 승인 결과가 손님 화면에 어떻게 반영되는지 종류별로 다르게 안내한다. */
@@ -42,6 +46,7 @@ const APPROVE_CONFIRM_BODY_BY_KIND: Record<ProductApprovalKind, string> = {
   vegetarian: PRODUCT_APPROVAL_COPY.APPROVE_VEGETARIAN_CONFIRM_BODY,
   menuCollection: PRODUCT_APPROVAL_COPY.APPROVE_MENU_COLLECTION_CONFIRM_BODY,
   representative: PRODUCT_APPROVAL_COPY.APPROVE_REPRESENTATIVE_CONFIRM_BODY,
+  storePrice: PRODUCT_APPROVAL_COPY.APPROVE_STORE_PRICE_CONFIRM_BODY,
 };
 
 interface ProductApproveDialogProps {

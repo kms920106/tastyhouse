@@ -24,15 +24,18 @@ import {
 } from "@/feature/product/actions";
 import { PRODUCT_APPROVAL_COPY, PRODUCT_APPROVAL_MESSAGE } from "@/feature/product/message";
 import { PRODUCT_REJECT_REASON_MAX, type ProductRejectFormValues, productRejectSchema } from "@/feature/product/schema";
-import { rejectMenuCollectionImageRequestAction } from "@/feature/shop/actions";
+import {
+  rejectMenuCollectionImageRequestAction,
+  rejectStorePriceVerificationRequestAction,
+} from "@/feature/shop/actions";
 
 import type { ProductApprovalKind } from "./product-approve-dialog";
 
 /**
  * 종류마다 호출 API 가 다르므로 한 곳에 모아 분기를 중복시키지 않는다.
  *
- * <p>메뉴모음컷은 shop 리소스이지만 반려 사유 필드명(`rejectReason`)과 길이 제한(500)이 같아
- * 같은 폼 스키마·다이얼로그를 그대로 쓴다.
+ * <p>메뉴모음컷·매장가격 인증은 shop 리소스이지만 반려 사유 필드명(`rejectReason`)과
+ * 길이 제한(500)이 같아 같은 폼 스키마·다이얼로그를 그대로 쓴다.
  */
 const REJECT_ACTION_BY_KIND: Record<
   ProductApprovalKind,
@@ -42,6 +45,7 @@ const REJECT_ACTION_BY_KIND: Record<
   vegetarian: rejectProductVegetarianAction,
   menuCollection: rejectMenuCollectionImageRequestAction,
   representative: rejectProductRepresentativeAction,
+  storePrice: rejectStorePriceVerificationRequestAction,
 };
 
 interface ProductRejectDialogProps {

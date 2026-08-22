@@ -567,3 +567,80 @@ export interface MenuCollectionImageRequestItemResponse {
 export interface MenuCollectionImageRejectRequest {
   rejectReason: string;
 }
+
+// ===== 매장가격 인증 검수 =====
+
+/**
+ * 매장가격 인증 요청 상태 — backend `SHOP_REQUEST_INDEX` 공용 상태값 기준.
+ *
+ * <p>사장님 추천 등 `ApprovalStatusValue`(4값)와 달리, 인증 요청은 검수 착수를 나타내는
+ * `IN_PROGRESS`(검수 중)를 추가로 갖는다 — 검수 중에는 점주가 재요청할 수 없다는 규칙이
+ * 이 상태에 근거하므로(backend.md §B-1) 별도 유니온으로 둔다.
+ */
+export type StorePriceVerificationStatus = "PENDING" | "IN_PROGRESS" | "APPROVED" | "REJECTED" | "CANCELED";
+
+/**
+ * 매장가격 인증 요청 목록 항목.
+ *
+ * <p><b>목록에는 대상 메뉴가 개수(`itemCount`)로만 담긴다.</b> 요청 1건에 메뉴가 N건 달려 있어
+ * 목록에 펼치면 페이징이 깨지므로, 서버는 목록에 훑어보기용 값(가게·상태·항목 수·가격표 이미지)만
+ * 내려주고 메뉴별 배달가·매장가 대조는 상세 조회
+ * (`GET /api/shops/v1/store-price-verifications/{id}`)가 담당한다.
+ */
+export interface StorePriceVerificationRequestItemResponse {
+  id: number;
+  shopId: number;
+  shopName: string;
+  status: StorePriceVerificationStatus;
+  /** 검수 근거인 매장 가격표 이미지 URL. 없으면 null — 근거 없이 승인할 수 없다 */
+  priceListFileUrl: string | null;
+  rejectReason: string | null;
+  /** 이 요청에 딸린 대상 메뉴 수. 메뉴별 값은 상세 조회로 받는다 */
+  itemCount: number;
+  requestedAt: string;
+  processedAt: string | null;
+}
+
+/**
+ * 매장가격 인증 요청 상세.
+ *
+ * <p>검수자는 가격표 이미지(근거)와 항목별 배달가·매장가를 함께 봐야 "매장보다 앱 가격이 높은 메뉴"
+ * 같은 반려 사유를 판단할 수 있으므로, 대상 메뉴는 이 상세 응답에만 담긴다.
+ */
+export interface StorePriceVerificationRequestDetailResponse {
+  id: number;
+  shopId: number;
+  shopName: string;
+  status: StorePriceVerificationStatus;
+  priceListFileUrl: string | null;
+  rejectReason: string | null;
+  requestedAt: string;
+  processedAt: string | null;
+  items: StorePriceVerificationRequestTargetItemResponse[];
+}
+
+// 매장가격 인증 요청 대상 메뉴 한 건 — 앱 배달가와 요청 매장가를 나란히 대조하기 위한 값
+export interface StorePriceVerificationRequestTargetItemResponse {
+  productId: number;
+  productName: string;
+  /** 인증 대상 가격 행 id. 한 메뉴에 가격명이 여러 개면 행마다 별도 항목으로 내려온다 */
+  priceId: number;
+  /** 가격명(보통/곱빼기 등). 단일 가격 메뉴는 null */
+  priceName: string | null;
+  /** 점주가 이번 요청으로 인증받으려는 매장가 */
+  storePrice: number;
+  /** 현재 앱에 노출 중인 배달가 — 요청 매장가와 비교해 "앱 가격이 매장보다 높은지" 판단하는 기준값 */
+  deliveryPrice: number;
+  /** true면 승인 시 픽업가도 이 매장가와 동일하게 설정된다(PDF: '픽업가격 동일 설정') */
+  applyPickupSamePrice: boolean;
+}
+
+// 매장가격 인증 요청 목록 조회 쿼리 — status 미지정은 전체
+export interface StorePriceVerificationRequestListQueryRequest {
+  status?: StorePriceVerificationStatus;
+}
+
+// 매장가격 인증 요청 반려 — 필드명은 사장님 추천 등 기존 검수와 동일하게 rejectReason 을 쓴다
+export interface StorePriceVerificationRejectRequest {
+  rejectReason: string;
+}

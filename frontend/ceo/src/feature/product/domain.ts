@@ -350,3 +350,51 @@ export interface MenuNutrition {
   setMenu: boolean;
   allergens: AllergenCode[];
 }
+
+// ===== 가격 체계 확장 (가격명 + 채널별 가격) =====
+
+/**
+ * 메뉴 가격 한 행.
+ *
+ * 한 메뉴가 `(가격명, 배달가, 매장가, 픽업가)` 행을 여러 개 갖는다 — "보통/곱빼기"를 옵션그룹
+ * 추가금으로 우회하던 구조를 대체한다. 가격명은 행이 1개면 불필요하고, 2개 이상이면 필수다.
+ *
+ * `storePrice`·`pickupPrice` 는 **매장가격 인증이 승인된 가게만** 설정할 수 있어 미인증 가게는
+ * 항상 `null` 이다(`backend.md` §설계 판단).
+ */
+export interface MenuPrice {
+  id: number;
+  /** `null` 이면 단일 가격 — 손님 화면에 하위 항목으로 표시되지 않는다 */
+  priceName: string | null;
+  deliveryPrice: number;
+  /** 표시 전용 — "매장과 같은 가격" 뱃지의 근거일 뿐 결제에 쓰이지 않는다 */
+  storePrice: number | null;
+  pickupPrice: number | null;
+  sort: number;
+}
+
+/** 매장가격 인증 요청의 검수 상태. `SHOP_REQUEST_INDEX` 의 상태값을 그대로 쓴다 */
+export type StorePriceVerificationStatus = "PENDING" | "IN_PROGRESS" | "APPROVED" | "REJECTED" | "CANCELED";
+
+/** 미인증 사유 코드. 문구는 `STORE_PRICE_VERIFICATION_COPY.REASON_*` 가 갖는다 */
+export type StorePriceUnverifiedReason = "DELIVERY_PRICE_HIGHER_THAN_STORE" | "STORE_PRICE_NOT_REGISTERED";
+
+export interface StorePriceUnverifiedItem {
+  productId: number;
+  productName: string;
+  reason: StorePriceUnverifiedReason;
+}
+
+/**
+ * 매장가격 인증 상태.
+ *
+ * `verified` 가 곧 **인증 ON/OFF** 이고, 매장가·픽업가 입력란의 활성 여부를 이 값 하나가 정한다.
+ * 아직 요청한 적이 없는 가게는 `id`·`status` 가 `null` 이면서 `verified: false` 다.
+ */
+export interface StorePriceVerification {
+  id: number | null;
+  status: StorePriceVerificationStatus | null;
+  verified: boolean;
+  rejectReason: string | null;
+  unverifiedItems: StorePriceUnverifiedItem[];
+}

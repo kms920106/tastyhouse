@@ -744,3 +744,32 @@ export interface ShopOriginUpdateRequest {
   content?: string;
   url?: string;
 }
+
+// ===== 매장 가격 인증 =====
+
+export type StorePriceVerificationStatusCode = "PENDING" | "IN_PROGRESS" | "APPROVED" | "REJECTED" | "CANCELED";
+
+export type StorePriceUnverifiedReasonCode = "DELIVERY_PRICE_HIGHER_THAN_STORE" | "STORE_PRICE_NOT_REGISTERED";
+
+export interface StorePriceUnverifiedItemResponse {
+  productId: number;
+  productName: string;
+  reason: StorePriceUnverifiedReasonCode;
+}
+
+/** 최근 요청 1건 + 인증 ON/OFF. 요청 이력이 없으면 `id`·`status` 가 null 이다 */
+export interface StorePriceVerificationResponse {
+  id: number | null;
+  status: StorePriceVerificationStatusCode | null;
+  verified: boolean;
+  rejectReason: string | null;
+  unverifiedItems: StorePriceUnverifiedItemResponse[];
+}
+
+/** 인증 요청 대상 한 건. `applyPickupSamePrice` 면 승인 시 픽업가도 매장가와 같게 설정된다 */
+export interface StorePriceVerificationItemRequest {
+  productId: number;
+  priceId: number;
+  storePrice: number;
+  applyPickupSamePrice: boolean;
+}

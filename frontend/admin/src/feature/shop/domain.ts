@@ -15,10 +15,17 @@ import type {
   RiderGuideActorType,
   ShopImageChangeStatus,
   ShopImageType,
+  StorePriceVerificationStatus,
 } from "@/api/shop/shop.dto";
 
 // api/shop 계층에서 정의한 enum 문자열 유니온을 도메인에서도 그대로 쓴다.
-export type { DeliveryAreaAdjustmentStatus, MenuCollectionImageStatus, RiderGuideActionType, RiderGuideActorType };
+export type {
+  DeliveryAreaAdjustmentStatus,
+  MenuCollectionImageStatus,
+  RiderGuideActionType,
+  RiderGuideActorType,
+  StorePriceVerificationStatus,
+};
 
 export interface Station {
   id: number;
@@ -282,4 +289,58 @@ export interface MenuCollectionImageRequestItem {
   sort: number;
   status: MenuCollectionImageStatus;
   rejectReason: string | null;
+}
+
+// ===== 매장가격 인증 검수 =====
+
+/**
+ * 매장가격 인증 요청 대상 메뉴 한 건.
+ *
+ * <p>검수 기준("매장보다 앱 가격이 높은 메뉴는 반려")을 판단하려면 현재 앱 배달가와
+ * 이번에 요청한 매장가를 같은 화면에서 대조할 수 있어야 하므로 두 값을 함께 보관한다.
+ */
+export interface StorePriceVerificationRequestTargetItem {
+  productId: number;
+  productName: string;
+  /** 가격명(보통/곱빼기 등). 단일 가격 메뉴는 null — 한 메뉴가 가격 행마다 별도 항목으로 온다 */
+  priceName: string | null;
+  /** 현재 앱에 노출 중인 배달가 — 요청 매장가와 비교하는 기준값 */
+  deliveryPrice: number;
+  /** 점주가 이번 요청으로 인증받으려는 매장가 */
+  storePrice: number;
+  /** true면 승인 시 픽업가도 이 매장가와 동일하게 설정된다(PDF: '픽업가격 동일 설정') */
+  applyPickupSamePrice: boolean;
+}
+
+/**
+ * 매장가격 인증 요청 목록 한 건.
+ *
+ * <p>검수의 핵심 근거는 점주가 올린 매장 가격표 이미지다 — 이미지 없이는 요청 내용이
+ * 실제 매장 가격과 일치하는지 확인할 방법이 없으므로, 이미지 검수 탭과 마찬가지로
+ * 이미지가 없거나 로드에 실패하면 승인을 막는다.
+ *
+ * <p><b>대상 메뉴는 개수만 갖는다.</b> 요청 1건에 메뉴가 N건 달려 목록에 펼치면 페이징이 깨지므로,
+ * 메뉴별 배달가·매장가 대조는 {@link StorePriceVerificationRequestDetail} 로 따로 조회한다.
+ */
+export interface StorePriceVerificationRequestItem {
+  id: number;
+  shopId: number;
+  shopName: string;
+  /** 검수 근거인 매장 가격표 이미지 URL. 없으면 null */
+  priceListImageUrl: string | null;
+  status: StorePriceVerificationStatus;
+  rejectReason: string | null;
+  /** 이 요청에 딸린 대상 메뉴 수 */
+  itemCount: number;
+}
+
+/** 매장가격 인증 요청 상세 — 판정 근거인 메뉴별 앱 배달가 대 요청 매장가를 담는다 */
+export interface StorePriceVerificationRequestDetail {
+  id: number;
+  shopId: number;
+  shopName: string;
+  priceListImageUrl: string | null;
+  status: StorePriceVerificationStatus;
+  rejectReason: string | null;
+  items: StorePriceVerificationRequestTargetItem[];
 }

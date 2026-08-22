@@ -29,6 +29,7 @@ export default function OrderedProductList({ orderId, shopName, orderProducts }:
             <OrderProductItem
               key={orderProduct.orderProductId}
               productName={orderProduct.name}
+              priceName={orderProduct.priceName}
               productImageUrl={orderProduct.imageUrl}
               totalPrice={orderProduct.totalPrice}
               quantity={orderProduct.quantity}

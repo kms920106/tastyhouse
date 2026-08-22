@@ -10,6 +10,16 @@ export interface OrderProductRequest {
   productId: number
   quantity: number
   options: OrderProductOptionRequest[]
+  /**
+   * 손님이 고른 가격 행 id.
+   *
+   * 가격명이 여러 개인 메뉴는 어느 가격을 골랐는지 실려야 한다. 미지정이면 서버가 `sort=0` 행을
+   * 쓴다 — 가격이 1개인 메뉴(대부분)는 보내지 않아도 기존과 동일하게 동작한다.
+   *
+   * **어느 채널 가격(배달가·픽업가)을 쓸지는 이 값이 정하지 않는다.** 그 해석은 `orderMethod` 를
+   * 근거로 서버가 단독 결정한다 — 클라이언트가 정하면 배달 주문에 픽업가를 주장하는 우회가 생긴다.
+   */
+  priceId?: number
 }
 
 export interface OrderCreateRequest {

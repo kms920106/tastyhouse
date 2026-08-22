@@ -10,6 +10,7 @@ import {
   PRODUCT_COMPOSITION_MAX_LENGTH,
   PRODUCT_DESCRIPTION_MAX_LENGTH,
   PRODUCT_NAME_MAX_LENGTH,
+  PRODUCT_PRICE_NAME_MAX_LENGTH,
   PRODUCT_WEIGHT_TEXT_MAX_LENGTH,
   SOLD_OUT_UNTIL_MAX_DAYS,
   SOLD_OUT_UNTIL_MIN_MINUTES,
@@ -198,6 +199,7 @@ export const PRODUCT_DETAIL_COPY = {
   ROW_NAME: "메뉴명",
   ROW_TEXT: "메뉴구성·설명·중량",
   ROW_PRICE: "가격",
+  ROW_DISCOUNT: "할인가·맵기",
   ROW_FLAGS: "판매 옵션",
   ROW_CATEGORY: "메뉴그룹",
   ROW_EXPOSURE: "노출기간",
@@ -208,6 +210,8 @@ export const PRODUCT_DETAIL_COPY = {
   SHEET_NAME_TITLE: "메뉴명 변경",
   SHEET_TEXT_TITLE: "메뉴구성·설명·중량 변경",
   SHEET_PRICE_TITLE: "가격 변경",
+  /** 채널별 가격은 전용 Sheet 로 빠지고 이 Sheet 에는 할인가·맵기만 남는다 */
+  SHEET_DISCOUNT_TITLE: "할인가·맵기 변경",
   SHEET_CATEGORY_TITLE: "메뉴그룹 변경",
   SHEET_EXPOSURE_TITLE: "노출기간 설정",
   SHEET_IMAGE_TITLE: "메뉴 이미지 설정",
@@ -743,4 +747,120 @@ export const PRODUCT_NUTRITION_COPY = {
   SUMMARY_EMPTY: "미입력",
   SUMMARY_SET_MENU: "세트 메뉴",
   SUMMARY_ALLERGEN_SUFFIX: "종",
+} as const;
+
+// ===== 가격 체계 확장 (가격명 + 채널별 가격) =====
+
+export const PRODUCT_PRICE_MESSAGE = {
+  EMPTY: "가격은 1개 이상 등록해야 합니다.",
+  NAME_REQUIRED: "가격이 2개 이상이면 가격명을 입력해야 합니다.",
+  NAME_DUPLICATED: "이미 사용 중인 가격명입니다.",
+  MUST_BE_NON_NEGATIVE: "0 이상의 숫자만 입력할 수 있습니다.",
+  NAME_TOO_LONG: `${PRODUCT_PRICE_NAME_MAX_LENGTH}자 이내로 입력해 주세요.`,
+  STORE_NOT_VERIFIED: "매장 가격 인증 후 설정할 수 있습니다.",
+  DISCOUNT_IN_PROGRESS: "할인이 진행 중이라 가격을 변경할 수 없습니다. 메뉴 할인 관리에서 기간을 확인해 주세요.",
+  SAVE_SUCCESS: "가격을 저장했습니다.",
+  SAVE_FAILED: "가격 저장에 실패했습니다.",
+  LOAD_FAILED: "가격 정보를 불러오지 못했습니다.",
+} as const;
+
+export const PRODUCT_PRICE_COPY = {
+  SECTION_TITLE: "가격",
+
+  FIELD_PRICE_NAME: "가격명",
+  FIELD_PRICE_NAME_OPTIONAL: "가격명(선택)",
+  FIELD_DELIVERY_PRICE: "배달가격",
+  FIELD_STORE_PRICE: "매장가격",
+  FIELD_PICKUP_PRICE: "픽업가격",
+
+  ACTION_ADD_ROW: "가격 추가",
+  ACTION_REMOVE_ROW: "가격 행 삭제",
+
+  /** PDF 문구 그대로 */
+  HELP_PRICE_NAME:
+    "가격명을 설정하면 메뉴정보·주문정보·주문전표에서 메뉴 하위 항목으로 표시됩니다. 가격명을 설정하지 않으면 표시되지 않습니다.",
+
+  CHANNEL_GUIDE_TITLE: "채널별 가격 안내",
+  CHANNEL_GUIDE_COLUMN_KIND: "구분",
+  CHANNEL_GUIDE_COLUMN_CONDITION: "설정 조건",
+  CHANNEL_GUIDE_COLUMN_EXPOSURE: "앱 노출",
+  /** PDF 표 그대로 */
+  CHANNEL_GUIDE_ROWS: [
+    { kind: "배달가격", condition: "상시 가능", exposure: "음식배달 탭" },
+    { kind: "매장가격", condition: "매장가격 인증 후 가능", exposure: "배달가격과 같음" },
+    { kind: "픽업가격", condition: "매장가격 인증 후 가능", exposure: "픽업 탭 (매장가격과 같거나 낮아야 뱃지 노출)" },
+  ],
+  CHANNEL_GUIDE_FOOTNOTE: "매장가격 인증을 하지 않고 픽업가격을 설정하지 않으면 배달가격이 픽업가격으로 노출됩니다.",
+
+  VERIFICATION_LINK: "매장 가격 인증하기",
+
+  ACTION_SUBMIT: "저장",
+  ACTION_PENDING: "저장 중...",
+} as const;
+
+export const STORE_PRICE_VERIFICATION_MESSAGE = {
+  IN_PROGRESS: "매장가격 검수 중에는 인증 요청을 할 수 없어요.",
+  DISCOUNT_IN_PROGRESS: "할인 진행 중에는 인증 요청을 할 수 없어요.",
+  TARGET_EMPTY: "인증할 메뉴를 1개 이상 선택해야 합니다.",
+  IMAGE_REQUIRED: "매장 가격표 이미지를 등록해야 합니다.",
+  IMAGE_SPEC_INVALID: "750 × 350 이상, 15MB 이하의 JPG/PNG 이미지만 등록할 수 있습니다.",
+  STORE_PRICE_REQUIRED: "선택한 메뉴의 매장가격을 모두 입력해야 합니다.",
+  REQUEST_SUCCESS: "매장 가격 인증을 요청했습니다. 최대 하루 정도 걸릴 수 있어요.",
+  REQUEST_FAILED: "매장 가격 인증 요청에 실패했습니다.",
+  LOAD_FAILED: "매장 가격 인증 상태를 불러오지 못했습니다.",
+  VERIFIED_ON: "모든 승인이 완료되었습니다. 앱에서 '매장과 같은 가격' 뱃지가 부착됩니다.",
+  VERIFIED_OFF: "매장 가격 인증이 필요한 메뉴가 있습니다.",
+} as const;
+
+export const STORE_PRICE_VERIFICATION_COPY = {
+  SHEET_TITLE: "매장 가격 인증",
+  SHEET_DESCRIPTION: "매장에서 쓰는 가격표를 등록하면 앱 가격이 매장과 같은지 검수합니다.",
+
+  STATUS_TITLE: "인증 상태",
+  STATUS_ON: "인증 ON",
+  STATUS_OFF: "인증 OFF",
+  UNVERIFIED_LIST_TITLE: "미인증 메뉴",
+
+  /** 미인증 사유 코드 → 문구. 서버가 코드만 내려주므로 표를 화면이 갖는다 */
+  REASON_LABEL: {
+    DELIVERY_PRICE_HIGHER_THAN_STORE: "배달가격이 매장가격보다 높아요.",
+    STORE_PRICE_NOT_REGISTERED: "등록된 매장가격이 없어요.",
+  },
+
+  STEP_TARGET_TITLE: "1. 인증할 메뉴 선택",
+  STEP_STORE_PRICE_TITLE: "2. 매장가격 입력",
+  STEP_BULK_TITLE: "3. 매장가격 일괄 변경",
+  STEP_PICKUP_TITLE: "4. 픽업가격 동일 설정",
+  STEP_IMAGE_TITLE: "5. 매장 가격표 업로드",
+
+  BULK_HELP: "선택한 메뉴의 매장가격을 100원 단위로 한 번에 올리거나 내립니다.",
+  BULK_AMOUNT_LABEL: "변경 금액(원)",
+  ACTION_BULK_DECREASE: "일괄 인하",
+  ACTION_BULK_INCREASE: "일괄 인상",
+
+  PICKUP_SAME_LABEL: "픽업가격을 매장가격과 동일하게 설정",
+  PICKUP_SAME_HELP: "승인되면 선택한 메뉴의 픽업가격이 매장가격과 같아집니다.",
+
+  /** PDF 안내문 그대로 */
+  IMAGE_GUIDE: [
+    "메뉴 이름과 가격이 잘 보이게 찍어주세요.",
+    "매장 가격표는 앱에 노출되지 않고 '매장 가격 인증'을 위한 자료로만 사용됩니다.",
+    "750 × 350 이상, 15MB 이하 JPG/PNG만 올릴 수 있습니다.",
+    "실제 가게에서 쓰고 있는 메뉴판이어야 합니다.",
+    "메뉴판에 가게명이 적혀 있다면 요청하신 가게명과 같아야 승인됩니다.",
+  ],
+  IMAGE_SELECT: "가격표 이미지 선택",
+
+  BLOCKED_TITLE: "지금은 인증 요청을 할 수 없어요",
+
+  COLUMN_MENU: "메뉴",
+  COLUMN_DELIVERY_PRICE: "배달가격",
+  COLUMN_STORE_PRICE: "매장가격",
+
+  ACTION_SUBMIT: "인증 요청하기",
+  ACTION_PENDING: "요청 중...",
+  ACTION_CLOSE: "닫기",
+
+  EMPTY_MENU: "인증할 수 있는 메뉴가 없습니다.",
+  REJECT_REASON_PREFIX: "반려 사유: ",
 } as const;

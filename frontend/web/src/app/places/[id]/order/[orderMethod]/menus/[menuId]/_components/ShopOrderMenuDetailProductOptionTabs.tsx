@@ -1,6 +1,7 @@
 'use client'
 
 import SectionStack from '@/components/ui/SectionStack'
+import type { ProductPrice } from '@/domains/product'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
 import { useTabNavigation } from '@/hooks/useTabNavigation'
 import ShopOrderMenuDetailOptionTabContent from './ShopOrderMenuDetailOptionTabContent'
@@ -13,6 +14,8 @@ interface Props {
   shopId: number
   reviewCount: number
   tab: ProductOrderMenuDetailTab
+  /** 가격 행 목록. 2개 이상이면 옵션 탭 최상단에 가격 선택이 붙는다 */
+  prices?: ProductPrice[]
 }
 
 export default function ShopOrderMenuDetailProductOptionTabs({
@@ -20,6 +23,7 @@ export default function ShopOrderMenuDetailProductOptionTabs({
   shopId,
   reviewCount,
   tab,
+  prices,
 }: Props) {
   const { handleTabChange } = useTabNavigation()
 
@@ -47,7 +51,11 @@ export default function ShopOrderMenuDetailProductOptionTabs({
         ))}
       </TabsList>
       <TabsContent value="options" className="mt-0 data-[state=inactive]:hidden" forceMount>
-        <ShopOrderMenuDetailOptionTabContent productId={productId} shopId={shopId} />
+        <ShopOrderMenuDetailOptionTabContent
+          productId={productId}
+          shopId={shopId}
+          prices={prices}
+        />
       </TabsContent>
       <TabsContent value="reviews" className="mt-0">
         <SectionStack>

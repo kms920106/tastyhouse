@@ -26,6 +26,8 @@ import type {
   ShopRiderGuideDetail,
   ShopRiderGuideListItem,
   Station,
+  StorePriceVerificationRequestDetail,
+  StorePriceVerificationRequestItem,
   Tag,
 } from "@/feature/shop/domain";
 
@@ -37,6 +39,7 @@ import type {
   ShopImageChangeRequestListQueryRequest,
   ShopListQueryRequest,
   ShopRiderGuideListQueryRequest,
+  StorePriceVerificationRequestListQueryRequest,
 } from "./shop.dto";
 import { shopRepository } from "./shop.repository";
 
@@ -461,6 +464,62 @@ export const shopService = {
         status: item.status,
         rejectReason: item.rejectReason,
       })),
+    };
+  },
+
+  // ===== 매장가격 인증 검수 =====
+
+  // 매장가격 인증 요청 목록 조회 — 도메인 반환
+  async getStorePriceVerificationRequests(
+    query: StorePriceVerificationRequestListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<StorePriceVerificationRequestItem[]>> {
+    const res = await shopRepository.getStorePriceVerificationRequests(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        shopId: item.shopId,
+        shopName: item.shopName,
+        // 서버 필드명은 priceListFileUrl 이지만 도메인은 "이미지"라는 쓰임으로 부른다(검수 근거 사진)
+        priceListImageUrl: item.priceListFileUrl,
+        status: item.status,
+        rejectReason: item.rejectReason,
+        itemCount: item.itemCount,
+      })),
+    };
+  },
+
+  /**
+   * 매장가격 인증 요청 상세 조회 — 도메인 반환.
+   *
+   * 메뉴별 배달가·매장가 대조표는 목록에 없으므로(항목 수만 옴) 검수자가 판정할 때 이 조회로 받는다.
+   */
+  async getStorePriceVerificationRequestDetail(
+    requestId: number,
+  ): Promise<ApiResponse<StorePriceVerificationRequestDetail>> {
+    const res = await shopRepository.getStorePriceVerificationRequestDetail(requestId);
+    const detail = res.data;
+    if (detail === undefined) return { ...res, data: undefined };
+
+    return {
+      ...res,
+      data: {
+        id: detail.id,
+        shopId: detail.shopId,
+        shopName: detail.shopName,
+        priceListImageUrl: detail.priceListFileUrl,
+        status: detail.status,
+        rejectReason: detail.rejectReason,
+        items: (detail.items ?? []).map((target) => ({
+          productId: target.productId,
+          productName: target.productName,
+          priceName: target.priceName,
+          deliveryPrice: target.deliveryPrice,
+          storePrice: target.storePrice,
+          applyPickupSamePrice: target.applyPickupSamePrice,
+        })),
+      },
     };
   },
 };

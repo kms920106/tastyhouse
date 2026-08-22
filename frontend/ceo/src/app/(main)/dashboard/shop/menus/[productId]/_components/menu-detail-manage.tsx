@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { loadProductNutritionAction, updateMenuAction } from "@/feature/product/actions";
-import { VEGETARIAN_TYPE_OPTIONS } from "@/feature/product/constants";
+import { SPICINESS_OPTIONS, VEGETARIAN_TYPE_OPTIONS } from "@/feature/product/constants";
 import type {
   LinkedProductSummary,
   MenuCategory,
@@ -21,6 +21,7 @@ import type {
   MenuExposure,
   MenuNutrition,
   MenuOptionGroup,
+  MenuPrice,
   MenuVegetarian,
 } from "@/feature/product/domain";
 import { formatPrice } from "@/feature/product/format";
@@ -39,6 +40,7 @@ import { MenuExposureSheet } from "./menu-exposure-sheet";
 import { MenuImageSheet } from "./menu-image-sheet";
 import { MenuNutritionSheet } from "./menu-nutrition-sheet";
 import { MenuOptionGroupSheet } from "./menu-option-group-sheet";
+import { MenuPriceSheet } from "./menu-price-sheet";
 import { MenuVegetarianSheet } from "./menu-vegetarian-sheet";
 
 interface MenuDetailManageProps {
@@ -87,6 +89,7 @@ export function MenuDetailManage({
   const [vegetarianOpen, setVegetarianOpen] = React.useState(false);
   const [optionGroupOpen, setOptionGroupOpen] = React.useState(false);
   const [nutritionOpen, setNutritionOpen] = React.useState(false);
+  const [priceOpen, setPriceOpen] = React.useState(false);
 
   // Sheet 안에서만 조회하는 값들의 요약. 상세 응답에 없어서 Sheet 가 알려줄 때까지 비어 있다.
   const [exposureSummary, setExposureSummary] = React.useState<MenuExposure | null>(null);
@@ -94,6 +97,8 @@ export function MenuDetailManage({
   const [vegetarianSummary, setVegetarianSummary] = React.useState<MenuVegetarian | null>(null);
   /** 영양성분은 상세 응답에 없어 Sheet 를 열어 조회할 때까지 모른다 — `undefined` 가 "아직 모름"이다 */
   const [nutritionSummary, setNutritionSummary] = React.useState<MenuNutrition | null | undefined>(undefined);
+  /** 가격 행 목록도 상세 응답에 없다. Sheet 가 알려줄 때까지 기존 단일 가격 요약을 보인다 */
+  const [priceSummaryRows, setPriceSummaryRows] = React.useState<MenuPrice[] | undefined>(undefined);
 
   const handleExposureSaved = React.useCallback((exposure: MenuExposure | null) => {
     setExposureSummary(exposure);
@@ -198,16 +203,40 @@ export function MenuDetailManage({
 
   const categorySummary = detail.productCategoryName ?? PRODUCT_MENU_COPY.PLACEHOLDER_CATEGORY_NONE;
 
+  // 할인가와 맵기를 한 Sheet 에서 편집하므로 둘을 함께 요약한다. 미설정이면 표시하지 않는다.
+  const discountRowSummary =
+    [
+      detail.discountPrice === null ? undefined : formatPrice(detail.discountPrice),
+      SPICINESS_OPTIONS.find((option) => option.value === detail.spiciness)?.label,
+    ]
+      .filter((value) => value !== undefined)
+      .join(" · ") || undefined;
+
   // 중량도 이 행에서 편집하므로 요약에 함께 보인다 — 미입력이면 무엇을 아직 안 적었는지 알 수 없다.
   const textRowSummary =
     [detail.composition ?? detail.description, detail.weightText]
       .filter((value) => value != null && value !== "")
       .join(" · ") || undefined;
 
+  /**
+   * 가격 요약.
+   *
+   * 가격 행 목록은 상세 응답에 없어 Sheet 를 열기 전에는 모른다. 그때까지는 기존 단일 가격
+   * (`originalPrice`·`discountPrice`)으로 요약한다 — 행이 1개인 메뉴는 두 값이 일치한다.
+   * 행이 2개 이상이면 가격명을 함께 보여야 어느 가격인지 알 수 있다.
+   */
   const priceSummary =
-    detail.discountPrice === null
-      ? formatPrice(detail.originalPrice)
-      : `${formatPrice(detail.discountPrice)} (${formatPrice(detail.originalPrice)})`;
+    priceSummaryRows === undefined || priceSummaryRows.length === 0
+      ? detail.discountPrice === null
+        ? formatPrice(detail.originalPrice)
+        : `${formatPrice(detail.discountPrice)} (${formatPrice(detail.originalPrice)})`
+      : priceSummaryRows
+          .map((row) =>
+            row.priceName === null
+              ? formatPrice(row.deliveryPrice)
+              : `${row.priceName} ${formatPrice(row.deliveryPrice)}`,
+          )
+          .join(" · ");
 
   /**
    * 영양성분 요약.
@@ -296,10 +325,11 @@ export function MenuDetailManage({
           summary={textRowSummary}
           onAction={() => setBasicSection("text")}
         />
+        <SettingRow title={PRODUCT_DETAIL_COPY.ROW_PRICE} summary={priceSummary} onAction={() => setPriceOpen(true)} />
         <SettingRow
-          title={PRODUCT_DETAIL_COPY.ROW_PRICE}
-          summary={priceSummary}
-          onAction={() => setBasicSection("price")}
+          title={PRODUCT_DETAIL_COPY.ROW_DISCOUNT}
+          summary={discountRowSummary}
+          onAction={() => setBasicSection("discount")}
         />
         <SettingRow
           title={PRODUCT_DETAIL_COPY.ROW_CATEGORY}
@@ -400,6 +430,19 @@ export function MenuDetailManage({
         defaultValues={formValues}
         categories={categories}
         onSubmit={(values) => submitUpdate(values, () => setBasicSection(null))}
+      />
+
+      <MenuPriceSheet
+        open={priceOpen}
+        onOpenChange={setPriceOpen}
+        productId={productId}
+        shopId={shopId}
+        // 상세 응답에 할인 기간이 없어 "대기·진행 중"을 정확히 판정할 수 없다. 할인가가 설정돼
+        // 있으면 진행 중으로 보수적으로 본다 — 서버가 `PRODUCT_PRICE_DISCOUNT_IN_PROGRESS` 로
+        // 한 번 더 막으므로, 잘못 열어 저장 실패를 겪는 쪽보다 미리 잠그는 쪽이 낫다.
+        discountInProgress={detail.discountPrice !== null}
+        onChanged={setPriceSummaryRows}
+        onNavigateVerification={backToBoard}
       />
 
       <MenuExposureSheet

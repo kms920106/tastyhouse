@@ -19,7 +19,7 @@ import type {
   ProductVegetarianRequestItem,
 } from "@/feature/product/domain";
 import { APPROVAL_STATUS_LABEL, APPROVAL_STATUS_OPTIONS, PRODUCT_APPROVAL_COPY } from "@/feature/product/message";
-import type { MenuCollectionImageRequestItem } from "@/feature/shop/domain";
+import type { MenuCollectionImageRequestItem, StorePriceVerificationRequestItem } from "@/feature/shop/domain";
 
 import { menuCollectionReviewColumns } from "./menu-collection-review-columns";
 import { ProductApprovalsTable } from "./product-approvals-table";
@@ -28,6 +28,7 @@ import { type ProductApprovalsTableMeta, productImageReviewColumns } from "./pro
 import { ProductRejectDialog } from "./product-reject-dialog";
 import { productVegetarianReviewColumns } from "./product-vegetarian-review-columns";
 import { representativeReviewColumns } from "./representative-review-columns";
+import { storePriceReviewColumns } from "./store-price-review-columns";
 
 /** 탭마다 조회 API·컬럼이 다르므로 props 를 판별 유니온으로 받는다. */
 type Props = { pagination: ApiPagination; initialStatus?: ApprovalStatus } & (
@@ -35,6 +36,7 @@ type Props = { pagination: ApiPagination; initialStatus?: ApprovalStatus } & (
   | { tab: "vegetarian"; requests: ProductVegetarianRequestItem[] }
   | { tab: "menuCollection"; requests: MenuCollectionImageRequestItem[] }
   | { tab: "representative"; requests: ProductRepresentativeRequestItem[] }
+  | { tab: "storePrice"; requests: StorePriceVerificationRequestItem[] }
 );
 
 /**
@@ -166,6 +168,24 @@ export function ProductApprovals(props: Props) {
     } satisfies ProductApprovalsTableMeta<ProductRepresentativeRequestItem>,
   });
 
+  const storePriceTable = useReactTable<StorePriceVerificationRequestItem>({
+    ...sharedTableOptions,
+    data: props.tab === "storePrice" ? props.requests : [],
+    columns: storePriceReviewColumns,
+    getRowId: (row) => String(row.id),
+    // 매장가격 인증은 메뉴 여러 개가 한 요청에 묶여 있어 메뉴명 하나로 대표할 수 없으므로,
+    // 메뉴모음컷과 마찬가지로 다이얼로그 제목에는 가게명을 넣는다.
+    meta: {
+      ...sharedMeta,
+      onApprove: (request: StorePriceVerificationRequestItem) =>
+        setApproveTarget({ id: request.id, productName: request.shopName }),
+      onReject: (request: StorePriceVerificationRequestItem) =>
+        setRejectTarget({ id: request.id, productName: request.shopName }),
+      imageLoadFailedIds,
+      onImageLoadError: handleImageLoadError,
+    } satisfies ProductApprovalsTableMeta<StorePriceVerificationRequestItem>,
+  });
+
   return (
     <Card>
       <CardHeader className="border-b">
@@ -191,6 +211,9 @@ export function ProductApprovals(props: Props) {
               </TabsTrigger>
               <TabsTrigger value="representative" disabled={isPending}>
                 {PRODUCT_APPROVAL_COPY.TAB_REPRESENTATIVE}
+              </TabsTrigger>
+              <TabsTrigger value="storePrice" disabled={isPending}>
+                {PRODUCT_APPROVAL_COPY.TAB_STORE_PRICE}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -232,6 +255,7 @@ export function ProductApprovals(props: Props) {
         {tab === "vegetarian" && <ProductApprovalsTable table={vegetarianTable} isPending={isPending} />}
         {tab === "menuCollection" && <ProductApprovalsTable table={menuCollectionTable} isPending={isPending} />}
         {tab === "representative" && <ProductApprovalsTable table={representativeTable} isPending={isPending} />}
+        {tab === "storePrice" && <ProductApprovalsTable table={storePriceTable} isPending={isPending} />}
       </CardContent>
 
       <ProductApproveDialog

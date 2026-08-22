@@ -10,6 +10,16 @@ export interface CartProduct {
   quantity: number
   options: CartSelectedOption[]
   optionKey: string
+  /**
+   * 손님이 고른 가격 행 id.
+   *
+   * 가격이 2개 이상인 메뉴("보통"/"곱빼기")는 이 값이 있어야 어느 가격으로 담았는지 알 수 있다.
+   * 가격이 1개인 메뉴는 고를 것이 없어 `undefined` 이며, 서버가 `sort=0` 행으로 해석한다.
+   *
+   * 옵셔널인 이유는 **이 필드가 생기기 전에 저장된 장바구니**가 localStorage 에 남아 있기
+   * 때문이다 — 필수로 만들면 기존 장바구니가 깨진다(`getCartData` 의 placeId 하위호환과 같은 이유).
+   */
+  priceId?: number
 }
 
 export interface CartData {
@@ -22,11 +32,23 @@ const CART_STORAGE_KEY = 'cart'
 /**
  * 선택한 옵션들로 고유 키 생성
  * 같은 상품이라도 옵션이 다르면 다른 항목으로 취급
+ *
+ * `priceId` 도 키에 포함한다 — 같은 메뉴를 옵션까지 똑같이 골랐어도 **가격명이 다르면 다른
+ * 항목**이다. 포함하지 않으면 "보통"과 "곱빼기"가 한 줄로 합쳐져 수량만 늘어나고, 결제 시
+ * 어느 가격으로 계산해야 하는지 알 수 없어진다.
+ *
+ * 가격이 1개인 메뉴는 `priceId` 가 없어 접미어를 붙이지 않는다 — 기존 장바구니 키와 같은
+ * 문자열이 유지되므로 이 필드가 생기기 전에 담아 둔 항목이 그대로 인식된다.
  */
-export function generateOptionKey(productId: number, options: CartSelectedOption[]): string {
+export function generateOptionKey(
+  productId: number,
+  options: CartSelectedOption[],
+  priceId?: number,
+): string {
   const sortedOptions = [...options].sort((a, b) => a.groupId - b.groupId)
   const optionIds = sortedOptions.map((opt) => `${opt.groupId}:${opt.optionId}`).join('|')
-  return `${productId}_${optionIds}`
+  const base = `${productId}_${optionIds}`
+  return priceId == null ? base : `${base}_p${priceId}`
 }
 
 /**
@@ -75,7 +97,7 @@ export function addToCart(
   quantity: number = 1,
 ): CartData {
   const cart = getCartData()
-  const optionKey = generateOptionKey(item.productId, item.options)
+  const optionKey = generateOptionKey(item.productId, item.options, item.priceId)
 
   const products = cart?.products ?? []
   const existingIndex = products.findIndex((p) => p.optionKey === optionKey)
@@ -103,7 +125,7 @@ export function replaceCartAndAdd(
   item: Omit<CartProduct, 'optionKey' | 'quantity'>,
   quantity: number = 1,
 ): CartData {
-  const optionKey = generateOptionKey(item.productId, item.options)
+  const optionKey = generateOptionKey(item.productId, item.options, item.priceId)
   const newCart: CartData = {
     shopId,
     products: [{ ...item, optionKey, quantity }],

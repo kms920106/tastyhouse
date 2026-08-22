@@ -1,8 +1,13 @@
 'use client'
 
 import ShopDeliveryTipDialog from '@/components/shops/ShopDeliveryTipDialog'
+import ShopPriceBadges from '@/components/shops/ShopPriceBadges'
 import { toast } from '@/components/ui/AppToaster'
-import { getShopOperatingStatusName, type ShopOperatingStatus } from '@/domains/shop'
+import {
+  getShopOperatingStatusName,
+  type ShopOperatingStatus,
+  type ShopPriceBadges as ShopPriceBadgesData,
+} from '@/domains/shop'
 import { formatDecimal, formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
 import { copyToClipboard } from '@/lib/share'
@@ -28,6 +33,8 @@ interface Props {
   operatingStatus: ShopOperatingStatus
   /** 서버가 완성해 내려주는 한글 사유 문구. 영업중이면 null */
   unavailableReasonName: string | null
+  /** 가격 뱃지. 조회 실패 시 null 이고 이때는 노출하지 않는다 */
+  priceBadges: ShopPriceBadgesData | null
   bookmarkButton: ReactNode
 }
 
@@ -42,6 +49,7 @@ export default function ShopDetailSummaryInfo({
   maxDeliveryTip,
   operatingStatus,
   unavailableReasonName,
+  priceBadges,
   bookmarkButton,
 }: Props) {
   const [isDeliveryTipDialogOpen, setIsDeliveryTipDialogOpen] = useState(false)
@@ -76,6 +84,8 @@ export default function ShopDetailSummaryInfo({
             {operatingStatus !== 'OPEN' && unavailableReasonName && (
               <span className="text-xs leading-[12px] text-[#aaaaaa]">{unavailableReasonName}</span>
             )}
+            {/* 조건 판정은 서버가 한 값이다 — 둘 다 false 면 컴포넌트가 null 을 돌려 자리를 비운다 */}
+            {priceBadges && <ShopPriceBadges badges={priceBadges} />}
           </div>
         </div>
         <span className="text-[19px] leading-[18px] text-main">{formatDecimal(rating, 1)}</span>

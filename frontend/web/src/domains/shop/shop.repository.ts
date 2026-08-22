@@ -23,6 +23,7 @@ import {
   ShopOrderMethodResponse,
   ShopPhotoCategoryResponse,
   ShopPopularProductResponse,
+  ShopPriceBadgesResponse,
   ShopProductCategoryResponse,
   ShopReviewListQuery,
   ShopReviewStatisticsResponse,
@@ -228,5 +229,18 @@ export const shopRepository = {
       `${ENDPOINT}/v1/${shopId}/scheduled-order-slots`,
       { params },
     )
+  },
+  /**
+   * 가게 가격 뱃지.
+   *
+   * 인증이 필요 없어 `publicApi`를 쓴다. 점주가 가격을 바꾸면 뱃지 조건도 뒤집히는데 ceo 는 별도
+   * Next 인스턴스라 web 의 캐시를 무효화할 수 없다 — 그래서 `CACHE_OPTIONS`(1시간)가 아니라
+   * 리뷰와 같은 짧은 주기(60초)를 쓴다. 인증이 풀린 가게에 뱃지가 오래 남아 있으면
+   * "매장과 같은 가격"이 사실과 달라진다.
+   */
+  async getShopPriceBadges(shopId: number) {
+    return publicApi.get<ShopPriceBadgesResponse>(`${ENDPOINT}/v1/${shopId}/price-badges`, {
+      ...REVIEW_CACHE_OPTIONS,
+    })
   },
 }

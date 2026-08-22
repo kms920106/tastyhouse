@@ -10,6 +10,8 @@ import QuantityStepper from '../ui/QuantityStepper'
 interface Props {
   optionKey: string
   name: string
+  /** 가격명("곱빼기" 등). 가격이 1개인 메뉴는 없으므로 표시하지 않는다 */
+  priceName?: string | null
   imageUrl: string
   salePrice: number
   originalPrice: number
@@ -24,6 +26,7 @@ interface Props {
 export default function OrderCartItem({
   optionKey,
   name,
+  priceName,
   imageUrl,
   salePrice,
   originalPrice,
@@ -40,6 +43,8 @@ export default function OrderCartItem({
       <ImageContainer src={imageUrl} alt={name} size={65} className="ml-2.5" />
       <div className="flex-1 ml-4">
         <h3 className="text-sm leading-[14px] truncate">{name}</h3>
+        {/* 가격명은 옵션보다 위에 둔다 — 가격을 정하는 선택이므로 옵션 추가금과 구분돼야 한다 */}
+        {priceName && <p className="mt-1 text-xs text-[#999999]">{priceName}</p>}
         {options && options.length > 0 && (
           <div className="mt-1 space-y-1">
             {options.map((opt, index) => (

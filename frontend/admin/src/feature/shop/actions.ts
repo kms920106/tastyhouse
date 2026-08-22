@@ -29,6 +29,7 @@ import type {
   ShopOrderNotice,
   ShopRiderGuideDetail,
   Station,
+  StorePriceVerificationRequestDetail,
   Tag,
 } from "@/feature/shop/domain";
 
@@ -986,6 +987,59 @@ export async function rejectMenuCollectionImageRequestAction(
   }
 
   const { error } = await shopRepository.rejectMenuCollectionImageRequest(requestId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
+}
+
+// ===== 매장가격 인증 검수 =====
+
+type StorePriceVerificationRequestDetailResult = {
+  success: boolean;
+  message?: string;
+  data?: StorePriceVerificationRequestDetail;
+};
+
+/**
+ * 매장가격 인증 요청 상세 조회.
+ *
+ * 목록에는 대상 메뉴가 개수로만 담기므로, 검수자가 "매장보다 앱 가격이 높은 메뉴"를 판정하려면
+ * 이 조회로 메뉴별 배달가·매장가 대조표를 받아야 한다.
+ */
+export async function fetchStorePriceVerificationRequestDetailAction(
+  requestId: number,
+): Promise<StorePriceVerificationRequestDetailResult> {
+  const { error, data } = await shopService.getStorePriceVerificationRequestDetail(requestId);
+  if (error !== undefined) return { success: false, message: error };
+  return { success: true, data };
+}
+
+// 매장가격 인증 요청 승인 — 승인 즉시 요청된 매장가가 각 가격 행에 반영되고 가게 인증 상태가 ON 으로 바뀐다
+export async function approveStorePriceVerificationRequestAction(requestId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.approveStorePriceVerificationRequest(requestId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
+}
+
+/**
+ * 매장가격 인증 요청 반려.
+ *
+ * 반려 사유 필드명(`rejectReason`)과 길이 제한(500)이 메뉴 검수 쪽과 같으므로,
+ * 메뉴모음컷과 마찬가지로 `productRejectSchema` 를 그대로 재사용한다.
+ */
+export async function rejectStorePriceVerificationRequestAction(
+  requestId: number,
+  values: ProductRejectFormValues,
+): Promise<ActionResult> {
+  const parsed = productRejectSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.rejectStorePriceVerificationRequest(requestId, parsed.data);
   if (error !== undefined) return { success: false, message: error };
 
   revalidatePath(PRODUCT_APPROVALS_PATH);

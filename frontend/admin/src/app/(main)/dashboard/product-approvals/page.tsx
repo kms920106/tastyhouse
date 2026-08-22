@@ -11,7 +11,7 @@ const MAX_PAGE_SIZE = 100;
 
 const APPROVAL_STATUSES: readonly ApprovalStatus[] = ["PENDING", "APPROVED", "REJECTED", "CANCELED"];
 
-const TABS = ["image", "vegetarian", "menuCollection", "representative"] as const;
+const TABS = ["image", "vegetarian", "menuCollection", "representative", "storePrice"] as const;
 
 type Tab = (typeof TABS)[number];
 
@@ -63,6 +63,16 @@ export default async function Page({ searchParams }: PageProps<"/dashboard/produ
       throw new Error(PRODUCT_APPROVAL_MESSAGE.LOAD_FAILED);
     }
     return <ProductApprovals tab="representative" requests={data} pagination={pagination} initialStatus={status} />;
+  }
+
+  // 매장가격 인증은 가게(shop) 리소스라 productService 가 아닌 shopService 를 탄다.
+  if (tab === "storePrice") {
+    const { error, data, pagination } = await shopService.getStorePriceVerificationRequests({ status }, pageRequest);
+    if (error || !data || !pagination) {
+      logger.error({ reason: error, tab, data, pagination }, "매장가격 인증 요청 목록 조회 실패");
+      throw new Error(PRODUCT_APPROVAL_MESSAGE.LOAD_FAILED);
+    }
+    return <ProductApprovals tab="storePrice" requests={data} pagination={pagination} initialStatus={status} />;
   }
 
   const { error, data, pagination } = await productService.getImageChangeRequests({ status }, pageRequest);

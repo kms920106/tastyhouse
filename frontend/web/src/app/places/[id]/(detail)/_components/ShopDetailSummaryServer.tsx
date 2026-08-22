@@ -10,7 +10,16 @@ interface Props {
 }
 
 export default async function ShopDetailSummaryServer({ shopId, bookmarkButton }: Props) {
-  const { error, status, data } = await shopRepository.getShopDetail(shopId)
+  /*
+    가격 뱃지는 상세와 함께 읽는다. 실패해도 화면을 막지 않는다 — 뱃지는 부가 정보이고,
+    없으면 컴포넌트가 아무것도 렌더하지 않으므로 기본 정보는 그대로 보여야 한다.
+  */
+  const [detailResult, priceBadgesResult] = await Promise.all([
+    shopRepository.getShopDetail(shopId),
+    shopRepository.getShopPriceBadges(shopId),
+  ])
+
+  const { error, status, data } = detailResult
 
   if ((error && status === 404) || !data) {
     return <FetchErrorState message={COMMON_ERROR_MESSAGES.FETCH_ERROR('기본 정보')} />
@@ -45,6 +54,7 @@ export default async function ShopDetailSummaryServer({ shopId, bookmarkButton }
       maxDeliveryTip={maxDeliveryTip}
       operatingStatus={operatingStatus}
       unavailableReasonName={unavailableReasonName}
+      priceBadges={priceBadgesResult.data ?? null}
       bookmarkButton={bookmarkButton}
     />
   )
