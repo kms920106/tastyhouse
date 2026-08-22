@@ -6,6 +6,7 @@ import { fileRepository } from "@/api/file/file.repository";
 import type { OrderMethod as OrderMethodValue } from "@/api/shop/shop.dto";
 import { shopRepository } from "@/api/shop/shop.repository";
 import { shopService } from "@/api/shop/shop.service";
+import { type ProductRejectFormValues, productRejectSchema } from "@/feature/product/schema";
 import type {
   AmenityCategory,
   BannerImage,
@@ -25,6 +26,7 @@ import type {
   ShopFoodType,
   ShopHygieneBadge,
   ShopImageChangeRequest,
+  ShopOrderNotice,
   ShopRiderGuideDetail,
   Station,
   Tag,
@@ -58,6 +60,8 @@ import {
   imageChangeRejectSchema,
   type OrderMethodFormValues,
   orderMethodSchema,
+  type OrderNoticeHideFormValues,
+  orderNoticeHideSchema,
   type PhotoCategoryFormValues,
   type PhotoImageFormValues,
   type PhotoImageUpdateFormValues,
@@ -784,6 +788,45 @@ export async function deleteHygieneBadgeAction(hygieneBadgeId: number): Promise<
   return { success: true };
 }
 
+// ===== 주문안내 게시중단 =====
+
+type OrderNoticeResult = { success: boolean; message?: string; data?: ShopOrderNotice };
+
+// 가게별 주문안내 조회
+export async function fetchOrderNoticeAction(shopId: number): Promise<OrderNoticeResult> {
+  const { error, data } = await shopRepository.getOrderNotice(shopId);
+  if (error !== undefined || data == null) {
+    return { success: false, message: error ?? SHOP_MESSAGE.ORDER_NOTICE_LOAD_FAILED };
+  }
+  return { success: true, data };
+}
+
+// 주문안내 게시중단
+export async function hideOrderNoticeAction(
+  shopId: number,
+  values: OrderNoticeHideFormValues,
+): Promise<ActionResult> {
+  const parsed = orderNoticeHideSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.hideOrderNotice(shopId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(shopDetailPath(shopId));
+  return { success: true };
+}
+
+// 주문안내 게시중단 해제
+export async function unhideOrderNoticeAction(shopId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.unhideOrderNotice(shopId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(shopDetailPath(shopId));
+  return { success: true };
+}
+
 // ===== 라이더 가게방문 안내 검수 =====
 
 const RIDER_GUIDES_PATH = "/dashboard/shop-rider-guides";
@@ -910,5 +953,41 @@ export async function rejectDeliveryAreaAdjustmentAction(
   if (error !== undefined) return { success: false, message: error };
 
   revalidatePath(DELIVERY_AREA_ADJUSTMENTS_PATH);
+  return { success: true };
+}
+
+// ===== 메뉴모음컷 검수 =====
+
+/** 메뉴모음컷 검수는 메뉴 검수 화면(`/dashboard/product-approvals`)의 탭이므로 그 경로를 갱신한다. */
+const PRODUCT_APPROVALS_PATH = "/dashboard/product-approvals";
+
+// 메뉴모음컷 승인요청 승인
+export async function approveMenuCollectionImageRequestAction(requestId: number): Promise<ActionResult> {
+  const { error } = await shopRepository.approveMenuCollectionImageRequest(requestId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
+}
+
+/**
+ * 메뉴모음컷 승인요청 반려.
+ *
+ * 반려 사유 필드명이 `rejectReason` 이라 가게 이미지 검수용 `imageChangeRejectSchema`(`reason`)와 맞지 않으므로,
+ * 같은 화면에서 다이얼로그를 공유하는 메뉴 검수 쪽 `productRejectSchema` 를 그대로 재사용한다.
+ */
+export async function rejectMenuCollectionImageRequestAction(
+  requestId: number,
+  values: ProductRejectFormValues,
+): Promise<ActionResult> {
+  const parsed = productRejectSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? SHOP_MESSAGE.INVALID_INPUT };
+  }
+
+  const { error } = await shopRepository.rejectMenuCollectionImageRequest(requestId, parsed.data);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
   return { success: true };
 }

@@ -332,6 +332,19 @@ export const hygieneBadgeSchema = z
 
 export type HygieneBadgeFormValues = z.infer<typeof hygieneBadgeSchema>;
 
+// ===== 주문안내 게시중단 =====
+// 반려 사유는 이미지 검수와 형태가 같아 REJECT_REASON_MAX 를 재사용한다.
+
+export const orderNoticeHideSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(1, { message: "게시중단 사유를 입력해 주세요." })
+    .max(REJECT_REASON_MAX, { message: `게시중단 사유는 최대 ${REJECT_REASON_MAX}자까지 입력할 수 있습니다.` }),
+});
+
+export type OrderNoticeHideFormValues = z.infer<typeof orderNoticeHideSchema>;
+
 // ===== 라이더 가게방문 안내 검수 =====
 
 // 수정 요청·삭제 조치 모두 사유가 필수다 — 이력에 남는 유일한 근거이기 때문이다.

@@ -117,6 +117,8 @@ export const SHOP_MESSAGE = {
   CONTENT_BOARD_DELETE_SUCCESS: "콘텐츠보드가 삭제되었습니다.",
   HYGIENE_BADGE_CREATE_SUCCESS: "위생 인증 뱃지가 등록되었습니다.",
   HYGIENE_BADGE_DELETE_SUCCESS: "위생 인증 뱃지가 삭제되었습니다.",
+  ORDER_NOTICE_HIDE_SUCCESS: "주문안내를 게시중단했습니다.",
+  ORDER_NOTICE_UNHIDE_SUCCESS: "주문안내 게시중단을 해제했습니다.",
 
   // 에러 폴백
   CREATE_UPDATE_FAILED: "처리 중 오류가 발생했습니다.",
@@ -149,6 +151,7 @@ export const SHOP_MESSAGE = {
   HYGIENE_BADGES_LOAD_FAILED: "위생 인증 뱃지 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
   CEOS_LOAD_FAILED: "점주 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
   CONTENT_BOARDS_LOAD_FAILED: "콘텐츠보드 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  ORDER_NOTICE_LOAD_FAILED: "주문안내를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
 } as const;
 
 /** 배달지역 조정 검수 화면 헤더 정적 문구 (목록/로딩 공용) */

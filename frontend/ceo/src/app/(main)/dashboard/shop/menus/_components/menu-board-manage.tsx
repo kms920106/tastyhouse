@@ -23,10 +23,11 @@ import { MENU_TABS } from "@/feature/product/constants";
 import type { AvailabilityChangeOutcome, MenuBoardGroup, MenuCategory } from "@/feature/product/domain";
 import { PRODUCT_MENU_COPY, PRODUCT_MENU_MESSAGE, PRODUCT_MESSAGE } from "@/feature/product/message";
 import type { MenuCategoryFormValues } from "@/feature/product/schema";
-import type { ShopSummary } from "@/feature/shop/domain";
+import type { MenuCollectionImage, ShopOrderNotice, ShopSummary } from "@/feature/shop/domain";
 
 import { ShopSelector } from "../../_components/shop-selector";
 import { MenuBoardFailureNotice } from "./menu-board-failure-notice";
+import { MenuBoardTopActions } from "./menu-board-top-actions";
 import { MenuCreateDialog, type MenuCreateSubmitValues } from "./menu-create-dialog";
 import { MenuDeleteDialog, type MenuDeleteTarget } from "./menu-delete-dialog";
 import { MenuGroupFormDialog, type MenuGroupFormTarget } from "./menu-group-form-dialog";
@@ -41,6 +42,9 @@ interface MenuBoardManageProps {
   categories?: MenuCategory[];
   /** 메뉴판 목록. 조회 실패 시 undefined 로 넘어와 셸만 살린다 */
   groups?: MenuBoardGroup[];
+  /** 상단 진입점 시트의 초기값. 시트가 열릴 때 재조회하므로 실패해도 undefined 로 넘어온다 */
+  menuCollectionImages?: MenuCollectionImage[];
+  orderNotice?: ShopOrderNotice;
   /** 접근 불가 사유(403 `SHOP_ACCESS_DENIED` / 404 `SHOP_NOT_FOUND`) */
   errorCode?: string;
   errorMessage?: string;
@@ -49,7 +53,16 @@ interface MenuBoardManageProps {
 /** 메뉴그룹 폼 다이얼로그의 열림 상태. `target: null` 이 추가 모드라 별도 플래그가 필요하다 */
 type GroupFormState = { open: false } | { open: true; target: MenuGroupFormTarget | null };
 
-export function MenuBoardManage({ shops, shopId, categories, groups, errorCode, errorMessage }: MenuBoardManageProps) {
+export function MenuBoardManage({
+  shops,
+  shopId,
+  categories,
+  groups,
+  menuCollectionImages,
+  orderNotice,
+  errorCode,
+  errorMessage,
+}: MenuBoardManageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isNavigating, startNavigation] = React.useTransition();
@@ -320,6 +333,15 @@ export function MenuBoardManage({ shops, shopId, categories, groups, errorCode, 
           </Empty>
         ) : (
           <>
+            {/* 홍보 3종 진입점. `가게 메뉴판 편집.pdf` 대로 메뉴판 본체 위에 한 줄로 모은다. */}
+            <MenuBoardTopActions
+              shopId={shopId}
+              disabled={isBusy}
+              menuCollectionImages={menuCollectionImages}
+              orderNotice={orderNotice}
+              groups={mergedGroups}
+            />
+
             {failures.length > 0 && <MenuBoardFailureNotice failures={failures} onDismiss={() => setFailures([])} />}
 
             {/* 세로 목록이라 가로 이동은 의미가 없다 — `restrictToVerticalAxis` 로 묶어

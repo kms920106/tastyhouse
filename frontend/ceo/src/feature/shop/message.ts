@@ -407,3 +407,83 @@ export const SHOP_ERROR_PAGE_COPY = {
   TITLE: "문제가 발생했습니다",
   RETRY: "다시 시도",
 } as const;
+
+// =====================================================================================
+// 메뉴모음컷 · 주문안내 (`docs/tasks/menu-board-promotion/frontend.md` A)
+// =====================================================================================
+
+export const SHOP_MENU_COLLECTION_MESSAGE = {
+  SPEC_HINT: "1280 × 960 이상, 15MB 이하의 JPG/PNG 파일만 올릴 수 있습니다.",
+  APPROVAL_HINT: "직접 업로드한 이미지는 승인을 거쳐 적용됩니다.",
+  LIMIT_EXCEEDED: "메뉴모음컷은 최대 6개까지 등록할 수 있습니다.",
+  LAST_CANNOT_DELETE: "메뉴모음컷은 최소 1개 이상 등록되어야 합니다.",
+  SPEC_INVALID: "1280 × 960 이상, 15MB 이하의 JPG/PNG 이미지만 등록할 수 있습니다.",
+  UPLOAD_SUCCESS: "메뉴모음컷을 등록했습니다. 승인 후 반영됩니다.",
+  ORDER_SUCCESS: "순서를 변경했습니다.",
+  DELETE_SUCCESS: "메뉴모음컷을 삭제했습니다.",
+} as const;
+
+export const SHOP_ORDER_NOTICE_MESSAGE = {
+  CONTENT_REQUIRED: "주문안내 내용을 입력해 주세요.",
+  CONTENT_TOO_LONG: "주문안내는 500자 이내로 입력해 주세요.",
+  SAVE_SUCCESS: "주문안내를 저장했습니다.",
+  HIDDEN_NOTICE: "관리자에 의해 게시가 중단된 문구입니다.",
+} as const;
+
+/** 메뉴모음컷 시트 화면 문구 */
+export const SHOP_MENU_COLLECTION_COPY = {
+  SHEET_TITLE: "메뉴모음컷",
+  SHEET_DESCRIPTION: "가게를 클릭한 손님에게 가장 먼저 보이는 배너 이미지입니다.",
+  LOAD_FAILED: "메뉴모음컷을 불러오지 못했습니다.",
+  UPLOAD_FAILED: "메뉴모음컷을 등록하지 못했습니다.",
+  ORDER_FAILED: "순서를 변경하지 못했습니다.",
+  DELETE_FAILED: "메뉴모음컷을 삭제하지 못했습니다.",
+  ORDER_MISMATCH: "새로고침 후 다시 시도해 주세요.",
+  EMPTY: "등록된 메뉴모음컷이 없습니다.",
+  BUTTON_ADD: "추가",
+  BUTTON_CLOSE: "닫기",
+  IMAGE_ALT_PREFIX: "메뉴모음컷 ",
+  DRAG_HANDLE_LABEL: "순서 변경 손잡이",
+  ACTION_DELETE: "삭제",
+  BADGE_PENDING: "대기",
+  BADGE_APPROVED: "승인",
+  BADGE_CANCELED: "취소",
+  BADGE_REJECTED: "반려",
+  REJECT_REASON_PREFIX: "반려 사유: ",
+  DELETE_CONFIRM_TITLE: "메뉴모음컷을 삭제할까요?",
+  DELETE_CONFIRM_DESCRIPTION: "삭제하면 손님 화면에서 즉시 사라집니다.",
+  DELETE_CONFIRM_ACTION: "삭제",
+  DELETE_CONFIRM_CANCEL: "취소",
+  CRITERIA_TITLE: "등록 기준 안내",
+  CRITERIA_ITEMS: [
+    "메뉴모음컷은 메뉴 이미지가 아닌 가게 배너 영역에 등록됩니다.",
+    "두 개 이상의 메뉴를 한 데 모아 촬영한 이미지를 권장합니다.",
+    "동일·유사 이미지를 제외하고 최대 6개까지 등록할 수 있습니다.",
+  ],
+} as const;
+
+/** 주문안내 시트 화면 문구 */
+export const SHOP_ORDER_NOTICE_COPY = {
+  SHEET_TITLE: "주문안내",
+  SHEET_DESCRIPTION: "메뉴판 최상단에 노출되는 안내 문구입니다.",
+  LOAD_FAILED: "주문안내를 불러오지 못했습니다.",
+  SAVE_FAILED: "주문안내를 저장하지 못했습니다.",
+  CONTENT_LABEL: "안내 문구",
+  CONTENT_PLACEHOLDER: "고객에게 안내할 내용을 적어주세요.",
+  WRITING_HELP: "고객에게 안내해야 하거나 안내하면 좋을 내용을 적어주세요.",
+  WRITING_EXAMPLE: "예) 모든 단품 메뉴는 공기밥이 미포함입니다 / 떡볶이는 매운맛을 선택한 후 주문해주세요",
+  HIDDEN_TITLE: "게시중단",
+  HIDDEN_REASON_PREFIX: "중단 사유: ",
+  PROHIBITED_TITLE: "이런 내용은 적을 수 없습니다",
+  PROHIBITED_LEAD: "아래 내용이 기재되면 수정 요청 및 삭제 조치될 수 있습니다.",
+  PROHIBITED_ITEMS: [
+    "전화 주문·계좌이체 등 앱 외 결제 유도",
+    "음식 배달 외 목적의 개인정보 이용",
+    "음란·정치적 내용, 타인·타 가게 비방",
+    "SNS 홍보 문구 또는 외부링크",
+    "배달팁 현장 지불 요청 등 배달 서비스와 무관한 비용 언급",
+  ],
+  ACTION_SUBMIT: "저장",
+  ACTION_PENDING: "저장 중…",
+  ACTION_CLOSE: "닫기",
+} as const;

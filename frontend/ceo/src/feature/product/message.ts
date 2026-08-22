@@ -624,3 +624,50 @@ export const OPTION_GROUP_MERGE_MESSAGE = {
   MERGE_SUCCESS: "옵션그룹을 합쳤습니다.",
   MERGE_FAILED: "옵션그룹을 합치지 못했습니다.",
 } as const;
+
+// =====================================================================================
+// 사장님 추천 (대표 메뉴) — `docs/tasks/menu-board-promotion/frontend.md` A-2
+// =====================================================================================
+
+export const PRODUCT_REPRESENTATIVE_MESSAGE = {
+  LIMIT_EXCEEDED: "사장님 추천 메뉴는 최대 6개까지 등록할 수 있습니다.",
+  IMAGE_REQUIRED: "이미지가 등록된 메뉴만 사장님 추천으로 설정할 수 있습니다.",
+  LAST_CANNOT_RELEASE: "사장님 추천 메뉴는 최소 1개 남아 있어야 합니다.",
+  REQUEST_SUCCESS: "사장님 추천 메뉴를 신청했습니다. 승인 후 반영됩니다.",
+  RELEASE_SUCCESS: "사장님 추천을 해제했습니다.",
+} as const;
+
+/** 사장님 추천 시트 화면 문구 */
+export const PRODUCT_REPRESENTATIVE_COPY = {
+  SHEET_TITLE: "사장님 추천",
+  SHEET_DESCRIPTION: "손님 화면의 메뉴에 '사장님 추천' 뱃지가 붙습니다.",
+  REQUEST_FAILED: "사장님 추천 메뉴를 신청하지 못했습니다.",
+  RELEASE_FAILED: "사장님 추천을 해제하지 못했습니다.",
+  CURRENT_TITLE: "지정된 메뉴",
+  EMPTY: "지정된 사장님 추천 메뉴가 없습니다.",
+  BUTTON_ADD: "+ 사장님 추천 메뉴 추가",
+  BUTTON_CLOSE: "닫기",
+  ACTION_RELEASE: "해제",
+  BADGE_REPRESENTATIVE: "추천",
+  IMAGE_ALT_PREFIX: "메뉴 이미지 ",
+  RELEASE_CONFIRM_TITLE: "사장님 추천을 해제할까요?",
+  RELEASE_CONFIRM_DESCRIPTION: "해제하면 손님 화면의 뱃지가 즉시 사라집니다.",
+  RELEASE_CONFIRM_ACTION: "해제",
+  RELEASE_CONFIRM_CANCEL: "취소",
+  PICKER_TITLE: "사장님 추천 메뉴 선택",
+  PICKER_DESCRIPTION: "추천으로 지정할 메뉴를 고르세요. 지정된 메뉴와 합쳐 최대 6개까지 가능합니다.",
+  PICKER_EMPTY: "선택할 수 있는 메뉴가 없습니다.",
+  PICKER_SUBMIT: "적용",
+  PICKER_CANCEL: "취소",
+  PICKER_UNCATEGORIZED: "미분류",
+  PICKER_IMAGE_MISSING_HINT: "이미지 등록 후 지정할 수 있습니다",
+  PICKER_SELECTED_PREFIX: "선택 ",
+  PICKER_SELECTED_SUFFIX: "개",
+  CRITERIA_TITLE: "등록 기준 안내",
+  CRITERIA_ITEMS: [
+    "대표 메뉴는 가게 카테고리와 일치하도록 합니다(반찬·소스·음료 등 부수 메뉴는 등록 불가).",
+    "대표 메뉴는 최대 6개까지 등록 가능합니다.",
+    "이미지가 없는 메뉴는 대표 메뉴로 등록할 수 없습니다.",
+    "대표 메뉴의 메뉴명과 메뉴 이미지가 일치해야 합니다.",
+  ],
+} as const;

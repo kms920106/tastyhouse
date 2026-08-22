@@ -29,6 +29,7 @@ import {
   MIN_ORDER_AMOUNT_UNSET,
   MIN_ORDER_AMOUNT_UPPER_BOUND,
   ORDER_METHOD_OPTIONS,
+  ORDER_NOTICE_CONTENT_MAX,
   SHOP_DIRECTIONS_MAX,
   SHOP_INTRODUCTION_MAX,
   SHOP_RIDER_PICKUP_DETAIL_ADDRESS_MAX,
@@ -39,6 +40,8 @@ import {
   TIME_STEP_MINUTES,
   WEEKDAY_OPTIONS,
 } from "./constants";
+// 다른 스키마는 문구를 인라인해 왔으나, 이 스펙이 메시지 상수를 지정하므로 message.ts 를 참조한다.
+import { SHOP_ORDER_NOTICE_MESSAGE } from "./message";
 import {
   countInclusiveDays,
   getDurationMinutes,
@@ -625,3 +628,15 @@ export const deliveryAreaAdjustmentSchema = z.object({
     .max(ADJUSTMENT_REASON_MAX, { message: `사유는 최대 ${ADJUSTMENT_REASON_MAX}자까지 입력할 수 있습니다.` }),
 });
 export type DeliveryAreaAdjustmentFormValues = z.infer<typeof deliveryAreaAdjustmentSchema>;
+
+// ===== 주문안내 =====
+// 메뉴모음컷과 사장님 추천은 자유 입력이 없어(파일·선택 목록만 다룬다) 스키마를 두지 않는다.
+
+export const orderNoticeSchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, SHOP_ORDER_NOTICE_MESSAGE.CONTENT_REQUIRED)
+    .max(ORDER_NOTICE_CONTENT_MAX, SHOP_ORDER_NOTICE_MESSAGE.CONTENT_TOO_LONG),
+});
+export type OrderNoticeFormValues = z.infer<typeof orderNoticeSchema>;

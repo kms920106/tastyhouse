@@ -46,15 +46,21 @@ export default function ClampedText({
     return () => observer.disconnect()
   }, [text])
 
-  const lineHeight = 23
-  const maxHeight = lineHeight * maxLines
-
   const textContent = (
     <TextContent
       innerRef={textRef}
       text={text}
       className={className}
-      style={!isExpanded ? { maxHeight: `${maxHeight}px`, overflow: 'hidden' } : undefined}
+      style={
+        !isExpanded
+          ? {
+              display: '-webkit-box',
+              WebkitLineClamp: maxLines,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }
+          : undefined
+      }
     />
   )
 

@@ -458,6 +458,18 @@ export interface ShopHygieneBadgeCreateRequest {
   lastInspectionMonth?: string;
 }
 
+// ===== 주문안내 게시중단 =====
+
+export interface ShopOrderNoticeResponse {
+  content: string | null;
+  hidden: boolean;
+  hiddenReason: string | null;
+}
+
+export interface ShopOrderNoticeHideRequest {
+  reason: string;
+}
+
 // ===== 라이더 가게방문 안내 검수 =====
 
 export type RiderGuideActorType = "CEO" | "ADMIN";
@@ -524,4 +536,34 @@ export interface ShopRiderPickupLocationUpdateRequest {
   detailAddress: string | null;
   latitude: number;
   longitude: number;
+}
+
+// ===== 메뉴모음컷 검수 =====
+
+/**
+ * 메뉴모음컷 승인 상태 — backend ApprovalStatus enum 기준.
+ *
+ * 위 `ShopImageChangeStatus`(3값)와 달리 점주 취소분(CANCELED)까지 4값이므로 별도 유니온으로 둔다.
+ */
+export type MenuCollectionImageStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELED";
+
+// 메뉴모음컷 검수 목록 조회 쿼리 — status 미지정은 전체
+export interface MenuCollectionImageRequestListQueryRequest {
+  status?: MenuCollectionImageStatus;
+}
+
+// 메뉴모음컷 검수 목록 항목
+export interface MenuCollectionImageRequestItemResponse {
+  id: number;
+  shopId: number;
+  shopName: string;
+  imageUrl: string | null;
+  sort: number;
+  status: MenuCollectionImageStatus;
+  rejectReason: string | null;
+}
+
+// 메뉴모음컷 검수 반려
+export interface MenuCollectionImageRejectRequest {
+  rejectReason: string;
 }

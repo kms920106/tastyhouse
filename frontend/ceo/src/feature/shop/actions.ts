@@ -27,10 +27,12 @@ import type {
   DeliveryAreaPolygonPreview,
   DeliveryAreaRadiusPreview,
   GeoPoint,
+  MenuCollectionImage,
   PhoneNumber,
   ShopDeliveryArea,
   ShopDeliveryTipSetting,
   ShopOperationInfo,
+  ShopOrderNotice,
   ShopSummary,
   Suspension,
 } from "@/feature/shop/domain";
@@ -39,10 +41,11 @@ import {
   ADMIN_DONG_SEARCH_SIZE,
   ALLOWED_CONSENT_TYPES,
   CONTENT_BOARD_MAX_COUNT,
+  MENU_COLLECTION_MAX_COUNT,
   PHONE_NUMBER_MAX_COUNT,
   REGULAR_CLOSED_DAY_MAX_COUNT,
 } from "./constants";
-import { SHOP_MESSAGE, SHOP_REQUEST_COPY } from "./message";
+import { SHOP_MENU_COLLECTION_MESSAGE, SHOP_MESSAGE, SHOP_REQUEST_COPY } from "./message";
 import {
   type AdminDongBoundaryFormValues,
   adminDongBoundarySchema,
@@ -77,6 +80,7 @@ import {
   deliveryTipTiersSchema,
   type HolidayClosedFormValues,
   holidayClosedSchema,
+  orderNoticeSchema,
   type PhoneNumberFormValues,
   phoneNumberSchema,
   type ShopIntroductionFormValues,
@@ -1281,4 +1285,102 @@ export async function createShopRequestCommentAction(
 
   revalidatePath(SHOP_REQUEST_PATH);
   return { success: true, id: data ?? undefined };
+}
+
+// =====================================================================================
+// 메뉴모음컷 · 주문안내 (`docs/tasks/menu-board-promotion/frontend.md` A)
+//
+// 두 기능 모두 메뉴판 화면(`/dashboard/shop/menus`)의 시트에서만 쓰이므로,
+// `SHOP_PATH` 가 아니라 메뉴판 세그먼트를 무효화한다 — 메뉴판은 상세(`[productId]`)가 동적
+// 세그먼트라 `layout` 스코프여야 목록과 상세가 함께 갱신된다(`feature/product/actions.ts` 선례).
+// =====================================================================================
+
+const MENU_BOARD_PATH = "/dashboard/shop/menus";
+
+function revalidateMenuBoard(): void {
+  revalidatePath(MENU_BOARD_PATH, "layout");
+}
+
+export async function loadMenuCollectionImagesAction(shopId: number): Promise<DataResult<MenuCollectionImage[]>> {
+  const { data, error } = await shopRepository.getMenuCollectionImages(shopId);
+  if (error !== undefined) return { success: false, message: error };
+  return { success: true, data: data ?? [] };
+}
+
+/**
+ * 메뉴모음컷 등록 요청.
+ *
+ * 상한(6개)은 서버도 보지만 화면이 먼저 막는다 — 파일을 다 올려 보낸 뒤 400 을 받으면
+ * 업로드 대기 시간이 헛되기 때문이다. 다만 **규격 판정은 서버가 한다**
+ * (`..._SPEC_INVALID`) — 브라우저에서 해상도를 재도 서버가 `ImageIO` 로 다시 보므로
+ * 두 판정이 어긋날 수 있어 서버 문구를 그대로 노출한다.
+ */
+export async function requestMenuCollectionImageAction(
+  shopId: number,
+  currentCount: number,
+  formData: FormData,
+): Promise<ActionResult> {
+  if (currentCount >= MENU_COLLECTION_MAX_COUNT) {
+    return { success: false, message: SHOP_MENU_COLLECTION_MESSAGE.LIMIT_EXCEEDED };
+  }
+
+  const extracted = extractFile(formData);
+  if ("error" in extracted) return { success: false, message: extracted.error };
+
+  const { error } = await shopRepository.requestMenuCollectionImage(shopId, extracted.file);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidateMenuBoard();
+  return { success: true };
+}
+
+/** 순서 변경은 검수 대상이 아니라 즉시 반영된다. `sort` 를 계산하지 않고 확정된 id 배열만 보낸다 */
+export async function changeMenuCollectionImageOrderAction(shopId: number, imageIds: number[]): Promise<ActionResult> {
+  if (imageIds.length === 0) return invalidInput();
+
+  const { error } = await shopRepository.changeMenuCollectionImageOrder(shopId, { imageIds });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidateMenuBoard();
+  return { success: true };
+}
+
+/**
+ * 메뉴모음컷 삭제.
+ *
+ * 최소 1개 규칙은 화면이 버튼을 잠가 막지만, 서버 액션은 클라이언트를 거치지 않고도 호출될 수
+ * 있으므로 여기서도 같은 규칙으로 한 번 더 본다(`createShopRequestCommentAction` 선례).
+ */
+export async function deleteMenuCollectionImageAction(
+  shopId: number,
+  imageId: number,
+  currentCount: number,
+): Promise<ActionResult> {
+  if (currentCount <= 1) {
+    return { success: false, message: SHOP_MENU_COLLECTION_MESSAGE.LAST_CANNOT_DELETE };
+  }
+
+  const { error } = await shopRepository.deleteMenuCollectionImage(shopId, imageId);
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidateMenuBoard();
+  return { success: true };
+}
+
+export async function loadOrderNoticeAction(shopId: number): Promise<DataResult<ShopOrderNotice>> {
+  const { data, error } = await shopRepository.getOrderNotice(shopId);
+  if (error !== undefined || !data) return { success: false, message: error };
+  return { success: true, data };
+}
+
+/** 검수 없이 즉시 반영된다 — 게시중단은 관리자가 사후에 거는 조치라 저장을 막지 않는다 */
+export async function updateOrderNoticeAction(shopId: number, content: string): Promise<ActionResult> {
+  const parsed = orderNoticeSchema.safeParse({ content });
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await shopRepository.updateOrderNotice(shopId, { content: parsed.data.content });
+  if (error !== undefined) return { success: false, message: error };
+
+  revalidateMenuBoard();
+  return { success: true };
 }

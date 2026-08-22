@@ -141,3 +141,35 @@ export interface ShopMapMarker {
   longitude: number
   name: string
 }
+
+/** 가게 상세 최상단에 노출하는 메뉴모음컷 1장. 승인·정렬은 서버가 끝낸 상태로 내려온다 */
+export interface ShopMenuCollectionImage {
+  id: number
+  imageUrl: string
+  sort: number
+}
+
+/**
+ * 메뉴판 최상단 주문안내 문구.
+ *
+ * 미설정·게시중단은 서버가 null 로 내려주므로 화면은 상태를 분기하지 않고 표시 여부만 결정한다.
+ */
+export interface ShopOrderNotice {
+  content: string
+}
+
+/** "가장 인기 있는 메뉴" 그룹의 항목 1건 */
+export interface ShopPopularProduct {
+  id: number
+  name: string
+  imageUrl: string | null
+  spiciness: number | null
+  originalPrice: number
+  /** 할인 미설정이면 null */
+  discountPrice: number | null
+  discountRate: number | null
+  rating: number | null
+  reviewCount: number | null
+  /** 사장님 추천 메뉴 여부. 추천 메뉴가 이 목록의 앞자리를 채운다 */
+  representative: boolean
+}

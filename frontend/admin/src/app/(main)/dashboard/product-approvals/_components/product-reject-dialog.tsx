@@ -17,11 +17,32 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
-import { rejectProductImageChangeAction, rejectProductVegetarianAction } from "@/feature/product/actions";
+import {
+  rejectProductImageChangeAction,
+  rejectProductRepresentativeAction,
+  rejectProductVegetarianAction,
+} from "@/feature/product/actions";
 import { PRODUCT_APPROVAL_COPY, PRODUCT_APPROVAL_MESSAGE } from "@/feature/product/message";
 import { PRODUCT_REJECT_REASON_MAX, type ProductRejectFormValues, productRejectSchema } from "@/feature/product/schema";
+import { rejectMenuCollectionImageRequestAction } from "@/feature/shop/actions";
 
 import type { ProductApprovalKind } from "./product-approve-dialog";
+
+/**
+ * 종류마다 호출 API 가 다르므로 한 곳에 모아 분기를 중복시키지 않는다.
+ *
+ * <p>메뉴모음컷은 shop 리소스이지만 반려 사유 필드명(`rejectReason`)과 길이 제한(500)이 같아
+ * 같은 폼 스키마·다이얼로그를 그대로 쓴다.
+ */
+const REJECT_ACTION_BY_KIND: Record<
+  ProductApprovalKind,
+  (requestId: number, values: ProductRejectFormValues) => Promise<{ success: boolean; message?: string }>
+> = {
+  image: rejectProductImageChangeAction,
+  vegetarian: rejectProductVegetarianAction,
+  menuCollection: rejectMenuCollectionImageRequestAction,
+  representative: rejectProductRepresentativeAction,
+};
 
 interface ProductRejectDialogProps {
   kind: ProductApprovalKind;
@@ -55,10 +76,7 @@ export function ProductRejectDialog({
   const onSubmit = (values: ProductRejectFormValues) => {
     if (requestId == null) return;
     startTransition(async () => {
-      const { success, message } =
-        kind === "image"
-          ? await rejectProductImageChangeAction(requestId, values)
-          : await rejectProductVegetarianAction(requestId, values);
+      const { success, message } = await REJECT_ACTION_BY_KIND[kind](requestId, values);
 
       if (success) {
         toast.success(PRODUCT_APPROVAL_MESSAGE.REJECT_SUCCESS);

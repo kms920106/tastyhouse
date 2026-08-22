@@ -194,6 +194,7 @@ export const SHOP_DETAIL_TABS = {
   CLASSIFICATION: "classification",
   IMAGES: "images",
   HYGIENE: "hygiene",
+  ORDER_NOTICE: "order-notice",
 } as const;
 
 // 점주 상태 — 백엔드 GET /api/ceos/v1 응답 기준(2026-07-26 확인)

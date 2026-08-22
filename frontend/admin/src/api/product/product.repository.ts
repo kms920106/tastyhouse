@@ -18,6 +18,7 @@ import type {
   ProductListItemResponse,
   ProductListQueryRequest,
   ProductOptionGroupsResponse,
+  ProductRepresentativeRequestItemResponse,
   ProductUpdateRequest,
   ProductVegetarianRequestItemResponse,
 } from "./product.dto";
@@ -141,5 +142,27 @@ export const productRepository = {
   // 메뉴 채식 설정 요청 반려
   rejectVegetarianRequest(requestId: number, body: ProductApprovalRejectRequest): Promise<ApiResponse<null>> {
     return api.patch<null>(`${ENDPOINT}/v1/vegetarian-requests/${requestId}/reject`, body);
+  },
+
+  // ===== 사장님 추천(대표 메뉴) 검수 =====
+
+  // 사장님 추천 지정 요청 목록 조회
+  getRepresentativeRequests(
+    query: ProductApprovalSearchRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ProductRepresentativeRequestItemResponse[]>> {
+    return api.get<ProductRepresentativeRequestItemResponse[]>(`${ENDPOINT}/v1/representative-requests`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 사장님 추천 지정 요청 승인 (body 없음)
+  approveRepresentativeRequest(requestId: number): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/representative-requests/${requestId}/approve`);
+  },
+
+  // 사장님 추천 지정 요청 반려
+  rejectRepresentativeRequest(requestId: number, body: ProductApprovalRejectRequest): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/representative-requests/${requestId}/reject`, body);
   },
 };

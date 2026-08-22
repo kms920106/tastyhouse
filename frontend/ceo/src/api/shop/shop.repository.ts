@@ -18,6 +18,8 @@ import type {
   DeliveryAreaAdjustmentItemResponse,
   HolidayClosedUpdateRequest,
   HygieneBadgeResponse,
+  MenuCollectionImageOrderRequest,
+  MenuCollectionImageResponse,
   PhoneNumberCreateRequest,
   PhoneNumberResponse,
   ShopAmenityResponse,
@@ -49,6 +51,8 @@ import type {
   ShopListQueryRequest,
   ShopMinOrderAmountUpdateRequest,
   ShopOrderAvailabilityResponse,
+  ShopOrderNoticeResponse,
+  ShopOrderNoticeUpdateRequest,
   ShopRiderGuideResponse,
   ShopRiderPickupLocationUpdateRequest,
   ShopRiderVisitGuideUpdateRequest,
@@ -505,5 +509,46 @@ export const shopRepository = {
   // 픽업 위치 5개 컬럼을 비워 가게 실주소로 폴백시킨다. 문구는 유지되며 멱등이다.
   clearRiderPickupLocation(shopId: number): Promise<ApiResponse<null>> {
     return api.delete<null>(`${ENDPOINT}/v1/${shopId}/rider-guide/pickup-location`);
+  },
+
+  // ===== 메뉴모음컷 (승인 워크플로) =====
+
+  getMenuCollectionImages(shopId: number): Promise<ApiResponse<MenuCollectionImageResponse[]>> {
+    return api.get<MenuCollectionImageResponse[]>(`${ENDPOINT}/v1/${shopId}/menu-collection-images`);
+  },
+
+  /**
+   * 메뉴모음컷 등록 요청 (multipart).
+   *
+   * 파트는 `file` 하나뿐이다 — 메뉴 이미지(`requestProductImage`)는 `shopId` 파트를 함께 붙이지만
+   * 이 엔드포인트는 `shopId` 를 경로에서 읽으므로 붙이면 안 된다.
+   * 규격(1280×960·15MB·JPG/PNG) 판정은 서버가 한다.
+   */
+  requestMenuCollectionImage(shopId: number, file: File): Promise<ApiResponse<number>> {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.upload<number>(`${ENDPOINT}/v1/${shopId}/menu-collection-images`, formData);
+  },
+
+  /** 순서 변경은 검수 대상이 아니라 즉시 반영된다. 전체 치환이므로 목록 전량을 보낸다 */
+  changeMenuCollectionImageOrder(shopId: number, body: MenuCollectionImageOrderRequest): Promise<ApiResponse<void>> {
+    return api.put<void>(`${ENDPOINT}/v1/${shopId}/menu-collection-images/order`, body);
+  },
+
+  /** 메뉴 이미지 삭제와 달리 `imageId` 가 query 가 아니라 경로에 온다 */
+  deleteMenuCollectionImage(shopId: number, imageId: number): Promise<ApiResponse<void>> {
+    return api.delete<void>(`${ENDPOINT}/v1/${shopId}/menu-collection-images/${imageId}`);
+  },
+
+  // ===== 주문안내 =====
+  // 미등록이어도 404 가 아니라 `content: null` 인 객체가 내려온다.
+
+  getOrderNotice(shopId: number): Promise<ApiResponse<ShopOrderNoticeResponse>> {
+    return api.get<ShopOrderNoticeResponse>(`${ENDPOINT}/v1/${shopId}/order-notice`);
+  },
+
+  /** 검수 없이 즉시 반영된다 — 게시중단은 관리자가 사후에 거는 조치다 */
+  updateOrderNotice(shopId: number, body: ShopOrderNoticeUpdateRequest): Promise<ApiResponse<void>> {
+    return api.put<void>(`${ENDPOINT}/v1/${shopId}/order-notice`, body);
   },
 };

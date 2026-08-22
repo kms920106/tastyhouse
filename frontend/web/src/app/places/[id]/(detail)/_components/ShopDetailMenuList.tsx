@@ -54,6 +54,7 @@ export default function ShopDetailMenuList({ shopId }: Props) {
             discountRate={product.discountRate}
             rating={product.rating}
             reviewCount={product.reviewCount}
+            representative={product.representative}
           />
         </Link>
       ))}

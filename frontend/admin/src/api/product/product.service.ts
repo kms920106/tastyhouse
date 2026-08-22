@@ -7,6 +7,7 @@ import type {
   ProductImageChangeRequestItem,
   ProductListItem,
   ProductOptionGroups,
+  ProductRepresentativeRequestItem,
   ProductVegetarianRequestItem,
 } from "@/feature/product/domain";
 
@@ -155,6 +156,29 @@ export const productService = {
         vegetarianType: item.vegetarianType,
         ingredients: item.ingredients,
         description: item.description,
+        status: item.status,
+        rejectReason: item.rejectReason,
+      })),
+    };
+  },
+
+  // ===== 사장님 추천(대표 메뉴) 검수 =====
+
+  // 사장님 추천 지정 요청 목록 조회 — 도메인 반환
+  async getRepresentativeRequests(
+    query: ProductApprovalSearchRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<ProductRepresentativeRequestItem[]>> {
+    const res = await productRepository.getRepresentativeRequests(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        shopId: item.shopId,
+        shopName: item.shopName,
+        productName: item.productName,
+        imageUrl: item.imageUrl,
         status: item.status,
         rejectReason: item.rejectReason,
       })),

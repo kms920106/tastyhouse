@@ -427,3 +427,14 @@ export const DELIVERY_AREA_ADJUSTMENT_OPEN_STATUSES: readonly DeliveryAreaAdjust
 
 /** 동의서 첨부 허용 MIME — 이미지 스캔본과 PDF 를 모두 받는다 */
 export const ALLOWED_CONSENT_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"] as const;
+
+// ===== 메뉴모음컷 · 주문안내 =====
+
+/** 메뉴모음컷 등록 상한 (`docs/tasks/menu-board-promotion/frontend.md` A-1) */
+export const MENU_COLLECTION_MAX_COUNT = 6;
+
+/** 메뉴 이미지와 같은 규격이라 accept 도 같다 — 판정은 서버가 한다 */
+export const MENU_COLLECTION_IMAGE_ACCEPT = "image/jpeg,image/png";
+
+/** 서버 `@Size(max = 500)` 과 같은 값 */
+export const ORDER_NOTICE_CONTENT_MAX = 500;

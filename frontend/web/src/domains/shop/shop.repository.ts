@@ -16,9 +16,12 @@ import {
   ShopFoodTypeListItemResponse,
   ShopInfoResponse,
   ShopLatestListItemResponse,
+  ShopMenuCollectionImageResponse,
   ShopNoticeResponse,
+  ShopOrderNoticeResponse,
   ShopOrderMethodResponse,
   ShopPhotoCategoryResponse,
+  ShopPopularProductResponse,
   ShopProductCategoryResponse,
   ShopReviewListQuery,
   ShopReviewStatisticsResponse,
@@ -95,6 +98,42 @@ export const shopRepository = {
       cache: 'force-cache' as const,
       next: { revalidate: 60 },
     })
+  },
+  /**
+   * 메뉴모음컷(승인된 것만, sort 순)을 조회한다.
+   *
+   * 사장님 공지와 같은 이유로 60초 캐시다 — 점주가 등록하고 관리자가 승인한 이미지가 최대 1시간
+   * 동안 안 보이면 승인 절차가 동작하지 않는 것으로 보인다. 승인은 admin 앱(별도 Next 인스턴스)에서
+   * 이뤄지므로 web의 revalidatePath로는 무효화할 수 없어 캐시 수명 자체를 짧게 둔다.
+   */
+  async getShopMenuCollectionImages(shopId: number) {
+    return publicApi.get<ShopMenuCollectionImageResponse[]>(
+      `${ENDPOINT}/v1/${shopId}/menu-collection-images`,
+      { cache: 'force-cache' as const, next: { revalidate: 60 } },
+    )
+  },
+  /**
+   * 주문안내 문구를 조회한다. 미설정·관리자 게시중단이면 `data` 가 null 이다.
+   *
+   * 메뉴모음컷과 같은 이유로 60초 캐시다.
+   */
+  async getShopOrderNotice(shopId: number) {
+    return publicApi.get<ShopOrderNoticeResponse | null>(`${ENDPOINT}/v1/${shopId}/order-notice`, {
+      cache: 'force-cache' as const,
+      next: { revalidate: 60 },
+    })
+  },
+  /**
+   * 인기 메뉴(최대 5건)를 조회한다.
+   *
+   * 판매량 집계가 섞이므로 메뉴 목록(revalidate 3600)보다 짧은 60초로 둔다 — 점주가 사장님 추천을
+   * 켠 결과가 이 목록의 앞자리에 즉시 반영되어야 한다.
+   */
+  async getShopPopularProducts(shopId: number) {
+    return publicApi.get<ShopPopularProductResponse[]>(
+      `${ENDPOINT}/v1/${shopId}/popular-products`,
+      { cache: 'force-cache' as const, next: { revalidate: 60 } },
+    )
   },
   async getShopProducts(shopId: number) {
     return publicApi.get<ShopProductCategoryResponse[]>(

@@ -13,6 +13,7 @@ import type {
   DeliveryAreaAdjustmentListItem,
   EditorChoice,
   FoodTypeCategory,
+  MenuCollectionImageRequestItem,
   OrderMethod,
   PhotoCategory,
   PhotoImage,
@@ -32,6 +33,7 @@ import type {
   ContentBoardListQueryRequest,
   DeliveryAreaAdjustmentListQueryRequest,
   EditorChoiceListQueryRequest,
+  MenuCollectionImageRequestListQueryRequest,
   ShopImageChangeRequestListQueryRequest,
   ShopListQueryRequest,
   ShopRiderGuideListQueryRequest,
@@ -437,6 +439,28 @@ export const shopService = {
           createdAt: item.createdAt,
         })),
       },
+    };
+  },
+
+  // ===== 메뉴모음컷 검수 =====
+
+  // 메뉴모음컷 승인요청 목록 조회 — 도메인 반환
+  async getMenuCollectionImageRequests(
+    query: MenuCollectionImageRequestListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<MenuCollectionImageRequestItem[]>> {
+    const res = await shopRepository.getMenuCollectionImageRequests(query, pageRequest);
+    return {
+      ...res,
+      data: res.data?.map((item) => ({
+        id: item.id,
+        shopId: item.shopId,
+        shopName: item.shopName,
+        imageUrl: item.imageUrl,
+        sort: item.sort,
+        status: item.status,
+        rejectReason: item.rejectReason,
+      })),
     };
   },
 };

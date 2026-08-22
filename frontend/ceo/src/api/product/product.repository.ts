@@ -39,6 +39,7 @@ import type {
   ProductOptionSortRequest,
   ProductOrderRequest,
   ProductReleaseRequest,
+  ProductRepresentativeRequestBody,
   ProductSoldOutRequest,
   ProductSoldOutUntilRequest,
   ProductUpdateRequest,
@@ -362,5 +363,22 @@ export const productRepository = {
    */
   clearVegetarian(productId: number, shopId: number): Promise<ApiResponse<void>> {
     return api.delete<void>(`${VERSION_PATH}/${productId}/vegetarian`, undefined, { params: { shopId } });
+  },
+
+  // ===== 사장님 추천 (대표 메뉴) =====
+
+  /**
+   * 대표 메뉴 지정 신청.
+   *
+   * 반환되는 요청 id 배열이 보낸 `productIds` 보다 짧을 수 있다 — 이미 대표거나 검수 대기 중인
+   * 메뉴는 서버가 건너뛴다. 화면은 개수를 대조하지 않고 재조회로 결과를 확정한다.
+   */
+  requestRepresentative(body: ProductRepresentativeRequestBody): Promise<ApiResponse<number[]>> {
+    return api.post<number[]>(`${VERSION_PATH}/representative-requests`, body);
+  },
+
+  /** 해제는 검수 대상이 아니라 즉시 반영된다. 컨트롤러가 `@ModelAttribute`로 받아 `shopId`는 query로 보낸다 */
+  releaseRepresentative(productId: number, shopId: number): Promise<ApiResponse<void>> {
+    return api.delete<void>(`${VERSION_PATH}/${productId}/representative`, undefined, { params: { shopId } });
   },
 };

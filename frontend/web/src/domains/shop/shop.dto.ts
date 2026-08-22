@@ -85,6 +85,38 @@ export interface ShopBannerListItemResponse {
   imageUrl: string
 }
 
+/**
+ * 메뉴모음컷 1장. 승인된 것만 `sort` 오름차순으로 내려오므로 프론트가 재정렬하지 않는다.
+ *
+ * `imageUrl` 이 null 일 수 있다 — 원본 파일이 정리된 뒤 레코드만 남은 경우이며, 화면에서는 걸러낸다.
+ */
+export interface ShopMenuCollectionImageResponse {
+  id: number
+  imageUrl: string | null
+  sort: number
+}
+
+/** 주문안내. 미설정이거나 관리자가 게시중단하면 응답 `data` 가 null 이다 */
+export interface ShopOrderNoticeResponse {
+  content: string
+}
+
+/** 인기 메뉴 1건. 사장님 추천 메뉴가 먼저 채워지고 남은 자리를 최근 30일 판매량으로 채운다 */
+export interface ShopPopularProductResponse {
+  id: number
+  name: string
+  imageUrl: string | null
+  originalPrice: number
+  discountPrice: number | null
+  discountRate: number | null
+  rating: number | null
+  reviewCount: number | null
+  representative: boolean
+  spiciness: number | null
+  /** 최근 30일 완료주문 판매 수량. 사장님 추천으로 채워진 항목은 0 일 수 있다 */
+  salesQuantity: number
+}
+
 export interface ShopReviewListItemResponse {
   id: number
   imageUrls: string[]

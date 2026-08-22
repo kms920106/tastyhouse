@@ -32,6 +32,9 @@ import type {
   FoodTypeCategoryCreateRequest,
   FoodTypeCategoryResponse,
   FoodTypeCategoryUpdateRequest,
+  MenuCollectionImageRejectRequest,
+  MenuCollectionImageRequestItemResponse,
+  MenuCollectionImageRequestListQueryRequest,
   OrderMethod,
   OrderMethodCreateRequest,
   OrderMethodResponse,
@@ -56,6 +59,8 @@ import type {
   ShopImageChangeRequestListQueryRequest,
   ShopListItemResponse,
   ShopListQueryRequest,
+  ShopOrderNoticeHideRequest,
+  ShopOrderNoticeResponse,
   ShopRiderGuideDetailResponse,
   ShopRiderGuideListItemResponse,
   ShopRiderGuideListQueryRequest,
@@ -450,6 +455,23 @@ export const shopRepository = {
     return api.delete<null>(`${ENDPOINT}/v1/hygiene-badges/${hygieneBadgeId}`);
   },
 
+  // ===== 주문안내 게시중단 =====
+
+  // 가게별 주문안내 조회
+  getOrderNotice(shopId: number): Promise<ApiResponse<ShopOrderNoticeResponse>> {
+    return api.get<ShopOrderNoticeResponse>(`${ENDPOINT}/v1/${shopId}/order-notice`);
+  },
+
+  // 주문안내 게시중단
+  hideOrderNotice(shopId: number, body: ShopOrderNoticeHideRequest): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/${shopId}/order-notice/hide`, body);
+  },
+
+  // 주문안내 게시중단 해제
+  unhideOrderNotice(shopId: number): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/${shopId}/order-notice/unhide`);
+  },
+
   // ===== 라이더 가게방문 안내 검수 =====
 
   // 라이더 안내 등록 가게 목록 — updatedAt DESC 정렬로 최근 변경분부터 검수한다
@@ -483,5 +505,30 @@ export const shopRepository = {
   // 픽업 위치 교정 (라이더 제보 반영)
   updateRiderPickupLocation(shopId: number, body: ShopRiderPickupLocationUpdateRequest): Promise<ApiResponse<null>> {
     return api.put<null>(`${ENDPOINT}/v1/${shopId}/rider-guide/pickup-location`, body);
+  },
+
+  // ===== 메뉴모음컷 검수 =====
+
+  // 메뉴모음컷 승인요청 목록 조회
+  getMenuCollectionImageRequests(
+    query: MenuCollectionImageRequestListQueryRequest,
+    pageRequest: ApiPageRequest,
+  ): Promise<ApiResponse<MenuCollectionImageRequestItemResponse[]>> {
+    return api.get<MenuCollectionImageRequestItemResponse[]>(`${ENDPOINT}/v1/menu-collection-images/requests`, {
+      params: { ...query, ...pageRequest },
+    });
+  },
+
+  // 메뉴모음컷 승인요청 승인 (body 없음)
+  approveMenuCollectionImageRequest(requestId: number): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/menu-collection-images/requests/${requestId}/approve`);
+  },
+
+  // 메뉴모음컷 승인요청 반려
+  rejectMenuCollectionImageRequest(
+    requestId: number,
+    body: MenuCollectionImageRejectRequest,
+  ): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/menu-collection-images/requests/${requestId}/reject`, body);
   },
 };

@@ -354,3 +354,38 @@ export async function rejectProductVegetarianAction(
   revalidatePath(PRODUCT_APPROVALS_PATH);
   return { success: true };
 }
+
+// ===== 사장님 추천(대표 메뉴) 검수 =====
+
+// 사장님 추천 지정 요청 승인
+export async function approveProductRepresentativeAction(requestId: number): Promise<ActionResult> {
+  const { error } = await productRepository.approveRepresentativeRequest(requestId);
+  if (error !== undefined) {
+    return { success: false, message: error };
+  }
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
+}
+
+// 사장님 추천 지정 요청 반려
+export async function rejectProductRepresentativeAction(
+  requestId: number,
+  values: ProductRejectFormValues,
+): Promise<ActionResult> {
+  const parsed = productRejectSchema.safeParse(values);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.issues[0]?.message ?? PRODUCT_MESSAGE.INVALID_INPUT,
+    };
+  }
+
+  const { error } = await productRepository.rejectRepresentativeRequest(requestId, parsed.data);
+  if (error !== undefined) {
+    return { success: false, message: error };
+  }
+
+  revalidatePath(PRODUCT_APPROVALS_PATH);
+  return { success: true };
+}

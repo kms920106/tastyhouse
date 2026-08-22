@@ -189,3 +189,6 @@ export const CUP_COUNT_MAX = 10;
 /** 보증금 옵션그룹의 선택 개수는 서버가 강제한다 — 폼은 이 값을 고정 표시한다 */
 export const CUP_DEPOSIT_FIXED_MIN_SELECT = "0";
 export const CUP_DEPOSIT_FIXED_MAX_SELECT = "1";
+
+/** 사장님 추천(대표 메뉴) 등록 상한 (`docs/tasks/menu-board-promotion/frontend.md` A-2 기준 2번) */
+export const PRODUCT_REPRESENTATIVE_MAX_COUNT = 6;

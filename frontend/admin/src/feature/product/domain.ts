@@ -105,3 +105,22 @@ export interface ProductVegetarianRequestItem {
   status: ApprovalStatus;
   rejectReason: string | null;
 }
+
+// ===== 사장님 추천(대표 메뉴) 검수 =====
+
+/**
+ * 사장님 추천 지정 요청 한 건.
+ *
+ * 검수 기준("메뉴명과 메뉴 이미지가 일치")을 사람이 판단해야 하므로 메뉴명과 이미지를 함께 보관한다.
+ */
+export interface ProductRepresentativeRequestItem {
+  id: number;
+  productId: number;
+  shopId: number;
+  shopName: string;
+  productName: string;
+  /** 메뉴 대표 이미지 URL. 없으면 null — 이미지 없는 메뉴는 추천 지정 대상이 아니므로 반려 근거가 된다 */
+  imageUrl: string | null;
+  status: ApprovalStatus;
+  rejectReason: string | null;
+}

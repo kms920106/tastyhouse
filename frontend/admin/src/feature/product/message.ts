@@ -45,14 +45,20 @@ export const PRODUCT_MESSAGE = {
 /** 메뉴 검수 화면 정적 문구 (목록/로딩/다이얼로그 공용) */
 export const PRODUCT_APPROVAL_COPY = {
   PAGE_TITLE: "메뉴 검수",
-  PAGE_DESCRIPTION: "점주가 낸 메뉴 이미지·채식 설정 요청을 검수하고 승인·반려합니다.",
+  PAGE_DESCRIPTION: "점주가 낸 메뉴 이미지·채식 설정·메뉴모음컷·사장님 추천 요청을 검수하고 승인·반려합니다.",
   TAB_IMAGE: "메뉴 이미지",
   TAB_VEGETARIAN: "채식 설정",
+  TAB_MENU_COLLECTION: "메뉴모음컷",
+  TAB_REPRESENTATIVE: "사장님 추천",
   APPROVE: "승인",
   REJECT: "반려",
   APPROVE_CONFIRM_TITLE: "이 요청을 승인할까요?",
   APPROVE_IMAGE_CONFIRM_BODY: "승인하면 이미지가 해당 메뉴의 이미지 목록 맨 뒤에 추가되고 손님 화면에 노출됩니다.",
   APPROVE_VEGETARIAN_CONFIRM_BODY: "승인하면 요청한 채식 단계가 메뉴에 반영됩니다.",
+  APPROVE_MENU_COLLECTION_CONFIRM_BODY:
+    "승인하면 메뉴모음컷이 가게 배너 영역 최상단에 노출됩니다. 두 개 이상의 메뉴를 모아 촬영한 이미지인지 확인해 주세요.",
+  APPROVE_REPRESENTATIVE_CONFIRM_BODY:
+    "승인하면 해당 메뉴에 사장님 추천이 표시됩니다. 메뉴명과 메뉴 이미지가 일치하고 가게 카테고리에 맞는 메뉴인지 확인해 주세요.",
   REJECT_DIALOG_TITLE: "반려 사유를 입력해 주세요",
   REJECT_DIALOG_DESCRIPTION: "반려 사유는 점주에게 그대로 노출됩니다.",
   REJECT_REASON_LABEL: "반려 사유",

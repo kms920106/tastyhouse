@@ -546,3 +546,16 @@ export interface ProductOptionGroupMergeRequest {
  * 혼동이 실제로 생기므로 두 타입을 섞어 쓰지 않는다.
  */
 export type ProductOptionGroupType = "NORMAL" | "CUP_DEPOSIT";
+
+// ===== 사장님 추천 (대표 메뉴) =====
+
+/**
+ * 대표 메뉴 지정 요청.
+ *
+ * 응답이 요청한 `productIds` 보다 **짧을 수 있다** — 이미 대표거나 검수 대기 중인 메뉴는
+ * 서버가 400 을 내지 않고 조용히 건너뛰기 때문이다.
+ */
+export interface ProductRepresentativeRequestBody {
+  shopId: number;
+  productIds: number[];
+}

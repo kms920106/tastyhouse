@@ -10,7 +10,9 @@ import {
   getShopInfo,
   getShopMenus,
   getShopNotice,
+  getShopOrderNotice,
   getShopPhotos,
+  getShopPopularProducts,
   getShopReviewStatistics,
   getShopReviews,
   toggleShopBookmark,
@@ -48,6 +50,8 @@ export const shopQueryKeys = {
   infoDetail: (shopId: number) => ['place', shopId, 'place-detail-info'] as const,
   notice: (shopId: number) => ['place', shopId, 'place-detail-notice'] as const,
   menus: (shopId: number) => ['place', shopId, 'place-detail-menus'] as const,
+  orderNotice: (shopId: number) => ['place', shopId, 'place-detail-order-notice'] as const,
+  popularProducts: (shopId: number) => ['place', shopId, 'place-detail-popular-products'] as const,
   photos: (shopId: number) => ['place', shopId, 'place-detail-photos'] as const,
   reviewStatistics: (shopId: number) => ['place', shopId, 'place-review-statistics'] as const,
   reviews: (shopId: number) => ['place', shopId, 'place-detail-reviews'] as const,
@@ -138,6 +142,22 @@ export function useShopMenus(shopId: number) {
   return useQuery({
     queryKey: shopQueryKeys.menus(shopId),
     queryFn: () => getShopMenus(shopId),
+  })
+}
+
+/** 메뉴판 최상단 주문안내를 조회합니다. 미설정·게시중단이면 응답 `data` 가 null 입니다. */
+export function useShopOrderNotice(shopId: number) {
+  return useQuery({
+    queryKey: shopQueryKeys.orderNotice(shopId),
+    queryFn: () => getShopOrderNotice(shopId),
+  })
+}
+
+/** "가장 인기 있는 메뉴" 목록(최대 5건)을 조회합니다. */
+export function useShopPopularProducts(shopId: number) {
+  return useQuery({
+    queryKey: shopQueryKeys.popularProducts(shopId),
+    queryFn: () => getShopPopularProducts(shopId),
   })
 }
 

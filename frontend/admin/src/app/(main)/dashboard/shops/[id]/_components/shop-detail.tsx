@@ -24,6 +24,7 @@ import { ClassificationTab } from "./classification-tab";
 import { CupDepositToggleDialog } from "./cup-deposit-toggle-dialog";
 import { HygieneBadgesTab } from "./hygiene-badges-tab";
 import { ImagesTab } from "./images-tab";
+import { OrderNoticeTab } from "./order-notice-tab";
 
 interface ShopDetailProps {
   shop: ShopDetailModel;
@@ -109,6 +110,7 @@ export function ShopDetail({ shop }: ShopDetailProps) {
               <TabsTrigger value={SHOP_DETAIL_TABS.CLASSIFICATION}>편의·음식·주문</TabsTrigger>
               <TabsTrigger value={SHOP_DETAIL_TABS.IMAGES}>이미지</TabsTrigger>
               <TabsTrigger value={SHOP_DETAIL_TABS.HYGIENE}>위생 인증</TabsTrigger>
+              <TabsTrigger value={SHOP_DETAIL_TABS.ORDER_NOTICE}>주문안내</TabsTrigger>
             </TabsList>
             <TabsContent value={SHOP_DETAIL_TABS.BUSINESS_HOURS} className="pt-4">
               <BusinessHoursTab shopId={shop.id} />
@@ -121,6 +123,9 @@ export function ShopDetail({ shop }: ShopDetailProps) {
             </TabsContent>
             <TabsContent value={SHOP_DETAIL_TABS.HYGIENE} className="pt-4">
               <HygieneBadgesTab shopId={shop.id} />
+            </TabsContent>
+            <TabsContent value={SHOP_DETAIL_TABS.ORDER_NOTICE} className="pt-4">
+              <OrderNoticeTab shopId={shop.id} />
             </TabsContent>
           </Tabs>
         </CardContent>

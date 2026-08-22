@@ -42,6 +42,7 @@ export default async function ShopOrderMenuList({ shopId, orderMethod }: Props) 
                 discountRate={product.discountRate}
                 rating={product.rating}
                 reviewCount={product.reviewCount}
+                representative={product.representative}
               />
             </Link>
           ))}

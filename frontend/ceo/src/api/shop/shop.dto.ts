@@ -676,3 +676,43 @@ export interface ShopRiderPickupLocationUpdateRequest {
   latitude: number;
   longitude: number;
 }
+
+// ===== 메뉴모음컷 (승인 워크플로) =====
+
+/**
+ * 메뉴모음컷 검수 상태.
+ *
+ * 위 `ApprovalStatus`(상표·대표이미지)와 달리 `CANCELED` 가 더 있어 그 타입을 재사용하지 않는다 —
+ * 점주가 승인 대기 중인 건을 지우면 서버가 `CANCELED` 로 남기기 때문이다.
+ */
+export type MenuCollectionImageStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELED";
+
+export interface MenuCollectionImageResponse {
+  id: number;
+  /** 업로드 직후 후처리 전이면 null */
+  imageUrl: string | null;
+  sort: number;
+  status: MenuCollectionImageStatus;
+  /** `status === "REJECTED"` 가 아니면 null */
+  rejectReason: string | null;
+}
+
+/** 순서 변경은 전체 치환(replace-all) — `sort` 를 계산해 보내지 않고 순서 있는 id 배열만 보낸다 */
+export interface MenuCollectionImageOrderRequest {
+  imageIds: number[];
+}
+
+// ===== 주문안내 =====
+
+export interface ShopOrderNoticeResponse {
+  /** 미등록이면 null. 응답 자체는 null 이 아니라 항상 객체다 */
+  content: string | null;
+  /** 관리자가 게시를 중단시킨 상태 */
+  hidden: boolean;
+  /** `hidden` 이 false 면 null */
+  hiddenReason: string | null;
+}
+
+export interface ShopOrderNoticeUpdateRequest {
+  content: string;
+}

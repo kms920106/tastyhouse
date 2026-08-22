@@ -9,6 +9,7 @@ import type {
   DeliveryAreaAdjustmentStatus,
   FoodType,
   HygieneBadgeType,
+  MenuCollectionImageStatus,
   OrderMethod as OrderMethodValue,
   RiderGuideActionType,
   RiderGuideActorType,
@@ -17,7 +18,7 @@ import type {
 } from "@/api/shop/shop.dto";
 
 // api/shop 계층에서 정의한 enum 문자열 유니온을 도메인에서도 그대로 쓴다.
-export type { DeliveryAreaAdjustmentStatus, RiderGuideActionType, RiderGuideActorType };
+export type { DeliveryAreaAdjustmentStatus, MenuCollectionImageStatus, RiderGuideActionType, RiderGuideActorType };
 
 export interface Station {
   id: number;
@@ -206,6 +207,14 @@ export interface ShopHygieneBadge {
   lastInspectionMonth: string | null;
 }
 
+export interface ShopOrderNotice {
+  /** 미설정이면 null */
+  content: string | null;
+  hidden: boolean;
+  /** 게시중이면 null */
+  hiddenReason: string | null;
+}
+
 export interface ContentBoard {
   id: number;
   shopId: number;
@@ -257,4 +266,20 @@ export interface ShopRiderGuideDetail {
   pickupLocation: ShopRiderPickupLocation | null;
   /** 최신순, 최대 20건 */
   histories: ShopRiderGuideHistory[];
+}
+
+/**
+ * 메뉴모음컷 승인요청 한 건.
+ *
+ * `ShopImageChangeRequest`(상표·대표이미지)와 달리 점주 취소분(CANCELED)이 있어 상태 유니온이 다르다.
+ */
+export interface MenuCollectionImageRequestItem {
+  id: number;
+  shopId: number;
+  shopName: string;
+  /** 검수 대상 이미지 URL. 없으면 null — 이미지를 못 보면 승인 판단이 불가하다 */
+  imageUrl: string | null;
+  sort: number;
+  status: MenuCollectionImageStatus;
+  rejectReason: string | null;
 }

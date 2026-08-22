@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { ProductImageListResponse, ProductVegetarianResponse } from "@/api/product/product.dto";
 import { productRepository } from "@/api/product/product.repository";
 
+import { PRODUCT_REPRESENTATIVE_MAX_COUNT } from "./constants";
 import type {
   AvailabilityChangeOutcome,
   LinkedProductSummary,
@@ -24,6 +25,8 @@ import {
   PRODUCT_MENU_MESSAGE,
   PRODUCT_MENU_VALIDATION_MESSAGE,
   PRODUCT_MESSAGE,
+  PRODUCT_REPRESENTATIVE_COPY,
+  PRODUCT_REPRESENTATIVE_MESSAGE,
 } from "./message";
 import {
   availabilityTargetSchema,
@@ -1010,4 +1013,65 @@ export async function clearMenuVegetarianAction(productId: number, shopId: numbe
 
   const { error } = await productRepository.clearVegetarian(productId, parsed.data);
   return toSimpleResult(error, PRODUCT_MENU_MESSAGE.VEGETARIAN_CLEAR_FAILED);
+}
+
+// =====================================================================================
+// 사장님 추천 (대표 메뉴) — `docs/tasks/menu-board-promotion/frontend.md` A-2
+//
+// PDF 등록 기준 4개 중 화면이 강제하는 것은 2번(개수)과 3번(이미지 필수)뿐이다.
+// 1번(가게 카테고리 일치)·4번(메뉴명과 이미지 일치)은 사람이 판단하는 검수 기준이라
+// 화면도 액션도 막지 않는다 — 검수에서 반려된다.
+// =====================================================================================
+
+/**
+ * 대표 메뉴 지정 신청.
+ *
+ * 이미 대표거나 검수 대기 중인 메뉴는 서버가 400 이 아니라 **조용히 건너뛰므로**
+ * 반환된 요청 id 배열이 보낸 개수보다 짧을 수 있다. 개수를 대조해 실패로 뒤집지 않고,
+ * 호출부가 재조회로 최종 상태를 확정한다.
+ */
+export async function requestRepresentativeAction(
+  shopId: number,
+  productIds: number[],
+  currentCount: number,
+): Promise<DataResult<number[]>> {
+  const parsed = availabilityTargetSchema.safeParse({ shopId, productIds });
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  // 상한은 서버도 보지만 화면이 먼저 막는다 — 초과분만 잘라 보내면 어느 메뉴가 빠졌는지
+  // 점주가 알 수 없으므로, 자르지 않고 요청 전체를 거절한다.
+  if (currentCount + parsed.data.productIds.length > PRODUCT_REPRESENTATIVE_MAX_COUNT) {
+    return { success: false, message: PRODUCT_REPRESENTATIVE_MESSAGE.LIMIT_EXCEEDED };
+  }
+
+  const { data, error } = await productRepository.requestRepresentative({
+    shopId: parsed.data.shopId,
+    productIds: parsed.data.productIds,
+  });
+  if (error !== undefined) return toFailure(error, PRODUCT_REPRESENTATIVE_COPY.REQUEST_FAILED);
+
+  revalidateMenuBoard();
+  return { success: true, data: data ?? [] };
+}
+
+/**
+ * 대표 메뉴 해제.
+ *
+ * 지정과 달리 검수 대상이 아니라 즉시 반영된다. 최소 1개 규칙은 화면이 버튼을 잠가 막지만,
+ * 서버 액션은 클라이언트를 거치지 않고도 호출될 수 있어 여기서 한 번 더 본다.
+ */
+export async function releaseRepresentativeAction(
+  productId: number,
+  shopId: number,
+  currentCount: number,
+): Promise<SimpleResult> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  if (currentCount <= 1) {
+    return { success: false, message: PRODUCT_REPRESENTATIVE_MESSAGE.LAST_CANNOT_RELEASE };
+  }
+
+  const { error } = await productRepository.releaseRepresentative(productId, parsed.data);
+  return toSimpleResult(error, PRODUCT_REPRESENTATIVE_COPY.RELEASE_FAILED);
 }

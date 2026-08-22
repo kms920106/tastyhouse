@@ -8,6 +8,7 @@ import type {
   ExtraDeliveryTipType,
   HygieneBadgeType,
   ImageType,
+  MenuCollectionImageStatus,
   OrderMethod,
   OrderUnavailableReason,
   ShopStatusValue,
@@ -26,6 +27,7 @@ export type {
   ExtraDeliveryTipType,
   HygieneBadgeType,
   ImageType,
+  MenuCollectionImageStatus,
   OrderMethod,
   OrderUnavailableReason,
   ShopStatusValue,
@@ -560,4 +562,30 @@ export interface ShopRequestTypeOption {
 export interface ShopRequestStatusOption {
   code: string;
   description: string;
+}
+
+// =====================================================================================
+// 메뉴모음컷 · 주문안내 (`docs/tasks/menu-board-promotion/frontend.md` A)
+//
+// DTO 필드가 1:1 대응해 변환 계층을 두지 않고 이름만 도메인 쪽으로 맞춰 재노출한다
+// (`feature/product/domain.ts` 의 선례와 같은 기준).
+// =====================================================================================
+
+/** 메뉴모음컷 한 장. 승인 전이면 `status === "PENDING"` 으로 목록에 남아 있다 */
+export interface MenuCollectionImage {
+  id: number;
+  /** 업로드 직후 후처리 전이면 null */
+  imageUrl: string | null;
+  sort: number;
+  status: MenuCollectionImageStatus;
+  /** 반려가 아니면 null */
+  rejectReason: string | null;
+}
+
+export interface ShopOrderNotice {
+  /** 미등록이면 null */
+  content: string | null;
+  /** 관리자가 게시를 중단시킨 상태. 손님 화면에는 노출되지 않는다 */
+  hidden: boolean;
+  hiddenReason: string | null;
 }

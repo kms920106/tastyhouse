@@ -15,24 +15,34 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   ApprovalStatus,
   ProductImageChangeRequestItem,
+  ProductRepresentativeRequestItem,
   ProductVegetarianRequestItem,
 } from "@/feature/product/domain";
 import { APPROVAL_STATUS_LABEL, APPROVAL_STATUS_OPTIONS, PRODUCT_APPROVAL_COPY } from "@/feature/product/message";
+import type { MenuCollectionImageRequestItem } from "@/feature/shop/domain";
 
+import { menuCollectionReviewColumns } from "./menu-collection-review-columns";
 import { ProductApprovalsTable } from "./product-approvals-table";
 import { ProductApproveDialog } from "./product-approve-dialog";
 import { type ProductApprovalsTableMeta, productImageReviewColumns } from "./product-image-review-columns";
 import { ProductRejectDialog } from "./product-reject-dialog";
 import { productVegetarianReviewColumns } from "./product-vegetarian-review-columns";
+import { representativeReviewColumns } from "./representative-review-columns";
 
 /** 탭마다 조회 API·컬럼이 다르므로 props 를 판별 유니온으로 받는다. */
 type Props = { pagination: ApiPagination; initialStatus?: ApprovalStatus } & (
   | { tab: "image"; requests: ProductImageChangeRequestItem[] }
   | { tab: "vegetarian"; requests: ProductVegetarianRequestItem[] }
+  | { tab: "menuCollection"; requests: MenuCollectionImageRequestItem[] }
+  | { tab: "representative"; requests: ProductRepresentativeRequestItem[] }
 );
 
-/** 승인·반려 다이얼로그가 요청 ID 와 메뉴명만 필요하므로 탭 공용 최소 형태로 줄여 보관한다. */
-type ApprovalTarget = { id: number; productName: string };
+/**
+ * 승인·반려 다이얼로그가 요청 ID 와 이름만 필요하므로 탭 공용 최소 형태로 줄여 보관한다.
+ *
+ * <p>메뉴모음컷은 가게 단위 배너라 메뉴명이 없으므로 이름을 optional 로 둔다 — 그 탭에서는 가게명을 넣는다.
+ */
+type ApprovalTarget = { id: number; productName?: string };
 
 const ALL_STATUS = "all";
 
@@ -103,6 +113,17 @@ export function ProductApprovals(props: Props) {
     onReject: (request: ApprovalTarget) => setRejectTarget({ id: request.id, productName: request.productName }),
   };
 
+  /** 메뉴모음컷은 메뉴명이 없어 다이얼로그 제목에 넣을 이름을 가게명으로 대체한다. */
+  const menuCollectionMeta = {
+    totalElements: pagination.totalElements,
+    onApprove: (request: MenuCollectionImageRequestItem) =>
+      setApproveTarget({ id: request.id, productName: request.shopName }),
+    onReject: (request: MenuCollectionImageRequestItem) =>
+      setRejectTarget({ id: request.id, productName: request.shopName }),
+    imageLoadFailedIds,
+    onImageLoadError: handleImageLoadError,
+  };
+
   // 두 테이블 인스턴스를 항상 만들어 두는 대신, 렌더 중인 탭의 것만 만든다.
   // useReactTable 은 훅이므로 조건 분기 없이 둘 다 호출하고 사용만 가른다.
   const imageTable = useReactTable<ProductImageChangeRequestItem>({
@@ -125,6 +146,26 @@ export function ProductApprovals(props: Props) {
     meta: sharedMeta satisfies ProductApprovalsTableMeta<ProductVegetarianRequestItem>,
   });
 
+  const menuCollectionTable = useReactTable<MenuCollectionImageRequestItem>({
+    ...sharedTableOptions,
+    data: props.tab === "menuCollection" ? props.requests : [],
+    columns: menuCollectionReviewColumns,
+    getRowId: (row) => String(row.id),
+    meta: menuCollectionMeta satisfies ProductApprovalsTableMeta<MenuCollectionImageRequestItem>,
+  });
+
+  const representativeTable = useReactTable<ProductRepresentativeRequestItem>({
+    ...sharedTableOptions,
+    data: props.tab === "representative" ? props.requests : [],
+    columns: representativeReviewColumns,
+    getRowId: (row) => String(row.id),
+    meta: {
+      ...sharedMeta,
+      imageLoadFailedIds,
+      onImageLoadError: handleImageLoadError,
+    } satisfies ProductApprovalsTableMeta<ProductRepresentativeRequestItem>,
+  });
+
   return (
     <Card>
       <CardHeader className="border-b">
@@ -144,6 +185,12 @@ export function ProductApprovals(props: Props) {
               </TabsTrigger>
               <TabsTrigger value="vegetarian" disabled={isPending}>
                 {PRODUCT_APPROVAL_COPY.TAB_VEGETARIAN}
+              </TabsTrigger>
+              <TabsTrigger value="menuCollection" disabled={isPending}>
+                {PRODUCT_APPROVAL_COPY.TAB_MENU_COLLECTION}
+              </TabsTrigger>
+              <TabsTrigger value="representative" disabled={isPending}>
+                {PRODUCT_APPROVAL_COPY.TAB_REPRESENTATIVE}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -181,11 +228,10 @@ export function ProductApprovals(props: Props) {
           </div>
         </div>
 
-        {tab === "image" ? (
-          <ProductApprovalsTable table={imageTable} isPending={isPending} />
-        ) : (
-          <ProductApprovalsTable table={vegetarianTable} isPending={isPending} />
-        )}
+        {tab === "image" && <ProductApprovalsTable table={imageTable} isPending={isPending} />}
+        {tab === "vegetarian" && <ProductApprovalsTable table={vegetarianTable} isPending={isPending} />}
+        {tab === "menuCollection" && <ProductApprovalsTable table={menuCollectionTable} isPending={isPending} />}
+        {tab === "representative" && <ProductApprovalsTable table={representativeTable} isPending={isPending} />}
       </CardContent>
 
       <ProductApproveDialog

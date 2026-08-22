@@ -52,6 +52,14 @@ export async function getShopMenus(shopId: number) {
   return shopRepository.getShopProducts(shopId)
 }
 
+export async function getShopOrderNotice(shopId: number) {
+  return shopRepository.getShopOrderNotice(shopId)
+}
+
+export async function getShopPopularProducts(shopId: number) {
+  return shopRepository.getShopPopularProducts(shopId)
+}
+
 export async function getShopPhotos(shopId: number) {
   return shopRepository.getShopPhotos(shopId)
 }

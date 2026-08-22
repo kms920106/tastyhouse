@@ -207,3 +207,17 @@ export interface ProductVegetarianRequestItemResponse {
 export interface ProductApprovalRejectRequest {
   rejectReason: string;
 }
+
+// ===== 사장님 추천(대표 메뉴) 검수 =====
+
+// 사장님 추천 지정 요청 목록 항목 — 메뉴명·이미지가 일치하는지 사람이 판단해야 해서 둘 다 함께 내려온다
+export interface ProductRepresentativeRequestItemResponse {
+  id: number;
+  productId: number;
+  shopId: number;
+  shopName: string;
+  productName: string;
+  imageUrl: string | null;
+  status: ApprovalStatusValue;
+  rejectReason: string | null;
+}
