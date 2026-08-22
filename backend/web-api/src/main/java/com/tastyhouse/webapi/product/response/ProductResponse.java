@@ -25,7 +25,12 @@ public record ProductResponse(
     Integer discountPrice,
 
     @Schema(description = "요청한 옵션 중 조회에 성공한 옵션 목록 (available=false 면 빈 배열)")
-    List<ProductBatchOptionResponse> options
+    List<ProductBatchOptionResponse> options,
+
+    @Schema(description = "가격 행 목록. 장바구니가 보관한 priceId로 가격명·가격을 되찾는 데 쓴다. "
+        + "각 price는 요청한 orderMethod로 서버가 이미 해석한 단일 결제 가격이다. "
+        + "가격 행이 없는 메뉴(이관 이전 데이터)와 available=false 면 빈 배열")
+    List<ProductPriceResponse> prices
 ) {
     public static ProductResponse from(
         Long id,
@@ -34,7 +39,8 @@ public record ProductResponse(
         String imageUrl,
         Integer originalPrice,
         Integer discountPrice,
-        List<ProductBatchOptionResponse> options
+        List<ProductBatchOptionResponse> options,
+        List<ProductPriceResponse> prices
     ) {
         return new ProductResponse(
             id,
@@ -43,7 +49,8 @@ public record ProductResponse(
             imageUrl,
             originalPrice,
             discountPrice,
-            options
+            options,
+            prices
         );
     }
 }

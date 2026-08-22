@@ -106,6 +106,29 @@ public class ShopRequestIndexRecorder {
     }
 
     /**
+     * 유형을 명시해 상태 전이를 인덱스에 반영한다 — <b>타 컨텍스트가 소유한 요청 유형을 위한 범용 진입점</b>이다.
+     *
+     * <p>{@link #syncBlindRequestStatus}가 유형을 {@code REVIEW_BLIND}로 고정한 것과 달리 유형을 인자로
+     * 받는다. 요청 유형이 늘어날 때마다 유형 고정 메서드를 하나씩 더 만들면, 그 메서드들이 서로
+     * 구별되는 것은 상수 하나뿐인데도 개수가 유형 수만큼 늘어난다.
+     *
+     * <p><b>통합 상태 {@link ShopRequestStatus}를 받는 이유는 컨텍스트 경계다</b> —
+     * {@code StorePriceVerificationStatus}는 product 컨텍스트 소유이므로 shop이 그것을 import하면
+     * {@code ContextBoundaryTest}를 위반한다. 그래서 매핑은 그 enum을 소유한 쪽이 수행하고 여기에는
+     * 이미 변환된 값이 들어온다({@code ReviewBlindRequestService}가 확립한 방식과 같다).
+     *
+     * @param rejectReason 반려 사유. 반려가 아닌 전이면 {@code null}
+     */
+    public void syncRequestStatus(
+        ShopRequestType requestType,
+        Long sourceRequestId,
+        ShopRequestStatus status,
+        String rejectReason
+    ) {
+        syncStatus(requestType, sourceRequestId, status, rejectReason);
+    }
+
+    /**
      * 취소를 인덱스에 반영한다. 취소는 사유 없는 종결이므로 {@code rejectReason}을 비운다.
      */
     public void syncCanceled(ShopRequestType requestType, Long sourceRequestId) {

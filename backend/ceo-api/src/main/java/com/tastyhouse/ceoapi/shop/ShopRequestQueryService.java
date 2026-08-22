@@ -116,6 +116,7 @@ public class ShopRequestQueryService {
             case TRADEMARK_CHANGE, THUMBNAIL_CHANGE -> toImageChangeDetailResponse(detail);
             case DELIVERY_AREA_ADJUSTMENT -> toAdjustmentDetailResponse(detail);
             case REVIEW_BLIND -> toReviewBlindDetailResponse(detail);
+            case STORE_PRICE_VERIFICATION -> toStorePriceVerificationDetailResponse(detail);
         };
     }
 
@@ -217,6 +218,32 @@ public class ShopRequestQueryService {
             null,
             null,
             reviewBlind
+        );
+    }
+
+    /**
+     * 매장 가격 인증 요청 상세를 조립한다.
+     *
+     * <p><b>다른 유형과 달리 원본 애그리거트를 다시 읽지 않고 인덱스 값을 그대로 쓴다.</b> 인덱스는 파생
+     * 읽기모델이라 진실원이 아니어서 상태·반려사유는 원본에서 가져오는 것이 이 서비스의 규칙이지만, 이
+     * 유형의 원본은 <b>product 컨텍스트 소유</b>(승인이 하는 일의 본체가 {@code PRODUCT_PRICE} 갱신이다)여서
+     * 상세를 투영하는 shop 조회 DAO가 없다. 인덱스 상태는 접수·전이 시점마다
+     * {@code ShopRequestIndexRecorder}가 동기화하므로 목록과 같은 값이며, 화면이 이 유형에서 필요한 것은
+     * 진행 상태와 반려 사유뿐이다.
+     *
+     * <p>유형 전용 서브 객체가 없다 — 대상 메뉴·매장가는 인증 현황 화면
+     * ({@code GET /api/shops/v1/&#123;id&#125;/store-price-verifications/latest})이 담당하고, 이 상세는
+     * 통합 요청처리 현황 목록의 공통 축(상태·첨부·문의 스레드)만 보여준다.
+     */
+    private ShopRequestDetailResponse toStorePriceVerificationDetailResponse(ShopRequestDetailResult detail) {
+        return toDetailResponse(
+            detail,
+            detail.status().name(),
+            detail.status().getDescription(),
+            detail.rejectReason(),
+            null,
+            null,
+            null
         );
     }
 

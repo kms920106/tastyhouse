@@ -15,6 +15,10 @@ public record OrderProductResponse(
     @Schema(description = "상품명", example = "후라이드 치킨")
     String name,
 
+    @Schema(description = "주문 시점 가격명 스냅샷. 메뉴 하위 항목으로 표시한다. 가격이 하나뿐인 메뉴는 null",
+        example = "곱빼기", nullable = true)
+    String priceName,
+
     @Schema(description = "상품 이미지 URL", example = "https://cdn.tastyhouse.com/product/1/thumbnail.jpg")
     String imageUrl,
 
@@ -43,6 +47,7 @@ public record OrderProductResponse(
         Long orderProductId,
         Long productId,
         String name,
+        String priceName,
         String imageUrl,
         Integer quantity,
         Integer originalPrice,
@@ -56,6 +61,7 @@ public record OrderProductResponse(
             orderProductId,
             productId,
             name,
+            priceName,
             imageUrl,
             quantity,
             originalPrice,

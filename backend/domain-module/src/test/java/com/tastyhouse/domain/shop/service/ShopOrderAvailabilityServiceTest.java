@@ -176,7 +176,7 @@ class ShopOrderAvailabilityServiceTest {
         Shop hiddenShop = Shop.reconstitute(
             1L, null, StationId.of(1L), "가게", BigDecimal.valueOf(37.5), BigDecimal.valueOf(127.0),
             4.5, "도로명", "지번", "02-000-0000", null, null,
-            false, true, false, 0, false, false, LocalDateTime.now(), LocalDateTime.now()
+            false, true, false, 0, false, false, false, LocalDateTime.now(), LocalDateTime.now()
         );
 
         assertThatThrownBy(() -> service.validateOrderable(hiddenShop, OrderMethod.DELIVERY, MONDAY_NOON))
@@ -207,7 +207,7 @@ class ShopOrderAvailabilityServiceTest {
         return Shop.reconstitute(
             1L, null, StationId.of(1L), "가게", BigDecimal.valueOf(37.5), BigDecimal.valueOf(127.0),
             4.5, "도로명", "지번", "02-000-0000", null, null,
-            false, false, false, 0, false, false, LocalDateTime.now(), LocalDateTime.now()
+            false, false, false, 0, false, false, false, LocalDateTime.now(), LocalDateTime.now()
         );
     }
 

@@ -139,6 +139,7 @@ class ShopLifecycleServiceTest {
                 shop.getMinOrderAmount(),
                 shop.isScheduledOrderEnabled(),
                 false,
+                false,
                 null,
                 null
             );

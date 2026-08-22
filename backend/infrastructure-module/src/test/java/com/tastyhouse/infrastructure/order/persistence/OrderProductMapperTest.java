@@ -31,6 +31,7 @@ class OrderProductMapperTest {
             1L,
             2L,
             "이미지 없는 상품",
+            null, // priceName: 단일 가격 메뉴
             null, // imageFileId: 대표 이미지 미등록
             1,
             10000,
@@ -52,6 +53,7 @@ class OrderProductMapperTest {
             OrderId.of(1L),
             ProductId.of(2L),
             "이미지 없는 상품",
+            null, // priceName: 단일 가격 메뉴
             null, // imageFileId: 대표 이미지 미등록
             1,
             10000,
@@ -73,6 +75,7 @@ class OrderProductMapperTest {
             OrderId.of(1L),
             ProductId.of(2L),
             "이미지 있는 상품",
+            null, // priceName: 단일 가격 메뉴
             UploadedFileId.of(105L),
             1,
             10000,

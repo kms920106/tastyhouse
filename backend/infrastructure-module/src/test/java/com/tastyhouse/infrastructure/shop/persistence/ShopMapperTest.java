@@ -38,7 +38,8 @@ class ShopMapperTest {
             false,
             0,
             false,
-            false // cupDepositEnabled: 보증금제 대상 아님
+            false, // cupDepositEnabled: 보증금제 대상 아님
+            false // storePriceVerified: 매장가격 인증 안 됨
         );
 
         assertThatCode(() -> ShopMapper.toDomain(entity)).doesNotThrowAnyException();
@@ -71,6 +72,7 @@ class ShopMapperTest {
             0,
             false,
             false,
+            false, // storePriceVerified: 매장가격 인증 안 됨
             null,
             null
         );

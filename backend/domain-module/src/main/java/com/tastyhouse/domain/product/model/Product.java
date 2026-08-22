@@ -416,6 +416,24 @@ public class Product {
         return discountInfo != null ? discountInfo.discountRate() : null;
     }
 
+    /**
+     * 기본 가격 행({@code sort=0})의 배달가를 {@code originalPrice}에 동기화한다.
+     *
+     * <p><b>{@code PRODUCT_PRICE}와 이 컬럼의 의도된 이중화를 유지하는 지점이다.</b> 주문·검색·
+     * 오늘의할인·목록 등 수십 곳이 여전히 이 컬럼을 읽으므로, 가격 행이 바뀔 때마다 여기에 옮겨 적어야
+     * <b>가격 행이 1개인 메뉴의 동작이 완전히 그대로</b>가 된다. 동기화를 빠뜨리면 주문 금액 대조가
+     * 어긋나 주문이 실패한다.
+     *
+     * <p>{@link #changeDetails}·{@link #update}와 달리 <b>가격만</b> 바꾼다 — 가격 저장이 메뉴명·설명
+     * 같은 다른 필드를 건드려서는 안 되기 때문이다. 할인가는 건드리지 않는다(가격 변경은 할인이 없는
+     * 메뉴에서만 허용되므로 이 경로에서 할인가는 항상 null이다).
+     */
+    public void syncOriginalPrice(Integer originalPrice) {
+        validatePrices(originalPrice, getDiscountPrice());
+
+        this.originalPrice = originalPrice;
+    }
+
     public void updateReviewStats(Double rating, Integer reviewCount) {
         this.rating = rating;
         this.reviewCount = reviewCount;

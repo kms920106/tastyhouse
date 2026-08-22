@@ -76,6 +76,9 @@ public class ShopJpaEntity extends BaseEntity {
     @Column(name = "cup_deposit_enabled", nullable = false)
     private boolean cupDepositEnabled; // 일회용컵 보증금제 대상 사업자 여부 (관리자만 변경)
 
+    @Column(name = "is_store_price_verified", nullable = false)
+    private boolean storePriceVerified; // 매장가격 인증 여부 ('매장과 같은 가격' 뱃지의 근거)
+
     protected ShopJpaEntity() {
     }
 
@@ -96,7 +99,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean closedOnPublicHolidays,
         int minOrderAmount,
         boolean scheduledOrderEnabled,
-        boolean cupDepositEnabled
+        boolean cupDepositEnabled,
+        boolean storePriceVerified
     ) {
         this.ceoId = ceoId;
         this.stationId = stationId;
@@ -115,6 +119,7 @@ public class ShopJpaEntity extends BaseEntity {
         this.minOrderAmount = minOrderAmount;
         this.scheduledOrderEnabled = scheduledOrderEnabled;
         this.cupDepositEnabled = cupDepositEnabled;
+        this.storePriceVerified = storePriceVerified;
     }
 
     /**
@@ -137,7 +142,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean closedOnPublicHolidays,
         int minOrderAmount,
         boolean scheduledOrderEnabled,
-        boolean cupDepositEnabled
+        boolean cupDepositEnabled,
+        boolean storePriceVerified
     ) {
         return new ShopJpaEntity(
             ceoId,
@@ -156,7 +162,8 @@ public class ShopJpaEntity extends BaseEntity {
             closedOnPublicHolidays,
             minOrderAmount,
             scheduledOrderEnabled,
-            cupDepositEnabled
+            cupDepositEnabled,
+            storePriceVerified
         );
     }
 
@@ -180,7 +187,8 @@ public class ShopJpaEntity extends BaseEntity {
         boolean closedOnPublicHolidays,
         int minOrderAmount,
         boolean scheduledOrderEnabled,
-        boolean cupDepositEnabled
+        boolean cupDepositEnabled,
+        boolean storePriceVerified
     ) {
         this.ceoId = ceoId;
         this.stationId = stationId;
@@ -199,10 +207,15 @@ public class ShopJpaEntity extends BaseEntity {
         this.minOrderAmount = minOrderAmount;
         this.scheduledOrderEnabled = scheduledOrderEnabled;
         this.cupDepositEnabled = cupDepositEnabled;
+        this.storePriceVerified = storePriceVerified;
     }
 
     public Long getId() {
         return this.id;
+    }
+
+    public boolean isStorePriceVerified() {
+        return this.storePriceVerified;
     }
 
     public Long getCeoId() {

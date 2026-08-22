@@ -11,15 +11,18 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
+import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
+import com.tastyhouse.domain.product.repository.ProductPriceRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -62,6 +65,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 public class OrderProductValidationService {
 
     private final ProductRepository productRepository;
+    private final ProductPriceRepository productPriceRepository;
     private final ProductOptionGroupRepository productOptionGroupRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductImageRepository productImageRepository;
@@ -72,6 +76,7 @@ public class OrderProductValidationService {
 
     public OrderProductValidationService(
         ProductRepository productRepository,
+        ProductPriceRepository productPriceRepository,
         ProductOptionGroupRepository productOptionGroupRepository,
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
@@ -81,6 +86,7 @@ public class OrderProductValidationService {
         CupDepositPolicy cupDepositPolicy
     ) {
         this.productRepository = productRepository;
+        this.productPriceRepository = productPriceRepository;
         this.productOptionGroupRepository = productOptionGroupRepository;
         this.productOptionRepository = productOptionRepository;
         this.productImageRepository = productImageRepository;
@@ -96,15 +102,19 @@ public class OrderProductValidationService {
      * <p>순서를 보존하는 이유는 두 가지다 — 실패 시 어느 라인에서 걸렸는지가 요청과 대응되어야 하고,
      * 주문 라인 저장 순서가 화면 표시 순서가 되기 때문이다.
      */
-    public List<OrderProductSnapshot> validate(List<OrderLineSelection> lines, LocalDateTime now) {
+    public List<OrderProductSnapshot> validate(
+        List<OrderLineSelection> lines,
+        OrderMethod orderMethod,
+        LocalDateTime now
+    ) {
         List<OrderProductSnapshot> snapshots = new ArrayList<>();
         for (OrderLineSelection line : lines) {
-            snapshots.add(validateLine(line, now));
+            snapshots.add(validateLine(line, orderMethod, now));
         }
         return snapshots;
     }
 
-    private OrderProductSnapshot validateLine(OrderLineSelection line, LocalDateTime now) {
+    private OrderProductSnapshot validateLine(OrderLineSelection line, OrderMethod orderMethod, LocalDateTime now) {
         Product product = productRepository.findById(ProductId.of(line.productId()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
                 ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + line.productId()));
@@ -123,15 +133,45 @@ public class OrderProductValidationService {
         UploadedFileId representativeImageFileId =
             productImageRepository.findRepresentativeImageFileId(product.getProductId());
 
+        ProductPrice price = resolvePrice(product, line);
+
         return new OrderProductSnapshot(
             product.getProductId(),
+            price != null ? price.getProductPriceId() : null,
             product.getName(),
+            price != null ? price.getPriceName() : null,
             representativeImageFileId,
             line.quantity(),
-            product.getOriginalPrice(),
+            // 주문유형에 따라 해석된 채널 가격이 단가가 된다. 가격 행이 없는 메뉴(이관 이전 데이터)는
+            // 기존 PRODUCT.original_price로 폴백해 주문이 끊기지 않게 한다.
+            price != null ? price.resolvePrice(orderMethod) : product.getOriginalPrice(),
             product.getDiscountPrice(),
             validateOptions(line)
         );
+    }
+
+    /**
+     * 손님이 고른 가격 행을 확정한다 — {@code priceId}가 없으면 기본 가격 행({@code sort} 최소)을 쓴다.
+     *
+     * <p><b>가격 행이 그 메뉴의 것인지 반드시 확인한다.</b> 금액이 이 행에서 나오므로, 확인하지 않으면
+     * 남의 메뉴의 저가 가격 행을 실어 보내 결제 금액을 낮출 수 있다(옵션의 그룹 소속을 확인하는 것과
+     * 같은 종류의 방어다).
+     *
+     * <p>가격 행이 하나도 없으면 {@code null}을 돌려주고 호출부가 기존 {@code PRODUCT.original_price}로
+     * 폴백한다 — 이관 이전 데이터에서도 주문이 성립해야 하기 때문이다.
+     */
+    private ProductPrice resolvePrice(Product product, OrderLineSelection line) {
+        List<ProductPrice> prices = productPriceRepository.findAllByProductId(product.getProductId());
+        if (prices.isEmpty()) {
+            return null;
+        }
+        if (line.priceId() == null) {
+            return prices.getFirst();
+        }
+        return prices.stream()
+            .filter(price -> line.priceId().equals(price.getId()))
+            .findFirst()
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_PRICE_NOT_FOUND));
     }
 
     /**

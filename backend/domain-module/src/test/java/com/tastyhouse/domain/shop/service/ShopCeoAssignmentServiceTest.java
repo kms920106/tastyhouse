@@ -159,7 +159,7 @@ class ShopCeoAssignmentServiceTest {
                 SHOP_ID, null, null, "맛있는 분식",
                 BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621), 4.5,
                 "서울시 송파구 위례성대로 10", "서울시 송파구 방이동 44-1", "02-1234-5678",
-                null, null, false, false, false, 10000, false, false, null, null
+                null, null, false, false, false, 10000, false, false, false, null, null
             ));
         }
 

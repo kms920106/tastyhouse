@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.product.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,13 +20,17 @@ import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
+import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
+import com.tastyhouse.domain.product.repository.ProductPriceRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
+import com.tastyhouse.domain.product.vo.ProductPriceId;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -197,6 +202,89 @@ class OrderProductValidationServiceTest {
         assertThat(option.cupCount()).isNull();
     }
 
+    // ---------------------------------------------------------------------
+    // 주문유형별 가격 해석 — 이 규칙이 화면과 어긋나면 전 주문이 금액 대조로 거절된다
+    // ---------------------------------------------------------------------
+
+    @Test
+    @DisplayName("가격 행이 없는 메뉴는 기존 PRODUCT.original_price로 폴백한다 — 이관 이전 데이터 보존")
+    void validate_withoutPriceRow_fallsBackToProductOriginalPrice() {
+        Fixture fixture = new Fixture();
+        fixture.addProduct();
+
+        OrderProductSnapshot snapshot = fixture.validate(List.of()).getFirst();
+
+        assertThat(snapshot.originalPrice()).isEqualTo(1000);
+        assertThat(snapshot.priceName()).isNull();
+        assertThat(snapshot.productPriceId()).isNull();
+    }
+
+    @Test
+    @DisplayName("배달 주문은 배달가를 단가로 삼는다")
+    void validate_delivery_usesDeliveryPrice() {
+        Fixture fixture = new Fixture();
+        fixture.addProduct();
+        fixture.addPrice(500L, null, 9000, 7000, 0);
+
+        OrderProductSnapshot snapshot = fixture.validate(List.of(), null, OrderMethod.DELIVERY).getFirst();
+
+        assertThat(snapshot.originalPrice()).isEqualTo(9000);
+    }
+
+    @Test
+    @DisplayName("포장 주문은 픽업가를 단가로 삼는다")
+    void validate_takeout_usesPickupPrice() {
+        Fixture fixture = new Fixture();
+        fixture.addProduct();
+        fixture.addPrice(500L, null, 9000, 7000, 0);
+
+        OrderProductSnapshot snapshot = fixture.validate(List.of(), null, OrderMethod.TAKEOUT).getFirst();
+
+        assertThat(snapshot.originalPrice()).isEqualTo(7000);
+    }
+
+    @Test
+    @DisplayName("priceId를 지정하지 않으면 기본 가격 행(sort 최소)을 쓴다")
+    void validate_withoutPriceId_usesDefaultPriceRow() {
+        Fixture fixture = new Fixture();
+        fixture.addProduct();
+        fixture.addPrice(501L, "곱빼기", 12000, null, 1);
+        fixture.addPrice(500L, "보통", 9000, null, 0);
+
+        OrderProductSnapshot snapshot = fixture.validate(List.of(), null, OrderMethod.DELIVERY).getFirst();
+
+        assertThat(snapshot.originalPrice()).isEqualTo(9000);
+        assertThat(snapshot.priceName()).isEqualTo("보통");
+    }
+
+    @Test
+    @DisplayName("priceId를 지정하면 그 가격 행의 가격·가격명이 스냅샷에 박제된다")
+    void validate_withPriceId_usesThatRow() {
+        Fixture fixture = new Fixture();
+        fixture.addProduct();
+        fixture.addPrice(500L, "보통", 9000, null, 0);
+        fixture.addPrice(501L, "곱빼기", 12000, null, 1);
+
+        OrderProductSnapshot snapshot = fixture.validate(List.of(), 501L, OrderMethod.DELIVERY).getFirst();
+
+        assertThat(snapshot.originalPrice()).isEqualTo(12000);
+        assertThat(snapshot.priceName()).isEqualTo("곱빼기");
+    }
+
+    @Test
+    @DisplayName("다른 메뉴의 가격 행 id를 실어 보내면 거절된다 — 저가 가격 주입 차단")
+    void validate_withForeignPriceId_isRejected() {
+        Fixture fixture = new Fixture();
+        fixture.addProduct();
+        fixture.addPrice(500L, null, 9000, null, 0);
+
+        // 이 메뉴에 속하지 않은 가격 행 id — 금액이 가격 행에서 나오므로 반드시 막아야 한다.
+        assertThatThrownBy(() -> fixture.validate(List.of(), 999L, OrderMethod.DELIVERY))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .satisfies(thrown -> assertThat(((ResourceNotFoundException) thrown).getErrorCode())
+                .isEqualTo(ErrorCode.PRODUCT_PRICE_NOT_FOUND));
+    }
+
     private static Fixture requiredGroupFixture() {
         Fixture fixture = new Fixture();
         fixture.addProduct();
@@ -215,11 +303,13 @@ class OrderProductValidationServiceTest {
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
         private final FakeProductOptionGroupLinkRepository links = new FakeProductOptionGroupLinkRepository();
+        private final MapProductPriceRepository prices = new MapProductPriceRepository();
         private final OrderProductValidationService service;
 
         private Fixture() {
             this.service = new OrderProductValidationService(
                 new StubProductRepository(products),
+                prices,
                 new MapOptionGroupRepository(groups),
                 new MapOptionRepository(options),
                 new NoImageRepository(),
@@ -231,8 +321,28 @@ class OrderProductValidationServiceTest {
         }
 
         private List<OrderProductSnapshot> validate(List<OrderLineOptionSelection> selectedOptions) {
+            return validate(selectedOptions, null, OrderMethod.DELIVERY);
+        }
+
+        private List<OrderProductSnapshot> validate(
+            List<OrderLineOptionSelection> selectedOptions,
+            Long priceId,
+            OrderMethod orderMethod
+        ) {
             return service.validate(
-                List.of(OrderLineSelection.of(PRODUCT_ID, 1, selectedOptions)), NOW);
+                List.of(OrderLineSelection.of(PRODUCT_ID, priceId, 1, selectedOptions)), orderMethod, NOW);
+        }
+
+        private void addPrice(
+            Long id,
+            String priceName,
+            Integer deliveryPrice,
+            Integer pickupPrice,
+            Integer sort
+        ) {
+            prices.seed(ProductPrice.reconstitute(
+                id, ProductId.of(PRODUCT_ID), priceName, deliveryPrice, null, pickupPrice, sort,
+                null, null, null));
         }
 
         private void addProduct() {
@@ -385,6 +495,47 @@ class OrderProductValidationServiceTest {
 
         @Override
         public void deleteAllByProductId(ProductId productId) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
+     * 가격 행 저장소 스텁 — 씨드하지 않으면 빈 상태이므로 기존 테스트는 {@code PRODUCT.original_price}
+     * 폴백 경로를 그대로 검증한다(이관 이전 데이터의 동작 보존).
+     */
+    private static final class MapProductPriceRepository implements ProductPriceRepository {
+
+        private final Map<Long, ProductPrice> prices = new LinkedHashMap<>();
+
+        private void seed(ProductPrice price) {
+            prices.put(price.getId(), price);
+        }
+
+        @Override
+        public ProductPrice save(ProductPrice productPrice) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Optional<ProductPrice> findById(ProductPriceId id) {
+            return Optional.ofNullable(prices.get(id.value()));
+        }
+
+        @Override
+        public List<ProductPrice> findAllByProductId(ProductId productId) {
+            return prices.values().stream()
+                .filter(price -> price.getProductId().equals(productId))
+                .sorted(Comparator.comparingInt(ProductPrice::getSort))
+                .toList();
+        }
+
+        @Override
+        public List<ProductPrice> findAllByShopId(ShopId shopId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void deleteAllByIdIn(List<ProductPriceId> ids) {
             throw new UnsupportedOperationException();
         }
     }

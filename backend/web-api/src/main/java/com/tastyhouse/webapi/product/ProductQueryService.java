@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.product;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -8,7 +9,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.product.model.ProductPrice;
+import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -19,6 +23,7 @@ import com.tastyhouse.infrastructure.product.query.ProductBatchResult;
 import com.tastyhouse.infrastructure.product.query.ProductCategoryResult;
 import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
 import com.tastyhouse.infrastructure.product.query.ProductOptionsResult;
+import com.tastyhouse.infrastructure.product.query.ProductPriceResult;
 import com.tastyhouse.infrastructure.menureview.query.MenuReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
@@ -39,6 +44,7 @@ import com.tastyhouse.webapi.product.response.ProductImagesResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionGroupsResponse;
 import com.tastyhouse.webapi.product.response.ProductOptionResponse;
+import com.tastyhouse.webapi.product.response.ProductPriceResponse;
 import com.tastyhouse.webapi.product.response.ProductResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewCountResponse;
 import com.tastyhouse.webapi.product.response.ProductReviewListItemResponse;
@@ -97,9 +103,23 @@ public class ProductQueryService {
         );
     }
 
-    public ProductDetailResponse findProductById(Long productId) {
+    /**
+     * 메뉴 상세를 조회한다. {@code orderMethod}로 가격 행의 채널 가격을 <b>서버가 해석해</b> 내려준다.
+     *
+     * <p>기존 {@code originalPrice}·{@code discountPrice}·{@code discountRate} 필드는 그대로 유지한다 —
+     * 여러 화면이 읽는 계약이고, 가격 행이 하나뿐인 메뉴(대부분)는 {@code PRODUCT.original_price}가
+     * {@code sort=0} 행의 배달가와 동기화돼 있어 기존 동작이 완전히 같다.
+     *
+     * <p>가격 행이 없는 메뉴(이관 이전 데이터)는 예외를 던지지 않고 빈 목록을 준다 — 가격 행 도입 전에
+     * 등록된 메뉴의 상세가 500으로 막히면 그 메뉴는 아예 팔 수 없게 된다.
+     */
+    public ProductDetailResponse findProductById(Long productId, String orderMethod) {
         ProductDetailResult dto = loadProductDetail(productId);
         Long menuReviewCount = menuReviewStatisticsQueryDao.countVisibleByProductId(productId);
+        OrderMethod resolvedOrderMethod = OrderMethod.from(orderMethod);
+        List<ProductPriceResponse> prices = productQueryDao.findProductPrices(productId).stream()
+            .map(price -> toProductPriceResponse(price, resolvedOrderMethod))
+            .toList();
         return ProductDetailResponse.from(
             dto.id(),
             dto.name(),
@@ -109,8 +129,34 @@ public class ProductQueryService {
             dto.discountRate(),
             dto.soldOut(),
             dto.weightText(),
-            menuReviewCount != null ? menuReviewCount : 0L
+            menuReviewCount != null ? menuReviewCount : 0L,
+            prices
         );
+    }
+
+    /**
+     * 가격 행 하나를 주문유형으로 해석된 단일 가격으로 접는다.
+     *
+     * <p>해석 규칙을 이 서비스가 다시 쓰지 않고 도메인 모델 {@code ProductPrice#resolvePrice}에 위임한다 —
+     * 주문 생성 경로가 같은 메서드로 결제 금액을 정하므로, 여기서 규칙을 복제하면 표시 가격과 결제
+     * 금액이 갈릴 수 있다. 그러기 위해 read model을 도메인 모델로 되짚어 올린다({@code reconstitute}).
+     *
+     * <p>매장가는 응답에 담지 않는다 — 표시 전용 값이라 손님 계약에 없다.
+     */
+    private ProductPriceResponse toProductPriceResponse(ProductPriceResult dto, OrderMethod orderMethod) {
+        ProductPrice price = ProductPrice.reconstitute(
+            dto.id(),
+            ProductId.of(dto.productId()),
+            dto.priceName(),
+            dto.deliveryPrice(),
+            dto.storePrice(),
+            dto.pickupPrice(),
+            dto.sort(),
+            dto.pickupPriceSetAt(),
+            null,
+            null
+        );
+        return ProductPriceResponse.from(dto.id(), price.getPriceName(), price.resolvePrice(orderMethod));
     }
 
     public ProductReviewCountResponse findProductReviewCount(Long productId) {
@@ -129,20 +175,63 @@ public class ProductQueryService {
     /**
      * 상품 배치 조회. (상품ID, 옵션ID) 조합 목록을 받아 상품 단위로 그룹핑하여 반환합니다.
      * 판매 종료/미존재 상품은 제외하지 않고 available=false 로 남기며, 옵션은 조회에 성공한 것만 포함됩니다.
+     *
+     * <p><b>가격 행({@code prices})을 함께 내려준다</b> — 장바구니는 담을 때 고른 {@code priceId}만
+     * 보관하므로, 그 값으로 가격명·가격을 되찾을 수 있어야 "곱빼기 13,000원"으로 담은 항목이 화면과
+     * 결제 금액에 반영된다. 가격 해석은 상세 조회와 같은 규칙({@code ProductPrice#resolvePrice})을 쓰며
+     * 요청의 {@code orderMethod}가 그 기준이다.
+     *
+     * <p>가격 행 조회는 메뉴별로 부르지 않고 한 번에 읽어 {@code productId}로 그룹핑한다 — 장바구니
+     * 항목 수만큼 쿼리가 나가는 N+1을 피한다.
      */
     public ProductBatchResponse findProductsBatch(ProductBatchRequest request) {
         List<ProductBatchItem> items = request.items().stream()
             .map(item -> ProductBatchItem.of(item.productId(), item.optionId()))
             .toList();
 
-        List<ProductResponse> products = productQueryDao.findProductsBatch(items).stream()
-            .map(this::toProductBatchResponse)
+        OrderMethod orderMethod = OrderMethod.from(request.orderMethod());
+        List<ProductBatchResult> results = productQueryDao.findProductsBatch(items);
+        Map<Long, List<ProductPriceResponse>> pricesByProductId =
+            findBatchPricesByProductId(results, orderMethod);
+
+        List<ProductResponse> products = results.stream()
+            .map(result -> toProductBatchResponse(
+                result,
+                pricesByProductId.getOrDefault(result.id(), List.of())
+            ))
             .toList();
 
         return ProductBatchResponse.from(products);
     }
 
-    private ProductResponse toProductBatchResponse(ProductBatchResult result) {
+    /**
+     * 배치 조회 대상 메뉴들의 가격 행을 한 번에 읽어 {@code productId}별로 묶는다.
+     *
+     * <p>{@code available=false}(판매 종료·미존재) 상품은 조회 대상에서 빼 불필요한 조회를 줄인다 —
+     * 그 상품은 응답의 다른 필드도 비어 있어 화면이 "판매 종료"로만 다룬다.
+     */
+    private Map<Long, List<ProductPriceResponse>> findBatchPricesByProductId(
+        List<ProductBatchResult> results,
+        OrderMethod orderMethod
+    ) {
+        List<Long> productIds = results.stream()
+            .filter(ProductBatchResult::available)
+            .map(ProductBatchResult::id)
+            .distinct()
+            .toList();
+
+        return productQueryDao.findProductPricesByProductIds(productIds).stream()
+            .collect(Collectors.groupingBy(
+                ProductPriceResult::productId,
+                LinkedHashMap::new,
+                Collectors.mapping(price -> toProductPriceResponse(price, orderMethod), Collectors.toList())
+            ));
+    }
+
+    private ProductResponse toProductBatchResponse(
+        ProductBatchResult result,
+        List<ProductPriceResponse> prices
+    ) {
         List<ProductBatchOptionResponse> options = result.options().stream()
             .map(option -> ProductBatchOptionResponse.from(
                 option.id(),
@@ -160,7 +249,8 @@ public class ProductQueryService {
             result.imageUrl(),
             result.originalPrice(),
             result.discountPrice(),
-            options
+            options,
+            prices
         );
     }
 

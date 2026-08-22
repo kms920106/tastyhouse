@@ -271,6 +271,7 @@ public class OrderQueryDao {
                 orderProductJpaEntity.id,
                 orderProductJpaEntity.productId,
                 orderProductJpaEntity.name,
+                orderProductJpaEntity.priceName,
                 ORDER_PRODUCT_IMAGE_FILE.filePath,
                 orderProductJpaEntity.quantity,
                 orderProductJpaEntity.originalPrice,

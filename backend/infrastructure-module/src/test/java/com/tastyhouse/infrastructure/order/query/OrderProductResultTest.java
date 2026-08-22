@@ -76,13 +76,15 @@ class OrderProductResultTest {
 
         assertThat(reassembled.options()).isEqualTo(options);
         assertThat(reassembled.name()).isEqualTo("상품");
+        // 가격명 스냅샷도 재조립에서 보존돼야 한다 — 빠지면 전표에 "곱빼기" 하위 항목이 사라진다.
+        assertThat(reassembled.priceName()).isEqualTo("곱빼기");
         assertThat(reassembled.quantity()).isEqualTo(2);
         assertThat(reassembled.originalPrice()).isEqualTo(9000);
         assertThat(reassembled.totalPrice()).isEqualTo(18000);
     }
 
     private OrderProductResult projectedWithImage(String imagePath) {
-        return new OrderProductResult(1L, 3L, "상품", imagePath, 2, 9000, null, 0, 18000);
+        return new OrderProductResult(1L, 3L, "상품", "곱빼기", imagePath, 2, 9000, null, 0, 18000);
     }
 
     private static final class FakeFileStoragePort implements FileStoragePort {

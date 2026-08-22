@@ -175,7 +175,8 @@ public class OrderPlacementService {
         );
         Order savedOrder = orderRepository.save(order);
 
-        List<OrderProductSnapshot> snapshots = orderProductValidationService.validate(toSelections(placement), LocalDateTime.now());
+        List<OrderProductSnapshot> snapshots = orderProductValidationService.validate(
+            toSelections(placement), placement.orderMethod(), LocalDateTime.now());
 
         int totalProductAmount = 0;
         int productDiscountAmount = 0;
@@ -186,6 +187,7 @@ public class OrderPlacementService {
                 savedOrder.getOrderId(),
                 snapshot.productId(),
                 snapshot.name(),
+                snapshot.priceName(),
                 snapshot.representativeImageFileId(),
                 snapshot.quantity(),
                 snapshot.originalPrice(),
@@ -276,7 +278,7 @@ public class OrderPlacementService {
                     options.add(OrderLineOptionSelection.of(selected.groupId(), selected.optionId()));
                 }
             }
-            selections.add(OrderLineSelection.of(item.productId(), item.quantity(), options));
+            selections.add(OrderLineSelection.of(item.productId(), item.priceId(), item.quantity(), options));
         }
         return selections;
     }

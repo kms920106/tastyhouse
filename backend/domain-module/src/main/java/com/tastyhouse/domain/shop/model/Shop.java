@@ -56,6 +56,14 @@ public class Shop {
      * 있고, 지정 여부는 주소에서 도출되는 값이 아니다.
      */
     private boolean cupDepositEnabled;
+    /**
+     * 매장 가격 인증 여부 — <b>'매장과 같은 가격' 뱃지 노출과 매장가·픽업가 설정 가능 여부를 함께 가른다.</b>
+     *
+     * <p>점주가 스스로 켤 수 없다. 관리자가 가격표 이미지와 실제 매장을 대조해 승인할 때만 켜지며
+     * ({@code StorePriceVerificationService}), 메뉴 가격이 바뀌어 <b>배달가 &gt; 매장가</b>가 되면
+     * 가격 저장 시점에 <b>동기</b>로 내려간다 — 배치로 미루면 그 사이 손님이 잘못된 뱃지를 본다.
+     */
+    private boolean storePriceVerified;
     private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
     private final LocalDateTime updatedAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
 
@@ -78,6 +86,7 @@ public class Shop {
         int minOrderAmount,
         boolean scheduledOrderEnabled,
         boolean cupDepositEnabled,
+        boolean storePriceVerified,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -99,6 +108,7 @@ public class Shop {
         this.minOrderAmount = minOrderAmount;
         this.scheduledOrderEnabled = scheduledOrderEnabled;
         this.cupDepositEnabled = cupDepositEnabled;
+        this.storePriceVerified = storePriceVerified;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -142,6 +152,7 @@ public class Shop {
             MIN_ORDER_AMOUNT_UNSET,
             false,
             false,
+            false,
             null,
             null
         );
@@ -170,6 +181,7 @@ public class Shop {
         int minOrderAmount,
         boolean scheduledOrderEnabled,
         boolean cupDepositEnabled,
+        boolean storePriceVerified,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -192,6 +204,7 @@ public class Shop {
             minOrderAmount,
             scheduledOrderEnabled,
             cupDepositEnabled,
+            storePriceVerified,
             createdAt,
             updatedAt
         );
@@ -328,6 +341,31 @@ public class Shop {
         validateNotPermanentlyClosed();
 
         this.cupDepositEnabled = cupDepositEnabled;
+    }
+
+    /**
+     * 매장 가격 인증을 켠다 — <b>관리자 승인 시에만 호출한다.</b>
+     *
+     * <p>점주가 직접 켜는 경로를 두지 않는 것은 이 값이 가격표와 실제 매장을 대조한 <b>검수 결과</b>이기
+     * 때문이다({@code vegetarianType}·{@code representative}가 승인 전용인 것과 같은 판단).
+     */
+    public void verifyStorePrice() {
+        this.storePriceVerified = true;
+    }
+
+    /**
+     * 매장 가격 인증을 내린다(재인증 필요 판정).
+     *
+     * <p>승인과 달리 <b>폐업 검증을 하지 않는다</b> — 인증을 내리는 것은 안전한 방향이므로 어떤 상태의
+     * 가게에서도 막히지 않아야 한다. 여기서 막으면 폐업 가게가 잘못된 뱃지를 영구히 유지한다.
+     */
+    public void clearStorePriceVerification() {
+        this.storePriceVerified = false;
+    }
+
+    /** 매장 가격 인증 여부 — 매장가·픽업가 설정 가능 여부이자 '매장과 같은 가격' 뱃지의 근거다. */
+    public boolean isStorePriceVerified() {
+        return this.storePriceVerified;
     }
 
     /** 일회용컵 보증금 옵션그룹을 <b>새로 만들 수</b> 있는 가게인가. */

@@ -156,6 +156,7 @@ public class OrderQueryService {
             result.orderProductId(),
             result.productId(),
             result.name(),
+            result.priceName(),
             result.imageUrl(),
             result.quantity(),
             result.originalPrice(),

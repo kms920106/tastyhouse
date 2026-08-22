@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.domain.product.port.ProductReviewStatisticsPort;
+import com.tastyhouse.domain.product.port.ShopRequestIndexSyncPort;
+import com.tastyhouse.domain.product.port.StorePriceVerificationPort;
 import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupLinkRepository;
@@ -19,7 +21,9 @@ import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductAllergenRepository;
 import com.tastyhouse.domain.product.repository.ProductNutritionRepository;
+import com.tastyhouse.domain.product.repository.ProductPriceRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
+import com.tastyhouse.domain.product.repository.StorePriceVerificationRepository;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.product.service.OrderProductValidationService;
 import com.tastyhouse.domain.product.service.ProductAvailabilityService;
@@ -28,6 +32,7 @@ import com.tastyhouse.domain.product.service.ProductExposureCalculator;
 import com.tastyhouse.domain.product.service.ProductExposureService;
 import com.tastyhouse.domain.product.service.ProductImageApprovalService;
 import com.tastyhouse.domain.product.service.ProductNutritionService;
+import com.tastyhouse.domain.product.service.ProductPriceService;
 import com.tastyhouse.domain.product.service.ProductRepresentativeApprovalService;
 import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupMergeHistoryRepository;
@@ -36,6 +41,8 @@ import com.tastyhouse.domain.product.service.ProductOptionGroupMergeService;
 import com.tastyhouse.domain.product.service.ProductSortService;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.service.ProductReviewStatsService;
+import com.tastyhouse.domain.product.service.StorePriceBadgePolicy;
+import com.tastyhouse.domain.product.service.StorePriceVerificationService;
 
 /**
  * product 컨텍스트의 도메인 서비스(POJO) 빈 등록 설정.
@@ -90,6 +97,7 @@ public class ProductDomainConfig {
     @Bean
     public OrderProductValidationService orderProductValidationService(
         ProductRepository productRepository,
+        ProductPriceRepository productPriceRepository,
         ProductOptionGroupRepository productOptionGroupRepository,
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
@@ -100,6 +108,7 @@ public class ProductDomainConfig {
     ) {
         return new OrderProductValidationService(
             productRepository,
+            productPriceRepository,
             productOptionGroupRepository,
             productOptionRepository,
             productImageRepository,
@@ -300,5 +309,63 @@ public class ProductDomainConfig {
             productRepository,
             productImageRepository
         );
+    }
+
+    /**
+     * 메뉴 가격(가격명 + 채널별 가격) 등록·수정. <b>전체 교체(PUT) 의미론</b>이라 정렬·가격명 중복 같은
+     * 컬렉션 단위 불변식을 한 번에 판정하며, {@code sort=0} 행의 배달가를 {@code PRODUCT.original_price}에
+     * 동기화해 그 컬럼을 읽는 기존 수십 경로(주문·검색·오늘의할인·목록)의 동작을 그대로 유지한다.
+     *
+     * <p>{@link StorePriceVerificationPort}를 받는 이유는 가격 변경으로 배달가 &gt; 매장가가 되면 그
+     * 자리에서 가게 인증을 내려야 하기 때문이다 — 배치로 미루면 그 사이 손님이 잘못된 뱃지를 본다.
+     */
+    @Bean
+    public ProductPriceService productPriceService(
+        ProductPriceRepository productPriceRepository,
+        ProductRepository productRepository,
+        StorePriceVerificationPort storePriceVerificationPort
+    ) {
+        return new ProductPriceService(
+            productPriceRepository,
+            productRepository,
+            storePriceVerificationPort
+        );
+    }
+
+    /**
+     * 매장 가격 인증 워크플로(요청·승인·반려·취소). 승인이 하는 일의 본체가 {@code PRODUCT_PRICE}의
+     * 매장가·픽업가를 채우는 것이므로 shop이 아니라 이 컨텍스트가 소유한다 — 반대로 두면 승인 경로가
+     * product의 모델·리포지토리를 import해 컨텍스트 경계 규칙을 위반한다.
+     *
+     * <p>가게 단위 인증 ON/OFF 플래그만 {@link StorePriceVerificationPort}로 다룬다.
+     */
+    @Bean
+    public StorePriceVerificationService storePriceVerificationService(
+        StorePriceVerificationRepository storePriceVerificationRepository,
+        ProductPriceRepository productPriceRepository,
+        ProductRepository productRepository,
+        StorePriceVerificationPort storePriceVerificationPort,
+        ShopRequestIndexSyncPort shopRequestIndexSyncPort
+    ) {
+        return new StorePriceVerificationService(
+            storePriceVerificationRepository,
+            productPriceRepository,
+            productRepository,
+            storePriceVerificationPort,
+            shopRequestIndexSyncPort
+        );
+    }
+
+    /**
+     * 매장가격 뱃지 2종('매장과 같은 가격'·'매장가격 픽업')의 노출 판정. 리포지토리도 시계도 갖지 않는
+     * 순수 계산 정책이라 의존이 없다({@link ProductExposureCalculator}와 같은 형태).
+     *
+     * <p>빈으로 두는 이유는 판정을 <b>단 한 곳</b>에 두기 위함이다 — 손님 화면(web)·점주 화면(ceo)이
+     * 같은 인스턴스를 주입받아야 "점주 화면엔 뱃지가 켜졌는데 손님 화면엔 안 보이는" 어긋남이
+     * 구조적으로 불가능해진다.
+     */
+    @Bean
+    public StorePriceBadgePolicy storePriceBadgePolicy() {
+        return new StorePriceBadgePolicy();
     }
 }

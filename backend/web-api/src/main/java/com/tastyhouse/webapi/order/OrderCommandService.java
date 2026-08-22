@@ -121,6 +121,6 @@ public class OrderCommandService {
             request.options().stream()
                 .map(option -> OrderPlacementItemOption.of(option.groupId(), option.optionId()))
                 .toList();
-        return OrderPlacementItem.of(request.productId(), request.quantity(), options);
+        return OrderPlacementItem.of(request.productId(), request.priceId(), request.quantity(), options);
     }
 }

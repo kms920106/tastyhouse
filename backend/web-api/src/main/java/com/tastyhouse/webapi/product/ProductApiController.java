@@ -18,6 +18,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.product.request.ProductBatchRequest;
+import com.tastyhouse.webapi.product.request.ProductDetailSearchRequest;
 import com.tastyhouse.webapi.product.request.ProductSearchRequest;
 import com.tastyhouse.webapi.product.response.ProductBatchResponse;
 import com.tastyhouse.webapi.product.response.ProductDetailResponse;
@@ -48,10 +49,17 @@ public class ProductApiController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "상품 상세 조회", description = "상품의 기본 정보를 조회합니다.")
+    @Operation(summary = "상품 상세 조회",
+        description = "상품의 기본 정보와 가격명별 가격 목록(prices)을 조회합니다. prices의 각 price는 "
+            + "orderMethod로 서버가 이미 해석한 단일 결제 가격이므로 화면이 배달가/픽업가를 고르지 않습니다. "
+            + "orderMethod를 생략하면 DELIVERY로 조회합니다. 가격 행이 없는 메뉴(이관 이전 데이터)는 prices가 "
+            + "빈 배열이며 기존 originalPrice/discountPrice 필드는 그대로 동작합니다.")
     @GetMapping("/v1/{id}")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductById(@PathVariable Long id) {
-        ProductDetailResponse response = productQueryService.findProductById(id);
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductById(
+        @PathVariable Long id,
+        @Valid @ModelAttribute ProductDetailSearchRequest search
+    ) {
+        ProductDetailResponse response = productQueryService.findProductById(id, search.orderMethod());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

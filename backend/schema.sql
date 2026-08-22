@@ -493,6 +493,84 @@ CREATE TABLE PRODUCT_REPRESENTATIVE_REQUEST
     INDEX idx_product_representative_request_status (status)                -- 인덱스: 검수 목록 조회
 );
 
+-- 메뉴 가격 — 메뉴당 N행 (가격명 + 채널별 가격)
+--
+-- PRODUCT 에 store_price/pickup_price 컬럼을 붙이지 않는 이유: 그 방식으로는 가격명(보통/곱빼기)을
+-- 표현할 수 없다. 한 메뉴가 가격명을 가진 여러 가격 행을 갖는 구조가 요구사항이다.
+--
+-- ★ 기존 PRODUCT.original_price / discount_price 는 지우지 않는다. 주문·검색·오늘의할인·목록 등
+--   수십 곳이 읽고 있어 한 번에 걷어내면 회귀 범위가 통제 불가능하다. sort=0 행의 delivery_price 를
+--   PRODUCT.original_price 에 동기화해 유지하므로 가격 행이 1개뿐인 메뉴는 기존 동작이 그대로다.
+--   이 이중화는 의도된 과도기이며 단일화는 후속 과제다.
+--
+-- 채널별 가격: delivery_price 는 배달·테이블·예약의 실제 결제 가격(상시 변경 가능),
+--   store_price 는 '매장과 같은 가격' 뱃지의 근거인 표시 전용 값(결제에 쓰이지 않음),
+--   pickup_price 는 포장(TAKEOUT) 결제 가격(미설정이면 delivery_price 를 쓴다).
+--   store_price / pickup_price 는 매장 가격 인증 승인 후에만 설정할 수 있다.
+--
+-- 주문유형 → 가격 해석은 서버가 단독 결정한다(ProductPrice#resolvePrice). 클라이언트가 고르게 하면
+-- 픽업가를 주장해 배달을 싸게 사는 우회가 생긴다.
+CREATE TABLE PRODUCT_PRICE
+(
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,       -- 가격 ID (PK)
+    product_id          BIGINT      NOT NULL,                    -- 상품 ID (PRODUCT.id 참조)
+    price_name          VARCHAR(50),                             -- 가격명 (예: 보통, 곱빼기 / 가격이 1개면 NULL)
+    delivery_price      INT         NOT NULL,                    -- 배달 가격 (배달·테이블·예약 결제 가격)
+    store_price         INT,                                     -- 매장 가격 (표시 전용, 인증 후에만 설정)
+    pickup_price        INT,                                     -- 픽업 가격 (포장 결제 가격, 인증 후에만 설정)
+    sort                INT         NOT NULL,                    -- 표시 순서 (0부터, sort=0 이 기본 가격)
+    pickup_price_set_at DATETIME,                                -- 픽업가 설정 시각 ('매장가격 픽업' 뱃지의 익일 노출 판정 기준 / 미설정이면 NULL)
+    created_at          DATETIME    NOT NULL,                    -- 생성 일시
+    updated_at          DATETIME    NOT NULL,                    -- 수정 일시
+    INDEX idx_product_price_product_sort (product_id, sort),                  -- 인덱스: 메뉴별 가격 목록(표시 순서)
+    UNIQUE KEY uk_product_price_product_name (product_id, price_name)         -- 유니크: 같은 메뉴 안에서 가격명 중복 방지
+);
+
+-- 매장 가격 인증 요청
+--
+-- 기존 점주 요청 통합 인덱스(SHOP_REQUEST_INDEX)에 올라탄다 — attachment_file_id(가격표 이미지)·
+-- IN_PROGRESS(검수 중)·reject_reason·SHOP_REQUEST_COMMENT(반려 사유 문의 스레드)가 이미 갖춰져 있어
+-- 병렬 큐를 새로 만들 이유가 없다. ShopRequestType 에 STORE_PRICE_VERIFICATION 을 추가했고
+-- SHOP_REQUEST_INDEX.source_request_id 가 이 테이블의 id 를 가리킨다.
+--
+-- 테이블명이 SHOP_ 접두인 것은 요청이 가게 단위로 접수되기 때문이며, 애그리거트 소유 컨텍스트는
+-- product 다(승인의 본체가 PRODUCT_PRICE 를 채우는 일이라 컨텍스트 경계상 그쪽이어야 한다).
+CREATE TABLE SHOP_STORE_PRICE_VERIFICATION
+(
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,       -- 인증 요청 ID (PK)
+    shop_id             BIGINT      NOT NULL,                    -- 가게 ID (SHOP.id 참조)
+    price_list_file_id  BIGINT      NOT NULL,                    -- 매장 가격표 이미지 파일 ID (UPLOADED_FILE.id 참조)
+    status              VARCHAR(20) NOT NULL,                    -- 상태 (PENDING, IN_PROGRESS, APPROVED, REJECTED, CANCELED)
+    reject_reason       VARCHAR(500),                            -- 반려 사유 (REJECTED 일 때만)
+    requested_by_ceo_id BIGINT,                                  -- 요청 점주 ID (CEO.id 참조)
+    processed_at        DATETIME,                                -- 최근 상태 전이 시각 (접수 직후 NULL)
+    created_at          DATETIME    NOT NULL,                    -- 생성 일시
+    updated_at          DATETIME    NOT NULL,                    -- 수정 일시
+    INDEX idx_shop_store_price_verification_shop_status (shop_id, status), -- 인덱스: 가게별 최근 인증 상태 조회
+    INDEX idx_shop_store_price_verification_status (status)                -- 인덱스: 관리자 검수 목록 조회
+);
+
+-- 매장 가격 인증 대상 항목 — 요청 1건에 메뉴 N건
+--
+-- 요청 시점의 매장가를 이 행이 보관하는 것이 핵심이다. 승인이 나중에 이뤄지므로 그 사이 점주가
+-- 가격을 바꿔도 검수자가 본 가격 그대로 반영돼야 한다(승인 시점에 현재 가격을 다시 읽으면
+-- 검수하지 않은 값이 승인된다).
+--
+-- 승인 시 이 행의 store_price 를 PRODUCT_PRICE 에 반영하고, apply_pickup_same_price=TRUE 인 행은
+-- pickup_price 도 매장가와 같게 설정한다(요구사항의 '픽업가격 동일 설정').
+CREATE TABLE SHOP_STORE_PRICE_VERIFICATION_ITEM
+(
+    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,   -- 인증 항목 ID (PK)
+    verification_id         BIGINT   NOT NULL,                   -- 인증 요청 ID (SHOP_STORE_PRICE_VERIFICATION.id 참조)
+    product_id              BIGINT   NOT NULL,                   -- 상품 ID (PRODUCT.id 참조)
+    product_price_id        BIGINT   NOT NULL,                   -- 가격 행 ID (PRODUCT_PRICE.id 참조)
+    store_price             INT      NOT NULL,                   -- 요청한 매장 가격 (승인 시 반영될 값)
+    apply_pickup_same_price TINYINT(1) NOT NULL DEFAULT 0,       -- 픽업가격 동일 설정 여부 (1: 픽업가를 매장가와 같게)
+    created_at              DATETIME NOT NULL,                   -- 생성 일시
+    updated_at              DATETIME NOT NULL,                   -- 수정 일시
+    INDEX idx_shop_store_price_verification_item_verification (verification_id) -- 인덱스: 요청별 항목 조회
+);
+
 CREATE TABLE PRODUCT_NUTRITION
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,                        -- 영양성분 ID (PK)
@@ -550,6 +628,7 @@ CREATE TABLE SHOP
     min_order_amount           INT           NOT NULL DEFAULT 0, -- 최소주문금액 (0: 미설정, 설정 시 5000~30000, 배달 주문에만 적용)
     scheduled_order_enabled    TINYINT(1)    NOT NULL DEFAULT 0, -- 예약주문 운영 여부 (0: 미운영, 1: 운영)
     cup_deposit_enabled        TINYINT(1)    NOT NULL DEFAULT 0, -- 일회용컵 보증금제 대상 사업자 여부 (관리자만 변경, 1: 대상)
+    is_store_price_verified    TINYINT(1)    NOT NULL DEFAULT 0, -- 매장 가격 인증 여부 (매장과 같은 가격 뱃지 노출 근거, 관리자 승인 시에만 ON)
     created_at        DATETIME      NOT NULL,            -- 생성 일시
     updated_at        DATETIME      NOT NULL,            -- 수정 일시
     INDEX idx_shop_ceo_id (ceo_id)
@@ -1191,6 +1270,7 @@ CREATE TABLE ORDER_PRODUCT
     order_id          BIGINT       NOT NULL,                     -- 주문 ID (ORDERS.id 참조)
     product_id        BIGINT       NOT NULL,                     -- 상품 ID (PRODUCT.id 참조)
     name              VARCHAR(255) NOT NULL,                     -- 주문 시점 상품명 (스냅샷)
+    price_name        VARCHAR(50),                               -- 주문 시점 가격명 스냅샷 (가격이 1개면 NULL). 점주가 가격명을 바꿔도 과거 전표는 불변
     image_file_id     BIGINT,                                    -- 주문 시점 상품 이미지 파일 ID (UPLOADED_FILE.id 스냅샷)
     quantity          INT          NOT NULL DEFAULT 1,           -- 수량
     original_price    INT          NOT NULL DEFAULT 0,           -- 정가

@@ -136,6 +136,7 @@ class ShopTest {
             10000,
             true,
             false,
+            false,
             createdAt,
             updatedAt
         );

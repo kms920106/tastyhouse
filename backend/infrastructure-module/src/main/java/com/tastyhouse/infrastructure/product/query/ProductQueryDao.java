@@ -57,6 +57,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGr
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupLinkJpaEntity.productOptionGroupLinkJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupMergeExclusionJpaEntity.productOptionGroupMergeExclusionJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionJpaEntity.productOptionJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductPriceJpaEntity.productPriceJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductRepresentativeRequestJpaEntity.productRepresentativeRequestJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductVegetarianRequestJpaEntity.productVegetarianRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -837,6 +838,105 @@ public class ProductQueryDao {
                 .where(productJpaEntity.id.eq(productId), notDeleted())
                 .fetchOne()
         );
+    }
+
+    /**
+     * 메뉴 한 개의 가격 행 전체를 {@code sort} 오름차순으로 조회한다 — 손님 메뉴 상세의 가격 목록용이다.
+     *
+     * <p>write 포트 {@code ProductPriceRepository#findAllByProductId}와 같은 데이터를 읽지만, 이쪽은
+     * <b>표현 목적</b>이라 여기에 둔다. 조회 서비스({@code *QueryService})가 write 포트를 주입하는 것은
+     * ArchUnit {@code queryServicesShouldNotDependOnWritePorts}가 금지하므로, 손님 조회 경로는 이 DAO를 쓴다.
+     */
+    public List<ProductPriceResult> findProductPrices(Long productId) {
+        return queryFactory
+            .select(Projections.constructor(ProductPriceResult.class,
+                productPriceJpaEntity.id,
+                productPriceJpaEntity.productId,
+                productPriceJpaEntity.priceName,
+                productPriceJpaEntity.deliveryPrice,
+                productPriceJpaEntity.storePrice,
+                productPriceJpaEntity.pickupPrice,
+                productPriceJpaEntity.sort,
+                productPriceJpaEntity.pickupPriceSetAt
+            ))
+            .from(productPriceJpaEntity)
+            .where(productPriceJpaEntity.productId.eq(productId))
+            .orderBy(productPriceJpaEntity.sort.asc())
+            .fetch();
+    }
+
+    /**
+     * 여러 메뉴의 가격 행을 한 번에 {@code sort} 오름차순으로 조회한다 — 장바구니·주문서의 배치 조회용이다.
+     *
+     * <p>메뉴마다 {@link #findProductPrices}를 부르면 장바구니 항목 수만큼 쿼리가 나가므로(N+1),
+     * 배치 경로는 이 메서드로 한 번에 읽고 소비 측이 {@code productId}로 그룹핑한다.
+     *
+     * <p>가격 행이 없는 메뉴는 결과에 등장하지 않는다 — 소비 측이 빈 목록으로 다루면 되고, 그때 화면은
+     * 기존 {@code PRODUCT.original_price} 경로로 표시된다(가격 행 도입 이전 데이터 호환).
+     */
+    public List<ProductPriceResult> findProductPricesByProductIds(List<Long> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return List.of();
+        }
+
+        return queryFactory
+            .select(Projections.constructor(ProductPriceResult.class,
+                productPriceJpaEntity.id,
+                productPriceJpaEntity.productId,
+                productPriceJpaEntity.priceName,
+                productPriceJpaEntity.deliveryPrice,
+                productPriceJpaEntity.storePrice,
+                productPriceJpaEntity.pickupPrice,
+                productPriceJpaEntity.sort,
+                productPriceJpaEntity.pickupPriceSetAt
+            ))
+            .from(productPriceJpaEntity)
+            .where(productPriceJpaEntity.productId.in(productIds))
+            .orderBy(productPriceJpaEntity.productId.asc(), productPriceJpaEntity.sort.asc())
+            .fetch();
+    }
+
+    /**
+     * 가게의 (삭제되지 않은) 모든 메뉴의 가격 행을 조회한다 — 매장가격 뱃지 판정 입력이다.
+     *
+     * <p>가격 행이 {@code shop_id}를 직접 들고 있지 않으므로 {@code PRODUCT}로 조인해 소유 가게와
+     * 소프트 삭제를 함께 판정한다(write 포트 {@code ProductPriceRepository#findAllByShopId}와 동일한
+     * 조건이라야 같은 뱃지 판정이 두 경로에서 갈리지 않는다).
+     */
+    public List<ProductPriceResult> findShopProductPrices(Long shopId) {
+        return queryFactory
+            .select(Projections.constructor(ProductPriceResult.class,
+                productPriceJpaEntity.id,
+                productPriceJpaEntity.productId,
+                productPriceJpaEntity.priceName,
+                productPriceJpaEntity.deliveryPrice,
+                productPriceJpaEntity.storePrice,
+                productPriceJpaEntity.pickupPrice,
+                productPriceJpaEntity.sort,
+                productPriceJpaEntity.pickupPriceSetAt
+            ))
+            .from(productPriceJpaEntity)
+            .join(productJpaEntity).on(productJpaEntity.id.eq(productPriceJpaEntity.productId))
+            .where(productJpaEntity.shopId.eq(shopId), notDeleted())
+            .orderBy(productJpaEntity.sort.asc(), productPriceJpaEntity.sort.asc())
+            .fetch();
+    }
+
+    /**
+     * 가게의 손님에게 노출되는(삭제되지 않은) 메뉴 수 — '매장가격 픽업' 뱃지 커버리지 판정의 <b>분모</b>다.
+     *
+     * <p>write 포트 {@code ProductRepository#countVisibleByShopId}와 같은 수를 세지만, 조회 서비스가
+     * write 포트를 주입할 수 없어 표현 경로용으로 여기에 둔다. 두 경로의 조건({@code visible = true}
+     * <b>이고</b> {@code deleted = false})은 반드시 일치해야 한다 — 어긋나면 같은 가게의 뱃지가 점주
+     * 화면과 손님 화면에서 다르게 켜진다.
+     */
+    public long countVisibleProducts(Long shopId) {
+        Long count = queryFactory
+            .select(productJpaEntity.count())
+            .from(productJpaEntity)
+            .where(productJpaEntity.shopId.eq(shopId), productJpaEntity.visible.isTrue(), notDeleted())
+            .fetchOne();
+        return count != null ? count : 0L;
     }
 
     /**

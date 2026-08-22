@@ -32,6 +32,9 @@ public class OrderProductJpaEntity extends BaseEntity {
     @Column(name = "name", nullable = false)
     private String name; // 주문 시점 상품명 (스냅샷)
 
+    @Column(name = "price_name", length = 50)
+    private String priceName; // 주문 시점 가격명 (스냅샷). 단일 가격 메뉴면 null
+
     @Column(name = "image_file_id")
     private Long imageFileId; // 주문 시점 상품 이미지 파일 ID (UPLOADED_FILE.id 스냅샷). 이미지 없으면 null
 
@@ -65,6 +68,7 @@ public class OrderProductJpaEntity extends BaseEntity {
         Long orderId,
         Long productId,
         String name,
+        String priceName,
         Long imageFileId,
         Integer quantity,
         Integer originalPrice,
@@ -76,6 +80,7 @@ public class OrderProductJpaEntity extends BaseEntity {
         this.orderId = orderId;
         this.productId = productId;
         this.name = name;
+        this.priceName = priceName;
         this.imageFileId = imageFileId;
         this.quantity = quantity;
         this.originalPrice = originalPrice;
@@ -92,6 +97,7 @@ public class OrderProductJpaEntity extends BaseEntity {
         Long orderId,
         Long productId,
         String name,
+        String priceName,
         Long imageFileId,
         Integer quantity,
         Integer originalPrice,
@@ -104,6 +110,7 @@ public class OrderProductJpaEntity extends BaseEntity {
             orderId,
             productId,
             name,
+            priceName,
             imageFileId,
             quantity,
             originalPrice,
@@ -137,6 +144,10 @@ public class OrderProductJpaEntity extends BaseEntity {
 
     public String getName() {
         return this.name;
+    }
+
+    public String getPriceName() {
+        return this.priceName;
     }
 
     public Long getImageFileId() {

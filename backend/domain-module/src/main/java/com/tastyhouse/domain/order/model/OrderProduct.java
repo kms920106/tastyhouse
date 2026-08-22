@@ -19,6 +19,13 @@ public class OrderProduct {
     private final OrderId orderId; // 주문 ID (ORDERS.id 참조)
     private final ProductId productId; // 상품 ID (PRODUCT.id 참조)
     private final String name; // 주문 시점 상품명 (스냅샷)
+    /**
+     * 주문 시점 가격명 (스냅샷). 가격이 하나뿐인 메뉴는 {@code null}이다.
+     *
+     * <p>박제하는 이유는 {@code name}과 같다 — 나중에 점주가 가격명("보통"→"기본")을 바꿔도 과거 주문
+     * 전표의 표기가 변하면 안 된다. 가격명은 메뉴정보·주문정보·주문전표에서 메뉴의 하위 항목으로 표시된다.
+     */
+    private final String priceName;
     private final UploadedFileId imageFileId; // 주문 시점 상품 이미지 파일 ID (스냅샷). 이미지 없으면 null
     private final Integer quantity; // 수량
     private final Integer originalPrice; // 정가
@@ -39,6 +46,7 @@ public class OrderProduct {
         OrderId orderId,
         ProductId productId,
         String name,
+        String priceName,
         UploadedFileId imageFileId,
         Integer quantity,
         Integer originalPrice,
@@ -51,6 +59,7 @@ public class OrderProduct {
         this.orderId = orderId;
         this.productId = productId;
         this.name = name;
+        this.priceName = priceName;
         this.imageFileId = imageFileId;
         this.quantity = quantity;
         this.originalPrice = originalPrice;
@@ -67,6 +76,7 @@ public class OrderProduct {
         OrderId orderId,
         ProductId productId,
         String name,
+        String priceName,
         UploadedFileId imageFileId,
         Integer quantity,
         Integer originalPrice,
@@ -80,6 +90,7 @@ public class OrderProduct {
             orderId,
             productId,
             name,
+            priceName,
             imageFileId,
             quantity != null ? quantity : 1,
             originalPrice != null ? originalPrice : 0,
@@ -99,6 +110,7 @@ public class OrderProduct {
         OrderId orderId,
         ProductId productId,
         String name,
+        String priceName,
         UploadedFileId imageFileId,
         Integer quantity,
         Integer originalPrice,
@@ -112,6 +124,7 @@ public class OrderProduct {
             orderId,
             productId,
             name,
+            priceName,
             imageFileId,
             quantity,
             originalPrice,
@@ -153,6 +166,11 @@ public class OrderProduct {
 
     public String getName() {
         return this.name;
+    }
+
+    /** 주문 시점 가격명(스냅샷). 가격이 하나뿐인 메뉴는 {@code null}이다. */
+    public String getPriceName() {
+        return this.priceName;
     }
 
     public UploadedFileId getImageFileId() {
