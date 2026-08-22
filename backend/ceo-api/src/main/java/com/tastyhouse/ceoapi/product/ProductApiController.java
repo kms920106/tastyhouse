@@ -88,7 +88,8 @@ public class ProductApiController {
             userDetails.getCeoId(), id, request.shopId(), request.productCategoryId(),
             request.name(), request.composition(), request.description(),
             request.originalPrice(), request.discountPrice(), request.singleServing(),
-            request.spiciness(), request.representative(), request.ratingExcluded()
+            request.spiciness(), request.representative(), request.ratingExcluded(),
+            request.weightText()
         );
         return ResponseEntity.ok(ApiResponse.success(null));
     }

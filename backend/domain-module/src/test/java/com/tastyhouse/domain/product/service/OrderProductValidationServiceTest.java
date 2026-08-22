@@ -239,7 +239,7 @@ class OrderProductValidationServiceTest {
             products.put(PRODUCT_ID, Product.reconstitute(
                 PRODUCT_ID, ShopId.of(1L), null, "메뉴", null, 1000, null, null, 0,
                 false, null, false, null, true, 0,
-                false, false, null, false, null, null, null, null, null
+                false, false, null, false, null, null, null, null, null, null
             ));
         }
 

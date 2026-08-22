@@ -240,7 +240,7 @@ class ProductSortServiceTest {
                 id, SHOP_ID, categoryId == null ? null : ProductCategoryId.of(categoryId),
                 "메뉴" + id, null, 10000, null, null, 0,
                 false, null, false, null, true, sort,
-                false, false, null, false, null, null, null, null, null
+                false, false, null, false, null, null, null, null, null, null
             ));
         }
 

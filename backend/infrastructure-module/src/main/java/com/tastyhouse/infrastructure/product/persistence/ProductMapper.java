@@ -40,6 +40,7 @@ final class ProductMapper {
             entity.getExposureStartDate(),
             entity.getExposureEndDate(),
             entity.getVegetarianType(),
+            entity.getWeightText(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
@@ -70,7 +71,8 @@ final class ProductMapper {
             domain.isSingleServing(),
             domain.getExposureStartDate(),
             domain.getExposureEndDate(),
-            domain.getVegetarianType()
+            domain.getVegetarianType(),
+            domain.getWeightText()
         );
     }
 
@@ -78,7 +80,7 @@ final class ProductMapper {
      * managed 엔티티에 도메인의 변경 필드를 복사한다(update 경로, dirty checking 대체).
      *
      * <p>{@code ratingExcluded}·{@code deleted}·{@code composition}·{@code singleServing}·
-     * 노출기간·{@code vegetarianType}도 함께 복사한다 — 점주 메뉴 관리 경로가 이 값들을 실제로 바꾼다.
+     * 노출기간·{@code vegetarianType}·{@code weightText}도 함께 복사한다 — 점주 메뉴 관리 경로가 이 값들을 실제로 바꾼다.
      * 하나라도 빠뜨리면 도메인에서 전이시킨 값이 저장되지 않고 조용히 유실된다.
      */
     static void applyChanges(ProductJpaEntity entity, Product domain) {
@@ -102,7 +104,8 @@ final class ProductMapper {
             domain.isSingleServing(),
             domain.getExposureStartDate(),
             domain.getExposureEndDate(),
-            domain.getVegetarianType()
+            domain.getVegetarianType(),
+            domain.getWeightText()
         );
     }
 }

@@ -106,6 +106,7 @@ class ProductReviewStatsServiceTest {
             null,
             null,
             null,
+            null,
             null
         );
     }

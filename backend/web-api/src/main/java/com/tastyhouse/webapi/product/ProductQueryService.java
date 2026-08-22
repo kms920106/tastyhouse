@@ -108,6 +108,7 @@ public class ProductQueryService {
             dto.discountPrice(),
             dto.discountRate(),
             dto.soldOut(),
+            dto.weightText(),
             menuReviewCount != null ? menuReviewCount : 0L
         );
     }

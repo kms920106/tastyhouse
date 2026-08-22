@@ -25,6 +25,7 @@ public record ProductDetailResult(
     boolean soldOut,
     boolean visible,
     Integer sort,
+    String weightText,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {

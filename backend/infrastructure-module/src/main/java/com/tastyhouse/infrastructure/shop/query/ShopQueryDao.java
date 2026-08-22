@@ -31,6 +31,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeJpaEnt
 import static com.tastyhouse.infrastructure.shop.persistence.QShopHygieneBadgeJpaEntity.shopHygieneBadgeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderMethodJpaEntity.shopOrderMethodJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopOriginInfoJpaEntity.shopOriginInfoJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopOwnerMessageHistoryJpaEntity.shopOwnerMessageHistoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopPhoneNumberJpaEntity.shopPhoneNumberJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -171,6 +172,29 @@ public class ShopQueryDao {
                 ))
                 .from(shopConvenienceInfoJpaEntity)
                 .where(shopConvenienceInfoJpaEntity.shopId.eq(shopId))
+                .fetchFirst()
+        );
+    }
+
+    // ------------------------------------------------------------ 원산지
+
+    /**
+     * 가게 원산지 표시 정보. 가게당 1건이며 미설정이면 {@code Optional.empty()}다 — 점주 화면은 그때 빈
+     * 폼을, 손님 화면은 원산지 영역 숨김을 택하므로 판정은 소비 측에 맡긴다.
+     */
+    public Optional<ShopOriginInfoResult> findOriginInfo(Long shopId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(Projections.constructor(ShopOriginInfoResult.class,
+                    shopOriginInfoJpaEntity.id,
+                    shopOriginInfoJpaEntity.shopId,
+                    shopOriginInfoJpaEntity.sourceType.stringValue(),
+                    shopOriginInfoJpaEntity.content,
+                    shopOriginInfoJpaEntity.url,
+                    shopOriginInfoJpaEntity.updatedAt
+                ))
+                .from(shopOriginInfoJpaEntity)
+                .where(shopOriginInfoJpaEntity.shopId.eq(shopId))
                 .fetchFirst()
         );
     }

@@ -104,6 +104,10 @@ public class ProductJpaEntity extends BaseEntity {
     @Column(name = "vegetarian_type", length = 20, columnDefinition = "VARCHAR(20)")
     private VegetarianType vegetarianType;
 
+    /** 중량 표기(치킨 등 법정 의무표시 대상). 설명과 분리해 표시 누락을 기계로 점검할 수 있게 한다. */
+    @Column(name = "weight_text", length = 50)
+    private String weightText;
+
     protected ProductJpaEntity() {
     }
 
@@ -128,7 +132,8 @@ public class ProductJpaEntity extends BaseEntity {
         boolean singleServing,
         LocalDate exposureStartDate,
         LocalDate exposureEndDate,
-        VegetarianType vegetarianType
+        VegetarianType vegetarianType,
+        String weightText
     ) {
         this.shopId = shopId;
         this.productCategoryId = productCategoryId;
@@ -151,6 +156,7 @@ public class ProductJpaEntity extends BaseEntity {
         this.exposureStartDate = exposureStartDate;
         this.exposureEndDate = exposureEndDate;
         this.vegetarianType = vegetarianType;
+        this.weightText = weightText;
     }
 
     /**
@@ -177,12 +183,13 @@ public class ProductJpaEntity extends BaseEntity {
         boolean singleServing,
         LocalDate exposureStartDate,
         LocalDate exposureEndDate,
-        VegetarianType vegetarianType
+        VegetarianType vegetarianType,
+        String weightText
     ) {
         return new ProductJpaEntity(
             shopId, productCategoryId, name, description, originalPrice, discountInfo,
             rating, reviewCount, representative, spiciness, soldOut, soldOutUntil, visible, sort, ratingExcluded,
-            deleted, composition, singleServing, exposureStartDate, exposureEndDate, vegetarianType
+            deleted, composition, singleServing, exposureStartDate, exposureEndDate, vegetarianType, weightText
         );
     }
 
@@ -209,7 +216,8 @@ public class ProductJpaEntity extends BaseEntity {
         boolean singleServing,
         LocalDate exposureStartDate,
         LocalDate exposureEndDate,
-        VegetarianType vegetarianType
+        VegetarianType vegetarianType,
+        String weightText
     ) {
         this.productCategoryId = productCategoryId;
         this.name = name;
@@ -231,6 +239,7 @@ public class ProductJpaEntity extends BaseEntity {
         this.exposureStartDate = exposureStartDate;
         this.exposureEndDate = exposureEndDate;
         this.vegetarianType = vegetarianType;
+        this.weightText = weightText;
     }
 
     public Long getId() {
@@ -319,5 +328,9 @@ public class ProductJpaEntity extends BaseEntity {
 
     public VegetarianType getVegetarianType() {
         return this.vegetarianType;
+    }
+
+    public String getWeightText() {
+        return this.weightText;
     }
 }

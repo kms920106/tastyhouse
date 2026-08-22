@@ -27,6 +27,10 @@ public record ProductDetailResponse(
     @Schema(description = "품절 여부", example = "false")
     boolean soldOut,
 
+    @Schema(description = "중량 표기(치킨 등 법정 의무표시 대상). 미표시면 null입니다.",
+        example = "조리 전 총 중량 1,200g")
+    String weightText,
+
     @Schema(description = "이 상품의 노출 메뉴 평가 수(숨김 제외). 평가가 없으면 0입니다.", example = "12")
     long menuReviewCount
 ) {
@@ -38,6 +42,7 @@ public record ProductDetailResponse(
         Integer discountPrice,
         BigDecimal discountRate,
         boolean soldOut,
+        String weightText,
         long menuReviewCount
     ) {
         return new ProductDetailResponse(
@@ -48,6 +53,7 @@ public record ProductDetailResponse(
             discountPrice,
             discountRate,
             soldOut,
+            weightText,
             menuReviewCount
         );
     }

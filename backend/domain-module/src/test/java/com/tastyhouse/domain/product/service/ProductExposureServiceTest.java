@@ -154,7 +154,7 @@ class ProductExposureServiceTest {
         private final Product product = Product.reconstitute(
             10L, SHOP_ID, ProductCategoryId.of(2L), "떡볶이", null, 8000, null, null, 0,
             false, null, false, null, true, 0,
-            false, false, null, false, null, null, null, null, null
+            false, false, null, false, null, null, null, null, null, null
         );
         private final FakeExposureHourRepository hours = new FakeExposureHourRepository();
         private final ProductExposureService service;

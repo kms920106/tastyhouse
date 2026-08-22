@@ -17,6 +17,8 @@ import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
+import com.tastyhouse.domain.product.repository.ProductAllergenRepository;
+import com.tastyhouse.domain.product.repository.ProductNutritionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.product.service.OrderProductValidationService;
@@ -25,6 +27,7 @@ import com.tastyhouse.domain.product.service.ProductDeletionService;
 import com.tastyhouse.domain.product.service.ProductExposureCalculator;
 import com.tastyhouse.domain.product.service.ProductExposureService;
 import com.tastyhouse.domain.product.service.ProductImageApprovalService;
+import com.tastyhouse.domain.product.service.ProductNutritionService;
 import com.tastyhouse.domain.product.service.ProductRepresentativeApprovalService;
 import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupMergeHistoryRepository;
@@ -239,6 +242,26 @@ public class ProductDomainConfig {
         return new ProductImageApprovalService(
             productImageChangeRequestRepository,
             productImageRepository,
+            productRepository
+        );
+    }
+
+    /**
+     * 메뉴 영양성분·알레르기 유발성분의 조회·upsert·삭제. 두 값이 한 화면에서 함께 저장·삭제되는 한 벌이라
+     * 한 서비스가 소유한다 — 나누면 "영양성분만 저장되고 알레르기는 이전 값이 남은" 중간 상태가 손님
+     * 화면에 잘못된 알레르기 표시로 노출된다.
+     *
+     * <p>승인 워크플로가 없다 — 점주(가맹본사)만이 아는 사실 정보여서 관리자가 검증할 근거가 없다.
+     */
+    @Bean
+    public ProductNutritionService productNutritionService(
+        ProductNutritionRepository productNutritionRepository,
+        ProductAllergenRepository productAllergenRepository,
+        ProductRepository productRepository
+    ) {
+        return new ProductNutritionService(
+            productNutritionRepository,
+            productAllergenRepository,
             productRepository
         );
     }

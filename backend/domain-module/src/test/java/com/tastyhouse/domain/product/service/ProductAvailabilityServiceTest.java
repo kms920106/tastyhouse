@@ -347,7 +347,7 @@ class ProductAvailabilityServiceTest {
         return Product.reconstitute(
             id, SHOP_ID, ProductCategoryId.of(2L), name, "설명", 10000,
             null, null, 0, representative, null, false, null, visible, sort, false,
-            false, null, false, null, null, null, null, null
+            false, null, false, null, null, null, null, null, null
         );
     }
 

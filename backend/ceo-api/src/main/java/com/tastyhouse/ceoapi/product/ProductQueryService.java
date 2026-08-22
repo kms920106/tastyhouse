@@ -58,6 +58,7 @@ public class ProductQueryService {
             dto.visible(),
             dto.imageUrl(),
             dto.vegetarianType() == null ? null : dto.vegetarianType().name(),
+            dto.weightText(),
             dto.exposureScheduled()
         );
     }

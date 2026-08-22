@@ -94,6 +94,7 @@ class ProductSoldOutReleaseSchedulerServiceTest {
             id, SHOP_ID, ProductCategoryId.of(2L), name, "설명", 10000,
             null, null, 0, false, null, false, null, true, 1, false,
             false, null, false, null, null, null,
+            null,
             null, null
         );
         product.markSoldOut(PAST);

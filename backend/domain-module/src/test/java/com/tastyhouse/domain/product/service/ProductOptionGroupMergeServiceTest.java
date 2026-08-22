@@ -328,7 +328,7 @@ class ProductOptionGroupMergeServiceTest {
             products.put(id, Product.reconstitute(
                 id, shopId, null, "메뉴" + id, null, 1000, null, null, 0,
                 false, null, false, null, true, 0,
-                false, false, null, false, null, null, null, null, null
+                false, false, null, false, null, null, null, null, null, null
             ));
         }
 

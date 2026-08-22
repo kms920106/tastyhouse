@@ -159,7 +159,7 @@ class ProductRegistrationServiceTest {
         return Product.reconstitute(
             PRODUCT_ID, SHOP_ID, ProductCategoryId.of(2L), "황금올리브치킨", "바삭한 치킨",
             20000, null, null, 0, true, 1, false, null, true, 0, false,
-            false, null, false, null, null, null, null, null
+            false, null, false, null, null, null, null, null, null
         );
     }
 
@@ -296,6 +296,7 @@ class ProductRegistrationServiceTest {
                 product.getExposureStartDate(),
                 product.getExposureEndDate(),
                 product.getVegetarianType(),
+                null,
                 null,
                 null
             );

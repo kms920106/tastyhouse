@@ -113,6 +113,7 @@ class ProductTest {
             1L, ShopId.of(10L), ProductCategoryId.of(20L), "떡볶이", "매운맛", 10000,
             discountInfo, 4.5, 10, true, 3, false, null, true, 1, false,
             false, null, false, null, null, null,
+            null,
             null, null
         );
 
@@ -200,6 +201,7 @@ class ProductTest {
             1L, ShopId.of(10L), ProductCategoryId.of(20L), "레거시상품", "설명", -5000,
             ProductDiscountInfo.of(99999, null), null, 0, false, 3, false, null, true, 1, false,
             false, null, false, null, null, null,
+            null,
             null, null
         );
 

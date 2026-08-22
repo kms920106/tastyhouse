@@ -22,6 +22,8 @@ import com.tastyhouse.domain.exception.ErrorCode;
  */
 public class Product {
 
+    private static final int WEIGHT_TEXT_MAX_LENGTH = 50;
+
     private final Long id; // null이면 아직 영속되지 않은 신규 상태
     private final ShopId shopId;
     private ProductCategoryId productCategoryId;
@@ -72,6 +74,15 @@ public class Product {
      * {@link #applyVegetarianType}만 이 값을 옮긴다.
      */
     private VegetarianType vegetarianType;
+    /**
+     * 중량 표기(치킨 등 법정 의무표시 대상). {@code null}이면 미표시다.
+     *
+     * <p><b>{@code description}에 섞지 않고 별도 필드로 둔 이유</b>는 세 가지다 — (1) 규제가 "표시 여부
+     * 점검"을 전제하므로 설명 문자열에 섞여 있으면 어느 메뉴가 미표시인지 기계로 셀 수 없고, (2) 설명은
+     * 점주가 마케팅 문구로 자유롭게 고치는 필드라 중량이 그 안에 있으면 설명을 고치다 법정 표시가
+     * 지워지며, (3) 손님 화면에서 중량만 따로 강조 배치할 수 있다.
+     */
+    private String weightText;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -98,6 +109,7 @@ public class Product {
         LocalDate exposureStartDate,
         LocalDate exposureEndDate,
         VegetarianType vegetarianType,
+        String weightText,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -123,6 +135,7 @@ public class Product {
         this.exposureStartDate = exposureStartDate;
         this.exposureEndDate = exposureEndDate;
         this.vegetarianType = vegetarianType;
+        this.weightText = weightText;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -181,6 +194,7 @@ public class Product {
             null,
             null,
             null,
+            null,
             null
         );
     }
@@ -215,6 +229,7 @@ public class Product {
         LocalDate exposureStartDate,
         LocalDate exposureEndDate,
         VegetarianType vegetarianType,
+        String weightText,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -241,6 +256,7 @@ public class Product {
             exposureStartDate,
             exposureEndDate,
             vegetarianType,
+            weightText,
             createdAt,
             updatedAt
         );
@@ -338,6 +354,10 @@ public class Product {
         return this.vegetarianType;
     }
 
+    public String getWeightText() {
+        return this.weightText;
+    }
+
     public LocalDateTime getCreatedAt() {
         return this.createdAt;
     }
@@ -348,6 +368,17 @@ public class Product {
 
     public ProductId getProductId() {
         return ProductId.of(this.id);
+    }
+
+    /**
+     * 중량 표기 길이를 검증한다. 표시 의무 대상이라도 <b>미표시(null)는 허용</b>한다 — 시스템이 의무
+     * 대상 브랜드를 판정하지 않으므로(외부 규제 목록이라 상시 부정확해진다) 입력을 모든 가게에 열어 두고
+     * 강제하지 않는다.
+     */
+    private static void validateWeightText(String weightText) {
+        if (weightText != null && weightText.length() > WEIGHT_TEXT_MAX_LENGTH) {
+            throw new BusinessException(ErrorCode.PRODUCT_WEIGHT_TEXT_TOO_LONG);
+        }
     }
 
     /**
@@ -561,9 +592,11 @@ public class Product {
         boolean singleServing,
         Integer spiciness,
         boolean representative,
-        boolean ratingExcluded
+        boolean ratingExcluded,
+        String weightText
     ) {
         validatePrices(originalPrice, discountPrice);
+        validateWeightText(weightText);
 
         this.productCategoryId = productCategoryId;
         this.name = name;
@@ -575,5 +608,6 @@ public class Product {
         this.spiciness = spiciness;
         this.representative = representative;
         this.ratingExcluded = ratingExcluded;
+        this.weightText = weightText;
     }
 }

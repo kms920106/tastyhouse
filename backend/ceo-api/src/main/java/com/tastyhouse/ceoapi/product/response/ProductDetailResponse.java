@@ -62,6 +62,9 @@ public record ProductDetailResponse(
         allowableValues = {"VEGAN", "LACTO", "OVO", "LACTO_OVO", "PESCO"})
     String vegetarianType,
 
+    @Schema(description = "중량 표기(치킨 등 법정 의무표시 대상). 미표시면 null", example = "조리 전 총 중량 1,200g")
+    String weightText,
+
     @Schema(description = "노출기간(요일·시간대 또는 기간)이 설정되어 있는지 여부. 상세 화면 새로고침 직후" +
         " 초기 요약 표시에 쓰인다 — 정확한 노출기간 값은 별도 조회 API(§6)가 담당", example = "false")
     boolean exposureScheduled
@@ -85,6 +88,7 @@ public record ProductDetailResponse(
         boolean visible,
         String imageUrl,
         String vegetarianType,
+        String weightText,
         boolean exposureScheduled
     ) {
         return new ProductDetailResponse(
@@ -105,6 +109,7 @@ public record ProductDetailResponse(
             visible,
             imageUrl,
             vegetarianType,
+            weightText,
             exposureScheduled
         );
     }

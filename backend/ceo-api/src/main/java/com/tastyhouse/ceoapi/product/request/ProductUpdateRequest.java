@@ -49,6 +49,11 @@ public record ProductUpdateRequest(
     Boolean representative,
 
     @Schema(description = "메뉴 평가 제외 여부(주류·사이드 등). 지정하지 않으면 false다.", example = "false")
-    Boolean ratingExcluded
+    Boolean ratingExcluded,
+
+    @Size(max = 50, message = "중량 표기는 50자 이하여야 합니다.")
+    @Schema(description = "중량 표기(치킨 등 법정 의무표시 대상). 설명과 분리된 필드이므로 요청에 싣지 않으면 "
+        + "기존 값이 null로 덮인다(이 API는 전체 교체다).", example = "조리 전 총 중량 1,200g")
+    String weightText
 ) {
 }

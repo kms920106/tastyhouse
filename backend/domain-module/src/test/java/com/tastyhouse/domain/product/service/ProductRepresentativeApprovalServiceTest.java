@@ -212,7 +212,7 @@ class ProductRepresentativeApprovalServiceTest {
         return Product.reconstitute(
             id, SHOP_ID, ProductCategoryId.of(2L), "메뉴" + id, "설명", 10000,
             null, null, 0, representative, null, false, null, true, 1, false,
-            false, null, false, null, null, null, null, null
+            false, null, false, null, null, null, null, null, null
         );
     }
 

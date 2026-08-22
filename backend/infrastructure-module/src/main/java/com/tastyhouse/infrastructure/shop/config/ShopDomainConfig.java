@@ -21,6 +21,7 @@ import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.shop.repository.ShopMenuCollectionImageRepository;
 import com.tastyhouse.domain.shop.repository.ShopNoticeRepository;
 import com.tastyhouse.domain.shop.repository.ShopOrderNoticeRepository;
+import com.tastyhouse.domain.shop.repository.ShopOriginInfoRepository;
 import com.tastyhouse.domain.shop.repository.ShopPhoneNumberRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.repository.ShopRequestCommentRepository;
@@ -48,6 +49,7 @@ import com.tastyhouse.domain.shop.service.ShopLifecycleService;
 import com.tastyhouse.domain.shop.service.ShopMenuCollectionImageService;
 import com.tastyhouse.domain.shop.service.ShopNextOpenTimeCalculator;
 import com.tastyhouse.domain.shop.service.ShopNoticeExposureService;
+import com.tastyhouse.domain.shop.service.ShopOriginInfoService;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.service.ShopOrderAvailabilityService;
@@ -380,6 +382,25 @@ public class ShopDomainConfig {
             prohibitedWordValidator,
             shopChangeHistoryRecorder,
             shopCeoAssignmentRecorder
+        );
+    }
+
+    /**
+     * 가게 원산지 표시 정보의 조회·upsert와 변경이력 기록.
+     *
+     * <p>금칙어 검수를 하지 않는다 — 원산지 본문은 마케팅 문구가 아니라 법령이 요구하는 사실 표시라,
+     * 검수로 저장을 막으면 표시 의무를 이행할 수 없게 된다.
+     */
+    @Bean
+    public ShopOriginInfoService shopOriginInfoService(
+        ShopOriginInfoRepository shopOriginInfoRepository,
+        ShopRepository shopRepository,
+        ShopChangeHistoryRecorder shopChangeHistoryRecorder
+    ) {
+        return new ShopOriginInfoService(
+            shopOriginInfoRepository,
+            shopRepository,
+            shopChangeHistoryRecorder
         );
     }
 

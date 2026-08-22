@@ -49,7 +49,9 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductCommonOp
 import static com.tastyhouse.infrastructure.product.persistence.QProductCommonOptionGroupLinkJpaEntity.productCommonOptionGroupLinkJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductCommonOptionJpaEntity.productCommonOptionJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageChangeRequestJpaEntity.productImageChangeRequestJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductAllergenJpaEntity.productAllergenJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductNutritionJpaEntity.productNutritionJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupJpaEntity.productOptionGroupJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupLinkJpaEntity.productOptionGroupLinkJpaEntity;
@@ -827,6 +829,7 @@ public class ProductQueryDao {
                     productJpaEntity.soldOut,
                     productJpaEntity.visible,
                     productJpaEntity.sort,
+                    productJpaEntity.weightText,
                     productJpaEntity.createdAt,
                     productJpaEntity.updatedAt
                 ))
@@ -861,6 +864,7 @@ public class ProductQueryDao {
                     productJpaEntity.visible,
                     uploadedFileJpaEntity.filePath,
                     productJpaEntity.vegetarianType,
+                    productJpaEntity.weightText,
                     productJpaEntity.exposureStartDate.isNotNull()
                         .or(productJpaEntity.exposureEndDate.isNotNull())
                         .or(existsExposureHours(productJpaEntity.id))
@@ -872,6 +876,57 @@ public class ProductQueryDao {
                 .where(productJpaEntity.id.eq(productId), notDeleted())
                 .fetchOne()
         ).map(this::withResolvedImageUrl);
+    }
+
+    /**
+     * 메뉴 영양성분. 미입력이면 {@code Optional.empty()}이며, 점주·손님 양쪽이 그때 {@code data: null}을
+     * 내려준다.
+     *
+     * <p>알레르기 성분은 {@link #findAllergenTypes(Long)}로 따로 읽는다 — 1:N을 함께 조인하면 성분
+     * 개수만큼 행이 늘어나 수치 14개가 중복 투영된다.
+     */
+    public Optional<ProductNutritionResult> findNutrition(Long productId) {
+        return Optional.ofNullable(
+            queryFactory
+                .select(Projections.constructor(ProductNutritionResult.class,
+                    productNutritionJpaEntity.id,
+                    productNutritionJpaEntity.productId,
+                    productNutritionJpaEntity.servingSize,
+                    productNutritionJpaEntity.totalAmount,
+                    productNutritionJpaEntity.flavor,
+                    productNutritionJpaEntity.size,
+                    productNutritionJpaEntity.calorie,
+                    productNutritionJpaEntity.sugars,
+                    productNutritionJpaEntity.protein,
+                    productNutritionJpaEntity.saturatedFat,
+                    productNutritionJpaEntity.natrium,
+                    productNutritionJpaEntity.carbohydrate,
+                    productNutritionJpaEntity.cholesterol,
+                    productNutritionJpaEntity.fat,
+                    productNutritionJpaEntity.transFat,
+                    productNutritionJpaEntity.caffeine,
+                    productNutritionJpaEntity.setMenu
+                ))
+                .from(productNutritionJpaEntity)
+                .where(productNutritionJpaEntity.productId.eq(productId))
+                .fetchFirst()
+        );
+    }
+
+    /**
+     * 메뉴의 알레르기 유발성분 코드 목록. 미입력이면 빈 목록이다.
+     *
+     * <p>정렬을 {@code allergen_type} 오름차순이 아니라 <b>id 순</b>으로 두는 이유는, 성분 코드
+     * 알파벳순이 법령 열거 순서와 무관해 화면 나열 순서가 고지 순서와 어긋나기 때문이다. 저장 순서를
+     * 유지하면 점주가 체크한 순서(= 화면의 법령 순서)가 그대로 보인다.
+     */
+    public List<String> findAllergenTypes(Long productId) {
+        return queryFactory
+            .select(productAllergenJpaEntity.allergenType.stringValue())
+            .from(productAllergenJpaEntity)
+            .where(productAllergenJpaEntity.productId.eq(productId))
+            .orderBy(productAllergenJpaEntity.id.asc())
+            .fetch();
     }
 
     private BooleanExpression existsExposureHours(NumberPath<Long> productId) {
@@ -901,6 +956,7 @@ public class ProductQueryDao {
             row.visible(),
             fileUrlResolver.resolve(row.imageUrl()),
             row.vegetarianType(),
+            row.weightText(),
             row.exposureScheduled()
         );
     }

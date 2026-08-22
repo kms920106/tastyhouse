@@ -251,6 +251,7 @@ CREATE TABLE PRODUCT
     exposure_start_date DATE,                                        -- 노출 시작일 (NULL이면 하한 없음)
     exposure_end_date   DATE,                                        -- 노출 종료일 (NULL이면 상한 없음, 당일 포함)
     vegetarian_type     VARCHAR(20),                                 -- 채식 단계 (VEGAN, LACTO, OVO, LACTO_OVO, PESCO / NULL이면 채식 아님). 관리자 승인 시에만 반영
+    weight_text         VARCHAR(50),                                 -- 중량 표기 (치킨 등 법정 의무표시 대상 / NULL이면 미표시). 설명과 분리해 표시 누락을 기계로 점검
     sort                INT           NOT NULL,                      -- 정렬 순서
     created_at          DATETIME      NOT NULL,                      -- 생성 일시
     updated_at          DATETIME      NOT NULL,                      -- 수정 일시
@@ -490,6 +491,43 @@ CREATE TABLE PRODUCT_REPRESENTATIVE_REQUEST
     INDEX idx_product_representative_request_product_status (product_id, status), -- 인덱스: 메뉴별 상태 조회
     INDEX idx_product_representative_request_shop_status (shop_id, status), -- 인덱스: 가게별 대기 건수 확인
     INDEX idx_product_representative_request_status (status)                -- 인덱스: 검수 목록 조회
+);
+
+CREATE TABLE PRODUCT_NUTRITION
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,                        -- 영양성분 ID (PK)
+    product_id    BIGINT      NOT NULL,                                     -- 상품 ID (PRODUCT.id 참조)
+    serving_size  VARCHAR(50),                                              -- 1회 제공량 (예: 100g)
+    total_amount  VARCHAR(50),                                              -- 총 제공량
+    flavor        VARCHAR(50),                                              -- 맛
+    size          VARCHAR(50),                                              -- 사이즈
+    calorie       INT,                                                      -- 열량 (kcal, 필수 5종)
+    sugars        INT,                                                      -- 당류 (g, 필수 5종)
+    protein       INT,                                                      -- 단백질 (g, 필수 5종)
+    saturated_fat INT,                                                      -- 포화지방 (g, 필수 5종)
+    natrium       INT,                                                      -- 나트륨 (mg, 필수 5종)
+    carbohydrate  INT,                                                      -- 탄수화물 (g, 선택)
+    cholesterol   INT,                                                      -- 콜레스테롤 (mg, 선택)
+    fat           INT,                                                      -- 지방 (g, 선택)
+    trans_fat     INT,                                                      -- 트랜스지방 (g, 선택)
+    caffeine      INT,                                                      -- 카페인 (mg, 선택)
+    is_set_menu   TINYINT(1)  NOT NULL DEFAULT 0,                           -- 세트 메뉴 여부 (안내문구 노출 조건)
+    created_at    DATETIME    NOT NULL,                                     -- 생성 일시
+    updated_at    DATETIME    NOT NULL,                                     -- 수정 일시
+    UNIQUE KEY uk_product_nutrition_product_id (product_id)                  -- 유니크: 메뉴당 1건
+);
+-- 필수 5종(calorie·sugars·protein·saturated_fat·natrium)의 "전부 채우거나 전부 비우기" 제약은 DB로 표현할 수
+-- 없어(5개 모두 NULL 또는 5개 모두 NOT NULL) 도메인 서비스가 검증한다.
+
+CREATE TABLE PRODUCT_ALLERGEN
+(
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,                        -- 알레르기 성분 ID (PK)
+    product_id    BIGINT      NOT NULL,                                     -- 상품 ID (PRODUCT.id 참조)
+    allergen_type VARCHAR(30) NOT NULL,                                     -- 유발성분 (MILK, EGG, BUCKWHEAT, PEANUT, SOYBEAN, ...)
+    created_at    DATETIME    NOT NULL,                                     -- 생성 일시
+    updated_at    DATETIME    NOT NULL,                                     -- 수정 일시
+    UNIQUE KEY uk_product_allergen_product_type (product_id, allergen_type), -- 유니크: 같은 성분 중복 방지
+    INDEX idx_product_allergen_product_id (product_id)                       -- 인덱스: 메뉴별 조회
 );
 
 CREATE TABLE SHOP
@@ -781,6 +819,18 @@ CREATE TABLE SHOP_CONVENIENCE_INFO
     created_at           DATETIME     NOT NULL,             -- 생성 일시
     updated_at           DATETIME     NOT NULL,             -- 수정 일시
     UNIQUE KEY uk_shop_convenience_info_shop_id (shop_id)
+);
+
+CREATE TABLE SHOP_ORIGIN_INFO
+(
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 원산지 정보 ID (PK)
+    shop_id     BIGINT        NOT NULL,             -- 장소 ID (SHOP.id 참조)
+    source_type VARCHAR(20)   NOT NULL,             -- 입력 방식 (DIRECT: 직접 입력, FRANCHISE_URL: 본사 제공 URL)
+    content     VARCHAR(2000),                      -- 직접 입력 본문 (source_type=DIRECT일 때만 값 존재)
+    url         VARCHAR(500),                       -- 본사 제공 URL (source_type=FRANCHISE_URL일 때만 값 존재)
+    created_at  DATETIME      NOT NULL,             -- 생성 일시
+    updated_at  DATETIME      NOT NULL,             -- 수정 일시
+    UNIQUE KEY uk_shop_origin_info_shop_id (shop_id) -- 유니크: 장소당 1건
 );
 
 CREATE TABLE SHOP_IMAGE_CHANGE_REQUEST

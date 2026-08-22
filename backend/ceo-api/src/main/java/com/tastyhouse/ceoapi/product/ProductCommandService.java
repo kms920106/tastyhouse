@@ -128,7 +128,8 @@ public class ProductCommandService {
         Boolean singleServing,
         Integer spiciness,
         Boolean representative,
-        Boolean ratingExcluded
+        Boolean ratingExcluded,
+        String weightText
     ) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         validateTexts(name, composition, description);
@@ -149,7 +150,8 @@ public class ProductCommandService {
             Boolean.TRUE.equals(singleServing),
             spiciness,
             Boolean.TRUE.equals(representative),
-            Boolean.TRUE.equals(ratingExcluded)
+            Boolean.TRUE.equals(ratingExcluded),
+            weightText
         );
         if (categoryChanged) {
             product.relocate(categoryId, nextSort(shopId, categoryId));

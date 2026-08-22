@@ -191,7 +191,7 @@ class ProductDeletionServiceTest {
         Product product = Product.reconstitute(
             id, SHOP_ID, ProductCategoryId.of(2L), name, null, 10000, null, null, 0,
             representative, null, false, null, true, sort,
-            false, false, null, false, null, null, null, null, null
+            false, false, null, false, null, null, null, null, null, null
         );
         if (!visible) {
             product.deactivate();

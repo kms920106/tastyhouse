@@ -25,6 +25,7 @@ public record ProductManagementDetailResult(
     boolean visible,
     String imageUrl,
     VegetarianType vegetarianType,
+    String weightText,
     boolean exposureScheduled
 ) {
     @QueryProjection
