@@ -57,6 +57,9 @@ function resolveOptionDetails(
         optionId: option.id,
         optionName: option.name,
         additionalPrice: option.price,
+        cupCount: option.cupCount,
+        depositAmount: option.depositAmount,
+        personalCupDiscountAmount: option.personalCupDiscountAmount,
       }
     })
     .filter((option): option is OrderProductOption => option !== null)

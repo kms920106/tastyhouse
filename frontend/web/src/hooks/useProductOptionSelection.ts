@@ -2,9 +2,19 @@
 
 import type { ProductOptionGroup } from '@/domains/product'
 import type { CartSelectedOption } from '@/lib/cart'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 export function useProductOptionSelection(optionGroups: ProductOptionGroup[]) {
+  // 일회용컵 보증금 옵션그룹은 추가금과 성격이 달라 화면에서 별도 섹션으로 분리해 보여준다.
+  const normalOptionGroups = useMemo(
+    () => optionGroups.filter((group) => group.groupType !== 'CUP_DEPOSIT'),
+    [optionGroups],
+  )
+  const cupDepositOptionGroups = useMemo(
+    () => optionGroups.filter((group) => group.groupType === 'CUP_DEPOSIT'),
+    [optionGroups],
+  )
+
   const [options, setOptions] = useState<Record<number, number | number[]>>(() => {
     const initial: Record<number, number | number[]> = {}
     optionGroups.forEach((group) => {
@@ -53,5 +63,12 @@ export function useProductOptionSelection(optionGroups: ProductOptionGroup[]) {
     return result
   }, [optionGroups, options])
 
-  return { options, handleRadioSelect, handleCheckboxToggle, getOptionsData }
+  return {
+    options,
+    handleRadioSelect,
+    handleCheckboxToggle,
+    getOptionsData,
+    normalOptionGroups,
+    cupDepositOptionGroups,
+  }
 }

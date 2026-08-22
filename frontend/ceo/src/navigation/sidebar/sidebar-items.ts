@@ -1,4 +1,4 @@
-import { Fingerprint, KeyRound, type LucideIcon, PowerOff, ShieldCheck, Store } from "lucide-react";
+import { Fingerprint, KeyRound, type LucideIcon, PowerOff, ShieldCheck, Store, UtensilsCrossed } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -34,6 +34,12 @@ export const sidebarItems: NavGroup[] = [
         title: "가게 관리",
         url: "/dashboard/shop",
         icon: Store,
+      },
+      {
+        // 이 화면은 사이드바에 없어 URL 이나 메뉴판 내부 링크로만 도달할 수 있었다.
+        title: "메뉴·옵션 관리",
+        url: "/dashboard/shop/menus",
+        icon: UtensilsCrossed,
       },
       {
         title: "전체현황·임시중지",

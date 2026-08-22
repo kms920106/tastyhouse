@@ -41,6 +41,19 @@ export interface ShopDetailResponse {
   minOrderAmount: number;
   /** 예약주문 운영 여부. 배달·포장 주문의 수령시간 예약을 받는지 여부다. */
   scheduledOrderEnabled: boolean;
+  /**
+   * 일회용컵 보증금제 대상사업자 여부.
+   *
+   * **점주는 이 값을 바꿀 수 없다** — 환경부 지정 사실이라 admin-api 만 토글한다
+   * (`PATCH /api/shops/v1/{id}/cup-deposit`). 점주 화면은 보증금 옵션그룹 등록 UI 노출 여부를
+   * 가르는 읽기 전용 플래그로만 쓴다.
+   *
+   * `docs/tasks/backend.md` §3-7-3 은 admin 의 가게 상세에만 이 필드를 명시했으나, 점주도
+   * §3-1 의 유형 선택 노출 판정에 필요하므로 ceo `GET /api/shops/v1/{id}` 응답에도 추가했다
+   * (`ceoapi/shop/response/ShopDetailResponse`). 옵셔널로 둔 것은 배포 시차 대비이며, 값이
+   * 없으면 `undefined` 가 되어 유형 선택이 숨겨지고 기존 동작(일반 그룹만)이 유지된다.
+   */
+  cupDepositEnabled?: boolean;
 }
 
 // ===== 최소주문금액 =====

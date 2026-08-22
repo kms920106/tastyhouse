@@ -33,4 +33,8 @@ export const policiesRepository = {
       CACHE_OPTIONS,
     )
   },
+  // 최신 일회용컵 보증금 안내 조회 (GET /v1/cup-deposit/latest) — 옵션 선택 화면 '자세히' 링크
+  async getLatestCupDeposit() {
+    return publicApi.get<PolicyDetailResponse>(`${ENDPOINT}/cup-deposit/latest`, CACHE_OPTIONS)
+  },
 }

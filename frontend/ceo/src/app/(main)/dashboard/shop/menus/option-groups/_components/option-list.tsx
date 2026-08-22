@@ -43,11 +43,31 @@ interface SortableOptionRowProps {
   onDelete: () => void;
 }
 
+/**
+ * 보증금 관련 요약 문구.
+ *
+ * 개인컵 옵션은 컵을 제공하지 않아 `cupCount` 가 비고 할인 금액만 있다 — 두 값 중 채워진 쪽으로
+ * 갈래를 판별한다(서버 모델도 같은 방식이다). 일반 옵션은 둘 다 비어 있어 `undefined` 다.
+ */
+function toDepositSummary(option: MenuOption): string | undefined {
+  if (option.personalCupDiscountAmount !== null) {
+    return PRODUCT_OPTION_GROUP_COPY.OPTION_PERSONAL_CUP_SUMMARY(option.personalCupDiscountAmount);
+  }
+
+  if (option.cupCount !== null && option.depositAmount !== null) {
+    return PRODUCT_OPTION_GROUP_COPY.OPTION_DEPOSIT_SUMMARY(option.cupCount, option.depositAmount);
+  }
+
+  return undefined;
+}
+
 function SortableOptionRow({ option, disabled, onEdit, onDelete }: SortableOptionRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: option.id,
     disabled,
   });
+
+  const depositSummary = toDepositSummary(option);
 
   return (
     <li
@@ -68,7 +88,11 @@ function SortableOptionRow({ option, disabled, onEdit, onDelete }: SortableOptio
         <GripVertical className="size-4" />
       </button>
 
-      <span className="min-w-0 flex-1 truncate text-sm">{option.name}</span>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-sm">{option.name}</span>
+        {/* 보증금·개인컵 할인은 추가금과 다른 축이라 가격 옆이 아니라 옵션명 아래 별 줄로 붙인다. */}
+        {depositSummary !== undefined && <span className="text-muted-foreground text-xs">{depositSummary}</span>}
+      </div>
       <span className="text-muted-foreground text-sm">{formatPrice(option.additionalPrice)}</span>
 
       <Button type="button" variant="ghost" size="sm" disabled={disabled} onClick={onEdit}>

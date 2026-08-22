@@ -80,12 +80,21 @@ export interface ProductDetailResponse {
   updatedAt: string;
 }
 
+// 옵션그룹 유형 — NORMAL(일반) / CUP_DEPOSIT(일회용컵 보증금). ProductOptionType(NORMAL/COMMON, 요청 전용)과는 다른 축이다.
+export type OptionGroupType = "NORMAL" | "CUP_DEPOSIT";
+
 // 옵션
 export interface OptionResponse {
   id: number;
   name: string;
   additionalPrice: number;
   soldOut: boolean;
+  /** 일회용컵 제공 개수(1~10) — CUP_DEPOSIT 그룹의 보증금 옵션에만 존재. 그 외에는 null */
+  cupCount: number | null;
+  /** 보증금액(cupCount × 정책 요율) — 서버가 계산해 내려준다. 보증금 옵션이 아니면 null */
+  depositAmount: number | null;
+  /** 개인컵 사용 시 할인 금액 — 개인컵 옵션에만 존재. 그 외에는 null */
+  personalCupDiscountAmount: number | null;
 }
 
 // 옵션 그룹 (options 배열 포함, common=true 는 공통 그룹)
@@ -98,6 +107,7 @@ export interface OptionGroupResponse {
   minSelect: number;
   maxSelect: number;
   common: boolean;
+  groupType: OptionGroupType;
   options: OptionResponse[];
 }
 

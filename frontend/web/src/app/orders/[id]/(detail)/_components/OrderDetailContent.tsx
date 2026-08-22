@@ -41,6 +41,7 @@ export default async function OrderDetailContent({ orderId }: Props) {
     pointDiscountAmount,
     totalDiscountAmount,
     finalAmount,
+    cupDepositAmount,
     payment,
     scheduledAt,
   } = data
@@ -80,6 +81,7 @@ export default async function OrderDetailContent({ orderId }: Props) {
             pointDiscountAmount={pointDiscountAmount}
             totalDiscountAmount={totalDiscountAmount}
             finalAmount={finalAmount}
+            cupDepositAmount={cupDepositAmount}
           />
         </BorderedSection>
         <BorderedSection>

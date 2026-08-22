@@ -14,6 +14,7 @@ export async function createOrder({
   productDiscountAmount,
   couponDiscountAmount,
   finalAmount,
+  cupDepositAmount,
   request,
   deliveryAddressId,
   deliveryTipAmount,
@@ -29,6 +30,7 @@ export async function createOrder({
   productDiscountAmount: number
   couponDiscountAmount: number
   finalAmount: number
+  cupDepositAmount: number
   request: string
   deliveryAddressId: number | null
   deliveryTipAmount: number
@@ -45,6 +47,7 @@ export async function createOrder({
     productDiscountAmount,
     couponDiscountAmount,
     finalAmount,
+    cupDepositAmount,
     request,
     deliveryAddressId,
     deliveryTipAmount,

@@ -1,7 +1,9 @@
 import type {
   AvailabilityTab,
   ExposureDaySelectionMode,
+  OptionGroupMergeMode,
   ProductExposureDayType,
+  ProductOptionGroupType,
   ProductReleaseTarget,
   VegetarianType,
 } from "./domain";
@@ -139,3 +141,51 @@ export const VEGETARIAN_TYPE_OPTIONS = [
   { value: "LACTO_OVO", label: "락토오보" },
   { value: "PESCO", label: "페스코" },
 ] as const satisfies readonly { value: VegetarianType; label: string }[];
+
+// =====================================================================================
+// 옵션그룹 합치기 · 일회용컵 보증금 상수 (`docs/tasks/frontend.md` §2~§3)
+// =====================================================================================
+
+/** 메뉴·옵션 관리 통합 레이아웃의 탭. `?tab=` searchParam 으로 구동한다 */
+export const MENU_TABS = {
+  MENU: "menu",
+  OPTION: "option",
+} as const;
+
+export type MenuTab = (typeof MENU_TABS)[keyof typeof MENU_TABS];
+
+/** 합치기 화면 모드. `?mode=` searchParam 으로 구동한다(추천이 기본) */
+export const OPTION_GROUP_MERGE_MODES = {
+  RECOMMENDED: "RECOMMENDED",
+  MANUAL: "MANUAL",
+} as const satisfies Record<string, OptionGroupMergeMode>;
+
+/** 직접 선택은 최소 2개를 골라야 기준/후보가 성립한다 */
+export const OPTION_GROUP_MERGE_MIN_SELECTION = 2;
+
+export const OPTION_GROUP_TYPES = {
+  NORMAL: "NORMAL",
+  CUP_DEPOSIT: "CUP_DEPOSIT",
+} as const satisfies Record<string, ProductOptionGroupType>;
+
+export const OPTION_GROUP_TYPE_OPTIONS = [
+  { value: OPTION_GROUP_TYPES.NORMAL, label: "일반 옵션그룹" },
+  { value: OPTION_GROUP_TYPES.CUP_DEPOSIT, label: "일회용컵 보증금" },
+] as const satisfies readonly { value: ProductOptionGroupType; label: string }[];
+
+/**
+ * 컵 1개당 보증금 요율.
+ *
+ * 서버 `CupDepositPolicy.DEPOSIT_PER_CUP` 과 같은 값이지만 **표시 계산 전용**이다 —
+ * 금액의 진실원은 서버가 스냅샷 단계에서 확정하는 `depositAmount` 이고, 여기 값은 폼에서
+ * "보증금 N원" 미리보기를 즉시 보여주기 위한 것이다. 요율이 바뀌면 서버가 먼저 바뀐다.
+ */
+export const CUP_DEPOSIT_PER_CUP = 300;
+
+/** 서버 `@Min(1) @Max(10)` 과 같은 값 */
+export const CUP_COUNT_MIN = 1;
+export const CUP_COUNT_MAX = 10;
+
+/** 보증금 옵션그룹의 선택 개수는 서버가 강제한다 — 폼은 이 값을 고정 표시한다 */
+export const CUP_DEPOSIT_FIXED_MIN_SELECT = "0";
+export const CUP_DEPOSIT_FIXED_MAX_SELECT = "1";

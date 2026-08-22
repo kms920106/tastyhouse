@@ -1,6 +1,8 @@
+import { redirect } from "next/navigation";
+
 import { productRepository } from "@/api/product/product.repository";
 import { shopService } from "@/api/shop/shop.service";
-import { MY_SHOP_LIST_SIZE } from "@/feature/product/constants";
+import { MENU_TABS, MY_SHOP_LIST_SIZE } from "@/feature/product/constants";
 import { PRODUCT_MESSAGE } from "@/feature/product/message";
 import logger from "@/lib/logger";
 import { parseNonNegativeInt, parseSearchString } from "@/lib/utils";
@@ -8,9 +10,21 @@ import { parseNonNegativeInt, parseSearchString } from "@/lib/utils";
 import { MenuBoardManage } from "./_components/menu-board-manage";
 
 export default async function Page({ searchParams }: PageProps<"/dashboard/shop/menus">) {
-  const { shopId: shopIdParam } = await searchParams;
+  const { shopId: shopIdParam, tab: tabParam } = await searchParams;
 
   const requestedShopId = parseNonNegativeInt(shopIdParam, 0);
+
+  // 옵션 탭은 별 라우트(`/option-groups`)가 실체다 — 합치기 화면의 부모이고 직접 링크가 있어
+  // 유지해야 하므로, 탭은 진입 경로를 하나로 모으고 리다이렉트로 그 라우트에 위임한다.
+  // 화면 구현을 두 곳에 복제하면 옵션그룹 조작이 어느 경로로 들어왔는지에 따라 갈린다.
+  if (parseSearchString(tabParam) === MENU_TABS.OPTION) {
+    // `requestedShopId` 를 쓰지 않는 이유: 파싱 불가한 값(`?shopId=abc`)이면 파서 기본값 `0` 이
+    // 되어 사용자가 지정하지 않은 `?shopId=0` 을 만들어 낸다. 원문을 그대로 넘겨 도착 화면이
+    // 같은 규칙으로 해석하게 한다.
+    const rawShopId = parseSearchString(shopIdParam);
+    const query = rawShopId === undefined ? "" : `?shopId=${encodeURIComponent(rawShopId)}`;
+    redirect(`/dashboard/shop/menus/option-groups${query}`);
+  }
 
   const shopsResult = await shopService.getMyShops({}, { page: 0, size: MY_SHOP_LIST_SIZE });
 

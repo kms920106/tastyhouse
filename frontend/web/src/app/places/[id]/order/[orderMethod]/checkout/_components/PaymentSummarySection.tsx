@@ -8,6 +8,8 @@ interface Props {
   pointsUsed: number
   /** 배달팁. 할인과 부호가 반대인 가산 항목이라 상품금액과 할인금액 사이에 표기한다 */
   deliveryTip: number
+  /** 일회용컵 보증금. 컵 반납 시 환급되는 금액이라 할인이 아니라 가산 항목이다 */
+  cupDepositAmount: number
   finalTotal: number
 }
 
@@ -18,6 +20,7 @@ export default function PaymentSummarySection({
   couponDiscount,
   pointsUsed,
   deliveryTip,
+  cupDepositAmount,
   finalTotal,
 }: Props) {
   return (
@@ -72,6 +75,17 @@ export default function PaymentSummarySection({
             </div>
           )}
         </div>
+        {cupDepositAmount > 0 && (
+          <div>
+            <div className="flex justify-between">
+              <span className="text-sm leading-[14px]">일회용컵 보증금</span>
+              <span className="text-sm leading-[14px]">+ {formatNumber(cupDepositAmount)}원</span>
+            </div>
+            <p className="pt-1 text-xs leading-[12px] text-[#aaaaaa]">
+              컵 반납 시 환급되는 금액이에요
+            </p>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-sm leading-[14px]">최종 결제금액</span>
           <span className="text-sm leading-[14px] text-main">{formatNumber(finalTotal)}원</span>

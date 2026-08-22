@@ -19,7 +19,12 @@ import { useCartInfo } from '@/hooks/useCartInfo'
 import { useTossPayments } from '@/hooks/useTossPayments'
 import { formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
-import { calculateMinOrderShortfall, calculatePaymentSummary } from '@/lib/paymentCalculation'
+import {
+  calculateCupDepositAmount,
+  calculateMinOrderShortfall,
+  calculatePaymentSummary,
+  calculatePersonalCupDiscountAmount,
+} from '@/lib/paymentCalculation'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import CustomerInfoSection from './CustomerInfoSection'
@@ -129,9 +134,18 @@ export default function ShopOrderCheckoutContentClient({
 
   const { tossPayment } = useTossPayments()
 
+  // 일회용컵 보증금은 Σ(옵션.depositAmount) × 수량. totalProductAmount에 합산하지 않는다 —
+  // 합산하면 최소주문금액·쿠폰·포인트 기준액까지 오염된다.
+  const cupDepositAmount = calculateCupDepositAmount(items)
+  // 개인컵 할인은 보증금이 아니라 상품 할인 축이므로 productDiscountAmount에 가산한다.
+  // 서버의 최소주문금액 판정 기준액(totalProductAmount - productDiscountAmount)과 맞추기 위해
+  // 배달팁 견적·최소주문금액 판정에도 이 값을 사용한다.
+  const personalCupDiscountAmount = calculatePersonalCupDiscountAmount(items)
+  const totalProductDiscountWithPersonalCup = totalProductDiscount + personalCupDiscountAmount
+
   // 배달팁 확정 조회. 주소가 바뀌거나 상품 할인 후 금액이 바뀌면 queryKey가 달라져 자동 재조회된다.
-  // 배달 외 주문 방법은 조회하지 않고 배달팁 0으로 처리한다.
-  const productPaymentAmount = totalProductAmount - totalProductDiscount
+  // 배달 외 주문 방법은 조회하지 않고 배달팁 0으로 처리한다. 보증금은 포함하지 않는다.
+  const productPaymentAmount = totalProductAmount - totalProductDiscountWithPersonalCup
   const { deliveryTip: deliveryTipQuote, refetch: refetchDeliveryTip } = useShopDeliveryTip(
     shopId,
     {
@@ -147,16 +161,18 @@ export default function ShopOrderCheckoutContentClient({
   const { totalDiscountAmount, couponDiscount, pointsUsed, deliveryTip, paymentAmount } =
     calculatePaymentSummary(
       totalProductAmount,
-      totalProductDiscount,
+      totalProductDiscountWithPersonalCup,
       deliveryTipAmount,
       selectedCoupon,
       pointInput,
+      cupDepositAmount,
     )
 
   const handlePayment = async () => {
     // 장바구니에서 이미 차단하지만, 링크 직접 진입·탭 방치 후 재시도를 대비해 결제 직전에도 확인한다.
+    // 최소주문금액 안내에는 보증금을 포함하지 않는다 — 서버 판정 기준과 어긋나면 혼란이 생긴다.
     const minOrderShortfall = calculateMinOrderShortfall(
-      totalProductAmount - totalProductDiscount,
+      totalProductAmount - totalProductDiscountWithPersonalCup,
       shop.minOrderAmount,
       orderMethod,
     )
@@ -224,10 +240,11 @@ export default function ShopOrderCheckoutContentClient({
 
     const confirmedPaymentSummary = calculatePaymentSummary(
       totalProductAmount,
-      totalProductDiscount,
+      totalProductDiscountWithPersonalCup,
       confirmedDeliveryTipAmount,
       selectedCoupon,
       pointInput,
+      cupDepositAmount,
     )
 
     const trimmedRequest = request.trim()
@@ -253,9 +270,10 @@ export default function ShopOrderCheckoutContentClient({
       usePoint: confirmedPaymentSummary.pointsUsed,
       totalProductAmount,
       totalDiscountAmount: confirmedPaymentSummary.totalDiscountAmount,
-      productDiscountAmount: totalProductDiscount,
+      productDiscountAmount: totalProductDiscountWithPersonalCup,
       couponDiscountAmount: confirmedPaymentSummary.couponDiscount,
       finalAmount: confirmedPaymentSummary.paymentAmount,
+      cupDepositAmount: confirmedPaymentSummary.cupDepositAmount,
       request: trimmedRequest,
       // 좌표는 보내지 않는다. 서버가 이 id로 저장된 주소에서만 좌표를 읽는다.
       deliveryAddressId: isDeliveryOrder ? selectedDeliveryAddressId : null,
@@ -422,7 +440,7 @@ export default function ShopOrderCheckoutContentClient({
           <DiscountApplicationSection
             availableCoupons={availableCoupons}
             totalProductAmount={totalProductAmount}
-            totalProductDiscountAmount={totalProductDiscount}
+            totalProductDiscountAmount={totalProductDiscountWithPersonalCup}
             selectedCoupon={selectedCoupon}
             onCouponSelect={setSelectedCoupon}
             availablePoints={usablePoints}
@@ -433,11 +451,12 @@ export default function ShopOrderCheckoutContentClient({
         <BorderedSection>
           <PaymentSummarySection
             totalProductAmount={totalProductAmount}
-            totalProductDiscountAmount={totalProductDiscount}
+            totalProductDiscountAmount={totalProductDiscountWithPersonalCup}
             totalDiscountAmount={totalDiscountAmount}
             couponDiscount={couponDiscount}
             pointsUsed={pointsUsed}
             deliveryTip={deliveryTip}
+            cupDepositAmount={cupDepositAmount}
             finalTotal={paymentAmount}
           />
         </BorderedSection>

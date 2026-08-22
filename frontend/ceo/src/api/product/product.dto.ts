@@ -268,11 +268,30 @@ export interface ProductOptionResponse {
   name: string;
   additionalPrice: number;
   sort: number;
+  /** 품절 여부. 조작은 품절·숨김 화면이 하고 여기서는 표시만 한다 */
+  soldOut: boolean;
+  /**
+   * 노출 여부.
+   *
+   * **이 목록은 감춘(삭제한) 옵션도 포함한다** — 서버가 소프트 삭제를 쓰기 때문이다. 화면이 이
+   * 값으로 걸러내지 않으면 삭제한 옵션이 살아 있는 것처럼 보인다.
+   */
+  visible: boolean;
+  /** 일회용컵 제공 개수. 보증금 옵션에만 채워진다(`backend.md` §3-7-1) */
+  cupCount: number | null;
+  /** `cupCount × 정책 요율`을 서버가 계산해 내려준 값. 금액의 진실원은 이쪽이다 */
+  depositAmount: number | null;
+  /** 개인컵 사용 옵션의 할인 금액. 보증금이 아니라 상품 할인 축이다 */
+  personalCupDiscountAmount: number | null;
 }
 
 export interface ProductOptionGroupResponse {
   id: number;
   name: string;
+  /** 옵션그룹 유형. 서버가 항상 채워 내려준다(레거시 행은 `NORMAL`) */
+  groupType: ProductOptionGroupType;
+  /** 노출 여부. 옵션과 같은 이유로 감춘 그룹도 목록에 포함되므로 화면이 걸러낸다 */
+  visible: boolean;
   description: string | null;
   required: boolean;
   multipleSelect: boolean;
@@ -286,20 +305,32 @@ export interface ProductOptionGroupResponse {
 
 export interface ProductOptionGroupSaveRequest {
   shopId: number;
-  /** 등록 시에만 필수 — 이 메뉴에 곧바로 연결된다. 링크 0건 그룹은 어디서도 보이지 않는 고아가 된다 */
-  productId: number;
+  /**
+   * 등록(POST)에서만 필수 — 이 메뉴에 곧바로 연결된다. 링크 0건 그룹은 어디서도 보이지 않는
+   * 고아가 된다. 수정(PUT)은 서버가 받지 않으므로 생략한다.
+   */
+  productId?: number;
   name: string;
   description?: string;
   required: boolean;
   multipleSelect: boolean;
   minSelect?: number | null;
   maxSelect?: number | null;
+  /**
+   * 옵션그룹 유형. **등록(POST)에서만 보낸다** — 수정(PUT)은 서버가 받지 않는다.
+   * 유형 전환을 허용하면 과거 주문 스냅샷의 해석이 바뀌므로 경로 자체가 없다(`backend.md` §3-6).
+   */
+  groupType?: ProductOptionGroupType;
 }
 
 export interface ProductOptionSaveRequest {
   shopId: number;
   name: string;
   additionalPrice: number;
+  /** 보증금 옵션에만 보낸다(`1~10`). 일반 옵션에 보내면 서버가 거부한다 */
+  cupCount?: number | null;
+  /** 개인컵 사용 옵션에만 보낸다(`0` 이상). 보증금 그룹 밖에서는 서버가 거부한다 */
+  personalCupDiscountAmount?: number | null;
 }
 
 export interface ProductOptionGroupSortRequest {
@@ -401,3 +432,117 @@ export interface ProductVegetarianRequestBody {
   ingredients: string;
   description?: string;
 }
+
+// =====================================================================================
+// 옵션그룹 합치기 DTO (`docs/tasks/backend.md` §2-6)
+//
+// 신규 컨트롤러 `ProductOptionGroupMergeApiController` 의 4개 엔드포인트에 대응한다.
+// =====================================================================================
+
+/** 합치기 진입 경로. 서버가 이력(`PRODUCT_OPTION_GROUP_MERGE_HISTORY`)에 남긴다 */
+export type ProductOptionGroupMergeEntryType = "RECOMMENDED" | "MANUAL";
+
+/**
+ * 옵션 단위 diff 갈래.
+ *
+ * `ONLY_IN_CANDIDATE` 가 가장 중요하다 — 흡수될 그룹에만 있는 옵션은 재부모화되지 않고
+ * 함께 숨겨지므로(§2-3) "합치면 사라짐"을 사용자에게 반드시 알려야 한다.
+ */
+export type ProductOptionGroupMergeDiffType = "SAME" | "ONLY_IN_BASE" | "ONLY_IN_CANDIDATE" | "PRICE_DIFFERS";
+
+/** 추천 묶음의 공통 옵션 대표 1세트 */
+export interface ProductOptionGroupMergeSuggestionOptionResponse {
+  id: number;
+  name: string;
+  additionalPrice: number;
+}
+
+export interface ProductOptionGroupMergeSuggestionGroupResponse {
+  id: number;
+  linkedProductCount: number;
+  linkedProductNames: string[];
+}
+
+export interface ProductOptionGroupMergeSuggestionResponse {
+  /**
+   * 제외([X]) 요청에 그대로 실어 보내는 **불투명 토큰**.
+   *
+   * 클라이언트가 구조를 해석하거나 재계산하지 않는다 — 서버가 `optionGroupIds` 로 서명을
+   * 재계산해 위조·낡은 토큰을 `PRODUCT_OPTION_GROUP_MERGE_SIGNATURE_MISMATCH` 로 거부한다.
+   */
+  signature: string;
+  name: string;
+  minSelect: number | null;
+  maxSelect: number | null;
+  groupCount: number;
+  linkedProductCount: number;
+  options: ProductOptionGroupMergeSuggestionOptionResponse[];
+  groups: ProductOptionGroupMergeSuggestionGroupResponse[];
+}
+
+export interface ProductOptionGroupMergeExclusionRequest {
+  shopId: number;
+  signature: string;
+  optionGroupIds: number[];
+}
+
+export interface ProductOptionGroupMergePreviewOptionResponse {
+  id: number;
+  name: string;
+  additionalPrice: number;
+  soldOut: boolean;
+  visible: boolean;
+  diffType: ProductOptionGroupMergeDiffType;
+}
+
+/** 기준·후보 공통 항목. `*Differs` 는 기준과 다른 필드를 화면이 강조하기 위한 서버 판정값 */
+export interface ProductOptionGroupMergePreviewItemResponse {
+  id: number;
+  name: string;
+  description: string | null;
+  required: boolean;
+  multipleSelect: boolean;
+  minSelect: number | null;
+  maxSelect: number | null;
+  linkedProductNames: string[];
+  nameDiffers: boolean;
+  minSelectDiffers: boolean;
+  maxSelectDiffers: boolean;
+  options: ProductOptionGroupMergePreviewOptionResponse[];
+}
+
+export interface ProductOptionGroupMergePreviewResponse {
+  base: ProductOptionGroupMergePreviewItemResponse;
+  /** 기준을 제외한 후보들 */
+  candidates: ProductOptionGroupMergePreviewItemResponse[];
+  mergeable: boolean;
+  /** `mergeable=false` 일 때만 채워지는 사유 `ErrorCode` */
+  blockedReason: string | null;
+}
+
+/** 조회 파라미터. `optionGroupIds` 는 반복 query 파라미터로 직렬화한다 */
+export interface ProductOptionGroupMergePreviewParams {
+  shopId: number;
+  baseOptionGroupId: number;
+  optionGroupIds: number[];
+}
+
+export interface ProductOptionGroupMergeRequest {
+  shopId: number;
+  /** 흡수 대상. 기준(base)은 경로 `{id}` 로 가므로 여기 포함되면 서버가 거부한다 */
+  optionGroupIds: number[];
+  entryType: ProductOptionGroupMergeEntryType;
+}
+
+// =====================================================================================
+// 일회용컵 보증금 DTO (`docs/tasks/backend.md` §3)
+// =====================================================================================
+
+/**
+ * 옵션그룹 유형.
+ *
+ * **`ProductOptionType`(NORMAL/COMMON)과 다른 축이다.** 그것은 일반/공통 옵션 테이블 갈래를
+ * 가리키는 요청 전용 값이고, 이쪽은 DB 에 저장되는 옵션그룹의 규제 유형이다. 이름이 비슷해
+ * 혼동이 실제로 생기므로 두 타입을 섞어 쓰지 않는다.
+ */
+export type ProductOptionGroupType = "NORMAL" | "CUP_DEPOSIT";

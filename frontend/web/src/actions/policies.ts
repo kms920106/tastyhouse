@@ -21,3 +21,8 @@ export async function fetchAgeVerificationContent(): Promise<string> {
   const { data } = await policiesRepository.getLatestAgeVerification()
   return data?.content ?? ''
 }
+
+export async function fetchCupDepositPolicyContent(): Promise<string> {
+  const { data } = await policiesRepository.getLatestCupDeposit()
+  return data?.content ?? ''
+}

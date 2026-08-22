@@ -52,6 +52,8 @@ export interface ShopDetail {
   phoneNumber: string | null;
   thumbnailImageUrl: string | null;
   permanentlyClosed: boolean;
+  /** 일회용컵 보증금제 대상사업자 여부 — admin 만 토글한다(외부 규제 사실이라 점주는 스스로 켤 수 없다) */
+  cupDepositEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }

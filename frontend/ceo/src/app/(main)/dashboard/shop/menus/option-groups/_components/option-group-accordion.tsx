@@ -3,6 +3,7 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { OPTION_GROUP_TYPES } from "@/feature/product/constants";
 import type { MenuOption, MenuOptionGroup } from "@/feature/product/domain";
 import { OPTION_GROUP_SCREEN_COPY, PRODUCT_OPTION_GROUP_COPY } from "@/feature/product/message";
 
@@ -34,6 +35,10 @@ export function OptionGroupAccordion({
       <AccordionTrigger className="text-sm">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <span className="font-medium">{group.name}</span>
+          {/* 유형 배지를 필수/다중보다 앞에 둔다 — 보증금 그룹은 그 두 값이 서버 강제라 정보량이 없다. */}
+          {group.groupType === OPTION_GROUP_TYPES.CUP_DEPOSIT && (
+            <Badge variant="outline">{PRODUCT_OPTION_GROUP_COPY.BADGE_CUP_DEPOSIT}</Badge>
+          )}
           {group.required && <Badge>{OPTION_GROUP_SCREEN_COPY.BADGE_REQUIRED}</Badge>}
           {group.multipleSelect && <Badge variant="secondary">{OPTION_GROUP_SCREEN_COPY.BADGE_MULTIPLE_SELECT}</Badge>}
           <span className="text-muted-foreground text-xs">

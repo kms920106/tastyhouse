@@ -1,4 +1,6 @@
 import {
+  CUP_COUNT_MAX,
+  CUP_COUNT_MIN,
   OPTION_GROUP_DESCRIPTION_MAX_LENGTH,
   OPTION_GROUP_NAME_MAX_LENGTH,
   OPTION_NAME_MAX_LENGTH,
@@ -282,6 +284,9 @@ export const PRODUCT_OPTION_GROUP_COPY = {
   DIALOG_OPTION_DELETE_TITLE: "옵션 삭제",
   DIALOG_OPTION_DELETE_DESCRIPTION: "그룹의 최소 선택 개수를 채우지 못하게 되면 삭제할 수 없습니다.",
 
+  FIELD_LINK_PRODUCT: "연결할 메뉴",
+  HELP_LINK_PRODUCT:
+    "옵션그룹은 등록 시 이 메뉴에 곧바로 연결됩니다. 다른 메뉴에는 나중에 메뉴 상세에서 연결할 수 있습니다.",
   FIELD_GROUP_NAME: "옵션그룹명",
   FIELD_GROUP_DESCRIPTION: "설명",
   FIELD_REQUIRED: "필수 선택",
@@ -300,6 +305,28 @@ export const PRODUCT_OPTION_GROUP_COPY = {
   EMPTY_GROUPS: "등록된 옵션그룹이 없습니다.",
   EMPTY_GROUPS_DESCRIPTION: "옵션그룹을 추가한 뒤 메뉴 상세에서 연결해 주세요.",
   EMPTY_OPTIONS: "이 그룹에 옵션이 없습니다.",
+
+  // ===== 일회용컵 보증금 (`frontend.md` §3) =====
+
+  FIELD_GROUP_TYPE: "옵션그룹 유형",
+  HELP_GROUP_TYPE: "유형은 등록할 때만 정할 수 있고 나중에 바꿀 수 없습니다.",
+  BADGE_CUP_DEPOSIT: "일회용컵 보증금",
+  /** 보증금 그룹은 필수 선택 불가 + 최대 1개 고정이라 폼에서 미리 알린다(서버가 강제한다) */
+  NOTICE_CUP_DEPOSIT_GROUP:
+    "일회용컵 보증금 옵션그룹은 필수 선택으로 설정할 수 없고, 선택 개수는 최대 1개로 고정됩니다.",
+
+  FIELD_CUP_COUNT: "일회용컵 제공 개수",
+  HELP_CUP_COUNT: "이 옵션에서 보증금이 부과되어야 하는 음료의 개수입니다. 예: 옵션명이 `아메리카노+라떼` 이면 2개.",
+  FIELD_PERSONAL_CUP: "개인컵 사용 옵션",
+  HELP_PERSONAL_CUP: "켜면 보증금 대신 할인 금액을 설정합니다. 개인컵 옵션에는 컵 개수를 입력하지 않습니다.",
+  FIELD_PERSONAL_CUP_DISCOUNT: "개인컵 할인 금액",
+  NOTICE_DEPOSIT_ADDITIONAL_PRICE: "보증금 옵션에는 추가 금액을 설정할 수 없습니다.",
+  /** 폼 미리보기. 최종 금액은 서버가 확정한다 */
+  DEPOSIT_PREVIEW: (amount: number, perCup: number) =>
+    `보증금 ${amount.toLocaleString("ko-KR")}원 (컵 1개당 ${perCup}원)`,
+  OPTION_DEPOSIT_SUMMARY: (cupCount: number, depositAmount: number) =>
+    `컵 ${cupCount}개 · 보증금 ${depositAmount.toLocaleString("ko-KR")}원`,
+  OPTION_PERSONAL_CUP_SUMMARY: (discountAmount: number) => `개인컵 할인 ${discountAmount.toLocaleString("ko-KR")}원`,
 } as const;
 
 /** 메뉴·옵션 관리 액션 결과 문구 */
@@ -383,6 +410,7 @@ export const PRODUCT_MENU_VALIDATION_MESSAGE = {
   CATEGORY_NAME_TOO_LONG: `메뉴그룹명은 ${PRODUCT_CATEGORY_NAME_MAX_LENGTH}자 이내로 입력해 주세요.`,
   CATEGORY_DESCRIPTION_TOO_LONG: `설명은 ${PRODUCT_CATEGORY_DESCRIPTION_MAX_LENGTH}자 이내로 입력해 주세요.`,
 
+  LINK_PRODUCT_REQUIRED: "연결할 메뉴를 선택해 주세요.",
   OPTION_GROUP_NAME_REQUIRED: "옵션그룹명을 입력해 주세요.",
   OPTION_GROUP_NAME_TOO_LONG: `옵션그룹명은 ${OPTION_GROUP_NAME_MAX_LENGTH}자 이내로 입력해 주세요.`,
   OPTION_GROUP_DESCRIPTION_TOO_LONG: `설명은 ${OPTION_GROUP_DESCRIPTION_MAX_LENGTH}자 이내로 입력해 주세요.`,
@@ -402,6 +430,20 @@ export const PRODUCT_MENU_VALIDATION_MESSAGE = {
   VEGETARIAN_INGREDIENTS_REQUIRED: "재료를 입력해 주세요.",
   VEGETARIAN_INGREDIENTS_TOO_LONG: `재료는 ${VEGETARIAN_INGREDIENTS_MAX_LENGTH}자 이내로 입력해 주세요.`,
   VEGETARIAN_DESCRIPTION_TOO_LONG: `메뉴 설명은 ${VEGETARIAN_DESCRIPTION_MAX_LENGTH}자 이내로 입력해 주세요.`,
+
+  MERGE_TARGET_REQUIRED: "합칠 옵션그룹을 1개 이상 선택해주세요.",
+  MERGE_BASE_INCLUDED: "기준 옵션그룹은 합칠 대상에 포함할 수 없습니다.",
+  MERGE_SIGNATURE_REQUIRED: "추천 정보가 올바르지 않습니다. 새로고침 후 다시 시도해 주세요.",
+
+  CUP_COUNT_REQUIRED: "일회용컵 제공 개수를 입력해 주세요.",
+  CUP_COUNT_RANGE: `일회용컵 제공 개수는 ${CUP_COUNT_MIN}개 이상 ${CUP_COUNT_MAX}개 이하로 입력해 주세요.`,
+  CUP_COUNT_NOT_ALLOWED: "일반 옵션에는 일회용컵 제공 개수를 설정할 수 없습니다.",
+  DEPOSIT_ADDITIONAL_PRICE_NOT_ALLOWED: "일회용컵 보증금 옵션에는 추가 금액을 설정할 수 없습니다.",
+  PERSONAL_CUP_DISCOUNT_REQUIRED: "개인컵 할인 금액을 입력해 주세요.",
+  PERSONAL_CUP_NOT_IN_DEPOSIT_GROUP: "개인컵 사용 옵션은 일회용컵 보증금 옵션그룹에만 등록할 수 있습니다.",
+  PERSONAL_CUP_DISCOUNT_NOT_ALLOWED: "개인컵 사용 옵션이 아니면 할인 금액을 설정할 수 없습니다.",
+  DEPOSIT_GROUP_CANNOT_BE_REQUIRED: "일회용컵 보증금 옵션그룹은 필수 선택으로 설정할 수 없습니다.",
+  DEPOSIT_GROUP_SELECT_FIXED: "일회용컵 보증금 옵션그룹의 선택 개수는 변경할 수 없습니다.",
 } as const;
 
 /**
@@ -410,6 +452,12 @@ export const PRODUCT_MENU_VALIDATION_MESSAGE = {
  * `PRODUCT_OPTION_GROUP_COPY` 를 직접 늘리지 않고 별도 상수로 둔 이유는, 그 상수를 메뉴 상세의
  * 연결 Sheet 도 함께 참조해 병행 작업에서 충돌하기 쉬운 자리이기 때문이다.
  */
+/** 메뉴·옵션 관리 통합 레이아웃의 탭 문구 (`frontend.md` §6-1) */
+export const MENU_TAB_COPY = {
+  TAB_MENU: "메뉴",
+  TAB_OPTION: "옵션",
+} as const;
+
 export const OPTION_GROUP_SCREEN_COPY = {
   BUTTON_EDIT_OPTION: "옵션 수정",
   BUTTON_DELETE_OPTION: "옵션 삭제",
@@ -472,4 +520,107 @@ export const PRODUCT_DETAIL_SCREEN_COPY = {
   /** 상세 조회 실패 시 Sheet 를 열지 않고 이 안내만 남긴다(`frontend.md` §7) */
   DETAIL_UNAVAILABLE_TITLE: "메뉴 정보를 불러오지 못했습니다.",
   DETAIL_UNAVAILABLE_DESCRIPTION: "잠시 후 다시 시도하거나 메뉴판으로 돌아가 주세요.",
+} as const;
+
+/**
+ * 옵션그룹 합치기 화면(`/dashboard/shop/menus/option-groups/merge`) 전용 문구.
+ *
+ * `PRODUCT_OPTION_GROUP_COPY` 를 늘리지 않고 별도 상수로 둔 이유는 `OPTION_GROUP_SCREEN_COPY` 와
+ * 같다 — 그 상수를 옵션그룹 관리와 메뉴 상세가 함께 참조해 병행 작업에서 충돌하기 쉽다.
+ */
+export const OPTION_GROUP_MERGE_COPY = {
+  PAGE_TITLE: "옵션그룹 합치기",
+  PAGE_DESCRIPTION: "이름과 옵션이 같은 옵션그룹을 하나로 모아 관리 부담을 줄입니다.",
+
+  /** 진입 배너. 추천이 0건이면 배너 자체를 렌더링하지 않는다 */
+  BANNER_TITLE: (bundleCount: number) => `합칠 수 있는 옵션그룹이 ${bundleCount}묶음 있어요`,
+  BANNER_ACTION: "옵션그룹 합치러 가기",
+
+  TAB_RECOMMENDED: "추천 합치기",
+  TAB_MANUAL: "직접 선택",
+
+  // ===== 추천 목록 =====
+
+  SUGGESTION_GROUP_COUNT: (count: number) => `${count}개`,
+  SUGGESTION_LINKED_COUNT: (count: number) => `이 옵션을 사용하는 메뉴 ${count}개`,
+  SUGGESTION_OPTIONS_LABEL: "공통 옵션",
+  SUGGESTION_GROUPS_LABEL: "묶음에 포함된 옵션그룹",
+  BUTTON_EXCLUDE: "제외",
+  BUTTON_MERGE_THIS: "이 묶음 합치기",
+  BUTTON_MERGE_THIS_SELECTED: "선택됨 — 아래에서 기준 선택",
+  EMPTY_SUGGESTIONS: "합칠 수 있는 옵션그룹이 없습니다.",
+  EMPTY_SUGGESTIONS_DESCRIPTION: "이름·옵션 구성이 같은 옵션그룹이 2개 이상일 때 추천이 나타납니다.",
+
+  DIALOG_EXCLUDE_TITLE: "추천 목록에서 제외",
+  /** 제외는 영구적이라(append-only exclusion) 되돌릴 수 없음을 반드시 알린다 */
+  DIALOG_EXCLUDE_DESCRIPTION: "이 묶음은 추천 목록에서 영구히 제외되며 다시 되돌릴 수 없습니다.",
+
+  // ===== 직접 선택 =====
+
+  SEARCH_PLACEHOLDER: "옵션그룹명 검색",
+  SEARCH_SUBMIT: "검색",
+  MANUAL_SELECT_LABEL: "합칠 옵션그룹 선택",
+  MANUAL_SELECT_HELP: "2개 이상 선택하면 기준 옵션그룹을 고를 수 있습니다.",
+  MANUAL_SELECTED_COUNT: (count: number) => `${count}개 선택됨`,
+  BASE_SELECT_LABEL: "기준 옵션그룹",
+  BASE_SELECT_HELP: "기준으로 고른 옵션그룹만 남고, 나머지는 이 그룹으로 흡수됩니다.",
+  EMPTY_GROUPS: "선택할 옵션그룹이 없습니다.",
+  EMPTY_SEARCH_RESULT: "검색 결과가 없습니다.",
+
+  // ===== 상세보기 diff =====
+
+  BUTTON_VIEW_DIFF: "상세보기",
+  DIFF_SHEET_TITLE: "기준 옵션그룹과의 차이",
+  DIFF_SHEET_DESCRIPTION: "기준과 다른 항목을 표시합니다. 흡수될 그룹에만 있는 옵션은 합치면 사라집니다.",
+  DIFF_BASE_LABEL: "기준",
+  DIFF_CANDIDATE_LABEL: "흡수 대상",
+  DIFF_FIELD_DIFFERS: "기준과 다름",
+  /** 옵션 단위 diff 배지. `ONLY_IN_CANDIDATE` 가 가장 중요한 경고다 */
+  DIFF_TYPE_LABEL: {
+    SAME: "동일",
+    ONLY_IN_BASE: "기준에만 있음",
+    ONLY_IN_CANDIDATE: "합치면 사라짐",
+    PRICE_DIFFERS: "가격 다름",
+  },
+  DIFF_PRICE_COMPARE: (basePrice: string, candidatePrice: string) => `기준 ${basePrice} / 대상 ${candidatePrice}`,
+  DIFF_VANISHING_NOTICE: "흡수될 옵션그룹에만 있는 옵션은 함께 감춰지며 기준 그룹으로 옮겨지지 않습니다.",
+
+  // ===== 합치기 실행 =====
+
+  BUTTON_MERGE: "합치기",
+  DIALOG_MERGE_TITLE: "옵션그룹 합치기",
+  DIALOG_MERGE_BASE: (name: string) => `기준 옵션그룹: ${name}`,
+  DIALOG_MERGE_ABSORBED: (count: number) => `흡수될 옵션그룹 ${count}개`,
+  DIALOG_MERGE_AFFECTED: (count: number) => `영향받는 메뉴 ${count}개`,
+  /** PDF FAQ: "합친 이후에 다시 분리는 불가해요." — 비가역성을 반드시 명시한다 */
+  DIALOG_MERGE_IRREVERSIBLE: "합친 뒤에는 다시 분리할 수 없어요.",
+  DIALOG_MERGE_VANISHING: "흡수될 옵션그룹에만 있는 옵션은 사라집니다.",
+
+  /**
+   * 합치기 불가 사유 안내.
+   *
+   * 이 앱은 원칙적으로 `errorCode → 문구` 맵을 두지 않지만, `blockedReason` 은 **에러 응답이 아니라
+   * 정상 응답(200)의 필드**라 서버가 한국어 문구를 함께 내려주지 않는다. 버튼을 왜 못 누르는지는
+   * 화면이 설명해야 하므로 여기서만 예외적으로 코드를 문구로 옮긴다.
+   */
+  BLOCKED_REASON_LABEL: {
+    PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED: "같은 메뉴에 연결된 옵션그룹끼리는 합칠 수 없어요.",
+    PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY: "합칠 옵션그룹을 1개 이상 선택해주세요.",
+    PRODUCT_OPTION_GROUP_MERGE_BASE_INCLUDED: "기준 옵션그룹은 합칠 대상에 포함할 수 없어요.",
+    PRODUCT_OPTION_GROUP_MERGE_HIDDEN_TARGET: "삭제된 옵션그룹은 합칠 수 없어요.",
+    PRODUCT_OPTION_GROUP_MERGE_TYPE_MISMATCH: "일회용컵 보증금 옵션그룹은 일반 옵션그룹과 합칠 수 없어요.",
+    PRODUCT_OPTION_GROUP_SHOP_MISMATCH: "다른 가게의 옵션그룹은 합칠 수 없어요.",
+    PRODUCT_OPTION_MIN_SELECT_VIOLATION: "기준 옵션그룹의 최소 선택 개수를 채울 수 없어 합칠 수 없어요.",
+  } as Record<string, string>,
+  BLOCKED_REASON_FALLBACK: "지금은 이 옵션그룹들을 합칠 수 없어요.",
+} as const;
+
+/** 옵션그룹 합치기 액션 결과 문구 */
+export const OPTION_GROUP_MERGE_MESSAGE = {
+  SUGGESTIONS_LOAD_FAILED: "합치기 추천 목록을 불러오지 못했습니다.",
+  PREVIEW_LOAD_FAILED: "옵션그룹 차이를 불러오지 못했습니다.",
+  EXCLUDE_SUCCESS: "추천 목록에서 제외했습니다.",
+  EXCLUDE_FAILED: "추천 목록에서 제외하지 못했습니다.",
+  MERGE_SUCCESS: "옵션그룹을 합쳤습니다.",
+  MERGE_FAILED: "옵션그룹을 합치지 못했습니다.",
 } as const;

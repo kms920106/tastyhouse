@@ -18,6 +18,8 @@ export default function ShopOrderMenuDetailOptionItem({
   onSelect,
 }: Props) {
   const isDisabled = option.soldOut
+  // 보증금 옵션은 추가금과 성격이 달라 "+{금액}원 (보증금)"으로 구분 표기한다.
+  const isDepositOption = option.depositAmount != null && option.depositAmount > 0
 
   return (
     <button
@@ -44,8 +46,16 @@ export default function ShopOrderMenuDetailOptionItem({
         {option.name}
         {option.soldOut && <span className="text-[#aaaaaa] ml-2">(품절)</span>}
       </span>
-      {option.additionalPrice > 0 && (
-        <span className="text-sm leading-[14px]">+{formatNumber(option.additionalPrice)}원</span>
+      {isDepositOption ? (
+        <span className="text-sm leading-[14px]">
+          +{formatNumber(option.depositAmount as number)}원 (보증금)
+        </span>
+      ) : (
+        option.additionalPrice > 0 && (
+          <span className="text-sm leading-[14px]">
+            +{formatNumber(option.additionalPrice)}원
+          </span>
+        )
       )}
     </button>
   )

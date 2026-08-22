@@ -45,6 +45,7 @@ import type {
   ShopAmenityResponse,
   ShopContentBoardHideRequest,
   ShopCreateRequest,
+  ShopCupDepositUpdateRequest,
   ShopDetailResponse,
   ShopFoodTypeCreateRequest,
   ShopFoodTypeResponse,
@@ -113,6 +114,11 @@ export const shopRepository = {
   // 가게 폐업 처리 (body 없음)
   close(id: number): Promise<ApiResponse<null>> {
     return api.patch<null>(`${ENDPOINT}/v1/${id}/close`);
+  },
+
+  // 일회용컵 보증금 대상사업자 지정/해제 토글 — 외부 규제 사실이라 admin 만 수행한다
+  updateCupDeposit(id: number, body: ShopCupDepositUpdateRequest): Promise<ApiResponse<null>> {
+    return api.patch<null>(`${ENDPOINT}/v1/${id}/cup-deposit`, body);
   },
 
   // ===== Phase B. 운영시간 · 휴게시간 · 정기휴무일 =====

@@ -1,3 +1,4 @@
+import type { ProductOptionGroupType } from '../product'
 import type { PaymentMethod, PaymentStatus } from '../payment'
 import type { OrderUnavailableReasonCode } from '../shop'
 import type { OrderMethodType } from './order.types'
@@ -19,6 +20,12 @@ export interface OrderProductOption {
   optionId: number
   optionName: string
   additionalPrice: number
+  /** 보증금 부과 대상 음료 개수. 보증금 옵션이 아니면 null(장바구니 표시용 — 서버 배치조회 응답 기반) */
+  cupCount: number | null
+  /** 보증금 금액. 보증금 옵션이 아니면 null(장바구니 표시용 — 서버 배치조회 응답 기반) */
+  depositAmount: number | null
+  /** 개인컵 사용 할인 금액. 개인컵 옵션이 아니면 null(장바구니 표시용 — 서버 배치조회 응답 기반) */
+  personalCupDiscountAmount: number | null
 }
 
 export interface OrderProduct {
@@ -39,6 +46,12 @@ export interface OrderedProductOption {
   optionGroupName: string
   optionName: string
   additionalPrice: number
+  /** 주문 시점 옵션그룹 유형 스냅샷 */
+  groupType: ProductOptionGroupType
+  /** 주문 시점 일회용컵 제공 개수 스냅샷. 보증금 옵션이 아니면 null */
+  cupCount: number | null
+  /** 주문 시점 보증금 금액 스냅샷. 보증금 옵션이 아니면 null */
+  depositAmount: number | null
 }
 
 export interface OrderedProduct {
@@ -83,6 +96,8 @@ export interface OrderDetail {
   pointDiscountAmount: number
   totalDiscountAmount: number
   finalAmount: number
+  /** 일회용컵 보증금 합계. 컵 반납 시 환급되며 할인이 아니다 */
+  cupDepositAmount: number
   usedPoint: number
   earnedPoint: number
   orderProducts: OrderedProduct[]

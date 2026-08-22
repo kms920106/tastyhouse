@@ -19,6 +19,7 @@ import {
   deleteMenusAction,
   updateMenuCategoryAction,
 } from "@/feature/product/actions";
+import { MENU_TABS } from "@/feature/product/constants";
 import type { AvailabilityChangeOutcome, MenuBoardGroup, MenuCategory } from "@/feature/product/domain";
 import { PRODUCT_MENU_COPY, PRODUCT_MENU_MESSAGE, PRODUCT_MESSAGE } from "@/feature/product/message";
 import type { MenuCategoryFormValues } from "@/feature/product/schema";
@@ -30,6 +31,7 @@ import { MenuCreateDialog, type MenuCreateSubmitValues } from "./menu-create-dia
 import { MenuDeleteDialog, type MenuDeleteTarget } from "./menu-delete-dialog";
 import { MenuGroupFormDialog, type MenuGroupFormTarget } from "./menu-group-form-dialog";
 import { MenuGroupList } from "./menu-group-list";
+import { MenuTabBar } from "./menu-tab-bar";
 import { useMenuSort } from "./use-menu-sort";
 
 interface MenuBoardManageProps {
@@ -295,6 +297,9 @@ export function MenuBoardManage({ shops, shopId, categories, groups, errorCode, 
       </CardHeader>
 
       <CardContent className="flex flex-col gap-6 pb-24">
+        {/* 탭은 접근 불가·가게 없음 상태에서도 보여준다 — 옵션 탭으로 빠져나갈 길을 막지 않는다. */}
+        <MenuTabBar activeTab={MENU_TABS.MENU} shopId={shopId} disabled={isBusy} />
+
         {accessDeniedMessage !== undefined ? (
           <Empty>
             <EmptyHeader>

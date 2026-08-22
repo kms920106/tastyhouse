@@ -78,6 +78,9 @@ export type {
   ApprovalStatus,
   ProductExposureDayType,
   ProductHiddenReason,
+  ProductOptionGroupMergeDiffType,
+  ProductOptionGroupMergeEntryType,
+  ProductOptionGroupType,
   VegetarianType,
 } from "@/api/product/product.dto";
 
@@ -85,6 +88,9 @@ import type {
   ApprovalStatus,
   ProductExposureDayType,
   ProductHiddenReason,
+  ProductOptionGroupMergeDiffType,
+  ProductOptionGroupMergeEntryType,
+  ProductOptionGroupType,
   VegetarianType,
 } from "@/api/product/product.dto";
 
@@ -131,11 +137,24 @@ export interface MenuOption {
   name: string;
   additionalPrice: number;
   sort: number;
+  soldOut: boolean;
+  /** 감춘(삭제한) 옵션도 목록에 내려오므로 화면이 이 값으로 걸러낸다 */
+  visible: boolean;
+  /** 일회용컵 제공 개수. 보증금 옵션에만 값이 있다 */
+  cupCount: number | null;
+  /** 서버가 `cupCount × 요율` 로 계산해 내려준 보증금. 표시의 진실원 */
+  depositAmount: number | null;
+  /** 개인컵 사용 옵션의 할인 금액. 보증금이 아니라 상품 할인 축이다 */
+  personalCupDiscountAmount: number | null;
 }
 
 export interface MenuOptionGroup {
   id: number;
   name: string;
+  /** 옵션그룹 유형. 레거시 그룹은 `NORMAL` */
+  groupType: ProductOptionGroupType;
+  /** 감춘(삭제한) 그룹도 목록에 내려오므로 화면이 이 값으로 걸러낸다 */
+  visible: boolean;
   description: string | null;
   required: boolean;
   multipleSelect: boolean;
@@ -219,4 +238,76 @@ export interface MenuVegetarian {
   pendingRequest: MenuVegetarianRequest | null;
   /** 가게 카테고리가 채식 불가면 false — 서버 판정을 그대로 쓴다 */
   changeable: boolean;
+}
+
+// =====================================================================================
+// 옵션그룹 합치기 도메인 모델 (`docs/tasks/frontend.md` §2)
+//
+// 이 화면도 DTO 필드가 1:1 대응해 변환 계층을 두지 않고 이름만 도메인 쪽으로 맞춰 재노출한다.
+// =====================================================================================
+
+/** 합치기 화면의 모드. `?mode=` searchParam 으로 구동한다 */
+export type OptionGroupMergeMode = "RECOMMENDED" | "MANUAL";
+
+export interface OptionGroupMergeSuggestionOption {
+  id: number;
+  name: string;
+  additionalPrice: number;
+}
+
+export interface OptionGroupMergeSuggestionGroup {
+  id: number;
+  linkedProductCount: number;
+  linkedProductNames: string[];
+}
+
+export interface OptionGroupMergeSuggestion {
+  /** 서버가 발급한 불투명 토큰. 클라이언트는 해석하지 않고 제외 요청에 그대로 되돌려준다 */
+  signature: string;
+  name: string;
+  minSelect: number | null;
+  maxSelect: number | null;
+  groupCount: number;
+  linkedProductCount: number;
+  options: OptionGroupMergeSuggestionOption[];
+  groups: OptionGroupMergeSuggestionGroup[];
+}
+
+export interface OptionGroupMergePreviewOption {
+  id: number;
+  name: string;
+  additionalPrice: number;
+  soldOut: boolean;
+  visible: boolean;
+  diffType: ProductOptionGroupMergeDiffType;
+}
+
+export interface OptionGroupMergePreviewItem {
+  id: number;
+  name: string;
+  description: string | null;
+  required: boolean;
+  multipleSelect: boolean;
+  minSelect: number | null;
+  maxSelect: number | null;
+  linkedProductNames: string[];
+  nameDiffers: boolean;
+  minSelectDiffers: boolean;
+  maxSelectDiffers: boolean;
+  options: OptionGroupMergePreviewOption[];
+}
+
+export interface OptionGroupMergePreview {
+  base: OptionGroupMergePreviewItem;
+  candidates: OptionGroupMergePreviewItem[];
+  /** 합치기 버튼 활성 여부. 서버의 사전 검증 결과이므로 프론트가 다시 판정하지 않는다 */
+  mergeable: boolean;
+  blockedReason: string | null;
+}
+
+/** 합치기 실행 입력. `entryType` 은 서버 이력에 남는 진입 경로다 */
+export interface OptionGroupMergeInput {
+  baseOptionGroupId: number;
+  optionGroupIds: number[];
+  entryType: ProductOptionGroupMergeEntryType;
 }

@@ -25,7 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { createOptionAction, createOptionGroupAction, fetchProductOptionsAction } from "@/feature/product/actions";
 import type { OptionGroup, ProductListItem } from "@/feature/product/domain";
 import { formatPrice } from "@/feature/product/format";
-import { PRODUCT_MESSAGE } from "@/feature/product/message";
+import { OPTION_GROUP_TYPE_LABEL, PRODUCT_MESSAGE } from "@/feature/product/message";
 import {
   type OptionFormValues,
   type OptionGroupFormValues,
@@ -211,8 +211,7 @@ export function ProductOptionsSheet({ product, onOpenChange }: ProductOptionsShe
     groupForm.reset(EMPTY_GROUP);
     setGroups([]);
     setError(null);
-    const cleanup = loadOptions();
-    return cleanup;
+    return loadOptions();
   }, [productId, groupForm.reset, loadOptions]);
 
   const onCreateGroup = (values: OptionGroupFormValues) => {
@@ -256,6 +255,9 @@ export function ProductOptionsSheet({ product, onOpenChange }: ProductOptionsShe
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">{group.name}</span>
                       {group.common ? <Badge variant="outline">공통</Badge> : null}
+                      {group.groupType === "CUP_DEPOSIT" ? (
+                        <Badge variant="outline">{OPTION_GROUP_TYPE_LABEL.CUP_DEPOSIT}</Badge>
+                      ) : null}
                       {group.required ? <Badge variant="secondary">필수</Badge> : null}
                       {group.multipleSelect ? <Badge variant="secondary">복수 선택</Badge> : null}
                     </div>
@@ -273,6 +275,14 @@ export function ProductOptionsSheet({ product, onOpenChange }: ProductOptionsShe
                           <span>
                             {option.name}
                             {option.soldOut ? <span className="ml-1 text-destructive">(품절)</span> : null}
+                            {option.cupCount != null ? (
+                              <span className="ml-1">
+                                (컵 {option.cupCount}개 · 보증금 {formatPrice(option.depositAmount)})
+                              </span>
+                            ) : null}
+                            {option.personalCupDiscountAmount != null ? (
+                              <span className="ml-1">(개인컵 할인 {formatPrice(option.personalCupDiscountAmount)})</span>
+                            ) : null}
                           </span>
                           <span className="tabular-nums">{formatPrice(option.additionalPrice)}</span>
                         </li>

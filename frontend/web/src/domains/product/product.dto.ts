@@ -49,6 +49,12 @@ export interface ProductBatchOptionResponse {
   id: number
   name: string
   price: number
+  /** 보증금 부과 대상 음료 개수. 보증금 옵션이 아니면 null */
+  cupCount: number | null
+  /** 보증금 금액. 보증금 옵션이 아니면 null */
+  depositAmount: number | null
+  /** 개인컵 사용 할인 금액. 개인컵 옵션이 아니면 null */
+  personalCupDiscountAmount: number | null
 }
 
 export interface ProductBatchItemResponse {

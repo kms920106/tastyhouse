@@ -214,6 +214,18 @@ export async function closeShopAction(id: number): Promise<ActionResult> {
   return { success: true };
 }
 
+// 일회용컵 보증금 대상사업자 지정/해제 토글 — 외부 규제 사실이라 신중한 조작이 필요하다
+export async function updateShopCupDepositAction(id: number, enabled: boolean): Promise<ActionResult> {
+  const { error } = await shopRepository.updateCupDeposit(id, { enabled });
+  if (error !== undefined) {
+    return { success: false, message: error };
+  }
+
+  revalidatePath(SHOPS_PATH);
+  revalidatePath(shopDetailPath(id));
+  return { success: true };
+}
+
 // ===== Phase B. 운영시간 · 휴게시간 · 정기휴무일 =====
 
 type BusinessHoursResult = { success: boolean; message?: string; data?: BusinessHour[] };

@@ -12,16 +12,28 @@ import type {
   MenuExposureHour,
   MenuImageList,
   MenuVegetarian,
+  OptionGroupMergeInput,
+  OptionGroupMergePreview,
+  OptionGroupMergeSuggestion,
   OptionSelection,
+  ProductOptionGroupType,
   ProductReleaseTarget,
 } from "./domain";
-import { PRODUCT_MENU_MESSAGE, PRODUCT_MENU_VALIDATION_MESSAGE, PRODUCT_MESSAGE } from "./message";
+import {
+  OPTION_GROUP_MERGE_MESSAGE,
+  PRODUCT_MENU_MESSAGE,
+  PRODUCT_MENU_VALIDATION_MESSAGE,
+  PRODUCT_MESSAGE,
+} from "./message";
 import {
   availabilityTargetSchema,
   exposureSaveSchema,
   menuCategoryFormSchema,
   optionAvailabilityTargetSchema,
+  optionGroupMergeExclusionSchema,
+  optionGroupMergeSchema,
   orderedIdsSchema,
+  productIdSchema,
   releaseTargetSchema,
   shopIdSchema,
   soldOutUntilStringSchema,
@@ -480,12 +492,16 @@ export async function moveMenuCategoryAction(
 
 interface OptionGroupSaveInput {
   shopId: number;
+  /** 등록에서만 쓴다. 수정은 서버가 받지 않으므로 body 에서 제외한다 */
+  productId?: number | null;
   name: string;
   description: string;
   required: boolean;
   multipleSelect: boolean;
   minSelect: number | null;
   maxSelect: number | null;
+  /** 등록에서만 쓴다. 수정은 서버가 받지 않으므로 body 에서 제외한다 */
+  groupType?: ProductOptionGroupType;
 }
 
 function toOptionGroupBody(input: OptionGroupSaveInput) {
@@ -504,7 +520,19 @@ export async function createOptionGroupAction(input: OptionGroupSaveInput): Prom
   const parsed = shopIdSchema.safeParse(input.shopId);
   if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
 
-  const { data, error } = await productRepository.createOptionGroup(toOptionGroupBody(input));
+  // 등록은 최초 연결 메뉴(productId)가 필수다 — 연결 0건 그룹은 어느 조회 경로에서도 보이지 않는
+  // 고아가 된다(`backend.md`). 폼 스키마가 이미 검증하지만, 폼을 거치지 않은 호출을 막기 위해 다시 본다.
+  const parsedProductId = productIdSchema.safeParse(input.productId);
+  if (!parsedProductId.success) {
+    return invalidInput(PRODUCT_MENU_VALIDATION_MESSAGE.LINK_PRODUCT_REQUIRED);
+  }
+
+  // 유형은 등록에서만 보낸다 — 미지정이면 서버가 `NORMAL` 로 본다(`backend.md` §3-7-1).
+  const { data, error } = await productRepository.createOptionGroup({
+    ...toOptionGroupBody(input),
+    productId: parsedProductId.data,
+    groupType: input.groupType,
+  });
   if (error !== undefined) return toFailure(error, PRODUCT_MENU_MESSAGE.OPTION_GROUP_CREATE_FAILED);
 
   revalidatePath(PRODUCT_OPTION_GROUP_PATH);
@@ -539,43 +567,53 @@ export async function deleteOptionGroupAction(optionGroupId: number, shopId: num
   return { success: true };
 }
 
-export async function createOptionAction(
-  optionGroupId: number,
-  shopId: number,
-  name: string,
-  additionalPrice: number,
-): Promise<DataResult<number>> {
-  const parsed = shopIdSchema.safeParse(shopId);
+/**
+ * 옵션 저장 입력.
+ *
+ * `cupCount`·`personalCupDiscountAmount` 는 **보증금 옵션에만** 값이 있고, 일반 옵션에서는
+ * `null` 로 남는다 — 일반 옵션에 값을 실어 보내면 서버가 `PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED`
+ * 로 거부한다. 폼 스키마가 같은 규칙을 먼저 검사한다.
+ */
+interface OptionSaveInput {
+  shopId: number;
+  name: string;
+  additionalPrice: number;
+  cupCount: number | null;
+  personalCupDiscountAmount: number | null;
+}
+
+function toOptionBody(input: OptionSaveInput, shopId: number) {
+  return {
+    shopId,
+    name: input.name.trim(),
+    additionalPrice: input.additionalPrice,
+    // 값이 없으면 키를 생략한다 — `null` 을 명시적으로 보내면 서버 `@Min` 검증 대상이 된다.
+    cupCount: input.cupCount ?? undefined,
+    personalCupDiscountAmount: input.personalCupDiscountAmount ?? undefined,
+  };
+}
+
+export async function createOptionAction(optionGroupId: number, input: OptionSaveInput): Promise<DataResult<number>> {
+  const parsed = shopIdSchema.safeParse(input.shopId);
   if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
 
-  const { data, error } = await productRepository.createOption(optionGroupId, {
-    shopId: parsed.data,
-    name: name.trim(),
-    additionalPrice,
-  });
+  const { data, error } = await productRepository.createOption(optionGroupId, toOptionBody(input, parsed.data));
   if (error !== undefined) return toFailure(error, PRODUCT_MENU_MESSAGE.OPTION_CREATE_FAILED);
 
   revalidatePath(PRODUCT_OPTION_GROUP_PATH);
+  revalidateMenuBoard();
   return { success: true, data };
 }
 
-export async function updateOptionAction(
-  optionId: number,
-  shopId: number,
-  name: string,
-  additionalPrice: number,
-): Promise<SimpleResult> {
-  const parsed = shopIdSchema.safeParse(shopId);
+export async function updateOptionAction(optionId: number, input: OptionSaveInput): Promise<SimpleResult> {
+  const parsed = shopIdSchema.safeParse(input.shopId);
   if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
 
-  const { error } = await productRepository.updateOption(optionId, {
-    shopId: parsed.data,
-    name: name.trim(),
-    additionalPrice,
-  });
+  const { error } = await productRepository.updateOption(optionId, toOptionBody(input, parsed.data));
   if (error !== undefined) return toFailure(error, PRODUCT_MENU_MESSAGE.OPTION_UPDATE_FAILED);
 
   revalidatePath(PRODUCT_OPTION_GROUP_PATH);
+  revalidateMenuBoard();
   return { success: true };
 }
 
@@ -609,6 +647,123 @@ export async function changeOptionOrderAction(
 
   revalidatePath(PRODUCT_OPTION_GROUP_PATH);
   return { success: true };
+}
+
+// ===== 옵션그룹 합치기 (§2) =====
+
+const PRODUCT_OPTION_GROUP_MERGE_PATH = "/dashboard/shop/menus/option-groups/merge";
+
+/** 합치기 화면과 진입 배너(옵션그룹 관리)를 함께 무효화한다 — 배너의 묶음 수가 바뀐다 */
+function revalidateOptionGroupMerge(): void {
+  revalidatePath(PRODUCT_OPTION_GROUP_MERGE_PATH);
+  revalidatePath(PRODUCT_OPTION_GROUP_PATH);
+}
+
+/**
+ * 추천 합치기 목록 조회.
+ *
+ * 0건은 실패가 아니다 — 진입 배너를 숨기는 정상 상태이므로 빈 배열을 그대로 돌려준다.
+ */
+export async function loadOptionGroupMergeSuggestionsAction(
+  shopId: number,
+): Promise<DataResult<OptionGroupMergeSuggestion[]>> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.getOptionGroupMergeSuggestions(parsed.data);
+  if (error !== undefined || data === undefined) {
+    return toFailure(error, OPTION_GROUP_MERGE_MESSAGE.SUGGESTIONS_LOAD_FAILED);
+  }
+
+  return { success: true, data };
+}
+
+/**
+ * [X] 제외.
+ *
+ * `signature` 를 그대로 되돌려 보낸다 — 서버가 `optionGroupIds` 로 서명을 재계산해 낡은
+ * 추천이면 `PRODUCT_OPTION_GROUP_MERGE_SIGNATURE_MISMATCH` 로 거부한다.
+ */
+export async function excludeOptionGroupMergeSuggestionAction(
+  shopId: number,
+  signature: string,
+  optionGroupIds: number[],
+): Promise<DataResult<number>> {
+  const parsedShopId = shopIdSchema.safeParse(shopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const parsed = optionGroupMergeExclusionSchema.safeParse({ signature, optionGroupIds });
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.excludeOptionGroupMergeSuggestion({
+    shopId: parsedShopId.data,
+    signature: parsed.data.signature,
+    optionGroupIds: parsed.data.optionGroupIds,
+  });
+  if (error !== undefined) return toFailure(error, OPTION_GROUP_MERGE_MESSAGE.EXCLUDE_FAILED);
+
+  revalidateOptionGroupMerge();
+  return { success: true, data };
+}
+
+/**
+ * 기준 선택 후 diff 미리보기.
+ *
+ * `mergeable: false` 와 `blockedReason` 은 **정상 응답의 필드**라 에러로 다루지 않는다 —
+ * 화면이 버튼을 비활성화하고 사유를 안내한다.
+ */
+export async function loadOptionGroupMergePreviewAction(
+  shopId: number,
+  baseOptionGroupId: number,
+  optionGroupIds: number[],
+): Promise<DataResult<OptionGroupMergePreview>> {
+  const parsedShopId = shopIdSchema.safeParse(shopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const parsedBaseId = productIdSchema.safeParse(baseOptionGroupId);
+  if (!parsedBaseId.success) return invalidInput();
+
+  const parsedIds = orderedIdsSchema.safeParse(optionGroupIds);
+  if (!parsedIds.success) return invalidInput();
+
+  const { data, error } = await productRepository.getOptionGroupMergePreview({
+    shopId: parsedShopId.data,
+    baseOptionGroupId: parsedBaseId.data,
+    optionGroupIds: parsedIds.data,
+  });
+  if (error !== undefined || data === undefined) {
+    return toFailure(error, OPTION_GROUP_MERGE_MESSAGE.PREVIEW_LOAD_FAILED);
+  }
+
+  return { success: true, data };
+}
+
+/**
+ * 합치기 실행.
+ *
+ * **비가역이다** — 서버에 분리(unmerge) 경로가 없으므로 호출 전에 사용자 확인을 반드시 받는다.
+ * 성공하면 옵션그룹 목록·메뉴판이 모두 바뀌므로 메뉴판 세그먼트까지 무효화한다.
+ */
+export async function mergeOptionGroupsAction(
+  shopId: number,
+  input: OptionGroupMergeInput,
+): Promise<DataResult<number>> {
+  const parsedShopId = shopIdSchema.safeParse(shopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const parsed = optionGroupMergeSchema.safeParse(input);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.mergeOptionGroups(parsed.data.baseOptionGroupId, {
+    shopId: parsedShopId.data,
+    optionGroupIds: parsed.data.optionGroupIds,
+    entryType: parsed.data.entryType,
+  });
+  if (error !== undefined) return toFailure(error, OPTION_GROUP_MERGE_MESSAGE.MERGE_FAILED);
+
+  revalidateOptionGroupMerge();
+  revalidateMenuBoard();
+  return { success: true, data };
 }
 
 // ===== 메뉴-옵션그룹 연결 (§5-2) =====

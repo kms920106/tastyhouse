@@ -72,8 +72,15 @@ export interface ShopDetailResponse {
   phoneNumber: string | null;
   thumbnailImageUrl: string | null;
   permanentlyClosed: boolean;
+  /** 일회용컵 보증금제 대상사업자 여부 — admin 만 토글한다(외부 규제 사실이라 점주는 스스로 켤 수 없다) */
+  cupDepositEnabled: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// 일회용컵 보증금 대상사업자 토글
+export interface ShopCupDepositUpdateRequest {
+  enabled: boolean;
 }
 
 // ===== Phase B. 운영시간 · 휴게시간 · 정기휴무일 =====

@@ -13,6 +13,8 @@ interface Props {
   pointDiscountAmount: number
   totalDiscountAmount: number
   finalAmount: number
+  /** 일회용컵 보증금 합계. 컵 반납 시 환급되는 금액이라 할인이 아니라 가산 항목이다 */
+  cupDepositAmount: number
 }
 
 export default function PaymentBreakdownAccordion({
@@ -22,6 +24,7 @@ export default function PaymentBreakdownAccordion({
   pointDiscountAmount,
   totalDiscountAmount,
   finalAmount,
+  cupDepositAmount,
 }: Props) {
   return (
     <Accordion type="single" collapsible defaultValue="payment-breakdown">
@@ -72,6 +75,19 @@ export default function PaymentBreakdownAccordion({
                   </div>
                 )}
               </div>
+              {cupDepositAmount > 0 && (
+                <div>
+                  <div className="flex justify-between">
+                    <span className="text-sm leading-[14px]">일회용컵 보증금</span>
+                    <span className="text-sm leading-[14px]">
+                      +{formatNumber(cupDepositAmount)}원
+                    </span>
+                  </div>
+                  <p className="pt-1 text-xs leading-[12px] text-[#aaaaaa]">
+                    컵 반납 시 환급되는 금액이에요
+                  </p>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-sm leading-[14px]">최종 결제금액</span>
                 <span className="text-sm leading-[14px]">{formatNumber(finalAmount)}원</span>

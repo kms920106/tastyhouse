@@ -58,12 +58,27 @@ export const CONTENT_BOARD_PAGE_COPY = {
   DESCRIPTION: "점주가 등록한 콘텐츠보드를 검수하고 숨김·삭제 조치합니다.",
 } as const;
 
+/** 일회용컵 보증금 대상사업자 토글 화면 문구 */
+export const SHOP_CUP_DEPOSIT_COPY = {
+  LABEL: "일회용컵 보증금제 대상사업자",
+  CAUTION: "환경부 지정 일회용컵 보증금제 대상 사업자만 켜주세요.",
+  DISABLE_NOTICE: "끄더라도 이미 만들어진 보증금 옵션그룹은 계속 동작합니다.",
+  ENABLE_CONFIRM_TITLE: "대상사업자로 지정할까요?",
+  ENABLE_CONFIRM_DESCRIPTION:
+    "환경부 지정 일회용컵 보증금제 대상 사업자만 켜주세요. 켜면 점주가 일회용컵 보증금 옵션그룹을 새로 만들 수 있습니다.",
+  DISABLE_CONFIRM_TITLE: "대상사업자 지정을 해제할까요?",
+  DISABLE_CONFIRM_DESCRIPTION:
+    "해제하면 점주가 일회용컵 보증금 옵션그룹을 새로 만들 수 없습니다. 다만 이미 만들어진 보증금 옵션그룹은 계속 동작합니다.",
+} as const;
+
 /** 가게 사용자 피드백 메시지 (동적/토스트/에러 폴백) */
 export const SHOP_MESSAGE = {
   // 성공 toast
   CREATE_SUCCESS: "가게가 등록되었습니다.",
   UPDATE_SUCCESS: "가게가 수정되었습니다.",
   CLOSE_SUCCESS: "가게가 폐업 처리되었습니다.",
+  CUP_DEPOSIT_ENABLE_SUCCESS: "일회용컵 보증금제 대상사업자로 지정되었습니다.",
+  CUP_DEPOSIT_DISABLE_SUCCESS: "일회용컵 보증금제 대상사업자 지정이 해제되었습니다.",
   BUSINESS_HOUR_CREATE_SUCCESS: "운영시간이 등록되었습니다.",
   BUSINESS_HOUR_UPDATE_SUCCESS: "운영시간이 수정되었습니다.",
   BUSINESS_HOUR_DELETE_SUCCESS: "운영시간이 삭제되었습니다.",
@@ -106,6 +121,7 @@ export const SHOP_MESSAGE = {
   // 에러 폴백
   CREATE_UPDATE_FAILED: "처리 중 오류가 발생했습니다.",
   CLOSE_FAILED: "폐업 처리 중 오류가 발생했습니다.",
+  CUP_DEPOSIT_UPDATE_FAILED: "일회용컵 보증금제 대상사업자 설정 변경 중 오류가 발생했습니다.",
   DELETE_FAILED: "삭제 중 오류가 발생했습니다.",
   IMAGE_UPLOAD_FAILED: "이미지 업로드 중 오류가 발생했습니다.",
   IMAGE_TYPE_INVALID: "jpg, png, gif, webp 형식의 이미지만 업로드할 수 있습니다.",

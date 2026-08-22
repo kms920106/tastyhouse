@@ -20,8 +20,14 @@ export default function ShopOrderMenuDetailOptionForm({ productId, shopId, optio
   const searchParams = useSearchParams()
   const isOptionsTab = (searchParams.get('tab') ?? 'options') === 'options'
 
-  const { options, handleRadioSelect, handleCheckboxToggle, getOptionsData } =
-    useProductOptionSelection(optionGroups)
+  const {
+    options,
+    handleRadioSelect,
+    handleCheckboxToggle,
+    getOptionsData,
+    normalOptionGroups,
+    cupDepositOptionGroups,
+  } = useProductOptionSelection(optionGroups)
 
   const { showShopChangeModal, handleAddToCart, handleConfirmShopChange, onCancelShopChange } =
     useCartAction({ productId, shopId, optionGroups, options, getOptionsData })
@@ -30,7 +36,8 @@ export default function ShopOrderMenuDetailOptionForm({ productId, shopId, optio
     <>
       <SectionStack>
         <ShopOrderMenuDetailOptionList
-          optionGroups={optionGroups}
+          normalOptionGroups={normalOptionGroups}
+          cupDepositOptionGroups={cupDepositOptionGroups}
           options={options}
           onRadioSelect={handleRadioSelect}
           onCheckboxToggle={handleCheckboxToggle}

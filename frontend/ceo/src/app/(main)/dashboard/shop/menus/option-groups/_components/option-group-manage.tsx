@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { Lock, Store } from "lucide-react";
+import { Lock, Merge, Store } from "lucide-react";
 import { toast } from "sonner";
 
 import { Accordion } from "@/components/ui/accordion";
@@ -30,8 +30,10 @@ import {
   updateOptionAction,
   updateOptionGroupAction,
 } from "@/feature/product/actions";
-import type { MenuOption, MenuOptionGroup } from "@/feature/product/domain";
+import { MENU_TABS, OPTION_GROUP_TYPES } from "@/feature/product/constants";
+import type { MenuOption, MenuOptionGroup, ProductOptionGroupType } from "@/feature/product/domain";
 import {
+  OPTION_GROUP_MERGE_COPY,
   OPTION_GROUP_SCREEN_COPY,
   PRODUCT_MENU_MESSAGE,
   PRODUCT_MESSAGE,
@@ -40,32 +42,62 @@ import {
 import type { ShopSummary } from "@/feature/shop/domain";
 
 import { ShopSelector } from "../../../_components/shop-selector";
-import { OptionFormDialog } from "./option-form-dialog";
+import { MenuTabBar } from "../../_components/menu-tab-bar";
+import { OptionFormDialog, type OptionSubmitValues } from "./option-form-dialog";
 import { OptionGroupAccordion } from "./option-group-accordion";
-import { OptionGroupFormDialog, type OptionGroupSubmitValues } from "./option-group-form-dialog";
+import {
+  type LinkableProductOption,
+  OptionGroupFormDialog,
+  type OptionGroupSubmitValues,
+} from "./option-group-form-dialog";
 
 interface OptionGroupManageProps {
   shops: ShopSummary[];
   shopId?: number;
   /** 조회 실패 시 undefined 로 넘어와 셸(가게 선택기·추가 버튼)만 살린다 */
   optionGroups?: MenuOptionGroup[];
+  /** 등록 시 연결할 메뉴 후보. 조회 실패 시 빈 배열 — 목록이 비면 등록 폼에서 저장이 항상 거부된다 */
+  linkableProducts: LinkableProductOption[];
   /** 접근 불가 사유(403 `SHOP_ACCESS_DENIED` / 404 `SHOP_NOT_FOUND`) */
   errorCode?: string;
   errorMessage?: string;
+  /**
+   * 합치기 추천 묶음 수.
+   *
+   * **0 이면 배너를 렌더링하지 않는다** — 눌러도 빈 화면인 배너를 보여주지 않기 위함이다.
+   * 조회 실패도 `undefined` 로 넘어와 같은 결과가 된다(배너 없음).
+   */
+  mergeSuggestionCount?: number;
+  /** 가게가 일회용컵 보증금제 대상사업자인지 여부. 등록 폼의 유형 선택 노출을 가른다 */
+  cupDepositEnabled?: boolean;
 }
 
 /** 그룹 폼을 어떤 대상에 대해 열었는지. `create` 는 신규, 그 외는 수정 대상 그룹 */
 type GroupDialogTarget = { mode: "create" } | { mode: "edit"; group: MenuOptionGroup };
 
-/** 옵션 폼 대상. 추가는 소속 그룹만, 수정은 옵션까지 안다 */
+/**
+ * 옵션 폼 대상. 추가는 소속 그룹만, 수정은 옵션까지 안다.
+ *
+ * `groupType` 을 함께 들고 다니는 이유는 옵션 폼의 요구 필드가 소속 그룹 유형에 따라 갈리는데,
+ * 옵션(`MenuOption`)만으로는 유형을 알 수 없기 때문이다.
+ */
 type OptionDialogTarget =
-  | { mode: "create"; optionGroupId: number }
-  | { mode: "edit"; optionGroupId: number; option: MenuOption };
+  | { mode: "create"; optionGroupId: number; groupType: ProductOptionGroupType }
+  | { mode: "edit"; optionGroupId: number; groupType: ProductOptionGroupType; option: MenuOption };
 
 /** 삭제 확인 대상 — 그룹과 옵션이 안내 문구와 액션이 다르다 */
 type DeleteTarget = { kind: "group"; group: MenuOptionGroup } | { kind: "option"; option: MenuOption };
 
-export function OptionGroupManage({ shops, shopId, optionGroups, errorCode, errorMessage }: OptionGroupManageProps) {
+export function OptionGroupManage({
+  shops,
+  shopId,
+  optionGroups,
+  linkableProducts,
+  errorCode,
+  errorMessage,
+  mergeSuggestionCount,
+  cupDepositEnabled,
+}: OptionGroupManageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isNavigating, startNavigation] = React.useTransition();
@@ -91,6 +123,15 @@ export function OptionGroupManage({ shops, shopId, optionGroups, errorCode, erro
 
     startNavigation(() => {
       router.push(`?${params.toString()}`);
+    });
+  }
+
+  /** 합치기 화면으로 이동. 가게 컨텍스트를 잃지 않도록 `shopId` 를 그대로 넘긴다 */
+  function handleGoToMerge() {
+    if (shopId === undefined) return;
+
+    startNavigation(() => {
+      router.push(`/dashboard/shop/menus/option-groups/merge?shopId=${shopId}`);
     });
   }
 
@@ -146,19 +187,21 @@ export function OptionGroupManage({ shops, shopId, optionGroups, errorCode, erro
     }
   }
 
-  function handleSubmitOption(values: { name: string; additionalPrice: number }) {
+  function handleSubmitOption(values: OptionSubmitValues) {
     const target = optionDialogTarget;
     if (!target || shopId === undefined) return;
 
+    const input = { shopId, ...values };
+
     if (target.mode === "create") {
       runMutation(
-        () => createOptionAction(target.optionGroupId, shopId, values.name, values.additionalPrice),
+        () => createOptionAction(target.optionGroupId, input),
         { success: PRODUCT_MENU_MESSAGE.OPTION_CREATE_SUCCESS, failure: PRODUCT_MENU_MESSAGE.OPTION_CREATE_FAILED },
         () => setOptionDialogTarget(null),
       );
     } else {
       runMutation(
-        () => updateOptionAction(target.option.id, shopId, values.name, values.additionalPrice),
+        () => updateOptionAction(target.option.id, input),
         { success: PRODUCT_MENU_MESSAGE.OPTION_UPDATE_SUCCESS, failure: PRODUCT_MENU_MESSAGE.OPTION_UPDATE_FAILED },
         () => setOptionDialogTarget(null),
       );
@@ -217,6 +260,28 @@ export function OptionGroupManage({ shops, shopId, optionGroups, errorCode, erro
       </CardHeader>
 
       <CardContent className="flex flex-col gap-6">
+        {/* 탭은 접근 불가·가게 없음 상태에서도 보여준다 — 메뉴 탭으로 빠져나갈 길을 막지 않는다. */}
+        <MenuTabBar activeTab={MENU_TABS.OPTION} shopId={shopId} disabled={isBusy} />
+
+        {/* 추천이 0건이면 배너 자체를 렌더링하지 않는다 — 눌러도 빈 화면인 진입점을 만들지 않는다. */}
+        {accessDeniedMessage === undefined &&
+          shopId !== undefined &&
+          mergeSuggestionCount !== undefined &&
+          mergeSuggestionCount > 0 && (
+            <button
+              type="button"
+              disabled={isBusy}
+              onClick={handleGoToMerge}
+              className="flex items-center gap-3 rounded-md border bg-muted/40 p-4 text-left transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Merge className="size-5 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 text-sm font-medium">
+                {OPTION_GROUP_MERGE_COPY.BANNER_TITLE(mergeSuggestionCount)}
+              </span>
+              <span className="shrink-0 text-muted-foreground text-sm">{OPTION_GROUP_MERGE_COPY.BANNER_ACTION}</span>
+            </button>
+          )}
+
         {accessDeniedMessage !== undefined ? (
           <Empty>
             <EmptyHeader>
@@ -254,8 +319,17 @@ export function OptionGroupManage({ shops, shopId, optionGroups, errorCode, erro
                 disabled={isBusy}
                 onEditGroup={() => setGroupDialogTarget({ mode: "edit", group })}
                 onDeleteGroup={() => setDeleteTarget({ kind: "group", group })}
-                onAddOption={() => setOptionDialogTarget({ mode: "create", optionGroupId: group.id })}
-                onEditOption={(option) => setOptionDialogTarget({ mode: "edit", optionGroupId: group.id, option })}
+                onAddOption={() =>
+                  setOptionDialogTarget({ mode: "create", optionGroupId: group.id, groupType: group.groupType })
+                }
+                onEditOption={(option) =>
+                  setOptionDialogTarget({
+                    mode: "edit",
+                    optionGroupId: group.id,
+                    groupType: group.groupType,
+                    option,
+                  })
+                }
                 onDeleteOption={(option) => setDeleteTarget({ kind: "option", option })}
                 onReorderOptions={(optionIds) => handleReorderOptions(group.id, optionIds)}
               />
@@ -266,6 +340,8 @@ export function OptionGroupManage({ shops, shopId, optionGroups, errorCode, erro
         <OptionGroupFormDialog
           open={groupDialogTarget !== null}
           group={groupDialogTarget?.mode === "edit" ? groupDialogTarget.group : undefined}
+          linkableProducts={linkableProducts}
+          cupDepositEnabled={cupDepositEnabled}
           pending={isMutating}
           onOpenChange={(open) => {
             if (!open) setGroupDialogTarget(null);
@@ -276,6 +352,7 @@ export function OptionGroupManage({ shops, shopId, optionGroups, errorCode, erro
         <OptionFormDialog
           open={optionDialogTarget !== null}
           option={optionDialogTarget?.mode === "edit" ? optionDialogTarget.option : undefined}
+          groupType={optionDialogTarget?.groupType ?? OPTION_GROUP_TYPES.NORMAL}
           pending={isMutating}
           onOpenChange={(open) => {
             if (!open) setOptionDialogTarget(null);

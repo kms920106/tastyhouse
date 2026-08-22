@@ -4,6 +4,11 @@ export const PRODUCT_PAGE_COPY = {
   DESCRIPTION: "매장 상품을 등록하고 옵션·이미지·카테고리를 관리합니다.",
 } as const;
 
+/** 옵션그룹 유형 배지 문구 */
+export const OPTION_GROUP_TYPE_LABEL = {
+  CUP_DEPOSIT: "일회용컵 보증금",
+} as const;
+
 /** 상품 사용자 피드백 메시지 (동적/토스트/에러 폴백) */
 export const PRODUCT_MESSAGE = {
   // 성공 toast

@@ -9,15 +9,19 @@ import { ArrowLeft, LayoutGrid, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SHOP_DETAIL_TABS } from "@/feature/shop/constants";
 import type { ShopDetail as ShopDetailModel } from "@/feature/shop/domain";
+import { SHOP_CUP_DEPOSIT_COPY } from "@/feature/shop/message";
 import { formatDateTime } from "@/lib/date";
 
 import { ShopFormSheet } from "../../_components/shop-form-sheet";
 import { BusinessHoursTab } from "./business-hours-tab";
 import { ClassificationTab } from "./classification-tab";
+import { CupDepositToggleDialog } from "./cup-deposit-toggle-dialog";
 import { HygieneBadgesTab } from "./hygiene-badges-tab";
 import { ImagesTab } from "./images-tab";
 
@@ -28,6 +32,8 @@ interface ShopDetailProps {
 export function ShopDetail({ shop }: ShopDetailProps) {
   const router = useRouter();
   const [formOpen, setFormOpen] = React.useState(false);
+  // 스위치 조작 즉시 반영하지 않고 확인 다이얼로그를 띄운다 — 다이얼로그가 열려 있는 동안의 목표 상태를 들고 있는다.
+  const [cupDepositConfirmTarget, setCupDepositConfirmTarget] = React.useState<boolean | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -74,6 +80,18 @@ export function ShopDetail({ shop }: ShopDetailProps) {
             </dd>
           </dl>
           <Separator />
+          <Field orientation="horizontal">
+            <FieldLabel htmlFor="shop-cup-deposit-enabled">{SHOP_CUP_DEPOSIT_COPY.LABEL}</FieldLabel>
+            <Switch
+              id="shop-cup-deposit-enabled"
+              checked={shop.cupDepositEnabled}
+              onCheckedChange={(checked) => setCupDepositConfirmTarget(checked)}
+            />
+            <FieldDescription>
+              {SHOP_CUP_DEPOSIT_COPY.CAUTION} {SHOP_CUP_DEPOSIT_COPY.DISABLE_NOTICE}
+            </FieldDescription>
+          </Field>
+          <Separator />
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <dt className="text-muted-foreground">생성일시</dt>
             <dd className="tabular-nums">{formatDateTime(shop.createdAt)}</dd>
@@ -109,6 +127,17 @@ export function ShopDetail({ shop }: ShopDetailProps) {
       </Card>
 
       <ShopFormSheet open={formOpen} onOpenChange={setFormOpen} shop={{ id: shop.id }} />
+      <CupDepositToggleDialog
+        shopId={cupDepositConfirmTarget != null ? shop.id : null}
+        nextEnabled={cupDepositConfirmTarget ?? shop.cupDepositEnabled}
+        onOpenChange={(open) => {
+          if (!open) setCupDepositConfirmTarget(null);
+        }}
+        onSuccess={() => {
+          setCupDepositConfirmTarget(null);
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

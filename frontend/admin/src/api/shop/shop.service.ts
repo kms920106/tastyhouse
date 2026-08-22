@@ -96,6 +96,7 @@ export const shopService = {
         phoneNumber: res.data.phoneNumber,
         thumbnailImageUrl: res.data.thumbnailImageUrl,
         permanentlyClosed: res.data.permanentlyClosed,
+        cupDepositEnabled: res.data.cupDepositEnabled,
         createdAt: res.data.createdAt,
         updatedAt: res.data.updatedAt,
       },

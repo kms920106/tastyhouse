@@ -23,6 +23,12 @@ export interface OrderCreateRequest {
   productDiscountAmount: number
   couponDiscountAmount: number
   finalAmount: number
+  /**
+   * 일회용컵 보증금 합계. Σ(옵션.depositAmount) × 수량으로 클라이언트가 계산해 보내고,
+   * 서버가 옵션 스냅샷 기준으로 재계산해 대조한다(불일치 시 ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH).
+   * 최소주문금액·쿠폰·포인트 기준액에는 포함되지 않는다.
+   */
+  cupDepositAmount: number
   request: string
   /**
    * 배달 주소 id. 주문 방법이 DELIVERY면 필수, 그 외에는 null.

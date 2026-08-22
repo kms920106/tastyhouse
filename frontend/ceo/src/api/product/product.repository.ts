@@ -23,6 +23,11 @@ import type {
   ProductOptionAvailabilityGroupResponse,
   ProductOptionGroupLinkedProductResponse,
   ProductOptionGroupLinkedProductsResponse,
+  ProductOptionGroupMergeExclusionRequest,
+  ProductOptionGroupMergePreviewParams,
+  ProductOptionGroupMergePreviewResponse,
+  ProductOptionGroupMergeRequest,
+  ProductOptionGroupMergeSuggestionResponse,
   ProductOptionGroupResponse,
   ProductOptionGroupSaveRequest,
   ProductOptionGroupSortRequest,
@@ -56,6 +61,7 @@ const ENDPOINT = "/api/products";
 const VERSION_PATH = `${ENDPOINT}/v1`;
 const CATEGORY_PATH = `${VERSION_PATH}/categories`;
 const OPTION_GROUP_PATH = `${VERSION_PATH}/option-groups`;
+const OPTION_GROUP_MERGE_SUGGESTION_PATH = `${OPTION_GROUP_PATH}/merge-suggestions`;
 
 const AVAILABILITY_PATH = `${ENDPOINT}/v1/availability`;
 const OPTION_AVAILABILITY_PATH = `${AVAILABILITY_PATH}/options`;
@@ -262,6 +268,37 @@ export const productRepository = {
     return api.get<ProductOptionGroupLinkedProductsResponse[]>(`${OPTION_GROUP_PATH}/products`, {
       params: { shopId },
     });
+  },
+
+  // ===== 옵션그룹 합치기 (§2-6) =====
+
+  /** 추천 합치기 목록. 0건이면 진입 배너를 숨겨야 하므로 빈 배열도 정상 응답이다 */
+  getOptionGroupMergeSuggestions(shopId: number): Promise<ApiResponse<ProductOptionGroupMergeSuggestionResponse[]>> {
+    return api.get<ProductOptionGroupMergeSuggestionResponse[]>(OPTION_GROUP_MERGE_SUGGESTION_PATH, {
+      params: { shopId },
+    });
+  },
+
+  /** [X] 제외 — 재클릭은 멱등이며 기존 exclusion id 를 돌려준다 */
+  excludeOptionGroupMergeSuggestion(body: ProductOptionGroupMergeExclusionRequest): Promise<ApiResponse<number>> {
+    return api.post<number>(`${OPTION_GROUP_MERGE_SUGGESTION_PATH}/exclusions`, body);
+  },
+
+  /**
+   * 기준 선택 후 diff 미리보기.
+   *
+   * `optionGroupIds` 는 배열이라 공유 클라이언트가 **반복 query 파라미터**로 직렬화한다
+   * (`?optionGroupIds=1&optionGroupIds=2`) — 서버가 `List<Long>` 으로 바인딩하는 형태다.
+   */
+  getOptionGroupMergePreview(
+    params: ProductOptionGroupMergePreviewParams,
+  ): Promise<ApiResponse<ProductOptionGroupMergePreviewResponse>> {
+    return api.get<ProductOptionGroupMergePreviewResponse>(`${OPTION_GROUP_PATH}/merge-preview`, { params });
+  },
+
+  /** 합치기 실행. 경로 `{baseOptionGroupId}` 가 **살아남는** 기준 그룹이다 */
+  mergeOptionGroups(baseOptionGroupId: number, body: ProductOptionGroupMergeRequest): Promise<ApiResponse<number>> {
+    return api.post<number>(`${OPTION_GROUP_PATH}/${baseOptionGroupId}/merge`, body);
   },
 
   // ===== 노출기간 (§6) =====
