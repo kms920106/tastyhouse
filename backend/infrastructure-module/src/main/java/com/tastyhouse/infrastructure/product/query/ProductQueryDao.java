@@ -58,6 +58,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGr
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupMergeExclusionJpaEntity.productOptionGroupMergeExclusionJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductOptionJpaEntity.productOptionJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductPriceJpaEntity.productPriceJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductRepresentativeRequestJpaEntity.productRepresentativeRequestJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductVegetarianRequestJpaEntity.productVegetarianRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -721,12 +722,24 @@ public class ProductQueryDao {
 
     /**
      * 가게 상세 화면의 상품 목록 — 대표 상품·평점 순으로, 카테고리별 그룹핑은 소비 모듈이 수행한다.
+     *
+     * <p><b>{@code PRODUCT.shop_id}가 아니라 {@code PRODUCT_SHOP_LINK}로 조회한다.</b> 한 메뉴가 여러
+     * 가게 메뉴판에 노출될 수 있으므로 "이 가게 메뉴판에 무엇이 걸려 있는가"의 진실원은 링크 테이블이다.
+     * {@code shop_id}는 원본 소유 가게로 남아 다른 판정(메뉴명 중복·옵션그룹 소유권)에 계속 쓰이지만,
+     * 메뉴판 구성에는 쓰지 않는다.
+     *
+     * <p><b>메뉴그룹도 링크에서 읽는다</b> — 같은 메뉴가 가게마다 다른 메뉴그룹에 배치될 수 있어
+     * {@code PRODUCT.product_category_id}(원본 가게에서의 배치)를 쓰면 다른 가게 메뉴판에서 엉뚱한
+     * 그룹에 묶인다.
+     *
+     * <p>품절·노출은 메뉴가 소유하므로({@code Product.soldOut}·{@code visible}) 링크로 분리하지 않는다.
+     * 링크가 1개인 메뉴는 이 조회의 결과가 이전과 완전히 동일하다 — 이 설계의 안전장치다.
      */
     public List<ShopProductItemResult> findShopProducts(Long shopId) {
         return queryFactory
             .select(new QShopProductItemResult(
                 productJpaEntity.id,
-                productJpaEntity.productCategoryId,
+                productShopLinkJpaEntity.productCategoryId,
                 productJpaEntity.name,
                 uploadedFileJpaEntity.filePath,
                 productJpaEntity.originalPrice,
@@ -738,10 +751,11 @@ public class ProductQueryDao {
                 productJpaEntity.spiciness,
                 productJpaEntity.soldOut
             ))
-            .from(productJpaEntity)
+            .from(productShopLinkJpaEntity)
+            .innerJoin(productJpaEntity).on(productJpaEntity.id.eq(productShopLinkJpaEntity.productId))
             .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
-            .where(productJpaEntity.shopId.eq(shopId), productJpaEntity.visible.eq(true), notDeleted(),
+            .where(productShopLinkJpaEntity.shopId.eq(shopId), productJpaEntity.visible.eq(true), notDeleted(),
                 exposedNow(nowInServiceZone()))
             .orderBy(
                 productJpaEntity.representative.desc(),
@@ -897,11 +911,16 @@ public class ProductQueryDao {
     }
 
     /**
-     * 가게의 (삭제되지 않은) 모든 메뉴의 가격 행을 조회한다 — 매장가격 뱃지 판정 입력이다.
+     * 가게 <b>메뉴판에 걸린</b> (삭제되지 않은) 모든 메뉴의 가격 행을 조회한다 — 매장가격 뱃지 판정 입력이다.
      *
-     * <p>가격 행이 {@code shop_id}를 직접 들고 있지 않으므로 {@code PRODUCT}로 조인해 소유 가게와
-     * 소프트 삭제를 함께 판정한다(write 포트 {@code ProductPriceRepository#findAllByShopId}와 동일한
-     * 조건이라야 같은 뱃지 판정이 두 경로에서 갈리지 않는다).
+     * <p>가격 행이 {@code shop_id}를 직접 들고 있지 않으므로 {@code PRODUCT_SHOP_LINK}로 조인해 노출
+     * 가게와 소프트 삭제를 함께 판정한다(write 포트 {@code ProductPriceRepository#findAllByShopId}와
+     * 동일한 조건이라야 같은 뱃지 판정이 두 경로에서 갈리지 않는다 — 한쪽만 바꾸면 손님 화면과 점주
+     * 화면의 뱃지가 갈린다).
+     *
+     * <p>메뉴-가게 연결(N:M) 도입으로 {@code PRODUCT.shop_id}가 아니라 링크를 쓴다. 뱃지는 "이 가게에서
+     * 파는 메뉴들이 매장가와 같은가"를 묻는 것이므로 판정 대상은 그 가게 메뉴판의 구성이다. 가격은
+     * 연결된 가게끼리 공유되므로 가격 행 자체는 메뉴 단위 그대로다.
      */
     public List<ProductPriceResult> findShopProductPrices(Long shopId) {
         return queryFactory
@@ -917,8 +936,13 @@ public class ProductQueryDao {
             ))
             .from(productPriceJpaEntity)
             .join(productJpaEntity).on(productJpaEntity.id.eq(productPriceJpaEntity.productId))
-            .where(productJpaEntity.shopId.eq(shopId), notDeleted())
-            .orderBy(productJpaEntity.sort.asc(), productPriceJpaEntity.sort.asc())
+            .join(productShopLinkJpaEntity)
+            .on(
+                productShopLinkJpaEntity.productId.eq(productJpaEntity.id),
+                productShopLinkJpaEntity.shopId.eq(shopId)
+            )
+            .where(notDeleted())
+            .orderBy(productShopLinkJpaEntity.sort.asc(), productPriceJpaEntity.sort.asc())
             .fetch();
     }
 
@@ -1373,6 +1397,13 @@ public class ProductQueryDao {
      * 품절·숨김 관리 화면의 메뉴 탭 — 카테고리를 {@code leftJoin}(미분류 메뉴 포함)하고 대표 이미지 URL을
      * 완성한다. 손님 화면과 달리 {@code visible.eq(true)} 필터를 걸지 않는다 — 점주가 품절·숨김 상태
      * 자체를 관리하는 화면이라 숨김·품절 항목도 그대로 노출해야 한다.
+     *
+     * <p><b>{@code PRODUCT_SHOP_LINK}를 통해 조회한다</b> — 이 화면은 "이 가게 메뉴판"의 관리 화면이므로
+     * 다른 가게에서 불러온 메뉴도 보여야 하고, 메뉴그룹·표시 순서도 <b>그 가게에서의 값</b>(링크 소유)을
+     * 써야 한다. 원본 컬럼을 쓰면 연결된 가게에서 엉뚱한 그룹·순서로 보인다.
+     *
+     * <p>품절·숨김 자체는 메뉴가 소유하므로 링크로 분리하지 않는다 — 한 가게에서 품절하면 연결된 모든
+     * 가게에서 품절이다.
      */
     public List<ProductAvailabilityItemResult> findProductAvailability(ProductAvailabilitySearchCondition condition) {
         return queryFactory
@@ -1389,19 +1420,21 @@ public class ProductQueryDao {
                 productJpaEntity.soldOutUntil,
                 productJpaEntity.visible,
                 productJpaEntity.representative,
-                productJpaEntity.sort
+                productShopLinkJpaEntity.sort
             )
-            .from(productJpaEntity)
-            .leftJoin(productCategoryJpaEntity).on(productJpaEntity.productCategoryId.eq(productCategoryJpaEntity.id))
+            .from(productShopLinkJpaEntity)
+            .innerJoin(productJpaEntity).on(productJpaEntity.id.eq(productShopLinkJpaEntity.productId))
+            .leftJoin(productCategoryJpaEntity)
+            .on(productShopLinkJpaEntity.productCategoryId.eq(productCategoryJpaEntity.id))
             .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(
-                productJpaEntity.shopId.eq(condition.shopId()),
+                productShopLinkJpaEntity.shopId.eq(condition.shopId()),
                 nameContains(condition.keyword()),
                 soldOutOrHidden(condition.soldOutOnly(), condition.hiddenOnly()),
                 notDeleted()
             )
-            .orderBy(productCategoryJpaEntity.sort.asc().nullsLast(), productJpaEntity.sort.asc())
+            .orderBy(productCategoryJpaEntity.sort.asc().nullsLast(), productShopLinkJpaEntity.sort.asc())
             .fetch()
             .stream()
             .map(tuple -> new ProductAvailabilityItemResult(
@@ -1417,7 +1450,7 @@ public class ProductQueryDao {
                 tuple.get(productJpaEntity.soldOutUntil),
                 Boolean.TRUE.equals(tuple.get(productJpaEntity.visible)),
                 Boolean.TRUE.equals(tuple.get(productJpaEntity.representative)),
-                tuple.get(productJpaEntity.sort)
+                tuple.get(productShopLinkJpaEntity.sort)
             ))
             .toList();
     }
@@ -1705,20 +1738,36 @@ public class ProductQueryDao {
     }
 
     /**
-     * 메뉴가 속한 가게 식별자. 삭제된 메뉴는 제외하므로 비어 있으면 대상이 없는 것으로 다룬다.
+     * 이 메뉴가 이 가게 메뉴판에 걸려 있는지 — <b>메뉴-가게 소유권 판정의 기준</b>.
      *
-     * <p>소비 측(ceo-api 조회 경로)이 <b>경로의 메뉴가 정말 그 가게 것인지</b> 확인하는 데 쓴다 —
-     * 가게 소유권만 확인하고 메뉴-가게 관계를 검증하지 않으면 남의 가게 메뉴를 열람할 수 있다.
-     * 조회 경로는 write 포트를 주입할 수 없으므로(CQRS) 이 투영이 그 역할을 맡는다.
+     * <p><b>메뉴의 가게와 대상 가게를 단순 동등 비교하던 방식을 이것으로 대체했다.</b> 메뉴-가게 연결(N:M)
+     * 도입 전에는 메뉴 하나에 가게가 하나라 "메뉴의 가게 == 내 가게"로 판정할 수 있었지만, 이제 한 메뉴가
+     * 여러 가게에 걸리므로 그 비교는 <b>포함 관계</b>여야 한다. 동등 비교를 남기면 연결된 가게의 점주가
+     * 자기 메뉴판의 메뉴를 열지 못한다.
+     *
+     * <p>원본 소유 가게({@code PRODUCT.shop_id})도 함께 인정한다 — 이관으로 모든 메뉴에 원본 링크가
+     * 생기지만, 링크가 아직 없는 메뉴(이관 직후 새로 만들어진 행 등)에서 원본 가게 점주가 잠기는 일을
+     * 막는 이중 안전장치다.
+     *
+     * <p>삭제된 메뉴는 없는 것으로 다룬다 — "메뉴 없음"과 "남의 가게 메뉴"를 호출부가 같은
+     * {@code PRODUCT_NOT_FOUND}로 합쳐 존재 여부가 새지 않게 한다.
      */
-    public Optional<Long> findProductShopId(Long productId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(productJpaEntity.shopId)
-                .from(productJpaEntity)
-                .where(productJpaEntity.id.eq(productId), notDeleted())
-                .fetchFirst()
-        );
+    public boolean existsProductInShop(Long productId, Long shopId) {
+        Integer found = queryFactory
+            .selectOne()
+            .from(productJpaEntity)
+            .leftJoin(productShopLinkJpaEntity)
+            .on(
+                productShopLinkJpaEntity.productId.eq(productJpaEntity.id),
+                productShopLinkJpaEntity.shopId.eq(shopId)
+            )
+            .where(
+                productJpaEntity.id.eq(productId),
+                notDeleted(),
+                productShopLinkJpaEntity.id.isNotNull().or(productJpaEntity.shopId.eq(shopId))
+            )
+            .fetchFirst();
+        return found != null;
     }
 
     /**

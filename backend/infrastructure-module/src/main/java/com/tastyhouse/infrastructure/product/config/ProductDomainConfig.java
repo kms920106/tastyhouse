@@ -10,6 +10,8 @@ import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
+import com.tastyhouse.domain.product.repository.ProductFeedbackReadRepository;
+import com.tastyhouse.domain.product.repository.ProductFeedbackRepository;
 import com.tastyhouse.domain.product.repository.ProductImageChangeRequestRepository;
 import com.tastyhouse.domain.product.repository.ProductRepresentativeRequestRepository;
 import com.tastyhouse.domain.product.repository.ProductVegetarianRequestRepository;
@@ -23,6 +25,7 @@ import com.tastyhouse.domain.product.repository.ProductAllergenRepository;
 import com.tastyhouse.domain.product.repository.ProductNutritionRepository;
 import com.tastyhouse.domain.product.repository.ProductPriceRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
+import com.tastyhouse.domain.product.repository.ProductShopLinkRepository;
 import com.tastyhouse.domain.product.repository.StorePriceVerificationRepository;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.product.service.OrderProductValidationService;
@@ -30,6 +33,7 @@ import com.tastyhouse.domain.product.service.ProductAvailabilityService;
 import com.tastyhouse.domain.product.service.ProductDeletionService;
 import com.tastyhouse.domain.product.service.ProductExposureCalculator;
 import com.tastyhouse.domain.product.service.ProductExposureService;
+import com.tastyhouse.domain.product.service.ProductFeedbackService;
 import com.tastyhouse.domain.product.service.ProductImageApprovalService;
 import com.tastyhouse.domain.product.service.ProductNutritionService;
 import com.tastyhouse.domain.product.service.ProductPriceService;
@@ -38,6 +42,7 @@ import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupMergeHistoryRepository;
 import com.tastyhouse.domain.product.service.ProductOptionGroupLinkService;
 import com.tastyhouse.domain.product.service.ProductOptionGroupMergeService;
+import com.tastyhouse.domain.product.service.ProductShopLinkService;
 import com.tastyhouse.domain.product.service.ProductSortService;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.service.ProductReviewStatsService;
@@ -65,7 +70,8 @@ public class ProductDomainConfig {
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
         ProductBbqRepository productBbqRepository,
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductShopLinkRepository productShopLinkRepository
     ) {
         return new ProductRegistrationService(
             productRepository,
@@ -74,7 +80,8 @@ public class ProductDomainConfig {
             productOptionRepository,
             productImageRepository,
             productBbqRepository,
-            productOptionGroupLinkRepository
+            productOptionGroupLinkRepository,
+            productShopLinkRepository
         );
     }
 
@@ -367,5 +374,41 @@ public class ProductDomainConfig {
     @Bean
     public StorePriceBadgePolicy storePriceBadgePolicy() {
         return new StorePriceBadgePolicy();
+    }
+
+    /**
+     * 메뉴 정보 고객 의견 — 제보 접수(메뉴 존재 확인·가게 비정규화·중복 방지)와 점주 확인 상태를
+     * 한 트랜잭션에서 함께 다루는 오케스트레이션.
+     */
+    @Bean
+    public ProductFeedbackService productFeedbackService(
+        ProductRepository productRepository,
+        ProductFeedbackRepository productFeedbackRepository,
+        ProductFeedbackReadRepository productFeedbackReadRepository
+    ) {
+        return new ProductFeedbackService(
+            productRepository,
+            productFeedbackRepository,
+            productFeedbackReadRepository
+        );
+    }
+
+    /**
+     * 메뉴 ↔ 가게 연결(N:M) — 연결 교체·불러오기·제외의 불변식 오케스트레이션.
+     *
+     * <p>메뉴그룹이 그 가게의 것인지, 링크가 최소 1개 남는지, 해제 후에도 그 가게 메뉴판에 노출 메뉴가
+     * 남는지는 메뉴·링크·메뉴그룹 세 애그리거트를 함께 봐야 판정된다.
+     */
+    @Bean
+    public ProductShopLinkService productShopLinkService(
+        ProductRepository productRepository,
+        ProductShopLinkRepository productShopLinkRepository,
+        ProductCategoryRepository productCategoryRepository
+    ) {
+        return new ProductShopLinkService(
+            productRepository,
+            productShopLinkRepository,
+            productCategoryRepository
+        );
     }
 }

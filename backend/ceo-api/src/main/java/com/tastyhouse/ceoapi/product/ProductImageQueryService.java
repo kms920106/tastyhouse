@@ -55,9 +55,10 @@ public class ProductImageQueryService {
      */
     private void requireOwnedProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        Long ownerShopId = productQueryDao.findProductShopId(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
-        if (!ownerShopId.equals(shopId)) {
+        // 메뉴-가게 연결(N:M) 도입으로 동등 비교가 아니라 포함 관계로 판정한다 — 한 메뉴가 여러 가게에
+        // 걸리므로, 원본 가게만 인정하면 연결된 가게의 점주가 자기 메뉴판의 메뉴를 열지 못한다.
+        boolean owned = productQueryDao.existsProductInShop(productId, shopId);
+        if (!owned) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }
     }

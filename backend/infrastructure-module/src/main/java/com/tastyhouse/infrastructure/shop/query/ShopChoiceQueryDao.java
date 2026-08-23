@@ -24,6 +24,7 @@ import com.tastyhouse.infrastructure.product.query.QProductSimpleResult;
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntity.productJpaEntity;
+import static com.tastyhouse.infrastructure.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopChoiceJpaEntity.shopChoiceJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.stationJpaEntity;
@@ -178,10 +179,14 @@ public class ShopChoiceQueryDao {
             productJpaEntity.discountInfo.discountRate
         );
 
+        // 메뉴-가게 연결(N:M) 도입으로 "이 가게 메뉴판에 무엇이 걸려 있는가"의 진실원은
+        // PRODUCT_SHOP_LINK다. 그룹핑 키도 PRODUCT.shop_id가 아니라 링크의 shop_id를 쓴다 —
+        // 원본 컬럼으로 묶으면 다른 가게에서 불러온 메뉴가 그 가게 목록에 나타나지 않는다.
         List<Tuple> productTuples = queryFactory
-            .select(productJpaEntity.shopId, productProjection)
-            .from(productJpaEntity)
-            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(productJpaEntity.shopId))
+            .select(productShopLinkJpaEntity.shopId, productProjection)
+            .from(productShopLinkJpaEntity)
+            .innerJoin(productJpaEntity).on(productJpaEntity.id.eq(productShopLinkJpaEntity.productId))
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(productShopLinkJpaEntity.shopId))
             .leftJoin(productImageJpaEntity).on(
                 productImageJpaEntity.productId.eq(productJpaEntity.id)
                     .and(productImageJpaEntity.visible.eq(true))
@@ -194,13 +199,13 @@ public class ShopChoiceQueryDao {
                     ))
             )
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
-            .where(productJpaEntity.shopId.in(shopIds), productJpaEntity.deleted.isFalse())
+            .where(productShopLinkJpaEntity.shopId.in(shopIds), productJpaEntity.deleted.isFalse())
             .fetch();
 
         return productTuples.stream()
-            .filter(tuple -> tuple.get(productJpaEntity.shopId) != null)
+            .filter(tuple -> tuple.get(productShopLinkJpaEntity.shopId) != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(productJpaEntity.shopId)),
+                tuple -> Objects.requireNonNull(tuple.get(productShopLinkJpaEntity.shopId)),
                 Collectors.mapping(
                     tuple -> withResolvedImageUrl(Objects.requireNonNull(tuple.get(productProjection))),
                     Collectors.toList()

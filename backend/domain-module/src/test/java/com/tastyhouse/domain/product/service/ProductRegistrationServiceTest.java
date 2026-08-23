@@ -179,6 +179,7 @@ class ProductRegistrationServiceTest {
         private Fixture(Product existing) {
             this.productRepository = new ProductRepositoryStub(existing);
             ProductOptionGroupLinkRepositoryStub optionGroupLinkRepository = new ProductOptionGroupLinkRepositoryStub();
+            // 메뉴 등록은 원본 소유 가게 링크(PRODUCT_SHOP_LINK)도 함께 만든다 — 그 저장을 받아 줄 fake가 필요하다.
             this.service = new ProductRegistrationService(
                 productRepository,
                 categoryRepository,
@@ -186,7 +187,8 @@ class ProductRegistrationServiceTest {
                 optionRepository,
                 imageRepository,
                 bbqRepository,
-                optionGroupLinkRepository
+                optionGroupLinkRepository,
+                new FakeProductShopLinkRepository()
             );
         }
     }

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
+import com.tastyhouse.domain.product.model.ProductShopLink;
 import com.tastyhouse.domain.product.model.ProductBbq;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductImage;
@@ -15,6 +16,7 @@ import com.tastyhouse.domain.product.repository.ProductBbqRepository;
 import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
+import com.tastyhouse.domain.product.repository.ProductShopLinkRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.repository.ProductOptionRepository;
 import com.tastyhouse.domain.product.repository.ProductRepository;
@@ -52,6 +54,7 @@ public class ProductRegistrationService {
     private final ProductImageRepository productImageRepository;
     private final ProductBbqRepository productBbqRepository;
     private final ProductOptionGroupLinkRepository productOptionGroupLinkRepository;
+    private final ProductShopLinkRepository productShopLinkRepository;
 
     public ProductRegistrationService(
         ProductRepository productRepository,
@@ -60,7 +63,8 @@ public class ProductRegistrationService {
         ProductOptionRepository productOptionRepository,
         ProductImageRepository productImageRepository,
         ProductBbqRepository productBbqRepository,
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository
+        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductShopLinkRepository productShopLinkRepository
     ) {
         this.productRepository = productRepository;
         this.productCategoryRepository = productCategoryRepository;
@@ -69,6 +73,7 @@ public class ProductRegistrationService {
         this.productImageRepository = productImageRepository;
         this.productBbqRepository = productBbqRepository;
         this.productOptionGroupLinkRepository = productOptionGroupLinkRepository;
+        this.productShopLinkRepository = productShopLinkRepository;
     }
 
     /**
@@ -113,7 +118,17 @@ public class ProductRegistrationService {
             composition,
             singleServing
         );
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+
+        // 원본 소유 가게 링크를 함께 만든다 — 메뉴판 노출의 진실원이 PRODUCT_SHOP_LINK이므로,
+        // 이 링크가 없으면 등록된 메뉴가 어느 가게 메뉴판에도 나타나지 않는다.
+        //
+        // 이 지점에 두는 이유는 메뉴를 만드는 경로가 셋(ceo 등록·admin 등록·batch BBQ 동기화)이고
+        // 전부 이 서비스를 경유하기 때문이다. 호출부마다 배선하면 한 곳이 반드시 빠진다.
+        productShopLinkRepository.save(
+            ProductShopLink.of(saved.getProductId(), shopId, productCategoryId, sort)
+        );
+        return saved;
     }
 
     /**

@@ -53,13 +53,15 @@ public class ProductNutritionQueryService {
     }
 
     /**
-     * 대상 메뉴가 그 가게 소유인지 대조한다 — 가게 소유권만 검증하면 남의 가게 메뉴 id를 실어 보내는
-     * 경로가 열린다. 미존재와 타 가게 소유는 같은 코드로 묶는다.
+     * 대상 메뉴가 그 가게 메뉴판에 걸려 있는지 대조한다 — 가게 소유권만 검증하면 남의 가게 메뉴 id를
+     * 실어 보내는 경로가 열린다. 미존재와 타 가게 메뉴는 같은 코드로 묶는다.
+     *
+     * <p>메뉴-가게 연결(N:M) 도입으로 <b>동등 비교가 아니라 포함 관계</b>로 판정한다 — 한 메뉴가 여러
+     * 가게에 걸리므로, 원본 가게만 인정하면 연결된 가게의 점주가 자기 메뉴판의 메뉴를 열지 못한다.
      */
     private void validateProductOwnedByShop(Long shopId, Long productId) {
-        Long ownerShopId = productQueryDao.findProductShopId(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
-        if (!ownerShopId.equals(shopId)) {
+        boolean owned = productQueryDao.existsProductInShop(productId, shopId);
+        if (!owned) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }
     }

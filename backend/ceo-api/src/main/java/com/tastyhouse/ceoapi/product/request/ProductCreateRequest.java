@@ -1,5 +1,8 @@
 package com.tastyhouse.ceoapi.product.request;
 
+import java.util.List;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -49,6 +52,11 @@ public record ProductCreateRequest(
     Boolean representative,
 
     @Schema(description = "메뉴 평가 제외 여부(주류·사이드 등). 지정하지 않으면 false다.", example = "false")
-    Boolean ratingExcluded
+    Boolean ratingExcluded,
+
+    @Valid
+    @Schema(description = "메뉴를 노출할 가게 목록. 생략하면 shopId 가게 하나에만 연결된다(기존 동작). "
+        + "지정하면 본인 소유 가게여야 하고 각 가게의 메뉴그룹이 필수다.")
+    List<ProductShopLinkItemRequest> links
 ) {
 }

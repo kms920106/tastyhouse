@@ -71,7 +71,9 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public long countVisibleByShopId(ShopId shopId) {
-        return productJpaRepository.countByShopIdAndVisibleTrueAndDeletedFalse(shopId.value());
+        // 메뉴-가게 연결(N:M) 도입 후 "메뉴판 최소 1개 노출" 판정은 가게 메뉴판 단위여야 하므로
+        // PRODUCT.shop_id가 아니라 PRODUCT_SHOP_LINK를 통해 센다.
+        return productJpaRepository.countVisibleByShopLink(shopId.value());
     }
 
     @Override

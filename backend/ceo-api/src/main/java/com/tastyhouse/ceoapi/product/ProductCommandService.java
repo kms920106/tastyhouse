@@ -11,6 +11,8 @@ import com.tastyhouse.domain.product.service.ProductAvailabilityChangeResult;
 import com.tastyhouse.domain.product.service.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.service.ProductDeletionService;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
+import com.tastyhouse.domain.product.service.ProductShopLinkService;
+import com.tastyhouse.domain.product.service.ProductShopLinkSpec;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
@@ -18,8 +20,10 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.ceoapi.product.request.ProductShopLinkItemRequest;
 import com.tastyhouse.ceoapi.product.response.ProductAvailabilityChangeResponse;
 import com.tastyhouse.ceoapi.product.response.ProductAvailabilityFailureResponse;
+import com.tastyhouse.ceoapi.shop.OwnedShopIdProvider;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 
 /**
@@ -44,7 +48,9 @@ public class ProductCommandService {
     private final ProductRepository productRepository;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ProductNameValidator productNameValidator;
+    private final ProductShopLinkService productShopLinkService;
     private final ShopOwnershipValidator shopOwnershipValidator;
+    private final OwnedShopIdProvider ownedShopIdProvider;
 
     public ProductCommandService(
         ProductRegistrationService productRegistrationService,
@@ -52,14 +58,18 @@ public class ProductCommandService {
         ProductRepository productRepository,
         ProhibitedWordValidator prohibitedWordValidator,
         ProductNameValidator productNameValidator,
-        ShopOwnershipValidator shopOwnershipValidator
+        ProductShopLinkService productShopLinkService,
+        ShopOwnershipValidator shopOwnershipValidator,
+        OwnedShopIdProvider ownedShopIdProvider
     ) {
         this.productRegistrationService = productRegistrationService;
         this.productDeletionService = productDeletionService;
         this.productRepository = productRepository;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.productNameValidator = productNameValidator;
+        this.productShopLinkService = productShopLinkService;
         this.shopOwnershipValidator = shopOwnershipValidator;
+        this.ownedShopIdProvider = ownedShopIdProvider;
     }
 
     /**
@@ -80,7 +90,8 @@ public class ProductCommandService {
         Boolean singleServing,
         Integer spiciness,
         Boolean representative,
-        Boolean ratingExcluded
+        Boolean ratingExcluded,
+        List<ProductShopLinkItemRequest> links
     ) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         validateTexts(name, composition, description);
@@ -106,7 +117,28 @@ public class ProductCommandService {
             composition,
             Boolean.TRUE.equals(singleServing)
         );
+
+        // 메뉴판 노출은 PRODUCT_SHOP_LINK가 소유하므로, 등록 직후 최초 연결을 함께 만든다.
+        // links가 비면 원본 가게 하나로만 연결해 기존 단일 가게 등록 동작을 그대로 유지한다.
+        productShopLinkService.createInitialLinks(
+            created.getProductId(),
+            toProductShopLinkSpecs(links),
+            ownedShopIdProvider.findOwnedShopIds(ceoId)
+        );
         return created.getId();
+    }
+
+    /**
+     * 요청의 연결 목록을 도메인 spec으로 옮긴다. {@code null}이면 빈 목록으로 다뤄
+     * 도메인이 "원본 가게 단일 연결"로 처리하게 한다.
+     */
+    private List<ProductShopLinkSpec> toProductShopLinkSpecs(List<ProductShopLinkItemRequest> links) {
+        if (links == null) {
+            return List.of();
+        }
+        return links.stream()
+            .map(link -> ProductShopLinkSpec.of(link.shopId(), link.productCategoryId()))
+            .toList();
     }
 
     /**

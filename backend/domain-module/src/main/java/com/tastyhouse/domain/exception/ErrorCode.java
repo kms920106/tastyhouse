@@ -442,6 +442,23 @@ public enum ErrorCode implements ErrorCodeSpec {
     PRODUCT_REPRESENTATIVE_REQUEST_NOT_PENDING(400, "PRODUCT_REPRESENTATIVE_REQUEST_NOT_PENDING", "검수 대기 상태가 아닙니다."),
     PRODUCT_REPRESENTATIVE_REQUEST_ALREADY_PENDING(400, "PRODUCT_REPRESENTATIVE_REQUEST_ALREADY_PENDING", "이미 검수 대기 중인 사장님 추천 요청이 있습니다."),
 
+    // 메뉴 정보에 대한 고객 의견 제보 — 리뷰(맛 평가)가 아니라 "등록된 정보가 틀렸다"는 제보다.
+    PRODUCT_FEEDBACK_TYPE_UNKNOWN(400, "PRODUCT_FEEDBACK_TYPE_UNKNOWN", "의견 유형이 올바르지 않습니다."),
+    PRODUCT_FEEDBACK_CONTENT_REQUIRED(400, "PRODUCT_FEEDBACK_CONTENT_REQUIRED", "기타 의견은 내용을 입력해 주세요."),
+    PRODUCT_FEEDBACK_CONTENT_TOO_LONG(400, "PRODUCT_FEEDBACK_CONTENT_TOO_LONG", "의견은 500자 이내로 입력해 주세요."),
+    // 같은 회원이 같은 메뉴에 같은 유형으로 7일 내 재제보하는 것을 막는다. 없으면 한 사람이 반복 제보해
+    // 점주가 보는 주간 집계 건수가 왜곡된다.
+    PRODUCT_FEEDBACK_ALREADY_SUBMITTED(400, "PRODUCT_FEEDBACK_ALREADY_SUBMITTED", "최근에 같은 의견을 보내셨습니다."),
+
+    // 메뉴-가게 연결(N:M) — PRODUCT.shop_id(원본 소유 가게)는 유지하고, 이 링크가 "어느 가게 메뉴판에
+    // 노출되는가"만 담는다. 링크가 1개인 메뉴는 동작이 완전히 그대로다.
+    PRODUCT_SHOP_LINK_NOT_FOUND(404, "PRODUCT_SHOP_LINK_NOT_FOUND", "메뉴-가게 연결을 찾을 수 없습니다."),
+    PRODUCT_SHOP_LINK_NOT_OWNED(400, "PRODUCT_SHOP_LINK_NOT_OWNED", "본인 소유 가게에만 연결할 수 있습니다."),
+    PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK(400, "PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK", "메뉴는 최소 1개 가게에 연결되어야 합니다."),
+    PRODUCT_SHOP_LINK_CATEGORY_REQUIRED(400, "PRODUCT_SHOP_LINK_CATEGORY_REQUIRED", "메뉴가 노출될 메뉴그룹을 선택해 주세요."),
+    PRODUCT_SHOP_LINK_CATEGORY_MISMATCH(400, "PRODUCT_SHOP_LINK_CATEGORY_MISMATCH", "해당 가게의 메뉴그룹이 아닙니다."),
+    PRODUCT_SHOP_LINK_ALREADY_LINKED(400, "PRODUCT_SHOP_LINK_ALREADY_LINKED", "이미 연결된 가게입니다."),
+
     // 공지사항
     NOTICE_NOT_FOUND(404, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
 

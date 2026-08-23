@@ -60,7 +60,8 @@ public class ProductApiController {
 
     @Operation(summary = "메뉴 등록",
         description = "생성된 메뉴 ID만 반환합니다. 노출 순서는 서버가 그룹 맨 뒤로 채우며, 이미지·채식은 "
-            + "승인 워크플로가 따로 담당합니다.")
+            + "승인 워크플로가 따로 담당합니다. links를 지정하면 여러 가게 메뉴판에 함께 노출되고, "
+            + "생략하면 shopId 가게 하나에만 연결됩니다(기존 동작).")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createProduct(
         @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -70,7 +71,8 @@ public class ProductApiController {
             userDetails.getCeoId(), request.shopId(), request.productCategoryId(),
             request.name(), request.composition(), request.description(),
             request.originalPrice(), request.discountPrice(), request.singleServing(),
-            request.spiciness(), request.representative(), request.ratingExcluded()
+            request.spiciness(), request.representative(), request.ratingExcluded(),
+            request.links()
         );
         return ResponseEntity.ok(ApiResponse.success(productId));
     }
