@@ -1,3 +1,4 @@
+import ProductFeedbackButton from '@/components/products/ProductFeedbackButton'
 import ProductInfoContent from '@/components/products/ProductInfoContent'
 import ProductNutritionSection from '@/components/products/ProductNutritionSection'
 import { ProductInfoSkeleton } from '@/components/products/ProductInfoSkeleton'
@@ -52,6 +53,10 @@ export default function ShopOrderMenuDetailPage({ shopId, productId, tab, orderM
               orderMethod={orderMethod}
             />
           </Suspense>
+        </BorderedSection>
+        {/* 정보가 틀렸다는 제보 창구. 주문 화면에서도 같은 위치(하단)에 둔다 */}
+        <BorderedSection>
+          <ProductFeedbackButton productId={productId} />
         </BorderedSection>
       </SectionStack>
     </>

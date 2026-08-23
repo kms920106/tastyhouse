@@ -23,6 +23,7 @@ import type {
   MenuOptionGroup,
   MenuPrice,
   MenuVegetarian,
+  ProductShopLink,
 } from "@/feature/product/domain";
 import { formatPrice } from "@/feature/product/format";
 import {
@@ -31,6 +32,7 @@ import {
   PRODUCT_MENU_COPY,
   PRODUCT_MENU_MESSAGE,
   PRODUCT_NUTRITION_COPY,
+  PRODUCT_SHOP_LINK_COPY,
 } from "@/feature/product/message";
 import type { MenuFormValues } from "@/feature/product/schema";
 
@@ -41,6 +43,7 @@ import { MenuImageSheet } from "./menu-image-sheet";
 import { MenuNutritionSheet } from "./menu-nutrition-sheet";
 import { MenuOptionGroupSheet } from "./menu-option-group-sheet";
 import { MenuPriceSheet } from "./menu-price-sheet";
+import { MenuShopLinkSheet } from "./menu-shop-link-sheet";
 import { MenuVegetarianSheet } from "./menu-vegetarian-sheet";
 
 interface MenuDetailManageProps {
@@ -90,6 +93,7 @@ export function MenuDetailManage({
   const [optionGroupOpen, setOptionGroupOpen] = React.useState(false);
   const [nutritionOpen, setNutritionOpen] = React.useState(false);
   const [priceOpen, setPriceOpen] = React.useState(false);
+  const [shopLinkOpen, setShopLinkOpen] = React.useState(false);
 
   // Sheet 안에서만 조회하는 값들의 요약. 상세 응답에 없어서 Sheet 가 알려줄 때까지 비어 있다.
   const [exposureSummary, setExposureSummary] = React.useState<MenuExposure | null>(null);
@@ -99,6 +103,8 @@ export function MenuDetailManage({
   const [nutritionSummary, setNutritionSummary] = React.useState<MenuNutrition | null | undefined>(undefined);
   /** 가격 행 목록도 상세 응답에 없다. Sheet 가 알려줄 때까지 기존 단일 가격 요약을 보인다 */
   const [priceSummaryRows, setPriceSummaryRows] = React.useState<MenuPrice[] | undefined>(undefined);
+  /** 판매 가게 목록도 상세 응답에 없다. Sheet 가 알려줄 때까지 `undefined`("아직 모름")다 */
+  const [shopLinks, setShopLinks] = React.useState<ProductShopLink[] | undefined>(undefined);
 
   const handleExposureSaved = React.useCallback((exposure: MenuExposure | null) => {
     setExposureSummary(exposure);
@@ -297,6 +303,39 @@ export function MenuDetailManage({
     );
   })();
 
+  /**
+   * 판매 가게 요약.
+   *
+   * 상세 응답에 연결 목록이 없어 Sheet 를 열기 전에는 알 수 없다. 그동안은 현재 보고 있는
+   * 가게가 이 메뉴를 파는 것이 확실하므로(그 가게 메뉴판에서 들어왔다) 그 한 줄만 보여준다.
+   */
+  const shopLinkSummaryNode = (() => {
+    if (shopLinks === undefined) {
+      return (
+        <span className="text-muted-foreground">
+          {detail.productCategoryName === null
+            ? PRODUCT_DETAIL_COPY.NOT_SET
+            : `${PRODUCT_SHOP_LINK_COPY.CATEGORY_PREFIX}${detail.productCategoryName}`}
+        </span>
+      );
+    }
+
+    const linked = shopLinks.filter((link) => link.linked);
+    if (linked.length === 0) return <span className="text-muted-foreground">{PRODUCT_SHOP_LINK_COPY.UNLINKED}</span>;
+
+    return (
+      <ul className="flex flex-col gap-0.5">
+        {linked.map((link) => (
+          <li key={link.shopId} className="truncate">
+            {link.productCategoryName === null
+              ? link.shopName
+              : `${link.shopName} · ${PRODUCT_SHOP_LINK_COPY.CATEGORY_PREFIX}${link.productCategoryName}`}
+          </li>
+        ))}
+      </ul>
+    );
+  })();
+
   const linkedGroupCount = optionGroups.filter((group) =>
     (linkedProductsByGroupId[group.id] ?? []).some((product) => product.id === productId),
   ).length;
@@ -419,6 +458,12 @@ export function MenuDetailManage({
           }
           onAction={() => setOptionGroupOpen(true)}
         />
+        <SettingRow
+          title={PRODUCT_SHOP_LINK_COPY.SECTION_TITLE}
+          actionLabel={PRODUCT_SHOP_LINK_COPY.ACTION_CHANGE}
+          summary={shopLinkSummaryNode}
+          onAction={() => setShopLinkOpen(true)}
+        />
       </CardContent>
 
       <MenuBasicSheet
@@ -430,6 +475,15 @@ export function MenuDetailManage({
         defaultValues={formValues}
         categories={categories}
         onSubmit={(values) => submitUpdate(values, () => setBasicSection(null))}
+      />
+
+      <MenuShopLinkSheet
+        open={shopLinkOpen}
+        onOpenChange={setShopLinkOpen}
+        productId={productId}
+        shopId={shopId}
+        categories={categories}
+        onSaved={setShopLinks}
       />
 
       <MenuPriceSheet

@@ -2,14 +2,14 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { GripVertical, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { MenuBoardRow } from "@/feature/product/domain";
 import { formatPrice } from "@/feature/product/format";
-import { PRODUCT_AVAILABILITY_COPY, PRODUCT_MENU_COPY } from "@/feature/product/message";
+import { PRODUCT_AVAILABILITY_COPY, PRODUCT_EXCLUDE_COPY, PRODUCT_MENU_COPY } from "@/feature/product/message";
 import { cn } from "@/lib/utils";
 
 import { toMenuDragId } from "./use-menu-sort";
@@ -20,6 +20,8 @@ interface MenuRowProps {
   disabled?: boolean;
   onCheckedChange: (checked: boolean) => void;
   onOpenDetail: () => void;
+  /** 메뉴판에서 제외(링크 해제). 삭제와 다른 동작이다 */
+  onExclude: () => void;
 }
 
 /**
@@ -28,7 +30,7 @@ interface MenuRowProps {
  * 드래그 손잡이(`≡`)에만 `listeners` 를 붙인다 — 행 전체를 드래그 대상으로 만들면 체크박스·버튼을
  * 누를 때마다 드래그가 시작돼 다중 선택이 사실상 불가능해진다.
  */
-export function MenuRow({ row, checked, disabled, onCheckedChange, onOpenDetail }: MenuRowProps) {
+export function MenuRow({ row, checked, disabled, onCheckedChange, onOpenDetail, onExclude }: MenuRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: toMenuDragId(row.id),
     disabled,
@@ -96,6 +98,20 @@ export function MenuRow({ row, checked, disabled, onCheckedChange, onOpenDetail 
 
       <Button type="button" size="sm" variant="outline" disabled={disabled} onClick={onOpenDetail}>
         {PRODUCT_MENU_COPY.BUTTON_DETAIL}
+      </Button>
+
+      {/* 메뉴판에서 제외 — 링크만 끊는다. 소프트 삭제(일괄 삭제)와 다른 동작이라
+          `destructive` 가 아닌 `ghost` 로 두어 무게를 구분한다. */}
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        disabled={disabled}
+        aria-label={PRODUCT_EXCLUDE_COPY.ACTION}
+        title={PRODUCT_EXCLUDE_COPY.ACTION}
+        onClick={onExclude}
+      >
+        <X className="size-4" />
       </Button>
     </div>
   );

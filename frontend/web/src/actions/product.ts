@@ -1,6 +1,7 @@
 'use server'
 
 import type { OrderMethodType } from '@/domains/order'
+import type { ProductFeedbackType } from '@/domains/product/product.dto'
 import { productRepository } from '@/domains/product/product.repository'
 
 /**
@@ -50,4 +51,17 @@ export async function getProductReviewCount(productId: number) {
 
 export async function getTodayDiscountProducts({ page, size }: { page: number; size: number }) {
   return productRepository.getTodayDiscountProducts({ page, size })
+}
+
+/**
+ * 메뉴 정보에 대한 의견을 보낸다.
+ *
+ * 7일 내 같은 유형 재제보는 서버가 `PRODUCT_FEEDBACK_ALREADY_SUBMITTED` 로 거절한다 —
+ * 오류 화면이 아니라 안내 토스트로 다루므로 호출부가 `error` 를 그대로 읽는다.
+ */
+export async function createProductFeedback(
+  productId: number,
+  request: { feedbackType: ProductFeedbackType; content?: string },
+) {
+  return productRepository.createProductFeedback(productId, request)
 }

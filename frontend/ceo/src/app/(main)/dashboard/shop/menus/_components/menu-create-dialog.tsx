@@ -4,8 +4,10 @@ import * as React from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -18,12 +20,15 @@ import {
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { loadShopCategoriesAction } from "@/feature/product/actions";
 import { SPICINESS_OPTIONS } from "@/feature/product/constants";
-import type { MenuCategory } from "@/feature/product/domain";
-import { PRODUCT_MENU_COPY } from "@/feature/product/message";
+import type { MenuCategory, ProductShopLinkInput } from "@/feature/product/domain";
+import { PRODUCT_MENU_COPY, PRODUCT_SHOP_LINK_COPY, PRODUCT_SHOP_LINK_MESSAGE } from "@/feature/product/message";
 import { type MenuFormValues, menuFormSchema } from "@/feature/product/schema";
+import type { ShopSummary } from "@/feature/shop/domain";
 
 /**
  * 미분류 센티넬.
@@ -68,9 +73,14 @@ interface MenuCreateDialogProps {
   open: boolean;
   pending?: boolean;
   categories: MenuCategory[];
+  /** 현재 보고 있는 가게. 다중 선택에서 항상 켜져 있는 기준 가게다 */
+  shopId?: number;
+  /** 점주 소유 가게 전체. **2개 이상일 때만** 다중 선택 UI 를 보여준다 */
+  shops: ShopSummary[];
   /** 미분류 그룹에 메뉴가 있으면 Select 에 미분류 항목을 노출한다 */
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: MenuCreateSubmitValues) => void;
+  /** `links` 는 다중 선택을 쓴 경우에만 채워진다 — 가게 1개인 점주는 undefined 다 */
+  onSubmit: (values: MenuCreateSubmitValues, links?: ProductShopLinkInput[]) => void;
 }
 
 /**
@@ -82,7 +92,29 @@ interface MenuCreateDialogProps {
  * 중복 메뉴명·금칙어는 DB 를 봐야 알 수 있어 클라이언트가 판정할 수 없다 —
  * 서버가 내려준 한국어 문구를 호출부가 토스트로 그대로 노출한다.
  */
-export function MenuCreateDialog({ open, pending, categories, onOpenChange, onSubmit }: MenuCreateDialogProps) {
+export function MenuCreateDialog({
+  open,
+  pending,
+  categories,
+  shopId,
+  shops,
+  onOpenChange,
+  onSubmit,
+}: MenuCreateDialogProps) {
+  /**
+   * 다중 가게 지정은 **소유 가게가 2개 이상일 때만** 보인다(PDF STEP 3 / `frontend.md` §E).
+   * 가게가 하나인 점주에게 고를 것이 하나뿐인 선택을 강요하지 않는다.
+   */
+  const isMultiShop = shops.length >= 2;
+
+  /** 추가로 연결할 가게. 기준 가게(`shopId`)는 항상 연결되므로 여기 담지 않는다 */
+  const [extraShopIds, setExtraShopIds] = React.useState<ReadonlySet<number>>(() => new Set());
+  /** 추가 가게별로 고른 메뉴그룹. 기준 가게는 `productCategoryId` 폼 필드를 그대로 쓴다 */
+  const [extraCategoryValues, setExtraCategoryValues] = React.useState<Record<number, string>>({});
+  /** 가게별 메뉴그룹 캐시(가게당 한 번만 조회). 기준 가게는 `categories` prop 으로 미리 채운다 */
+  const [categoriesByShopId, setCategoriesByShopId] = React.useState<Record<number, MenuCategory[]>>({});
+  const [loadingCategoryShopIds, setLoadingCategoryShopIds] = React.useState<ReadonlySet<number>>(() => new Set());
+
   const form = useForm<MenuFormValues>({
     resolver: zodResolver(menuFormSchema),
     defaultValues: DEFAULT_VALUES,
@@ -90,24 +122,93 @@ export function MenuCreateDialog({ open, pending, categories, onOpenChange, onSu
 
   // 닫았다 다시 열면 이전 입력이 남지 않도록 초기화한다.
   React.useEffect(() => {
-    if (open) form.reset(DEFAULT_VALUES);
+    if (open) {
+      form.reset(DEFAULT_VALUES);
+      setExtraShopIds(new Set());
+      setExtraCategoryValues({});
+      setCategoriesByShopId(shopId !== undefined ? { [shopId]: categories } : {});
+      setLoadingCategoryShopIds(new Set());
+    }
+    // biome-ignore lint/correctness/useExhaustiveDependencies: shopId/categories는 열리는 시점 값만 쓴다
   }, [open, form]);
 
-  const handleSubmit = (values: MenuFormValues) => {
-    onSubmit({
-      name: values.name.trim(),
-      productCategoryId: values.productCategoryId === NO_CATEGORY_VALUE ? null : Number(values.productCategoryId),
-      composition: values.composition.trim(),
-      description: values.description.trim(),
-      weightText: values.weightText.trim(),
-      originalPrice: Number(values.originalPrice),
-      // 빈 문자열은 "할인 없음"이다 — 0 으로 보내면 전액 할인이 된다.
-      discountPrice: values.discountPrice.trim() === "" ? null : Number(values.discountPrice),
-      singleServing: values.singleServing,
-      representative: values.representative,
-      spiciness: values.spiciness === "" ? null : Number(values.spiciness),
-      ratingExcluded: values.ratingExcluded,
+  /** 대상 가게의 메뉴그룹을 아직 모르면 서버에서 불러와 캐시한다(가게당 한 번만) */
+  function ensureShopCategoriesLoaded(targetShopId: number) {
+    if (categoriesByShopId[targetShopId] !== undefined || loadingCategoryShopIds.has(targetShopId)) {
+      return;
+    }
+
+    setLoadingCategoryShopIds((prev) => new Set(prev).add(targetShopId));
+
+    void loadShopCategoriesAction(targetShopId).then(({ success, message, data }) => {
+      setLoadingCategoryShopIds((prev) => {
+        const updated = new Set(prev);
+        updated.delete(targetShopId);
+        return updated;
+      });
+
+      if (!success || !data) {
+        toast.error(message ?? PRODUCT_SHOP_LINK_MESSAGE.LOAD_FAILED);
+        return;
+      }
+
+      setCategoriesByShopId((prev) => ({ ...prev, [targetShopId]: data }));
     });
+  }
+
+  const handleSubmit = (values: MenuFormValues) => {
+    const productCategoryId = values.productCategoryId === NO_CATEGORY_VALUE ? null : Number(values.productCategoryId);
+
+    /**
+     * 다중 연결을 실제로 쓴 경우에만 `links` 를 만든다.
+     *
+     * 추가 가게를 하나도 고르지 않았으면 단일 등록과 동작이 같으므로 `undefined` 로 두어
+     * 서버의 기존 경로를 그대로 태운다.
+     *
+     * 추가 가게는 그 가게의 메뉴그룹을 따로 고른다(`extraCategoryValues`) — 기준 가게에서 고른
+     * 그룹 id 를 재사용하면 그 가게의 그룹이 아닐 때 서버가 `PRODUCT_SHOP_LINK_CATEGORY_MISMATCH`
+     * 로 거절한다.
+     */
+    if (isMultiShop && extraShopIds.size > 0 && productCategoryId !== null) {
+      const missingCategory = Array.from(extraShopIds).some((linkShopId) => {
+        const categoryId = Number(extraCategoryValues[linkShopId] ?? "");
+        return !Number.isInteger(categoryId) || categoryId <= 0;
+      });
+
+      if (missingCategory) {
+        toast.error(PRODUCT_SHOP_LINK_MESSAGE.CATEGORY_REQUIRED);
+        return;
+      }
+    }
+
+    const links: ProductShopLinkInput[] | undefined =
+      isMultiShop && extraShopIds.size > 0 && shopId !== undefined && productCategoryId !== null
+        ? [
+            { shopId, productCategoryId },
+            ...Array.from(extraShopIds).map((linkShopId) => ({
+              shopId: linkShopId,
+              productCategoryId: Number(extraCategoryValues[linkShopId] ?? ""),
+            })),
+          ]
+        : undefined;
+
+    onSubmit(
+      {
+        name: values.name.trim(),
+        productCategoryId,
+        composition: values.composition.trim(),
+        description: values.description.trim(),
+        weightText: values.weightText.trim(),
+        originalPrice: Number(values.originalPrice),
+        // 빈 문자열은 "할인 없음"이다 — 0 으로 보내면 전액 할인이 된다.
+        discountPrice: values.discountPrice.trim() === "" ? null : Number(values.discountPrice),
+        singleServing: values.singleServing,
+        representative: values.representative,
+        spiciness: values.spiciness === "" ? null : Number(values.spiciness),
+        ratingExcluded: values.ratingExcluded,
+      },
+      links,
+    );
   };
 
   return (
@@ -205,6 +306,96 @@ export function MenuCreateDialog({ open, pending, categories, onOpenChange, onSu
                 </Field>
               )}
             />
+
+            {/* 소유 가게가 2개 이상일 때만 노출. 하나뿐인 점주에게 선택을 강요하지 않는다 */}
+            {isMultiShop && (
+              <>
+                <FieldSeparator />
+
+                <Field className="gap-1.5">
+                  <FieldLabel>{PRODUCT_SHOP_LINK_COPY.SECTION_TITLE}</FieldLabel>
+                  <FieldDescription>{PRODUCT_SHOP_LINK_COPY.GUIDE}</FieldDescription>
+
+                  <div className="flex flex-col gap-2 pt-1">
+                    {shops.map((shop) => {
+                      // 기준 가게는 항상 연결된다 — 끌 수 있으면 어느 가게 메뉴인지가 모호해진다.
+                      const isBase = shop.id === shopId;
+                      const inputId = `menu-create-shop-${shop.id}`;
+                      const checked = isBase || extraShopIds.has(shop.id);
+                      const shopCategories = categoriesByShopId[shop.id];
+                      const isLoadingCategories = loadingCategoryShopIds.has(shop.id);
+                      const canPickCategory = shopCategories !== undefined && shopCategories.length > 0;
+
+                      return (
+                        <div key={shop.id} className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={inputId}
+                              checked={checked}
+                              disabled={pending || isBase}
+                              onCheckedChange={(nextChecked) => {
+                                if (nextChecked === true) ensureShopCategoriesLoaded(shop.id);
+                                setExtraShopIds((prev) => {
+                                  const next = new Set(prev);
+                                  if (nextChecked === true) next.add(shop.id);
+                                  else next.delete(shop.id);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <FieldLabel htmlFor={inputId} className="font-normal">
+                              {shop.name}
+                            </FieldLabel>
+                          </div>
+
+                          {/* 기준 가게는 위 "메뉴그룹" Select 를 그대로 쓴다 — 여기서는 추가 가게만 고른다 */}
+                          {!isBase &&
+                            checked &&
+                            (canPickCategory ? (
+                              <Select
+                                value={extraCategoryValues[shop.id] ?? ""}
+                                disabled={pending}
+                                onValueChange={(value) =>
+                                  setExtraCategoryValues((prev) => ({ ...prev, [shop.id]: value }))
+                                }
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder={PRODUCT_SHOP_LINK_COPY.CATEGORY_PLACEHOLDER} />
+                                </SelectTrigger>
+                                <SelectContent position="popper">
+                                  {shopCategories.map((category) => (
+                                    <SelectItem key={category.id} value={String(category.id)}>
+                                      {category.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : isLoadingCategories ? (
+                              <Skeleton className="h-9 w-full" />
+                            ) : (
+                              <span className="text-muted-foreground text-xs">
+                                {PRODUCT_SHOP_LINK_COPY.EMPTY_CATEGORIES}
+                              </span>
+                            ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* 여러 가게에 걸면 가격이 공유된다 — 등록 전에 알려야 되돌릴 수 있다 */}
+                  {extraShopIds.size > 0 && (
+                    <FieldDescription>{PRODUCT_SHOP_LINK_COPY.PRICE_SHARED_WARNING}</FieldDescription>
+                  )}
+
+                  {/* 다중 연결은 메뉴그룹이 필수다(PDF STEP 3). 미분류면 단일 등록으로 떨어진다 */}
+                  {extraShopIds.size > 0 && form.watch("productCategoryId") === NO_CATEGORY_VALUE && (
+                    <FieldDescription className="text-destructive">
+                      {PRODUCT_SHOP_LINK_MESSAGE.CATEGORY_REQUIRED}
+                    </FieldDescription>
+                  )}
+                </Field>
+              </>
+            )}
 
             <FieldSeparator />
 

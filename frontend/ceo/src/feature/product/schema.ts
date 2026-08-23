@@ -32,6 +32,7 @@ import {
   PRODUCT_MESSAGE,
   PRODUCT_NUTRITION_MESSAGE,
   PRODUCT_PRICE_MESSAGE,
+  PRODUCT_SHOP_LINK_MESSAGE,
   PRODUCT_VALIDATION_MESSAGE,
   STORE_PRICE_VERIFICATION_MESSAGE,
 } from "./message";
@@ -738,3 +739,30 @@ export const storePriceVerificationSchema = z.object({
 });
 
 export type StorePriceVerificationFormValues = z.infer<typeof storePriceVerificationSchema>;
+
+// ===== 메뉴-가게 연결 =====
+
+/**
+ * 연결 변경 폼.
+ *
+ * **메뉴그룹은 필수**라 `productCategoryId` 를 nullable 로 두지 않는다 — 시트가 토글 ON 인
+ * 가게만 이 배열에 담고, 그룹을 고르지 않은 가게는 담기 전에 걸러낸다.
+ *
+ * **최소 1개** 규칙도 여기서 막는다. 서버가 `PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK` 로 거절하지만,
+ * 저장을 눌러 왕복한 뒤 알려주면 점주가 무엇을 되돌려야 할지 헷갈린다.
+ */
+export const productShopLinksSchema = z.object({
+  links: z
+    .array(
+      z.object({
+        shopId: z.number().int().positive(),
+        productCategoryId: z
+          .number({ message: PRODUCT_SHOP_LINK_MESSAGE.CATEGORY_REQUIRED })
+          .int()
+          .positive({ message: PRODUCT_SHOP_LINK_MESSAGE.CATEGORY_REQUIRED }),
+      }),
+    )
+    .min(1, PRODUCT_SHOP_LINK_MESSAGE.LAST_CANNOT_UNLINK),
+});
+
+export type ProductShopLinksFormValues = z.infer<typeof productShopLinksSchema>;

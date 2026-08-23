@@ -208,6 +208,13 @@ export interface ProductCreateRequest {
   spiciness?: number | null;
   representative?: boolean;
   ratingExcluded?: boolean;
+  /**
+   * 다중 가게 연결 (P2-5 【변경】).
+   *
+   * 생략하면 서버가 `shopId`·`productCategoryId` 로 **단일 연결**을 만든다 — 가게가 하나인
+   * 점주의 기존 등록 흐름이 그대로 도는 것이 이 설계의 안전장치다.
+   */
+  links?: { shopId: number; productCategoryId: number }[];
 }
 
 export interface ProductUpdateRequest extends ProductCreateRequest {}
@@ -666,4 +673,61 @@ export interface ProductPriceUpdateRequest {
     pickupPrice?: number | null;
     sort: number;
   }[];
+}
+
+// ===== 메뉴 정보에 대한 고객 의견 (점주 확인) =====
+
+/** 의견 유형 코드. 손님 화면의 라디오 항목과 같은 집합이다 */
+export type ProductFeedbackType = "PRICE" | "IMAGE" | "COMPOSITION" | "SOLD_OUT" | "ETC";
+
+/**
+ * 의견 한 줄. **제보자 정보(회원 id·닉네임)는 내려오지 않는다** —
+ * 점주가 특정 손님을 식별하면 보복 우려가 있고, 제보의 목적은 정보 수정이지 손님 응대가 아니다.
+ */
+export interface ProductFeedbackResponse {
+  productId: number;
+  productName: string;
+  feedbackType: ProductFeedbackType;
+  /** 지난 한 주 동안 같은 유형으로 접수된 건수 */
+  count: number;
+  /** `ETC` 유형의 서술 내용 (최대 10건) */
+  contents: string[];
+}
+
+/** 아이콘 빨간 점 표시용 */
+export interface ProductFeedbackUnreadResponse {
+  hasUnread: boolean;
+}
+
+// ===== 메뉴-가게 연결 (N:M) =====
+
+/**
+ * 연결 후보 한 줄.
+ *
+ * **점주가 소유한 전체 가게**가 내려오고 `linked` 로 연결 여부를 구분한다 —
+ * 화면이 토글로 켜고 끌 수 있게 하려는 것이다.
+ */
+export interface ProductShopLinkResponse {
+  shopId: number;
+  shopName: string;
+  /** 연결돼 있지 않으면 null */
+  productCategoryId: number | null;
+  productCategoryName: string | null;
+  linked: boolean;
+}
+
+/**
+ * 연결 전체 교체(PUT).
+ *
+ * 목록에 없는 가게는 연결이 해제된다. 최상위 `shopId` 는 **권한 판정 기준 가게**이고
+ * `links[].shopId` 가 실제 연결 대상이다 — 둘을 혼동하면 남의 가게를 건드리게 된다.
+ */
+export interface ProductShopLinkUpdateRequest {
+  shopId: number;
+  links: { shopId: number; productCategoryId: number }[];
+}
+
+/** 메뉴 불러오기(가게 기준). 대상 가게는 경로에 있고 메뉴그룹만 본문으로 보낸다 */
+export interface ProductShopLinkCreateRequest {
+  productCategoryId: number;
 }

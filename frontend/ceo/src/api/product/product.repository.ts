@@ -18,6 +18,8 @@ import type {
   ProductDetailResponse,
   ProductExposureRequest,
   ProductExposureResponse,
+  ProductFeedbackResponse,
+  ProductFeedbackUnreadResponse,
   ProductHiddenRequest,
   ProductImageListResponse,
   ProductImageSortRequest,
@@ -45,6 +47,9 @@ import type {
   ProductPriceUpdateRequest,
   ProductReleaseRequest,
   ProductRepresentativeRequestBody,
+  ProductShopLinkCreateRequest,
+  ProductShopLinkResponse,
+  ProductShopLinkUpdateRequest,
   ProductSoldOutRequest,
   ProductSoldOutUntilRequest,
   ProductUpdateRequest,
@@ -429,5 +434,64 @@ export const productRepository = {
    */
   updateProductPrices(productId: number, body: ProductPriceUpdateRequest): Promise<ApiResponse<void>> {
     return api.put<void>(`${VERSION_PATH}/${productId}/prices`, body);
+  },
+  // ===== 메뉴 정보에 대한 고객 의견 =====
+  // 제보자 정보는 응답에 없다. 조회 범위는 지난 7일 고정이라 기간 파라미터가 없다.
+
+  /** 유형별로 집계된 의견 목록. 건수 많은 순 정렬은 화면이 한다 */
+  getProductFeedbacks(shopId: number, params?: { page?: number; size?: number }) {
+    return api.get<ProductFeedbackResponse[]>(`${VERSION_PATH}/feedbacks`, {
+      params: { shopId, ...params },
+    });
+  },
+
+  /** 아이콘 빨간 점 판정. 목록보다 가벼워 메뉴판 진입 때마다 부른다 */
+  getProductFeedbackUnread(shopId: number): Promise<ApiResponse<ProductFeedbackUnreadResponse>> {
+    return api.get<ProductFeedbackUnreadResponse>(`${VERSION_PATH}/feedbacks/unread`, {
+      params: { shopId },
+    });
+  },
+
+  /** 목록을 연 시점에 호출해 빨간 점을 끈다 */
+  readProductFeedbacks(shopId: number): Promise<ApiResponse<void>> {
+    return api.patch<void>(`${VERSION_PATH}/feedbacks/read`, { shopId });
+  },
+
+  // ===== 메뉴-가게 연결 (N:M) =====
+
+  /** 점주 소유 **전체** 가게가 연결 여부와 함께 내려온다 — 화면이 토글로 켜고 끈다 */
+  getProductShopLinks(productId: number, shopId: number): Promise<ApiResponse<ProductShopLinkResponse[]>> {
+    return api.get<ProductShopLinkResponse[]>(`${VERSION_PATH}/${productId}/shops`, {
+      params: { shopId },
+    });
+  },
+
+  /** 전체 교체(PUT) — 목록에 없는 가게는 연결 해제된다 */
+  updateProductShopLinks(productId: number, body: ProductShopLinkUpdateRequest): Promise<ApiResponse<void>> {
+    return api.put<void>(`${VERSION_PATH}/${productId}/shops`, body);
+  },
+
+  /**
+   * 메뉴 불러오기 — **가게 기준**.
+   *
+   * 연결 변경(PUT)이 메뉴 하나의 소속을 통째로 바꾸는 것과 달리, 이쪽은 대상 가게 메뉴판에
+   * 남의 메뉴 한 건을 끌어온다. 그래서 다른 가게의 기존 연결을 건드리지 않는다.
+   */
+  linkProductToShop(
+    productId: number,
+    targetShopId: number,
+    body: ProductShopLinkCreateRequest,
+  ): Promise<ApiResponse<void>> {
+    return api.post<void>(`${VERSION_PATH}/${productId}/shops/${targetShopId}`, body);
+  },
+
+  /**
+   * 메뉴판에서 제외 — **링크만 지운다**.
+   *
+   * 메뉴 소프트 삭제(`deleteMenus`)와 다르다. 이 가게 메뉴판에서만 사라지고 메뉴 자체와
+   * 다른 가게의 연결은 남는다.
+   */
+  unlinkProductFromShop(productId: number, targetShopId: number): Promise<ApiResponse<void>> {
+    return api.delete<void>(`${VERSION_PATH}/${productId}/shops/${targetShopId}`);
   },
 };

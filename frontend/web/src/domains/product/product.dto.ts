@@ -196,3 +196,20 @@ export interface ProductNutritionResponse {
   /** 한글 라벨 배열 (예: `["우유","땅콩"]`) */
   allergens: string[]
 }
+
+// ===== 메뉴 정보에 대한 고객 의견 (제보) =====
+
+/**
+ * 의견 유형.
+ *
+ * 자유 서술만 받으면 점주가 무엇을 고쳐야 할지 분류할 수 없고 집계도 되지 않는다 —
+ * 그래서 유형을 먼저 고르게 하고 `ETC` 일 때만 서술을 받는다.
+ */
+export type ProductFeedbackType = 'PRICE' | 'IMAGE' | 'COMPOSITION' | 'SOLD_OUT' | 'ETC'
+
+/** 의견 보내기. 로그인 필수이며 응답 `data` 는 null 이다 */
+export interface ProductFeedbackCreateRequest {
+  feedbackType: ProductFeedbackType
+  /** `ETC` 면 필수. 최대 500자 */
+  content?: string
+}

@@ -398,3 +398,57 @@ export interface StorePriceVerification {
   rejectReason: string | null;
   unverifiedItems: StorePriceUnverifiedItem[];
 }
+
+// =====================================================================================
+// 메뉴 정보에 대한 고객 의견 (점주 확인) · 메뉴-가게 연결
+// 위 영역들과 마찬가지로 DTO 필드가 1:1 대응해 변환 계층을 두지 않는다.
+// =====================================================================================
+
+export type { ProductFeedbackType } from "@/api/product/product.dto";
+
+import type { ProductFeedbackType } from "@/api/product/product.dto";
+
+/**
+ * 유형별로 집계된 고객 의견 한 줄.
+ *
+ * **제보자 정보가 없다** — 응답에 담기지 않으므로 화면도 표시하지 않는다.
+ */
+export interface CustomerFeedback {
+  productId: number;
+  productName: string;
+  feedbackType: ProductFeedbackType;
+  /** 지난 한 주 동안 같은 유형으로 접수된 건수 */
+  count: number;
+  /** `ETC` 유형의 서술 내용 (최대 10건). 다른 유형은 빈 배열 */
+  contents: string[];
+}
+
+/** 메뉴-가게 연결 후보. 점주 소유 전체 가게가 `linked` 와 함께 내려온다 */
+export interface ProductShopLink {
+  shopId: number;
+  shopName: string;
+  /** 연결돼 있지 않으면 null */
+  productCategoryId: number | null;
+  productCategoryName: string | null;
+  linked: boolean;
+}
+
+/** 연결 변경 시트가 저장할 한 건. 메뉴그룹은 필수라 null 이 될 수 없다 */
+export interface ProductShopLinkInput {
+  shopId: number;
+  productCategoryId: number;
+}
+
+/**
+ * 불러올 수 있는 메뉴 한 줄.
+ *
+ * `shopId` 는 **이 메뉴가 원래 있던 가게**다 — 화면이 출처를 밝히는 데 쓴다.
+ * 불러오기 API 는 메뉴 id 와 대상 가게만 필요해 이 값을 보내지는 않는다.
+ */
+export interface ImportableProduct {
+  productId: number;
+  name: string;
+  originalPrice: number;
+  imageUrl: string | null;
+  shopId: number;
+}

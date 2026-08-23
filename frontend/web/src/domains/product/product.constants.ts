@@ -1,3 +1,5 @@
+import type { ProductFeedbackType } from './product.dto'
+
 /**
  * 상품 도메인의 한국어 문구·라벨.
  *
@@ -28,3 +30,39 @@ export const SHOP_PRICE_BADGE_COPY = {
   SAME_AS_STORE_PRICE: '매장과 같은 가격',
   STORE_PRICE_PICKUP: '매장가격 픽업',
 } as const
+
+/**
+ * 메뉴 정보에 대한 고객 의견 문구.
+ *
+ * 리뷰(맛 평가)와 다르다 — 등록된 **정보가 틀렸다**는 제보다.
+ */
+export const PRODUCT_FEEDBACK_MESSAGE = {
+  TYPE_REQUIRED: '의견 유형을 선택해 주세요.',
+  CONTENT_REQUIRED: '기타 의견은 내용을 입력해 주세요.',
+  CONTENT_TOO_LONG: '의견은 500자 이내로 입력해 주세요.',
+  SUBMIT_SUCCESS: '의견을 보냈습니다. 소중한 의견 감사합니다.',
+  ALREADY_SUBMITTED: '최근에 같은 의견을 보내셨습니다.',
+  LOGIN_REQUIRED: '로그인 후 의견을 보낼 수 있습니다.',
+  PRIVACY_NOTICE: '보내주신 의견은 사장님께 전달되며, 작성자 정보는 공개되지 않습니다.',
+} as const
+
+export const PRODUCT_FEEDBACK_COPY = {
+  TRIGGER: '메뉴 정보에 대한 의견 보내기',
+  TITLE: '메뉴 정보에 대한 의견을 보내주세요',
+  CONTENT_LABEL: '어떤 점이 다른가요?',
+  CONTENT_PLACEHOLDER: '어떤 정보가 다른지 알려주세요.',
+  SUBMIT: '보내기',
+  CANCEL: '취소',
+} as const
+
+/** 의견 유형 라디오. PDF 의 문구·순서를 그대로 따른다 */
+export const PRODUCT_FEEDBACK_TYPE_OPTIONS = [
+  { value: 'PRICE', label: '가격이 달라요' },
+  { value: 'IMAGE', label: '이미지가 달라요' },
+  { value: 'COMPOSITION', label: '구성이 달라요' },
+  { value: 'SOLD_OUT', label: '품절인데 판매 중이에요' },
+  { value: 'ETC', label: '기타' },
+] as const satisfies readonly { value: ProductFeedbackType; label: string }[]
+
+/** `ETC` 서술 내용의 최대 길이. 서버 제약과 같은 값이다 */
+export const PRODUCT_FEEDBACK_CONTENT_MAX_LENGTH = 500

@@ -8,6 +8,7 @@ import { PRODUCT_REPRESENTATIVE_COPY, STORE_PRICE_VERIFICATION_COPY } from "@/fe
 import type { MenuCollectionImage, ShopOrderNotice, ShopOrigin } from "@/feature/shop/domain";
 import { SHOP_MENU_COLLECTION_COPY, SHOP_ORDER_NOTICE_COPY, SHOP_ORIGIN_COPY } from "@/feature/shop/message";
 
+import { CustomerFeedbackButton } from "./customer-feedback-button";
 import { MenuCollectionSheet } from "./menu-collection-sheet";
 import { OrderNoticeSheet } from "./order-notice-sheet";
 import { RepresentativeMenuSheet } from "./representative-menu-sheet";
@@ -69,6 +70,8 @@ export function MenuBoardTopActions({
       <Button type="button" variant="outline" disabled={disabled} onClick={() => setOpenSheet("storePrice")}>
         {STORE_PRICE_VERIFICATION_COPY.SHEET_TITLE}
       </Button>
+      {/* 제보 유무를 스스로 조회해 빨간 점을 관리하므로 열림 상태를 여기서 들지 않는다 */}
+      <CustomerFeedbackButton shopId={shopId} disabled={disabled} />
 
       <MenuCollectionSheet
         open={openSheet === "collection"}

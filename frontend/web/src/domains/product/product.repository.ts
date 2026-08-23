@@ -1,12 +1,13 @@
 import 'server-only'
 
 import type { OrderMethodType } from '@/domains/order'
-import { publicApi } from '@/lib/api'
+import { api, publicApi } from '@/lib/api'
 import { PaginationParams } from '@/types/common'
 import {
   ProductBatchRequest,
   ProductBatchResponse,
   ProductDetailResponse,
+  ProductFeedbackCreateRequest,
   ProductNutritionResponse,
   ProductImagesResponse,
   ProductOptionsResponse,
@@ -103,5 +104,14 @@ export const productRepository = {
       ...REVIEW_CACHE_OPTIONS,
       params,
     })
+  },
+  /**
+   * 메뉴 정보에 대한 의견을 보낸다.
+   *
+   * 조회 계열과 달리 **인증 클라이언트(`api`)를 쓴다** — 익명 제보를 열면 경쟁 가게의 반복 허위
+   * 제보를 막을 수 없어 서버가 로그인을 요구한다. 다만 점주에게 제보자는 노출되지 않는다.
+   */
+  async createProductFeedback(productId: number, request: ProductFeedbackCreateRequest) {
+    return api.post<null>(`${ENDPOINT}/v1/${productId}/feedbacks`, request)
   },
 }

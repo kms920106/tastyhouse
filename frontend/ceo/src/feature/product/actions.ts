@@ -10,7 +10,10 @@ import { PRODUCT_REPRESENTATIVE_MAX_COUNT } from "./constants";
 import type {
   AllergenOption,
   AvailabilityChangeOutcome,
+  CustomerFeedback,
+  ImportableProduct,
   LinkedProductSummary,
+  MenuCategory,
   MenuExposure,
   MenuExposureHour,
   MenuImageList,
@@ -23,10 +26,14 @@ import type {
   OptionSelection,
   ProductOptionGroupType,
   ProductReleaseTarget,
+  ProductShopLink,
+  ProductShopLinkInput,
   StorePriceVerification,
 } from "./domain";
 import {
+  CUSTOMER_FEEDBACK_COPY,
   OPTION_GROUP_MERGE_MESSAGE,
+  PRODUCT_IMPORT_COPY,
   PRODUCT_MENU_MESSAGE,
   PRODUCT_MENU_VALIDATION_MESSAGE,
   PRODUCT_MESSAGE,
@@ -34,6 +41,7 @@ import {
   PRODUCT_PRICE_MESSAGE,
   PRODUCT_REPRESENTATIVE_COPY,
   PRODUCT_REPRESENTATIVE_MESSAGE,
+  PRODUCT_SHOP_LINK_MESSAGE,
   STORE_PRICE_VERIFICATION_MESSAGE,
 } from "./message";
 import {
@@ -49,6 +57,7 @@ import {
   type ProductPricesFormValues,
   productIdSchema,
   productPricesSchema,
+  productShopLinksSchema,
   releaseTargetSchema,
   type StorePriceVerificationFormValues,
   shopIdSchema,
@@ -405,11 +414,32 @@ function toMenuSaveBody(input: MenuSaveInput) {
   };
 }
 
-export async function createMenuAction(input: MenuSaveInput): Promise<DataResult<number>> {
+/**
+ * 메뉴 등록.
+ *
+ * `links` 는 **소유 가게가 2개 이상일 때만** 화면이 채운다(P2-5). 비어 있으면 보내지 않아
+ * 서버가 `shopId`·`productCategoryId` 로 단일 연결을 만든다 — 가게 하나인 점주의 기존
+ * 등록 흐름이 그대로 도는 것이 이 설계의 안전장치다.
+ *
+ * `toMenuSaveBody` 에 넣지 않는 이유는 그 함수를 수정(PUT)도 함께 쓰기 때문이다.
+ * 연결 변경은 전용 엔드포인트(`updateProductShopLinksAction`)가 담당한다.
+ */
+export async function createMenuAction(
+  input: MenuSaveInput,
+  links?: ProductShopLinkInput[],
+): Promise<DataResult<number>> {
   const parsed = shopIdSchema.safeParse(input.shopId);
   if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
 
-  const { data, error } = await productRepository.createProduct(toMenuSaveBody(input));
+  if (links !== undefined && links.length > 0) {
+    const parsedLinks = productShopLinksSchema.safeParse({ links });
+    if (!parsedLinks.success) return invalidInput(parsedLinks.error.issues[0]?.message);
+  }
+
+  const { data, error } = await productRepository.createProduct({
+    ...toMenuSaveBody(input),
+    ...(links !== undefined && links.length > 0 ? { links } : {}),
+  });
   if (error !== undefined) return toFailure(error, PRODUCT_MENU_MESSAGE.MENU_CREATE_FAILED);
 
   revalidateMenuBoard();
@@ -1281,4 +1311,202 @@ export async function requestStorePriceVerificationAction(
   );
 
   return toSimpleResult(error, STORE_PRICE_VERIFICATION_MESSAGE.REQUEST_FAILED);
+}
+
+// =====================================================================================
+// 메뉴 정보에 대한 고객 의견 (점주 확인)
+//
+// 조회 범위는 서버가 지난 7일로 고정하므로 기간 파라미터가 없다.
+// 제보자 정보는 응답에 없어 화면도 표시하지 않는다.
+// =====================================================================================
+
+/** 유형별 집계 목록. **건수 많은 순 정렬은 여기서 한다** — 시급한 것부터 보여주기 위함이다 */
+export async function loadCustomerFeedbacksAction(shopId: number): Promise<DataResult<CustomerFeedback[]>> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.getProductFeedbacks(shopId);
+  if (error !== undefined || !data) return toFailure(error, CUSTOMER_FEEDBACK_COPY.LOAD_FAILED);
+
+  return { success: true, data: [...data].sort((a, b) => b.count - a.count) };
+}
+
+/**
+ * 빨간 점 판정.
+ *
+ * 실패해도 화면을 막지 않는다 — 점을 못 띄우는 것은 불편이지만, 조회 실패로 메뉴판 진입이
+ * 깨지면 훨씬 큰 문제다. 그래서 실패 시 `hasUnread: false` 로 갈음한다.
+ */
+export async function loadCustomerFeedbackUnreadAction(shopId: number): Promise<DataResult<boolean>> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.getProductFeedbackUnread(shopId);
+  if (error !== undefined || !data) return { success: true, data: false };
+  return { success: true, data: data.hasUnread };
+}
+
+/** 목록을 연 시점에 호출해 빨간 점을 끈다 */
+export async function readCustomerFeedbacksAction(shopId: number): Promise<SimpleResult> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await productRepository.readProductFeedbacks(shopId);
+  if (error !== undefined) return toFailure(error, CUSTOMER_FEEDBACK_COPY.LOAD_FAILED);
+  return { success: true };
+}
+
+// =====================================================================================
+// 메뉴-가게 연결 (N:M)
+//
+// 연결이 바뀌면 **어느 가게 메뉴판에 나타나는가**가 바뀌므로 메뉴판 세그먼트 전체를 무효화한다.
+// =====================================================================================
+
+/** 점주 소유 전체 가게 + 연결 여부 */
+export async function loadProductShopLinksAction(
+  productId: number,
+  shopId: number,
+): Promise<DataResult<ProductShopLink[]>> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.getProductShopLinks(productId, shopId);
+  if (error !== undefined || !data) return toFailure(error, PRODUCT_SHOP_LINK_MESSAGE.LOAD_FAILED);
+  return { success: true, data };
+}
+
+/**
+ * 대상 가게의 메뉴그룹 목록.
+ *
+ * `MenuShopLinkSheet` 에서 현재 가게가 아닌 다른 가게를 토글로 켤 때, 그 가게의 메뉴그룹을
+ * 채우기 위해 호출한다(`productRepository.getCategories(shopId)` 는 가게별 조회를 이미 지원한다).
+ */
+export async function loadShopCategoriesAction(shopId: number): Promise<DataResult<MenuCategory[]>> {
+  const parsed = shopIdSchema.safeParse(shopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { data, error } = await productRepository.getCategories(parsed.data);
+  if (error !== undefined || !data) return toFailure(error, PRODUCT_SHOP_LINK_MESSAGE.LOAD_FAILED);
+  return { success: true, data };
+}
+
+/**
+ * 연결 전체 교체.
+ *
+ * 서버가 마지막 연결 해제(`..._LAST_CANNOT_UNLINK`)와 그 가게 메뉴판이 비는 경우
+ * (`PRODUCT_LAST_VISIBLE_CANNOT_HIDE`)를 거절한다. 두 문구 모두 서버가 한국어로 내려주므로
+ * 그대로 노출한다.
+ */
+export async function updateProductShopLinksAction(
+  productId: number,
+  shopId: number,
+  links: ProductShopLinkInput[],
+): Promise<SimpleResult> {
+  const parsedShopId = shopIdSchema.safeParse(shopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const parsed = productShopLinksSchema.safeParse({ links });
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const { error } = await productRepository.updateProductShopLinks(productId, {
+    shopId,
+    links: parsed.data.links,
+  });
+  if (error !== undefined) return toFailure(error, PRODUCT_SHOP_LINK_MESSAGE.SAVE_FAILED);
+
+  revalidateMenuBoard();
+  return { success: true };
+}
+
+/** 메뉴 불러오기 — 대상 가게 메뉴판에 남의 메뉴 한 건을 끌어온다 */
+export async function importProductToShopAction(
+  productId: number,
+  targetShopId: number,
+  productCategoryId: number,
+): Promise<SimpleResult> {
+  const parsedShopId = shopIdSchema.safeParse(targetShopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const parsedCategoryId = productIdSchema.safeParse(productCategoryId);
+  if (!parsedCategoryId.success) return invalidInput(PRODUCT_SHOP_LINK_MESSAGE.CATEGORY_REQUIRED);
+
+  const { error } = await productRepository.linkProductToShop(productId, targetShopId, {
+    productCategoryId,
+  });
+  if (error !== undefined) return toFailure(error, PRODUCT_SHOP_LINK_MESSAGE.IMPORT_FAILED);
+
+  revalidateMenuBoard();
+  return { success: true };
+}
+
+/**
+ * 메뉴판에서 제외 — **링크만 지운다**.
+ *
+ * `deleteMenusAction`(메뉴 소프트 삭제)과 다른 동작이다. 호출부가 두 액션을 혼동하지 않도록
+ * 화면 문구·아이콘도 분리해 둔다.
+ */
+export async function excludeProductFromShopAction(productId: number, targetShopId: number): Promise<SimpleResult> {
+  const parsedShopId = shopIdSchema.safeParse(targetShopId);
+  if (!parsedShopId.success) return invalidInput(parsedShopId.error.issues[0]?.message);
+
+  const { error } = await productRepository.unlinkProductFromShop(productId, targetShopId);
+  if (error !== undefined) return toFailure(error, PRODUCT_SHOP_LINK_MESSAGE.EXCLUDE_FAILED);
+
+  revalidateMenuBoard();
+  return { success: true };
+}
+
+/**
+ * 불러올 수 있는 메뉴 목록 — **다른 가게의 메뉴 중 이 가게에 없는 것**.
+ *
+ * 전용 엔드포인트가 없어 가게별 메뉴판 조회(`getAvailability`)를 원본 가게마다 읽어 합친다.
+ * 서버가 대상 가게에 이미 있는 메뉴를 걸러 주지 않으므로 **이름으로 대조해 제외**한다 —
+ * 링크 여부를 알려주는 필드가 응답에 없기 때문이다. 같은 이름의 다른 메뉴까지 걸러질 수 있으나,
+ * 중복 이름을 불러와 메뉴판에 같은 줄이 두 개 생기는 쪽이 점주에게 더 나쁘다.
+ *
+ * 한 가게라도 실패하면 그 가게 몫만 빠지고 나머지는 그대로 보여준다 — 전체를 막지 않는다.
+ */
+export async function loadImportableProductsAction(
+  targetShopId: number,
+  sourceShopIds: number[],
+): Promise<DataResult<ImportableProduct[]>> {
+  const parsed = shopIdSchema.safeParse(targetShopId);
+  if (!parsed.success) return invalidInput(parsed.error.issues[0]?.message);
+
+  const targetResult = await productRepository.getAvailability({ shopId: targetShopId });
+  if (targetResult.error !== undefined || !targetResult.data) {
+    return toFailure(targetResult.error, PRODUCT_IMPORT_COPY.LOAD_FAILED);
+  }
+
+  const existingNames = new Set(targetResult.data.flatMap((group) => group.products.map((product) => product.name)));
+
+  const sourceResults = await Promise.all(
+    sourceShopIds
+      .filter((sourceShopId) => sourceShopId !== targetShopId)
+      .map(async (sourceShopId) => ({
+        sourceShopId,
+        result: await productRepository.getAvailability({ shopId: sourceShopId }),
+      })),
+  );
+
+  const importable: ImportableProduct[] = [];
+  for (const { sourceShopId, result } of sourceResults) {
+    if (result.error !== undefined || !result.data) continue;
+
+    for (const group of result.data) {
+      for (const product of group.products) {
+        if (existingNames.has(product.name)) continue;
+        existingNames.add(product.name); // 여러 가게에 같은 메뉴가 있어도 한 번만 제안한다
+        importable.push({
+          productId: product.id,
+          name: product.name,
+          originalPrice: product.originalPrice,
+          imageUrl: product.imageUrl,
+          shopId: sourceShopId,
+        });
+      }
+    }
+  }
+
+  return { success: true, data: importable };
 }

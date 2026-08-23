@@ -864,3 +864,91 @@ export const STORE_PRICE_VERIFICATION_COPY = {
   EMPTY_MENU: "인증할 수 있는 메뉴가 없습니다.",
   REJECT_REASON_PREFIX: "반려 사유: ",
 } as const;
+
+// ===== 메뉴 정보에 대한 고객 의견 (점주 확인) =====
+
+export const CUSTOMER_FEEDBACK_COPY = {
+  TITLE: "고객 제보",
+  PERIOD_NOTICE: "지난 한 주 동안의 의견만 볼 수 있습니다.",
+  EMPTY: "접수된 고객 의견이 없습니다.",
+  COLUMN_MENU: "메뉴",
+  COLUMN_TYPE: "의견 유형",
+  COLUMN_COUNT: "건수",
+  COUNT_SUFFIX: "건",
+  /** 아이콘 옆 빨간 점의 스크린리더 안내 */
+  UNREAD_BADGE_LABEL: "확인하지 않은 고객 제보가 있습니다",
+  LOAD_FAILED: "고객 제보를 불러오지 못했습니다.",
+} as const;
+
+/** 의견 유형 코드 → 문구. 손님 화면의 라디오 라벨과 같은 문구를 쓴다 */
+export const CUSTOMER_FEEDBACK_TYPE_LABEL = {
+  PRICE: "가격이 달라요",
+  IMAGE: "이미지가 달라요",
+  COMPOSITION: "구성이 달라요",
+  SOLD_OUT: "품절인데 판매 중이에요",
+  ETC: "기타",
+} as const;
+
+// ===== 메뉴-가게 연결 =====
+
+export const PRODUCT_SHOP_LINK_MESSAGE = {
+  CATEGORY_REQUIRED: "메뉴가 노출될 메뉴그룹을 선택해 주세요.",
+  LAST_CANNOT_UNLINK: "메뉴는 최소 1개 가게에 연결되어야 합니다.",
+  NOT_OWNED: "본인 소유 가게에만 연결할 수 있습니다.",
+  EXCLUDE_NOTICE: "메뉴를 제외하더라도 메뉴 자체가 삭제되지는 않습니다. 이 가게의 메뉴판에서만 노출되지 않습니다.",
+  SAVE_SUCCESS: "판매 가게를 변경했습니다.",
+  LOAD_FAILED: "판매 가게 목록을 불러오지 못했습니다.",
+  SAVE_FAILED: "판매 가게를 변경하지 못했습니다.",
+  IMPORT_SUCCESS: "메뉴를 불러왔습니다.",
+  IMPORT_FAILED: "메뉴를 불러오지 못했습니다.",
+  EXCLUDE_SUCCESS: "메뉴판에서 제외했습니다.",
+  EXCLUDE_FAILED: "메뉴판에서 제외하지 못했습니다.",
+} as const;
+
+export const PRODUCT_SHOP_LINK_COPY = {
+  SECTION_TITLE: "이 메뉴를 판매하는 가게",
+  ACTION_CHANGE: "변경",
+  SHEET_TITLE: "이 메뉴를 판매하는 가게",
+  /** PDF 안내문구 그대로 */
+  GUIDE:
+    "메뉴와 연결할 가게는 원하는 개수만큼 선택할 수 있습니다. 판매할 가게를 설정한 경우에만 앱에 노출됩니다. 연결해두면 메뉴명·가격·설명을 변경할 때 여러 가게의 메뉴판에 한 번에 적용됩니다.",
+  /**
+   * 가격 공유 경고.
+   *
+   * `backend.md` §미해결 판단 1 의 권고(PDF 를 따라 가격 공유)를 화면이 미리 알린다 —
+   * 연결한 뒤에야 알면 가격을 되돌릴 방법이 없다.
+   */
+  PRICE_SHARED_WARNING:
+    "연결된 가게는 같은 가격을 사용합니다. 가게별로 가격을 다르게 하려면 메뉴를 가게 수만큼 따로 만들어 각각 연결해 주세요.",
+  CATEGORY_LABEL: "메뉴그룹",
+  CATEGORY_PLACEHOLDER: "메뉴그룹 선택",
+  CATEGORY_PREFIX: "메뉴그룹: ",
+  EMPTY_SHOPS: "연결할 수 있는 가게가 없습니다.",
+  EMPTY_CATEGORIES: "이 가게에는 메뉴그룹이 없습니다.",
+  UNLINKED: "연결된 가게가 없습니다.",
+  ACTION_SAVE: "저장",
+  ACTION_CANCEL: "취소",
+} as const;
+
+/** 메뉴 불러오기 (가게 기준) */
+export const PRODUCT_IMPORT_COPY = {
+  TRIGGER: "메뉴 불러오기",
+  SHEET_TITLE: "메뉴 불러오기",
+  DESCRIPTION: "다른 가게의 메뉴 중 이 가게에 없는 메뉴를 불러옵니다.",
+  SEARCH_PLACEHOLDER: "메뉴명 검색",
+  EMPTY: "불러올 수 있는 메뉴가 없습니다.",
+  SELECTED_PREFIX: "선택 ",
+  SELECTED_SUFFIX: "건",
+  ACTION_IMPORT: "불러오기",
+  ACTION_CANCEL: "취소",
+  LOAD_FAILED: "불러올 메뉴를 조회하지 못했습니다.",
+} as const;
+
+/** 메뉴판에서 제외. **삭제와 구분한다** — 제외는 링크 해제, 삭제는 메뉴 소프트 삭제다 */
+export const PRODUCT_EXCLUDE_COPY = {
+  ACTION: "메뉴판에서 제외",
+  DIALOG_TITLE: "이 메뉴를 메뉴판에서 제외할까요?",
+  DIALOG_DESCRIPTION: PRODUCT_SHOP_LINK_MESSAGE.EXCLUDE_NOTICE,
+  ACTION_CONFIRM: "제외",
+  ACTION_CANCEL: "취소",
+} as const;

@@ -17,11 +17,22 @@ import {
   createMenuCategoryAction,
   deleteMenuCategoryAction,
   deleteMenusAction,
+  excludeProductFromShopAction,
   updateMenuCategoryAction,
 } from "@/feature/product/actions";
 import { MENU_TABS } from "@/feature/product/constants";
-import type { AvailabilityChangeOutcome, MenuBoardGroup, MenuCategory } from "@/feature/product/domain";
-import { PRODUCT_MENU_COPY, PRODUCT_MENU_MESSAGE, PRODUCT_MESSAGE } from "@/feature/product/message";
+import type {
+  AvailabilityChangeOutcome,
+  MenuBoardGroup,
+  MenuCategory,
+  ProductShopLinkInput,
+} from "@/feature/product/domain";
+import {
+  PRODUCT_MENU_COPY,
+  PRODUCT_MENU_MESSAGE,
+  PRODUCT_MESSAGE,
+  PRODUCT_SHOP_LINK_MESSAGE,
+} from "@/feature/product/message";
 import type { MenuCategoryFormValues } from "@/feature/product/schema";
 import type { MenuCollectionImage, ShopOrderNotice, ShopOrigin, ShopSummary } from "@/feature/shop/domain";
 
@@ -30,8 +41,10 @@ import { MenuBoardFailureNotice } from "./menu-board-failure-notice";
 import { MenuBoardTopActions } from "./menu-board-top-actions";
 import { MenuCreateDialog, type MenuCreateSubmitValues } from "./menu-create-dialog";
 import { MenuDeleteDialog, type MenuDeleteTarget } from "./menu-delete-dialog";
+import { MenuExcludeDialog, type MenuExcludeTarget } from "./menu-exclude-dialog";
 import { MenuGroupFormDialog, type MenuGroupFormTarget } from "./menu-group-form-dialog";
 import { MenuGroupList } from "./menu-group-list";
+import { MenuImportSheet } from "./menu-import-sheet";
 import { MenuTabBar } from "./menu-tab-bar";
 import { useMenuSort } from "./use-menu-sort";
 
@@ -75,6 +88,9 @@ export function MenuBoardManage({
   const [isCreateOpen, setCreateOpen] = React.useState(false);
   const [groupForm, setGroupForm] = React.useState<GroupFormState>({ open: false });
   const [deleteTarget, setDeleteTarget] = React.useState<MenuDeleteTarget | null>(null);
+  const [excludeTarget, setExcludeTarget] = React.useState<MenuExcludeTarget | null>(null);
+  /** 불러오기 대상 메뉴그룹. 미분류는 후보가 아니라 `categoryId` 가 항상 있다 */
+  const [importTarget, setImportTarget] = React.useState<{ categoryId: number; name: string } | null>(null);
 
   const accessDeniedMessage =
     errorCode === "SHOP_ACCESS_DENIED"
@@ -166,11 +182,12 @@ export function MenuBoardManage({
 
   const isBusy = isNavigating || isMutating || isSorting;
 
-  function handleCreateMenu(values: MenuCreateSubmitValues) {
+  function handleCreateMenu(values: MenuCreateSubmitValues, links?: ProductShopLinkInput[]) {
     if (shopId === undefined) return;
 
     startMutation(async () => {
-      const result = await createMenuAction({ shopId, ...values });
+      // `links` 는 다중 가게를 실제로 고른 경우에만 채워진다 — 없으면 기존 단일 등록 경로다.
+      const result = await createMenuAction({ shopId, ...values }, links);
       // 중복 메뉴명·금칙어·특수문자는 서버가 내려준 한국어 문구를 그대로 노출한다 —
       // 프론트에서 errorCode → 문구 맵을 다시 만들지 않는 것이 이 앱의 관례다.
       if (!result.success) {
@@ -208,6 +225,31 @@ export function MenuBoardManage({
         target === null ? PRODUCT_MENU_MESSAGE.CATEGORY_CREATE_SUCCESS : PRODUCT_MENU_MESSAGE.CATEGORY_UPDATE_SUCCESS,
       );
       setGroupForm({ open: false });
+    });
+  }
+
+  /**
+   * 메뉴판에서 제외 확정.
+   *
+   * **삭제와 다르다** — 이 가게의 링크만 끊고 메뉴 자체와 다른 가게의 연결은 남는다.
+   * 일괄 삭제와 달리 한 건씩이라 부분 실패 갈래가 없다.
+   *
+   * 마지막 노출 메뉴를 제외해 메뉴판이 비면 서버가 `PRODUCT_LAST_VISIBLE_CANNOT_HIDE` 로
+   * 거절한다 — 한국어 문구를 그대로 노출하고 다이얼로그는 닫지 않는다.
+   */
+  function handleConfirmExclude() {
+    if (shopId === undefined || excludeTarget === null) return;
+
+    const productId = excludeTarget.productId;
+    startMutation(async () => {
+      const result = await excludeProductFromShopAction(productId, shopId);
+      if (!result.success) {
+        toast.error(result.message ?? PRODUCT_SHOP_LINK_MESSAGE.EXCLUDE_FAILED);
+        return;
+      }
+
+      toast.success(PRODUCT_SHOP_LINK_MESSAGE.EXCLUDE_SUCCESS);
+      setExcludeTarget(null);
     });
   }
 
@@ -385,6 +427,11 @@ export function MenuBoardManage({
                   });
                 }}
                 onOpenDetail={(productId) => router.push(`/dashboard/shop/menus/${productId}?shopId=${shopId}`)}
+                onExcludeMenu={(row) => setExcludeTarget({ productId: row.id, name: row.name })}
+                onImportMenus={(group) => {
+                  if (group.categoryId === null) return;
+                  setImportTarget({ categoryId: group.categoryId, name: group.categoryName ?? "" });
+                }}
               />
             </DndContext>
 
@@ -408,6 +455,8 @@ export function MenuBoardManage({
               open={isCreateOpen}
               pending={isMutating}
               categories={categories ?? []}
+              shopId={shopId}
+              shops={shops}
               onOpenChange={setCreateOpen}
               onSubmit={handleCreateMenu}
             />
@@ -430,6 +479,29 @@ export function MenuBoardManage({
               }}
               onConfirm={handleConfirmDelete}
             />
+
+            <MenuExcludeDialog
+              target={excludeTarget}
+              pending={isMutating}
+              onOpenChange={(open) => {
+                if (!open) setExcludeTarget(null);
+              }}
+              onConfirm={handleConfirmExclude}
+            />
+
+            {shopId != null && importTarget && (
+              <MenuImportSheet
+                open
+                onOpenChange={(open) => {
+                  if (!open) setImportTarget(null);
+                }}
+                shopId={shopId}
+                categoryId={importTarget.categoryId}
+                categoryName={importTarget.name}
+                shops={shops}
+                onImported={() => router.refresh()}
+              />
+            )}
           </>
         )}
       </CardContent>

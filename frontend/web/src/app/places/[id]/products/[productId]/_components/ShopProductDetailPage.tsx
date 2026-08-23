@@ -1,4 +1,5 @@
 import MenuReviewListSection from '@/components/menu-reviews/MenuReviewListSection'
+import ProductFeedbackButton from '@/components/products/ProductFeedbackButton'
 import { ProductHeaderSkeleton } from '@/components/products/ProductHeaderSkeleton'
 import ProductInfoContent from '@/components/products/ProductInfoContent'
 import ProductNutritionSection from '@/components/products/ProductNutritionSection'
@@ -46,6 +47,10 @@ export default function ShopProductDetailPage({ shopId, productId }: Props) {
           <Suspense fallback={null}>
             <MenuReviewListSection productId={productId} />
           </Suspense>
+        </BorderedSection>
+        {/* 정보가 틀렸다는 제보 창구. 리뷰(맛 평가) 아래에 둔다 */}
+        <BorderedSection>
+          <ProductFeedbackButton productId={productId} />
         </BorderedSection>
       </SectionStack>
       <ShopProductDetailOrderFooter shopId={shopId} />

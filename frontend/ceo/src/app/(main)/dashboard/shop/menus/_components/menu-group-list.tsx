@@ -9,7 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import type { MenuBoardGroup, MenuBoardRow } from "@/feature/product/domain";
-import { PRODUCT_AVAILABILITY_COPY, PRODUCT_MENU_COPY, PRODUCT_MESSAGE } from "@/feature/product/message";
+import {
+  PRODUCT_AVAILABILITY_COPY,
+  PRODUCT_IMPORT_COPY,
+  PRODUCT_MENU_COPY,
+  PRODUCT_MESSAGE,
+} from "@/feature/product/message";
 import { cn } from "@/lib/utils";
 
 import { MenuRow } from "./menu-row";
@@ -25,6 +30,10 @@ interface MenuGroupListProps {
   onEditGroup: (group: MenuBoardGroup) => void;
   onDeleteGroup: (group: MenuBoardGroup) => void;
   onOpenDetail: (productId: number) => void;
+  /** 메뉴판에서 제외(링크 해제) */
+  onExcludeMenu: (row: MenuBoardRow) => void;
+  /** 그 그룹으로 다른 가게 메뉴를 불러온다. 미분류 그룹은 대상이 아니다 */
+  onImportMenus: (group: MenuBoardGroup) => void;
 }
 
 export function MenuGroupList({
@@ -36,6 +45,8 @@ export function MenuGroupList({
   onEditGroup,
   onDeleteGroup,
   onOpenDetail,
+  onExcludeMenu,
+  onImportMenus,
 }: MenuGroupListProps) {
   if (groups === undefined) {
     return (
@@ -99,6 +110,8 @@ export function MenuGroupList({
             onEditGroup={() => onEditGroup(group)}
             onDeleteGroup={() => onDeleteGroup(group)}
             onOpenDetail={onOpenDetail}
+            onExcludeMenu={onExcludeMenu}
+            onImportMenus={() => onImportMenus(group)}
           />
         ))}
       </div>
@@ -115,6 +128,8 @@ interface MenuGroupCardProps {
   onEditGroup: () => void;
   onDeleteGroup: () => void;
   onOpenDetail: (productId: number) => void;
+  onExcludeMenu: (row: MenuBoardRow) => void;
+  onImportMenus: () => void;
 }
 
 function MenuGroupCard({
@@ -126,6 +141,8 @@ function MenuGroupCard({
   onEditGroup,
   onDeleteGroup,
   onOpenDetail,
+  onExcludeMenu,
+  onImportMenus,
 }: MenuGroupCardProps) {
   const dragId = toGroupDragId(group.categoryId);
 
@@ -217,11 +234,21 @@ function MenuGroupCard({
                 disabled={disabled}
                 onCheckedChange={(checked) => onToggleRow(row.id, checked)}
                 onOpenDetail={() => onOpenDetail(row.id)}
+                onExclude={() => onExcludeMenu(row)}
               />
             ))
           )}
         </SortableContext>
       </div>
+
+      {/* 미분류는 불러온 메뉴를 넣을 실체가 없다 — 서버가 메뉴그룹 id 를 요구하므로 버튼을 두지 않는다 */}
+      {!isUncategorized && (
+        <div className="border-t pt-3">
+          <Button type="button" size="sm" variant="outline" disabled={disabled} onClick={onImportMenus}>
+            {PRODUCT_IMPORT_COPY.TRIGGER}
+          </Button>
+        </div>
+      )}
     </section>
   );
 }
