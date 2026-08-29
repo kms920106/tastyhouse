@@ -49,7 +49,7 @@
 ### Working In This Directory
 - **요청/응답 DTO는 feature 폴더 내 request/, response/ 서브폴더에 저장** — 도메인별 응집도 향상. 모든 Request/Response record는 타입 레벨 `@Schema(description = ...)`와 필드별 `@Schema(description = ..., example = ...)`를 갖춰 Swagger 문서를 완전하게 유지한다(컬렉션·중첩 record 필드는 example 생략 가능, description은 필수). 상세는 루트 CLAUDE.md 참고.
 - **response/ 폴더의 모든 응답 record는 소속 도메인명 접두어로 시작한다** — 중첩·보조 요소 record도 예외 없음(`OptionResponse`가 아니라 `ProductOptionResponse`). 접미어는 `Response`로 통일(`WithPagination` 등 임의 접미어 금지). 실제로 다른 도메인 대상을 담는 응답은 그 대상 도메인명을 따른다(예: `member/response/OrderListItemResponse`). 상세는 루트 CLAUDE.md 참고.
-- **DTO 조립은 `new` 직접 호출 지양** — 컨트롤러에서 command/condition/response를 `new`로 조립하지 않고, 대상 record 자신의 정적 팩토리 `of(...)`/`from(...)`로 위임한다. Request DTO에는 `toCommand()` 변환 메서드를 두지 않고, 컨트롤러가 Request를 원시 필드로 언패킹해 `Command.of(...)`를 호출한다(복잡한 중첩 요청은 `order/OrderApiController#toCreateOrderCommand`처럼 private 헬퍼 허용). 상세는 루트 CLAUDE.md 참고.
+- **DTO 조립은 `new` 직접 호출 지양** — 컨트롤러에서 command/condition/response를 `new`로 조립하지 않고, 대상 record 자신의 정적 팩토리 `of(...)`/`from(...)`로 위임한다. **Request record가 `toCommand(...)`를 소유**하고, 컨트롤러는 `XxxCommand command = request.toCommand(...);`로 조립해 UseCase에 넘긴다(완전 매핑 — 매핑은 인바운드 어댑터의 책임). 상세는 루트 CLAUDE.md 참고.
 - **`record`는 별도 파일로 분리** — 서비스/컨트롤러 본문에 응답 record를 중첩 선언하지 않고 feature 폴더의 `response/`에 `public record`로 둔다(reference: `notice/response/NoticeListItemResponse`). 단, `content`/`page`/`size`/`totalElements` 표준 페이징 응답은 도메인 폴더에 만들지 않고 `common/PaginationResponse<T>` 공용 제네릭을 재사용한다(reference: `notice`/`order`/`policy` 도메인의 페이징 조회 메서드). 상세는 루트 CLAUDE.md의 "페이징 응답 공용 제네릭 래퍼 규칙" 참고.
 - **컨트롤러는 도메인별 application 서비스만 호출** — repository/JPA·QueryDSL에 직접 접근하지 않는다. 도메인당 **CQRS로 분리된 두 서비스**를 각각 주입한다(reference: `order/OrderCommandService`+`OrderQueryService`, `payment/PaymentCommandService`+`PaymentQueryService`).
   - `{도메인}CommandService`(`@Transactional`): domain write 포트·도메인 서비스만 주입. 생성/수정/삭제/상태전이를 수행하고 **식별자만 반환**한다.
@@ -68,7 +68,7 @@
 - **@SpringBootTest + spring-security-test** — 통합 테스트 (JWT 토큰 생성, 보안 필터 검증).
 - MockMvc로 API 엔드포인트 검증, WithMockUser 또는 커스텀 인증 헤더로 JWT 시뮬레이션.
 - 예외 처리 테스트는 GlobalExceptionHandler 동작 확인.
-- **레이어 경계는 `architecture/LayerRulesTest`(ArchUnit)** — CQRS 서비스의 web 플럼빙 의존 금지, 컨트롤러의 Repository·QueryDao 의존 금지, CommandService의 QueryDao 의존 금지, `com.querydsl..` 금지, `..infrastructure..persistence..` 금지, `com.tastyhouse.infrastructure..query..` 전면 금지(챕터 04 신설 `shouldNotDependOnInfrastructureQuery`, 봉인 목록 없음). `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다.
+- **레이어 경계는 `architecture/LayerRulesTest`(ArchUnit)** — CQRS 서비스의 web 플럼빙 의존 금지, 컨트롤러의 Repository·QueryDao 의존 금지, CommandService의 QueryDao 의존 금지, `com.querydsl..` 금지, `..infrastructure..persistence..` 금지, 그리고 챕터 05 승격 규칙 `webAdaptersShouldNotDependOnApplicationServices`(`..adapter.in.web..` → `..application.service..` 금지)·`portInShouldBeFreeOfWebDomainAndInfrastructure`. `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다. 챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다.
 
 ### Common Patterns
 - **Controller + Request/Response DTO**: `@RestController @RequestMapping("/api/{domain}")` → `Method(@Valid {Domain}Request) → ResponseEntity<ApiResponse<{Domain}Response>>`.

@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.webapi.follow.application.port.in.FollowCancelCommand;
+import com.tastyhouse.webapi.follow.application.port.in.FollowCommandUseCase;
 import com.tastyhouse.webapi.follow.application.port.in.FollowCreateCommand;
+import com.tastyhouse.webapi.follow.application.port.in.FollowQueryUseCase;
 import com.tastyhouse.webapi.follow.application.port.in.FollowerRemoveCommand;
-import com.tastyhouse.webapi.follow.application.service.FollowService;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
@@ -33,10 +34,12 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @Tag(name = "Follow", description = "팔로우 API")
 public class FollowApiController {
 
-    private final FollowService followService;
+    private final FollowCommandUseCase followCommandUseCase;
+    private final FollowQueryUseCase followQueryUseCase;
 
-    public FollowApiController(FollowService followService) {
-        this.followService = followService;
+    public FollowApiController(FollowCommandUseCase followCommandUseCase, FollowQueryUseCase followQueryUseCase) {
+        this.followCommandUseCase = followCommandUseCase;
+        this.followQueryUseCase = followQueryUseCase;
     }
 
     @Operation(summary = "팔로우", description = "특정 회원을 팔로우합니다. 생성된 팔로우 관계의 식별자(id)를 반환합니다.")
@@ -46,7 +49,7 @@ public class FollowApiController {
         @Parameter(description = "팔로우할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
         FollowCreateCommand command = FollowCreateCommand.of(userDetails.getMemberId(), memberId);
-        Long followId = followService.follow(command);
+        Long followId = followCommandUseCase.follow(command);
         return ResponseEntity.ok(ApiResponse.success(followId));
     }
 
@@ -57,7 +60,7 @@ public class FollowApiController {
         @Parameter(description = "언팔로우할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
         FollowCancelCommand command = FollowCancelCommand.of(userDetails.getMemberId(), memberId);
-        followService.unfollow(command);
+        followCommandUseCase.unfollow(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -68,7 +71,7 @@ public class FollowApiController {
         @Parameter(description = "삭제할 팔로워 회원 ID", example = "2") @PathVariable Long followerId
     ) {
         FollowerRemoveCommand command = FollowerRemoveCommand.of(userDetails.getMemberId(), followerId);
-        followService.removeFollower(command);
+        followCommandUseCase.removeFollower(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -78,7 +81,7 @@ public class FollowApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "팔로우 여부를 확인할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
-        boolean isFollowing = followService.isFollowing(userDetails.getMemberId(), memberId);
+        boolean isFollowing = followQueryUseCase.isFollowing(userDetails.getMemberId(), memberId);
         return ResponseEntity.ok(ApiResponse.success(FollowIsFollowingResponse.of(memberId, isFollowing)));
     }
 
@@ -89,7 +92,7 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followService.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var pageResult = followQueryUseCase.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -105,7 +108,7 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followService.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var pageResult = followQueryUseCase.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -120,7 +123,7 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followService.getPublicFollowingList(memberId, pageRequest.page(), pageRequest.size());
+        var pageResult = followQueryUseCase.getFollowingList(memberId, null, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -135,7 +138,7 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followService.getPublicFollowerList(memberId, pageRequest.page(), pageRequest.size());
+        var pageResult = followQueryUseCase.getFollowerList(memberId, null, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -151,7 +154,7 @@ public class FollowApiController {
         @Valid @ModelAttribute FollowSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followService.searchMembersByNickname(search.nickname(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var pageResult = followQueryUseCase.searchMembersByNickname(search.nickname(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),

@@ -16,7 +16,7 @@
 
 **배달팁 관심사는 예외적으로 컨트롤러 하나가 파트 5종을 소유한다**: `ShopDeliveryTipApiController`가 구간별·거리별·지역별·시간별·공휴일 8개 엔드포인트를 함께 갖는다. 관심사별로 쪼개는 이 모듈의 관례를 따르지 않은 이유는 **거리별↔지역별 상호 배타가 두 리소스에 걸친 불변식**이라, 컨트롤러를 나누면 그 검증이 두 곳으로 흩어지기 때문이다. 또한 각 파트는 개별 행 CRUD가 아니라 **replace-all `PUT`**으로 교체하는데, 구간의 "3개 이하 + 금액 오름차순 + 팁 내림차순"이 집합 전체를 봐야 판정되는 규칙이어서 행 단위로 열면 중간 상태가 반드시 규칙을 위반하기 때문이다(상세 근거와 판정 기준은 `backend/CLAUDE.md`의 "집합 불변식 설정 컬렉션은 replace-all PUT으로 교체하는 규칙" 참고). 반면 `ShopDeliveryAreaApiController`는 행 하나가 스스로 유효하므로 기존 관례대로 행 단위 CRUD다.
 
-**QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)의 `shouldNotDependOnInfrastructureQuery`가 봉인 목록 없이 이를 차단한다.
+**QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다).
 
 **`scanBasePackages`에 domain 엔트리 없음**: `CeoApiApplication`의 `scanBasePackages`(및 `@ComponentScan basePackages`)는 `com.tastyhouse.ceoapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개다. `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 스캔 엔트리를 제거했다. 기존 `excludeFilters`(`com.tastyhouse.external.oauth.*` 제외)는 그대로 유지된다.
 
@@ -41,7 +41,7 @@
 
 ### Testing Requirements
 - `@SpringBootTest` 기반 컨텍스트 로드/컨트롤러 검증.
-- **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — CQRS 서비스의 web 플럼빙 의존 금지(단 `MultipartFile`은 업로드 경계 타입이라 제외 — 이미지 변경요청·콘텐츠보드 서비스가 정당하게 파라미터로 사용한다), 컨트롤러의 Repository·QueryDao 의존 금지, CommandService의 QueryDao 의존 금지, `com.querydsl..` 금지, `..infrastructure..persistence..` 금지, `com.tastyhouse.infrastructure..query..` 전면 금지(챕터 04 신설 `shouldNotDependOnInfrastructureQuery`, 봉인 목록 없음). `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다.
+- **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — CQRS 서비스의 web 플럼빙 의존 금지(단 `MultipartFile`은 업로드 경계 타입이라 제외 — 이미지 변경요청·콘텐츠보드 서비스가 정당하게 파라미터로 사용한다), 컨트롤러의 Repository·QueryDao 의존 금지, CommandService의 QueryDao 의존 금지, `com.querydsl..` 금지, `..infrastructure..persistence..` 금지, 그리고 챕터 05에서 패키지 기준으로 승격한 `webAdaptersShouldNotDependOnApplicationServices`(`..adapter.in.web..` → `..application.service..` 금지)·`portInShouldBeFreeOfWebDomainAndInfrastructure`. `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다. 챕터 04의 임시 장치였던 `shouldNotDependOnInfrastructureQuery`와 이중 패키지 매칭은 챕터 05에서 제거됐다.
 
 ### Common Patterns
 - **JWT 인증 메커니즘은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. ceo-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `ceoId` 클레임·`CustomUserDetails` 재구성만 주입한다(검증 토큰 없음). 공용 필터는 `config/jwt/JwtConfig`가 점주 전용 블랙리스트 저장소(`ceo:bl:`)로 빈 등록하고, refresh 저장소는 `RedisRepositoryConfig`가 `ceo:rt:` 접두사로 등록한다. 정책은 ceo-api에 잔류: `config/security/SecurityConfig`·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현, `Ceo` 도메인 모델 기반 생성자 포함)·`CeoUserDetailsService`.

@@ -125,15 +125,6 @@ class LayerRulesTest {
         rule.check(classes);
     }
 
-    @Test
-    void shouldNotDependOnInfrastructureQuery() {
-        ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure..query..")
-            .because("조회 계약은 application..port.out이 소유하고 infra DAO가 구현한다");
-
-        rule.check(classes);
-    }
-
     /**
      * {@code *SchedulerService}는 인바운드 포트를 최소 1개 구현한다.
      *

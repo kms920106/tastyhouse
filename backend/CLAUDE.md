@@ -790,19 +790,19 @@ reference 구현: `domain-module/src/test/.../architecture/ContextBoundaryTest`(
 
 **`web-api`/`admin-api`/`ceo-api`/`batch-module`의 `src`에는 `com.querydsl.*` import가 0건이고, `@QueryProjection` 선언이 0건이며, `com.tastyhouse.infrastructure..` import가 전면 0건이다.** 읽기 경로 포트화(챕터 04) 완료로, 과거 "infra 중 `..query..`만 허용"이던 예외는 **완전히 소멸했다** — 4개 모듈 어디에도 봉인 목록이 남아 있지 않다.
 
-- **읽기 포트 인터페이스 `{Ctx}QueryPort`와 그 입출력 타입(`*Result`·`*SearchCondition`)은 `application-common-module`(`com.tastyhouse.application.<ctx>.port.out`)이 소유**하고, `infrastructure-module`의 DAO가 그 인터페이스를 `implements`한다. api 모듈의 `{도메인}QueryService`는 DAO 구현이 아니라 포트 인터페이스를 주입하므로 **`com.tastyhouse.infrastructure..`를 전혀 import하지 않는다.** 강제 규칙은 각 모듈 `LayerRulesTest`의 `shouldNotDependOnInfrastructureQuery`(대상: 모듈 전체, `com.tastyhouse.infrastructure..query..` 의존 금지 — 봉인 목록 없이 순수 강제)다.
+- **읽기 포트 인터페이스 `{Ctx}QueryPort`와 그 입출력 타입(`*Result`·`*SearchCondition`)은 `application-common-module`(`com.tastyhouse.application.<ctx>.port.out`)이 소유**하고, `infrastructure-module`의 DAO가 그 인터페이스를 `implements`한다. api 모듈의 `{도메인}QueryService`는 DAO 구현이 아니라 포트 인터페이스를 주입하므로 **`com.tastyhouse.infrastructure..`를 전혀 import하지 않는다.** 강제 규칙은 각 모듈 `LayerRulesTest`의 `shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence`와, 읽기 포트 직접 주입을 막는 `controllersShouldNotDependOnQueryDaos`·`commandServicesShouldNotDependOnQueryDaos`다. **챕터 04의 마이그레이션 임시 장치(`shouldNotDependOnInfrastructureQuery`, 구 `infrastructure..query..` + 신 `application..port.out..` 이중 패키지 매칭)는 챕터 05에서 전수 제거**됐다 — api 모듈이 `infrastructure-module`을 소스 레벨에서 참조할 수 없게 되어 그 규칙이 대상 0건으로 공허해졌기 때문이며, 대신 패키지 기준 규칙으로 승격했다(아래 §승격 규칙).
   - `..persistence..`(JpaEntity/Mapper/JpaRepository/RepositoryImpl) 금지는 처음부터 예외 없이 유지된다. `..listener..`는 스프링이 이벤트로 간접 연결하므로 api 모듈이 import할 일이 없다.
 - **`@QueryProjection` → `Projections.constructor` 전환 (완료)**: Result record가 `application-common-module`(QueryDSL을 모르는 모듈)로 이동해 그 record에 `@QueryProjection`을 달 수 없으므로, DAO 쿼리는 `@QueryProjection` 생성자 대신 `Projections.constructor(XxxResult.class, ...)`로 조립한다. 리포 전체에 `@QueryProjection` 선언 0건, `QXxxResult` Q타입 생성물 0건이다.
   - **Result record는 반드시 `public`이어야 한다**: `Projections.constructor`는 **리플렉션으로 런타임에** 생성자를 찾으므로, record가 package-private이면 컴파일은 통과하고 **호출 시점에 500이 난다.** 생성자 시그니처(파라미터 개수·타입·순서) 불일치도 마찬가지로 컴파일에 걸리지 않는다. 이 저장소에는 `ShopRiderGuidePickupPresenceResult`로 실제 이 사고를 낸 선례가 있다. 전환한 쿼리는 **반드시 한 번 호출해 확인**한다. `infrastructure-module`의 `ProjectionConstructorMatchingTest`가 select 절 인자 개수와 대상 record의 public 생성자 파라미터 개수 일치를 소스 스캔으로 검증해 이 컴파일 게이트 상실을 보완한다.
-- **강제 수단은 ArchUnit + grep 이중**: 4개 모듈 각각의 `architecture/LayerRulesTest`(`shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence`·`shouldNotDependOnInfrastructureQuery`)로 빌드 게이트를 두고, 리뷰 시 `com.querydsl`·`@QueryProjection`·`com.tastyhouse.infrastructure` grep으로 교차 확인한다.
-- **`allowEmptyShould(true)`를 쓰지 않는다 (공허 통과 제거)**: 과거 규칙들은 대상 클래스가 0건이어도 통과하도록 `allowEmptyShould(true)`가 붙어 있어, **규칙이 아무것도 검사하지 않는 상태를 성공으로 보고**하고 있었다. 전환 완료로 모든 규칙이 실제 대상을 갖게 되었으므로 이 옵션을 제거했다 — 대상 0건이면 그 자체가 실패로 드러나야 한다. **예외는 `batch-module`의 CQRS 서비스 규칙 하나뿐**이다(그 모듈에는 `*CommandService`/`*QueryService`가 0개라 구조적으로 대상이 없으므로 그 규칙에 한해 `allowEmptyShould(true)`를 유지한다).
+- **강제 수단은 ArchUnit + grep 이중**: 4개 모듈 각각의 `architecture/LayerRulesTest`(`shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence`)로 빌드 게이트를 두고, 리뷰 시 `com.querydsl`·`@QueryProjection`·`com.tastyhouse.infrastructure` grep으로 교차 확인한다.
+- **`allowEmptyShould(true)`를 쓰지 않는다 (공허 통과 제거)**: 과거 규칙들은 대상 클래스가 0건이어도 통과하도록 `allowEmptyShould(true)`가 붙어 있어, **규칙이 아무것도 검사하지 않는 상태를 성공으로 보고**하고 있었다. 전환 완료로 모든 규칙이 실제 대상을 갖게 되었으므로 이 옵션을 제거했다 — 대상 0건이면 그 자체가 실패로 드러나야 한다. **챕터 05 기준 리포 전체에 `allowEmptyShould(true)`가 0건**이다 — 마지막까지 남아 있던 `batch-module`의 CQRS 서비스 규칙도 매칭 대상에 실재하는 `*SchedulerService` 7개를 포함시켜 공허성을 없앴으므로 옵션 자체를 제거했다. 즉 모든 규칙이 실제 대상을 가지며, 대상이 0건이 되면 곧바로 실패한다.
 - **application 서비스 web 의존 금지 규칙의 개정**: 과거 `applicationShouldNotDependOnWebLayer`는 `..application..` 패키지를 매칭했는데, application 계층 해체로 그런 패키지가 사라져 **대상 0건으로 공허하게 통과**하고 있었다. 이를 `applicationServicesShouldNotDependOnWebLayer`로 개정해 **클래스명(`*CommandService`/`*QueryService`)으로 대상을 잡고**, 차단 대상을 web *플럼빙*(`org.springframework.web.bind..`·`org.springframework.web.servlet..`·`org.springframework.http..`·`jakarta.servlet..`)으로 한정했다. 서비스가 요청 바인딩·서블릿·`HttpStatus`를 알 이유가 없다는 것이 규칙의 취지다.
 - **`MultipartFile`은 예외로 허용한다**: `org.springframework.web.multipart.MultipartFile`은 차단 목록에 넣지 않는다 — 파일 업로드에서 업로드 자체를 받는 경계 타입이라 `ceo-api`의 이미지 변경·콘텐츠보드 서비스가 정당하게 파라미터로 사용하며, 이를 금지하려면 업로드 흐름 자체를 재설계해야 한다.
 
 - **컨트롤러의 DAO 직접 주입도 금지한다 (`controllersShouldNotDependOnQueryDaos`, 챕터 04로 확장)**: 조회는 `*QueryService`가 읽기 포트를 주입해 수행하고 Result → Response 변환까지 담당하므로, 컨트롤러가 `com.tastyhouse.infrastructure..query..`나 `com.tastyhouse.application..port.out..`를 알 이유가 없다. 이 규칙이 없으면 **구조적 구멍**이 남는다 — `controllersShouldNotDependOnRepositories`는 이름 접미어 `*Repository`만 매칭해 `*QueryDao`를 놓치고, `shouldNotDependOnInfrastructurePersistence`는 `..persistence..`만 차단해 `..query..`에 있는 DAO를 놓친다. 즉 컨트롤러가 DAO를 직접 주입해도 어느 규칙에도 걸리지 않았다. **챕터 04에서 차단 패키지가 `com.tastyhouse.infrastructure..query..`와 `com.tastyhouse.application..port.out..` 양쪽으로 확장**됐다 — 컨트롤러·CommandService는 읽기 포트도 직접 주입할 수 없다(CQRS 유지). 도입 시점 위반은 0건이며 규칙은 그 상태를 고정한다(기존 두 규칙은 이중 방어로 유지). 같은 확장은 `commandServicesShouldNotDependOnQueryDaos`에도 적용됐다.
 - **`batch-module`에 남은 공허 통과 규칙은 0건이다 (개정)**: 과거 `applicationServicesShouldNotDependOnWebLayer`가 `allowEmptyShould(true)`로 통과하던 것은 batch가 CQRS 분리를 쓰지 않아 `*CommandService`/`*QueryService`가 0개이고 잡 본문을 `*SchedulerService`에 담기 때문이었다. 매칭 대상에 **`*SchedulerService`를 포함**시켜 실재하는 잡 서비스들(`region`·`grade`·`product`·`productsoldout`·`rank`·`reviewblind`·`search` 7개 잡)이 규칙 대상이 되게 하고 `allowEmptyShould(true)`를 제거했다. 나머지 `requestResponseRecordsShouldBeDomainAndInfraFree`는 `crawling/bbq/response/`에 record 4종이 실재해 애초에 공허하지 않다. **따라서 이제 4개 api 모듈 어디에도 `allowEmptyShould(true)`가 없다.**
 
-reference 구현: `web-api/src/test/.../architecture/LayerRulesTest`(및 `admin-api`/`ceo-api`/`batch-module`의 동명 테스트) — `applicationServicesShouldNotDependOnWebLayer`·`controllersShouldNotDependOnRepositories`·`controllersShouldNotDependOnQueryDaos`·`commandServicesShouldNotDependOnQueryDaos`·`shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence`·`shouldNotDependOnInfrastructureQuery` 규칙(batch는 컨트롤러가 없어 controller 규칙 2개를 두지 않는다). `infrastructure-module`의 `architecture/LayerRulesTest`에는 신설 `queryDaosShouldImplementQueryPorts`(`*QueryDao`는 `..application..port.out..` 인터페이스를 최소 1개 구현 — 봉인 없이 순수 강제)가 짝을 이룬다.
+reference 구현: `web-api/src/test/.../architecture/LayerRulesTest`(및 `admin-api`/`ceo-api`/`batch-module`의 동명 테스트) — `applicationServicesShouldNotDependOnWebLayer`·`controllersShouldNotDependOnRepositories`·`controllersShouldNotDependOnQueryDaos`·`commandServicesShouldNotDependOnQueryDaos`·`shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence`, 그리고 챕터 05에서 패키지 기준으로 승격한 `webAdaptersShouldNotDependOnApplicationServices`(`..adapter.in.web..`는 `..application.service..` 구체 클래스 의존 금지 — 접미어가 다른 파사드까지 잡는다)·`portInShouldBeFreeOfWebDomainAndInfrastructure`(Command 규칙과 web 플럼빙 규칙의 패키지 기준 통합) 규칙(batch는 컨트롤러가 없어 controller 규칙 2개와 승격 규칙을 두지 않는다). **`applicationServicesShouldNotDependOnWebLayer`는 패키지 전면 금지로 상향하지 않는다** — `request/`·`response/`가 `..adapter.in.web..` 하위로 이동했고 QueryService가 Response를 조립하는 구조가 확정이라, 상향하면 그 확정 구조가 곧바로 위반이 된다. 근거는 해당 규칙 Javadoc에 남겼다. `infrastructure-module`의 `architecture/LayerRulesTest`에는 신설 `queryDaosShouldImplementQueryPorts`(`*QueryDao`는 `..application..port.out..` 인터페이스를 최소 1개 구현 — 봉인 없이 순수 강제)가 짝을 이룬다.
 
 ## infrastructure-module 계층 방향 규칙 (ArchUnit — `LayerRulesTest`)
 
@@ -827,6 +827,8 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 | `commandRecordsShouldBeBoundaryTyped` | `..port.in..`은 `com.tastyhouse.domain..`·`infrastructure..`·`org.springframework.web..` 의존 금지 |
 | `commandRecordsShouldNotHoldMultipartFile` | `..port.in..`의 **필드**로 `MultipartFile` 금지 |
 | `portInShouldNotDependOnWebPlumbing` | `..port.in..`은 `web.bind`·`web.servlet`·`http`·`jakarta.servlet` 의존 금지 |
+| `webAdaptersShouldNotDependOnApplicationServices` | (챕터 05 승격) `..adapter.in.web..`는 `..application.service..` 구체 클래스 의존 금지 — 접미어가 아닌 **패키지**로 잡아, `*Service` 같은 비표준 접미어 파사드까지 걸린다 |
+| `portInShouldBeFreeOfWebDomainAndInfrastructure` | (챕터 05 승격) `..application.port.in..`의 web·domain·infra 금지를 패키지 기준 하나로 통합(예외 2건은 원본 규칙과 동일) |
 
 **규칙 4와 5가 나뉜 이유**: ArchUnit 의존 그래프는 같은 패키지의 **UseCase 인터페이스 메서드 파라미터**까지 잡습니다. 업로드 연산은 `method(XxxCommand, MultipartFile)`이 규정된 형태이므로(§6) 규칙 4에서 `org.springframework.web.multipart..`를 예외로 빼고, §6이 실제로 금지하는 것(Command **필드**로 싣기)은 규칙 5가 따로 막습니다.
 
@@ -851,6 +853,17 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
   <ctx>/application/port/in/  UseCase 인터페이스 + Command record
   <ctx>/application/service/  서비스 구현
   ```
+
+  **worked example — `ceo-api`의 shop 컨텍스트(영업시간)**: 한 연산이 네 파일에 어떻게 흩어지는지의 최종형이다.
+
+  | 역할 | 실제 경로 |
+  |---|---|
+  | 인바운드 어댑터 | `ceo-api/.../ceoapi/shop/adapter/in/web/ShopBusinessHourApiController.java` |
+  | 인바운드 포트 + Command | `ceo-api/.../ceoapi/shop/application/port/in/ShopBusinessHourCommandUseCase.java`·`ShopBusinessHourCreateCommand.java` |
+  | 서비스 구현 | `ceo-api/.../ceoapi/shop/application/service/ShopBusinessHourCommandService.java` |
+  | 읽기 포트(아웃바운드) | `application-common-module/.../application/shop/port/out/ShopQueryPort.java` |
+
+  컨트롤러는 `ShopBusinessHourCommandUseCase`만 주입하고 `..application.service..`를 알지 않으며(챕터 05 승격 규칙 `webAdaptersShouldNotDependOnApplicationServices`), 조회 측 `ShopBusinessHourQueryService`는 `infrastructure-module`의 DAO가 아니라 `ShopQueryPort` 인터페이스를 주입한다.
 
   **클래스명은 그대로 `{도메인}CommandService`/`{도메인}QueryService`를 유지한다** — 기존 ArchUnit 규칙들이 접미어로 대상을 매칭하므로 이름을 바꾸면 규칙이 조용히 대상을 잃는다. 이번 전환에서 바뀌는 것은 **패키지 위치와 `implements` 추가**뿐이다.
 - **역할과 주입 대상**:

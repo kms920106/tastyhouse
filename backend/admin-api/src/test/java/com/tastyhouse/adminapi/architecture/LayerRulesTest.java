@@ -36,6 +36,14 @@ class LayerRulesTest {
      * 클래스 이름(={@code *CommandService}/{@code *QueryService})으로 대상을 잡는다 — 과거
      * {@code ..application..} 패키지 매칭은 대상 0건으로 공허하게 통과하고 있었다.
      *
+     * <p><b>이 규칙을 패키지 전면 금지로 상향하지 않는 근거(§1.3)</b>: 완전 매핑 전환으로
+     * {@code request/}·{@code response/}가 {@code ..adapter.in.web..} 하위로 이동했으므로, 이 규칙을
+     * "{@code ..application.service..}는 {@code ..adapter.in.web..}에 의존 금지"로 상향하면
+     * <b>QueryService가 Response를 조립하는 확정 구조가 곧바로 위반</b>이 된다. Response 조립을
+     * QueryService의 private 매퍼가 담당하는 것은 이 저장소의 확정 규칙이므로(DTO 조립 규칙), 그 구조를
+     * 깨지 않도록 이 규칙은 <b>spring web 플럼빙 금지 수준을 유지</b>한다. 즉 서비스는 Response record를
+     * 참조해도 되지만 요청 바인딩·서블릿·{@code HttpStatus}는 알 수 없다.
+     *
      * <p>차단 대상은 요청 바인딩·서블릿·{@code HttpStatus} 등 web <em>플럼빙</em>이다.
      * {@code org.springframework.web.multipart.MultipartFile}은 제외한다 — 파일 업로드 서비스가
      * 업로드 자체를 받는 경계 타입이라 {@code ceo-api}의 이미지 변경/콘텐츠보드 서비스가 정당하게
@@ -68,21 +76,20 @@ class LayerRulesTest {
     /**
      * 컨트롤러는 조회 어댑터도 직접 주입하지 않는다. 조회는 {@code *QueryService}가 infra query DAO를
      * 주입해 수행하고 Result → Response 변환까지 담당하므로(CQRS 분리 규칙), 컨트롤러가
-     * {@code com.tastyhouse.infrastructure..query..}(DAO·Result·SearchCondition)를 알 이유가 없다.
+     * 읽기 포트({@code com.tastyhouse.application..port.out..} — QueryPort·Result·SearchCondition)를
+     * 알 이유가 없다.
      *
      * <p>이 규칙이 없으면 <b>구조적 구멍</b>이 남는다 — 위
-     * {@code controllersShouldNotDependOnRepositories}는 이름 접미어 {@code *Repository}만 매칭하고
-     * DAO는 {@code *QueryDao}라 걸리지 않으며, {@code shouldNotDependOnInfrastructurePersistence}는
-     * {@code ..persistence..}만 차단하고 DAO는 {@code ..query..}에 있어 역시 걸리지 않는다. 즉 컨트롤러가
-     * DAO를 직접 주입해도 기존 규칙 어디에도 잡히지 않았다. 현재 위반은 0건이며, 이 규칙은 그 상태를
-     * 고정한다(기존 규칙은 이중 방어로 그대로 유지).
+     * {@code controllersShouldNotDependOnRepositories}는 이름 접미어 {@code *Repository}만 매칭해
+     * {@code *QueryPort}를 놓치고, {@code shouldNotDependOnInfrastructurePersistence}는
+     * {@code ..persistence..}만 차단한다. 즉 컨트롤러가 읽기 포트를 직접 주입해도 기존 규칙 어디에도
+     * 잡히지 않는다. 현재 위반은 0건이며, 이 규칙은 그 상태를 고정한다(기존 규칙은 이중 방어로 유지).
      */
     @Test
     void controllersShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().resideInAnyPackage(
-                "com.tastyhouse.infrastructure..query..",
+            .should().dependOnClassesThat().resideInAPackage(
                 "com.tastyhouse.application..port.out..")
             .because("컨트롤러는 조회 어댑터도 읽기 포트도 직접 주입하지 않는다(조회는 QueryService 경유)");
 
@@ -115,7 +122,7 @@ class LayerRulesTest {
 
     /**
      * CQRS 교차 주입 금지(명령 → 조회). {@code *CommandService}는 infra query DAO·Result
-     * ({@code com.tastyhouse.infrastructure..query..})와 같은 모듈의 {@code *QueryService}를
+     * (읽기 포트 {@code com.tastyhouse.application..port.out..})와 같은 모듈의 {@code *QueryService}를
      * 주입하지 않는다 — 명령 경로가 표현용 투영에 결합되면 클래스는 둘로 나뉘었지만 의존 그래프는
      * 여전히 하나로 뭉쳐 있어 CQRS 분리가 이름만 남는다. 명령은 식별자만 반환하고 응답이 필요하면
      * 컨트롤러가 커밋 후 QueryService로 재조회한다.
@@ -127,8 +134,7 @@ class LayerRulesTest {
     void commandServicesShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("CommandService")
-            .should().dependOnClassesThat().resideInAnyPackage(
-                "com.tastyhouse.infrastructure..query..",
+            .should().dependOnClassesThat().resideInAPackage(
                 "com.tastyhouse.application..port.out..")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
             .because("CommandService는 조회 어댑터도 읽기 포트도 주입하지 않는다(CQRS 교차 주입 금지)");
@@ -139,14 +145,14 @@ class LayerRulesTest {
     /**
      * CQRS 교차 주입 금지(조회 → 쓰기). {@code *QueryService}는 domain-module의 write 포트
      * ({@code com.tastyhouse.domain..repository..})를 주입하지 않는다 — 조회 트랜잭션
-     * ({@code readOnly = true})에서 쓰기 경로가 열리는 것을 구조적으로 막는다. 조회는 infra
-     * {@code <ctx>/query/} DAO만 쓴다.
+     * ({@code readOnly = true})에서 쓰기 경로가 열리는 것을 구조적으로 막는다. 조회는
+     * 읽기 포트({@code com.tastyhouse.application..port.out..})만 쓴다.
      *
-     * <p>아래 예외 클래스들은 write 포트를 표현 목적 조회에 쓰고 있어(= query DAO로 내려야 하는
-     * 조회가 write 포트에 남아 있는 상태) P5 태스크의 이관 대상이다. 규칙 전체를 끄지 않고
-     * 클래스명으로 명시적으로 제외한다.
+     * <p><b>남은 제외 클래스는 이관 대상이 아니라 확정된 carve-out이다.</b> 챕터 04로 표현 목적
+     * 조회는 전부 읽기 포트로 이관됐고, 여기 남은 것은 <a href="#">write 포트 잔류 판정 기준</a>에
+     * 해당하는 것들뿐이다 — 도메인 계산 입력이거나 인증·불변식 검증 경로라 표현용 투영이 아니다.
+     * 따라서 이 목록은 <b>비워야 할 부채가 아니며</b>, 새 항목을 추가하지 않는 것만 지킨다.
      */
-    // TODO(P5): 아래 예외 클래스들의 write 포트 주입을 infra query DAO로 이관하고 예외 목록을 비운다.
     @Test
     void queryServicesShouldNotDependOnWritePorts() {
         ArchRule rule = noClasses()
@@ -330,11 +336,52 @@ class LayerRulesTest {
         rule.check(classes);
     }
 
+    /**
+     * 인바운드 어댑터({@code ..adapter.in.web..})는 {@code ..application.service..}의 구체 클래스에
+     * 의존하지 않는다 — UseCase 인터페이스만 주입한다.
+     *
+     * <p>이것이 §1.3의 <b>패키지 규칙 승격</b>이다. 위 {@code controllersShouldDependOnUseCasesOnly}는
+     * 클래스명 접미어({@code *CommandService}/{@code *QueryService})로만 대상을 잡아, 접미어가 다른
+     * 구체 서비스는 그물을 빠져나간다. 실제로 {@code FollowApiController}가 파사드 {@code FollowService}를
+     * 주입하고 있었는데 접미어가 달라 어느 규칙에도 걸리지 않았다(이 규칙 도입 시 컨트롤러를
+     * {@code FollowCommandUseCase}/{@code FollowQueryUseCase} 직접 주입으로 바꾸고 파사드를 삭제했다).
+     * 패키지가 계층을 표현하게 됐으므로 접미어가 아니라 <b>위치</b>로 잡는다. 접미어 규칙은 이중 방어로
+     * 그대로 유지한다.
+     */
     @Test
-    void shouldNotDependOnInfrastructureQuery() {
+    void webAdaptersShouldNotDependOnApplicationServices() {
         ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure..query..")
-            .because("조회 계약은 application..port.out이 소유하고 infra DAO가 구현한다");
+            .that().resideInAPackage("..adapter.in.web..")
+            .should().dependOnClassesThat().resideInAPackage("..application.service..")
+            .because("인바운드 어댑터는 UseCase 인터페이스만 주입한다(구체 서비스 금지)");
+
+        rule.check(classes);
+    }
+
+    /**
+     * {@code ..application.port.in..}은 web 플럼빙·domain 모델·infrastructure에 의존하지 않는다 —
+     * 위 {@code commandRecordsShouldBeBoundaryTyped}(도메인·infra·web 타입)와
+     * {@code portInShouldNotDependOnWebPlumbing}(요청 바인딩·서블릿)을 §1.3에 따라 <b>패키지 기준
+     * 하나로 통합</b>한 형태이며, 두 원본 규칙은 이중 방어로 유지한다.
+     *
+     * <p>예외 두 가지는 원본 규칙과 동일하다 — {@code com.tastyhouse.domain.exception..}(에러 계약은
+     * 계층 칸이 없는 횡단 관심사)과 {@code org.springframework.web.multipart..}(UseCase 메서드의 업로드
+     * 경계 파라미터). 근거는 각 원본 규칙의 Javadoc에 있다.
+     */
+    @Test
+    void portInShouldBeFreeOfWebDomainAndInfrastructure() {
+        ArchRule rule = noClasses()
+            .that().resideInAPackage("..application.port.in..")
+            .should().dependOnClassesThat(
+                resideInAnyPackage(
+                    "com.tastyhouse.domain..",
+                    "com.tastyhouse.infrastructure..",
+                    "org.springframework.web..",
+                    "jakarta.servlet.."
+                ).and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
+                 .and(not(resideInAPackage("org.springframework.web.multipart..")))
+            )
+            .because("인바운드 포트는 web 플럼빙·domain 모델·infrastructure를 알지 않는다");
 
         rule.check(classes);
     }

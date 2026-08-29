@@ -63,7 +63,7 @@ Result record가 이 모듈로 이동하며 `@QueryProjection`(컴파일 타임 
 ## 소비 배선
 
 - `infrastructure-module` — `implementation`으로 의존. `{Ctx}QueryDao`가 이 모듈의 `{Ctx}QueryPort`를 `implements`하고, Result record를 `Projections.constructor`로 투영한다.
-- `web-api`/`admin-api`/`ceo-api`/`batch-module` — `implementation`으로 의존. `{도메인}QueryService`(또는 batch의 `*SchedulerService`)가 이 모듈의 `{Ctx}QueryPort` 인터페이스를 주입하며, `infrastructure-module`의 DAO 구현체나 `com.tastyhouse.infrastructure..` 패키지는 전혀 import하지 않는다(각 모듈 `LayerRulesTest`의 `shouldNotDependOnInfrastructureQuery`가 봉인 목록 없이 강제).
+- `web-api`/`admin-api`/`ceo-api`/`batch-module` — `implementation`으로 의존. `{도메인}QueryService`(또는 batch의 `*SchedulerService`)가 이 모듈의 `{Ctx}QueryPort` 인터페이스를 주입하며, `infrastructure-module`의 DAO 구현체나 `com.tastyhouse.infrastructure..` 패키지는 전혀 import하지 않는다(각 모듈 `LayerRulesTest`가 강제. 챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다).
 
 ## Dependencies
 

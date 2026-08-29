@@ -192,7 +192,7 @@ frontend/   Next.js 앱 3개 — web(사용자 모바일 웹) · admin(관리자
 docs/       domain(도메인별 비즈니스 지식 문서) · oauth · pg
 ```
 
-- **backend 모듈** (`backend/settings.gradle`): 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`)와 공유 모듈(`domain-module`, `infrastructure-module`, `external-api`, `security-module`, `logging-module`, `api-common-module`)로 구성됩니다.
+- **backend 모듈** (`backend/settings.gradle`): 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`)와 공유 모듈(`domain-module`, `application-common-module`, `infrastructure-module`, `external-api`, `security-module`, `logging-module`, `api-common-module`)로 구성됩니다.
 - **작업 전 해당 영역 문서를 먼저 읽습니다.** backend 각 모듈과 frontend 각 앱의 `src/` 하위 디렉터리에는 그 영역의 최신 상세 가이드가 담긴 `AGENTS.md`가 있으므로, 이 파일의 요약에 의존하지 말고 해당 문서를 직접 확인합니다.
 - **도메인 로직 작업 전에는 `docs/domain/{도메인}.md`를 참조합니다.** 주문·쿠폰·포인트·등급 등 도메인별 비즈니스 규칙이 정리돼 있어, 코드만 읽고 추측하는 것보다 정확합니다.
 
