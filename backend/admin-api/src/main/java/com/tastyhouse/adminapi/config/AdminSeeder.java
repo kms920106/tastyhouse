@@ -8,8 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.domain.admin.model.AdminRole;
-import com.tastyhouse.adminapi.admin.AdminCommandService;
-import com.tastyhouse.adminapi.admin.AdminQueryService;
+import com.tastyhouse.adminapi.admin.application.port.in.AdminCommandUseCase;
+import com.tastyhouse.adminapi.admin.application.port.in.AdminCreateCommand;
+import com.tastyhouse.adminapi.admin.application.service.AdminQueryService;
 
 /**
  * 최초 SUPER_ADMIN 시드.
@@ -24,7 +25,7 @@ public class AdminSeeder {
     @Bean
     public ApplicationRunner seedSuperAdmin(
         AdminQueryService adminQueryService,
-        AdminCommandService adminCommandService,
+        AdminCommandUseCase adminCommandUseCase,
         AdminSeedProperties seedProperties
     ) {
         return (ApplicationArguments args) -> {
@@ -38,12 +39,13 @@ public class AdminSeeder {
                 throw new IllegalStateException(
                     "최초 SUPER_ADMIN을 생성하려면 ADMIN_SEED_PASSWORD 환경변수로 안전한 비밀번호를 지정해야 합니다.");
             }
-            adminCommandService.createAdmin(
+            AdminCreateCommand command = AdminCreateCommand.of(
                 username,
                 seedProperties.password(),
                 seedProperties.name(),
                 AdminRole.SUPER_ADMIN.name()
             );
+            adminCommandUseCase.createAdmin(command);
             log.info("[AdminSeeder] 최초 SUPER_ADMIN '{}' 생성 완료", username);
         };
     }

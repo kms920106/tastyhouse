@@ -4,15 +4,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.ceoapi.auth.response.JwtResponse;
+import com.tastyhouse.ceoapi.ceo.application.service.CeoQueryService;
+import com.tastyhouse.ceoapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 import com.tastyhouse.security.token.RefreshTokenRedisRepository;
-import com.tastyhouse.ceoapi.ceo.CeoQueryService;
-import com.tastyhouse.ceoapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.ceoapi.auth.response.JwtResponse;
 
 /**
  * 점주 토큰 발급·갱신·무효화 비즈니스 로직

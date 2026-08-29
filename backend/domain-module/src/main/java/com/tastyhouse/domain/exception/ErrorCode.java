@@ -2,6 +2,11 @@ package com.tastyhouse.domain.exception;
 
 public enum ErrorCode implements ErrorCodeSpec {
 
+    // 공통 - 입력 구조 위반 (Command record의 compact constructor 가드 전용)
+    // 형식·범위 검증은 Request의 jakarta.validation이 담당하므로, 이 코드는 인바운드 어댑터를
+    // 우회해 Command가 직접 조립된 경우의 필수값 누락 같은 구조적 위반에만 쓴다.
+    INVALID_INPUT(400, "INVALID_INPUT", "입력값이 올바르지 않습니다."),
+
     // 공통 - 엔티티 미존재 (fallback: 도메인별 전용 NOT_FOUND 코드가 있으면 그쪽을 쓴다)
     ENTITY_NOT_FOUND(404, "ENTITY_NOT_FOUND", "요청한 데이터를 찾을 수 없습니다."),
 

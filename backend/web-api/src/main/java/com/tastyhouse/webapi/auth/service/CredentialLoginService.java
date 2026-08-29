@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
-import com.tastyhouse.webapi.member.service.MemberCommandService;
+import com.tastyhouse.webapi.member.application.service.MemberCommandService;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
 
 @Service

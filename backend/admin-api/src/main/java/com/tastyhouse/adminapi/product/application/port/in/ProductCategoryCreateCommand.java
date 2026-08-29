@@ -1,0 +1,18 @@
+package com.tastyhouse.adminapi.product.application.port.in;
+
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+
+/** 상품 카테고리 등록 command. */
+public record ProductCategoryCreateCommand(
+    Long shopId,
+    String name,
+    Integer sort,
+    Boolean visible
+) {
+    public ProductCategoryCreateCommand {
+        if (shopId == null || name == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
+    }
+}

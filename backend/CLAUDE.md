@@ -167,6 +167,10 @@ reference 구현: `external-api`의 `oauth/spi/`(`SocialOAuthClient`·`SocialPro
 - **Request → Command 변환은 인바운드 어댑터(컨트롤러)가 소유합니다 (개정 — 과거 `toCommand` 금지 규칙의 번복)**: Request record에 `toCommand(...)`를 두고, 컨트롤러가 `XxxCommand command = request.toCommand(경로변수, principal 식별자, ...);`로 application Command record를 조립합니다. 『만들면서 배우는 클린 아키텍처』 그림 8.3의 **완전(Full) 매핑 전략**을 채택한 결과이며, 계층 경계의 매핑은 그 경계를 지키는 어댑터의 책임이라는 것이 근거입니다. 경로 변수·인증 주체처럼 **요청 본문에 없는 값은 `toCommand`의 파라미터로 주입**합니다(`request.toCommand(id, userDetails.getMemberId())`).
   - **과거 규칙(폐기)**: "Request DTO는 `toCommand()` 같은 변환 메서드를 두지 않고, 컨트롤러가 개별 원시 필드로 언패킹해 Service에 전달한다"는 규칙은 **폐기**합니다. 그 방식은 필드가 늘어날수록 Service 시그니처가 그대로 길어져 **파라미터 15개짜리 메서드**를 낳았고, 같은 타입(Long/String) 인자가 줄줄이 늘어선 호출부에서 **순서를 착각해 값이 조용히 뒤바뀌는 사고**(컴파일은 통과)를 반복적으로 만들어냈습니다. 이름 있는 record 필드로 묶으면 그 사고 유형 자체가 사라집니다.
   - **Request·Command 모두 domain-free를 유지합니다**: Command 필드는 경계 타입(`Long`/`String`/`Integer`)을 그대로 씁니다. 도메인 타입 승격(`XxxId.of(...)`·`XxxEnum.from(...)`)은 **서비스 내부**에서 수행하므로, Request record에 `toCommand`가 생겨도 Request가 `com.tastyhouse.domain..`를 import하지 않습니다(기존 Request/Response domain-free 규칙과 충돌하지 않음).
+  - **Command의 구조적 가드는 `BusinessException(ErrorCode.INVALID_INPUT)`을 던지며, 이것이 `domain..` 금지의 유일한 예외입니다**: Command record의 compact constructor에는 **필수값 누락 같은 구조적 가드만** 두고(형식·범위 검증은 Request의 jakarta.validation에 그대로 남겨 400 계약·한국어 메시지를 보존), 위반 시 `com.tastyhouse.domain.exception`의 `BusinessException`/`ErrorCode`를 던집니다. 즉 Command가 import할 수 있는 유일한 `com.tastyhouse.domain..` 타입은 **`domain.exception..`뿐**이며, `model`·`vo`·`repository`·`service`·`event`·`port`는 예외 없이 금지입니다.
+    - **근거(그림 8.3)**: 완전 매핑에서 계층 칸으로 격리되는 것은 **도메인 모델**(그림의 `Account`)이지 예외 타입이 아닙니다 — 예외는 계층 칸이 아예 없는 **횡단 관심사**이고, 원서의 `SendMoneyCommand`도 `SelfValidating`으로 스스로 검증해 던집니다. 이 저장소에서도 `api-common-module`이 `api project(':domain-module')`로 `domain.exception`을 전 모듈에 노출해 사실상 공용 에러 계약 위치입니다. 이 carve-out이 없으면 가드 자체를 쓸 수 없습니다(스펙 §2가 "예외 없음"과 "BusinessException으로 던져라"를 동시에 요구해 모순이던 지점).
+    - **`IllegalArgumentException`으로 대체하지 않습니다**: 전역 핸들러의 변환 경로가 달라 에러 wire 계약(`code`·상태)이 조용히 바뀝니다.
+    - **`ErrorCode.INVALID_INPUT`(400)은 이 가드 전용으로 신설한 공통 상수입니다**: 인바운드 어댑터를 우회해 Command가 직접 조립된 경우의 구조적 위반에만 씁니다. 도메인별 구체 에러가 있으면 그쪽을 쓰고, 이 상수를 형식 검증 용도로 확대하지 않습니다.
   - **`MultipartFile`은 Command 필드로 두지 않습니다**: 업로드 경계 타입이므로 서비스 파라미터로는 허용하되(아래 [CQRS 분리 규칙](#api-모듈-application-서비스-cqrs-분리-규칙-도메인commandservice도메인queryservice) 참조), Command에는 업로드 **결과 참조**(파일 식별자·URL)만 담습니다.
 - **command/VO/condition 자체의 생성**: 대상 record에 정적 팩토리 `of(...)`를 두고 `Xxx.of(a, b, c)`로 생성하는 관례는 그대로입니다. `toCommand` 본문이 `XxxCommand.of(...)`를 호출하는 형태가 표준형이며, `new`는 팩토리 내부에만 남습니다.
 - **도메인/DTO → 응답 변환 (result 객체가 아니라 개별 원시타입으로 수신)**: 응답 record의 정적 팩토리 `from(...)`은 infra query DAO의 result 객체(`XxxResult`)를 통째로 받지 않고, **result의 각 필드를 원시타입(String/Long/Integer/LocalDateTime 등)으로 낱개 언패킹해서 받습니다.** `XxxResponse.from(id, title, content, ...)` 형태이며 `XxxResponse` 파일 자체는 `com.tastyhouse.domain.*`·`com.tastyhouse.infrastructure.*`를 import하지 않습니다(컨트롤러·Request record와 동일하게 Response record도 domain-free·infra-free). result를 낱개로 풀어 넘기는 책임은 이 Response를 호출하는 Service가 지며, Service에 private 매퍼 메서드(`toXxxResponse(XxxResult dto)`)를 두어 `dto.id()`, `dto.title()`처럼 이름 기반으로 안전하게 꺼낸 뒤 `XxxResponse.from(...)`에 위치 기반으로 전달합니다. 중첩 조립(리스트 필드, 하위 Response 필드)이 있으면 그 조립도 Service의 private 매퍼로 나눕니다.
@@ -806,6 +810,31 @@ reference 구현: `web-api/src/test/.../architecture/LayerRulesTest`(및 `admin-
 - **`allowEmptyShould(true)`를 쓰지 않는다** — api 모듈 4개와 동일하게 공허 통과를 허용하지 않는다.
 
 reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTest`. 같은 모듈의 수제 가드 `QueryResultRecordVisibilityTest`·`EmbeddedRecordComponentOrderTest`와 역할이 겹치지 않는다 — 이쪽은 **계층 방향**만 본다.
+
+## 인바운드 포트 ArchUnit 규칙 6종 (완전 매핑 컴파일 게이트)
+
+3개 api 모듈(`web-api`/`admin-api`/`ceo-api`)의 `LayerRulesTest`에 아래 6종을 둡니다. 전 컨텍스트 전환이 끝나 `..application.port.in..`에 실제 대상(437개)이 있으므로 **`allowEmptyShould(true)`를 쓰지 않습니다**.
+
+| 규칙 | 강제 내용 |
+|---|---|
+| `controllersShouldDependOnUseCasesOnly` | `*ApiController`는 `*CommandService` 구체 클래스에 의존 금지. **이것이 완전 매핑의 컴파일 게이트** — 인터페이스만 만들어 두고 컨트롤러가 구체 클래스를 계속 주입하면 경계는 이름만 남습니다. (`*QueryService` 구체 주입 금지는 챕터 03) |
+| `commandServicesShouldImplementUseCase` | `*CommandService`는 `..application.port.in..`의 인터페이스를 최소 1개 구현. 위 규칙의 짝으로, 그것만 있으면 "포트 없이 빈 주입만 우회"가 통과합니다 |
+| `commandServicesShouldNotDependOnRequestRecords` | `*CommandService`는 `..request..` 의존 금지 |
+| `commandRecordsShouldBeBoundaryTyped` | `..port.in..`은 `com.tastyhouse.domain..`·`infrastructure..`·`org.springframework.web..` 의존 금지 |
+| `commandRecordsShouldNotHoldMultipartFile` | `..port.in..`의 **필드**로 `MultipartFile` 금지 |
+| `portInShouldNotDependOnWebPlumbing` | `..port.in..`은 `web.bind`·`web.servlet`·`http`·`jakarta.servlet` 의존 금지 |
+
+**규칙 4와 5가 나뉜 이유**: ArchUnit 의존 그래프는 같은 패키지의 **UseCase 인터페이스 메서드 파라미터**까지 잡습니다. 업로드 연산은 `method(XxxCommand, MultipartFile)`이 규정된 형태이므로(§6) 규칙 4에서 `org.springframework.web.multipart..`를 예외로 빼고, §6이 실제로 금지하는 것(Command **필드**로 싣기)은 규칙 5가 따로 막습니다.
+
+### 세 규칙이 동시에 걸리는 지점 — multipart 문자열 파트의 파싱 위치
+
+`ShopStorePriceVerificationApiController`의 `items`(JSON 배열 문자열 파트)처럼 **전송 형식을 풀어야 하는 값**은 파싱 위치가 규칙 셋에 동시에 걸립니다.
+
+- 컨트롤러에서 파싱 → `controllersShouldBeDomainFree` 위반(파싱 실패를 `BusinessException`으로 번역해야 함)
+- Request record에서 파싱 → `requestResponseRecordsShouldBeDomainAndInfraFree` 위반(같은 이유)
+- 서비스에서 Request를 받아 파싱 → `commandServicesShouldNotDependOnRequestRecords` 위반(§5)
+
+**셋을 모두 만족하는 유일한 형태는 Command가 원문 문자열을 경계 타입 `String`으로 담아 넘기고, 서비스가 그것을 중첩 Command로 파싱하는 것입니다.** 파싱 실패와 빈 목록이 같은 `ErrorCode`로 나가던 계약도 이때 그대로 보존됩니다(둘 다 서비스가 던짐). 비슷한 multipart 파트를 새로 만들 때 이 형태를 따릅니다.
 
 ## api 모듈 application 서비스 CQRS 분리 규칙 (`{도메인}CommandService`/`{도메인}QueryService`)
 

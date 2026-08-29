@@ -1,0 +1,48 @@
+package com.tastyhouse.ceoapi.shop.application.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.infrastructure.shop.query.ShopContentBoardResult;
+import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopContentBoardResponse;
+
+/**
+ * 점주용 가게 콘텐츠보드 조회 서비스(CQRS query 측).
+ */
+@Service
+@Transactional(readOnly = true)
+public class ShopContentBoardQueryService {
+
+    private final ShopQueryDao shopQueryDao;
+    private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ShopContentBoardQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryDao = shopQueryDao;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
+
+    public List<ShopContentBoardResponse> getContentBoards(Long ceoId, Long shopId) {
+        shopOwnershipValidator.validateOwnership(ceoId, shopId);
+
+        return shopQueryDao.findContentBoards(shopId).stream()
+            .map(this::toShopContentBoardResponse)
+            .toList();
+    }
+
+    private ShopContentBoardResponse toShopContentBoardResponse(ShopContentBoardResult dto) {
+        return ShopContentBoardResponse.of(
+            dto.id(),
+            dto.shopId(),
+            dto.contentType().name(),
+            dto.topic().name(),
+            dto.imageUrl(),
+            dto.youtubeUrl(),
+            dto.description(),
+            dto.hidden()
+        );
+    }
+}

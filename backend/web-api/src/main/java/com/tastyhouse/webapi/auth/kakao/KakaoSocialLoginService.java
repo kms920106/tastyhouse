@@ -25,7 +25,7 @@ import com.tastyhouse.external.oauth.spi.SocialProfile;
 import com.tastyhouse.security.token.KakaoTempTokenRedisRepository;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
-import com.tastyhouse.webapi.member.service.MemberCommandService;
+import com.tastyhouse.webapi.member.application.service.MemberCommandService;
 import com.tastyhouse.webapi.auth.response.AuthJwtResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialLinkResponse;
 import com.tastyhouse.webapi.auth.response.AuthSocialLoginResponse;

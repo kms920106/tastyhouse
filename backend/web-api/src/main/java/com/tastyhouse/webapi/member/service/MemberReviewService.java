@@ -4,9 +4,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
-import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
-import com.tastyhouse.webapi.review.ReviewQueryService;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewCountResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewListItemResponse;
+import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
 
 @Service
 public class MemberReviewService {

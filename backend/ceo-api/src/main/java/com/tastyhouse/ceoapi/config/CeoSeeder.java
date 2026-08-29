@@ -8,8 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.tastyhouse.ceoapi.ceo.CeoCommandService;
-import com.tastyhouse.ceoapi.ceo.CeoQueryService;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoCommandUseCase;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoCreateCommand;
+import com.tastyhouse.ceoapi.ceo.application.service.CeoQueryService;
 
 /**
  * 최초 점주 계정 시드.
@@ -24,7 +25,7 @@ public class CeoSeeder {
     @Bean
     public ApplicationRunner seedCeo(
         CeoQueryService ceoQueryService,
-        CeoCommandService ceoCommandService,
+        CeoCommandUseCase ceoCommandUseCase,
         PasswordEncoder passwordEncoder,
         CeoSeedProperties seedProperties
     ) {
@@ -39,11 +40,12 @@ public class CeoSeeder {
                 throw new IllegalStateException(
                     "최초 점주 계정을 생성하려면 CEO_SEED_PASSWORD 환경변수로 안전한 비밀번호를 지정해야 합니다.");
             }
-            ceoCommandService.createCeo(
+            CeoCreateCommand command = CeoCreateCommand.of(
                 username,
                 passwordEncoder.encode(seedProperties.password()),
                 seedProperties.name()
             );
+            ceoCommandUseCase.createCeo(command);
             log.info("[CeoSeeder] 최초 점주 '{}' 생성 완료", username);
         };
     }

@@ -14,13 +14,15 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.ceoapi.auth.response.JwtResponse;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoLoginHistoryCommandUseCase;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoLoginHistoryFailureCommand;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoLoginHistorySuccessCommand;
+import com.tastyhouse.ceoapi.config.jwt.service.TokenService;
+import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.repository.CeoRepository;
-import com.tastyhouse.ceoapi.ceo.CeoLoginHistoryCommandService;
-import com.tastyhouse.ceoapi.config.jwt.service.TokenService;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
-import com.tastyhouse.ceoapi.auth.response.JwtResponse;
 
 /**
  * 점주 인증(로그인/토큰갱신/로그아웃) 서비스.
@@ -28,7 +30,7 @@ import com.tastyhouse.ceoapi.auth.response.JwtResponse;
  *
  * <p><b>이 클래스에 {@code @Transactional}을 붙이지 않는다.</b> 로그인 실패는 Spring Security 예외로
  * 전파되는데, 여기에 트랜잭션이 걸려 있으면 <b>실패 이력이 예외와 함께 롤백되어 영구히 남지 않는다.</b>
- * 기록은 {@link CeoLoginHistoryCommandService}가 자기 트랜잭션으로 커밋한다.
+ * 기록은 {@link CeoLoginHistoryCommandUseCase}가 자기 트랜잭션으로 커밋한다.
  *
  * <p>서블릿 타입({@code HttpServletRequest})을 여기서 다루지 않고 컨트롤러가 IP·User-Agent를
  * {@code String}으로 뽑아 넘기는 이유: ArchUnit {@code applicationServicesShouldNotDependOnWebLayer}가
@@ -53,18 +55,18 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final CeoRepository ceoRepository;
-    private final CeoLoginHistoryCommandService ceoLoginHistoryCommandService;
+    private final CeoLoginHistoryCommandUseCase ceoLoginHistoryCommandUseCase;
 
     public AuthService(
         AuthenticationManager authenticationManager,
         TokenService tokenService,
         CeoRepository ceoRepository,
-        CeoLoginHistoryCommandService ceoLoginHistoryCommandService
+        CeoLoginHistoryCommandUseCase ceoLoginHistoryCommandUseCase
     ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
         this.ceoRepository = ceoRepository;
-        this.ceoLoginHistoryCommandService = ceoLoginHistoryCommandService;
+        this.ceoLoginHistoryCommandUseCase = ceoLoginHistoryCommandUseCase;
     }
 
     /**
@@ -95,7 +97,9 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        ceoLoginHistoryCommandService.recordSuccess(userDetails.getCeoId(), ipAddress, userAgent);
+        CeoLoginHistorySuccessCommand command =
+            CeoLoginHistorySuccessCommand.of(userDetails.getCeoId(), ipAddress, userAgent);
+        ceoLoginHistoryCommandUseCase.recordSuccess(command);
 
         return tokenService.issue(authentication, rememberMe);
     }
@@ -139,12 +143,13 @@ public class AuthService {
                 // 자격증명·계정상태 외의 예외는 로그인 시도의 결과로 분류할 수 없어 기록하지 않는다.
                 return;
             }
-            ceoLoginHistoryCommandService.recordFailure(
+            CeoLoginHistoryFailureCommand command = CeoLoginHistoryFailureCommand.of(
                 ceo.get().getId(),
-                failureReason,
+                failureReason.name(),
                 ipAddress,
                 userAgent
             );
+            ceoLoginHistoryCommandUseCase.recordFailure(command);
         } catch (RuntimeException e) {
             log.error("점주 로그인 실패 이력 기록에 실패했습니다. username={}", username, e);
         }

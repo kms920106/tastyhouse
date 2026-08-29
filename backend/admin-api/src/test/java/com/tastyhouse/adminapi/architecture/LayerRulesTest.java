@@ -6,6 +6,10 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
@@ -190,6 +194,113 @@ class LayerRulesTest {
                 "com.tastyhouse.infrastructure.."
             )
             .because("Request/Response record는 domain-free·infra-free 순수 데이터 홀더다");
+
+        rule.check(classes);
+    }
+
+    /**
+     * 컨트롤러는 인바운드 포트(UseCase 인터페이스)만 주입하고 {@code *CommandService} 구체 클래스를
+     * 알지 않는다. 이 규칙이 완전 매핑 전환의 <b>컴파일 게이트</b>다 — 인터페이스를 만들어 두어도
+     * 컨트롤러가 구체 클래스를 계속 주입하면 경계는 이름만 남는다.
+     *
+     * <p>{@code *QueryService} 구체 주입 금지는 챕터 03에서 추가한다. 이 챕터 동안 컨트롤러는
+     * QueryService를 구체 클래스로 계속 주입하므로, 지금 함께 막으면 전 컨트롤러가 위반이 된다.
+     */
+    @Test
+    void controllersShouldDependOnUseCasesOnly() {
+        ArchRule rule = noClasses()
+            .that().haveSimpleNameEndingWith("ApiController")
+            .should().dependOnClassesThat().haveSimpleNameEndingWith("CommandService")
+            .because("컨트롤러는 CommandUseCase 인터페이스만 주입한다(구체 클래스 금지)");
+
+        rule.check(classes);
+    }
+
+    /**
+     * {@code *CommandService}는 인바운드 포트를 최소 1개 구현한다. 위
+     * {@code controllersShouldDependOnUseCasesOnly}의 짝으로, 그 규칙만 있으면 컨트롤러가 구체 클래스를
+     * 안 볼 뿐 서비스가 아무 인터페이스도 구현하지 않는 상태(=포트 없이 빈 주입만 우회)가 통과한다.
+     */
+    @Test
+    void commandServicesShouldImplementUseCase() {
+        ArchRule rule = classes()
+            .that().haveSimpleNameEndingWith("CommandService")
+            .should().implement(resideInAPackage("..application.port.in.."))
+            .because("CommandService는 대응 CommandUseCase를 구현한다");
+
+        rule.check(classes);
+    }
+
+    /**
+     * Command record는 경계 타입만 싣는다 — 식별자는 {@code Long}, 도메인 enum 후보는 {@code String}으로
+     * 받고 승격({@code XxxId.of}·{@code Enum.from})은 서비스 내부에서 한다.
+     *
+     * <p>차단 대상은 도메인 <em>모델</em>이다(완전 매핑 그림 8.3에서 애그리거트는 Command와 다른 계층
+     * 칸에 있다). {@code com.tastyhouse.domain.exception..}은 예외로 허용한다 — {@code BusinessException}·
+     * {@code ErrorCode}는 애그리거트가 아니라 전 계층이 공유하는 <b>횡단 관심사(에러 계약)</b>이고,
+     * compact constructor의 구조적 가드가 이를 던져야 응답 코드가 나머지 경로와 같은 형태로 나간다.
+     * 이 carve-out이 없으면 §2가 요구하는 가드를 아예 쓸 수 없다.
+     *
+     * <p>{@code org.springframework.web.multipart..}({@code MultipartFile})도 제외한다 — 이 규칙이
+     * 금지하려는 것은 <b>Command record의 필드</b>로 업로드 타입을 싣는 것인데, ArchUnit의 의존 그래프는
+     * 같은 패키지에 있는 <b>UseCase 인터페이스의 메서드 파라미터</b>까지 함께 잡는다. 업로드를 받는 연산은
+     * {@code method(XxxCommand, MultipartFile)}처럼 별도 파라미터로 두는 것이 규정된 형태이므로(§6),
+     * 그것까지 막으면 업로드 흐름을 재설계해야 한다. Command 필드로 실리는 것은 아래
+     * {@code commandRecordsShouldNotHoldMultipartFile}이 따로 막는다.
+     */
+    @Test
+    void commandRecordsShouldBeBoundaryTyped() {
+        ArchRule rule = noClasses()
+            .that().resideInAPackage("..application.port.in..")
+            .should().dependOnClassesThat(
+                resideInAnyPackage(
+                    "com.tastyhouse.domain..",
+                    "com.tastyhouse.infrastructure..",
+                    "org.springframework.web.."
+                ).and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
+                 .and(not(resideInAPackage("org.springframework.web.multipart..")))
+            )
+            .because("Command는 도메인 모델·infra·web 타입을 싣지 않는다(에러 계약은 횡단 관심사라 예외)");
+
+        rule.check(classes);
+    }
+
+    /**
+     * 인바운드 포트는 web 플럼빙을 알지 않는다. {@code ..port.in..}이 {@code MultipartFile} 외의
+     * 요청 바인딩·서블릿·{@code HttpStatus}에 의존하면 application 계층이 HTTP에 묶여, 포트를 도입한
+     * 목적(경계 계약을 전송 방식과 분리)이 사라진다.
+     *
+     * <p>{@code MultipartFile}은 {@code org.springframework.web.multipart..}라 위
+     * {@code commandRecordsShouldBeBoundaryTyped}가 이미 Command 필드로는 막는다. UseCase 메서드의
+     * <em>별도 파라미터</em> 사용은 업로드 경계 타입으로 존치한다(§6).
+     */
+    @Test
+    void portInShouldNotDependOnWebPlumbing() {
+        ArchRule rule = noClasses()
+            .that().resideInAPackage("..application.port.in..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "org.springframework.web.bind..",
+                "org.springframework.web.servlet..",
+                "org.springframework.http..",
+                "jakarta.servlet.."
+            )
+            .because("인바운드 포트는 HTTP 전송 방식을 알지 않는다");
+
+        rule.check(classes);
+    }
+
+    /**
+     * {@code *CommandService}는 {@code ..request..}를 알지 않는다. 컨트롤러가 Request를 Command로
+     * 매핑해 넘기므로(완전 매핑 — 매핑은 인바운드 어댑터 소유) 서비스가 HTTP 요청 DTO를 볼 이유가 없다.
+     *
+     * <p>이 모듈은 봉인 예외가 없다 — 전 {@code *CommandService}가 규칙 대상이다.
+     */
+    @Test
+    void commandServicesShouldNotDependOnRequestRecords() {
+        ArchRule rule = noClasses()
+            .that().haveSimpleNameEndingWith("CommandService")
+            .should().dependOnClassesThat().resideInAnyPackage("..request..")
+            .because("CommandService는 Request record를 받지 않는다(매핑은 컨트롤러가 소유)");
 
         rule.check(classes);
     }

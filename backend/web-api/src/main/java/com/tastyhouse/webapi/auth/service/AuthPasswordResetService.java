@@ -13,7 +13,8 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.auth.response.AuthPasswordResetTokenResponse;
-import com.tastyhouse.webapi.member.service.MemberCommandService;
+import com.tastyhouse.webapi.member.application.port.in.MemberPasswordUpdateCommand;
+import com.tastyhouse.webapi.member.application.service.MemberCommandService;
 
 /**
  * 비밀번호 재설정 파사드.
@@ -112,6 +113,8 @@ public class AuthPasswordResetService {
         // 아이디→식별자 해석만 여기서 하고, "기존 비밀번호와 동일" 검사는 변경과 같은 트랜잭션·같은 회원
         // 로드 안에서 수행하도록 MemberCommandService.updatePassword로 내렸다(read-then-write 원자화).
         // 예외 코드(MEMBER_PASSWORD_SAME_AS_OLD)와 검사 순서는 그대로다.
-        memberCommandService.updatePassword(member.getId(), newPassword, newPasswordConfirm);
+        MemberPasswordUpdateCommand command =
+            new MemberPasswordUpdateCommand(member.getId(), newPassword, newPasswordConfirm);
+        memberCommandService.updatePassword(command);
     }
 }

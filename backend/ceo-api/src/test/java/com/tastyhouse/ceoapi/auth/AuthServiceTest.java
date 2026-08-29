@@ -18,7 +18,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.repository.CeoRepository;
-import com.tastyhouse.ceoapi.ceo.CeoLoginHistoryCommandService;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoLoginHistoryCommandUseCase;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoLoginHistoryFailureCommand;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoLoginHistorySuccessCommand;
 import com.tastyhouse.ceoapi.config.jwt.service.TokenService;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.auth.response.JwtResponse;
@@ -27,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -57,7 +59,7 @@ class AuthServiceTest {
     private AuthenticationManager authenticationManager;
     private TokenService tokenService;
     private CeoRepository ceoRepository;
-    private CeoLoginHistoryCommandService ceoLoginHistoryCommandService;
+    private CeoLoginHistoryCommandUseCase ceoLoginHistoryCommandService;
     private AuthService authService;
 
     @BeforeEach
@@ -65,7 +67,7 @@ class AuthServiceTest {
         authenticationManager = mock(AuthenticationManager.class);
         tokenService = mock(TokenService.class);
         ceoRepository = mock(CeoRepository.class);
-        ceoLoginHistoryCommandService = mock(CeoLoginHistoryCommandService.class);
+        ceoLoginHistoryCommandService = mock(CeoLoginHistoryCommandUseCase.class);
         authService = new AuthService(
             authenticationManager,
             tokenService,
@@ -85,7 +87,7 @@ class AuthServiceTest {
         JwtResponse actual = authService.login(USERNAME, PASSWORD, false, IP, USER_AGENT);
 
         assertThat(actual).isEqualTo(expected);
-        verify(ceoLoginHistoryCommandService).recordSuccess(CEO_ID, IP, USER_AGENT);
+        verify(ceoLoginHistoryCommandService).recordSuccess(CeoLoginHistorySuccessCommand.of(CEO_ID, IP, USER_AGENT));
         verifyNoInteractions(ceoRepository);
     }
 
@@ -100,7 +102,8 @@ class AuthServiceTest {
             .isSameAs(authenticationException);
 
         verify(ceoLoginHistoryCommandService)
-            .recordFailure(CEO_ID, CeoLoginFailureReason.BAD_CREDENTIALS, IP, USER_AGENT);
+            .recordFailure(CeoLoginHistoryFailureCommand.of(
+                CEO_ID, CeoLoginFailureReason.BAD_CREDENTIALS.name(), IP, USER_AGENT));
         verify(tokenService, never()).issue(any(), anyBoolean());
     }
 
@@ -115,7 +118,8 @@ class AuthServiceTest {
             .isSameAs(authenticationException);
 
         verify(ceoLoginHistoryCommandService)
-            .recordFailure(CEO_ID, CeoLoginFailureReason.ACCOUNT_INACTIVE, IP, USER_AGENT);
+            .recordFailure(CeoLoginHistoryFailureCommand.of(
+                CEO_ID, CeoLoginFailureReason.ACCOUNT_INACTIVE.name(), IP, USER_AGENT));
     }
 
     @Test
@@ -129,7 +133,8 @@ class AuthServiceTest {
             .isSameAs(authenticationException);
 
         verify(ceoLoginHistoryCommandService)
-            .recordFailure(CEO_ID, CeoLoginFailureReason.ACCOUNT_INACTIVE, IP, USER_AGENT);
+            .recordFailure(CeoLoginHistoryFailureCommand.of(
+                CEO_ID, CeoLoginFailureReason.ACCOUNT_INACTIVE.name(), IP, USER_AGENT));
     }
 
     @Test
@@ -153,7 +158,7 @@ class AuthServiceTest {
         givenCeoExists();
         doThrow(new IllegalStateException("DB 장애"))
             .when(ceoLoginHistoryCommandService)
-            .recordFailure(eq(CEO_ID), any(), any(), any());
+            .recordFailure(argThat(command -> CEO_ID.equals(command.ceoId())));
 
         assertThatThrownBy(() -> authService.login(USERNAME, PASSWORD, false, IP, USER_AGENT))
             .isSameAs(authenticationException);
@@ -166,7 +171,7 @@ class AuthServiceTest {
         IllegalStateException recordingFailure = new IllegalStateException("DB 장애");
         doThrow(recordingFailure)
             .when(ceoLoginHistoryCommandService)
-            .recordSuccess(CEO_ID, IP, USER_AGENT);
+            .recordSuccess(CeoLoginHistorySuccessCommand.of(CEO_ID, IP, USER_AGENT));
 
         assertThatThrownBy(() -> authService.login(USERNAME, PASSWORD, false, IP, USER_AGENT))
             .isSameAs(recordingFailure);

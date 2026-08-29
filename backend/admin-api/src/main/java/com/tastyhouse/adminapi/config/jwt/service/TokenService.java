@@ -11,7 +11,7 @@ import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.adminapi.config.jwt.JwtTokenProvider;
-import com.tastyhouse.adminapi.admin.AdminQueryService;
+import com.tastyhouse.adminapi.admin.application.service.AdminQueryService;
 import com.tastyhouse.adminapi.auth.response.JwtResponse;
 
 /**

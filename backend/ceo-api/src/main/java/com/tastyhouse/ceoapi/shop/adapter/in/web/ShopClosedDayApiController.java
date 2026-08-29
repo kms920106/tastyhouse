@@ -1,0 +1,111 @@
+package com.tastyhouse.ceoapi.shop.adapter.in.web;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.tastyhouse.ceoapi.shop.application.service.ShopClosedDayQueryService;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopClosedDayCreateRequest;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopHolidayClosureUpdateRequest;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopTemporaryClosureCreateRequest;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopClosedDayCommandUseCase;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopClosedDayCreateCommand;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopClosedDayDeleteCommand;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopHolidayClosureUpdateCommand;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopTemporaryClosureCreateCommand;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopTemporaryClosureDeleteCommand;
+
+@Tag(name = "Ceo Shop Closed Day", description = "점주 가게 휴무(공휴일·정기·임시) 관리 API")
+@RestController
+@RequestMapping("/api/shops")
+public class ShopClosedDayApiController {
+
+    private final ShopClosedDayQueryService shopClosedDayQueryService;
+    private final ShopClosedDayCommandUseCase shopClosedDayCommandUseCase;
+
+    public ShopClosedDayApiController(ShopClosedDayQueryService shopClosedDayQueryService, ShopClosedDayCommandUseCase shopClosedDayCommandUseCase) {
+        this.shopClosedDayQueryService = shopClosedDayQueryService;
+        this.shopClosedDayCommandUseCase = shopClosedDayCommandUseCase;
+    }
+
+    @Operation(summary = "내 가게 휴무 통합 조회", description = "로그인한 점주가 소유한 가게의 공휴일 휴무 여부·정기 휴무·임시 휴무를 통합 조회합니다.")
+    @GetMapping("/v1/{id}/closed-days")
+    public ResponseEntity<ApiResponse<ShopClosedDaysResponse>> getClosedDays(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long id
+    ) {
+        ShopClosedDaysResponse response = shopClosedDayQueryService.getClosedDays(userDetails.getCeoId(), id);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "내 가게 공휴일 휴무 설정", description = "로그인한 점주가 소유한 가게의 공휴일 휴무 여부를 변경합니다.")
+    @PutMapping("/v1/{id}/closed-days/holiday")
+    public ResponseEntity<ApiResponse<Void>> updateHolidayClosure(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long id,
+        @Valid @RequestBody ShopHolidayClosureUpdateRequest request
+    ) {
+        ShopHolidayClosureUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
+        shopClosedDayCommandUseCase.updateHolidayClosure(command);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @Operation(summary = "내 가게 정기 휴무 추가", description = "로그인한 점주가 소유한 가게에 정기 휴무를 추가합니다(최대 15개).")
+    @PostMapping("/v1/{id}/closed-days")
+    public ResponseEntity<ApiResponse<Long>> createClosedDay(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long id,
+        @Valid @RequestBody ShopClosedDayCreateRequest request
+    ) {
+        ShopClosedDayCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
+        Long closedDayId = shopClosedDayCommandUseCase.createClosedDay(command);
+        return ResponseEntity.ok(ApiResponse.success(closedDayId));
+    }
+
+    @Operation(summary = "내 가게 정기 휴무 삭제", description = "로그인한 점주가 소유한 가게의 정기 휴무를 삭제합니다.")
+    @DeleteMapping("/v1/closed-days/{closedDayId}")
+    public ResponseEntity<ApiResponse<Void>> deleteClosedDay(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long closedDayId
+    ) {
+        ShopClosedDayDeleteCommand command = ShopClosedDayDeleteCommand.of(userDetails.getCeoId(), closedDayId);
+        shopClosedDayCommandUseCase.deleteClosedDay(command);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @Operation(summary = "내 가게 임시 휴무 등록", description = "로그인한 점주가 소유한 가게에 임시 휴무를 등록합니다(누적 최대 30일).")
+    @PostMapping("/v1/{id}/temporary-closures")
+    public ResponseEntity<ApiResponse<Long>> createTemporaryClosure(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long id,
+        @Valid @RequestBody ShopTemporaryClosureCreateRequest request
+    ) {
+        ShopTemporaryClosureCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
+        Long temporaryClosureId = shopClosedDayCommandUseCase.createTemporaryClosure(command);
+        return ResponseEntity.ok(ApiResponse.success(temporaryClosureId));
+    }
+
+    @Operation(summary = "내 가게 임시 휴무 삭제", description = "로그인한 점주가 소유한 가게의 임시 휴무를 삭제합니다.")
+    @DeleteMapping("/v1/temporary-closures/{temporaryClosureId}")
+    public ResponseEntity<ApiResponse<Void>> deleteTemporaryClosure(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long temporaryClosureId
+    ) {
+        ShopTemporaryClosureDeleteCommand command = ShopTemporaryClosureDeleteCommand.of(userDetails.getCeoId(), temporaryClosureId);
+        shopClosedDayCommandUseCase.deleteTemporaryClosure(command);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+}

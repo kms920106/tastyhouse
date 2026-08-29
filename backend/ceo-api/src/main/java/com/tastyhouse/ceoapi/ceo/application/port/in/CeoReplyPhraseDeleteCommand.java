@@ -1,0 +1,22 @@
+package com.tastyhouse.ceoapi.ceo.application.port.in;
+
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+
+/**
+ * 자주 쓰는 문구 삭제 command. 요청 본문이 없는 연산이므로 컨트롤러가 정적 팩토리로 조립한다.
+ */
+public record CeoReplyPhraseDeleteCommand(
+    Long ceoId,
+    Long replyPhraseId
+) {
+    public CeoReplyPhraseDeleteCommand {
+        if (ceoId == null || replyPhraseId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
+    }
+
+    public static CeoReplyPhraseDeleteCommand of(Long ceoId, Long replyPhraseId) {
+        return new CeoReplyPhraseDeleteCommand(ceoId, replyPhraseId);
+    }
+}

@@ -4,30 +4,33 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.member.model.MemberGender;
-import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.coupon.CouponQueryService;
-import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
-import com.tastyhouse.webapi.member.response.MemberPhoneAvailabilityResponse;
-import com.tastyhouse.webapi.member.response.MemberProfileResponse;
-import com.tastyhouse.webapi.member.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.response.MemberVerifyPasswordResponse;
-import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
-import com.tastyhouse.webapi.member.response.MyGradeResponse;
-import com.tastyhouse.webapi.member.response.MyProfileResponse;
-import com.tastyhouse.webapi.member.response.MyReviewCountResponse;
-import com.tastyhouse.webapi.member.response.MyReviewListItemResponse;
-import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberNicknameAvailabilityResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberPersonalInfoResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberPhoneAvailabilityResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberProfileResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberStatsResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberVerifyPasswordResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyCouponListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyGradeResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyProfileResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewCountResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.member.service.MemberAuthService;
-import com.tastyhouse.webapi.member.service.MemberCommandService;
+import com.tastyhouse.webapi.member.application.port.in.MemberCommandUseCase;
+import com.tastyhouse.webapi.member.application.port.in.MemberPasswordUpdateCommand;
+import com.tastyhouse.webapi.member.application.port.in.MemberPersonalInfoUpdateCommand;
+import com.tastyhouse.webapi.member.application.port.in.MemberProfileUpdateCommand;
+import com.tastyhouse.webapi.member.application.port.in.MemberWithdrawCommand;
 import com.tastyhouse.webapi.member.service.MemberGradeService;
-import com.tastyhouse.webapi.member.service.MemberQueryService;
+import com.tastyhouse.webapi.member.application.service.MemberCommandService;
+import com.tastyhouse.webapi.member.application.service.MemberQueryService;
 import com.tastyhouse.webapi.member.service.MemberReviewService;
 import com.tastyhouse.webapi.member.service.MemberShopService;
-import com.tastyhouse.webapi.member.service.MemberStatsQueryService;
+import com.tastyhouse.webapi.member.application.service.MemberStatsQueryService;
 
 /**
  * 내 정보 화면 컨트롤러 파사드.
@@ -49,7 +52,7 @@ import com.tastyhouse.webapi.member.service.MemberStatsQueryService;
 public class MemberService {
 
     private final MemberQueryService memberQueryService;
-    private final MemberCommandService memberCommandService;
+    private final MemberCommandUseCase memberCommandUseCase;
     private final MemberAuthService memberAuthService;
     private final MemberStatsQueryService memberStatsQueryService;
     private final MemberShopService memberShopService;
@@ -59,7 +62,7 @@ public class MemberService {
 
     public MemberService(
         MemberQueryService memberQueryService,
-        MemberCommandService memberCommandService,
+        MemberCommandUseCase memberCommandUseCase,
         MemberAuthService memberAuthService,
         MemberStatsQueryService memberStatsQueryService,
         MemberShopService memberShopService,
@@ -68,7 +71,7 @@ public class MemberService {
         MemberGradeService memberGradeService
     ) {
         this.memberQueryService = memberQueryService;
-        this.memberCommandService = memberCommandService;
+        this.memberCommandUseCase = memberCommandUseCase;
         this.memberAuthService = memberAuthService;
         this.memberStatsQueryService = memberStatsQueryService;
         this.memberShopService = memberShopService;
@@ -77,8 +80,8 @@ public class MemberService {
         this.memberGradeService = memberGradeService;
     }
 
-    public void updateMyProfile(Long memberId, String nickname, String statusMessage, Long profileImageFileId) {
-        memberCommandService.updateProfile(memberId, nickname, statusMessage, profileImageFileId);
+    public void updateMyProfile(MemberProfileUpdateCommand command) {
+        memberCommandUseCase.updateProfile(command);
     }
 
     public MemberVerifyPasswordResponse verifyPasswordAndIssueToken(Long memberId, String password) {
@@ -102,18 +105,14 @@ public class MemberService {
      * {@link MemberCommandService#updatePersonalInfo} 한 번뿐이고 그 메서드가 자체 트랜잭션을 가지므로,
      * 이 유스케이스의 DB 변경은 이미 단일 트랜잭션이다.
      */
-    public void updatePersonalInfo(Long memberId, String verifyToken,
-                                   String smsVerifyToken, String fullName,
-                                   String phoneNumber, Integer birthDate, String gender,
-                                   boolean pushNotificationEnabled, boolean marketingInfoEnabled,
-                                   boolean eventInfoEnabled) {
+    public void updatePersonalInfo(MemberPersonalInfoUpdateCommand command, String verifyToken, String smsVerifyToken) {
+        Long memberId = command.memberId();
+        String phoneNumber = command.phoneNumber();
         memberAuthService.verifyPersonalInfoToken(memberId, verifyToken);
         if (phoneNumber != null) {
             memberAuthService.verifyPhoneToken(memberId, smsVerifyToken, phoneNumber);
         }
-        memberCommandService.updatePersonalInfo(memberId, fullName, phoneNumber, birthDate,
-            gender == null ? null : MemberGender.from(gender),
-            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled);
+        memberCommandUseCase.updatePersonalInfo(command);
     }
 
     /**
@@ -127,9 +126,9 @@ public class MemberService {
      * {@link MemberCommandService#updatePassword} 안으로 내려 단일 트랜잭션·단일 로드로 원자화했고,
      * 예외 코드·검사 순서는 그대로 보존했다.
      */
-    public void updatePassword(Long memberId, String verifyToken, String newPassword, String newPasswordConfirm) {
-        memberAuthService.verifyPersonalInfoToken(memberId, verifyToken);
-        memberCommandService.updatePassword(memberId, newPassword, newPasswordConfirm);
+    public void updatePassword(MemberPasswordUpdateCommand command, String verifyToken) {
+        memberAuthService.verifyPersonalInfoToken(command.memberId(), verifyToken);
+        memberCommandUseCase.updatePassword(command);
     }
 
     /**
@@ -141,8 +140,8 @@ public class MemberService {
      * 커밋된 뒤 토큰을 무효화해야 하며, 한 트랜잭션에 넣으면 Redis 등록이 커밋 전에 일어나 탈퇴가 롤백된
      * 경우에도 토큰만 죽는 불일치가 남는다. 현재 호출 순서가 그 요구를 만족한다.
      */
-    public void withdrawMember(Long memberId, String reason, String reasonDetail, String bearerToken) {
-        memberCommandService.withdraw(memberId, MemberWithdrawalReason.from(reason), reasonDetail);
+    public void withdrawMember(MemberWithdrawCommand command, String bearerToken) {
+        memberCommandUseCase.withdraw(command);
         memberAuthService.invalidateAccessToken(bearerToken);
     }
 

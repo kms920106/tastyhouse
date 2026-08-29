@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.infrastructure.coupon.query.CouponQueryDao;
 import com.tastyhouse.infrastructure.coupon.query.MemberCouponResult;
-import com.tastyhouse.webapi.member.response.MyCouponListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyCouponListItemResponse;
 
 /**
  * 내 쿠폰 조회 서비스(web).

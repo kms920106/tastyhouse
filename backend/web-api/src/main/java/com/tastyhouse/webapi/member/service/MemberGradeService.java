@@ -8,7 +8,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.domain.rank.repository.MemberReviewRankRepository;
-import com.tastyhouse.webapi.member.response.MyGradeResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyGradeResponse;
 
 @Service
 public class MemberGradeService {

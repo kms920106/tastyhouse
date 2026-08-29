@@ -10,8 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.ceo.application.service.CeoQueryService;
 import com.tastyhouse.domain.ceo.model.Ceo;
-import com.tastyhouse.ceoapi.ceo.CeoQueryService;
 
 @Service
 public class CeoUserDetailsService implements UserDetailsService {

@@ -17,7 +17,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.product.response.ProductSummaryResponse;
+import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.request.SearchKeywordRequest;
 import com.tastyhouse.webapi.search.response.SearchPopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchRecommendedKeywordResponse;

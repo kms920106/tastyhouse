@@ -7,7 +7,7 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
-import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItemResponse;
 
 /**
  * 회원의 즐겨찾기 가게 목록 조회 서비스.

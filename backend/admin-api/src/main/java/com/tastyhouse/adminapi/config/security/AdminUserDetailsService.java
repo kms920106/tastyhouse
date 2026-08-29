@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.admin.model.Admin;
-import com.tastyhouse.adminapi.admin.AdminQueryService;
+import com.tastyhouse.adminapi.admin.application.service.AdminQueryService;
 
 @Service
 public class AdminUserDetailsService implements UserDetailsService {
