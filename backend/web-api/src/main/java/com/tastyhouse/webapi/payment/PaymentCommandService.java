@@ -22,6 +22,8 @@ import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
+import com.tastyhouse.webapi.payment.response.PaymentCancelResponse;
+
 /**
  * 회원 결제 command 서비스(web-api).
  *
@@ -211,9 +213,18 @@ public class PaymentCommandService {
      * <p>취소 불가 사유·PG 취소 실패는 예외가 아니라 코드로 돌아오므로(도메인 서비스 계약), 실패 코드는
      * 운영 추적을 위해 여기서 기록한다.
      *
-     * @return 취소 결과 코드
+     * @return 취소 결과 코드·메시지를 담은 응답
      */
-    public PaymentCancelCode cancelPayment(Long memberId, Long id, String cancelReason) {
+    public PaymentCancelResponse cancelPayment(Long memberId, Long id, String cancelReason) {
+        PaymentCancelCode cancelCode = doCancelPayment(memberId, id, cancelReason);
+        return PaymentCancelResponse.of(cancelCode.name(), cancelCode.getMessage());
+    }
+
+    /**
+     * 결제 취소를 수행하고 결과 코드를 돌려준다 — 위 {@link #cancelPayment}의 본문으로, 다중 return
+     * 지점과 실패 로그를 그대로 유지하기 위해 분리했다.
+     */
+    private PaymentCancelCode doCancelPayment(Long memberId, Long id, String cancelReason) {
         MemberId memberIdVo = MemberId.of(memberId);
         PaymentId paymentId = PaymentId.of(id);
 

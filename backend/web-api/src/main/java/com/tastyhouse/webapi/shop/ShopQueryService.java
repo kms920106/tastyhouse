@@ -44,6 +44,8 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressQueryDao;
 import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
 import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
@@ -219,16 +221,16 @@ public class ShopQueryService {
         return memberDeliveryAddressQueryDao.findDefaultAdminDongId(MemberId.of(memberId)).orElse(null);
     }
 
-    public PageResult<ShopBestListItemResponse> searchBestShops(Long memberId, int page, int size) {
+    public PaginationResponse<ShopBestListItemResponse> searchBestShops(Long memberId, int page, int size) {
         PageResult<BestShopItemResult> result =
             shopSearchQueryDao.findBestShops(resolveDeliveryAdminDongId(memberId), PageQuery.of(page, size));
         Map<Long, ShopOperatingStatus> statusMap = resolveOperatingStatuses(
             result.content().stream().map(BestShopItemResult::id).toList()
         );
-        return result.map(dto -> convertToBestShopListItemResponse(dto, statusMap));
+        return PaginationResponse.from(result.map(dto -> convertToBestShopListItemResponse(dto, statusMap)));
     }
 
-    public PageResult<ShopLatestListItemResponse> searchLatestShops(
+    public PaginationResponse<ShopLatestListItemResponse> searchLatestShops(
         Long stationId,
         List<String> foodTypes,
         List<String> amenities,
@@ -248,7 +250,7 @@ public class ShopQueryService {
         Map<Long, ShopOperatingStatus> statusMap = resolveOperatingStatuses(
             result.content().stream().map(LatestShopItemResult::id).toList()
         );
-        return result.map(dto -> convertToLatestShopListItemResponse(dto, statusMap));
+        return PaginationResponse.from(result.map(dto -> convertToLatestShopListItemResponse(dto, statusMap)));
     }
 
     private Map<Long, ShopOperatingStatus> resolveOperatingStatuses(List<Long> shopIds) {

@@ -6,7 +6,8 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
-import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.coupon.CouponQueryService;
 import com.tastyhouse.webapi.member.response.MemberNicknameAvailabilityResponse;
 import com.tastyhouse.webapi.member.response.MemberPersonalInfoResponse;
@@ -165,7 +166,7 @@ public class MemberService {
         return couponQueryService.getMyAvailableCoupons(memberId);
     }
 
-    public PageResult<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
+    public PaginationResponse<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
         return memberReviewService.getMyReviews(memberId, page, size);
     }
 
@@ -173,7 +174,7 @@ public class MemberService {
         return memberReviewService.getMyReviewCount(memberId);
     }
 
-    public PageResult<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
+    public PaginationResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
         return memberShopService.getMyBookmarkedShops(memberId, page, size);
     }
 

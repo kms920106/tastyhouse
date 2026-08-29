@@ -14,9 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.domain.shared.page.PageResult;
-
 import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.request.ProductFeedbackSearchRequest;
 import com.tastyhouse.ceoapi.product.request.ProductShopScopeRequest;
@@ -63,7 +62,7 @@ public class ProductFeedbackApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute ProductFeedbackSearchRequest request
     ) {
-        PageResult<ProductFeedbackResponse> result = productFeedbackQueryService.getFeedbacks(
+        PaginationResponse<ProductFeedbackResponse> result = productFeedbackQueryService.getFeedbacks(
             userDetails.getCeoId(), request.shopId(), request.page(), request.size()
         );
         ApiResponse<List<ProductFeedbackResponse>> response = ApiResponse.success(

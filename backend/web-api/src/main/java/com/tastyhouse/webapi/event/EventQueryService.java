@@ -8,7 +8,8 @@ import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.infrastructure.event.query.EventAnnouncementResult;
 import com.tastyhouse.infrastructure.event.query.EventDetailResult;
 import com.tastyhouse.infrastructure.event.query.EventListItemResult;
@@ -35,10 +36,10 @@ public class EventQueryService {
         this.eventQueryDao = eventQueryDao;
     }
 
-    public PageResult<EventListItemResponse> getEventList(String status, int page, int size) {
+    public PaginationResponse<EventListItemResponse> getEventList(String status, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return eventQueryDao.findEventListItemsByStatus(EventStatus.from(status), pageQuery)
-            .map(this::toEventListItemResponse);
+        return PaginationResponse.from(eventQueryDao.findEventListItemsByStatus(EventStatus.from(status), pageQuery)
+            .map(this::toEventListItemResponse));
     }
 
     public EventDetailResponse getEventDetail(Long eventId) {
@@ -48,10 +49,10 @@ public class EventQueryService {
         return EventDetailResponse.from(detail.bannerUrl());
     }
 
-    public PageResult<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
+    public PaginationResponse<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return eventQueryDao.findAnnouncements(pageQuery)
-            .map(this::toEventAnnouncementListItemResponse);
+        return PaginationResponse.from(eventQueryDao.findAnnouncements(pageQuery)
+            .map(this::toEventAnnouncementListItemResponse));
     }
 
     private EventListItemResponse toEventListItemResponse(EventListItemResult dto) {

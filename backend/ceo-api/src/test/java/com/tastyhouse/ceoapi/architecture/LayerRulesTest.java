@@ -6,9 +6,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
-import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
@@ -166,22 +163,15 @@ class LayerRulesTest {
      * 받고 승격은 Service가 담당하므로(ID VO·도메인 enum 경계 규칙), 컨트롤러가
      * {@code com.tastyhouse.domain..}를 알 이유가 없다.
      *
-     * <p>{@code domain.shared.page.PageResult}는 차단 대상에서 제외한다 — 페이징 컨트롤러가
-     * QueryService가 반환한 {@code PageResult<T>}를 해체해 {@code ApiResponse.success(...)} 4-인자
-     * 호출에 넘기는 것은 CLAUDE.md가 문서화한 페이징 관행(공용 페이징 <em>계약</em>이지 도메인
-     * 모델이 아니다)이다. 클래스 단위가 아니라 타입 단위로 좁혀 다른 도메인 타입 유입은 계속 잡는다.
-     *
-     * <p>이 모듈은 현재 위반 0건이므로 클래스 예외 목록이 없다(web-api는 {@code PaymentApiController}
-     * 하나를 P5 대기로 제외 중).
+     * <p>예외·제외 항목은 없다. 페이징 컨트롤러도 QueryService가 돌려주는
+     * {@code PaginationResponse<T>}(api-common-module)를 해체해 {@code ApiResponse.success(...)}
+     * 4-인자 호출에 넘기므로 {@code domain.shared.page.PageResult}를 알 필요가 없다.
      */
     @Test
     void controllersShouldBeDomainFree() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat(
-                resideInAPackage("com.tastyhouse.domain..")
-                    .and(not(assignableTo("com.tastyhouse.domain.shared.page.PageResult")))
-                    .as("com.tastyhouse.domain.. (PageResult 제외)"))
+            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..")
             .because("컨트롤러는 com.tastyhouse.domain..를 import하지 않는다(HTTP 경계는 Long·String)");
 
         rule.check(classes);

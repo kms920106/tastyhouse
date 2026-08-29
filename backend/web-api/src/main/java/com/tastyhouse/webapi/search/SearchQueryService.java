@@ -9,7 +9,8 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.infrastructure.product.query.SearchProductItemResult;
 import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
@@ -73,35 +74,35 @@ public class SearchQueryService {
             .toList();
     }
 
-    public PageResult<ProductSummaryResponse> searchMenus(String query, int page, int size) {
+    public PaginationResponse<ProductSummaryResponse> searchMenus(String query, int page, int size) {
         String keyword = validateKeyword(query);
-        return productQueryService.searchByKeyword(keyword, page, size)
-            .map(this::toProductSummaryResponse);
+        return PaginationResponse.from(productQueryService.searchByKeyword(keyword, page, size)
+            .map(this::toProductSummaryResponse));
     }
 
-    public PageResult<SearchReviewListItemResponse> searchReviews(String query, int page, int size) {
+    public PaginationResponse<SearchReviewListItemResponse> searchReviews(String query, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
-        return reviewQueryDao.searchByKeyword(keyword, pageQuery)
-            .map(this::toSearchReviewListItemResponse);
+        return PaginationResponse.from(reviewQueryDao.searchByKeyword(keyword, pageQuery)
+            .map(this::toSearchReviewListItemResponse));
     }
 
-    public PageResult<SearchShopListItemResponse> searchShopsPaged(String query, Long memberId, int page, int size) {
+    public PaginationResponse<SearchShopListItemResponse> searchShopsPaged(String query, Long memberId, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
         Long deliveryAdminDongId = memberDeliveryAddressQueryDao
             .findDefaultAdminDongId(MemberId.of(memberId))
             .orElse(null);
-        return shopSearchQueryDao.searchByKeywordWithBookmark(keyword, memberId, deliveryAdminDongId, pageQuery)
-            .map(this::toSearchShopListItemResponse);
+        return PaginationResponse.from(shopSearchQueryDao.searchByKeywordWithBookmark(keyword, memberId, deliveryAdminDongId, pageQuery)
+            .map(this::toSearchShopListItemResponse));
     }
 
     /** 비로그인 검색 — 배송지를 알 수 없으므로 배달지역 필터를 걸지 않는다. */
-    public PageResult<SearchShopListItemResponse> searchShopsPublic(String query, int page, int size) {
+    public PaginationResponse<SearchShopListItemResponse> searchShopsPublic(String query, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
-        return shopSearchQueryDao.searchByKeywordWithBookmark(keyword, null, null, pageQuery)
-            .map(this::toSearchShopListItemResponse);
+        return PaginationResponse.from(shopSearchQueryDao.searchByKeywordWithBookmark(keyword, null, null, pageQuery)
+            .map(this::toSearchShopListItemResponse));
     }
 
     private String validateKeyword(String query) {

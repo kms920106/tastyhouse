@@ -11,6 +11,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.product.query.ProductFeedbackQueryDao;
 import com.tastyhouse.infrastructure.product.query.ProductFeedbackSummaryResult;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.product.response.ProductFeedbackResponse;
 import com.tastyhouse.ceoapi.product.response.ProductFeedbackUnreadResponse;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
@@ -46,14 +47,14 @@ public class ProductFeedbackQueryService {
     /**
      * 가게의 지난 한 주 고객 의견을 메뉴 × 유형 집계로 조회한다.
      */
-    public PageResult<ProductFeedbackResponse> getFeedbacks(Long ceoId, Long shopId, int page, int size) {
+    public PaginationResponse<ProductFeedbackResponse> getFeedbacks(Long ceoId, Long shopId, int page, int size) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         LocalDateTime since = LocalDateTime.now().minusDays(ProductFeedbackService.FEEDBACK_WINDOW_DAYS);
         PageResult<ProductFeedbackSummaryResult> result = productFeedbackQueryDao.findFeedbackSummaries(
             shopId, since, PageQuery.of(page, size)
         );
-        return result.map(this::toProductFeedbackResponse);
+        return PaginationResponse.from(result.map(this::toProductFeedbackResponse));
     }
 
     /**

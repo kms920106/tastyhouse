@@ -6,7 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.follow.repository.MemberFollowRepository;
 import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.infrastructure.member.follow.query.FollowMemberResult;
 import com.tastyhouse.infrastructure.member.follow.query.MemberFollowQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
@@ -54,32 +55,32 @@ public class FollowQueryService {
         return memberFollowRepository.countByFollowingId(MemberId.of(memberId));
     }
 
-    public PageResult<FollowMemberListItemResponse> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
-        return memberFollowQueryDao
+    public PaginationResponse<FollowMemberListItemResponse> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
+        return PaginationResponse.from(memberFollowQueryDao
             .findFollowingList(MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size))
-            .map(this::toFollowMemberListItemResponse);
+            .map(this::toFollowMemberListItemResponse));
     }
 
-    public PageResult<FollowMemberListItemResponse> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
-        return memberFollowQueryDao
+    public PaginationResponse<FollowMemberListItemResponse> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
+        return PaginationResponse.from(memberFollowQueryDao
             .findFollowerList(MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size))
-            .map(this::toFollowMemberListItemResponse);
+            .map(this::toFollowMemberListItemResponse));
     }
 
-    public PageResult<FollowMemberSearchListItemResponse> searchMembersByNickname(
+    public PaginationResponse<FollowMemberSearchListItemResponse> searchMembersByNickname(
         String nickname,
         Long viewerMemberId,
         int page,
         int size
     ) {
-        return memberQueryDao.findByNicknameContaining(nickname, PageQuery.of(page, size))
+        return PaginationResponse.from(memberQueryDao.findByNicknameContaining(nickname, PageQuery.of(page, size))
             .map(result -> FollowMemberSearchListItemResponse.of(
                 result.id(),
                 result.nickname(),
                 result.memberGrade().name(),
                 result.profileImageUrl(),
                 viewerMemberId != null && isFollowing(viewerMemberId, result.id())
-            ));
+            )));
     }
 
     private MemberId toViewerId(Long viewerMemberId) {

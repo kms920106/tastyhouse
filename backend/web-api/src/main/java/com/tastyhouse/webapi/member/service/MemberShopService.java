@@ -4,7 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
 import com.tastyhouse.webapi.member.response.ShopBookmarkListItemResponse;
 
@@ -23,8 +24,8 @@ public class MemberShopService {
     }
 
     @Transactional(readOnly = true)
-    public PageResult<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
-        return shopSearchQueryDao.findMyBookmarkedShops(memberId, PageQuery.of(page, size))
+    public PaginationResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
+        return PaginationResponse.from(shopSearchQueryDao.findMyBookmarkedShops(memberId, PageQuery.of(page, size))
             .map(dto -> ShopBookmarkListItemResponse.from(
                 dto.shopId(),
                 dto.bookmarkId(),
@@ -33,6 +34,6 @@ public class MemberShopService {
                 dto.rating(),
                 dto.imageUrl(),
                 dto.bookmarked()
-            ));
+            )));
     }
 }

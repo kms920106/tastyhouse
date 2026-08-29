@@ -6,9 +6,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
-import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
@@ -170,30 +167,16 @@ class LayerRulesTest {
      * {@code com.tastyhouse.domain..}를 알 이유가 없다. 컨트롤러가 도메인 enum을 직접 노출하면
      * API 계약이 도메인 모델에 결합되어 enum 상수 추가가 곧 공개 스키마 변경이 된다.
      *
-     * <p>{@code domain.shared.page.PageResult}는 <em>차단 대상에서 제외</em>한다. 조사 결과 페이징
-     * 컨트롤러 5개({@code Event}/{@code Follow}/{@code MemberMe}/{@code Search}/{@code Shop})가
-     * QueryService가 반환한 {@code PageResult<T>}를 받아 {@code content()}/{@code page()}/
-     * {@code size()}/{@code totalElements()}로 해체해 {@code ApiResponse.success(...)} 4-인자 호출에
-     * 넘긴다 — 이는 CLAUDE.md가 문서화한 페이징 관행(공용 페이징 <em>계약</em>이지 도메인 모델이
-     * 아니다)이므로 위반이 아니다. 클래스 단위 제외가 아니라 <em>타입 단위</em> 제외로 좁혀
-     * 다른 도메인 타입 유입은 계속 잡히게 한다.
-     *
-     * <p>예외 {@code PaymentApiController}: 결제 취소 코드({@code PaymentCancelCode})를 도메인 enum
-     * 그대로 받고 있다(도메인 enum 경계 규칙 위반 — {@code String}으로 받아 Service에서 승격해야
-     * 한다). 해소는 P5 범위의 경계 타입 정리 대상이며, 규칙 전체를 끄지 않고 이 클래스 하나만
-     * 명시적으로 제외한다.
+     * <p>예외·제외 항목은 없다. 페이징 컨트롤러도 QueryService가 돌려주는
+     * {@code PaginationResponse<T>}(api-common-module)를 해체해 {@code ApiResponse.success(...)}
+     * 4-인자 호출에 넘기므로 {@code domain.shared.page.PageResult}를 알 필요가 없고,
+     * 결제 취소도 서비스가 응답 record를 돌려주므로 컨트롤러가 도메인 enum을 받지 않는다.
      */
-    // TODO(P5): PaymentApiController의 PaymentCancelCode 직접 의존을 String 경계로 바꾸고
-    //           아래 예외 항목을 삭제한다.
     @Test
     void controllersShouldBeDomainFree() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .and().haveSimpleNameNotEndingWith("PaymentApiController")
-            .should().dependOnClassesThat(
-                resideInAPackage("com.tastyhouse.domain..")
-                    .and(not(assignableTo("com.tastyhouse.domain.shared.page.PageResult")))
-                    .as("com.tastyhouse.domain.. (PageResult 제외)"))
+            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..")
             .because("컨트롤러는 com.tastyhouse.domain..를 import하지 않는다(HTTP 경계는 Long·String)");
 
         rule.check(classes);

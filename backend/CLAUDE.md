@@ -164,8 +164,11 @@ reference 구현: `external-api`의 `oauth/spi/`(`SocialOAuthClient`·`SocialPro
 
 컨트롤러·Service 등 **호출부에서 DTO(command / condition / response record)를 `new`로 직접 조립하지 않습니다.** 대신 변환 책임을 해당 타입 또는 소스 타입으로 위임합니다. 이는 필드 추가 시 호출부 연쇄 수정을 막고, 조립 로직을 한 곳에 모아 가독성과 응집도를 높입니다.
 
-- **원시 파라미터 → command/VO/condition 변환**: command·condition 등 대상 record 자신에 정적 팩토리 `of(...)`를 두고 `Xxx.of(a, b, c)`로 생성합니다. Request DTO는 command 생성 책임을 지지 않는 순수 데이터 홀더(검증 + Swagger 스키마)로 유지하고, `toCommand()` 같은 변환 메서드를 두지 않습니다.
-- **호출 경로**: 컨트롤러가 Request를 개별 원시 필드로 언패킹(`request.title()` 등)해 Service에 전달하고, Service는 그 원시 파라미터로 `Command.of(...)`를 호출합니다. Service가 원시 파라미터만 받으므로 admin-api Request 타입에 의존하지 않습니다.
+- **Request → Command 변환은 인바운드 어댑터(컨트롤러)가 소유합니다 (개정 — 과거 `toCommand` 금지 규칙의 번복)**: Request record에 `toCommand(...)`를 두고, 컨트롤러가 `XxxCommand command = request.toCommand(경로변수, principal 식별자, ...);`로 application Command record를 조립합니다. 『만들면서 배우는 클린 아키텍처』 그림 8.3의 **완전(Full) 매핑 전략**을 채택한 결과이며, 계층 경계의 매핑은 그 경계를 지키는 어댑터의 책임이라는 것이 근거입니다. 경로 변수·인증 주체처럼 **요청 본문에 없는 값은 `toCommand`의 파라미터로 주입**합니다(`request.toCommand(id, userDetails.getMemberId())`).
+  - **과거 규칙(폐기)**: "Request DTO는 `toCommand()` 같은 변환 메서드를 두지 않고, 컨트롤러가 개별 원시 필드로 언패킹해 Service에 전달한다"는 규칙은 **폐기**합니다. 그 방식은 필드가 늘어날수록 Service 시그니처가 그대로 길어져 **파라미터 15개짜리 메서드**를 낳았고, 같은 타입(Long/String) 인자가 줄줄이 늘어선 호출부에서 **순서를 착각해 값이 조용히 뒤바뀌는 사고**(컴파일은 통과)를 반복적으로 만들어냈습니다. 이름 있는 record 필드로 묶으면 그 사고 유형 자체가 사라집니다.
+  - **Request·Command 모두 domain-free를 유지합니다**: Command 필드는 경계 타입(`Long`/`String`/`Integer`)을 그대로 씁니다. 도메인 타입 승격(`XxxId.of(...)`·`XxxEnum.from(...)`)은 **서비스 내부**에서 수행하므로, Request record에 `toCommand`가 생겨도 Request가 `com.tastyhouse.domain..`를 import하지 않습니다(기존 Request/Response domain-free 규칙과 충돌하지 않음).
+  - **`MultipartFile`은 Command 필드로 두지 않습니다**: 업로드 경계 타입이므로 서비스 파라미터로는 허용하되(아래 [CQRS 분리 규칙](#api-모듈-application-서비스-cqrs-분리-규칙-도메인commandservice도메인queryservice) 참조), Command에는 업로드 **결과 참조**(파일 식별자·URL)만 담습니다.
+- **command/VO/condition 자체의 생성**: 대상 record에 정적 팩토리 `of(...)`를 두고 `Xxx.of(a, b, c)`로 생성하는 관례는 그대로입니다. `toCommand` 본문이 `XxxCommand.of(...)`를 호출하는 형태가 표준형이며, `new`는 팩토리 내부에만 남습니다.
 - **도메인/DTO → 응답 변환 (result 객체가 아니라 개별 원시타입으로 수신)**: 응답 record의 정적 팩토리 `from(...)`은 infra query DAO의 result 객체(`XxxResult`)를 통째로 받지 않고, **result의 각 필드를 원시타입(String/Long/Integer/LocalDateTime 등)으로 낱개 언패킹해서 받습니다.** `XxxResponse.from(id, title, content, ...)` 형태이며 `XxxResponse` 파일 자체는 `com.tastyhouse.domain.*`·`com.tastyhouse.infrastructure.*`를 import하지 않습니다(컨트롤러·Request record와 동일하게 Response record도 domain-free·infra-free). result를 낱개로 풀어 넘기는 책임은 이 Response를 호출하는 Service가 지며, Service에 private 매퍼 메서드(`toXxxResponse(XxxResult dto)`)를 두어 `dto.id()`, `dto.title()`처럼 이름 기반으로 안전하게 꺼낸 뒤 `XxxResponse.from(...)`에 위치 기반으로 전달합니다. 중첩 조립(리스트 필드, 하위 Response 필드)이 있으면 그 조립도 Service의 private 매퍼로 나눕니다.
   - **예외 — `PageResult<T>` 변환은 그대로 `from(pageResult)`**: `PaginationResponse.from(PageResult<T> pageResult)`처럼 `PageResult<T>`(`com.tastyhouse.domain.shared.page.PageResult` — domain-module의 공용 페이징 타입)를 받아 `content()`/`page()`/`size()`/`totalElements()`를 그대로 위임하는 경우는 이 규칙의 대상이 아닙니다. `PageResult<T>` 자체는 도메인 result가 아니라 공용 페이징 계약이므로 원시타입 언패킹 대상이 아니며, 이 경우 페이징 응답(`PaginationResponse<T>`)이 `PageResult<T>`를 import하는 것은 허용합니다.
   - **왜 result 객체 통째 수신이 아닌가**: result 객체를 그대로 받으면 Response record가 infra query result의 필드 구조를 알아야 해 infrastructure에 결합되고, 필드 접근이 이름 기반(`result.title()`)이라 안전하지만 그 안전함을 Service로 옮겨도 잃지 않습니다 — 대신 Response는 Request와 대칭적으로 순수 데이터 홀더가 되고 domain·infra query 의존은 Service 한 곳에 집중됩니다. 다만 같은 타입(String/Long 등) 파라미터가 여러 개면 위치 기반 전달이라 순서를 착각하면 컴파일은 되지만 값이 뒤바뀌는 조용한 버그가 날 수 있으므로, 신규 작성 시 record 필드 선언 순서·`from` 파라미터 순서·호출부에서 넘기는 인자 순서를 반드시 하나씩 대조합니다.
@@ -175,49 +178,62 @@ reference 구현: `admin-api`의 `notice` 도메인 — `NoticeSearchCondition.o
 
 ## command/DTO 지역 변수 추출 규칙 (호출 인자로 인라인 조립 지양)
 
-위 [DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)으로 `Xxx.of(...)` 팩토리를 쓰더라도, **그 팩토리 호출 결과를 다른 메서드(주로 같은 모듈의 `{도메인}CommandService`)의 인자 자리에 인라인으로 바로 넘기지 않고, 먼저 지역 변수(`command`)로 추출한 뒤 그 변수를 전달합니다.** `of(...)`로 조립하는 것과 조립 결과를 어떻게 넘기는지는 별개이며, 이 규칙은 후자를 다룹니다.
+위 [DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)으로 Command를 조립하더라도, **그 조립 결과를 UseCase 메서드의 인자 자리에 인라인으로 바로 넘기지 않고, 먼저 지역 변수(`command`)로 추출한 뒤 그 변수를 전달합니다.** 무엇을 만드는지와 어디에 넘기는지는 별개이며, 이 규칙은 후자를 다룹니다.
+
+**컨트롤러 표준형**은 아래 두 줄입니다(조립 주체가 Service에서 컨트롤러로 이동한 A-1 개정 반영).
+
+```java
+XxxCommand command = request.toCommand(...);
+xxxCommandUseCase.method(command);
+```
 
 - **왜 지역 변수로 추출하는가**: (1) 조립(무엇을 만드는가)과 호출(어디에 넘기는가)이 한 줄에 겹쳐 있으면, 인자가 많은 command일수록 한 줄이 길어지고 어떤 값이 어느 필드로 가는지 읽기 어렵습니다. 이름 붙은 지역 변수로 분리하면 "이 줄은 command를 만든다 / 이 줄은 그것을 서비스에 넘긴다"가 문장 단위로 드러납니다. (2) 디버깅 시 조립된 command에 중단점·로그를 걸거나 값을 들여다보기 쉽습니다. (3) 호출부 형태가 도메인 간 동일해져(항상 `Xxx command = Xxx.of(...); service.method(id, command);`) 리뷰·검색·패턴 일치가 단순해집니다.
 - **적용 대상**: command 서비스 호출에 넘기는 **command DTO**와, 그 **command 서비스 호출의 인자로 넘기는 `XxxId.of(id)` 식별자 승격**이 대상입니다. command 변수명은 `command`로 통일하고(한 메서드에 command가 하나인 것이 일반적), 식별자 VO는 `XxxId xxxId = XxxId.of(id);`로 추출합니다.
-- **식별자(`XxxId.of(id)`)도 지역 변수로 추출합니다**: command 서비스에 넘기는 식별자 승격은, command와 함께 넘기는 경우(`update`/`delete`)든 식별자만 단독으로 넘기는 경우(`deleteNotice`·`activatePolicy`·`cancel` 등)든 모두 먼저 지역 변수로 추출한 뒤 전달합니다(`XxxId xxxId = XxxId.of(id); service.method(xxxId, command);`). "짧으니 인자 자리에 인라인으로 둔다"는 이전 예외를 폐지하고, command 서비스 호출부 형태를 `XxxId xxxId = XxxId.of(id); XxxCommand command = XxxCommand.of(...); service.method(xxxId, command);`로 전 도메인 통일합니다 — 호출부에 `.of(` 호출이 인자 자리에 남지 않는 것을 목표로 합니다. (메서드 파라미터명과 VO 변수명이 겹치면 VO 쪽을 `id`/`targetXxxId` 등으로 구분합니다.)
-- **적용 예외 (인라인 유지)**: (1) 이미 지역 변수로 조립되고 있던 **`SearchCondition`은 그대로 둡니다**(조회 메서드에서 관례적으로 `XxxSearchCondition condition = ...of(...)`로 이미 분리 — reference: `NoticeQueryService#getNotices`의 `condition`). (2) **query(조회) 서비스 호출**에 넘기는 `XxxId.of(id)`는 인라인으로 둡니다(`queryService.findDetailById(XxxId.of(id))`). 이 규칙은 command 서비스 호출부에만 적용합니다. (3) **command 팩토리 내부로 들어가는 식별자**(`XxxCommand.of(XxxId.of(id), ...)`처럼 `Command.of(...)`의 인자로 중첩된 `Id.of`)는 command 조립의 일부이므로 그대로 둡니다 — 이때는 command 자체를 지역 변수로 추출하는 것이 규칙이며 내부 `Id.of`는 건드리지 않습니다(reference: `ReviewService`의 `ReviewDeleteCommand.of(ReviewId.of(reviewId), ...)`). (4) 응답 변환 `XxxResponse.from(...)`도 대상이 아닙니다(반환식에 바로 쓰는 것이 자연스러움).
+- **컨트롤러의 `XxxId.of()` 식별자 승격 추출 규칙은 소멸했습니다 (개정)**: Command가 식별자를 `Long`으로 보유하므로 컨트롤러에 `XxxId.of(id)`가 아예 등장하지 않습니다. `update`/`delete` 계열은 **경로 변수 `id`를 `toCommand(id)`/`Command.of(id, ...)`의 파라미터로 흡수**하며, 컨트롤러가 식별자를 UseCase 메서드의 별도 인자로 넘기지 않습니다(`useCase.updateXxx(command)` — `useCase.updateXxx(xxxId, command)`가 아닙니다). 식별자만 필요한 `delete`·상태전이도 식별자 하나를 담은 Command를 넘깁니다.
+- **서비스 내부의 도메인 승격 추출 관례는 유지합니다**: `{도메인}CommandService`가 Command를 받아 `XxxId xxxId = XxxId.of(command.id());`처럼 지역 변수로 승격한 뒤 도메인에 넘기는 형태는 그대로입니다 — 사라진 것은 *컨트롤러의* 승격이지 승격 자체가 아닙니다.
+- **적용 예외 (인라인 유지)**: (1) 이미 지역 변수로 조립되고 있던 **`SearchCondition`은 그대로 둡니다**(조회 메서드에서 관례적으로 `XxxSearchCondition condition = ...of(...)`로 이미 분리 — reference: `NoticeQueryService#getNotices`의 `condition`). (2) 조회 UseCase 호출은 Command를 쓰지 않고 경계 타입 인자를 그대로 넘기므로 이 규칙의 대상이 아닙니다. (3) **command 팩토리 내부로 들어가는 식별자**(`XxxCommand.of(XxxId.of(id), ...)`처럼 `Command.of(...)`의 인자로 중첩된 `Id.of`)는 command 조립의 일부이므로 그대로 둡니다 — 이때는 command 자체를 지역 변수로 추출하는 것이 규칙이며 내부 `Id.of`는 건드리지 않습니다(reference: `ReviewService`의 `ReviewDeleteCommand.of(ReviewId.of(reviewId), ...)`). (4) 응답 변환 `XxxResponse.from(...)`도 대상이 아닙니다(반환식에 바로 쓰는 것이 자연스러움).
 - **죽은 코드 금지**: 추출로 대체된 기존 인라인 한 줄을 `//` 주석으로 남기지 않습니다. 추출한 형태만 남깁니다.
 
 ```java
-// 지양 — 팩토리 결과를 호출 인자 자리에 인라인 조립
-BannerId bannerId = bannerCommandService.createBanner(
-    BannerCreateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible)
+// 지양 — 컨트롤러가 Request를 원시 필드로 언패킹하고 도메인 enum까지 승격 (A-1에서 폐기된 형태)
+Long bannerId = bannerCommandService.createBanner(
+    BannerType.from(request.type()), request.title(), request.imageFileId(),
+    request.linkUrl(), request.startDate(), request.endDate(), request.sort(), request.visible()
 );
 
-// 권장 — command 지역 변수로 추출 후 전달
-BannerCreateCommand command = BannerCreateCommand.of(
-    BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible
-);
-BannerId bannerId = bannerCommandService.createBanner(command);
+// 권장 — Request가 Command로 변환하고, 컨트롤러는 지역 변수로 추출해 UseCase에 전달
+BannerCreateCommand command = request.toCommand();
+Long bannerId = bannerCommandUseCase.createBanner(command);
 ```
 
-update 계열처럼 식별자와 command를 함께 넘길 때는 **식별자 VO와 command를 각각 지역 변수로 추출**한 뒤 전달합니다(`XxxId.of(id)`를 인자 자리에 인라인하지 않습니다):
+update 계열은 **경로 변수 `id`를 `toCommand`의 파라미터로 흡수**합니다 — 컨트롤러가 식별자를 별도 인자로 넘기지 않습니다:
 
 ```java
-// 지양 — 식별자 승격을 인자 자리에 인라인
-BannerUpdateCommand command = BannerUpdateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible);
-bannerCommandService.updateBanner(BannerId.of(id), command);
+// 지양 — 식별자를 UseCase 인자 자리에 따로 넘김(+ 컨트롤러의 XxxId 승격)
+BannerUpdateCommand command = request.toCommand();
+bannerCommandUseCase.updateBanner(BannerId.of(id), command);
 
-// 권장 — 식별자 VO도 지역 변수로 추출
-BannerId bannerId = BannerId.of(id);
-BannerUpdateCommand command = BannerUpdateCommand.of(BannerType.from(type), title, imageFileId, linkUrl, startDate, endDate, sort, visible);
-bannerCommandService.updateBanner(bannerId, command);
+// 권장 — 경로 변수를 Command 안으로 흡수
+BannerUpdateCommand command = request.toCommand(id);
+bannerCommandUseCase.updateBanner(command);
 ```
 
-식별자만 단독으로 넘기는 `delete`·상태전이 계열도 동일하게 추출합니다:
+본문이 없는 `delete`·상태전이 계열은 식별자만 담은 Command를 정적 팩토리로 조립합니다:
 
 ```java
 // 지양
-bannerCommandService.deleteBanner(BannerId.of(id));
+bannerCommandUseCase.deleteBanner(BannerId.of(id));
 
 // 권장
-BannerId bannerId = BannerId.of(id);
-bannerCommandService.deleteBanner(bannerId);
+BannerDeleteCommand command = BannerDeleteCommand.of(id);
+bannerCommandUseCase.deleteBanner(command);
+```
+
+인증 주체 식별자처럼 요청 본문에 없는 값도 같은 방식으로 주입합니다:
+
+```java
+ReviewCreateCommand command = request.toCommand(userDetails.getMemberId());
+Long reviewId = reviewCommandUseCase.createReview(command);
 ```
 
 reference 구현: `admin-api`의 `notice` 도메인 — `NoticeCommandService#updateNotice`·`#deleteNotice`(`NoticeId noticeId = NoticeId.of(id);`로 식별자를 지역 변수 추출한 뒤 도메인 로드·변경·`save`). CQRS 분리로 core command 서비스 호출이 사라져 command DTO 자체는 없어졌고, 식별자 추출 관례는 그대로 유지된다. 식별자 추출 동일 적용: `banner`(`updateBanner`·`deleteBanner`), `coupon`(`updateCoupon`·`deleteCoupon`·`issueCoupon`), `policy`(`updatePolicy`·`activateCurrentPolicy`), `web-api`의 `reservation`(`cancel`·`confirm`·`reject`·`complete`), `scheduler`(`ProductScheduler#markBbqOptionsSynced`). command 추출 동일 적용: `admin`(`AdminAccountService#create`), `bug`(`changeStatus`·`classify`·`assign`), `createBanner`·`createCoupon`·`createPolicy`.
@@ -738,12 +754,17 @@ reference 구현: `domain-module/.../notice/repository/NoticeRepository`(`findBy
   - **상수명을 바꾸지 않으면 DB·API 계약은 무변경이다**: `EnumType.STRING` + `VARCHAR` 저장이라 저장값과 HTTP 문자열이 상수명에 묶여 있다. 패키지 이동은 순수 컴파일타임 재배치이므로 마이그레이션이 필요 없다.
   - **⚠️ 이동 방향을 정하기 전에 양쪽 참조 수를 센다**: 위반을 없애려다 더 많은 위반을 만드는 것이 이 작업의 주된 실패 형태다. 봉인 목록은 줄어들기만 해야 하므로, 이동 후 위반이 늘면 그 방향은 오답이다.
 
-### 인바운드 포트·컨텍스트별 모듈 분할은 도입하지 않는다 (재론 방지)
+### 인바운드 포트(UseCase 인터페이스)를 도입한다 — 완전 매핑 전략 채택 (과거 결정의 명시적 번복)
 
-경계를 강제하는 다른 선택지들을 검토한 뒤 **의도적으로 채택하지 않기로 결정**했다. 같은 논의가 반복되지 않도록 근거를 남긴다.
+**과거 이 절은 "인바운드 포트를 도입하지 않는다"였다. 그 결정을 번복한다.** 번복임을 제목에 남기는 이유는, 폐기된 논거가 그럴듯해서 같은 논의가 다시 열리기 쉽기 때문이다.
 
-- **인바운드 포트(UseCase 인터페이스)를 도입하지 않는다**: 도메인 서비스마다 UseCase 인터페이스를 두면 인터페이스 약 128개가 생기는데, **그 각각의 구현체가 하나뿐이고 소비자도 모듈당 하나뿐**이라 다형성·교체 가능성이라는 인터페이스의 값을 전혀 얻지 못한다. 순수 보일러플레이트이며, "구현으로 점프하려면 한 단계 더 거쳐야 한다"는 탐색 비용만 남는다. (출력 포트는 다르다 — 구현이 인프라에 있고 도메인이 그것을 몰라야 하므로 의존 역전의 실익이 있다.)
-- **컨텍스트별 모듈 분할을 하지 않는다**: 경계는 위 ArchUnit 규칙으로 충분히 강제되며, 25개 모듈로 쪼개면 빌드 그래프·`settings.gradle`·의존 선언이 그만큼 늘어난다. 모듈 분할은 컴파일 게이트라는 더 강한 보장을 주지만, 그 강도가 필요한 것은 **모듈 간 방향 의존**(domain ← infrastructure ← api)이고 그쪽은 이미 모듈로 분리돼 있다. 같은 계층 내부의 수평 경계에는 ArchUnit이 적정 수단이다.
+- **과거 반대 논거는 지금도 사실이다**: UseCase 인터페이스는 구현체가 하나뿐이고 소비자도 모듈당 하나뿐이라 **다형성·교체 가능성의 실익은 여전히 0에 가깝다.** 이 점을 부정해서 뒤집는 것이 아니다.
+- **도입 근거는 다형성이 아니라 다음 두 가지다**:
+  1. **컴파일 게이트** — 컨트롤러가 `application/service/`의 구체 클래스를 아예 모르게 만든다. ArchUnit은 위반을 *사후에* 잡지만, 컨트롤러가 UseCase 타입만 주입받으면 구체 서비스에 손대는 코드가 **애초에 컴파일되지 않는다**. 경계 강제 수단의 등급이 한 단계 올라간다.
+  2. **경계 계약의 문서화** — UseCase 인터페이스 한 파일이 그 애그리거트의 연산 계약(어떤 명령이 있고 무엇을 받아 무엇을 돌려주는가)을 한눈에 고정한다. 구현 본문에 섞여 있던 계약이 별도 파일로 드러난다.
+- **입도 규칙**: 기본은 애그리거트 단위 `{도메인}CommandUseCase`/`{도메인}QueryUseCase` **쌍**이다. **메서드 7개를 초과하거나 컨트롤러 2개 이상이 공유하는 대형 서비스만** per-operation(연산 하나당 인터페이스 하나)으로 분해한다. 처음부터 per-operation으로 쪼개면 과거 우려대로 순수 보일러플레이트가 된다.
+- **컨텍스트별 모듈 분할은 여전히 하지 않는다**: 경계는 ArchUnit + 위 컴파일 게이트로 충분하며, 25개 모듈로 쪼개면 빌드 그래프·`settings.gradle`·의존 선언이 그만큼 늘어난다. 모듈 분할이 주는 강한 보장이 필요한 것은 **모듈 간 방향 의존**(domain ← infrastructure ← api)이고 그쪽은 이미 분리돼 있다.
+  - **단일 예외 — `application-common-module`**: 읽기 경로 포트(`{Ctx}QueryPort`·`*Result`·`*SearchCondition`)를 소유할 모듈 **하나**만 신설한다. api 모듈 4개가 공유해야 하는 인터페이스라 어느 api 모듈에도 둘 수 없고, 표현용 투영이므로 domain-module에도 둘 수 없다. 자세한 내용은 아래 [api 모듈 QueryDSL·infra persistence 금지 규칙](#api-모듈-querydslinfra-persistence-금지-규칙-archunit-강제) 참조.
 
 reference 구현: `domain-module/src/test/.../architecture/ContextBoundaryTest`(경계 규칙 1 + 순환 규칙 1 + 봉인 짝 테스트 3). 같은 모듈의 `DomainPurityTest`(프레임워크 순수성·모듈 방향)와 역할이 겹치지 않는다 — 이쪽은 **컨텍스트 간 수평 경계**만 본다.
 
@@ -751,7 +772,11 @@ reference 구현: `domain-module/src/test/.../architecture/ContextBoundaryTest`(
 
 **`web-api`/`admin-api`/`ceo-api`/`batch-module`의 `src`에는 `com.querydsl.*` import가 0건이고, `@QueryProjection` 선언이 0건이며, infrastructure `..persistence..` import가 0건이다.** 조회는 infra `<ctx>/query/` DAO가 캡슐화하므로 api 모듈은 그 DAO와 Result DTO만 주입·import하면 충분하다. api 모듈이 QueryDSL을 직접 쓰기 시작하면 (1) 쿼리가 컨트롤러 인접 계층으로 새어 나가 인덱스·조인 전략 검토 지점이 흩어지고, (2) `EntityManager`/Q타입을 통해 JPA 엔티티에 직접 손대는 경로가 열려 도메인 모델을 우회하게 된다.
 
-- **허용/금지 경계**: infra 중 **`..query..`만 허용**한다(DAO·Result·SearchCondition). `..persistence..`(JpaEntity/Mapper/JpaRepository/RepositoryImpl)는 금지이며, `..listener..`는 스프링이 이벤트로 간접 연결하므로 api 모듈이 import할 일이 없다.
+- **허용/금지 경계 — 최종 상태는 `com.tastyhouse.infrastructure..` import 전면 금지다 (개정)**: 과거 이 절은 "infra 중 `..query..`만 허용"이었다. 읽기 경로를 포트화하면서 그 예외도 없앤다. 읽기 포트 인터페이스 `{Ctx}QueryPort`와 그 입출력 타입(`*Result`·`*SearchCondition`)은 **`application-common-module`(`com.tastyhouse.application.<ctx>.port.out`)이 소유**하고, infrastructure의 DAO가 그 인터페이스를 `implements`한다. api 모듈의 QueryService는 DAO 구현이 아니라 포트 인터페이스를 주입하므로 infra를 전혀 import하지 않게 된다.
+  - **과도기 문구 (중요)**: 이 개정의 실제 적용은 **읽기 포트화 챕터에서 컨텍스트 단위로 진행**되며, 전환이 끝나기 전까지는 아직 옮기지 않은 컨텍스트에 한해 기존 `..query..` 허용이 남아 있다. 즉 이 예외는 **컨텍스트별로 점진 소멸**하며, 전환이 완료된 컨텍스트에서 `..query..`를 다시 import하는 것은 위반이다. ArchUnit 규칙의 예외 목록은 **줄어들기만 해야 한다.**
+  - `..persistence..`(JpaEntity/Mapper/JpaRepository/RepositoryImpl) 금지는 처음부터 예외 없이 유지된다. `..listener..`는 스프링이 이벤트로 간접 연결하므로 api 모듈이 import할 일이 없다.
+- **`@QueryProjection` → `Projections.constructor` 전환**: Result record가 `application-common-module`로 이동하면 그 모듈에 QueryDSL 애노테이션 프로세서를 물릴 수 없으므로(그 모듈은 QueryDSL을 모른다), DAO 쿼리는 `@QueryProjection` 생성자 대신 `Projections.constructor(XxxResult.class, ...)`로 조립한다.
+  - **Result record는 반드시 `public`이어야 한다**: `Projections.constructor`는 **리플렉션으로 런타임에** 생성자를 찾으므로, record가 package-private이면 컴파일은 통과하고 **호출 시점에 500이 난다.** 생성자 시그니처(파라미터 개수·타입·순서) 불일치도 마찬가지로 컴파일에 걸리지 않는다. 이 저장소에는 `ShopRiderGuidePickupPresenceResult`로 실제 이 사고를 낸 선례가 있다. 전환한 쿼리는 **반드시 한 번 호출해 확인**한다.
 - **강제 수단은 ArchUnit + grep 이중**: 4개 모듈 각각의 `architecture/LayerRulesTest`(`shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence`)로 빌드 게이트를 두고, 리뷰 시 `com.querydsl`·`@QueryProjection`·`..persistence..` grep으로 교차 확인한다.
 - **`allowEmptyShould(true)`를 쓰지 않는다 (공허 통과 제거)**: 과거 규칙들은 대상 클래스가 0건이어도 통과하도록 `allowEmptyShould(true)`가 붙어 있어, **규칙이 아무것도 검사하지 않는 상태를 성공으로 보고**하고 있었다. 전환 완료로 모든 규칙이 실제 대상을 갖게 되었으므로 이 옵션을 제거했다 — 대상 0건이면 그 자체가 실패로 드러나야 한다. **예외는 `batch-module`의 CQRS 서비스 규칙 하나뿐**이다(그 모듈에는 `*CommandService`/`*QueryService`가 0개라 구조적으로 대상이 없으므로 그 규칙에 한해 `allowEmptyShould(true)`를 유지한다).
 - **application 서비스 web 의존 금지 규칙의 개정**: 과거 `applicationShouldNotDependOnWebLayer`는 `..application..` 패키지를 매칭했는데, application 계층 해체로 그런 패키지가 사라져 **대상 0건으로 공허하게 통과**하고 있었다. 이를 `applicationServicesShouldNotDependOnWebLayer`로 개정해 **클래스명(`*CommandService`/`*QueryService`)으로 대상을 잡고**, 차단 대상을 web *플럼빙*(`org.springframework.web.bind..`·`org.springframework.web.servlet..`·`org.springframework.http..`·`jakarta.servlet..`)으로 한정했다. 서비스가 요청 바인딩·서블릿·`HttpStatus`를 알 이유가 없다는 것이 규칙의 취지다.
@@ -777,10 +802,20 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 
 **api 모듈의 application 서비스는 도메인당 `{도메인}CommandService`(쓰기)와 `{도메인}QueryService`(읽기) 두 클래스로 분리한다.** 과거 core-module `application/`의 단일 서비스는 명령과 조회를 한 클래스에 담아 트랜잭션 속성(`readOnly` 여부)이 메서드마다 갈리고, 쓰기 경로가 필요 없는 조회에도 write 포트가 주입돼 의존이 과했다. 클래스 단위로 나누면 트랜잭션 속성이 클래스 하나에 일관되게 걸리고, 주입 대상이 곧 그 클래스의 역할을 증명한다.
 
-- **위치 — `..application..` 패키지를 만들지 않는다**: 이 서비스들은 각 api 모듈의 **도메인 패키지에 직접** 둔다(예: `com.tastyhouse.webapi.notice.NoticeQueryService`). 컨트롤러·`request/`·`response/`와 같은 폴더에 두어 한 도메인의 HTTP 처리 일체가 한 곳에 모이게 하며, 계층을 나타내는 중간 패키지 세그먼트를 추가하지 않는다(계층 판별은 [import 순서 규칙](#자사-코드-그룹-내부-계층-정렬-헥사고날-안밖-domain이-위)대로 클래스명 접미어로 한다).
+- **위치 — 완전 매핑 패키지 배치 (개정)**: 과거 이 절은 "`..application..` 패키지를 만들지 않는다"였다. **그 규칙을 폐기하고** 각 api 모듈의 컨텍스트 아래를 아래 3층으로 배치한다. 계층 판별을 클래스명 접미어에만 의존하던 것을 패키지 구조로 끌어올려, 인바운드 어댑터와 application을 눈으로 구분할 수 있게 한다.
+
+  ```
+  <ctx>/adapter/in/web/       컨트롤러 + request/ + response/
+  <ctx>/application/port/in/  UseCase 인터페이스 + Command record
+  <ctx>/application/service/  서비스 구현
+  ```
+
+  **클래스명은 그대로 `{도메인}CommandService`/`{도메인}QueryService`를 유지한다** — 기존 ArchUnit 규칙들이 접미어로 대상을 매칭하므로 이름을 바꾸면 규칙이 조용히 대상을 잃는다. 이번 전환에서 바뀌는 것은 **패키지 위치와 `implements` 추가**뿐이다.
 - **역할과 주입 대상**:
-  - `{도메인}CommandService` — `@Transactional`. domain-module의 **write 포트**(`{도메인}Repository`)와 **순수 POJO 도메인 서비스**(`<ctx>/service/`)를 주입한다. 도메인 변경 후 [명시적 save](#도메인-모델-jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)를 호출한다.
-  - `{도메인}QueryService` — `@Transactional(readOnly = true)`. infrastructure의 **query DAO**(`<ctx>/query/{도메인}QueryDao`)를 주입하고, Result → Response 변환을 private 매퍼로 조립한다.
+  - `{도메인}CommandService` — `@Transactional`. 해당 **`{도메인}CommandUseCase`를 implements**한다. **Command를 수신**해 도메인 타입으로 승격(`XxxId.of`/`Enum.from`)하고, domain-module의 **write 포트**(`{도메인}Repository`)와 **순수 POJO 도메인 서비스**(`<ctx>/service/`)를 주입한다. 도메인 변경 후 [명시적 save](#도메인-모델-jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)를 호출한다.
+  - `{도메인}QueryService` — `@Transactional(readOnly = true)`. 해당 **`{도메인}QueryUseCase`를 implements**한다. 최종 상태에서는 infrastructure DAO가 아니라 **`{Ctx}QueryPort`를 주입**하며(위 [읽기 경로 포트화](#api-모듈-querydslinfra-persistence-금지-규칙-archunit-강제) 참조), Result → Response 변환을 private 매퍼로 조립하는 관례는 그대로다.
+- **컨트롤러는 UseCase 인터페이스만 주입한다**: 컨트롤러 생성자에 `application/service/`의 구체 클래스가 등장하지 않는다. 이것이 인바운드 포트 도입의 실익인 컴파일 게이트가 실제로 작동하는 지점이다.
+- **`MultipartFile`은 서비스 파라미터로만 허용하고 Command 필드로는 금지한다**: 업로드 자체를 받는 경계 타입이라 서비스 시그니처에 남기는 것은 존치하되(파일 업로드 흐름을 재설계하지 않기 위함), **Command에는 업로드 결과 참조**(파일 식별자·URL)만 담는다. Command가 서블릿 업로드 타입을 보유하면 application 계층이 web 플럼빙에 결합되고, 직렬화·재실행이 불가능해진다.
 - **서로의 의존을 교차 주입하지 않는다**: **CommandService는 `..query..`를 주입하지 않고, QueryService는 write 포트를 주입하지 않는다.** 이 두 금지가 CQRS 분리를 실제로 지탱하는 지점이다 — 한쪽이라도 허용하면 클래스는 둘로 나뉘었지만 의존 그래프는 여전히 하나로 뭉쳐 있어, 조회 트랜잭션에서 쓰기가 일어나거나 명령 경로가 표현용 투영에 결합되는 것을 막을 수 없다. 명령 처리 후 응답이 필요하면 **명령은 식별자만 반환하고 컨트롤러가 QueryService로 재조회**한다.
 - **조회만 있는 도메인은 QueryService만 둔다**: 쓰기 경로가 없는 도메인(공개 조회 전용 등)에 빈 `CommandService`를 만들지 않는다. 반대로 쓰기만 있는 경로도 `CommandService` 하나만 둔다 — "도메인당 2개"는 상한이 아니라 **역할이 존재할 때의 이름 규칙**이다.
 - **모듈 간 같은 이름이 공존하는 것은 정상이다**: `web-api`와 `admin-api`가 각각 `NoticeQueryService`를 갖는다(패키지가 달라 충돌하지 않음). 소비자가 다르면 조회 범위·응답 형태가 다르므로 통합하지 않는다.
